@@ -51,6 +51,7 @@ async function run(): Promise<void> {
     projectPath = projectPath.trim();
   }
 
+  
   if (!projectPath) {
     const res = await prompts({
       type: 'text',
