@@ -1,0 +1,23 @@
+{
+  "name": "eventcatalog-project",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "lerna run dev:next --stream --parallel",
+    "bootstrap": "lerna bootstrap",
+    "build": "lerna run build",
+    "prepublish": "lerna run prepublish",
+    "start": "lerna run start --stream"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.8",
+    "lerna": "^4.0.0",
+    "typescript": "^4.5.2",
+    "prettier": "^2.1.2"
+  }
+}

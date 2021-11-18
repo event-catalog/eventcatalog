@@ -1,0 +1,72 @@
+{
+  "name": "create-eventcatalog",
+  "version": "0.0.0",
+  "keywords": [],
+  "description": "Create event catalogs apps with one command",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/boyney123/eventcatalog"
+  },
+  "author": "David Boyne",
+  "license": "MIT",
+  "bin": {
+    "create-eventcatalog": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "ncc build ./index.ts -w -o dist/",
+    "test": "echo \"No test specified\"",
+    "lint": "eslint --max-warnings 13 --config .eslintrc .",
+    "prepare": "rimraf ./dist/ && ncc build ./index.ts -o ./dist/ --minify --no-cache --no-source-map-register",
+    "build": "npm run prepare",
+    "release": "semantic-release",
+    "get:version": "echo $npm_package_version",
+    "get:name": "echo $npm_package_name",
+    "generate:assets": "echo \"No assets to generate so far\"",
+    "bump:version": "npm --no-git-tag-version --allow-same-version version $VERSION"
+  },
+  "devDependencies": {
+    "@semantic-release/commit-analyzer": "^8.0.1",
+    "@semantic-release/github": "^7.0.4",
+    "@semantic-release/npm": "^7.0.6",
+    "@semantic-release/release-notes-generator": "^9.0.1",
+    "@types/async-retry": "1.4.2",
+    "@types/cross-spawn": "^6.0.2",
+    "@types/node": "^12.6.8",
+    "@types/prompts": "2.0.1",
+    "@types/rimraf": "3.0.0",
+    "@types/tar": "4.0.3",
+    "@types/validate-npm-package-name": "3.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.15.0",
+    "@typescript-eslint/parser": "^4.15.0",
+    "@vercel/ncc": "0.25.1",
+    "all-contributors-cli": "^6.14.2",
+    "async-retry": "1.3.1",
+    "chalk": "2.4.2",
+    "commander": "2.20.0",
+    "conventional-changelog-conventionalcommits": "^4.4.0",
+    "cpy": "7.3.0",
+    "cross-spawn": "6.0.5",
+    "eslint": "^7.30.0",
+    "eslint-plugin-github": "^4.1.3",
+    "eslint-plugin-security": "^1.4.0",
+    "eslint-plugin-sonarjs": "^0.5.0",
+    "got": "10.7.0",
+    "jest": "^25.5.0",
+    "jsdoc-to-markdown": "^5.0.0",
+    "markdown-toc": "^1.2.0",
+    "prompts": "2.1.0",
+    "rimraf": "3.0.0",
+    "semantic-release": "^17.2.2",
+    "tar": "4.4.10",
+    "typescript": "4.3.4",
+    "unixify": "^1.0.0",
+    "update-check": "1.5.4",
+    "validate-npm-package-name": "3.0.0"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  }
+}
