@@ -12,7 +12,9 @@
     "bootstrap": "lerna bootstrap",
     "build": "lerna run build",
     "prepublish": "lerna run prepublish",
-    "canary": "lerna publish --canary --preid canary",
+    "canary": "yarn canary:bumpVersion && yarn canary:publish",
+    "canary:version": "echo 0.0.0-`git rev-list --count HEAD`+`git rev-parse --short HEAD`",
+    "canary:bumpVersion": "yarn lerna version `yarn --silent canary:version` --exact --no-push --yes",
     "canary:publish": "yarn lerna publish from-package --dist-tag canary --yes --no-verify-access",
     "start": "lerna run start --stream"
   },
