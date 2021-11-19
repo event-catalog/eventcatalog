@@ -1,7 +1,6 @@
 {
   "name": "@eventcatalogtest/core",
   "version": "0.0.0",
-  "private": true,
   "publishConfig": {
     "access": "public"
   },
