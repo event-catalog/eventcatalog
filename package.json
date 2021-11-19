@@ -13,6 +13,7 @@
     "build": "lerna run build",
     "prepublish": "lerna run prepublish",
     "canary": "yarn canary:bumpVersion && yarn canary:publish",
+    "prettier": "prettier --config .prettierrc --write \"**/*.{js,jsx,ts,tsx,json}\"",
     "canary:version": "echo 0.0.0-`git rev-list --count HEAD`+`git rev-parse --short HEAD`",
     "canary:bumpVersion": "yarn lerna version `yarn --silent canary:version` --exact --no-push --yes",
     "canary:publish": "yarn lerna publish from-package --dist-tag canary --yes --no-verify-access",
