@@ -1,5 +1,5 @@
 {
-  "name": "@eventcatalogtest/create-eventcatalog",
+  "name": "@eventcatalogtest/create-eventcatalog2",
   "version": "0.0.0",
   "keywords": [],
   "description": "Create event catalogs apps with one command",
@@ -10,7 +10,7 @@
   "author": "David Boyne",
   "license": "MIT",
   "bin": {
-    "create-eventcatalog": "./dist/index.js"
+    "create-eventcatalog2": "./dist/index.js"
   },
   "files": [
     "dist"

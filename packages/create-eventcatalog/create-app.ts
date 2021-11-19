@@ -165,13 +165,17 @@ export async function createApp({
      */
     const packageJson = {
       name: appName,
-      version: '0.1.0',
+      version: '0.0.1',
       private: true,
       scripts: {
-        dev: 'glee dev',
-        start: 'glee start',
+        start: "eventcatalog start",
+        dev: "eventcatalog dev",
+        build: "eventcatalog build",
+        "test": "echo \"Error: no test specified\" && exit 1"
       },
     }
+
+
     /**
      * Write it to disk.
      */
@@ -183,11 +187,11 @@ export async function createApp({
     /**
      * Default dependencies.
      */
-    const dependencies = ['']
+    const dependencies = ['@eventcatalogtest/core']
     /**
      * Default devDependencies.
      */
-    const devDependencies = ['eslint']
+    const devDependencies = ['']
     /**
      * TypeScript projects will have type definitions and other devDependencies.
      */
