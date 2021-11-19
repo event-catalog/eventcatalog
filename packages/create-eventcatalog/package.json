@@ -1,5 +1,5 @@
 {
-  "name": "@eventcatalogtest/create-eventcatalog",
+  "name": "@eventcatalogtest/create-eventcatalog-test",
   "version": "0.0.0-32",
   "keywords": [],
   "description": "Create event catalogs apps with one command",
@@ -72,5 +72,5 @@
   "engines": {
     "node": ">=12.0.0"
   },
-  "gitHead": "fc5f476bcde24217120e9506a7f9d2be24d9b6da"
+  "gitHead": "fcafd00c9fe99537f55c92e11903642344272a48"
 }

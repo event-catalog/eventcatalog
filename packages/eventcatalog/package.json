@@ -1,5 +1,5 @@
 {
-  "name": "@eventcatalogtest/core",
+  "name": "@eventcatalogtest/core-test",
   "version": "0.0.0-32",
   "publishConfig": {
     "access": "public"
@@ -36,5 +36,6 @@
   "devDependencies": {
     "eslint": "7.32.0",
     "eslint-config-next": "12.0.4"
-  }
+  },
+  "gitHead": "fcafd00c9fe99537f55c92e11903642344272a48"
 }
