@@ -63,19 +63,36 @@ cli
   .command('dev [siteDir]')
   .description('Start the development server.')
   .action((siteDir, { port, host, locale, config, hotOnly, open, poll }) => {
-    // might need to copy files over to the application
-    // might need to link the files over
 
-    // might need to tell the application the working DIR
+    const excludeFilesForCopy = ['.next', 'eventcatalog.config.js', 'bin', 'README.md']
 
-    console.log(process.cwd())
+    const usersProjectDir = process.cwd()
+    const coreDirectory = path.join(__dirname, '../')
+    const coreDestination = path.join(usersProjectDir, 'eventcatalog-core')
 
-    execSync(`PROJECT_DIR=${process.cwd()} npm run dev:next`, {
-      cwd: path.join(__dirname, '../'),
-      stdio: 'inherit',
+    const exclusions = excludeFilesForCopy.map((file) => path.join(coreDestination, file))
+
+    fs.ensureDirSync(coreDestination)
+    fs.copySync(coreDirectory, coreDestination)
+
+    // remove any files we don't care about
+    exclusions.map((path) => {
+      try {
+        fs.lstatSync(path).isDirectory()
+          ? fs.rmSync(path, { recursive: true, force: true })
+          : fs.unlinkSync(path)
+      } catch (error) {}
     })
 
-    // console.log('WHAT')
+    fs.copyFileSync(
+      path.join(usersProjectDir, 'eventcatalog.config.js'),
+      path.join(coreDestination, 'eventcatalog.config.js')
+    )
+
+    execSync(`PROJECT_DIR=${process.cwd()} npm run dev:next`, {
+      cwd: coreDestination,
+      stdio: 'inherit',
+    })
   })
 
 async function run() {
