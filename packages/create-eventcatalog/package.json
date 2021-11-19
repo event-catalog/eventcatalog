@@ -15,6 +15,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "ncc build ./index.ts -w -o dist/",
     "test": "echo \"No test specified\"",
