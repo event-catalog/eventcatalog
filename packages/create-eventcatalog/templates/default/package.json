@@ -9,7 +9,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@eventcatalog/core": "0.0.1"
+    "@eventcatalogtest/core": "^0.0.0-23",
+    "typescript": "^4.4.4"
   },
   "keywords": [],
   "author": "",
