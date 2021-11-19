@@ -28,7 +28,7 @@ jobs:
           git config --global user.name "EventCatalog Canary"
           git config --global user.email "boyneyy123+eventcatalog@gmail.com"
           git fetch
-          git checkout main
+          git checkout master
           echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >> .npmrc
           cat .npmrc
           echo "npm whoami"
