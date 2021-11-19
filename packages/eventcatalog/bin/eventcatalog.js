@@ -26,7 +26,7 @@ cli
       }
     )
 
-    execSync(`PROJECT_DIR=${process.cwd()} npm run start`, {
+    execSync(`PROJECT_DIR=${process.cwd()} npm run start:next`, {
       cwd: path.join(__dirname, '../'),
       stdio: 'inherit',
     })
@@ -36,7 +36,7 @@ cli
   .command('build [siteDir]')
   .description('Start the development server.')
   .action((siteDir, { port, host, locale, config, hotOnly, open, poll }) => {
-    execSync(`PROJECT_DIR=${process.cwd()} npm run build`, {
+    execSync(`PROJECT_DIR=${process.cwd()} npm run build:next`, {
       cwd: path.join(__dirname, '../'),
       stdio: 'inherit',
     })
@@ -70,7 +70,7 @@ cli
 
     console.log(process.cwd())
 
-    execSync(`PROJECT_DIR=${process.cwd()} npm run dev`, {
+    execSync(`PROJECT_DIR=${process.cwd()} npm run dev:next`, {
       cwd: path.join(__dirname, '../'),
       stdio: 'inherit',
     })
