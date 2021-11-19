@@ -188,6 +188,7 @@ export async function createApp({
      * Default dependencies.
      */
     const dependencies = ['@eventcatalogtest/core-test']
+    
     /**
      * Default devDependencies.
      */
