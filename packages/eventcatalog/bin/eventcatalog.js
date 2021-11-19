@@ -9,6 +9,28 @@ const usersProjectDir = process.cwd()
 const coreDirectory = path.join(__dirname, '../')
 const coreDestination = path.join(usersProjectDir, 'eventcatalog-core')
 
+const copyCoreApplicationCodeIntoUsersProjectDir = () => {
+  const excludeFilesForCopy = ['.next', 'eventcatalog.config.js', 'bin', 'README.md']
+  const exclusions = excludeFilesForCopy.map((file) => path.join(coreDestination, file))
+
+  fs.ensureDirSync(coreDestination)
+  fs.copySync(coreDirectory, coreDestination)
+
+  // remove any files we don't care about
+  exclusions.map((path) => {
+    try {
+      fs.lstatSync(path).isDirectory()
+        ? fs.rmSync(path, { recursive: true, force: true })
+        : fs.unlinkSync(path)
+    } catch (error) {}
+  })
+
+  fs.copyFileSync(
+    path.join(usersProjectDir, 'eventcatalog.config.js'),
+    path.join(coreDestination, 'eventcatalog.config.js')
+  )
+}
+
 cli
   .command('start [siteDir]')
   .description('Start the development server.')
@@ -29,11 +51,18 @@ cli
   .command('build [siteDir]')
   .description('Start the development server.')
   .action(() => {
+    if (!fs.existsSync(coreDestination)) {
+      // get the application ready
+      copyCoreApplicationCodeIntoUsersProjectDir()
+    }
+
+    // build using nextjs
     execSync(`PROJECT_DIR=${process.cwd()} npm run build`, {
       cwd: coreDestination,
       stdio: 'inherit',
     })
 
+    // everything is built make sure its back in the users project directory
     fs.copySync(path.join(coreDestination, '.next'), path.join(usersProjectDir, '.next'))
   })
 
@@ -41,25 +70,7 @@ cli
   .command('dev [siteDir]')
   .description('Start the development server.')
   .action(() => {
-    const excludeFilesForCopy = ['.next', 'eventcatalog.config.js', 'bin', 'README.md']
-    const exclusions = excludeFilesForCopy.map((file) => path.join(coreDestination, file))
-
-    fs.ensureDirSync(coreDestination)
-    fs.copySync(coreDirectory, coreDestination)
-
-    // remove any files we don't care about
-    exclusions.map((path) => {
-      try {
-        fs.lstatSync(path).isDirectory()
-          ? fs.rmSync(path, { recursive: true, force: true })
-          : fs.unlinkSync(path)
-      } catch (error) {}
-    })
-
-    fs.copyFileSync(
-      path.join(usersProjectDir, 'eventcatalog.config.js'),
-      path.join(coreDestination, 'eventcatalog.config.js')
-    )
+    copyCoreApplicationCodeIntoUsersProjectDir()
 
     execSync(`PROJECT_DIR=${process.cwd()} npm run dev`, {
       cwd: coreDestination,
