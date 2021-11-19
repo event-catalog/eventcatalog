@@ -20,7 +20,6 @@
     "@monaco-editor/react": "^4.3.1",
     "@tailwindcss/forms": "^0.3.4",
     "@tailwindcss/typography": "^0.4.1",
-    "fs-extra": "^10.0.0",
     "gray-matter": "^4.0.3",
     "next": "12.0.4",
     "react": "17.0.2",
@@ -29,8 +28,10 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.0",
+    "commander": "^8.3.0",
     "eslint": "7.32.0",
     "eslint-config-next": "12.0.4",
+    "fs-extra": "^10.0.0",
     "next-mdx-remote": "^3.0.8",
     "postcss": "^8.3.11",
     "tailwindcss": "^2.2.19",
