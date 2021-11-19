@@ -5,29 +5,22 @@ const path = require('path')
 const { execSync } = require('child_process')
 const fs = require('fs-extra')
 
-// cli.version(require('../package.json').version).usage('<command> [options]');
+const usersProjectDir = process.cwd()
+const coreDirectory = path.join(__dirname, '../')
+const coreDestination = path.join(usersProjectDir, 'eventcatalog-core')
+
 cli
   .command('start [siteDir]')
   .description('Start the development server.')
-  .action((siteDir, { port, host, locale, config, hotOnly, open, poll }) => {
-    const projectBuildDir = path.join(process.cwd(), 'build')
-
-    // copy the build back...
+  .action(() => {
+    fs.rmSync(path.join(coreDestination, 'node_modules'), { recursive: true, force: true })
     fs.copySync(
-      projectBuildDir,
-      path.join(__dirname, '../.next'),
-      { overwrite: true },
-      function (err) {
-        if (err) {
-          console.error(err)
-        } else {
-          console.log('success!')
-        }
-      }
+      path.join(usersProjectDir, 'node_modules'),
+      path.join(coreDestination, 'node_modules')
     )
 
-    execSync(`PROJECT_DIR=${process.cwd()} npm run start:next`, {
-      cwd: path.join(__dirname, '../'),
+    execSync(`PROJECT_DIR=${process.cwd()} npm run start`, {
+      cwd: coreDestination,
       stdio: 'inherit',
     })
   })
@@ -35,41 +28,20 @@ cli
 cli
   .command('build [siteDir]')
   .description('Start the development server.')
-  .action((siteDir, { port, host, locale, config, hotOnly, open, poll }) => {
-    execSync(`PROJECT_DIR=${process.cwd()} npm run build:next`, {
-      cwd: path.join(__dirname, '../'),
+  .action(() => {
+    execSync(`PROJECT_DIR=${process.cwd()} npm run build`, {
+      cwd: coreDestination,
       stdio: 'inherit',
     })
 
-    const projectBuildDir = path.join(process.cwd(), 'build')
-
-    fs.ensureDir(projectBuildDir)
-
-    fs.copySync(
-      path.join(__dirname, '../.next'),
-      projectBuildDir,
-      { overwrite: true },
-      function (err) {
-        if (err) {
-          console.error(err)
-        } else {
-          console.log('success!')
-        }
-      }
-    )
+    fs.copySync(path.join(coreDestination, '.next'), path.join(usersProjectDir, '.next'))
   })
 
 cli
   .command('dev [siteDir]')
   .description('Start the development server.')
-  .action((siteDir, { port, host, locale, config, hotOnly, open, poll }) => {
-
+  .action(() => {
     const excludeFilesForCopy = ['.next', 'eventcatalog.config.js', 'bin', 'README.md']
-
-    const usersProjectDir = process.cwd()
-    const coreDirectory = path.join(__dirname, '../')
-    const coreDestination = path.join(usersProjectDir, 'eventcatalog-core')
-
     const exclusions = excludeFilesForCopy.map((file) => path.join(coreDestination, file))
 
     fs.ensureDirSync(coreDestination)
@@ -89,7 +61,7 @@ cli
       path.join(coreDestination, 'eventcatalog.config.js')
     )
 
-    execSync(`PROJECT_DIR=${process.cwd()} npm run dev:next`, {
+    execSync(`PROJECT_DIR=${process.cwd()} npm run dev`, {
       cwd: coreDestination,
       stdio: 'inherit',
     })

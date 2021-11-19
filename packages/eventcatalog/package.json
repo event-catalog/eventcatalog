@@ -8,10 +8,10 @@
     "eventcatalog": "bin/eventcatalog.js"
   },
   "scripts": {
-    "dev:next": "next dev",
-    "build:next": "next build",
-    "start:next": "next start",
-    "lint:next": "next lint"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "@headlessui/react": "^1.4.2",
