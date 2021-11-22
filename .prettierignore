@@ -3,7 +3,6 @@ node_modules
 .yarn
 build
 coverage
-packages/eventcatalog/lib/
 packages/eventcatalog-*/lib/*
 packages/eventcatalog-*/lib-next/
 packages/create-eventcatalog/lib/*

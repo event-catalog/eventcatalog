@@ -2,14 +2,15 @@
 name: UserCreated
 version: 0.0.1
 summary: |
-  Event is created when we do something useful. We can use this tool to explain what this event is all about and go further and deeper.
+  Event is created when we do something useful.
 producers:
     - id: User API
     - id: Customer Portal
+    - id: Random
 consumers:
     - id: Email Platform
 domains:
-    - User
+    - id: User
 owners:
     - label: dboyne
 ---

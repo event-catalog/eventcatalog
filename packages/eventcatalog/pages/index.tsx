@@ -1,44 +1,41 @@
 import { Fragment, useState } from 'react'
-import matter from 'gray-matter'
-import { Disclosure, Menu, Transition } from '@headlessui/react'
-import {
-  ChevronDownIcon,
-  FilterIcon,
-  MinusSmIcon,
-  PlusSmIcon,
-  ViewGridIcon,
-  ThumbUpIcon,
-  EyeIcon,
-  ChatAltIcon,
-  ShareIcon,
-} from '@heroicons/react/solid'
+import { Event, Domain, Service } from '@/types/index'
 import Link from 'next/link'
+
+import Mermaid from '@/components/Mermaid'
+
+import { getAllEvents, getAllDomainsFromEvents, getAllServicesFromEvents } from '@/lib/eventcatalog'
+import { buildMermaidFlowChart } from '@/lib/graphs'
 
 import { getBackgroundColor } from '@/utils/random-bg'
 
-import fs from 'fs'
-import path from 'path'
+import { Disclosure, Menu, Transition } from '@headlessui/react'
+import { ChevronDownIcon, ViewGridIcon } from '@heroicons/react/solid'
 
-const sortOptions = [
-  { name: 'Most Popular', href: '#', current: true },
-  { name: 'Best Rating', href: '#', current: false },
-  { name: 'Newest', href: '#', current: false },
-  { name: 'Price: Low to High', href: '#', current: false },
-  { name: 'Price: High to Low', href: '#', current: false },
-]
+import { useFeatures } from '@/hooks/EventCatalog'
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
 }
 
-export default function Example({ events = [], domains = [], services = [] }) {
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+const sortOptions = [
+  { name: 'Name', href: '#', current: true },
+  { name: 'Version', href: '#', current: false },
+  { name: 'Domains', href: '#', current: false },
+]
 
+export interface PageProps {
+  events: [Event]
+  domains: [Domain]
+  services: [Service]
+}
+
+export default function Page({ events, domains, services }: PageProps) {
   const filters = [
     {
       id: 'domains',
       name: 'Domains',
-      options: domains.map((domain) => ({
+      options: domains.map(domain => ({
         value: domain,
         label: domain,
         checked: false,
@@ -54,6 +51,40 @@ export default function Example({ events = [], domains = [], services = [] }) {
       })),
     },
   ]
+
+  const [selectedFilters, setSelectedFilters] = useState({domains: [], services: []})
+
+  const handleFilterSelection = (option, type, event) => {
+    if(event.target.checked){
+      const newFilters = selectedFilters[type].concat([option.value]);
+      setSelectedFilters({...selectedFilters, [type]: newFilters});
+    } else {
+      const newFilters = selectedFilters[type].filter(value => value !== option.value);
+      setSelectedFilters({...selectedFilters, [type]: newFilters});
+    }
+  }
+
+  const { getFeature } = useFeatures()
+  const isMermaidOnEventsEnabled = getFeature('showMermaidOnEvents')
+
+  let eventsToRender = events;
+
+  if(selectedFilters.domains.length > 0 || selectedFilters.services.length > 0){
+
+    console.log('FILTER')
+
+    eventsToRender = eventsToRender.filter(event => {
+
+      const { domains: domainFilters, services: serviceFilters } = selectedFilters;
+
+      const hasDomainsFromFilters = event.domains.some(domain => domainFilters.indexOf(domain.id) > -1);
+      const hasConsumersFromFilters = event.consumers.some(consumer => serviceFilters.indexOf(consumer.id) > -1);
+      const hasProducersFromFilters = event.producers.some(producer => serviceFilters.indexOf(producer.id) > -1);
+
+      return hasDomainsFromFilters || hasConsumersFromFilters || hasProducersFromFilters;
+
+    });
+  }
 
   return (
     <div className="bg-white">
@@ -105,22 +136,9 @@ export default function Example({ events = [], domains = [], services = [] }) {
                   </Menu.Items>
                 </Transition>
               </Menu>
-
-              <button
-                type="button"
-                className="p-2 -m-2 ml-5 sm:ml-7 text-gray-400 hover:text-gray-500"
-              >
-                <span className="sr-only">View grid</span>
+              {/* <button type="button" className="p-2 -m-2 ml-5 sm:ml-7 text-gray-400 hover:text-gray-500">
                 <ViewGridIcon className="w-5 h-5" aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                className="p-2 -m-2 ml-4 sm:ml-6 text-gray-400 hover:text-gray-500 lg:hidden"
-                onClick={() => setMobileFiltersOpen(true)}
-              >
-                <span className="sr-only">Filters</span>
-                <FilterIcon className="w-5 h-5" aria-hidden="true" />
-              </button>
+              </button> */}
             </div>
           </div>
 
@@ -129,13 +147,13 @@ export default function Example({ events = [], domains = [], services = [] }) {
               Products
             </h2>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-x-8 gap-y-10">
+            <div className="grid grid-cols-4 gap-x-8 gap-y-10">
               {/* Filters */}
               <form className="hidden lg:block">
                 <span className="text-sm font-bold text-gray-900 mb-4 block">Events</span>
                 <ul
                   role="list"
-                  className=" text-sm font-medium text-gray-900 space-y-4 pb-6 border-b border-gray-200"
+                  className=" text-sm font-medium text-gray-900 space-y-4 pb-6 border-b border-gray-200 items-stretch"
                 >
                   {events.map((event) => (
                     <li key={event.name}>
@@ -146,23 +164,16 @@ export default function Example({ events = [], domains = [], services = [] }) {
                   ))}
                 </ul>
 
-                {filters.map((section) => (
+                {filters.map((section: any) => (
                   <Disclosure as="div" key={section.id} className="border-b border-gray-200 py-6">
-                    {({ open }) => (
+                    {() => (
                       <>
                         <h3 className="-my-3 flow-root">
                           <Disclosure.Button className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
                             <span className="font-medium text-gray-900">{section.name}</span>
-                            <span className="ml-6 flex items-center">
-                              {open ? (
-                                <MinusSmIcon className="h-5 w-5" aria-hidden="true" />
-                              ) : (
-                                <PlusSmIcon className="h-5 w-5" aria-hidden="true" />
-                              )}
-                            </span>
                           </Disclosure.Button>
                         </h3>
-                        <Disclosure.Panel className="pt-6">
+                        <Disclosure.Panel static className="pt-6">
                           <div className="space-y-4">
                             {section.options.map((option, optionIdx) => (
                               <div key={option.value} className="flex items-center">
@@ -171,6 +182,7 @@ export default function Example({ events = [], domains = [], services = [] }) {
                                   name={`${section.id}[]`}
                                   defaultValue={option.value}
                                   type="checkbox"
+                                  onChange={(event) => handleFilterSelection(option, section.id, event)}
                                   defaultChecked={option.checked}
                                   className="h-4 w-4 border-gray-300 rounded text-gray-600 focus:ring-gray-500"
                                 />
@@ -190,62 +202,65 @@ export default function Example({ events = [], domains = [], services = [] }) {
                 ))}
               </form>
 
-              {/* Product grid */}
               <div className="lg:col-span-3">
-                {/* Replace with your content */}
                 <div>
                   <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">
                     Events / Messages
                   </h2>
                   <ul
                     role="list"
-                    className="mt-3 grid grid-cols-1 gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-2 "
+                    className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2 "
                   >
-                    {events.map((event) => (
-                      <li key={event.name}>
-                        <Link href={`/events/${event.name}`}>
-                          <a className="col-span-1 flex shadow-sm rounded-md">
-                            <div
-                              style={{
-                                background: getBackgroundColor(event.domains[0]),
-                              }}
-                              className={classNames(
-                                'bg-red-500',
-                                'flex-shrink-0 flex items-center justify-center w-4 text-white text-sm font-medium rounded-l-md'
-                              )}
-                            >
-                              {/* <span className="tblock -rotate-90 transform">Ordering</span> */}
-                            </div>
-                            <div className="w-full items-center justify-between border-t border-r border-b border-gray-200 bg-white rounded-r-md relative">
-                              <div className="px-4 py-2 text-sm space-y-2">
-                                <a
-                                  href={event.href}
-                                  className="text-gray-900 font-bold hover:text-gray-600"
-                                >
-                                  {event.name}
-                                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    v{event.version}
-                                  </span>
-                                </a>
-                                <div className="text-gray-500 text-xs block">
-                                  Event is created when the user logs into the account.
-                                </div>
-                                <hr className="opacity-50" />
-                                <div className="text-xs text-gray-500">
-                                  <ul className="flex space-x-3">
-                                    <li>Domains: {event.domains.length}</li>
-                                    <li>•</li>
-                                    <li>Producers: {event.producers.length}</li>
-                                    <li>•</li>
-                                    <li>Consumers: {event.consumers.length}</li>
-                                  </ul>
+                    {eventsToRender.map((event) => {
+                      const mermaidChart = buildMermaidFlowChart(
+                        event.name,
+                        event.producers,
+                        event.consumers
+                      )
+
+                      const { draft: isDraft } = event
+
+                      return (
+                        <li key={event.name} className={`h-full items-stretch ${isMermaidOnEventsEnabled ? 'flex': ''}`}>
+                          <Link href={`/event/${event.name}`}>
+                            <a className="flex shadow-sm rounded-md">
+                              <div
+                                style={{
+                                  background: getBackgroundColor(event.domains[0].id),
+                                }}
+                                className={classNames(
+                                  'bg-red-500',
+                                  'flex-shrink-0 flex items-center justify-center w-4 text-white text-sm font-medium rounded-l-md'
+                                )}
+                              ></div>
+                              <div className="w-full items-center justify-between border-t border-r border-b border-gray-200 bg-white rounded-r-md relative">
+                                <div className="px-4 text-sm space-y-2 flex flex-col h-full py-4">
+                                  <div className="text-gray-900 font-bold hover:text-gray-600">
+                                    {event.name}
+                                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                      v{event.version}
+                                    </span>
+                                    {isDraft && (
+                                      <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-500 text-gray-100">
+                                        Draft
+                                      </span>
+                                    )}
+                                    <div className="text-gray-500 text-xs font-normal mt-2 ">
+                                      {event.summary}
+                                    </div>
+                                  </div>
+                                  {isMermaidOnEventsEnabled && (
+                                    <div className="h-full items-center flex">
+                                      <Mermaid chart={mermaidChart} />
+                                    </div>
+                                  )}
                                 </div>
                               </div>
-                            </div>
-                          </a>
-                        </Link>
-                      </li>
-                    ))}
+                            </a>
+                          </Link>
+                        </li>
+                      )
+                    })}
                   </ul>
                 </div>
               </div>
@@ -258,31 +273,14 @@ export default function Example({ events = [], domains = [], services = [] }) {
 }
 
 export const getServerSideProps = () => {
-  const projectDir = process.env.PROJECT_DIR || process.cwd()
-
-  const folders = fs.readdirSync(path.join(projectDir, 'events'))
-  const files = folders.map((folder) =>
-    fs.readFileSync(path.join(projectDir, 'events', folder, 'index.md'), {
-      encoding: 'utf-8',
-    })
-  )
-
-  const events = files.map((file) => matter(file).data)
-
-  const domains = events.reduce((domains, event) => {
-    return domains.concat(event.domains)
-  }, [])
-
-  const allConsumersAndProducers = events.reduce((domains, event) => {
-    return domains.concat(event.consumers).concat(event.producers)
-  }, [])
-
-  const services = allConsumersAndProducers.map((service) => service.id)
+  const events = getAllEvents()
+  const domains = getAllDomainsFromEvents(events)
+  const services = getAllServicesFromEvents(events)
 
   return {
     props: {
       events,
-      domains: [...new Set(domains)],
+      domains: [...new Set(domains.map(domain => domain.id))],
       services: [...new Set(services)],
     },
   }

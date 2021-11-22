@@ -23,3 +23,14 @@ export const useUser = () => {
     getUserById,
   }
 }
+
+export const useFeatures = () => {
+  const config = useConfig()
+
+  const getFeature = (key) => config.features[key];
+
+  return {
+    features: config.features,
+    getFeature
+  }
+}

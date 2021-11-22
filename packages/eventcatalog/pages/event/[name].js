@@ -6,7 +6,7 @@ import { serialize } from 'next-mdx-remote/serialize'
 import { MDXRemote } from 'next-mdx-remote'
 
 import Editor from '@/components/Mdx/Editor'
-import Admonition from '@/components/Mdx/Alert'
+import Admonition from '@/components/Mdx/Admonition'
 import EventFlow from '@/components/EventFlow'
 
 import EventView from '@/components/EventView'

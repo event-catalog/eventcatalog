@@ -1,5 +1,6 @@
 import { useUser } from '@/hooks/EventCatalog'
 import { CubeIcon, MapIcon, PencilIcon } from '@heroicons/react/solid'
+import Admonition from '@/components/Mdx/Admonition'
 
 export default function EventView({
   name,
@@ -9,6 +10,7 @@ export default function EventView({
   domains = [],
   owners = [],
   summary,
+  draft: isDraft = false,
   producers = [],
   consumers = [],
 }) {
@@ -24,19 +26,25 @@ export default function EventView({
                 <div className="xl:col-span-3 xl:pr-8 xl:border-r xl:border-gray-200">
                   <div>
                     <div>
-                      <div className="md:flex md:items-center md:justify-between md:space-x-4 xl:border-b xl:pb-6">
-                        <div>
-                          <h1 className="text-2xl font-bold text-gray-900 relative">
+                      <div className="xl:border-b pb-4 flex justify-between">
+                        <div className="space-y-2">
+                          <h1 className="text-3xl font-bold text-gray-900 relative">
                             {name}
                             <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative bg-yellow-100 text-yellow-800">
                               v{version}
                             </span>
+                            {isDraft && (
+                              <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative bg-gray-500 text-gray-100">
+                                Draft
+                              </span>
+                            )}
                           </h1>
+                          <div className="text-gray-500 mb-10 text">{summary}</div>
                         </div>
                         <div className="mt-4 flex space-x-3 md:mt-0">
                           <button
                             type="button"
-                            className="inline-flex justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
+                            className="hidden md:inline-flex h-10 justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
                           >
                             <PencilIcon
                               className="-ml-1 mr-2 h-5 w-5 text-gray-400"
@@ -47,8 +55,31 @@ export default function EventView({
                         </div>
                       </div>
                       <div className="py-3 xl:pt-6 xl:pb-0">
-                        <div className="text-gray-500 mb-10 text">{summary}</div>
+                        {isDraft && (
+                          <Admonition className="mt-0 pt-0" type="warning">
+                            This event is currently in <span className="underline">draft</span>{' '}
+                            mode.
+                          </Admonition>
+                        )}
                         <div className="prose max-w-none">{children}</div>
+
+                        {/* <DomainEventList limit=4 /> */}
+
+                        <div className="mt-10">
+                          <h3 className="text-xl font-bold mb-3">
+                            Explore more events
+                          </h3>
+                          <div className="grid grid-cols-2">
+                            <div className="border border-gray-200 rounded-md py-6 px-2 text-left">
+                              <span className="block text-sm">Previous</span>
+                              <span className="text-pink-600 font-bold">« PaymentComplete</span>
+                            </div>
+                            <div className="border border-gray-200 rounded-md py-6 px-2 text-right">
+                              <span className="block text-sm">Next</span>
+                              <span className="text-pink-600 font-bold">UserCreatedEvent »</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -157,7 +188,7 @@ export default function EventView({
                                   />
                                 </div>
                                 <div className="ml-3.5 text-sm font-medium text-gray-900">
-                                  {domain}
+                                  {domain.id}
                                 </div>
                               </a>{' '}
                             </li>
