@@ -17,7 +17,7 @@ owners:
 
 ## Hello World
 
-<EventFlowDiagram />
+<Mermaid />
 
 <Schema />
 
