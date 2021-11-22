@@ -29,7 +29,7 @@ const buildElementsFromEvent = (event: Event) => {
     },
   ]
 
-  const producerNodes = producers.reduce((nodes, { id: producerName }, index) => {
+  const producerNodes = producers.reduce((nodes, producerName, index) => {
 
     nodes.push({
       id: producerName,
@@ -55,7 +55,7 @@ const buildElementsFromEvent = (event: Event) => {
     
   }, [])
 
-  const consumerNodes = consumers.reduce((nodes, { id: consumerName }, index) => {
+  const consumerNodes = consumers.reduce((nodes, consumerName, index) => {
 
     nodes.push({
       id: consumerName,
