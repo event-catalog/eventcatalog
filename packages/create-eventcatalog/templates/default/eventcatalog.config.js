@@ -5,6 +5,9 @@ module.exports = {
   baseUrl: '/',
   organizationName: 'MyAwesomeOrg',
   projectName: 'Event Catalog',
+  features: {
+    showMermaidOnEvents: true
+  },
   users: [
     {
       id: 'dboyne',

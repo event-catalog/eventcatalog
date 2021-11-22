@@ -4,10 +4,10 @@ version: 0.0.1
 summary: |
   Event is created when we do something useful. We can use this tool to explain what this event is all about and go further and deeper.
 producers:
-    - id: User API
-    - id: Customer Portal
+    - User API
+    - Customer Portal
 consumers:
-    - id: Email Platform
+    - Email Platform
 domains:
     - User
 owners:

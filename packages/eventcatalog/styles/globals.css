@@ -1,3 +1,24 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.mermaid svg {
+  width: 100%;
+}
+
+.prose .event-table table {
+  width: inherit;
+  table-layout: inherit;
+  text-align: inherit;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.prose .event-table tbody td:first-child, .prose .event-table thead th:first-child{
+    padding-left: 20px;
+}
+
+.prose .event-table tbody td, event-table thead th {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}

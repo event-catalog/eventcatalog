@@ -10,7 +10,7 @@ import { buildMermaidFlowChart } from '@/lib/graphs'
 import { getBackgroundColor } from '@/utils/random-bg'
 
 import { Disclosure, Menu, Transition } from '@headlessui/react'
-import { ChevronDownIcon, ViewGridIcon } from '@heroicons/react/solid'
+import { ChevronDownIcon } from '@heroicons/react/solid'
 
 import { useFeatures } from '@/hooks/EventCatalog'
 
@@ -85,6 +85,7 @@ export default function Page({ events, domains, services }: PageProps) {
 
     });
   }
+
 
   return (
     <div className="bg-white">
@@ -212,13 +213,9 @@ export default function Page({ events, domains, services }: PageProps) {
                     className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2 "
                   >
                     {eventsToRender.map((event) => {
-                      const mermaidChart = buildMermaidFlowChart(
-                        event.name,
-                        event.producers,
-                        event.consumers
-                      )
-
                       const { draft: isDraft } = event
+
+                      console.log('e', event)
 
                       return (
                         <li key={event.name} className={`h-full items-stretch ${isMermaidOnEventsEnabled ? 'flex': ''}`}>
@@ -226,7 +223,7 @@ export default function Page({ events, domains, services }: PageProps) {
                             <a className="flex shadow-sm rounded-md">
                               <div
                                 style={{
-                                  background: getBackgroundColor(event.domains[0].id),
+                                  background: getBackgroundColor(event.domains[0]),
                                 }}
                                 className={classNames(
                                   'bg-red-500',
@@ -251,7 +248,7 @@ export default function Page({ events, domains, services }: PageProps) {
                                   </div>
                                   {isMermaidOnEventsEnabled && (
                                     <div className="h-full items-center flex">
-                                      <Mermaid chart={mermaidChart} />
+                                      <Mermaid event={event}  />
                                     </div>
                                   )}
                                 </div>
@@ -280,7 +277,7 @@ export const getServerSideProps = () => {
   return {
     props: {
       events,
-      domains: [...new Set(domains.map(domain => domain.id))],
+      domains: [...new Set(domains)],
       services: [...new Set(services)],
     },
   }

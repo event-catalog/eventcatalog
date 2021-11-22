@@ -1,32 +1,38 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from 'react'
 import mermaid from 'mermaid'
+import { buildMermaidFlowChart, buildMermaidFlowChartForService } from '@/lib/graphs'
 
 mermaid.initialize({
   startOnLoad: true,
   theme: 'forest',
   securityLevel: 'loose',
+  flowchart: {
+    useMaxWidth: false,
+    width: '1000px',
+  },
   themeCSS: `
   .node {
       filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .2))
+  }
+  .mermaid svg {
+      width: 10000px
   }
   .node rect {
       fill: white
   }
     `,
   fontFamily: 'Fira Code',
+  width: '100%',
 })
 
+const index = ({ event, service, source = "event" }) => {
 
+  const mermaidChart = source === 'event' ? buildMermaidFlowChart(event) : buildMermaidFlowChartForService(service);
 
-const index = (props) => {
-    useEffect(() => {
-        mermaid.contentLoaded();
-    }, [])
-    return (
-        <div>
-            <div className="mermaid">{props.chart}</div>
-        </div>
-    );
-};
+  useEffect(() => {
+    mermaid.contentLoaded()
+  }, [])
+  return <div className="mermaid">{mermaidChart}</div>
+}
 
-export default index;
+export default index

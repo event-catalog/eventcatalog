@@ -4,11 +4,12 @@ version: 1.5.5
 summary: |
   Tells us when the item has been added to the cart
 producers:
-    - id: Shopping API
+    - Shopping API
+    - Email Platform
 consumers:
-    - id: Customer Portal
+    - Customer Portal
 domains:
-    - id: Shopping
+    - Shopping
 owners:
     - id: dboyne
     - id: mSmith

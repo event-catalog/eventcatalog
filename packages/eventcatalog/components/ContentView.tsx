@@ -1,6 +1,53 @@
 import { useUser } from '@/hooks/EventCatalog'
 import { CubeIcon, MapIcon, PencilIcon } from '@heroicons/react/solid'
 import Admonition from '@/components/Mdx/Admonition'
+import Link from 'next/link'
+
+import { HomeIcon } from '@heroicons/react/solid'
+
+const pages = [
+  { name: 'Services', href: '#', current: false },
+  { name: 'Email Platform', href: '#', current: true },
+]
+
+const BreadCrumbs = () => {
+  return (
+    <nav className="flex" aria-label="Breadcrumb">
+      <ol role="list" className="flex items-center space-x-4">
+        <li>
+          <div>
+            <a href="#" className="text-gray-400 hover:text-gray-500">
+              <HomeIcon className="flex-shrink-0 h-5 w-5" aria-hidden="true" />
+              <span className="sr-only">Home</span>
+            </a>
+          </div>
+        </li>
+        {pages.map((page) => (
+          <li key={page.name}>
+            <div className="flex items-center">
+              <svg
+                className="flex-shrink-0 h-5 w-5 text-gray-300"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+              >
+                <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
+              </svg>
+              <a
+                href={page.href}
+                className="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700"
+                aria-current={page.current ? 'page' : undefined}
+              >
+                {page.name}
+              </a>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
 
 export default function EventView({
   name,
@@ -13,6 +60,7 @@ export default function EventView({
   draft: isDraft = false,
   producers = [],
   consumers = [],
+  events: { listOfEventsServicePublishes = [], listOfEventsServiceSubscribesTo = [] },
 }) {
   const { getUserById } = useUser()
 
@@ -24,15 +72,20 @@ export default function EventView({
             <div className="py-8 xl:py-10">
               <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 xl:max-w-7xl xl:grid xl:grid-cols-4">
                 <div className="xl:col-span-3 xl:pr-8 xl:border-r xl:border-gray-200">
+                  <div className="mb-5 ">
+                    <BreadCrumbs />
+                  </div>
                   <div>
                     <div>
                       <div className="xl:border-b pb-4 flex justify-between">
                         <div className="space-y-2">
                           <h1 className="text-3xl font-bold text-gray-900 relative">
                             {name}
-                            <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative bg-yellow-100 text-yellow-800">
-                              v{version}
-                            </span>
+                            {version && (
+                              <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative bg-yellow-100 text-yellow-800">
+                                v{version}
+                              </span>
+                            )}
                             {isDraft && (
                               <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative bg-gray-500 text-gray-100">
                                 Draft
@@ -64,8 +117,6 @@ export default function EventView({
                         <div className="prose max-w-none">{children}</div>
 
                         {/* <DomainEventList limit=4 /> */}
-
-                       
                       </div>
                     </div>
                   </div>
@@ -81,17 +132,17 @@ export default function EventView({
                     <span className="italic text-xs mt-2">Last updated on {lastModifiedDate}</span>
                   </div>
                   <div className="mt-10">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="border border-gray-200 rounded-md py-6 px-4 text-left">
-                              <span className="block text-sm">Previous</span>
-                              <span className="text-pink-600 font-bold">« PaymentComplete</span>
-                            </div>
-                            <div className="border border-gray-200 rounded-md py-6 px-4 text-right">
-                              <span className="block text-sm">Next</span>
-                              <span className="text-pink-600 font-bold">UserCreatedEvent »</span>
-                            </div>
-                          </div>
-                        </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="border border-gray-200 rounded-md py-6 px-4 text-left">
+                        <span className="block text-sm">Previous</span>
+                        <span className="text-pink-600 font-bold">« PaymentComplete</span>
+                      </div>
+                      <div className="border border-gray-200 rounded-md py-6 px-4 text-right">
+                        <span className="block text-sm">Next</span>
+                        <span className="text-pink-600 font-bold">UserCreatedEvent »</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <aside className="hidden xl:block xl:pl-8">
                   <h2 className="sr-only">Details</h2>
@@ -100,29 +151,31 @@ export default function EventView({
                     <div>
                       <h2 className="text-sm font-medium text-gray-500">
                         <CubeIcon
-                          className="h-5 w-5 text-green-400 inline-block mr-2"
+                          className="h-5 w-5 text-indigo-400 inline-block mr-2"
                           aria-hidden="true"
                         />
-                        Producers
+                        Publish Events
                       </h2>
                       <ul role="list" className="mt-2 leading-8">
-                        {producers.map((producer) => {
+                        {listOfEventsServicePublishes.map((event) => {
                           return (
                             <li className="inline">
-                              <a
-                                href="#"
-                                className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
-                              >
-                                <div className="absolute flex-shrink-0 flex items-center justify-center">
-                                  <span
-                                    className="h-1.5 w-1.5 rounded-full bg-green-500 animate animate-pulse"
-                                    aria-hidden="true"
-                                  />
-                                </div>
-                                <div className="ml-3.5 text-sm font-medium text-gray-900">
-                                  {producer}
-                                </div>
-                              </a>{' '}
+                              <Link href={`/event/${event}`}>
+                                <a
+                                  href="#"
+                                  className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
+                                >
+                                  <div className="absolute flex-shrink-0 flex items-center justify-center">
+                                    <span
+                                      className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate animate-pulse"
+                                      aria-hidden="true"
+                                    />
+                                  </div>
+                                  <div className="ml-3.5 text-sm font-medium text-gray-900">
+                                    {event}
+                                  </div>
+                                </a>
+                              </Link>
                             </li>
                           )
                         })}
@@ -133,36 +186,35 @@ export default function EventView({
                     <div>
                       <h2 className="text-sm font-medium text-gray-500">
                         <CubeIcon
-                          className="h-5 w-5 text-indigo-400 inline-block mr-2"
+                          className="h-5 w-5 text-green-400 inline-block mr-2"
                           aria-hidden="true"
                         />
-                        Consumers
+                        Subscribe Events
                       </h2>
                       <ul role="list" className="mt-2 leading-8">
-                        {consumers.map((consumer) => {
+                        {listOfEventsServiceSubscribesTo.map((event) => {
                           return (
                             <li className="inline">
-                              <a
-                                href="#"
-                                className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
-                              >
-                                <div className="absolute flex-shrink-0 flex items-center justify-center">
-                                  <span
-                                    className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate animate-pulse"
-                                    aria-hidden="true"
-                                  />
-                                </div>
-                                <div className="ml-3.5 text-sm font-medium text-gray-900">
-                                  {consumer}
-                                </div>
-                              </a>{' '}
+                              <Link href={`/event/${event}`}>
+                                <a className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5">
+                                  <div className="absolute flex-shrink-0 flex items-center justify-center">
+                                    <span
+                                      className="h-1.5 w-1.5 rounded-full bg-green-500  animate animate-pulse"
+                                      aria-hidden="true"
+                                    />
+                                  </div>
+                                  <div className="ml-3.5 text-sm font-medium text-gray-900">
+                                    {event}
+                                  </div>
+                                </a>
+                              </Link>
                             </li>
                           )
                         })}
                       </ul>
                     </div>
                   </div>
-                  <div className="border-t border-gray-200 py-6 space-y-8">
+                  {/* <div className="border-t border-gray-200 py-6 space-y-8">
                     <div>
                       <h2 className="text-sm font-medium text-gray-500">
                         <MapIcon
@@ -186,7 +238,7 @@ export default function EventView({
                                   />
                                 </div>
                                 <div className="ml-3.5 text-sm font-medium text-gray-900">
-                                  {domain}
+                                  {domain.id}
                                 </div>
                               </a>{' '}
                             </li>
@@ -194,13 +246,13 @@ export default function EventView({
                         })}
                       </ul>
                     </div>
-                  </div>
+                  </div> */}
                   <div className="border-t border-gray-200 py-6 space-y-8">
                     <div>
-                      <h2 className="text-sm font-medium text-gray-500">Event Owners</h2>
+                      <h2 className="text-sm font-medium text-gray-500">Service Owners</h2>
                       <ul role="list" className="mt-4 leading-8 space-y-2">
                         {owners.map((owner) => {
-                          const user = getUserById(owner.id)
+                          const user = getUserById(owner)
 
                           if (!user) return null
 
@@ -219,16 +271,6 @@ export default function EventView({
                             </li>
                           )
                         })}
-                      </ul>
-                    </div>
-                  </div>
-                  <div className="border-t border-gray-200 py-6 space-y-8">
-                    <div>
-                      <h2 className="text-sm font-medium text-gray-500">Versions</h2>
-                      <ul role="list" className="mt-2 leading-8 text-xs underline">
-                        <li>0.0.3</li>
-                        <li>0.0.2</li>
-                        <li>0.0.1</li>
                       </ul>
                     </div>
                   </div>

@@ -4,13 +4,13 @@ version: 0.0.1
 summary: |
   Event is created when we do something useful.
 producers:
-    - id: User API
-    - id: Customer Portal
-    - id: Random
+    - User API
+    - Customer Portal
+    - Random
 consumers:
-    - id: Email Platform
+    - Email Platform
 domains:
-    - id: User
+    - User
 owners:
     - label: dboyne
 ---
