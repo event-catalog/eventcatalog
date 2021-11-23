@@ -19,8 +19,6 @@ export default function Example() {
   const { projectName } = useConfig()
   const router = useRouter()
 
-  console.log(router)
-
   return (
     <Disclosure as="nav" className="bg-gray-800">
       {({ open }) => (

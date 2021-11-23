@@ -5,14 +5,16 @@ import { Event } from '@/types/index'
 
 import { CubeIcon, MapIcon } from '@heroicons/react/outline'
 
-interface ServiceSideBarProps {
+interface EventSideBarProps {
   event: Event
 }
 
-const ServiceSidebar = ({ event }: ServiceSideBarProps) => {
+const EventSideBar = ({ event }: EventSideBarProps) => {
   const { getUserById } = useUser()
 
   const { owners, domains, producers, consumers } = event
+
+  console.log(producers);
 
   return (
     <aside className="hidden xl:block xl:pl-8">
@@ -27,7 +29,7 @@ const ServiceSidebar = ({ event }: ServiceSideBarProps) => {
           <ul role="list" className="mt-2 leading-8">
             {producers.map((producer) => {
               return (
-                <li className="inline">
+                <li className="inline" key={producer}>
                   <a
                     href="#"
                     className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
@@ -55,7 +57,7 @@ const ServiceSidebar = ({ event }: ServiceSideBarProps) => {
           <ul role="list" className="mt-2 leading-8">
             {consumers.map((consumer) => {
               return (
-                <li className="inline">
+                <li className="inline" key={consumer}>
                   <a
                     href="#"
                     className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
@@ -83,7 +85,7 @@ const ServiceSidebar = ({ event }: ServiceSideBarProps) => {
           <ul role="list" className="mt-2 leading-8">
             {domains.map((domain) => {
               return (
-                <li className="inline">
+                <li className="inline" key={domain}>
                   <a
                     href="#"
                     className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
@@ -109,7 +111,7 @@ const ServiceSidebar = ({ event }: ServiceSideBarProps) => {
               if (!user) return null
 
               return (
-                <li className="flex justify-start">
+                <li className="flex justify-start" key={owner.id}>
                   <a href="#" className="flex items-center space-x-3">
                     <div className="flex-shrink-0">
                       <img className="h-5 w-5 rounded-full" src={user.avatarUrl} alt="" />
@@ -136,4 +138,4 @@ const ServiceSidebar = ({ event }: ServiceSideBarProps) => {
   )
 }
 
-export default ServiceSidebar
+export default EventSideBar

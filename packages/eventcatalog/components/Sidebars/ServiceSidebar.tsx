@@ -1,121 +1,106 @@
-import React from 'react';
-import Link from 'next/link';
+import React from 'react'
+import Link from 'next/link'
 import { useUser } from '@/hooks/EventCatalog'
 import { Service } from '@/types/index'
 
-import { CubeIcon } from '@heroicons/react/outline';
+import { CubeIcon } from '@heroicons/react/outline'
 
 interface ServiceSideBarProps {
-    service: Service
+  service: Service
 }
 
 const ServiceSidebar = ({ service }: ServiceSideBarProps) => {
+  const { getUserById } = useUser()
 
-    const { getUserById } = useUser()
+  const { owners, listOfEventsServicePublishes, listOfEventsServiceSubscribesTo } = service
 
-    const { owners, listOfEventsServicePublishes, listOfEventsServiceSubscribesTo } = service;
+  return (
+    <aside className="hidden xl:block xl:pl-8">
+      <h2 className="sr-only">Details</h2>
 
-    return (
-        <aside className="hidden xl:block xl:pl-8">
-        <h2 className="sr-only">Details</h2>
-
-        <div className="pt-6 py-6 space-y-8">
-          <div>
-            <h2 className="text-sm font-medium text-gray-500">
-              <CubeIcon
-                className="h-5 w-5 text-indigo-400 inline-block mr-2"
-                aria-hidden="true"
-              />
-              Publish Events
-            </h2>
-            <ul role="list" className="mt-2 leading-8">
-              {listOfEventsServicePublishes.map((event) => {
-                return (
-                  <li className="inline">
-                    <Link href={`/events/${event}`}>
-                      <a
-                        href="#"
-                        className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
-                      >
-                        <div className="absolute flex-shrink-0 flex items-center justify-center">
-                          <span
-                            className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate animate-pulse"
-                            aria-hidden="true"
-                          />
-                        </div>
-                        <div className="ml-3.5 text-sm font-medium text-gray-900">
-                          {event}
-                        </div>
-                      </a>
-                    </Link>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        </div>
-        <div className="border-t border-gray-200 py-6 space-y-8">
-          <div>
-            <h2 className="text-sm font-medium text-gray-500">
-              <CubeIcon
-                className="h-5 w-5 text-green-400 inline-block mr-2"
-                aria-hidden="true"
-              />
-              Subscribe Events
-            </h2>
-            <ul role="list" className="mt-2 leading-8">
-              {listOfEventsServiceSubscribesTo.map((event) => {
-                return (
-                  <li className="inline">
-                    <Link href={`/events/${event}`}>
-                      <a className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5">
-                        <div className="absolute flex-shrink-0 flex items-center justify-center">
-                          <span
-                            className="h-1.5 w-1.5 rounded-full bg-green-500  animate animate-pulse"
-                            aria-hidden="true"
-                          />
-                        </div>
-                        <div className="ml-3.5 text-sm font-medium text-gray-900">
-                          {event}
-                        </div>
-                      </a>
-                    </Link>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        </div>
-        
-        <div className="border-t border-gray-200 py-6 space-y-8">
-          <div>
-            <h2 className="text-sm font-medium text-gray-500">Service Owners</h2>
-            <ul role="list" className="mt-4 leading-8 space-y-2">
-              {owners.map((owner) => {
-                const user = getUserById(owner)
-
-                if (!user) return null
-
-                return (
-                  <li className="flex justify-start">
-                    <a href="#" className="flex items-center space-x-3">
-                      <div className="flex-shrink-0">
-                        <img
-                          className="h-5 w-5 rounded-full"
-                          src={user.avatarUrl}
-                          alt=""
+      <div className="pt-6 py-6 space-y-8">
+        <div>
+          <h2 className="text-sm font-medium text-gray-500">
+            <CubeIcon className="h-5 w-5 text-indigo-400 inline-block mr-2" aria-hidden="true" />
+            Publish Events
+          </h2>
+          <ul role="list" className="mt-2 leading-8">
+            {listOfEventsServicePublishes.map((event) => {
+              return (
+                <li className="inline" key={event}>
+                  <Link href={`/events/${event}`}>
+                    <a
+                      href="#"
+                      className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
+                    >
+                      <div className="absolute flex-shrink-0 flex items-center justify-center">
+                        <span
+                          className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate animate-pulse"
+                          aria-hidden="true"
                         />
                       </div>
-                      <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                      <div className="ml-3.5 text-sm font-medium text-gray-900">{event}</div>
                     </a>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
         </div>
-      </aside>
-    );
-};
+      </div>
+      <div className="border-t border-gray-200 py-6 space-y-8">
+        <div>
+          <h2 className="text-sm font-medium text-gray-500">
+            <CubeIcon className="h-5 w-5 text-green-400 inline-block mr-2" aria-hidden="true" />
+            Subscribe Events
+          </h2>
+          <ul role="list" className="mt-2 leading-8">
+            {listOfEventsServiceSubscribesTo.map((event) => {
+              return (
+                <li className="inline" key={event}>
+                  <Link href={`/events/${event}`}>
+                    <a className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5">
+                      <div className="absolute flex-shrink-0 flex items-center justify-center">
+                        <span
+                          className="h-1.5 w-1.5 rounded-full bg-green-500  animate animate-pulse"
+                          aria-hidden="true"
+                        />
+                      </div>
+                      <div className="ml-3.5 text-sm font-medium text-gray-900">{event}</div>
+                    </a>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </div>
 
-export default ServiceSidebar;
+      <div className="border-t border-gray-200 py-6 space-y-8">
+        <div>
+          <h2 className="text-sm font-medium text-gray-500">Service Owners</h2>
+          <ul role="list" className="mt-4 leading-8 space-y-2">
+            {owners.map((owner) => {
+              const user = getUserById(owner)
+
+              if (!user) return null
+
+              return (
+                <li className="flex justify-start" key={user.id}>
+                  <a href="#" className="flex items-center space-x-3">
+                    <div className="flex-shrink-0">
+                      <img className="h-5 w-5 rounded-full" src={user.avatarUrl} alt="" />
+                    </div>
+                    <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </div>
+    </aside>
+  )
+}
+
+export default ServiceSidebar

@@ -18,7 +18,7 @@ function classNames(...classes) {
 }
 
 const sortOptions = [
-  { name: 'Name', href: '#', current: true },
+{ name: 'Name', href: '#', current: true },
   { name: 'Version', href: '#', current: false },
   { name: 'Domains', href: '#', current: false },
 ]

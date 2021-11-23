@@ -54,6 +54,7 @@ export default function Events(props: EventsPageProps) {
       )
     },
     EventsWithinSameDomain: () => {
+      return null;
       return (
         <section className="mt-8 xl:mt-10">
           <div className="pb-4">

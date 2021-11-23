@@ -70,8 +70,6 @@ export default function Page({ events, domains, services }: PageProps) {
 
   if(selectedFilters.domains.length > 0 || selectedFilters.services.length > 0){
 
-    console.log('FILTER')
-
     eventsToRender = eventsToRender.filter(event => {
 
       const { domains: domainFilters, services: serviceFilters } = selectedFilters;
@@ -165,7 +163,7 @@ export default function Page({ events, domains, services }: PageProps) {
                 </ul>
 
                 {filters.map((section: any) => (
-                  <Disclosure as="div" key={section.id} className="border-b border-gray-200 py-6">
+                  <Disclosure as="div" key={section.id} className="border-b border-gray-200 py-6" >
                     {() => (
                       <>
                         <h3 className="-my-3 flow-root">
@@ -216,7 +214,7 @@ export default function Page({ events, domains, services }: PageProps) {
 
                       return (
                         <li key={event.name} className={`h-full items-stretch ${isMermaidOnEventsEnabled ? 'flex': ''}`}>
-                          <Link href={`/events/${event.slug}`}>
+                          <Link href={`/events/${event.name}`}>
                             <a className="flex shadow-sm rounded-md">
                               <div
                                 style={{

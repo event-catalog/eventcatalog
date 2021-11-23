@@ -31,9 +31,9 @@ export default function ContentView({
                           <h1 className="text-3xl font-bold text-gray-900 relative">
                             {title}
                             <div className="-top-1 relative inline-block ml-2">
-                            {tags.map((tag) => {
+                            {tags.map((tag, index) => {
                               return (
-                                <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative bg-yellow-100 text-yellow-800">
+                                <span key={`${tag}-${index}`} className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative bg-yellow-100 text-yellow-800">
                                   {tag.label}
                                 </span>
                               )
@@ -93,7 +93,7 @@ export default function ContentView({
                         <span className="text-pink-600 font-bold">UserCreatedEvent »</span>
                       </div>
                     </div>
-                  </div>
+                  </div> 
                 </div>
                 <SideBar />
               </div>
