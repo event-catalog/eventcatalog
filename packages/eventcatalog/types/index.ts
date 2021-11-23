@@ -13,12 +13,19 @@ export interface Person {
 export interface Event {
   name: string
   version: string
-  draft?: boolean;
+  draft?: boolean
   summary: string
   producers?: [Producer]
   consumers?: [Consumer]
   domains?: [Domain]
   owners: [Person]
+  schema: any
+}
+
+export interface MarkdownFile {
+  content: string
+  source: string
+  lastModifiedDate: string
 }
 
 export interface Domain {
@@ -27,5 +34,12 @@ export interface Domain {
 }
 
 export interface Service {
+  id: string
   name: string
+  slug: string
+  summary: string
+  draft: boolean
+  listOfEventsServicePublishes?: [String] | []
+  listOfEventsServiceSubscribesTo?: [String] | []
+  owners?: [String] | []
 }

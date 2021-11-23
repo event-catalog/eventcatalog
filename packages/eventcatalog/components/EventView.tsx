@@ -63,9 +63,6 @@ export default function EventView({
                         )}
                         <div className="prose max-w-none">{children}</div>
 
-                        {/* <DomainEventList limit=4 /> */}
-
-                       
                       </div>
                     </div>
                   </div>

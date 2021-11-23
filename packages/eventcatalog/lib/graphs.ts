@@ -1,4 +1,4 @@
-import { Event } from '@/types/index'
+import { Event, Service } from '@/types/index'
 
 export const buildMermaidFlowChart = ({ name, producers, consumers }: Event) => {
   const producerNames = producers.map((producer) => producer.replace(' ', '_'))
@@ -12,10 +12,7 @@ ${consumerNames.map((consumer) => `${name}:::event-->${consumer}:::consumer\n`).
   `
 }
 
-export const buildMermaidFlowChartForService = ({
-  name,
-  events: { listOfEventsServicePublishes = [], listOfEventsServiceSubscribesTo = [] } = {},
-}) => {
+export const buildMermaidFlowChartForService = ({ listOfEventsServicePublishes, listOfEventsServiceSubscribesTo, name}: Service) => {
   const producerNames = listOfEventsServicePublishes.map((producer) => producer.replace(' ', '_'))
   const consumerNames = listOfEventsServiceSubscribesTo.map((consumer) =>
     consumer.replace(' ', '_')

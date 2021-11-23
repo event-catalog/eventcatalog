@@ -25,9 +25,9 @@ mermaid.initialize({
   width: '100%',
 })
 
-const index = ({ event, service, source = "event" }) => {
+const Mermaid = ({ data, source = "event" }) => {
 
-  const mermaidChart = source === 'event' ? buildMermaidFlowChart(event) : buildMermaidFlowChartForService(service);
+  const mermaidChart = source === 'event' ? buildMermaidFlowChart(data) : buildMermaidFlowChartForService(data);
 
   useEffect(() => {
     mermaid.contentLoaded()
@@ -35,4 +35,4 @@ const index = ({ event, service, source = "event" }) => {
   return <div className="mermaid">{mermaidChart}</div>
 }
 
-export default index
+export default Mermaid

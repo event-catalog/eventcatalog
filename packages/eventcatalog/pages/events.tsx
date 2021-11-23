@@ -158,7 +158,7 @@ export default function Page({ events, domains, services }: PageProps) {
                 >
                   {events.map((event) => (
                     <li key={event.name}>
-                      <Link href={`/event/${event.name}`}>
+                      <Link href={`/events/${event.name}`}>
                         <a>{event.name}</a>
                       </Link>
                     </li>
@@ -219,7 +219,7 @@ export default function Page({ events, domains, services }: PageProps) {
 
                       return (
                         <li key={event.name} className={`h-full items-stretch ${isMermaidOnEventsEnabled ? 'flex': ''}`}>
-                          <Link href={`/event/${event.name}`}>
+                          <Link href={`/events/${event.name}`}>
                             <a className="flex shadow-sm rounded-md">
                               <div
                                 style={{

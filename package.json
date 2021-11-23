@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "lerna run dev:next --stream --parallel",
-    "start:catalog": "cd packages/eventcatalog && npm run dev",
+    "start:catalog": "PROJECT_DIR=packages/examples/basic && cd packages/eventcatalog && npm run dev",
     "bootstrap": "lerna bootstrap",
     "build": "lerna run build",
     "prepublish": "lerna run prepublish",

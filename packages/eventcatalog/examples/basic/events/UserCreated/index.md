@@ -19,7 +19,7 @@ owners:
   Make sure you set the correlation id on the field.
 </Admonition>
 
-<EventFlowDiagram />
+<Mermaid />
 
 <Schema />
 
