@@ -1,5 +1,6 @@
 ---
 name: UserCreated
+slug: UserCreated
 version: 0.0.1
 summary: |
   Event is created when we do something useful.

@@ -25,9 +25,9 @@ mermaid.initialize({
   width: '100%',
 })
 
-const Mermaid = ({ data, source = "event" }) => {
+const Mermaid = ({ data, source = "event", rootNodeColor }) => {
 
-  const mermaidChart = source === 'event' ? buildMermaidFlowChart(data) : buildMermaidFlowChartForService(data);
+  const mermaidChart = source === 'event' ? buildMermaidFlowChart(data, rootNodeColor) : buildMermaidFlowChartForService(data, rootNodeColor);
 
   useEffect(() => {
     mermaid.contentLoaded()

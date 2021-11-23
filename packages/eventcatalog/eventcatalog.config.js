@@ -6,7 +6,10 @@ module.exports = {
   organizationName: 'MyAwesomeOrg',
   projectName: 'Event Catalog',
   features: {
-    showMermaidOnEvents: true
+    mermaid: {
+      showOnEventsGrid: true,
+      showOnServicesGrid: true
+    }
   },
   users: [
     {

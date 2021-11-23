@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Mermaid from '@/components/Mermaid'
 
 import { getAllEvents, getAllDomainsFromEvents, getAllServicesFromEvents } from '@/lib/eventcatalog'
-import { buildMermaidFlowChart } from '@/lib/graphs'
 
 import { getBackgroundColor } from '@/utils/random-bg'
 
@@ -215,11 +214,9 @@ export default function Page({ events, domains, services }: PageProps) {
                     {eventsToRender.map((event) => {
                       const { draft: isDraft } = event
 
-                      console.log('e', event)
-
                       return (
                         <li key={event.name} className={`h-full items-stretch ${isMermaidOnEventsEnabled ? 'flex': ''}`}>
-                          <Link href={`/events/${event.name}`}>
+                          <Link href={`/events/${event.slug}`}>
                             <a className="flex shadow-sm rounded-md">
                               <div
                                 style={{
@@ -246,9 +243,9 @@ export default function Page({ events, domains, services }: PageProps) {
                                       {event.summary}
                                     </div>
                                   </div>
-                                  {isMermaidOnEventsEnabled && (
+                                  {!isMermaidOnEventsEnabled && (
                                     <div className="h-full items-center flex">
-                                      <Mermaid event={event}  />
+                                      <Mermaid data={event}  />
                                     </div>
                                   )}
                                 </div>
