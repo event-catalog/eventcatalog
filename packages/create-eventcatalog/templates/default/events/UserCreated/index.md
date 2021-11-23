@@ -1,11 +1,13 @@
 ---
 name: UserCreated
+slug: UserCreated
 version: 0.0.1
 summary: |
-  Event is created when we do something useful. We can use this tool to explain what this event is all about and go further and deeper.
+  Event is created when we do something useful.
 producers:
     - User API
     - Customer Portal
+    - Random
 consumers:
     - Email Platform
 domains:

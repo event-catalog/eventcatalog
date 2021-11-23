@@ -1,11 +1,9 @@
 ---
-id: Email Platform
-name: Email Platform
-slug: EmailPlatform
+id: Shopping API
+name: Shopping API
+slug: ShoppingAPI
 summary: |
-  Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS
-  Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS
-  Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS
+  Microservice for handling all shopping related things.
 owners:
     - dboyne
 ---

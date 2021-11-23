@@ -1,11 +1,9 @@
 ---
-id: Email Platform
-name: Email Platform
-slug: EmailPlatform
+id: Customer Portal
+name: Customer Portal
+slug: CustomerPortal
 summary: |
-  Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS
-  Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS
-  Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS
+  Internal tooling that the customer team uses.
 owners:
     - dboyne
 ---
