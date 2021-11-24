@@ -3,6 +3,15 @@ import path from 'path'
 import matter from 'gray-matter'
 import { serialize } from 'next-mdx-remote/serialize'
 
+ // https://github.com/react-syntax-highlighter/react-syntax-highlighter/blob/master/AVAILABLE_LANGUAGES_HLJS.MD
+ const extentionToLanguageMap = {
+  'cs': 'csharp',
+  'js': 'javascript',
+  'json': 'json',
+  'yml': 'yml',
+  'java': 'java'
+}
+
 export const getAllEvents = () => {
   const projectDir = process.env.PROJECT_DIR || path.join(process.cwd(), 'examples/basic')
 
@@ -74,7 +83,7 @@ const getLastModifiedDateOfFile = (filePath) => {
   const lastModifiedDate = new Date(stats.mtime)
   return `${lastModifiedDate.getFullYear()}/${
     lastModifiedDate.getMonth() + 1
-  }/${lastModifiedDate.getDate()}`;
+  }/${lastModifiedDate.getDate()}`
 }
 
 export const getEventById = async (eventName) => {
@@ -85,15 +94,20 @@ export const getEventById = async (eventName) => {
   const eventMarkdownFile = fs.readFileSync(path.join(eventDirectory, `index.md`), 'utf8')
   const { data, content } = matter(eventMarkdownFile)
 
+  // Try and get the schema for the event.
   const schemaRaw = fs.readFileSync(path.join(eventDirectory, `schema.json`), 'utf8')
   const schema = JSON.parse(schemaRaw)
+
+  // Any examples for the event?
+  const examples = getExamples(path.join(eventDirectory, `examples`));
 
   const mdxSource = await serialize(content)
 
   return {
     event: {
       ...data,
-      schema
+      schema,
+      examples,
     },
     markdown: {
       content,
@@ -101,7 +115,6 @@ export const getEventById = async (eventName) => {
       lastModifiedDate: getLastModifiedDateOfFile(path.join(eventDirectory, `index.md`)),
     },
   }
-
 }
 
 export const getAllDomainsFromEvents = (events) => {
@@ -116,4 +129,32 @@ export const getAllServicesFromEvents = (events) => {
   }, [])
 
   return allConsumersAndProducers.map((service) => service)
+}
+
+
+export const getExamples = (pathToExamples) => {
+  let examples
+
+  // Get examples for directory
+  try {
+    const files = fs.readdirSync(pathToExamples)
+    examples = files.map((filename) => {
+      const content = fs.readFileSync(path.join(pathToExamples, filename), {
+        encoding: 'utf-8',
+      })
+
+      const extension = filename.split('.').pop();
+
+      return {
+        name: filename,
+        snippet: content,
+        langugage: extentionToLanguageMap[extension]
+      }
+    })
+  } catch (error) {
+    examples = []
+  }
+
+  return examples;
+
 }

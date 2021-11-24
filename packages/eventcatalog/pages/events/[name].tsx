@@ -3,11 +3,13 @@ import { MDXRemote } from 'next-mdx-remote'
 import Editor from '@/components/Mdx/Editor'
 import Admonition from '@/components/Mdx/Admonition'
 import EventsTable from '@/components/Mdx/EventsTable'
+import Examples from '@/components/Mdx/Examples'
 
 import ContentView from '@/components/ContentView'
 import Mermaid from '@/components/Mermaid'
 import EventSideBar from '@/components/Sidebars/EventSidebar'
 import BreadCrumbs from '@/components/BreadCrumbs'
+import SyntaxHighlighter from '@/components/SyntaxHighlighter'
 
 import { getAllEvents, getEventById } from '@/lib/eventcatalog'
 
@@ -19,10 +21,9 @@ interface EventsPageProps {
 }
 
 export default function Events(props: EventsPageProps) {
-
-  const { event, markdown } = props;
-  const { name, summary, draft, schema, owners, domains, producers, consumers, version } = event;
-  const { lastModifiedDate } = markdown;
+  const { event, markdown } = props
+  const { name, summary, draft, schema, owners, examples, domains, producers, consumers, version } = event
+  const { lastModifiedDate } = markdown
 
   const pages = [
     { name: 'Events', href: '/events', current: false },
@@ -30,6 +31,15 @@ export default function Events(props: EventsPageProps) {
   ]
 
   const mdxComponents = {
+    code: ({ className, ...props }) => {
+      const match = /language-(\w+)/.exec(className || '')
+
+      return match ? (
+        <SyntaxHighlighter language={match[1]} {...props} />
+      ) : (
+        <code className={className} {...props} />
+      )
+    },
     Schema: (schemaProps) => {
       return (
         <section className="mt-8 xl:mt-10">
@@ -45,6 +55,9 @@ export default function Events(props: EventsPageProps) {
       )
     },
     Admonition,
+    EventExamples: (props) => {
+      return <Examples {...props} examples={examples} showLineNumbers />
+    },
     Mermaid: ({ title }) => {
       return (
         <div className="mx-auto w-full py-10">
@@ -54,7 +67,7 @@ export default function Events(props: EventsPageProps) {
       )
     },
     EventsWithinSameDomain: () => {
-      return null;
+      return null
       return (
         <section className="mt-8 xl:mt-10">
           <div className="pb-4">
@@ -76,13 +89,9 @@ export default function Events(props: EventsPageProps) {
         subtitle={summary}
         draft={draft}
         lastModifiedDate={lastModifiedDate}
-        tags={[{ label: `v${version}`}]}
+        tags={[{ label: `v${version}` }]}
         breadCrumbs={() => <BreadCrumbs pages={pages} />}
-        sidebar={() => (
-          <EventSideBar
-            event={props.event}
-          />
-        )}
+        sidebar={() => <EventSideBar event={props.event} />}
       >
         <MDXRemote {...props.markdown.source} components={mdxComponents} />
       </ContentView>
@@ -96,7 +105,7 @@ export async function getStaticProps({ params }) {
   return {
     props: {
       event,
-      markdown
+      markdown,
     },
   }
 }
