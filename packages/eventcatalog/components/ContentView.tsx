@@ -13,9 +13,9 @@ export default function ContentView({
 }) {
   return (
     <>
-      <div className="min-h-full flex relative">
+      <div className="min-h-full flex relative ">
         <div className=" flex flex-col w-0 flex-1 ">
-          <main className="flex-1">
+          <main className="flex-1 ">
             <div className="py-8 xl:py-10">
               <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 xl:max-w-7xl xl:grid xl:grid-cols-4">
                 <div className="xl:col-span-3 xl:pr-8 xl:border-r xl:border-gray-200">
@@ -26,7 +26,7 @@ export default function ContentView({
                   )}
                   <div>
                     <div>
-                      <div className="xl:border-b pb-4 flex justify-between">
+                      <div className="xl:border-b pb-4 flex justify-between ">
                         <div className="space-y-2">
                           <h1 className="text-3xl font-bold text-gray-900 relative">
                             {title}

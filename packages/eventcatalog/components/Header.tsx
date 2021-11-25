@@ -38,15 +38,17 @@ export default function Example() {
               </div>
               <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
                 <div className="flex-shrink-0 flex items-center text-white font-bold">
-                  {projectName}
+                  <Link href="/events">
+                    <a>
+                      {projectName}
+                    </a>
+                  </Link>
                 </div>
               </div>
               <div className="hidden sm:block sm:ml-6">
                 <div className="flex space-x-4">
                   {navigation.map((item) => {
-                    
                     const current = router.pathname.includes(item.href);
-
                     return (
                       <Link key={item.name} href={item.href}>
                         <a

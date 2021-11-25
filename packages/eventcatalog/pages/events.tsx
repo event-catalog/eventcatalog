@@ -9,7 +9,7 @@ import { getAllEvents, getAllDomainsFromEvents, getAllServicesFromEvents } from 
 import { getBackgroundColor } from '@/utils/random-bg'
 
 import { Disclosure, Menu, Transition } from '@headlessui/react'
-import { ChevronDownIcon } from '@heroicons/react/solid'
+import { ChartSquareBarIcon, ChevronDownIcon, CubeIcon } from '@heroicons/react/solid'
 
 import { useFeatures } from '@/hooks/EventCatalog'
 
@@ -48,10 +48,11 @@ export default function Page({ events, domains, services }: PageProps) {
         label: service,
         checked: false,
       })),
-    },
+    }
   ]
 
   const [selectedFilters, setSelectedFilters] = useState({ domains: [], services: [] })
+  const [showMermaidDiagrams, setShowMermaidDiagrams] = useState(false);
 
   const handleFilterSelection = (option, type, event) => {
     if (event.target.checked) {
@@ -62,9 +63,6 @@ export default function Page({ events, domains, services }: PageProps) {
       setSelectedFilters({ ...selectedFilters, [type]: newFilters })
     }
   }
-
-  const { getFeature } = useFeatures()
-  const isMermaidOnEventsEnabled = getFeature('showMermaidOnEvents')
 
   let eventsToRender = events
 
@@ -88,9 +86,9 @@ export default function Page({ events, domains, services }: PageProps) {
 
   return (
     <div>
-      <main className="max-w-7xl mx-auto h-screen">
+      <main className="max-w-7xl mx-auto min-h-screen">
         <div className="relative z-10 flex items-baseline justify-between pt-8 pb-6 border-b border-gray-200">
-          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900"></h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">Events ({events.length})</h1>
 
           <div className="flex items-center">
             <Menu as="div" className="relative inline-block text-left">
@@ -135,9 +133,6 @@ export default function Page({ events, domains, services }: PageProps) {
                 </Menu.Items>
               </Transition>
             </Menu>
-            {/* <button type="button" className="p-2 -m-2 ml-5 sm:ml-7 text-gray-400 hover:text-gray-500">
-                <ViewGridIcon className="w-5 h-5" aria-hidden="true" />
-              </button> */}
           </div>
         </div>
 
@@ -152,7 +147,7 @@ export default function Page({ events, domains, services }: PageProps) {
               <span className="text-sm font-bold text-gray-900 mb-4 block">Events</span>
               <ul
                 role="list"
-                className=" text-sm font-medium text-gray-900 space-y-4 pb-6 border-b border-gray-200 items-stretch"
+                className=" text-sm text-gray-600 space-y-4 pb-6 border-b border-gray-200 items-stretch"
               >
                 {events.map((event) => (
                   <li key={event.name}>
@@ -164,15 +159,14 @@ export default function Page({ events, domains, services }: PageProps) {
               </ul>
 
               {filters.map((section: any) => (
-                <Disclosure as="div" key={section.id} className="border-b border-gray-200 py-6">
-                  {() => (
+                <div key={section.id} className="border-b border-gray-200 py-6">
                     <>
                       <h3 className="-my-3 flow-root">
-                        <Disclosure.Button className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
+                        <div className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
                           <span className="font-medium text-gray-900">{section.name}</span>
-                        </Disclosure.Button>
+                        </div>
                       </h3>
-                      <Disclosure.Panel static className="pt-6">
+                      <div className="pt-6">
                         <div className="space-y-4">
                           {section.options.map((option, optionIdx) => (
                             <div key={option.value} className="flex items-center">
@@ -194,13 +188,47 @@ export default function Page({ events, domains, services }: PageProps) {
                                 {option.label}
                               </label>
                             </div>
+                            
                           ))}
                         </div>
-                      </Disclosure.Panel>
+                      </div>
                     </>
-                  )}
-                </Disclosure>
+                </div>
               ))}
+
+                <div className="border-b border-gray-200 py-6">
+                    <>
+                      <h3 className="-my-3 flow-root">
+                        <div className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
+                          <span className="font-medium text-gray-900">Features</span>
+                        </div>
+                      </h3>
+                      <div className="pt-6">
+                        <div className="space-y-4">
+                         
+                            <div  className="flex items-center">
+                              <input
+                                id="show-mermaid"
+                                type="checkbox"
+                                onChange={(e) =>
+                                  setShowMermaidDiagrams(e.target.checked)
+                                }
+                                defaultChecked={showMermaidDiagrams}
+                                className="h-4 w-4 border-gray-300 rounded text-gray-600 focus:ring-gray-500"
+                              />
+                              <label
+                                htmlFor="show-mermaid"
+                                className="ml-3 text-sm text-gray-600"
+                              >
+                                Show Mermaid Diagrams
+                              </label>
+                            </div>
+                            
+                        </div>
+                      </div>
+                    </>
+                </div>
+
             </form>
 
             <div className="lg:col-span-3">
@@ -218,13 +246,13 @@ export default function Page({ events, domains, services }: PageProps) {
                     return (
                       <li
                         key={event.name}
-                        className={`h-full items-stretch ${isMermaidOnEventsEnabled ? 'flex' : ''}`}
+                        className={`h-full items-stretch ${showMermaidDiagrams ? 'flex' : ''}`}
                       >
                         <Link href={`/events/${event.name}`}>
                           <a className="flex shadow-sm rounded-md">
                             <div
                               style={{
-                                background: getBackgroundColor(event.domains[0]),
+                                background: getBackgroundColor(event.name),
                               }}
                               className={classNames(
                                 'bg-red-500',
@@ -247,11 +275,28 @@ export default function Page({ events, domains, services }: PageProps) {
                                     {event.summary}
                                   </div>
                                 </div>
-                                {!isMermaidOnEventsEnabled && (
+                                {showMermaidDiagrams && (
                                   <div className="h-full items-center flex">
-                                    <Mermaid data={event} />
+                                    <Mermaid data={event} rootNodeColor={getBackgroundColor(event.name)} />
                                   </div>
                                 )}
+                                 <div className="flex space-x-4 text-xs pt-2 relative bottom-0 left-0">
+                                    <div className=" font-medium text-gray-500">
+                                      <CubeIcon
+                                        className="h-4 w-4 text-green-400 inline-block mr-2"
+                                        aria-hidden="true"
+                                      />
+                                      Producers (
+                                      {event.producers.length})
+                                    </div>
+                                    <div className=" font-medium text-gray-500">
+                                      <CubeIcon
+                                        className="h-4 w-4 text-indigo-400 inline-block mr-2"
+                                        aria-hidden="true"
+                                      />
+                                      Subscribers ({event.consumers.length})
+                                    </div>
+                                  </div>
                               </div>
                             </div>
                           </a>
@@ -282,3 +327,4 @@ export const getServerSideProps = () => {
     },
   }
 }
+

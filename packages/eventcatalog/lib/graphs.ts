@@ -5,7 +5,7 @@ export const buildMermaidFlowChart = ({ name, producers, consumers }: Event, roo
   const consumerNames = consumers.map((consumer) => consumer.replace(' ', '_'))
   return `flowchart LR
 ${producerNames.map((producer) => `${producer}:::producer-->${name}:::event\n`).join('')}
-classDef event stroke:${rootNodeColor},stroke-width: 2px;
+classDef event stroke:${rootNodeColor},stroke-width: 4px;
 classDef producer stroke:#75d7b6,stroke-width: 2px;
 classDef consumer stroke:#818cf8,stroke-width: 2px;
 ${consumerNames.map((consumer) => `${name}:::event-->${consumer}:::consumer\n`).join('')}

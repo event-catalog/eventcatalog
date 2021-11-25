@@ -1,9 +1,10 @@
 import { MDXRemote } from 'next-mdx-remote'
 
-import Editor from '@/components/Mdx/Editor'
 import Admonition from '@/components/Mdx/Admonition'
 import EventsTable from '@/components/Mdx/EventsTable'
 import Examples from '@/components/Mdx/Examples'
+
+import { getBackgroundColor } from '@/utils/random-bg'
 
 import ContentView from '@/components/ContentView'
 import Mermaid from '@/components/Mermaid'
@@ -25,6 +26,8 @@ export default function Events(props: EventsPageProps) {
   const { name, summary, draft, schema, owners, examples, domains, producers, consumers, version } = event
   const { lastModifiedDate } = markdown
 
+  console.log('SSSS', schema)
+
   const pages = [
     { name: 'Events', href: '/events', current: false },
     { name, href: `/services/${name}`, current: true },
@@ -40,17 +43,16 @@ export default function Events(props: EventsPageProps) {
         <code className={className} {...props} />
       )
     },
-    Schema: (schemaProps) => {
+    Schema: ({ title = 'Event Schema'}) => {
+
       return (
         <section className="mt-8 xl:mt-10">
-          {schemaProps.title && (
-            <div className="pb-4">
               <h2 id="activity-title" className="text-lg font-medium text-gray-900 underline">
-                {schemaProps.title}
+                {title}
               </h2>
-            </div>
-          )}
-          <Editor value={schema} {...schemaProps} />
+           <SyntaxHighlighter language={schema.language} showLineNumbers={true} name={`${event.name} Schema`}>
+              {schema.snippet}
+            </SyntaxHighlighter>
         </section>
       )
     },
@@ -62,7 +64,7 @@ export default function Events(props: EventsPageProps) {
       return (
         <div className="mx-auto w-full py-10">
           {title && <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>}
-          <Mermaid data={event} />
+          <Mermaid data={event} rootNodeColor={getBackgroundColor(event.name)} />
         </div>
       )
     },

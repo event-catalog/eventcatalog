@@ -10,6 +10,11 @@ export interface Person {
   id: string
 }
 
+export interface Schema {
+  snippet: string,
+  language: string
+}
+
 export interface Event {
   name: string
   version: string

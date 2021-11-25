@@ -3,6 +3,8 @@ import path from 'path'
 import matter from 'gray-matter'
 import { serialize } from 'next-mdx-remote/serialize'
 
+import { Schema } from '@/types/index;'
+
  // https://github.com/react-syntax-highlighter/react-syntax-highlighter/blob/master/AVAILABLE_LANGUAGES_HLJS.MD
  const extentionToLanguageMap = {
   'cs': 'csharp',
@@ -86,6 +88,28 @@ const getLastModifiedDateOfFile = (filePath) => {
   }/${lastModifiedDate.getDate()}`
 }
 
+const getSchemaFromDir = (pathToSchemaDir: string): Schema => {
+  try {
+    const files = fs.readdirSync(pathToSchemaDir)
+
+    // See if any schemas are in there, ignoring extension
+    const schemaFileName = files.find(fileName => fileName.includes('schema'));
+    if(!schemaFileName) throw new Error('No schema found');
+
+    const schemaFile = fs.readFileSync(path.join(pathToSchemaDir, schemaFileName), 'utf-8');
+    const extension = schemaFileName.split('.').pop();
+
+    return {
+      snippet: schemaFile,
+      language: extentionToLanguageMap[extension]
+    }
+
+  } catch (error) {
+    return null;
+  }
+
+}
+
 export const getEventById = async (eventName) => {
   const projectDir = process.env.PROJECT_DIR || path.join(process.cwd(), 'examples/basic')
 
@@ -94,20 +118,13 @@ export const getEventById = async (eventName) => {
   const eventMarkdownFile = fs.readFileSync(path.join(eventDirectory, `index.md`), 'utf8')
   const { data, content } = matter(eventMarkdownFile)
 
-  // Try and get the schema for the event.
-  const schemaRaw = fs.readFileSync(path.join(eventDirectory, `schema.json`), 'utf8')
-  const schema = JSON.parse(schemaRaw)
-
-  // Any examples for the event?
-  const examples = getExamples(path.join(eventDirectory, `examples`));
-
   const mdxSource = await serialize(content)
 
   return {
     event: {
       ...data,
-      schema,
-      examples,
+      schema: getSchemaFromDir(eventDirectory),
+      examples: getExamples(path.join(eventDirectory, `examples`)),
     },
     markdown: {
       content,
