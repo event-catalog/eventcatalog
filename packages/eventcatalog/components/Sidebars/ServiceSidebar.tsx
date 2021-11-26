@@ -12,7 +12,7 @@ interface ServiceSideBarProps {
 const ServiceSidebar = ({ service }: ServiceSideBarProps) => {
   const { getUserById } = useUser()
 
-  const { owners, listOfEventsServicePublishes, listOfEventsServiceSubscribesTo } = service
+  const { owners, subscribes, publishes } = service
 
   return (
     <aside className="hidden xl:block xl:pl-8">
@@ -25,10 +25,10 @@ const ServiceSidebar = ({ service }: ServiceSideBarProps) => {
             Publish Events
           </h2>
           <ul role="list" className="mt-2 leading-8">
-            {listOfEventsServicePublishes.map((event) => {
+            {publishes.map((event) => {
               return (
-                <li className="inline" key={event}>
-                  <Link href={`/events/${event}`}>
+                <li className="inline" key={event.name}>
+                  <Link href={`/events/${event.name}`}>
                     <a
                       href="#"
                       className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
@@ -39,7 +39,7 @@ const ServiceSidebar = ({ service }: ServiceSideBarProps) => {
                           aria-hidden="true"
                         />
                       </div>
-                      <div className="ml-3.5 text-sm font-medium text-gray-900">{event}</div>
+                      <div className="ml-3.5 text-sm font-medium text-gray-900">{event.name}</div>
                     </a>
                   </Link>
                 </li>
@@ -55,10 +55,10 @@ const ServiceSidebar = ({ service }: ServiceSideBarProps) => {
             Subscribe Events
           </h2>
           <ul role="list" className="mt-2 leading-8">
-            {listOfEventsServiceSubscribesTo.map((event) => {
+            {subscribes.map((event) => {
               return (
-                <li className="inline" key={event}>
-                  <Link href={`/events/${event}`}>
+                <li className="inline" key={event.name}>
+                  <Link href={`/events/${event.name}`}>
                     <a className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5">
                       <div className="absolute flex-shrink-0 flex items-center justify-center">
                         <span
@@ -66,7 +66,7 @@ const ServiceSidebar = ({ service }: ServiceSideBarProps) => {
                           aria-hidden="true"
                         />
                       </div>
-                      <div className="ml-3.5 text-sm font-medium text-gray-900">{event}</div>
+                      <div className="ml-3.5 text-sm font-medium text-gray-900">{event.name}</div>
                     </a>
                   </Link>
                 </li>
@@ -87,12 +87,14 @@ const ServiceSidebar = ({ service }: ServiceSideBarProps) => {
 
               return (
                 <li className="flex justify-start" key={user.id}>
-                  <a href="#" className="flex items-center space-x-3">
+                  <Link href={`/users/${user.id}`}>
+                  <a className="flex items-center space-x-3">
                     <div className="flex-shrink-0">
                       <img className="h-5 w-5 rounded-full" src={user.avatarUrl} alt="" />
                     </div>
                     <div className="text-sm font-medium text-gray-900">{user.name}</div>
                   </a>
+                  </Link>
                 </li>
               )
             })}

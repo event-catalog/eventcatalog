@@ -1,6 +1,5 @@
 ---
 name: AddedItemToCart
-slug: AddedItemToCart
 version: 0.0.5
 summary: |
   Holds information about the cusomer and product when they add an item to the cart.

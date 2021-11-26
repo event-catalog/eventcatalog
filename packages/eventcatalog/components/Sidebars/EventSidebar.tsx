@@ -1,4 +1,5 @@
 import React from 'react'
+import Link from 'next/link'
 import { useUser } from '@/hooks/EventCatalog'
 import { Event } from '@/types/index'
 import fileDownload from 'js-file-download'
@@ -17,14 +18,14 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
   const handleDownload = async () => {
     try {
       const res = await fetch(`/api/event/${event.name}/download`)
-      if(res.status === 404) throw new Error('Failed to find file');
+      if (res.status === 404) throw new Error('Failed to find file')
       const data = await res.text()
-      fileDownload(data, event.name);  
+      fileDownload(data, event.name)
     } catch (error) {
       // TODO: Maybe better error experince
-      alert(error.message)      
+      alert(error.message)
     }
-  };
+  }
 
   return (
     <aside className="hidden xl:block xl:pl-8">
@@ -40,8 +41,9 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
             {producers.map((producer) => {
               return (
                 <li className="inline" key={producer}>
+                  <Link href={`/services/${producer}`}>
                   <a
-                    href="#"
+                    
                     className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
                   >
                     <div className="absolute flex-shrink-0 flex items-center justify-center">
@@ -51,7 +53,8 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
                       />
                     </div>
                     <div className="ml-3.5 text-sm font-medium text-gray-900">{producer}</div>
-                  </a>{' '}
+                  </a>
+                  </Link>
                 </li>
               )
             })}
@@ -68,6 +71,7 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
             {consumers.map((consumer) => {
               return (
                 <li className="inline" key={consumer}>
+                  <Link href={`/services/${consumer}`}>
                   <a
                     href="#"
                     className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
@@ -79,7 +83,8 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
                       />
                     </div>
                     <div className="ml-3.5 text-sm font-medium text-gray-900">{consumer}</div>
-                  </a>{' '}
+                  </a>
+                  </Link>
                 </li>
               )
             })}
@@ -115,19 +120,21 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
         <div>
           <h2 className="text-sm font-medium text-gray-500">Event Owners</h2>
           <ul role="list" className="mt-4 leading-8 space-y-2">
-            {owners.map((owner) => {
-              const user = getUserById(owner.id)
+            {owners.map((id) => {
+              const user = getUserById(id)
 
               if (!user) return null
 
               return (
-                <li className="flex justify-start" key={owner.id}>
-                  <a href="#" className="flex items-center space-x-3">
-                    <div className="flex-shrink-0">
-                      <img className="h-5 w-5 rounded-full" src={user.avatarUrl} alt="" />
-                    </div>
-                    <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                  </a>
+                <li className="flex justify-start" key={id}>
+                  <Link href={`/users/${id}`}>
+                    <a className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        <img className="h-5 w-5 rounded-full" src={user.avatarUrl} alt="" />
+                      </div>
+                      <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                    </a>
+                  </Link>
                 </li>
               )
             })}

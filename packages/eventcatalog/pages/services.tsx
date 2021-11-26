@@ -4,7 +4,8 @@ import Link from 'next/link'
 
 import Mermaid from '@/components/Mermaid'
 
-import { getAllServices, getAllEventsThatPublishAndSubscribeToService } from '@/lib/eventcatalog'
+import { getAllServices } from '@/lib/services'
+import { getAllEvents, getAllEventsThatPublishAndSubscribeToService } from '@/lib/events'; 
 
 import { getBackgroundColor } from '@/utils/random-bg'
 
@@ -31,6 +32,7 @@ export default function Page({ services }: PageProps) {
   const [selectedFilters, setSelectedFilters] = useState({ domains: [], services: [] })
 
   let servicesToRender = services
+
 
   return (
     <div className="bg-white">
@@ -117,9 +119,11 @@ export default function Page({ services }: PageProps) {
                     {servicesToRender.map((service) => {
                       const { draft: isDraft } = service
 
+                      console.log('sssss', service)
+
                       return (
                         <li key={service.name} className="flex">
-                          <Link href={`/services/${service.slug}`}>
+                          <Link href={`/services/${service.name}`}>
                             <a className="flex shadow-sm w-full">
                               <div
                                 style={{
@@ -150,14 +154,14 @@ export default function Page({ services }: PageProps) {
                                         aria-hidden="true"
                                       />
                                       Subscribe Events (
-                                      {service.listOfEventsServiceSubscribesTo.length})
+                                      {service.subscribes.length})
                                     </div>
                                     <div className=" font-medium text-gray-500">
                                       <CubeIcon
                                         className="h-4 w-4 text-indigo-400 inline-block mr-2"
                                         aria-hidden="true"
                                       />
-                                      Publish Events ({service.listOfEventsServicePublishes.length})
+                                      Publish Events ({service.publishes.length})
                                     </div>
                                   </div>
                                 </div>
@@ -180,22 +184,10 @@ export default function Page({ services }: PageProps) {
 
 export async function getServerSideProps() {
   const services = getAllServices()
-  // TODO: Fix this?
-  const data = services.map((service) => service.data)
-
-  const getServicesWithEvents = data.map(async (service) => {
-    const events = await getAllEventsThatPublishAndSubscribeToService(service.id)
-    return {
-      ...service,
-      ...events,
-    }
-  })
-
-  const servicesWithEvents = await Promise.all(getServicesWithEvents)
 
   return {
     props: {
-      services: servicesWithEvents,
+      services,
     },
   }
 }

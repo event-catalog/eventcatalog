@@ -12,10 +12,10 @@ ${consumerNames.map((consumer) => `${name}:::event-->${consumer}:::consumer\n`).
   `
 }
 
-export const buildMermaidFlowChartForService = ({ listOfEventsServicePublishes, listOfEventsServiceSubscribesTo, name}: Service, rootNodeColor: string = '#2563eb') => {
-  const producerNames = listOfEventsServicePublishes.map((producer) => producer.replace(' ', '_'))
-  const consumerNames = listOfEventsServiceSubscribesTo.map((consumer) =>
-    consumer.replace(' ', '_')
+export const buildMermaidFlowChartForService = ({ publishes, subscribes, name}: Service, rootNodeColor: string = '#2563eb') => {
+  const producerNames = publishes.map((event) => event.name.replace(' ', '_'))
+  const consumerNames = subscribes.map((event) =>
+    event.name.replace(' ', '_')
   )
   const nodeName = name.replace(' ', '_')
 

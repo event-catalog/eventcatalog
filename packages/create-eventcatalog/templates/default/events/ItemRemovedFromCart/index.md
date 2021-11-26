@@ -1,6 +1,5 @@
 ---
 name: ItemRemovedFromCart
-slug: ItemRemovedFromCart
 version: 1.5.5
 summary: |
   Tells us when the item has been added to the cart

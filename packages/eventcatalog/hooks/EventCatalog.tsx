@@ -1,5 +1,6 @@
 import React, { useContext, ReactNode } from 'react'
 import config from '../eventcatalog.config'
+import { User } from '@/types/index'
 
 export const Context = React.createContext<any>(config)
 
@@ -14,7 +15,7 @@ export const useConfig = () => {
 export const useUser = () => {
   const config = useConfig()
 
-  const getUserById = (id) => {
+  const getUserById = (id): User => {
     const users = config.users || []
     return users.find((user) => user.id === id)
   }

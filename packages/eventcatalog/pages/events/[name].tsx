@@ -12,7 +12,7 @@ import EventSideBar from '@/components/Sidebars/EventSidebar'
 import BreadCrumbs from '@/components/BreadCrumbs'
 import SyntaxHighlighter from '@/components/SyntaxHighlighter'
 
-import { getAllEvents, getEventById } from '@/lib/eventcatalog'
+import { getAllEvents, getEventByName } from '@/lib/events'
 
 import { Event, MarkdownFile } from '@/types/index'
 
@@ -25,8 +25,6 @@ export default function Events(props: EventsPageProps) {
   const { event, markdown } = props
   const { name, summary, draft, schema, owners, examples, domains, producers, consumers, version } = event
   const { lastModifiedDate } = markdown
-
-  console.log('SSSS', schema)
 
   const pages = [
     { name: 'Events', href: '/events', current: false },
@@ -44,6 +42,8 @@ export default function Events(props: EventsPageProps) {
       )
     },
     Schema: ({ title = 'Event Schema'}) => {
+
+      console.log('s', schema)
 
       return (
         <section className="mt-8 xl:mt-10">
@@ -67,20 +67,7 @@ export default function Events(props: EventsPageProps) {
           <Mermaid data={event} rootNodeColor={getBackgroundColor(event.name)} />
         </div>
       )
-    },
-    EventsWithinSameDomain: () => {
-      return null
-      return (
-        <section className="mt-8 xl:mt-10">
-          <div className="pb-4">
-            <h2 id="activity-title" className="text-lg font-medium text-gray-900 underline">
-              Simular Events
-            </h2>
-          </div>
-          <EventsTable />
-        </section>
-      )
-    },
+    }
   }
 
   return (
@@ -102,7 +89,8 @@ export default function Events(props: EventsPageProps) {
 }
 
 export async function getStaticProps({ params }) {
-  const { event, markdown } = await getEventById(params.name)
+  const { event, markdown } = await getEventByName(params.name)
+  
 
   return {
     props: {

@@ -1,15 +1,17 @@
 import ContentView from '@/components/ContentView'
 import {
   getAllServices,
-  getServiceBySlug,
-  getAllEventsThatPublishAndSubscribeToService,
-} from '@/lib/eventcatalog'
+  getServiceByName
+} from '@/lib/services'
+
+import { getAllEventsThatPublishAndSubscribeToService } from '@/lib/events';
 import { MDXRemote } from 'next-mdx-remote'
 
 import Admonition from '@/components/Mdx/Admonition'
 import Mermaid from '@/components/Mermaid'
 import ServiceSidebar from '@/components/Sidebars/ServiceSidebar'
 import BreadCrumbs from '@/components/BreadCrumbs'
+import { getBackgroundColor } from '@/utils/random-bg'
 
 import { Service, MarkdownFile } from '@/types/index'
 
@@ -21,7 +23,7 @@ interface ServicesPageProps {
 export default function Services(props: ServicesPageProps) {
 
   const { service, markdown } = props; 
-  const { name, slug, summary, draft } = service;
+  const { name, summary, draft } = service;
 
 
   const mdxComponents = {
@@ -30,7 +32,7 @@ export default function Services(props: ServicesPageProps) {
       return (
       <div className="mx-auto w-full py-10">
           {title && <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>}
-          <Mermaid source="service" data={service} />
+          <Mermaid source="service" data={service}  rootNodeColor={getBackgroundColor(service.name)} />
         </div>
       )
     },
@@ -38,7 +40,7 @@ export default function Services(props: ServicesPageProps) {
 
   const pages = [
     { name: 'Services', href: '/services', current: false },
-    { name, href: `/services/${slug}`, current: true },
+    { name, href: `/services/${name}`, current: true },
   ]
 
   return (
@@ -63,14 +65,10 @@ export default function Services(props: ServicesPageProps) {
 }
 
 export async function getStaticProps({ params }) {
-  const { service, markdown } = await getServiceBySlug(params.name)
-  const events = await getAllEventsThatPublishAndSubscribeToService(service.id)
+  const { service, markdown } = await getServiceByName(params.name)
   return {
     props: {
-      service: {
-        ...service,
-        ...events
-      },
+      service: service,
       markdown
     },
   }
@@ -78,7 +76,7 @@ export async function getStaticProps({ params }) {
 
 export async function getStaticPaths() {
   const services = getAllServices()
-  const paths = services.map((service) => ({ params: { name: service.data.slug } }))
+  const paths = services.map((service) => ({ params: { name: service.name } }))
   return {
     paths,
     fallback: false,

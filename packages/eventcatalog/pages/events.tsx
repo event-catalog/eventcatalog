@@ -2,16 +2,11 @@ import { Fragment, useState } from 'react'
 import { Event, Domain, Service } from '@/types/index'
 import Link from 'next/link'
 
-import Mermaid from '@/components/Mermaid'
+import EventGrid from '@/components/Grids/EventGrid'
+import { getAllEvents, getAllDomainsFromEvents, getAllServicesNamesFromEvents } from '@/lib/events'
 
-import { getAllEvents, getAllDomainsFromEvents, getAllServicesFromEvents } from '@/lib/eventcatalog'
-
-import { getBackgroundColor } from '@/utils/random-bg'
-
-import { Disclosure, Menu, Transition } from '@headlessui/react'
-import { ChartSquareBarIcon, ChevronDownIcon, CubeIcon } from '@heroicons/react/solid'
-
-import { useFeatures } from '@/hooks/EventCatalog'
+import { Menu, Transition } from '@headlessui/react'
+import { ChevronDownIcon } from '@heroicons/react/solid'
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -133,6 +128,9 @@ export default function Page({ events, domains, services }: PageProps) {
                 </Menu.Items>
               </Transition>
             </Menu>
+            {/* <button type="button" className="p-2 -m-2 ml-5 sm:ml-7 text-gray-400 hover:text-gray-500">
+                <ChartSquareBarIcon className="w-5 h-5" aria-hidden="true" />
+              </button> */}
           </div>
         </div>
 
@@ -236,75 +234,7 @@ export default function Page({ events, domains, services }: PageProps) {
                 <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">
                   Events / Messages
                 </h2>
-                <ul
-                  role="list"
-                  className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2 "
-                >
-                  {eventsToRender.map((event) => {
-                    const { draft: isDraft } = event
-
-                    return (
-                      <li
-                        key={event.name}
-                        className={`h-full items-stretch ${showMermaidDiagrams ? 'flex' : ''}`}
-                      >
-                        <Link href={`/events/${event.name}`}>
-                          <a className="flex shadow-sm rounded-md">
-                            <div
-                              style={{
-                                background: getBackgroundColor(event.name),
-                              }}
-                              className={classNames(
-                                'bg-red-500',
-                                'flex-shrink-0 flex items-center justify-center w-4 text-white text-sm font-medium rounded-l-md'
-                              )}
-                            ></div>
-                            <div className="w-full items-center justify-between border-t border-r border-b border-gray-200 bg-white rounded-r-md relative">
-                              <div className="px-4 text-sm space-y-2 flex flex-col h-full py-4">
-                                <div className="text-gray-900 font-bold hover:text-gray-600">
-                                  {event.name}
-                                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    v{event.version}
-                                  </span>
-                                  {isDraft && (
-                                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-500 text-gray-100">
-                                      Draft
-                                    </span>
-                                  )}
-                                  <div className="text-gray-500 text-xs font-normal mt-2 ">
-                                    {event.summary}
-                                  </div>
-                                </div>
-                                {showMermaidDiagrams && (
-                                  <div className="h-full items-center flex">
-                                    <Mermaid data={event} rootNodeColor={getBackgroundColor(event.name)} />
-                                  </div>
-                                )}
-                                 <div className="flex space-x-4 text-xs pt-2 relative bottom-0 left-0">
-                                    <div className=" font-medium text-gray-500">
-                                      <CubeIcon
-                                        className="h-4 w-4 text-green-400 inline-block mr-2"
-                                        aria-hidden="true"
-                                      />
-                                      Producers (
-                                      {event.producers.length})
-                                    </div>
-                                    <div className=" font-medium text-gray-500">
-                                      <CubeIcon
-                                        className="h-4 w-4 text-indigo-400 inline-block mr-2"
-                                        aria-hidden="true"
-                                      />
-                                      Subscribers ({event.consumers.length})
-                                    </div>
-                                  </div>
-                              </div>
-                            </div>
-                          </a>
-                        </Link>
-                      </li>
-                    )
-                  })}
-                </ul>
+                <EventGrid events={events} showMermaidDiagrams={showMermaidDiagrams} />
               </div>
             </div>
           </div>
@@ -317,7 +247,7 @@ export default function Page({ events, domains, services }: PageProps) {
 export const getServerSideProps = () => {
   const events = getAllEvents()
   const domains = getAllDomainsFromEvents(events)
-  const services = getAllServicesFromEvents(events)
+  const services = getAllServicesNamesFromEvents(events)
 
   return {
     props: {

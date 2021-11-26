@@ -1,7 +1,6 @@
 ---
 id: Shopping API
 name: Shopping API
-slug: ShoppingAPI
 summary: |
   Microservice for handling all shopping related things.
 owners:

@@ -1,7 +1,6 @@
 ---
 id: Customer Portal
 name: Customer Portal
-slug: CustomerPortal
 summary: |
   Internal tooling that the customer team uses.
 owners:

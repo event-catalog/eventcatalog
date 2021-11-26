@@ -1,3 +1,5 @@
+import { MDXRemoteSerializeResult } from 'next-mdx-remote'
+
 export interface Producer {
   id: string
 }
@@ -15,21 +17,30 @@ export interface Schema {
   language: string
 }
 
+export interface User {
+  id: string | number
+  name: string
+  role: string
+  summary?: string
+  avatarUrl?: string
+}
+
 export interface Event {
   name: string
   version: string
   draft?: boolean
-  summary: string
+  summary?: string
   producers?: [Producer]
   consumers?: [Consumer]
   domains?: [Domain]
-  owners: [Person]
-  schema: any
+  owners?: [Person]
+  examples?: any
+  schema?: any
 }
 
 export interface MarkdownFile {
   content: string
-  source: string
+  source: MDXRemoteSerializeResult
   lastModifiedDate: string
 }
 
@@ -41,10 +52,9 @@ export interface Domain {
 export interface Service {
   id: string
   name: string
-  slug: string
   summary: string
-  draft: boolean
-  listOfEventsServicePublishes?: [String] | []
-  listOfEventsServiceSubscribesTo?: [String] | []
+  draft?: boolean
+  publishes?: [Event] | [],
+  subscribes?: [Event] | [],
   owners?: [String] | []
 }

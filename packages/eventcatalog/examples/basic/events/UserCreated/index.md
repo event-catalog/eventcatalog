@@ -1,6 +1,5 @@
 ---
 name: UserCreated
-slug: UserCreated
 version: 0.0.1
 summary: |
   Event is created when we do something useful.
@@ -13,7 +12,7 @@ consumers:
 domains:
     - User
 owners:
-    - label: dboyne
+    - dboyne
 ---
 
 <Admonition type="info">
