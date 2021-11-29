@@ -6,13 +6,12 @@ summary: |
 producers:
     - Shopping API
 consumers:
-    - Email Platform
     - Customer Portal
 domains:
     - Shopping
 owners:
-    - id: dboyne
-    - id: mSmith
+    - dboyne
+    - mSmith
 draft: true    
 ---
 

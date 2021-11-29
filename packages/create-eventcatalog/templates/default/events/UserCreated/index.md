@@ -11,7 +11,7 @@ consumers:
 domains:
     - User
 owners:
-    - label: dboyne
+    - dboyne
 ---
 
 <Admonition type="info">
