@@ -21,14 +21,14 @@ export default function UserPage({ events, services, userId }) {
                   <h1 className="text-3xl font-bold text-gray-900 relative">{user.name}</h1>
                 </div>
               </div>
-              <div>
-                <h1 className="text-sm font-bold text-gray-400 relative mt-4">
+              <div className=" border-b border-gray-100 pb-6">
+                <h1 className="text-lg font-bold text-gray-800 relative mt-4">
                   Owner of Events ({events.length})
                 </h1>
                 <EventGrid events={events} />
               </div>
               <div>
-                <h1 className="text-sm font-bold text-gray-400 relative mt-4">
+                <h1 className="text-lg font-bold text-gray-800 relative mt-4">
                   Owner of Services ({services.length})
                 </h1>
                 <ServiceGrid services={services} />

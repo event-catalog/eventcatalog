@@ -17,7 +17,7 @@ const ServiceGrid = ({ services = [], showMermaidDiagrams = false }) => {
 
         return (
           <li key={service.name} className="flex">
-            <Link href={`/services/${service.slug}`}>
+            <Link href={`/services/${service.name}`}>
               <a className="flex shadow-sm w-full">
                 <div
                   style={{
@@ -39,11 +39,11 @@ const ServiceGrid = ({ services = [], showMermaidDiagrams = false }) => {
                       </div>
                     </div>
                     <div className="h-full items-center flex">
-                      <Mermaid
+                      {/* <Mermaid
                         source="service"
                         data={service}
                         rootNodeColor={getBackgroundColor(service.name)}
-                      />
+                      /> */}
                     </div>
                     <div className="flex space-x-4 text-xs pt-2 relative bottom-0 left-0">
                       <div className=" font-medium text-gray-500">

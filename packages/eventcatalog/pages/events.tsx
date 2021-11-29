@@ -134,11 +134,8 @@ export default function Page({ events, domains, services }: PageProps) {
           </div>
         </div>
 
-        <section aria-labelledby="products-heading" className="pt-6 pb-24">
-          <h2 id="products-heading" className="sr-only">
-            Products
-          </h2>
-
+        <section className="pt-6 pb-24">
+        
           <div className="grid grid-cols-4 gap-x-8 gap-y-10">
             {/* Filters */}
             <form className="hidden lg:block">
