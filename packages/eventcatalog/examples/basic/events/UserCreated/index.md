@@ -6,7 +6,6 @@ summary: |
 producers:
     - User API
     - Customer Portal
-    - Random
 consumers:
     - Email Platform
 domains:

@@ -18,7 +18,7 @@ const extentionToLanguageMap = {
 }
 
 const parseEventFrontMatterIntoEvent = (eventFrontMatter:any): Event => {
-  const { name, version, summary, producers, consumers, domains, owners } = eventFrontMatter
+  const { name, version, summary, producers = [], consumers = [], domains = [], owners } = eventFrontMatter
   return { name, version, summary, producers, consumers, domains, owners }
 }
 
@@ -62,7 +62,8 @@ export const getAllDomainsFromEvents = (events: Event[]) => {
 
 export const getAllServicesNamesFromEvents = (events: Event[]) => {
   const allConsumersAndProducers = events.reduce((domains, event) => {
-    return domains.concat(event.consumers).concat(event.producers)
+    const { consumers = [], producers = [] } = event;
+    return domains.concat(consumers).concat(producers)
   }, [])
 
   return allConsumersAndProducers.map((service) => service)

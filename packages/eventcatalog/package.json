@@ -30,6 +30,7 @@
     "next-mdx-remote": "^3.0.8",
     "react": "17.0.2",
     "react-dom": "17.0.2",
+    "react-force-graph-3d": "^1.21.10",
     "react-syntax-highlighter": "^15.4.5"
   },
   "devDependencies": {

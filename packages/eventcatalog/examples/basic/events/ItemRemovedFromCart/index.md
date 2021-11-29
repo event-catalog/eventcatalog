@@ -5,7 +5,6 @@ summary: |
   Tells us when the item has been added to the cart
 producers:
     - Shopping API
-    - Email Platform
 consumers:
     - Customer Portal
 domains:
