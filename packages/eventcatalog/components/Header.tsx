@@ -7,7 +7,8 @@ import { useRouter } from 'next/router'
 
 const navigation = [
   { name: 'Events', href: '/events' },
-  { name: 'Services', href: '/services' }
+  { name: 'Services', href: '/services' },
+  { name: 'Overview Graph', href: '/overview' }
 ]
 
 function classNames(...classes) {
@@ -38,8 +39,9 @@ export default function Example() {
               <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
                 <div className="flex-shrink-0 flex items-center text-white font-bold">
                   <Link href="/events">
-                    <a>
-                      {projectName}
+                    <a className="flex items-center">
+                      <img className="text-white w-8 inline-block mr-3" src="/logo-white.svg"/>
+                      <span className="text-xl">{projectName}</span>
                     </a>
                   </Link>
                 </div>

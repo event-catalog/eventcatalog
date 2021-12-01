@@ -13,6 +13,7 @@ import BreadCrumbs from '@/components/BreadCrumbs'
 import SyntaxHighlighter from '@/components/SyntaxHighlighter'
 
 import { getAllEvents, getEventByName } from '@/lib/events'
+import { useUrl } from '@/hooks/EventCatalog'
 
 import { Event, MarkdownFile } from '@/types/index'
 
@@ -25,6 +26,7 @@ export default function Events(props: EventsPageProps) {
   const { event, markdown } = props
   const { name, summary, draft, schema, owners, examples, domains, producers, consumers, version } = event
   const { lastModifiedDate } = markdown
+  const { getEditUrl } = useUrl();
 
   const pages = [
     { name: 'Events', href: '/events', current: false },
@@ -75,6 +77,7 @@ export default function Events(props: EventsPageProps) {
       <ContentView
         // {...props}
         title={name}
+        editUrl={getEditUrl(`/events/${name}/index.md`)}
         subtitle={summary}
         draft={draft}
         lastModifiedDate={lastModifiedDate}

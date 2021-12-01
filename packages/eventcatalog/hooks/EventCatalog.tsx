@@ -1,6 +1,7 @@
 import React, { useContext, ReactNode } from 'react'
 import config from '../eventcatalog.config'
 import { User } from '@/types/index'
+import path from 'path'
 
 export const Context = React.createContext<any>(config)
 
@@ -33,5 +34,18 @@ export const useFeatures = () => {
   return {
     features: config.features,
     getFeature
+  }
+}
+
+export const useUrl = () => {
+
+  const config = useConfig()
+
+  const getEditUrl = (url: string) => {
+    return path.join(config.editUrl, url)
+  }
+
+  return {
+    getEditUrl
   }
 }

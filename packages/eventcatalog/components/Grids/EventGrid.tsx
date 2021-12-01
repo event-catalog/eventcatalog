@@ -12,17 +12,17 @@ function classNames(...classes) {
 
 const EventGrid = ({ events = [], showMermaidDiagrams = false }) => {
   return (
-    <ul role="list" className="mt-3 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2 ">
+    <ul role="list" className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2">
       {events.map((event) => {
         const { draft: isDraft } = event
 
         return (
           <li
             key={event.name}
-            className={`h-full items-stretch ${showMermaidDiagrams ? 'flex' : ''}`}
+            className={`flex`}
           >
             <Link href={`/events/${event.name}`}>
-              <a className="flex shadow-sm rounded-md">
+              <a className="flex shadow-sm rounded-md w-full">
                 <div
                   style={{
                     background: getBackgroundColor(event.name),
@@ -32,8 +32,8 @@ const EventGrid = ({ events = [], showMermaidDiagrams = false }) => {
                     'flex-shrink-0 flex items-center justify-center w-4 text-white text-sm font-medium rounded-l-md'
                   )}
                 ></div>
-                <div className="w-full items-center justify-between border-t border-r border-b border-gray-200 bg-white rounded-r-md relative">
-                  <div className="px-4 text-sm space-y-2 flex flex-col h-full py-4">
+                <div className="w-full border-t border-r border-b border-gray-200 bg-white rounded-r-md ">
+                <div className="p-4 text-sm space-y-2 flex flex-col justify-between h-full">
                     <div className="text-gray-900 font-bold hover:text-gray-600">
                       {event.name}
                       <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">

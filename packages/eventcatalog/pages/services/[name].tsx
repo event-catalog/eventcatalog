@@ -4,7 +4,6 @@ import {
   getServiceByName
 } from '@/lib/services'
 
-import { getAllEventsThatPublishAndSubscribeToService } from '@/lib/events';
 import { MDXRemote } from 'next-mdx-remote'
 
 import Admonition from '@/components/Mdx/Admonition'
@@ -12,6 +11,7 @@ import Mermaid from '@/components/Mermaid'
 import ServiceSidebar from '@/components/Sidebars/ServiceSidebar'
 import BreadCrumbs from '@/components/BreadCrumbs'
 import { getBackgroundColor } from '@/utils/random-bg'
+import { useUrl } from '@/hooks/EventCatalog'
 
 import { Service, MarkdownFile } from '@/types/index'
 
@@ -24,6 +24,8 @@ export default function Services(props: ServicesPageProps) {
 
   const { service, markdown } = props; 
   const { name, summary, draft } = service;
+
+  const { getEditUrl } = useUrl();
 
 
   const mdxComponents = {
@@ -47,6 +49,7 @@ export default function Services(props: ServicesPageProps) {
     <div>
       <ContentView
         title={name}
+        editUrl={getEditUrl(`/services/${name}/index.md`)}
         subtitle={summary}
         draft={draft}
         lastModifiedDate="2000"

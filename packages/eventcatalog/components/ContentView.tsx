@@ -9,6 +9,7 @@ export default function ContentView({
   children,
   sidebar: SideBar,
   breadCrumbs: BreadCrumbs,
+  editUrl,
   draft: isDraft = false,
 }) {
   return (
@@ -73,7 +74,7 @@ export default function ContentView({
                   </div>
 
                   <div className="flex justify-between mt-10">
-                    <a href="url" className="flex text-gray-400">
+                    <a href={editUrl} target="_blank" className="flex text-gray-400">
                       <PencilIcon
                         className="top-1 mr-2 relative h-4 w-4 text-gray-400"
                         aria-hidden="true"

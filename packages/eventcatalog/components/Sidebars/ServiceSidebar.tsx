@@ -22,7 +22,7 @@ const ServiceSidebar = ({ service }: ServiceSideBarProps) => {
         <div>
           <h2 className="text-sm font-medium text-gray-500">
             <CubeIcon className="h-5 w-5 text-indigo-400 inline-block mr-2" aria-hidden="true" />
-            Publish Events
+            Publishes Events
           </h2>
           <ul role="list" className="mt-2 leading-8">
             {publishes.map((event) => {
@@ -52,7 +52,7 @@ const ServiceSidebar = ({ service }: ServiceSideBarProps) => {
         <div>
           <h2 className="text-sm font-medium text-gray-500">
             <CubeIcon className="h-5 w-5 text-green-400 inline-block mr-2" aria-hidden="true" />
-            Subscribe Events
+            Subscribes to Events
           </h2>
           <ul role="list" className="mt-2 leading-8">
             {subscribes.map((event) => {

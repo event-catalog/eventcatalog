@@ -4,11 +4,8 @@ import Link from 'next/link'
 import { CubeIcon } from '@heroicons/react/outline'
 
 import { getBackgroundColor } from '@/utils/random-bg'
-import Mermaid from '@/components/Mermaid'
 
 const ServiceGrid = ({ services = [], showMermaidDiagrams = false }) => {
-
-    console.log('sss', services)
 
   return (
     <ul role="list" className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -37,13 +34,6 @@ const ServiceGrid = ({ services = [], showMermaidDiagrams = false }) => {
                       <div className="text-gray-500 text-xs font-normal mt-2 line-clamp-3">
                         {service.summary}
                       </div>
-                    </div>
-                    <div className="h-full items-center flex">
-                      {/* <Mermaid
-                        source="service"
-                        data={service}
-                        rootNodeColor={getBackgroundColor(service.name)}
-                      /> */}
                     </div>
                     <div className="flex space-x-4 text-xs pt-2 relative bottom-0 left-0">
                       <div className=" font-medium text-gray-500">

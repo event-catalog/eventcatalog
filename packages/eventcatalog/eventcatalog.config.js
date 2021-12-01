@@ -3,6 +3,7 @@ module.exports = {
   tagline: 'Events are cool',
   url: 'https://your-eventcatalog-test-site.com',
   baseUrl: '/',
+  editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
   organizationName: 'MyAwesomeOrg',
   projectName: 'Event Catalog',
   features: {

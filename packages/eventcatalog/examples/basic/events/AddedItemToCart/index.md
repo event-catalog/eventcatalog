@@ -1,6 +1,6 @@
 ---
 name: AddedItemToCart
-version: 0.0.5
+version: 0.0.1
 summary: |
   Holds information about the cusomer and product when they add an item to the cart.
 producers:
@@ -15,10 +15,12 @@ owners:
 draft: true    
 ---
 
-Duis mollis quam enim, feugiat porta mi porta non. In lacus nulla, gravida nec sagittis vel, sagittis id tellus. Vestibulum maximus velit eget massa pulvinar ornare. In vel libero nulla. Aliquam a leo risus. Donec bibendum velit non nulla sollicitudin lacinia. Vestibulum imperdiet nunc eget neque sagittis, eget volutpat purus ornare. Mauris malesuada finibus pretium. Vestibulum suscipit tortor sit amet dolor tempor cursus. Nunc ac felis accumsan.
+<Admonition>When firing this event make sure you set the `correlation-id` in the headers.</Admonition>
 
 <Mermaid />
 
-<Schema />
+### Details
 
-<EventsWithinSameDomain />
+This event can be triggered multiple times per customer. Everytime the customer interacts with their shopping cart and removes an item this event will be triggered.
+
+<Schema />

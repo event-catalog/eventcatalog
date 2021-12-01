@@ -34,13 +34,12 @@ const graph = ({ events, services }) => {
 
   const extraRenderers = [new window.THREE.CSS2DRenderer()]
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen ">
       <ForceGraph3D
         extraRenderers={extraRenderers}
         graphData={data}
         nodeAutoColorBy="group"
         nodeRelSize={9}
-       
         nodeThreeObject={(node) => {
           const nodeEl = document.createElement('div')
           nodeEl.innerHTML = ReactDOMServer.renderToString(<NodeElement node={node} />)
