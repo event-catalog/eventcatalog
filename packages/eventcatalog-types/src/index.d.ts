@@ -28,9 +28,9 @@ export interface Event {
   version: string
   draft?: boolean
   summary?: string
-  producers?: [Producer]
-  consumers?: [Consumer]
-  owners?: [Owner]
+  producers?: string[] | []
+  consumers?: string[] | []
+  owners?: Owner[] | string[] | []
   examples?: any
   schema?: any
 }
@@ -40,9 +40,9 @@ export interface Service {
   name: string
   summary: string
   draft?: boolean
-  publishes?: [Event] | [],
-  subscribes?: [Event] | [],
-  owners?: [String] | []
+  publishes?: Event[] | [],
+  subscribes?: Event[] | [],
+  owners?: Owner[] | string[] | []
 }
 
 export type PluginOptions = {

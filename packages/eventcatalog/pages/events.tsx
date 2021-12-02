@@ -1,9 +1,10 @@
 import { Fragment, useState } from 'react'
-import { Event, Domain, Service } from '@/types/index'
+import type { Event, Service } from '@eventcatalogtest/types';
+
 import Link from 'next/link'
 
 import EventGrid from '@/components/Grids/EventGrid'
-import { getAllEvents, getAllDomainsFromEvents, getAllServicesNamesFromEvents } from '@/lib/events'
+import { getAllEvents, getAllServicesNamesFromEvents } from '@/lib/events'
 
 import { Menu, Transition } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/solid'
@@ -20,21 +21,11 @@ const sortOptions = [
 
 export interface PageProps {
   events: [Event]
-  domains: [Domain]
   services: [Service]
 }
 
-export default function Page({ events, domains, services }: PageProps) {
+export default function Page({ events, services }: PageProps) {
   const filters = [
-    {
-      id: 'domains',
-      name: 'Domains',
-      options: domains.map((domain) => ({
-        value: domain,
-        label: domain,
-        checked: false,
-      })),
-    },
     {
       id: 'services',
       name: 'Services',
@@ -46,7 +37,7 @@ export default function Page({ events, domains, services }: PageProps) {
     }
   ]
 
-  const [selectedFilters, setSelectedFilters] = useState({ domains: [], services: [] })
+  const [selectedFilters, setSelectedFilters] = useState({ services: [] })
   const [showMermaidDiagrams, setShowMermaidDiagrams] = useState(false);
 
   const handleFilterSelection = (option, type, event) => {
@@ -61,21 +52,19 @@ export default function Page({ events, domains, services }: PageProps) {
 
   let eventsToRender = events
 
-  if (selectedFilters.domains.length > 0 || selectedFilters.services.length > 0) {
+  if (selectedFilters.services.length > 0) {
+    //@ts-ignore
     eventsToRender = eventsToRender.filter((event) => {
-      const { domains: domainFilters, services: serviceFilters } = selectedFilters
+      const { services: serviceFilters } = selectedFilters
 
-      const hasDomainsFromFilters = event.domains.some(
-        (domain) => domainFilters.indexOf(domain.id) > -1
-      )
       const hasConsumersFromFilters = event.consumers.some(
-        (consumer) => serviceFilters.indexOf(consumer.id) > -1
+        (consumerId) => serviceFilters.indexOf(consumerId) > -1
       )
       const hasProducersFromFilters = event.producers.some(
-        (producer) => serviceFilters.indexOf(producer.id) > -1
+        (producerId) => serviceFilters.indexOf(producerId) > -1
       )
 
-      return hasDomainsFromFilters || hasConsumersFromFilters || hasProducersFromFilters
+      return  hasConsumersFromFilters || hasProducersFromFilters
     })
   }
 
@@ -243,13 +232,12 @@ export default function Page({ events, domains, services }: PageProps) {
 
 export const getServerSideProps = () => {
   const events = getAllEvents()
-  const domains = getAllDomainsFromEvents(events)
   const services = getAllServicesNamesFromEvents(events)
 
   return {
     props: {
       events,
-      domains: [...new Set(domains)],
+      // @ts-ignore
       services: [...new Set(services)],
     },
   }

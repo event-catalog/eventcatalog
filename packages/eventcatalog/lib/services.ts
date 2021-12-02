@@ -2,7 +2,11 @@ import fs from 'fs'
 import path from 'path'
 import { serialize } from 'next-mdx-remote/serialize'
 import { readMarkdownFile } from '@/lib/file-reader'
-import { MarkdownFile, Service } from '../types/index'
+import { MarkdownFile } from '../types/index'
+
+import { Service } from '@eventcatalogtest/types'
+
+
 import { getAllEvents, getAllEventsThatPublishAndSubscribeToService } from '@/lib/events';
 
 const projectDir = process.env.PROJECT_DIR || path.join(process.cwd(), 'examples/basic')
@@ -29,7 +33,7 @@ export const getAllServices = (): Service[] => {
   })
 }
 
-export const getAllServicesByOwnerId = async (ownerId): Service[] => {
+export const getAllServicesByOwnerId = async (ownerId): Promise<Service[]> => {
   const services = await getAllServices()
   const servicesOwnedByUser = services.filter((service) =>
     service.owners.some((id) => id === ownerId)

@@ -2,7 +2,8 @@ import fs from 'fs'
 import path from 'path'
 import { serialize } from 'next-mdx-remote/serialize'
 
-import { Event, Service, MarkdownFile } from '@/types/index'
+import { MarkdownFile } from '@/types/index'
+import type { Service, Event } from '@eventcatalogtest/types';
 
 const projectDir = process.env.PROJECT_DIR || path.join(process.cwd(), 'examples/basic')
 
@@ -19,7 +20,7 @@ const extentionToLanguageMap = {
 
 const parseEventFrontMatterIntoEvent = (eventFrontMatter:any): Event => {
   const { name, version, summary, producers = [], consumers = [], domains = [], owners = [] } = eventFrontMatter
-  return { name, version, summary, producers, consumers, domains, owners }
+  return { name, version, summary, producers, consumers, owners }
 }
 
 
@@ -52,12 +53,6 @@ export const getEventByName = async (eventName): Promise<{ event: Event, markdow
       lastModifiedDate: getLastModifiedDateOfFile(path.join(eventDirectory, `index.md`)),
     },
   }
-}
-
-export const getAllDomainsFromEvents = (events: Event[]) => {
-  return events.reduce((domains, event) => {
-    return domains.concat(event.domains)
-  }, [])
 }
 
 export const getAllServicesNamesFromEvents = (events: Event[]) => {

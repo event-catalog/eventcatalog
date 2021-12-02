@@ -13,7 +13,9 @@ import BreadCrumbs from '@/components/BreadCrumbs'
 import { getBackgroundColor } from '@/utils/random-bg'
 import { useUrl } from '@/hooks/EventCatalog'
 
-import { Service, MarkdownFile } from '@/types/index'
+import { MarkdownFile } from '@/types/index'
+
+import { Service } from '@eventcatalogtest/types'
 
 interface ServicesPageProps {
   service: Service

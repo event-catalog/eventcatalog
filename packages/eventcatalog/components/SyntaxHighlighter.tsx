@@ -4,7 +4,7 @@ import codeStyle from 'react-syntax-highlighter/dist/cjs/styles/prism/vsc-dark-p
 import { Prism as PrismSyntaxHighlighter } from 'react-syntax-highlighter'
 import copy from 'copy-text-to-clipboard'
 
-const SyntaxHighlighter = ({ language, name, ...props }) => {
+const SyntaxHighlighter = ({ language, name = '', ...props }) => {
   const [showCopied, setShowCopied] = useState(false)
 
   const handleCopyCode = () => {

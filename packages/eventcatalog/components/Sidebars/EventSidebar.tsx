@@ -1,10 +1,10 @@
 import React from 'react'
 import Link from 'next/link'
 import { useUser } from '@/hooks/EventCatalog'
-import { Event } from '@/types/index'
+import type { Event } from '@eventcatalogtest/types';
 import fileDownload from 'js-file-download'
 
-import { CubeIcon, MapIcon, DownloadIcon } from '@heroicons/react/outline'
+import { CubeIcon, DownloadIcon } from '@heroicons/react/outline'
 
 interface EventSideBarProps {
   event: Event
@@ -13,7 +13,7 @@ interface EventSideBarProps {
 const EventSideBar = ({ event }: EventSideBarProps) => {
   const { getUserById } = useUser()
 
-  const { owners, domains, producers, consumers } = event
+  const { owners, producers, consumers } = event
 
   const handleDownload = async () => {
     try {
@@ -91,7 +91,7 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
           </ul>
         </div>
       </div>
-      <div className="border-t border-gray-200 py-6 space-y-8">
+      {/* <div className="border-t border-gray-200 py-6 space-y-8">
         <div>
           <h2 className="text-sm font-medium text-gray-500">
             <MapIcon className="h-5 w-5 text-red-400 inline-block mr-2" aria-hidden="true" />
@@ -115,7 +115,7 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
             })}
           </ul>
         </div>
-      </div>
+      </div> */}
       <div className="border-t border-gray-200 py-6 space-y-8">
         <div>
           <h2 className="text-sm font-medium text-gray-500">Event Owners</h2>

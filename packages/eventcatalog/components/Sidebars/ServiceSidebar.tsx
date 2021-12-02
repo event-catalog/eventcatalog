@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { useUser } from '@/hooks/EventCatalog'
-import { Service } from '@/types/index'
+import type { Service } from '@eventcatalogtest/types';
 
 import { CubeIcon } from '@heroicons/react/outline'
 

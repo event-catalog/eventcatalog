@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { Schema } from '@/types/index'
+import type { Schema } from '@eventcatalogtest/types';
 import matter from 'gray-matter';
 
 // https://github.com/react-syntax-highlighter/react-syntax-highlighter/blob/master/AVAILABLE_LANGUAGES_HLJS.MD

@@ -1,6 +1,7 @@
 import React, { useContext, ReactNode } from 'react'
 import config from '../eventcatalog.config'
-import { User } from '@/types/index'
+import type { User } from '@eventcatalogtest/types';
+
 import path from 'path'
 
 export const Context = React.createContext<any>(config)

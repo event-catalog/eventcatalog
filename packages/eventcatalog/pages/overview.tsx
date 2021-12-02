@@ -32,6 +32,7 @@ const graph = ({ events, services }) => {
     return null
   }
 
+  //@ts-ignore
   const extraRenderers = [new window.THREE.CSS2DRenderer()]
   return (
     <div className="min-h-screen ">
@@ -45,7 +46,7 @@ const graph = ({ events, services }) => {
           nodeEl.innerHTML = ReactDOMServer.renderToString(<NodeElement node={node} />)
           node.height = '100px'
           nodeEl.style.color = node.color
-          // nodeEl.className = 'node-label'
+          //@ts-ignore
           return new THREE.CSS2DObject(nodeEl)
         }}
         nodeThreeObjectExtend={true}
@@ -71,6 +72,7 @@ export const getServerSideProps = () => {
   return {
     props: {
       events,
+      // @ts-ignore
       services: [...new Set(services)],
     },
   }

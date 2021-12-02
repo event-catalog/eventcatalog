@@ -181,13 +181,13 @@ export async function createApp({
         '@eventcatalogtest/core-test': pkgJSON.version
       },
       devDependencies: {
+        "@eventcatalogtest/types": pkgJSON.version,
         "tailwindcss": "^2.2.19",
         "typescript": "^4.4.4",
         "postcss": "^8.3.11",
         "autoprefixer": "^10.4.0"
       }
     }
-
 
     /**
      * Write it to disk.

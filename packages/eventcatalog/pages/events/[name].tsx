@@ -1,7 +1,6 @@
 import { MDXRemote } from 'next-mdx-remote'
 
 import Admonition from '@/components/Mdx/Admonition'
-import EventsTable from '@/components/Mdx/EventsTable'
 import Examples from '@/components/Mdx/Examples'
 
 import { getBackgroundColor } from '@/utils/random-bg'
@@ -15,7 +14,9 @@ import SyntaxHighlighter from '@/components/SyntaxHighlighter'
 import { getAllEvents, getEventByName } from '@/lib/events'
 import { useUrl } from '@/hooks/EventCatalog'
 
-import { Event, MarkdownFile } from '@/types/index'
+import { MarkdownFile } from '@/types/index'
+
+import { Event } from '@eventcatalogtest/types'
 
 interface EventsPageProps {
   event: Event
@@ -24,7 +25,7 @@ interface EventsPageProps {
 
 export default function Events(props: EventsPageProps) {
   const { event, markdown } = props
-  const { name, summary, draft, schema, owners, examples, domains, producers, consumers, version } = event
+  const { name, summary, draft, schema, examples, version } = event
   const { lastModifiedDate } = markdown
   const { getEditUrl } = useUrl();
 

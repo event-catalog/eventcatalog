@@ -1,5 +1,6 @@
 import { Fragment, useState } from 'react'
-import { Service } from '@/types/index'
+import { Service } from '@eventcatalogtest/types'
+
 import Link from 'next/link'
 
 import ServiceGrid from '@/components/Grids/ServiceGrid'

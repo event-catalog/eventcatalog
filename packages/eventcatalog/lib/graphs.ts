@@ -1,4 +1,4 @@
-import { Event, Service } from '@/types/index'
+import type { Event, Service } from '@eventcatalogtest/types';
 
 export const buildMermaidFlowChart = ({ name, producers, consumers }: Event, rootNodeColor: string = '#2563eb') => {
   const producerNames = producers.map((producer) => producer.replace(' ', '_'))
