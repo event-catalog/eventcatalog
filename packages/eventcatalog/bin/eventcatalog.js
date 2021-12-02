@@ -40,6 +40,7 @@ cli
     //   path.join(usersProjectDir, 'node_modules'),
     //   path.join(coreDestination, 'node_modules')
     // )
+    
 
     execSync(`PROJECT_DIR=${process.cwd()} npm run start`, {
       cwd: coreDestination,
