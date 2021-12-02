@@ -42,7 +42,7 @@ cli
     // )
 
     execSync(`PROJECT_DIR=${process.cwd()} npm run start`, {
-      cwd: usersProjectDir,
+      cwd: coreDestination,
       stdio: 'inherit',
     })
   })
