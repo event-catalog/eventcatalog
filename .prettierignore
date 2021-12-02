@@ -8,3 +8,5 @@ packages/eventcatalog-*/lib-next/
 packages/create-eventcatalog/lib/*
 packages/reate-eventcatalog/templates/*/eventcatalog.config.js
 __fixtures__
+examples/
+

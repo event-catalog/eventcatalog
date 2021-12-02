@@ -1,3 +1,4 @@
+
 const path = require('path');
 
 module.exports = {
@@ -8,7 +9,7 @@ module.exports = {
   editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
   organizationName: 'MyAwesomeOrg',
   projectName: 'Event Catalog',
-  serviceDir:  path.join(__dirname, 'services'),
+  servicesDir:  path.join(__dirname, 'services'),
   eventsDir:  path.join(__dirname, 'events'),
   features: {
     mermaid: {
@@ -20,7 +21,7 @@ module.exports = {
     [
       '@eventcatalogtest/plugin-doc-generator-asyncapi',
       {
-        file: './asyncapi.yml',
+        file: path.join(__dirname, './asyncapi.yml'),
       },
     ]
   ],

@@ -1,0 +1,70 @@
+export interface Producer {
+  id: string
+}
+
+export interface Consumer {
+  id: string
+}
+
+export interface Owner {
+  id: string
+}
+
+export interface User {
+  id: string | number
+  name: string
+  role: string
+  summary?: string
+  avatarUrl?: string
+}
+
+export interface Schema {
+  snippet: string,
+  language: string
+}
+
+export interface Event {
+  name: string
+  version: string
+  draft?: boolean
+  summary?: string
+  producers?: [Producer]
+  consumers?: [Consumer]
+  owners?: [Owner]
+  examples?: any
+  schema?: any
+}
+
+export interface Service {
+  id: string
+  name: string
+  summary: string
+  draft?: boolean
+  publishes?: [Event] | [],
+  subscribes?: [Event] | [],
+  owners?: [String] | []
+}
+
+export type PluginOptions = {
+  file: string
+}
+
+export type PluginOpts = {id?: string} & Record<string, unknown>;
+
+export type PluginConfig = | [string, PluginOpts];
+
+export interface EventCataLogConfig {
+  title: string;
+  tagline: string;
+  url: string;
+  baseUrl: string;
+  organizationName: string;
+  projectName: string;
+  eventsDir?:string;
+  servicesDir?:string;
+  generators?: PluginConfig[];
+}
+
+export type LoadContext = {
+  eventCatalogConfig: EventCataLogConfig
+}

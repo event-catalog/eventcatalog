@@ -27,6 +27,6 @@
     },
     "jsx": "preserve"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "hooks/EventCatalog.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "hooks/EventCatalog.tsx", "scripts/generate.js"],
   "exclude": ["node_modules"]
 }

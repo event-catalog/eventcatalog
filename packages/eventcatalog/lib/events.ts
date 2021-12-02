@@ -18,7 +18,7 @@ const extentionToLanguageMap = {
 }
 
 const parseEventFrontMatterIntoEvent = (eventFrontMatter:any): Event => {
-  const { name, version, summary, producers = [], consumers = [], domains = [], owners } = eventFrontMatter
+  const { name, version, summary, producers = [], consumers = [], domains = [], owners = [] } = eventFrontMatter
   return { name, version, summary, producers, consumers, domains, owners }
 }
 
@@ -97,7 +97,7 @@ export const getEventExamplesFromDir = (pathToExamples) => {
 
 export const getAllEventsByOwnerId = async (ownerId) => {
   const events = await getAllEvents()
-  return events.filter((event) => event.owners.some((id) => id === ownerId))
+  return events.filter(({ owners = []}) => owners.some((id) => id === ownerId))
 }
 
 
