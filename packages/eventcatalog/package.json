@@ -15,7 +15,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@eventcatalogtest/plugin-doc-generator-asyncapi": "^0.0.0-36",
     "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
     "@mdx-js/react": "^1.6.22",

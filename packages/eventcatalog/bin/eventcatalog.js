@@ -35,14 +35,14 @@ cli
   .command('start [siteDir]')
   .description('Start the development server.')
   .action(() => {
-    fs.rmSync(path.join(coreDestination, 'node_modules'), { recursive: true, force: true })
-    fs.copySync(
-      path.join(usersProjectDir, 'node_modules'),
-      path.join(coreDestination, 'node_modules')
-    )
+    // fs.rmSync(path.join(coreDestination, 'node_modules'), { recursive: true, force: true })
+    // fs.copySync(
+    //   path.join(usersProjectDir, 'node_modules'),
+    //   path.join(coreDestination, 'node_modules')
+    // )
 
     execSync(`PROJECT_DIR=${process.cwd()} npm run start`, {
-      cwd: coreDestination,
+      cwd: usersProjectDir,
       stdio: 'inherit',
     })
   })

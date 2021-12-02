@@ -17,14 +17,6 @@ module.exports = {
       showOnServicesGrid: true
     }
   },
-  generators: [
-    [
-      '@eventcatalogtest/plugin-doc-generator-asyncapi',
-      {
-        file: path.join(__dirname, './asyncapi.yml'),
-      },
-    ]
-  ],
   users: [
     {
       id: 'dboyne',
