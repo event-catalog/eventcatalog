@@ -174,6 +174,7 @@ export async function createApp({
         start: "eventcatalog start",
         dev: "eventcatalog dev",
         build: "eventcatalog build",
+        generate: "eventcatalog generate",
         "test": "echo \"Error: no test specified\" && exit 1"
       },
       dependencies: {

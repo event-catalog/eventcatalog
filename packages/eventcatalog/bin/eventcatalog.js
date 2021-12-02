@@ -77,6 +77,22 @@ cli
       stdio: 'inherit',
     })
   })
+  
+cli
+
+  .command('generate [siteDir]')
+  .description('Start the generator scripts.')
+  .action(() => {
+    if (!fs.existsSync(coreDestination)) {
+      // get the application ready
+      copyCoreApplicationCodeIntoUsersProjectDir()
+    }
+
+    execSync(`PROJECT_DIR=${process.cwd()} npm run generate`, {
+      cwd: coreDestination,
+      stdio: 'inherit',
+    })
+  })
 
 async function run() {
   cli.parse(process.argv)
