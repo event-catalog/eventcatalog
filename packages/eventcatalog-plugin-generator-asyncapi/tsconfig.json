@@ -7,6 +7,7 @@
     "outDir": "lib",
     "moduleResolution": "node",
     "resolveJsonModule": true,
+    "tsBuildInfoFile": "./lib/.tsbuildinfo",
     "esModuleInterop": true,
     "skipLibCheck": false,
     "incremental": true

@@ -11,13 +11,16 @@
     "dev": "lerna run dev:next --stream --parallel",
     "start:catalog": "PROJECT_DIR=packages/examples/basic && cd packages/eventcatalog && npm run dev",
     "bootstrap": "lerna bootstrap",
-    "build": "lerna run build",
+    "build": "yarn build:packages && lerna run build",
+    "build:packages": "lerna run build:package --no-private",
     "prepublish": "lerna run prepublish",
     "canary": "yarn canary:bumpVersion && yarn canary:publish",
     "prettier": "prettier --config .prettierrc --write \"**/*.{js,jsx,ts,tsx,json}\"",
     "canary:version": "echo 0.0.0-`git rev-list --count HEAD`+`git rev-parse --short HEAD`",
     "canary:bumpVersion": "yarn lerna version `yarn --silent canary:version` --exact --no-push --yes",
     "canary:publish": "yarn lerna publish from-package --dist-tag canary --yes --no-verify-access",
+    "postinstall": "yarn lock:update && yarn build:packages",
+    "lock:update": "npx yarn-deduplicate",
     "start": "lerna run start --stream"
   },
   "devDependencies": {

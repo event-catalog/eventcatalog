@@ -5,6 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
+    "build:package": "tsc",
     "watch": "tsc --watch"
   },
   "repository": {
