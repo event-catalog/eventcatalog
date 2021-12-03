@@ -70,6 +70,11 @@ cli
       copyCoreApplicationCodeIntoUsersProjectDir()
     }
 
+    fs.copyFileSync(
+      path.join(projectDIR, 'eventcatalog.config.js'),
+      path.join(eventCatalogLibDir, 'eventcatalog.config.js')
+    )
+
     execSync(`PROJECT_DIR=${projectDIR} npm run dev`, {
       cwd: eventCatalogLibDir,
       stdio: 'inherit',
@@ -85,6 +90,11 @@ cli
       // get the application ready
       copyCoreApplicationCodeIntoUsersProjectDir()
     }
+
+    fs.copyFileSync(
+      path.join(projectDIR, 'eventcatalog.config.js'),
+      path.join(eventCatalogLibDir, 'eventcatalog.config.js')
+    )
 
     execSync(`PROJECT_DIR=${projectDIR} npm run generate`, {
       cwd: eventCatalogLibDir,
