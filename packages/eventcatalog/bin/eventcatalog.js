@@ -5,16 +5,19 @@ const path = require('path')
 const { execSync } = require('child_process')
 const fs = require('fs-extra')
 
-const usersProjectDir = process.cwd()
+// this is the directory the users project is in
+const projectDIR = process.cwd()
 const coreDirectory = path.join(__dirname, '../')
-const coreDestination = path.join(usersProjectDir, 'eventcatalog-core')
+
+// this is the directory where the eventcatalog core code is
+const eventCatalogLibDir = path.join(projectDIR, 'eventcatalog-core')
 
 const copyCoreApplicationCodeIntoUsersProjectDir = () => {
   const excludeFilesForCopy = ['.next', 'eventcatalog.config.js', 'bin', 'README.md']
-  const exclusions = excludeFilesForCopy.map((file) => path.join(coreDestination, file))
+  const exclusions = excludeFilesForCopy.map((file) => path.join(eventCatalogLibDir, file))
 
-  fs.ensureDirSync(coreDestination)
-  fs.copySync(coreDirectory, coreDestination)
+  fs.ensureDirSync(eventCatalogLibDir)
+  fs.copySync(coreDirectory, eventCatalogLibDir)
 
   // remove any files we don't care about
   exclusions.map((path) => {
@@ -26,8 +29,8 @@ const copyCoreApplicationCodeIntoUsersProjectDir = () => {
   })
 
   fs.copyFileSync(
-    path.join(usersProjectDir, 'eventcatalog.config.js'),
-    path.join(coreDestination, 'eventcatalog.config.js')
+    path.join(projectDIR, 'eventcatalog.config.js'),
+    path.join(eventCatalogLibDir, 'eventcatalog.config.js')
   )
 }
 
@@ -35,8 +38,8 @@ cli
   .command('start [siteDir]')
   .description('Start the development server.')
   .action(() => {
-    execSync(`npm run start`, {
-      cwd: coreDestination,
+    execSync(`PROJECT_DIR=${projectDIR} npm run start`, {
+      cwd: eventCatalogLibDir,
       stdio: 'inherit',
     })
   })
@@ -45,45 +48,46 @@ cli
   .command('build [siteDir]')
   .description('Start the development server.')
   .action(() => {
-    if (!fs.existsSync(coreDestination)) {
-      // get the application ready
+    if (!fs.existsSync(eventCatalogLibDir)) {
       copyCoreApplicationCodeIntoUsersProjectDir()
     }
 
     // build using nextjs
-    execSync(`npm run build`, {
-      cwd: coreDestination,
+    execSync(`PROJECT_DIR=${projectDIR} npm run build`, {
+      cwd: eventCatalogLibDir,
       stdio: 'inherit',
     })
 
     // everything is built make sure its back in the users project directory
-    fs.copySync(path.join(coreDestination, '.next'), path.join(usersProjectDir, '.next'))
+    fs.copySync(path.join(eventCatalogLibDir, '.next'), path.join(projectDIR, '.next'))
   })
 
 cli
   .command('dev [siteDir]')
   .description('Start the development server.')
   .action(() => {
-    copyCoreApplicationCodeIntoUsersProjectDir()
+    if (!fs.existsSync(eventCatalogLibDir)) {
+      copyCoreApplicationCodeIntoUsersProjectDir()
+    }
 
-    execSync(`npm run dev`, {
-      cwd: coreDestination,
+    execSync(`PROJECT_DIR=${projectDIR} npm run dev`, {
+      cwd: eventCatalogLibDir,
       stdio: 'inherit',
     })
   })
-  
+
 cli
 
   .command('generate [siteDir]')
   .description('Start the generator scripts.')
   .action(() => {
-    if (!fs.existsSync(coreDestination)) {
+    if (!fs.existsSync(eventCatalogLibDir)) {
       // get the application ready
       copyCoreApplicationCodeIntoUsersProjectDir()
     }
 
-    execSync(`npm run generate`, {
-      cwd: coreDestination,
+    execSync(`PROJECT_DIR=${projectDIR} npm run generate`, {
+      cwd: eventCatalogLibDir,
       stdio: 'inherit',
     })
   })

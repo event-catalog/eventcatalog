@@ -24,10 +24,6 @@ export interface PageProps {
 }
 
 export default function Page({ services }: PageProps) {
-  const [selectedFilters, setSelectedFilters] = useState({ domains: [], services: [] })
-
-  let servicesToRender = services
-
 
   return (
     <div className="bg-white">

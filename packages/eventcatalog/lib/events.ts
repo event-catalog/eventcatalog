@@ -6,7 +6,7 @@ import type { Service, Event } from '@eventcatalogtest/types';
 
 import config from '../eventcatalog.config';
 
-const eventsDir = config.eventsDir || path.join(process.cwd(), 'events');
+const eventsDir = config.eventsDir || path.join(process.cwd(), process.env.PROJECT_DIR, 'events');
 
 import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader';
 

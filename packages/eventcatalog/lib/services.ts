@@ -9,9 +9,7 @@ import { Service } from '@eventcatalogtest/types'
 
 import { getAllEvents, getAllEventsThatPublishAndSubscribeToService } from '@/lib/events';
 
-const servicesDir = config.servicesDir || path.join(process.cwd(), 'services');
-
-console.log('servicesDir', servicesDir)
+const servicesDir = config.servicesDir || path.join(process.cwd(), process.env.PROJECT_DIR, 'services');
 
 const buildService = (eventFrontMatter:any): Service => {
   const { id, name, summary, owners = [] } = eventFrontMatter
