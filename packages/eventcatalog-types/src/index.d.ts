@@ -60,8 +60,6 @@ export interface EventCataLogConfig {
   baseUrl: string;
   organizationName: string;
   projectName: string;
-  eventsDir?:string;
-  servicesDir?:string;
   generators?: PluginConfig[];
 }
 

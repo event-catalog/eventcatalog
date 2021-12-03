@@ -64,8 +64,11 @@ const writeEventsToMarkdown = async (eventsDir: string, events: any) => {
 export default async (context: LoadContext, options: PluginOptions) => {
 
   const { file } = options
-  const eventsDir = context.eventCatalogConfig.eventsDir || path.join(process.cwd(), 'events')
-  const servicesDir = context.eventCatalogConfig.servicesDir || path.join(process.cwd(), 'services')
+
+  //@ts-ignore
+  const eventsDir = path.join(process.env.PROJECT_DIR, 'events')
+  //@ts-ignore
+  const servicesDir = path.join(process.env.PROJECT_DIR, 'services')
 
   let asyncAPIFile, doc
 

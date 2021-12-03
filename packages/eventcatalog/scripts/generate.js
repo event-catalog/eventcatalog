@@ -2,7 +2,7 @@ const path = require('path');
 const chalk = require('chalk');
 
 const generate = async () => {
-    const config = require(path.join(process.cwd(), 'eventcatalog.config.js'));
+    const config = require(path.join(process.env.PROJECT_DIR, 'eventcatalog.config.js'));
 
     const { generators } = config;
 
