@@ -1,7 +1,6 @@
 import React, { useContext, ReactNode } from 'react'
 import config from '../eventcatalog.config'
-import type { User } from '@eventcatalogtest/types';
-
+import type { User } from '@eventcatalogtest/types'
 import path from 'path'
 
 export const Context = React.createContext<any>(config)
@@ -30,16 +29,15 @@ export const useUser = () => {
 export const useFeatures = () => {
   const config = useConfig()
 
-  const getFeature = (key) => config.features[key];
+  const getFeature = (key) => config.features[key]
 
   return {
     features: config.features,
-    getFeature
+    getFeature,
   }
 }
 
 export const useUrl = () => {
-
   const config = useConfig()
 
   const getEditUrl = (url: string) => {
@@ -47,6 +45,6 @@ export const useUrl = () => {
   }
 
   return {
-    getEditUrl
+    getEditUrl,
   }
 }

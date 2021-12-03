@@ -1,11 +1,12 @@
 import fs from 'fs'
 import path from 'path'
 import { serialize } from 'next-mdx-remote/serialize'
-
 import { MarkdownFile } from '@/types/index'
 import type { Service, Event } from '@eventcatalogtest/types';
 
-const projectDir = process.env.PROJECT_DIR || path.join(process.cwd(), 'examples/basic')
+import config from '../eventcatalog.config';
+
+const eventsDir = config.eventsDir || path.join(process.cwd(), 'events');
 
 import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader';
 
@@ -25,9 +26,10 @@ const parseEventFrontMatterIntoEvent = (eventFrontMatter:any): Event => {
 
 
 export const getAllEvents = (): Event[] => {
-  const folders = fs.readdirSync(path.join(projectDir, 'events'))
+
+  const folders = fs.readdirSync(eventsDir)
   return folders.map((folder) => {
-    const { data } = readMarkdownFile(path.join(projectDir, 'events', folder, 'index.md'))
+    const { data } = readMarkdownFile(path.join(eventsDir, folder, 'index.md'))
     return parseEventFrontMatterIntoEvent(data);
   })
 }
@@ -35,7 +37,7 @@ export const getAllEvents = (): Event[] => {
 
 export const getEventByName = async (eventName): Promise<{ event: Event, markdown: MarkdownFile}> => {
   
-  const eventDirectory = path.join(projectDir, 'events', eventName)
+  const eventDirectory = path.join(eventsDir, eventName)
   const { data, content } = readMarkdownFile(path.join(eventDirectory, `index.md`));
   const event = parseEventFrontMatterIntoEvent(data);
 

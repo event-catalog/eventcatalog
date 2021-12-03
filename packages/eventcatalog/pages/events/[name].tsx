@@ -46,8 +46,6 @@ export default function Events(props: EventsPageProps) {
     },
     Schema: ({ title = 'Event Schema'}) => {
 
-      console.log('s', schema)
-
       return (
         <section className="mt-8 xl:mt-10">
               <h2 id="activity-title" className="text-lg font-medium text-gray-900 underline">

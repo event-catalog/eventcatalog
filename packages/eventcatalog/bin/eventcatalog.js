@@ -35,14 +35,7 @@ cli
   .command('start [siteDir]')
   .description('Start the development server.')
   .action(() => {
-    // fs.rmSync(path.join(coreDestination, 'node_modules'), { recursive: true, force: true })
-    // fs.copySync(
-    //   path.join(usersProjectDir, 'node_modules'),
-    //   path.join(coreDestination, 'node_modules')
-    // )
-    
-
-    execSync(`PROJECT_DIR=${process.cwd()} npm run start`, {
+    execSync(`npm run start`, {
       cwd: coreDestination,
       stdio: 'inherit',
     })
@@ -58,7 +51,7 @@ cli
     }
 
     // build using nextjs
-    execSync(`PROJECT_DIR=${process.cwd()} npm run build`, {
+    execSync(`npm run build`, {
       cwd: coreDestination,
       stdio: 'inherit',
     })
@@ -73,7 +66,7 @@ cli
   .action(() => {
     copyCoreApplicationCodeIntoUsersProjectDir()
 
-    execSync(`PROJECT_DIR=${process.cwd()} npm run dev`, {
+    execSync(`npm run dev`, {
       cwd: coreDestination,
       stdio: 'inherit',
     })
@@ -89,7 +82,7 @@ cli
       copyCoreApplicationCodeIntoUsersProjectDir()
     }
 
-    execSync(`PROJECT_DIR=${process.cwd()} npm run generate`, {
+    execSync(`npm run generate`, {
       cwd: coreDestination,
       stdio: 'inherit',
     })
