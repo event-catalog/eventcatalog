@@ -1,10 +1,3 @@
-export interface Producer {
-  id: string
-}
-
-export interface Consumer {
-  id: string
-}
 
 export interface Owner {
   id: string
