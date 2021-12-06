@@ -8,6 +8,7 @@ import { getBackgroundColor } from '@/utils/random-bg'
 import ContentView from '@/components/ContentView'
 import Mermaid from '@/components/Mermaid'
 import EventSideBar from '@/components/Sidebars/EventSidebar'
+import NotFound from '@/components/NotFound'
 import BreadCrumbs from '@/components/BreadCrumbs'
 import SyntaxHighlighter from '@/components/SyntaxHighlighter'
 
@@ -17,17 +18,22 @@ import { useUrl } from '@/hooks/EventCatalog'
 import { MarkdownFile } from '@/types/index'
 
 import { Event } from '@eventcatalogtest/types'
+import { editUrl } from 'eventcatalog.config'
 
 interface EventsPageProps {
   event: Event
   markdown: MarkdownFile
+  notFound?: boolean
 }
 
 export default function Events(props: EventsPageProps) {
-  const { event, markdown } = props
+  const { event, markdown, notFound } = props
+
+  if(notFound) return <NotFound type="event" name={event.name} editUrl={editUrl} /> 
+
   const { name, summary, draft, schema, examples, version } = event
   const { lastModifiedDate } = markdown
-  const { getEditUrl } = useUrl();
+  const { getEditUrl } = useUrl()
 
   const pages = [
     { name: 'Events', href: '/events', current: false },
@@ -44,16 +50,21 @@ export default function Events(props: EventsPageProps) {
         <code className={className} {...props} />
       )
     },
-    Schema: ({ title = 'Event Schema'}) => {
+    Schema: ({ title = 'Event Schema' }) => {
+      if (!schema) return null
 
       return (
         <section className="mt-8 xl:mt-10">
-              <h2 id="activity-title" className="text-lg font-medium text-gray-900 underline">
-                {title}
-              </h2>
-           <SyntaxHighlighter language={schema.language} showLineNumbers={true} name={`${event.name} Schema`}>
-              {schema.snippet}
-            </SyntaxHighlighter>
+          <h2 id="activity-title" className="text-lg font-medium text-gray-900 underline">
+            {title}
+          </h2>
+          <SyntaxHighlighter
+            language={schema.language}
+            showLineNumbers={false}
+            name={`${event.name} Schema (${schema.language})`}
+          >
+            {schema.snippet}
+          </SyntaxHighlighter>
         </section>
       )
     },
@@ -68,7 +79,7 @@ export default function Events(props: EventsPageProps) {
           <Mermaid data={event} rootNodeColor={getBackgroundColor(event.name)} />
         </div>
       )
-    }
+    },
   }
 
   return (
@@ -91,14 +102,21 @@ export default function Events(props: EventsPageProps) {
 }
 
 export async function getStaticProps({ params }) {
-  const { event, markdown } = await getEventByName(params.name)
-  
-
-  return {
-    props: {
-      event,
-      markdown,
-    },
+  try {
+    const { event, markdown } = await getEventByName(params.name)
+    return {
+      props: {
+        event,
+        markdown,
+      },
+    }
+  } catch (error) {
+    return {
+      props: {
+        notFound: true,
+        event: { name: params.name },
+      },
+    }
   }
 }
 
@@ -108,6 +126,6 @@ export async function getStaticPaths() {
 
   return {
     paths,
-    fallback: false,
+    fallback: 'blocking',
   }
 }

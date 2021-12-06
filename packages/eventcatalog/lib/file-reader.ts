@@ -10,6 +10,9 @@ const extentionToLanguageMap = {
   json: 'json',
   yml: 'yml',
   java: 'java',
+  pb: 'protobuf',
+  proto: 'protobuf',
+  thrift: 'thrift'
 }
 
 export const readMarkdownFile = (pathToFile: string) => {
@@ -31,8 +34,8 @@ export const getSchemaFromDir = (pathToSchemaDir: string): Schema => {
     const extension = schemaFileName.split('.').pop()
 
     return {
-      snippet: schemaFile,
-      language: extentionToLanguageMap[extension],
+      snippet: `${schemaFile}`,
+      language: extentionToLanguageMap[extension] || extension,
     }
   } catch (error) {
     return null

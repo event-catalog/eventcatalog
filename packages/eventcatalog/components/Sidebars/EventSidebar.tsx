@@ -40,7 +40,7 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
           <ul role="list" className="mt-2 leading-8">
             {producers.map((producer) => {
               return (
-                <li className="inline" key={producer}>
+                <li className="inline mr-1" key={producer}>
                   <Link href={`/services/${producer}`}>
                   <a
                     

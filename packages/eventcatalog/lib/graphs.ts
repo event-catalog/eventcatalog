@@ -1,8 +1,8 @@
 import type { Event, Service } from '@eventcatalogtest/types';
 
 export const buildMermaidFlowChart = ({ name, producers, consumers }: Event, rootNodeColor: string = '#2563eb') => {
-  const producerNames = producers.map((producer) => producer.replace(' ', '_'))
-  const consumerNames = consumers.map((consumer) => consumer.replace(' ', '_'))
+  const producerNames = producers.map((producer) => producer.replace(/ /g, '_'))
+  const consumerNames = consumers.map((consumer) => consumer.replace(/ /g, '_'))
   return `flowchart LR
 ${producerNames.map((producer) => `${producer}:::producer-->${name}:::event\n`).join('')}
 classDef event stroke:${rootNodeColor},stroke-width: 4px;
@@ -13,7 +13,7 @@ ${consumerNames.map((consumer) => `${name}:::event-->${consumer}:::consumer\n`).
 }
 
 export const buildMermaidFlowChartForService = ({ publishes, subscribes, name}: Service, rootNodeColor: string = '#2563eb') => {
-  const producerNames = publishes.map((event) => event.name.replace(' ', '_'))
+  const producerNames = publishes.map((event) => event.name.replace(/ /g, '_'))
   const consumerNames = subscribes.map((event) =>
     event.name.replace(' ', '_')
   )

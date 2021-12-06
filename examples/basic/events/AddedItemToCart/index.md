@@ -5,6 +5,7 @@ summary: |
   Holds information about the cusomer and product when they add an item to the cart.
 producers:
     - Shopping API
+    - Application API
 consumers:
     - Customer Portal
 domains:
