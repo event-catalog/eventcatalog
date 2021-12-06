@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { useUser } from '@/hooks/EventCatalog'
-import type { Service } from '@eventcatalogtest/types';
+import type { Service } from '@eventcatalogtest/types'
 
 import { CubeIcon } from '@heroicons/react/outline'
 
@@ -12,7 +12,7 @@ interface ServiceSideBarProps {
 const ServiceSidebar = ({ service }: ServiceSideBarProps) => {
   const { getUserById } = useUser()
 
-  const { owners, subscribes, publishes } = service
+  const { owners, subscribes, publishes, repository } = service
 
   return (
     <aside className="hidden xl:block xl:pl-8">
@@ -88,12 +88,12 @@ const ServiceSidebar = ({ service }: ServiceSideBarProps) => {
               return (
                 <li className="flex justify-start" key={user.id}>
                   <Link href={`/users/${user.id}`}>
-                  <a className="flex items-center space-x-3">
-                    <div className="flex-shrink-0">
-                      <img className="h-5 w-5 rounded-full" src={user.avatarUrl} alt="" />
-                    </div>
-                    <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                  </a>
+                    <a className="flex items-center space-x-3">
+                      <div className="flex-shrink-0">
+                        <img className="h-5 w-5 rounded-full" src={user.avatarUrl} alt="" />
+                      </div>
+                      <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                    </a>
                   </Link>
                 </li>
               )
@@ -101,6 +101,24 @@ const ServiceSidebar = ({ service }: ServiceSideBarProps) => {
           </ul>
         </div>
       </div>
+      {repository && (
+        <div className="border-t border-gray-200 py-6 space-y-8">
+          <div>
+            <h2 className="text-sm font-medium text-gray-500">Repository</h2>
+            <ul role="list" className="mt-4 leading-8 space-y-2">
+              <li className="flex justify-start">
+                <a
+                  href={repository?.url}
+                  target="_blank"
+                  className="flex items-center space-x-3 text-blue-500 underline text-sm"
+                >
+                  {repository.url}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
     </aside>
   )
 }

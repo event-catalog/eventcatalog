@@ -35,10 +35,15 @@ export interface Event {
   schema?: any
 }
 
+export interface Repository {
+  url: string
+}
+
 export interface Service {
   id: string
   name: string
   summary: string
+  repository?: Repository
   draft?: boolean
   publishes?: Event[] | [],
   subscribes?: Event[] | [],
