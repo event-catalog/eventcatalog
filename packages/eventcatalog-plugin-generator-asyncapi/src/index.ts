@@ -73,20 +73,18 @@ export default async (context: LoadContext, options: PluginOptions) => {
   let asyncAPIFile, doc
 
   if (!file) {
-    chalk.red(`Please provide a file to load.`)
-    return
+    throw new Error('No file provided in plugin.')
   }
 
   try {
     asyncAPIFile = fs.readFileSync(file, 'utf-8')
   } catch (error: any) {
-    console.log(chalk.red(error.message))
+    throw new Error(`Failed to read file with provided path`)
   }
 
   try {
     doc = await parse(asyncAPIFile)
   } catch (e) {
-    console.error(chalk.red('Failed to parse AsyncAPI file'))
     throw e
   }
 
