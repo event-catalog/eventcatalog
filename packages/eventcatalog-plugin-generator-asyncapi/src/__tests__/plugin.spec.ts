@@ -33,7 +33,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
     try {
       fs.rmdirSync(path.join(__dirname, 'tmp'), { recursive: true })
     } catch (error) {
-      console.log('Nothing to remove');      
+      console.log('Nothing to remove')
     }
   })
 
