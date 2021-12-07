@@ -30,7 +30,11 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
   })
 
   afterEach(() => {
-    fs.rmdirSync(path.join(__dirname, 'tmp'), { recursive: true })
+    try {
+      fs.rmdirSync(path.join(__dirname, 'tmp'), { recursive: true })
+    } catch (error) {
+      console.log('Nothing to remove');      
+    }
   })
 
   describe('plugin', () => {
