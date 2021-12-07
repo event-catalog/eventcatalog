@@ -1,10 +1,13 @@
 import chalk from 'chalk'
-import type { Event, Service, LoadContext, PluginOptions } from '@eventcatalogtest/types'
+import type { Event, Service, LoadContext } from '@eventcatalogtest/types'
 import { parse, AsyncAPIDocument } from '@asyncapi/parser'
 import fs from 'fs-extra'
 import path from 'path'
+import frontmatter from 'front-matter'
 
-import { buildEventMarkdownFile, buildServiceMarkdownFile } from './markdown-builder'
+import type { AsyncAPIPluginOptions } from './types'
+
+import { buildMarkdownFile } from './markdown-builder'
 
 const getServiceFromAsyncDoc = (doc: AsyncAPIDocument): Service => {
   return {
@@ -40,25 +43,25 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument): Event[] => {
   }, [])
 }
 
-// TODO: move this into somewhere else
-const writeServiceToMarkdown = async (serviceDir: any, service: any) => {
-  const serviceFolder = path.join(serviceDir, service.name)
-  await fs.ensureDir(serviceFolder)
-  fs.writeFileSync(path.join(serviceFolder, 'index.md'), buildServiceMarkdownFile(service))
+const writeFileToMarkdown = async (dir: string, frontMatterObject: Event | Service) => {
+  let customContent
+
+  const folderPath = path.join(dir, frontMatterObject.name)
+  await fs.ensureDir(folderPath)
+
+  const pathToMarkdownFile = path.join(folderPath, 'index.md')
+
+  if (fs.existsSync(pathToMarkdownFile)) {
+    const file = fs.readFileSync(pathToMarkdownFile, { encoding: 'utf-8' })
+    const { body } = frontmatter(file)
+    customContent = body
+  }
+
+  fs.writeFileSync(pathToMarkdownFile, buildMarkdownFile({ frontMatterObject, customContent }))
 }
 
-// TODO: move this into somewhere else
-const writeEventsToMarkdown = async (eventsDir: string, events: any) => {
-  const eventFiles = events.map(async (event: any) => {
-    const eventFolder = path.join(eventsDir, event.name)
-    await fs.ensureDir(eventFolder)
-    fs.writeFileSync(path.join(eventFolder, 'index.md'), buildEventMarkdownFile(event))
-  })
-  Promise.all(eventFiles)
-}
-
-export default async (context: LoadContext, options: PluginOptions) => {
-  const { file } = options
+export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
+  const { spec, merge = true } = options
 
   //@ts-ignore
   const eventsDir = path.join(process.env.PROJECT_DIR, 'events')
@@ -67,12 +70,12 @@ export default async (context: LoadContext, options: PluginOptions) => {
 
   let asyncAPIFile, doc
 
-  if (!file) {
+  if (!spec) {
     throw new Error('No file provided in plugin.')
   }
 
   try {
-    asyncAPIFile = fs.readFileSync(file, 'utf-8')
+    asyncAPIFile = fs.readFileSync(spec, 'utf-8')
   } catch (error: any) {
     throw new Error(`Failed to read file with provided path`)
   }
@@ -86,8 +89,15 @@ export default async (context: LoadContext, options: PluginOptions) => {
   const service = getServiceFromAsyncDoc(doc)
   const events = getAllEventsFromAsyncDoc(doc)
 
-  await writeServiceToMarkdown(servicesDir, service)
-  await writeEventsToMarkdown(eventsDir, events)
+  // write service
+  await writeFileToMarkdown(servicesDir, service)
+
+  const eventFiles = events.map(async (event: any) => {
+    await writeFileToMarkdown(eventsDir, event)
+  })
+
+  // write all events to folders
+  Promise.all(eventFiles)
 
   console.log(
     chalk.green(`
