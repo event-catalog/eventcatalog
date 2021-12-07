@@ -13,17 +13,25 @@ const SyntaxHighlighter = ({ language, name = '', ...props }) => {
     setTimeout(() => setShowCopied(false), 2000)
   }
 
-  const regex = /\\n/g;
+  const regex = /\\n/g
   return (
     <div className="relative group">
-      <button onClick={handleCopyCode} className="absolute top-2  right-5 text-sm bg-gray-700 text-white rounded-md py-1 px-4 transform transition opacity-0  group-hover:opacity-100">
-        {showCopied ? 'Copied': 'Copy'}
+      <button
+        onClick={handleCopyCode}
+        className="absolute top-2  right-5 text-sm bg-gray-700 text-white rounded-md py-1 px-4 transform transition opacity-0  group-hover:opacity-100"
+      >
+        {showCopied ? 'Copied' : 'Copy'}
       </button>
-      <PrismSyntaxHighlighter style={codeStyle} language={language} {...props} children={props.children.replace(regex, '\n')} wrapLines={true} />
+      <PrismSyntaxHighlighter
+        style={codeStyle}
+        language={language}
+        {...props}
+        children={props.children.replace(regex, '\n')}
+        wrapLines={true}
+      />
       {name && <span className="-mb-2 block text-xs text-right font-bold">{name}</span>}
     </div>
   )
 }
 
 export default SyntaxHighlighter
-

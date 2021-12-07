@@ -29,7 +29,7 @@ interface EventsPageProps {
 export default function Events(props: EventsPageProps) {
   const { event, markdown, notFound } = props
 
-  if(notFound) return <NotFound type="event" name={event.name} editUrl={editUrl} /> 
+  if (notFound) return <NotFound type="event" name={event.name} editUrl={editUrl} />
 
   const { name, summary, draft, schema, examples, version } = event
   const { lastModifiedDate } = markdown

@@ -22,7 +22,7 @@ const graph = ({ events, services }) => {
   const links = events.reduce((nodes, event) => {
     const { consumers = [], producers = [], name } = event
     const consumerNodes = consumers.map((consumer) => ({ source: name, target: consumer }))
-    const producerNodes = producers.map((producer) => ({ source: producer, target: name}))
+    const producerNodes = producers.map((producer) => ({ source: producer, target: name }))
     return nodes.concat(consumerNodes).concat(producerNodes)
   }, [])
 
@@ -54,7 +54,6 @@ const graph = ({ events, services }) => {
         nodeOpacity={0.2}
         linkDirectionalParticles={2}
         linkDirectionalParticleWidth={2}
-        
         linkDirectionalParticleColor={(node) => {
           return 'rgba(236, 72, 153, 1)'
         }}

@@ -5,4 +5,3 @@ export interface MarkdownFile {
   source: MDXRemoteSerializeResult
   lastModifiedDate: string
 }
-

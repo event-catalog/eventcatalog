@@ -2,14 +2,14 @@ import fs from 'fs'
 import path from 'path'
 import { serialize } from 'next-mdx-remote/serialize'
 import { MarkdownFile } from '@/types/index'
-import type { Service, Event } from '@eventcatalogtest/types';
+import type { Service, Event } from '@eventcatalogtest/types'
 
-import config from '../eventcatalog.config';
+import config from '../eventcatalog.config'
 
 // const eventsDir = config.eventsDir || path.join(process.cwd(), process.env.PROJECT_DIR, 'events');
-const eventsDir = config.eventsDir || path.join(process.env.PROJECT_DIR, 'events');
+const eventsDir = config.eventsDir || path.join(process.env.PROJECT_DIR, 'events')
 
-import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader';
+import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader'
 
 // https://github.com/react-syntax-highlighter/react-syntax-highlighter/blob/master/AVAILABLE_LANGUAGES_HLJS.MD
 const extentionToLanguageMap = {
@@ -20,27 +20,33 @@ const extentionToLanguageMap = {
   java: 'java',
 }
 
-const parseEventFrontMatterIntoEvent = (eventFrontMatter:any): Event => {
-  const { name, version, summary, producers = [], consumers = [], domains = [], owners = [] } = eventFrontMatter
+const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
+  const {
+    name,
+    version,
+    summary,
+    producers = [],
+    consumers = [],
+    domains = [],
+    owners = [],
+  } = eventFrontMatter
   return { name, version, summary, producers, consumers, owners }
 }
 
-
 export const getAllEvents = (): Event[] => {
-
   const folders = fs.readdirSync(eventsDir)
   return folders.map((folder) => {
     const { data } = readMarkdownFile(path.join(eventsDir, folder, 'index.md'))
-    return parseEventFrontMatterIntoEvent(data);
+    return parseEventFrontMatterIntoEvent(data)
   })
 }
 
-
-export const getEventByName = async (eventName): Promise<{ event: Event, markdown: MarkdownFile}> => {
-  
+export const getEventByName = async (
+  eventName
+): Promise<{ event: Event; markdown: MarkdownFile }> => {
   const eventDirectory = path.join(eventsDir, eventName)
-  const { data, content } = readMarkdownFile(path.join(eventDirectory, `index.md`));
-  const event = parseEventFrontMatterIntoEvent(data);
+  const { data, content } = readMarkdownFile(path.join(eventDirectory, `index.md`))
+  const event = parseEventFrontMatterIntoEvent(data)
 
   const mdxSource = await serialize(content)
 
@@ -60,7 +66,7 @@ export const getEventByName = async (eventName): Promise<{ event: Event, markdow
 
 export const getAllServicesNamesFromEvents = (events: Event[]) => {
   const allConsumersAndProducers = events.reduce((domains, event) => {
-    const { consumers = [], producers = [] } = event;
+    const { consumers = [], producers = [] } = event
     return domains.concat(consumers).concat(producers)
   }, [])
 
@@ -95,24 +101,25 @@ export const getEventExamplesFromDir = (pathToExamples) => {
 
 export const getAllEventsByOwnerId = async (ownerId) => {
   const events = await getAllEvents()
-  return events.filter(({ owners = []}) => owners.some((id) => id === ownerId))
+  return events.filter(({ owners = [] }) => owners.some((id) => id === ownerId))
 }
 
+export const getAllEventsThatPublishAndSubscribeToService = (
+  service: Service,
+  events: Event[]
+): { publishes: Event[]; subscribes: Event[] } => {
+  const relationshipsBetweenEvents = events.reduce(
+    (data, event) => {
+      const serviceSubscribesToEvent = event.consumers.some((id) => id === service.id)
+      const servicePublishesEvent = event.producers.some((id) => id === service.id)
 
-export const getAllEventsThatPublishAndSubscribeToService = (service: Service, events: Event[]): { publishes: Event[], subscribes: Event[]} => {
+      return {
+        publishes: servicePublishesEvent ? data.publishes.concat(event) : data.publishes,
+        subscribes: serviceSubscribesToEvent ? data.subscribes.concat(event) : data.subscribes,
+      }
+    },
+    { publishes: [], subscribes: [] }
+  )
 
-  const relationshipsBetweenEvents = events.reduce((data, event) => {
-
-    const serviceSubscribesToEvent = event.consumers.some((id) => id === service.id)
-    const servicePublishesEvent = event.producers.some((id) => id === service.id)
-
-    return {
-       publishes: servicePublishesEvent ? data.publishes.concat(event) : data.publishes,
-       subscribes: serviceSubscribesToEvent ? data.subscribes.concat(event) : data.subscribes,
-    }
-  }, { publishes: [], subscribes: []})
-
-
-  return relationshipsBetweenEvents;
-
+  return relationshipsBetweenEvents
 }

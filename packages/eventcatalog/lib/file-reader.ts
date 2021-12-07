@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
-import type { Schema } from '@eventcatalogtest/types';
-import matter from 'gray-matter';
+import type { Schema } from '@eventcatalogtest/types'
+import matter from 'gray-matter'
 
 // https://github.com/react-syntax-highlighter/react-syntax-highlighter/blob/master/AVAILABLE_LANGUAGES_HLJS.MD
 const extentionToLanguageMap = {
@@ -12,7 +12,7 @@ const extentionToLanguageMap = {
   java: 'java',
   pb: 'protobuf',
   proto: 'protobuf',
-  thrift: 'thrift'
+  thrift: 'thrift',
 }
 
 export const readMarkdownFile = (pathToFile: string) => {
@@ -42,7 +42,6 @@ export const getSchemaFromDir = (pathToSchemaDir: string): Schema => {
   }
 }
 
-
 export const getLastModifiedDateOfFile = (filePath) => {
   const stats = fs.statSync(filePath)
   const lastModifiedDate = new Date(stats.mtime)
@@ -50,4 +49,3 @@ export const getLastModifiedDateOfFile = (filePath) => {
     lastModifiedDate.getMonth() + 1
   }/${lastModifiedDate.getDate()}`
 }
-

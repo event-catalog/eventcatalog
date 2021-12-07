@@ -6,7 +6,6 @@ import { CubeIcon } from '@heroicons/react/outline'
 import { getBackgroundColor } from '@/utils/random-bg'
 
 const ServiceGrid = ({ services = [], showMermaidDiagrams = false }) => {
-
   return (
     <ul role="list" className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2">
       {services.map((service) => {

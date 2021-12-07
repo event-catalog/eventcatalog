@@ -9,8 +9,8 @@ module.exports = {
   features: {
     mermaid: {
       showOnEventsGrid: true,
-      showOnServicesGrid: true
-    }
+      showOnServicesGrid: true,
+    },
   },
   users: [
     {
