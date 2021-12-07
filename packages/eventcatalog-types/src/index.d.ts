@@ -42,10 +42,6 @@ export interface Service {
   owners?: Owner[] | string[] | []
 }
 
-export type PluginOptions = {
-  file: string
-}
-
 export type PluginOpts = { id?: string } & Record<string, unknown>
 
 export type PluginConfig = [string, PluginOpts]

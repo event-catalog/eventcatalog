@@ -10,7 +10,16 @@ function markdownToMatch(received, expectedValue) {
     }
   } else {
     return {
-      message: () => `Markdown values did not match`,
+      message: () => `
+      Markdown values did not match
+      
+      Expected:
+      ${expectedValue}
+
+      Received:
+      ${received}
+      
+      `,
       pass: false,
     }
   }
