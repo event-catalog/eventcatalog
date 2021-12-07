@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('path')
 
 module.exports = {
   title: 'My Event Site',
@@ -13,8 +13,8 @@ module.exports = {
   features: {
     mermaid: {
       showOnEventsGrid: true,
-      showOnServicesGrid: true
-    }
+      showOnServicesGrid: true,
+    },
   },
   generators: [
     [
@@ -22,7 +22,7 @@ module.exports = {
       {
         file: './asyncapi.yml',
       },
-    ]
+    ],
   ],
   users: [
     {
@@ -30,14 +30,15 @@ module.exports = {
       name: 'David Boyne',
       avatarUrl: 'https://pbs.twimg.com/profile_images/1262283153563140096/DYRDqKg6_400x400.png',
       role: 'Developer',
-      summary: 'Currently building tools for Event Architectures.'
+      summary: 'Currently building tools for Event Architectures.',
     },
     {
       id: 'mSmith',
       name: 'Matthew Smith',
       avatarUrl: 'https://randomuser.me/api/portraits/lego/3.jpg',
       role: 'Developer',
-      summary: 'About Fugiat ipsum ipsum deserunt culpa aute sint do nostrud anim incididunt cillum culpa consequat.'
+      summary:
+        'About Fugiat ipsum ipsum deserunt culpa aute sint do nostrud anim incididunt cillum culpa consequat.',
     },
   ],
 }

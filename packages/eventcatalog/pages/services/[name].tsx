@@ -23,10 +23,9 @@ interface ServicesPageProps {
 }
 
 export default function Services(props: ServicesPageProps) {
-
   const { service, markdown, notFound } = props
 
-  if(notFound) return <NotFound type="service" name={service.name} editUrl={editUrl} /> 
+  if (notFound) return <NotFound type="service" name={service.name} editUrl={editUrl} />
 
   const { name, summary, draft } = service
 
@@ -72,7 +71,6 @@ export default function Services(props: ServicesPageProps) {
 }
 
 export async function getStaticProps({ params }) {
-
   try {
     const { service, markdown } = await getServiceByName(params.name)
 
@@ -86,7 +84,7 @@ export async function getStaticProps({ params }) {
     return {
       props: {
         notFound: true,
-        service: { name: params.name }
+        service: { name: params.name },
       },
     }
   }

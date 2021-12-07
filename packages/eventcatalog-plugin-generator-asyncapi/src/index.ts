@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import type { Event, Service, LoadContext, PluginOptions } from '@eventcatalogtest/types';
+import type { Event, Service, LoadContext, PluginOptions } from '@eventcatalogtest/types'
 import { parse, AsyncAPIDocument } from '@asyncapi/parser'
 import fs from 'fs-extra'
 import path from 'path'
@@ -11,37 +11,33 @@ const getServiceFromAsyncDoc = (doc: AsyncAPIDocument): Service => {
     //TODO: do we need id?
     id: doc.info().title(),
     name: doc.info().title(),
-    summary: doc.info().description() || ''
+    summary: doc.info().description() || '',
   }
 }
 
 const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument): Event[] => {
   const channels = doc.channels()
-  return Object.keys(channels).reduce(
-    (data: any, channelName) => {
-      const service = doc.info().title()
+  return Object.keys(channels).reduce((data: any, channelName) => {
+    const service = doc.info().title()
 
-      const channel = channels[channelName]
-      const operation = channel.hasSubscribe() ? 'subscribe' : 'publish'
+    const channel = channels[channelName]
+    const operation = channel.hasSubscribe() ? 'subscribe' : 'publish'
 
-      const messages = channel[operation]().messages()
+    const messages = channel[operation]().messages()
 
-      const eventsFromMessages = messages.map((message) => {
-        const messageName = message.extension('x-parser-message-name')
-        return {
-          name: messageName,
-          summary: message.summary(),
-          version: doc.info().version(),
-          producers: operation === 'subscribe' ? [service] : [],
-          consumers: operation === 'publish' ? [service] : [],
-        }
-      })
+    const eventsFromMessages = messages.map((message) => {
+      const messageName = message.extension('x-parser-message-name')
+      return {
+        name: messageName,
+        summary: message.summary(),
+        version: doc.info().version(),
+        producers: operation === 'subscribe' ? [service] : [],
+        consumers: operation === 'publish' ? [service] : [],
+      }
+    })
 
-      return data.concat(eventsFromMessages);
-
-    },
-    []
-  )
+    return data.concat(eventsFromMessages)
+  }, [])
 }
 
 // TODO: move this into somewhere else
@@ -54,15 +50,14 @@ const writeServiceToMarkdown = async (serviceDir: any, service: any) => {
 // TODO: move this into somewhere else
 const writeEventsToMarkdown = async (eventsDir: string, events: any) => {
   const eventFiles = events.map(async (event: any) => {
-    const eventFolder = path.join(eventsDir, event.name);
+    const eventFolder = path.join(eventsDir, event.name)
     await fs.ensureDir(eventFolder)
     fs.writeFileSync(path.join(eventFolder, 'index.md'), buildEventMarkdownFile(event))
-  });
-  Promise.all(eventFiles);
+  })
+  Promise.all(eventFiles)
 }
 
 export default async (context: LoadContext, options: PluginOptions) => {
-
   const { file } = options
 
   //@ts-ignore
@@ -92,12 +87,11 @@ export default async (context: LoadContext, options: PluginOptions) => {
   const events = getAllEventsFromAsyncDoc(doc)
 
   await writeServiceToMarkdown(servicesDir, service)
-  await writeEventsToMarkdown(eventsDir, events);
+  await writeEventsToMarkdown(eventsDir, events)
 
   console.log(
     chalk.green(`
 Succesfully parsed AsyncAPI document: Events ${events.length}, Services: 1
     `)
   )
-
 }

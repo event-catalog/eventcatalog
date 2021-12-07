@@ -1,5 +1,5 @@
 import { Fragment, useState } from 'react'
-import type { Event, Service } from '@eventcatalogtest/types';
+import type { Event, Service } from '@eventcatalogtest/types'
 
 import Link from 'next/link'
 
@@ -34,11 +34,11 @@ export default function Page({ events, services }: PageProps) {
         label: service,
         checked: false,
       })),
-    }
+    },
   ]
 
   const [selectedFilters, setSelectedFilters] = useState({ services: [] })
-  const [showMermaidDiagrams, setShowMermaidDiagrams] = useState(false);
+  const [showMermaidDiagrams, setShowMermaidDiagrams] = useState(false)
 
   const handleFilterSelection = (option, type, event) => {
     if (event.target.checked) {
@@ -64,7 +64,7 @@ export default function Page({ events, services }: PageProps) {
         (producerId) => serviceFilters.indexOf(producerId) > -1
       )
 
-      return  hasConsumersFromFilters || hasProducersFromFilters
+      return hasConsumersFromFilters || hasProducersFromFilters
     })
   }
 
@@ -72,7 +72,9 @@ export default function Page({ events, services }: PageProps) {
     <div>
       <main className="max-w-7xl mx-auto min-h-screen">
         <div className="relative z-10 flex items-baseline justify-between pt-8 pb-6 border-b border-gray-200">
-          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">Events ({events.length})</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">
+            Events ({events.length})
+          </h1>
 
           <div className="flex items-center">
             <Menu as="div" className="relative inline-block text-left">
@@ -124,7 +126,6 @@ export default function Page({ events, services }: PageProps) {
         </div>
 
         <section className="pt-6 pb-24">
-        
           <div className="grid grid-cols-4 gap-x-8 gap-y-10">
             {/* Filters */}
             <form className="hidden lg:block">
@@ -144,75 +145,64 @@ export default function Page({ events, services }: PageProps) {
 
               {filters.map((section: any) => (
                 <div key={section.id} className="border-b border-gray-200 py-6">
-                    <>
-                      <h3 className="-my-3 flow-root">
-                        <div className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
-                          <span className="font-medium text-gray-900">{section.name}</span>
-                        </div>
-                      </h3>
-                      <div className="pt-6">
-                        <div className="space-y-4">
-                          {section.options.map((option, optionIdx) => (
-                            <div key={option.value} className="flex items-center">
-                              <input
-                                id={`filter-${section.id}-${optionIdx}`}
-                                name={`${section.id}[]`}
-                                defaultValue={option.value}
-                                type="checkbox"
-                                onChange={(event) =>
-                                  handleFilterSelection(option, section.id, event)
-                                }
-                                defaultChecked={option.checked}
-                                className="h-4 w-4 border-gray-300 rounded text-gray-600 focus:ring-gray-500"
-                              />
-                              <label
-                                htmlFor={`filter-${section.id}-${optionIdx}`}
-                                className="ml-3 text-sm text-gray-600"
-                              >
-                                {option.label}
-                              </label>
-                            </div>
-                            
-                          ))}
-                        </div>
+                  <>
+                    <h3 className="-my-3 flow-root">
+                      <div className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
+                        <span className="font-medium text-gray-900">{section.name}</span>
                       </div>
-                    </>
+                    </h3>
+                    <div className="pt-6">
+                      <div className="space-y-4">
+                        {section.options.map((option, optionIdx) => (
+                          <div key={option.value} className="flex items-center">
+                            <input
+                              id={`filter-${section.id}-${optionIdx}`}
+                              name={`${section.id}[]`}
+                              defaultValue={option.value}
+                              type="checkbox"
+                              onChange={(event) => handleFilterSelection(option, section.id, event)}
+                              defaultChecked={option.checked}
+                              className="h-4 w-4 border-gray-300 rounded text-gray-600 focus:ring-gray-500"
+                            />
+                            <label
+                              htmlFor={`filter-${section.id}-${optionIdx}`}
+                              className="ml-3 text-sm text-gray-600"
+                            >
+                              {option.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
                 </div>
               ))}
 
-                <div className="border-b border-gray-200 py-6">
-                    <>
-                      <h3 className="-my-3 flow-root">
-                        <div className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
-                          <span className="font-medium text-gray-900">Features</span>
-                        </div>
-                      </h3>
-                      <div className="pt-6">
-                        <div className="space-y-4">
-                         
-                            <div  className="flex items-center">
-                              <input
-                                id="show-mermaid"
-                                type="checkbox"
-                                onChange={(e) =>
-                                  setShowMermaidDiagrams(e.target.checked)
-                                }
-                                defaultChecked={showMermaidDiagrams}
-                                className="h-4 w-4 border-gray-300 rounded text-gray-600 focus:ring-gray-500"
-                              />
-                              <label
-                                htmlFor="show-mermaid"
-                                className="ml-3 text-sm text-gray-600"
-                              >
-                                Show Mermaid Diagrams
-                              </label>
-                            </div>
-                            
-                        </div>
+              <div className="border-b border-gray-200 py-6">
+                <>
+                  <h3 className="-my-3 flow-root">
+                    <div className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
+                      <span className="font-medium text-gray-900">Features</span>
+                    </div>
+                  </h3>
+                  <div className="pt-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center">
+                        <input
+                          id="show-mermaid"
+                          type="checkbox"
+                          onChange={(e) => setShowMermaidDiagrams(e.target.checked)}
+                          defaultChecked={showMermaidDiagrams}
+                          className="h-4 w-4 border-gray-300 rounded text-gray-600 focus:ring-gray-500"
+                        />
+                        <label htmlFor="show-mermaid" className="ml-3 text-sm text-gray-600">
+                          Show Mermaid Diagrams
+                        </label>
                       </div>
-                    </>
-                </div>
-
+                    </div>
+                  </div>
+                </>
+              </div>
             </form>
 
             <div className="lg:col-span-3">
@@ -242,4 +232,3 @@ export const getServerSideProps = () => {
     },
   }
 }
-

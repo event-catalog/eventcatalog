@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { useUser } from '@/hooks/EventCatalog'
-import type { Event } from '@eventcatalogtest/types';
+import type { Event } from '@eventcatalogtest/types'
 import fileDownload from 'js-file-download'
 
 import { CubeIcon, DownloadIcon } from '@heroicons/react/outline'
@@ -42,18 +42,15 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
               return (
                 <li className="inline mr-1" key={producer}>
                   <Link href={`/services/${producer}`}>
-                  <a
-                    
-                    className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
-                  >
-                    <div className="absolute flex-shrink-0 flex items-center justify-center">
-                      <span
-                        className="h-1.5 w-1.5 rounded-full bg-green-500 animate animate-pulse"
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <div className="ml-3.5 text-sm font-medium text-gray-900">{producer}</div>
-                  </a>
+                    <a className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5">
+                      <div className="absolute flex-shrink-0 flex items-center justify-center">
+                        <span
+                          className="h-1.5 w-1.5 rounded-full bg-green-500 animate animate-pulse"
+                          aria-hidden="true"
+                        />
+                      </div>
+                      <div className="ml-3.5 text-sm font-medium text-gray-900">{producer}</div>
+                    </a>
                   </Link>
                 </li>
               )
@@ -72,18 +69,18 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
               return (
                 <li className="inline" key={consumer}>
                   <Link href={`/services/${consumer}`}>
-                  <a
-                    href="#"
-                    className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
-                  >
-                    <div className="absolute flex-shrink-0 flex items-center justify-center">
-                      <span
-                        className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate animate-pulse"
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <div className="ml-3.5 text-sm font-medium text-gray-900">{consumer}</div>
-                  </a>
+                    <a
+                      href="#"
+                      className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
+                    >
+                      <div className="absolute flex-shrink-0 flex items-center justify-center">
+                        <span
+                          className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate animate-pulse"
+                          aria-hidden="true"
+                        />
+                      </div>
+                      <div className="ml-3.5 text-sm font-medium text-gray-900">{consumer}</div>
+                    </a>
                   </Link>
                 </li>
               )

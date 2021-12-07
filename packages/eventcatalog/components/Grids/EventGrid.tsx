@@ -17,10 +17,7 @@ const EventGrid = ({ events = [], showMermaidDiagrams = false }) => {
         const { draft: isDraft } = event
 
         return (
-          <li
-            key={event.name}
-            className={`flex`}
-          >
+          <li key={event.name} className={`flex`}>
             <Link href={`/events/${event.name}`}>
               <a className="flex shadow-sm rounded-md w-full">
                 <div
@@ -33,7 +30,7 @@ const EventGrid = ({ events = [], showMermaidDiagrams = false }) => {
                   )}
                 ></div>
                 <div className="w-full border-t border-r border-b border-gray-200 bg-white rounded-r-md ">
-                <div className="p-4 text-sm space-y-2 flex flex-col justify-between h-full">
+                  <div className="p-4 text-sm space-y-2 flex flex-col justify-between h-full">
                     <div className="text-gray-900 font-bold hover:text-gray-600">
                       {event.name}
                       <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -79,5 +76,3 @@ const EventGrid = ({ events = [], showMermaidDiagrams = false }) => {
 }
 
 export default EventGrid
-
-  

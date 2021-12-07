@@ -18,8 +18,7 @@ import { install } from './helpers/install'
 import { isFolderEmpty } from './helpers/is-folder-empty'
 import { isWriteable } from './helpers/is-writeable'
 
-import pkgJSON from './package.json';
-
+import pkgJSON from './package.json'
 
 export class DownloadError extends Error {}
 
@@ -171,22 +170,22 @@ export async function createApp({
       version: '0.0.1',
       private: true,
       scripts: {
-        start: "eventcatalog start",
-        dev: "eventcatalog dev",
-        build: "eventcatalog build",
-        generate: "eventcatalog generate",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        start: 'eventcatalog start',
+        dev: 'eventcatalog dev',
+        build: 'eventcatalog build',
+        generate: 'eventcatalog generate',
+        test: 'echo "Error: no test specified" && exit 1',
       },
       dependencies: {
-        '@eventcatalogtest/core-test': pkgJSON.version
+        '@eventcatalogtest/core-test': pkgJSON.version,
       },
       devDependencies: {
-        "@eventcatalogtest/types": pkgJSON.version,
-        "tailwindcss": "^2.2.19",
-        "typescript": "^4.4.4",
-        "postcss": "^8.3.11",
-        "autoprefixer": "^10.4.0"
-      }
+        '@eventcatalogtest/types': pkgJSON.version,
+        tailwindcss: '^2.2.19',
+        typescript: '^4.4.4',
+        postcss: '^8.3.11',
+        autoprefixer: '^10.4.0',
+      },
     }
 
     /**
@@ -201,7 +200,7 @@ export async function createApp({
      * Default dependencies.
      */
     const dependencies = ['']
-    
+
     /**
      * Default devDependencies.
      */

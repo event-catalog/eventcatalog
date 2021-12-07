@@ -14,8 +14,8 @@ const landing = () => {
       </div>
       <div className="flex justify-evenly ">
         <div className="border-gray-200 border rounded-lg shadow-lg w-1/4 h-96">
-            <div className="h-64">Image</div>
-            <div className="px-10">Text</div>
+          <div className="h-64">Image</div>
+          <div className="px-10">Text</div>
         </div>
         <div className="border-gray-200 border rounded-lg shadow-lg w-1/4 h-96">2</div>
         <div className="border-gray-200 border rounded-lg shadow-lg w-1/4 h-96">3</div>

@@ -14,7 +14,7 @@ function classNames(...classes) {
 }
 
 const sortOptions = [
-{ name: 'Name', href: '#', current: true },
+  { name: 'Name', href: '#', current: true },
   { name: 'Version', href: '#', current: false },
   { name: 'Domains', href: '#', current: false },
 ]
@@ -24,13 +24,14 @@ export interface PageProps {
 }
 
 export default function Page({ services }: PageProps) {
-
   return (
     <div className="bg-white">
       <div>
         <main className="max-w-7xl mx-auto h-screen">
           <div className="relative z-10 flex items-baseline justify-between pt-8 pb-6 border-b border-gray-200">
-            <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">Services ({services.length})</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">
+              Services ({services.length})
+            </h1>
 
             <div className="flex items-center">
               <Menu as="div" className="relative inline-block text-left">
@@ -79,7 +80,6 @@ export default function Page({ services }: PageProps) {
           </div>
 
           <section className="pt-6 pb-24">
-            
             <div className="grid grid-cols-4 gap-x-8 gap-y-10">
               {/* Filters */}
               <form className="hidden lg:block">

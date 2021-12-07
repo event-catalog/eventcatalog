@@ -3,31 +3,33 @@ import path from 'path'
 import { serialize } from 'next-mdx-remote/serialize'
 import { readMarkdownFile } from '@/lib/file-reader'
 import { MarkdownFile } from '../types/index'
-import config from '../eventcatalog.config';
+import config from '../eventcatalog.config'
 
 import { Service } from '@eventcatalogtest/types'
 
-import { getAllEvents, getAllEventsThatPublishAndSubscribeToService } from '@/lib/events';
+import { getAllEvents, getAllEventsThatPublishAndSubscribeToService } from '@/lib/events'
 
-const servicesDir = config.servicesDir || path.join(process.env.PROJECT_DIR, 'services');
+const servicesDir = config.servicesDir || path.join(process.env.PROJECT_DIR, 'services')
 
-const buildService = (eventFrontMatter:any): Service => {
+const buildService = (eventFrontMatter: any): Service => {
   const { id, name, summary, owners = [], repository = {} } = eventFrontMatter
   return { id, name, summary, owners, repository }
 }
 
 export const getAllServices = (): Service[] => {
   const folders = fs.readdirSync(servicesDir)
-  const services =  folders.map((folder) => readMarkdownFile(path.join(servicesDir, folder, 'index.md')))
-  const events = getAllEvents();
+  const services = folders.map((folder) =>
+    readMarkdownFile(path.join(servicesDir, folder, 'index.md'))
+  )
+  const events = getAllEvents()
 
-  const parsedServices = services.map(frontMatter => buildService(frontMatter.data));
+  const parsedServices = services.map((frontMatter) => buildService(frontMatter.data))
 
   //@ts-ignore
-  return parsedServices.map(service => {
+  return parsedServices.map((service) => {
     return {
       ...service,
-      ...getAllEventsThatPublishAndSubscribeToService(service, events)
+      ...getAllEventsThatPublishAndSubscribeToService(service, events),
     }
   })
 }
@@ -44,13 +46,14 @@ export const getAllServicesByOwnerId = async (ownerId): Promise<Service[]> => {
   })
 }
 
-export const getServiceByName = async (serviceName): Promise<{ service: Service, markdown: MarkdownFile }> => {
-
+export const getServiceByName = async (
+  serviceName
+): Promise<{ service: Service; markdown: MarkdownFile }> => {
   const serviceDirectory = path.join(servicesDir, serviceName)
-  const { data, content } = readMarkdownFile(path.join(serviceDirectory, `index.md`));
-  const service = buildService(data);
+  const { data, content } = readMarkdownFile(path.join(serviceDirectory, `index.md`))
+  const service = buildService(data)
 
-  const events = getAllEvents();
+  const events = getAllEvents()
 
   const mdxSource = await serialize(content)
 
@@ -58,7 +61,7 @@ export const getServiceByName = async (serviceName): Promise<{ service: Service,
     //@ts-ignore
     service: {
       ...service,
-      ...getAllEventsThatPublishAndSubscribeToService(service, events)
+      ...getAllEventsThatPublishAndSubscribeToService(service, events),
     },
     markdown: {
       content,

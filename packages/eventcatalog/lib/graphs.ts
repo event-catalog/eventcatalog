@@ -1,6 +1,9 @@
-import type { Event, Service } from '@eventcatalogtest/types';
+import type { Event, Service } from '@eventcatalogtest/types'
 
-export const buildMermaidFlowChart = ({ name, producers, consumers }: Event, rootNodeColor: string = '#2563eb') => {
+export const buildMermaidFlowChart = (
+  { name, producers, consumers }: Event,
+  rootNodeColor: string = '#2563eb'
+) => {
   const producerNames = producers.map((producer) => producer.replace(/ /g, '_'))
   const consumerNames = consumers.map((consumer) => consumer.replace(/ /g, '_'))
   return `flowchart LR
@@ -12,11 +15,12 @@ ${consumerNames.map((consumer) => `${name}:::event-->${consumer}:::consumer\n`).
   `
 }
 
-export const buildMermaidFlowChartForService = ({ publishes, subscribes, name}: Service, rootNodeColor: string = '#2563eb') => {
+export const buildMermaidFlowChartForService = (
+  { publishes, subscribes, name }: Service,
+  rootNodeColor: string = '#2563eb'
+) => {
   const producerNames = publishes.map((event) => event.name.replace(/ /g, '_'))
-  const consumerNames = subscribes.map((event) =>
-    event.name.replace(' ', '_')
-  )
+  const consumerNames = subscribes.map((event) => event.name.replace(' ', '_'))
   const nodeName = name.replace(' ', '_')
 
   return `flowchart LR

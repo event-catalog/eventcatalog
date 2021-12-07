@@ -1,5 +1,5 @@
 import { DocumentAddIcon } from '@heroicons/react/solid'
-import url from 'url';
+import url from 'url'
 
 interface NotFoundProps {
   type: 'service' | 'event'
@@ -23,10 +23,11 @@ export default function Example(props: NotFoundProps) {
             Missing Documentation
           </h1>
           <p className="mt-2 text-lg font-medium text-gray-700 text-opacity-50">
-            Documentation for {type} <span className="underline">{name}</span> is
-            missing!
+            Documentation for {type} <span className="underline">{name}</span> is missing!
           </p>
-          <p className="mt-4 text-xs text-gray-400">Help the eco-system and add the documentation for others ❤️ </p>
+          <p className="mt-4 text-xs text-gray-400">
+            Help the eco-system and add the documentation for others ❤️{' '}
+          </p>
           <div className="mt-12">
             <a
               href={urlToAddPage}
