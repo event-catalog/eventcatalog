@@ -62,7 +62,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
       await plugin(pluginContext, options)
 
       // just wait for files to be there in time.
-      await new Promise((r) => setTimeout(r, 10))
+      await new Promise((r) => setTimeout(r, 200))
 
       const generatedEventMarkdownFile = fs.readFileSync(
         // @ts-ignore
