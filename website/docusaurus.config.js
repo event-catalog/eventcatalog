@@ -62,7 +62,14 @@ const config = {
             docId: 'cli',
             label: 'API',
           },
+         
           {to: '/blog', label: 'Blog', position: 'left'},
+          {
+            type: 'doc',
+            position: 'left',
+            docId: 'support',
+            label: 'Community',
+          },
           {
             href: 'https://github.com/boyney123/eventcatalog',
             label: 'GitHub',
