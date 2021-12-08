@@ -28,7 +28,13 @@ export interface Event {
 }
 
 export interface Repository {
-  url: string
+  url?: string
+  language?: string | string[]
+}
+
+export interface Tag {
+  label: string
+  url?: string
 }
 
 export interface Service {
@@ -40,6 +46,7 @@ export interface Service {
   publishes?: Event[] | []
   subscribes?: Event[] | []
   owners?: Owner[] | string[] | []
+  tags?: Tag[]
 }
 
 export type PluginOpts = { id?: string } & Record<string, unknown>

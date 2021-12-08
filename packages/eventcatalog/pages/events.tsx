@@ -208,9 +208,9 @@ export default function Page({ events, services }: PageProps) {
             <div className="lg:col-span-3">
               <div>
                 <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">
-                  Events
+                  Events ({eventsToRender.length})
                 </h2>
-                <EventGrid events={events} showMermaidDiagrams={showMermaidDiagrams} />
+                <EventGrid events={eventsToRender} showMermaidDiagrams={showMermaidDiagrams} />
               </div>
             </div>
           </div>

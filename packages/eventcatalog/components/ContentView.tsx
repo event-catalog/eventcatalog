@@ -22,7 +22,7 @@ export default function ContentView({
                 <div className="xl:col-span-3 xl:pr-8 xl:border-r xl:border-gray-200 flex-col justify-between flex">
                   <div>
                     {BreadCrumbs && (
-                      <div className="mb-5">
+                      <div className="mb-5 border-b border-gray-100 pb-4">
                         <BreadCrumbs />
                       </div>
                     )}
@@ -50,7 +50,8 @@ export default function ContentView({
                                 )}
                               </div>
                             </h1>
-                            <div className="text-gray-500 mb-10 text">{subtitle}</div>
+                            <div className="text-gray-600 mb-10 text py-2">{subtitle}</div>
+                            
                           </div>
                           <div className="mt-4 flex space-x-3 md:mt-0">
                             <button

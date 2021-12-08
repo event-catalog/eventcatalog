@@ -12,8 +12,8 @@ import { getAllEvents, getAllEventsThatPublishAndSubscribeToService } from '@/li
 const servicesDir = config.servicesDir || path.join(process.env.PROJECT_DIR, 'services')
 
 const buildService = (eventFrontMatter: any): Service => {
-  const { id, name, summary, owners = [], repository = {} } = eventFrontMatter
-  return { id, name, summary, owners, repository }
+  const { id, name, summary, owners = [], repository = {}, tags = [] } = eventFrontMatter
+  return { id, name, summary, owners, repository, tags }
 }
 
 export const getAllServices = (): Service[] => {
