@@ -5,11 +5,14 @@
   "license": "MIT",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "website"
   ],
   "scripts": {
     "dev": "lerna run dev:next --stream --parallel",
     "start:catalog": "node scripts/start-catalog-locally.js",
+    "start:website": "yarn workspace website start",
+    "build:website": "yarn workspace website build",
     "bootstrap": "lerna bootstrap",
     "build": "yarn build:packages && lerna run build",
     "build:packages": "lerna run build:package --no-private",

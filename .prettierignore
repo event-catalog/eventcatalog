@@ -1,6 +1,7 @@
 dist
 node_modules
 .yarn
+.docusaurus
 build
 coverage
 packages/eventcatalog-*/lib/*

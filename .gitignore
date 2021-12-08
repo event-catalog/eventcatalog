@@ -4,7 +4,9 @@ npm-debug.log
 packages/*/lib
 !packages/eventcatalog/lib
 
+website/build
 
+.docusaurus
 .idea
 
 dist
