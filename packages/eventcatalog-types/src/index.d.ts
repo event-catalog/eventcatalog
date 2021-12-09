@@ -62,7 +62,6 @@ export interface EventCataLogConfig {
   organizationName: string;
   projectName: string;
   users?: User[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   generators?: PluginConfig[] | [] | any;
 }
 
