@@ -1,4 +1,4 @@
-const path = require('path')
+const path = require('path');
 
 module.exports = {
   title: 'My Event Site',
@@ -41,4 +41,4 @@ module.exports = {
         'About Fugiat ipsum ipsum deserunt culpa aute sint do nostrud anim incididunt cillum culpa consequat.',
     },
   ],
-}
+};

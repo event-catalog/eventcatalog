@@ -1,31 +1,30 @@
-import React from 'react'
-import Link from 'next/link'
-import { useUser } from '@/hooks/EventCatalog'
-import type { Event } from '@eventcatalogtest/types'
-import fileDownload from 'js-file-download'
-
-import { CubeIcon, DownloadIcon } from '@heroicons/react/outline'
+import React from 'react';
+import Link from 'next/link';
+import { CubeIcon, DownloadIcon } from '@heroicons/react/outline';
+import type { Event } from '@eventcatalogtest/types';
+import fileDownload from 'js-file-download';
+import { useUser } from '@/hooks/EventCatalog';
 
 interface EventSideBarProps {
-  event: Event
+  event: Event;
 }
 
-const EventSideBar = ({ event }: EventSideBarProps) => {
-  const { getUserById } = useUser()
+function EventSideBar({ event }: EventSideBarProps) {
+  const { getUserById } = useUser();
 
-  const { owners, producers, consumers } = event
+  const { owners, producers, consumers } = event;
 
   const handleDownload = async () => {
     try {
-      const res = await fetch(`/api/event/${event.name}/download`)
-      if (res.status === 404) throw new Error('Failed to find file')
-      const data = await res.text()
-      fileDownload(data, event.name)
+      const res = await fetch(`/api/event/${event.name}/download`);
+      if (res.status === 404) throw new Error('Failed to find file');
+      const data = await res.text();
+      fileDownload(data, event.name);
     } catch (error) {
       // TODO: Maybe better error experince
-      alert(error.message)
+      console.error(error);
     }
-  }
+  };
 
   return (
     <aside className="hidden xl:block xl:pl-8">
@@ -37,24 +36,22 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
             <CubeIcon className="h-5 w-5 text-green-400 inline-block mr-2" aria-hidden="true" />
             Producers
           </h2>
-          <ul role="list" className="mt-2 leading-8">
-            {producers.map((producer) => {
-              return (
-                <li className="inline mr-1" key={producer}>
-                  <Link href={`/services/${producer}`}>
-                    <a className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5">
-                      <div className="absolute flex-shrink-0 flex items-center justify-center">
-                        <span
-                          className="h-1.5 w-1.5 rounded-full bg-green-500 animate animate-pulse"
-                          aria-hidden="true"
-                        />
-                      </div>
-                      <div className="ml-3.5 text-sm font-medium text-gray-900">{producer}</div>
-                    </a>
-                  </Link>
-                </li>
-              )
-            })}
+          <ul className="mt-2 leading-8">
+            {producers.map((producer) => (
+              <li className="inline mr-1" key={producer}>
+                <Link href={`/services/${producer}`}>
+                  <a className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5">
+                    <div className="absolute flex-shrink-0 flex items-center justify-center">
+                      <span
+                        className="h-1.5 w-1.5 rounded-full bg-green-500 animate animate-pulse"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <div className="ml-3.5 text-sm font-medium text-gray-900">{producer}</div>
+                  </a>
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
@@ -64,27 +61,25 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
             <CubeIcon className="h-5 w-5 text-indigo-400 inline-block mr-2" aria-hidden="true" />
             Consumers
           </h2>
-          <ul role="list" className="mt-2 leading-8">
-            {consumers.map((consumer) => {
-              return (
-                <li className="inline" key={consumer}>
-                  <Link href={`/services/${consumer}`}>
-                    <a
-                      href="#"
-                      className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
-                    >
-                      <div className="absolute flex-shrink-0 flex items-center justify-center">
-                        <span
-                          className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate animate-pulse"
-                          aria-hidden="true"
-                        />
-                      </div>
-                      <div className="ml-3.5 text-sm font-medium text-gray-900">{consumer}</div>
-                    </a>
-                  </Link>
-                </li>
-              )
-            })}
+          <ul className="mt-2 leading-8">
+            {consumers.map((consumer) => (
+              <li className="inline" key={consumer}>
+                <Link href={`/services/${consumer}`}>
+                  <a
+                    href="#"
+                    className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
+                  >
+                    <div className="absolute flex-shrink-0 flex items-center justify-center">
+                      <span
+                        className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate animate-pulse"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <div className="ml-3.5 text-sm font-medium text-gray-900">{consumer}</div>
+                  </a>
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
@@ -116,11 +111,11 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
       <div className="border-t border-gray-200 py-6 space-y-8">
         <div>
           <h2 className="text-sm font-medium text-gray-500">Event Owners</h2>
-          <ul role="list" className="mt-4 leading-8 space-y-2">
+          <ul className="mt-4 leading-8 space-y-2">
             {owners.map((id) => {
-              const user = getUserById(id)
+              const user = getUserById(id);
 
-              if (!user) return null
+              if (!user) return null;
 
               return (
                 <li className="flex justify-start" key={id}>
@@ -133,7 +128,7 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
                     </a>
                   </Link>
                 </li>
-              )
+              );
             })}
           </ul>
         </div>
@@ -149,7 +144,7 @@ const EventSideBar = ({ event }: EventSideBarProps) => {
         </button>
       </div>
     </aside>
-  )
+  );
 }
 
-export default EventSideBar
+export default EventSideBar;

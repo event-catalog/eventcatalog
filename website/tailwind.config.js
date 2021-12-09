@@ -10,4 +10,4 @@ module.exports = {
   plugins: [],
   corePlugins: { preflight: false },
   important: `#tailwind`,
-}
+};

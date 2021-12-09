@@ -1,4 +1,4 @@
-const path = require('path')
+const path = require('path');
 
 const ignorePatterns = [
   '/node_modules/',
@@ -6,7 +6,7 @@ const ignorePatterns = [
   '/packages/eventcatalog-plugin-generator-asyncapi/lib',
   '/packages/eventcatalog/lib/__tests__/assets',
   '/packages/eventcatalog/scripts/__tests__/assets',
-]
+];
 
 module.exports = {
   rootDir: path.resolve(__dirname),
@@ -22,4 +22,4 @@ module.exports = {
   transform: {
     '^.+\\.[jt]sx?$': 'babel-jest',
   },
-}
+};

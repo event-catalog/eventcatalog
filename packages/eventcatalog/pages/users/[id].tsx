@@ -1,14 +1,21 @@
-import EventGrid from '@/components/Grids/EventGrid'
-import ServiceGrid from '@/components/Grids/ServiceGrid'
-import { getAllEventsByOwnerId } from '@/lib/events'
-import { getAllServicesByOwnerId } from '@/lib/services'
+import { Event, Service } from '@eventcatalogtest/types';
+import EventGrid from '@/components/Grids/EventGrid';
+import ServiceGrid from '@/components/Grids/ServiceGrid';
+import { getAllEventsByOwnerId } from '@/lib/events';
+import { getAllServicesByOwnerId } from '@/lib/services';
 
-import { useUser } from '@/hooks/EventCatalog'
+import { useUser } from '@/hooks/EventCatalog';
 
-export default function UserPage({ events, services, userId }) {
-  const { getUserById } = useUser()
+interface UserPageProps {
+  events: Event[];
+  services: Service[];
+  userId: string;
+}
 
-  const user = getUserById(userId)
+export default function UserPage({ events, services, userId }: UserPageProps) {
+  const { getUserById } = useUser();
+
+  const user = getUserById(userId);
 
   return (
     <div className="flex relative min-h-screen">
@@ -58,19 +65,19 @@ export default function UserPage({ events, services, userId }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export const getServerSideProps = async (req) => {
-  const { id: userId } = req.query
-  const userEvents = await getAllEventsByOwnerId(userId)
-  const services = await getAllServicesByOwnerId(userId)
+  const { id: userId } = req.query;
+  const userEvents = await getAllEventsByOwnerId(userId);
+  const services = await getAllServicesByOwnerId(userId);
 
   return {
     props: {
       events: userEvents,
-      services: services,
+      services,
       userId,
     },
-  }
-}
+  };
+};

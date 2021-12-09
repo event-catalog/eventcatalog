@@ -19,8 +19,8 @@ jobs:
         run: yarn
       - name: Check immutable yarn.lock
         run: git diff --exit-code
-      # - name: Lint
-      #   run: yarn lint:ci
+      - name: Lint
+        run: yarn lint:ci
       - name: Prettier Code
         run: yarn format:diff
       # git 

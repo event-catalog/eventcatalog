@@ -1,4 +1,4 @@
-import { buildMarkdownFile } from '../markdown-builder'
+import buildMarkdownFile from '../markdown-builder';
 
 describe('markdown-builder', () => {
   describe('buildMarkdownFile', () => {
@@ -9,8 +9,8 @@ describe('markdown-builder', () => {
         version: '1.0',
         consumers: ['Application API'],
         producers: ['Customer Portal'],
-      }
-      const result = buildMarkdownFile({ frontMatterObject: event })
+      };
+      const result = buildMarkdownFile({ frontMatterObject: event });
 
       expect(result).toMatchMarkdown(`
         ---
@@ -23,8 +23,8 @@ describe('markdown-builder', () => {
             - 'Customer Portal'
         ---
         <Mermaid />
-      `)
-    })
+      `);
+    });
 
     it('uses the `customContent` when its provided and does not generate default markdown body content', () => {
       const event = {
@@ -33,11 +33,11 @@ describe('markdown-builder', () => {
         version: '1.0',
         consumers: ['Application API'],
         producers: ['Customer Portal'],
-      }
+      };
       const result = buildMarkdownFile({
         frontMatterObject: event,
         customContent: '# My custom content',
-      })
+      });
 
       expect(result).toMatchMarkdown(`
         ---
@@ -50,7 +50,7 @@ describe('markdown-builder', () => {
             - 'Customer Portal'
         ---
         # My custom content
-      `)
-    })
-  })
-})
+      `);
+    });
+  });
+});

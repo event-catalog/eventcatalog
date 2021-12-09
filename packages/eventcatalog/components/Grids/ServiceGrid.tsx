@@ -1,15 +1,21 @@
-import React from 'react'
-import Link from 'next/link'
+import React from 'react';
+import Link from 'next/link';
 
-import { CubeIcon } from '@heroicons/react/outline'
+import { CubeIcon } from '@heroicons/react/outline';
 
-import { getBackgroundColor } from '@/utils/random-bg'
+import { Service } from '@eventcatalogtest/types';
 
-const ServiceGrid = ({ services = [], showMermaidDiagrams = false }) => {
+import getBackgroundColor from '@/utils/random-bg';
+
+interface ServiceGridProps {
+  services: Service[];
+}
+
+function ServiceGrid({ services = [] }: ServiceGridProps) {
   return (
-    <ul role="list" className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2">
+    <ul className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2">
       {services.map((service) => {
-        const { draft: isDraft } = service
+        const { draft: isDraft } = service;
 
         return (
           <li key={service.name} className="flex">
@@ -20,7 +26,7 @@ const ServiceGrid = ({ services = [], showMermaidDiagrams = false }) => {
                     background: getBackgroundColor(service.name),
                   }}
                   className="w-4 rounded-l-md"
-                ></div>
+                />
                 <div className="w-full border-t border-r border-b border-gray-200 bg-white rounded-r-md ">
                   <div className="p-4 text-sm space-y-2 flex flex-col justify-between h-full">
                     <div>
@@ -55,10 +61,10 @@ const ServiceGrid = ({ services = [], showMermaidDiagrams = false }) => {
               </a>
             </Link>
           </li>
-        )
+        );
       })}
     </ul>
-  )
+  );
 }
 
-export default ServiceGrid
+export default ServiceGrid;

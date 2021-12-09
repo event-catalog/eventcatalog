@@ -1,26 +1,25 @@
-import { Fragment, useState } from 'react'
-import { Service } from '@eventcatalogtest/types'
+import { Fragment } from 'react';
+import { Service } from '@eventcatalogtest/types';
 
-import Link from 'next/link'
+import Link from 'next/link';
 
-import ServiceGrid from '@/components/Grids/ServiceGrid'
-import { getAllServices } from '@/lib/services'
-
-import { Menu, Transition } from '@headlessui/react'
-import { ChevronDownIcon } from '@heroicons/react/solid'
+import { Menu, Transition } from '@headlessui/react';
+import { ChevronDownIcon } from '@heroicons/react/solid';
+import ServiceGrid from '@/components/Grids/ServiceGrid';
+import { getAllServices } from '@/lib/services';
 
 function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(' ');
 }
 
 const sortOptions = [
   { name: 'Name', href: '#', current: true },
   { name: 'Version', href: '#', current: false },
   { name: 'Domains', href: '#', current: false },
-]
+];
 
 export interface PageProps {
-  services: [Service]
+  services: [Service];
 }
 
 export default function Page({ services }: PageProps) {
@@ -84,10 +83,7 @@ export default function Page({ services }: PageProps) {
               {/* Filters */}
               <form className="hidden lg:block">
                 <span className="text-sm font-bold text-gray-900 mb-4 block">Services</span>
-                <ul
-                  role="list"
-                  className=" text-sm font-medium text-gray-900 space-y-4 pb-6 border-b border-gray-200 items-stretch"
-                >
+                <ul className=" text-sm font-medium text-gray-900 space-y-4 pb-6 border-b border-gray-200 items-stretch">
                   {services.map((service) => (
                     <li key={service.name}>
                       <Link href={`/services/${service.name}`}>
@@ -111,15 +107,15 @@ export default function Page({ services }: PageProps) {
         </main>
       </div>
     </div>
-  )
+  );
 }
 
 export async function getServerSideProps() {
-  const services = getAllServices()
+  const services = getAllServices();
 
   return {
     props: {
       services,
     },
-  }
+  };
 }

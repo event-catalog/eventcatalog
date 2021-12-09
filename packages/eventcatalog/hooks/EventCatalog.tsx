@@ -1,50 +1,35 @@
-import React, { useContext, ReactNode } from 'react'
-import config from '../eventcatalog.config'
-import type { User } from '@eventcatalogtest/types'
-import path from 'path'
+import React, { useContext, ReactNode } from 'react';
+import type { EventCataLogConfig, User } from '@eventcatalogtest/types';
+import path from 'path';
+import defaultConfig from '../eventcatalog.config';
 
-export const Context = React.createContext<any>(config)
+export const Context = React.createContext<EventCataLogConfig | null>(defaultConfig);
 
 export function EventCatalogContextProvider({ children }: { children: ReactNode }): JSX.Element {
-  return <Context.Provider value={config}>{children}</Context.Provider>
+  return <Context.Provider value={defaultConfig}>{children}</Context.Provider>;
 }
 
-export const useConfig = () => {
-  return useContext<any>(Context)
-}
+export const useConfig = () => useContext<EventCataLogConfig>(Context);
 
 export const useUser = () => {
-  const config = useConfig()
+  const config = useConfig();
 
   const getUserById = (id): User => {
-    const users = config.users || []
-    return users.find((user) => user.id === id)
-  }
+    const users = config.users || [];
+    return users.find((user) => user.id === id);
+  };
 
   return {
     getUserById,
-  }
-}
-
-export const useFeatures = () => {
-  const config = useConfig()
-
-  const getFeature = (key) => config.features[key]
-
-  return {
-    features: config.features,
-    getFeature,
-  }
-}
+  };
+};
 
 export const useUrl = () => {
-  const config = useConfig()
+  const config = useConfig();
 
-  const getEditUrl = (url: string) => {
-    return path.join(config.editUrl, url)
-  }
+  const getEditUrl = (url: string) => path.join(config.editUrl, url);
 
   return {
     getEditUrl,
-  }
-}
+  };
+};

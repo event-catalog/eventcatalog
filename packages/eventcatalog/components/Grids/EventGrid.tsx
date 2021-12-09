@@ -1,23 +1,30 @@
-import React from 'react'
-import Link from 'next/link'
+import React from 'react';
+import Link from 'next/link';
 
-import { CubeIcon } from '@heroicons/react/outline'
+import { CubeIcon } from '@heroicons/react/outline';
 
-import { getBackgroundColor } from '@/utils/random-bg'
-import Mermaid from '@/components/Mermaid'
+import { Event } from '@eventcatalogtest/types';
+import getBackgroundColor from '@/utils/random-bg';
+
+import Mermaid from '@/components/Mermaid';
 
 function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(' ');
 }
 
-const EventGrid = ({ events = [], showMermaidDiagrams = false }) => {
+interface EventGridProps {
+  events: Event[];
+  showMermaidDiagrams: boolean;
+}
+
+function EventGrid({ events = [], showMermaidDiagrams = false }: EventGridProps) {
   return (
-    <ul role="list" className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2">
+    <ul className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2">
       {events.map((event) => {
-        const { draft: isDraft } = event
+        const { draft: isDraft } = event;
 
         return (
-          <li key={event.name} className={`flex`}>
+          <li key={event.name} className="flex">
             <Link href={`/events/${event.name}`}>
               <a className="flex shadow-sm rounded-md w-full">
                 <div
@@ -28,7 +35,7 @@ const EventGrid = ({ events = [], showMermaidDiagrams = false }) => {
                     'bg-red-500',
                     'flex-shrink-0 flex items-center justify-center w-4 text-white text-sm font-medium rounded-l-md'
                   )}
-                ></div>
+                />
                 <div className="w-full border-t border-r border-b border-gray-200 bg-white rounded-r-md ">
                   <div className="p-4 text-sm space-y-2 flex flex-col justify-between h-full">
                     <div className="text-gray-900 font-bold hover:text-gray-600">
@@ -45,7 +52,11 @@ const EventGrid = ({ events = [], showMermaidDiagrams = false }) => {
                     </div>
                     {showMermaidDiagrams && (
                       <div className="h-full items-center flex">
-                        <Mermaid data={event} rootNodeColor={getBackgroundColor(event.name)} />
+                        <Mermaid
+                          source="event"
+                          data={event}
+                          rootNodeColor={getBackgroundColor(event.name)}
+                        />
                       </div>
                     )}
                     <div className="flex space-x-4 text-xs pt-2 relative bottom-0 left-0">
@@ -69,10 +80,10 @@ const EventGrid = ({ events = [], showMermaidDiagrams = false }) => {
               </a>
             </Link>
           </li>
-        )
+        );
       })}
     </ul>
-  )
+  );
 }
 
-export default EventGrid
+export default EventGrid;

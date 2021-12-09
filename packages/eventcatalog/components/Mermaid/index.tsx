@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react'
-import mermaid from 'mermaid'
-import { buildMermaidFlowChartForEvent, buildMermaidFlowChartForService } from '@/lib/graphs'
+import React, { useEffect } from 'react';
+import mermaid from 'mermaid';
+import { Service, Event } from '@eventcatalogtest/types';
+import { buildMermaidFlowChartForEvent, buildMermaidFlowChartForService } from '@/lib/graphs';
 
 mermaid.initialize({
   startOnLoad: true,
@@ -23,18 +24,24 @@ mermaid.initialize({
     `,
   fontFamily: 'Fira Code',
   width: '100%',
-})
+});
 
-const Mermaid = ({ data, source = 'event', rootNodeColor }) => {
-  const mermaidChart =
-    source === 'event'
-      ? buildMermaidFlowChartForEvent(data, rootNodeColor)
-      : buildMermaidFlowChartForService(data, rootNodeColor)
-
-  useEffect(() => {
-    mermaid.contentLoaded()
-  }, [])
-  return <div className="mermaid">{mermaidChart}</div>
+interface MermaidProps {
+  data: Event | Service;
+  source: 'event' | 'service';
+  rootNodeColor?: string;
 }
 
-export default Mermaid
+function Mermaid({ data, source = 'event', rootNodeColor }: MermaidProps) {
+  const mermaidChart =
+    source === 'event'
+      ? buildMermaidFlowChartForEvent(data as Event, rootNodeColor)
+      : buildMermaidFlowChartForService(data as Service, rootNodeColor);
+
+  useEffect(() => {
+    mermaid.contentLoaded();
+  }, []);
+  return <div className="mermaid">{mermaidChart}</div>;
+}
+
+export default Mermaid;
