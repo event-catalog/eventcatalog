@@ -206,8 +206,7 @@ export async function createApp({
      * Default dependencies.
      */
 
-    // To fix <0.0.3 high vun...we need to put this here?
-    const dependencies = ["trim"];
+    const dependencies = [''];
 
     /**
      * Default devDependencies.
@@ -246,7 +245,6 @@ export async function createApp({
       const devInstallFlags = { devDependencies: true, ...installFlags };
       await install(root, devDependencies, devInstallFlags);
     }
-    console.log();
     /**
      * Copy the template files to the target directory.
      */
