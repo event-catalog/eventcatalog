@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import mermaid from 'mermaid'
-import { buildMermaidFlowChart, buildMermaidFlowChartForService } from '@/lib/graphs'
+import { buildMermaidFlowChartForEvent, buildMermaidFlowChartForService } from '@/lib/graphs'
 
 mermaid.initialize({
   startOnLoad: true,
@@ -28,7 +28,7 @@ mermaid.initialize({
 const Mermaid = ({ data, source = 'event', rootNodeColor }) => {
   const mermaidChart =
     source === 'event'
-      ? buildMermaidFlowChart(data, rootNodeColor)
+      ? buildMermaidFlowChartForEvent(data, rootNodeColor)
       : buildMermaidFlowChartForService(data, rootNodeColor)
 
   useEffect(() => {

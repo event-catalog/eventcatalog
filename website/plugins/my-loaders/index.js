@@ -11,8 +11,8 @@ module.exports = function (context, options) {
           },
           stage: 4,
         })
-      );
-      return postcssOptions;
+      )
+      return postcssOptions
     },
-  };
-};
+  }
+}

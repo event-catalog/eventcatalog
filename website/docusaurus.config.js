@@ -1,7 +1,7 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const theme = require('prism-react-renderer/themes/dracula');
+const theme = require('prism-react-renderer/themes/dracula')
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -29,8 +29,7 @@ const config = {
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
-          editUrl:
-            'https://github.com/facebook/docusaurus/edit/main/website/blog/',
+          editUrl: 'https://github.com/facebook/docusaurus/edit/main/website/blog/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -48,7 +47,7 @@ const config = {
           alt: 'EventCatalog Logo',
           src: 'img/logo.svg',
         },
-        
+
         items: [
           {
             type: 'doc',
@@ -62,8 +61,8 @@ const config = {
             docId: 'cli',
             label: 'API',
           },
-         
-          {to: '/blog', label: 'Blog', position: 'left'},
+
+          { to: '/blog', label: 'Blog', position: 'left' },
           {
             type: 'doc',
             position: 'left',
@@ -83,7 +82,7 @@ const config = {
       },
       colorMode: {
         disableSwitch: true,
-        defaultMode: 'light'
+        defaultMode: 'light',
       },
       footer: {
         style: 'dark',
@@ -135,6 +134,6 @@ const config = {
         darkTheme: theme,
       },
     }),
-};
+}
 
-module.exports = config;
+module.exports = config

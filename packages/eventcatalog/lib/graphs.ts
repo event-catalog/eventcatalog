@@ -1,33 +1,36 @@
 import type { Event, Service } from '@eventcatalogtest/types'
 
-export const buildMermaidFlowChart = (
-  { name, producers, consumers }: Event,
-  rootNodeColor: string = '#2563eb'
-) => {
-  const producerNames = producers.map((producer) => producer.replace(/ /g, '_'))
-  const consumerNames = consumers.map((consumer) => consumer.replace(/ /g, '_'))
+const buildMermaid = (centerNode, leftNodes, rightNodes, rootNodeColor) => {
+  // mermaid does not work with spaces in nodes
+  const removeSpacesInNames = (nodes) => nodes.map((node) => node.replace(/ /g, '_'))
+  const lNodes = removeSpacesInNames(leftNodes)
+  const rNodes = removeSpacesInNames(rightNodes)
+  const nodeValue = centerNode.replace(/ /g, '_')
+
   return `flowchart LR
-${producerNames.map((producer) => `${producer}:::producer-->${name}:::event\n`).join('')}
+${lNodes.map((node) => `${node}:::producer-->${nodeValue}:::event\n`).join('')}
 classDef event stroke:${rootNodeColor},stroke-width: 4px;
 classDef producer stroke:#75d7b6,stroke-width: 2px;
 classDef consumer stroke:#818cf8,stroke-width: 2px;
-${consumerNames.map((consumer) => `${name}:::event-->${consumer}:::consumer\n`).join('')}
+${rNodes.map((node) => `${nodeValue}:::event-->${node}:::consumer\n`).join('')}
   `
 }
 
-export const buildMermaidFlowChartForService = (
-  { publishes, subscribes, name }: Service,
+export const buildMermaidFlowChartForEvent = (
+  { name: eventName, producers, consumers }: Event,
   rootNodeColor: string = '#2563eb'
 ) => {
-  const producerNames = publishes.map((event) => event.name.replace(/ /g, '_'))
-  const consumerNames = subscribes.map((event) => event.name.replace(' ', '_'))
-  const nodeName = name.replace(' ', '_')
+  return buildMermaid(eventName, producers, consumers, rootNodeColor)
+}
 
-  return `flowchart LR
-${consumerNames.map((consumer) => `${consumer}:::producer-->${nodeName}:::event\n`).join('')}
-classDef event stroke:${rootNodeColor},stroke-width: 2px;
-classDef producer stroke:#75d7b6,stroke-width: 2px;
-classDef consumer stroke:#818cf8,stroke-width: 2px;
-${producerNames.map((producer) => `${nodeName}:::event-->${producer}:::consumer\n`).join('')}
-  `
+export const buildMermaidFlowChartForService = (
+  { publishes, subscribes, name: serviceName }: Service,
+  rootNodeColor: string = '#2563eb'
+) => {
+  return buildMermaid(
+    serviceName,
+    subscribes.map((s) => s.name),
+    publishes.map((p) => p.name),
+    rootNodeColor
+  )
 }

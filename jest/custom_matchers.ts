@@ -1,4 +1,4 @@
-function markdownToMatch(received, expectedValue) {
+function toMatchMarkdown(received, expectedValue) {
   const trimmedReceived = received.replace(/\s/g, '')
   const trimmedValue = expectedValue.replace(/\s/g, '')
 
@@ -27,5 +27,5 @@ function markdownToMatch(received, expectedValue) {
 
 expect.extend({
   //@ts-ignore
-  markdownToMatch,
+  toMatchMarkdown,
 })

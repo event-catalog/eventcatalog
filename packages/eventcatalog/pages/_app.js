@@ -8,6 +8,7 @@ export default ({ Component, pageProps }) => {
   return (
     <EventCatalogContextProvider>
       <Head>
+        <title>EventCatalog</title>
         <script src="//unpkg.com/three"></script>
         <script src="//unpkg.com/three/examples/js/renderers/CSS2DRenderer.js"></script>
       </Head>

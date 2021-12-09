@@ -4,20 +4,25 @@ const chalk = require('chalk')
 const generate = async () => {
   const config = require(path.join(process.env.PROJECT_DIR, 'eventcatalog.config.js'))
 
-  const { generators } = config
+  const { generators = [] } = config
 
-  const generatorPackage = generators[0][0]
-  const generatorConfig = generators[0][1]
+  const plugins = generators.map((generator) => {
+    const plugin = generator[0]
+    const pluginConfig = generator[1]
+    const { default: importedGenerator } = require(plugin)
 
-  const context = { eventCatalogConfig: config }
+    console.log(chalk.blue(`Generating EventCatalog docs using: ${plugin}`))
 
-  console.log(`
-${chalk.blue(`Generating EventCatalog docs using: ${generatorPackage}`)}
-    `)
+    return importedGenerator({ eventCatalogConfig: config }, pluginConfig)
+  })
 
-  const { default: importedGenerator } = require(generatorPackage)
-
-  importedGenerator(context, generatorConfig)
+  await Promise.all(plugins)
 }
 
-generate()
+if (!process.env.NODE_ENV === 'test') {
+  generate()
+}
+
+module.exports = {
+  generate,
+}

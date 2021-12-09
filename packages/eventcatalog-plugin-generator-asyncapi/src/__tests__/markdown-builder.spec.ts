@@ -12,7 +12,7 @@ describe('markdown-builder', () => {
       }
       const result = buildMarkdownFile({ frontMatterObject: event })
 
-      expect(result).markdownToMatch(`
+      expect(result).toMatchMarkdown(`
         ---
         name: 'Test Event'
         summary: 'My test event'
@@ -39,7 +39,7 @@ describe('markdown-builder', () => {
         customContent: '# My custom content',
       })
 
-      expect(result).markdownToMatch(`
+      expect(result).toMatchMarkdown(`
         ---
         name: 'Test Event'
         summary: 'My test event'

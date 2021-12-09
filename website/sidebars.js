@@ -1,4 +1,3 @@
-
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
   docs: [
@@ -7,9 +6,7 @@ const sidebars = {
       type: 'category',
       label: 'Getting Started',
       collapsed: false,
-      items: [
-        'installation'
-      ],
+      items: ['installation'],
     },
   ],
   api: [
@@ -39,6 +36,6 @@ const sidebars = {
     },
   ],
    */
-};
+}
 
-module.exports = sidebars;
+module.exports = sidebars

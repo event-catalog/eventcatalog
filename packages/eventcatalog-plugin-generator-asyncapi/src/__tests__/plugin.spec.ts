@@ -11,7 +11,7 @@ import type { AsyncAPIPluginOptions } from '../types'
 declare global {
   namespace jest {
     interface Matchers<R> {
-      markdownToMatch(expected: string): R
+      toMatchMarkdown(expected: string): R
     }
   }
 }
@@ -88,7 +88,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         { encoding: 'utf-8' }
       )
 
-      expect(generatedEventMarkdownFile).markdownToMatch(`
+      expect(generatedEventMarkdownFile).toMatchMarkdown(`
         ---
           name: UserSignedUp
           summary: null
@@ -100,7 +100,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
 
         <Mermaid />`)
 
-      expect(generatedServiceMarkdownFile).markdownToMatch(
+      expect(generatedServiceMarkdownFile).toMatchMarkdown(
         `---
           id: 'Account Service'
           name: 'Account Service'
@@ -154,7 +154,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           { encoding: 'utf-8' }
         )
 
-        expect(generatedEventMarkdownFile).markdownToMatch(`
+        expect(generatedEventMarkdownFile).toMatchMarkdown(`
         ---
           name: UserSignedUp
           summary: null
@@ -171,7 +171,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           { encoding: 'utf-8' }
         )
 
-        expect(generatedServiceMarkdownFile).markdownToMatch(`
+        expect(generatedServiceMarkdownFile).toMatchMarkdown(`
         ---
           id: 'Account Service'
           name: 'Account Service'

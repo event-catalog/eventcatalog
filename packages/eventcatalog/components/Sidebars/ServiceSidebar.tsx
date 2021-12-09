@@ -16,9 +16,9 @@ const ServiceSidebar = ({ service }: ServiceSideBarProps) => {
   const { getUserById } = useUser()
 
   const { owners, subscribes, publishes, repository, tags = [] } = service
-  const { language } = repository;
+  const { language } = repository
 
-  const languages = Array.isArray(language) ? language : language ? [language] : [];
+  const languages = Array.isArray(language) ? language : language ? [language] : []
 
   return (
     <aside className="hidden xl:block xl:pl-8">
