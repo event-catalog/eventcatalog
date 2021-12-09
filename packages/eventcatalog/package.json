@@ -27,7 +27,7 @@
     "gray-matter": "^4.0.3",
     "js-file-download": "^0.4.12",
     "mermaid": "^8.13.4",
-    "next": "12.0.4",
+    "next": "^12.0.5",
     "next-mdx-remote": "^3.0.8",
     "react": "17.0.2",
     "react-dom": "17.0.2",
@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@types/react": "^17.0.36",
+    "trim": "0.0.3",
     "@eventcatalogtest/types": "0.0.0-36",
     "autoprefixer": "^10.4.0",
     "eslint": "7.32.0",
