@@ -1,16 +1,16 @@
 function toMatchMarkdown(received, expectedValue) {
-  const trimmedReceived = received.replace(/\s/g, '')
-  const trimmedValue = expectedValue.replace(/\s/g, '')
+  const trimmedReceived = received.replace(/\s/g, '');
+  const trimmedValue = expectedValue.replace(/\s/g, '');
 
-  const pass = trimmedReceived == trimmedValue
+  const pass = trimmedReceived === trimmedValue;
   if (pass) {
     return {
       message: 'Pass',
       pass: true,
-    }
-  } else {
-    return {
-      message: () => `
+    };
+  }
+  return {
+    message: () => `
       Markdown values did not match
       
       Expected:
@@ -20,12 +20,11 @@ function toMatchMarkdown(received, expectedValue) {
       ${received}
       
       `,
-      pass: false,
-    }
-  }
+    pass: false,
+  };
 }
 
 expect.extend({
-  //@ts-ignore
+  // @ts-ignore
   toMatchMarkdown,
-})
+});

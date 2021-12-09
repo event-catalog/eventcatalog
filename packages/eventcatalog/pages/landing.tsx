@@ -1,6 +1,6 @@
-import React from 'react'
+import React from 'react';
 
-const landing = () => {
+function Landing() {
   return (
     <div className="pb-20 ">
       <div className="text-center py-10">
@@ -21,7 +21,7 @@ const landing = () => {
         <div className="border-gray-200 border rounded-lg shadow-lg w-1/4 h-96">3</div>
       </div>
     </div>
-  )
+  );
 }
 
-export default landing
+export default Landing;

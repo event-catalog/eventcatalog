@@ -1,68 +1,70 @@
 export interface Owner {
-  id: string
+  id: string;
 }
 
 export interface User {
-  id: string | number
-  name: string
-  role: string
-  summary?: string
-  avatarUrl?: string
+  id: string | number;
+  name: string;
+  role: string;
+  summary?: string;
+  avatarUrl?: string;
 }
 
 export interface Schema {
-  snippet: string
-  language: string
+  snippet: string;
+  language: string;
 }
 
 export interface Event {
-  name: string
-  version: string
-  draft?: boolean
-  summary?: string
-  producers?: string[] | []
-  consumers?: string[] | []
-  owners?: Owner[] | string[] | []
-  examples?: any
-  schema?: any
+  name: string;
+  version: string;
+  draft?: boolean;
+  summary?: string;
+  producers?: string[] | [];
+  consumers?: string[] | [];
+  owners?: Owner[] | string[] | [];
+  examples?: any;
+  schema?: any;
 }
 
 export interface Repository {
-  url?: string
-  language?: string | string[]
+  url?: string;
+  language?: string | string[];
 }
 
 export interface Tag {
-  label: string
-  url?: string
+  label: string;
+  url?: string;
 }
 
 export interface Service {
-  id: string
-  name: string
-  summary: string
-  repository?: Repository
-  draft?: boolean
-  publishes?: Event[] | []
-  subscribes?: Event[] | []
-  owners?: Owner[] | string[] | []
-  tags?: Tag[]
+  id: string;
+  name: string;
+  summary: string;
+  repository?: Repository;
+  draft?: boolean;
+  publishes?: Event[] | [];
+  subscribes?: Event[] | [];
+  owners?: Owner[] | string[] | [];
+  tags?: Tag[];
 }
 
-export type PluginOpts = { id?: string } & Record<string, unknown>
+export type PluginOpts = { id?: string } & Record<string, unknown>;
 
-export type PluginConfig = [string, PluginOpts]
+export type PluginConfig = [string, PluginOpts];
 
 export interface EventCataLogConfig {
-  title: string
-  tagline: string
-  url: string
-  baseUrl: string
-  organizationName: string
-  projectName: string
-  generators?: PluginConfig[]
+  title: string;
+  tagline: string;
+  url: string;
+  baseUrl: string;
+  editUrl?: string;
+  organizationName: string;
+  projectName: string;
+  users?: User[];
+  generators?: PluginConfig[] | [] | any;
 }
 
 export type LoadContext = {
-  eventCatalogConfig: EventCataLogConfig
-}
+  eventCatalogConfig: EventCataLogConfig;
+};

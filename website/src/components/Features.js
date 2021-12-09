@@ -1,9 +1,7 @@
-import React, { useEffect } from 'react'
-import ReactArrows from 'react-xarrows'
-import { useXarrow, Xwrapper } from 'react-xarrows'
-import { GlobeAltIcon } from '@heroicons/react/outline'
-
+import React, { useEffect } from 'react';
+import ReactArrows, { useXarrow, Xwrapper } from 'react-xarrows';
 import {
+  GlobeAltIcon,
   ChatAltIcon,
   DocumentReportIcon,
   HeartIcon,
@@ -11,7 +9,7 @@ import {
   DocumentIcon,
   ChartBarIcon,
   UserGroupIcon,
-} from '@heroicons/react/outline'
+} from '@heroicons/react/outline';
 
 const features = [
   {
@@ -58,18 +56,18 @@ const features = [
     description: 'Join the community, learn from each other and help shape the project.',
     icon: HeartIcon,
   },
-]
+];
 
-const Arrow = (props) => {
-  const updateXarrow = useXarrow()
+function Arrow(props) {
+  const updateXarrow = useXarrow();
 
   useEffect(() => {
     setTimeout(() => {
-      updateXarrow()
-    }, 200)
-  }, [])
+      updateXarrow();
+    }, 200);
+  }, [updateXarrow]);
 
-  return <ReactArrows {...props} />
+  return <ReactArrows {...props} />;
 }
 
 export default function Example() {
@@ -286,5 +284,5 @@ export default function Example() {
 
       <hr className="mt-10 border-gray-100 max-w-xl lg:max-w-7xl mx-auto" />
     </Xwrapper>
-  )
+  );
 }

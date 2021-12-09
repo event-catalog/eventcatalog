@@ -1,19 +1,24 @@
-/* This example requires Tailwind CSS v2.0+ */
-import { InformationCircleIcon, ExclamationIcon } from '@heroicons/react/solid'
+import { InformationCircleIcon, ExclamationIcon } from '@heroicons/react/solid';
 
 const getConfigurationByType = (type: string) => {
   switch (type) {
     case 'alert':
-      return { color: 'red', icon: ExclamationIcon }
+      return { color: 'red', icon: ExclamationIcon };
     case 'warning':
-      return { color: 'yellow', icon: ExclamationIcon }
+      return { color: 'yellow', icon: ExclamationIcon };
     default:
-      return { color: 'indigo', icon: InformationCircleIcon }
+      return { color: 'indigo', icon: InformationCircleIcon };
   }
+};
+
+interface AdmonitionProps {
+  children: JSX.Element;
+  type?: string;
+  className?: string;
 }
 
-export default function Example({ children, type, className }) {
-  const { color, icon: Icon } = getConfigurationByType(type)
+export default function Admonition({ children, type, className }: AdmonitionProps) {
+  const { color, icon: Icon } = getConfigurationByType(type);
 
   return (
     <div className={`bg-${color}-50 border-l-4 border-${color}-400 my-4 ${className}`}>
@@ -24,5 +29,5 @@ export default function Example({ children, type, className }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,25 +1,35 @@
-import React, { useState } from 'react'
-import SyntaxHighlighter from '@/components/SyntaxHighlighter'
+import React, { useState } from 'react';
+import SyntaxHighlighter from '@/components/SyntaxHighlighter';
 
 function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(' ');
 }
 
-const Examples = ({ title = 'Examples', description, examples = [], showLineNumbers }) => {
-  const tabs = examples.map((example, index) => {
-    return {
-      name: example.name || `Example ${index + 1}`,
-      content: example.snippet,
-      description: example.description,
-      langugage: example.langugage,
-    }
-  })
+interface ExampleProps {
+  title?: string;
+  description?: string;
+  examples: any;
+  showLineNumbers?: boolean;
+}
 
-  const [selectedTab, setSelectedTab] = useState(tabs[0])
+function Examples({
+  title = 'Examples',
+  description,
+  examples = [],
+  showLineNumbers,
+}: ExampleProps) {
+  const tabs = examples.map((example, index) => ({
+    name: example.name || `Example ${index + 1}`,
+    content: example.snippet,
+    description: example.description,
+    langugage: example.langugage,
+  }));
 
-  const handleTabSelection = (selectedTab) => {
-    setSelectedTab(selectedTab)
-  }
+  const [selectedTab, setSelectedTab] = useState(tabs[0]);
+
+  const handleTabSelection = (tab: string) => {
+    setSelectedTab(tab);
+  };
 
   return (
     <div className="my-5 examples">
@@ -30,9 +40,10 @@ const Examples = ({ title = 'Examples', description, examples = [], showLineNumb
         <div>
           <nav className="-mb-px flex" aria-label="Tabs">
             {tabs.map((tab) => {
-              const isSelected = tab.name === selectedTab.name
+              const isSelected = tab.name === selectedTab.name;
               return (
                 <button
+                  type="button"
                   key={tab.name}
                   onClick={() => handleTabSelection(tab)}
                   className={classNames(
@@ -46,7 +57,7 @@ const Examples = ({ title = 'Examples', description, examples = [], showLineNumb
                   {tab.name}
                   <span className="block text-xs mt-">({tab.langugage})</span>
                 </button>
-              )
+              );
             })}
           </nav>
           <div className="my-4">
@@ -60,7 +71,7 @@ const Examples = ({ title = 'Examples', description, examples = [], showLineNumb
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default Examples
+export default Examples;

@@ -1,11 +1,15 @@
-import React from 'react'
-import { HomeIcon } from '@heroicons/react/solid'
-import Link from 'next/link'
+import React from 'react';
+import { HomeIcon } from '@heroicons/react/solid';
+import Link from 'next/link';
 
-const BreadCrumbs = ({ pages }) => {
+interface BreadCrumbsProps {
+  pages: { name: string; href: string; current: boolean }[];
+}
+
+function BreadCrumbs({ pages }: BreadCrumbsProps) {
   return (
     <nav className="flex" aria-label="Breadcrumb">
-      <ol role="list" className="flex items-center space-x-4">
+      <ol className="flex items-center space-x-4">
         <li>
           <div>
             <a href="#" className="text-gray-400 hover:text-gray-500">
@@ -39,7 +43,7 @@ const BreadCrumbs = ({ pages }) => {
         ))}
       </ol>
     </nav>
-  )
+  );
 }
 
-export default BreadCrumbs
+export default BreadCrumbs;

@@ -1,21 +1,20 @@
-import YAML from 'yamljs'
-import json2md from 'json2md'
-import { Event, Service } from '@eventcatalogtest/types'
+import YAML from 'yamljs';
+import json2md from 'json2md';
+import { Event, Service } from '@eventcatalogtest/types';
 
-export const buildMarkdownFile = ({
+export default ({
   frontMatterObject,
   customContent,
 }: {
-  frontMatterObject: Service | Event
-  customContent?: string
+  frontMatterObject: Service | Event;
+  customContent?: string;
 }) => {
-  const customJSON2MD = (json2md.converters.mermaid = function (render) {
-    return render ? '<Mermaid />' : ''
-  })
+  // eslint-disable-next-line no-multi-assign
+  const customJSON2MD = (json2md.converters.mermaid = (render) => (render ? '<Mermaid />' : ''));
 
-  const content = [{ h1: frontMatterObject.name, mermaid: true }]
+  const content = [{ h1: frontMatterObject.name, mermaid: true }];
 
   return `---
 ${YAML.stringify(frontMatterObject)}---
-${customContent ? customContent : customJSON2MD(content)}`
-}
+${customContent || customJSON2MD(content)}`;
+};

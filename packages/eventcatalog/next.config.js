@@ -7,6 +7,6 @@ module.exports = {
         destination: '/events',
         permanent: true,
       },
-    ]
+    ];
   },
-}
+};

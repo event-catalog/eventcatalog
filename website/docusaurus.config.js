@@ -1,7 +1,6 @@
 // @ts-check
-// Note: type annotations allow type checking and IDEs autocompletion
 
-const theme = require('prism-react-renderer/themes/dracula')
+const theme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -134,6 +133,6 @@ const config = {
         darkTheme: theme,
       },
     }),
-}
+};
 
-module.exports = config
+module.exports = config;

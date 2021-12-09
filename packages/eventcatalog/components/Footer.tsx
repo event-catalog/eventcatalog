@@ -1,9 +1,9 @@
-import React from 'react'
-import { useConfig } from '@/hooks/EventCatalog'
+import React from 'react';
+import { useConfig } from '@/hooks/EventCatalog';
 
 const Footer = () => {
-  const { organizationName } = useConfig()
-  const year = new Date().getFullYear()
+  const { organizationName } = useConfig();
+  const year = new Date().getFullYear();
 
   return (
     <footer className="bg-gray-800 py-10">
@@ -13,7 +13,7 @@ const Footer = () => {
         </p>
       </div>
     </footer>
-  )
-}
+  );
+};
 
-export default Footer
+export default Footer;

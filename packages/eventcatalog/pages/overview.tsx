@@ -1,39 +1,39 @@
-import React from 'react'
-import ReactDOMServer from 'react-dom/server'
+import React from 'react';
+import ReactDOMServer from 'react-dom/server';
 
-import dynamic from 'next/dynamic'
+import dynamic from 'next/dynamic';
 
-import { getAllEvents, getUniqueServicesNamesFromEvents } from '@/lib/events'
+import { getAllEvents, getUniqueServicesNamesFromEvents } from '@/lib/events';
 
 const ForceGraph3D = dynamic(
   () => import('react-force-graph-3d').then((module) => module.default),
   { ssr: false }
-)
+);
 
-const NodeElement = ({ node: { id, type } }) => {
-  return <div className={`text-sm text-center p-1 rounded-md `}>{id}</div>
+function NodeElement({ node: { id } }: { node: { id: string } }) {
+  return <div className={`text-sm text-center p-1 rounded-md `}>{id}</div>;
 }
 
 const graph = ({ events, services }) => {
-  const eventNodes = events.map(({ name: event }) => ({ id: event, group: 1, type: 'event' }))
-  const serviceNodes = services.map((service) => ({ id: service, group: 2, type: 'service' }))
+  const eventNodes = events.map(({ name: event }) => ({ id: event, group: 1, type: 'event' }));
+  const serviceNodes = services.map((service) => ({ id: service, group: 2, type: 'service' }));
 
   // Create all links
   const links = events.reduce((nodes, event) => {
-    const { consumers = [], producers = [], name } = event
-    const consumerNodes = consumers.map((consumer) => ({ source: name, target: consumer }))
-    const producerNodes = producers.map((producer) => ({ source: producer, target: name }))
-    return nodes.concat(consumerNodes).concat(producerNodes)
-  }, [])
+    const { consumers = [], producers = [], name } = event;
+    const consumerNodes = consumers.map((consumer) => ({ source: name, target: consumer }));
+    const producerNodes = producers.map((producer) => ({ source: producer, target: name }));
+    return nodes.concat(consumerNodes).concat(producerNodes);
+  }, []);
 
-  const data = { nodes: eventNodes.concat(serviceNodes), links }
+  const data = { nodes: eventNodes.concat(serviceNodes), links };
 
   if (typeof window === 'undefined') {
-    return null
+    return null;
   }
 
-  //@ts-ignore
-  const extraRenderers = [new window.THREE.CSS2DRenderer()]
+  // @ts-ignore
+  const extraRenderers = [new window.THREE.CSS2DRenderer()];
   return (
     <div className="min-h-screen ">
       <ForceGraph3D
@@ -42,31 +42,29 @@ const graph = ({ events, services }) => {
         nodeAutoColorBy="group"
         nodeRelSize={9}
         nodeThreeObject={(node) => {
-          const nodeEl = document.createElement('div')
-          nodeEl.innerHTML = ReactDOMServer.renderToString(<NodeElement node={node} />)
-          node.height = '100px'
-          nodeEl.style.color = node.color
-          //@ts-ignore
-          return new THREE.CSS2DObject(nodeEl)
+          const nodeEl = document.createElement('div');
+          nodeEl.innerHTML = ReactDOMServer.renderToString(<NodeElement node={node} />);
+          node.height = '100px';
+          nodeEl.style.color = node.color;
+          // @ts-ignore
+          return new THREE.CSS2DObject(nodeEl);
         }}
-        nodeThreeObjectExtend={true}
+        nodeThreeObjectExtend
         enableNodeDrag={false}
         nodeOpacity={0.2}
         linkDirectionalParticles={2}
         linkDirectionalParticleWidth={2}
-        linkDirectionalParticleColor={(node) => {
-          return 'rgba(236, 72, 153, 1)'
-        }}
+        linkDirectionalParticleColor={() => 'rgba(236, 72, 153, 1)'}
       />
     </div>
-  )
-}
+  );
+};
 
-export default graph
+export default graph;
 
 export const getServerSideProps = () => {
-  const events = getAllEvents()
-  const services = getUniqueServicesNamesFromEvents(events)
+  const events = getAllEvents();
+  const services = getUniqueServicesNamesFromEvents(events);
 
   return {
     props: {
@@ -74,5 +72,5 @@ export const getServerSideProps = () => {
       // @ts-ignore
       services: [...new Set(services)],
     },
-  }
-}
+  };
+};

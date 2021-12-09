@@ -11,4 +11,4 @@ module.exports = {
     // '@babel/react',
     '@babel/preset-typescript',
   ],
-}
+};
