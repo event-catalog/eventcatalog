@@ -42,7 +42,7 @@ describe('file-reader lib', () => {
       const result = getLastModifiedDateOfFile(
         path.join(process.env.PROJECT_DIR, 'events', 'EventWithSchemaAndExamples', 'schema.json')
       )
-      expect(result).toEqual('2021/12/8')
+      expect(result).toEqual('2021/12/9')
     })
   })
 })
