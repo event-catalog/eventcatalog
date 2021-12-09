@@ -4,7 +4,7 @@ import type { Schema } from '@eventcatalogtest/types'
 import matter from 'gray-matter'
 
 // https://github.com/react-syntax-highlighter/react-syntax-highlighter/blob/master/AVAILABLE_LANGUAGES_HLJS.MD
-const extentionToLanguageMap = {
+export const extentionToLanguageMap = {
   cs: 'csharp',
   js: 'javascript',
   json: 'json',

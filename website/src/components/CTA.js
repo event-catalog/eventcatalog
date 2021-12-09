@@ -1,6 +1,5 @@
 /* This example requires Tailwind CSS v2.0+ */
-import React from 'react';
-
+import React from 'react'
 
 export default function Example() {
   return (
@@ -30,6 +29,5 @@ export default function Example() {
         </div>
       </div>
     </div>
-  );
+  )
 }
-

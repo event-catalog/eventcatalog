@@ -4,7 +4,7 @@ import type { Event, Service } from '@eventcatalogtest/types'
 import Link from 'next/link'
 
 import EventGrid from '@/components/Grids/EventGrid'
-import { getAllEvents, getAllServicesNamesFromEvents } from '@/lib/events'
+import { getAllEvents, getUniqueServicesNamesFromEvents } from '@/lib/events'
 
 import { Menu, Transition } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/solid'
@@ -119,9 +119,6 @@ export default function Page({ events, services }: PageProps) {
                 </Menu.Items>
               </Transition>
             </Menu>
-            {/* <button type="button" className="p-2 -m-2 ml-5 sm:ml-7 text-gray-400 hover:text-gray-500">
-                <ChartSquareBarIcon className="w-5 h-5" aria-hidden="true" />
-              </button> */}
           </div>
         </div>
 
@@ -222,7 +219,7 @@ export default function Page({ events, services }: PageProps) {
 
 export const getServerSideProps = () => {
   const events = getAllEvents()
-  const services = getAllServicesNamesFromEvents(events)
+  const services = getUniqueServicesNamesFromEvents(events)
 
   return {
     props: {

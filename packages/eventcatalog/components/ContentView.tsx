@@ -51,7 +51,6 @@ export default function ContentView({
                               </div>
                             </h1>
                             <div className="text-gray-600 mb-10 text py-2">{subtitle}</div>
-                            
                           </div>
                           <div className="mt-4 flex space-x-3 md:mt-0">
                             <button

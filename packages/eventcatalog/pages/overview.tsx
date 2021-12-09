@@ -3,7 +3,7 @@ import ReactDOMServer from 'react-dom/server'
 
 import dynamic from 'next/dynamic'
 
-import { getAllEvents, getAllServicesNamesFromEvents } from '@/lib/events'
+import { getAllEvents, getUniqueServicesNamesFromEvents } from '@/lib/events'
 
 const ForceGraph3D = dynamic(
   () => import('react-force-graph-3d').then((module) => module.default),
@@ -66,7 +66,7 @@ export default graph
 
 export const getServerSideProps = () => {
   const events = getAllEvents()
-  const services = getAllServicesNamesFromEvents(events)
+  const services = getUniqueServicesNamesFromEvents(events)
 
   return {
     props: {

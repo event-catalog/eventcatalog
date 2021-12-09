@@ -5,20 +5,11 @@ import { MarkdownFile } from '@/types/index'
 import type { Service, Event } from '@eventcatalogtest/types'
 
 import config from '../eventcatalog.config'
-
-// const eventsDir = config.eventsDir || path.join(process.cwd(), process.env.PROJECT_DIR, 'events');
-const eventsDir = config.eventsDir || path.join(process.env.PROJECT_DIR, 'events')
+import { extentionToLanguageMap } from './file-reader'
 
 import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader'
 
 // https://github.com/react-syntax-highlighter/react-syntax-highlighter/blob/master/AVAILABLE_LANGUAGES_HLJS.MD
-const extentionToLanguageMap = {
-  cs: 'csharp',
-  js: 'javascript',
-  json: 'json',
-  yml: 'yml',
-  java: 'java',
-}
 
 const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
   const {
@@ -33,47 +24,7 @@ const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
   return { name, version, summary, producers, consumers, owners }
 }
 
-export const getAllEvents = (): Event[] => {
-  const folders = fs.readdirSync(eventsDir)
-  return folders.map((folder) => {
-    const { data } = readMarkdownFile(path.join(eventsDir, folder, 'index.md'))
-    return parseEventFrontMatterIntoEvent(data)
-  })
-}
-
-export const getEventByName = async (
-  eventName
-): Promise<{ event: Event; markdown: MarkdownFile }> => {
-  const eventDirectory = path.join(eventsDir, eventName)
-  const { data, content } = readMarkdownFile(path.join(eventDirectory, `index.md`))
-  const event = parseEventFrontMatterIntoEvent(data)
-
-  const mdxSource = await serialize(content)
-
-  return {
-    event: {
-      ...event,
-      schema: getSchemaFromDir(eventDirectory),
-      examples: getEventExamplesFromDir(path.join(eventDirectory, `examples`)),
-    },
-    markdown: {
-      content,
-      source: mdxSource,
-      lastModifiedDate: getLastModifiedDateOfFile(path.join(eventDirectory, `index.md`)),
-    },
-  }
-}
-
-export const getAllServicesNamesFromEvents = (events: Event[]) => {
-  const allConsumersAndProducers = events.reduce((domains, event) => {
-    const { consumers = [], producers = [] } = event
-    return domains.concat(consumers).concat(producers)
-  }, [])
-
-  return allConsumersAndProducers.map((service) => service)
-}
-
-export const getEventExamplesFromDir = (pathToExamples) => {
+const getEventExamplesFromDir = (pathToExamples) => {
   let examples
 
   // Get examples for directory
@@ -99,12 +50,62 @@ export const getEventExamplesFromDir = (pathToExamples) => {
   return examples
 }
 
+export const getAllEvents = (): Event[] => {
+  const eventsDir = config.eventsDir || path.join(process.env.PROJECT_DIR, 'events')
+  const folders = fs.readdirSync(eventsDir)
+  return folders.map((folder) => {
+    const { data } = readMarkdownFile(path.join(eventsDir, folder, 'index.md'))
+    return parseEventFrontMatterIntoEvent(data)
+  })
+}
+
+export const getEventByName = async (
+  eventName
+): Promise<{ event: Event; markdown: MarkdownFile }> => {
+  const eventsDir = config.eventsDir || path.join(process.env.PROJECT_DIR, 'events')
+  const eventDirectory = path.join(eventsDir, eventName)
+
+  try {
+    const { data, content } = readMarkdownFile(path.join(eventDirectory, `index.md`))
+    const event = parseEventFrontMatterIntoEvent(data)
+
+    const mdxSource = await serialize(content)
+
+    return {
+      event: {
+        ...event,
+        schema: getSchemaFromDir(eventDirectory),
+        examples: getEventExamplesFromDir(path.join(eventDirectory, `examples`)),
+      },
+      markdown: {
+        content,
+        source: mdxSource,
+        lastModifiedDate: getLastModifiedDateOfFile(path.join(eventDirectory, `index.md`)),
+      },
+    }
+  } catch (error) {
+    return
+  }
+}
+
+export const getUniqueServicesNamesFromEvents = (events: Event[]) => {
+  const allConsumersAndProducers = events.reduce((domains, event) => {
+    const { consumers = [], producers = [] } = event
+    return domains.concat(consumers).concat(producers)
+  }, [])
+
+  const data = allConsumersAndProducers.map((service) => service)
+
+  //@ts-ignore
+  return [...new Set(data)]
+}
+
 export const getAllEventsByOwnerId = async (ownerId) => {
   const events = await getAllEvents()
   return events.filter(({ owners = [] }) => owners.some((id) => id === ownerId))
 }
 
-export const getAllEventsThatPublishAndSubscribeToService = (
+export const getAllEventsThatHaveRelationshipWithService = (
   service: Service,
   events: Event[]
 ): { publishes: Event[]; subscribes: Event[] } => {

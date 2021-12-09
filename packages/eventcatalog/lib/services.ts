@@ -1,15 +1,13 @@
 import fs from 'fs'
 import path from 'path'
 import { serialize } from 'next-mdx-remote/serialize'
-import { readMarkdownFile } from '@/lib/file-reader'
+import { readMarkdownFile, getLastModifiedDateOfFile } from '@/lib/file-reader'
 import { MarkdownFile } from '../types/index'
 import config from '../eventcatalog.config'
 
 import { Service } from '@eventcatalogtest/types'
 
-import { getAllEvents, getAllEventsThatPublishAndSubscribeToService } from '@/lib/events'
-
-const servicesDir = config.servicesDir || path.join(process.env.PROJECT_DIR, 'services')
+import { getAllEvents, getAllEventsThatHaveRelationshipWithService } from '@/lib/events'
 
 const buildService = (eventFrontMatter: any): Service => {
   const { id, name, summary, owners = [], repository = {}, tags = [] } = eventFrontMatter
@@ -17,6 +15,8 @@ const buildService = (eventFrontMatter: any): Service => {
 }
 
 export const getAllServices = (): Service[] => {
+  const servicesDir = config.servicesDir || path.join(process.env.PROJECT_DIR, 'services')
+
   const folders = fs.readdirSync(servicesDir)
   const services = folders.map((folder) =>
     readMarkdownFile(path.join(servicesDir, folder, 'index.md'))
@@ -29,7 +29,7 @@ export const getAllServices = (): Service[] => {
   return parsedServices.map((service) => {
     return {
       ...service,
-      ...getAllEventsThatPublishAndSubscribeToService(service, events),
+      ...getAllEventsThatHaveRelationshipWithService(service, events),
     }
   })
 }
@@ -49,24 +49,29 @@ export const getAllServicesByOwnerId = async (ownerId): Promise<Service[]> => {
 export const getServiceByName = async (
   serviceName
 ): Promise<{ service: Service; markdown: MarkdownFile }> => {
-  const serviceDirectory = path.join(servicesDir, serviceName)
-  const { data, content } = readMarkdownFile(path.join(serviceDirectory, `index.md`))
-  const service = buildService(data)
+  try {
+    const servicesDir = config.servicesDir || path.join(process.env.PROJECT_DIR, 'services')
+    const serviceDirectory = path.join(servicesDir, serviceName)
+    const { data, content } = readMarkdownFile(path.join(serviceDirectory, `index.md`))
+    const service = buildService(data)
 
-  const events = getAllEvents()
+    const events = getAllEvents()
 
-  const mdxSource = await serialize(content)
+    const mdxSource = await serialize(content)
 
-  return {
-    //@ts-ignore
-    service: {
-      ...service,
-      ...getAllEventsThatPublishAndSubscribeToService(service, events),
-    },
-    markdown: {
-      content,
-      lastModifiedDate: '200',
-      source: mdxSource,
-    },
+    return {
+      //@ts-ignore
+      service: {
+        ...service,
+        ...getAllEventsThatHaveRelationshipWithService(service, events),
+      },
+      markdown: {
+        content,
+        lastModifiedDate: getLastModifiedDateOfFile(path.join(serviceDirectory, `index.md`)),
+        source: mdxSource,
+      },
+    }
+  } catch (error) {
+    return
   }
 }

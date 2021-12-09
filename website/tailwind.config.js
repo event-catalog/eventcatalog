@@ -8,6 +8,6 @@ module.exports = {
     extend: {},
   },
   plugins: [],
-  corePlugins: { preflight: false},
-  important: `#tailwind`
-};
+  corePlugins: { preflight: false },
+  important: `#tailwind`,
+}
