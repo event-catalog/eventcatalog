@@ -205,7 +205,9 @@ export async function createApp({
     /**
      * Default dependencies.
      */
-    const dependencies = [''];
+
+    // To fix <0.0.3 high vun...we need to put this here?
+    const dependencies = ["trim"];
 
     /**
      * Default devDependencies.
