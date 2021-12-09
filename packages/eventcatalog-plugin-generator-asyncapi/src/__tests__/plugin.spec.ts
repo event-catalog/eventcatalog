@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-promise-executor-return */
 // @ts-nocheck
 import type { LoadContext } from '@eventcatalogtest/types';
@@ -12,7 +13,7 @@ import type { AsyncAPIPluginOptions } from '../types';
 declare global {
   namespace jest {
     interface Matchers<R> {
-      toMatchMarkdown(): R;
+      toMatchMarkdown(expect: string): R;
     }
   }
 }
