@@ -41,6 +41,7 @@ export default function Services(props: ServicesPageProps) {
   if (notFound) return <NotFound type="service" name={service.name} editUrl={editUrl} />;
 
   const { name, summary, draft } = service;
+  const { lastModifiedDate } = markdown;
 
   const mdxComponents = getComponents(service);
 
@@ -56,7 +57,7 @@ export default function Services(props: ServicesPageProps) {
         editUrl={getEditUrl(`/services/${name}/index.md`)}
         subtitle={summary}
         draft={draft}
-        lastModifiedDate="2000"
+        lastModifiedDate={lastModifiedDate}
         breadCrumbs={<BreadCrumbs pages={pages} />}
         sidebar={<ServiceSidebar service={service} />}
       >

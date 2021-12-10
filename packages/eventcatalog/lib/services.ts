@@ -4,7 +4,6 @@ import { serialize } from 'next-mdx-remote/serialize';
 import { Service } from '@eventcatalogtest/types';
 import { readMarkdownFile, getLastModifiedDateOfFile } from '@/lib/file-reader';
 import { MarkdownFile } from '../types/index';
-import config from '../eventcatalog.config';
 
 import { getAllEvents, getAllEventsThatHaveRelationshipWithService } from '@/lib/events';
 
@@ -14,7 +13,7 @@ const buildService = (eventFrontMatter: any): Service => {
 };
 
 export const getAllServices = (): Service[] => {
-  const servicesDir = config.servicesDir || path.join(process.env.PROJECT_DIR, 'services');
+  const servicesDir = path.join(process.env.PROJECT_DIR, 'services');
 
   const folders = fs.readdirSync(servicesDir);
   const services = folders.map((folder) =>
@@ -45,7 +44,7 @@ export const getServiceByName = async (
   serviceName
 ): Promise<{ service: Service; markdown: MarkdownFile }> => {
   try {
-    const servicesDir = config.servicesDir || path.join(process.env.PROJECT_DIR, 'services');
+    const servicesDir = path.join(process.env.PROJECT_DIR, 'services');
     const serviceDirectory = path.join(servicesDir, serviceName);
     const { data, content } = readMarkdownFile(path.join(serviceDirectory, `index.md`));
     const service = buildService(data);

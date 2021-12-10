@@ -4,7 +4,6 @@ import { serialize } from 'next-mdx-remote/serialize';
 import type { Service, Event } from '@eventcatalogtest/types';
 import { MarkdownFile } from '@/types/index';
 
-import config from '../eventcatalog.config';
 import { extentionToLanguageMap } from './file-reader';
 
 import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader';
@@ -43,7 +42,7 @@ const getEventExamplesFromDir = (pathToExamples) => {
 };
 
 export const getAllEvents = (): Event[] => {
-  const eventsDir = config.eventsDir || path.join(process.env.PROJECT_DIR, 'events');
+  const eventsDir = path.join(process.env.PROJECT_DIR, 'events');
   const folders = fs.readdirSync(eventsDir);
   return folders.map((folder) => {
     const { data } = readMarkdownFile(path.join(eventsDir, folder, 'index.md'));
@@ -54,7 +53,7 @@ export const getAllEvents = (): Event[] => {
 export const getEventByName = async (
   eventName
 ): Promise<{ event: Event; markdown: MarkdownFile }> => {
-  const eventsDir = config.eventsDir || path.join(process.env.PROJECT_DIR, 'events');
+  const eventsDir = path.join(process.env.PROJECT_DIR, 'events');
   const eventDirectory = path.join(eventsDir, eventName);
 
   try {

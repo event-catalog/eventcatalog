@@ -41,7 +41,17 @@ describe('file-reader lib', () => {
       const result = getLastModifiedDateOfFile(
         path.join(process.env.PROJECT_DIR, 'events', 'EventWithSchemaAndExamples', 'schema.json')
       );
-      expect(result).toEqual('2021/12/9');
+
+      const stats = fs.statSync(
+        path.join(process.env.PROJECT_DIR, 'events', 'EventWithSchemaAndExamples', 'schema.json')
+      );
+
+      const fileData = new Date(stats.mtime);
+      const expectedResult = `${fileData.getFullYear()}/${
+        fileData.getMonth() + 1
+      }/${fileData.getDate()}`;
+
+      expect(result).toEqual(expectedResult);
     });
   });
 });
