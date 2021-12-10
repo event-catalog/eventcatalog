@@ -1,5 +1,3 @@
-const path = require('path');
-
 module.exports = {
   title: 'EventCatalog',
   tagline: 'Discover, Explore and Document your Event Driven Architectures',
