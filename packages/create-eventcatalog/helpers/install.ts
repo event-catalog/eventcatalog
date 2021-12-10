@@ -38,7 +38,7 @@ export function install(
     args.push(...npmFlags);
 
     // until warns are fixed...
-    // args.push('--silent');
+    args.push('--silent');
 
     /**
      * Spawn the installation process.

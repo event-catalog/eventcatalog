@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useConfig } from '@/hooks/EventCatalog';
 
 export default function Example() {
-  const { organizationName, logo } = useConfig();
+  const { title, tagline, logo } = useConfig();
 
   const logoToLoad = logo || { alt: 'EventCatalog Logo', src: '/logo.svg' };
 
@@ -18,11 +18,9 @@ export default function Example() {
           className="mx-auto"
         />
         <h1 className="mt-2 text-4xl font-extrabold text-white tracking-tight sm:text-5xl">
-          {organizationName}
+          {title}
         </h1>
-        <p className="mt-2 text-lg font-medium text-white">
-          Discover, Explore and Document your Event Driven Architectures
-        </p>
+        <p className="mt-2 text-lg font-medium text-white">{tagline}</p>
         <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
           <div className="rounded-md shadow">
             <Link href="/events">

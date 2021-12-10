@@ -1,19 +1,13 @@
 const path = require('path');
 
 module.exports = {
-  title: 'My Event Site',
-  tagline: 'Events are cool',
+  title: 'EventCatalog',
+  tagline: 'Discover, Explore and Document your Event Driven Architectures',
+  projectName: 'Event Catalog',
   url: 'https://your-eventcatalog-test-site.com',
   baseUrl: '/',
   editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
   organizationName: 'Your Company',
-  projectName: 'Event Catalog',
-  features: {
-    mermaid: {
-      showOnEventsGrid: true,
-      showOnServicesGrid: true,
-    },
-  },
   generators: [
     [
       '@eventcatalogtest/plugin-doc-generator-asyncapi',

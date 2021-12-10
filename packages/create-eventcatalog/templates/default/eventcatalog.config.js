@@ -1,16 +1,15 @@
 module.exports = {
-  title: 'My Event Site',
-  tagline: 'Events are cool',
+  title: 'EventCatalog',
+  tagline: 'Discover, Explore and Document your Event Driven Architectures',
+  projectName: 'Event Catalog',
   url: 'https://your-eventcatalog-test-site.com',
   baseUrl: '/',
   editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
   organizationName: 'Your Company',
-  projectName: 'Event Catalog',
-  features: {
-    mermaid: {
-      showOnEventsGrid: true,
-      showOnServicesGrid: true,
-    },
+  logo: {
+    alt: 'EventCatalog Logo',
+    // found in the public dir
+    src: 'logo.svg',
   },
   users: [
     {

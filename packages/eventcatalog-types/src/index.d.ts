@@ -56,12 +56,12 @@ export type PluginConfig = [string, PluginOpts];
 export interface EventCataLogConfig {
   title: string;
   tagline: string;
+  projectName: string;
   url: string;
   baseUrl: string;
   editUrl?: string;
   organizationName: string;
   logo?: { alt: string; src: string };
-  projectName: string;
   users?: User[];
   generators?: PluginConfig[] | [] | any;
 }
