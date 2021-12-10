@@ -14,7 +14,7 @@ function classNames(...classes) {
 
 interface EventGridProps {
   events: Event[];
-  showMermaidDiagrams: boolean;
+  showMermaidDiagrams?: boolean;
 }
 
 function EventGrid({ events = [], showMermaidDiagrams = false }: EventGridProps) {

@@ -8,8 +8,6 @@ module.exports = {
   editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
   organizationName: 'MyAwesomeOrg',
   projectName: 'Event Catalog',
-  // servicesDir:  path.join(process.cwd(), '../../examples/basic/services'),
-  // eventsDir:  path.join(process.cwd(), '../../examples/basic/events'),
   features: {
     mermaid: {
       showOnEventsGrid: true,

@@ -16,12 +16,20 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
   const { getUserById } = useUser();
 
   const { owners, subscribes, publishes, repository, tags = [] } = service;
-  const { language } = repository;
+  const { language, url: repositoryUrl } = repository;
+
+  console.log('repository', repository);
 
   let languages = [];
 
-  if (!language) {
+  if (language) {
     languages = Array.isArray(language) ? language : [language];
+  }
+
+  let trimmedUrl = '';
+
+  if (repositoryUrl) {
+    trimmedUrl = repositoryUrl.replace(/(^\w+:|^)\/\//, '');
   }
 
   return (
@@ -119,8 +127,7 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
                   className="flex items-center space-x-3 text-blue-600 underline text-sm"
                   rel="noreferrer"
                 >
-                  {/* {repository.url} */}
-                  boyney123/EmailPlatform
+                  {trimmedUrl}
                 </a>
               </li>
             </ul>

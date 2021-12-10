@@ -4,7 +4,7 @@ import Admonition from '@/components/Mdx/Admonition';
 interface ContentViewProps {
   title: string;
   subtitle?: string;
-  tags: { href?: string; label: string }[];
+  tags?: { href?: string; label: string }[];
   lastModifiedDate: string;
   children: JSX.Element;
   sidebar: JSX.Element;

@@ -1,12 +1,11 @@
 import fs from 'fs';
 import path from 'path';
-import config from '../../../../eventcatalog.config';
 
 export default function (req, res) {
   const { name: eventName } = req.query;
   res.status(404).end();
 
-  const eventsDir = config.eventsDir || './';
+  const eventsDir = './';
 
   try {
     const schema = fs.readFileSync(path.join(eventsDir, eventName, 'schema.json'));
