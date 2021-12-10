@@ -90,6 +90,9 @@ export default function Events(props: EventsPageProps) {
         lastModifiedDate={lastModifiedDate}
         tags={[{ label: `v${version}` }]}
         breadCrumbs={<BreadCrumbs pages={pages} />}
+        isOldVersion={loadedVersion !== 'latest'}
+        latestVersionUrl={`/events/${name}`}
+        version={loadedVersion}
         sidebar={<EventSideBar event={event} loadedVersion={loadedVersion} />}
       >
         <MDXRemote {...markdown.source} components={mdxComponents} />

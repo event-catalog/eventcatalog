@@ -1,4 +1,5 @@
 import { PencilIcon } from '@heroicons/react/solid';
+import Link from 'next/link';
 import Admonition from '@/components/Mdx/Admonition';
 
 interface ContentViewProps {
@@ -10,6 +11,9 @@ interface ContentViewProps {
   sidebar: JSX.Element;
   breadCrumbs: JSX.Element;
   editUrl?: string;
+  version?: string;
+  isOldVersion?: boolean;
+  latestVersionUrl?: string;
   draft?: boolean;
 }
 
@@ -22,6 +26,9 @@ export default function ContentView({
   sidebar: SideBar,
   breadCrumbs: BreadCrumbs,
   editUrl,
+  isOldVersion,
+  latestVersionUrl,
+  version,
   draft: isDraft = false,
 }: ContentViewProps) {
   return (
@@ -38,7 +45,7 @@ export default function ContentView({
                   <div>
                     <div>
                       <div className="xl:border-b pb-4 flex justify-between ">
-                        <div className="space-y-2">
+                        <div className="space-y-2 w-full">
                           <h1 className="text-3xl font-bold text-gray-900 relative">
                             {title}
                             <div className="-top-1 relative inline-block ml-2">
@@ -58,6 +65,18 @@ export default function ContentView({
                             </div>
                           </h1>
                           <div className="text-gray-600 mb-10 text py-2">{subtitle}</div>
+                          {isOldVersion && version && (
+                            <Admonition className="mt-0 pt-0 w-full" type="warning">
+                              <>
+                                You are currently viewing an old version of this event ({version}).
+                                <Link href={latestVersionUrl}>
+                                  <a className="block text-sm pl-7 mt-2 text-blue-500 underline">
+                                    Read latest version &rarr;
+                                  </a>
+                                </Link>
+                              </>
+                            </Admonition>
+                          )}
                         </div>
                         <div className="mt-4 flex space-x-3 md:mt-0">
                           <button
@@ -81,6 +100,7 @@ export default function ContentView({
                             </>
                           </Admonition>
                         )}
+
                         <div className="prose max-w-none">{children}</div>
                       </div>
                     </div>
