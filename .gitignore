@@ -3,6 +3,7 @@ lerna-debug.log
 npm-debug.log
 packages/*/lib
 !packages/eventcatalog/lib
+.eslintcache
 
 website/build
 

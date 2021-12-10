@@ -52,6 +52,9 @@ cli
       copyCoreApplicationCodeIntoUsersProjectDir();
     }
 
+    // copy any public assets over (from users to the lib itself)
+    fs.copySync(path.join(projectDIR, 'public'), path.join(eventCatalogLibDir, 'public'));
+
     // build using nextjs
     execSync(`PROJECT_DIR=${projectDIR} npm run build`, {
       cwd: eventCatalogLibDir,
@@ -69,6 +72,9 @@ cli
     if (!fs.existsSync(eventCatalogLibDir)) {
       copyCoreApplicationCodeIntoUsersProjectDir();
     }
+
+    // copy any public assets over (from users to the lib itself)
+    fs.copySync(path.join(projectDIR, 'public'), path.join(eventCatalogLibDir, 'public'));
 
     fs.copyFileSync(
       path.join(projectDIR, 'eventcatalog.config.js'),

@@ -4,7 +4,7 @@ module.exports = {
   url: 'https://your-eventcatalog-test-site.com',
   baseUrl: '/',
   editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
-  organizationName: 'MyAwesomeOrg',
+  organizationName: 'Your Company',
   projectName: 'Event Catalog',
   features: {
     mermaid: {

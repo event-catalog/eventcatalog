@@ -38,11 +38,7 @@ export default function Example() {
               <div className="flex-shrink-0 flex items-center text-white font-bold">
                 <Link href="/events">
                   <a className="flex items-center">
-                    <img
-                      alt="logo"
-                      className="text-white w-8 inline-block mr-3"
-                      src="/logo-white.svg"
-                    />
+                    <img alt="logo" className="text-white w-8 inline-block mr-3" src="/logo.svg" />
                     <span className="text-xl">{projectName}</span>
                   </a>
                 </Link>
