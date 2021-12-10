@@ -4,6 +4,7 @@ npm-debug.log
 packages/*/lib
 !packages/eventcatalog/lib
 .eslintcache
+/packages/eventcatalog/eventcatalog.config.js
 
 website/build
 
@@ -27,3 +28,4 @@ node_modules
 .vercel
 
 package-lock.json
+
