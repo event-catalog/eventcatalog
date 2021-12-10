@@ -7,12 +7,13 @@ import { useUser } from '@/hooks/EventCatalog';
 
 interface EventSideBarProps {
   event: Event;
+  loadedVersion?: string;
 }
 
-function EventSideBar({ event }: EventSideBarProps) {
+function EventSideBar({ event, loadedVersion }: EventSideBarProps) {
   const { getUserById } = useUser();
 
-  const { owners, producers, consumers } = event;
+  const { name: eventName, owners, producers, consumers, historicVersions } = event;
 
   const handleDownload = async () => {
     try {
@@ -83,6 +84,50 @@ function EventSideBar({ event }: EventSideBarProps) {
           </ul>
         </div>
       </div>
+      {historicVersions.length > 0 && (
+        <div className="border-t border-gray-200 py-6">
+          <div>
+            <h2 className="text-sm font-medium text-gray-500">Event Versions</h2>
+            <ul className="mt-2 leading-8 space-x-2 text-left text-blue-500">
+              <li className="text-sm inline ">
+                <Link href={`/events/${eventName}`}>
+                  <a>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative ${
+                        loadedVersion === 'latest'
+                          ? 'bg-blue-400 text-white shadow-md font-bold underline'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}
+                    >
+                      Latest
+                    </span>
+                  </a>
+                </Link>
+              </li>
+
+              {historicVersions.map((version) => {
+                const isLoadedVersion = loadedVersion === version;
+                const styles = isLoadedVersion
+                  ? 'bg-blue-400 text-white shadow-md font-bold underline'
+                  : 'bg-blue-100 text-blue-800';
+                return (
+                  <li className="text-sm inline ">
+                    <Link href={`/events/${eventName}/v/${version}`}>
+                      <a>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative  ${styles}`}
+                        >
+                          v{version}
+                        </span>
+                      </a>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+      )}
       {/* <div className="border-t border-gray-200 py-6 space-y-8">
         <div>
           <h2 className="text-sm font-medium text-gray-500">

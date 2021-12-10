@@ -18,8 +18,6 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
   const { owners, subscribes, publishes, repository, tags = [] } = service;
   const { language, url: repositoryUrl } = repository;
 
-  console.log('repository', repository);
-
   let languages = [];
 
   if (language) {

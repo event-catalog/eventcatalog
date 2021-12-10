@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { serialize } from 'next-mdx-remote/serialize';
 import type { Service, Event } from '@eventcatalogtest/types';
+import compareVersions from 'compare-versions';
 import { MarkdownFile } from '@/types/index';
 
 import { extentionToLanguageMap } from './file-reader';
@@ -13,6 +14,17 @@ import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@
 const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
   const { name, version, summary, producers = [], consumers = [], owners = [] } = eventFrontMatter;
   return { name, version, summary, producers, consumers, owners };
+};
+
+const versionsForEvents = (pathToEvent) => {
+  const versionsDir = path.join(pathToEvent, 'versions');
+
+  if (fs.existsSync(versionsDir)) {
+    const files = fs.readdirSync(versionsDir);
+    return files.sort(compareVersions).reverse();
+  }
+
+  return [];
 };
 
 const getEventExamplesFromDir = (pathToExamples) => {
@@ -46,18 +58,30 @@ export const getAllEvents = (): Event[] => {
   const folders = fs.readdirSync(eventsDir);
   return folders.map((folder) => {
     const { data } = readMarkdownFile(path.join(eventsDir, folder, 'index.md'));
-    return parseEventFrontMatterIntoEvent(data);
+    const historicVersions = versionsForEvents(path.join(eventsDir, folder));
+    return {
+      ...parseEventFrontMatterIntoEvent(data),
+      historicVersions,
+    };
   });
 };
 
 export const getEventByName = async (
-  eventName
+  eventName: string,
+  version?: string
 ): Promise<{ event: Event; markdown: MarkdownFile }> => {
   const eventsDir = path.join(process.env.PROJECT_DIR, 'events');
   const eventDirectory = path.join(eventsDir, eventName);
+  let versionDirectory = null;
+
+  if (version) {
+    versionDirectory = path.join(eventsDir, eventName, 'versions', version);
+  }
+
+  const directoryToLoadForEvent = version ? versionDirectory : eventDirectory;
 
   try {
-    const { data, content } = readMarkdownFile(path.join(eventDirectory, `index.md`));
+    const { data, content } = readMarkdownFile(path.join(directoryToLoadForEvent, `index.md`));
     const event = parseEventFrontMatterIntoEvent(data);
 
     const mdxSource = await serialize(content);
@@ -65,13 +89,14 @@ export const getEventByName = async (
     return {
       event: {
         ...event,
-        schema: getSchemaFromDir(eventDirectory),
-        examples: getEventExamplesFromDir(path.join(eventDirectory, `examples`)),
+        historicVersions: versionsForEvents(eventDirectory),
+        schema: getSchemaFromDir(directoryToLoadForEvent),
+        examples: getEventExamplesFromDir(path.join(directoryToLoadForEvent, `examples`)),
       },
       markdown: {
         content,
         source: mdxSource,
-        lastModifiedDate: getLastModifiedDateOfFile(path.join(eventDirectory, `index.md`)),
+        lastModifiedDate: getLastModifiedDateOfFile(path.join(directoryToLoadForEvent, `index.md`)),
       },
     };
   } catch (error) {

@@ -32,6 +32,7 @@ describe('events lib', () => {
         producers: ['Shopping API', 'Application API'],
         consumers: ['Customer Portal'],
         owners: ['dboyne', 'mSmith'],
+        historicVersions: [],
         schema: null,
         examples: [],
       });
@@ -97,6 +98,16 @@ describe('events lib', () => {
       expect(example2.langugage).toEqual('javascript');
       expect(example2.snippet).toEqual(example2File);
     });
+
+    it('returns previous versions of events when the event has previous versions in the folder directory', async () => {
+      const { event } = await getEventByName('EventWithVersions');
+      expect(event.historicVersions).toEqual(['0.0.1']);
+    });
+
+    it('returns empty array of event historic events when the event does not have previous versions in the folder directory', async () => {
+      const { event } = await getEventByName('EventWithSchemaAndExamples');
+      expect(event.historicVersions).toEqual([]);
+    });
   });
 
   describe('getAllEvents', () => {
@@ -111,6 +122,7 @@ describe('events lib', () => {
             'Holds information about the cusomer and product when they add an item to the cart.\n',
           producers: ['Shopping API', 'Application API'],
           consumers: ['Customer Portal'],
+          historicVersions: [],
           owners: ['dboyne', 'mSmith'],
         },
         {
@@ -118,6 +130,7 @@ describe('events lib', () => {
           version: '0.0.1',
           summary: 'Tells us when an email has been sent\n',
           producers: ['Email Platform'],
+          historicVersions: [],
           consumers: [],
           owners: ['dboyne', 'mSmith'],
         },
@@ -125,6 +138,16 @@ describe('events lib', () => {
           name: 'EventWithSchemaAndExamples',
           version: '0.0.1',
           summary: 'Example event with schema and examples\n',
+          historicVersions: [],
+          producers: [],
+          consumers: [],
+          owners: [],
+        },
+        {
+          name: 'EventWithVersions',
+          version: '0.0.5',
+          summary: 'Tells us when an email has been sent\n',
+          historicVersions: ['0.0.1'],
           producers: [],
           consumers: [],
           owners: [],
@@ -151,12 +174,14 @@ describe('events lib', () => {
           name: 'Testing',
           version: '1.0.0',
           consumers: ['Service 1', 'Service 2'],
+          historicVersions: [],
           producers: ['Service 3'],
         },
         {
           name: 'Testing',
           version: '2.0.0',
           consumers: ['Service 2', 'Service 3'],
+          historicVersions: [],
           producers: ['Service 4'],
         },
         { name: 'Testing', version: '3.0.0', consumers: ['Service 3', 'Service 4'] },
@@ -185,6 +210,7 @@ describe('events lib', () => {
             'Holds information about the cusomer and product when they add an item to the cart.\n',
           producers: ['Shopping API', 'Application API'],
           consumers: ['Customer Portal'],
+          historicVersions: [],
           owners: ['dboyne', 'mSmith'],
         },
         {
@@ -193,6 +219,7 @@ describe('events lib', () => {
           summary: 'Tells us when an email has been sent\n',
           producers: ['Email Platform'],
           consumers: [],
+          historicVersions: [],
           owners: ['dboyne', 'mSmith'],
         },
       ]);
@@ -209,6 +236,7 @@ describe('events lib', () => {
             'Holds information about the cusomer and product when they add an item to the cart.\n',
           producers: ['Shopping API', 'My Service'],
           consumers: ['Customer Portal'],
+          historicVersions: [],
           owners: ['dboyne', 'mSmith'],
         },
       ];
@@ -230,6 +258,7 @@ describe('events lib', () => {
               'Holds information about the cusomer and product when they add an item to the cart.\n',
             producers: ['Shopping API', 'My Service'],
             consumers: ['Customer Portal'],
+            historicVersions: [],
             owners: ['dboyne', 'mSmith'],
           },
         ],
@@ -246,6 +275,7 @@ describe('events lib', () => {
             'Holds information about the cusomer and product when they add an item to the cart.\n',
           producers: ['Shopping API', 'Service'],
           consumers: ['Customer Portal'],
+          historicVersions: [],
           owners: ['dboyne', 'mSmith'],
         },
       ];

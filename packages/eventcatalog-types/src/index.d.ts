@@ -22,6 +22,7 @@ export interface Event {
   summary?: string;
   producers?: string[] | [];
   consumers?: string[] | [];
+  historicVersions?: string[];
   owners?: Owner[] | string[] | [];
   examples?: any;
   schema?: any;

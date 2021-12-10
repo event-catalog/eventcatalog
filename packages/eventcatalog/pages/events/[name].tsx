@@ -19,13 +19,13 @@ import { useUrl } from '@/hooks/EventCatalog';
 
 import { MarkdownFile } from '@/types/index';
 
-interface EventsPageProps {
+export interface EventsPageProps {
   event: Event;
   markdown: MarkdownFile;
   notFound?: boolean;
 }
 
-const getComponents = ({ event, schema, examples }: any) => ({
+export const getComponents = ({ event, schema, examples }: any) => ({
   code: ({ className, ...props }) => {
     const match = /language-(\w+)/.exec(className || '');
 
@@ -64,7 +64,7 @@ const getComponents = ({ event, schema, examples }: any) => ({
 });
 
 export default function Events(props: EventsPageProps) {
-  const { event, markdown, notFound } = props;
+  const { event, markdown, loadedVersion, notFound } = props;
   const { getEditUrl } = useUrl();
 
   if (notFound) return <NotFound type="event" name={event.name} editUrl={editUrl} />;
@@ -90,7 +90,7 @@ export default function Events(props: EventsPageProps) {
         lastModifiedDate={lastModifiedDate}
         tags={[{ label: `v${version}` }]}
         breadCrumbs={<BreadCrumbs pages={pages} />}
-        sidebar={<EventSideBar event={event} />}
+        sidebar={<EventSideBar event={event} loadedVersion={loadedVersion} />}
       >
         <MDXRemote {...markdown.source} components={mdxComponents} />
       </ContentView>
@@ -105,6 +105,7 @@ export async function getStaticProps({ params }) {
       props: {
         event,
         markdown,
+        loadedVersion: 'latest',
       },
     };
   } catch (error) {
