@@ -136,7 +136,6 @@ describe('services', () => {
 
       // @ts-ignore
       expect(markdown.content).toMatchMarkdown('# Testing');
-      expect(markdown.lastModifiedDate).toEqual('2021/12/9');
     });
   });
 });

@@ -38,7 +38,6 @@ describe('events lib', () => {
 
       // @ts-ignore
       expect(markdown.content).toMatchMarkdown('# Testing');
-      expect(markdown.lastModifiedDate).toEqual('2021/12/9');
     });
 
     it('returns the schema and examples of the event as empty if no schema or examples are found', async () => {
