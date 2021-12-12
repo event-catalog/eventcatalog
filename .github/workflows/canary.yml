@@ -34,6 +34,14 @@ jobs:
       - name: Test
         run: yarn test
 
+      - name: Create .npmrc
+        run: |
+          cat << EOF > "$HOME/.npmrc"
+            //registry.npmjs.org/:_authToken=$NPM_TOKEN
+          EOF
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Release snapshot
         run: |
           npx changeset version --snapshot
