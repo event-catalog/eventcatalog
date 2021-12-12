@@ -49,11 +49,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-
-      - name: Post published version to GitHub checks
-        run: |
-          name=$(jq -r .name package.json)
-          version=$(jq -r .version package.json)
-          npx action-status --context=$name --state=success --description=$version --url="https://unpkg.com/$name@$version/"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
