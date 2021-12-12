@@ -19,8 +19,6 @@ import { install } from './helpers/install';
 import { isFolderEmpty } from './helpers/is-folder-empty';
 import { isWriteable } from './helpers/is-writeable';
 
-import pkgJSON from './package.json';
-
 export class DownloadError extends Error {}
 
 export async function createApp({
@@ -206,12 +204,12 @@ export async function createApp({
      * Default dependencies.
      */
 
-    const dependencies = ['@eventcatalogtest/core-test'];
+    const dependencies = [];
 
     /**
      * Default devDependencies.
      */
-    const devDependencies = ['@types/react', '@eventcatalogtest/types'];
+    const devDependencies = ['@types/react'];
     /**
      * TypeScript projects will have type definitions and other devDependencies.
      */
