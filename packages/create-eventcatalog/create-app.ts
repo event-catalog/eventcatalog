@@ -179,15 +179,17 @@ export async function createApp({
         generate: 'eventcatalog generate',
         test: 'echo "Error: no test specified" && exit 1',
       },
+      dependencies: {
+        '@eventcatalogtest/core-test': 'latest',
+      },
       devDependencies: {
+        '@eventcatalogtest/types': 'latest',
         tailwindcss: '^2.2.19',
         typescript: '^4.4.4',
         postcss: '^8.3.11',
         autoprefixer: '^10.4.0',
       },
     };
-
-    console.log('What is going on');
 
     /**
      * Write it to disk.
