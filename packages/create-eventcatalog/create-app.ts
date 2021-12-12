@@ -19,8 +19,6 @@ import { install } from './helpers/install';
 import { isFolderEmpty } from './helpers/is-folder-empty';
 import { isWriteable } from './helpers/is-writeable';
 
-import pkgJSON from './package.json';
-
 export class DownloadError extends Error {}
 
 export async function createApp({
@@ -179,7 +177,11 @@ export async function createApp({
         generate: 'eventcatalog generate',
         test: 'echo "Error: no test specified" && exit 1',
       },
+      dependencies: {
+        '@eventcatalogtest/core-test': 'latest',
+      },
       devDependencies: {
+        '@eventcatalogtest/types': 'latest',
         tailwindcss: '^2.2.19',
         typescript: '^4.4.4',
         postcss: '^8.3.11',
@@ -202,12 +204,12 @@ export async function createApp({
      * Default dependencies.
      */
 
-    const dependencies = ['@eventcatalogtest/core-test'];
+    const dependencies = [''];
 
     /**
      * Default devDependencies.
      */
-    const devDependencies = ['@types/react', '@eventcatalogtest/types'];
+    const devDependencies = ['@types/react'];
     /**
      * TypeScript projects will have type definitions and other devDependencies.
      */
