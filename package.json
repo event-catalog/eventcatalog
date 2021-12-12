@@ -29,12 +29,16 @@
     "start": "lerna run start --stream",
     "test": "PROJECT_DIR=/ jest",
     "lint": "yarn lint:js",
+    "changeset": "changeset",
+    "release": "changeset publish",
     "lint:ci": "yarn lint:js --quiet --report-unused-disable-directives",
     "lint:js": "eslint --cache \"**/*.{js,jsx,ts,tsx}\""
   },
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.16.0",
     "@babel/preset-env": "^7.16.4",
+    "@changesets/changelog-github": "^0.2.7",
+    "@changesets/cli": "^2.10.3",
     "@babel/preset-typescript": "^7.16.0",
     "@types/jest": "^26.0.20",
     "@types/node": "^16.11.8",
