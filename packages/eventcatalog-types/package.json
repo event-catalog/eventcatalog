@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalogtest/types",
-  "version": "0.0.0-36",
+  "version": "0.0.2",
   "description": "Common types for EventCatalog packages",
   "types": "./src/index.d.ts",
   "scripts": {
@@ -15,9 +15,7 @@
     "access": "public"
   },
   "license": "MIT",
-  "dependencies": {},
   "engines": {
     "node": ">=14"
-  },
-  "devDependencies": {}
+  }
 }
