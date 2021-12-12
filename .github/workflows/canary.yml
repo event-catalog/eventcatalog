@@ -1,0 +1,51 @@
+# .github/workflows/ci.yml
+name: CI
+on:
+  push:
+    branches-ignore:
+      - $default-branch
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@master
+        with:
+          # This makes Actions fetch all Git history so that Changesets
+          # can generate changelogs with the correct commits.
+          fetch-depth: 0
+
+      # If you use a version of Node other than 12, change it here.
+      - name: Set up Node.js 14.x
+        uses: actions/setup-node@master
+        with:
+          node-version: 14.x
+
+      # If you use npm instead of yarn, change this to `npm install`.
+      - name: Install dependencies
+        run: yarn
+
+      # Change this to customize your build command.
+      - name: Build
+        run: yarn build
+
+      # Change this to customize your test command.
+      - name: Test
+        run: yarn test
+
+      - name: Release snapshot
+        run: |
+          npx changeset version --snapshot
+          npx changeset publish --tag canary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+
+      - name: Post published version to GitHub checks
+        run: |
+          name=$(jq -r .name package.json)
+          version=$(jq -r .version package.json)
+          npx action-status --context=$name --state=success --description=$version --url="https://unpkg.com/$name@$version/"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
