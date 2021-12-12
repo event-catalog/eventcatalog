@@ -187,6 +187,8 @@ export async function createApp({
       },
     };
 
+    console.log('What is going on');
+
     /**
      * Write it to disk.
      */
