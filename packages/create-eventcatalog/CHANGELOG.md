@@ -1,5 +1,11 @@
 # @eventcatalogtest/create-eventcatalog-test
 
+## 0.0.5
+
+### Patch Changes
+
+- [`d5051fa`](https://github.com/boyney123/eventcatalog/commit/d5051faed1a9e724eb4438c12ccf02207357a8d9) [#16](https://github.com/boyney123/eventcatalog/pull/16) Thanks [@boyney123](https://github.com/boyney123)! - chore: canary
+
 ## 0.0.4
 
 ### Patch Changes
