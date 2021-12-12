@@ -12,5 +12,15 @@
       "registry": "https://registry.npmjs.org/"
     }
   },
+  "changelog": {
+    "repo": "boyney123/eventcatalog",
+    "changelog": {
+      "labels": {
+        "Type: Feature": "Features",
+        "Type: Bug": "Bug fixes",
+        "Type: Enhancement": "Enhancements"
+      }
+    }
+  },
   "version": "0.0.0-36"
 }
