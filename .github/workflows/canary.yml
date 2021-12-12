@@ -40,7 +40,7 @@ jobs:
             //registry.npmjs.org/:_authToken=$NPM_TOKEN
           EOF
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
 
       - name: Release snapshot
         run: |
