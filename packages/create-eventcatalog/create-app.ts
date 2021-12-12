@@ -204,7 +204,7 @@ export async function createApp({
      * Default dependencies.
      */
 
-    const dependencies = [];
+    const dependencies = [''];
 
     /**
      * Default devDependencies.
