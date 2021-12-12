@@ -179,11 +179,7 @@ export async function createApp({
         generate: 'eventcatalog generate',
         test: 'echo "Error: no test specified" && exit 1',
       },
-      dependencies: {
-        '@eventcatalogtest/core-test': pkgJSON.version,
-      },
       devDependencies: {
-        '@eventcatalogtest/types': pkgJSON.version,
         tailwindcss: '^2.2.19',
         typescript: '^4.4.4',
         postcss: '^8.3.11',
@@ -206,12 +202,12 @@ export async function createApp({
      * Default dependencies.
      */
 
-    const dependencies = [''];
+    const dependencies = ['@eventcatalogtest/core-test'];
 
     /**
      * Default devDependencies.
      */
-    const devDependencies = ['@types/react'];
+    const devDependencies = ['@types/react', '@eventcatalogtest/types'];
     /**
      * TypeScript projects will have type definitions and other devDependencies.
      */
