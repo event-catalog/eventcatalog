@@ -124,6 +124,8 @@ async function run(): Promise<void> {
       throw reason;
     }
 
+    console.log('t');
+
     await createApp({
       appPath: resolvedProjectPath,
       useNpm: !!program.useNpm,
