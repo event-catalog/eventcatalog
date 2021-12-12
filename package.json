@@ -17,6 +17,7 @@
     "build": "yarn build:packages && lerna run build",
     "build:packages": "lerna run build:package --no-private",
     "prepublish": "lerna run prepublish",
+    "publish-ci": "lerna publish from-package -y --no-verify-access",
     "canary": "yarn canary:bumpVersion && yarn canary:publish",
     "format": "prettier --config .prettierrc --write \"**/*.{js,jsx,ts,tsx,json}\"",
     "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json}\"",
@@ -50,5 +51,8 @@
     "eslint-plugin-jsx-a11y": "^6.5.1",
     "eslint-plugin-react": "^7.27.0",
     "eslint-plugin-import": "^2.25.3"
+  },
+  "dependencies": {
+    "@changesets/cli": "^2.18.1"
   }
 }
