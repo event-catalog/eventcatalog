@@ -90,12 +90,16 @@ export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
     await writeFileToMarkdown(eventsDir, event);
   });
 
+  // Just 1 for now
+  const serviceCount = 1;
+
   // write all events to folders
   Promise.all(eventFiles);
 
+
   console.log(
     chalk.green(`
-Succesfully parsed AsyncAPI document: Events ${events.length}, Services: 1
+Succesfully parsed AsyncAPI document: Events ${events.length}, Services: ${serviceCount}
     `)
   );
 };
