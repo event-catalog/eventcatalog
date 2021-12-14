@@ -36,6 +36,7 @@ export const getSchemaFromDir = (pathToSchemaDir: string): Schema => {
     return {
       snippet: `${schemaFile}`,
       language: extentionToLanguageMap[extension] || extension,
+      extension,
     };
   } catch (error) {
     return null;

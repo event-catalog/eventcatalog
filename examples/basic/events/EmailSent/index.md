@@ -1,6 +1,6 @@
 ---
 name: EmailSent
-version: 0.6.0
+version: 0.6.1
 summary: |
   Tells us when an email has been sent
 producers:

@@ -13,6 +13,7 @@ export interface User {
 export interface Schema {
   snippet: string;
   language: string;
+  extension?: string;
 }
 
 export interface Event {

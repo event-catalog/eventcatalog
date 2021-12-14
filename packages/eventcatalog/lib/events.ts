@@ -3,13 +3,12 @@ import path from 'path';
 import { serialize } from 'next-mdx-remote/serialize';
 import type { Service, Event } from '@eventcatalogtest/types';
 import compareVersions from 'compare-versions';
+import * as Diff from 'diff';
 import { MarkdownFile } from '@/types/index';
 
 import { extentionToLanguageMap } from './file-reader';
 
 import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader';
-
-// https://github.com/react-syntax-highlighter/react-syntax-highlighter/blob/master/AVAILABLE_LANGUAGES_HLJS.MD
 
 const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
   const { name, version, summary, producers = [], consumers = [], owners = [] } = eventFrontMatter;
@@ -17,7 +16,7 @@ const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
 };
 
 const versionsForEvents = (pathToEvent) => {
-  const versionsDir = path.join(pathToEvent, 'versions');
+  const versionsDir = path.join(pathToEvent, 'versioned');
 
   if (fs.existsSync(versionsDir)) {
     const files = fs.readdirSync(versionsDir);
@@ -25,6 +24,85 @@ const versionsForEvents = (pathToEvent) => {
   }
 
   return [];
+};
+
+export const getLogsForEvent = (eventName) => {
+  const eventsDir = path.join(process.env.PROJECT_DIR, 'events');
+  const historicVersions = versionsForEvents(path.join(eventsDir, eventName));
+
+  const allVersions = historicVersions.map((version) => ({
+    version,
+    pathToDir: path.join(eventsDir, eventName, 'versioned', version),
+  }));
+
+  // Get the latest version
+  const { data: { version: latestVersion } = {} } = readMarkdownFile(
+    path.join(eventsDir, eventName, 'index.md')
+  );
+
+  // Add the current version to the list
+  allVersions.unshift({ version: latestVersion, pathToDir: path.join(eventsDir, eventName) });
+
+  const versions = allVersions.reduce((diffs, versionData, index) => {
+    const hasVersionToCompareToo = !!allVersions[index + 1];
+    const previousVersionData = allVersions[index + 1];
+
+    // Check if both files have the schema to compare against...
+    if (hasVersionToCompareToo) {
+      const { version, pathToDir } = versionData;
+      const { version: previousVersion, pathToDir: previousVersionPathToDir } = previousVersionData;
+      const schema = getSchemaFromDir(pathToDir);
+      const previousSchema = getSchemaFromDir(previousVersionPathToDir);
+      let changelog = null;
+
+      try {
+        const { content } = readMarkdownFile(path.join(pathToDir, 'changelog.md'));
+        changelog = content;
+      } catch (error) {
+        // nothing found it's OK.
+        console.log('No changelog found');
+      }
+
+      const comparision = {
+        versions: [previousVersion, version],
+        changelog: {
+          content: changelog,
+        },
+        value:
+          schema && previousSchema
+            ? Diff.createTwoFilesPatch(
+                `schema.${schema.extension} (${previousVersion})`,
+                `schema.${previousSchema.extension} (${version})`,
+                previousSchema.snippet,
+                schema.snippet
+              )
+            : null,
+      };
+
+      diffs.push(comparision);
+      
+    }
+
+    return diffs;
+  }, []);
+
+  const parseChangeLogs = versions.map(async (version) => {
+    if (version.changelog.content) {
+      const mdxSource = await serialize(version.changelog.content);
+      return {
+        ...version,
+        changelog: {
+          ...version.changelog,
+          source: mdxSource,
+        },
+      };
+    }
+    return version;
+  });
+
+  const values = Promise.all(parseChangeLogs);
+
+  return values;
 };
 
 const getEventExamplesFromDir = (pathToExamples) => {
@@ -75,7 +153,7 @@ export const getEventByName = async (
   let versionDirectory = null;
 
   if (version) {
-    versionDirectory = path.join(eventsDir, eventName, 'versions', version);
+    versionDirectory = path.join(eventsDir, eventName, 'versioned', version);
   }
 
   const directoryToLoadForEvent = version ? versionDirectory : eventDirectory;
@@ -100,6 +178,7 @@ export const getEventByName = async (
       },
     };
   } catch (error) {
+    console.log(error);
     console.log('Failed to get event by name', eventName);
     return Promise.reject();
   }

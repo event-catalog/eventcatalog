@@ -64,7 +64,7 @@ module.exports = {
           '@/types',
           'eventcatalog.config.js',
           '../../eventcatalog.config',
-          '../eventcatalog.config'
+          '../eventcatalog.config',
         ],
       },
     ],

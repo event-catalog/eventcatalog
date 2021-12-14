@@ -11,6 +11,12 @@ export default ({ Component, pageProps }: AppProps) => (
       <title>EventCatalog</title>
       <script src="//unpkg.com/three" />
       <script src="//unpkg.com/three/examples/js/renderers/CSS2DRenderer.js" />
+
+      {/* Need to load this before any of the Html2Diff Code */}
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/styles/atom-one-light.min.css"
+      />
     </Head>
     <Header />
     <Component {...pageProps} />
