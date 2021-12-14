@@ -103,7 +103,7 @@ function Logs({ changes, name: eventName, currentVersion }: LogsProps) {
                                           ? `/events/${eventName}`
                                           : `/events/${eventName}/v/${version}`;
                                       return (
-                                        <Link href={linkHref}>
+                                        <Link key={version} href={linkHref}>
                                           <a className="font-medium">
                                             {index === 0 && ` from`}
                                             <span className="text-blue-500 underline px-1">
