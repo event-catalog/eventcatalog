@@ -80,7 +80,6 @@ export const getLogsForEvent = (eventName) => {
       };
 
       diffs.push(comparision);
-      
     }
 
     return diffs;
