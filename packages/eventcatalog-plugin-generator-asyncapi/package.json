@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalogtest/plugin-doc-generator-asyncapi",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Documentation generator for EventCatalog using AsyncAPI",
   "main": "lib/index.js",
   "scripts": {
@@ -30,7 +30,7 @@
     "node": ">=14"
   },
   "devDependencies": {
-    "@eventcatalogtest/types": "0.0.2",
+    "@eventcatalogtest/types": "0.0.3",
     "@types/fs-extra": "^9.0.13",
     "@types/json2md": "^1.5.1",
     "@types/yamljs": "^0.2.31"
