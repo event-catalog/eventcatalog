@@ -24,7 +24,7 @@ function Logs({ changes, name: eventName, currentVersion }: LogsProps) {
   const pages = [
     { name: 'Events', href: '/events', current: false },
     { name: eventName, href: `/events/${eventName}`, current: false },
-    { name: 'History', href: `/events/${eventName}/history`, current: true },
+    { name: 'Logs', href: `/events/${eventName}/history`, current: true },
   ];
 
   useEffect(() => {
