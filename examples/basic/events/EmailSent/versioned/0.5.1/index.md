@@ -10,8 +10,6 @@ owners:
     - mSmith
 ---
 
-## Version 0.0.2
-
-Hello world
+## Version 0.5.1
 
 <Schema />

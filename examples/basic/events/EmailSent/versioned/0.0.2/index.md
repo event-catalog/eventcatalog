@@ -1,6 +1,6 @@
 ---
 name: EmailSent
-version: 0.0.1
+version: 0.0.2
 summary: |
   Tells us when an email has been sent
 producers:
@@ -10,4 +10,6 @@ owners:
     - mSmith
 ---
 
-## Version 0.0.4
+## Version 0.0.2
+
+<Schema />

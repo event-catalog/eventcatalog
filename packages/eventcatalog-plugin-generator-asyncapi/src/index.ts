@@ -96,7 +96,6 @@ export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
   // write all events to folders
   Promise.all(eventFiles);
 
-
   console.log(
     chalk.green(`
 Succesfully parsed AsyncAPI document: Events ${events.length}, Services: ${serviceCount}

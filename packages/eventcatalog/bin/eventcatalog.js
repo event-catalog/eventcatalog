@@ -10,7 +10,7 @@ const projectDIR = process.cwd();
 const coreDirectory = path.join(__dirname, '../');
 
 // this is the directory where the eventcatalog core code is
-const eventCatalogLibDir = path.join(projectDIR, 'eventcatalog-core');
+const eventCatalogLibDir = path.join(projectDIR, '.eventcatalog-core');
 
 const copyCoreApplicationCodeIntoUsersProjectDir = () => {
   const excludeFilesForCopy = ['.next', 'eventcatalog.config.js', 'bin', 'README.md'];

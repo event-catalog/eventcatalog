@@ -11,6 +11,18 @@
     "itemId": {
       "type": "string",
       "description": "The ID of the shopping item"
+    },
+    "itemId": {
+      "type": "string",
+      "description": "The ID of the shopping item"
+    },
+    "itemId": {
+      "type": "string",
+      "description": "The ID of the shopping item"
+    },
+    "itemId": {
+      "type": "string",
+      "description": "The ID of the shopping item"
     }
   }
 }

@@ -88,12 +88,12 @@ function EventSideBar({ event, loadedVersion }: EventSideBarProps) {
         <div className="border-t border-gray-200 py-6">
           <div>
             <h2 className="text-sm font-medium text-gray-500">Event Versions</h2>
-            <ul className="mt-2 leading-8 space-x-2 text-left text-blue-500">
+            <ul className="mt-2 leading-8 text-left text-blue-500">
               <li className="text-sm inline ">
                 <Link href={`/events/${eventName}`}>
                   <a>
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative ${
+                      className={`inline-flex mr-2 items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative ${
                         loadedVersion === 'latest'
                           ? 'bg-blue-400 text-white shadow-md font-bold underline'
                           : 'bg-blue-100 text-blue-800'
@@ -115,7 +115,7 @@ function EventSideBar({ event, loadedVersion }: EventSideBarProps) {
                     <Link href={`/events/${eventName}/v/${version}`}>
                       <a>
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative  ${styles}`}
+                          className={`inline-flex mr-2 items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative  ${styles}`}
                         >
                           v{version}
                         </span>
@@ -178,15 +178,22 @@ function EventSideBar({ event, loadedVersion }: EventSideBarProps) {
           </ul>
         </div>
       </div>
-      <div className="border-t border-gray-200 py-6 space-y-8">
+      <div className="border-t border-gray-200 py-6 space-y-1">
         <button
           type="button"
-          className="hidden md:inline-flex h-10 justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-200 bg-gray-800 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
+          className="hidden w-full md:inline-flex h-10 justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-200 bg-gray-800 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
           onClick={() => handleDownload()}
         >
           <DownloadIcon className="-ml-1 mr-2 h-5 w-5 text-gray-200" aria-hidden="true" />
           <span>Download Schema</span>
         </button>
+        {historicVersions.length > 0 && (
+          <Link href={`/events/${eventName}/logs`}>
+            <a className="hidden w-full md:inline-flex h-10 justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200">
+              <span>View Changes</span>
+            </a>
+          </Link>
+        )}
       </div>
     </aside>
   );
