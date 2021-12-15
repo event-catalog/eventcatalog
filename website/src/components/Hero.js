@@ -12,7 +12,7 @@ function Hero() {
                 <h1 className="text-7xl font-bold">EventCatalog</h1>
               </div>
               <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-                Easily document, discover and share events within your team.
+                Discover, Explore and Document your Event Driven Architectures.
               </p>
             </div>
           </div>

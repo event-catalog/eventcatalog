@@ -18,6 +18,7 @@ import { tryGitInit } from './helpers/git';
 import { install } from './helpers/install';
 import { isFolderEmpty } from './helpers/is-folder-empty';
 import { isWriteable } from './helpers/is-writeable';
+import { shouldUseYarn } from './helpers/should-use-yarn';
 
 export class DownloadError extends Error {}
 
@@ -25,6 +26,7 @@ export async function createApp({
   appPath,
   example,
   examplePath,
+  useNpm,
 }: // typescript,
 {
   appPath: string;
@@ -113,6 +115,7 @@ export async function createApp({
     process.exit(1);
   }
 
+  const useYarn = useNpm ? false : shouldUseYarn();
   const originalDirectory = process.cwd();
 
   console.log(`Creating a new eventcatalog in ${chalk.green(root)}.`);
@@ -156,7 +159,7 @@ export async function createApp({
     console.log('Installing packages. This might take a couple of minutes.');
     console.log();
 
-    await install(root, null, {});
+    await install(root, null, { useYarn, isOnline: true });
     console.log();
   } else {
     /**
@@ -177,11 +180,7 @@ export async function createApp({
         generate: 'eventcatalog generate',
         test: 'echo "Error: no test specified" && exit 1',
       },
-      dependencies: {
-        '@eventcatalogtest/core-test': 'latest',
-      },
       devDependencies: {
-        '@eventcatalogtest/types': 'latest',
         tailwindcss: '^2.2.19',
         typescript: '^4.4.4',
         postcss: '^8.3.11',
@@ -199,17 +198,17 @@ export async function createApp({
     /**
      * These flags will be passed to `install()`.
      */
-    const installFlags = {};
+    const installFlags = { useYarn, isOnline: true };
     /**
      * Default dependencies.
      */
 
-    const dependencies = [''];
+    const dependencies = ['@eventcatalogtest/core-test'];
 
     /**
      * Default devDependencies.
      */
-    const devDependencies = ['@types/react'];
+    const devDependencies = ['@types/react', '@eventcatalogtest/types'];
     /**
      * TypeScript projects will have type definitions and other devDependencies.
      */

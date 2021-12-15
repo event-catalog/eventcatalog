@@ -23,6 +23,7 @@ export interface EventsPageProps {
   event: Event;
   markdown: MarkdownFile;
   notFound?: boolean;
+  loadedVersion?: string;
 }
 
 export const getComponents = ({ event, schema, examples }: any) => ({

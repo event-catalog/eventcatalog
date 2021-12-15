@@ -69,6 +69,11 @@ const config = {
             label: 'Community',
           },
           {
+            href: 'https://discord.gg/3rjaZMmrAm',
+            label: 'Discord',
+            position: 'left',
+          },
+          {
             href: 'https://github.com/boyney123/eventcatalog',
             label: 'GitHub',
             position: 'right',
