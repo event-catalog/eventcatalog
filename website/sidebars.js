@@ -15,7 +15,7 @@ const sidebars = {
       items: [
         // 'guides/events',
         // 'guides/services',
-        
+
         {
           type: 'category',
           collapsed: true,
@@ -38,7 +38,7 @@ const sidebars = {
             'guides/services/introduction',
             'guides/services/adding-service',
             'guides/services/producers-consumers',
-            'guides/services/adding-service-owners'
+            'guides/services/adding-service-owners',
           ],
         },
         'guides/components',
