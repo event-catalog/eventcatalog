@@ -1,11 +1,9 @@
 module.exports = {
   title: 'EventCatalog',
   tagline: 'Discover, Explore and Document your Event Driven Architectures',
-  projectName: 'Event Catalog',
-  url: 'https://your-eventcatalog-test-site.com',
-  baseUrl: '/',
-  editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
   organizationName: 'Your Company',
+  projectName: 'Event Catalog',
+  editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
   logo: {
     alt: 'EventCatalog Logo',
     // found in the public dir
