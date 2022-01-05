@@ -20,7 +20,7 @@ export default function Example() {
         <h1 className="mt-2 text-4xl font-extrabold text-white tracking-tight sm:text-5xl">
           {title}
         </h1>
-        <p className="mt-2 text-lg font-medium text-white">{tagline}</p>
+        {tagline && <p className="mt-2 text-lg font-medium text-white">{tagline}</p>}
         <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
           <div className="rounded-md shadow">
             <Link href="/events">

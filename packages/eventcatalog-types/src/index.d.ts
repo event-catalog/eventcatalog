@@ -57,8 +57,7 @@ export type PluginConfig = [string, PluginOpts];
 
 export interface EventCataLogConfig {
   title: string;
-  tagline: string;
-  projectName: string;
+  tagline?: string;
   url: string;
   baseUrl: string;
   editUrl?: string;

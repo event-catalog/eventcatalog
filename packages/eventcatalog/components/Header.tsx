@@ -15,7 +15,7 @@ function classNames(...classes) {
 }
 
 export default function Example() {
-  const { projectName } = useConfig();
+  const { title } = useConfig();
   const router = useRouter();
 
   return (
@@ -39,7 +39,7 @@ export default function Example() {
                 <Link href="/events">
                   <a className="flex items-center">
                     <img alt="logo" className="text-white w-8 inline-block mr-3" src="/logo.svg" />
-                    <span className="text-xl">{projectName}</span>
+                    <span className="text-xl">{title}</span>
                   </a>
                 </Link>
               </div>

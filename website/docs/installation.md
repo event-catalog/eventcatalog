@@ -12,21 +12,21 @@ Getting up and running with EventCatalog should take a few minutes (hopefully!).
 
 ## Scaffold project website {#scaffold-project-website}
 
-The easiest way to install Docusaurus is to use the command line tool that helps you scaffold a skeleton Docusaurus website. You can run this command anywhere in a new empty repository or within an existing repository, it will create a new directory containing the scaffolded files.
+The easiest way to install EventCatalog is to use the command line tool that helps you scaffold a skeleton EventCatalog website. You can run this command anywhere in a new empty repository or within an existing repository, it will create a new directory containing the scaffolded files.
 
 ```bash
-npx @eventcatalog/create-eventcatalog@latest [name] [template]
+npx @eventcatalog/create-eventcatalog@latest [name]
 ```
 
 Example:
 
 ```bash
-npx @eventcatalog/create-eventcatalog@latest my-catalog basic
+npx @eventcatalog/create-eventcatalog@latest my-catalog
 ```
 
 ## Project structure {#project-structure}
 
-Assuming you chose the basic template and named your site `my-catalog`, you will see the following files generated under a new directory `my-catalog/`:
+Assuming you named your site `my-catalog`, you will see the following files generated under a new directory `my-catalog/`:
 
 ```sh
 my-catalog

@@ -6,7 +6,43 @@ const sidebars = {
       type: 'category',
       label: 'Getting Started',
       collapsed: false,
-      items: ['installation'],
+      items: ['installation', 'configuration'],
+    },
+    {
+      type: 'category',
+      label: 'Guides',
+      // collapsed: true,
+      items: [
+        // 'guides/events',
+        // 'guides/services',
+        
+        {
+          type: 'category',
+          collapsed: true,
+          label: 'Events',
+          items: [
+            'guides/events/introduction',
+            'guides/events/adding-events',
+            'guides/events/adding-schemas',
+            'guides/events/adding-examples',
+            'guides/events/adding-event-owners',
+            'guides/events/consumers-and-producers',
+            'guides/events/versioning',
+          ],
+        },
+        {
+          type: 'category',
+          collapsed: true,
+          label: 'Services',
+          items: [
+            'guides/services/introduction',
+            'guides/services/adding-service',
+            'guides/services/producers-consumers',
+            'guides/services/adding-service-owners'
+          ],
+        },
+        'guides/components',
+      ],
     },
   ],
   api: [
