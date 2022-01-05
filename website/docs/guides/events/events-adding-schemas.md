@@ -97,7 +97,7 @@ _This is just an example of JSON schema, you can have any schema you like_
 
 Let's see how this schema would render in EventCatalog.
 
-![UserSignedUp with Schema Example](/img/guides/events/UserSignedUpExampleWithSchema.png)
+<!-- ![UserSignedUp with Schema Example](/img/guides/events/UserSignedUpExampleWithSchema.png) -->
 
 ## Versioning Schemas
 
