@@ -1,5 +1,11 @@
 # @eventcatalogtest/core-test
 
+## 0.0.5
+
+### Patch Changes
+
+- [`c584de3`](https://github.com/boyney123/eventcatalog/commit/c584de34c9089a8fe8b4f40072f9cc5aec29f8df) [#20](https://github.com/boyney123/eventcatalog/pull/20) Thanks [@boyney123](https://github.com/boyney123)! - updating example config
+
 ## 0.0.4
 
 ### Patch Changes
