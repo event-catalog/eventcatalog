@@ -16,9 +16,9 @@ To add a new service you will need to create a new folder with your service name
 
 Once you create your new file you will need to fill it with the service front-matter data and markdown content. 
 
-**There are two parts to the serviec data**
+**There are two parts to the service data**
 
-1. [service configuration (frontmatter)](/docs/api/service-frontmatter)
+1. [service configuration (frontmatter)](/docs/api/event-frontmatter)
 2. [content (markdown)](#example)
 
 Fill in the details of your service and run the Catalog. You will see all your services and will be able to navigate around and explore them!

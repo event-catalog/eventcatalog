@@ -13,7 +13,7 @@ Events live in the root directory under the `/events` folder.
 
 Each event is made up of two parts:
 
-- [**Frontmatter (configuration)**](api/event-frontmatter)
+- [**Frontmatter (configuration)**](/docs/api/event-frontmatter)
 - **Content (using MDX)**
 
 ## Adding a Event
@@ -56,7 +56,7 @@ Let's take a look at this Markdown file and go through each part to understand w
 
 The frontmatter of your Event Markdown files is where core information is kept. You can use this to store the event name, version, summary and more.
 
-To get a full detail of what the configuration looks like checkout the [event frontmatter config](api/event-frontmatter).
+To get a full detail of what the configuration looks like checkout the [event frontmatter config](/docs/api/event-frontmatter).
 
 In our example above, we have one event called `UserSignedUp` and it has one producer (User Service) and one consumer (Email Platform).
 

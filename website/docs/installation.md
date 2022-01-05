@@ -57,8 +57,8 @@ my-catalog
 
 ### Project structure rundown {#project-structure-rundown}
 
-- `/services/` - Contains the service Markdown files within your Architecture. These are optional but recommended. More details can be found in the [services guide](guide)
-- `/events/` - Contains your Event-Driven Architecture Events. These folders and files can contain markdown, schemas and much more. More details can be found in the [events guide](guide)
+- `/services/` - Contains the service Markdown files within your Architecture. These are optional but recommended. More details can be found in the [services guide](/docs/services/introduction)
+- `/events/` - Contains your Event-Driven Architecture Events. These folders and files can contain markdown, schemas and much more. More details can be found in the [events guide](/docs/events/introduction)
 - `/static/` - Static directory. Any contents inside here will be copied into the root of the final `build` directory. You can add your own logo here and favicon.
 - `/eventcatalog.config.js` - A config file containing the site configuration.
 - `/package.json` - File required for your application to work.
@@ -89,4 +89,4 @@ and contents will be generated within the `/build` directory. EventCatalog utili
 
 This means you will need to run EventCatalog on a server.
 
-Check out the docs on [deployment](deployment.mdx) for more details.
+<!-- Check out the docs on [deployment](deployment.mdx) for more details. -->

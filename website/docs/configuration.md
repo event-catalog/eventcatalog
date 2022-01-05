@@ -30,9 +30,9 @@ They are used in a number of places such as your site's title and headings, brow
 
 ### Generators {#generators}
 
-EventCatalog allows you to generate your Event documentation from third party systems. Generators can help you keep your documentation up to date with real world topics/events in the wild. 
+EventCatalog allows you to generate your Event documentation from third party systems. Plugins can help you keep your documentation up to date with real world topics/events in the wild. 
 
-It is recommended to check the [generators docs](generators.mdx) for more information.
+It is recommended to check the [plugin docs](/docs/api/plugins) for more information.
 
 ### Users {#users}
 

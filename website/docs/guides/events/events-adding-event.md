@@ -89,7 +89,7 @@ producers:
 
 As you can see we have our event named `UserSignedUp` which has **one producer** and **one consumer**.
 
-The mapping of [consumers](docs/api/event-frontmatter#consumers) and [producers]((docs/api/event-frontmatter#producers)) in this format allows EventCatalog to paint a picture of your Architecture and provide you with digrams, node graphs and enriched user experince.
+The mapping of [consumers](docs/api/event-frontmatter) and [producers](/docs/api/event-frontmatter) in this format allows EventCatalog to paint a picture of your Architecture and provide you with digrams, node graphs and enriched user experince.
 
 
 If you wish to know more about the event configuration you can read the [api docs](/docs/api/event-frontmatter).
@@ -148,7 +148,7 @@ The great thing about EventCatalog is it uses [MDX](https://mdxjs.com/) to encha
 This allows you to add things like:
 
 - [Mermaid Diagrams](https://mermaid-js.github.io/mermaid/#/)
-- [Event Schemas](x)
+- Event Schemas
 - And much more....
 
 To find out more read the [MDX components guide](/docs/guides/components).
