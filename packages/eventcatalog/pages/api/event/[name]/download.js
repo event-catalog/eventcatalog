@@ -8,18 +8,16 @@ export default function (req, res) {
   const eventDir = path.join(process.env.PROJECT_DIR, 'events', eventName);
 
   try {
-
     // Find the schema file
-    const filesInEventDir = fs.readdirSync(eventDir)
-    const schemaFileName = filesInEventDir.find(fileName => fileName.indexOf('schema.') > -1);
+    const filesInEventDir = fs.readdirSync(eventDir);
+    const schemaFileName = filesInEventDir.find((fileName) => fileName.indexOf('schema.') > -1);
 
-    if(schemaFileName) {
-      const schemaFile = fs.readFileSync(path.join(eventDir, schemaFileName))
+    if (schemaFileName) {
+      const schemaFile = fs.readFileSync(path.join(eventDir, schemaFileName));
       res.send(schemaFile).end();
     } else {
-      res.status(404).end();  
+      res.status(404).end();
     }
-    
   } catch (error) {
     console.log(error);
     res.status(404).end();
