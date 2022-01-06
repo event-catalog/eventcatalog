@@ -252,6 +252,7 @@ export async function createApp({
         switch (name) {
           case 'env':
           case 'gitignore':
+          case 'dockerignore':
           case 'eslintrc': {
             return '.'.concat(name);
           }
