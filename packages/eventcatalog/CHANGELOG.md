@@ -1,5 +1,13 @@
 # @eventcatalogtest/core-test
 
+## 0.0.8
+
+### Patch Changes
+
+- [`7e90a94`](https://github.com/boyney123/eventcatalog/commit/7e90a944c2825e04b0d79bbd60b6d37336fed5a2) [#30](https://github.com/boyney123/eventcatalog/pull/30) Thanks [@boyney123](https://github.com/boyney123)! - chore: fixing various mobile issues
+
+* [`e597f03`](https://github.com/boyney123/eventcatalog/commit/e597f03ee6663be5b606e32a72f4f2152818bacd) [#30](https://github.com/boyney123/eventcatalog/pull/30) Thanks [@boyney123](https://github.com/boyney123)! - chore: fixing various mobile issues
+
 ## 0.0.7
 
 ### Patch Changes
