@@ -117,7 +117,12 @@ export default function Example() {
                   Architecture.
                 </p>
                 <p className="mt-3 text-lg text-gray-500">
-                  Describe your events with Markdown or use our plugins to do it for you.
+                  Document your events and upstream/downstream services with Markdown and our custom
+                  MDX components.
+                </p>
+                <p className="mt-3 text-lg text-gray-500">
+                  Don&apos;t want to maintain your documentation? EventCatalog supports Plugins to
+                  generate documentation for you.
                 </p>
               </div>
             </div>
@@ -181,11 +186,12 @@ export default function Example() {
               </h3>
               <div className="space-y-10">
                 <p className="mt-3 text-lg text-gray-500">
-                  EventCatalog will render your documents, schemas and can even provide diagrams of
-                  how your architecture fits together.
+                  EventCatalog will render your documents, schemas, diagrams, code examples and much
+                  more...
                 </p>
                 <p className="mt-3 text-lg text-gray-500">
-                  With a list of prebuilt components you can choose what to render for each page.
+                  Use EventCatalog to discover your events and their upstream and downstream
+                  services.
                 </p>
               </div>
             </div>
@@ -262,7 +268,7 @@ export default function Example() {
               Bring visibility to your Event Architecture
             </p>
             <p className="mt-4 text-lg text-gray-500">
-              Document, version and stay ontop of your events.
+              Document, version and stay ontop of your event architecture.
             </p>
           </div>
           <div className="mt-12 lg:mt-0 lg:col-span-2">

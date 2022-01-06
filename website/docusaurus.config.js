@@ -95,8 +95,16 @@ const config = {
             title: 'Docs',
             items: [
               {
-                label: 'Docs',
+                label: 'Introduction',
                 to: '/docs/introduction',
+              },
+              {
+                label: 'Installation',
+                to: '/docs/installation',
+              },
+              {
+                label: 'Guides',
+                to: '/docs/events/introduction',
               },
             ],
           },
@@ -104,16 +112,12 @@ const config = {
             title: 'Community',
             items: [
               {
-                label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-              },
-              {
                 label: 'Discord',
-                href: 'https://discordapp.com/invite/docusaurus',
+                href: 'https://discord.gg/3rjaZMmrAm',
               },
               {
                 label: 'Twitter',
-                href: 'https://twitter.com/docusaurus',
+                href: 'https://twitter.com/boyney123',
               },
             ],
           },
@@ -121,17 +125,13 @@ const config = {
             title: 'More',
             items: [
               {
-                label: 'Blog',
-                to: '/blog',
-              },
-              {
                 label: 'GitHub',
                 href: 'https://github.com/facebook/docusaurus',
               },
             ],
           },
         ],
-        copyright: `Open Source project, EventCatalog. Built for the community.`,
+        copyright: `Open Source project built by David Boyne. Built for the community.`,
       },
       prism: {
         theme: theme,
