@@ -1,5 +1,11 @@
 # @eventcatalogtest/core-test
 
+## 0.0.7
+
+### Patch Changes
+
+- [`48a8371`](https://github.com/boyney123/eventcatalog/commit/48a8371c237bbfd596010dfebe0fb8c1365aec1f) [#28](https://github.com/boyney123/eventcatalog/pull/28) Thanks [@boyney123](https://github.com/boyney123)! - feat: adding titles to pages
+
 ## 0.0.6
 
 ### Patch Changes
