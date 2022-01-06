@@ -117,7 +117,7 @@ export default function ContentView({
                   <span className="italic text-xs mt-2">Last updated on {lastModifiedDate}</span>
                 </div>
               </div>
-              <div className="min-h-screen">{SideBar}</div>
+              <div className="md:min-h-screen">{SideBar}</div>
             </div>
           </div>
         </main>

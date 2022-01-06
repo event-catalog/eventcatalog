@@ -73,14 +73,14 @@ export default function Page({ events, services }: PageProps) {
       <Head>
         <title>EventCatalog - All Events</title>
       </Head>
-      <main className="max-w-7xl mx-auto min-h-screen">
+      <main className="max-w-7xl mx-auto min-h-screen px-4 md:px-0">
         <div className="relative z-10 flex items-baseline justify-between pt-8 pb-6 border-b border-gray-200">
           <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">
             Events ({events.length})
           </h1>
 
           <div className="flex items-center">
-            <Menu as="div" className="relative inline-block text-left">
+            <Menu as="div" className="hidden relative text-left">
               <div>
                 <Menu.Button className="group inline-flex justify-center text-sm font-medium text-gray-700 hover:text-gray-900">
                   Sort
@@ -198,7 +198,7 @@ export default function Page({ events, services }: PageProps) {
               </div>
             </form>
 
-            <div className="lg:col-span-3">
+            <div className="col-span-4 lg:col-span-3">
               <div>
                 <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">
                   Events ({eventsToRender.length})

@@ -62,7 +62,7 @@ export default function Services(props: ServicesPageProps) {
         subtitle={summary}
         draft={draft}
         lastModifiedDate={lastModifiedDate}
-        breadCrumbs={<BreadCrumbs pages={pages} />}
+        breadCrumbs={<BreadCrumbs pages={pages} homePath="/services" />}
         sidebar={<ServiceSidebar service={service} />}
       >
         {/* @ts-ignore */}
