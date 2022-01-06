@@ -1,24 +1,30 @@
 ---
 name: AddedItemToCart
-version: 0.0.5
+version: 0.0.2
 summary: |
-  Holds information about the cusomer and product when they add an item to the cart.
+  Holds information about what the user added to their shopping cart.
 producers:
-    - Shopping API
+    - Basket Service
 consumers:
-    - Customer Portal
+    - Data Lake
 domains:
-    - Shopping
+    - Shop
 owners:
     - dboyne
     - mSmith
-draft: true    
 ---
 
-Duis mollis quam enim, feugiat porta mi porta non. In lacus nulla, gravida nec sagittis vel, sagittis id tellus. Vestibulum maximus velit eget massa pulvinar ornare. In vel libero nulla. Aliquam a leo risus. Donec bibendum velit non nulla sollicitudin lacinia. Vestibulum imperdiet nunc eget neque sagittis, eget volutpat purus ornare. Mauris malesuada finibus pretium. Vestibulum suscipit tortor sit amet dolor tempor cursus. Nunc ac felis accumsan.
+<Admonition>When firing this event make sure you set the `correlation-id` in the headers. Our schemas have standard metadata make sure you read and follow it.</Admonition>
+
+### Details
+
+This event can be triggered multiple times per customer. Everytime the customer adds an item to their shopping cart this event will be triggered.
+
+We have a frontend application that allows users to buy things from our store. This front end interacts directly with the `Basket Service` to add items to the cart. The `Basket Service` will raise the events.
+
+
+### Consumer / Producer Diagram
 
 <Mermaid />
 
 <Schema />
-
-<EventsWithinSameDomain />
