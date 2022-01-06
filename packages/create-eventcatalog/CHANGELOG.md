@@ -1,5 +1,11 @@
 # @eventcatalogtest/create-eventcatalog-test
 
+## 0.0.9
+
+### Patch Changes
+
+- [`3e6434a`](https://github.com/boyney123/eventcatalog/commit/3e6434a4ab44efd54a58eee3adb8d9f3f8f57e8d) [#32](https://github.com/boyney123/eventcatalog/pull/32) Thanks [@boyney123](https://github.com/boyney123)! - feat: adding deployment options
+
 ## 0.0.8
 
 ### Patch Changes
