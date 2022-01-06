@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalogtest/core-test",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publishConfig": {
     "access": "public"
   },
@@ -37,7 +37,7 @@
     "react-syntax-highlighter": "^15.4.5"
   },
   "devDependencies": {
-    "@eventcatalogtest/types": "0.0.3",
+    "@eventcatalogtest/types": "0.0.4",
     "@types/react": "^17.0.36",
     "autoprefixer": "^10.4.0",
     "commander": "^8.3.0",
