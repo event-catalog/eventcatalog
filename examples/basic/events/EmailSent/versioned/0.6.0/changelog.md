@@ -1,1 +1,0 @@
-We finally decided to upgrade to 0.6.0, and found out that users were not using all the schema values.

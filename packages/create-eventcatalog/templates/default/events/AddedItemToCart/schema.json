@@ -1,116 +1,46 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "FlexApplicationConfirmed",
-  "definitions": {
-    "Brand": {
-      "properties": {
-        "code": {
-          "type": "string"
-        }
-      },
-      "required": ["code"],
-      "type": "object"
-    },
-    "Data": {
-      "properties": {
-        "brand": {
-          "$ref": "#/definitions/Brand"
-        },
-        "newCoverAmount": {
-          "type": "string"
-        },
-        "previousCoverAmount": {
-          "type": "string"
-        },
-        "user": {
-          "$ref": "#/definitions/User"
-        }
-      },
-      "required": ["newCoverAmount", "previousCoverAmount", "brand", "user"],
-      "type": "object"
-    },
-    "FlexApplicationConfirmed": {
-      "properties": {
-        "data": {
-          "$ref": "#/definitions/Data"
-        },
-        "metadata": {
-          "$ref": "#/definitions/Metadata"
-        }
-      },
-      "required": ["metadata", "data"],
-      "type": "object"
-    },
-    "Metadata": {
+  "$id": "https://example.com/AddedItemToCart.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AddedItemToCart",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
       "properties": {
         "correlationId": {
-          "type": "string"
+          "type": "string",
+          "description": "The ID of the user"
+        },
+        "domain": {
+          "type": "string",
+          "description": "The domain of the event"
         },
         "service": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the service that triggered the event"
         }
       },
-      "required": ["service", "correlationId"],
-      "type": "object"
+      "required": ["correlationId", "domain"]
     },
-    "User": {
+    "data": {
+      "type": "object",
       "properties": {
-        "email": {
-          "type": "string"
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user"
         },
-        "id": {
-          "type": "number"
+        "itemId": {
+          "type": "string",
+          "description": "The ID of the shopping item"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "How many items the user wants to add to their shopping cart",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 1
         }
-      },
-      "required": ["id", "email"],
-      "type": "object"
+      }
     }
-  },
-  "properties": {
-    "account": {
-      "type": "string"
-    },
-    "detail": {
-      "$ref": "#/definitions/FlexApplicationConfirmed"
-    },
-    "detail-type": {
-      "type": "string"
-    },
-    "id": {
-      "type": "string"
-    },
-    "region": {
-      "type": "string"
-    },
-    "resources": {
-      "items": {
-        "type": "object"
-      },
-      "type": "array"
-    },
-    "source": {
-      "type": "string"
-    },
-    "time": {
-      "format": "date-time",
-      "type": "string"
-    },
-    "version": {
-      "type": "string"
-    }
-  },
-  "required": [
-    "detail-type",
-    "resources",
-    "detail",
-    "id",
-    "source",
-    "time",
-    "region",
-    "version",
-    "account"
-  ],
-  "type": "object",
-  "x-amazon-events-detail-type": "FlexApplicationConfirmed",
-  "x-amazon-events-source": "myapp.applications"
+  }
 }

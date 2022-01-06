@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import codeStyle from 'react-syntax-highlighter/dist/cjs/styles/prism/vsc-dark-plus';
+import codeStyle from 'react-syntax-highlighter/dist/cjs/styles/prism/dracula';
 import { Prism as PrismSyntaxHighlighter } from 'react-syntax-highlighter';
 import copy from 'copy-text-to-clipboard';
 
