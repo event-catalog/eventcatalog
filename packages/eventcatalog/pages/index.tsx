@@ -9,7 +9,7 @@ export default function Example() {
   const logoToLoad = logo || { alt: 'EventCatalog Logo', src: '/logo.svg' };
 
   return (
-    <main className="sm:bg-top min-h-screen bg-gradient-to-t from-blue-700  to-gray-800">
+    <main className="sm:bg-top md:min-h-screen bg-gradient-to-t from-blue-700  to-gray-800">
       <div className="max-w-7xl mx-auto px-4 py-16 text-center sm:px-6 sm:py-24 lg:px-8 lg:py-48">
         <img
           src={logoToLoad.src}
