@@ -1,5 +1,11 @@
 # @eventcatalogtest/create-eventcatalog-test
 
+## 0.0.8
+
+### Patch Changes
+
+- [`3896871`](https://github.com/boyney123/eventcatalog/commit/3896871d61cd3ec0af176a2c6897e7f14f698723) [#24](https://github.com/boyney123/eventcatalog/pull/24) Thanks [@boyney123](https://github.com/boyney123)! - updating examples for repo
+
 ## 0.0.7
 
 ### Patch Changes
