@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalogtest/create-eventcatalog-test",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "keywords": [],
   "description": "Create event catalogs apps with one command",
   "repository": {
