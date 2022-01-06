@@ -26,3 +26,30 @@ Remember the relationship between events and services is stored within the event
 :::
 
 For more information check out the [mermaid guide for events](/docs/events/consumers-and-producers) and [mermaid guide for services](/docs/services/producers-consumers).
+
+### `<Admonition />`
+
+#### Rendered Examples
+
+Supported in 
+- event markdown files
+- service markdown files
+
+#### Rendered Example 
+![Admonition Example](/img/guides/mdx/admonition-examples.png)
+
+#### Usage
+
+```md title=Info example
+<Admonition type="info">Example of information</Admonition>
+```
+
+```md title=Warning example
+<Admonition type="warning">Example of warning</Admonition>
+```
+
+```md title=Alert example
+<Admonition type="alert">Example of alert</Admonition>
+```
+
+
