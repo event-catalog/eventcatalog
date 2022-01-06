@@ -1,4 +1,5 @@
 import { Fragment, useState } from 'react';
+import Head from 'next/head';
 import type { Event, Service } from '@eventcatalogtest/types';
 
 import Link from 'next/link';
@@ -68,7 +69,10 @@ export default function Page({ events, services }: PageProps) {
   }
 
   return (
-    <div>
+    <>
+      <Head>
+        <title>EventCatalog - All Events</title>
+      </Head>
       <main className="max-w-7xl mx-auto min-h-screen">
         <div className="relative z-10 flex items-baseline justify-between pt-8 pb-6 border-b border-gray-200">
           <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">
@@ -205,7 +209,7 @@ export default function Page({ events, services }: PageProps) {
           </div>
         </section>
       </main>
-    </div>
+    </>
   );
 }
 
