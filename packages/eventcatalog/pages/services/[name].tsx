@@ -1,3 +1,4 @@
+import Head from 'next/head';
 import { MDXRemote } from 'next-mdx-remote';
 import { Service } from '@eventcatalogtest/types';
 import { editUrl } from '../../eventcatalog.config.js';
@@ -51,7 +52,10 @@ export default function Services(props: ServicesPageProps) {
   ];
 
   return (
-    <div>
+    <>
+      <Head>
+        <title>{name}</title>
+      </Head>
       <ContentView
         title={name}
         editUrl={getEditUrl(`/services/${name}/index.md`)}
@@ -64,7 +68,7 @@ export default function Services(props: ServicesPageProps) {
         {/* @ts-ignore */}
         <MDXRemote {...markdown.source} components={mdxComponents} />
       </ContentView>
-    </div>
+    </>
   );
 }
 

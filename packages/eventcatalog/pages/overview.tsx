@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
+import Head from 'next/head';
 
 import dynamic from 'next/dynamic';
 
@@ -36,6 +37,9 @@ const graph = ({ events, services }) => {
   const extraRenderers = [new window.THREE.CSS2DRenderer()];
   return (
     <div className="min-h-screen ">
+      <Head>
+        <title>EventCatalog - 3D Node Graph</title>
+      </Head>
       <ForceGraph3D
         extraRenderers={extraRenderers}
         graphData={data}

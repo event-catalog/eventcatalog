@@ -1,3 +1,4 @@
+import Head from 'next/head';
 import { MDXRemote } from 'next-mdx-remote';
 
 import { Event } from '@eventcatalogtest/types';
@@ -81,7 +82,12 @@ export default function Events(props: EventsPageProps) {
   const mdxComponents = getComponents({ event, schema, examples });
 
   return (
-    <div>
+    <>
+      <Head>
+        <title>
+          {name} v{version}
+        </title>
+      </Head>
       <ContentView
         // {...props}
         title={name}
@@ -98,7 +104,7 @@ export default function Events(props: EventsPageProps) {
       >
         <MDXRemote {...markdown.source} components={mdxComponents} />
       </ContentView>
-    </div>
+    </>
   );
 }
 
