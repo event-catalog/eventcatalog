@@ -1,0 +1,32 @@
+name: 📚 Documentation
+description: Report an issue related to documentation
+labels: [documentation, 'status: needs triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This template is strictly used for documentation requests, including:
+
+        - Documenting undocumented APIs;
+        - Elaborating on a particular topic;
+        - Updating external links;
+        - anything else that doesn't require touching the codebase itself.
+
+        If you followed the documentation but things don't work, take some time to consider if it's the documentation or the code that's wrong. In the latter, prefer using the "bug" template.
+
+        You may proceed directly to sending a pull request without filing this issue, and we can improve on your work.
+        If you think some of the requirements above are not met, or if you are not able to contribute yourself, the issue is still welcomed.
+
+  - type: checkboxes
+    attributes:
+      label: Have you read the Contributing Guidelines on issues?
+      options:
+        - label: I have read the [Contributing Guidelines on issues](https://github.com/boyney123/eventcatalog/blob/main/CONTRIBUTING.md#reporting-new-issues).
+          required: true
+
+  - type: textarea
+    attributes:
+      label: Description
+      description: A clear and concise description of what the issue is.
+    validations:
+      required: true

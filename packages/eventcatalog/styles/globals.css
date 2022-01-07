@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.mermaid svg {
+  width: 100%;
+}
+
+.prose .event-table table {
+  width: inherit;
+  table-layout: inherit;
+  text-align: inherit;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.prose .event-table tbody td:first-child,
+.prose .event-table thead th:first-child {
+  padding-left: 20px;
+}
+
+.prose .event-table tbody td,
+event-table thead th {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.prose pre {
+  padding: 0;
+}
+
+/* For the exampels component on markdown page */
+.prose .examples a {
+  text-decoration: none;
+}
+
+.prose .examples a.selected {
+  --tw-text-opacity: 1;
+  color: rgba(5, 150, 105, var(--tw-text-opacity));
+}
+
+.node-label {
+  font-size: 12px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.5);
+  user-select: none;
+}

@@ -1,0 +1,43 @@
+{
+  "$id": "https://example.com/ShipmentDispatched.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ShipmentDispatched",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "correlationId": {
+          "type": "string",
+          "description": "The ID of the user"
+        },
+        "domain": {
+          "type": "string",
+          "description": "The domain of the event"
+        },
+        "service": {
+          "type": "string",
+          "description": "The name of the service that triggered the event"
+        }
+      },
+      "required": ["correlationId", "domain", "service"]
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user"
+        },
+        "shipmentId": {
+          "type": "string",
+          "description": "The ID of the shipment"
+        },
+        "orderId": {
+          "type": "string",
+          "description": "The order assigned to the shipment"
+        }
+      }
+    }
+  }
+}

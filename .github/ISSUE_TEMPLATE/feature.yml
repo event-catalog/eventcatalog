@@ -1,0 +1,32 @@
+name: 💅 Feature idea
+description: Submit a detailed feature request
+labels: [feature, 'status: needs triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Important things:
+
+        - Feel free to share ideas for features you may have
+        - Maybe some design mockups if you have them or where you would expect to see the feature
+
+  - type: checkboxes
+    attributes:
+      label: Have you read the Contributing Guidelines on issues?
+      options:
+        - label: I have read the [Contributing Guidelines on issues](https://github.com/boyney123/eventcatalog/blob/main/CONTRIBUTING.md#reporting-new-issues).
+          required: true
+
+  - type: textarea
+    attributes:
+      label: Description
+      description: A clear and concise description of what the feature/idea is.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Motivation
+      description: Please outline the motivation for the proposal and why it should be implemented.
+    validations:
+      required: true

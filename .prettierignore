@@ -1,0 +1,14 @@
+dist
+node_modules
+.yarn
+.docusaurus
+build
+coverage
+packages/eventcatalog-*/lib/*
+packages/eventcatalog-*/lib-next/
+packages/create-eventcatalog/lib/*
+packages/create-eventcatalog/templates/*/eventcatalog.config.js
+.next
+__fixtures__
+examples/
+

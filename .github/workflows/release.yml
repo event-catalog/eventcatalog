@@ -1,0 +1,31 @@
+name: Release
+on:
+  push:
+    branches:
+      - master
+      - next
+      - main
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: github.repository == 'boyney123/eventcatalog'
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          version: 14.x
+
+      - name: Install deps and build (with cache)
+        uses: bahmutov/npm-install@v1
+
+      - name: Create Release Pull Request or Publish to npm
+        uses: changesets/action@master
+        with:
+          publish: yarn release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}

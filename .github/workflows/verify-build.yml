@@ -1,0 +1,25 @@
+# Make sure the EventCatalog can build OK
+name: Verify Build
+
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+
+jobs:
+  build:
+    name: Verify Build
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          cache: yarn
+      - name: Installation
+        run: yarn
+      - name: Check immutable yarn.lock
+        run: git diff --exit-code
+      - name: Build
+        run: yarn verify-build:catalog

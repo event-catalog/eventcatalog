@@ -1,0 +1,27 @@
+name: Lint
+
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+
+jobs:
+  lint:
+    name: Lint
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          cache: yarn
+      - name: Installation
+        run: yarn
+      - name: Check immutable yarn.lock
+        run: git diff --exit-code
+      - name: Lint
+        run: yarn lint:ci
+      - name: Prettier Code
+        run: yarn format:diff
+      # git 

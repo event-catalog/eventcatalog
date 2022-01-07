@@ -1,0 +1,1 @@
+# @eventcatalog/core
