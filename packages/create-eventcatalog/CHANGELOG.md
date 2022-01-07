@@ -1,5 +1,11 @@
 # @eventcatalogtest/create-eventcatalog-test
 
+## 0.0.10
+
+### Patch Changes
+
+- [`2fd0369`](https://github.com/boyney123/eventcatalog/commit/2fd0369eeb06b943ea15be51793f825f99a96498) [#34](https://github.com/boyney123/eventcatalog/pull/34) Thanks [@boyney123](https://github.com/boyney123)! - chore: adding opengraph
+
 ## 0.0.9
 
 ### Patch Changes
