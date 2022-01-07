@@ -28,7 +28,7 @@ export default function Footer() {
         </nav>
         <p className="mt-8 text-center text-base text-gray-400">
           Copyright © {year} {organizationName}. Built with{' '}
-          <a className="underline" href="https://eventcatalog.io" target="_blank" rel="noreferrer">
+          <a className="underline" href="https://eventcatalog.dev" target="_blank" rel="noreferrer">
             EventCatalog.
           </a>
         </p>

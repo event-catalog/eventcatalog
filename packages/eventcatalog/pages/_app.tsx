@@ -12,6 +12,30 @@ export default ({ Component, pageProps }: AppProps) => (
       <script src="//unpkg.com/three" />
       <script src="//unpkg.com/three/examples/js/renderers/CSS2DRenderer.js" />
 
+      <meta
+        name="description"
+        content="An open source project to Discover, Explore and Document your Event Driven Architectures."
+      />
+      <meta property="og:url" content="https://demo.eventcatalog.dev/" />
+      <meta property="og:type" content="website" />
+      <meta
+        property="og:title"
+        content="EventCatalog | Discover, Explore and Document your Event Driven Architectures."
+      />
+      <meta
+        property="og:description"
+        content="An open source tool powered by markdown to document your Event Driven Architecture."
+      />
+      <meta property="og:image" content="https://demo.eventcatalog.dev/opengraph.png" />
+      <meta
+        property="og:image:alt"
+        content="EventCatalog | Discover, Explore and Document your Event Driven Architectures."
+      />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="600" />
+      <meta property="og:locale" content="en-GB" />
+      <meta name="author" content="David Boyne" />
+
       {/* Need to load this before any of the Html2Diff Code */}
       <link
         rel="stylesheet"
