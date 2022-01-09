@@ -19,11 +19,40 @@ function Hero() {
               <p className="max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
                 Discover, Explore and Document your Event Driven Architectures.
               </p>
+              <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
+                <div className="rounded-md shadow">
+                  <a
+                    href="/docs/installation"
+                    className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700 md:py-3 md:text-lg md:px-10"
+                  >
+                    Get started
+                  </a>
+                </div>
+                <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
+                  <a
+                    href="https://demo.eventcatalog.dev/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-gray-600 bg-white hover:bg-gray-50 md:py-3 md:text-lg md:px-10"
+                  >
+                    Live demo
+                  </a>
+                </div>
+              </div>
+              <div className="mt-10 space-x-6">
+                <span>License: MIT</span>
+                <a
+                  className="text-gray-800 underline"
+                  href="https://github.com/boyney123/eventcatalog"
+                >
+                  GitHub
+                </a>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="relative">
+        <div className="hidden md:block relative">
           <div className="absolute inset-0 flex flex-col" aria-hidden="true">
             <div className="flex-1" />
             <div className="flex-1 w-full bg-gray-800" />
@@ -38,7 +67,7 @@ function Hero() {
         </div>
       </div>
 
-      <div className="bg-gray-800">
+      <div className="bg-gray-800 hidden md:block">
         <div className="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8" />
       </div>
     </div>

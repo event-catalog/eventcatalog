@@ -76,8 +76,8 @@ function Arrow(props) {
 export default function Example() {
   return (
     <Xwrapper>
-      <div className="md:py-16 bg-white overflow-hidden lg:py-24">
-        <div className="relative max-w-xl mx-auto px-4 sm:px-6 lg:px-8 lg:max-w-7xl">
+      <div className="relative max-w-xl mx-auto px-4 sm:px-6 lg:px-8 lg:max-w-7xl">
+        <div className="md:py-16 bg-white overflow-hidden lg:py-24">
           <svg
             className="hidden lg:block absolute left-full transform -translate-x-1/2 -translate-y-1/4"
             width={404}
@@ -109,7 +109,8 @@ export default function Example() {
           </svg>
 
           <div className="relative lg:mt-24 lg:grid lg:grid-cols-2 lg:gap-8">
-            <div className="relative pt-10">
+            <div className="relative pt-6 md:pt-10">
+              <hr className="border-gray-100 block md:hidden" />
               <img className="md:block w-12 md:w-16 py-8" src="/img/text.svg" alt="Text icon" />
               <h3 className="text-3xl font-extrabold text-gray-900 tracking-tight sm:text-3xl">
                 Powered by Markdown

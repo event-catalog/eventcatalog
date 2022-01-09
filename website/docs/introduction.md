@@ -62,7 +62,6 @@ EventCatalog is designed to allow teams to easily document their Event-Driven ar
 ## Staying informed {#staying-informed}
 
 - [GitHub](https://github.com/boyney123/eventcatalog)
-- [Blog](/blog)
 - [Discord](https://discord.gg/3rjaZMmrAm)
 
 ## Something missing?
