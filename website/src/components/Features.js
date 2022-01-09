@@ -67,13 +67,16 @@ function Arrow(props) {
     }, 200);
   }, [updateXarrow]);
 
-  return <ReactArrows {...props} />;
+  // eslint-disable-next-line react/prop-types
+  const { className } = props;
+
+  return <ReactArrows {...props} passProps={{ className }} />;
 }
 
 export default function Example() {
   return (
     <Xwrapper>
-      <div className="py-16 bg-white overflow-hidden lg:py-24">
+      <div className="md:py-16 bg-white overflow-hidden lg:py-24">
         <div className="relative max-w-xl mx-auto px-4 sm:px-6 lg:px-8 lg:max-w-7xl">
           <svg
             className="hidden lg:block absolute left-full transform -translate-x-1/2 -translate-y-1/4"
@@ -105,13 +108,13 @@ export default function Example() {
             <rect width={404} height={784} fill="url(#b1e6e422-73f8-40a6-b5d9-c8586e37e0e7)" />
           </svg>
 
-          <div className="relative mt-12 lg:mt-24 lg:grid lg:grid-cols-2 lg:gap-8">
+          <div className="relative lg:mt-24 lg:grid lg:grid-cols-2 lg:gap-8">
             <div className="relative pt-10">
-              <img className="w-16 py-8" src="/img/text.svg" alt="Text icon" />
+              <img className="md:block w-12 md:w-16 py-8" src="/img/text.svg" alt="Text icon" />
               <h3 className="text-3xl font-extrabold text-gray-900 tracking-tight sm:text-3xl">
                 Powered by Markdown
               </h3>
-              <div className="space-y-10">
+              <div className="space-y-6 md:space-y-10">
                 <p className="mt-3 text-lg text-gray-500">
                   EventCatalog is designed to help you and your teams document your Event
                   Architecture.
@@ -129,7 +132,7 @@ export default function Example() {
 
             <div className="mt-10 -mx-4 relative lg:mt-0 z-20" aria-hidden="true">
               <svg
-                className="absolute left-1/2 transform -translate-x-1/2 translate-y-16 lg:hidden"
+                className="hidden md:absolute left-1/2 transform -translate-x-1/2 translate-y-16 lg:hidden"
                 width={784}
                 height={404}
                 fill="none"
@@ -159,7 +162,7 @@ export default function Example() {
               <img
                 id="markdown-example"
                 width={520}
-                className="z-90 mx-auto shadow-md "
+                className="px-4 md:px-0 z-90 mx-auto shadow-md "
                 src="/img/markdown-example2.png"
                 alt=""
               />
@@ -176,15 +179,16 @@ export default function Example() {
             end="page-example"
             zIndex={10}
             color="#1f2937"
+            className="hidden md:block"
           />
 
           <div className="relative mt-12 lg:mt-24 lg:grid lg:grid-cols-2 lg:gap-8">
             <div className="relative">
               <img className="w-16 py-8" src="/img/book-mag.svg" alt="Sun icon" />
-              <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight sm:text-3xl">
+              <h3 className="text-3xl font-extrabold text-gray-900 tracking-tight sm:text-3xl">
                 Discover Events
               </h3>
-              <div className="space-y-10">
+              <div className="space-y-6 md:space-y-10">
                 <p className="mt-3 text-lg text-gray-500">
                   EventCatalog will render your documents, schemas, diagrams, code examples and much
                   more...
@@ -228,16 +232,16 @@ export default function Example() {
               <img
                 id="page-example"
                 width={520}
-                className="z-90 mx-auto shadow-md "
+                className="px-4 md:px-0 z-90 mx-auto shadow-md "
                 src="/img/page-example.png"
                 alt=""
               />
             </div>
           </div>
 
-          <hr className="mt-28 mb-14 border-gray-100" />
+          <hr className="hidden md:block mt-28 mb-14 border-gray-100" />
 
-          <div className="mx-auto max-w-md px-4 text-center sm:px-6 sm:max-w-3xl lg:px-8 lg:max-w-7xl">
+          <div className="hidden md:block mx-auto max-w-md px-4 text-center sm:px-6 sm:max-w-3xl lg:px-8 lg:max-w-7xl">
             <div>
               <img className="w-16 py-8 mx-auto" src="/img/dictionary.svg" alt="Sun icon" />
               <p className="mt-2 text-3xl font-extrabold text-gray-900 tracking-tight sm:text-4xl">
@@ -259,9 +263,9 @@ export default function Example() {
         </div>
       </div>
 
-      <hr className="mt-14 mb-14 border-gray-100 max-w-xl lg:max-w-7xl mx-auto" />
+      <hr className="hidden md:block mt-14 mb-14 border-gray-100 max-w-xl lg:max-w-7xl mx-auto" />
       <div className="bg-white">
-        <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:py-24 lg:px-8 lg:grid lg:grid-cols-3 lg:gap-x-8">
+        <div className="max-w-7xl mx-auto py-8 md:py-16 px-4 sm:px-6 lg:py-24 lg:px-8 lg:grid lg:grid-cols-3 lg:gap-x-8">
           <div>
             <img className="w-16 py-8" src="/img/dictionary.svg" alt="Sun icon" />
             <p className="mt-2 text-3xl font-extrabold text-gray-900 wide">

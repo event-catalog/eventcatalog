@@ -3,8 +3,8 @@ import React from 'react';
 export default function Example() {
   return (
     <div className="bg-white">
-      <div className="max-w-7xl mx-auto text-center py-12 px-4 sm:px-6 lg:py-24 lg:px-8">
-        <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+      <div className="max-w-7xl mx-auto text-center pt-6 pb-12 md:py-12 px-4 sm:px-6 lg:py-24 lg:px-8">
+        <h2 className="text-2xl font-extrabold tracking-tight text-gray-900 md:text-4xl">
           <span className="block">Ready to start documenting your events?</span>
           <span className="block">Getting started within minutes.</span>
         </h2>
