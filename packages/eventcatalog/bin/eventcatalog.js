@@ -69,7 +69,7 @@ cli
   .command('dev [siteDir]')
   .description('Start the development server.')
   .action(() => {
-    // Fix for
+    // Fix for https://github.com/boyney123/eventcatalog/issues/41, not the best but will do for now
     fs.rmSync(eventCatalogLibDir, { recursive: true, force: true });
 
     copyCoreApplicationCodeIntoUsersProjectDir();
