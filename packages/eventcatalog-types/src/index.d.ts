@@ -54,6 +54,11 @@ export type PluginOpts = { id?: string } & Record<string, unknown>;
 
 export type PluginConfig = [string, PluginOpts];
 
+export interface Link {
+  label: string;
+  href: string;
+}
+
 export interface EventCataLogConfig {
   title: string;
   tagline?: string;
@@ -62,6 +67,7 @@ export interface EventCataLogConfig {
   logo?: { alt: string; src: string };
   users?: User[];
   generators?: PluginConfig[] | [] | any;
+  footerLinks?: Link[];
 }
 
 export type LoadContext = {
