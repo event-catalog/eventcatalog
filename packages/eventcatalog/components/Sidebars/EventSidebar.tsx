@@ -19,8 +19,8 @@ function EventSideBar({ event, loadedVersion }: EventSideBarProps) {
     try {
       const res = await fetch(`/api/event/${event.name}/download`);
       if (res.status === 404) throw new Error('Failed to find file');
-      const data = await res.text();
-      fileDownload(data, event.name);
+      const { schema, fileName } = await res.json();
+      fileDownload(schema, fileName);
     } catch (error) {
       // TODO: Maybe better error experince
       console.error(error);
