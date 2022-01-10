@@ -206,8 +206,8 @@ export const getAllEventsThatHaveRelationshipWithService = (
 ): { publishes: Event[]; subscribes: Event[] } => {
   const relationshipsBetweenEvents = events.reduce(
     (data, event) => {
-      const serviceSubscribesToEvent = event.consumers.some((id) => id === service.id);
-      const servicePublishesEvent = event.producers.some((id) => id === service.id);
+      const serviceSubscribesToEvent = event.consumers.some((id) => id === service.name);
+      const servicePublishesEvent = event.producers.some((id) => id === service.name);
 
       return {
         publishes: servicePublishesEvent ? data.publishes.concat(event) : data.publishes,

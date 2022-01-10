@@ -1,5 +1,4 @@
 ---
-id: Basket Service
 name: Basket Service
 summary: |
   CRUD based API to handle Basket interactions for users of the shopping website.

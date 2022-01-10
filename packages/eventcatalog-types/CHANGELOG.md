@@ -1,1 +1,0 @@
-# @eventcatalog/types
