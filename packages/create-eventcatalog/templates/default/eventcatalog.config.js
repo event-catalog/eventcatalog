@@ -9,6 +9,12 @@ module.exports = {
     // found in the public dir
     src: 'logo.svg',
   },
+  footerLinks: [
+    { label: 'Events', href: '/events' },
+    { label: 'Services', href: '/services' },
+    { label: '3D Node Graph', href: '/overview' },
+    { label: 'GitHub', href: 'https://github.com/boyney123/eventcatalog-demo/edit/master' }
+  ],
   users: [
     {
       id: 'dboyne',

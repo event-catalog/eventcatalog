@@ -7,6 +7,12 @@ module.exports = {
     alt: 'EventCatalog Logo',
     src: 'logo.svg',
   },
+  footerLinks: [
+    { label: 'Events', href: '/events' },
+    { label: 'Services', href: '/services' },
+    { label: '3D Node Graph', href: '/overview' },
+    { label: 'GitHub', href: 'https://github.com/boyney123/eventcatalog-demo/edit/master' }
+  ],
   generators: [
     [
       '@eventcatalog/plugin-doc-generator-asyncapi',

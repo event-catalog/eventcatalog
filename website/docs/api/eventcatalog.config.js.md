@@ -80,7 +80,7 @@ module.exports = {
 
 ### `users` {#users}
 
-Add user information here. You can reference these inside your Event and Service markdown files. 
+Add user information here. You can reference these inside your Event and Service markdown files.
 
 ```js title="eventcatalog.config.js"
 module.exports = {
@@ -103,5 +103,24 @@ module.exports = {
 ```js title="eventcatalog.config.js"
 module.exports = {
   generators: [],
+};
+```
+
+### `footerLinks` {#footer-links}
+
+- Type: `FooterLink[]`
+
+- Type: `FooterLink`
+  - `label`: value that gets rendered on the UI
+  - `href`: URL for link
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  footerLinks: [
+    { label: 'Events', href: '/events' },
+    { label: 'Services', href: '/services' },
+    { label: '3D Node Graph', href: '/overview' },
+    { label: 'GitHub', href: 'https://github.com/boyney123/eventcatalog-demo/edit/master' },
+  ],
 };
 ```

@@ -41,6 +41,7 @@ const sidebars = {
             'guides/services/adding-service-owners',
           ],
         },
+        'guides/customise',
         'guides/components',
         'guides/deployment',
       ],
