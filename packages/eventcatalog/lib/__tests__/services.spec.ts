@@ -19,7 +19,6 @@ describe('services', () => {
 
       expect(services).toEqual([
         {
-          id: 'Email Platform',
           name: 'Email Platform',
           summary:
             'Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS\n',
@@ -65,7 +64,6 @@ describe('services', () => {
 
       expect(services).toEqual([
         {
-          id: 'Email Platform',
           name: 'Email Platform',
           summary:
             'Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS\n',
@@ -105,7 +103,6 @@ describe('services', () => {
       const { service, markdown } = await getServiceByName('Email Platform');
 
       expect(service).toEqual({
-        id: 'Email Platform',
         name: 'Email Platform',
         summary:
           'Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS\n',

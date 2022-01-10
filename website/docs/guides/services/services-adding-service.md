@@ -23,10 +23,12 @@ Once you create your new file you will need to fill it with the service front-ma
 
 Fill in the details of your service and run the Catalog. You will see all your services and will be able to navigate around and explore them!
 
-:::tip
-When you define your `producers` or `consumers` in your events the name has to match your Service folder name.
+:::warning
+**When you define your `producers` or `consumers` in your events the name has to match your Service folder name.**
 
 For example if you define a `producer` in your event called `Email Platform` your service folder name will have to be `Email Platform` (space included)
+
+In the future we may look at using `ids` vs `folder-name` matching here, if you are having problems, let us know and we can review this feature.
 :::
 
 

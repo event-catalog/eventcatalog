@@ -40,7 +40,6 @@ export interface Tag {
 }
 
 export interface Service {
-  id: string;
   name: string;
   summary: string;
   repository?: Repository;

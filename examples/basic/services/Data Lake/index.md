@@ -1,5 +1,4 @@
 ---
-id: Data Lake
 name: Data Lake
 summary: |
   Our internal datalake used by the data team and business analytics.

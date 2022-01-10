@@ -1,5 +1,4 @@
 ---
-id: Payment Service
 name: Payment Service
 summary: |
   Event based application that integrates with Stripe.
