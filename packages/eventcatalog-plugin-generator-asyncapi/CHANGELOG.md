@@ -1,1 +1,0 @@
-# @eventcatalog/plugin-doc-generator-asyncapi

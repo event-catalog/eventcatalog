@@ -69,9 +69,10 @@ cli
   .command('dev [siteDir]')
   .description('Start the development server.')
   .action(() => {
-    if (!fs.existsSync(eventCatalogLibDir)) {
-      copyCoreApplicationCodeIntoUsersProjectDir();
-    }
+    // Fix for https://github.com/boyney123/eventcatalog/issues/41, not the best but will do for now
+    fs.rmSync(eventCatalogLibDir, { recursive: true, force: true });
+
+    copyCoreApplicationCodeIntoUsersProjectDir();
 
     // copy any public assets over (from users to the lib itself)
     fs.copySync(path.join(projectDIR, 'public'), path.join(eventCatalogLibDir, 'public'));
