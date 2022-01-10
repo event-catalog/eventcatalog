@@ -30,7 +30,7 @@
     "node": ">=14"
   },
   "devDependencies": {
-    "@eventcatalog/types": "0.0.0",
+    "@eventcatalog/types": "0.0.1",
     "@types/fs-extra": "^9.0.13",
     "@types/json2md": "^1.5.1",
     "@types/yamljs": "^0.2.31"
