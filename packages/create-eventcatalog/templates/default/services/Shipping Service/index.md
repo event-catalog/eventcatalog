@@ -1,5 +1,4 @@
 ---
-id: Shipping Service
 name: Shipping Service
 summary: |
   Event based application that handles processing of shipments, preparing them and dispatching them.

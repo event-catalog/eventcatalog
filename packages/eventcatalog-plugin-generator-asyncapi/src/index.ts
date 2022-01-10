@@ -10,8 +10,6 @@ import type { AsyncAPIPluginOptions } from './types';
 import buildMarkdownFile from './markdown-builder';
 
 const getServiceFromAsyncDoc = (doc: AsyncAPIDocument): Service => ({
-  // TODO: do we need id?
-  id: doc.info().title(),
   name: doc.info().title(),
   summary: doc.info().description() || '',
 });

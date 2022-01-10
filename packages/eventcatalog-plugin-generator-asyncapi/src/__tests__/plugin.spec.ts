@@ -103,7 +103,6 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
 
       expect(generatedServiceMarkdownFile).toMatchMarkdown(
         `---
-          id: 'Account Service'
           name: 'Account Service'
           summary: 'This service is in charge of processing user signups'
           ---
@@ -174,7 +173,6 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
 
         expect(generatedServiceMarkdownFile).toMatchMarkdown(`
         ---
-          id: 'Account Service'
           name: 'Account Service'
           summary: 'This service is in charge of processing user signups'
         ---
