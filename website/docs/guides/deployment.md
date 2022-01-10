@@ -29,3 +29,20 @@ docker build -t eventcatalog .
 ```
 
 Then you can proceed as normal to host your new image/container anywhere you want!
+
+
+### Other Hosting Options
+
+In your own hosting provider, run the build script once, which builds the production application.
+
+```sh
+npm run build
+```
+
+After building, the start script starts a Node.js server that supports hybrid pages, serving both statically generated and server-side rendered pages, and API Routes
+
+```sh
+npm start
+```
+
+Your application will start on port `3000`.
