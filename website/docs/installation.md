@@ -31,21 +31,31 @@ Assuming you named your site `my-catalog`, you will see the following files gene
 ```sh
 my-catalog
 ├── services
-│   ├── Email Service
+│   ├── Basket Service
 │   │     └──index.md
-│   ├── User Service
+│   ├── Data Lake
+│   │     └──index.md
+│   ├── Payment Service
+│   │     └──index.md
+│   ├── Shipping Service
 │   │     └──index.md
 ├── events
-│   ├── UserCreated
+│   ├── AddedItemToCart
+│   │     └──versioned
+│   │     │  └──0.0.1
+│   │     │     └──index.md
+│   │     │     └──schema.json
 │   │     └──index.md
 │   │     └──schema.json
-│   ├── UserDeleted
+│   ├── OrerComplete
 │   │     └──index.md
 │   │     └──schema.json
-│   ├── EmailSent
+│   ├── OrderConfirmed
 │   │     └──index.md
 │   │     └──schema.json
-│   ├── EmailCreated
+│   ├── OrderRequested
+│   │     └──index.md
+│   ├── PaymentProcessed
 │   │     └──index.md
 ├── static
 │   └── img
@@ -59,8 +69,8 @@ my-catalog
 
 - `/services/` - Contains the service Markdown files within your Architecture. These are optional but recommended. More details can be found in the [services guide](/docs/services/introduction)
 - `/events/` - Contains your Event-Driven Architecture Events. These folders and files can contain markdown, schemas and much more. More details can be found in the [events guide](/docs/events/introduction)
-- `/static/` - Static directory. Any contents inside here will be copied into the root of the final `build` directory. You can add your own logo here and favicon.
-- `/eventcatalog.config.js` - A config file containing the site configuration.
+- `/static/` - Static directory. Any contents inside here will be copied into the root of the final `build` directory. You can add your own logo here and favicon. More details can be found in the [customise guide](/docs/guides/customise)
+- `/eventcatalog.config.js` - A config file containing the site configuration. Read the [API docs](/docs/api/eventcatalog-config)
 - `/package.json` - File required for your application to work.
 
 
