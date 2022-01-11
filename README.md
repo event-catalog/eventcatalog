@@ -48,7 +48,10 @@ Discovery and documentation is a key part to scalable Event Driven Architecture 
 
 **EventCatlaog was built to help document your EDA and help your teams explore and understand events, schemas and much more.**
 
-Read more on this blogpost: [Event-Driven Architecture: Beyond the Schema Registry](https://www.boyney.io/blog/2021-12-05-documenting-events)
+Read more on these blogposts:
+
+- [Introducing EventCatalog](https://www.boyney.io/blog/2022-01-11-introducing-eventcatalog)
+- [Event-Driven Architecture: Beyond the Schema Registry](https://www.boyney.io/blog/2021-12-05-documenting-events)
 
 # This solution
 
