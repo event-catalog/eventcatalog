@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.0.5
+
+### Patch Changes
+
+- [`576debd`](https://github.com/boyney123/eventcatalog/commit/576debdfc5dbc2fbbf98e2b3f4d78b84f9a07669) [#46](https://github.com/boyney123/eventcatalog/pull/46) Thanks [@boyney123](https://github.com/boyney123)! - fix: using cross-env to fix issues with windows OS
+
 ## 0.0.4
 
 ### Patch Changes
