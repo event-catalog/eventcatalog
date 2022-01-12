@@ -1,5 +1,11 @@
 # @eventcatalog/create-eventcatalog
 
+## 0.0.5
+
+### Patch Changes
+
+- [`ee17db8`](https://github.com/boyney123/eventcatalog/commit/ee17db8958ac6368f7d833f0d3ebec2604722e42) [#56](https://github.com/boyney123/eventcatalog/pull/56) Thanks [@boyney123](https://github.com/boyney123)! - feat: changelog.md files now belong inside the versioned folders
+
 ## 0.0.4
 
 ### Patch Changes
