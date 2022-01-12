@@ -21,7 +21,7 @@ body:
     attributes:
       label: Have you read the Contributing Guidelines on issues?
       options:
-        - label: I have read the [Contributing Guidelines on issues](https://github.com/boyney123/eventcatalog/blob/main/CONTRIBUTING.md#reporting-new-issues).
+        - label: I have read the [Contributing Guidelines on issues](https://github.com/boyney123/eventcatalog/blob/master/CONTRIBUTING.md#reporting-new-issues).
           required: true
 
   - type: textarea

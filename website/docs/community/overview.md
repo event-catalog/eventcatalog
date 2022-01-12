@@ -69,7 +69,7 @@ We use [GitHub Issues](https://github.com/boyney123/eventcatalog/issues) for our
 
 ### Feature requests
 
-You can also file issues as [feature requests or enhancements](https://github.com/boyney123/eventcatalog/labels/feature%20request). If you see anything you'd like to be implemented, create an issue with [feature template](https://raw.githubusercontent.com/boyney123/eventcatalog/main/.github/ISSUE_TEMPLATE/feature.md)
+You can also file issues as [feature requests or enhancements](https://github.com/boyney123/eventcatalog/labels/feature%20request). If you see anything you'd like to be implemented, create an issue with [feature template](https://raw.githubusercontent.com/boyney123/eventcatalog/master/.github/ISSUE_TEMPLATE/feature.md)
 
 ### Questions
 
