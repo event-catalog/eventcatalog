@@ -111,7 +111,7 @@ function EventSideBar({ event, loadedVersion }: EventSideBarProps) {
                   ? 'bg-blue-400 text-white shadow-md font-bold underline'
                   : 'bg-blue-100 text-blue-800';
                 return (
-                  <li className="text-sm inline ">
+                  <li className="text-sm inline" key={version}>
                     <Link href={`/events/${eventName}/v/${version}`}>
                       <a>
                         <span

@@ -44,6 +44,7 @@ const sidebars = {
         'guides/customise',
         'guides/components',
         'guides/deployment',
+        'guides/upgrading',
       ],
     },
   ],

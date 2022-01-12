@@ -53,3 +53,30 @@ Supported in
 ```
 
 
+### `<EventExamples />`
+
+Supported in 
+- event markdown files
+
+This component will allow you share code examples for any event. Reasons why you might do this:
+
+- Help the onboarding of the event with code
+- Show developers how to trigger the event
+- Show developers how to consume the events
+
+**Any language is supported!**
+
+#### Rendered Example 
+![UserSignedUp with Code Example](/img/guides/events/UserSignedUpExampleWithExamples.png)
+
+
+#### Usage
+
+```md title=EventExamples Component
+<EventExamples title="How to trigger event" />
+```
+
+EventCatalog will look inside your `examples` directory and every example will be rendered in it's own  tab.
+
+If you want to learn more you can read the [code examples guide](/docs/events/adding-examples).
+

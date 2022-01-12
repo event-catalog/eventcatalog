@@ -120,7 +120,7 @@ const getEventExamplesFromDir = (pathToExamples) => {
       return {
         name: filename,
         snippet: content,
-        langugage: extentionToLanguageMap[extension],
+        langugage: extentionToLanguageMap[extension] || extension,
       };
     });
   } catch (error) {

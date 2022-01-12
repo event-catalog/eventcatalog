@@ -27,4 +27,6 @@ We have a frontend application that allows users to buy things from our store. T
 
 <Mermaid />
 
+<EventExamples title="How to trigger event" />
+
 <Schema />
