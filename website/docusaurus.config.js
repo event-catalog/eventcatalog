@@ -40,6 +40,10 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      googleAnalytics: {
+        trackingID: 'G-DCBX4M3CVP',
+        anonymizeIP: true,
+      },
       navbar: {
         title: 'EventCatalog',
         logo: {
