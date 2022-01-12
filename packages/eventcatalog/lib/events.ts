@@ -56,7 +56,7 @@ export const getLogsForEvent = (eventName) => {
       let changelog = null;
 
       try {
-        const { content } = readMarkdownFile(path.join(pathToDir, 'changelog.md'));
+        const { content } = readMarkdownFile(path.join(previousVersionPathToDir, 'changelog.md'));
         changelog = content;
       } catch (error) {
         // nothing found it's OK.
