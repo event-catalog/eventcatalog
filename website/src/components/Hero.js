@@ -52,7 +52,7 @@ function Hero() {
           </div>
         </div>
 
-        <div className="hidden md:block relative">
+        <div className="relative mt-4 md:mt-0">
           <div className="absolute inset-0 flex flex-col" aria-hidden="true">
             <div className="flex-1" />
             <div className="flex-1 w-full bg-gray-800" />
