@@ -56,7 +56,15 @@ export const getComponents = ({ event, schema, examples }: any) => ({
     );
   },
   Admonition,
-  EventExamples: (props) => <Examples {...props} examples={examples} showLineNumbers />,
+  EventExamples: (props) => {
+    if (examples.length > 0) {
+      return <Examples {...props} examples={examples} showLineNumbers />;
+    }
+    console.log(
+      'You are using the <EventExamples /> component without any examples, please read https://eventcatalog.dev/docs/events/adding-examples for more information'
+    );
+    return null;
+  },
   Mermaid: ({ title }: { title: string }) => (
     <div className="mx-auto w-full py-10">
       {title && <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>}

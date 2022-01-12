@@ -17,7 +17,7 @@ interface AdmonitionProps {
   className?: string;
 }
 
-export default function Admonition({ children, type, className }: AdmonitionProps) {
+export default function Admonition({ children, type, className = '' }: AdmonitionProps) {
   const { color, icon: Icon } = getConfigurationByType(type);
 
   return (

@@ -137,7 +137,7 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
           <div className="space-y-3">
             <h2 className="text-sm font-medium text-gray-500">Language</h2>
             {languages.map((value) => (
-              <div className="relative flex items-center mt-2">
+              <div className="relative flex items-center mt-2" key={value}>
                 <div className="absolute flex-shrink-0 flex items-center justify-center">
                   <span
                     className="h-2 w-2 rounded-full"
