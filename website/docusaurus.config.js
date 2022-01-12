@@ -13,7 +13,15 @@ const config = {
   favicon: 'img/favicon.ico',
   organizationName: 'facebook', // Usually your GitHub org/user name.
   projectName: 'docusaurus', // Usually your repo name.
-  plugins: ['my-loaders'],
+  plugins: [
+    'my-loaders',
+    [
+      '@docusaurus/plugin-google-gtag',
+      {
+        trackingID: 'G-DCBX4M3CVP',
+      },
+    ],
+  ],
   scripts: ['https://unpkg.com/browse/leader-line@1.0.7/leader-line.min.js'],
   presets: [
     [
@@ -40,10 +48,6 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      googleAnalytics: {
-        trackingID: 'G-DCBX4M3CVP',
-        anonymizeIP: true,
-      },
       navbar: {
         title: 'EventCatalog',
         logo: {
