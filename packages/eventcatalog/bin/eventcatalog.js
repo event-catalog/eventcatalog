@@ -38,7 +38,7 @@ cli
   .command('start [siteDir]')
   .description('Start the development server.')
   .action(() => {
-    execSync(`PROJECT_DIR=${projectDIR} npm run start`, {
+    execSync(`cross-env PROJECT_DIR=${projectDIR} npm run start`, {
       cwd: eventCatalogLibDir,
       stdio: 'inherit',
     });
@@ -56,7 +56,7 @@ cli
     fs.copySync(path.join(projectDIR, 'public'), path.join(eventCatalogLibDir, 'public'));
 
     // build using nextjs
-    execSync(`PROJECT_DIR=${projectDIR} npm run build`, {
+    execSync(`cross-env PROJECT_DIR=${projectDIR} npm run build`, {
       cwd: eventCatalogLibDir,
       stdio: 'inherit',
     });
@@ -82,7 +82,7 @@ cli
       path.join(eventCatalogLibDir, 'eventcatalog.config.js')
     );
 
-    execSync(`PROJECT_DIR=${projectDIR} npm run dev`, {
+    execSync(`cross-env PROJECT_DIR=${projectDIR} npm run dev`, {
       cwd: eventCatalogLibDir,
       stdio: 'inherit',
     });
@@ -103,7 +103,7 @@ cli
       path.join(eventCatalogLibDir, 'eventcatalog.config.js')
     );
 
-    execSync(`PROJECT_DIR=${projectDIR} npm run generate`, {
+    execSync(`cross-env PROJECT_DIR=${projectDIR} npm run generate`, {
       cwd: eventCatalogLibDir,
       stdio: 'inherit',
     });
