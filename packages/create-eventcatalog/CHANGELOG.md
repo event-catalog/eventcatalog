@@ -1,5 +1,11 @@
 # @eventcatalog/create-eventcatalog
 
+## 0.0.4
+
+### Patch Changes
+
+- [`ad66a66`](https://github.com/boyney123/eventcatalog/commit/ad66a66b526a167cc8da43dd2371642c9f9029f2) [#49](https://github.com/boyney123/eventcatalog/pull/49) Thanks [@boyney123](https://github.com/boyney123)! - fix: now supports any extension for event examples also added missing docs
+
 ## 0.0.3
 
 ### Patch Changes
