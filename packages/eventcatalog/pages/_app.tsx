@@ -16,7 +16,7 @@ export default ({ Component, pageProps }: AppProps) => (
         name="description"
         content="An open source project to Discover, Explore and Document your Event Driven Architectures."
       />
-      <meta property="og:url" content="https://demo.eventcatalog.dev/" />
+      <meta property="og:url" content="https://eventcatalog.dev/" />
       <meta property="og:type" content="website" />
       <meta
         property="og:title"
@@ -26,7 +26,7 @@ export default ({ Component, pageProps }: AppProps) => (
         property="og:description"
         content="An open source tool powered by markdown to document your Event Driven Architecture."
       />
-      <meta property="og:image" content="https://demo.eventcatalog.dev/opengraph.png" />
+      <meta property="og:image" content="https://eventcatalog.dev/img/opengraph.png" />
       <meta
         property="og:image:alt"
         content="EventCatalog | Discover, Explore and Document your Event Driven Architectures."

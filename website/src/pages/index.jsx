@@ -30,7 +30,7 @@ export default function Home() {
           property="og:description"
           content="An open source tool powered by markdown to document your Event Driven Architecture."
         />
-        <meta property="og:image" content="https://demo.eventcatalog.dev/opengraph.png" />
+        <meta property="og:image" content="https://eventcatalog.dev/img/opengraph.png" />
         <meta
           property="og:image:alt"
           content="EventCatalog: Discover, Explore and Document your Event Driven Architectures."
