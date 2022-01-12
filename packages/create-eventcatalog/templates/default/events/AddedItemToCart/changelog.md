@@ -1,1 +1,0 @@
-Added `quantity` value to the schema.

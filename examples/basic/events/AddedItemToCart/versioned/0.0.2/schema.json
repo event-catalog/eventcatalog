@@ -37,7 +37,7 @@
           "type": "number",
           "description": "How many items the user wants to add to their shopping cart",
           "minimum": 1,
-          "maximum": 1000,
+          "maximum": 100,
           "default": 1
         }
       }
