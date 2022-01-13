@@ -45,12 +45,12 @@ You can choose where you want to render it within your markdown file and you jus
 
 Let's say we have a `UserCreated` event in `/events/UserCreated/index.md`.
 
-```mdx title="/events/UserSignedUp/index.md"
+```mdx title="/events/UserCreated/index.md"
 ---
-name: UserSignedUp
+name: UserCreated
 version: 0.0.1
 summary: |
-  Tells us when the user has signed up
+  Tells us when the user has been created
 consumers:
     - Email Platform
 producers:
