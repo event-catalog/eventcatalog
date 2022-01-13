@@ -13,7 +13,7 @@
 
 <img alt="header" src="https://github.com/boyney123/eventcatalog/blob/master/website/static/img/eventcatalog-screen1.png?raw=true" />
 
-  <h3>Features: Website generateor for Event Driven Architectures, Markdown driven, Document Events/Services/Schemas, Event Versioning, Event/Service Owners, Schema Changelogs, and more...</h3>
+  <h3>Features: Website generator for Event Driven Architectures, Markdown driven, Document Events/Services/Schemas, Event Versioning, Event/Service Owners, Schema Changelogs, and more...</h3>
 
 [Read the Docs](https://eventcatalog.dev/) | [Edit the Docs](https://github.com/boyney123/eventcatalog) | [View Demo](https://demo.eventcatalog.dev)
 
@@ -46,7 +46,7 @@ As more events, services and schemas get added to our domains they can be hard f
 
 Discovery and documentation is a key part to scalable Event Driven Architecture and EventCatalog helps you maintain documentation for them.
 
-**EventCatlaog was built to help document your EDA and help your teams explore and understand events, schemas and much more.**
+**EventCatalog was built to help document your EDA and help your teams explore and understand events, schemas and much more.**
 
 Read more on these blogposts:
 
@@ -71,7 +71,7 @@ EventCatalog is focused on discovery and documentation and allows you to:
 
 EventCatalog is technology agnostic, which means you can integrate the Catalog with any EDA technology of your choice and any schema format.
 
-EventCatlog supports a [Plugin Architecture](https://eventcatalog.dev/docs/api/plugins) which will let you generate documentation from your systems.
+EventCatalog supports a [Plugin Architecture](https://eventcatalog.dev/docs/api/plugins) which will let you generate documentation from your systems.
 
 You can read more on [how it works on the website](https://eventcatalog.dev)
 
