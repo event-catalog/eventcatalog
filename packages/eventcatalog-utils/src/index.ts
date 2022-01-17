@@ -138,7 +138,6 @@ const utils = ({ catalogDirectory }: FuncOptions) => ({
   buildServiceMarkdownForCatalog: buildServiceMarkdownForCatalog(),
 
   versionEvent: versionEvent({ catalogDirectory }),
-
   existsInCatalog: existsInCatalog({ catalogDirectory }),
 });
 
