@@ -4,7 +4,7 @@ import matter from 'gray-matter';
 import { Event } from '@eventcatalog/types';
 import buildMarkdownFile from './markdown-builder';
 
-interface options {
+interface FuncOptions {
   catalogDirectory: string;
 }
 
@@ -21,7 +21,7 @@ const readMarkdownFile = (pathToFile: string) => {
 };
 
 export const getAllEventsFromCatalog =
-  ({ catalogDirectory }: options) =>
+  ({ catalogDirectory }: FuncOptions) =>
   () => {
     const eventsDir = path.join(catalogDirectory, 'events');
     const folders = fs.readdirSync(eventsDir);
@@ -39,7 +39,7 @@ export const buildServiceMarkdownForCatalog =
     buildMarkdownFile({ frontMatterObject: event, customContent: markdownContent });
 
 export const getAllServicesFromCatalog =
-  ({ catalogDirectory }: options) =>
+  ({ catalogDirectory }: FuncOptions) =>
   (): any[] => {
     const servicesDir = path.join(catalogDirectory, 'services');
     const folders = fs.readdirSync(servicesDir);
@@ -47,7 +47,7 @@ export const getAllServicesFromCatalog =
   };
 
 export const getEventFromCatalog =
-  ({ catalogDirectory }: options) =>
+  ({ catalogDirectory }: FuncOptions) =>
   (eventName: string) => {
     try {
       // Read the directory to get the stuff we need.
@@ -62,13 +62,11 @@ export const getEventFromCatalog =
   };
 
 export const getServiceFromCatalog =
-  ({ catalogDirectory }: options) =>
+  ({ catalogDirectory }: FuncOptions) =>
   (seriveName: string) => {
     try {
       // Read the directory to get the stuff we need.
-      const event = readMarkdownFile(
-        path.join(catalogDirectory, 'services', seriveName, 'index.md')
-      );
+      const event = readMarkdownFile(path.join(catalogDirectory, 'services', seriveName, 'index.md'));
       return {
         data: event.data,
         content: event.content,
@@ -79,7 +77,7 @@ export const getServiceFromCatalog =
   };
 
 export const versionEvent =
-  ({ catalogDirectory }: options) =>
+  ({ catalogDirectory }: FuncOptions) =>
   (eventName: string, { removeOnVersion = true } = {}) => {
     const eventPath = path.join(catalogDirectory, 'events', eventName);
     const versionedPath = path.join(catalogDirectory, 'events', eventName, 'versioned');
@@ -90,29 +88,24 @@ export const versionEvent =
 
     const { data: { version } = {} } = event;
 
-    if (!version)
-      throw new Error(`Trying to version "${eventName}" but no 'version' value found on the event`);
+    if (!version) throw new Error(`Trying to version "${eventName}" but no 'version' value found on the event`);
 
     fs.copySync(eventPath, path.join(eventPath, '../tmp', eventName));
+
     if (fs.existsSync(path.join(eventPath, '../tmp', eventName, 'versioned'))) {
       fs.rmdirSync(path.join(eventPath, '../tmp', eventName, 'versioned'), { recursive: true });
     }
+
     fs.moveSync(path.join(eventPath, '../tmp', eventName), path.join(versionedPath, version), {
       overwrite: true,
     });
+
     fs.rmdirSync(path.join(eventPath, '../tmp'), { recursive: true });
 
     if (removeOnVersion) {
-      fs.copySync(
-        path.join(eventPath, 'versioned'),
-        path.join(eventPath, '../tmp', eventName, 'versioned')
-      );
+      fs.copySync(path.join(eventPath, 'versioned'), path.join(eventPath, '../tmp', eventName, 'versioned'));
       fs.rmdirSync(path.join(eventPath), { recursive: true });
-      fs.moveSync(
-        path.join(eventPath, '../tmp', eventName, 'versioned'),
-        path.join(eventPath, 'versioned'),
-        { overwrite: true }
-      );
+      fs.moveSync(path.join(eventPath, '../tmp', eventName, 'versioned'), path.join(eventPath, 'versioned'), { overwrite: true });
       fs.rmdirSync(path.join(eventPath, '../tmp'), { recursive: true });
     }
 
@@ -123,7 +116,19 @@ export const versionEvent =
     };
   };
 
-const utils = ({ catalogDirectory }: options) => ({
+interface ExistsInCatalogInterface {
+  type: 'service' | 'event';
+}
+
+const existsInCatalog =
+  ({ catalogDirectory }: FuncOptions) =>
+  (name: string, options: ExistsInCatalogInterface) => {
+    const { type } = options;
+    const folder = `${type}s`;
+    return fs.existsSync(path.join(catalogDirectory, folder, name));
+  };
+
+const utils = ({ catalogDirectory }: FuncOptions) => ({
   getEventFromCatalog: getEventFromCatalog({ catalogDirectory }),
   getAllEventsFromCatalog: getAllEventsFromCatalog({ catalogDirectory }),
   buildEventMarkdownForCatalog: buildEventMarkdownForCatalog(),
@@ -133,6 +138,8 @@ const utils = ({ catalogDirectory }: options) => ({
   buildServiceMarkdownForCatalog: buildServiceMarkdownForCatalog(),
 
   versionEvent: versionEvent({ catalogDirectory }),
+
+  existsInCatalog: existsInCatalog({ catalogDirectory }),
 });
 
 export default utils;

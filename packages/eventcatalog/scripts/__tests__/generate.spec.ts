@@ -31,9 +31,6 @@ describe('generate script', () => {
     await generate();
 
     expect(mockPlugin).toHaveBeenCalled();
-    expect(mockPlugin).toHaveBeenCalledWith(
-      { eventCatalogConfig: config },
-      { file: './asyncapi.yml' }
-    );
+    expect(mockPlugin).toHaveBeenCalledWith({ eventCatalogConfig: config }, { file: './asyncapi.yml' });
   });
 });

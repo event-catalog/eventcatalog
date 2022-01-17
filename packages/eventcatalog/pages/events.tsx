@@ -57,12 +57,8 @@ export default function Page({ events, services }: PageProps) {
     eventsToRender = eventsToRender.filter((event) => {
       const { services: serviceFilters } = selectedFilters;
 
-      const hasConsumersFromFilters = event.consumers.some(
-        (consumerId) => serviceFilters.indexOf(consumerId) > -1
-      );
-      const hasProducersFromFilters = event.producers.some(
-        (producerId) => serviceFilters.indexOf(producerId) > -1
-      );
+      const hasConsumersFromFilters = event.consumers.some((consumerId) => serviceFilters.indexOf(consumerId) > -1);
+      const hasProducersFromFilters = event.producers.some((producerId) => serviceFilters.indexOf(producerId) > -1);
 
       return hasConsumersFromFilters || hasProducersFromFilters;
     });
@@ -75,9 +71,7 @@ export default function Page({ events, services }: PageProps) {
       </Head>
       <main className="max-w-7xl mx-auto min-h-screen px-4 md:px-0">
         <div className="relative z-10 flex items-baseline justify-between pt-8 pb-6 border-b border-gray-200">
-          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">
-            Events ({events.length})
-          </h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">Events ({events.length})</h1>
 
           <div className="flex items-center">
             <Menu as="div" className="hidden relative text-left">
@@ -160,10 +154,7 @@ export default function Page({ events, services }: PageProps) {
                             defaultChecked={option.checked}
                             className="h-4 w-4 border-gray-300 rounded text-gray-600 focus:ring-gray-500"
                           />
-                          <label
-                            htmlFor={`filter-${section.id}-${optionIdx}`}
-                            className="ml-3 text-sm text-gray-600"
-                          >
+                          <label htmlFor={`filter-${section.id}-${optionIdx}`} className="ml-3 text-sm text-gray-600">
                             {option.label}
                           </label>
                         </div>
@@ -200,9 +191,7 @@ export default function Page({ events, services }: PageProps) {
 
             <div className="col-span-4 lg:col-span-3">
               <div>
-                <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">
-                  Events ({eventsToRender.length})
-                </h2>
+                <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">Events ({eventsToRender.length})</h2>
                 <EventGrid events={eventsToRender} showMermaidDiagrams={showMermaidDiagrams} />
               </div>
             </div>

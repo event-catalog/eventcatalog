@@ -36,9 +36,7 @@ export const getLogsForEvent = (eventName) => {
   }));
 
   // Get the latest version
-  const { data: { version: latestVersion } = {} } = readMarkdownFile(
-    path.join(eventsDir, eventName, 'index.md')
-  );
+  const { data: { version: latestVersion } = {} } = readMarkdownFile(path.join(eventsDir, eventName, 'index.md'));
 
   // Add the current version to the list
   allVersions.unshift({ version: latestVersion, pathToDir: path.join(eventsDir, eventName) });
@@ -143,10 +141,7 @@ export const getAllEvents = (): Event[] => {
   });
 };
 
-export const getEventByName = async (
-  eventName: string,
-  version?: string
-): Promise<{ event: Event; markdown: MarkdownFile }> => {
+export const getEventByName = async (eventName: string, version?: string): Promise<{ event: Event; markdown: MarkdownFile }> => {
   const eventsDir = path.join(process.env.PROJECT_DIR, 'events');
   const eventDirectory = path.join(eventsDir, eventName);
   let versionDirectory = null;

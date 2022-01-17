@@ -8,12 +8,7 @@ function Hero() {
           <div className="mt-12 md:mt-16 mx-auto max-w-7xl px-4 sm:px-6">
             <div className="text-center">
               <div className="flex items-center text-xl justify-center space-x-4 -ml-4">
-                <img
-                  src="/img/logo.svg"
-                  className="hidden md:block"
-                  alt="Logo"
-                  style={{ height: '85px' }}
-                />
+                <img src="/img/logo.svg" className="hidden md:block" alt="Logo" style={{ height: '85px' }} />
                 <h1 className="text-4xl md:text-7xl font-bold">EventCatalog</h1>
               </div>
               <p className="max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
@@ -41,10 +36,7 @@ function Hero() {
               </div>
               <div className="mt-10 space-x-6">
                 <span>License: MIT</span>
-                <a
-                  className="text-gray-800 underline"
-                  href="https://github.com/boyney123/eventcatalog"
-                >
+                <a className="text-gray-800 underline" href="https://github.com/boyney123/eventcatalog">
                   GitHub
                 </a>
               </div>
@@ -58,11 +50,7 @@ function Hero() {
             <div className="flex-1 w-full bg-gray-800" />
           </div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            <img
-              className="relative rounded-lg shadow-xl"
-              alt="EventCatalog Screenshot"
-              src="/img/eventcatalog-screen1.png"
-            />
+            <img className="relative rounded-lg shadow-xl" alt="EventCatalog Screenshot" src="/img/eventcatalog-screen1.png" />
           </div>
         </div>
       </div>
