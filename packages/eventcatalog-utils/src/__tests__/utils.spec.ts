@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable no-promise-executor-return */
 // @ts-nocheck
 
 import path from 'path';
