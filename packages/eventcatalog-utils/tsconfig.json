@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2019",
+    "module": "commonjs",
+    "strict": true,
+    "rootDir": "src",
+    "outDir": "lib",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "tsBuildInfoFile": "./lib/.tsbuildinfo",
+    "esModuleInterop": true,
+    "skipLibCheck": false,
+    "incremental": true
+  },
+  "exclude": ["*/__tests__/**/*", "*/lib/**/*"]
+}
