@@ -1,0 +1,32 @@
+{
+  "name": "@eventcatalog/utils",
+  "version": "0.0.0",
+  "description": "Util functions for EventCatalog",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:package": "tsc",
+    "watch": "tsc --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/boyney123/eventcatalog.git",
+    "directory": "packages/eventcatalog-utils"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "fs-extra": "^10.0.0",
+    "gray-matter": "^4.0.3",
+    "json2md": "^1.12.0",
+    "yamljs": "^0.3.0"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "devDependencies": {
+    "@eventcatalog/types": "0.0.2"
+  }
+}
