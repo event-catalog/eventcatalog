@@ -16,9 +16,7 @@ export const getAllServices = (): Service[] => {
   const servicesDir = path.join(process.env.PROJECT_DIR, 'services');
 
   const folders = fs.readdirSync(servicesDir);
-  const services = folders.map((folder) =>
-    readMarkdownFile(path.join(servicesDir, folder, 'index.md'))
-  );
+  const services = folders.map((folder) => readMarkdownFile(path.join(servicesDir, folder, 'index.md')));
   const events = getAllEvents();
 
   const parsedServices = services.map((frontMatter) => buildService(frontMatter.data));
@@ -32,17 +30,13 @@ export const getAllServices = (): Service[] => {
 
 export const getAllServicesByOwnerId = async (ownerId): Promise<Service[]> => {
   const services = await getAllServices();
-  const servicesOwnedByUser = services.filter((service) =>
-    service.owners.some((id) => id === ownerId)
-  );
+  const servicesOwnedByUser = services.filter((service) => service.owners.some((id) => id === ownerId));
   return servicesOwnedByUser.map((service) => ({
     ...service,
   }));
 };
 
-export const getServiceByName = async (
-  serviceName
-): Promise<{ service: Service; markdown: MarkdownFile }> => {
+export const getServiceByName = async (serviceName): Promise<{ service: Service; markdown: MarkdownFile }> => {
   try {
     const servicesDir = path.join(process.env.PROJECT_DIR, 'services');
     const serviceDirectory = path.join(servicesDir, serviceName);

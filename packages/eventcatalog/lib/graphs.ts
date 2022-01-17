@@ -16,10 +16,8 @@ ${rNodes.map((node) => `${nodeValue}:::event-->${node}:::consumer\n`).join('')}
   `;
 };
 
-export const buildMermaidFlowChartForEvent = (
-  { name: eventName, producers, consumers }: Event,
-  rootNodeColor = '#2563eb'
-) => buildMermaid(eventName, producers, consumers, rootNodeColor);
+export const buildMermaidFlowChartForEvent = ({ name: eventName, producers, consumers }: Event, rootNodeColor = '#2563eb') =>
+  buildMermaid(eventName, producers, consumers, rootNodeColor);
 
 export const buildMermaidFlowChartForService = (
   { publishes, subscribes, name: serviceName }: Service,

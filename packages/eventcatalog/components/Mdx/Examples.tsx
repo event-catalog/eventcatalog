@@ -12,12 +12,7 @@ interface ExampleProps {
   showLineNumbers?: boolean;
 }
 
-function Examples({
-  title = 'Examples',
-  description,
-  examples = [],
-  showLineNumbers,
-}: ExampleProps) {
+function Examples({ title = 'Examples', description, examples = [], showLineNumbers }: ExampleProps) {
   const tabs = examples.map((example, index) => ({
     name: example.name || `Example ${index + 1}`,
     content: example.snippet,
@@ -64,9 +59,7 @@ function Examples({
             <SyntaxHighlighter language={selectedTab.langugage} showLineNumbers={showLineNumbers}>
               {selectedTab.content}
             </SyntaxHighlighter>
-            {selectedTab.langugage && (
-              <span className="-mb-2 block text-xs text-right font-bold">{selectedTab.name}</span>
-            )}
+            {selectedTab.langugage && <span className="-mb-2 block text-xs text-right font-bold">{selectedTab.name}</span>}
           </div>
         </div>
       </div>

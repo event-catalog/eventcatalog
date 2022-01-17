@@ -22,16 +22,11 @@ const copyCoreApplicationCodeIntoUsersProjectDir = () => {
   // remove any files we don't care about
   exclusions.map((path) => {
     try {
-      fs.lstatSync(path).isDirectory()
-        ? fs.rmSync(path, { recursive: true, force: true })
-        : fs.unlinkSync(path);
+      fs.lstatSync(path).isDirectory() ? fs.rmSync(path, { recursive: true, force: true }) : fs.unlinkSync(path);
     } catch (error) {}
   });
 
-  fs.copyFileSync(
-    path.join(projectDIR, 'eventcatalog.config.js'),
-    path.join(eventCatalogLibDir, 'eventcatalog.config.js')
-  );
+  fs.copyFileSync(path.join(projectDIR, 'eventcatalog.config.js'), path.join(eventCatalogLibDir, 'eventcatalog.config.js'));
 };
 
 cli
@@ -77,10 +72,7 @@ cli
     // copy any public assets over (from users to the lib itself)
     fs.copySync(path.join(projectDIR, 'public'), path.join(eventCatalogLibDir, 'public'));
 
-    fs.copyFileSync(
-      path.join(projectDIR, 'eventcatalog.config.js'),
-      path.join(eventCatalogLibDir, 'eventcatalog.config.js')
-    );
+    fs.copyFileSync(path.join(projectDIR, 'eventcatalog.config.js'), path.join(eventCatalogLibDir, 'eventcatalog.config.js'));
 
     execSync(`cross-env PROJECT_DIR=${projectDIR} npm run dev`, {
       cwd: eventCatalogLibDir,
@@ -98,10 +90,7 @@ cli
       copyCoreApplicationCodeIntoUsersProjectDir();
     }
 
-    fs.copyFileSync(
-      path.join(projectDIR, 'eventcatalog.config.js'),
-      path.join(eventCatalogLibDir, 'eventcatalog.config.js')
-    );
+    fs.copyFileSync(path.join(projectDIR, 'eventcatalog.config.js'), path.join(eventCatalogLibDir, 'eventcatalog.config.js'));
 
     execSync(`cross-env PROJECT_DIR=${projectDIR} npm run generate`, {
       cwd: eventCatalogLibDir,

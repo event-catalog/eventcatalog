@@ -21,9 +21,7 @@ describe('file-reader lib', () => {
         { encoding: 'utf-8' }
       );
 
-      const result = getSchemaFromDir(
-        path.join(process.env.PROJECT_DIR, 'events', 'EventWithSchemaAndExamples')
-      );
+      const result = getSchemaFromDir(path.join(process.env.PROJECT_DIR, 'events', 'EventWithSchemaAndExamples'));
 
       expect(result.snippet).toEqual(rawSchemaFile);
       expect(result.language).toEqual('json');
@@ -42,14 +40,10 @@ describe('file-reader lib', () => {
         path.join(process.env.PROJECT_DIR, 'events', 'EventWithSchemaAndExamples', 'schema.json')
       );
 
-      const stats = fs.statSync(
-        path.join(process.env.PROJECT_DIR, 'events', 'EventWithSchemaAndExamples', 'schema.json')
-      );
+      const stats = fs.statSync(path.join(process.env.PROJECT_DIR, 'events', 'EventWithSchemaAndExamples', 'schema.json'));
 
       const fileData = new Date(stats.mtime);
-      const expectedResult = `${fileData.getFullYear()}/${
-        fileData.getMonth() + 1
-      }/${fileData.getDate()}`;
+      const expectedResult = `${fileData.getFullYear()}/${fileData.getMonth() + 1}/${fileData.getDate()}`;
 
       expect(result).toEqual(expectedResult);
     });

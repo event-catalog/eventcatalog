@@ -91,7 +91,7 @@ export const versionEvent =
     if (!version) throw new Error(`Trying to version "${eventName}" but no 'version' value found on the event`);
 
     fs.copySync(eventPath, path.join(eventPath, '../tmp', eventName));
-    
+
     if (fs.existsSync(path.join(eventPath, '../tmp', eventName, 'versioned'))) {
       fs.rmdirSync(path.join(eventPath, '../tmp', eventName, 'versioned'), { recursive: true });
     }

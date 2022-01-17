@@ -6,10 +6,7 @@ import dynamic from 'next/dynamic';
 
 import { getAllEvents, getUniqueServicesNamesFromEvents } from '@/lib/events';
 
-const ForceGraph3D = dynamic(
-  () => import('react-force-graph-3d').then((module) => module.default),
-  { ssr: false }
-);
+const ForceGraph3D = dynamic(() => import('react-force-graph-3d').then((module) => module.default), { ssr: false });
 
 function NodeElement({ node: { id } }: { node: { id: string } }) {
   return <div className={`text-sm text-center p-1 rounded-md `}>{id}</div>;

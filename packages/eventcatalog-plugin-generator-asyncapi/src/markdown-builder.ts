@@ -2,13 +2,7 @@ import YAML from 'yamljs';
 import json2md from 'json2md';
 import { Event, Service } from '@eventcatalog/types';
 
-export default ({
-  frontMatterObject,
-  customContent,
-}: {
-  frontMatterObject: Service | Event;
-  customContent?: string;
-}) => {
+export default ({ frontMatterObject, customContent }: { frontMatterObject: Service | Event; customContent?: string }) => {
   // eslint-disable-next-line no-multi-assign
   const customJSON2MD = (json2md.converters.mermaid = (render) => (render ? '<Mermaid />' : ''));
 

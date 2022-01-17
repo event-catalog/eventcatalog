@@ -43,10 +43,7 @@ function EventSideBar({ event, loadedVersion }: EventSideBarProps) {
                 <Link href={`/services/${producer}`}>
                   <a className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5">
                     <div className="absolute flex-shrink-0 flex items-center justify-center">
-                      <span
-                        className="h-1.5 w-1.5 rounded-full bg-green-500 animate animate-pulse"
-                        aria-hidden="true"
-                      />
+                      <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate animate-pulse" aria-hidden="true" />
                     </div>
                     <div className="ml-3.5 text-sm font-medium text-gray-900">{producer}</div>
                   </a>
@@ -66,15 +63,9 @@ function EventSideBar({ event, loadedVersion }: EventSideBarProps) {
             {consumers.map((consumer) => (
               <li className="inline" key={consumer}>
                 <Link href={`/services/${consumer}`}>
-                  <a
-                    href="#"
-                    className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
-                  >
+                  <a href="#" className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5">
                     <div className="absolute flex-shrink-0 flex items-center justify-center">
-                      <span
-                        className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate animate-pulse"
-                        aria-hidden="true"
-                      />
+                      <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate animate-pulse" aria-hidden="true" />
                     </div>
                     <div className="ml-3.5 text-sm font-medium text-gray-900">{consumer}</div>
                   </a>

@@ -67,9 +67,7 @@ function Logs({ changes, name: eventName, currentVersion }: LogsProps) {
                     </div>
                   </div>
 
-                  {changes.length === 0 && (
-                    <div className="text-gray-400 text-xl">No versions for Event found.</div>
-                  )}
+                  {changes.length === 0 && <div className="text-gray-400 text-xl">No versions for Event found.</div>}
 
                   <div className="flow-root mb-20">
                     <ul className="">
@@ -77,10 +75,7 @@ function Logs({ changes, name: eventName, currentVersion }: LogsProps) {
                         <li key={eventIdx} className="">
                           <div className="relative pb-8">
                             {eventIdx !== changes.length - 1 ? (
-                              <span
-                                className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-100"
-                                aria-hidden="true"
-                              />
+                              <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-100" aria-hidden="true" />
                             ) : null}
                             <div className="relative flex space-x-3">
                               <div>
@@ -99,9 +94,7 @@ function Logs({ changes, name: eventName, currentVersion }: LogsProps) {
                                     Schema version update
                                     {event.versions.map((version, index) => {
                                       const linkHref =
-                                        version === currentVersion
-                                          ? `/events/${eventName}`
-                                          : `/events/${eventName}/v/${version}`;
+                                        version === currentVersion ? `/events/${eventName}` : `/events/${eventName}/v/${version}`;
                                       return (
                                         <Link key={version} href={linkHref}>
                                           <a className="font-medium">
@@ -127,9 +120,7 @@ function Logs({ changes, name: eventName, currentVersion }: LogsProps) {
                                     </>
                                   )}
                                   {!event.changelog.source && (
-                                    <h2 className="text-base text-gray-300 font-bold mt-4">
-                                      No changelog file found.
-                                    </h2>
+                                    <h2 className="text-base text-gray-300 font-bold mt-4">No changelog file found.</h2>
                                   )}
                                 </div>
                                 <div className="text-right text-sm text-gray-500 py-4">

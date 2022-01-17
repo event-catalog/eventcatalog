@@ -14,7 +14,7 @@ const {
   getAllServicesFromCatalog,
   buildEventMarkdownForCatalog,
   buildServiceMarkdownForCatalog,
-  existsInCatalog
+  existsInCatalog,
 } = utils({
   catalogDirectory: CATALOG_DIRECTORY,
 });
@@ -203,15 +203,14 @@ describe('eventcatalog-utils', () => {
 
     describe('existsInCatalog (event)', () => {
       it('returns true when a given event exists in the catalog', () => {
-        const result = existsInCatalog('OrderComplete', { type: 'event'});
+        const result = existsInCatalog('OrderComplete', { type: 'event' });
         expect(result).toEqual(true);
       });
       it('returns false when a given event does not exist in the catalog', () => {
-        const result = existsInCatalog('RandomEVent', { type: 'event'});
+        const result = existsInCatalog('RandomEVent', { type: 'event' });
         expect(result).toEqual(false);
       });
     });
-
   });
 
   describe('services', () => {
@@ -316,15 +315,13 @@ describe('eventcatalog-utils', () => {
 
     describe('existsInCatalog (service)', () => {
       it('returns true when a given service exists in the catalog', () => {
-        const result = existsInCatalog('Order Service', { type: 'service'});
+        const result = existsInCatalog('Order Service', { type: 'service' });
         expect(result).toEqual(true);
       });
       it('returns false when a given service does not exist in the catalog', () => {
-        const result = existsInCatalog('RandomService', { type: 'service'});
+        const result = existsInCatalog('RandomService', { type: 'service' });
         expect(result).toEqual(false);
       });
     });
-
   });
-
 });

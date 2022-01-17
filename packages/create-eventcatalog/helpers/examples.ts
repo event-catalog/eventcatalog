@@ -24,9 +24,7 @@ export async function getRepoInfo(url: URL, examplePath?: string): Promise<RepoI
   // Support repos whose entire purpose is to be a NextJS example, e.g.
   // https://github.com/:username/:my-cool-nextjs-example-repo-name.
   if (t === undefined) {
-    const infoResponse = await got(`https://api.github.com/repos/${username}/${name}`).catch(
-      (e) => e
-    );
+    const infoResponse = await got(`https://api.github.com/repos/${username}/${name}`).catch((e) => e);
     if (infoResponse.statusCode !== 200) {
       return;
     }
@@ -35,9 +33,7 @@ export async function getRepoInfo(url: URL, examplePath?: string): Promise<RepoI
   }
 
   // If examplePath is available, the branch name takes the entire path
-  const branch = examplePath
-    ? `${_branch}/${file.join('/')}`.replace(new RegExp(`/${filePath}|/$`), '')
-    : _branch;
+  const branch = examplePath ? `${_branch}/${file.join('/')}`.replace(new RegExp(`/${filePath}|/$`), '') : _branch;
 
   if (username && name && branch && t === 'tree') {
     return { username, name, branch, filePath };
@@ -52,17 +48,10 @@ export function hasRepo({ username, name, branch, filePath }: RepoInfo): Promise
 }
 
 export function hasExample(name: string): Promise<boolean> {
-  return isUrlOk(
-    `https://api.github.com/repos/vercel/next.js/contents/examples/${encodeURIComponent(
-      name
-    )}/package.json`
-  );
+  return isUrlOk(`https://api.github.com/repos/vercel/next.js/contents/examples/${encodeURIComponent(name)}/package.json`);
 }
 
-export function downloadAndExtractRepo(
-  root: string,
-  { username, name, branch, filePath }: RepoInfo
-): Promise<void> {
+export function downloadAndExtractRepo(root: string, { username, name, branch, filePath }: RepoInfo): Promise<void> {
   return pipeline(
     got.stream(`https://codeload.github.com/${username}/${name}/tar.gz/${branch}`),
     tar.extract({ cwd: root, strip: filePath ? filePath.split('/').length + 1 : 1 }, [
