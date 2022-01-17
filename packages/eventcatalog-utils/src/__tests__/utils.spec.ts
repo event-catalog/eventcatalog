@@ -14,6 +14,7 @@ const {
   getAllServicesFromCatalog,
   buildEventMarkdownForCatalog,
   buildServiceMarkdownForCatalog,
+  existsInCatalog
 } = utils({
   catalogDirectory: CATALOG_DIRECTORY,
 });
@@ -53,8 +54,7 @@ describe('eventcatalog-utils', () => {
             data: {
               name: 'OrderComplete',
               version: '0.0.1',
-              summary:
-                'Event represents when an order has been complete. (Delivered and finished)\n',
+              summary: 'Event represents when an order has been complete. (Delivered and finished)\n',
               producers: ['Orders Service'],
               consumers: ['Data Lake'],
               owners: ['dboyne', 'mSmith'],
@@ -65,8 +65,7 @@ describe('eventcatalog-utils', () => {
             data: {
               name: 'OrderCreated',
               version: '0.0.1',
-              summary:
-                'Event represents when an order has been complete. (Delivered and finished)\n',
+              summary: 'Event represents when an order has been complete. (Delivered and finished)\n',
               producers: ['Orders Service'],
               consumers: ['Data Lake'],
               owners: ['dboyne', 'mSmith'],
@@ -136,11 +135,7 @@ describe('eventcatalog-utils', () => {
       it('takes a given event name and versions the event', () => {
         const { versionEvent } = utils({ catalogDirectory: VERSIONED_CATALOG_DIRECTORY });
 
-        expect(
-          fs.existsSync(
-            path.join(VERSIONED_CATALOG_DIRECTORY, 'events', 'OrderComplete', 'versioned')
-          )
-        ).toEqual(false);
+        expect(fs.existsSync(path.join(VERSIONED_CATALOG_DIRECTORY, 'events', 'OrderComplete', 'versioned'))).toEqual(false);
 
         const { versionedPath } = versionEvent('OrderComplete', { removeOnVersion: false });
 
@@ -155,11 +150,7 @@ describe('eventcatalog-utils', () => {
       it('takes a given event and versions the event, and also removes it from the root event directory if `removeOnVersion` is set to true', () => {
         const { versionEvent } = utils({ catalogDirectory: VERSIONED_CATALOG_DIRECTORY });
 
-        const newEventPath = path.join(
-          VERSIONED_CATALOG_DIRECTORY,
-          'events',
-          'EventWithCleanVersion'
-        );
+        const newEventPath = path.join(VERSIONED_CATALOG_DIRECTORY, 'events', 'EventWithCleanVersion');
 
         fs.ensureFileSync(path.join(newEventPath, 'index.md'));
 
@@ -180,11 +171,9 @@ describe('eventcatalog-utils', () => {
 ---`
         );
 
-        expect(
-          fs.existsSync(
-            path.join(VERSIONED_CATALOG_DIRECTORY, 'events', 'EventWithCleanVersion', 'versioned')
-          )
-        ).toEqual(false);
+        expect(fs.existsSync(path.join(VERSIONED_CATALOG_DIRECTORY, 'events', 'EventWithCleanVersion', 'versioned'))).toEqual(
+          false
+        );
 
         const { versionedPath } = versionEvent('EventWithCleanVersion', { removeOnVersion: true });
 
@@ -201,9 +190,7 @@ describe('eventcatalog-utils', () => {
 
       it('throws an error when event cannot be found', () => {
         const { versionEvent } = utils({ catalogDirectory: VERSIONED_CATALOG_DIRECTORY });
-        expect(() => versionEvent('RandomEvent')).toThrow(
-          'Cannot find event "RandomEvent" to version'
-        );
+        expect(() => versionEvent('RandomEvent')).toThrow('Cannot find event "RandomEvent" to version');
       });
 
       it('throws an when event does not have a version', () => {
@@ -213,6 +200,18 @@ describe('eventcatalog-utils', () => {
         );
       });
     });
+
+    describe('existsInCatalog (event)', () => {
+      it('returns true when a given event exists in the catalog', () => {
+        const result = existsInCatalog('OrderComplete', { type: 'event'});
+        expect(result).toEqual(true);
+      });
+      it('returns false when a given event does not exist in the catalog', () => {
+        const result = existsInCatalog('RandomEVent', { type: 'event'});
+        expect(result).toEqual(false);
+      });
+    });
+
   });
 
   describe('services', () => {
@@ -314,5 +313,18 @@ describe('eventcatalog-utils', () => {
         # Testing`);
       });
     });
+
+    describe('existsInCatalog (service)', () => {
+      it('returns true when a given service exists in the catalog', () => {
+        const result = existsInCatalog('Order Service', { type: 'service'});
+        expect(result).toEqual(true);
+      });
+      it('returns false when a given service does not exist in the catalog', () => {
+        const result = existsInCatalog('RandomService', { type: 'service'});
+        expect(result).toEqual(false);
+      });
+    });
+
   });
+
 });
