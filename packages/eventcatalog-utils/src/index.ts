@@ -95,7 +95,6 @@ export const versionEvent =
 
     fs.copySync(eventPath, path.join(eventPath, '../tmp', eventName));
     fs.rmdirSync(path.join(eventPath, '../tmp', eventName, 'versioned'), { recursive: true });
-    fs.rmdirSync(path.join(eventPath, '../tmp', eventName, 'versioned'), { recursive: true });
     fs.moveSync(path.join(eventPath, '../tmp', eventName), path.join(versionedPath, version), {
       overwrite: true,
     });
