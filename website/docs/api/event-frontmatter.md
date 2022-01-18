@@ -113,3 +113,18 @@ You can configure users in the `eventcatalog.config.js` file. Find out more read
 
 :::
 
+### `externalLinks` {#externalLinks}
+
+List of URLs that can be used when people want to reference to external documentation.
+
+- Type: `Tag`
+  - `label`: value that gets rendered on the UI
+  - `href`: URL for link
+
+```mdx title="Example"
+---
+  externalLinks: 
+    - label: AsyncAPI Specification
+      url: https://studio.asyncapi.com/#schema-lightMeasuredPayload
+---
+```
