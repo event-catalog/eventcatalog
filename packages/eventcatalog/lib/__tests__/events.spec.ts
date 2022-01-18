@@ -32,6 +32,7 @@ describe('events lib', () => {
         consumers: ['Customer Portal'],
         owners: ['dboyne', 'mSmith'],
         historicVersions: [],
+        externalLinks: [],
         schema: null,
         examples: [],
       });
@@ -109,6 +110,7 @@ describe('events lib', () => {
           producers: ['Shopping API', 'Application API'],
           consumers: ['Customer Portal'],
           historicVersions: [],
+          externalLinks: [],
           owners: ['dboyne', 'mSmith'],
         },
         {
@@ -117,6 +119,7 @@ describe('events lib', () => {
           summary: 'Tells us when an email has been sent\n',
           producers: ['Email Platform'],
           historicVersions: [],
+          externalLinks: [],
           consumers: [],
           owners: ['dboyne', 'mSmith'],
         },
@@ -125,6 +128,7 @@ describe('events lib', () => {
           version: '0.0.1',
           summary: 'Example event with schema and examples\n',
           historicVersions: [],
+          externalLinks: [],
           producers: [],
           consumers: [],
           owners: [],
@@ -135,6 +139,7 @@ describe('events lib', () => {
           summary: 'Tells us when an email has been sent\n',
           historicVersions: ['0.0.1'],
           producers: [],
+          externalLinks: [],
           consumers: [],
           owners: [],
         },
@@ -195,8 +200,9 @@ describe('events lib', () => {
           summary: 'Holds information about the cusomer and product when they add an item to the cart.\n',
           producers: ['Shopping API', 'Application API'],
           consumers: ['Customer Portal'],
-          historicVersions: [],
           owners: ['dboyne', 'mSmith'],
+          historicVersions: [],
+          externalLinks: [],
         },
         {
           name: 'EmailSent',
@@ -205,6 +211,7 @@ describe('events lib', () => {
           producers: ['Email Platform'],
           consumers: [],
           historicVersions: [],
+          externalLinks: [],
           owners: ['dboyne', 'mSmith'],
         },
       ]);
