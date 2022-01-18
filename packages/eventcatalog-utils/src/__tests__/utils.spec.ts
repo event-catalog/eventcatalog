@@ -14,7 +14,9 @@ const {
   getAllServicesFromCatalog,
   buildEventMarkdownForCatalog,
   buildServiceMarkdownForCatalog,
+  writeServiceToCatalog,
   existsInCatalog,
+  writeEventToCatalog,
 } = utils({
   catalogDirectory: CATALOG_DIRECTORY,
 });
@@ -50,7 +52,6 @@ describe('eventcatalog-utils', () => {
 
         expect(events).toEqual([
           {
-            content: '\n# Testing',
             data: {
               name: 'OrderComplete',
               version: '0.0.1',
@@ -59,9 +60,9 @@ describe('eventcatalog-utils', () => {
               consumers: ['Data Lake'],
               owners: ['dboyne', 'mSmith'],
             },
+            content: '\n# Testing',
           },
           {
-            content: '\n# Testing',
             data: {
               name: 'OrderCreated',
               version: '0.0.1',
@@ -70,6 +71,7 @@ describe('eventcatalog-utils', () => {
               consumers: ['Data Lake'],
               owners: ['dboyne', 'mSmith'],
             },
+            content: '\n# Testing',
           },
         ]);
       });
@@ -201,6 +203,184 @@ describe('eventcatalog-utils', () => {
       });
     });
 
+    describe('writeEventToCatalog', () => {
+      it('should take the given event and write it into the catalog', () => {
+        const event = {
+          name: 'My New Event',
+          summary: 'This is summary for my event',
+          owners: ['dBoyne'],
+        };
+
+        const { path: eventPath } = writeEventToCatalog(event);
+
+        expect(fs.existsSync(eventPath)).toEqual(true);
+
+        const result = fs.readFileSync(path.join(eventPath, 'index.md'), 'utf-8');
+
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My New Event'
+        summary: 'This is summary for my event'
+        owners:
+            - dBoyne
+        ---
+        <Mermaid />`);
+
+        // clean up
+        fs.rmdirSync(path.join(eventPath), { recursive: true });
+      });
+
+      it('when the same event already exists in the catalog, that markdown content is used in the new event', () => {
+        const event = {
+          name: 'My Event That Already Exists',
+          version: '1.0.0',
+          summary: 'This is summary for my event',
+          owners: ['dBoyne'],
+        };
+
+        const { path: eventPath } = writeEventToCatalog(event, {
+          useMarkdownContentFromExistingEvent: true,
+          markdownContent: '# My Content',
+        });
+        const result = fs.readFileSync(path.join(eventPath, 'index.md'), 'utf-8');
+
+        expect(result).toMatchMarkdown(`
+         ---
+         name: 'My Event That Already Exists'
+         version: 1.0.0
+         summary: 'This is summary for my event'
+         owners:
+             - dBoyne
+         ---
+         # My Content`);
+
+        const updatedEvent = {
+          name: 'My Event That Already Exists',
+          version: '1.2.0',
+          summary: 'New summary of event',
+          producers: ['random'],
+          owners: ['dBoyne'],
+        };
+
+        const { path: updatedEventPath } = writeEventToCatalog(updatedEvent, { useMarkdownContentFromExistingEvent: true });
+        const newFileContents = fs.readFileSync(path.join(eventPath, 'index.md'), 'utf-8');
+
+        expect(newFileContents).toMatchMarkdown(`
+        ---
+        name: 'My Event That Already Exists'
+        version: 1.2.0
+        summary: 'New summary of event'
+        producers:
+            - random
+        owners:
+            - dBoyne
+        ---
+        # My Content`);
+
+        fs.rmdirSync(path.join(updatedEventPath), { recursive: true });
+      });
+
+      it('writes the given event into the catalog and does not copy of existing content if `useMarkdownContentFromExistingEvent` is set to false', () => {
+        const event = {
+          name: 'My Event That Overrides Content',
+          summary: 'This is summary for my event',
+          owners: ['dBoyne'],
+        };
+
+        const { path: eventPath } = writeEventToCatalog(event, { useMarkdownContentFromExistingEvent: false });
+
+        const result = fs.readFileSync(path.join(eventPath, 'index.md'), 'utf-8');
+
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My Event That Overrides Content'
+        summary: 'This is summary for my event'
+        owners:
+            - dBoyne
+        ---
+        <Mermaid />`);
+
+        fs.rmdirSync(path.join(eventPath), { recursive: true });
+      });
+
+      describe('function options', () => {
+        it('when given a `schema` the schema is written into the catalog with the event', () => {
+          const event = {
+            name: 'My New Event',
+            summary: 'This is summary for my event',
+            owners: ['dBoyne'],
+          };
+
+          const { path: eventPath } = writeEventToCatalog(event, {
+            schema: { extension: 'json', fileContent: JSON.stringify({ test: true }, null, 4) },
+          });
+
+          expect(fs.existsSync(path.join(eventPath, 'schema.json'))).toEqual(true);
+
+          fs.rmdirSync(path.join(eventPath), { recursive: true });
+        });
+
+        it('when given a list of `codeExamples` they are written into the catalog with the event', () => {
+          const event = {
+            name: 'My New Event',
+            summary: 'This is summary for my event',
+            owners: ['dBoyne'],
+          };
+
+          const { path: eventPath } = writeEventToCatalog(event, {
+            codeExamples: [
+              { fileName: 'example1.js', fileContent: 'const x = () => {}' },
+              { fileName: 'example2.js', fileContent: 'const x = () => {}' },
+            ],
+          });
+
+          expect(fs.existsSync(path.join(eventPath, 'examples', 'example1.js'))).toEqual(true);
+          expect(fs.existsSync(path.join(eventPath, 'examples', 'example2.js'))).toEqual(true);
+
+          fs.rmdirSync(path.join(eventPath), { recursive: true });
+        });
+
+        it('versions the current event in the directory when `versionExistingEvent` is set to true', () => {
+          const event = {
+            name: 'My Versioned Event',
+            version: '1.0.0',
+            summary: 'This is summary for my event',
+            owners: ['dBoyne'],
+          };
+
+          const { path: eventPath } = writeEventToCatalog(event, {
+            codeExamples: [
+              { fileName: 'example1.js', fileContent: 'const x = () => {}' },
+              { fileName: 'example2.js', fileContent: 'const x = () => {}' },
+            ],
+            schema: { extension: 'json', fileContent: JSON.stringify({ test: true }, null, 4) },
+          });
+
+          expect(fs.existsSync(path.join(eventPath, 'versionsed', '1.0.0'))).toEqual(false);
+
+          const updatedEvent = {
+            name: 'My Versioned Event',
+            version: '1.1.0',
+            summary: 'This is summary for my event',
+            owners: ['dBoyne'],
+          };
+
+          const { path: updatedEventPath } = writeEventToCatalog(updatedEvent, {
+            codeExamples: [
+              { fileName: 'example1.js', fileContent: 'const x = () => {}' },
+              { fileName: 'example2.js', fileContent: 'const x = () => {}' },
+            ],
+            schema: { extension: 'json', fileContent: JSON.stringify({ test: true }, null, 4) },
+            versionExistingEvent: true,
+          });
+
+          expect(fs.existsSync(path.join(updatedEventPath, 'versioned', '1.0.0'))).toEqual(true);
+
+          fs.rmdirSync(path.join(updatedEventPath), { recursive: true });
+        });
+      });
+    });
+
     describe('existsInCatalog (event)', () => {
       it('returns true when a given event exists in the catalog', () => {
         const result = existsInCatalog('OrderComplete', { type: 'event' });
@@ -231,8 +411,8 @@ describe('eventcatalog-utils', () => {
         expect(content).toMatchMarkdown('# Testing');
       });
 
-      it('returns null when a given event name does not exist in the catalog', () => {
-        const event = getEventFromCatalog('RandomEventThatDoesNotExist');
+      it('returns null when a given service name does not exist in the catalog', () => {
+        const event = getServiceFromCatalog('RandomServiceThatDoesNotExist');
 
         expect(event).toEqual(null);
       });
@@ -243,6 +423,18 @@ describe('eventcatalog-utils', () => {
         const services = getAllServicesFromCatalog();
 
         expect(services).toEqual([
+          {
+            data: {
+              name: 'My Service That Already Exists',
+              summary: 'This is summary for my service',
+              repository: {
+                url: 'https://github.com/boyney123/eventcatalog',
+                language: 'JavaScript',
+              },
+              owners: ['dBoyne'],
+            },
+            content: '# Content already exists',
+          },
           {
             data: {
               name: 'Order Service',
@@ -321,6 +513,118 @@ describe('eventcatalog-utils', () => {
       it('returns false when a given service does not exist in the catalog', () => {
         const result = existsInCatalog('RandomService', { type: 'service' });
         expect(result).toEqual(false);
+      });
+    });
+
+    describe('writeServiceToCatalog', () => {
+      it('should take the given service and write it into the catalog', () => {
+        const service = {
+          name: 'My New Service',
+          summary: 'This is summary for my service',
+          repository: {
+            url: 'https://github.com/boyney123/eventcatalog',
+            language: 'JavaScript',
+          },
+          owners: ['dBoyne'],
+        };
+
+        const { path: servicePath } = writeServiceToCatalog(service);
+
+        expect(fs.existsSync(servicePath)).toEqual(true);
+
+        const result = fs.readFileSync(path.join(servicePath, 'index.md'), 'utf-8');
+
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My New Service'
+        summary: 'This is summary for my service'
+        repository:
+            url: 'https://github.com/boyney123/eventcatalog'
+            language: JavaScript
+        owners:
+            - dBoyne
+        ---
+        <Mermaid />`);
+
+        // clean up
+        fs.rmdirSync(path.join(servicePath), { recursive: true });
+      });
+
+      it('when the same service already exists in the catalog, that markdown content is used in the new service', () => {
+        const service = {
+          name: 'My Service That Already Exists',
+          summary: 'This is summary for my service',
+          repository: {
+            url: 'https://github.com/boyney123/eventcatalog',
+            language: 'JavaScript',
+          },
+          owners: ['dBoyne'],
+        };
+
+        const { path: servicePath } = writeServiceToCatalog(service, { useMarkdownContentFromExistingService: true });
+
+        // expect(fs.existsSync(servicePath)).toEqual(true);
+
+        const result = fs.readFileSync(path.join(servicePath, 'index.md'), 'utf-8');
+
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My Service That Already Exists'
+        summary: 'This is summary for my service'
+        repository:
+            url: 'https://github.com/boyney123/eventcatalog'
+            language: JavaScript
+        owners:
+            - dBoyne
+        ---
+        # Content already exists`);
+      });
+
+      it('writes the given service into the catalog and does not copy of existing content if `useMarkdownContentFromExistingService` is set to false', () => {
+        const service = {
+          name: 'My Service That Overrides Content',
+          summary: 'This is summary for my service',
+          repository: {
+            url: 'https://github.com/boyney123/eventcatalog',
+            language: 'JavaScript',
+          },
+          owners: ['dBoyne'],
+        };
+
+        const { path: servicePath } = writeServiceToCatalog(service, { useMarkdownContentFromExistingService: false });
+
+        // expect(fs.existsSync(servicePath)).toEqual(true);
+
+        const result = fs.readFileSync(path.join(servicePath, 'index.md'), 'utf-8');
+
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My Service That Overrides Content'
+        summary: 'This is summary for my service'
+        repository:
+            url: 'https://github.com/boyney123/eventcatalog'
+            language: JavaScript
+        owners:
+            - dBoyne
+        ---
+        <Mermaid />`);
+
+        fs.rmdirSync(path.join(servicePath), { recursive: true });
+      });
+
+      it('throws an error when the given service does not have a name', () => {
+        const service = {
+          summary: 'This is summary for my service',
+          repository: {
+            url: 'https://github.com/boyney123/eventcatalog',
+            language: 'JavaScript',
+          },
+          owners: ['dBoyne'],
+        };
+
+        expect(() => writeServiceToCatalog(service, { useMarkdownContentFromExistingService: false })).toThrow(
+          'No `name` found for given service'
+        );
       });
     });
   });
