@@ -103,7 +103,7 @@ export default function ContentView({
                     </div>
                   </div>
                 </div>
-                <div className="flex justify-between mt-10">
+                <div className={`flex mt-10 ${editUrl ? 'justify-between' : 'justify-end'}`}>
                   {editUrl && (
                     <a href={editUrl} target="_blank" className="flex text-gray-400" rel="noreferrer">
                       <PencilIcon className="top-1 mr-2 relative h-4 w-4 text-gray-400" aria-hidden="true" />

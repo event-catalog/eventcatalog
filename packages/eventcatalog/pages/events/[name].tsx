@@ -67,7 +67,7 @@ export const getComponents = ({ event, schema, examples }: any) => ({
 
 export default function Events(props: EventsPageProps) {
   const { event, markdown, loadedVersion, notFound } = props;
-  const { getEditUrl } = useUrl();
+  const { getEditUrl, hasEditUrl } = useUrl();
 
   if (notFound) return <NotFound type="event" name={event.name} editUrl={editUrl} />;
 
@@ -89,9 +89,8 @@ export default function Events(props: EventsPageProps) {
         </title>
       </Head>
       <ContentView
-        // {...props}
         title={name}
-        editUrl={getEditUrl(`/events/${name}/index.md`)}
+        editUrl={hasEditUrl ? getEditUrl(`/events/${name}/index.md`) : ''}
         subtitle={summary}
         draft={draft}
         lastModifiedDate={lastModifiedDate}

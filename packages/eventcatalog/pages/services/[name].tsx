@@ -37,7 +37,7 @@ const getComponents = (service) => ({
 
 export default function Services(props: ServicesPageProps) {
   const { service, markdown, notFound } = props;
-  const { getEditUrl } = useUrl();
+  const { getEditUrl, hasEditUrl } = useUrl();
 
   if (notFound) return <NotFound type="service" name={service.name} editUrl={editUrl} />;
 
@@ -58,7 +58,7 @@ export default function Services(props: ServicesPageProps) {
       </Head>
       <ContentView
         title={name}
-        editUrl={getEditUrl(`/services/${name}/index.md`)}
+        editUrl={hasEditUrl ? getEditUrl(`/services/${name}/index.md`) : ''}
         subtitle={summary}
         draft={draft}
         lastModifiedDate={lastModifiedDate}
