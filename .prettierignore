@@ -6,6 +6,7 @@ build
 coverage
 packages/eventcatalog-*/lib/*
 packages/eventcatalog-*/lib-next/
+packages/eventcatalog/eventcatalog.config.js
 packages/create-eventcatalog/lib/*
 packages/create-eventcatalog/templates/*/eventcatalog.config.js
 .next
