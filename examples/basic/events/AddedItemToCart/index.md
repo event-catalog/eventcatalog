@@ -12,7 +12,7 @@ domains:
 owners:
     - dboyne
     - mSmith
-extLinks: 
+externalLinks: 
     - label: AsyncAPI Specification
       url: https://studio.asyncapi.com/#schema-lightMeasuredPayload
   
