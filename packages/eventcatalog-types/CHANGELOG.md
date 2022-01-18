@@ -1,5 +1,13 @@
 # @eventcatalog/types
 
+## 0.0.3
+
+### Patch Changes
+
+- [`534bec1`](https://github.com/boyney123/eventcatalog/commit/534bec11f57bcabe7f79f40338ae02bef134efc2) [#78](https://github.com/boyney123/eventcatalog/pull/78) Thanks [@thim81](https://github.com/thim81)! - feat: externalLinks for services
+
+* [`9eb7463`](https://github.com/boyney123/eventcatalog/commit/9eb7463b32baa09a6dd693e7f0eede63e33cd39c) [#71](https://github.com/boyney123/eventcatalog/pull/71) Thanks [@thim81](https://github.com/thim81)! - feat: link to external event documentation added
+
 ## 0.0.2
 
 ### Patch Changes
