@@ -64,11 +64,7 @@ export async function createApp({
       repoInfo = await getRepoInfo(repoUrl, examplePath);
 
       if (!repoInfo) {
-        console.error(
-          `Found invalid GitHub URL: ${chalk.red(
-            `"${example}"`
-          )}. Please fix the URL and try again.`
-        );
+        console.error(`Found invalid GitHub URL: ${chalk.red(`"${example}"`)}. Please fix the URL and try again.`);
         process.exit(1);
       }
 
@@ -87,9 +83,7 @@ export async function createApp({
 
       if (!found) {
         console.error(
-          `Could not locate an example named ${chalk.red(
-            `"${example}"`
-          )}. It could be due to the following:\n`,
+          `Could not locate an example named ${chalk.red(`"${example}"`)}. It could be due to the following:\n`,
           `1. Your spelling of example ${chalk.red(`"${example}"`)} might be incorrect.\n`,
           '2. You might not be connected to the internet.'
         );
@@ -101,9 +95,7 @@ export async function createApp({
   const root = path.resolve(appPath);
 
   if (!(await isWriteable(path.dirname(root)))) {
-    console.error(
-      'The application path is not writable, please check folder permissions and try again.'
-    );
+    console.error('The application path is not writable, please check folder permissions and try again.');
     console.error('It is likely you do not have write permissions for this folder.');
     process.exit(1);
   }
@@ -131,17 +123,13 @@ export async function createApp({
     try {
       if (repoInfo) {
         const repoInfo2 = repoInfo;
-        console.log(
-          `Downloading files from repo ${chalk.cyan(example)}. This might take a moment.`
-        );
+        console.log(`Downloading files from repo ${chalk.cyan(example)}. This might take a moment.`);
         console.log();
         await retry(() => downloadAndExtractRepo(root, repoInfo2), {
           retries: 3,
         });
       } else {
-        console.log(
-          `Downloading files for example ${chalk.cyan(example)}. This might take a moment.`
-        );
+        console.log(`Downloading files for example ${chalk.cyan(example)}. This might take a moment.`);
         console.log();
         await retry(() => downloadAndExtractExample(root, example), {
           retries: 3,
@@ -192,10 +180,7 @@ export async function createApp({
     /**
      * Write it to disk.
      */
-    fs.writeFileSync(
-      path.join(root, 'package.json'),
-      JSON.stringify(packageJson, null, 2) + os.EOL
-    );
+    fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify(packageJson, null, 2) + os.EOL);
     /**
      * These flags will be passed to `install()`.
      */

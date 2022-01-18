@@ -27,8 +27,7 @@ describe('events lib', () => {
       expect(event).toEqual({
         name: 'AddedItemToCart',
         version: '0.0.1',
-        summary:
-          'Holds information about the cusomer and product when they add an item to the cart.\n',
+        summary: 'Holds information about the cusomer and product when they add an item to the cart.\n',
         producers: ['Shopping API', 'Application API'],
         consumers: ['Customer Portal'],
         owners: ['dboyne', 'mSmith'],
@@ -68,23 +67,11 @@ describe('events lib', () => {
       const example2 = event.examples[1];
 
       const example1File = fs.readFileSync(
-        path.join(
-          process.env.PROJECT_DIR,
-          'events',
-          'EventWithSchemaAndExamples',
-          'examples',
-          'Basic.cs'
-        ),
+        path.join(process.env.PROJECT_DIR, 'events', 'EventWithSchemaAndExamples', 'examples', 'Basic.cs'),
         { encoding: 'utf-8' }
       );
       const example2File = fs.readFileSync(
-        path.join(
-          process.env.PROJECT_DIR,
-          'events',
-          'EventWithSchemaAndExamples',
-          'examples',
-          'Basic.js'
-        ),
+        path.join(process.env.PROJECT_DIR, 'events', 'EventWithSchemaAndExamples', 'examples', 'Basic.js'),
         { encoding: 'utf-8' }
       );
 
@@ -118,8 +105,7 @@ describe('events lib', () => {
         {
           name: 'AddedItemToCart',
           version: '0.0.1',
-          summary:
-            'Holds information about the cusomer and product when they add an item to the cart.\n',
+          summary: 'Holds information about the cusomer and product when they add an item to the cart.\n',
           producers: ['Shopping API', 'Application API'],
           consumers: ['Customer Portal'],
           historicVersions: [],
@@ -206,8 +192,7 @@ describe('events lib', () => {
         {
           name: 'AddedItemToCart',
           version: '0.0.1',
-          summary:
-            'Holds information about the cusomer and product when they add an item to the cart.\n',
+          summary: 'Holds information about the cusomer and product when they add an item to the cart.\n',
           producers: ['Shopping API', 'Application API'],
           consumers: ['Customer Portal'],
           historicVersions: [],
@@ -232,8 +217,7 @@ describe('events lib', () => {
         {
           name: 'AddedItemToCart',
           version: '0.0.1',
-          summary:
-            'Holds information about the cusomer and product when they add an item to the cart.\n',
+          summary: 'Holds information about the cusomer and product when they add an item to the cart.\n',
           producers: ['Shopping API', 'My Service'],
           consumers: ['Customer Portal'],
           historicVersions: [],
@@ -254,8 +238,7 @@ describe('events lib', () => {
           {
             name: 'AddedItemToCart',
             version: '0.0.1',
-            summary:
-              'Holds information about the cusomer and product when they add an item to the cart.\n',
+            summary: 'Holds information about the cusomer and product when they add an item to the cart.\n',
             producers: ['Shopping API', 'My Service'],
             consumers: ['Customer Portal'],
             historicVersions: [],
@@ -271,8 +254,7 @@ describe('events lib', () => {
         {
           name: 'AddedItemToCart',
           version: '0.0.1',
-          summary:
-            'Holds information about the cusomer and product when they add an item to the cart.\n',
+          summary: 'Holds information about the cusomer and product when they add an item to the cart.\n',
           producers: ['Shopping API', 'Service'],
           consumers: ['Customer Portal'],
           historicVersions: [],

@@ -20,8 +20,7 @@ describe('services', () => {
       expect(services).toEqual([
         {
           name: 'Email Platform',
-          summary:
-            'Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS\n',
+          summary: 'Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS\n',
           owners: ['dboyne'],
           repository: {
             url: 'https://github.com/boyney123/EmailPlatform',
@@ -65,8 +64,7 @@ describe('services', () => {
       expect(services).toEqual([
         {
           name: 'Email Platform',
-          summary:
-            'Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS\n',
+          summary: 'Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS\n',
           owners: ['dboyne'],
           repository: {
             url: 'https://github.com/boyney123/EmailPlatform',
@@ -104,8 +102,7 @@ describe('services', () => {
 
       expect(service).toEqual({
         name: 'Email Platform',
-        summary:
-          'Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS\n',
+        summary: 'Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS\n',
         owners: ['dboyne'],
         repository: {
           url: 'https://github.com/boyney123/EmailPlatform',

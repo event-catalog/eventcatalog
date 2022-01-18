@@ -31,9 +31,7 @@ export default function Page({ services }: PageProps) {
       </Head>
       <main className="max-w-7xl mx-auto md:min-h-screen px-4 md:px-0">
         <div className="relative z-10 flex items-baseline justify-between pt-8 pb-6 border-b border-gray-200">
-          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">
-            Services ({services.length})
-          </h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">Services ({services.length})</h1>
 
           <div className="flex items-center">
             <Menu as="div" className="relative hidden text-left">
@@ -99,9 +97,7 @@ export default function Page({ services }: PageProps) {
 
             <div className="col-span-4 lg:col-span-3">
               <div>
-                <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">
-                  Services
-                </h2>
+                <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">Services</h2>
                 <ServiceGrid services={services} />
               </div>
             </div>

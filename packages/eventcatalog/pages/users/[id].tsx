@@ -29,15 +29,11 @@ export default function UserPage({ events, services, userId }: UserPageProps) {
                 </div>
               </div>
               <div className=" border-b border-gray-100 pb-6">
-                <h1 className="text-lg font-bold text-gray-800 relative mt-4">
-                  Owner of Events ({events.length})
-                </h1>
+                <h1 className="text-lg font-bold text-gray-800 relative mt-4">Owner of Events ({events.length})</h1>
                 <EventGrid events={events} />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-800 relative mt-4">
-                  Owner of Services ({services.length})
-                </h1>
+                <h1 className="text-lg font-bold text-gray-800 relative mt-4">Owner of Services ({services.length})</h1>
                 <ServiceGrid services={services} />
               </div>
             </div>
@@ -46,10 +42,7 @@ export default function UserPage({ events, services, userId }: UserPageProps) {
                 <div className="flex-shrink-0">
                   <div className="relative">
                     <img className="h-16 w-16 rounded-full" src={user.avatarUrl} alt="" />
-                    <span
-                      className="absolute inset-0 shadow-inner rounded-full"
-                      aria-hidden="true"
-                    />
+                    <span className="absolute inset-0 shadow-inner rounded-full" aria-hidden="true" />
                   </div>
                 </div>
                 <div>
@@ -57,9 +50,7 @@ export default function UserPage({ events, services, userId }: UserPageProps) {
                   <p className="text-sm font-medium text-gray-500">{user.role}</p>
                 </div>
               </div>
-              <div className="mt-6 flow-root border-t border-gray-200 py-6 text-sm">
-                {user.summary}
-              </div>
+              <div className="mt-6 flow-root border-t border-gray-200 py-6 text-sm">{user.summary}</div>
             </div>
           </div>
         </div>

@@ -1,0 +1,39 @@
+{
+  "$id": "https://example.com/OrderRequested.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OrderRequested",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "correlationId": {
+          "type": "string",
+          "description": "The ID of the user"
+        },
+        "domain": {
+          "type": "string",
+          "description": "The domain of the event"
+        },
+        "service": {
+          "type": "string",
+          "description": "The name of the service that triggered the event"
+        }
+      },
+      "required": ["correlationId", "domain", "service"]
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user"
+        },
+        "orderId": {
+          "type": "string",
+          "description": "The ID the users order"
+        }
+      }
+    }
+  }
+}

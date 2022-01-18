@@ -39,9 +39,7 @@ export default function ContentView({
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 xl:max-w-7xl xl:grid xl:grid-cols-4">
               <div className="xl:col-span-3 xl:pr-8 xl:border-r xl:border-gray-200 flex-col justify-between flex">
                 <div>
-                  {BreadCrumbs && (
-                    <div className="mb-5 border-b border-gray-100 pb-4">{BreadCrumbs}</div>
-                  )}
+                  {BreadCrumbs && <div className="mb-5 border-b border-gray-100 pb-4">{BreadCrumbs}</div>}
                   <div>
                     <div>
                       <div className="xl:border-b pb-4 flex justify-between ">
@@ -70,9 +68,7 @@ export default function ContentView({
                               <>
                                 You are currently viewing an old version of this event ({version}).
                                 <Link href={latestVersionUrl}>
-                                  <a className="block text-sm pl-7 mt-2 text-blue-500 underline">
-                                    Read latest version &rarr;
-                                  </a>
+                                  <a className="block text-sm pl-7 mt-2 text-blue-500 underline">Read latest version &rarr;</a>
                                 </Link>
                               </>
                             </Admonition>
@@ -100,8 +96,7 @@ export default function ContentView({
                         {isDraft && (
                           <Admonition className="mt-0 pt-0" type="warning">
                             <>
-                              This event is currently in <span className="underline">draft</span>{' '}
-                              mode.
+                              This event is currently in <span className="underline">draft</span> mode.
                             </>
                           </Admonition>
                         )}
