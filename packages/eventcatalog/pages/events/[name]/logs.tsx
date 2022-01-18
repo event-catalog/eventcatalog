@@ -59,11 +59,9 @@ function Logs({ changes, name: eventName, currentVersion }: LogsProps) {
                   <BreadCrumbs pages={pages} />
                 </div>
                 <div>
-                  <div>
-                    <div className="border-b pb-4 flex justify-between mb-4">
-                      <div className="space-y-2 w-full">
-                        <h1 className="text-3xl font-bold text-gray-900 relative">EmailSent</h1>
-                      </div>
+                  <div className="border-b pb-4 flex justify-between mb-4">
+                    <div className="space-y-2 w-full">
+                      <h1 className="text-3xl font-bold text-gray-900 relative">{eventName}</h1>
                     </div>
                   </div>
 
