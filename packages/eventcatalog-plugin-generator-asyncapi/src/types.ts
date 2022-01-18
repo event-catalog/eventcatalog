@@ -1,4 +1,4 @@
 export type AsyncAPIPluginOptions = {
   spec: string;
-  merge?: boolean;
+  versionEvents?: boolean
 };

@@ -25,7 +25,7 @@ describe('eventcatalog-utils', () => {
   describe('events', () => {
     describe('getEventFromCatalog', () => {
       it('returns the given event name from the catalog', () => {
-        const { content, data } = getEventFromCatalog('OrderComplete');
+        const { content, data, raw } = getEventFromCatalog('OrderComplete');
 
         expect(data).toEqual({
           name: 'OrderComplete',
@@ -37,6 +37,7 @@ describe('eventcatalog-utils', () => {
         });
 
         expect(content).toMatchMarkdown('# Testing');
+        expect(raw).toBeDefined();
       });
 
       it('returns null when a given event name does not exist in the catalog', () => {
@@ -396,7 +397,7 @@ describe('eventcatalog-utils', () => {
   describe('services', () => {
     describe('getServiceFromCatalog', () => {
       it('returns the given sevice name from the catalog', () => {
-        const { content, data } = getServiceFromCatalog('Order Service');
+        const { content, data, raw } = getServiceFromCatalog('Order Service');
 
         expect(data).toEqual({
           name: 'Order Service',
@@ -409,6 +410,8 @@ describe('eventcatalog-utils', () => {
         });
 
         expect(content).toMatchMarkdown('# Testing');
+
+        expect(raw).toBeDefined();
       });
 
       it('returns null when a given service name does not exist in the catalog', () => {

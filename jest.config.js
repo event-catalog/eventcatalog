@@ -19,7 +19,10 @@ module.exports = {
   moduleNameMapper: {
     '@/lib/(.*)': '<rootDir>/packages/eventcatalog/lib/$1',
   },
-  modulePathIgnorePatterns: ['<rootDir>/packages/eventcatalog-utils/src/__tests__/assets'],
+  modulePathIgnorePatterns: [
+    '<rootDir>/packages/eventcatalog-utils/src/__tests__/assets',
+    '<rootDir>/packages/eventcatalog-plugin-generator-asyncapi/src/__tests__/tmp',
+  ],
   transform: {
     '^.+\\.[jt]sx?$': 'babel-jest',
   },

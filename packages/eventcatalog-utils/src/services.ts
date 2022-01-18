@@ -10,7 +10,10 @@ const readMarkdownFile = (pathToFile: string) => {
   const file = fs.readFileSync(pathToFile, {
     encoding: 'utf-8',
   });
-  return matter(file);
+  return {
+    parsed: matter(file),
+    raw: file
+  };
 };
 
 export const buildServiceMarkdownForCatalog =
@@ -23,7 +26,11 @@ export const getAllServicesFromCatalog =
   (): any[] => {
     const servicesDir = path.join(catalogDirectory, 'services');
     const folders = fs.readdirSync(servicesDir);
-    return folders.map((folder) => getServiceFromCatalog({ catalogDirectory })(folder));
+    return folders.map((folder) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { raw , ...service}: any = getServiceFromCatalog({ catalogDirectory })(folder);
+      return service;
+    });
   };
 
 export const getServiceFromCatalog =
@@ -31,10 +38,11 @@ export const getServiceFromCatalog =
   (seriveName: string) => {
     try {
       // Read the directory to get the stuff we need.
-      const event = readMarkdownFile(path.join(catalogDirectory, 'services', seriveName, 'index.md'));
+      const { parsed: parsedService, raw } = readMarkdownFile(path.join(catalogDirectory, 'services', seriveName, 'index.md'));
       return {
-        data: event.data,
-        content: event.content,
+        data: parsedService.data,
+        content: parsedService.content,
+        raw
       };
     } catch (error) {
       return null;

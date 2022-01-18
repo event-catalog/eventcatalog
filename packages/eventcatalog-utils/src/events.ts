@@ -17,7 +17,10 @@ const readMarkdownFile = (pathToFile: string) => {
   const file = fs.readFileSync(pathToFile, {
     encoding: 'utf-8',
   });
-  return matter(file);
+  return {
+    parsed: matter(file),
+    raw: file
+  };
 };
 
 export const getEventFromCatalog =
@@ -28,11 +31,12 @@ export const getEventFromCatalog =
     }
 
     // Read the directory to get the stuff we need.
-    const event = readMarkdownFile(path.join(catalogDirectory, 'events', eventName, 'index.md'));
+    const { parsed:parsedEvent, raw } = readMarkdownFile(path.join(catalogDirectory, 'events', eventName, 'index.md'));
 
     return {
-      data: parseEventFrontMatterIntoEvent(event.data),
-      content: event.content,
+      data: parseEventFrontMatterIntoEvent(parsedEvent.data),
+      content: parsedEvent.content,
+      raw
     };
   };
 
@@ -42,7 +46,8 @@ export const getAllEventsFromCatalog =
     const eventsDir = path.join(catalogDirectory, 'events');
     const folders = fs.readdirSync(eventsDir);
     const events = folders.map((folder) => getEventFromCatalog({ catalogDirectory })(folder));
-    return events.filter((event) => event !== null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return events.filter((event) => event !== null).map(({raw, ...event}:any) => event);
   };
 
 export const buildEventMarkdownForCatalog =
@@ -58,9 +63,9 @@ export const versionEvent =
 
     if (!fs.existsSync(eventPath)) throw new Error(`Cannot find event "${eventName}" to version`);
 
-    const event = readMarkdownFile(path.join(eventPath, 'index.md'));
+    const { parsed: parsedEvent } = readMarkdownFile(path.join(eventPath, 'index.md'));
 
-    const { data: { version } = {} } = event;
+    const { data: { version } = {} } = parsedEvent;
 
     if (!version) throw new Error(`Trying to version "${eventName}" but no 'version' value found on the event`);
 
@@ -86,7 +91,7 @@ export const versionEvent =
     return {
       version,
       versionedPath: path.join(versionedPath, version),
-      event,
+      event: parsedEvent,
     };
   };
 

@@ -2,12 +2,9 @@ import chalk from 'chalk';
 import type { Event, Service, LoadContext } from '@eventcatalog/types';
 import { parse, AsyncAPIDocument } from '@asyncapi/parser';
 import fs from 'fs-extra';
-import path from 'path';
-import frontmatter from 'front-matter';
+import utils from '@eventcatalog/utils';
 
 import type { AsyncAPIPluginOptions } from './types';
-
-import buildMarkdownFile from './markdown-builder';
 
 const getServiceFromAsyncDoc = (doc: AsyncAPIDocument): Service => ({
   name: doc.info().title(),
@@ -26,12 +23,15 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument): Event[] => {
 
     const eventsFromMessages = messages.map((message) => {
       const messageName = message.extension('x-parser-message-name');
+      const schema = message.originalPayload();
+
       return {
         name: messageName,
         summary: message.summary(),
         version: doc.info().version(),
         producers: operation === 'subscribe' ? [service] : [],
         consumers: operation === 'publish' ? [service] : [],
+        schema: schema ? JSON.stringify(schema, null, 4) : ''
       };
     });
 
@@ -39,30 +39,8 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument): Event[] => {
   }, []);
 };
 
-const writeFileToMarkdown = async (dir: string, frontMatterObject: Event | Service) => {
-  let customContent;
-
-  const folderPath = path.join(dir, frontMatterObject.name);
-  await fs.ensureDir(folderPath);
-
-  const pathToMarkdownFile = path.join(folderPath, 'index.md');
-
-  if (fs.existsSync(pathToMarkdownFile)) {
-    const file = fs.readFileSync(pathToMarkdownFile, { encoding: 'utf-8' });
-    const { body } = frontmatter(file);
-    customContent = body;
-  }
-
-  fs.writeFileSync(pathToMarkdownFile, buildMarkdownFile({ frontMatterObject, customContent }));
-};
-
 export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
-  const { spec } = options;
-
-  // @ts-ignore
-  const eventsDir = path.join(process.env.PROJECT_DIR, 'events');
-  // @ts-ignore
-  const servicesDir = path.join(process.env.PROJECT_DIR, 'services');
+  const { spec, versionEvents = true } = options;
 
   let asyncAPIFile;
 
@@ -81,22 +59,50 @@ export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
   const service = getServiceFromAsyncDoc(doc);
   const events = getAllEventsFromAsyncDoc(doc);
 
-  // write service
-  await writeFileToMarkdown(servicesDir, service);
+  if(!process.env.PROJECT_DIR){
+    throw new Error('Please provide catalog url (env variable PROJECT_DIR)')
+  }
+
+  const { writeServiceToCatalog, writeEventToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+
+  await writeServiceToCatalog(service, {
+    useMarkdownContentFromExistingService: true
+  })
 
   const eventFiles = events.map(async (event: any) => {
-    await writeFileToMarkdown(eventsDir, event);
-  });
 
-  // Just 1 for now
-  const serviceCount = 1;
+    const { schema, ...eventData } = event;
+
+    await writeEventToCatalog(eventData, {
+      useMarkdownContentFromExistingEvent: true,
+      versionExistingEvent: versionEvents,
+      schema: {
+        extension: 'json',
+        fileContent: schema
+      }
+    })
+  });
 
   // write all events to folders
   Promise.all(eventFiles);
 
   console.log(
     chalk.green(`
-Succesfully parsed AsyncAPI document: Events ${events.length}, Services: ${serviceCount}
+Succesfully parsed AsyncAPI document: Events ${events.length}, Services: 1
     `)
   );
 };
+
+/**
+ * Write the schemas into the directorys
+ * 
+ * Allow users to define mulitple asyncapi files and gerneate docs from them
+ * 
+ * What happens if the version is already been versioned before
+ *  - do we override it
+ *  - do we log out to the user
+ * 
+ * Add config in the plugin
+ *  - versionExisitgEvents
+ *  - useMarkdownContentFromExisitngEvent
+ */

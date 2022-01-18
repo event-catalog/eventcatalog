@@ -25,8 +25,8 @@ export interface CodeExample {
 }
 
 export interface WriteEventToCatalogOptions {
-  schema: SchemaFile;
-  codeExamples: CodeExample[] | [];
+  schema?: SchemaFile;
+  codeExamples?: CodeExample[] | [];
   useMarkdownContentFromExistingEvent?: boolean;
   markdownContent?: string;
   versionExistingEvent?: boolean;
