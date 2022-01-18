@@ -1,5 +1,17 @@
 # @eventcatalog/core
 
+## 0.0.8
+
+### Patch Changes
+
+- [`534bec1`](https://github.com/boyney123/eventcatalog/commit/534bec11f57bcabe7f79f40338ae02bef134efc2) [#78](https://github.com/boyney123/eventcatalog/pull/78) Thanks [@thim81](https://github.com/thim81)! - feat: externalLinks for services
+
+* [`b557ff8`](https://github.com/boyney123/eventcatalog/commit/b557ff8f7186b939cbe1e23f2c0e1e9a7254c907) [#79](https://github.com/boyney123/eventcatalog/pull/79) Thanks [@boyney123](https://github.com/boyney123)! - fix: adding keys on maps in react
+
+- [`407d9e0`](https://github.com/boyney123/eventcatalog/commit/407d9e0d7f8d5eab4747ce0af6d5079204b53d21) [#75](https://github.com/boyney123/eventcatalog/pull/75) Thanks [@thim81](https://github.com/thim81)! - feat: optional editUrl config
+
+* [`9eb7463`](https://github.com/boyney123/eventcatalog/commit/9eb7463b32baa09a6dd693e7f0eede63e33cd39c) [#71](https://github.com/boyney123/eventcatalog/pull/71) Thanks [@thim81](https://github.com/thim81)! - feat: link to external event documentation added
+
 ## 0.0.7
 
 ### Patch Changes
