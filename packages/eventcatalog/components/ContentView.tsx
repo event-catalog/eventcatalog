@@ -79,19 +79,21 @@ export default function ContentView({
                           )}
                         </div>
                         <div className="mt-4 flex space-x-3 md:mt-0">
-                          <a
-                            href={editUrl}
-                            target="_blank"
-                            type="button"
-                            className="hidden md:inline-flex h-10 justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
-                            rel="noreferrer"
-                          >
-                            <PencilIcon
-                              className="-ml-1 mr-2 h-5 w-5 text-gray-400"
-                              aria-hidden="true"
-                            />
-                            <span>Edit</span>
-                          </a>
+                          {editUrl && (
+                            <a
+                              href={editUrl}
+                              target="_blank"
+                              type="button"
+                              className="hidden md:inline-flex h-10 justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
+                              rel="noreferrer"
+                            >
+                              <PencilIcon
+                                className="-ml-1 mr-2 h-5 w-5 text-gray-400"
+                                aria-hidden="true"
+                              />
+                              <span>Edit</span>
+                            </a>
+                          )}
                         </div>
                       </div>
                       <div className="py-3 xl:pt-6 xl:pb-0">
@@ -110,13 +112,20 @@ export default function ContentView({
                   </div>
                 </div>
                 <div className="flex justify-between mt-10">
-                  <a href={editUrl} target="_blank" className="flex text-gray-400" rel="noreferrer">
-                    <PencilIcon
-                      className="top-1 mr-2 relative h-4 w-4 text-gray-400"
-                      aria-hidden="true"
-                    />
-                    <span>Edit this page</span>
-                  </a>
+                  {editUrl && (
+                    <a
+                      href={editUrl}
+                      target="_blank"
+                      className="flex text-gray-400"
+                      rel="noreferrer"
+                    >
+                      <PencilIcon
+                        className="top-1 mr-2 relative h-4 w-4 text-gray-400"
+                        aria-hidden="true"
+                      />
+                      <span>Edit this page</span>
+                    </a>
+                  )}
                   <span className="italic text-xs mt-2">Last updated on {lastModifiedDate}</span>
                 </div>
               </div>

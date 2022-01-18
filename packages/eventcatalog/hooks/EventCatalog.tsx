@@ -26,8 +26,11 @@ export const useUser = () => {
 
 export const useUrl = () => {
   const config = useConfig();
-
-  const getEditUrl = (url: string) => path.join(config.editUrl, url);
+  // eslint-disable-next-line no-unused-vars
+  let getEditUrl = (url: string) => '';
+  if (config.editUrl) {
+    getEditUrl = (url: string) => path.join(config.editUrl, url);
+  }
 
   return {
     getEditUrl,
