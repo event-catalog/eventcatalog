@@ -12,5 +12,6 @@
     "skipLibCheck": false,
     "incremental": true
   },
-  "exclude": ["*/__tests__/**/*", "*/lib/**/*"]
+  "exclude": ["*/__tests__/**/*", "./lib/**/*"],
+
 }
