@@ -13,7 +13,7 @@ interface EventSideBarProps {
 function EventSideBar({ event, loadedVersion }: EventSideBarProps) {
   const { getUserById } = useUser();
 
-  const { name: eventName, owners, producers, consumers, historicVersions, extLinks } = event;
+  const { name: eventName, owners, producers, consumers, historicVersions, externalLinks } = event;
 
   const handleDownload = async () => {
     try {
@@ -185,8 +185,8 @@ function EventSideBar({ event, loadedVersion }: EventSideBarProps) {
             </a>
           </Link>
         )}
-        {extLinks.length > 0 &&
-          extLinks.map((tag) => (
+        {externalLinks.length > 0 &&
+          externalLinks.map((tag) => (
             <a
               href={tag.url}
               target="_blank"
