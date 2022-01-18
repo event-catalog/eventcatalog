@@ -19,6 +19,24 @@ describe('services', () => {
 
       expect(services).toEqual([
         {
+          externalLinks: [
+            {
+              label: 'AsyncAPI Specification',
+              url: 'https://studio.asyncapi.com/#schema-lightMeasuredPayload',
+            },
+          ],
+          name: 'Basket Service',
+          owners: ['mSmith'],
+          publishes: [],
+          repository: {
+            language: 'JavaScript',
+            url: 'https://github.com/boyney123/pretend-basket-service',
+          },
+          subscribes: [],
+          summary: 'CRUD based API to handle Basket interactions for users of the shopping website.\n',
+          tags: [],
+        },
+        {
           name: 'Email Platform',
           summary: 'Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS\n',
           owners: ['dboyne'],
@@ -48,6 +66,7 @@ describe('services', () => {
             },
           ],
           subscribes: [],
+          externalLinks: [],
         },
       ]);
     });
@@ -93,6 +112,7 @@ describe('services', () => {
             },
           ],
           subscribes: [],
+          externalLinks: [],
         },
       ]);
     });
@@ -132,6 +152,7 @@ describe('services', () => {
           },
         ],
         subscribes: [],
+        externalLinks: [],
       });
 
       // @ts-ignore

@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import type { Service } from '@eventcatalog/types';
 
-import { CubeIcon, TagIcon } from '@heroicons/react/outline';
+import { CubeIcon, TagIcon, ExternalLinkIcon } from '@heroicons/react/outline';
 import { useUser } from '@/hooks/EventCatalog';
 import getBackgroundColor from '@/utils/random-bg';
 
@@ -15,7 +15,7 @@ interface ServiceSideBarProps {
 function ServiceSidebar({ service }: ServiceSideBarProps) {
   const { getUserById } = useUser();
 
-  const { owners, subscribes, publishes, repository, tags = [] } = service;
+  const { owners, subscribes, publishes, repository, tags = [], externalLinks } = service;
   const { language, url: repositoryUrl } = repository;
 
   let languages = [];
@@ -134,6 +134,24 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
                 </div>
                 <div className="ml-3.5 text-sm font-medium text-gray-900">{value}</div>
               </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {externalLinks.length > 0 && (
+        <div className="border-t border-gray-200 py-6 space-y-8">
+          <div className="space-y-3">
+            {externalLinks.map((tag) => (
+              <a
+                href={tag.url}
+                target="_blank"
+                type="button"
+                className="hidden w-full md:inline-flex h-10 justify-center px-4 py-2 border border-teal-300 shadow-sm text-sm font-medium rounded-md text-teal-800 hover:bg-teal-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-200"
+                rel="noreferrer"
+              >
+                <ExternalLinkIcon className="-ml-1 mr-2 h-5 w-5 text-teal-200" aria-hidden="true" />
+                <span>{`${tag.label}`}</span>
+              </a>
             ))}
           </div>
         </div>

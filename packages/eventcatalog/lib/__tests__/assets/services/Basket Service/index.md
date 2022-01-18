@@ -3,7 +3,7 @@ name: Basket Service
 summary: |
   CRUD based API to handle Basket interactions for users of the shopping website.
 owners:
-    - dboyne
+    - mSmith
 repository:
   language: JavaScript
   url: https://github.com/boyney123/pretend-basket-service

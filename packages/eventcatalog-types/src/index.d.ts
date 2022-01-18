@@ -49,6 +49,7 @@ export interface Service {
   subscribes?: Event[] | [];
   owners?: Owner[] | string[] | [];
   tags?: Tag[];
+  externalLinks?: Tag[];
 }
 
 export type PluginOpts = { id?: string } & Record<string, unknown>;
