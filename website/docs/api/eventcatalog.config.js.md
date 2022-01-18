@@ -37,6 +37,9 @@ module.exports = {
 };
 ```
 
+
+## Optional fields {#optional-fields}
+
 ### `editUrl` {#editUrl}
 
 - Type: `string`
@@ -48,8 +51,6 @@ module.exports = {
   editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
 };
 ```
-
-## Optional fields {#optional-fields}
 
 ### `tagline` {#tagline}
 
