@@ -27,7 +27,6 @@ export interface Event {
   owners?: Owner[] | string[] | [];
   examples?: any;
   schema?: any;
-  extLinks?: Tag[];
 }
 
 export interface Repository {
