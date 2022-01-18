@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.0.9
+
+### Patch Changes
+
+- [`b7202dc`](https://github.com/boyney123/eventcatalog/commit/b7202dcd7548d1d0f406ce9d979182cd4c09232a) [#82](https://github.com/boyney123/eventcatalog/pull/82) Thanks [@boyney123](https://github.com/boyney123)! - fix: event log page now displays correct name
+
 ## 0.0.8
 
 ### Patch Changes
