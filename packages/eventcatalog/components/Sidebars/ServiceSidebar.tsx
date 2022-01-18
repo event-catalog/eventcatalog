@@ -44,15 +44,9 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
             {publishes.map((event) => (
               <li className="inline" key={event.name}>
                 <Link href={`/events/${event.name}`}>
-                  <a
-                    href="#"
-                    className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5"
-                  >
+                  <a href="#" className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5">
                     <div className="absolute flex-shrink-0 flex items-center justify-center">
-                      <span
-                        className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate animate-pulse"
-                        aria-hidden="true"
-                      />
+                      <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate animate-pulse" aria-hidden="true" />
                     </div>
                     <div className="ml-3.5 text-sm font-medium text-gray-900">{event.name}</div>
                   </a>
@@ -74,10 +68,7 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
                 <Link href={`/events/${event.name}`}>
                   <a className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5">
                     <div className="absolute flex-shrink-0 flex items-center justify-center">
-                      <span
-                        className="h-1.5 w-1.5 rounded-full bg-green-500  animate animate-pulse"
-                        aria-hidden="true"
-                      />
+                      <span className="h-1.5 w-1.5 rounded-full bg-green-500  animate animate-pulse" aria-hidden="true" />
                     </div>
                     <div className="ml-3.5 text-sm font-medium text-gray-900">{event.name}</div>
                   </a>
@@ -139,11 +130,7 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
             {languages.map((value) => (
               <div className="relative flex items-center mt-2" key={value}>
                 <div className="absolute flex-shrink-0 flex items-center justify-center">
-                  <span
-                    className="h-2 w-2 rounded-full"
-                    aria-hidden="true"
-                    style={{ background: getBackgroundColor(value) }}
-                  />
+                  <span className="h-2 w-2 rounded-full" aria-hidden="true" style={{ background: getBackgroundColor(value) }} />
                 </div>
                 <div className="ml-3.5 text-sm font-medium text-gray-900">{value}</div>
               </div>
@@ -164,12 +151,7 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
 
                 if (url) {
                   return (
-                    <a
-                      href={url}
-                      className="inline-block underline"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <a href={url} className="inline-block underline" target="_blank" rel="noreferrer">
                       <span
                         className={`underline inline-block mr-2 items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative bg-${color}-100 text-${color}-800`}
                       >

@@ -57,18 +57,14 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
     it('throws an error when file has been provided but the file cannot be found', async () => {
       const options: AsyncAPIPluginOptions = { spec: path.join(__dirname, 'random-location') };
 
-      await expect(plugin(pluginContext, options)).rejects.toThrow(
-        'Failed to read file with provided path'
-      );
+      await expect(plugin(pluginContext, options)).rejects.toThrow('Failed to read file with provided path');
     });
 
     it('throws an error when failing to parse AsyncAPI file', async () => {
       const options: AsyncAPIPluginOptions = {
         spec: path.join(__dirname, './assets/invalid-asyncapi.yml'),
       };
-      await expect(plugin(pluginContext, options)).rejects.toThrow(
-        'There were errors validating the AsyncAPI document.'
-      );
+      await expect(plugin(pluginContext, options)).rejects.toThrow('There were errors validating the AsyncAPI document.');
     });
 
     it('succesfully takes a valid asyncapi file and creates the expected services and events markdown files from it', async () => {
@@ -115,29 +111,15 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
       it('when `merge` is set to true it will overwrite the frontmatter of the markdown files but leave the markdown body as it was', async () => {
         // Setup and write the file there...
 
-        const eventFile = buildMarkdownFile(
-          { name: 'UserSignedUp', version: '10.0.0' },
-          '# Hello World'
-        );
+        const eventFile = buildMarkdownFile({ name: 'UserSignedUp', version: '10.0.0' }, '# Hello World');
 
-        const serviceFile = buildMarkdownFile(
-          { name: 'Account Service', version: '10.0.0' },
-          '# Hello World'
-        );
+        const serviceFile = buildMarkdownFile({ name: 'Account Service', version: '10.0.0' }, '# Hello World');
 
         fs.ensureFileSync(path.join(process.env.PROJECT_DIR, 'events', 'UserSignedUp', 'index.md'));
-        fs.writeFileSync(
-          path.join(process.env.PROJECT_DIR, 'events', 'UserSignedUp', 'index.md'),
-          eventFile
-        );
+        fs.writeFileSync(path.join(process.env.PROJECT_DIR, 'events', 'UserSignedUp', 'index.md'), eventFile);
 
-        fs.ensureFileSync(
-          path.join(process.env.PROJECT_DIR, 'services', 'Account Service', 'index.md')
-        );
-        fs.writeFileSync(
-          path.join(process.env.PROJECT_DIR, 'services', 'Account Service', 'index.md'),
-          serviceFile
-        );
+        fs.ensureFileSync(path.join(process.env.PROJECT_DIR, 'services', 'Account Service', 'index.md'));
+        fs.writeFileSync(path.join(process.env.PROJECT_DIR, 'services', 'Account Service', 'index.md'), serviceFile);
 
         const options: AsyncAPIPluginOptions = {
           spec: path.join(__dirname, './assets/valid-asyncapi.yml'),

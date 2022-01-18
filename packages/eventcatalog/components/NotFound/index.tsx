@@ -18,15 +18,11 @@ export default function Example(props: NotFoundProps) {
         <p className="text-sm font-semibold text-gray-700 text-opacity-50 uppercase tracking-wide blur-xl">
           Failed to find {type}
         </p>
-        <h1 className="mt-2 text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">
-          Missing Documentation
-        </h1>
+        <h1 className="mt-2 text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">Missing Documentation</h1>
         <p className="mt-2 text-lg font-medium text-gray-700 text-opacity-50">
           Documentation for {type} <span className="underline">{name}</span> is missing!
         </p>
-        <p className="mt-4 text-xs text-gray-400">
-          Help the eco-system and add the documentation for others ❤️{' '}
-        </p>
+        <p className="mt-4 text-xs text-gray-400">Help the eco-system and add the documentation for others ❤️ </p>
         <div className="mt-12">
           <a
             href={urlToAddPage}

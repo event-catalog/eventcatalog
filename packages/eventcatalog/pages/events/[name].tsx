@@ -31,11 +31,7 @@ export const getComponents = ({ event, schema, examples }: any) => ({
   code: ({ className, ...props }) => {
     const match = /language-(\w+)/.exec(className || '');
 
-    return match ? (
-      <SyntaxHighlighter language={match[1]} {...props} />
-    ) : (
-      <code className={className} {...props} />
-    );
+    return match ? <SyntaxHighlighter language={match[1]} {...props} /> : <code className={className} {...props} />;
   },
   Schema: ({ title = 'Event Schema' }: { title: string }) => {
     if (!schema) return null;
@@ -45,11 +41,7 @@ export const getComponents = ({ event, schema, examples }: any) => ({
         <h2 id="activity-title" className="text-lg font-medium text-gray-900 underline">
           {title}
         </h2>
-        <SyntaxHighlighter
-          language={schema.language}
-          showLineNumbers={false}
-          name={`${event.name} Schema (${schema.language})`}
-        >
+        <SyntaxHighlighter language={schema.language} showLineNumbers={false} name={`${event.name} Schema (${schema.language})`}>
           {schema.snippet}
         </SyntaxHighlighter>
       </section>

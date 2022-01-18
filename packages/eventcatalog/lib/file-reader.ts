@@ -46,7 +46,5 @@ export const getSchemaFromDir = (pathToSchemaDir: string): Schema => {
 export const getLastModifiedDateOfFile = (filePath) => {
   const stats = fs.statSync(filePath);
   const lastModifiedDate = new Date(stats.mtime);
-  return `${lastModifiedDate.getFullYear()}/${
-    lastModifiedDate.getMonth() + 1
-  }/${lastModifiedDate.getDate()}`;
+  return `${lastModifiedDate.getFullYear()}/${lastModifiedDate.getMonth() + 1}/${lastModifiedDate.getDate()}`;
 };

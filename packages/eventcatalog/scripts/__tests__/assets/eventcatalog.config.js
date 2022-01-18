@@ -26,8 +26,7 @@ module.exports = {
       name: 'Matthew Smith',
       avatarUrl: 'https://randomuser.me/api/portraits/lego/3.jpg',
       role: 'Developer',
-      summary:
-        'About Fugiat ipsum ipsum deserunt culpa aute sint do nostrud anim incididunt cillum culpa consequat.',
+      summary: 'About Fugiat ipsum ipsum deserunt culpa aute sint do nostrud anim incididunt cillum culpa consequat.',
     },
   ],
 };

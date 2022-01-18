@@ -36,23 +36,15 @@ function ServiceGrid({ services = [] }: ServiceGridProps) {
                           Draft
                         </span>
                       )}
-                      <div className="text-gray-500 text-xs font-normal mt-2 line-clamp-3">
-                        {service.summary}
-                      </div>
+                      <div className="text-gray-500 text-xs font-normal mt-2 line-clamp-3">{service.summary}</div>
                     </div>
                     <div className="flex space-x-4 text-xs pt-2 relative bottom-0 left-0">
                       <div className=" font-medium text-gray-500">
-                        <CubeIcon
-                          className="h-4 w-4 text-green-400 inline-block mr-2"
-                          aria-hidden="true"
-                        />
+                        <CubeIcon className="h-4 w-4 text-green-400 inline-block mr-2" aria-hidden="true" />
                         Subscribe Events ({service.subscribes.length})
                       </div>
                       <div className=" font-medium text-gray-500">
-                        <CubeIcon
-                          className="h-4 w-4 text-indigo-400 inline-block mr-2"
-                          aria-hidden="true"
-                        />
+                        <CubeIcon className="h-4 w-4 text-indigo-400 inline-block mr-2" aria-hidden="true" />
                         Publish Events ({service.publishes.length})
                       </div>
                     </div>
