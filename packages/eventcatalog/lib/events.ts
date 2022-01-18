@@ -11,8 +11,8 @@ import { extentionToLanguageMap } from './file-reader';
 import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader';
 
 const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
-  const { name, version, summary, producers = [], consumers = [], owners = [] } = eventFrontMatter;
-  return { name, version, summary, producers, consumers, owners };
+  const { name, version, summary, producers = [], consumers = [], owners = [], extLinks = [] } = eventFrontMatter;
+  return { name, version, summary, producers, consumers, owners, extLinks };
 };
 
 const versionsForEvents = (pathToEvent) => {

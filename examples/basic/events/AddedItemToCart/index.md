@@ -12,6 +12,10 @@ domains:
 owners:
     - dboyne
     - mSmith
+extLinks: 
+    - label: AsyncAPI Specification
+      url: https://studio.asyncapi.com/#schema-lightMeasuredPayload
+  
 ---
 
 <Admonition>When firing this event make sure you set the `correlation-id` in the headers. Our schemas have standard metadata make sure you read and follow it.</Admonition>
