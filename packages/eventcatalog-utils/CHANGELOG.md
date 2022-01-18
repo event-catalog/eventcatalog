@@ -1,5 +1,11 @@
 # @eventcatalog/utils
 
+## 0.0.4
+
+### Patch Changes
+
+- [`62d3a7c`](https://github.com/boyney123/eventcatalog/commit/62d3a7cd063d99583530e4e4f572b2c9135768e7) [#72](https://github.com/boyney123/eventcatalog/pull/72) Thanks [@boyney123](https://github.com/boyney123)! - feat: added more utils with slight refactors
+
 ## 0.0.3
 
 ### Patch Changes
