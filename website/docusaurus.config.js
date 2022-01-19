@@ -69,7 +69,7 @@ const config = {
             label: 'API',
           },
 
-          // { to: '/blog', label: 'Blog', position: 'left' },
+          { to: '/blog', label: 'Blog', position: 'left' },
           {
             type: 'doc',
             position: 'left',
