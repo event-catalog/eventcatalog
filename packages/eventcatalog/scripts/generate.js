@@ -19,7 +19,7 @@ const generate = async () => {
   await Promise.all(plugins);
 };
 
-if (!process.env.NODE_ENV === 'test') {
+if (process.env.NODE_ENV !== 'test') {
   generate();
 }
 
