@@ -11,7 +11,6 @@ export default ({
   customContent?: string;
   includeSchemaComponent?: boolean;
 }) => {
-  // eslint-disable-next-line no-multi-assign
   const customJSON2MD = (content: any) => {
     json2md.converters.mermaid = (render) => (render ? '<Mermaid />' : '');
     json2md.converters.schema = (render) => (render ? '<Schema />' : '');

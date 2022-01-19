@@ -27,6 +27,6 @@
     "node": ">=14"
   },
   "devDependencies": {
-    "@eventcatalog/types": "0.0.3"
+    "@eventcatalog/types": "^0.0.3"
   }
 }
