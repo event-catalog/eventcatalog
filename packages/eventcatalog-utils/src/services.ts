@@ -12,7 +12,7 @@ const readMarkdownFile = (pathToFile: string) => {
   });
   return {
     parsed: matter(file),
-    raw: file
+    raw: file,
   };
 };
 
@@ -28,7 +28,7 @@ export const getAllServicesFromCatalog =
     const folders = fs.readdirSync(servicesDir);
     return folders.map((folder) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { raw , ...service}: any = getServiceFromCatalog({ catalogDirectory })(folder);
+      const { raw, ...service }: any = getServiceFromCatalog({ catalogDirectory })(folder);
       return service;
     });
   };
@@ -42,7 +42,7 @@ export const getServiceFromCatalog =
       return {
         data: parsedService.data,
         content: parsedService.content,
-        raw
+        raw,
       };
     } catch (error) {
       return null;

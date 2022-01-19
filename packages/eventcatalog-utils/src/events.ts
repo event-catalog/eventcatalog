@@ -19,7 +19,7 @@ const readMarkdownFile = (pathToFile: string) => {
   });
   return {
     parsed: matter(file),
-    raw: file
+    raw: file,
   };
 };
 
@@ -31,12 +31,12 @@ export const getEventFromCatalog =
     }
 
     // Read the directory to get the stuff we need.
-    const { parsed:parsedEvent, raw } = readMarkdownFile(path.join(catalogDirectory, 'events', eventName, 'index.md'));
+    const { parsed: parsedEvent, raw } = readMarkdownFile(path.join(catalogDirectory, 'events', eventName, 'index.md'));
 
     return {
       data: parseEventFrontMatterIntoEvent(parsedEvent.data),
       content: parsedEvent.content,
-      raw
+      raw,
     };
   };
 
@@ -47,13 +47,13 @@ export const getAllEventsFromCatalog =
     const folders = fs.readdirSync(eventsDir);
     const events = folders.map((folder) => getEventFromCatalog({ catalogDirectory })(folder));
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    return events.filter((event) => event !== null).map(({raw, ...event}:any) => event);
+    return events.filter((event) => event !== null).map(({ raw, ...event }: any) => event);
   };
 
 export const buildEventMarkdownForCatalog =
   () =>
-  (event: Event, { markdownContent }: any = {}) =>
-    buildMarkdownFile({ frontMatterObject: event, customContent: markdownContent });
+  (event: Event, { markdownContent, includeSchemaComponent }: any = {}) =>
+    buildMarkdownFile({ frontMatterObject: event, customContent: markdownContent, includeSchemaComponent });
 
 export const versionEvent =
   ({ catalogDirectory }: FunctionInitInterface) =>
@@ -63,7 +63,7 @@ export const versionEvent =
 
     if (!fs.existsSync(eventPath)) throw new Error(`Cannot find event "${eventName}" to version`);
 
-    const { parsed: parsedEvent } = readMarkdownFile(path.join(eventPath, 'index.md'));
+    const { parsed: parsedEvent, raw } = readMarkdownFile(path.join(eventPath, 'index.md'));
 
     const { data: { version } = {} } = parsedEvent;
 
@@ -92,6 +92,7 @@ export const versionEvent =
       version,
       versionedPath: path.join(versionedPath, version),
       event: parsedEvent,
+      raw,
     };
   };
 
@@ -127,7 +128,8 @@ export const writeEventToCatalog =
     }
 
     fs.ensureDirSync(path.join(catalogDirectory, 'events', eventName));
-    const data = buildEventMarkdownForCatalog()(event, { markdownContent });
+    const data = buildEventMarkdownForCatalog()(event, { markdownContent, includeSchemaComponent: !!schema });
+
     fs.writeFileSync(path.join(catalogDirectory, 'events', eventName, 'index.md'), data);
 
     if (schema && schema.extension && schema.fileContent) {

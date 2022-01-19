@@ -22,6 +22,17 @@ const {
 });
 
 describe('eventcatalog-utils', () => {
+  afterEach(() => {
+    try {
+      fs.rmdirSync(path.join(CATALOG_DIRECTORY, 'events', 'My New Event'), { recursive: true });
+      fs.rmdirSync(path.join(CATALOG_DIRECTORY, 'events', 'My Event That Overrides Content'), { recursive: true });
+      fs.rmdirSync(path.join(CATALOG_DIRECTORY, 'events', 'My Versioned Event'), { recursive: true });
+      fs.rmdirSync(path.join(CATALOG_DIRECTORY, 'services', 'My New Service'), { recursive: true });
+    } catch (error) {
+      console.log('Nothing to remove');
+    }
+  });
+
   describe('events', () => {
     describe('getEventFromCatalog', () => {
       it('returns the given event name from the catalog', () => {
@@ -226,6 +237,37 @@ describe('eventcatalog-utils', () => {
             - dBoyne
         ---
         <Mermaid />`);
+
+        // clean up
+        fs.rmdirSync(path.join(eventPath), { recursive: true });
+      });
+
+      it('when writing an event with a schema the default markdown includes the schema component', () => {
+        const event = {
+          name: 'My New Event',
+          summary: 'This is summary for my event',
+          owners: ['dBoyne'],
+        };
+
+        const { path: eventPath } = writeEventToCatalog(event, {
+          schema: { extension: 'json', fileContent: JSON.stringify({ test: true }, null, 4) },
+        });
+
+        expect(fs.existsSync(eventPath)).toEqual(true);
+
+        const result = fs.readFileSync(path.join(eventPath, 'index.md'), 'utf-8');
+
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My New Event'
+        summary: 'This is summary for my event'
+        owners:
+            - dBoyne
+        ---
+        <Mermaid />
+
+        <Schema />
+        `);
 
         // clean up
         fs.rmdirSync(path.join(eventPath), { recursive: true });

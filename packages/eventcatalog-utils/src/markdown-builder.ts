@@ -2,11 +2,22 @@ import YAML from 'yamljs';
 import json2md from 'json2md';
 import { Event, Service } from '@eventcatalog/types';
 
-export default ({ frontMatterObject, customContent }: { frontMatterObject: Service | Event; customContent?: string }) => {
-  // eslint-disable-next-line no-multi-assign
-  const customJSON2MD = (json2md.converters.mermaid = (render) => (render ? '<Mermaid />' : ''));
+export default ({
+  frontMatterObject,
+  customContent,
+  includeSchemaComponent = false,
+}: {
+  frontMatterObject: Service | Event;
+  customContent?: string;
+  includeSchemaComponent?: boolean;
+}) => {
+  const customJSON2MD = (content: any) => {
+    json2md.converters.mermaid = (render) => (render ? '<Mermaid />' : '');
+    json2md.converters.schema = (render) => (render ? '<Schema />' : '');
+    return json2md(content);
+  };
 
-  const content = [{ h1: frontMatterObject.name, mermaid: true }];
+  const content = [{ mermaid: true }, { schema: includeSchemaComponent }];
 
   return `---
 ${YAML.stringify(frontMatterObject)}---
