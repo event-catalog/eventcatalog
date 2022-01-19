@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.0.10
+
+### Patch Changes
+
+- [`df372c6`](https://github.com/boyney123/eventcatalog/commit/df372c675e76a4a5980740222ccf8268c0c71540) [#91](https://github.com/boyney123/eventcatalog/pull/91) Thanks [@boyney123](https://github.com/boyney123)! - feat: fix-generator
+
 ## 0.0.9
 
 ### Patch Changes
