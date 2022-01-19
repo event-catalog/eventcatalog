@@ -131,7 +131,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
 
           const { writeEventToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
           const { path: eventPath } = await writeEventToCatalog(oldEvent, {
-            schema: { extension: 'json', fileContent: 'hello' }
+            schema: { extension: 'json', fileContent: 'hello' },
           });
 
           // run plugin
@@ -163,7 +163,6 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         });
 
         it('when versionEvents is true and the events and services already have markdown content, that content is used for the new events and services being created', async () => {
-
           const options: AsyncAPIPluginOptions = {
             pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
             versionEvents: true,
@@ -181,7 +180,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           const { writeEventToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
           await writeEventToCatalog(oldEvent, {
             schema: { extension: 'json', fileContent: 'hello' },
-            markdownContent: '# Content that already exists'
+            markdownContent: '# Content that already exists',
           });
 
           // run plugin
@@ -201,7 +200,6 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
             ---
             # Content that already exists
             `);
-
         });
 
         it('when versionEvents is false, all previous matching events will be overriden', async () => {
