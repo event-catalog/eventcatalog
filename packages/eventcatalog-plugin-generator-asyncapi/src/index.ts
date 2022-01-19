@@ -88,17 +88,3 @@ export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
 
   console.log(chalk.green(`Succesfully parsed AsyncAPI file. Generated ${events.length} events and 1 service`));
 };
-
-/**
- * Write the schemas into the directorys
- *
- * Allow users to define mulitple asyncapi files and gerneate docs from them
- *
- * What happens if the version is already been versioned before
- *  - do we override it
- *  - do we log out to the user
- *
- * Add config in the plugin
- *  - versionExisitgEvents
- *  - useMarkdownContentFromExisitngEvent
- */
