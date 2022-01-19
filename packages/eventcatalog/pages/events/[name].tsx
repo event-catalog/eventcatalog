@@ -2,7 +2,6 @@ import Head from 'next/head';
 import { MDXRemote } from 'next-mdx-remote';
 
 import { Event } from '@eventcatalog/types';
-import { editUrl } from '../../eventcatalog.config';
 import Admonition from '@/components/Mdx/Admonition';
 import Examples from '@/components/Mdx/Examples';
 
@@ -69,9 +68,11 @@ export default function Events(props: EventsPageProps) {
   const { event, markdown, loadedVersion, notFound } = props;
   const { getEditUrl, hasEditUrl } = useUrl();
 
-  if (notFound) return <NotFound type="event" name={event.name} editUrl={editUrl} />;
-
   const { name, summary, draft, schema, examples, version } = event;
+
+  if (notFound)
+    return <NotFound type="event" name={event.name} editUrl={hasEditUrl ? getEditUrl(`/events/${name}/index.md`) : ''} />;
+
   const { lastModifiedDate } = markdown;
 
   const pages = [
