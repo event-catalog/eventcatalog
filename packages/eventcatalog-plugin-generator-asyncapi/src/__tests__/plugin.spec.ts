@@ -2,6 +2,7 @@
 /* eslint-disable no-promise-executor-return */
 // @ts-nocheck
 import type { LoadContext } from '@eventcatalog/types';
+import utils from '@eventcatalog/utils';
 
 import path from 'path';
 import fs from 'fs-extra';
@@ -35,6 +36,11 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
     process.env.PROJECT_DIR = path.join(__dirname, 'tmp');
   });
 
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
   afterAll(() => {
     process.env.PROJECT_DIR = PROJECT_DIR;
   });
@@ -49,43 +55,40 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
 
   describe('plugin', () => {
     it('throws an error when no file has been provided to load within the plugin', async () => {
-      const options: AsyncAPIPluginOptions = { spec: undefined };
+      const options: AsyncAPIPluginOptions = { pathToSpec: undefined };
 
       await expect(plugin(pluginContext, options)).rejects.toThrow('No file provided in plugin.');
     });
 
     it('throws an error when file has been provided but the file cannot be found', async () => {
-      const options: AsyncAPIPluginOptions = { spec: path.join(__dirname, 'random-location') };
+      const options: AsyncAPIPluginOptions = { pathToSpec: path.join(__dirname, 'random-location') };
 
       await expect(plugin(pluginContext, options)).rejects.toThrow('Failed to read file with provided path');
     });
 
     it('throws an error when failing to parse AsyncAPI file', async () => {
       const options: AsyncAPIPluginOptions = {
-        spec: path.join(__dirname, './assets/invalid-asyncapi.yml'),
+        pathToSpec: path.join(__dirname, './assets/invalid-asyncapi.yml'),
       };
       await expect(plugin(pluginContext, options)).rejects.toThrow('There were errors validating the AsyncAPI document.');
     });
 
     it('succesfully takes a valid asyncapi file and creates the expected services and events markdown files from it', async () => {
       const options: AsyncAPIPluginOptions = {
-        spec: path.join(__dirname, './assets/valid-asyncapi.yml'),
+        pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
       };
+
       await plugin(pluginContext, options);
 
       // just wait for files to be there in time.
       await new Promise((r) => setTimeout(r, 200));
 
-      const generatedEventMarkdownFile = fs.readFileSync(
-        path.join(process.env.PROJECT_DIR, 'events', 'UserSignedUp', 'index.md'),
-        { encoding: 'utf-8' }
-      );
-      const generatedServiceMarkdownFile = fs.readFileSync(
-        path.join(process.env.PROJECT_DIR, 'services', 'Account Service', 'index.md'),
-        { encoding: 'utf-8' }
-      );
+      const { getEventFromCatalog, getServiceFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
 
-      expect(generatedEventMarkdownFile).toMatchMarkdown(`
+      const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
+      const { raw: serviceFile } = getServiceFromCatalog('Account Service');
+
+      expect(eventFile).toMatchMarkdown(`
         ---
           name: UserSignedUp
           summary: null
@@ -95,9 +98,11 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           consumers: []
         ---
 
-        <Mermaid />`);
+        <Mermaid />
+        <Schema />
+        `);
 
-      expect(generatedServiceMarkdownFile).toMatchMarkdown(
+      expect(serviceFile).toMatchMarkdown(
         `---
           name: 'Account Service'
           summary: 'This service is in charge of processing user signups'
@@ -108,58 +113,142 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
     });
 
     describe('plugin options', () => {
-      it('when `merge` is set to true it will overwrite the frontmatter of the markdown files but leave the markdown body as it was', async () => {
-        // Setup and write the file there...
+      describe('versionEvents', () => {
+        it('when versionEvents is true, all previous matching events will be versioned before writing the event to the catalog', async () => {
+          const options: AsyncAPIPluginOptions = {
+            pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
+            versionEvents: true,
+          };
 
-        const eventFile = buildMarkdownFile({ name: 'UserSignedUp', version: '10.0.0' }, '# Hello World');
+          const oldEvent = {
+            name: 'UserSignedUp',
+            version: '0.0.1',
+            summary: 'Old example of an event that should be versioned',
+            producers: ['Service A'],
+            consumers: ['Service B'],
+            owners: ['dBoyne'],
+          };
 
-        const serviceFile = buildMarkdownFile({ name: 'Account Service', version: '10.0.0' }, '# Hello World');
+          const { writeEventToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+          const { path: eventPath } = await writeEventToCatalog(oldEvent, {
+            schema: { extension: 'json', fileContent: 'hello' },
+          });
 
-        fs.ensureFileSync(path.join(process.env.PROJECT_DIR, 'events', 'UserSignedUp', 'index.md'));
-        fs.writeFileSync(path.join(process.env.PROJECT_DIR, 'events', 'UserSignedUp', 'index.md'), eventFile);
+          // run plugin
+          await plugin(pluginContext, options);
 
-        fs.ensureFileSync(path.join(process.env.PROJECT_DIR, 'services', 'Account Service', 'index.md'));
-        fs.writeFileSync(path.join(process.env.PROJECT_DIR, 'services', 'Account Service', 'index.md'), serviceFile);
+          const { getEventFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+          const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
 
-        const options: AsyncAPIPluginOptions = {
-          spec: path.join(__dirname, './assets/valid-asyncapi.yml'),
-          merge: true,
-        };
+          // Check the version has been set
+          expect(fs.existsSync(path.join(eventPath, 'versioned', '0.0.1', 'index.md'))).toEqual(true);
+          expect(fs.existsSync(path.join(eventPath, 'versioned', '0.0.1', 'schema.json'))).toEqual(true);
 
-        await plugin(pluginContext, options);
+          expect(fs.existsSync(path.join(eventPath, 'index.md'))).toEqual(true);
+          expect(fs.existsSync(path.join(eventPath, 'schema.json'))).toEqual(true);
 
-        // just wait for files to be there in time.
-        await new Promise((r) => setTimeout(r, 200));
+          expect(eventFile).toMatchMarkdown(`
+            ---
+              name: UserSignedUp
+              summary: null
+              version: 1.0.0
+              producers:
+                  - 'Account Service'
+              consumers: []
+            ---
 
-        const generatedEventMarkdownFile = fs.readFileSync(
-          path.join(process.env.PROJECT_DIR, 'events', 'UserSignedUp', 'index.md'),
-          { encoding: 'utf-8' }
-        );
+            <Mermaid />
+            <Schema />
+            `);
+        });
 
-        expect(generatedEventMarkdownFile).toMatchMarkdown(`
-        ---
-          name: UserSignedUp
-          summary: null
-          version: 1.0.0
-          producers:
-              - 'Account Service'
-          consumers: []
-        ---
-        # Hello World
-        `);
+        it('when versionEvents is true and the events and services already have markdown content, that content is used for the new events and services being created', async () => {
+          const options: AsyncAPIPluginOptions = {
+            pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
+            versionEvents: true,
+          };
 
-        const generatedServiceMarkdownFile = fs.readFileSync(
-          path.join(process.env.PROJECT_DIR, 'services', 'Account Service', 'index.md'),
-          { encoding: 'utf-8' }
-        );
+          const oldEvent = {
+            name: 'UserSignedUp',
+            version: '0.0.1',
+            summary: 'Old example of an event that should be versioned',
+            producers: ['Service A'],
+            consumers: ['Service B'],
+            owners: ['dBoyne'],
+          };
 
-        expect(generatedServiceMarkdownFile).toMatchMarkdown(`
-        ---
-          name: 'Account Service'
-          summary: 'This service is in charge of processing user signups'
-        ---
-        # Hello World
-        `);
+          const { writeEventToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+          await writeEventToCatalog(oldEvent, {
+            schema: { extension: 'json', fileContent: 'hello' },
+            markdownContent: '# Content that already exists',
+          });
+
+          // run plugin
+          await plugin(pluginContext, options);
+
+          const { getEventFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+          const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
+
+          expect(eventFile).toMatchMarkdown(`
+            ---
+              name: UserSignedUp
+              summary: null
+              version: 1.0.0
+              producers:
+                  - 'Account Service'
+              consumers: []
+            ---
+            # Content that already exists
+            `);
+        });
+
+        it('when versionEvents is false, all previous matching events will be overriden', async () => {
+          const options: AsyncAPIPluginOptions = {
+            pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
+            versionEvents: false,
+          };
+
+          const oldEvent = {
+            name: 'UserSignedUp',
+            version: '0.0.1',
+            summary: 'Old example of an event that should be versioned',
+            producers: ['Service A'],
+            consumers: ['Service B'],
+            owners: ['dBoyne'],
+          };
+
+          const { writeEventToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+          const { path: eventPath } = await writeEventToCatalog(oldEvent, {
+            schema: { extension: 'json', fileContent: 'hello' },
+          });
+
+          // run plugin
+          await plugin(pluginContext, options);
+
+          const { getEventFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+          const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
+
+          // Check the version has been set
+          expect(fs.existsSync(path.join(eventPath, 'versioned', '0.0.1', 'index.md'))).toEqual(false);
+          expect(fs.existsSync(path.join(eventPath, 'versioned', '0.0.1', 'schema.json'))).toEqual(false);
+
+          expect(fs.existsSync(path.join(eventPath, 'index.md'))).toEqual(true);
+          expect(fs.existsSync(path.join(eventPath, 'schema.json'))).toEqual(true);
+
+          expect(eventFile).toMatchMarkdown(`
+            ---
+              name: UserSignedUp
+              summary: null
+              version: 1.0.0
+              producers:
+                  - 'Account Service'
+              consumers: []
+            ---
+
+            <Mermaid />
+            <Schema />
+            `);
+        });
       });
     });
   });

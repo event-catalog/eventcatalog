@@ -19,6 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@asyncapi/parser": "^1.13.0",
+    "@eventcatalog/utils": "^0.0.5",
     "chalk": "^4.1.2",
     "front-matter": "^4.0.2",
     "fs-extra": "^10.0.0",
