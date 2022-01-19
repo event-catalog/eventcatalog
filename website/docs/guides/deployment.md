@@ -12,11 +12,20 @@ To build the static files of your website for production, run:
 npm run build
 ```
 
-Once it finishes, the files will be generated within the `.next` directory.
-
 :::info
-EventCatalog uses NextJS and a server to support some enriched features. In the future we hope to add features like the ability to dispatch events from the Catalog (for testing), APIS and much more
+EventCatalog uses NextJS and a server to support some enriched features. In the future we hope to add features like the ability to dispatch events from the Catalog (for testing), APIS and much more.
+
+If you want to see your build output it will be in the `.next` directory.
+
+Use `npm start` once you build to start your application.
 :::
+
+#### Where does the build output go?
+
+EventCatalog uses NextJS under the hood. When you run `npm run build` your output will go to **`.next`** directory.
+
+Use `npm run start` to start the application.
+
 
 ### Building and Deploying with Docker (recommended)
 
