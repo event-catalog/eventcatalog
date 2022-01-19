@@ -11,5 +11,6 @@
     "esModuleInterop": true,
     "skipLibCheck": false,
     "incremental": true
-  }
+  },
+  "exclude": ["./scripts/**/*", "*/__tests__/**/*"]
 }

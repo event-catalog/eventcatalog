@@ -22,7 +22,7 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument): Event[] => {
     const messages = channel[operation]().messages();
 
     const eventsFromMessages = messages.map((message) => {
-      const messageName = message.extension('x-parser-message-name');
+      const messageName = message.name() || message.extension('x-parser-message-name');
       const schema = message.originalPayload();
 
       return {
@@ -31,7 +31,7 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument): Event[] => {
         version: doc.info().version(),
         producers: operation === 'subscribe' ? [service] : [],
         consumers: operation === 'publish' ? [service] : [],
-        schema: schema ? JSON.stringify(schema, null, 4) : ''
+        schema: schema ? JSON.stringify(schema, null, 4) : '',
       };
     });
 
@@ -40,17 +40,18 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument): Event[] => {
 };
 
 export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
-  const { spec, versionEvents = true } = options;
+  const { pathToSpec, versionEvents = true } = options;
 
   let asyncAPIFile;
 
-  if (!spec) {
+  if (!pathToSpec) {
     throw new Error('No file provided in plugin.');
   }
 
   try {
-    asyncAPIFile = fs.readFileSync(spec, 'utf-8');
+    asyncAPIFile = fs.readFileSync(pathToSpec, 'utf-8');
   } catch (error: any) {
+    console.error(error);
     throw new Error(`Failed to read file with provided path`);
   }
 
@@ -59,18 +60,17 @@ export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
   const service = getServiceFromAsyncDoc(doc);
   const events = getAllEventsFromAsyncDoc(doc);
 
-  if(!process.env.PROJECT_DIR){
-    throw new Error('Please provide catalog url (env variable PROJECT_DIR)')
+  if (!process.env.PROJECT_DIR) {
+    throw new Error('Please provide catalog url (env variable PROJECT_DIR)');
   }
 
   const { writeServiceToCatalog, writeEventToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
 
   await writeServiceToCatalog(service, {
-    useMarkdownContentFromExistingService: true
-  })
+    useMarkdownContentFromExistingService: true,
+  });
 
   const eventFiles = events.map(async (event: any) => {
-
     const { schema, ...eventData } = event;
 
     await writeEventToCatalog(eventData, {
@@ -78,30 +78,26 @@ export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
       versionExistingEvent: versionEvents,
       schema: {
         extension: 'json',
-        fileContent: schema
-      }
-    })
+        fileContent: schema,
+      },
+    });
   });
 
   // write all events to folders
   Promise.all(eventFiles);
 
-  console.log(
-    chalk.green(`
-Succesfully parsed AsyncAPI document: Events ${events.length}, Services: 1
-    `)
-  );
+  console.log(chalk.green(`Succesfully parsed AsyncAPI file. Generated ${events.length} events and 1 service`));
 };
 
 /**
  * Write the schemas into the directorys
- * 
+ *
  * Allow users to define mulitple asyncapi files and gerneate docs from them
- * 
+ *
  * What happens if the version is already been versioned before
  *  - do we override it
  *  - do we log out to the user
- * 
+ *
  * Add config in the plugin
  *  - versionExisitgEvents
  *  - useMarkdownContentFromExisitngEvent

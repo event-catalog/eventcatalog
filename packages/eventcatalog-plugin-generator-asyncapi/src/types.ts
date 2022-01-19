@@ -1,4 +1,4 @@
 export type AsyncAPIPluginOptions = {
-  spec: string;
-  versionEvents?: boolean
+  pathToSpec: string;
+  versionEvents?: boolean;
 };

@@ -36,6 +36,11 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
     process.env.PROJECT_DIR = path.join(__dirname, 'tmp');
   });
 
+  beforeEach(() => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
   afterAll(() => {
     process.env.PROJECT_DIR = PROJECT_DIR;
   });
@@ -50,28 +55,27 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
 
   describe('plugin', () => {
     it('throws an error when no file has been provided to load within the plugin', async () => {
-      const options: AsyncAPIPluginOptions = { spec: undefined };
+      const options: AsyncAPIPluginOptions = { pathToSpec: undefined };
 
       await expect(plugin(pluginContext, options)).rejects.toThrow('No file provided in plugin.');
     });
 
     it('throws an error when file has been provided but the file cannot be found', async () => {
-      const options: AsyncAPIPluginOptions = { spec: path.join(__dirname, 'random-location') };
+      const options: AsyncAPIPluginOptions = { pathToSpec: path.join(__dirname, 'random-location') };
 
       await expect(plugin(pluginContext, options)).rejects.toThrow('Failed to read file with provided path');
     });
 
     it('throws an error when failing to parse AsyncAPI file', async () => {
       const options: AsyncAPIPluginOptions = {
-        spec: path.join(__dirname, './assets/invalid-asyncapi.yml'),
+        pathToSpec: path.join(__dirname, './assets/invalid-asyncapi.yml'),
       };
       await expect(plugin(pluginContext, options)).rejects.toThrow('There were errors validating the AsyncAPI document.');
     });
 
     it('succesfully takes a valid asyncapi file and creates the expected services and events markdown files from it', async () => {
-
       const options: AsyncAPIPluginOptions = {
-        spec: path.join(__dirname, './assets/valid-asyncapi.yml'),
+        pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
       };
 
       await plugin(pluginContext, options);
@@ -79,7 +83,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
       // just wait for files to be there in time.
       await new Promise((r) => setTimeout(r, 200));
 
-      const { getEventFromCatalog, getServiceFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR })
+      const { getEventFromCatalog, getServiceFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
 
       const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
       const { raw: serviceFile } = getServiceFromCatalog('Account Service');
@@ -107,14 +111,11 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
     });
 
     describe('plugin options', () => {
-
       describe('versionEvents', () => {
-
         it('when versionEvents is true, all previous matching events will be versioned before writing the event to the catalog', async () => {
-
           const options: AsyncAPIPluginOptions = {
-            spec: path.join(__dirname, './assets/valid-asyncapi.yml'),
-            versionEvents: true
+            pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
+            versionEvents: true,
           };
 
           const oldEvent = {
@@ -126,13 +127,15 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
             owners: ['dBoyne'],
           };
 
-          const { writeEventToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR })
-          const { path:eventPath } = await writeEventToCatalog(oldEvent, { schema: { extension: 'json', fileContent: 'hello' }});
+          const { writeEventToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+          const { path: eventPath } = await writeEventToCatalog(oldEvent, {
+            schema: { extension: 'json', fileContent: 'hello' },
+          });
 
           // run plugin
           await plugin(pluginContext, options);
 
-          const { getEventFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR })
+          const { getEventFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
           const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
 
           // Check the version has been set
@@ -153,15 +156,12 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
             ---
 
             <Mermaid />`);
-
-
         });
 
         it('when versionEvents is false, all previous matching events will be overriden', async () => {
-
           const options: AsyncAPIPluginOptions = {
-            spec: path.join(__dirname, './assets/valid-asyncapi.yml'),
-            versionEvents: false
+            pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
+            versionEvents: false,
           };
 
           const oldEvent = {
@@ -173,13 +173,15 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
             owners: ['dBoyne'],
           };
 
-          const { writeEventToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR })
-          const { path:eventPath } = await writeEventToCatalog(oldEvent, { schema: { extension: 'json', fileContent: 'hello' }});
+          const { writeEventToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+          const { path: eventPath } = await writeEventToCatalog(oldEvent, {
+            schema: { extension: 'json', fileContent: 'hello' },
+          });
 
           // run plugin
           await plugin(pluginContext, options);
 
-          const { getEventFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR })
+          const { getEventFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
           const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
 
           // Check the version has been set
@@ -200,11 +202,8 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
             ---
 
             <Mermaid />`);
-
         });
-
       });
-      
     });
   });
 });
