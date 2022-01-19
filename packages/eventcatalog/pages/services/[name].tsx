@@ -1,7 +1,6 @@
 import Head from 'next/head';
 import { MDXRemote } from 'next-mdx-remote';
 import { Service } from '@eventcatalog/types';
-import { editUrl } from '../../eventcatalog.config.js';
 import ContentView from '@/components/ContentView';
 import { getAllServices, getServiceByName } from '@/lib/services';
 
@@ -39,7 +38,10 @@ export default function Services(props: ServicesPageProps) {
   const { service, markdown, notFound } = props;
   const { getEditUrl, hasEditUrl } = useUrl();
 
-  if (notFound) return <NotFound type="service" name={service.name} editUrl={editUrl} />;
+  if (notFound)
+    return (
+      <NotFound type="service" name={service.name} editUrl={hasEditUrl ? getEditUrl(`/services/${service.name}/index.md`) : ''} />
+    );
 
   const { name, summary, draft } = service;
   const { lastModifiedDate } = markdown;
