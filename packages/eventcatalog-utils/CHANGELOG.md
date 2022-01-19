@@ -1,5 +1,11 @@
 # @eventcatalog/utils
 
+## 0.0.5
+
+### Patch Changes
+
+- [`ad9108b`](https://github.com/boyney123/eventcatalog/commit/ad9108b46cb3fbc135db9ca2997a49af9dd0ca50) [#86](https://github.com/boyney123/eventcatalog/pull/86) Thanks [@boyney123](https://github.com/boyney123)! - feat: when creating event using util with schema it now adds schema c…
+
 ## 0.0.4
 
 ### Patch Changes
