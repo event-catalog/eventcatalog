@@ -34,7 +34,6 @@
     "@eventcatalog/types": "0.0.3",
     "@types/fs-extra": "^9.0.13",
     "@types/json2md": "^1.5.1",
-    "@types/yamljs": "^0.2.31",
-    "ts-node": "^10.4.0"
+    "@types/yamljs": "^0.2.31"
   }
 }
