@@ -39,7 +39,7 @@ export default function Services(props: ServicesPageProps) {
   const { getEditUrl, hasEditUrl } = useUrl();
 
   if (notFound)
-    return <NotFound type="service" name={service.name} editUrl={hasEditUrl ? getEditUrl(`/events/${name}/index.md`) : ''} />;
+    return <NotFound type="service" name={service.name} editUrl={hasEditUrl ? getEditUrl(`/services/${service.name}/index.md`) : ''} />;
 
   const { name, summary, draft } = service;
   const { lastModifiedDate } = markdown;
