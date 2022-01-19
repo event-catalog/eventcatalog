@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.0.11
+
+### Patch Changes
+
+- [`97e447a`](https://github.com/boyney123/eventcatalog/commit/97e447aa0ec255b2c879eac7fa83d7b705230790) [#95](https://github.com/boyney123/eventcatalog/pull/95) Thanks [@boyney123](https://github.com/boyney123)! - fix: edit url is now optional in not found pages and no longer fetche…
+
 ## 0.0.10
 
 ### Patch Changes
