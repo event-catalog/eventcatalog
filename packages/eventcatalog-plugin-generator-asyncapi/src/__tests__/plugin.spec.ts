@@ -98,7 +98,9 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           consumers: []
         ---
 
-        <Mermaid />`);
+        <Mermaid />
+        <Schema />
+        `);
 
       expect(serviceFile).toMatchMarkdown(
         `---
@@ -129,7 +131,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
 
           const { writeEventToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
           const { path: eventPath } = await writeEventToCatalog(oldEvent, {
-            schema: { extension: 'json', fileContent: 'hello' },
+            schema: { extension: 'json', fileContent: 'hello' }
           });
 
           // run plugin
@@ -155,7 +157,51 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
               consumers: []
             ---
 
-            <Mermaid />`);
+            <Mermaid />
+            <Schema />
+            `);
+        });
+
+        it('when versionEvents is true and the events and services already have markdown content, that content is used for the new events and services being created', async () => {
+
+          const options: AsyncAPIPluginOptions = {
+            pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
+            versionEvents: true,
+          };
+
+          const oldEvent = {
+            name: 'UserSignedUp',
+            version: '0.0.1',
+            summary: 'Old example of an event that should be versioned',
+            producers: ['Service A'],
+            consumers: ['Service B'],
+            owners: ['dBoyne'],
+          };
+
+          const { writeEventToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+          await writeEventToCatalog(oldEvent, {
+            schema: { extension: 'json', fileContent: 'hello' },
+            markdownContent: '# Content that already exists'
+          });
+
+          // run plugin
+          await plugin(pluginContext, options);
+
+          const { getEventFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+          const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
+
+          expect(eventFile).toMatchMarkdown(`
+            ---
+              name: UserSignedUp
+              summary: null
+              version: 1.0.0
+              producers:
+                  - 'Account Service'
+              consumers: []
+            ---
+            # Content that already exists
+            `);
+
         });
 
         it('when versionEvents is false, all previous matching events will be overriden', async () => {
@@ -201,7 +247,9 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
               consumers: []
             ---
 
-            <Mermaid />`);
+            <Mermaid />
+            <Schema />
+            `);
         });
       });
     });
