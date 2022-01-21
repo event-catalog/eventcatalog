@@ -20,18 +20,20 @@ interface ServicesPageProps {
   notFound?: boolean;
 }
 
-function MermaidComponent({ title, service }: { title: string; service: Service }) {
+function MermaidComponent({ title, service, charts }: { title: string; service: Service; charts?: string[] }) {
   return (
     <div className="mx-auto w-full py-10">
       {title && <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>}
-      <Mermaid source="service" data={service} rootNodeColor={getBackgroundColor(service.name)} />
+      <Mermaid source="service" data={service} rootNodeColor={getBackgroundColor(service.name)} charts={charts} />
     </div>
   );
 }
 
 const getComponents = (service) => ({
   Admonition,
-  Mermaid: ({ title }: { title: string }) => <MermaidComponent service={service} title={title} />,
+  Mermaid: ({ title, charts }: { title: string; charts?: string[] }) => (
+    <MermaidComponent service={service} title={title} charts={charts} />
+  ),
 });
 
 export default function Services(props: ServicesPageProps) {

@@ -30,17 +30,30 @@ interface MermaidProps {
   data: Event | Service;
   source: 'event' | 'service';
   rootNodeColor?: string;
+  charts?: string[];
 }
 
-function Mermaid({ data, source = 'event', rootNodeColor }: MermaidProps) {
+function Mermaid({ data, source = 'event', rootNodeColor, charts }: MermaidProps) {
+  useEffect(() => {
+    mermaid.contentLoaded();
+  }, []);
+
+  if (charts) {
+    return (
+      <>
+        {charts.map((content, index) => (
+          <div key={`chart-${index}`} className="mermaid">
+            {content}
+          </div>
+        ))}
+      </>
+    );
+  }
   const mermaidChart =
     source === 'event'
       ? buildMermaidFlowChartForEvent(data as Event, rootNodeColor)
       : buildMermaidFlowChartForService(data as Service, rootNodeColor);
 
-  useEffect(() => {
-    mermaid.contentLoaded();
-  }, []);
   return <div className="mermaid">{mermaidChart}</div>;
 }
 
