@@ -5,9 +5,9 @@ sidebar_position: 1
 
 # Introduction
 
-⚡️ EventCatlog will help you document your Event-Driven architecture in no time.
+⚡️ EventCatalog will help you document your Event-Driven architecture in no time.
 
-⚡️ EventCatlog is designed to help you document and capture your Events, Services, Schemas, Code Examples and much more. 
+⚡️ EventCatalog is designed to help you document and capture your Events, Services, Schemas, Code Examples and much more. 
 
 ⚡️ Ease of use, developer experience and managing maintenance overhead is key to this project. That's why we try to focus on simplifying the experience.
 
