@@ -56,10 +56,10 @@ export const getComponents = ({ event, schema, examples }: any) => ({
     );
     return null;
   },
-  Mermaid: ({ title }: { title: string }) => (
+  Mermaid: ({ title, charts }: { title: string; charts?: string[] }) => (
     <div className="mx-auto w-full py-10">
       {title && <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>}
-      <Mermaid source="event" data={event} rootNodeColor={getBackgroundColor(event.name)} />
+      <Mermaid source="event" data={event} rootNodeColor={getBackgroundColor(event.name)} charts={charts} />
     </div>
   ),
 });

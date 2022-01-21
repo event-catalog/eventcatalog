@@ -15,11 +15,42 @@ For more information check out the [schema guide for events](/docs/events/adding
 
 ### `<Mermaid />`
 
-Supported in 
+
+This component will render [mermaid diagrams](https://mermaid-js.github.io/mermaid/#/) into your documents.
+
+If you use `<Mermaid />` without any props EventCatalog will render the relationships between your consumers and producers.
+
+If you would like to **render custom** mermaid diagrams you can use the `charts` prop on the diagram.
+
+Read [Mermaid documentation](https://mermaid-js.github.io/mermaid/#/) if you want to learn what other graphs you can render.
+
+#### Support
+
+You can use this MDX component inside
 - event markdown files
 - service markdown files
 
-This component will render your mermaid diagrams into the document. 
+#### Props 
+
+<APITable>
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| `title` | `string` | '' | Title to render above your chart |
+| `charts` | `string[]` | [] | An array of [mermaid charts](https://mermaid-js.github.io/mermaid/#/) to render to the your document |
+
+</APITable>
+
+#### Usage
+
+```md title="Render the default graphs for your events and services"
+<Mermaid />
+```
+
+```md title="Render any Mermaid Graph"
+<Mermaid title="Event Rules & Targets" charts={[`flowchart LR 
+Start --> Stop`]} />
+```
 
 :::tip
 Remember the relationship between events and services is stored within the event itself through the `producer` and `consumer` frontmatter properties.
