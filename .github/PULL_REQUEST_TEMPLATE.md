@@ -13,6 +13,6 @@ Happy contributing!
 
 (Write your motivation here.)
 
-### Have you read the [Contributing Guidelines on pull requests](https://github.com/boyney123/eventcatalog/blob/main/CONTRIBUTING.md#pull-requests)?
+### Have you read the [Contributing Guidelines on pull requests](https://github.com/boyney123/eventcatalog/blob/master/CONTRIBUTING.md#pull-requests)?
 
 (Write your answer here.)
