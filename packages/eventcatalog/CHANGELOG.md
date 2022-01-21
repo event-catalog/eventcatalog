@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.0.12
+
+### Patch Changes
+
+- [`dd1b29f`](https://github.com/boyney123/eventcatalog/commit/dd1b29f81658a3c5bea9ed92c1cf54265c7feb0b) [#98](https://github.com/boyney123/eventcatalog/pull/98) Thanks [@boyney123](https://github.com/boyney123)! - feat: adding more mermaid support in mdx
+
 ## 0.0.11
 
 ### Patch Changes
