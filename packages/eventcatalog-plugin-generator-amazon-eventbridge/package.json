@@ -1,0 +1,38 @@
+{
+  "name": "@eventcatalog/plugin-doc-generator-amazon-eventbridge",
+  "version": "0.0.0",
+  "description": "Documentation generator for EventCatalog using Amazon EventBridge",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:package": "tsc",
+    "watch": "tsc --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/boyney123/eventcatalog.git",
+    "directory": "packages/eventcatalog-plugin-doc-generator-amazon-eventbridge"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-eventbridge": "^3.47.0",
+    "@aws-sdk/client-schemas": "^3.47.0",
+    "@eventcatalog/utils": "^0.0.7",
+    "aws-cdk-lib": "^2.8.0",
+    "constructs": "^10.0.40",
+    "chalk": "^4.1.2",
+    "yamljs": "^0.3.0"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "devDependencies": {
+    "@aws-sdk/types": "^3.47.0",
+    "@eventcatalog/types": "^0.0.3",
+    "@types/yamljs": "^0.2.31",
+    "dotenv": "^14.2.0"
+  }
+}
