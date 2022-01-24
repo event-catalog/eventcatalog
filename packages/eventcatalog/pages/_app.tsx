@@ -12,6 +12,8 @@ export default ({ Component, pageProps }: AppProps) => (
       <script src="//unpkg.com/three" />
       <script src="//unpkg.com/three/examples/js/renderers/CSS2DRenderer.js" />
 
+      <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.css" />
+
       <meta
         name="description"
         content="An open source project to Discover, Explore and Document your Event Driven Architectures."

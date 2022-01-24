@@ -52,8 +52,10 @@ export const getAllEventsFromCatalog =
 
 export const buildEventMarkdownForCatalog =
   () =>
-  (event: Event, { markdownContent, includeSchemaComponent }: any = {}) =>
-    buildMarkdownFile({ frontMatterObject: event, customContent: markdownContent, includeSchemaComponent });
+  (event: Event, { markdownContent, includeSchemaComponent, defaultFrontMatter }: any = {}) => {
+    const frontMatter = { ...event, ...defaultFrontMatter };
+    return buildMarkdownFile({ frontMatterObject: frontMatter, customContent: markdownContent, includeSchemaComponent });
+  };
 
 export const versionEvent =
   ({ catalogDirectory }: FunctionInitInterface) =>
@@ -106,6 +108,7 @@ export const writeEventToCatalog =
       schema,
       codeExamples = [],
       markdownContent: setMarkdownContent,
+      frontMatterToCopyToNewVersions,
     } = options || {};
     let markdownContent = setMarkdownContent;
 
@@ -123,12 +126,29 @@ export const writeEventToCatalog =
       }
     }
 
+    let defaultFrontMatterForNewEvent: any = {};
+
+    // Check if we should carry frontmatter from previous event into the new one.
+    if (eventAlreadyInCatalog && frontMatterToCopyToNewVersions) {
+      const eventFromCatalog = getEventFromCatalog({ catalogDirectory })(eventName);
+      defaultFrontMatterForNewEvent = Object.keys(frontMatterToCopyToNewVersions).reduce(
+        (defaultValues: any, key: string) =>
+          // @ts-ignore
+          frontMatterToCopyToNewVersions[key] ? { ...defaultValues, [key]: eventFromCatalog?.data[key] } : defaultValues,
+        {}
+      );
+    }
+
     if (eventAlreadyInCatalog && versionExistingEvent) {
       versionEvent({ catalogDirectory })(eventName);
     }
 
     fs.ensureDirSync(path.join(catalogDirectory, 'events', eventName));
-    const data = buildEventMarkdownForCatalog()(event, { markdownContent, includeSchemaComponent: !!schema });
+    const data = buildEventMarkdownForCatalog()(event, {
+      markdownContent,
+      includeSchemaComponent: !!schema,
+      defaultFrontMatter: defaultFrontMatterForNewEvent,
+    });
 
     fs.writeFileSync(path.join(catalogDirectory, 'events', eventName, 'index.md'), data);
 

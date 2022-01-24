@@ -421,6 +421,66 @@ describe('eventcatalog-utils', () => {
 
           fs.rmdirSync(path.join(updatedEventPath), { recursive: true });
         });
+
+        describe('frontMatterToCopyToNewVersions', () => {
+          it('when automatically versioning an event the frontmatter is copied to the new event with any properties specified', () => {
+            const event = {
+              name: 'My Event That Already Exists',
+              version: '1.0.0',
+              summary: 'This is summary for my event',
+              owners: ['dBoyne', 'anotherUser'],
+            };
+
+            const { path: eventPath } = writeEventToCatalog(event, {
+              useMarkdownContentFromExistingEvent: true,
+              markdownContent: '# My Content',
+            });
+
+            const result = fs.readFileSync(path.join(eventPath, 'index.md'), 'utf-8');
+
+            expect(result).toMatchMarkdown(`
+             ---
+             name: 'My Event That Already Exists'
+             version: 1.0.0
+             summary: 'This is summary for my event'
+             owners:
+                 - dBoyne
+                 - anotherUser
+             ---
+             # My Content`);
+
+            const updatedEvent = {
+              name: 'My Event That Already Exists',
+              version: '1.2.0',
+              summary: 'New summary of event',
+              producers: ['random'],
+            };
+
+            const { path: updatedEventPath } = writeEventToCatalog(updatedEvent, {
+              useMarkdownContentFromExistingEvent: true,
+              frontMatterToCopyToNewVersions: {
+                owners: true,
+              },
+            });
+
+            const newFileContents = fs.readFileSync(path.join(eventPath, 'index.md'), 'utf-8');
+
+            expect(newFileContents).toMatchMarkdown(`
+            ---
+            name: 'My Event That Already Exists'
+            version: 1.2.0
+            summary: 'New summary of event'
+            producers:
+                - random
+            owners:
+                - dBoyne
+                - anotherUser
+            ---
+            # My Content`);
+
+            fs.rmdirSync(path.join(updatedEventPath), { recursive: true });
+          });
+        });
       });
     });
 
