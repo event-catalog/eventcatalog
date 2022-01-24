@@ -1,5 +1,11 @@
 # @eventcatalog/utils
 
+## 0.0.7
+
+### Patch Changes
+
+- [`732dac2`](https://github.com/boyney123/eventcatalog/commit/732dac24c1de62537732083a53c2218c2794773a) [#102](https://github.com/boyney123/eventcatalog/pull/102) Thanks [@boyney123](https://github.com/boyney123)! - feat: allow default frontmatter when creating events
+
 ## 0.0.6
 
 ### Patch Changes
