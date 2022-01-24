@@ -2,8 +2,6 @@ import { Fragment, useState } from 'react';
 import Head from 'next/head';
 import type { Event, Service } from '@eventcatalog/types';
 
-import Link from 'next/link';
-
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/solid';
 import EventGrid from '@/components/Grids/EventGrid';
@@ -28,7 +26,7 @@ export default function Page({ events, services }: PageProps) {
   const filters = [
     {
       id: 'services',
-      name: 'Services',
+      name: 'Filter by Services',
       options: services.map((service) => ({
         value: service,
         label: service,
@@ -123,19 +121,8 @@ export default function Page({ events, services }: PageProps) {
           <div className="grid grid-cols-4 gap-x-8 gap-y-10">
             {/* Filters */}
             <form className="hidden lg:block">
-              <span className="text-sm font-bold text-gray-900 mb-4 block">Events</span>
-              <ul className=" text-sm text-gray-600 space-y-4 pb-6 border-b border-gray-200 items-stretch">
-                {events.map((event) => (
-                  <li key={event.name}>
-                    <Link href={`/events/${event.name}`}>
-                      <a>{event.name}</a>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-
               {filters.map((section: any) => (
-                <div key={section.id} className="border-b border-gray-200 py-6">
+                <div key={section.id} className="border-b border-gray-200 pb-6">
                   <h3 className="-my-3 flow-root">
                     <div className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
                       <span className="font-medium text-gray-900">{section.name}</span>

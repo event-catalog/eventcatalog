@@ -12,15 +12,18 @@ function NodeElement({ node: { id } }: { node: { id: string } }) {
   return <div className={`text-sm text-center p-1 rounded-md `}>{id}</div>;
 }
 
+const MAX_LENGTH_FOR_NODES = 30;
+const truncateNode = (value) => (value.length > MAX_LENGTH_FOR_NODES ? `${value.substring(0, MAX_LENGTH_FOR_NODES)}...` : value);
+
 const graph = ({ events, services }) => {
-  const eventNodes = events.map(({ name: event }) => ({ id: event, group: 1, type: 'event' }));
-  const serviceNodes = services.map((service) => ({ id: service, group: 2, type: 'service' }));
+  const eventNodes = events.map(({ name: event }) => ({ id: truncateNode(event), group: 1, type: 'event' }));
+  const serviceNodes = services.map((service) => ({ id: truncateNode(service), group: 2, type: 'service' }));
 
   // Create all links
   const links = events.reduce((nodes, event) => {
     const { consumers = [], producers = [], name } = event;
-    const consumerNodes = consumers.map((consumer) => ({ source: name, target: consumer }));
-    const producerNodes = producers.map((producer) => ({ source: producer, target: name }));
+    const consumerNodes = consumers.map((consumer) => ({ source: truncateNode(name), target: truncateNode(consumer) }));
+    const producerNodes = producers.map((producer) => ({ source: truncateNode(producer), target: truncateNode(name) }));
     return nodes.concat(consumerNodes).concat(producerNodes);
   }, []);
 
