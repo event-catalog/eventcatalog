@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import { PluginOptions, SchemaTypes } from './types';
 import AWS, { CustomSchema } from './lib/aws';
 
-import { buildMarkdownForEvent } from './markdown';
+import { buildMarkdownForEvent, buildMarkdownForEventWithoutRules } from './markdown';
 
 const buildEventFromEventBridgeSchema = (
   schema: CustomSchema,
@@ -62,7 +62,7 @@ export default async (_: LoadContext, options: PluginOptions) => {
     const { examples, schema, ...eventData } = event;
 
     const detailType = awsSchema?.DetailType;
-    const eventRules = detailType ? rules[detailType] : [];
+    const eventRules = detailType && rules[detailType] ? rules[detailType] : [];
 
     const matchingEventsAlreadyInCatalog = getEventFromCatalog(eventData.name);
 
@@ -79,7 +79,10 @@ export default async (_: LoadContext, options: PluginOptions) => {
       },
       versionExistingEvent: versionEvents && versionChangedFromPreviousEvent,
       useMarkdownContentFromExistingEvent: true,
-      markdownContent: buildMarkdownForEvent({ rules: eventRules, eventBusName, eventName: eventData.name, region }),
+      markdownContent:
+        eventRules.length > 0
+          ? buildMarkdownForEvent({ rules: eventRules, eventBusName, eventName: eventData.name, region })
+          : buildMarkdownForEventWithoutRules(),
     });
   });
 

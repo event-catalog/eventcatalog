@@ -66,6 +66,7 @@ describe('eventcatalog-plugin-generator-amazon-eventbridge', () => {
   });
 
   beforeEach(() => {
+    jest.clearAllMocks();
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
@@ -94,7 +95,7 @@ describe('eventcatalog-plugin-generator-amazon-eventbridge', () => {
       const { raw: eventFile, data: event } = getEventFromCatalog('users@UserCreated');
 
       // known issue with utils that will default props... replace it for now
-      expect(eventFile).toMatchMarkdown(eventSnapshots.userCreated.replace('owners: []', ''));
+      expect(eventFile).toMatchMarkdown(eventSnapshots.userCreated);
 
       // verify the schema next to the event is the JSONDraft4 from EventBridge
       const expectedSchemaForEvent = JSON.parse(awsClientSchemasMocks.exportSchema.Content);
@@ -256,6 +257,26 @@ describe('eventcatalog-plugin-generator-amazon-eventbridge', () => {
           );
           expect(generatedSchemaForEvent).toEqual(JSON.stringify(expectedSchemaForEvent, null, 4));
         });
+      });
+
+      it('when events do not have any targets or rules the target and rule diagrams are not rendered in the markdown files', async () => {
+        mockExportSchema.mockImplementation(({ SchemaName }) => awsClientSchemasMocks.buildSchema({ eventName: SchemaName }));
+
+        mockDescribeSchema.mockImplementation(({ SchemaName }) =>
+          awsClientSchemasMocks.buildOpenAPIResponse({ eventName: SchemaName })
+        );
+
+        await plugin({}, pluginOptions);
+
+        // just wait for files to be there in time.
+        await new Promise((r) => setTimeout(r, 200));
+
+        const { getEventFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+
+        const { raw: eventFile, data: event } = getEventFromCatalog('users@UserDeleted');
+
+        // known issue with utils that will default props... replace it for now
+        expect(eventFile).toMatchMarkdown(eventSnapshots.userDeletedWithNoTargetsOrRules.replace('owners: []', ''));
       });
     });
   });

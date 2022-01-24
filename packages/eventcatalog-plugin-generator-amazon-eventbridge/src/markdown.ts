@@ -21,6 +21,11 @@ ${rule.targets
   .join('')}`;
 
 // eslint-disable-next-line import/prefer-default-export
+export const buildMarkdownForEventWithoutRules = () => `No matched rules or targets found for event.
+<Schema />
+<EventExamples />
+`;
+// eslint-disable-next-line import/prefer-default-export
 export const buildMarkdownForEvent = ({ rules, eventBusName, eventName, region }: any) => `## Matched rules for event
 ${
   rules.length > 0
