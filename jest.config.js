@@ -5,6 +5,7 @@ const ignorePatterns = [
   '__fixtures__',
   '/packages/eventcatalog-plugin-generator-asyncapi/lib',
   '/packages/eventcatalog/lib/__tests__/assets',
+  '/packages/eventcatalog-plugin-generator-amazon-eventbridge/src/__tests__/assets',
   '/packages/eventcatalog/scripts/__tests__/assets',
 ];
 
@@ -21,7 +22,7 @@ module.exports = {
   },
   modulePathIgnorePatterns: [
     '<rootDir>/packages/eventcatalog-utils/src/__tests__/assets',
-    '<rootDir>/packages/eventcatalog-plugin-generator-asyncapi/src/__tests__/tmp',
+    '<rootDir>/packages/*.*/src/__tests__/tmp',
   ],
   transform: {
     '^.+\\.[jt]sx?$': 'babel-jest',
