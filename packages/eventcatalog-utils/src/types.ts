@@ -24,10 +24,20 @@ export interface CodeExample {
   fileContent: string;
 }
 
+export interface FrontMatterAllowedToCopy {
+  owners?: boolean;
+  externalLinks?: boolean;
+  domains?: boolean;
+  consumers?: boolean;
+  producers?: boolean;
+  summary?: boolean;
+}
+
 export interface WriteEventToCatalogOptions {
   schema?: SchemaFile;
   codeExamples?: CodeExample[] | [];
   useMarkdownContentFromExistingEvent?: boolean;
   markdownContent?: string;
+  frontMatterToCopyToNewVersions?: FrontMatterAllowedToCopy;
   versionExistingEvent?: boolean;
 }

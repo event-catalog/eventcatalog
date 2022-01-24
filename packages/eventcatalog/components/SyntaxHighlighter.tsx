@@ -23,7 +23,7 @@ function SyntaxHighlighter({ language, name = '', ...props }: any) {
       >
         {showCopied ? 'Copied' : 'Copy'}
       </button>
-      <PrismSyntaxHighlighter style={codeStyle} language={language} {...props} wrapLines>
+      <PrismSyntaxHighlighter style={codeStyle} language={language} {...props} wrapLines className="max-h-96 overflow-auto">
         {props.children.replace(regex, '\n')}
       </PrismSyntaxHighlighter>
       {name && <span className="-mb-2 block text-xs text-right font-bold">{name}</span>}
