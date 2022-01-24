@@ -1,8 +1,6 @@
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import Head from 'next/head';
 import { Service } from '@eventcatalog/types';
-
-import Link from 'next/link';
 
 import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/solid';
@@ -24,6 +22,8 @@ export interface PageProps {
 }
 
 export default function Page({ services }: PageProps) {
+  const [showMermaidDiagrams, setShowMermaidDiagrams] = useState(false);
+
   return (
     <>
       <Head>
@@ -83,22 +83,35 @@ export default function Page({ services }: PageProps) {
           <div className="grid grid-cols-4 gap-x-8 gap-y-10">
             {/* Filters */}
             <form className="hidden lg:block">
-              <span className="text-sm font-bold text-gray-900 mb-4 block">Services</span>
-              <ul className=" text-sm font-medium text-gray-900 space-y-4 pb-6 border-b border-gray-200 items-stretch">
-                {services.map((service) => (
-                  <li key={service.name}>
-                    <Link href={`/services/${service.name}`}>
-                      <a>{service.name}</a>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <div className="border-b border-gray-200 pb-6">
+                <h3 className="-my-3 flow-root">
+                  <div className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
+                    <span className="font-medium text-gray-900">Features</span>
+                  </div>
+                </h3>
+                <div className="pt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center">
+                      <input
+                        id="show-mermaid"
+                        type="checkbox"
+                        onChange={(e) => setShowMermaidDiagrams(e.target.checked)}
+                        defaultChecked={showMermaidDiagrams}
+                        className="h-4 w-4 border-gray-300 rounded text-gray-600 focus:ring-gray-500"
+                      />
+                      <label htmlFor="show-mermaid" className="ml-3 text-sm text-gray-600">
+                        Show Mermaid Diagrams
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </form>
 
             <div className="col-span-4 lg:col-span-3">
               <div>
                 <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">Services</h2>
-                <ServiceGrid services={services} />
+                <ServiceGrid services={services} showMermaidDiagrams={showMermaidDiagrams} />
               </div>
             </div>
           </div>

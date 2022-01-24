@@ -4,14 +4,16 @@ import Link from 'next/link';
 import { CubeIcon } from '@heroicons/react/outline';
 
 import { Service } from '@eventcatalog/types';
+import Mermaid from '@/components/Mermaid';
 
 import getBackgroundColor from '@/utils/random-bg';
 
 interface ServiceGridProps {
   services: Service[];
+  showMermaidDiagrams?: boolean;
 }
 
-function ServiceGrid({ services = [] }: ServiceGridProps) {
+function ServiceGrid({ services = [], showMermaidDiagrams = false }: ServiceGridProps) {
   return (
     <ul className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2">
       {services.map((service) => {
@@ -38,6 +40,11 @@ function ServiceGrid({ services = [] }: ServiceGridProps) {
                       )}
                       <div className="text-gray-500 text-xs font-normal mt-2 line-clamp-3">{service.summary}</div>
                     </div>
+                    {showMermaidDiagrams && (
+                      <div className="h-full items-center flex">
+                        <Mermaid source="service" data={service} rootNodeColor={getBackgroundColor(service.name)} />
+                      </div>
+                    )}
                     <div className="flex space-x-4 text-xs pt-2 relative bottom-0 left-0">
                       <div className=" font-medium text-gray-500">
                         <CubeIcon className="h-4 w-4 text-green-400 inline-block mr-2" aria-hidden="true" />

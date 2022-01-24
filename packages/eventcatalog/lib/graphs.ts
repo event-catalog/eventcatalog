@@ -1,11 +1,15 @@
 import type { Event, Service } from '@eventcatalog/types';
 
+const MAX_LENGTH_FOR_NODES = '50';
+
+const truncateNode = (value) => (value.length > MAX_LENGTH_FOR_NODES ? `${value.substring(0, MAX_LENGTH_FOR_NODES)}...` : value);
+
 const buildMermaid = (centerNode, leftNodes, rightNodes, rootNodeColor) => {
   // mermaid does not work with spaces in nodes
   const removeSpacesInNames = (nodes) => nodes.map((node) => node.replace(/ /g, '_'));
-  const lNodes = removeSpacesInNames(leftNodes);
-  const rNodes = removeSpacesInNames(rightNodes);
-  const nodeValue = centerNode.replace(/ /g, '_');
+  const lNodes = removeSpacesInNames(leftNodes).map(truncateNode);
+  const rNodes = removeSpacesInNames(rightNodes).map(truncateNode);
+  const nodeValue = truncateNode(centerNode.replace(/ /g, '_'));
 
   return `flowchart LR
 ${lNodes.map((node) => `${node}:::producer-->${nodeValue}:::event\n`).join('')}

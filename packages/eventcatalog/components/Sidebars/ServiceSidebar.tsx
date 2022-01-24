@@ -42,13 +42,13 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
           </h2>
           <ul className="mt-2 leading-8">
             {publishes.map((event) => (
-              <li className="inline" key={event.name}>
+              <li className="inline " key={event.name}>
                 <Link href={`/events/${event.name}`}>
                   <a href="#" className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5">
                     <div className="absolute flex-shrink-0 flex items-center justify-center">
                       <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate animate-pulse" aria-hidden="true" />
                     </div>
-                    <div className="ml-3.5 text-sm font-medium text-gray-900">{event.name}</div>
+                    <div className="ml-3.5 text-sm font-medium text-gray-900 truncate max-w-xs">{event.name}</div>
                   </a>
                 </Link>
               </li>
@@ -70,7 +70,7 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
                     <div className="absolute flex-shrink-0 flex items-center justify-center">
                       <span className="h-1.5 w-1.5 rounded-full bg-green-500  animate animate-pulse" aria-hidden="true" />
                     </div>
-                    <div className="ml-3.5 text-sm font-medium text-gray-900">{event.name}</div>
+                    <div className="ml-3.5 text-sm font-medium text-gray-900 truncate max-w-xs">{event.name}</div>
                   </a>
                 </Link>
               </li>

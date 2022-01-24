@@ -16,8 +16,9 @@ export default function Example(props: NotFoundProps) {
           Failed to find {type}
         </p>
         <h1 className="mt-2 text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">Missing Documentation</h1>
-        <p className="mt-2 text-lg font-medium text-gray-700 text-opacity-50">
-          Documentation for {type} <span className="underline">{name}</span> is missing!
+        <p className="mt-2 text-lg font-medium text-gray-700 text-opacity-50 text-center ">
+          Documentation for {type} is missing!
+          <span className="block font-bold text-gray-800 underline break-all max-w-2xl mx-auto py-4">{name}</span>
         </p>
         <p className="mt-4 text-xs text-gray-400">Help the eco-system and add the documentation for others ❤️ </p>
         {editUrl && (
@@ -29,7 +30,7 @@ export default function Example(props: NotFoundProps) {
               rel="noreferrer"
             >
               <DocumentAddIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-              Add <span className="underline px-1">{name}</span> documentation
+              Add missing <span className="underline px-1">{type}</span> documentation
             </a>
           </div>
         )}
