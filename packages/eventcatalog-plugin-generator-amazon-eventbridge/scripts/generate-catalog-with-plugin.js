@@ -1,6 +1,6 @@
 const plugin = require('../lib/index');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../', '.env')});
+require('dotenv').config({ path: path.join(__dirname, '../', '.env') });
 
 const main = async () => {
   const amazonEventBridgePlugin = plugin.default;
