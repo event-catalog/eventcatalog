@@ -273,7 +273,7 @@ describe('eventcatalog-plugin-generator-amazon-eventbridge', () => {
 
         const { getEventFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
 
-        const { raw: eventFile, data: event } = getEventFromCatalog('users@UserDeleted');
+        const { raw: eventFile } = getEventFromCatalog('users@UserDeleted');
 
         // known issue with utils that will default props... replace it for now
         expect(eventFile).toMatchMarkdown(eventSnapshots.userDeletedWithNoTargetsOrRules.replace('owners: []', ''));
