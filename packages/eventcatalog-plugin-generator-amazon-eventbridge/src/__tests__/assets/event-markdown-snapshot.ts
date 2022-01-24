@@ -1,3 +1,14 @@
+const generatedUserDeletedWithNoRulesOrTargetsMarkdownFile = `---
+name: users@UserDeleted
+version: '1'
+summary: 'Found on the "test-event-bus" Amazon EventBridge bus.'
+externalLinks:
+    - {label: 'View Schema AWS Console', url: 'https://eu-west-1.console.aws.amazon.com/events/home?region=eu-west-1#/registries/discovered-schemas/schemas/users@UserDeleted'}
+---
+No matched rules or targets found for event.
+<Schema />
+<EventExamples />`;
+
 const generatedUserCreatedEventMarkdownFile = `---
 name: users@UserCreated
 version: '1'
@@ -36,4 +47,5 @@ usercreated-to-hello-world{{usercreated-to-hello-world}}:::rule-- fa:fa-cloud se
 
 export default {
   userCreated: generatedUserCreatedEventMarkdownFile,
+  userDeletedWithNoTargetsOrRules: generatedUserDeletedWithNoRulesOrTargetsMarkdownFile,
 };
