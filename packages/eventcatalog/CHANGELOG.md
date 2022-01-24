@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.0.14
+
+### Patch Changes
+
+- [`7c23703`](https://github.com/boyney123/eventcatalog/commit/7c237039535d7f5d6f229396cf59eb5cbf5b0645) [#109](https://github.com/boyney123/eventcatalog/pull/109) Thanks [@boyney123](https://github.com/boyney123)! - fix: issue with long names for services and events rendering incorrectly
+
 ## 0.0.13
 
 ### Patch Changes
