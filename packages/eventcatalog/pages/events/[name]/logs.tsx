@@ -8,7 +8,7 @@ import 'diff2html/bundles/css/diff2html.min.css';
 import { CodeIcon } from '@heroicons/react/solid';
 import BreadCrumbs from '@/components/BreadCrumbs';
 
-import { getLogsForEvent, getEventByName } from '@/lib/events';
+import { getLogsForEvent, getEventByName, getAllEvents } from '@/lib/events';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -141,8 +141,8 @@ function Logs({ changes, name: eventName, currentVersion }: LogsProps) {
   );
 }
 
-export const getServerSideProps = async ({ query }) => {
-  const { name: eventName } = query;
+export const getStaticProps = async ({ params }) => {
+  const { name: eventName } = params;
 
   const history = await getLogsForEvent(eventName);
   const { event: { version } = {} } = await getEventByName(eventName);
@@ -155,5 +155,14 @@ export const getServerSideProps = async ({ query }) => {
     },
   };
 };
+
+export async function getStaticPaths() {
+  const services = getAllEvents();
+  const paths = services.map((event) => ({ params: { name: event.name } }));
+  return {
+    paths,
+    fallback: false,
+  };
+}
 
 export default Logs;

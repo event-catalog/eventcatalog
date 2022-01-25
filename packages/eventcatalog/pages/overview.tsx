@@ -66,7 +66,7 @@ const graph = ({ events, services }) => {
 
 export default graph;
 
-export const getServerSideProps = () => {
+export const getStaticProps = () => {
   const events = getAllEvents();
   const services = getUniqueServicesNamesFromEvents(events);
 

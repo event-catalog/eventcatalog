@@ -2,29 +2,24 @@ import React from 'react';
 import Link from 'next/link';
 import { CubeIcon, DownloadIcon, ExternalLinkIcon } from '@heroicons/react/outline';
 import type { Event } from '@eventcatalog/types';
-import fileDownload from 'js-file-download';
 import { useUser } from '@/hooks/EventCatalog';
 
 interface EventSideBarProps {
   event: Event;
   loadedVersion?: string;
+  isOldVersion?: boolean;
 }
 
-function EventSideBar({ event, loadedVersion }: EventSideBarProps) {
+function EventSideBar({ event, loadedVersion, isOldVersion }: EventSideBarProps) {
   const { getUserById } = useUser();
 
-  const { name: eventName, owners, producers, consumers, historicVersions, externalLinks } = event;
+  const { name: eventName, owners, producers, consumers, historicVersions, externalLinks, schema } = event;
 
-  const handleDownload = async () => {
-    try {
-      const res = await fetch(`/api/event/${event.name}/download`);
-      if (res.status === 404) throw new Error('Failed to find file');
-      const { schema, fileName } = await res.json();
-      fileDownload(schema, fileName);
-    } catch (error) {
-      // TODO: Maybe better error experince
-      console.error(error);
-    }
+  const getSchemaDownloadURL = () => {
+    if (!schema) return null;
+    return isOldVersion
+      ? `/schemas/${eventName}/${loadedVersion}/schema.${schema.extension}`
+      : `/schemas/${eventName}/schema.${schema.extension}`;
   };
 
   return (
@@ -170,14 +165,17 @@ function EventSideBar({ event, loadedVersion }: EventSideBarProps) {
         </div>
       </div>
       <div className="border-t border-gray-200 py-6 space-y-1">
-        <button
-          type="button"
-          className="hidden w-full md:inline-flex h-10 justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-200 bg-gray-800 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
-          onClick={() => handleDownload()}
-        >
-          <DownloadIcon className="-ml-1 mr-2 h-5 w-5 text-gray-200" aria-hidden="true" />
-          <span>Download Schema</span>
-        </button>
+        {schema && (
+          <a
+            href={getSchemaDownloadURL()}
+            download={`${eventName}(${event.version}).${schema.extension}`}
+            className="hidden w-full md:inline-flex h-10 justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-200 bg-gray-800 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
+          >
+            <DownloadIcon className="-ml-1 mr-2 h-5 w-5 text-gray-200" aria-hidden="true" />
+            <span>Download Schema</span>
+          </a>
+        )}
+
         {historicVersions.length > 0 && (
           <Link href={`/events/${eventName}/logs`}>
             <a className="hidden w-full md:inline-flex h-10 justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200">

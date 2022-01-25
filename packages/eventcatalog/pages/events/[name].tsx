@@ -100,7 +100,7 @@ export default function Events(props: EventsPageProps) {
         isOldVersion={loadedVersion !== 'latest'}
         latestVersionUrl={`/events/${name}`}
         version={loadedVersion}
-        sidebar={<EventSideBar event={event} loadedVersion={loadedVersion} />}
+        sidebar={<EventSideBar event={event} loadedVersion={loadedVersion} isOldVersion={loadedVersion !== 'latest'} />}
       >
         <MDXRemote {...markdown.source} components={mdxComponents} />
       </ContentView>
@@ -134,6 +134,6 @@ export async function getStaticPaths() {
 
   return {
     paths,
-    fallback: 'blocking',
+    fallback: false,
   };
 }

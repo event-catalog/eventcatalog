@@ -48,8 +48,8 @@ function EventGrid({ events = [], showMermaidDiagrams = false }: EventGridProps)
                           Draft
                         </span>
                       )}
-                      <div className="text-gray-500 text-xs font-normal mt-2 ">{event.summary}</div>
                     </div>
+                    <div className="text-gray-500 text-xs font-normal mt-2 ">{event.summary}</div>
                     {showMermaidDiagrams && (
                       <div className="h-full items-center flex">
                         <Mermaid source="event" data={event} rootNodeColor={getBackgroundColor(event.name)} />

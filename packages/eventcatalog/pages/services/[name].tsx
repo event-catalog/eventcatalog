@@ -101,6 +101,6 @@ export async function getStaticPaths() {
   const paths = services.map((service) => ({ params: { name: service.name } }));
   return {
     paths,
-    fallback: 'blocking',
+    fallback: false,
   };
 }

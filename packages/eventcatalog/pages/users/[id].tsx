@@ -1,7 +1,7 @@
 import { Event, Service } from '@eventcatalog/types';
 import EventGrid from '@/components/Grids/EventGrid';
 import ServiceGrid from '@/components/Grids/ServiceGrid';
-import { getAllEventsByOwnerId } from '@/lib/events';
+import { getAllEventsByOwnerId, getAllOwners } from '@/lib/events';
 import { getAllServicesByOwnerId } from '@/lib/services';
 
 import { useUser } from '@/hooks/EventCatalog';
@@ -59,8 +59,8 @@ export default function UserPage({ events, services, userId }: UserPageProps) {
   );
 }
 
-export const getServerSideProps = async (req) => {
-  const { id: userId } = req.query;
+export const getStaticProps = async ({ params }) => {
+  const { id: userId } = params;
   const userEvents = await getAllEventsByOwnerId(userId);
   const services = await getAllServicesByOwnerId(userId);
 
@@ -72,3 +72,14 @@ export const getServerSideProps = async (req) => {
     },
   };
 };
+
+export async function getStaticPaths() {
+  const owners = getAllOwners();
+
+  const paths = owners.map((owner) => ({ params: { id: owner } }));
+
+  return {
+    paths,
+    fallback: false,
+  };
+}

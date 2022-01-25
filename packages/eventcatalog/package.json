@@ -9,8 +9,9 @@
   },
   "scripts": {
     "dev": "next dev",
+    "scripts:move-schema-for-download": "node scripts/move-schemas-for-download.js",
     "generate": "node scripts/generate.js",
-    "build": "next build",
+    "build": "next build && next export",
     "start": "next start",
     "lint": "next lint"
   },
@@ -27,7 +28,6 @@
     "diff2html": "^3.4.13",
     "fs-extra": "^10.0.0",
     "gray-matter": "^4.0.3",
-    "js-file-download": "^0.4.12",
     "mermaid": "^8.13.4",
     "next": "^12.0.5",
     "next-mdx-remote": "^3.0.8",
