@@ -121,7 +121,7 @@ export default function Page({ services }: PageProps) {
   );
 }
 
-export async function getServerSideProps() {
+export async function getStaticProps() {
   const services = getAllServices();
 
   return {

@@ -6,6 +6,8 @@ packages/*/lib
 .eslintcache
 /packages/eventcatalog/eventcatalog.config.js
 
+packages/eventcatalog/public/schemas
+
 website/build
 
 .docusaurus
@@ -21,6 +23,7 @@ legacy.d.ts
 .idea
 *.orig
 .next
+out
 
 node_modules
 

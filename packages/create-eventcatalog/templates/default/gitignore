@@ -3,9 +3,11 @@
 
 # Production
 /build
+/public/schemas
 
 # Generated files
 .next
+
 
 # Misc
 .DS_Store

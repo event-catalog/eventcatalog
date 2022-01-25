@@ -9,6 +9,7 @@ import { MarkdownFile } from '@/types/index';
 import { extentionToLanguageMap } from './file-reader';
 
 import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader';
+import { getAllServices } from './services';
 
 const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
   const { name, version, summary, producers = [], consumers = [], owners = [], externalLinks = [] } = eventFrontMatter;
@@ -139,6 +140,29 @@ export const getAllEvents = (): Event[] => {
       historicVersions,
     };
   });
+};
+
+export const getAllOwners = (): string[] => {
+  const allEvents = getAllEvents();
+  const allServices = getAllServices();
+  const allOwnersInEvents = allEvents.reduce((owners, event) => owners.concat(event.owners), []);
+  const allOwnersInServices = allServices.reduce((owners, service) => owners.concat(service.owners), []);
+  const allOwnersDocumented = allOwnersInEvents.concat(allOwnersInServices);
+  // @ts-ignore
+  return [...new Set(allOwnersDocumented)];
+};
+
+export const getAllEventsAndVersionsFlattened = () => {
+  const allEvents = getAllEvents();
+  return allEvents.reduce((eventsWithVersionsFlattened: any, event: Event) => {
+    // eventsWithVersionsFlattened.push({ eventName: event.name, version: event.version })
+
+    if (event.historicVersions) {
+      event.historicVersions.forEach((version) => eventsWithVersionsFlattened.push({ eventName: event.name, version }));
+    }
+
+    return eventsWithVersionsFlattened;
+  }, []);
 };
 
 export const getEventByName = async (eventName: string, version?: string): Promise<{ event: Event; markdown: MarkdownFile }> => {

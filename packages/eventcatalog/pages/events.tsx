@@ -189,7 +189,7 @@ export default function Page({ events, services }: PageProps) {
   );
 }
 
-export const getServerSideProps = () => {
+export const getStaticProps = () => {
   const events = getAllEvents();
   const services = getUniqueServicesNamesFromEvents(events);
 

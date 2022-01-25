@@ -50,6 +50,12 @@ cli
     // copy any public assets over (from users to the lib itself)
     fs.copySync(path.join(projectDIR, 'public'), path.join(eventCatalogLibDir, 'public'));
 
+    // Move the schemas into public directory so we can download them from UI
+    execSync(`cross-env PROJECT_DIR=${projectDIR} npm run scripts:move-schema-for-download`, {
+      cwd: eventCatalogLibDir,
+      stdio: 'inherit',
+    });
+
     // build using nextjs
     execSync(`cross-env PROJECT_DIR=${projectDIR} npm run build`, {
       cwd: eventCatalogLibDir,
@@ -73,6 +79,12 @@ cli
     fs.copySync(path.join(projectDIR, 'public'), path.join(eventCatalogLibDir, 'public'));
 
     fs.copyFileSync(path.join(projectDIR, 'eventcatalog.config.js'), path.join(eventCatalogLibDir, 'eventcatalog.config.js'));
+
+    // Move the schemas into public directory so we can download them from UI
+    execSync(`cross-env PROJECT_DIR=${projectDIR} npm run scripts:move-schema-for-download`, {
+      cwd: eventCatalogLibDir,
+      stdio: 'inherit',
+    });
 
     execSync(`cross-env PROJECT_DIR=${projectDIR} npm run dev`, {
       cwd: eventCatalogLibDir,
