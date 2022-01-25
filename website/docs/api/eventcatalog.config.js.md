@@ -125,3 +125,13 @@ module.exports = {
   ],
 };
 ```
+
+### `basePath` {#basepath}
+
+Set the `basePath` in order to be able to deploy the eventcatalog under a sub-path of the domain.
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  basePath: 'my-catalog',
+};
+```
