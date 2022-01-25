@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.1.0
+
+### Minor Changes
+
+- [`688e2da`](https://github.com/boyney123/eventcatalog/commit/688e2da9ade503e4276c6710c77e45f4652e19a1) [#111](https://github.com/boyney123/eventcatalog/pull/111) Thanks [@boyney123](https://github.com/boyney123)! - feat: catalog now staticlly exports rather than using server code
+
 ## 0.0.14
 
 ### Patch Changes
