@@ -1,9 +1,10 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useCallback, useEffect } from 'react';
 import Head from 'next/head';
 import type { Event, Service } from '@eventcatalog/types';
+import debounce from 'lodash.debounce';
 
 import { Menu, Transition } from '@headlessui/react';
-import { ChevronDownIcon } from '@heroicons/react/solid';
+import { ChevronDownIcon, SearchIcon } from '@heroicons/react/solid';
 import EventGrid from '@/components/Grids/EventGrid';
 import { getAllEvents, getUniqueServicesNamesFromEvents } from '@/lib/events';
 
@@ -18,7 +19,7 @@ const sortOptions = [
 ];
 
 export interface PageProps {
-  events: [Event];
+  events: Event[];
   services: [Service];
 }
 
@@ -26,7 +27,7 @@ export default function Page({ events, services }: PageProps) {
   const filters = [
     {
       id: 'services',
-      name: 'Filter by Services',
+      name: `Filter by Services (${services.length})`,
       options: services.map((service) => ({
         value: service,
         label: service,
@@ -37,6 +38,8 @@ export default function Page({ events, services }: PageProps) {
 
   const [selectedFilters, setSelectedFilters] = useState({ services: [] });
   const [showMermaidDiagrams, setShowMermaidDiagrams] = useState(false);
+  const [eventsToRender, setEventsToRender] = useState(events);
+  const [searchFilter, setSearchFilter] = useState('');
 
   const handleFilterSelection = (option, type, event) => {
     if (event.target.checked) {
@@ -48,19 +51,44 @@ export default function Page({ events, services }: PageProps) {
     }
   };
 
-  let eventsToRender = events;
+  const getFilteredEvents = (): any => {
+    if (!selectedFilters.services && !searchFilter) return events;
 
-  if (selectedFilters.services.length > 0) {
-    // @ts-ignore
-    eventsToRender = eventsToRender.filter((event) => {
-      const { services: serviceFilters } = selectedFilters;
+    let filteredEvents = events;
 
-      const hasConsumersFromFilters = event.consumers.some((consumerId) => serviceFilters.indexOf(consumerId) > -1);
-      const hasProducersFromFilters = event.producers.some((producerId) => serviceFilters.indexOf(producerId) > -1);
+    if (selectedFilters.services.length > 0) {
+      // @ts-ignore
+      filteredEvents = filteredEvents.filter((event) => {
+        const { services: serviceFilters } = selectedFilters;
 
-      return hasConsumersFromFilters || hasProducersFromFilters;
-    });
-  }
+        const hasConsumersFromFilters = event.consumers.some((consumerId) => serviceFilters.indexOf(consumerId) > -1);
+        const hasProducersFromFilters = event.producers.some((producerId) => serviceFilters.indexOf(producerId) > -1);
+
+        return hasConsumersFromFilters || hasProducersFromFilters;
+      });
+    }
+
+    if (searchFilter) {
+      filteredEvents = filteredEvents.filter((event) => event.name.toLowerCase().includes(searchFilter.toLowerCase()));
+    }
+
+    return filteredEvents;
+  };
+
+  useEffect(() => {
+    setEventsToRender(getFilteredEvents());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFilters, searchFilter]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedFilter = useCallback(
+    debounce((e) => {
+      setSearchFilter(e.target.value);
+    }, 500),
+    [eventsToRender]
+  );
+
+  const filtersApplied = !!searchFilter || selectedFilters.services.length > 0;
 
   return (
     <>
@@ -121,11 +149,28 @@ export default function Page({ events, services }: PageProps) {
           <div className="grid grid-cols-4 gap-x-8 gap-y-10">
             {/* Filters */}
             <form className="hidden lg:block">
+              <div className="border-b border-gray-200 pb-6">
+                <label htmlFor="event" className="font-bold block text-sm font-medium text-gray-700">
+                  Search Events
+                </label>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <SearchIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  </div>
+                  <input
+                    type="text"
+                    name="event"
+                    id="event"
+                    onChange={debouncedFilter}
+                    className="focus:ring-gray-500 focus:border-gray-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                  />
+                </div>
+              </div>
               {filters.map((section: any) => (
-                <div key={section.id} className="border-b border-gray-200 pb-6">
+                <div key={section.id} className="border-b border-gray-200 py-6">
                   <h3 className="-my-3 flow-root">
                     <div className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
-                      <span className="font-medium text-gray-900">{section.name}</span>
+                      <span className="font-bold font-medium text-gray-900">{section.name}</span>
                     </div>
                   </h3>
                   <div className="pt-6">
@@ -154,7 +199,7 @@ export default function Page({ events, services }: PageProps) {
               <div className="border-b border-gray-200 py-6">
                 <h3 className="-my-3 flow-root">
                   <div className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
-                    <span className="font-medium text-gray-900">Features</span>
+                    <span className="font-bold font-medium text-gray-900">Features</span>
                   </div>
                 </h3>
                 <div className="pt-6">
@@ -178,8 +223,20 @@ export default function Page({ events, services }: PageProps) {
 
             <div className="col-span-4 lg:col-span-3">
               <div>
-                <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">Events ({eventsToRender.length})</h2>
+                <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">
+                  {filtersApplied
+                    ? `Filtered Events (${eventsToRender.length}/${events.length})`
+                    : `All Events (${events.length})`}
+                </h2>
                 <EventGrid events={eventsToRender} showMermaidDiagrams={showMermaidDiagrams} />
+                {eventsToRender.length === 0 && (
+                  <div className="text-gray-400 flex h-96  justify-center items-center">
+                    <div>
+                      <SearchIcon className="w-6 h-6 inline-block mr-1" />
+                      No events found.
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
