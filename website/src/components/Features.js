@@ -30,7 +30,7 @@ const features = [
   },
   {
     name: 'Deploy Anywhere',
-    description: 'Under the hood EventCatalog is a NextJS application that you can deploy anywhere you want.',
+    description: 'EventCatalog generates a static website. You can deploy anywhere you like!',
     icon: GlobeAltIcon,
   },
   {
