@@ -1,6 +1,6 @@
 ## EventCatalog (core)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 This is the main EventCatalog application.
@@ -26,6 +26,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://www.bigjump.com/"><img src="https://avatars.githubusercontent.com/u/11387911?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jay McGuinness</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=jaymcguinness" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/davidkpiano"><img src="https://avatars.githubusercontent.com/u/1093738?v=4?s=100" width="100px;" alt=""/><br /><sub><b>David Khourshid</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=davidkpiano" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/thim81"><img src="https://avatars.githubusercontent.com/u/952446?v=4?s=100" width="100px;" alt=""/><br /><sub><b>thim81</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/issues?q=author%3Athim81" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://otbe.io/"><img src="https://avatars.githubusercontent.com/u/3391052?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Benjamin Otto</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/issues?q=author%3Aotbe" title="Bug reports">🐛</a></td>
   </tr>
 </table>
 
