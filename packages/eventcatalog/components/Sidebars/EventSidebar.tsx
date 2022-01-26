@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import getConfig from 'next/config';
 import { CubeIcon, DownloadIcon, ExternalLinkIcon } from '@heroicons/react/outline';
 import type { Event } from '@eventcatalog/types';
 import { useUser } from '@/hooks/EventCatalog';
@@ -14,12 +15,13 @@ function EventSideBar({ event, loadedVersion, isOldVersion }: EventSideBarProps)
   const { getUserById } = useUser();
 
   const { name: eventName, owners, producers, consumers, historicVersions, externalLinks, schema } = event;
+  const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 
   const getSchemaDownloadURL = () => {
     if (!schema) return null;
     return isOldVersion
-      ? `/schemas/${eventName}/${loadedVersion}/schema.${schema.extension}`
-      : `/schemas/${eventName}/schema.${schema.extension}`;
+      ? `${basePath}/schemas/${eventName}/${loadedVersion}/schema.${schema.extension}`
+      : `${basePath}/schemas/${eventName}/schema.${schema.extension}`;
   };
 
   return (
