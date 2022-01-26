@@ -1,0 +1,29 @@
+{
+  "projectName": "eventcatalog",
+  "projectOwner": "boyney123",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": true,
+  "commitConvention": "none",
+  "contributors": [
+    {
+      "login": "boyney123",
+      "name": "David Boyne",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3268013?v=4",
+      "profile": "https://boyney.io/",
+      "contributions": [
+        "code",
+        "content",
+        "design",
+        "example",
+        "ideas",
+        "doc"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7
+}
