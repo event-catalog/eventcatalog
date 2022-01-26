@@ -11,15 +11,6 @@
   "commitConvention": "none",
   "contributors": [
     {
-      "login": "otbe",
-      "name": "Benjamin Otto",
-      "avatar_url": "https://avatars.githubusercontent.com/u/3391052?v=4",
-      "profile": "https://otbe.io",
-      "contributions": [
-        "code"
-      ]
-    },
-    {
       "login": "boyney123",
       "name": "David Boyne",
       "avatar_url": "https://avatars.githubusercontent.com/u/3268013?v=4",
@@ -30,6 +21,24 @@
         "design",
         "example",
         "ideas",
+        "doc"
+      ]
+    },
+    {
+      "login": "otbe",
+      "name": "Benjamin Otto",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3391052?v=4",
+      "profile": "https://otbe.io",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "pongz79",
+      "name": "Tiago Oliveira",
+      "avatar_url": "https://avatars.githubusercontent.com/u/250872?v=4",
+      "profile": "https://github.com/pongz79",
+      "contributions": [
         "doc"
       ]
     }
