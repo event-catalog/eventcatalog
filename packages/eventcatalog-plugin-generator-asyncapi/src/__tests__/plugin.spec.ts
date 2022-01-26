@@ -295,7 +295,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
                   - 'Account Service'
               consumers: []
               externalLinks:
-                  - {label: UserSignedUp, href: 'https://eventcatalog.dev/events#message-UserSignedUp'}
+                  - {label: 'View event in AsyncAPI', url: 'https://eventcatalog.dev/events#message-UserSignedUp'}
             ---
 
             <Mermaid />

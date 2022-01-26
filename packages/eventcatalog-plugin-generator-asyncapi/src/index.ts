@@ -27,8 +27,8 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
       const messageName = message.name() || message.extension('x-parser-message-name');
       const schema = message.originalPayload();
       const externalLink = {
-        label: messageName,
-        href: `${includeLinkToAsyncAPIDoc}#message-${messageName}`,
+        label: `View event in AsyncAPI`,
+        url: `${includeLinkToAsyncAPIDoc}#message-${messageName}`,
       };
 
       return {
