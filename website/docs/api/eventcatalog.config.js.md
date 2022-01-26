@@ -138,7 +138,7 @@ module.exports = {
 
 ### `trailingSlash` {#trailingslash}
 
-Changes the [trailing slash](https://nextjs.org/docs/api-reference/next.config.js/trailing-slash) behaviour of next.js..
+Changes the [trailing slash](https://nextjs.org/docs/api-reference/next.config.js/trailing-slash) behaviour of next.js.
 
 ```js title="eventcatalog.config.js"
 module.exports = {
