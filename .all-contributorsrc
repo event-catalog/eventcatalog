@@ -9,6 +9,17 @@
   "imageSize": 100,
   "commit": true,
   "commitConvention": "none",
-  "contributors": [],
-  "contributorsPerLine": 7
+  "contributors": [
+    {
+      "login": "otbe",
+      "name": "Benjamin Otto",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3391052?v=4",
+      "profile": "https://otbe.io",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "skipCi": true
 }
