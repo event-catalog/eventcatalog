@@ -37,7 +37,7 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
         version: doc.info().version(),
         producers: operation === 'subscribe' ? [service] : [],
         consumers: operation === 'publish' ? [service] : [],
-        externalLinks: includeLinkToAsyncAPIDoc ? [externalLink]: [],
+        externalLinks: includeLinkToAsyncAPIDoc ? [externalLink] : [],
         schema: schema ? JSON.stringify(schema, null, 4) : '',
       };
     });
