@@ -1,6 +1,6 @@
 <div align="center">
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 <h1>📖 EventCatalog</h1>
@@ -127,6 +127,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://boyney.io/"><img src="https://avatars.githubusercontent.com/u/3268013?v=4?s=100" width="100px;" alt=""/><br /><sub><b>David Boyne</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=boyney123" title="Code">💻</a> <a href="#content-boyney123" title="Content">🖋</a> <a href="#design-boyney123" title="Design">🎨</a> <a href="#example-boyney123" title="Examples">💡</a> <a href="#ideas-boyney123" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/boyney123/eventcatalog/commits?author=boyney123" title="Documentation">📖</a></td>
     <td align="center"><a href="https://otbe.io"><img src="https://avatars.githubusercontent.com/u/3391052?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Benjamin Otto</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=otbe" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/pongz79"><img src="https://avatars.githubusercontent.com/u/250872?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tiago Oliveira</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=pongz79" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://www.bigjump.com/"><img src="https://avatars.githubusercontent.com/u/11387911?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Jay McGuinness</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=jaymcguinness" title="Documentation">📖</a></td>
   </tr>
 </table>
 
