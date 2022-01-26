@@ -18,6 +18,20 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "boyney123",
+      "name": "David Boyne",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3268013?v=4",
+      "profile": "https://boyney.io/",
+      "contributions": [
+        "code",
+        "content",
+        "design",
+        "example",
+        "ideas",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
