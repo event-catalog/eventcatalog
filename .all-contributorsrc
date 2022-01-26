@@ -62,6 +62,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "thim81",
+      "name": "thim81",
+      "avatar_url": "https://avatars.githubusercontent.com/u/952446?v=4",
+      "profile": "https://github.com/thim81",
+      "contributions": [
+        "ideas",
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
