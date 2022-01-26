@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const config = require('./eventcatalog.config');
 
 module.exports = {
