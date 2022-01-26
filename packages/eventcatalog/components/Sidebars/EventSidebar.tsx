@@ -142,31 +142,31 @@ function EventSideBar({ event, loadedVersion, isOldVersion }: EventSideBarProps)
         </div>
       </div> */}
       {owners && owners.length > 0 && (
-      <div className="border-t border-gray-200 py-6 space-y-8">
-        <div>
-          <h2 className="text-sm font-medium text-gray-500">Event Owners</h2>
-          <ul className="mt-4 leading-8 space-y-2">
-            {owners.map((id) => {
-              const user = getUserById(id);
+        <div className="border-t border-gray-200 py-6 space-y-8">
+          <div>
+            <h2 className="text-sm font-medium text-gray-500">Event Owners</h2>
+            <ul className="mt-4 leading-8 space-y-2">
+              {owners.map((id) => {
+                const user = getUserById(id);
 
-              if (!user) return null;
+                if (!user) return null;
 
-              return (
-                <li className="flex justify-start" key={id}>
-                  <Link href={`/users/${id}`}>
-                    <a className="flex items-center space-x-3">
-                      <div className="flex-shrink-0">
-                        <img className="h-5 w-5 rounded-full" src={user.avatarUrl} alt="" />
-                      </div>
-                      <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                    </a>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+                return (
+                  <li className="flex justify-start" key={id}>
+                    <Link href={`/users/${id}`}>
+                      <a className="flex items-center space-x-3">
+                        <div className="flex-shrink-0">
+                          <img className="h-5 w-5 rounded-full" src={user.avatarUrl} alt="" />
+                        </div>
+                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                      </a>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         </div>
-      </div>
       )}
       <div className="border-t border-gray-200 py-6 space-y-1">
         {schema && (
