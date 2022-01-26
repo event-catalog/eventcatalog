@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import getConfig from 'next/config';
 import { useRouter } from 'next/router';
 import { useConfig } from '@/hooks/EventCatalog';
 
@@ -16,6 +17,8 @@ export default function Example() {
   const { title } = useConfig();
   const router = useRouter();
 
+  const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
+
   return (
     <div className="bg-gray-800">
       <div className="max-w-7xl mx-auto  ">
@@ -24,7 +27,7 @@ export default function Example() {
             <div className="flex-shrink-0 flex items-center text-white font-bold">
               <Link href="/events">
                 <a className="flex items-center">
-                  <img alt="logo" className="text-white w-8 inline-block mr-3" src="/logo.svg" />
+                  <img alt="logo" className="text-white w-8 inline-block mr-3" src={`${basePath}/logo.svg`} />
                   <span className="text-xl">{title}</span>
                 </a>
               </Link>
