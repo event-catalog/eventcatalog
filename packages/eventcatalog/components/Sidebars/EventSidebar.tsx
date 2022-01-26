@@ -141,6 +141,7 @@ function EventSideBar({ event, loadedVersion, isOldVersion }: EventSideBarProps)
           </ul>
         </div>
       </div> */}
+      {owners && owners.length > 0 && (
       <div className="border-t border-gray-200 py-6 space-y-8">
         <div>
           <h2 className="text-sm font-medium text-gray-500">Event Owners</h2>
@@ -166,6 +167,7 @@ function EventSideBar({ event, loadedVersion, isOldVersion }: EventSideBarProps)
           </ul>
         </div>
       </div>
+      )}
       <div className="border-t border-gray-200 py-6 space-y-1">
         {schema && (
           <a
