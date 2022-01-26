@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 0.1.1
+
+### Patch Changes
+
+- [`23930c8`](https://github.com/boyney123/eventcatalog/commit/23930c8f4f4a9234e037473aaeccae3dafdfe385) [#114](https://github.com/boyney123/eventcatalog/pull/114) Thanks [@boyney123](https://github.com/boyney123)! - feat: adding search to events page
+
+* [`e37ff4b`](https://github.com/boyney123/eventcatalog/commit/e37ff4b31c06779ae89f2b17beb14cb409d464e3) [#113](https://github.com/boyney123/eventcatalog/pull/113) Thanks [@otbe](https://github.com/otbe)! - Configure base path
+
 ## 0.1.0
 
 ### Minor Changes
