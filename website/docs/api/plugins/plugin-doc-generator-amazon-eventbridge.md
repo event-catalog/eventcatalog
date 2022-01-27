@@ -11,6 +11,8 @@ This plugin allows you to generate an EventCatalog from your Amazon EventBridge 
 
 This plugin will generate **Event** documents based on your EventBridge Schemas, Rules, Targets and Registry.
 
+- [View Installation and Usage](/docs/api/plugins/@eventcatalog/plugin-doc-generator-amazon-eventbridge#installation-and-usage)
+
 ## Plugin Features
 
 - 📄 Automatic documentation with versioning
@@ -53,7 +55,7 @@ EventCatalog will inspect your event's targets and rules and try to show diagram
 EventCatalog allows you to add [owners](/docs/events/adding-event-owners) to your events. This allows you to add teams or users as owners of your EventBridge Schemas.
 
 
-## Installation {#installation}
+## Installation and Usage {#installation-and-usage}
 
 If you haven't already you will need to create a new catalog.
 
@@ -89,6 +91,7 @@ module.exports = {
         credentials: {
           accessKeyId: process.env.AWS_ACCESS_KEY,
           secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+          sessionToken: process.env.AWS_SESSION_TOKEN // optional
         },
       },
     ],
@@ -96,6 +99,16 @@ module.exports = {
   //...
 };
 ```
+### Generating your documents
+
+Once you have setup the plugin you will need to run
+
+```
+npm run generate
+```
+
+This command will run through your plugin and generate your EventCatalog documentation.
+
 
 ## Plugin Configuration 
 
@@ -106,8 +119,8 @@ module.exports = {
 | `eventBusName` | `string` | `` | Name of your EventBus |
 | `region` | `string` | `` | AWS Region of your eventbus |
 | `registryName` | `string` | `` | Name of your Schema Registry |
-| `credentials` | `AWSCredentials` | `` | AWS `accessKeyId` and `secretAccessKey` |
-| `schemaTypeToRenderToEvent` | `JSONSchemaDraft4` `OpenAPI` | `JSONSchemaDraft4` | Schema type to render along side your event in EventCatalog |
+| `credentials` | `AWSCredentials`- [View Schema](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Credentials.html) | `` | AWS `accessKeyId` and `secretAccessKey` |
+| `schemaTypeToRenderToEvent` | `string` (`JSONSchemaDraft4`/`OpenAPI`) | `JSONSchemaDraft4` | Schema type to render along side your event in EventCatalog |
 | `versionEvents` | `boolean` | `true` | Version your events as new versions get detected from your Schema Registry |
 
 </APITable>
