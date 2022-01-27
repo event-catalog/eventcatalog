@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 0.1.2
+
+### Patch Changes
+
+- [`cc8eb2f`](https://github.com/boyney123/eventcatalog/commit/cc8eb2fe14501447206bdb8fe141a0575c753636) [#121](https://github.com/boyney123/eventcatalog/pull/121) Thanks [@otbe](https://github.com/otbe)! - Allow to configure "trailingSlash"
+
+* [`dacd9eb`](https://github.com/boyney123/eventcatalog/commit/dacd9eb41e3f519341f32e60c4de27df5a9137b7) [#120](https://github.com/boyney123/eventcatalog/pull/120) Thanks [@thim81](https://github.com/thim81)! - feat: Hide owners section if the events has owners defined
+
 ## 0.1.1
 
 ### Patch Changes
