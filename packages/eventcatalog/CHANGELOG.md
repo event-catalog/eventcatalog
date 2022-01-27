@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.1.3
+
+### Patch Changes
+
+- [`904c4df`](https://github.com/boyney123/eventcatalog/commit/904c4dff59bfdac681d8c18879a5840862aeb616) [#127](https://github.com/boyney123/eventcatalog/pull/127) Thanks [@boyney123](https://github.com/boyney123)! - bug: fixed issue with purging css from the admonition component
+
 ## 0.1.2
 
 ### Patch Changes
