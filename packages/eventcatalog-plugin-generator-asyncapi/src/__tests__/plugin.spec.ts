@@ -259,7 +259,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         it('when includeLinkToAsyncAPIDoc is set, an external link will be added in the event', async () => {
           const options: AsyncAPIPluginOptions = {
             pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
-            includeLinkToAsyncAPIDoc: 'https://eventcatalog.dev/events',
+            externalAsyncAPIUrl: 'https://eventcatalog.dev/events',
           };
 
           const oldEvent = {

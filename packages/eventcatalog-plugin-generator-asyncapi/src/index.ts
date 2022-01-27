@@ -12,7 +12,7 @@ const getServiceFromAsyncDoc = (doc: AsyncAPIDocument): Service => ({
 });
 
 const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPluginOptions): Event[] => {
-  const { includeLinkToAsyncAPIDoc } = options;
+  const { externalAsyncAPIUrl } = options;
 
   const channels = doc.channels();
   return Object.keys(channels).reduce((data: any, channelName) => {
@@ -28,7 +28,7 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
       const schema = message.originalPayload();
       const externalLink = {
         label: `View event in AsyncAPI`,
-        url: `${includeLinkToAsyncAPIDoc}#message-${messageName}`,
+        url: `${externalAsyncAPIUrl}#message-${messageName}`,
       };
 
       return {
@@ -37,7 +37,7 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
         version: doc.info().version(),
         producers: operation === 'subscribe' ? [service] : [],
         consumers: operation === 'publish' ? [service] : [],
-        externalLinks: includeLinkToAsyncAPIDoc ? [externalLink] : [],
+        externalLinks: externalAsyncAPIUrl ? [externalLink] : [],
         schema: schema ? JSON.stringify(schema, null, 4) : '',
       };
     });
