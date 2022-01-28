@@ -73,7 +73,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
       await expect(plugin(pluginContext, options)).rejects.toThrow('There were errors validating the AsyncAPI document.');
     });
 
-    it('succesfully takes a valid asyncapi file and creates the expected services and events markdown files from it', async () => {
+    it('successfully takes a valid asyncapi file and creates the expected services and events markdown files from it', async () => {
       const options: AsyncAPIPluginOptions = {
         pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
       };
@@ -96,6 +96,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           producers:
               - 'Account Service'
           consumers: []
+          externalLinks: []
         ---
 
         <Mermaid />
@@ -155,6 +156,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
               producers:
                   - 'Account Service'
               consumers: []
+              externalLinks: []
             ---
 
             <Mermaid />
@@ -197,6 +199,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
               producers:
                   - 'Account Service'
               consumers: []
+              externalLinks: []
             ---
             # Content that already exists
             `);
@@ -243,6 +246,56 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
               producers:
                   - 'Account Service'
               consumers: []
+              externalLinks: []
+            ---
+
+            <Mermaid />
+            <Schema />
+            `);
+        });
+      });
+
+      describe('includeLinkToAsyncAPIDoc', () => {
+        it('when includeLinkToAsyncAPIDoc is set, an external link will be added in the event', async () => {
+          const options: AsyncAPIPluginOptions = {
+            pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
+            externalAsyncAPIUrl: 'https://eventcatalog.dev/events',
+          };
+
+          const oldEvent = {
+            name: 'UserSignedUp',
+            version: '0.0.1',
+            summary: 'Old example of an event that should be versioned',
+            producers: ['Service A'],
+            consumers: ['Service B'],
+            owners: ['dBoyne'],
+          };
+
+          const { writeEventToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+          const { path: eventPath } = await writeEventToCatalog(oldEvent, {
+            schema: { extension: 'json', fileContent: 'hello' },
+          });
+
+          // run plugin
+          await plugin(pluginContext, options);
+
+          const { getEventFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+          const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
+
+          // Check the file has been created
+          expect(fs.existsSync(path.join(eventPath, 'index.md'))).toEqual(true);
+          expect(fs.existsSync(path.join(eventPath, 'schema.json'))).toEqual(true);
+
+          expect(eventFile).toMatchMarkdown(`
+            ---
+              name: UserSignedUp
+              summary: null
+              version: 1.0.0
+              producers:
+                  - 'Account Service'
+              consumers: []
+              externalLinks:
+                  - {label: 'View event in AsyncAPI', url: 'https://eventcatalog.dev/events#message-UserSignedUp'}
             ---
 
             <Mermaid />

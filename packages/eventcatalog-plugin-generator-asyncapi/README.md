@@ -13,13 +13,13 @@ You can test and run this plugin locally, by cloning the project.
 First build all the projects
 
 ```sh
-npm run install && npm run build
+npm install && npm run build
 ```
 
 Then you can run 
 
 ```sh
-"PROJECT_DIR={outputForCatalog} node packages/eventcatalog-plugin-generator-asyncapi/scripts/generate-catalog-with-plugin.js`
+"PROJECT_DIR={outputForCatalog} node packages/eventcatalog-plugin-generator-asyncapi/scripts/generate-catalog-with-plugin.js
 ```
 
 This will run the build of the plugin and generate an eventcatalog from an AsyncAPI file (found in examples).

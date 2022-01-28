@@ -45,6 +45,7 @@ npm install --save @eventcatalog/plugin-doc-generator-asyncapi
 | --- | --- | --- | --- |
 | `pathToSpec` | `string` | `'/asyncapi.yml'` | Path to AsyncAPI document. |
 | `versionEvents` | `boolean` | `true` | When the plugin runs and it finds matching events in the catalog, it will version the events before creating the new documentation. |
+| `externalAsyncAPIUrl` | `string` | `` | When a AsyncAPI base url is set the, a external link to the AsyncAPI message documentation will be added to each event. |
 
 </APITable>
 

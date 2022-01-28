@@ -11,7 +11,9 @@ const getServiceFromAsyncDoc = (doc: AsyncAPIDocument): Service => ({
   summary: doc.info().description() || '',
 });
 
-const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument): Event[] => {
+const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPluginOptions): Event[] => {
+  const { externalAsyncAPIUrl } = options;
+
   const channels = doc.channels();
   return Object.keys(channels).reduce((data: any, channelName) => {
     const service = doc.info().title();
@@ -24,6 +26,10 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument): Event[] => {
     const eventsFromMessages = messages.map((message) => {
       const messageName = message.name() || message.extension('x-parser-message-name');
       const schema = message.originalPayload();
+      const externalLink = {
+        label: `View event in AsyncAPI`,
+        url: `${externalAsyncAPIUrl}#message-${messageName}`,
+      };
 
       return {
         name: messageName,
@@ -31,6 +37,7 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument): Event[] => {
         version: doc.info().version(),
         producers: operation === 'subscribe' ? [service] : [],
         consumers: operation === 'publish' ? [service] : [],
+        externalLinks: externalAsyncAPIUrl ? [externalLink] : [],
         schema: schema ? JSON.stringify(schema, null, 4) : '',
       };
     });
@@ -58,7 +65,7 @@ export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
   const doc = await parse(asyncAPIFile);
 
   const service = getServiceFromAsyncDoc(doc);
-  const events = getAllEventsFromAsyncDoc(doc);
+  const events = getAllEventsFromAsyncDoc(doc, options);
 
   if (!process.env.PROJECT_DIR) {
     throw new Error('Please provide catalog url (env variable PROJECT_DIR)');
@@ -86,5 +93,5 @@ export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
   // write all events to folders
   Promise.all(eventFiles);
 
-  console.log(chalk.green(`Succesfully parsed AsyncAPI file. Generated ${events.length} events and 1 service`));
+  console.log(chalk.green(`Successfully parsed AsyncAPI file. Generated ${events.length} events and 1 service`));
 };
