@@ -1,5 +1,11 @@
 # @eventcatalog/plugin-doc-generator-asyncapi
 
+## 0.1.2
+
+### Patch Changes
+
+- [`78dea31`](https://github.com/boyney123/eventcatalog/commit/78dea31c7c53420de427a1db11fe9d41e88c5a07) [#123](https://github.com/boyney123/eventcatalog/pull/123) Thanks [@thim81](https://github.com/thim81)! - feat: asyncapi-plugin Insert external links to the AsyncAPI docs
+
 ## 0.1.1
 
 ### Patch Changes
