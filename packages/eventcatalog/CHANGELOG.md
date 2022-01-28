@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.1.5
+
+### Patch Changes
+
+- [`1975995`](https://github.com/boyney123/eventcatalog/commit/1975995e2a77662742e8f7d95b827ff3cb0e4ac2) [#136](https://github.com/boyney123/eventcatalog/pull/136) Thanks [@boyney123](https://github.com/boyney123)! - fix: header link now goes to landing page
+
 ## 0.1.4
 
 ### Patch Changes
