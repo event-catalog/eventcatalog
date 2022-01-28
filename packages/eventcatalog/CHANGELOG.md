@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.1.4
+
+### Patch Changes
+
+- [`71d0b85`](https://github.com/boyney123/eventcatalog/commit/71d0b85139cb057db718c10bf5f5aa6017cfe43c) [#132](https://github.com/boyney123/eventcatalog/pull/132) Thanks [@boyney123](https://github.com/boyney123)! - fix: build directory is now copied over to the users proejct dir
+
 ## 0.1.3
 
 ### Patch Changes
