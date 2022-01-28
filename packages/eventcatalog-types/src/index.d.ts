@@ -66,6 +66,7 @@ export interface EventCataLogConfig {
   tagline?: string;
   editUrl?: string;
   organizationName: string;
+  favicon?: string;
   logo?: { alt: string; src: string };
   users?: User[];
   generators?: PluginConfig[] | [] | any;

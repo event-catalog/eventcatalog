@@ -79,6 +79,21 @@ module.exports = {
 };
 ```
 
+
+### `favicon` {#favicon}
+
+Path or URL to your custom favicon.
+
+Example, if your favicon is in `public/favicon.png`:
+
+_EventCatalog will look inside the public directory, no need to put this into your string value_
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  favicon: 'https://www.eventcatalog.dev/img/favicon.ico'
+};
+```
+
 ### `users` {#users}
 
 Add user information here. You can reference these inside your Event and Service markdown files.

@@ -2,6 +2,7 @@ module.exports = {
   title: 'EventCatalog',
   tagline: 'Discover, Explore and Document your Event Driven Architectures',
   organizationName: 'Your Company',
+  favicon: 'https://www.eventcatalog.dev/img/favicon.ico',
   editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
   logo: {
     alt: 'EventCatalog Logo',
