@@ -41,7 +41,7 @@ cli
 
 cli
   .command('build [siteDir]')
-  .description('Start the development server.')
+  .description('Build eventcatalog project.')
   .action(() => {
     if (!fs.existsSync(eventCatalogLibDir)) {
       copyCoreApplicationCodeIntoUsersProjectDir();
@@ -64,6 +64,7 @@ cli
 
     // everything is built make sure its back in the users project directory
     fs.copySync(path.join(eventCatalogLibDir, '.next'), path.join(projectDIR, '.next'));
+    fs.copySync(path.join(eventCatalogLibDir, 'out'), path.join(projectDIR, 'out'));
   });
 
 cli
