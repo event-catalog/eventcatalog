@@ -7,6 +7,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon, SearchIcon } from '@heroicons/react/solid';
 import EventGrid from '@/components/Grids/EventGrid';
 import { getAllEvents, getUniqueServicesNamesFromEvents } from '@/lib/events';
+import { useConfig } from '@/hooks/EventCatalog';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -89,11 +90,12 @@ export default function Page({ events, services }: PageProps) {
   );
 
   const filtersApplied = !!searchFilter || selectedFilters.services.length > 0;
+  const { title } = useConfig();
 
   return (
     <>
       <Head>
-        <title>EventCatalog - All Events</title>
+        <title>{title} - All Events</title>
       </Head>
       <main className="max-w-7xl mx-auto min-h-screen px-4 md:px-0">
         <div className="relative z-10 flex items-baseline justify-between pt-8 pb-6 border-b border-gray-200">

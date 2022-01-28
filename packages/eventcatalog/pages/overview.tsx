@@ -5,6 +5,7 @@ import Head from 'next/head';
 import dynamic from 'next/dynamic';
 
 import { getAllEvents, getUniqueServicesNamesFromEvents } from '@/lib/events';
+import { useConfig } from '@/hooks/EventCatalog';
 
 const ForceGraph3D = dynamic(() => import('react-force-graph-3d').then((module) => module.default), { ssr: false });
 
@@ -16,6 +17,8 @@ const MAX_LENGTH_FOR_NODES = 30;
 const truncateNode = (value) => (value.length > MAX_LENGTH_FOR_NODES ? `${value.substring(0, MAX_LENGTH_FOR_NODES)}...` : value);
 
 const graph = ({ events, services }) => {
+  const { title } = useConfig();
+
   const eventNodes = events.map(({ name: event }) => ({ id: truncateNode(event), group: 1, type: 'event' }));
   const serviceNodes = services.map((service) => ({ id: truncateNode(service), group: 2, type: 'service' }));
 
@@ -35,10 +38,11 @@ const graph = ({ events, services }) => {
 
   // @ts-ignore
   const extraRenderers = [new window.THREE.CSS2DRenderer()];
+
   return (
     <div className="min-h-screen ">
       <Head>
-        <title>EventCatalog - 3D Node Graph</title>
+        <title>{title} - 3D Node Graph</title>
       </Head>
       <ForceGraph3D
         extraRenderers={extraRenderers}
