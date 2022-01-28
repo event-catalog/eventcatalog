@@ -1,5 +1,11 @@
 # @eventcatalog/create-eventcatalog
 
+## 0.1.1
+
+### Patch Changes
+
+- [`b8e5536`](https://github.com/boyney123/eventcatalog/commit/b8e5536ed9f5e5b52e768ee4e0eee253a9cfe4e4) [#135](https://github.com/boyney123/eventcatalog/pull/135) Thanks [@boyney123](https://github.com/boyney123)! - fix: adding types for create app and also ignore out dir
+
 ## 0.1.0
 
 ### Minor Changes
