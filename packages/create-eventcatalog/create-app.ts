@@ -194,7 +194,7 @@ export async function createApp({
     /**
      * Default devDependencies.
      */
-    const devDependencies = ['@types/react', '@eventcatalog/types'];
+    const devDependencies = ['@types/react', '@eventcatalog/types', '@types/node'];
     /**
      * TypeScript projects will have type definitions and other devDependencies.
      */
