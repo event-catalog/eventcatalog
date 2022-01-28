@@ -82,7 +82,7 @@ const config = {
             position: 'left',
           },
           {
-            href: 'https://demo.eventcatalog.dev',
+            href: 'https://app.eventcatalog.dev',
             label: 'Demo',
             position: 'right',
           },

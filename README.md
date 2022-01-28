@@ -20,7 +20,7 @@
 
   <h3>Features: Website generator for Event Driven Architectures, Markdown driven, Document Events/Services/Schemas, Event Versioning, Event/Service Owners, Schema Changelogs, and more...</h3>
 
-[Read the Docs](https://eventcatalog.dev/) | [Edit the Docs](https://github.com/boyney123/eventcatalog) | [View Demo](https://demo.eventcatalog.dev)
+[Read the Docs](https://eventcatalog.dev/) | [Edit the Docs](https://github.com/boyney123/eventcatalog) | [View Demo](https://app.eventcatalog.dev)
 
 </div>
 
@@ -96,7 +96,7 @@ npx @eventcatalog/create-eventcatalog@latest my-catalog
 
 Here is an example of a Retail system using events and services. Everything you see is driven by markdown files
 
-[demo.eventcatalog.dev](https://demo.eventcatalog.dev)
+[app.eventcatalog.dev](https://app.eventcatalog.dev)
 
 You can see the markdown files that generated the website in the GitHub repo under [examples](/examples).
 
