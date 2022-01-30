@@ -480,6 +480,70 @@ describe('eventcatalog-utils', () => {
 
             fs.rmdirSync(path.join(updatedEventPath), { recursive: true });
           });
+
+          it('when automatically versioning an event the frontmatter data is merged with the new event with any properties specified', () => {
+            const event = {
+              name: 'My Event That Already Exists',
+              version: '1.0.0',
+              summary: 'This is summary for my event',
+              owners: ['dBoyne', 'anotherUser'],
+              producers: ['My First Producer']
+            };
+
+            const { path: eventPath } = writeEventToCatalog(event, {
+              useMarkdownContentFromExistingEvent: true,
+              markdownContent: '# My Content',
+            });
+
+            const result = fs.readFileSync(path.join(eventPath, 'index.md'), 'utf-8');
+
+            expect(result).toMatchMarkdown(`
+             ---
+             name: 'My Event That Already Exists'
+             version: 1.0.0
+             summary: 'This is summary for my event'
+             owners:
+                 - dBoyne
+                 - anotherUser
+             producers:
+                 - 'My First Producer'    
+             ---
+             # My Content`);
+
+            const updatedEvent = {
+              name: 'My Event That Already Exists',
+              version: '1.2.0',
+              summary: 'New summary of event',
+              producers: ['random'],
+            };
+
+            const { path: updatedEventPath } = writeEventToCatalog(updatedEvent, {
+              useMarkdownContentFromExistingEvent: true,
+              frontMatterToCopyToNewVersions: {
+                producers: true,
+                owners: true,
+              },
+            });
+
+            const newFileContents = fs.readFileSync(path.join(eventPath, 'index.md'), 'utf-8');
+
+            expect(newFileContents).toMatchMarkdown(`
+            ---
+            name: 'My Event That Already Exists'
+            version: 1.2.0
+            summary: 'New summary of event'
+            producers:
+                - random
+                - 'My First Producer'
+            owners:
+                - dBoyne
+                - anotherUser
+            ---
+            # My Content`);
+
+            fs.rmdirSync(path.join(updatedEventPath), { recursive: true });
+          });
+
         });
       });
     });
