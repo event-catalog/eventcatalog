@@ -487,7 +487,7 @@ describe('eventcatalog-utils', () => {
               version: '1.0.0',
               summary: 'This is summary for my event',
               owners: ['dBoyne', 'anotherUser'],
-              producers: ['My First Producer']
+              producers: ['My First Producer'],
             };
 
             const { path: eventPath } = writeEventToCatalog(event, {
@@ -543,7 +543,6 @@ describe('eventcatalog-utils', () => {
 
             fs.rmdirSync(path.join(updatedEventPath), { recursive: true });
           });
-
         });
       });
     });
