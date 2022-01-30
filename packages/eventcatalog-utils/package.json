@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/utils",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Util functions for EventCatalog",
   "main": "lib/index.js",
   "scripts": {
