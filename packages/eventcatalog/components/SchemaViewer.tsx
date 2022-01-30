@@ -8,18 +8,18 @@ injectStyles();
 
 type Props = {
   schema: any;
-  renderRootTreeLines?:boolean
-  hideExamples?:boolean
-  defaultExpandedDepth?:number
+  renderRootTreeLines?: boolean;
+  hideExamples?: boolean;
+  defaultExpandedDepth?: number;
 };
 
 function SchemaViewer({ schema, renderRootTreeLines = false, hideExamples = false, defaultExpandedDepth = 1 }: Props) {
-  const JsonSchema = useMemo(() => JSON.parse((schema as string)), [schema]);
+  const JsonSchema = useMemo(() => JSON.parse(schema as string), [schema]);
 
   return (
     <JsonSchemaViewer
       schema={JsonSchema}
-      emptyText='No schema defined'
+      emptyText="No schema defined"
       defaultExpandedDepth={defaultExpandedDepth}
       // viewMode='standalone'
       renderRootTreeLines={Boolean(renderRootTreeLines)}
