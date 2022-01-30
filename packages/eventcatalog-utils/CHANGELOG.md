@@ -1,5 +1,11 @@
 # @eventcatalog/utils
 
+## 0.0.8
+
+### Patch Changes
+
+- [`d5a1815`](https://github.com/boyney123/eventcatalog/commit/d5a1815ae1b078a2b3e07d9fce525337ad413c54) [#147](https://github.com/boyney123/eventcatalog/pull/147) Thanks [@boyney123](https://github.com/boyney123)! - feat: now deepmerge when copying data over from previous frontmatter
+
 ## 0.0.7
 
 ### Patch Changes
