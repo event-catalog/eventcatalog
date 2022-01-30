@@ -1,5 +1,5 @@
 export type AsyncAPIPluginOptions = {
-  pathToSpec: string;
+  pathToSpec: string | string[];
   versionEvents?: boolean;
   externalAsyncAPIUrl?: string;
 };
