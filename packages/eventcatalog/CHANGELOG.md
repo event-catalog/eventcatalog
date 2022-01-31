@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 0.1.6
+
+### Patch Changes
+
+- [`00e3c89`](https://github.com/boyney123/eventcatalog/commit/00e3c898ca8bf72bd563d246d6a2ee8620dd8284) [#143](https://github.com/boyney123/eventcatalog/pull/143) Thanks [@thim81](https://github.com/thim81)! - feat: mermaid name and link
+
+* [`b4774fb`](https://github.com/boyney123/eventcatalog/commit/b4774fbf9773e66e1f85d71e99992e699833bf99) [#141](https://github.com/boyney123/eventcatalog/pull/141) Thanks [@thim81](https://github.com/thim81)! - bug: use title when setting page title
+
 ## 0.1.5
 
 ### Patch Changes
