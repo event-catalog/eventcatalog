@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.1.7
+
+### Patch Changes
+
+- [`740c504`](https://github.com/boyney123/eventcatalog/commit/740c5041f033aff975a7ce89e99b3722b271e2b3) [#154](https://github.com/boyney123/eventcatalog/pull/154) Thanks [@boyney123](https://github.com/boyney123)! - fix: trying to fix npm versions problem
+
 ## 0.1.6
 
 ### Patch Changes
