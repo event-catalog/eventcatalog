@@ -73,7 +73,7 @@ click Service_2 href "/docs/services/Service 2" "Go to Service 2" _self
 click My_Event href "/docs/events/My Event" "Go to My Event" _self`);
     });
 
-    it('transforms any service name with spaces into _', () => {
+    it('persists the spaces in the service name and renders them with mermaid', () => {
       const event = {
         name: 'My Event',
         version: '0.0.1',
