@@ -6,6 +6,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/solid';
 import ServiceGrid from '@/components/Grids/ServiceGrid';
 import { getAllServices } from '@/lib/services';
+import { useConfig } from '@/hooks/EventCatalog';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -23,11 +24,12 @@ export interface PageProps {
 
 export default function Page({ services }: PageProps) {
   const [showMermaidDiagrams, setShowMermaidDiagrams] = useState(false);
+  const { title } = useConfig();
 
   return (
     <>
       <Head>
-        <title>EventCatalog - All Services</title>
+        <title>{title} - All Services</title>
       </Head>
       <main className="max-w-7xl mx-auto md:min-h-screen px-4 md:px-0">
         <div className="relative z-10 flex items-baseline justify-between pt-8 pb-6 border-b border-gray-200">
