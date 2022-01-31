@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import matter from 'gray-matter';
 import { Event } from '@eventcatalog/types';
+import merge from 'deepmerge';
 import buildMarkdownFile from './markdown-builder';
 
 import { FunctionInitInterface, WriteEventToCatalogOptions, WriteEventToCatalogResponse } from './types';
@@ -52,8 +53,8 @@ export const getAllEventsFromCatalog =
 
 export const buildEventMarkdownForCatalog =
   () =>
-  (event: Event, { markdownContent, includeSchemaComponent, defaultFrontMatter }: any = {}) => {
-    const frontMatter = { ...event, ...defaultFrontMatter };
+  (event: Event, { markdownContent, includeSchemaComponent, defaultFrontMatter = {} }: any = {}) => {
+    const frontMatter = merge(event, defaultFrontMatter);
     return buildMarkdownFile({ frontMatterObject: frontMatter, customContent: markdownContent, includeSchemaComponent });
   };
 

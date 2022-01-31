@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/utils",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Util functions for EventCatalog",
   "main": "lib/index.js",
   "scripts": {
@@ -18,6 +18,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "deepmerge": "^4.2.2",
     "fs-extra": "^10.0.0",
     "gray-matter": "^4.0.3",
     "json2md": "^1.12.0",

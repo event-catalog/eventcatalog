@@ -1,5 +1,11 @@
 import { buildMermaidFlowChartForEvent, buildMermaidFlowChartForService } from '../graphs';
 
+jest.mock('next/config', () => () => ({
+  publicRuntimeConfig: {
+    basePath: '/docs',
+  },
+}));
+
 describe('graphs', () => {
   describe('buildMermaidFlowChartForService', () => {
     it('takes a given Service and returns the mermaid code showing relationships between the events it publishes and consumes', () => {
@@ -18,12 +24,22 @@ describe('graphs', () => {
       const result = buildMermaidFlowChartForService(service);
 
       expect(result.trim()).toEqual(`flowchart LR
-My_Event_2:::producer-->My_Service:::event
+
+My_Event[My Event]:::producer-->My_Service[My Service]:::event
 
 classDef event stroke:#2563eb,stroke-width: 4px;
+
 classDef producer stroke:#75d7b6,stroke-width: 2px;
+
 classDef consumer stroke:#818cf8,stroke-width: 2px;
-My_Service:::event-->My_Event:::consumer`);
+
+My_Service[My Service]:::event-->My_Event_2[My Event 2]:::consumer
+
+click My_Event href "/docs/events/My Event" "Go to My Event" _self
+
+click My_Event_2 href "/docs/events/My Event 2" "Go to My Event 2" _self
+
+click My_Service href "/docs/services/My Service" "Go to My Service" _self`);
     });
   });
 
@@ -39,15 +55,25 @@ My_Service:::event-->My_Event:::consumer`);
       const result = buildMermaidFlowChartForEvent(event);
 
       expect(result.trim()).toEqual(`flowchart LR
-Service_1:::producer-->My_Event:::event
+
+Service_1[Service 1]:::producer-->My_Event[My Event]:::event
 
 classDef event stroke:#2563eb,stroke-width: 4px;
+
 classDef producer stroke:#75d7b6,stroke-width: 2px;
+
 classDef consumer stroke:#818cf8,stroke-width: 2px;
-My_Event:::event-->Service_2:::consumer`);
+
+My_Event[My Event]:::event-->Service_2[Service 2]:::consumer
+
+click Service_1 href "/docs/services/Service 1" "Go to Service 1" _self
+
+click Service_2 href "/docs/services/Service 2" "Go to Service 2" _self
+
+click My_Event href "/docs/events/My Event" "Go to My Event" _self`);
     });
 
-    it('transforms any service name with spaces into _', () => {
+    it('persists the spaces in the service name and renders them with mermaid', () => {
       const event = {
         name: 'My Event',
         version: '0.0.1',
@@ -55,8 +81,8 @@ My_Event:::event-->Service_2:::consumer`);
         consumers: [],
       };
       const result = buildMermaidFlowChartForEvent(event);
-      expect(result).toContain(`Service_1_With_Spaces:::producer-->My_Event:::event`);
-      expect(result).not.toContain(`Service 1 With Spaces`);
+      expect(result).toContain(`Service_1_With_Spaces[Service 1 With Spaces]:::producer-->My_Event[My Event]:::event`);
+      expect(result).not.toContain(`Service 1 With Spaces[`);
     });
   });
 });
