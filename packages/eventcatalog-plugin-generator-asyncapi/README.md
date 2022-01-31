@@ -22,5 +22,5 @@ Then you can run
 "PROJECT_DIR={outputForCatalog} node packages/eventcatalog-plugin-generator-asyncapi/scripts/generate-catalog-with-plugin.js
 ```
 
-This will run the build of the plugin and generate an eventcatalog from an AsyncAPI file (found in examples)
+This will run the build of the plugin and generate an eventcatalog from an AsyncAPI file (found in examples).
 
