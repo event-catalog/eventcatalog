@@ -1,10 +1,15 @@
 import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 import Head from 'next/head';
-
 import dynamic from 'next/dynamic';
-
+import type { Event, Service } from '@eventcatalog/types';
 import { getAllEvents, getUniqueServicesNamesFromEvents } from '@/lib/events';
+import { useConfig } from '@/hooks/EventCatalog';
+
+export interface PageProps {
+  events: Event[];
+  services: Service[];
+}
 
 const ForceGraph3D = dynamic(() => import('react-force-graph-3d').then((module) => module.default), { ssr: false });
 
@@ -15,7 +20,9 @@ function NodeElement({ node: { id } }: { node: { id: string } }) {
 const MAX_LENGTH_FOR_NODES = 30;
 const truncateNode = (value) => (value.length > MAX_LENGTH_FOR_NODES ? `${value.substring(0, MAX_LENGTH_FOR_NODES)}...` : value);
 
-const graph = ({ events, services }) => {
+function Graph({ events, services }: PageProps) {
+  const { title } = useConfig();
+
   const eventNodes = events.map(({ name: event }) => ({ id: truncateNode(event), group: 1, type: 'event' }));
   const serviceNodes = services.map((service) => ({ id: truncateNode(service), group: 2, type: 'service' }));
 
@@ -35,10 +42,11 @@ const graph = ({ events, services }) => {
 
   // @ts-ignore
   const extraRenderers = [new window.THREE.CSS2DRenderer()];
+
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen">
       <Head>
-        <title>EventCatalog - 3D Node Graph</title>
+        <title>{title} - 3D Node Graph</title>
       </Head>
       <ForceGraph3D
         extraRenderers={extraRenderers}
@@ -62,9 +70,9 @@ const graph = ({ events, services }) => {
       />
     </div>
   );
-};
+}
 
-export default graph;
+export default Graph;
 
 export const getStaticProps = () => {
   const events = getAllEvents();

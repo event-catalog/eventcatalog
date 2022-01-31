@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import { MDXRemote } from 'next-mdx-remote';
+
 import { Service } from '@eventcatalog/types';
 import ContentView from '@/components/ContentView';
 import { getAllServices, getServiceByName } from '@/lib/services';
@@ -10,7 +11,7 @@ import ServiceSidebar from '@/components/Sidebars/ServiceSidebar';
 import BreadCrumbs from '@/components/BreadCrumbs';
 import NotFound from '@/components/NotFound';
 import getBackgroundColor from '@/utils/random-bg';
-import { useUrl } from '@/hooks/EventCatalog';
+import { useConfig, useUrl } from '@/hooks/EventCatalog';
 
 import { MarkdownFile } from '@/types/index';
 
@@ -38,6 +39,7 @@ const getComponents = (service) => ({
 
 export default function Services(props: ServicesPageProps) {
   const { service, markdown, notFound } = props;
+  const { title } = useConfig();
   const { getEditUrl, hasEditUrl } = useUrl();
 
   if (notFound)
@@ -58,7 +60,9 @@ export default function Services(props: ServicesPageProps) {
   return (
     <>
       <Head>
-        <title>{name}</title>
+        <title>
+          {title} - {name}
+        </title>
       </Head>
       <ContentView
         title={name}

@@ -15,7 +15,7 @@ import BreadCrumbs from '@/components/BreadCrumbs';
 import SyntaxHighlighter from '@/components/SyntaxHighlighter';
 
 import { getAllEvents, getEventByName } from '@/lib/events';
-import { useUrl } from '@/hooks/EventCatalog';
+import { useConfig, useUrl } from '@/hooks/EventCatalog';
 
 import { MarkdownFile } from '@/types/index';
 
@@ -66,6 +66,7 @@ export const getComponents = ({ event, schema, examples }: any) => ({
 
 export default function Events(props: EventsPageProps) {
   const { event, markdown, loadedVersion, notFound } = props;
+  const { title } = useConfig();
   const { getEditUrl, hasEditUrl } = useUrl();
 
   const { name, summary, draft, schema, examples, version } = event;
@@ -86,7 +87,7 @@ export default function Events(props: EventsPageProps) {
     <>
       <Head>
         <title>
-          {name} v{version}
+          {title} - {name} v{version}
         </title>
       </Head>
       <ContentView
