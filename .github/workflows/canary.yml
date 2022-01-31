@@ -4,6 +4,7 @@ on:
   push:
     branches-ignore:
       - $default-branch
+      - master
 jobs:
   ci:
     name: CI

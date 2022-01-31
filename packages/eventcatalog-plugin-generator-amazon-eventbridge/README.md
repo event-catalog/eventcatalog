@@ -26,5 +26,5 @@ Once you set your variables you can then run
 "PROJECT_DIR={outputForCatalog} node packages/eventcatalog-plugin-generator-amazon-eventbridge/scripts/generate-catalog-with-plugin.js`
 ```
 
-This will run the build of the plugin and generate an eventcatalog from your amazon-eventbridge schema registry.
+This will run the build of the plugin and generate an eventcatalog from your amazon-eventbridge schema registry
 
