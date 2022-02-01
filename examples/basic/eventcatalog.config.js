@@ -3,6 +3,7 @@ module.exports = {
   tagline: 'Discover, Explore and Document your Event Driven Architectures',
   organizationName: 'Your Company',
   editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
+  trailingSlash: true,
   logo: {
     alt: 'EventCatalog Logo',
     src: 'logo.svg',

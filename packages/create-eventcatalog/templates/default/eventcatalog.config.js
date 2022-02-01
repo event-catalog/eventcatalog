@@ -4,6 +4,7 @@ module.exports = {
   organizationName: 'Your Company',
   projectName: 'Event Catalog',
   editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
+  trailingSlash: true,
   logo: {
     alt: 'EventCatalog Logo',
     // found in the public dir
