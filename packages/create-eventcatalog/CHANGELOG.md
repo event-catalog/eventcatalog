@@ -1,5 +1,11 @@
 # @eventcatalog/create-eventcatalog
 
+## 0.1.2
+
+### Patch Changes
+
+- [`802e205`](https://github.com/boyney123/eventcatalog/commit/802e2052e0608782a2e122d30e3cb555bcace33f) [#161](https://github.com/boyney123/eventcatalog/pull/161) Thanks [@boyney123](https://github.com/boyney123)! - fix: adding trailing slash by default to all projects to fix static b…
+
 ## 0.1.1
 
 ### Patch Changes
