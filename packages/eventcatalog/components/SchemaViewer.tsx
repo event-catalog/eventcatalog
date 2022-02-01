@@ -2,6 +2,8 @@ import React, { useMemo } from 'react';
 
 import { JsonSchemaViewer } from '@stoplight/json-schema-viewer';
 import { injectStyles } from '@stoplight/mosaic';
+import styles from './SchemaViewer.module.css';
+
 
 // Inject Stoplight styles
 injectStyles();
@@ -24,6 +26,7 @@ function SchemaViewer({ schema, renderRootTreeLines = false, hideExamples = fals
       // viewMode='standalone'
       renderRootTreeLines={Boolean(renderRootTreeLines)}
       hideExamples={Boolean(hideExamples)}
+      className={styles.schemaViewer}
     />
   );
 }
