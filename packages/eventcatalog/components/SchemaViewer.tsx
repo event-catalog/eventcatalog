@@ -4,7 +4,6 @@ import { JsonSchemaViewer } from '@stoplight/json-schema-viewer';
 import { injectStyles } from '@stoplight/mosaic';
 import styles from './SchemaViewer.module.css';
 
-
 // Inject Stoplight styles
 injectStyles();
 
