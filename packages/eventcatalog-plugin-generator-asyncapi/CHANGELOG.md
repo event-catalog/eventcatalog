@@ -1,5 +1,11 @@
 # @eventcatalog/plugin-doc-generator-asyncapi
 
+## 0.1.4
+
+### Patch Changes
+
+- [`0d71c27`](https://github.com/boyney123/eventcatalog/commit/0d71c27458a34900a4ba935b443e9a4f78b5e640) [#149](https://github.com/boyney123/eventcatalog/pull/149) Thanks [@boyney123](https://github.com/boyney123)! - feat: now supports multiple asyncapi files
+
 ## 0.1.3
 
 ### Patch Changes

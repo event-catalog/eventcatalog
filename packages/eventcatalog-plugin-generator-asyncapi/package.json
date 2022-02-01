@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/plugin-doc-generator-asyncapi",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Documentation generator for EventCatalog using AsyncAPI",
   "main": "lib/index.js",
   "scripts": {
