@@ -22,4 +22,4 @@ This event is triggered when a shipment has finished being prepared.
 
 <Mermaid />
 
-<SchemaViewer renderRootTreeLines defaultExpandedDepth='0' />
+<SchemaViewer renderRootTreeLines defaultExpandedDepth='0' maxHeight="500" />

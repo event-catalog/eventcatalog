@@ -13,7 +13,7 @@ import EventSideBar from '@/components/Sidebars/EventSidebar';
 import NotFound from '@/components/NotFound';
 import BreadCrumbs from '@/components/BreadCrumbs';
 import SyntaxHighlighter from '@/components/SyntaxHighlighter';
-import SchemaViewer from '@/components/SchemaViewer/SchemaViewer';
+import SchemaViewer from '@/components/Mdx/SchemaViewer/SchemaViewer';
 
 import { getAllEvents, getEventByName } from '@/lib/events';
 import { useUrl } from '@/hooks/EventCatalog';
@@ -51,10 +51,12 @@ export const getComponents = ({ event, schema, examples }: any) => ({
     title = 'Event Schema',
     renderRootTreeLines = false,
     defaultExpandedDepth = 1,
+    maxHeight
   }: {
     title: string;
     renderRootTreeLines?: boolean;
     defaultExpandedDepth?: number;
+    maxHeight?: string;
   }) => {
     if (!schema) return null;
 
@@ -63,6 +65,7 @@ export const getComponents = ({ event, schema, examples }: any) => ({
         <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>
         <SchemaViewer
           schema={schema.snippet}
+          maxHeight={parseInt(maxHeight, 10)}
           renderRootTreeLines={renderRootTreeLines}
           defaultExpandedDepth={defaultExpandedDepth}
         />

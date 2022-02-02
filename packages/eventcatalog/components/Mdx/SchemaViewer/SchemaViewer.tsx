@@ -12,15 +12,17 @@ type Props = {
   renderRootTreeLines?: boolean;
   hideExamples?: boolean;
   defaultExpandedDepth?: number;
+  maxHeight?: number;
 };
 
-function SchemaViewer({ schema, renderRootTreeLines = false, hideExamples = false, defaultExpandedDepth = 1 }: Props) {
+function SchemaViewer({ schema, maxHeight, renderRootTreeLines = false, hideExamples = false, defaultExpandedDepth = 1 }: Props) {
   const JsonSchema = useMemo(() => JSON.parse(schema as string), [schema]);
 
   return (
     <JsonSchemaViewer
       schema={JsonSchema}
       emptyText="No schema defined"
+      maxHeight={maxHeight}
       defaultExpandedDepth={defaultExpandedDepth}
       renderRootTreeLines={renderRootTreeLines}
       hideExamples={hideExamples}
