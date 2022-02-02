@@ -6,7 +6,7 @@
 [![MIT License][license-badge]][license]
 [![PRs Welcome][prs-badge]][prs]
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![Watch on GitHub][github-watch-badge]][github-watch]
@@ -129,6 +129,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/davidkpiano"><img src="https://avatars.githubusercontent.com/u/1093738?v=4?s=100" width="100px;" alt=""/><br /><sub><b>David Khourshid</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=davidkpiano" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/thim81"><img src="https://avatars.githubusercontent.com/u/952446?v=4?s=100" width="100px;" alt=""/><br /><sub><b>thim81</b></sub></a><br /><a href="#ideas-thim81" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/boyney123/eventcatalog/issues?q=author%3Athim81" title="Bug reports">🐛</a> <a href="https://github.com/boyney123/eventcatalog/commits?author=thim81" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/Muthuveerappanv"><img src="https://avatars.githubusercontent.com/u/33663725?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Muthu</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/issues?q=author%3AMuthuveerappanv" title="Bug reports">🐛</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/tavelli"><img src="https://avatars.githubusercontent.com/u/484951?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dan Tavelli</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=tavelli" title="Documentation">📖</a></td>
   </tr>
 </table>
 
