@@ -3,12 +3,14 @@ import { AppProps } from 'next/app';
 
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
+import getConfig from 'next/config';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { EventCatalogContextProvider, useConfig } from '@/hooks/EventCatalog';
 
 function Page({ Component, pageProps }: AppProps) {
   const { title, tagline } = useConfig();
+  const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 
   const [url, setUrl] = useState('https://eventcatalog.dev');
   useEffect(() => {
@@ -25,6 +27,8 @@ function Page({ Component, pageProps }: AppProps) {
         <link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.css" />
 
         <meta name="description" content={tagline} />
+
+        <link rel="icon" href={`${basePath}/favicon.ico`} />
 
         <meta property="og:url" content={url} />
         <meta property="og:type" content="website" />
