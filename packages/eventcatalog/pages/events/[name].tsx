@@ -47,13 +47,25 @@ export const getComponents = ({ event, schema, examples }: any) => ({
       </section>
     );
   },
-  SchemaViewer: ({ title = 'Event Schema' }: { title: string }) => {
+  SchemaViewer: ({
+    title = 'Event Schema',
+    renderRootTreeLines = false,
+    defaultExpandedDepth = 1,
+  }: {
+    title: string;
+    renderRootTreeLines?: boolean;
+    defaultExpandedDepth?: number;
+  }) => {
     if (!schema) return null;
 
     return (
       <section className="mt-8 xl:mt-10">
         <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>
-        <SchemaViewer schema={schema.snippet} />
+        <SchemaViewer
+          schema={schema.snippet}
+          renderRootTreeLines={renderRootTreeLines}
+          defaultExpandedDepth={defaultExpandedDepth}
+        />
       </section>
     );
   },

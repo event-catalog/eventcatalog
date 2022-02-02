@@ -38,8 +38,8 @@ For more information check out the [schema guide for events](/docs/events/adding
 <SchemaViewer />
 ```
 
-```md title="Render the schema viewer, with a custom expand depth and root tree lines"
-<SchemaViewer defaultExpandedDepth=5 renderRootTreeLines=true/>
+```md title="Render the schema viewer, with a custom expand depth of 5 levels and showing the root tree lines"
+<SchemaViewer defaultExpandedDepth='5' renderRootTreeLines />
 ```
 
 ### `<Mermaid />`
