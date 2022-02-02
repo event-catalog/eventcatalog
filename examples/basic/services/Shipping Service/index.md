@@ -13,4 +13,6 @@ Event based service that allows you to create shipments, prepare them and dispat
 
 This service will also generate Async events for downstream services.
 
+<NodeGraph />
+
 <Mermaid />

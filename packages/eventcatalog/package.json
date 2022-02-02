@@ -24,6 +24,7 @@
     "@tailwindcss/typography": "^0.4.1",
     "compare-versions": "^4.1.2",
     "copy-text-to-clipboard": "^3.0.1",
+    "dagre": "^0.8.5",
     "diff": "^5.0.0",
     "diff2html": "^3.4.13",
     "fs-extra": "^10.0.0",
@@ -34,6 +35,7 @@
     "next-mdx-remote": "^3.0.8",
     "react": "17.0.2",
     "react-dom": "17.0.2",
+    "react-flow-renderer": "^9.7.3",
     "react-force-graph-3d": "^1.21.10",
     "react-syntax-highlighter": "^15.4.5"
   },
