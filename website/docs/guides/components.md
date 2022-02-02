@@ -28,6 +28,7 @@ For more information check out the [schema guide for events](/docs/events/adding
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
+| `title` | `string` | '' | Title to render above your schema viewer |
 | `defaultExpandedDepth` | `number` | 1 | Define the expand level for displaying nested objects/properties |
 | `renderRootTreeLines` | `boolean` | false | Define show/hide a visual line for the root level |
 </APITable>
@@ -38,8 +39,8 @@ For more information check out the [schema guide for events](/docs/events/adding
 <SchemaViewer />
 ```
 
-```md title="Render the schema viewer, with a custom expand depth of 5 levels and showing the root tree lines"
-<SchemaViewer defaultExpandedDepth='5' renderRootTreeLines />
+```md title="Render the schema viewer, with a custom title, expanded the depth of the properties to level 5 and showing the root tree lines"
+<SchemaViewer title="Event properties" defaultExpandedDepth='5' renderRootTreeLines />
 ```
 
 ### `<Mermaid />`
