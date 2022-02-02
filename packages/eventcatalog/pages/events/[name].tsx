@@ -51,7 +51,7 @@ export const getComponents = ({ event, schema, examples }: any) => ({
     title = 'Event Schema',
     renderRootTreeLines = false,
     defaultExpandedDepth = 1,
-    maxHeight
+    maxHeight,
   }: {
     title: string;
     renderRootTreeLines?: boolean;
