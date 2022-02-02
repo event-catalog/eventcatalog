@@ -89,6 +89,43 @@ Remember the relationship between events and services is stored within the event
 
 For more information check out the [mermaid guide for events](/docs/events/consumers-and-producers) and [mermaid guide for services](/docs/services/producers-consumers).
 
+### `<NodeGraph />`
+
+This component will render [ReactFlow diagrams](https://reactflow.dev/) into your documents.
+CLicking a node will navigate to the event or service page.
+
+EventCatalog will render the relationships between your consumers and producers.
+
+#### Support
+
+You can use this MDX component inside
+- event markdown files
+- service markdown files
+
+#### Props
+
+<APITable>
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| `title` | `string` | '' | Title to render above your node graph |
+| `maxHeight` | `number` | '' | Set the max height of the node graph |
+| `isHorizontal` | `boolean` | true | Toggle the direction of the nodes, which can horizontal (default) or vertical |
+| `isAnimated` | `boolean` | true | Toggle if the node connections should be animating |
+| `isDraggable` | `boolean` | false | Toggle if the nodes are draggable |
+</APITable>
+
+
+#### Usage
+
+```md title="Render the default node graphsfor your events and services"
+<NodeGraph />
+```
+
+```md title="Render the customized node graphs in the "
+<NodeGraph maxHeight={400} isHorizontal={false} isAnimated={false} />
+```
+
 ### `<Admonition />`
 
 #### Rendered Examples
