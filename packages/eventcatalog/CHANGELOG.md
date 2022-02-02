@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.1.8
+
+### Patch Changes
+
+- [`fd9b26a`](https://github.com/boyney123/eventcatalog/commit/fd9b26a24fd94e298b79b59777f148988a7c89b1) [#151](https://github.com/boyney123/eventcatalog/pull/151) Thanks [@thim81](https://github.com/thim81)! - feat: new mdx component json schema viewer
+
 ## 0.1.7
 
 ### Patch Changes
