@@ -13,7 +13,7 @@ import EventSideBar from '@/components/Sidebars/EventSidebar';
 import NotFound from '@/components/NotFound';
 import BreadCrumbs from '@/components/BreadCrumbs';
 import SyntaxHighlighter from '@/components/SyntaxHighlighter';
-import SchemaViewer from '@/components/SchemaViewer';
+import SchemaViewer from '@/components/SchemaViewer/SchemaViewer';
 
 import { getAllEvents, getEventByName } from '@/lib/events';
 import { useUrl } from '@/hooks/EventCatalog';
