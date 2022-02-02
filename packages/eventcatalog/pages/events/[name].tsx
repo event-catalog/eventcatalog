@@ -52,7 +52,7 @@ export const getComponents = ({ event, schema, examples }: any) => ({
 
     return (
       <section className="mt-8 xl:mt-10">
-        <h2 id="activity-title" className="text-lg font-medium text-gray-900 underline">
+        <h2 className="text-lg font-medium text-gray-900 underline">
           {title}
         </h2>
         <SchemaViewer schema={schema.snippet} />
