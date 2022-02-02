@@ -22,7 +22,7 @@ function SchemaViewer({ schema, renderRootTreeLines = false, hideExamples = fals
       schema={JsonSchema}
       emptyText="No schema defined"
       defaultExpandedDepth={defaultExpandedDepth}
-      renderRootTreeLines={Boolean(renderRootTreeLines)}
+      renderRootTreeLines={renderRootTreeLines}
       hideExamples={Boolean(hideExamples)}
       className={styles.schemaViewer}
     />
