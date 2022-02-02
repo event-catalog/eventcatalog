@@ -110,6 +110,7 @@ You can use this MDX component inside
 | --- | --- | --- | --- |
 | `title` | `string` | '' | Title to render above your node graph |
 | `maxHeight` | `number` | '' | Set the max height of the node graph |
+| `maxZoom` | `number` | '5' | Set the max zoom level of the node graph |
 | `isHorizontal` | `boolean` | true | Toggle the direction of the nodes, which can horizontal (default) or vertical |
 | `isAnimated` | `boolean` | true | Toggle if the node connections should be animating |
 | `isDraggable` | `boolean` | false | Toggle if the nodes are draggable |

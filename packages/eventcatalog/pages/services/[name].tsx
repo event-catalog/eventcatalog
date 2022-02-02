@@ -39,12 +39,14 @@ const getComponents = (service) => ({
   NodeGraph: ({
     title,
     maxHeight,
+    maxZoom,
     isAnimated,
     isHorizontal,
     isDraggable,
   }: {
     title: string;
     maxHeight?: number;
+    maxZoom?: number;
     isAnimated?: boolean;
     isHorizontal?: boolean;
     isDraggable?: boolean;
@@ -56,6 +58,7 @@ const getComponents = (service) => ({
         data={service}
         rootNodeColor={getBackgroundColor(service.name)}
         maxHeight={maxHeight}
+        maxZoom={maxZoom}
         isAnimated={isAnimated}
         isHorizontal={isHorizontal}
         isDraggable={isDraggable}

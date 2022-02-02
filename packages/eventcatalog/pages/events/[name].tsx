@@ -92,12 +92,14 @@ export const getComponents = ({ event, schema, examples }: any) => ({
   NodeGraph: ({
     title,
     maxHeight,
+    maxZoom,
     isAnimated,
     isHorizontal,
     isDraggable,
   }: {
     title: string;
     maxHeight?: number;
+    maxZoom?: number;
     isAnimated?: boolean;
     isHorizontal?: boolean;
     isDraggable?: boolean;
@@ -108,8 +110,9 @@ export const getComponents = ({ event, schema, examples }: any) => ({
         source="event"
         data={event}
         rootNodeColor={getBackgroundColor(event.name)}
-        isAnimated={isAnimated}
         maxHeight={maxHeight}
+        maxZoom={maxZoom}
+        isAnimated={isAnimated}
         isHorizontal={isHorizontal}
         isDraggable={isDraggable}
       />

@@ -21,6 +21,7 @@ interface NodeGraphProps {
   source: 'event' | 'service';
   rootNodeColor?: string;
   maxHeight?: number;
+  maxZoom?: number;
   isAnimated?: boolean;
   isHorizontal?: boolean;
   isDraggable?: boolean;
@@ -39,8 +40,8 @@ function NodeGraph({
   source,
   rootNodeColor,
   maxHeight = 360,
+  maxZoom = 5,
   isAnimated = true,
-
   isHorizontal = true,
   isDraggable = false,
 }: NodeGraphProps) {
@@ -66,6 +67,9 @@ function NodeGraph({
       }
     });
 
+    // const nodeWidth = 150;
+    // const nodeHeight = 50;
+
     dagre.layout(dagreGraph);
 
     const layoutedElements = elements.map((el) => {
@@ -76,6 +80,8 @@ function NodeGraph({
         // we need to pass a slightly different position in order to notify react flow about the change
         // @TODO how can we change the position handling so that we dont need this hack?
         el.position = {
+          // x: nodeWithPosition.x - nodeWidth / 2 + Math.random() / 1000,
+          // y: nodeWithPosition.y - nodeHeight / 2,
           x: nodeWithPosition.x + Math.random() / 1000,
           y: nodeWithPosition.y,
         };
@@ -86,13 +92,13 @@ function NodeGraph({
 
     setElements(layoutedElements);
   };
-  console.log('maxHeight', maxHeight);
 
   return (
     <div className="node-graph w-full" style={{ height: maxHeight }}>
       <ReactFlowProvider>
         <ReactFlow
           elements={elements}
+          maxZoom={maxZoom}
           nodesDraggable={isDraggable}
           onElementClick={onElementClick}
           onConnect={onConnect}
