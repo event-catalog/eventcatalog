@@ -23,7 +23,7 @@ function SchemaViewer({ schema, renderRootTreeLines = false, hideExamples = fals
       emptyText="No schema defined"
       defaultExpandedDepth={defaultExpandedDepth}
       renderRootTreeLines={renderRootTreeLines}
-      hideExamples={Boolean(hideExamples)}
+      hideExamples={hideExamples}
       className={styles.schemaViewer}
     />
   );
