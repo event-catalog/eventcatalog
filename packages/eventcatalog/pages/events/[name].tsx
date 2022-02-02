@@ -19,7 +19,7 @@ import { getAllEvents, getEventByName } from '@/lib/events';
 import { useConfig, useUrl } from '@/hooks/EventCatalog';
 
 import { MarkdownFile } from '@/types/index';
-import NodeGraph from '@/components/NodeGraph/NodeGraph';
+import NodeGraph from '@/components/Mdx/NodeGraph/NodeGraph';
 
 export interface EventsPageProps {
   event: Event;
@@ -89,10 +89,30 @@ export const getComponents = ({ event, schema, examples }: any) => ({
       <Mermaid source="event" data={event} rootNodeColor={getBackgroundColor(event.name)} charts={charts} />
     </div>
   ),
-  NodeGraph: ({ title, maxHeight }: { title: string; maxHeight?: number }) => (
+  NodeGraph: ({
+    title,
+    maxHeight,
+    isAnimated,
+    isHorizontal,
+    isDraggable,
+  }: {
+    title: string;
+    maxHeight?: number;
+    isAnimated?: boolean;
+    isHorizontal?: boolean;
+    isDraggable?: boolean;
+  }) => (
     <div className="mx-auto w-full">
       {title && <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>}
-      <NodeGraph source="event" data={event} rootNodeColor={getBackgroundColor(event.name)} maxHeight={maxHeight} />
+      <NodeGraph
+        source="event"
+        data={event}
+        rootNodeColor={getBackgroundColor(event.name)}
+        isAnimated={isAnimated}
+        maxHeight={maxHeight}
+        isHorizontal={isHorizontal}
+        isDraggable={isDraggable}
+      />
     </div>
   ),
 });

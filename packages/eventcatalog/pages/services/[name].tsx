@@ -14,7 +14,7 @@ import getBackgroundColor from '@/utils/random-bg';
 import { useConfig, useUrl } from '@/hooks/EventCatalog';
 
 import { MarkdownFile } from '@/types/index';
-import NodeGraph from '@/components/NodeGraph/NodeGraph';
+import NodeGraph from '@/components/Mdx/NodeGraph/NodeGraph';
 
 interface ServicesPageProps {
   service: Service;
@@ -36,10 +36,30 @@ const getComponents = (service) => ({
   Mermaid: ({ title, charts }: { title: string; charts?: string[] }) => (
     <MermaidComponent service={service} title={title} charts={charts} />
   ),
-  NodeGraph: ({ title, maxHeight }: { title: string; maxHeight?: number }) => (
+  NodeGraph: ({
+    title,
+    maxHeight,
+    isAnimated,
+    isHorizontal,
+    isDraggable,
+  }: {
+    title: string;
+    maxHeight?: number;
+    isAnimated?: boolean;
+    isHorizontal?: boolean;
+    isDraggable?: boolean;
+  }) => (
     <div className="mx-auto w-full">
       {title && <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>}
-      <NodeGraph source="service" data={service} rootNodeColor={getBackgroundColor(service.name)} maxHeight={maxHeight} />
+      <NodeGraph
+        source="service"
+        data={service}
+        rootNodeColor={getBackgroundColor(service.name)}
+        maxHeight={maxHeight}
+        isAnimated={isAnimated}
+        isHorizontal={isHorizontal}
+        isDraggable={isDraggable}
+      />
     </div>
   ),
 });
