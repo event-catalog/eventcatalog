@@ -22,8 +22,8 @@ function SchemaViewer({ schema, renderRootTreeLines = false, hideExamples = fals
       schema={JsonSchema}
       emptyText="No schema defined"
       defaultExpandedDepth={defaultExpandedDepth}
-      renderRootTreeLines={Boolean(renderRootTreeLines)}
-      hideExamples={Boolean(hideExamples)}
+      renderRootTreeLines={renderRootTreeLines}
+      hideExamples={hideExamples}
       className={styles.schemaViewer}
     />
   );
