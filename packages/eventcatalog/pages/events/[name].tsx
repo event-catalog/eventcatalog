@@ -13,6 +13,7 @@ import EventSideBar from '@/components/Sidebars/EventSidebar';
 import NotFound from '@/components/NotFound';
 import BreadCrumbs from '@/components/BreadCrumbs';
 import SyntaxHighlighter from '@/components/SyntaxHighlighter';
+import SchemaViewer from '@/components/Mdx/SchemaViewer/SchemaViewer';
 
 import { getAllEvents, getEventByName } from '@/lib/events';
 import { useConfig, useUrl } from '@/hooks/EventCatalog';
@@ -43,6 +44,31 @@ export const getComponents = ({ event, schema, examples }: any) => ({
         <SyntaxHighlighter language={schema.language} showLineNumbers={false} name={`${event.name} Schema (${schema.language})`}>
           {schema.snippet}
         </SyntaxHighlighter>
+      </section>
+    );
+  },
+  SchemaViewer: ({
+    title = 'Event Schema',
+    renderRootTreeLines = false,
+    defaultExpandedDepth = 1,
+    maxHeight,
+  }: {
+    title: string;
+    renderRootTreeLines?: boolean;
+    defaultExpandedDepth?: number;
+    maxHeight?: string;
+  }) => {
+    if (!schema) return null;
+
+    return (
+      <section className="mt-8 xl:mt-10">
+        <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>
+        <SchemaViewer
+          schema={schema.snippet}
+          maxHeight={parseInt(maxHeight, 10)}
+          renderRootTreeLines={renderRootTreeLines}
+          defaultExpandedDepth={defaultExpandedDepth}
+        />
       </section>
     );
   },

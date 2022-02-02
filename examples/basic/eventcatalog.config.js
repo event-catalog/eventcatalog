@@ -4,6 +4,7 @@ module.exports = {
   organizationName: 'Your Company',
   editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
   homepageLink: 'https://eventcatalog.dev/',
+  trailingSlash: true,
   logo: {
     alt: 'EventCatalog Logo',
     src: 'logo.svg',

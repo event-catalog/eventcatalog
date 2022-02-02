@@ -46,17 +46,13 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
   }, []);
 };
 
-export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
-  const { pathToSpec, versionEvents = true } = options;
+const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOptions, copyFrontMatter: boolean) => {
+  const { versionEvents = true } = options;
 
   let asyncAPIFile;
 
-  if (!pathToSpec) {
-    throw new Error('No file provided in plugin.');
-  }
-
   try {
-    asyncAPIFile = fs.readFileSync(pathToSpec, 'utf-8');
+    asyncAPIFile = fs.readFileSync(pathToFile, 'utf-8');
   } catch (error: any) {
     console.error(error);
     throw new Error(`Failed to read file with provided path`);
@@ -83,6 +79,11 @@ export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
     await writeEventToCatalog(eventData, {
       useMarkdownContentFromExistingEvent: true,
       versionExistingEvent: versionEvents,
+      frontMatterToCopyToNewVersions: {
+        // only do consumers and producers if its not the first file.
+        consumers: copyFrontMatter,
+        producers: copyFrontMatter,
+      },
       schema: {
         extension: 'json',
         fileContent: schema,
@@ -93,5 +94,27 @@ export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
   // write all events to folders
   Promise.all(eventFiles);
 
-  console.log(chalk.green(`Successfully parsed AsyncAPI file. Generated ${events.length} events and 1 service`));
+  return {
+    generatedEvents: events,
+  };
+};
+
+export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
+  const { pathToSpec } = options;
+
+  const listOfAsyncAPIFilesToParse = Array.isArray(pathToSpec) ? pathToSpec : [pathToSpec];
+
+  if (listOfAsyncAPIFilesToParse.length === 0 || !pathToSpec) {
+    throw new Error('No file provided in plugin.');
+  }
+
+  // on first parse of files don't copy any frontmatter over.
+  const parsers = listOfAsyncAPIFilesToParse.map((specFile, index) => parseAsyncAPIFile(specFile, options, index !== 0));
+
+  const data = await Promise.all(parsers);
+  const totalEvents = data.reduce((sum, { generatedEvents }) => sum + generatedEvents.length, 0);
+
+  console.log(
+    chalk.green(`Successfully parsed ${listOfAsyncAPIFilesToParse.length} AsyncAPI file/s. Generated ${totalEvents} events`)
+  );
 };

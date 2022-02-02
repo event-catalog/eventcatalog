@@ -1,5 +1,17 @@
 # @eventcatalog/plugin-doc-generator-amazon-eventbridge
 
+## 0.0.5
+
+### Patch Changes
+
+- [`740c504`](https://github.com/boyney123/eventcatalog/commit/740c5041f033aff975a7ce89e99b3722b271e2b3) [#154](https://github.com/boyney123/eventcatalog/pull/154) Thanks [@boyney123](https://github.com/boyney123)! - fix: trying to fix npm versions problem
+
+## 0.0.4
+
+### Patch Changes
+
+- [`41cf5ea`](https://github.com/boyney123/eventcatalog/commit/41cf5ea6c89e0b8f407c8e5165f937587eea2920) [#145](https://github.com/boyney123/eventcatalog/pull/145) Thanks [@Muthuveerappanv](https://github.com/Muthuveerappanv)! - fix: eventbridge targets now render for all events
+
 ## 0.0.3
 
 ### Patch Changes

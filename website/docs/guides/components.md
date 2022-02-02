@@ -13,6 +13,37 @@ This component will render your schema to the document. To make this work you wi
 
 For more information check out the [schema guide for events](/docs/events/adding-schemas).
 
+### `<SchemaViewer />`
+
+Supported in
+- event markdown files
+
+This component will render your schema as documentation viewer to the document. To make this work you will need to add a `schema` file into your event directory.
+
+For more information check out the [schema guide for events](/docs/events/adding-schemas).
+
+#### Props
+
+<APITable>
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| `title` | `string` | '' | Title to render above your schema viewer |
+| `maxHeight` | `number` | '' | The max height of the schema viewer |
+| `defaultExpandedDepth` | `number` | 1 | Define the expand level for displaying nested objects/properties |
+| `renderRootTreeLines` | `boolean` | false | Define show/hide a visual line for the root level |
+</APITable>
+
+#### Usage
+
+```md title="Render the default schema viewer for your event"
+<SchemaViewer />
+```
+
+```md title="Render the schema viewer, with a custom title, expanded the depth of the properties to level 5 and showing the root tree lines"
+<SchemaViewer title="Event properties" defaultExpandedDepth='5' renderRootTreeLines maxHeight="500" />
+```
+
 ### `<Mermaid />`
 
 

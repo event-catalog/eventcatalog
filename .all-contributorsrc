@@ -73,6 +73,24 @@
         "bug",
         "code"
       ]
+    },
+    {
+      "login": "Muthuveerappanv",
+      "name": "Muthu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33663725?v=4",
+      "profile": "https://github.com/Muthuveerappanv",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "tavelli",
+      "name": "Dan Tavelli",
+      "avatar_url": "https://avatars.githubusercontent.com/u/484951?v=4",
+      "profile": "https://github.com/tavelli",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,

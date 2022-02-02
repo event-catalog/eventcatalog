@@ -9,4 +9,4 @@ To make changes or run this application core code, you will need to fork the Eve
 npm run start:catalog
 ```
 
-This will run the catalog using the catalog information found in `examples/basic`.
+This will run the catalog using the catalog information found in `examples/basic`

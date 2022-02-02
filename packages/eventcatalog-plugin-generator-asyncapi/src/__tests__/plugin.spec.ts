@@ -113,6 +113,61 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
       );
     });
 
+    describe('multiple asyncapi files', () => {
+      it('successfully takes multiple valid asyncapi files and creates the expected services and events markdown files from it', async () => {
+        const options: AsyncAPIPluginOptions = {
+          pathToSpec: [
+            path.join(__dirname, './assets/valid-asyncapi.yml'),
+            path.join(__dirname, './assets/valid-asyncapi-2.yml'),
+          ],
+        };
+
+        await plugin(pluginContext, options);
+
+        // just wait for files to be there in time.
+        await new Promise((r) => setTimeout(r, 200));
+
+        const { getEventFromCatalog, getServiceFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+
+        const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
+        const { raw: serviceFile } = getServiceFromCatalog('Account Service');
+        const { raw: userServiceFile } = getServiceFromCatalog('Users Service');
+
+        expect(eventFile).toMatchMarkdown(`
+          ---
+            name: UserSignedUp
+            summary: null
+            version: 1.0.0
+            producers:
+              - 'Users Service'
+              - 'Account Service'
+            consumers: []
+            externalLinks: []
+          ---
+  
+          <Mermaid />
+          <Schema />
+          `);
+
+        expect(serviceFile).toMatchMarkdown(
+          `---
+            name: 'Account Service'
+            summary: 'This service is in charge of processing user signups'
+            ---
+  
+            <Mermaid />`
+        );
+        expect(userServiceFile).toMatchMarkdown(
+          `---
+            name: 'Users Service'
+            summary: 'This service is in charge of users'
+            ---
+  
+            <Mermaid />`
+        );
+      });
+    });
+
     describe('plugin options', () => {
       describe('versionEvents', () => {
         it('when versionEvents is true, all previous matching events will be versioned before writing the event to the catalog', async () => {

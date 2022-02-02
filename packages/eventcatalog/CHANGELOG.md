@@ -1,5 +1,25 @@
 # @eventcatalog/core
 
+## 0.1.8
+
+### Patch Changes
+
+- [`fd9b26a`](https://github.com/boyney123/eventcatalog/commit/fd9b26a24fd94e298b79b59777f148988a7c89b1) [#151](https://github.com/boyney123/eventcatalog/pull/151) Thanks [@thim81](https://github.com/thim81)! - feat: new mdx component json schema viewer
+
+## 0.1.7
+
+### Patch Changes
+
+- [`740c504`](https://github.com/boyney123/eventcatalog/commit/740c5041f033aff975a7ce89e99b3722b271e2b3) [#154](https://github.com/boyney123/eventcatalog/pull/154) Thanks [@boyney123](https://github.com/boyney123)! - fix: trying to fix npm versions problem
+
+## 0.1.6
+
+### Patch Changes
+
+- [`00e3c89`](https://github.com/boyney123/eventcatalog/commit/00e3c898ca8bf72bd563d246d6a2ee8620dd8284) [#143](https://github.com/boyney123/eventcatalog/pull/143) Thanks [@thim81](https://github.com/thim81)! - feat: mermaid name and link
+
+* [`b4774fb`](https://github.com/boyney123/eventcatalog/commit/b4774fbf9773e66e1f85d71e99992e699833bf99) [#141](https://github.com/boyney123/eventcatalog/pull/141) Thanks [@thim81](https://github.com/thim81)! - bug: use title when setting page title
+
 ## 0.1.5
 
 ### Patch Changes

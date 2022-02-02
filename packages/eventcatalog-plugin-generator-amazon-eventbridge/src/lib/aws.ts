@@ -126,7 +126,7 @@ const getEventBusRulesAndTargets = (eventbridge: EventBridge, eventBusName: stri
     const eventWithTargetsAndRules = await Promise.all(eventTargetsAndRules);
 
     return {
-      ...data,
+      ...(await data),
       [event]: eventWithTargetsAndRules,
     };
   }, {});
