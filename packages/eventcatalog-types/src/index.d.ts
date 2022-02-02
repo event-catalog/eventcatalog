@@ -70,7 +70,7 @@ export interface EventCataLogConfig {
   users?: User[];
   generators?: PluginConfig[] | [] | any;
   footerLinks?: Link[];
-  homepageLink?: Link;
+  homepageLink?: string;
 }
 
 export type LoadContext = {
