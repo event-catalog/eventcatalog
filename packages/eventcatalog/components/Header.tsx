@@ -34,7 +34,7 @@ export default function Example() {
                 </Link>
               )}
               {homepageLink && (
-                <a href={`${homepageLink}`} className="flex items-center">
+                <a href={homepageLink} className="flex items-center">
                   <img alt="logo" className="text-white w-8 inline-block mr-3" src={`${basePath}/logo.svg`} />
                   <span className="text-xl">{title}</span>
                 </a>
