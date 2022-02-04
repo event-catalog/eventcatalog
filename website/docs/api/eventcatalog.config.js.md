@@ -79,6 +79,18 @@ module.exports = {
 };
 ```
 
+### `homepageLink` {#homepageLink}
+
+- Type: `string`
+
+URL used when people want to link the logo & title in the top navigation to the homepage of a website.
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  homepageLink: 'https://eventcatalog.dev',
+};
+```
+
 ### `users` {#users}
 
 Add user information here. You can reference these inside your Event and Service markdown files.
