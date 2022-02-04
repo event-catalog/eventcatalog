@@ -20,8 +20,8 @@ classDef event stroke:${rootNodeColor},stroke-width: 4px;\n
 classDef producer stroke:#75d7b6,stroke-width: 2px;\n
 classDef consumer stroke:#818cf8,stroke-width: 2px;\n
 ${rightNodes.map((node) => `${centerNode.id}[${centerNode.name}]:::event-->r-${node.id}[${node.name}]:::consumer\n`).join('')}
-${leftNodes.map((node) => `click ${node.id} href "${node.link}" "Go to ${node.name}" _self\n`).join('')}
-${rightNodes.map((node) => `click ${node.id} href "${node.link}" "Go to ${node.name}" _self\n`).join('')}
+${leftNodes.map((node) => `click l-${node.id} href "${node.link}" "Go to ${node.name}" _self\n`).join('')}
+${rightNodes.map((node) => `click r-${node.id} href "${node.link}" "Go to ${node.name}" _self\n`).join('')}
 click ${centerNode.id} href "${centerNode.link}" "Go to ${centerNode.name}" _self\n
 `;
 
