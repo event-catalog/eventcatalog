@@ -123,7 +123,7 @@ You can use this MDX component inside
 ```
 
 ```md title="Render the customized node graphs in the "
-<NodeGraph maxHeight={400} isHorizontal={false} isAnimated={true} />
+<NodeGraph maxHeight={400} isDraggable={true} isAnimated={true} fitView={false} />
 ```
 
 ### `<Admonition />`
