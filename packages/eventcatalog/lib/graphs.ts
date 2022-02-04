@@ -63,12 +63,12 @@ export const buildMermaidFlowChartForService = (
   rootNodeColor = '#2563eb'
 ) => {
   // Transforms services & event into a graph model
-  const leftNodes = publishes.map(truncateNode).map((node) => ({
+  const leftNodes = subscribes.map(truncateNode).map((node) => ({
     id: node.name.replace(/ /g, '_'),
     name: node.name,
     link: generateLink(node.name, 'events'),
   }));
-  const rightNodes = subscribes.map(truncateNode).map((node) => ({
+  const rightNodes = publishes.map(truncateNode).map((node) => ({
     id: node.name.replace(/ /g, '_'),
     name: node.name,
     link: generateLink(node.name, 'events'),
