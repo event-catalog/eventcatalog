@@ -14,10 +14,11 @@ function classNames(...classes) {
 }
 
 export default function Example() {
-  const { title, homepageLink } = useConfig();
+  const { title, homepageLink, logo } = useConfig();
   const router = useRouter();
 
   const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
+  const logoToLoad = logo || { alt: 'EventCatalog Logo', src: `logo.svg` };
 
   return (
     <div className="bg-gray-800">
@@ -28,14 +29,14 @@ export default function Example() {
               {!homepageLink && (
                 <Link href="/">
                   <a className="flex items-center">
-                    <img alt="logo" className="text-white w-8 inline-block mr-3" src={`${basePath}/logo.svg`} />
+                    <img alt="logo" className="text-white w-8 inline-block mr-3" src={`${basePath}/${logoToLoad.src}`} />
                     <span className="text-xl">{title}</span>
                   </a>
                 </Link>
               )}
               {homepageLink && (
                 <a href={homepageLink} className="flex items-center">
-                  <img alt="logo" className="text-white w-8 inline-block mr-3" src={`${basePath}/logo.svg`} />
+                  <img alt="logo" className="text-white w-8 inline-block mr-3" src={`${basePath}/${logoToLoad.src}`} />
                   <span className="text-xl">{title}</span>
                 </a>
               )}
