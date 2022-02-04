@@ -15,7 +15,6 @@ export default function createGraphLayout(elements: Elements, isHorizontal: bool
   elements.forEach((element) => {
     if (isNode(element)) {
       dagreGraph.setNode(element.id, {
-        // eslint-disable-next-line no-underscore-dangle
         width: element.data?.width || nodeWidth,
         // width: element.__rf?.width || nodeWidth,
         // eslint-disable-next-line no-underscore-dangle
