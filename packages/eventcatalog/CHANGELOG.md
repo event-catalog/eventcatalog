@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.1.10
+
+### Patch Changes
+
+- [`b44bd6c`](https://github.com/boyney123/eventcatalog/commit/b44bd6ca73194165e6448abebd020e3d6f3007a2) [#169](https://github.com/boyney123/eventcatalog/pull/169) Thanks [@thim81](https://github.com/thim81)! - fix: logic for services publish & subscribe nodes
+
 ## 0.1.9
 
 ### Patch Changes
