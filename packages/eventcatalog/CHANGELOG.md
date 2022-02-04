@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.1.11
+
+### Patch Changes
+
+- [`0976201`](https://github.com/boyney123/eventcatalog/commit/0976201a6949f4a78934a4ddfb75e7ea4598caae) [#172](https://github.com/boyney123/eventcatalog/pull/172) Thanks [@boyney123](https://github.com/boyney123)! - fix: header logo now reads from config
+
 ## 0.1.10
 
 ### Patch Changes
