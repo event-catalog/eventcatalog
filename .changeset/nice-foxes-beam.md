@@ -2,4 +2,4 @@
 "@eventcatalog/core": patch
 ---
 
-Bug: services publish & subscribe
+fix: logic for services publish & subscribe nodes
