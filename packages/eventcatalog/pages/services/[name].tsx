@@ -40,16 +40,20 @@ const getComponents = (service) => ({
     title,
     maxHeight,
     maxZoom,
+    fitView,
+    zoomOnScroll,
     isAnimated,
-    isHorizontal,
     isDraggable,
-  }: {
+  }: // isHorizontal,
+  {
     title: string;
     maxHeight?: number;
     maxZoom?: number;
+    fitView?: boolean;
+    zoomOnScroll?: boolean;
     isAnimated?: boolean;
-    isHorizontal?: boolean;
     isDraggable?: boolean;
+    // isHorizontal?: boolean;
   }) => (
     <div className="mx-auto w-full">
       {title && <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>}
@@ -59,9 +63,11 @@ const getComponents = (service) => ({
         rootNodeColor={getBackgroundColor(service.name)}
         maxHeight={maxHeight}
         maxZoom={maxZoom}
+        fitView={fitView}
+        zoomOnScroll={zoomOnScroll}
         isAnimated={isAnimated}
-        isHorizontal={isHorizontal}
         isDraggable={isDraggable}
+        // isHorizontal={isHorizontal}
       />
     </div>
   ),
