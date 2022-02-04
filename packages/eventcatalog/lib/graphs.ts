@@ -15,11 +15,11 @@ const generateLink = (value, type) => (basePath !== '' ? `${basePath}/${type}/${
  * @param rootNodeColor
  */
 const buildMermaid = (centerNode, leftNodes, rightNodes, rootNodeColor) => `flowchart LR\n
-${leftNodes.map((node) => `${node.id}[${node.name}]:::producer-->${centerNode.id}[${centerNode.name}]:::event\n`).join('')}
+${leftNodes.map((node) => `l-${node.id}[${node.name}]:::producer-->${centerNode.id}[${centerNode.name}]:::event\n`).join('')}
 classDef event stroke:${rootNodeColor},stroke-width: 4px;\n
 classDef producer stroke:#75d7b6,stroke-width: 2px;\n
 classDef consumer stroke:#818cf8,stroke-width: 2px;\n
-${rightNodes.map((node) => `${centerNode.id}[${centerNode.name}]:::event-->${node.id}[${node.name}]:::consumer\n`).join('')}
+${rightNodes.map((node) => `${centerNode.id}[${centerNode.name}]:::event-->r-${node.id}[${node.name}]:::consumer\n`).join('')}
 ${leftNodes.map((node) => `click ${node.id} href "${node.link}" "Go to ${node.name}" _self\n`).join('')}
 ${rightNodes.map((node) => `click ${node.id} href "${node.link}" "Go to ${node.name}" _self\n`).join('')}
 click ${centerNode.id} href "${centerNode.link}" "Go to ${centerNode.name}" _self\n

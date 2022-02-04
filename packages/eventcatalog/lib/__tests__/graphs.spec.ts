@@ -25,7 +25,7 @@ describe('graphs', () => {
 
       expect(result.trim()).toEqual(`flowchart LR
 
-My_Event_2[My Event 2]:::producer-->My_Service[My Service]:::event
+l-My_Event_2[My Event 2]:::producer-->My_Service[My Service]:::event
 
 classDef event stroke:#2563eb,stroke-width: 4px;
 
@@ -33,7 +33,7 @@ classDef producer stroke:#75d7b6,stroke-width: 2px;
 
 classDef consumer stroke:#818cf8,stroke-width: 2px;
 
-My_Service[My Service]:::event-->My_Event[My Event]:::consumer
+My_Service[My Service]:::event-->r-My_Event[My Event]:::consumer
 
 click My_Event_2 href "/docs/events/My Event 2" "Go to My Event 2" _self
 
@@ -56,7 +56,7 @@ click My_Service href "/docs/services/My Service" "Go to My Service" _self`);
 
       expect(result.trim()).toEqual(`flowchart LR
 
-Service_1[Service 1]:::producer-->My_Event[My Event]:::event
+l-Service_1[Service 1]:::producer-->My_Event[My Event]:::event
 
 classDef event stroke:#2563eb,stroke-width: 4px;
 
@@ -64,7 +64,7 @@ classDef producer stroke:#75d7b6,stroke-width: 2px;
 
 classDef consumer stroke:#818cf8,stroke-width: 2px;
 
-My_Event[My Event]:::event-->Service_2[Service 2]:::consumer
+My_Event[My Event]:::event-->r-Service_2[Service 2]:::consumer
 
 click Service_1 href "/docs/services/Service 1" "Go to Service 1" _self
 
