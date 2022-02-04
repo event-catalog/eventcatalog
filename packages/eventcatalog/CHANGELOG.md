@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.1.9
+
+### Patch Changes
+
+- [`c4d78c7`](https://github.com/boyney123/eventcatalog/commit/c4d78c77da6bc18638c6612e865c2c8cdd596e0b) [#139](https://github.com/boyney123/eventcatalog/pull/139) Thanks [@thim81](https://github.com/thim81)! - feat: add new eventcatalog config property to set homepage url
+
 ## 0.1.8
 
 ### Patch Changes
