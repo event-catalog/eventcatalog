@@ -110,12 +110,11 @@ You can use this MDX component inside
 | --- | --- | --- | --- |
 | `title` | `string` | '' | Title to render above your node graph |
 | `maxHeight` | `number` | '' | Set the max height of the node graph |
-| `maxZoom` | `number` | '5' | Set the max zoom level of the node graph |
-| `isHorizontal` | `boolean` | true | Toggle the direction of the nodes, which can horizontal (default) or vertical |
-| `isAnimated` | `boolean` | true | Toggle if the node connections should be animating |
+| `maxZoom` | `number` | '10' | Set the max zoom level of the node graph |
+| `fitView` | `boolean` | true | Fit all elements on the view size |
+| `isAnimated` | `boolean` | false | Toggle if the node connections should be animating |
 | `isDraggable` | `boolean` | false | Toggle if the nodes are draggable |
 </APITable>
-
 
 #### Usage
 
@@ -124,7 +123,7 @@ You can use this MDX component inside
 ```
 
 ```md title="Render the customized node graphs in the "
-<NodeGraph maxHeight={400} isHorizontal={false} isAnimated={false} />
+<NodeGraph maxHeight={400} isHorizontal={false} isAnimated={true} />
 ```
 
 ### `<Admonition />`

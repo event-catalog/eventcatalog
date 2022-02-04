@@ -34,17 +34,20 @@ function NodeGraphBuilder({
   data,
   source,
   rootNodeColor,
-  maxZoom = 50,
+  maxZoom = 10,
   isAnimated = false,
   fitView = true,
   zoomOnScroll = false,
   isDraggable = false,
   isHorizontal = true,
 }: NodeGraphBuilderProps) {
-  const initialElements =
-    source === 'event'
-      ? getEventElements(data as Event, rootNodeColor, isAnimated)
-      : getServiceElements(data as Service, rootNodeColor, isAnimated);
+  // Load event or service elements for graph
+  let initialElements;
+  if (source === 'event') {
+    initialElements = getEventElements(data as Event, rootNodeColor, isAnimated);
+  } else {
+    initialElements = getServiceElements(data as Service, rootNodeColor, isAnimated);
+  }
 
   // ReactFlow operations
   const onElementClick = (event, element) => window.open(element.data.link, '_self');
@@ -58,7 +61,9 @@ function NodeGraphBuilder({
     [fitView]
   );
 
+  // Calculate element layout
   const graphElements = createGraphLayout(initialElements, isHorizontal);
+
   return (
     <ReactFlow
       elements={graphElements}

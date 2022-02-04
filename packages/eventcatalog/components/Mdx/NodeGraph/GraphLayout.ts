@@ -35,16 +35,12 @@ export default function createGraphLayout(elements: Elements, isHorizontal: bool
       element.targetPosition = isHorizontal ? Position.Left : Position.Top;
       element.sourcePosition = isHorizontal ? Position.Right : Position.Bottom;
       element.position = {
-        // eslint-disable-next-line no-underscore-dangle
         x: offset / 2 + node.x - (element?.data?.maxWidth || node.width) / 2,
         y: node.y - node.height / 2,
       };
     }
-
     return element;
   });
-  // Recalculate the layout, to reposition the nodes
-  // dagre.layout(dagreGraph);
   return elementsLayouted;
 }
 

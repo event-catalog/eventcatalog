@@ -5,8 +5,9 @@ import getConfig from 'next/config';
 
 const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 
+const minNodeWidth = 150;
 const generateLink = (value, type) => (basePath !== '' ? `${basePath}/${type}/${value}` : `/${type}/${value}`);
-const calcWidth = (value) => (value.length > 15 ? value.length * 7 : 150);
+const calcWidth = (value) => (value.length * 7 > minNodeWidth ? value.length * 7 : minNodeWidth);
 
 /**
  * Builds a graph for a given event
