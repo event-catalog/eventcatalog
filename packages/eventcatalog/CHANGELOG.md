@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.1.12
+
+### Patch Changes
+
+- [`5dcc188`](https://github.com/boyney123/eventcatalog/commit/5dcc188dbd68f70b867e38df91211ba077f14189) [#175](https://github.com/boyney123/eventcatalog/pull/175) Thanks [@thim81](https://github.com/thim81)! - fix: mermaid diagram with pub/sub of same service now shows correctly
+
 ## 0.1.11
 
 ### Patch Changes
