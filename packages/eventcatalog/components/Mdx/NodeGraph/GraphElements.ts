@@ -25,13 +25,13 @@ export const getEventElements = (
   const consumerColor = '#818cf8';
   const producerColor = '#75d7b6';
 
-  const prodNames = producers.map((s) => calcWidth(s));
-  const maxProdWidth = Math.max(...prodNames);
-  const conNames = consumers.map((s) => calcWidth(s));
-  const maxConWidth = Math.max(...conNames);
+  const producersNames = producers.map((s) => calcWidth(s));
+  const maxProducersWidth = Math.max(...producersNames);
+  const consumersNames = consumers.map((s) => calcWidth(s));
+  const maxConsumersWidth = Math.max(...consumersNames);
 
   // Transforms services & event into a graph model
-  const prodNodes: Node[] = producers.map((node) => {
+  const producersNodes: Node[] = producers.map((node) => {
     const nodeWidth = calcWidth(node);
     return {
       id: `p-${node.replace(/ /g, '_')}`,
@@ -39,14 +39,14 @@ export const getEventElements = (
         label: node,
         link: generateLink(node, 'services'),
         width: nodeWidth,
-        maxWidth: maxProdWidth,
+        maxWidth: maxProducersWidth,
       },
       style: { border: `2px solid ${producerColor}`, width: nodeWidth },
       type: 'input',
       position,
     };
   });
-  const conNodes: Node[] = consumers.map((node) => {
+  const consumersNodes: Node[] = consumers.map((node) => {
     const nodeWidth = calcWidth(node);
     return {
       id: `c-${node.replace(/ /g, '_')}`,
@@ -54,7 +54,7 @@ export const getEventElements = (
         label: node,
         link: generateLink(node, 'services'),
         width: nodeWidth,
-        maxWidth: maxConWidth,
+        maxWidth: maxConsumersWidth,
       },
       style: { border: `2px solid ${consumerColor}`, width: calcWidth(node) },
       type: 'output',
@@ -77,7 +77,7 @@ export const getEventElements = (
   };
 
   // Build connections
-  const prodEdges: Edge[] = producers.map((node) => ({
+  const producersEdges: Edge[] = producers.map((node) => ({
     id: `epe-${node.replace(/ /g, '_')}`,
     source: `p-${node.replace(/ /g, '_')}`,
     target: `e-${eventName.replace(/ /g, '_')}`,
@@ -85,7 +85,7 @@ export const getEventElements = (
     arrowHeadType: ArrowHeadType.ArrowClosed,
     animated: isAnimated,
   }));
-  const conEdges: Edge[] = consumers.map((node) => ({
+  const consumersEdges: Edge[] = consumers.map((node) => ({
     id: `ece-${node.replace(/ /g, '_')}`,
     target: `c-${node.replace(/ /g, '_')}`,
     source: `e-${eventName.replace(/ /g, '_')}`,
@@ -95,7 +95,7 @@ export const getEventElements = (
   }));
 
   // Merge nodes in order
-  const elements: (Node | Edge)[] = [...prodNodes, eventNode, ...conNodes, ...prodEdges, ...conEdges];
+  const elements: (Node | Edge)[] = [...producersNodes, eventNode, ...consumersNodes, ...producersEdges, ...consumersEdges];
   return elements;
 };
 
@@ -116,13 +116,13 @@ export const getServiceElements = (
   const publishColor = '#818cf8';
   const subscribeColor = '#75d7b6';
 
-  const pubNames = publishes.map((e) => calcWidth(e.name));
-  const maxPubWidth = Math.max(...pubNames);
-  const subNames = subscribes.map((e) => calcWidth(e.name));
-  const maxSubWidth = Math.max(...subNames);
+  const publishesNames = publishes.map((e) => calcWidth(e.name));
+  const maxPublishesWidth = Math.max(...publishesNames);
+  const subscribesNames = subscribes.map((e) => calcWidth(e.name));
+  const maxSubscribesWidth = Math.max(...subscribesNames);
 
   // Transforms services & event into a graph model
-  const pubNodes: Node[] = publishes.map((node) => {
+  const publishesNodes: Node[] = publishes.map((node) => {
     const nodeWidth = calcWidth(node.name);
     return {
       id: `p-${node.name.replace(/ /g, '_')}`,
@@ -130,17 +130,17 @@ export const getServiceElements = (
         label: node.name,
         link: generateLink(node.name, 'events'),
         width: nodeWidth,
-        maxWidth: maxPubWidth,
+        maxWidth: maxPublishesWidth,
       },
       style: { border: `2px solid ${publishColor}`, width: nodeWidth },
       type: 'output',
       position,
     };
   });
-  const subNodes: Node[] = subscribes.map((node) => {
+  const subscribesNodes: Node[] = subscribes.map((node) => {
     const nodeWidth = calcWidth(node.name);
-    const diff = maxSubWidth - nodeWidth;
-    const nodeMaxWidth = diff !== 0 ? nodeWidth - diff : maxSubWidth;
+    const diff = maxSubscribesWidth - nodeWidth;
+    const nodeMaxWidth = diff !== 0 ? nodeWidth - diff : maxSubscribesWidth;
     return {
       id: `s-${node.name.replace(/ /g, '_')}`,
       data: {
@@ -174,7 +174,7 @@ export const getServiceElements = (
   };
 
   // Build connections
-  const pubEdges: Edge[] = publishes.map((node) => ({
+  const publishesEdges: Edge[] = publishes.map((node) => ({
     id: `ecp-${node.name.replace(/ /g, '_')}`,
     source: `c-${serviceName.replace(/ /g, '_')}`,
     target: `p-${node.name.replace(/ /g, '_')}`,
@@ -182,7 +182,7 @@ export const getServiceElements = (
     arrowHeadType: ArrowHeadType.ArrowClosed,
     animated: isAnimated,
   }));
-  const subEdges: Edge[] = subscribes.map((node) => ({
+  const subscribesEdges: Edge[] = subscribes.map((node) => ({
     id: `esc-${node.name.replace(/ /g, '_')}`,
     source: `s-${node.name.replace(/ /g, '_')}`,
     target: `c-${serviceName.replace(/ /g, '_')}`,
@@ -192,6 +192,6 @@ export const getServiceElements = (
   }));
 
   // Merge nodes in order
-  const elements: (Node | Edge)[] = [...subNodes, serviceNode, ...pubNodes, ...pubEdges, ...subEdges];
+  const elements: (Node | Edge)[] = [...subscribesNodes, serviceNode, ...publishesNodes, ...publishesEdges, ...subscribesEdges];
   return elements;
 };
