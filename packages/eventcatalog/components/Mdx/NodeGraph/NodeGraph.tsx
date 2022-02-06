@@ -4,19 +4,6 @@ import { Event, Service } from '@eventcatalog/types';
 import { getEventElements, getServiceElements } from './GraphElements';
 import createGraphLayout, { calcCanvasHeight } from './GraphLayout';
 
-interface NodeGraphProps {
-  data: Event | Service;
-  source: 'event' | 'service';
-  rootNodeColor?: string;
-  maxHeight?: number;
-  maxZoom?: number;
-  fitView?: boolean;
-  zoomOnScroll?: boolean;
-  isAnimated?: boolean;
-  isDraggable?: boolean;
-  isHorizontal?: boolean;
-}
-
 interface NodeGraphBuilderProps {
   data: Event | Service;
   source: 'event' | 'service';
@@ -27,6 +14,10 @@ interface NodeGraphBuilderProps {
   isAnimated?: boolean;
   isDraggable?: boolean;
   isHorizontal?: boolean;
+}
+
+interface NodeGraphProps extends NodeGraphBuilderProps {
+  maxHeight?: number;
 }
 
 // NodeGraphBuilder component wrapping ReactFlow
