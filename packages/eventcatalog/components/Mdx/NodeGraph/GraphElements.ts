@@ -33,13 +33,16 @@ export const getEventElements = (
   // Transforms services & event into a graph model
   const producersNodes: Node[] = producers.map((node) => {
     const nodeWidth = calcWidth(node);
+    const diff = maxProducersWidth - nodeWidth;
+    const nodeMaxWidth = diff !== 0 ? nodeWidth - diff : maxProducersWidth;
+
     return {
       id: `p-${node.replace(/ /g, '_')}`,
       data: {
         label: node,
         link: generateLink(node, 'services'),
         width: nodeWidth,
-        maxWidth: maxProducersWidth,
+        maxWidth: nodeMaxWidth,
       },
       style: { border: `2px solid ${producerColor}`, width: nodeWidth },
       type: 'input',
