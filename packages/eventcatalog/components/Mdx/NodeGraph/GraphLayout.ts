@@ -1,8 +1,8 @@
 import { isNode, Elements, Position } from 'react-flow-renderer';
 import dagre from 'dagre';
 
-const nodeWidth = 150;
-const nodeHeight = 36;
+const nodeDefaultWidth = 150;
+const nodeDefaultHeight = 36;
 const offset = 48;
 const verticalOffset = offset / 1.5;
 
@@ -14,10 +14,12 @@ export default function createGraphLayout(elements: Elements, isHorizontal: bool
 
   elements.forEach((element) => {
     if (isNode(element)) {
+      // eslint-disable-next-line no-underscore-dangle
+      const nodeWidth = element.__rf?.width ? element.__rf?.width : element.data?.width;
       dagreGraph.setNode(element.id, {
-        width: element.data?.width || nodeWidth,
+        width: nodeWidth || nodeDefaultWidth,
         // eslint-disable-next-line no-underscore-dangle
-        height: element.__rf?.height || nodeHeight,
+        height: element.__rf?.height || nodeDefaultHeight,
       });
     } else {
       dagreGraph.setEdge(element.source, element.target);
@@ -27,7 +29,7 @@ export default function createGraphLayout(elements: Elements, isHorizontal: bool
   // Calculate the layout, to get the node positions with their widths and heights
   dagre.layout(dagreGraph);
 
-  const elementsLayouted = elements.map((element) => {
+  return elements.map((element) => {
     if (isNode(element)) {
       const node = dagreGraph.node(element.id);
       element.targetPosition = isHorizontal ? Position.Left : Position.Top;
@@ -39,13 +41,12 @@ export default function createGraphLayout(elements: Elements, isHorizontal: bool
     }
     return element;
   });
-  return elementsLayouted;
 }
 
 // Helper - ReactFlow canvas height calculator
 export const calcCanvasHeight = (data, type): number => {
   const minHeight = 300;
-  const nodeSpacing = nodeHeight + verticalOffset;
+  const nodeSpacing = nodeDefaultHeight + verticalOffset;
   let nodesHeight = 0;
   if (type === 'event') {
     nodesHeight = Math.max(data.producers.length, data.consumers.length) * nodeSpacing;

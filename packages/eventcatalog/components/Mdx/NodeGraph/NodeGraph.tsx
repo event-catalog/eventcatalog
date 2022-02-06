@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import ReactFlow, { Controls, ReactFlowProvider } from 'react-flow-renderer';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import ReactFlow, { Controls, ReactFlowProvider, useStoreState } from 'react-flow-renderer';
 import { Event, Service } from '@eventcatalog/types';
 import { getEventElements, getServiceElements } from './GraphElements';
 import createGraphLayout, { calcCanvasHeight } from './GraphLayout';
@@ -40,6 +40,33 @@ function NodeGraphBuilder({
     initialElements = getServiceElements(data as Service, rootNodeColor, isAnimated);
   }
 
+  // Initialize graph layout
+  const isInitializedRef = useRef(false);
+  const nodes = useStoreState((state) => state.nodes);
+  const edges = useStoreState((state) => state.edges);
+
+  // Calculate initial element layout
+  const graphElements = createGraphLayout(initialElements, isHorizontal);
+  const [elements, setElements] = useState(graphElements);
+
+  // Rerender graph layout to get rendered width/height for nodes/edges
+  useEffect(() => {
+    if (
+      isInitializedRef.current === false &&
+      nodes.length > 0 &&
+      // eslint-disable-next-line no-underscore-dangle
+      nodes?.[0]?.__rf.width != null
+    ) {
+      // Calculate element layout
+      const updateElements = () => {
+        const updatedElements = createGraphLayout([...nodes, ...edges], isHorizontal);
+        setElements(updatedElements);
+        isInitializedRef.current = true;
+      };
+      updateElements();
+    }
+  }, [nodes, edges, isInitializedRef, isHorizontal]);
+
   // ReactFlow operations
   const onElementClick = (event, element) => window.open(element.data.link, '_self');
   const onLoad = useCallback(
@@ -51,12 +78,9 @@ function NodeGraphBuilder({
     [fitView]
   );
 
-  // Calculate element layout
-  const graphElements = createGraphLayout(initialElements, isHorizontal);
-
   return (
     <ReactFlow
-      elements={graphElements}
+      elements={elements}
       onLoad={onLoad}
       onElementClick={onElementClick}
       nodesDraggable={isDraggable}
