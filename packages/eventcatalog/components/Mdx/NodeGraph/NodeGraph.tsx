@@ -56,7 +56,6 @@ function NodeGraphBuilder({
       if (fitView) {
         reactFlowInstance.fitView();
       }
-      // reactFlowInstance.zoomTo(1);
     },
     [fitView]
   );
