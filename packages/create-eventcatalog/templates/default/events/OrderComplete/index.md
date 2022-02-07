@@ -18,8 +18,6 @@ owners:
 
 This event is the final event of the ordering process. It gets raised when the shipment has been delivered.
 
-### Consumer / Producer Diagram
-
-<Mermaid />
+<NodeGraph title="Consumer / Producer Diagram" />
 
 <Schema />

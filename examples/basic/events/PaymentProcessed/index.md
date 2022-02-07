@@ -20,8 +20,6 @@ This event is triggered when the payment has succesfully been processed for a cu
 
 We use Stripe to handle customer payments. The Payment Service listens for Stripe webhooks and raises the PaymentProcessed event.
 
-### Consumer / Producer Diagram
-
-<Mermaid />
+<NodeGraph title="Consumer/Producer Diagram" />
 
 <Schema />

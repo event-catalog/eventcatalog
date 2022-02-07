@@ -18,8 +18,6 @@ owners:
 
 This event is triggered when a shipment has been dispatched from the warehouse.
 
-### Consumer / Producer Diagram
-
-<Mermaid />
+<NodeGraph title="Consumer / Producer Diagram" />
 
 <Schema />
