@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.1.13
+
+### Patch Changes
+
+- [`ca01bef`](https://github.com/boyney123/eventcatalog/commit/ca01bef1659b2c364210a86e0f9e916f6c1fbaa4) [#166](https://github.com/boyney123/eventcatalog/pull/166) Thanks [@thim81](https://github.com/thim81)! - feat: new nodegraph component to render services and events
+
 ## 0.1.12
 
 ### Patch Changes
