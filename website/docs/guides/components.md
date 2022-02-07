@@ -92,7 +92,7 @@ For more information check out the [mermaid guide for events](/docs/events/consu
 ### `<NodeGraph />`
 
 This component will render [ReactFlow diagrams](https://reactflow.dev/) into your documents.
-CLicking a node will navigate to the event or service page.
+Clicking a node will navigate to the event or service page.
 
 EventCatalog will render the relationships between your consumers and producers.
 
