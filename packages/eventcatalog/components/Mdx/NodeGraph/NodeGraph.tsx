@@ -26,7 +26,7 @@ function NodeGraphBuilder({
   source,
   rootNodeColor,
   maxZoom = 10,
-  isAnimated = false,
+  isAnimated = true,
   fitView = true,
   zoomOnScroll = false,
   isDraggable = false,
