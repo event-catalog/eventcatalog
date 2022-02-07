@@ -20,8 +20,6 @@ This event is triggered when the user confirms their order and wants to process 
 
 We have a frontend application that allows users to buy things from our store. The frontend application interacts with the Backet Service to trigger the `OrderRequested` event.
 
-### Consumer / Producer Diagram
-
-<Mermaid />
+<NodeGraph title="Consumer / Producer Diagram" />
 
 <Schema />

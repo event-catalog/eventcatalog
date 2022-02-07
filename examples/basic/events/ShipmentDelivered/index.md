@@ -19,7 +19,6 @@ owners:
 
 This event is triggered when a shipment has been delivered to its destination.
 
-### Consumer / Producer Diagram
-<NodeGraph isAnimated={true} />
+<NodeGraph title="Consumer/Producer Diagram" />
 
 <Schema />

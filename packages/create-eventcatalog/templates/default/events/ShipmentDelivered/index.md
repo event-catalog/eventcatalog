@@ -19,8 +19,6 @@ owners:
 
 This event is triggered when a shipment has been delievered to it's destination.
 
-### Consumer / Producer Diagram
-
-<Mermaid />
+<NodeGraph title="Consumer / Producer Diagram" />
 
 <Schema />
