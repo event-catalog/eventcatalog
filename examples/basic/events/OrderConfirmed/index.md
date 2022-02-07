@@ -20,6 +20,6 @@ This event is triggered when the customers order has been verified and the stock
 
 ### Consumer / Producer Diagram
 
-<Mermaid />
+<NodeGraph />
 
 <Schema />

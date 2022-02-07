@@ -2,7 +2,7 @@
 name: ShipmentDelivered
 version: 0.0.1
 summary: |
-  Event represents when a shipment has been delievered and received.
+  Event represents when a shipment has been delivered and received.
 producers:
     - Shipping Service
 consumers:
@@ -17,10 +17,9 @@ owners:
 
 ### Details
 
-This event is triggered when a shipment has been delievered to it's destination.
+This event is triggered when a shipment has been delivered to its destination.
 
 ### Consumer / Producer Diagram
-
-<Mermaid />
+<NodeGraph isAnimated={true} />
 
 <Schema />

@@ -20,6 +20,6 @@ This event is triggered when a shipment has finished being prepared.
 
 ### Consumer / Producer Diagram
 
-<Mermaid />
+<NodeGraph />
 
 <SchemaViewer renderRootTreeLines defaultExpandedDepth='0' maxHeight="500" />

@@ -1,0 +1,81 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GraphLayout createGraphLayout calculate a graph layout 1`] = `
+Array [
+  Object {
+    "data": Object {
+      "label": "My Event 2",
+      "link": "/docs/events/My Event 2",
+      "maxWidth": 150,
+      "width": 150,
+    },
+    "id": "s-My_Event_2",
+    "position": Object {
+      "x": 24,
+      "y": 0,
+    },
+    "sourcePosition": "right",
+    "style": Object {
+      "border": "2px solid #75d7b6",
+      "width": 150,
+    },
+    "targetPosition": "left",
+    "type": "input",
+  },
+  Object {
+    "data": Object {
+      "label": "My Service",
+      "link": "/docs/services/My Service",
+      "maxWidth": 150,
+      "width": 150,
+    },
+    "id": "c-My_Service",
+    "position": Object {
+      "x": 270,
+      "y": 0,
+    },
+    "sourcePosition": "right",
+    "style": Object {
+      "border": "2px solid #2563eb",
+      "width": 150,
+    },
+    "targetPosition": "left",
+  },
+  Object {
+    "data": Object {
+      "label": "My Event",
+      "link": "/docs/events/My Event",
+      "maxWidth": 150,
+      "width": 150,
+    },
+    "id": "p-My_Event",
+    "position": Object {
+      "x": 516,
+      "y": 0,
+    },
+    "sourcePosition": "right",
+    "style": Object {
+      "border": "2px solid #818cf8",
+      "width": 150,
+    },
+    "targetPosition": "left",
+    "type": "output",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "ecp-My_Event",
+    "source": "c-My_Service",
+    "target": "p-My_Event",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "esc-My_Event_2",
+    "source": "s-My_Event_2",
+    "target": "c-My_Service",
+    "type": "smoothstep",
+  },
+]
+`;
