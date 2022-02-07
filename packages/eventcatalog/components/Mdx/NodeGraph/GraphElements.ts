@@ -1,13 +1,28 @@
-import type { Event, Service } from '@eventcatalog/types';
-
 import { ArrowHeadType, XYPosition, Node, Edge } from 'react-flow-renderer';
 import getConfig from 'next/config';
+import type { Event, Service } from '@eventcatalog/types';
 
 const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 
-const minNodeWidth = 150;
+const MIN_NODE_WIDTH = 150;
 const generateLink = (value, type) => (basePath !== '' ? `${basePath}/${type}/${value}` : `/${type}/${value}`);
-const calcWidth = (value) => (value.length * 7 > minNodeWidth ? value.length * 7 : minNodeWidth);
+const calcWidth = (value) => (value.length * 7 > MIN_NODE_WIDTH ? value.length * 7 : MIN_NODE_WIDTH);
+
+const buildNodeEdge = ({ id, target, source, isAnimated = true }) => ({
+  id,
+  target,
+  source,
+  type: 'smoothstep',
+  arrowHeadType: ArrowHeadType.ArrowClosed,
+  animated: isAnimated,
+});
+
+const buildNodeData = ({ label, type, maxWidth }: { label: string; type: 'service' | 'event'; maxWidth?: number }) => {
+  const width = calcWidth(label);
+  const linkType = type === 'service' ? 'services' : 'events';
+  const link = generateLink(label, linkType);
+  return { label, link, width, maxWidth };
+};
 
 /**
  * Builds a graph for a given event
@@ -16,7 +31,7 @@ const calcWidth = (value) => (value.length * 7 > minNodeWidth ? value.length * 7
  * @param isAnimated - whether to animate the graph
  */
 export const getEventElements = (
-  { name: eventName, producers, consumers }: Event,
+  { name: eventName, producers: eventProducers, consumers: eventConsumers }: Event,
   rootNodeColor = '#2563eb',
   isAnimated = true
 ) => {
@@ -25,77 +40,57 @@ export const getEventElements = (
   const consumerColor = '#818cf8';
   const producerColor = '#75d7b6';
 
-  const producersNames = producers.map((s) => calcWidth(s));
+  const producersNames = eventProducers.map((s) => calcWidth(s));
   const maxProducersWidth = Math.max(...producersNames);
-  const consumersNames = consumers.map((s) => calcWidth(s));
+  const consumersNames = eventConsumers.map((s) => calcWidth(s));
   const maxConsumersWidth = Math.max(...consumersNames);
 
+  const eventNameAsNodeID = `ev-${eventName.replace(/ /g, '_')}`;
+  const eventNodeWidth = calcWidth(eventName);
+
+  const producers = eventProducers.map((node) => ({ label: node, id: `pr-${node.replace(/ /g, '_')}` }));
+  const consumers = eventConsumers.map((node) => ({ label: node, id: `co-${node.replace(/ /g, '_')}` }));
+
   // Transforms services & event into a graph model
-  const producersNodes: Node[] = producers.map((node) => {
-    const nodeWidth = calcWidth(node);
+  const producersNodes: Node[] = producers.map(({ label, id }) => {
+    const nodeWidth = calcWidth(label);
     const diff = maxProducersWidth - nodeWidth;
     const nodeMaxWidth = diff !== 0 ? nodeWidth - diff : maxProducersWidth;
-
     return {
-      id: `p-${node.replace(/ /g, '_')}`,
-      data: {
-        label: node,
-        link: generateLink(node, 'services'),
-        width: nodeWidth,
-        maxWidth: nodeMaxWidth,
-      },
+      id,
+      data: buildNodeData({ label, type: 'service', maxWidth: nodeMaxWidth }),
       style: { border: `2px solid ${producerColor}`, width: nodeWidth },
       type: 'input',
       position,
     };
   });
-  const consumersNodes: Node[] = consumers.map((node) => {
-    const nodeWidth = calcWidth(node);
+  const consumersNodes: Node[] = consumers.map(({ id, label }) => {
+    const width = calcWidth(label);
     return {
-      id: `c-${node.replace(/ /g, '_')}`,
-      data: {
-        label: node,
-        link: generateLink(node, 'services'),
-        width: nodeWidth,
-        maxWidth: maxConsumersWidth,
-      },
-      style: { border: `2px solid ${consumerColor}`, width: calcWidth(node) },
+      id,
+      data: buildNodeData({ label, type: 'service', maxWidth: maxConsumersWidth }),
+      style: { border: `2px solid ${consumerColor}`, width },
       type: 'output',
       position,
     };
   });
   const eventNode: Node = {
-    id: `e-${eventName.replace(/ /g, '_')}`,
-    data: {
-      label: eventName,
-      link: generateLink(eventName, 'events'),
-      width: calcWidth(eventName),
-      maxWidth: calcWidth(eventName),
-    },
+    id: eventNameAsNodeID,
+    data: buildNodeData({ label: eventName, type: 'event', maxWidth: eventNodeWidth }),
     style: {
       border: `2px solid ${rootNodeColor}`,
-      width: calcWidth(eventName),
+      width: eventNodeWidth,
     },
     position,
   };
 
   // Build connections
-  const producersEdges: Edge[] = producers.map((node) => ({
-    id: `epe-${node.replace(/ /g, '_')}`,
-    source: `p-${node.replace(/ /g, '_')}`,
-    target: `e-${eventName.replace(/ /g, '_')}`,
-    type: 'smoothstep',
-    arrowHeadType: ArrowHeadType.ArrowClosed,
-    animated: isAnimated,
-  }));
-  const consumersEdges: Edge[] = consumers.map((node) => ({
-    id: `ece-${node.replace(/ /g, '_')}`,
-    target: `c-${node.replace(/ /g, '_')}`,
-    source: `e-${eventName.replace(/ /g, '_')}`,
-    type: 'smoothstep',
-    arrowHeadType: ArrowHeadType.ArrowClosed,
-    animated: isAnimated,
-  }));
+  const producersEdges: Edge[] = producers.map(({ id, label }) =>
+    buildNodeEdge({ id: `epe-${label.replace(/ /g, '_')}`, source: id, target: eventNameAsNodeID, isAnimated })
+  );
+  const consumersEdges: Edge[] = consumers.map(({ id, label }) =>
+    buildNodeEdge({ id: `ece-${label.replace(/ /g, '_')}`, target: id, source: eventNameAsNodeID, isAnimated })
+  );
 
   // Merge nodes in order
   const elements: (Node | Edge)[] = [...producersNodes, eventNode, ...consumersNodes, ...producersEdges, ...consumersEdges];
@@ -124,17 +119,14 @@ export const getServiceElements = (
   const subscribesNames = subscribes.map((e) => calcWidth(e.name));
   const maxSubscribesWidth = Math.max(...subscribesNames);
 
+  const serviceNameAsNodeID = `ser-${serviceName.replace(/ /g, '_')}`;
+
   // Transforms services & event into a graph model
   const publishesNodes: Node[] = publishes.map((node) => {
     const nodeWidth = calcWidth(node.name);
     return {
-      id: `p-${node.name.replace(/ /g, '_')}`,
-      data: {
-        label: node.name,
-        link: generateLink(node.name, 'events'),
-        width: nodeWidth,
-        maxWidth: maxPublishesWidth,
-      },
+      id: `pub-${node.name.replace(/ /g, '_')}`,
+      data: buildNodeData({ label: node.name, type: 'event', maxWidth: maxPublishesWidth }),
       style: { border: `2px solid ${publishColor}`, width: nodeWidth },
       type: 'output',
       position,
@@ -145,13 +137,8 @@ export const getServiceElements = (
     const diff = maxSubscribesWidth - nodeWidth;
     const nodeMaxWidth = diff !== 0 ? nodeWidth - diff : maxSubscribesWidth;
     return {
-      id: `s-${node.name.replace(/ /g, '_')}`,
-      data: {
-        label: node.name,
-        link: generateLink(node.name, 'events'),
-        width: nodeWidth,
-        maxWidth: nodeMaxWidth,
-      },
+      id: `sub-${node.name.replace(/ /g, '_')}`,
+      data: buildNodeData({ label: node.name, type: 'event', maxWidth: nodeMaxWidth }),
       style: {
         border: `2px solid ${subscribeColor}`,
         width: nodeWidth,
@@ -162,13 +149,8 @@ export const getServiceElements = (
   });
 
   const serviceNode: Node = {
-    id: `c-${serviceName.replace(/ /g, '_')}`,
-    data: {
-      label: serviceName,
-      link: generateLink(serviceName, 'services'),
-      width: calcWidth(serviceName),
-      maxWidth: calcWidth(serviceName),
-    },
+    id: serviceNameAsNodeID,
+    data: buildNodeData({ label: serviceName, type: 'service', maxWidth: calcWidth(serviceName) }),
     style: {
       border: `2px solid ${rootNodeColor}`,
       width: calcWidth(serviceName),
@@ -177,22 +159,23 @@ export const getServiceElements = (
   };
 
   // Build connections
-  const publishesEdges: Edge[] = publishes.map((node) => ({
-    id: `ecp-${node.name.replace(/ /g, '_')}`,
-    source: `c-${serviceName.replace(/ /g, '_')}`,
-    target: `p-${node.name.replace(/ /g, '_')}`,
-    type: 'smoothstep',
-    arrowHeadType: ArrowHeadType.ArrowClosed,
-    animated: isAnimated,
-  }));
-  const subscribesEdges: Edge[] = subscribes.map((node) => ({
-    id: `esc-${node.name.replace(/ /g, '_')}`,
-    source: `s-${node.name.replace(/ /g, '_')}`,
-    target: `c-${serviceName.replace(/ /g, '_')}`,
-    type: 'smoothstep',
-    arrowHeadType: ArrowHeadType.ArrowClosed,
-    animated: isAnimated,
-  }));
+  const publishesEdges: Edge[] = publishes.map((node) =>
+    buildNodeEdge({
+      id: `ecp-${node.name.replace(/ /g, '_')}`,
+      source: serviceNameAsNodeID,
+      target: `pub-${node.name.replace(/ /g, '_')}`,
+      isAnimated,
+    })
+  );
+
+  const subscribesEdges: Edge[] = subscribes.map((node) =>
+    buildNodeEdge({
+      id: `esc-${node.name.replace(/ /g, '_')}`,
+      target: serviceNameAsNodeID,
+      source: `sub-${node.name.replace(/ /g, '_')}`,
+      isAnimated,
+    })
+  );
 
   // Merge nodes in order
   const elements: (Node | Edge)[] = [...subscribesNodes, serviceNode, ...publishesNodes, ...publishesEdges, ...subscribesEdges];
