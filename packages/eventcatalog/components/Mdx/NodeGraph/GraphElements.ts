@@ -6,7 +6,7 @@ const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 
 const MIN_NODE_WIDTH = 150;
 const generateLink = (value, type) => (basePath !== '' ? `${basePath}/${type}/${value}` : `/${type}/${value}`);
-const calcWidth = (value) => (value.length * 7 > MIN_NODE_WIDTH ? value.length * 7 : MIN_NODE_WIDTH);
+const calcWidth = (value) => (value.length * 8 > MIN_NODE_WIDTH ? value.length * 8 : MIN_NODE_WIDTH);
 
 const buildNodeEdge = ({ id, target, source, isAnimated = true }) => ({
   id,
