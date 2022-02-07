@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.1.14
+
+### Patch Changes
+
+- [`1558d17`](https://github.com/boyney123/eventcatalog/commit/1558d17b1c9f925c8e74d22b57edbfc4195a73a6) [#178](https://github.com/boyney123/eventcatalog/pull/178) Thanks [@boyney123](https://github.com/boyney123)! - feat: added better code example component
+
 ## 0.1.13
 
 ### Patch Changes
