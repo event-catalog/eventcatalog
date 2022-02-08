@@ -22,7 +22,7 @@ interface ServicesPageProps {
   notFound?: boolean;
 }
 
-function MermaidComponent({ title, service, charts }: { title: string; service: Service; charts?: string[] }) {
+function MermaidComponent({ title, service, charts }: { title?: string; service: Service; charts?: string[] }) {
   return (
     <div className="mx-auto w-full py-10">
       {title && <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>}
@@ -46,7 +46,7 @@ const getComponents = (service) => ({
     isDraggable,
   }: // isHorizontal,
   {
-    title: string;
+    title?: string;
     maxHeight?: number;
     maxZoom?: number;
     fitView?: boolean;
