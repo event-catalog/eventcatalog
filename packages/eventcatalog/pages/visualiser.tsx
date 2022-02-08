@@ -75,9 +75,7 @@ function Graph({ events, services }: PageProps) {
   return (
     <div className="h-screen overflow-hidden">
       <Head>
-        <title>
-          {title} - Visualiser
-        </title>
+        <title>{title} - Visualiser</title>
       </Head>
       <div className="grid grid-cols-6">
         <div className="col-span-1 bg-white px-4  h-screen overflow-auto border-r-2 shadow-md border-gray-200 py-3">
