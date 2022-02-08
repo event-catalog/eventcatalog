@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 0.1.15
+
+### Patch Changes
+
+- [`60bea4d`](https://github.com/boyney123/eventcatalog/commit/60bea4db471bf3c63a936b86ce7ee549e73972a6) [#182](https://github.com/boyney123/eventcatalog/pull/182) Thanks [@thim81](https://github.com/thim81)! - fix: optional title for all MDX components
+
+* [`bf5bab4`](https://github.com/boyney123/eventcatalog/commit/bf5bab44b9be92c5888c6548694c42d1fa83a678) [#184](https://github.com/boyney123/eventcatalog/pull/184) Thanks [@thim81](https://github.com/thim81)! - fix: increase node width for NodeGraph
+
 ## 0.1.14
 
 ### Patch Changes
