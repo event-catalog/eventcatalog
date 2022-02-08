@@ -187,6 +187,13 @@ function EventSideBar({ event, loadedVersion, isOldVersion }: EventSideBarProps)
             </a>
           </Link>
         )}
+
+        <Link href={`/visualiser?type=event&name${eventName}`}>
+          <a className="hidden w-full md:inline-flex h-10 justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200">
+            <span>View in Visualiser</span>
+          </a>
+        </Link>
+
         {externalLinks.length > 0 &&
           externalLinks.map((tag) => (
             <a

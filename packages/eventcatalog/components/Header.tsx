@@ -6,6 +6,7 @@ import { useConfig } from '@/hooks/EventCatalog';
 const navigation = [
   { name: 'Events', href: '/events' },
   { name: 'Services', href: '/services' },
+  { name: 'Visualiser', href: '/visualiser' },
   { name: '3D Node Graph', href: '/overview' },
 ];
 
