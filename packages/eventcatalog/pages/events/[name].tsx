@@ -34,14 +34,16 @@ export const getComponents = ({ event, schema, examples }: any) => ({
 
     return match ? <SyntaxHighlighter language={match[1]} {...props} /> : <code className={className} {...props} />;
   },
-  Schema: ({ title = 'Event Schema' }: { title: string }) => {
+  Schema: ({ title }: { title: string }) => {
     if (!schema) return null;
 
     return (
       <section className="mt-8 xl:mt-10">
-        <h2 id="activity-title" className="text-lg font-medium text-gray-900 underline">
-          {title}
-        </h2>
+        {title && (
+          <h2 id="activity-title" className="text-lg font-medium text-gray-900 underline">
+            {title}
+          </h2>
+        )}
         <SyntaxHighlighter language={schema.language} showLineNumbers={false} name={`${event.name} Schema (${schema.language})`}>
           {schema.snippet}
         </SyntaxHighlighter>
@@ -49,12 +51,12 @@ export const getComponents = ({ event, schema, examples }: any) => ({
     );
   },
   SchemaViewer: ({
-    title = 'Event Schema',
+    title,
     renderRootTreeLines = false,
     defaultExpandedDepth = 1,
     maxHeight,
   }: {
-    title: string;
+    title?: string;
     renderRootTreeLines?: boolean;
     defaultExpandedDepth?: number;
     maxHeight?: string;
@@ -63,7 +65,7 @@ export const getComponents = ({ event, schema, examples }: any) => ({
 
     return (
       <section className="mt-8 xl:mt-10">
-        <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>
+        {title && <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>}
         <SchemaViewer
           schema={schema.snippet}
           maxHeight={parseInt(maxHeight, 10)}
@@ -83,7 +85,7 @@ export const getComponents = ({ event, schema, examples }: any) => ({
     );
     return null;
   },
-  Mermaid: ({ title, charts }: { title: string; charts?: string[] }) => (
+  Mermaid: ({ title, charts }: { title?: string; charts?: string[] }) => (
     <div className="mx-auto w-full py-10">
       {title && <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>}
       <Mermaid source="event" data={event} rootNodeColor={getBackgroundColor(event.name)} charts={charts} />
@@ -99,7 +101,7 @@ export const getComponents = ({ event, schema, examples }: any) => ({
     isDraggable,
   }: // isHorizontal,
   {
-    title: string;
+    title?: string;
     maxHeight?: number;
     maxZoom?: number;
     fitView?: boolean;
