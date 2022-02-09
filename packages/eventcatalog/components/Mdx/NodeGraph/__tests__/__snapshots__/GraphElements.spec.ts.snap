@@ -16,6 +16,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #75d7b6",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "input",
@@ -34,6 +35,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #75d7b6",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "input",
@@ -52,6 +54,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #75d7b6",
+      "fontSize": "auto",
       "width": 632,
     },
     "type": "input",
@@ -70,6 +73,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #2563eb",
+      "fontSize": "auto",
       "width": 150,
     },
   },
@@ -87,6 +91,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #818cf8",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "output",
@@ -105,6 +110,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #818cf8",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "output",
@@ -123,6 +129,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #818cf8",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "output",
@@ -141,6 +148,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #818cf8",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "output",
@@ -159,6 +167,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #818cf8",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "output",
@@ -177,6 +186,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #818cf8",
+      "fontSize": "auto",
       "width": 616,
     },
     "type": "output",
@@ -185,6 +195,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "epe-Service_1",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "pr-Service_1",
     "target": "ev-My_Event",
     "type": "smoothstep",
@@ -193,6 +217,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "epe-Service_2",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "pr-Service_2",
     "target": "ev-My_Event",
     "type": "smoothstep",
@@ -201,6 +239,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "epe-very_very_very_very_very_very_very_very_very_very_very_very_long_name_Service_3",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "pr-very_very_very_very_very_very_very_very_very_very_very_very_long_name_Service_3",
     "target": "ev-My_Event",
     "type": "smoothstep",
@@ -209,6 +261,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "ece-Service_4",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "ev-My_Event",
     "target": "co-Service_4",
     "type": "smoothstep",
@@ -217,6 +283,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "ece-Service_5",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "ev-My_Event",
     "target": "co-Service_5",
     "type": "smoothstep",
@@ -225,6 +305,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "ece-Service_6",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "ev-My_Event",
     "target": "co-Service_6",
     "type": "smoothstep",
@@ -233,6 +327,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "ece-Service_7",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "ev-My_Event",
     "target": "co-Service_7",
     "type": "smoothstep",
@@ -241,6 +349,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "ece-Service_8",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "ev-My_Event",
     "target": "co-Service_8",
     "type": "smoothstep",
@@ -249,6 +371,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "ece-very.very.very.very.very.very.very.very.very.very.very.very.long.name.event.8",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "ev-My_Event",
     "target": "co-very.very.very.very.very.very.very.very.very.very.very.very.long.name.event.8",
     "type": "smoothstep",
@@ -272,6 +408,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #75d7b6",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "input",
@@ -290,6 +427,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #2563eb",
+      "fontSize": "auto",
       "width": 150,
     },
   },
@@ -307,6 +445,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #818cf8",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "output",
@@ -315,6 +454,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "epe-Service_1",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "pr-Service_1",
     "target": "ev-My_Event",
     "type": "smoothstep",
@@ -323,6 +476,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "ece-Service_2",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "ev-My_Event",
     "target": "co-Service_2",
     "type": "smoothstep",
@@ -346,6 +513,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #75d7b6",
+      "fontSize": "auto",
       "width": 616,
     },
     "type": "input",
@@ -364,6 +532,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #75d7b6",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "input",
@@ -382,6 +551,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #75d7b6",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "input",
@@ -400,6 +570,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #75d7b6",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "input",
@@ -418,6 +589,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #75d7b6",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "input",
@@ -436,6 +608,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #2563eb",
+      "fontSize": "auto",
       "width": 150,
     },
   },
@@ -453,6 +626,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #818cf8",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "output",
@@ -471,6 +645,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #818cf8",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "output",
@@ -489,6 +664,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #818cf8",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "output",
@@ -507,6 +683,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #818cf8",
+      "fontSize": "auto",
       "width": 616,
     },
     "type": "output",
@@ -515,6 +692,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "ecp-My_Event",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "ser-My_Service",
     "target": "pub-My_Event",
     "type": "smoothstep",
@@ -523,6 +714,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "ecp-My_Event_2",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "ser-My_Service",
     "target": "pub-My_Event_2",
     "type": "smoothstep",
@@ -531,6 +736,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "ecp-My_Event_3",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "ser-My_Service",
     "target": "pub-My_Event_3",
     "type": "smoothstep",
@@ -539,6 +758,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "ecp-very.very.very.very.very.very.very.very.very.very.very.very.long.name.event.4",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "ser-My_Service",
     "target": "pub-very.very.very.very.very.very.very.very.very.very.very.very.long.name.event.4",
     "type": "smoothstep",
@@ -547,6 +780,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "esc-very_very_very_very_very_very_very_very_very_very_very_very_long_name_event_5",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "sub-very_very_very_very_very_very_very_very_very_very_very_very_long_name_event_5",
     "target": "ser-My_Service",
     "type": "smoothstep",
@@ -555,6 +802,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "esc-My_Event_6",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "sub-My_Event_6",
     "target": "ser-My_Service",
     "type": "smoothstep",
@@ -563,6 +824,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "esc-My_Event_7",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "sub-My_Event_7",
     "target": "ser-My_Service",
     "type": "smoothstep",
@@ -571,6 +846,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "esc-My_Event_8",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "sub-My_Event_8",
     "target": "ser-My_Service",
     "type": "smoothstep",
@@ -579,6 +868,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "esc-My_Event_9",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "sub-My_Event_9",
     "target": "ser-My_Service",
     "type": "smoothstep",
@@ -602,6 +905,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #75d7b6",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "input",
@@ -620,6 +924,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #2563eb",
+      "fontSize": "auto",
       "width": 150,
     },
   },
@@ -637,6 +942,7 @@ Array [
     },
     "style": Object {
       "border": "2px solid #818cf8",
+      "fontSize": "auto",
       "width": 150,
     },
     "type": "output",
@@ -645,6 +951,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "ecp-My_Event",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "ser-My_Service",
     "target": "pub-My_Event",
     "type": "smoothstep",
@@ -653,6 +973,20 @@ Array [
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "esc-My_Event_2",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
     "source": "sub-My_Event_2",
     "target": "ser-My_Service",
     "type": "smoothstep",

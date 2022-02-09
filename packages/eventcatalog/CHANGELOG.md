@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.1.16
+
+### Patch Changes
+
+- [`2d10847`](https://github.com/boyney123/eventcatalog/commit/2d108470af945e1cec59c114627878c56d7385dd) [#186](https://github.com/boyney123/eventcatalog/pull/186) Thanks [@boyney123](https://github.com/boyney123)! - feat: added new visualiser feature
+
 ## 0.1.15
 
 ### Patch Changes

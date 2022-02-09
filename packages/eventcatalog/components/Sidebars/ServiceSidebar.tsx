@@ -138,8 +138,15 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
           </div>
         </div>
       )}
+
+      <Link href={`/visualiser?type=service&name=${service.name}`}>
+        <a className="hidden w-full md:inline-flex h-10 justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200">
+          <span>View in Visualiser</span>
+        </a>
+      </Link>
+
       {externalLinks.length > 0 && (
-        <div className="border-t border-gray-200 py-6 space-y-8">
+        <div className="border-t border-gray-200 py-2 space-y-8">
           <div className="space-y-3">
             {externalLinks.map((tag) => (
               <a
