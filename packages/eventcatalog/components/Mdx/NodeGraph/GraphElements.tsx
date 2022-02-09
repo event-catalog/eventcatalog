@@ -34,7 +34,7 @@ const buildNodeData = ({ name, label, type, maxWidth }: { name: string; label: s
 
 const getNodeLabel = ({ type, label, includeIcon }: { type: NODE_TYPES; label: any; includeIcon: boolean }) => {
   if (!includeIcon) return label;
-  return <CustomNode type={type} label={label} />
+  return <CustomNode type={type} label={label} />;
 };
 
 /**
