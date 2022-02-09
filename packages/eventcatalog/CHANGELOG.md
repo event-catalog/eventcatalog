@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.1.17
+
+### Patch Changes
+
+- [`d57e67b`](https://github.com/boyney123/eventcatalog/commit/d57e67bf38be9391841b3c6dee6ab360b2eb1325) [#188](https://github.com/boyney123/eventcatalog/pull/188) Thanks [@boyney123](https://github.com/boyney123)! - fixing visualiser for mobile devices
+
 ## 0.1.16
 
 ### Patch Changes
