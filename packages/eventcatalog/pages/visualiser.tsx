@@ -41,6 +41,12 @@ function Graph({ events, services }: PageProps) {
     [listItemsToRender]
   );
 
+  const handleDropdownSelect = (e) => {
+    const { value } = e.target;
+    const selectedItem = JSON.parse(value);
+    setSelectedRootNode(selectedItem);
+  };
+
   const getListItemsToRender = useCallback(() => {
     if (!searchFilter) return { events, services };
     const filteredEvents = events.filter((event) => event.name.indexOf(searchFilter) > -1);
@@ -77,8 +83,24 @@ function Graph({ events, services }: PageProps) {
       <Head>
         <title>{title} - Visualiser</title>
       </Head>
-      <div className="grid grid-cols-6">
-        <div className="col-span-1 bg-white px-4  h-screen overflow-auto border-r-2 shadow-md border-gray-200 py-3">
+      <div className="sm:hidden px-4 py-2 bg-gray-200 border-b border-gray-300">
+        <div className="relative rounded-md shadow-sm">
+          <select
+            className=" block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            onChange={handleDropdownSelect}
+          >
+            <option>Please select your event or service</option>
+            {events.map((item) => (
+              <option value={JSON.stringify({ label: item.name, data: item, type: 'event' })}>Event: {item.name}</option>
+            ))}
+            {services.map((item) => (
+              <option value={JSON.stringify({ label: item.name, data: item, type: 'service' })}>Service: {item.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <div className="grid grid-cols-8 xl:grid-cols-6">
+        <div className="hidden sm:block col-span-2 xl:col-span-1 bg-white px-4  h-screen overflow-auto border-r-2 shadow-md border-gray-200 py-3">
           <div className="border-b border-gray-200 pb-6">
             <div className="mt-1 relative rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -150,7 +172,7 @@ function Graph({ events, services }: PageProps) {
             </div>
           </div>
         </div>
-        <div className="bg-gray-200 h-screen col-span-5">
+        <div className="bg-gray-200 h-screen col-span-12 sm:col-span-6  xl:col-span-5">
           {selectedRootNode && (
             <NodeGraph
               source={selectedRootNode.type}
@@ -202,8 +224,8 @@ function ListItem({ data, onClick, type, isSelected }: ListItemProps) {
         />
         <div className={`w-full rounded-r-md border-t border-r border-b ${isSelected ? 'bg-green-50' : 'bg-white'}`}>
           <div className="p-4 text-sm space-y-2 flex flex-col justify-between h-full">
-            <div className="text-gray-900 font-bold hover:text-gray-600 break-all">{data.name}</div>
-            <div className="text-gray-500 text-xs font-normal mt-2 ">{data.summary}</div>
+            <div className="text-gray-900 font-bold hover:text-gray-600 break-all text-xs xl:text-md">{data.name}</div>
+            <div className="hidden xl:block text-gray-500 text-xs font-normal mt-2 ">{data.summary}</div>
           </div>
         </div>
       </button>
