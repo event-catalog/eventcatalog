@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.1.18
+
+### Patch Changes
+
+- [`3eb7f3b`](https://github.com/boyney123/eventcatalog/commit/3eb7f3b98ef5061beaff4d1ebfac3874cab33c95) [#190](https://github.com/boyney123/eventcatalog/pull/190) Thanks [@boyney123](https://github.com/boyney123)! - chore: added new footer link for visualiser
+
 ## 0.1.17
 
 ### Patch Changes
