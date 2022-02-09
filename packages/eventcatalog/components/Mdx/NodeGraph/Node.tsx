@@ -12,5 +12,4 @@ function Node({ type, label }: any) {
   );
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export const getNode = ({ type, label }) => <Node type={type} label={label} />;
+export default Node;

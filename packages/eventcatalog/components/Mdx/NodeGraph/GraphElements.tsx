@@ -1,7 +1,7 @@
 import { ArrowHeadType, XYPosition, Node, Edge } from 'react-flow-renderer';
 import getConfig from 'next/config';
 import type { Event, Service } from '@eventcatalog/types';
-import { getNode } from './Node';
+import CustomNode from './Node';
 
 const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 
@@ -34,7 +34,7 @@ const buildNodeData = ({ name, label, type, maxWidth }: { name: string; label: s
 
 const getNodeLabel = ({ type, label, includeIcon }: { type: NODE_TYPES; label: any; includeIcon: boolean }) => {
   if (!includeIcon) return label;
-  return getNode({ type, label });
+  return <CustomNode type={type} label={label} />
 };
 
 /**
