@@ -157,3 +157,24 @@ module.exports = {
   trailingSlash: true,
 };
 ```
+
+### `openGraph` {#opengraph}
+
+Manage the Open Graph tags that are used for social media sharing.
+
+- Type: `openGraphConfig`
+  - `ogTitle`: Open Graph title, this is the title that is shown in previews on Facebook & Slack. Defaults to `title` as set in the config.
+  - `ogDescription`: Open Graph description, this is used for the description meta tag. Defaults to `tagline` as set in the config.
+  - `ogUrl`: Open Graph URL, the homepage of your website. Defaults to `homepageLink` as set in the config.
+  - `ogImage`: Open Graph image location (can be relative or absolute)
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  openGraph: {
+    ogTitle: 'EventCatalog | Discover, Explore and Document your Event Driven Architectures.',
+    ogDescription: 'An open source tool powered by markdown to document your Event Driven Architecture.',
+    ogUrl: 'https://eventcatalog.dev/',
+    ogImage: 'https://eventcatalog.dev/img/opengraph.png',
+  },
+};
+```
