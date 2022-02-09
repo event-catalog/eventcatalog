@@ -14,6 +14,7 @@ import getBackgroundColor from '@/utils/random-bg';
 import { useConfig, useUrl } from '@/hooks/EventCatalog';
 
 import { MarkdownFile } from '@/types/index';
+import NodeGraph from '@/components/Mdx/NodeGraph/NodeGraph';
 
 interface ServicesPageProps {
   service: Service;
@@ -21,7 +22,7 @@ interface ServicesPageProps {
   notFound?: boolean;
 }
 
-function MermaidComponent({ title, service, charts }: { title: string; service: Service; charts?: string[] }) {
+function MermaidComponent({ title, service, charts }: { title?: string; service: Service; charts?: string[] }) {
   return (
     <div className="mx-auto w-full py-10">
       {title && <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>}
@@ -34,6 +35,41 @@ const getComponents = (service) => ({
   Admonition,
   Mermaid: ({ title, charts }: { title: string; charts?: string[] }) => (
     <MermaidComponent service={service} title={title} charts={charts} />
+  ),
+  NodeGraph: ({
+    title,
+    maxHeight,
+    maxZoom,
+    fitView,
+    zoomOnScroll,
+    isAnimated,
+    isDraggable,
+  }: // isHorizontal,
+  {
+    title?: string;
+    maxHeight?: number;
+    maxZoom?: number;
+    fitView?: boolean;
+    zoomOnScroll?: boolean;
+    isAnimated?: boolean;
+    isDraggable?: boolean;
+    // isHorizontal?: boolean;
+  }) => (
+    <div className="mx-auto w-full">
+      {title && <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>}
+      <NodeGraph
+        source="service"
+        data={service}
+        rootNodeColor={getBackgroundColor(service.name)}
+        maxHeight={maxHeight}
+        maxZoom={maxZoom}
+        fitView={fitView}
+        zoomOnScroll={zoomOnScroll}
+        isAnimated={isAnimated}
+        isDraggable={isDraggable}
+        // isHorizontal={isHorizontal}
+      />
+    </div>
   ),
 });
 

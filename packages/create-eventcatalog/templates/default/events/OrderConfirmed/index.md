@@ -18,8 +18,6 @@ owners:
 
 This event is triggered when the customers order has been verified and the stock has been checked. Once this event is triggered we are safe to say it is ready for shipment.
 
-### Consumer / Producer Diagram
-
-<Mermaid />
+<NodeGraph title="Consumer / Producer Diagram" />
 
 <Schema />

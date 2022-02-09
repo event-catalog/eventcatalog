@@ -46,3 +46,7 @@ event-table thead th {
   background-color: rgba(0, 0, 0, 0.5);
   user-select: none;
 }
+
+.react-flow__controls-no-shadow{
+  box-shadow: none !important;
+}

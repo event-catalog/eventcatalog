@@ -23,8 +23,6 @@ This event can be triggered multiple times per customer. Everytime the customer 
 We have a frontend application that allows users to buy things from our store. This front end interacts directly with the `Basket Service` to add items to the cart. The `Basket Service` will raise the events.
 
 
-### Consumer / Producer Diagram
-
-<Mermaid />
+<NodeGraph title="Consumer / Producer Diagram" />
 
 <Schema />

@@ -1,5 +1,17 @@
 # @eventcatalog/create-eventcatalog
 
+## 0.1.4
+
+### Patch Changes
+
+- [`3eb7f3b`](https://github.com/boyney123/eventcatalog/commit/3eb7f3b98ef5061beaff4d1ebfac3874cab33c95) [#190](https://github.com/boyney123/eventcatalog/pull/190) Thanks [@boyney123](https://github.com/boyney123)! - chore: added new footer link for visualiser
+
+## 0.1.3
+
+### Patch Changes
+
+- [`2dc759e`](https://github.com/boyney123/eventcatalog/commit/2dc759e0f4faecd9ba77a38c294d1370a2f9d6db) [#180](https://github.com/boyney123/eventcatalog/pull/180) Thanks [@boyney123](https://github.com/boyney123)! - chore: update all examples to render node graphs vs mermaid
+
 ## 0.1.2
 
 ### Patch Changes

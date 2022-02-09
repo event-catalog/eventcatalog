@@ -16,4 +16,4 @@ Simple API that handles interactions between users and their baskets. Use this s
 
 This service will also generate Async events for downstream services.
 
-<Mermaid />
+<NodeGraph />

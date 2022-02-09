@@ -6,6 +6,7 @@ import { useConfig } from '@/hooks/EventCatalog';
 const navigation = [
   { name: 'Events', href: '/events' },
   { name: 'Services', href: '/services' },
+  { name: 'Visualiser', href: '/visualiser' },
   { name: '3D Node Graph', href: '/overview' },
 ];
 
@@ -14,10 +15,11 @@ function classNames(...classes) {
 }
 
 export default function Example() {
-  const { title } = useConfig();
+  const { title, homepageLink, logo } = useConfig();
   const router = useRouter();
 
   const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
+  const logoToLoad = logo || { alt: 'EventCatalog Logo', src: `logo.svg` };
 
   return (
     <div className="bg-gray-800">
@@ -25,12 +27,20 @@ export default function Example() {
         <div className="relative flex items-center justify-between h-16">
           <div className="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
             <div className="flex-shrink-0 flex items-center text-white font-bold">
-              <Link href="/">
-                <a className="flex items-center">
-                  <img alt="logo" className="text-white w-8 inline-block mr-3" src={`${basePath}/logo.svg`} />
+              {!homepageLink && (
+                <Link href="/">
+                  <a className="flex items-center">
+                    <img alt="logo" className="text-white w-8 inline-block mr-3" src={`${basePath}/${logoToLoad.src}`} />
+                    <span className="text-xl">{title}</span>
+                  </a>
+                </Link>
+              )}
+              {homepageLink && (
+                <a href={homepageLink} className="flex items-center">
+                  <img alt="logo" className="text-white w-8 inline-block mr-3" src={`${basePath}/${logoToLoad.src}`} />
                   <span className="text-xl">{title}</span>
                 </a>
-              </Link>
+              )}
             </div>
           </div>
           <div className="hidden sm:block sm:ml-6">

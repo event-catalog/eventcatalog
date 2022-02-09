@@ -65,7 +65,7 @@ To get started head over to the [plugin installion guide](/docs/api/plugins/@eve
 
 ## Summary
 
-This is the [second](/blog/2022/01/19/releasing-asyncapi-plugin%20copy) plugin to be officially released and we also have a small community of users that are also building more plugins for EventCatalog.
+This is the [second](/blog/2022/01/19/releasing-asyncapi-plugin) plugin to be officially released and we also have a small community of users that are also building more plugins for EventCatalog.
 
 Amazon EventBridge is a great serverless offering that allows us to write Event Driven Applications and EventCatalog allows you to easily document your event schemas.
 

@@ -33,33 +33,33 @@ function Examples({ title = 'Examples', description, examples = [], showLineNumb
         {description && <p className="text-md font-medium text-gray-700">{description}</p>}
 
         <div>
-          <nav className="-mb-px flex" aria-label="Tabs">
-            {tabs.map((tab) => {
-              const isSelected = tab.name === selectedTab.name;
-              return (
-                <button
-                  type="button"
-                  key={tab.name}
-                  onClick={() => handleTabSelection(tab)}
-                  className={classNames(
-                    isSelected
-                      ? 'border-green-500 text-green-600 selected'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-                    'whitespace-nowrap py-4 border-b-2 font-medium text-sm important:no-underline px-8 hover:bg-gray-50 transition'
-                  )}
-                  aria-current={isSelected ? 'page' : undefined}
-                >
-                  {tab.name}
-                  <span className="block text-xs mt-">({tab.langugage})</span>
-                </button>
-              );
-            })}
-          </nav>
-          <div className="my-4">
-            <SyntaxHighlighter language={selectedTab.langugage} showLineNumbers={showLineNumbers}>
-              {selectedTab.content}
-            </SyntaxHighlighter>
-            {selectedTab.langugage && <span className="-mb-2 block text-xs text-right font-bold">{selectedTab.name}</span>}
+          <div className="col-span-5">
+            <nav className="-mb-2 flex bg-gray-900" aria-label="Tabs">
+              {tabs.map((tab) => {
+                const isSelected = tab.name === selectedTab.name;
+                return (
+                  <button
+                    type="button"
+                    key={tab.name}
+                    onClick={() => handleTabSelection(tab)}
+                    className={classNames(
+                      isSelected
+                        ? 'border-yellow-300 text-yellow-300 selected bg-gray-700'
+                        : 'border-transparent text-gray-500 hover:text-gray-400 bg-gray-800  ',
+                      'whitespace-nowrap py-3 border-b-2 font-medium important:no-underline px-6 text-xs  transition '
+                    )}
+                    aria-current={isSelected ? 'page' : undefined}
+                  >
+                    {tab.name}
+                  </button>
+                );
+              })}
+            </nav>
+            <div>
+              <SyntaxHighlighter language={selectedTab.langugage} showLineNumbers={showLineNumbers}>
+                {selectedTab.content}
+              </SyntaxHighlighter>
+            </div>
           </div>
         </div>
       </div>

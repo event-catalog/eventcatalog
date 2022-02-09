@@ -10,4 +10,4 @@ The payment service is our own internal payment service that listens to events f
 
 We use Stripe to handle services and use this Payment service to enrich events for internal use.
 
-<Mermaid />
+<NodeGraph />

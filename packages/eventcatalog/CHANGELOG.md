@@ -1,5 +1,67 @@
 # @eventcatalog/core
 
+## 0.1.18
+
+### Patch Changes
+
+- [`3eb7f3b`](https://github.com/boyney123/eventcatalog/commit/3eb7f3b98ef5061beaff4d1ebfac3874cab33c95) [#190](https://github.com/boyney123/eventcatalog/pull/190) Thanks [@boyney123](https://github.com/boyney123)! - chore: added new footer link for visualiser
+
+## 0.1.17
+
+### Patch Changes
+
+- [`d57e67b`](https://github.com/boyney123/eventcatalog/commit/d57e67bf38be9391841b3c6dee6ab360b2eb1325) [#188](https://github.com/boyney123/eventcatalog/pull/188) Thanks [@boyney123](https://github.com/boyney123)! - fixing visualiser for mobile devices
+
+## 0.1.16
+
+### Patch Changes
+
+- [`2d10847`](https://github.com/boyney123/eventcatalog/commit/2d108470af945e1cec59c114627878c56d7385dd) [#186](https://github.com/boyney123/eventcatalog/pull/186) Thanks [@boyney123](https://github.com/boyney123)! - feat: added new visualiser feature
+
+## 0.1.15
+
+### Patch Changes
+
+- [`60bea4d`](https://github.com/boyney123/eventcatalog/commit/60bea4db471bf3c63a936b86ce7ee549e73972a6) [#182](https://github.com/boyney123/eventcatalog/pull/182) Thanks [@thim81](https://github.com/thim81)! - fix: optional title for all MDX components
+
+* [`bf5bab4`](https://github.com/boyney123/eventcatalog/commit/bf5bab44b9be92c5888c6548694c42d1fa83a678) [#184](https://github.com/boyney123/eventcatalog/pull/184) Thanks [@thim81](https://github.com/thim81)! - fix: increase node width for NodeGraph
+
+## 0.1.14
+
+### Patch Changes
+
+- [`1558d17`](https://github.com/boyney123/eventcatalog/commit/1558d17b1c9f925c8e74d22b57edbfc4195a73a6) [#178](https://github.com/boyney123/eventcatalog/pull/178) Thanks [@boyney123](https://github.com/boyney123)! - feat: added better code example component
+
+## 0.1.13
+
+### Patch Changes
+
+- [`ca01bef`](https://github.com/boyney123/eventcatalog/commit/ca01bef1659b2c364210a86e0f9e916f6c1fbaa4) [#166](https://github.com/boyney123/eventcatalog/pull/166) Thanks [@thim81](https://github.com/thim81)! - feat: new nodegraph component to render services and events
+
+## 0.1.12
+
+### Patch Changes
+
+- [`5dcc188`](https://github.com/boyney123/eventcatalog/commit/5dcc188dbd68f70b867e38df91211ba077f14189) [#175](https://github.com/boyney123/eventcatalog/pull/175) Thanks [@thim81](https://github.com/thim81)! - fix: mermaid diagram with pub/sub of same service now shows correctly
+
+## 0.1.11
+
+### Patch Changes
+
+- [`0976201`](https://github.com/boyney123/eventcatalog/commit/0976201a6949f4a78934a4ddfb75e7ea4598caae) [#172](https://github.com/boyney123/eventcatalog/pull/172) Thanks [@boyney123](https://github.com/boyney123)! - fix: header logo now reads from config
+
+## 0.1.10
+
+### Patch Changes
+
+- [`b44bd6c`](https://github.com/boyney123/eventcatalog/commit/b44bd6ca73194165e6448abebd020e3d6f3007a2) [#169](https://github.com/boyney123/eventcatalog/pull/169) Thanks [@thim81](https://github.com/thim81)! - fix: logic for services publish & subscribe nodes
+
+## 0.1.9
+
+### Patch Changes
+
+- [`c4d78c7`](https://github.com/boyney123/eventcatalog/commit/c4d78c77da6bc18638c6612e865c2c8cdd596e0b) [#139](https://github.com/boyney123/eventcatalog/pull/139) Thanks [@thim81](https://github.com/thim81)! - feat: add new eventcatalog config property to set homepage url
+
 ## 0.1.8
 
 ### Patch Changes

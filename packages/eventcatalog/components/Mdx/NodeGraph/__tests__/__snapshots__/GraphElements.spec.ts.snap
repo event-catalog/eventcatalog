@@ -1,0 +1,995 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GraphElements getEventElements takes a given event and returns the ReactFlow elements with multiple services & long names 1`] = `
+Array [
+  Object {
+    "data": Object {
+      "label": "Service 1",
+      "link": "/docs/services/Service 1",
+      "maxWidth": -332,
+      "width": 150,
+    },
+    "id": "pr-Service_1",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #75d7b6",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "input",
+  },
+  Object {
+    "data": Object {
+      "label": "Service 2",
+      "link": "/docs/services/Service 2",
+      "maxWidth": -332,
+      "width": 150,
+    },
+    "id": "pr-Service_2",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #75d7b6",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "input",
+  },
+  Object {
+    "data": Object {
+      "label": "very very very very very very very very very very very very long name Service 3",
+      "link": "/docs/services/very very very very very very very very very very very very long name Service 3",
+      "maxWidth": 632,
+      "width": 632,
+    },
+    "id": "pr-very_very_very_very_very_very_very_very_very_very_very_very_long_name_Service_3",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #75d7b6",
+      "fontSize": "auto",
+      "width": 632,
+    },
+    "type": "input",
+  },
+  Object {
+    "data": Object {
+      "label": "My Event",
+      "link": "/docs/events/My Event",
+      "maxWidth": 150,
+      "width": 150,
+    },
+    "id": "ev-My_Event",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #2563eb",
+      "fontSize": "auto",
+      "width": 150,
+    },
+  },
+  Object {
+    "data": Object {
+      "label": "Service 4",
+      "link": "/docs/services/Service 4",
+      "maxWidth": 616,
+      "width": 150,
+    },
+    "id": "co-Service_4",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #818cf8",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "output",
+  },
+  Object {
+    "data": Object {
+      "label": "Service 5",
+      "link": "/docs/services/Service 5",
+      "maxWidth": 616,
+      "width": 150,
+    },
+    "id": "co-Service_5",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #818cf8",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "output",
+  },
+  Object {
+    "data": Object {
+      "label": "Service 6",
+      "link": "/docs/services/Service 6",
+      "maxWidth": 616,
+      "width": 150,
+    },
+    "id": "co-Service_6",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #818cf8",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "output",
+  },
+  Object {
+    "data": Object {
+      "label": "Service 7",
+      "link": "/docs/services/Service 7",
+      "maxWidth": 616,
+      "width": 150,
+    },
+    "id": "co-Service_7",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #818cf8",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "output",
+  },
+  Object {
+    "data": Object {
+      "label": "Service 8",
+      "link": "/docs/services/Service 8",
+      "maxWidth": 616,
+      "width": 150,
+    },
+    "id": "co-Service_8",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #818cf8",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "output",
+  },
+  Object {
+    "data": Object {
+      "label": "very.very.very.very.very.very.very.very.very.very.very.very.long.name.event.8",
+      "link": "/docs/services/very.very.very.very.very.very.very.very.very.very.very.very.long.name.event.8",
+      "maxWidth": 616,
+      "width": 616,
+    },
+    "id": "co-very.very.very.very.very.very.very.very.very.very.very.very.long.name.event.8",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #818cf8",
+      "fontSize": "auto",
+      "width": 616,
+    },
+    "type": "output",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "epe-Service_1",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "pr-Service_1",
+    "target": "ev-My_Event",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "epe-Service_2",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "pr-Service_2",
+    "target": "ev-My_Event",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "epe-very_very_very_very_very_very_very_very_very_very_very_very_long_name_Service_3",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "pr-very_very_very_very_very_very_very_very_very_very_very_very_long_name_Service_3",
+    "target": "ev-My_Event",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "ece-Service_4",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "ev-My_Event",
+    "target": "co-Service_4",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "ece-Service_5",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "ev-My_Event",
+    "target": "co-Service_5",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "ece-Service_6",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "ev-My_Event",
+    "target": "co-Service_6",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "ece-Service_7",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "ev-My_Event",
+    "target": "co-Service_7",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "ece-Service_8",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "ev-My_Event",
+    "target": "co-Service_8",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "ece-very.very.very.very.very.very.very.very.very.very.very.very.long.name.event.8",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "ev-My_Event",
+    "target": "co-very.very.very.very.very.very.very.very.very.very.very.very.long.name.event.8",
+    "type": "smoothstep",
+  },
+]
+`;
+
+exports[`GraphElements getEventElements takes a given event and returns the ReactFlow elements with relations between the event and its consumers and producers 1`] = `
+Array [
+  Object {
+    "data": Object {
+      "label": "Service 1",
+      "link": "/docs/services/Service 1",
+      "maxWidth": 150,
+      "width": 150,
+    },
+    "id": "pr-Service_1",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #75d7b6",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "input",
+  },
+  Object {
+    "data": Object {
+      "label": "My Event",
+      "link": "/docs/events/My Event",
+      "maxWidth": 150,
+      "width": 150,
+    },
+    "id": "ev-My_Event",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #2563eb",
+      "fontSize": "auto",
+      "width": 150,
+    },
+  },
+  Object {
+    "data": Object {
+      "label": "Service 2",
+      "link": "/docs/services/Service 2",
+      "maxWidth": 150,
+      "width": 150,
+    },
+    "id": "co-Service_2",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #818cf8",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "output",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "epe-Service_1",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "pr-Service_1",
+    "target": "ev-My_Event",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "ece-Service_2",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "ev-My_Event",
+    "target": "co-Service_2",
+    "type": "smoothstep",
+  },
+]
+`;
+
+exports[`GraphElements getServiceElements takes a given Service and returns the ReactFlow elements with multiple events & long names 1`] = `
+Array [
+  Object {
+    "data": Object {
+      "label": "very very very very very very very very very very very very long name event 5",
+      "link": "/docs/events/very very very very very very very very very very very very long name event 5",
+      "maxWidth": 616,
+      "width": 616,
+    },
+    "id": "sub-very_very_very_very_very_very_very_very_very_very_very_very_long_name_event_5",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #75d7b6",
+      "fontSize": "auto",
+      "width": 616,
+    },
+    "type": "input",
+  },
+  Object {
+    "data": Object {
+      "label": "My Event 6",
+      "link": "/docs/events/My Event 6",
+      "maxWidth": -316,
+      "width": 150,
+    },
+    "id": "sub-My_Event_6",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #75d7b6",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "input",
+  },
+  Object {
+    "data": Object {
+      "label": "My Event 7",
+      "link": "/docs/events/My Event 7",
+      "maxWidth": -316,
+      "width": 150,
+    },
+    "id": "sub-My_Event_7",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #75d7b6",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "input",
+  },
+  Object {
+    "data": Object {
+      "label": "My Event 8",
+      "link": "/docs/events/My Event 8",
+      "maxWidth": -316,
+      "width": 150,
+    },
+    "id": "sub-My_Event_8",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #75d7b6",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "input",
+  },
+  Object {
+    "data": Object {
+      "label": "My Event 9",
+      "link": "/docs/events/My Event 9",
+      "maxWidth": -316,
+      "width": 150,
+    },
+    "id": "sub-My_Event_9",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #75d7b6",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "input",
+  },
+  Object {
+    "data": Object {
+      "label": "My Service",
+      "link": "/docs/services/My Service",
+      "maxWidth": 150,
+      "width": 150,
+    },
+    "id": "ser-My_Service",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #2563eb",
+      "fontSize": "auto",
+      "width": 150,
+    },
+  },
+  Object {
+    "data": Object {
+      "label": "My Event",
+      "link": "/docs/events/My Event",
+      "maxWidth": 616,
+      "width": 150,
+    },
+    "id": "pub-My_Event",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #818cf8",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "output",
+  },
+  Object {
+    "data": Object {
+      "label": "My Event 2",
+      "link": "/docs/events/My Event 2",
+      "maxWidth": 616,
+      "width": 150,
+    },
+    "id": "pub-My_Event_2",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #818cf8",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "output",
+  },
+  Object {
+    "data": Object {
+      "label": "My Event 3",
+      "link": "/docs/events/My Event 3",
+      "maxWidth": 616,
+      "width": 150,
+    },
+    "id": "pub-My_Event_3",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #818cf8",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "output",
+  },
+  Object {
+    "data": Object {
+      "label": "very.very.very.very.very.very.very.very.very.very.very.very.long.name.event.4",
+      "link": "/docs/events/very.very.very.very.very.very.very.very.very.very.very.very.long.name.event.4",
+      "maxWidth": 616,
+      "width": 616,
+    },
+    "id": "pub-very.very.very.very.very.very.very.very.very.very.very.very.long.name.event.4",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #818cf8",
+      "fontSize": "auto",
+      "width": 616,
+    },
+    "type": "output",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "ecp-My_Event",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "ser-My_Service",
+    "target": "pub-My_Event",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "ecp-My_Event_2",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "ser-My_Service",
+    "target": "pub-My_Event_2",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "ecp-My_Event_3",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "ser-My_Service",
+    "target": "pub-My_Event_3",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "ecp-very.very.very.very.very.very.very.very.very.very.very.very.long.name.event.4",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "ser-My_Service",
+    "target": "pub-very.very.very.very.very.very.very.very.very.very.very.very.long.name.event.4",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "esc-very_very_very_very_very_very_very_very_very_very_very_very_long_name_event_5",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "sub-very_very_very_very_very_very_very_very_very_very_very_very_long_name_event_5",
+    "target": "ser-My_Service",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "esc-My_Event_6",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "sub-My_Event_6",
+    "target": "ser-My_Service",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "esc-My_Event_7",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "sub-My_Event_7",
+    "target": "ser-My_Service",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "esc-My_Event_8",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "sub-My_Event_8",
+    "target": "ser-My_Service",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "esc-My_Event_9",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "sub-My_Event_9",
+    "target": "ser-My_Service",
+    "type": "smoothstep",
+  },
+]
+`;
+
+exports[`GraphElements getServiceElements takes a given Service and returns the ReactFlow elements with relations the events it publishes and consumes 1`] = `
+Array [
+  Object {
+    "data": Object {
+      "label": "My Event 2",
+      "link": "/docs/events/My Event 2",
+      "maxWidth": 150,
+      "width": 150,
+    },
+    "id": "sub-My_Event_2",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #75d7b6",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "input",
+  },
+  Object {
+    "data": Object {
+      "label": "My Service",
+      "link": "/docs/services/My Service",
+      "maxWidth": 150,
+      "width": 150,
+    },
+    "id": "ser-My_Service",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #2563eb",
+      "fontSize": "auto",
+      "width": 150,
+    },
+  },
+  Object {
+    "data": Object {
+      "label": "My Event",
+      "link": "/docs/events/My Event",
+      "maxWidth": 150,
+      "width": 150,
+    },
+    "id": "pub-My_Event",
+    "position": Object {
+      "x": 0,
+      "y": 0,
+    },
+    "style": Object {
+      "border": "2px solid #818cf8",
+      "fontSize": "auto",
+      "width": 150,
+    },
+    "type": "output",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "ecp-My_Event",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "ser-My_Service",
+    "target": "pub-My_Event",
+    "type": "smoothstep",
+  },
+  Object {
+    "animated": true,
+    "arrowHeadType": "arrowclosed",
+    "id": "esc-My_Event_2",
+    "label": "",
+    "labelBgBorderRadius": 4,
+    "labelBgPadding": Array [
+      8,
+      4,
+    ],
+    "labelBgStyle": Object {
+      "color": "#fff",
+      "fill": "white",
+      "fillOpacity": 0.5,
+    },
+    "labelStyle": Object {
+      "fontSize": "6px",
+    },
+    "source": "sub-My_Event_2",
+    "target": "ser-My_Service",
+    "type": "smoothstep",
+  },
+]
+`;
