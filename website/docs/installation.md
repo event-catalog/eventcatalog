@@ -47,7 +47,7 @@ my-catalog
 │   │     │     └──schema.json
 │   │     └──index.md
 │   │     └──schema.json
-│   ├── OrerComplete
+│   ├── OrderComplete
 │   │     └──index.md
 │   │     └──schema.json
 │   ├── OrderConfirmed
