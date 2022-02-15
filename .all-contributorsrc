@@ -101,6 +101,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "donaldpipowitch",
+      "name": "Donald Pipowitch",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1152805?v=4",
+      "profile": "https://twitter.com/PipoPeperoni",
+      "contributions": [
+        "bug",
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
