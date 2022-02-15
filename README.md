@@ -6,7 +6,7 @@
 [![MIT License][license-badge]][license]
 [![PRs Welcome][prs-badge]][prs]
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-10-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![Watch on GitHub][github-watch-badge]][github-watch]
@@ -133,6 +133,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="https://github.com/tavelli"><img src="https://avatars.githubusercontent.com/u/484951?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dan Tavelli</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=tavelli" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/steppi91"><img src="https://avatars.githubusercontent.com/u/25939641?v=4?s=100" width="100px;" alt=""/><br /><sub><b>steppi91</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=steppi91" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://twitter.com/PipoPeperoni"><img src="https://avatars.githubusercontent.com/u/1152805?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Donald Pipowitch</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/issues?q=author%3Adonaldpipowitch" title="Bug reports">🐛</a> <a href="https://github.com/boyney123/eventcatalog/commits?author=donaldpipowitch" title="Code">💻</a></td>
   </tr>
 </table>
 
