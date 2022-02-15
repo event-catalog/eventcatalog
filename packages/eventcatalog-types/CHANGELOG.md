@@ -1,5 +1,11 @@
 # @eventcatalog/types
 
+## 0.0.5
+
+### Patch Changes
+
+- [`f48322a`](https://github.com/boyney123/eventcatalog/commit/f48322ab96be22a65baa4cbd5b5ce6d7a0fadd8b) [#167](https://github.com/boyney123/eventcatalog/pull/167) Thanks [@thim81](https://github.com/thim81)! - feat: set page title, description, favicon and og metadata
+
 ## 0.0.4
 
 ### Patch Changes
