@@ -61,7 +61,7 @@ export interface Link {
   href: string;
 }
 
-export interface openGraphConfig {
+export interface OpenGraphConfig {
   ogTitle?: string;
   ogUrl?: string;
   ogDescription?: string;
@@ -78,7 +78,7 @@ export interface EventCataLogConfig {
   generators?: PluginConfig[] | [] | any;
   footerLinks?: Link[];
   homepageLink?: string;
-  openGraph?: openGraphConfig;
+  openGraph?: OpenGraphConfig;
 }
 
 export type LoadContext = {

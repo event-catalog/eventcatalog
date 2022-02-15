@@ -3,7 +3,7 @@ import { AppProps } from 'next/app';
 
 import Head from 'next/head';
 import getConfig from 'next/config';
-import { openGraphConfig } from '@eventcatalog/types';
+import { OpenGraphConfig } from '@eventcatalog/types';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { EventCatalogContextProvider, useConfig } from '@/hooks/EventCatalog';
@@ -21,7 +21,7 @@ function Page({ Component, pageProps }: AppProps) {
     ogDescription = tagline,
     ogImage = 'https://eventcatalog.dev/img/opengraph.png',
     ogUrl = homepageLink,
-  } = openGraph as openGraphConfig;
+  } = openGraph as OpenGraphConfig;
 
   return (
     <EventCatalogContextProvider>
