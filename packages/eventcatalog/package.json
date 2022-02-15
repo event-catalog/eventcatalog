@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/core",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "publishConfig": {
     "access": "public"
   },
@@ -44,7 +44,7 @@
     "react-syntax-highlighter": "^15.4.5"
   },
   "devDependencies": {
-    "@eventcatalog/types": "0.0.4",
+    "@eventcatalog/types": "0.0.5",
     "@types/react": "^17.0.36",
     "autoprefixer": "^10.4.0",
     "commander": "^8.3.0",
