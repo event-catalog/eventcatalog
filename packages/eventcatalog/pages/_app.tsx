@@ -40,7 +40,7 @@ function Page({ Component, pageProps }: AppProps) {
         <meta property="og:type" content="website" />
         {ogTitle && ogTitle !== '' && <meta property="og:title" content={ogTitle} />}
         {ogDescription && <meta property="og:description" content={ogDescription} />}
-        {ogImage && ogImage !== '' && (
+        {ogImage && (
           <>
             <meta property="og:image" content={ogImage} />
             <meta property="og:image:alt" content={`${ogTitle} | ${ogDescription}`} />
