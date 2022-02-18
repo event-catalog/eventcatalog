@@ -7,8 +7,6 @@ producers:
     - Basket Service
 consumers:
     - Data Lake
-domains:
-    - Shop
 owners:
     - dboyne
     - mSmith

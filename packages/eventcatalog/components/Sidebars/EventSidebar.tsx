@@ -1,20 +1,21 @@
 import React from 'react';
 import Link from 'next/link';
 import getConfig from 'next/config';
-import { CubeIcon, DownloadIcon, ExternalLinkIcon } from '@heroicons/react/outline';
+import { CubeIcon, DownloadIcon, ExternalLinkIcon, CollectionIcon } from '@heroicons/react/outline';
 import type { Event } from '@eventcatalog/types';
 import { useUser } from '@/hooks/EventCatalog';
 
 interface EventSideBarProps {
   event: Event;
+  urlPath: string;
   loadedVersion?: string;
   isOldVersion?: boolean;
 }
 
-function EventSideBar({ event, loadedVersion, isOldVersion }: EventSideBarProps) {
+function EventSideBar({ event, loadedVersion, isOldVersion, urlPath }: EventSideBarProps) {
   const { getUserById } = useUser();
 
-  const { name: eventName, owners, producers, consumers, historicVersions, externalLinks, schema } = event;
+  const { name: eventName, owners, producers, consumers, historicVersions, externalLinks, schema, domain } = event;
   const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 
   const getSchemaDownloadURL = () => {
@@ -72,13 +73,35 @@ function EventSideBar({ event, loadedVersion, isOldVersion }: EventSideBarProps)
           </ul>
         </div>
       </div>
+      {domain && (
+        <div className="border-t border-gray-200 py-6 space-y-8">
+          <div>
+            <h2 className="text-sm font-medium text-gray-500">
+              <CollectionIcon className="h-5 w-5 text-yellow-400 inline-block mr-2" aria-hidden="true" />
+              Domain
+            </h2>
+            <ul className="mt-2 leading-8">
+              <li className="inline">
+                <Link href={`/domain/${domain}`}>
+                  <a href="#" className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5">
+                    <div className="absolute flex-shrink-0 flex items-center justify-center">
+                      <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 animate animate-pulse" aria-hidden="true" />
+                    </div>
+                    <div className="ml-3.5 text-sm font-medium text-gray-900">{domain}</div>
+                  </a>
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
       {historicVersions.length > 0 && (
         <div className="border-t border-gray-200 py-6">
           <div>
             <h2 className="text-sm font-medium text-gray-500">Event Versions</h2>
             <ul className="mt-2 leading-8 text-left text-blue-500">
               <li className="text-sm inline ">
-                <Link href={`/events/${eventName}`}>
+                <Link href={urlPath}>
                   <a>
                     <span
                       className={`inline-flex mr-2 items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative ${
@@ -100,7 +123,7 @@ function EventSideBar({ event, loadedVersion, isOldVersion }: EventSideBarProps)
                   : 'bg-blue-100 text-blue-800';
                 return (
                   <li className="text-sm inline" key={version}>
-                    <Link href={`/events/${eventName}/v/${version}`}>
+                    <Link href={`${urlPath}/v/${version}`}>
                       <a>
                         <span
                           className={`inline-flex mr-2 items-center px-2.5 py-0.5 rounded-full text-xs font-medium -top-0.5 relative  ${styles}`}

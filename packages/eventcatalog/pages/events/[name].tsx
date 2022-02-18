@@ -23,6 +23,8 @@ import NodeGraph from '@/components/Mdx/NodeGraph/NodeGraph';
 
 export interface EventsPageProps {
   event: Event;
+  eventPath: string;
+  breadCrumbs: any;
   markdown: MarkdownFile;
   notFound?: boolean;
   loadedVersion?: string;
@@ -129,7 +131,7 @@ export const getComponents = ({ event, schema, examples }: any) => ({
 });
 
 export default function Events(props: EventsPageProps) {
-  const { event, markdown, loadedVersion, notFound } = props;
+  const { event, markdown, loadedVersion, notFound, breadCrumbs, eventPath } = props;
   const { title } = useConfig();
   const { getEditUrl, hasEditUrl } = useUrl();
 
@@ -139,11 +141,6 @@ export default function Events(props: EventsPageProps) {
     return <NotFound type="event" name={event.name} editUrl={hasEditUrl ? getEditUrl(`/events/${name}/index.md`) : ''} />;
 
   const { lastModifiedDate } = markdown;
-
-  const pages = [
-    { name: 'Events', href: '/events', current: false },
-    { name, href: `/services/${name}`, current: true },
-  ];
 
   const mdxComponents = getComponents({ event, schema, examples });
 
@@ -156,16 +153,16 @@ export default function Events(props: EventsPageProps) {
       </Head>
       <ContentView
         title={name}
-        editUrl={hasEditUrl ? getEditUrl(`/events/${name}/index.md`) : ''}
+        editUrl={hasEditUrl ? getEditUrl(`${eventPath}/index.md`) : ''}
         subtitle={summary}
         draft={draft}
         lastModifiedDate={lastModifiedDate}
         tags={[{ label: `v${version}` }]}
-        breadCrumbs={<BreadCrumbs pages={pages} />}
+        breadCrumbs={<BreadCrumbs pages={breadCrumbs} />}
         isOldVersion={loadedVersion !== 'latest'}
-        latestVersionUrl={`/events/${name}`}
+        latestVersionUrl={eventPath}
         version={loadedVersion}
-        sidebar={<EventSideBar event={event} loadedVersion={loadedVersion} isOldVersion={loadedVersion !== 'latest'} />}
+        sidebar={<EventSideBar event={event} urlPath={eventPath} loadedVersion={loadedVersion} isOldVersion={loadedVersion !== 'latest'} />}
       >
         <MDXRemote {...markdown.source} components={mdxComponents} />
       </ContentView>
@@ -179,6 +176,11 @@ export async function getStaticProps({ params }) {
     return {
       props: {
         event,
+        eventPath: `/events/${event.name}`,
+        breadCrumbs: [
+          { name: 'Events', href: '/events', current: false },
+          { name: event.name, href: `/events/${event.name}`, current: true },
+        ],
         markdown,
         loadedVersion: 'latest',
       },

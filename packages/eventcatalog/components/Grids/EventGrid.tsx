@@ -21,11 +21,12 @@ function EventGrid({ events = [], showMermaidDiagrams = false }: EventGridProps)
   return (
     <ul className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2">
       {events.map((event) => {
-        const { draft: isDraft } = event;
+        const { draft: isDraft, domain } = event;
+        const eventURL = domain ? `/domains/${domain}/events/${event.name}` : `/events/${event.name}`;
 
         return (
           <li key={event.name} className="flex">
-            <Link href={`/events/${event.name}`}>
+            <Link href={eventURL}>
               <a className="flex shadow-sm rounded-md w-full">
                 <div
                   style={{

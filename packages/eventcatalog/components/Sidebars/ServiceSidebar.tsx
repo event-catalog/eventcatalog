@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import type { Service } from '@eventcatalog/types';
 
-import { CubeIcon, TagIcon, ExternalLinkIcon } from '@heroicons/react/outline';
+import { CubeIcon, TagIcon, ExternalLinkIcon, CollectionIcon } from '@heroicons/react/outline';
 import { useUser } from '@/hooks/EventCatalog';
 import getBackgroundColor from '@/utils/random-bg';
 
@@ -15,7 +15,7 @@ interface ServiceSideBarProps {
 function ServiceSidebar({ service }: ServiceSideBarProps) {
   const { getUserById } = useUser();
 
-  const { owners, subscribes, publishes, repository, tags = [], externalLinks } = service;
+  const { owners, subscribes, publishes, repository, tags = [], externalLinks, domains = [] } = service;
   const { language, url: repositoryUrl } = repository;
 
   let languages = [];
@@ -78,6 +78,31 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
           </ul>
         </div>
       </div>
+
+      {domains.length > 0 && (
+        <div className="border-t border-gray-200 py-6 space-y-8">
+          <div>
+            <h2 className="text-sm font-medium text-gray-500">
+              <CollectionIcon className="h-5 w-5 text-yellow-400 inline-block mr-2" aria-hidden="true" />
+              Domains
+            </h2>
+            <ul className="mt-2 leading-8">
+              {domains.map((domain) => (
+                <li className="inline" key={domain}>
+                  <Link href={`/domain/${domain}`}>
+                    <a href="#" className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5">
+                      <div className="absolute flex-shrink-0 flex items-center justify-center">
+                        <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 animate animate-pulse" aria-hidden="true" />
+                      </div>
+                      <div className="ml-3.5 text-sm font-medium text-gray-900">{domain}</div>
+                    </a>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
 
       <div className="border-t border-gray-200 py-6 space-y-8">
         <div>
@@ -164,6 +189,9 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
           </div>
         </div>
       )}
+
+      
+
       {tags.length > 0 && (
         <div className="border-t border-gray-200 py-6 space-y-8">
           <div>

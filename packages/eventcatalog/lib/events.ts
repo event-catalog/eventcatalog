@@ -9,11 +9,22 @@ import { MarkdownFile } from '@/types/index';
 import { extentionToLanguageMap } from './file-reader';
 
 import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader';
+
 import { getAllServices } from './services';
+import { getAllEventsFromDomains } from './domains';
 
 const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
-  const { name, version, summary, producers = [], consumers = [], owners = [], externalLinks = [] } = eventFrontMatter;
-  return { name, version, summary, producers, consumers, owners, externalLinks };
+  const {
+    name,
+    version,
+    summary,
+    domain = '',
+    producers = [],
+    consumers = [],
+    owners = [],
+    externalLinks = [],
+  } = eventFrontMatter;
+  return { name, version, summary, domain, producers, consumers, owners, externalLinks };
 };
 
 const versionsForEvents = (pathToEvent) => {
@@ -129,17 +140,28 @@ const getEventExamplesFromDir = (pathToExamples) => {
   return examples;
 };
 
-export const getAllEvents = (): Event[] => {
-  const eventsDir = path.join(process.env.PROJECT_DIR, 'events');
+export const getEventByPath = (eventDir: string): Event => {
+  const { data } = readMarkdownFile(path.join(eventDir, 'index.md'));
+  const historicVersions = versionsForEvents(path.join(eventDir));
+  return {
+    ...parseEventFrontMatterIntoEvent(data),
+    historicVersions,
+  };
+};
+
+export const getAllEventsFromPath = (eventsDir: string): Event[] => {
   const folders = fs.readdirSync(eventsDir);
-  return folders.map((folder) => {
-    const { data } = readMarkdownFile(path.join(eventsDir, folder, 'index.md'));
-    const historicVersions = versionsForEvents(path.join(eventsDir, folder));
-    return {
-      ...parseEventFrontMatterIntoEvent(data),
-      historicVersions,
-    };
-  });
+  return folders.map((folder) => getEventByPath(path.join(eventsDir, folder)));
+};
+
+export const getAllEvents = (): Event[] => {
+  const allEventsFromDomainFolders = getAllEventsFromDomains();
+  const eventsWithDomains = getAllEventsFromPath(path.join(process.env.PROJECT_DIR, 'events'));
+
+  const events = [...eventsWithDomains, ...allEventsFromDomainFolders];
+  const sortedEvents = events.sort((a, b) => a.name.localeCompare(b.name));
+
+  return sortedEvents;
 };
 
 export const getAllOwners = (): string[] => {
@@ -158,15 +180,28 @@ export const getAllEventsAndVersionsFlattened = () => {
     // eventsWithVersionsFlattened.push({ eventName: event.name, version: event.version })
 
     if (event.historicVersions) {
-      event.historicVersions.forEach((version) => eventsWithVersionsFlattened.push({ eventName: event.name, version }));
+      event.historicVersions.forEach((version) => eventsWithVersionsFlattened.push({ eventName: event.name, version, domain: event.domain }));
     }
 
     return eventsWithVersionsFlattened;
   }, []);
 };
 
-export const getEventByName = async (eventName: string, version?: string): Promise<{ event: Event; markdown: MarkdownFile }> => {
-  const eventsDir = path.join(process.env.PROJECT_DIR, 'events');
+export const getEventByName = async ({
+  eventName,
+  version,
+  domain,
+}: {
+  eventName: string;
+  version?: string;
+  domain?: string;
+}): Promise<{ event: Event; markdown: MarkdownFile }> => {
+  let eventsDir = path.join(process.env.PROJECT_DIR, 'events');
+
+  if (domain) {
+    eventsDir = path.join(process.env.PROJECT_DIR, 'domains', domain, 'events');
+  }
+
   const eventDirectory = path.join(eventsDir, eventName);
   let versionDirectory = null;
 
@@ -185,6 +220,7 @@ export const getEventByName = async (eventName: string, version?: string): Promi
     return {
       event: {
         ...event,
+        domain,
         historicVersions: versionsForEvents(eventDirectory),
         schema: getSchemaFromDir(directoryToLoadForEvent),
         examples: getEventExamplesFromDir(path.join(directoryToLoadForEvent, `examples`)),

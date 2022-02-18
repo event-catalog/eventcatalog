@@ -8,8 +8,6 @@ producers:
     - Application API
 consumers:
     - Customer Portal
-domains:
-    - Shopping
 owners:
     - dboyne
     - mSmith

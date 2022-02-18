@@ -8,8 +8,8 @@ import { MarkdownFile } from '../types/index';
 import { getAllEvents, getAllEventsThatHaveRelationshipWithService } from '@/lib/events';
 
 const buildService = (eventFrontMatter: any): Service => {
-  const { name, summary, owners = [], repository = {}, tags = [], externalLinks = [] } = eventFrontMatter;
-  return { name, summary, owners, repository, tags, externalLinks };
+  const { name, summary, domains = [], owners = [], repository = {}, tags = [], externalLinks = [] } = eventFrontMatter;
+  return { name, summary, domains, owners, repository, tags, externalLinks };
 };
 
 export const getAllServices = (): Service[] => {
