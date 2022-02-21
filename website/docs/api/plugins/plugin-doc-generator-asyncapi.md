@@ -25,7 +25,7 @@ The plugin will check to see if the service or event already exists. If `true` t
 
 If you already have configured **markdown** in your events or services, this markdown will be reused in your new generation. This means the content (documentation) of your events and services will be kept the same, but the metadata (frontmatter) will be updated (version, naming, summarys, links etc).
 
-### How it this plugin useful?
+### How is this plugin useful?
 
 You may be a team that likes to be spec driven, so you can keep your spec up to date and continue to work on it and just run `npm run generate` in the catalog to have the features from `EventCatalog`.
 
