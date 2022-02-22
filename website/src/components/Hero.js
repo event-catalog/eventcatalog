@@ -48,7 +48,7 @@ function Hero() {
                     </div>
                     <div className="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
                       <a
-                        href="https:app.eventcatalog.dev/"
+                        href="https://app.eventcatalog.dev/"
                         target="_blank"
                         rel="noreferrer"
                         className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-gray-600 bg-white hover:bg-gray-50 md:py-3 md:text-lg md:px-10"
