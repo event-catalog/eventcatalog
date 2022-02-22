@@ -111,6 +111,15 @@
         "bug",
         "code"
       ]
+    },
+    {
+      "login": "kzhen",
+      "name": "Ken",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2233210?v=4",
+      "profile": "http://unravelled.dev",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
