@@ -30,7 +30,6 @@ export const getAllDomainsByOwnerId = async (ownerId): Promise<Domain[]> => {
   }));
 };
 
-// eslint-disable-next-line import/prefer-default-export
 export const getAllEventsFromDomains = () => {
   const domainsDir = path.join(process.env.PROJECT_DIR, 'domains');
 
