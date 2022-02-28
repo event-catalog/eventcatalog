@@ -7,7 +7,7 @@ export default function Events(props: EventsPageProps) {
 
 export async function getStaticProps({ params }) {
   const { name: eventName, version } = params;
-  const { event, markdown } = await getEventByName(eventName, version);
+  const { event, markdown } = await getEventByName({ eventName, version });
 
   return {
     props: {
@@ -20,10 +20,11 @@ export async function getStaticProps({ params }) {
 
 export async function getStaticPaths() {
   const allEventsAndVersions = getAllEventsAndVersionsFlattened();
+  const eventsWithDomains = allEventsAndVersions.filter((item) => !!item.domain === false);
 
   // all but current one
 
-  const paths = allEventsAndVersions.map(({ eventName, version }: any) => ({ params: { name: eventName, version } }));
+  const paths = eventsWithDomains.map(({ eventName, version }: any) => ({ params: { name: eventName, version } }));
   return {
     paths,
     fallback: false,

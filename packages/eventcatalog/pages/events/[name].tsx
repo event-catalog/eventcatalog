@@ -206,7 +206,9 @@ export async function getStaticProps({ params }) {
 
 export async function getStaticPaths() {
   const events = getAllEvents();
-  const paths = events.map((event) => ({ params: { name: event.name } }));
+  const eventsWithoutDomains = events.filter((event) => !event.domain);
+
+  const paths = eventsWithoutDomains.map((event) => ({ params: { name: event.name } }));
 
   return {
     paths,

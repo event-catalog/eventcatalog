@@ -145,7 +145,7 @@ export const getStaticProps = async ({ params }) => {
   const { name: eventName } = params;
 
   const history = await getLogsForEvent({ eventName });
-  const { event: { version } = {} } = await getEventByName(eventName);
+  const { event: { version } = {} } = await getEventByName({ eventName });
 
   return {
     props: {
@@ -157,8 +157,10 @@ export const getStaticProps = async ({ params }) => {
 };
 
 export async function getStaticPaths() {
-  const services = getAllEvents();
-  const paths = services.map((event) => ({ params: { name: event.name } }));
+  const events = getAllEvents();
+  const eventsWithoutDomains = events.filter((event) => !event.domain);
+  const paths = eventsWithoutDomains.map((event) => ({ params: { name: event.name } }));
+
   return {
     paths,
     fallback: false,

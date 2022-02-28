@@ -27,7 +27,9 @@ export async function getStaticProps({ params }) {
 
 export async function getStaticPaths() {
   const allEventsAndVersions = getAllEventsAndVersionsFlattened();
-  const paths = allEventsAndVersions.map(({ eventName, version, domain = '' }: any) => ({
+  const eventsWithDomains = allEventsAndVersions.filter((item) => !!item.domain);
+
+  const paths = eventsWithDomains.map(({ eventName, version, domain = '' }: any) => ({
     params: { name: eventName, version, domain },
   }));
   return {

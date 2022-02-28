@@ -1,5 +1,6 @@
 import ServicePage from '../../../services/[name]';
-import { getAllServices, getServiceByName } from '@/lib/services';
+import { getServiceByName } from '@/lib/services';
+import { getAllServicesFromDomains } from '@/lib/domains';
 
 export default ServicePage;
 
@@ -32,7 +33,7 @@ export async function getStaticProps({ params }) {
   }
 }
 export async function getStaticPaths() {
-  const services = getAllServices();
+  const services = getAllServicesFromDomains();
   const paths = services.map((service) => ({ params: { name: service.name, domain: service.domain } }));
   return {
     paths,
