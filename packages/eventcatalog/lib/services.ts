@@ -19,6 +19,7 @@ export const getServiceByPath = (serviceDirPath: string): Service => {
 };
 
 export const getAllServicesFromPath = (serviceDir: string): Service[] => {
+  if (!fs.existsSync(serviceDir)) return [];
   const folders = fs.readdirSync(serviceDir);
   const events = getAllEvents();
   const services = folders.map((folder) => getServiceByPath(path.join(serviceDir, folder)));

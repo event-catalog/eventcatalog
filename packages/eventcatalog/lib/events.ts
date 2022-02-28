@@ -155,6 +155,7 @@ export const getEventByPath = (eventDir: string): Event => {
 };
 
 export const getAllEventsFromPath = (eventsDir: string): Event[] => {
+  if (!fs.existsSync(eventsDir)) return [];
   const folders = fs.readdirSync(eventsDir);
   return folders.map((folder) => getEventByPath(path.join(eventsDir, folder)));
 };
