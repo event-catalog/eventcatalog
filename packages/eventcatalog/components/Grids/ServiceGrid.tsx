@@ -17,11 +17,11 @@ function ServiceGrid({ services = [], showMermaidDiagrams = false }: ServiceGrid
   return (
     <ul className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2">
       {services.map((service) => {
-        const { draft: isDraft } = service;
-
+        const { draft: isDraft, domain } = service;
+        const serviceUrl = domain ? `/domains/${domain}/services/${service.name}` : `/services/${service.name}`;
         return (
           <li key={service.name} className="flex">
-            <Link href={`/services/${service.name}`}>
+            <Link href={serviceUrl}>
               <a className="flex shadow-sm w-full">
                 <div
                   style={{

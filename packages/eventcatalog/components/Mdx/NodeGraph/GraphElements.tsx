@@ -44,7 +44,7 @@ const getNodeLabel = ({ type, label, includeIcon }: { type: NODE_TYPES; label: a
  * @param isAnimated - whether to animate the graph
  */
 export const getEventElements = (
-  { name: eventName, producers: eventProducers, consumers: eventConsumers }: Event,
+  { name: eventName, producerNames: eventProducers, consumerNames: eventConsumers }: Event,
   rootNodeColor = '#2563eb',
   isAnimated = true,
   includeLabels = false,

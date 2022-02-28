@@ -62,8 +62,8 @@ describe('GraphElements', () => {
       const event = {
         name: 'My Event',
         version: '0.0.1',
-        producers: ['Service 1'],
-        consumers: ['Service 2'],
+        producerNames: ['Service 1'],
+        consumerNames: ['Service 2'],
       };
       const rootNodeColor = '#2563eb';
       const isAnimated = true;
@@ -77,8 +77,12 @@ describe('GraphElements', () => {
       const event = {
         name: 'My Event',
         version: '0.0.1',
-        producers: ['Service 1', 'Service 2', 'very very very very very very very very very very very very long name Service 3'],
-        consumers: [
+        producerNames: [
+          'Service 1',
+          'Service 2',
+          'very very very very very very very very very very very very long name Service 3',
+        ],
+        consumerNames: [
           'Service 4',
           'Service 5',
           'Service 6',

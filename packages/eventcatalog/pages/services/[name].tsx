@@ -20,6 +20,7 @@ interface ServicesPageProps {
   service: Service;
   markdown: MarkdownFile;
   notFound?: boolean;
+  breadCrumbs: any;
 }
 
 function MermaidComponent({ title, service, charts }: { title?: string; service: Service; charts?: string[] }) {
@@ -74,7 +75,7 @@ const getComponents = (service) => ({
 });
 
 export default function Services(props: ServicesPageProps) {
-  const { service, markdown, notFound } = props;
+  const { service, markdown, notFound, breadCrumbs } = props;
   const { title } = useConfig();
   const { getEditUrl, hasEditUrl } = useUrl();
 
@@ -87,11 +88,6 @@ export default function Services(props: ServicesPageProps) {
   const { lastModifiedDate } = markdown;
 
   const mdxComponents = getComponents(service);
-
-  const pages = [
-    { name: 'Services', href: '/services', current: false },
-    { name, href: `/services/${name}`, current: true },
-  ];
 
   return (
     <>
@@ -106,7 +102,7 @@ export default function Services(props: ServicesPageProps) {
         subtitle={summary}
         draft={draft}
         lastModifiedDate={lastModifiedDate}
-        breadCrumbs={<BreadCrumbs pages={pages} homePath="/services" />}
+        breadCrumbs={<BreadCrumbs pages={breadCrumbs} homePath="/services" />}
         sidebar={<ServiceSidebar service={service} />}
       >
         {/* @ts-ignore */}
@@ -118,12 +114,16 @@ export default function Services(props: ServicesPageProps) {
 
 export async function getStaticProps({ params }) {
   try {
-    const { service, markdown } = await getServiceByName(params.name);
+    const { service, markdown } = await getServiceByName({ serviceName: params.name });
 
     return {
       props: {
         service,
         markdown,
+        breadCrumbs: [
+          { name: 'Services', href: '/services', current: false },
+          { name: service.name, href: `/services/${service.name}`, current: true },
+        ],
       },
     };
   } catch (error) {

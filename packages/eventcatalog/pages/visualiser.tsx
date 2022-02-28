@@ -2,15 +2,18 @@ import React, { useEffect, useState, useCallback } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import debounce from 'lodash.debounce';
-import type { Event, Service } from '@eventcatalog/types';
+import type { Domain, Event, Service } from '@eventcatalog/types';
 
 import { SearchIcon } from '@heroicons/react/outline';
 
 import { getAllEvents } from '@/lib/events';
 import { getAllServices } from '@/lib/services';
+import { getAllDomains } from '@/lib/domains';
 import { useConfig } from '@/hooks/EventCatalog';
 import NodeGraph from '@/components/Mdx/NodeGraph/NodeGraph';
 import getBackgroundColor from '@/utils/random-bg';
+
+const filterByString = (filter, data) => data.filter((item) => item.name.indexOf(filter) > -1);
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -19,18 +22,31 @@ function classNames(...classes) {
 export interface PageProps {
   events: Event[];
   services: Service[];
+  domains: Domain[];
 }
 
-function Graph({ events, services }: PageProps) {
+function Graph({ events, services, domains }: PageProps) {
   const { title } = useConfig();
   const [searchFilter, setSearchFilter] = useState('');
   const [selectedRootNode, setSelectedRootNode] = useState<any>();
-  const [listItemsToRender, setListItemsToRender] = useState({ events, services });
+  const [listItemsToRender, setListItemsToRender] = useState({ events, services, domains });
 
   const { query, isReady: isRouterReady } = useRouter();
   const { name, type } = query;
 
-  const handleListItemSelection = (data: Event | Service, dataType: 'event' | 'service') => {
+  const dropdownValues = [
+    ...events.map((event) => ({ ...event, type: 'event', label: `Event: ${event.name}` })),
+    ...services.map((event) => ({ ...event, type: 'service', label: `Service: ${event.name}` })),
+    ...domains.map((event) => ({ ...event, type: 'domain', label: `Domain: ${event.name}` })),
+  ];
+
+  const navItems = [
+    { title: 'Domains', type: 'domain', data: listItemsToRender.domains },
+    { title: 'Events', type: 'event', data: listItemsToRender.events },
+    { title: 'Services', type: 'service', data: listItemsToRender.services },
+  ];
+
+  const handleListItemSelection = (data: Event | Service, dataType: 'event' | 'service' | 'domain') => {
     setSelectedRootNode({ label: data.name, data, type: dataType });
   };
 
@@ -48,11 +64,13 @@ function Graph({ events, services }: PageProps) {
   };
 
   const getListItemsToRender = useCallback(() => {
-    if (!searchFilter) return { events, services };
-    const filteredEvents = events.filter((event) => event.name.indexOf(searchFilter) > -1);
-    const filteredServices = services.filter((service) => service.name.indexOf(searchFilter) > -1);
-    return { events: filteredEvents, services: filteredServices };
-  }, [events, services, searchFilter]);
+    if (!searchFilter) return { events, services, domains };
+    return {
+      events: filterByString(searchFilter, events),
+      services: filterByString(searchFilter, services),
+      domains: filterByString(searchFilter, domains),
+    };
+  }, [events, services, domains, searchFilter]);
 
   useEffect(() => {
     const filteredListItems = getListItemsToRender();
@@ -65,18 +83,16 @@ function Graph({ events, services }: PageProps) {
     const initialDataToLoad = events[0];
     const initialSelectedRootNode = { label: initialDataToLoad.name, type: 'event', data: initialDataToLoad };
 
-    if (name && type) {
-      const dataToSearch = type === 'service' ? services : (events as []);
-      const match = dataToSearch.find((item) => item.name === name);
-      if (match) {
-        setSelectedRootNode({ label: match.name, type, data: match });
-      } else {
-        setSelectedRootNode(initialSelectedRootNode);
-      }
-    } else {
+    if (!name || !type) {
       setSelectedRootNode(initialSelectedRootNode);
+      return;
     }
-  }, [name, type, events, services, isRouterReady]);
+
+    const dataByType = { event: events, service: services, domain: domains };
+    const match = dataByType[type.toString()].find((item) => item.name === name);
+    const newSelectedItem = match ? { label: match.name, type, data: match } : initialSelectedRootNode;
+    setSelectedRootNode(newSelectedItem);
+  }, [name, type, events, domains, services, isRouterReady]);
 
   return (
     <div className="h-screen overflow-hidden">
@@ -90,11 +106,8 @@ function Graph({ events, services }: PageProps) {
             onChange={handleDropdownSelect}
           >
             <option>Please select your event or service</option>
-            {events.map((item) => (
-              <option value={JSON.stringify({ label: item.name, data: item, type: 'event' })}>Event: {item.name}</option>
-            ))}
-            {services.map((item) => (
-              <option value={JSON.stringify({ label: item.name, data: item, type: 'service' })}>Service: {item.name}</option>
+            {dropdownValues.map((item) => (
+              <option value={JSON.stringify({ label: item.name, data: item, type: item.type })}>{item.label}</option>
             ))}
           </select>
         </div>
@@ -111,65 +124,23 @@ function Graph({ events, services }: PageProps) {
                 name="event"
                 id="event"
                 onChange={searchOnChange}
-                placeholder="Find Event or Service"
+                placeholder="Find Event, Service or Domain"
                 className="focus:ring-gray-500 focus:border-gray-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
               />
             </div>
           </div>
 
           <div className="space-y-6">
-            <div>
-              <span className="font-bold block py-2">
-                Events {` `}
-                {searchFilter && (
-                  <>
-                    ({listItemsToRender.events.length}/{events.length})
-                  </>
-                )}
-                {!searchFilter && <>({events.length})</>}
-              </span>
-              {listItemsToRender.events.length === 0 && <span className="text-sm text-gray-300">No Events Found</span>}
-              <ul className="space-y-4 overflow-auto">
-                {listItemsToRender.events.map((event) => {
-                  const isSelected = selectedRootNode ? selectedRootNode.label === event.name : false;
-                  return (
-                    <ListItem
-                      type="event"
-                      key={event.name}
-                      data={event}
-                      onClick={(e) => handleListItemSelection(e.data, 'event')}
-                      isSelected={isSelected}
-                    />
-                  );
-                })}
-              </ul>
-            </div>
-            <div>
-              <span className="font-bold block py-2">
-                Services {` `}
-                {searchFilter && (
-                  <>
-                    ({listItemsToRender.services.length}/{services.length})
-                  </>
-                )}
-                {!searchFilter && <>({services.length})</>}
-              </span>
-              {listItemsToRender.services.length === 0 && <span className="text-sm text-gray-300">No Services Found</span>}
-              <ul className="space-y-4 overflow-auto">
-                {listItemsToRender.services.map((service) => {
-                  const isSelected = selectedRootNode ? selectedRootNode.label === service.name : false;
-                  return (
-                    <ListItem
-                      type="event"
-                      key={service.name}
-                      data={service}
-                      onClick={(e) => handleListItemSelection(e.data, 'service')}
-                      isSelected={isSelected}
-                    />
-                  );
-                })}
-              </ul>
-            </div>
+            {navItems.map((navItem: any) => (
+              <SelectionGroup
+                title={navItem.title}
+                filterBy={searchFilter}
+                data={navItem.data}
+                currentSelectedItem={selectedRootNode}
+                type={navItem.type}
+                onClick={handleListItemSelection}
+              />
+            ))}
           </div>
         </div>
         <div className="bg-gray-200 h-screen col-span-12 sm:col-span-6  xl:col-span-5">
@@ -178,7 +149,7 @@ function Graph({ events, services }: PageProps) {
               source={selectedRootNode.type}
               data={selectedRootNode.data}
               title="Visualiser"
-              subtitle={selectedRootNode.data.name}
+              subtitle={`${selectedRootNode.data.name} (${selectedRootNode.type})`}
               rootNodeColor={getBackgroundColor(selectedRootNode.label)}
               fitView
               isAnimated
@@ -196,11 +167,54 @@ function Graph({ events, services }: PageProps) {
   );
 }
 
+interface SelectionGroupProps {
+  title: string;
+  data: Service[] | Event[] | Domain[];
+  type: 'event' | 'service' | 'domain';
+  // eslint-disable-next-line no-unused-vars
+  onClick(data: Event | Service | Domain, type: string): void;
+  currentSelectedItem?: any;
+  filterBy?: string;
+}
+
+function SelectionGroup({ title, data, currentSelectedItem, onClick, filterBy, type }: SelectionGroupProps) {
+  const [dataWithoutFilter] = useState(data);
+
+  return (
+    <div>
+      <span className="font-bold block py-2">
+        {title} {` `}
+        {filterBy && (
+          <>
+            ({data.length}/{dataWithoutFilter.length})
+          </>
+        )}
+        {!filterBy && <>({dataWithoutFilter.length})</>}
+      </span>
+      {data.length === 0 && <span className="text-sm text-gray-300">No {type}s found</span>}
+      <ul className="space-y-4 overflow-auto">
+        {data.map((item) => {
+          const isSelected = currentSelectedItem ? currentSelectedItem.label === item.name : false;
+          return (
+            <ListItem
+              type={type}
+              key={item.name}
+              data={item}
+              onClick={(selectedItem) => onClick(selectedItem, type)}
+              isSelected={isSelected}
+            />
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
 interface ListItemProps {
   data: Service | Event;
   // eslint-disable-next-line no-unused-vars
-  onClick(data: { data: Event | Service; type: string }): void;
-  type: 'event' | 'service';
+  onClick(data: Event | Service | Domain, type: string): void;
+  type: 'event' | 'service' | 'domain';
   isSelected: boolean;
 }
 
@@ -210,7 +224,7 @@ function ListItem({ data, onClick, type, isSelected }: ListItemProps) {
     <li className="flex">
       <button
         type="button"
-        onClick={() => onClick({ data, type })}
+        onClick={() => onClick(data, type)}
         className={`flex shadow-sm rounded-md w-full text-left border ${border}`}
       >
         <div
@@ -235,14 +249,16 @@ function ListItem({ data, onClick, type, isSelected }: ListItemProps) {
 
 export default Graph;
 
-export const getStaticProps = () => {
+export const getStaticProps = async () => {
   const events = getAllEvents();
   const services = getAllServices();
+  const domains = await getAllDomains();
 
   return {
     props: {
       events,
       services,
+      domains: domains.map((data) => data.domain),
     },
   };
 };

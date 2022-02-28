@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 
-import { CubeIcon } from '@heroicons/react/outline';
+import { CubeIcon, CollectionIcon } from '@heroicons/react/outline';
 
 import { Event } from '@eventcatalog/types';
 import getBackgroundColor from '@/utils/random-bg';
@@ -21,11 +21,12 @@ function EventGrid({ events = [], showMermaidDiagrams = false }: EventGridProps)
   return (
     <ul className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2">
       {events.map((event) => {
-        const { draft: isDraft } = event;
+        const { draft: isDraft, domain } = event;
+        const eventURL = domain ? `/domains/${domain}/events/${event.name}` : `/events/${event.name}`;
 
         return (
           <li key={event.name} className="flex">
-            <Link href={`/events/${event.name}`}>
+            <Link href={eventURL}>
               <a className="flex shadow-sm rounded-md w-full">
                 <div
                   style={{
@@ -58,12 +59,18 @@ function EventGrid({ events = [], showMermaidDiagrams = false }: EventGridProps)
                     <div className="flex space-x-4 text-xs pt-2 relative bottom-0 left-0">
                       <div className=" font-medium text-gray-500">
                         <CubeIcon className="h-4 w-4 text-green-400 inline-block mr-2" aria-hidden="true" />
-                        Producers ({event.producers.length})
+                        Producers ({event.producerNames.length})
                       </div>
                       <div className=" font-medium text-gray-500">
                         <CubeIcon className="h-4 w-4 text-indigo-400 inline-block mr-2" aria-hidden="true" />
-                        Subscribers ({event.consumers.length})
+                        Subscribers ({event.consumerNames.length})
                       </div>
+                      {event.domain && (
+                        <div className=" font-medium text-gray-500">
+                          <CollectionIcon className="h-4 w-4 text-yellow-400 inline-block mr-2" aria-hidden="true" />
+                          {event.domain}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

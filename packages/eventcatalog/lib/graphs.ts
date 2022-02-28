@@ -31,14 +31,17 @@ click ${centerNode.id} href "${centerNode.link}" "Go to ${centerNode.name}" _sel
  * @param {string} rootNodeColor of the root node
  * @returns {string} Mermaid Graph
  */
-export const buildMermaidFlowChartForEvent = ({ name: eventName, producers, consumers }: Event, rootNodeColor = '#2563eb') => {
+export const buildMermaidFlowChartForEvent = (
+  { name: eventName, producerNames, consumerNames }: Event,
+  rootNodeColor = '#2563eb'
+) => {
   // Transforms services & event into a graph model
-  const leftNodes = producers.map(truncateNode).map((node) => ({
+  const leftNodes = producerNames.map(truncateNode).map((node) => ({
     id: node.replace(/ /g, '_'),
     name: node,
     link: generateLink(node, 'services'),
   }));
-  const rightNodes = consumers.map(truncateNode).map((node) => ({
+  const rightNodes = consumerNames.map(truncateNode).map((node) => ({
     id: node.replace(/ /g, '_'),
     name: node,
     link: generateLink(node, 'services'),

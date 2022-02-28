@@ -28,9 +28,9 @@ function Graph({ events, services }: PageProps) {
 
   // Create all links
   const links = events.reduce((nodes, event) => {
-    const { consumers = [], producers = [], name } = event;
-    const consumerNodes = consumers.map((consumer) => ({ source: truncateNode(name), target: truncateNode(consumer) }));
-    const producerNodes = producers.map((producer) => ({ source: truncateNode(producer), target: truncateNode(name) }));
+    const { consumerNames = [], producerNames = [], name } = event;
+    const consumerNodes = consumerNames.map((consumer) => ({ source: truncateNode(name), target: truncateNode(consumer) }));
+    const producerNodes = producerNames.map((producer) => ({ source: truncateNode(producer), target: truncateNode(name) }));
     return nodes.concat(consumerNodes).concat(producerNodes);
   }, []);
 
