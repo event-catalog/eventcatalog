@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.1
+
+### Patch Changes
+
+- [`ccefeee`](https://github.com/boyney123/eventcatalog/commit/ccefeeee93e80620c1c3755676bd0dbe448b4a8a) [#206](https://github.com/boyney123/eventcatalog/pull/206) Thanks [@boyney123](https://github.com/boyney123)! - feat: fixing domains and adding them to create package
+
 ## 0.2.0
 
 ### Minor Changes
