@@ -18,7 +18,7 @@ const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
     name,
     version,
     summary,
-    domain = '',
+    domain = null,
     producers = [],
     consumers = [],
     owners = [],
@@ -38,8 +38,16 @@ const versionsForEvents = (pathToEvent) => {
   return [];
 };
 
-export const getLogsForEvent = (eventName) => {
-  const eventsDir = path.join(process.env.PROJECT_DIR, 'events');
+
+
+export const getLogsForEvent = ({ eventName, domain }: { eventName: string, domain?: string }) => {
+
+  let eventsDir = path.join(process.env.PROJECT_DIR, 'events');
+
+  if(domain){
+    eventsDir = path.join(process.env.PROJECT_DIR, 'domains', domain, 'events')
+  }
+
   const historicVersions = versionsForEvents(path.join(eventsDir, eventName));
 
   const allVersions = historicVersions.map((version) => ({
@@ -156,9 +164,9 @@ export const getAllEventsFromPath = (eventsDir: string): Event[] => {
 
 export const getAllEvents = (): Event[] => {
   const allEventsFromDomainFolders = getAllEventsFromDomains();
-  const eventsWithDomains = getAllEventsFromPath(path.join(process.env.PROJECT_DIR, 'events'));
+  const eventsWithoutDomains = getAllEventsFromPath(path.join(process.env.PROJECT_DIR, 'events'));
 
-  const events = [...eventsWithDomains, ...allEventsFromDomainFolders];
+  const events = [...eventsWithoutDomains, ...allEventsFromDomainFolders];
   const sortedEvents = events.sort((a, b) => a.name.localeCompare(b.name));
 
   return sortedEvents;
@@ -180,7 +188,9 @@ export const getAllEventsAndVersionsFlattened = () => {
     // eventsWithVersionsFlattened.push({ eventName: event.name, version: event.version })
 
     if (event.historicVersions) {
-      event.historicVersions.forEach((version) => eventsWithVersionsFlattened.push({ eventName: event.name, version, domain: event.domain }));
+      event.historicVersions.forEach((version) =>
+        eventsWithVersionsFlattened.push({ eventName: event.name, version, domain: event.domain })
+      );
     }
 
     return eventsWithVersionsFlattened;
@@ -220,7 +230,7 @@ export const getEventByName = async ({
     return {
       event: {
         ...event,
-        domain,
+        domain: domain || null,
         historicVersions: versionsForEvents(eventDirectory),
         schema: getSchemaFromDir(directoryToLoadForEvent),
         examples: getEventExamplesFromDir(path.join(directoryToLoadForEvent, `examples`)),

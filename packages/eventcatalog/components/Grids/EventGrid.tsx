@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 
-import { CubeIcon } from '@heroicons/react/outline';
+import { CubeIcon, CollectionIcon } from '@heroicons/react/outline';
 
 import { Event } from '@eventcatalog/types';
 import getBackgroundColor from '@/utils/random-bg';
@@ -65,6 +65,12 @@ function EventGrid({ events = [], showMermaidDiagrams = false }: EventGridProps)
                         <CubeIcon className="h-4 w-4 text-indigo-400 inline-block mr-2" aria-hidden="true" />
                         Subscribers ({event.consumers.length})
                       </div>
+                      {event.domain && (
+                        <div className=" font-medium text-gray-500">
+                          <CollectionIcon className="h-4 w-4 text-yellow-400 inline-block mr-2" aria-hidden="true" />
+                          {event.domain}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

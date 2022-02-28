@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import ReactFlow, { Controls, ReactFlowProvider, useStoreState, Background, useZoomPanHelper } from 'react-flow-renderer';
-import { Event, Service } from '@eventcatalog/types';
+import { Domain, Event, Service } from '@eventcatalog/types';
 import { getEventElements, getServiceElements } from './GraphElements';
 import createGraphLayout, { calcCanvasHeight } from './GraphLayout';
 
 interface NodeGraphBuilderProps {
-  data: Event | Service;
-  source: 'event' | 'service';
+  data: Event | Service | Domain;
+  source: 'event' | 'service' | 'domain';
   title?: string;
   subtitle?: string;
   rootNodeColor?: string;
@@ -45,9 +45,19 @@ function NodeGraphBuilder({
   subtitle,
 }: NodeGraphBuilderProps) {
   const getElements = () => {
+    if (source === 'domain') {
+      const domainData = data as Domain;
+      const totalEventElements = domainData.events.map((event) => getEventElements(event, rootNodeColor, isAnimated, true, true));
+      const totalServiceElements = domainData.services.map((service) =>
+        getServiceElements(service, rootNodeColor, isAnimated, true, true)
+      );
+      return totalEventElements.flat().concat(totalServiceElements.flat());
+    }
+
     if (source === 'event') {
       return getEventElements(data as Event, rootNodeColor, isAnimated, includeEdgeLabels, includeNodeIcons);
     }
+
     return getServiceElements(data as Service, rootNodeColor, isAnimated, includeEdgeLabels, includeNodeIcons);
   };
 

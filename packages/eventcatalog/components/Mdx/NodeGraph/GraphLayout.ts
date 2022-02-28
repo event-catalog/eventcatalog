@@ -48,10 +48,14 @@ export const calcCanvasHeight = (data, type): number => {
   const minHeight = 300;
   const nodeSpacing = nodeDefaultHeight + verticalOffset;
   let nodesHeight = 0;
+
   if (type === 'event') {
     nodesHeight = Math.max(data.producers.length, data.consumers.length) * nodeSpacing;
-  } else {
+  }
+
+  if (type === 'service') {
     nodesHeight = Math.max(data.publishes.length, data.subscribes.length) * nodeSpacing;
   }
+
   return Math.max(minHeight, nodesHeight);
 };

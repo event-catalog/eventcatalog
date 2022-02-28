@@ -1,18 +1,22 @@
-import { Event, Service } from '@eventcatalog/types';
+import { Domain, Event, Service } from '@eventcatalog/types';
 import EventGrid from '@/components/Grids/EventGrid';
 import ServiceGrid from '@/components/Grids/ServiceGrid';
+import DomainGrid from '@/components/Grids/DomainGrid';
+
 import { getAllEventsByOwnerId, getAllOwners } from '@/lib/events';
 import { getAllServicesByOwnerId } from '@/lib/services';
+import { getAllDomainsByOwnerId } from '@/lib/domains';
 
 import { useUser } from '@/hooks/EventCatalog';
 
 interface UserPageProps {
   events: Event[];
   services: Service[];
+  domains: Domain[];
   userId: string;
 }
 
-export default function UserPage({ events, services, userId }: UserPageProps) {
+export default function UserPage({ events, services, domains, userId }: UserPageProps) {
   const { getUserById } = useUser();
 
   const user = getUserById(userId);
@@ -28,13 +32,17 @@ export default function UserPage({ events, services, userId }: UserPageProps) {
                   <h1 className="text-3xl font-bold text-gray-900 relative">{user.name}</h1>
                 </div>
               </div>
-              <div className=" border-b border-gray-100 pb-6">
+              <div className="border-b border-gray-100 pb-6">
                 <h1 className="text-lg font-bold text-gray-800 relative mt-4">Owner of Events ({events.length})</h1>
                 <EventGrid events={events} />
               </div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-800 relative mt-4">Owner of Services ({services.length})</h1>
+              <div className="border-b border-gray-100 pb-6">
+                <h1 className="text-lg font-bold text-gray-800 relative mt-4 ">Owner of Services ({services.length})</h1>
                 <ServiceGrid services={services} />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-gray-800 relative mt-4">Owner of Domains ({domains.length})</h1>
+                <DomainGrid domains={domains} />
               </div>
             </div>
             <div className="px-8">
@@ -63,10 +71,12 @@ export const getStaticProps = async ({ params }) => {
   const { id: userId } = params;
   const userEvents = await getAllEventsByOwnerId(userId);
   const services = await getAllServicesByOwnerId(userId);
+  const domains = await getAllDomainsByOwnerId(userId);
 
   return {
     props: {
       events: userEvents,
+      domains,
       services,
       userId,
     },

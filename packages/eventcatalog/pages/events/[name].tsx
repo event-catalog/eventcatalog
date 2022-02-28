@@ -162,7 +162,14 @@ export default function Events(props: EventsPageProps) {
         isOldVersion={loadedVersion !== 'latest'}
         latestVersionUrl={eventPath}
         version={loadedVersion}
-        sidebar={<EventSideBar event={event} urlPath={eventPath} loadedVersion={loadedVersion} isOldVersion={loadedVersion !== 'latest'} />}
+        sidebar={
+          <EventSideBar
+            event={event}
+            urlPath={eventPath}
+            loadedVersion={loadedVersion}
+            isOldVersion={loadedVersion !== 'latest'}
+          />
+        }
       >
         <MDXRemote {...markdown.source} components={mdxComponents} />
       </ContentView>
@@ -172,7 +179,9 @@ export default function Events(props: EventsPageProps) {
 
 export async function getStaticProps({ params }) {
   try {
-    const { event, markdown } = await getEventByName(params.name);
+    const { event, markdown } = await getEventByName({
+      eventName: params.name
+    });
     return {
       props: {
         event,

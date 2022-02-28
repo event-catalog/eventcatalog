@@ -21,7 +21,7 @@ export interface Event {
   version: string;
   draft?: boolean;
   summary?: string;
-  domain?: string;
+  domain?: string | null;
   producers?: string[] | [];
   consumers?: string[] | [];
   historicVersions?: string[];
@@ -49,6 +49,16 @@ export interface Service {
   domain?: string;
   publishes?: Event[] | [];
   subscribes?: Event[] | [];
+  owners?: Owner[] | string[] | [];
+  tags?: Tag[];
+  externalLinks?: Tag[];
+}
+
+export interface Domain {
+  name: string;
+  summary: string;
+  services?: Service[] | [];
+  events?: Event[] | [];
   owners?: Owner[] | string[] | [];
   tags?: Tag[];
   externalLinks?: Tag[];

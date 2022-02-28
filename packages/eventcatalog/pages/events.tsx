@@ -7,6 +7,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon, SearchIcon } from '@heroicons/react/solid';
 import EventGrid from '@/components/Grids/EventGrid';
 import { getAllEvents, getUniqueServicesNamesFromEvents } from '@/lib/events';
+import { getUniqueDomainNamesFromEvents } from '@/lib/domains';
 import { useConfig } from '@/hooks/EventCatalog';
 
 function classNames(...classes) {
@@ -21,11 +22,21 @@ const sortOptions = [
 
 export interface PageProps {
   events: Event[];
-  services: [Service];
+  services: Service[];
+  domains: string[];
 }
 
-export default function Page({ events, services }: PageProps) {
+export default function Page({ events, services, domains }: PageProps) {
   const filters = [
+    {
+      id: 'domains',
+      name: `Filter by Domains (${domains.length})`,
+      options: domains.map((domain) => ({
+        value: domain,
+        label: domain,
+        checked: false,
+      })),
+    },
     {
       id: 'services',
       name: `Filter by Services (${services.length})`,
@@ -37,12 +48,14 @@ export default function Page({ events, services }: PageProps) {
     },
   ];
 
-  const [selectedFilters, setSelectedFilters] = useState({ services: [] });
+  const [selectedFilters, setSelectedFilters] = useState({ services: [], domains: [] });
   const [showMermaidDiagrams, setShowMermaidDiagrams] = useState(false);
   const [eventsToRender, setEventsToRender] = useState(events);
   const [searchFilter, setSearchFilter] = useState('');
 
   const handleFilterSelection = (option, type, event) => {
+    console.log(option, type, event);
+
     if (event.target.checked) {
       const newFilters = selectedFilters[type].concat([option.value]);
       setSelectedFilters({ ...selectedFilters, [type]: newFilters });
@@ -53,7 +66,7 @@ export default function Page({ events, services }: PageProps) {
   };
 
   const getFilteredEvents = (): any => {
-    if (!selectedFilters.services && !searchFilter) return events;
+    if (!selectedFilters.services && !searchFilter && !selectedFilters.domains) return events;
 
     let filteredEvents = events;
 
@@ -66,6 +79,14 @@ export default function Page({ events, services }: PageProps) {
         const hasProducersFromFilters = event.producers.some((producerId) => serviceFilters.indexOf(producerId) > -1);
 
         return hasConsumersFromFilters || hasProducersFromFilters;
+      });
+    }
+
+    if (selectedFilters.domains.length > 0) {
+      // @ts-ignore
+      filteredEvents = filteredEvents.filter((event) => {
+        const { domains: domainFilters } = selectedFilters;
+        return domainFilters.indexOf(event.domain) > -1;
       });
     }
 
@@ -168,35 +189,38 @@ export default function Page({ events, services }: PageProps) {
                   />
                 </div>
               </div>
-              {filters.map((section: any) => (
-                <div key={section.id} className="border-b border-gray-200 py-6">
-                  <h3 className="-my-3 flow-root">
-                    <div className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
-                      <span className="font-bold font-medium text-gray-900">{section.name}</span>
-                    </div>
-                  </h3>
-                  <div className="pt-6">
-                    <div className="space-y-4">
-                      {section.options.map((option, optionIdx) => (
-                        <div key={option.value} className="flex items-center">
-                          <input
-                            id={`filter-${section.id}-${optionIdx}`}
-                            name={`${section.id}[]`}
-                            defaultValue={option.value}
-                            type="checkbox"
-                            onChange={(event) => handleFilterSelection(option, section.id, event)}
-                            defaultChecked={option.checked}
-                            className="h-4 w-4 border-gray-300 rounded text-gray-600 focus:ring-gray-500"
-                          />
-                          <label htmlFor={`filter-${section.id}-${optionIdx}`} className="ml-3 text-sm text-gray-600">
-                            {option.label}
-                          </label>
-                        </div>
-                      ))}
+              {filters.map((section: any) => {
+                if (!section.options.length) return null;
+                return (
+                  <div key={section.id} className="border-b border-gray-200 py-6">
+                    <h3 className="-my-3 flow-root">
+                      <div className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
+                        <span className="font-bold font-medium text-gray-900">{section.name}</span>
+                      </div>
+                    </h3>
+                    <div className="pt-6">
+                      <div className="space-y-4">
+                        {section.options.map((option, optionIdx) => (
+                          <div key={option.value} className="flex items-center">
+                            <input
+                              id={`filter-${section.id}-${optionIdx}`}
+                              name={`${section.id}[]`}
+                              defaultValue={option.value}
+                              type="checkbox"
+                              onChange={(event) => handleFilterSelection(option, section.id, event)}
+                              defaultChecked={option.checked}
+                              className="h-4 w-4 border-gray-300 rounded text-gray-600 focus:ring-gray-500"
+                            />
+                            <label htmlFor={`filter-${section.id}-${optionIdx}`} className="ml-3 text-sm text-gray-600">
+                              {option.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               <div className="border-b border-gray-200 py-6">
                 <h3 className="-my-3 flow-root">
@@ -251,12 +275,14 @@ export default function Page({ events, services }: PageProps) {
 export const getStaticProps = () => {
   const events = getAllEvents();
   const services = getUniqueServicesNamesFromEvents(events);
+  const domains = getUniqueDomainNamesFromEvents(events);
 
   return {
     props: {
       events,
       // @ts-ignore
       services: [...new Set(services)],
+      domains,
     },
   };
 };

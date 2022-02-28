@@ -144,7 +144,7 @@ function Logs({ changes, name: eventName, currentVersion }: LogsProps) {
 export const getStaticProps = async ({ params }) => {
   const { name: eventName } = params;
 
-  const history = await getLogsForEvent(eventName);
+  const history = await getLogsForEvent({ eventName });
   const { event: { version } = {} } = await getEventByName(eventName);
 
   return {

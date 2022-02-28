@@ -33,6 +33,7 @@ describe('services', () => {
             url: 'https://github.com/boyney123/pretend-basket-service',
           },
           subscribes: [],
+          domain: null,
           summary: 'CRUD based API to handle Basket interactions for users of the shopping website.\n',
           tags: [],
         },
@@ -40,6 +41,7 @@ describe('services', () => {
           name: 'Email Platform',
           summary: 'Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS\n',
           owners: ['dboyne'],
+          domain: null,
           repository: {
             url: 'https://github.com/boyney123/EmailPlatform',
             language: 'JavaScript',
@@ -62,12 +64,32 @@ describe('services', () => {
               consumers: [],
               externalLinks: [],
               historicVersions: [],
+              domain: null,
               owners: ['dboyne', 'mSmith'],
             },
           ],
           subscribes: [],
           externalLinks: [],
         },
+        {
+          name: 'User Service',
+          summary: 'CRUD based API to handle User information\n',
+          domain: 'User',
+          owners: ['mSmith'],
+          repository: {
+            language: 'JavaScript',
+            url: 'https://github.com/boyney123/pretend-basket-service',
+          },
+          tags: [],
+          externalLinks: [
+            {
+              label: 'AsyncAPI Specification',
+              url: 'https://studio.asyncapi.com/#schema-lightMeasuredPayload',
+            },
+          ],
+          publishes: [],
+          subscribes: [],
+        }
       ]);
     });
   });
@@ -90,6 +112,7 @@ describe('services', () => {
             url: 'https://github.com/boyney123/EmailPlatform',
             language: 'JavaScript',
           },
+          domain: null,
           tags: [
             {
               label: 'defaultContentType:application/json',
@@ -107,6 +130,7 @@ describe('services', () => {
               producers: ['Email Platform'],
               consumers: [],
               historicVersions: [],
+              domain: null,
               externalLinks: [],
               owners: ['dboyne', 'mSmith'],
             },
@@ -120,12 +144,13 @@ describe('services', () => {
 
   describe('getServiceByName', () => {
     it('returns an event and markdown by the given event name', async () => {
-      const { service, markdown } = await getServiceByName('Email Platform');
+      const { service, markdown } = await getServiceByName({ serviceName: 'Email Platform' });
 
       expect(service).toEqual({
         name: 'Email Platform',
         summary: 'Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS\n',
         owners: ['dboyne'],
+        domain: null,
         repository: {
           url: 'https://github.com/boyney123/EmailPlatform',
           language: 'JavaScript',
@@ -147,6 +172,7 @@ describe('services', () => {
             producers: ['Email Platform'],
             consumers: [],
             historicVersions: [],
+            domain: null,
             externalLinks: [],
             owners: ['dboyne', 'mSmith'],
           },
@@ -157,6 +183,35 @@ describe('services', () => {
 
       // @ts-ignore
       expect(markdown.content).toMatchMarkdown('# Testing');
+    });
+
+    describe('services within domains', () => {
+      it('returns an event and markdown by the given event name', async () => {
+        const { service, markdown } = await getServiceByName({ serviceName: 'User Service', domain: 'User' });
+
+        expect(service).toEqual({
+          name: 'User Service',
+          summary: 'CRUD based API to handle User information\n',
+          domain: 'User',
+          owners: ['mSmith'],
+          repository: {
+            language: 'JavaScript',
+            url: 'https://github.com/boyney123/pretend-basket-service',
+          },
+          tags: [],
+          externalLinks: [
+            {
+              label: 'AsyncAPI Specification',
+              url: 'https://studio.asyncapi.com/#schema-lightMeasuredPayload',
+            },
+          ],
+          publishes: [],
+          subscribes: [],
+        });
+
+        // @ts-ignore
+        expect(markdown.content).toMatchMarkdown('# Testing');
+      });
     });
   });
 });

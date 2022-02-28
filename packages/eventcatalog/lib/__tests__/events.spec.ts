@@ -21,85 +21,157 @@ describe('events lib', () => {
   });
 
   describe('getEventByName', () => {
-    it('returns an event and markdown by the given event name', async () => {
-      const { event, markdown } = await getEventByName('AddedItemToCart');
+    describe('events without domains', () => {
+      it('returns an event and markdown by the given event name', async () => {
+        const { event, markdown } = await getEventByName({ eventName: 'AddedItemToCart' });
 
-      expect(event).toEqual({
-        name: 'AddedItemToCart',
-        version: '0.0.1',
-        summary: 'Holds information about the cusomer and product when they add an item to the cart.\n',
-        producers: ['Shopping API', 'Application API'],
-        consumers: ['Customer Portal'],
-        owners: ['dboyne', 'mSmith'],
-        historicVersions: [],
-        externalLinks: [],
-        schema: null,
-        examples: [],
+        expect(event).toEqual({
+          name: 'AddedItemToCart',
+          version: '0.0.1',
+          summary: 'Holds information about the cusomer and product when they add an item to the cart.\n',
+          producers: ['Shopping API', 'Application API'],
+          consumers: ['Customer Portal'],
+          owners: ['dboyne', 'mSmith'],
+          domain: null,
+          historicVersions: [],
+          externalLinks: [],
+          schema: null,
+          examples: [],
+        });
+
+        // @ts-ignore
+        expect(markdown.content).toMatchMarkdown('# Testing');
       });
 
-      // @ts-ignore
-      expect(markdown.content).toMatchMarkdown('# Testing');
+      it('returns the schema and examples of the event as empty if no schema or examples are found', async () => {
+        const { event } = await getEventByName({ eventName: 'AddedItemToCart' });
+
+        expect(event.schema).toEqual(null);
+        expect(event.examples).toEqual([]);
+      });
+
+      it('returns the schema if there is a `schema` file is found in directory of the event', async () => {
+        const { event } = await getEventByName({ eventName: 'EventWithSchemaAndExamples' });
+
+        const schema = `{
+              "some-schema": true,
+              "does-not-really-matter-what-content-is-in-this-file": true
+          }`;
+
+        // @ts-ignore
+        expect(event.schema.snippet).toMatchMarkdown(schema);
+        expect(event.schema.language).toEqual('json');
+      });
+
+      it('returns all event examples (files) when examples directory is found within the event folder', async () => {
+        const { event } = await getEventByName({ eventName: 'EventWithSchemaAndExamples' });
+
+        const example1 = event.examples[0];
+        const example2 = event.examples[1];
+
+        const example1File = fs.readFileSync(
+          path.join(process.env.PROJECT_DIR, 'events', 'EventWithSchemaAndExamples', 'examples', 'Basic.cs'),
+          { encoding: 'utf-8' }
+        );
+        const example2File = fs.readFileSync(
+          path.join(process.env.PROJECT_DIR, 'events', 'EventWithSchemaAndExamples', 'examples', 'Basic.js'),
+          { encoding: 'utf-8' }
+        );
+
+        expect(event.examples).toHaveLength(2);
+
+        expect(example1.name).toEqual('Basic.cs');
+        expect(example1.langugage).toEqual('csharp');
+        expect(example1.snippet).toEqual(example1File);
+
+        expect(example2.name).toEqual('Basic.js');
+        expect(example2.langugage).toEqual('javascript');
+        expect(example2.snippet).toEqual(example2File);
+      });
+
+      it('returns previous versions of events when the event has previous versions in the folder directory', async () => {
+        const { event } = await getEventByName({ eventName: 'EventWithVersions' });
+        expect(event.historicVersions).toEqual(['0.0.1']);
+      });
+
+      it('returns empty array of event historic events when the event does not have previous versions in the folder directory', async () => {
+        const { event } = await getEventByName({ eventName: 'EventWithSchemaAndExamples' });
+        expect(event.historicVersions).toEqual([]);
+      });
     });
 
-    it('returns the schema and examples of the event as empty if no schema or examples are found', async () => {
-      const { event } = await getEventByName('AddedItemToCart');
+    describe('events within domains', () => {
+      it('returns an event and markdown by the given event name', async () => {
+        const { event, markdown } = await getEventByName({ eventName: 'UserCreated', domain: 'User' });
 
-      expect(event.schema).toEqual(null);
-      expect(event.examples).toEqual([]);
-    });
+        expect(event).toEqual({
+          name: 'UserCreated',
+          version: '0.0.1',
+          summary: 'Holds information about when the user has been created.\n',
+          producers: ['Application API'],
+          consumers: ['Customer Portal'],
+          owners: ['dboyne', 'mSmith'],
+          domain: 'User',
+          historicVersions: [],
+          externalLinks: [],
+          schema: null,
+          examples: [],
+        });
 
-    it('returns the schema if there is a `schema` file is found in directory of the event', async () => {
-      const { event } = await getEventByName('EventWithSchemaAndExamples');
+        // @ts-ignore
+        expect(markdown.content).toMatchMarkdown('# Testing');
+      });
 
-      const schema = `{
-            "some-schema": true,
-            "does-not-really-matter-what-content-is-in-this-file": true
-        }`;
+      it('returns the schema and examples of the event as empty if no schema or examples are found', async () => {
+        const { event } = await getEventByName({ eventName: 'UserCreated', domain: 'User' });
 
-      // @ts-ignore
-      expect(event.schema.snippet).toMatchMarkdown(schema);
-      expect(event.schema.language).toEqual('json');
-    });
+        expect(event.schema).toEqual(null);
+        expect(event.examples).toEqual([]);
+      });
 
-    it('returns all event examples (files) when examples directory is found within the event folder', async () => {
-      const { event } = await getEventByName('EventWithSchemaAndExamples');
+      it('returns the schema if there is a `schema` file is found in directory of the event', async () => {
+        const { event } = await getEventByName({ eventName: 'UserRemoved', domain: 'User' });
 
-      const example1 = event.examples[0];
-      const example2 = event.examples[1];
+        const schema = `{
+              "some-schema": true,
+              "does-not-really-matter-what-content-is-in-this-file": true
+          }`;
 
-      const example1File = fs.readFileSync(
-        path.join(process.env.PROJECT_DIR, 'events', 'EventWithSchemaAndExamples', 'examples', 'Basic.cs'),
-        { encoding: 'utf-8' }
-      );
-      const example2File = fs.readFileSync(
-        path.join(process.env.PROJECT_DIR, 'events', 'EventWithSchemaAndExamples', 'examples', 'Basic.js'),
-        { encoding: 'utf-8' }
-      );
+        // @ts-ignore
+        expect(event.schema.snippet).toMatchMarkdown(schema);
+        expect(event.schema.language).toEqual('json');
+      });
 
-      expect(event.examples).toHaveLength(2);
+      it('returns all event examples (files) when examples directory is found within the event folder', async () => {
+        const { event } = await getEventByName({ eventName: 'UserRemoved', domain: 'User' });
 
-      expect(example1.name).toEqual('Basic.cs');
-      expect(example1.langugage).toEqual('csharp');
-      expect(example1.snippet).toEqual(example1File);
+        const example1 = event.examples[0];
+        const example2 = event.examples[1];
 
-      expect(example2.name).toEqual('Basic.js');
-      expect(example2.langugage).toEqual('javascript');
-      expect(example2.snippet).toEqual(example2File);
-    });
+        const example1File = fs.readFileSync(
+          path.join(process.env.PROJECT_DIR, 'domains', 'User', 'events', 'UserRemoved', 'examples', 'Basic.cs'),
+          { encoding: 'utf-8' }
+        );
+        const example2File = fs.readFileSync(
+          path.join(process.env.PROJECT_DIR, 'domains', 'User', 'events', 'UserRemoved', 'examples', 'Basic.js'),
+          { encoding: 'utf-8' }
+        );
 
-    it('returns previous versions of events when the event has previous versions in the folder directory', async () => {
-      const { event } = await getEventByName('EventWithVersions');
-      expect(event.historicVersions).toEqual(['0.0.1']);
-    });
+        expect(event.examples).toHaveLength(2);
 
-    it('returns empty array of event historic events when the event does not have previous versions in the folder directory', async () => {
-      const { event } = await getEventByName('EventWithSchemaAndExamples');
-      expect(event.historicVersions).toEqual([]);
+        expect(example1.name).toEqual('Basic.cs');
+        expect(example1.langugage).toEqual('csharp');
+        expect(example1.snippet).toEqual(example1File);
+
+        expect(example2.name).toEqual('Basic.js');
+        expect(example2.langugage).toEqual('javascript');
+        expect(example2.snippet).toEqual(example2File);
+      });
     });
   });
 
   describe('getAllEvents', () => {
-    it('gets all the events (in the PROJECT_DIR events dir)', async () => {
+    it('gets all the events in the /events directory and also all events within domain directorys', async () => {
       const events = await getAllEvents();
 
       expect(events).toEqual([
@@ -107,41 +179,67 @@ describe('events lib', () => {
           name: 'AddedItemToCart',
           version: '0.0.1',
           summary: 'Holds information about the cusomer and product when they add an item to the cart.\n',
+          domain: null,
           producers: ['Shopping API', 'Application API'],
           consumers: ['Customer Portal'],
-          historicVersions: [],
-          externalLinks: [],
           owners: ['dboyne', 'mSmith'],
+          externalLinks: [],
+          historicVersions: [],
         },
         {
           name: 'EmailSent',
           version: '0.0.1',
           summary: 'Tells us when an email has been sent\n',
+          domain: null,
           producers: ['Email Platform'],
-          historicVersions: [],
-          externalLinks: [],
           consumers: [],
           owners: ['dboyne', 'mSmith'],
+          externalLinks: [],
+          historicVersions: [],
         },
         {
           name: 'EventWithSchemaAndExamples',
           version: '0.0.1',
           summary: 'Example event with schema and examples\n',
-          historicVersions: [],
-          externalLinks: [],
+          domain: null,
           producers: [],
           consumers: [],
           owners: [],
+          externalLinks: [],
+          historicVersions: [],
         },
         {
           name: 'EventWithVersions',
           version: '0.0.5',
           summary: 'Tells us when an email has been sent\n',
-          historicVersions: ['0.0.1'],
+          domain: null,
           producers: [],
-          externalLinks: [],
           consumers: [],
           owners: [],
+          externalLinks: [],
+          historicVersions: ['0.0.1'],
+        },
+        {
+          name: 'UserCreated',
+          version: '0.0.1',
+          summary: 'Holds information about when the user has been created.\n',
+          domain: 'User',
+          producers: ['Application API'],
+          consumers: ['Customer Portal'],
+          owners: ['dboyne', 'mSmith'],
+          externalLinks: [],
+          historicVersions: [],
+        },
+        {
+          name: 'UserRemoved',
+          version: '0.0.1',
+          summary: 'Holds information about when the user has been removed.\n',
+          domain: 'User',
+          producers: ['Application API'],
+          consumers: ['Customer Portal'],
+          owners: ['dboyne', 'mSmith'],
+          externalLinks: [],
+          historicVersions: [],
         },
       ]);
     });
@@ -198,21 +296,45 @@ describe('events lib', () => {
           name: 'AddedItemToCart',
           version: '0.0.1',
           summary: 'Holds information about the cusomer and product when they add an item to the cart.\n',
+          domain: null,
           producers: ['Shopping API', 'Application API'],
           consumers: ['Customer Portal'],
           owners: ['dboyne', 'mSmith'],
-          historicVersions: [],
           externalLinks: [],
+          historicVersions: [],
         },
         {
           name: 'EmailSent',
           version: '0.0.1',
           summary: 'Tells us when an email has been sent\n',
+          domain: null,
           producers: ['Email Platform'],
           consumers: [],
-          historicVersions: [],
-          externalLinks: [],
           owners: ['dboyne', 'mSmith'],
+          externalLinks: [],
+          historicVersions: [],
+        },
+        {
+          name: 'UserCreated',
+          version: '0.0.1',
+          summary: 'Holds information about when the user has been created.\n',
+          domain: 'User',
+          producers: ['Application API'],
+          consumers: ['Customer Portal'],
+          owners: ['dboyne', 'mSmith'],
+          externalLinks: [],
+          historicVersions: [],
+        },
+        {
+          name: 'UserRemoved',
+          version: '0.0.1',
+          summary: 'Holds information about when the user has been removed.\n',
+          domain: 'User',
+          producers: ['Application API'],
+          consumers: ['Customer Portal'],
+          owners: ['dboyne', 'mSmith'],
+          externalLinks: [],
+          historicVersions: [],
         },
       ]);
     });

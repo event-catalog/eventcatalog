@@ -22,16 +22,8 @@ const getAllEventsAndSchemaPaths = (directory) => {
   });
 };
 
-const main = async () => {
-  const publicDir = path.join(__dirname, '../public');
-  const publicSchemaDir = path.join(publicDir, 'schemas');
-
-  if (fs.existsSync(publicSchemaDir)) {
-    fs.rmSync(publicSchemaDir, { recursive: true, force: true });
-  }
-  fs.mkdirSync(publicSchemaDir);
-
-  const eventsWithSchemaPaths = getAllEventsAndSchemaPaths(path.join(process.env.PROJECT_DIR, 'events'));
+const parseEventDirectory = (publicSchemaDir, eventsDir) => {
+  const eventsWithSchemaPaths = getAllEventsAndSchemaPaths(eventsDir);
   const eventsWithSchemas = eventsWithSchemaPaths.filter((event) => !!event.schemaContent);
 
   eventsWithSchemas.forEach((event) => {
@@ -54,6 +46,30 @@ const main = async () => {
 
     fs.writeFileSync(path.join(eventDir, event.schemaFileName), event.schemaContent);
   });
+}
+
+const main = async () => {
+  const publicDir = path.join(__dirname, '../public');
+  const publicSchemaDir = path.join(publicDir, 'schemas');
+
+  const eventsWithoutDomainsDir = path.join(process.env.PROJECT_DIR, 'events');
+  const domainsDir = path.join(process.env.PROJECT_DIR, 'domains');
+
+  if (fs.existsSync(publicSchemaDir)) {
+    fs.rmSync(publicSchemaDir, { recursive: true, force: true });
+  }
+
+  fs.mkdirSync(publicSchemaDir);
+
+  // Write all events within domains
+  const domains = fs.readdirSync(domainsDir);
+  domains.forEach(domain => {
+    parseEventDirectory(publicSchemaDir, path.join(domainsDir, domain, 'events'));
+  })
+
+  // just parse the events directory (without domains)
+  parseEventDirectory(publicSchemaDir, eventsWithoutDomainsDir);
+
 };
 
 main();
