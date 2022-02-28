@@ -48,8 +48,8 @@ click My_Service href "/docs/services/My Service" "Go to My Service" _self`);
       const event = {
         name: 'My Event',
         version: '0.0.1',
-        producers: ['Service 1'],
-        consumers: ['Service 2'],
+        producerNames: ['Service 1'],
+        consumerNames: ['Service 2'],
       };
 
       const result = buildMermaidFlowChartForEvent(event);
@@ -77,8 +77,8 @@ click My_Event href "/docs/events/My Event" "Go to My Event" _self`);
       const event = {
         name: 'My Event',
         version: '0.0.1',
-        producers: ['Service 1 With Spaces'],
-        consumers: [],
+        producerNames: ['Service 1 With Spaces'],
+        consumerNames: [],
       };
       const result = buildMermaidFlowChartForEvent(event);
       expect(result).toContain(`Service_1_With_Spaces[Service 1 With Spaces]:::producer-->My_Event[My Event]:::event`);
