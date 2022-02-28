@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Tag } from '@eventcatalog/types';
-import { TagIcon  } from '@heroicons/react/outline';
+import { TagIcon } from '@heroicons/react/outline';
 
 const tailwindBgs = ['purple', 'pink', 'green', 'yellow', 'blue', 'indigo'];
 

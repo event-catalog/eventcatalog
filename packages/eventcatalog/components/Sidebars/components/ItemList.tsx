@@ -2,11 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { CubeIcon } from '@heroicons/react/outline';
 
-function ItemList({
-    title,
-    titleIcon: { icon: Icon = CubeIcon, className: iconClassName },
-    items
-}: any) {
+function ItemList({ title, titleIcon: { icon: Icon = CubeIcon, className: iconClassName }, items }: any) {
   return (
     <div className="pt-6 py-6 space-y-8">
       <div>

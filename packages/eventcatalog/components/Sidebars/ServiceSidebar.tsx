@@ -18,7 +18,6 @@ interface ServiceSideBarProps {
 }
 
 function ServiceSidebar({ service }: ServiceSideBarProps) {
-
   const { owners, subscribes, publishes, repository, tags = [], externalLinks, domain } = service;
   const { language, url: repositoryUrl } = repository;
 

@@ -125,10 +125,9 @@ export async function getStaticProps({ params }) {
 }
 
 export async function getStaticPaths() {
-
   // Get all Domains....
 
-  const domains = [{ name: 'Shopping', events: [], owners: [], services: []}];
+  const domains = [{ name: 'Shopping', events: [], owners: [], services: [] }];
 
   // const services = getAllServices();
   const paths = domains.map((domain) => ({ params: { domain: domain.name } }));

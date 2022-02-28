@@ -38,14 +38,11 @@ const versionsForEvents = (pathToEvent) => {
   return [];
 };
 
-
-
-export const getLogsForEvent = ({ eventName, domain }: { eventName: string, domain?: string }) => {
-
+export const getLogsForEvent = ({ eventName, domain }: { eventName: string; domain?: string }) => {
   let eventsDir = path.join(process.env.PROJECT_DIR, 'events');
 
-  if(domain){
-    eventsDir = path.join(process.env.PROJECT_DIR, 'domains', domain, 'events')
+  if (domain) {
+    eventsDir = path.join(process.env.PROJECT_DIR, 'domains', domain, 'events');
   }
 
   const historicVersions = versionsForEvents(path.join(eventsDir, eventName));

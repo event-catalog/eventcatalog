@@ -89,7 +89,7 @@ describe('services', () => {
           ],
           publishes: [],
           subscribes: [],
-        }
+        },
       ]);
     });
   });

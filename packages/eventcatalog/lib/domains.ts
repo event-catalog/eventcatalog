@@ -23,7 +23,7 @@ export const getUniqueDomainNamesFromEvents = (events: Event[]) => {
 export const getAllDomainsByOwnerId = async (ownerId): Promise<Domain[]> => {
   const domainsWithMarkdown = await getAllDomains();
 
-  const domains = domainsWithMarkdown.map(item => item.domain);
+  const domains = domainsWithMarkdown.map((item) => item.domain);
   const domainsOwnedByUser = domains.filter((domain) => domain.owners.some((id) => id === ownerId));
   return domainsOwnedByUser.map((domain) => ({
     ...domain,
@@ -34,8 +34,8 @@ export const getAllDomainsByOwnerId = async (ownerId): Promise<Domain[]> => {
 export const getAllEventsFromDomains = () => {
   const domainsDir = path.join(process.env.PROJECT_DIR, 'domains');
 
-  if(!fs.existsSync(domainsDir)) return [];
-  
+  if (!fs.existsSync(domainsDir)) return [];
+
   const domains = fs.readdirSync(domainsDir);
 
   return domains.reduce((allEventsFromDomains, domainFolder) => {
@@ -58,7 +58,7 @@ export const getAllEventsFromDomains = () => {
 
 export const getAllServicesFromDomains = () => {
   const domainsDir = path.join(process.env.PROJECT_DIR, 'domains');
-  if(!fs.existsSync(domainsDir)) return [];
+  if (!fs.existsSync(domainsDir)) return [];
   const domains = fs.readdirSync(domainsDir);
 
   return domains.reduce((allServicesFromDomains, domainFolder) => {
@@ -101,7 +101,7 @@ export const getDomainByName = async ({
       domain: {
         ...domain,
         events: eventsForDomain,
-        services: servicesForDomain
+        services: servicesForDomain,
       },
       markdown: {
         content,
@@ -116,7 +116,6 @@ export const getDomainByName = async ({
 };
 
 export const getDomainByPath = async (domainDirectory: string): Promise<{ domain: Domain; markdown: MarkdownFile }> => {
-
   const { data, content } = readMarkdownFile(path.join(domainDirectory, `index.md`));
   const domain = buildDomain(data);
 
@@ -130,7 +129,7 @@ export const getDomainByPath = async (domainDirectory: string): Promise<{ domain
     domain: {
       ...domain,
       events: eventsForDomain,
-      services: servicesForDomain
+      services: servicesForDomain,
     },
     markdown: {
       content,
@@ -138,10 +137,10 @@ export const getDomainByPath = async (domainDirectory: string): Promise<{ domain
       source: mdxSource,
     },
   };
-}
+};
 
 export const getAllDomainsFromPath = async (domainsDir: string) => {
-  if(!fs.existsSync(domainsDir)) return [];
+  if (!fs.existsSync(domainsDir)) return [];
   const folders = fs.readdirSync(domainsDir);
   const allDomains = folders.map((folder) => getDomainByPath(path.join(domainsDir, folder)));
   return Promise.all(allDomains);

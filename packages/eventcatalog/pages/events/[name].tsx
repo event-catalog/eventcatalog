@@ -180,7 +180,7 @@ export default function Events(props: EventsPageProps) {
 export async function getStaticProps({ params }) {
   try {
     const { event, markdown } = await getEventByName({
-      eventName: params.name
+      eventName: params.name,
     });
     return {
       props: {
