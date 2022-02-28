@@ -8,7 +8,17 @@ module.exports = {
   },
   purge: {
     content: ['./pages/**/*.{js,ts,jsx,tsx}', './components/**/*.{js,ts,jsx,tsx}'],
-    safelist: ['bg-red-50', 'bg-yellow-50', 'bg-indigo-50', 'text-red-400', 'text-yellow-400', 'text-indigo-400'],
+    safelist: [
+      'bg-red-50',
+      'bg-yellow-50',
+      'bg-indigo-50',
+      'text-red-400',
+      'text-yellow-400',
+      'text-indigo-400',
+      'bg-green-500',
+      'bg-indigo-500',
+      'bg-yellow-500',
+    ],
   },
   plugins: [require('@tailwindcss/typography'), require('@tailwindcss/forms'), require('@tailwindcss/line-clamp')],
 };
