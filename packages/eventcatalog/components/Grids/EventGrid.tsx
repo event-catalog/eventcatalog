@@ -59,11 +59,11 @@ function EventGrid({ events = [], showMermaidDiagrams = false }: EventGridProps)
                     <div className="flex space-x-4 text-xs pt-2 relative bottom-0 left-0">
                       <div className=" font-medium text-gray-500">
                         <CubeIcon className="h-4 w-4 text-green-400 inline-block mr-2" aria-hidden="true" />
-                        Producers ({event.producers.length})
+                        Producers ({event.producerNames.length})
                       </div>
                       <div className=" font-medium text-gray-500">
                         <CubeIcon className="h-4 w-4 text-indigo-400 inline-block mr-2" aria-hidden="true" />
-                        Subscribers ({event.consumers.length})
+                        Subscribers ({event.consumerNames.length})
                       </div>
                       {event.domain && (
                         <div className=" font-medium text-gray-500">

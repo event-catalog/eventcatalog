@@ -85,8 +85,8 @@ describe('GraphLayout', () => {
   describe('calcCanvasHeight', () => {
     it('takes all events and calculate the canvas height', () => {
       const data = {
-        producers: [1, 2, 3, 4, 5, 6, 7, 8],
-        consumers: [1, 2, 3, 4, 5],
+        producerNames: [1, 2, 3, 4, 5, 6, 7, 8],
+        consumerNames: [1, 2, 3, 4, 5],
       };
       const result = calcCanvasHeight(data, 'event');
       expect(result).toEqual(544);

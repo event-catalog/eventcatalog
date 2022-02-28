@@ -50,7 +50,7 @@ export const calcCanvasHeight = (data, type): number => {
   let nodesHeight = 0;
 
   if (type === 'event') {
-    nodesHeight = Math.max(data.producers.length, data.consumers.length) * nodeSpacing;
+    nodesHeight = Math.max(data.producerNames.length, data.consumerNames.length) * nodeSpacing;
   }
 
   if (type === 'service') {

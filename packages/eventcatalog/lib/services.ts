@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { serialize } from 'next-mdx-remote/serialize';
-import { Service } from '@eventcatalog/types';
+import { Service, Event } from '@eventcatalog/types';
 import { readMarkdownFile, getLastModifiedDateOfFile } from '@/lib/file-reader';
 import { MarkdownFile } from '../types/index';
 
@@ -34,8 +34,8 @@ export const getAllServices = (): Service[] => {
   const allServicesFromDomainFolders = getAllServicesFromDomains();
   const servicesWithoutDomains = getAllServicesFromPath(path.join(process.env.PROJECT_DIR, 'services'));
 
-  const events = [...allServicesFromDomainFolders, ...servicesWithoutDomains];
-  const sortedServices = events.sort((a, b) => a.name.localeCompare(b.name));
+  const services = [...allServicesFromDomainFolders, ...servicesWithoutDomains];
+  const sortedServices = services.sort((a, b) => a.name.localeCompare(b.name));
   return sortedServices;
 };
 
@@ -86,4 +86,19 @@ export const getServiceByName = async ({
     console.log('Failed to get service by name', serviceName);
     return Promise.reject();
   }
+};
+
+export const hydrateEventProducersAndConsumers = (
+  event: Event,
+  services: Service[]
+): { producers: Service[]; consumers: Service[] } => {
+  const findServiceByName = (name) => services.find((service) => service.name === name);
+
+  const producers = event.producerNames.map((name) => findServiceByName(name)).filter((service) => !!service);
+  const consumers = event.consumerNames.map((name) => findServiceByName(name)).filter((service) => !!service);
+
+  return {
+    producers: producers.length > 0 ? producers : [],
+    consumers: consumers.length > 0 ? consumers : [],
+  };
 };

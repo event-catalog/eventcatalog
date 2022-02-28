@@ -75,8 +75,8 @@ export default function Page({ events, services, domains }: PageProps) {
       filteredEvents = filteredEvents.filter((event) => {
         const { services: serviceFilters } = selectedFilters;
 
-        const hasConsumersFromFilters = event.consumers.some((consumerId) => serviceFilters.indexOf(consumerId) > -1);
-        const hasProducersFromFilters = event.producers.some((producerId) => serviceFilters.indexOf(producerId) > -1);
+        const hasConsumersFromFilters = event.consumerNames.some((consumerId) => serviceFilters.indexOf(consumerId) > -1);
+        const hasProducersFromFilters = event.producerNames.some((producerId) => serviceFilters.indexOf(producerId) > -1);
 
         return hasConsumersFromFilters || hasProducersFromFilters;
       });

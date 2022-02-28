@@ -22,8 +22,11 @@ export interface Event {
   draft?: boolean;
   summary?: string;
   domain?: string | null;
-  producers?: string[] | [];
-  consumers?: string[] | [];
+  producerNames?: string[] | Service[] | [];
+  consumerNames?: string[] | Service[] | [];
+  producers?: Service[] | [];
+  consumers?: Service[] | [];
+
   historicVersions?: string[];
   owners?: Owner[] | string[] | [];
   examples?: any;

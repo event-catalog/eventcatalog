@@ -15,8 +15,24 @@ interface EventSideBarProps {
   isOldVersion?: boolean;
 }
 
+const getServiceLink = (serviceName: string, event: Event) => {
+  const allEventServices = [...event.consumers, ...event.producers];
+  const matchedService = allEventServices.find((service) => service.name === serviceName);
+  if (matchedService) return `/domains/${matchedService.domain}/services/${serviceName}`;
+  return `/services/${serviceName}`;
+};
+
 function EventSideBar({ event, loadedVersion, isOldVersion, urlPath }: EventSideBarProps) {
-  const { name: eventName, owners, producers, consumers, historicVersions, externalLinks, schema, domain } = event;
+  const {
+    name: eventName,
+    owners,
+    producerNames: producers,
+    consumerNames: consumers,
+    historicVersions,
+    externalLinks,
+    schema,
+    domain,
+  } = event;
   const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 
   const getSchemaDownloadURL = () => {
@@ -34,15 +50,15 @@ function EventSideBar({ event, loadedVersion, isOldVersion, urlPath }: EventSide
         <ItemList
           title={`Producers (${producers.length})`}
           titleIcon={{ icon: CubeIcon, className: 'text-green-400' }}
-          items={producers.map((producer) => ({ label: producer, href: `/services/${producer}`, bgColor: 'green' }))}
+          items={producers.map((producer) => ({ label: producer, href: getServiceLink(producer, event), bgColor: 'green' }))}
         />
       )}
 
-      {producers.length > 0 && (
+      {consumers.length > 0 && (
         <ItemList
           title={`Consumers (${consumers.length})`}
           titleIcon={{ icon: CubeIcon, className: 'text-indigo-400' }}
-          items={consumers.map((consumer) => ({ label: consumer, href: `/services/${consumer}`, bgColor: 'indigo' }))}
+          items={consumers.map((consumer) => ({ label: consumer, href: getServiceLink(consumer, event), bgColor: 'indigo' }))}
         />
       )}
 

@@ -182,6 +182,7 @@ export async function getStaticProps({ params }) {
     const { event, markdown } = await getEventByName({
       eventName: params.name,
     });
+
     return {
       props: {
         event,

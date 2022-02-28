@@ -10,7 +10,7 @@ import { extentionToLanguageMap } from './file-reader';
 
 import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader';
 
-import { getAllServices } from './services';
+import { getAllServices, hydrateEventProducersAndConsumers } from './services';
 import { getAllEventsFromDomains } from './domains';
 
 const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
@@ -24,7 +24,7 @@ const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
     owners = [],
     externalLinks = [],
   } = eventFrontMatter;
-  return { name, version, summary, domain, producers, consumers, owners, externalLinks };
+  return { name, version, summary, domain, producerNames: producers, consumerNames: consumers, owners, externalLinks };
 };
 
 const versionsForEvents = (pathToEvent) => {
@@ -221,12 +221,15 @@ export const getEventByName = async ({
   try {
     const { data, content } = readMarkdownFile(path.join(directoryToLoadForEvent, `index.md`));
     const event = parseEventFrontMatterIntoEvent(data);
+    const services = getAllServices();
+    const consumersAndProducersAsServices = hydrateEventProducersAndConsumers(event, services);
 
     const mdxSource = await serialize(content);
 
     return {
       event: {
         ...event,
+        ...consumersAndProducersAsServices,
         domain: domain || null,
         historicVersions: versionsForEvents(eventDirectory),
         schema: getSchemaFromDir(directoryToLoadForEvent),
@@ -247,8 +250,8 @@ export const getEventByName = async ({
 
 export const getUniqueServicesNamesFromEvents = (events: Event[]) => {
   const allConsumersAndProducers = events.reduce((domains, event) => {
-    const { consumers = [], producers = [] } = event;
-    return domains.concat(consumers).concat(producers);
+    const { consumerNames = [], producerNames = [] } = event;
+    return domains.concat(consumerNames).concat(producerNames);
   }, []);
 
   const data = allConsumersAndProducers.map((service) => service);
@@ -268,8 +271,8 @@ export const getAllEventsThatHaveRelationshipWithService = (
 ): { publishes: Event[]; subscribes: Event[] } => {
   const relationshipsBetweenEvents = events.reduce(
     (data, event) => {
-      const serviceSubscribesToEvent = event.consumers.some((id) => id === service.name);
-      const servicePublishesEvent = event.producers.some((id) => id === service.name);
+      const serviceSubscribesToEvent = event.consumerNames.some((id) => id === service.name);
+      const servicePublishesEvent = event.producerNames.some((id) => id === service.name);
 
       return {
         publishes: servicePublishesEvent ? data.publishes.concat(event) : data.publishes,
