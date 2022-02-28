@@ -1,1 +1,0 @@
-Changed `quantity` maximum to 1000.

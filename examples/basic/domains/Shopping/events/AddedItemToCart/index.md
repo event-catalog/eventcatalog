@@ -1,6 +1,6 @@
 ---
 name: AddedItemToCart
-version: 0.0.3
+version: 0.0.2
 summary: |
   Holds information about what the user added to their shopping cart.
 producers:
@@ -10,10 +10,6 @@ consumers:
 owners:
     - dboyne
     - mSmith
-externalLinks: 
-    - label: AsyncAPI Specification
-      url: https://studio.asyncapi.com/#schema-lightMeasuredPayload
-  
 ---
 
 <Admonition>When firing this event make sure you set the `correlation-id` in the headers. Our schemas have standard metadata make sure you read and follow it.</Admonition>
@@ -24,9 +20,9 @@ This event can be triggered multiple times per customer. Everytime the customer 
 
 We have a frontend application that allows users to buy things from our store. This front end interacts directly with the `Basket Service` to add items to the cart. The `Basket Service` will raise the events.
 
-<NodeGraph />
+<NodeGraph title="Consumer / Producer Diagram" />
 
-<EventExamples title="Examples of how to trigger event" />
+<EventExamples title="How to trigger event" />
 
 <Schema />
 

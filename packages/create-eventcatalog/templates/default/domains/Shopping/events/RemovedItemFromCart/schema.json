@@ -1,7 +1,7 @@
 {
-  "$id": "https://example.com/AddedItemToCart.json",
+  "$id": "https://example.com/RemovedItemFromCart.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "AddedItemToCart",
+  "title": "RemovedItemFromCart",
   "type": "object",
   "properties": {
     "metadata": {
@@ -35,7 +35,7 @@
         },
         "quantity": {
           "type": "number",
-          "description": "How many items the user wants to add to their shopping cart",
+          "description": "How many items the user wants to remove to their shopping cart",
           "minimum": 1,
           "maximum": 100,
           "default": 1
