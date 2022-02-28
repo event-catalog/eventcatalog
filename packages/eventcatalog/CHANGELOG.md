@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.0
+
+### Minor Changes
+
+- [`8352416`](https://github.com/boyney123/eventcatalog/commit/835241609aa03cb8158b7a5a1c662c57f8e22505) [#204](https://github.com/boyney123/eventcatalog/pull/204) Thanks [@boyney123](https://github.com/boyney123)! - feat: adding domain support to eventcatalog
+
 ## 0.1.19
 
 ### Patch Changes
