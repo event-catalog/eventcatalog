@@ -28,6 +28,6 @@
     "node": ">=14"
   },
   "devDependencies": {
-    "@eventcatalog/types": "^0.0.5"
+    "@eventcatalog/types": "^0.1.0"
   }
 }
