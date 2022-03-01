@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.2
+
+### Patch Changes
+
+- [`7dcdd9e`](https://github.com/boyney123/eventcatalog/commit/7dcdd9efa077ab9beafcb92bf4789359f9eed02c) [#209](https://github.com/boyney123/eventcatalog/pull/209) Thanks [@boyney123](https://github.com/boyney123)! - fix: now check for events dir before moving schemas
+
 ## 0.2.1
 
 ### Patch Changes
