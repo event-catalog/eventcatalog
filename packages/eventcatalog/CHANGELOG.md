@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.4
+
+### Patch Changes
+
+- [`c833a2a`](https://github.com/boyney123/eventcatalog/commit/c833a2a74b049e231c804504550b942d4dc33e70) [#213](https://github.com/boyney123/eventcatalog/pull/213) Thanks [@boyney123](https://github.com/boyney123)! - chore: update to new nextjs version
+
 ## 0.2.3
 
 ### Patch Changes
