@@ -3,7 +3,7 @@ import { MDXRemote } from 'next-mdx-remote';
 
 import { Domain } from '@eventcatalog/types';
 import ContentView from '@/components/ContentView';
-import { getDomainByName } from '@/lib/domains';
+import { getDomainByName, getAllDomains } from '@/lib/domains';
 
 import Admonition from '@/components/Mdx/Admonition';
 import DomainSideBar from '@/components/Sidebars/DomainSidebar';
@@ -125,11 +125,9 @@ export async function getStaticProps({ params }) {
 }
 
 export async function getStaticPaths() {
-  // Get all Domains....
+  const data = await getAllDomains();
+  const domains = data.map((item) => item.domain);
 
-  const domains = [{ name: 'Shopping', events: [], owners: [], services: [] }];
-
-  // const services = getAllServices();
   const paths = domains.map((domain) => ({ params: { domain: domain.name } }));
   return {
     paths,

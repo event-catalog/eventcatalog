@@ -22,6 +22,9 @@ const getServiceLink = (serviceName: string, event: Event) => {
   return `/services/${serviceName}`;
 };
 
+const getEventLogsURL = (event: Event) =>
+  event.domain ? `/domains/${event.domain}/events/${event.name}/logs` : `/events/${event.name}/logs`;
+
 function EventSideBar({ event, loadedVersion, isOldVersion, urlPath }: EventSideBarProps) {
   const {
     name: eventName,
@@ -144,7 +147,7 @@ function EventSideBar({ event, loadedVersion, isOldVersion, urlPath }: EventSide
         )}
 
         {historicVersions.length > 0 && (
-          <Link href={`/events/${eventName}/logs`}>
+          <Link href={getEventLogsURL(event)}>
             <a className="hidden w-full md:inline-flex h-10 justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-200">
               <span>View Changes</span>
             </a>

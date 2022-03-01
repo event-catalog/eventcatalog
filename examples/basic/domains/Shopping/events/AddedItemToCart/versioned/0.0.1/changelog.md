@@ -1,0 +1,1 @@
+Added `quantity` field to the event schema.
