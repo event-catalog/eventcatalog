@@ -69,8 +69,10 @@ const main = async () => {
     });
   }
 
-  // just parse the events directory (without domains)
-  parseEventDirectory(publicSchemaDir, eventsWithoutDomainsDir);
+  if (fs.existsSync(eventsWithoutDomainsDir)) {
+    // just parse the events directory (without domains)
+    parseEventDirectory(publicSchemaDir, eventsWithoutDomainsDir);
+  }
 };
 
 main();
