@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.3
+
+### Patch Changes
+
+- [`a0b90f9`](https://github.com/boyney123/eventcatalog/commit/a0b90f9a4ce9bfd0409b2dff44da5f00bafdfa87) [#211](https://github.com/boyney123/eventcatalog/pull/211) Thanks [@boyney123](https://github.com/boyney123)! - fix: fixing domain mappings and change log issues with domains
+
 ## 0.2.2
 
 ### Patch Changes
