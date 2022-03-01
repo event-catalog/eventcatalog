@@ -14,6 +14,12 @@ export async function getStaticProps({ params }) {
       event,
       markdown,
       loadedVersion: version,
+      eventPath: `/events/${event.name}`,
+      breadCrumbs: [
+        { name: 'Events', href: `/events?domain=${event.domain}`, current: false },
+        { name: event.name, href: `/events/${event.name}`, current: false },
+        { name: `v${version}`, href: `/events/${event.name}/v/${version}`, current: true },
+      ],
     },
   };
 }

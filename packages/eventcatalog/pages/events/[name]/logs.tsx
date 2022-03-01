@@ -6,6 +6,7 @@ import * as Diff2Html from 'diff2html/lib/ui/js/diff2html-ui-slim';
 import 'diff2html/bundles/css/diff2html.min.css';
 
 import { CodeIcon } from '@heroicons/react/solid';
+import { Event } from '@eventcatalog/types';
 import BreadCrumbs from '@/components/BreadCrumbs';
 
 import { getLogsForEvent, getEventByName, getAllEvents } from '@/lib/events';
@@ -15,17 +16,23 @@ function classNames(...classes) {
 }
 
 interface LogsProps {
-  name: string;
-  currentVersion: string;
   changes: any;
+  event: Event;
+  breadCrumbs: any;
 }
 
-function Logs({ changes, name: eventName, currentVersion }: LogsProps) {
-  const pages = [
-    { name: 'Events', href: '/events', current: false },
-    { name: eventName, href: `/events/${eventName}`, current: false },
-    { name: 'Logs', href: `/events/${eventName}/history`, current: true },
-  ];
+function Logs({ changes, event, breadCrumbs }: LogsProps) {
+  const { version: currentVersion, name: eventName } = event;
+
+  const getEventUrl = (version: string) => {
+    const isVersionCurrentVersion = version === currentVersion;
+    if (event.domain) {
+      return isVersionCurrentVersion
+        ? `/domains/${event.domain}/events/${eventName}`
+        : `/domains/${event.domain}/events/${eventName}/v/${version}`;
+    }
+    return isVersionCurrentVersion ? `/events/${eventName}` : `/events/${eventName}/v/${version}`;
+  };
 
   useEffect(() => {
     const configuration = {
@@ -56,7 +63,7 @@ function Logs({ changes, name: eventName, currentVersion }: LogsProps) {
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 xl:max-w-7xl xl:grid xl:grid-cols-4">
               <div className="xl:col-span-4 flex-col justify-between flex ">
                 <div className="mb-5 border-b border-gray-100 pb-4">
-                  <BreadCrumbs pages={pages} />
+                  <BreadCrumbs pages={breadCrumbs} />
                 </div>
                 <div>
                   <div className="border-b pb-4 flex justify-between mb-4">
@@ -69,7 +76,7 @@ function Logs({ changes, name: eventName, currentVersion }: LogsProps) {
 
                   <div className="flow-root mb-20">
                     <ul className="">
-                      {changes.map((event, eventIdx) => (
+                      {changes.map((data, eventIdx) => (
                         <li key={eventIdx} className="">
                           <div className="relative pb-8">
                             {eventIdx !== changes.length - 1 ? (
@@ -90,34 +97,30 @@ function Logs({ changes, name: eventName, currentVersion }: LogsProps) {
                                 <div>
                                   <p className="font-bold text-gray-800 text-xl">
                                     Schema version update
-                                    {event.versions.map((version, index) => {
-                                      const linkHref =
-                                        version === currentVersion ? `/events/${eventName}` : `/events/${eventName}/v/${version}`;
-                                      return (
-                                        <Link key={version} href={linkHref}>
-                                          <a className="font-medium">
-                                            {index === 0 && ` from`}
-                                            <span className="text-blue-500 underline px-1">
-                                              {version}
-                                              {version === currentVersion ? '(latest)' : ''}
-                                            </span>
-                                            {index === 0 && `to`}
-                                          </a>
-                                        </Link>
-                                      );
-                                    })}
+                                    {data.versions.map((version, index) => (
+                                      <Link key={version} href={getEventUrl(version)}>
+                                        <a className="font-medium">
+                                          {index === 0 && ` from`}
+                                          <span className="text-blue-500 underline px-1">
+                                            {version}
+                                            {version === currentVersion ? '(latest)' : ''}
+                                          </span>
+                                          {index === 0 && `to`}
+                                        </a>
+                                      </Link>
+                                    ))}
                                   </p>
-                                  {event.changelog.source && (
+                                  {data.changelog.source && (
                                     <>
                                       <h2 className="text-xl text-blue-500 font-bold mt-4 border-b border-gray-100 pb-2">
                                         Changelog
                                       </h2>
                                       <div className="prose max-w-none mt-2">
-                                        <MDXRemote {...event.changelog.source} />
+                                        <MDXRemote {...data.changelog.source} />
                                       </div>
                                     </>
                                   )}
-                                  {!event.changelog.source && (
+                                  {!data.changelog.source && (
                                     <h2 className="text-base text-gray-300 font-bold mt-4">No changelog file found.</h2>
                                   )}
                                 </div>
@@ -145,13 +148,17 @@ export const getStaticProps = async ({ params }) => {
   const { name: eventName } = params;
 
   const history = await getLogsForEvent({ eventName });
-  const { event: { version } = {} } = await getEventByName({ eventName });
+  const { event } = await getEventByName({ eventName });
 
   return {
     props: {
       changes: history,
-      name: eventName,
-      currentVersion: version,
+      event,
+      breadCrumbs: [
+        { name: 'Events', href: '/events', current: false },
+        { name: event.name, href: `/events/${event.name}`, current: false },
+        { name: 'Logs', href: `/events/${event.name}/history`, current: true },
+      ],
     },
   };
 };

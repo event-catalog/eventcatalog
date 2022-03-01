@@ -8,13 +8,19 @@ export const getStaticProps = async ({ params }) => {
   const { name: eventName, domain } = params;
 
   const history = await getLogsForEvent({ eventName, domain });
-  const { event: { version } = {} } = await getEventByName({ eventName, domain });
+  const { event } = await getEventByName({ eventName, domain });
 
   return {
     props: {
       changes: history,
-      name: eventName,
-      currentVersion: version,
+      event,
+      breadCrumbs: [
+        { name: 'Domain', href: '/domains', current: false },
+        { name: event.domain, href: `/domains/${event.domain}`, current: false },
+        { name: 'Events', href: `/events?domain=${event.domain}`, current: false },
+        { name: event.name, href: `/domains/${event.domain}/events/${event.name}`, current: true },
+        { name: 'Logs', href: `/events/${event.name}/history`, current: true },
+      ],
     },
   };
 };
