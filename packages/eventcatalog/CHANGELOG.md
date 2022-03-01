@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.5
+
+### Patch Changes
+
+- [`65ee3da`](https://github.com/boyney123/eventcatalog/commit/65ee3daab667c0f8b960733c738e3fb12f683144) [#215](https://github.com/boyney123/eventcatalog/pull/215) Thanks [@otbe](https://github.com/otbe)! - add a stable render key for events
+
 ## 0.2.4
 
 ### Patch Changes
