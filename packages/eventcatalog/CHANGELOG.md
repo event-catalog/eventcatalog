@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.6
+
+### Patch Changes
+
+- [`ccb524a`](https://github.com/boyney123/eventcatalog/commit/ccb524abc97ec7c58b66fd8b1fcb34b0f9a7bd02) [#217](https://github.com/boyney123/eventcatalog/pull/217) Thanks [@otbe](https://github.com/otbe)! - fix: add a stable render key for events/services in visualizer
+
 ## 0.2.5
 
 ### Patch Changes
