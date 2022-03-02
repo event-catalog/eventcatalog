@@ -195,10 +195,12 @@ function SelectionGroup({ title, data, currentSelectedItem, onClick, filterBy, t
       <ul className="space-y-4 overflow-auto">
         {data.map((item) => {
           const isSelected = currentSelectedItem ? currentSelectedItem.label === item.name : false;
+          const itemKey = hasDomain(item) ? `${item.domain}-${item.name}` : item.name;
+
           return (
             <ListItem
               type={type}
-              key={item.name}
+              key={itemKey}
               data={item}
               onClick={(selectedItem) => onClick(selectedItem, type)}
               isSelected={isSelected}
@@ -208,6 +210,10 @@ function SelectionGroup({ title, data, currentSelectedItem, onClick, filterBy, t
       </ul>
     </div>
   );
+}
+
+function hasDomain(item: Service | Event | Domain): item is Service | Event {
+  return (item as Service | Event).domain != null;
 }
 
 interface ListItemProps {
