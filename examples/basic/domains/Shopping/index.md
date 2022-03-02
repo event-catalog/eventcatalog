@@ -1,6 +1,5 @@
 ---
 name: Shopping
-version: 0.0.1
 summary: |
   Domain for everything shopping
 owners:
@@ -8,12 +7,10 @@ owners:
     - mSmith
 ---
 
-<Admonition>When firing this event make sure you set the `correlation-id` in the headers. Our schemas have standard metadata make sure you read and follow it.</Admonition>
+<Admonition>Domain for everything to do with Shopping at our business. Before adding any events or services to this domain make sure you contact the domain owners and verify it's the correct place.</Admonition>
 
 ### Details
 
-This event can be triggered multiple times per customer. Everytime the customer adds an item to their shopping cart this event will be triggered.
+This domain encapsulates everything in our business that has to do with shopping and users. This might be new items added to our online shop or online cart management.
 
-We have a frontend application that allows users to buy things from our store. This front end interacts directly with the `Basket Service` to add items to the cart. The `Basket Service` will raise the events.
-
-<NodeGraph title="Consumer / Producer Diagram" />
+<NodeGraph title="Domain Graph" />
