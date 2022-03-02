@@ -137,6 +137,6 @@ With **domains**, **services** and **events** you can write any Markdown you wan
 Think about writing a blog. EventCatalog is just markdown. Write and use it how you like, and the website will render your content!
 :::
 
-The great thing about EventCatalog is it uses [MDX](https://mdxjs.com/) to enchange your Markdown files, which means you can add [EventCatalog components](/docs/guides/components) to your page. 
+The great thing about EventCatalog is it uses [MDX](https://mdxjs.com/) to enchange your Markdown files, which means you can add [EventCatalog components](/docs/components/overview) to your page. 
 
-To find out more read the [MDX components guide](/docs/guides/components).
+To find out more read the [MDX components guide](/docs/components/overview).

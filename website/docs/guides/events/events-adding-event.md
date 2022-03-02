@@ -143,7 +143,7 @@ You can write any Markdown you want and it will render on your Events page.
 Think about writing a blog. Your event is just markdown. Write and use it how you like, and the website will render your content!
 :::
 
-The great thing about EventCatalog is it uses [MDX](https://mdxjs.com/) to enchange your Markdown files, which means you can add [EventCatalog components](/docs/guides/components) to your page. 
+The great thing about EventCatalog is it uses [MDX](https://mdxjs.com/) to enchange your Markdown files, which means you can add [EventCatalog components](/docs/components/overview) to your page. 
 
 This allows you to add things like:
 
@@ -151,4 +151,4 @@ This allows you to add things like:
 - Event Schemas
 - And much more....
 
-To find out more read the [MDX components guide](/docs/guides/components).
+To find out more read the [MDX components guide](/docs/components/overview).

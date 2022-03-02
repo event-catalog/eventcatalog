@@ -39,6 +39,6 @@ The visualiser feature was designed to help you and your team document your arch
 
 If you have any ideas or feedback feel free to raise an issue on [GitHub](https://github.com/boyney123/eventcatalog/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc) or come join us on [Discord](https://discord.gg/3rjaZMmrAm).
 
-Special thanks to [Thim](https://twitter.com/timhaselaars) for making this feature possible with the [introduction to Node Graphs without our MDX Components](/docs/guides/components#nodegraph-).
+Special thanks to [Thim](https://twitter.com/timhaselaars) for making this feature possible with the [introduction to Node Graphs without our MDX Components](/docs/components/overview#nodegraph-).
 
 Enjoy!

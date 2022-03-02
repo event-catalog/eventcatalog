@@ -76,7 +76,7 @@ Everything below the front-matter is [markdown](https://www.markdownguide.org/ge
 
 EventCatalog also comes with some preconfigured [MDX](https://mdxjs.com/) components that allows you to bring your Markdown alive with some great components.
 
-To find out more read the [MDX components guide](/docs/guides/components).
+To find out more read the [MDX components guide](/docs/components/overview).
 
 ## Adding Owners to Events
 
