@@ -1,22 +1,17 @@
 ---
-sidebar_position: 2
-id: components
-title: MDX Components
+sidebar_position: 1
+id: components-overview
+title: Component List
+slug: /components/overview
 ---  
 
 ### `<Schema />`
-
-Supported in 
-- event markdown files
 
 This component will render your schema to the document. To make this work you will need to add a `schema` file into your event directory.
 
 For more information check out the [schema guide for events](/docs/events/adding-schemas).
 
 ### `<SchemaViewer />`
-
-Supported in
-- event markdown files
 
 This component will render your schema as documentation viewer to the document. To make this work you will need to add a `schema` file into your event directory.
 
@@ -46,7 +41,6 @@ For more information check out the [schema guide for events](/docs/events/adding
 
 ### `<Mermaid />`
 
-
 This component will render [mermaid diagrams](https://mermaid-js.github.io/mermaid/#/) into your documents.
 
 If you use `<Mermaid />` without any props EventCatalog will render the relationships between your consumers and producers.
@@ -54,12 +48,6 @@ If you use `<Mermaid />` without any props EventCatalog will render the relation
 If you would like to **render custom** mermaid diagrams you can use the `charts` prop on the diagram.
 
 Read [Mermaid documentation](https://mermaid-js.github.io/mermaid/#/) if you want to learn what other graphs you can render.
-
-#### Support
-
-You can use this MDX component inside
-- event markdown files
-- service markdown files
 
 #### Props 
 
@@ -96,12 +84,6 @@ Clicking a node will navigate to the event or service page.
 
 EventCatalog will render the relationships between your consumers and producers.
 
-#### Support
-
-You can use this MDX component inside
-- event markdown files
-- service markdown files
-
 #### Props
 
 <APITable>
@@ -130,10 +112,6 @@ You can use this MDX component inside
 
 #### Rendered Examples
 
-Supported in 
-- event markdown files
-- service markdown files
-
 #### Rendered Example 
 ![Admonition Example](/img/guides/mdx/admonition-examples.png)
 
@@ -153,9 +131,6 @@ Supported in
 
 
 ### `<EventExamples />`
-
-Supported in 
-- event markdown files
 
 This component will allow you share code examples for any event. Reasons why you might do this:
 

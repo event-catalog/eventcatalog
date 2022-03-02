@@ -30,12 +30,18 @@ function Hero() {
               <div className="px-4 sm:px-6 sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left lg:flex lg:items-center">
                 <div>
                   <h1 className="mt-4 text-4xl tracking-tight font-extrabold text-white sm:mt-5 sm:leading-none lg:mt-6 lg:text-5xl xl:text-6xl">
-                    <span className="md:block">EDA Documentation made Simple</span>{' '}
+                    <span className="md:block">
+                      Documentation tool for <span className="text-green-500">Event-Driven Architectures</span>
+                    </span>{' '}
+                    {/* <span className="md:block">Documentation made Simple</span>{' '} */}
                   </h1>
                   <p className="mt-3 text-base text-gray-300 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl">
-                    The Open Source Documentation Platform for{' '}
-                    <span className="font-bold text-green-500">Event Driven Architectures</span>. EventCatalog helps teams
-                    document their Event Architectures with an open source static site generator.
+                    EventCatalog is an Open Source project that helps you document your{' '}
+                    <span className="text-green-500">events</span>, <span className="text-green-500">services</span> and{' '}
+                    <span className="text-green-500">domains</span>.
+                  </p>
+                  <p className="mt-3 text-base text-gray-300 sm:mt-5 sm:text-xl lg:text-lg xl:text-sm">
+                    Powered by markdown, components and plugins.
                   </p>
                   <div className="mt-5 sm:flex  md:mt-8 justify-center lg:justify-start">
                     <div className="rounded-md shadow">
@@ -178,7 +184,7 @@ function Hero() {
           <div className="lg:mx-auto lg:max-w-7xl lg:px-8 lg:grid lg:grid-cols-2 lg:grid-flow-col-dense lg:gap-24">
             <div className="px-4 max-w-xl mx-auto sm:px-6 lg:py-16 lg:max-w-none lg:mx-0 lg:px-0">
               <div>
-                <h4 className="text-gray-400 mb-2 uppercase">Document your Events and Services</h4>
+                <h4 className="text-gray-400 mb-2 uppercase">Document your Events, Services and Domains</h4>
                 <h2 className="text-4xl font-extrabold tracking-tight text-gray-900">Powered by Markdown</h2>
                 <p className="mt-4 text-lg text-gray-500">
                   <p>Document your events and upstream/downstream services with Markdown and our custom components.</p>
