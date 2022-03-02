@@ -7,7 +7,7 @@ sidebar_position: 1
 
 ⚡️ EventCatalog will help you document your Event-Driven architecture in no time.
 
-⚡️ EventCatalog is designed to help you document and capture your Events, Services, Schemas, Code Examples and much more. 
+⚡️ EventCatalog is designed to help you document and capture your Events, Services, Domains, Schemas, Code Examples and much more. 
 
 ⚡️ Ease of use, developer experience and managing maintenance overhead is key to this project. That's why we try to focus on simplifying the experience.
 
@@ -28,6 +28,7 @@ What if we could:
 
 - Document our Services and Schemas
 - Describe Events and see the history of Events
+- Group Services and Events by domains
 - Create interactive interfaces for us to explore our events, bounded contexts and more...
 
 Say hello to **EventCatalog**.
@@ -45,7 +46,7 @@ EventCatalog is Open Source and hopefully it can add value to your teams.
 EventCatalog is designed to allow teams to easily document their Event-Driven architectures.
 
 - 🚀 **Built with Event-Driven Architectures in mind**
-  - Write documentation for Events, Schemas and Services
+  - Write documentation for Events, Schemas, Domains and Services
   - Supports any Schema format
   - Version Event and Schema documentation with ease
   - Integrate with third party systems

@@ -11,6 +11,7 @@ const sidebars = {
     {
       type: 'category',
       label: 'Guides',
+      collapsed: false,
       // collapsed: true,
       items: [
         // 'guides/events',
@@ -41,8 +42,24 @@ const sidebars = {
             'guides/services/adding-service-owners',
           ],
         },
+        {
+          type: 'category',
+          collapsed: true,
+          label: 'Domains',
+          items: ['guides/domains/introduction', 'guides/domains/adding-domains', 'guides/domains/adding-domain-owners'],
+        },
         'guides/customise',
-        'guides/components',
+        {
+          type: 'category',
+          collapsed: true,
+          label: 'MDX Components',
+          items: [
+            'guides/components/components-overview',
+            'guides/components/components-events',
+            'guides/components/components-services',
+            'guides/components/components-domains',
+          ],
+        },
         'guides/deployment',
         'guides/upgrading',
       ],
