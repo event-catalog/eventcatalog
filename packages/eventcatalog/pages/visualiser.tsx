@@ -31,7 +31,8 @@ function Graph({ events, services, domains }: PageProps) {
   const [selectedRootNode, setSelectedRootNode] = useState<any>();
   const [listItemsToRender, setListItemsToRender] = useState({ events, services, domains });
 
-  const { query, isReady: isRouterReady } = useRouter();
+  const router = useRouter();
+  const { query, isReady: isRouterReady } = router;
   const { name, type } = query;
 
   const dropdownValues = [
@@ -47,6 +48,7 @@ function Graph({ events, services, domains }: PageProps) {
   ];
 
   const handleListItemSelection = (data: Event | Service, dataType: 'event' | 'service' | 'domain') => {
+    router.push({query: `type=${dataType}&name=${data.name}`})
     setSelectedRootNode({ label: data.name, data, type: dataType });
   };
 
