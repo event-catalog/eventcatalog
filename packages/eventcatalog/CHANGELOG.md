@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.7
+
+### Patch Changes
+
+- [`4e03a95`](https://github.com/boyney123/eventcatalog/commit/4e03a95f1420c36169232723f277e88b12c3d5f7) [#224](https://github.com/boyney123/eventcatalog/pull/224) Thanks [@boyney123](https://github.com/boyney123)! - feat: visualiser on click now sets query params
+
 ## 0.2.6
 
 ### Patch Changes
