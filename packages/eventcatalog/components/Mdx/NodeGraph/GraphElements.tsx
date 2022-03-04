@@ -114,7 +114,7 @@ export const getEventElements = (
   // Build connections
   const producersEdges: Edge[] = producers.map(({ id, label }) =>
     buildNodeEdge({
-      id: `epe-${label.replace(/ /g, '_')}`,
+      id: `epe-${label.replace(/ /g, '_')}-${eventNameAsNodeID}`,
       source: id,
       target: eventNameAsNodeID,
       isAnimated,
@@ -123,7 +123,7 @@ export const getEventElements = (
   );
   const consumersEdges: Edge[] = consumers.map(({ id, label }) =>
     buildNodeEdge({
-      id: `ece-${label.replace(/ /g, '_')}`,
+      id: `ece-${label.replace(/ /g, '_')}-${eventNameAsNodeID}`,
       target: id,
       source: eventNameAsNodeID,
       isAnimated,
