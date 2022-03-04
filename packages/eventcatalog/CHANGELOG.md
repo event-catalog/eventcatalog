@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.8
+
+### Patch Changes
+
+- [`2985a14`](https://github.com/boyney123/eventcatalog/commit/2985a14ecdebb5f15ea0ff6512ee88f8863e676f) [#227](https://github.com/boyney123/eventcatalog/pull/227) Thanks [@boyney123](https://github.com/boyney123)! - feat: adding new node in visualiser to show all events and services
+
 ## 0.2.7
 
 ### Patch Changes
