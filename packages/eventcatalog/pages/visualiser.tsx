@@ -52,6 +52,15 @@ function Graph({ events, services, domains }: PageProps) {
     setSelectedRootNode({ label: data.name, data, type: dataType });
   };
 
+  const handleAllEventsAndServicesSelection = () => {
+    router.push({ query: `type=all&name=AllEventsAndServices` });
+    setSelectedRootNode({
+      label: 'All Events and Services',
+      data: { name: 'All Events and Services', events, services },
+      type: 'all',
+    });
+  };
+
   const searchOnChange = useCallback(
     debounce((e) => {
       setSearchFilter(e.target.value);
@@ -90,6 +99,15 @@ function Graph({ events, services, domains }: PageProps) {
       return;
     }
 
+    if (type === 'all') {
+      setSelectedRootNode({
+        label: 'All Events and Services',
+        data: { name: 'All Events and Services', events, services },
+        type: 'all',
+      });
+      return;
+    }
+
     const dataByType = { event: events, service: services, domain: domains };
     const match = dataByType[type.toString()].find((item) => item.name === name);
     const newSelectedItem = match ? { label: match.name, type, data: match } : initialSelectedRootNode;
@@ -109,7 +127,9 @@ function Graph({ events, services, domains }: PageProps) {
           >
             <option>Please select your event or service</option>
             {dropdownValues.map((item) => (
-              <option value={JSON.stringify({ label: item.name, data: item, type: item.type })}>{item.label}</option>
+              <option key={item.name} value={JSON.stringify({ label: item.name, data: item, type: item.type })}>
+                {item.label}
+              </option>
             ))}
           </select>
         </div>
@@ -133,8 +153,38 @@ function Graph({ events, services, domains }: PageProps) {
           </div>
 
           <div className="space-y-6">
+            <div className="flex">
+              <button
+                type="button"
+                className="flex shadow-sm rounded-md w-full text-left border"
+                onClick={() => handleAllEventsAndServicesSelection()}
+              >
+                <div
+                  className={classNames(
+                    'bg-blue-500',
+                    'flex-shrink-0 flex h-full items-center justify-center w-4 text-white text-sm font-medium rounded-l-md'
+                  )}
+                />
+                <div
+                  className={`w-full rounded-r-md border-t border-r border-b ${
+                    selectedRootNode?.type === 'all' ? 'bg-green-50' : 'bg-white'
+                  }`}
+                >
+                  <div className="p-4 text-sm space-y-2 flex flex-col justify-between h-full">
+                    <div className="text-gray-900 font-bold hover:text-gray-600 break-all text-xs xl:text-md">
+                      All Events and Services
+                    </div>
+                    <div className="hidden xl:block text-gray-500 text-xs font-normal mt-2 ">
+                      Diagram that shows all your events and services in one place
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
+
             {navItems.map((navItem: any) => (
               <SelectionGroup
+                key={navItem.title}
                 title={navItem.title}
                 filterBy={searchFilter}
                 data={navItem.data}
@@ -197,7 +247,7 @@ function SelectionGroup({ title, data, currentSelectedItem, onClick, filterBy, t
       <ul className="space-y-4 overflow-auto">
         {data.map((item) => {
           const isSelected = currentSelectedItem ? currentSelectedItem.label === item.name : false;
-          const itemKey = hasDomain(item) ? `${item.domain}-${item.name}` : item.name;
+          const itemKey = hasDomain(item) ? `${item.domain}-${item.name}}` : item.name;
 
           return (
             <ListItem

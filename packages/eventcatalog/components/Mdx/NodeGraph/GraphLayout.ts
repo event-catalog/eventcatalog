@@ -38,6 +38,11 @@ export default function createGraphLayout(elements: Elements, isHorizontal: bool
         x: offset / 2 + node.x - (element?.data?.maxWidth || node.width) / 2,
         y: node.y - node.height / 2,
       };
+
+      // This is due to an issue with ReactFlow giving errors when we set the width in the styles.
+      if (element.style.width) {
+        element.style.width = undefined;
+      }
     }
     return element;
   });

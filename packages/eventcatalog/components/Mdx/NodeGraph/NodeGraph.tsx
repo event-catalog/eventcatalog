@@ -1,13 +1,19 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import ReactFlow, { Controls, ReactFlowProvider, useStoreState, Background, useZoomPanHelper } from 'react-flow-renderer';
+import ReactFlow, { Controls, ReactFlowProvider, Background, useZoomPanHelper } from 'react-flow-renderer';
 import { Domain, Event, Service } from '@eventcatalog/types';
 import { getEventElements, getServiceElements } from './GraphElements';
 import createGraphLayout, { calcCanvasHeight } from './GraphLayout';
 
+interface CombinedEventsAndServices {
+  events: Event[];
+  services: Service[];
+  name?: string;
+}
+
 interface NodeGraphBuilderProps {
-  data: Event | Service | Domain;
-  source: 'event' | 'service' | 'domain';
+  data: Event | Service | Domain | CombinedEventsAndServices;
+  source: 'event' | 'service' | 'domain' | 'all';
   title?: string;
   subtitle?: string;
   rootNodeColor?: string;
@@ -44,14 +50,17 @@ function NodeGraphBuilder({
   title,
   subtitle,
 }: NodeGraphBuilderProps) {
-  const getElements = () => {
-    if (source === 'domain') {
-      const domainData = data as Domain;
-      const totalEventElements = domainData.events.map((event) => getEventElements(event, rootNodeColor, isAnimated, true, true));
-      const totalServiceElements = domainData.services.map((service) =>
+  const getElements = useCallback(() => {
+    if (source === 'domain' || source === 'all') {
+      const graphData = source === 'domain' ? (data as Domain) : (data as CombinedEventsAndServices);
+      const totalEventElements = graphData.events.map((event) => getEventElements(event, rootNodeColor, isAnimated, true, true));
+      const totalServiceElements = graphData.services.map((service) =>
         getServiceElements(service, rootNodeColor, isAnimated, true, true)
       );
-      return totalEventElements.flat().concat(totalServiceElements.flat());
+      const eventsWithServices = totalEventElements.flat().concat(totalServiceElements.flat());
+      // after we merge make sure all elements are unique for the diagram
+      // @ts-ignore
+      return [...new Map(eventsWithServices.map((item) => [item.id, item])).values()];
     }
 
     if (source === 'event') {
@@ -59,45 +68,19 @@ function NodeGraphBuilder({
     }
 
     return getServiceElements(data as Service, rootNodeColor, isAnimated, includeEdgeLabels, includeNodeIcons);
-  };
+  }, [data, includeEdgeLabels, includeNodeIcons, isAnimated, rootNodeColor, source]);
 
-  // Initialize graph layout
-  const isInitializedRef = useRef(false);
-  const nodes = useStoreState((state) => state.nodes);
-  const edges = useStoreState((state) => state.edges);
   const { fitView: resetView } = useZoomPanHelper();
 
-  // Calculate initial element layout
-  const graphElements = createGraphLayout(getElements(), isHorizontal);
-  const [elements, setElements] = useState(graphElements);
+  const [elements, setElements] = useState([]);
 
-  // if data changes, reset the elements
   useEffect(() => {
-    const updatedElements = createGraphLayout(getElements(), isHorizontal);
-    setElements(updatedElements);
+    const elementsForGraph = createGraphLayout(getElements(), isHorizontal);
+    setElements(elementsForGraph);
     setTimeout(() => {
       resetView();
     }, 1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
-
-  // Rerender graph layout to get rendered width/height for nodes/edges
-  useEffect(() => {
-    if (
-      isInitializedRef.current === false &&
-      nodes.length > 0 &&
-      // eslint-disable-next-line no-underscore-dangle
-      nodes?.[0]?.__rf.width != null
-    ) {
-      // Calculate element layout
-      const updateElements = () => {
-        const updatedElements = createGraphLayout([...nodes, ...edges], isHorizontal);
-        setElements(updatedElements);
-        isInitializedRef.current = true;
-      };
-      updateElements();
-    }
-  }, [nodes, edges, isInitializedRef, isHorizontal]);
+  }, [data, getElements, isHorizontal, resetView]);
 
   // ReactFlow operations
   const onElementClick = (event, element) => window.open(element.data.link, '_self');
