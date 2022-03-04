@@ -8,6 +8,7 @@ import createGraphLayout, { calcCanvasHeight } from './GraphLayout';
 interface CombinedEventsAndServices {
   events: Event[];
   services: Service[];
+  name?: string;
 }
 
 interface NodeGraphBuilderProps {
