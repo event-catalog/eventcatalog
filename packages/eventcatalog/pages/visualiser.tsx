@@ -48,7 +48,7 @@ function Graph({ events, services, domains }: PageProps) {
   ];
 
   const handleListItemSelection = (data: Event | Service, dataType: 'event' | 'service' | 'domain') => {
-    router.push({query: `type=${dataType}&name=${data.name}`})
+    router.push({ query: `type=${dataType}&name=${data.name}` });
     setSelectedRootNode({ label: data.name, data, type: dataType });
   };
 
