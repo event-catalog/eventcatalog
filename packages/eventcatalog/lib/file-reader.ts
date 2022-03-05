@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import type { Schema } from '@eventcatalog/types';
+import type { Schema, OAS } from '@eventcatalog/types';
 import matter from 'gray-matter';
 
 // https://github.com/react-syntax-highlighter/react-syntax-highlighter/blob/master/AVAILABLE_LANGUAGES_HLJS.MD
@@ -35,6 +35,27 @@ export const getSchemaFromDir = (pathToSchemaDir: string): Schema => {
 
     return {
       snippet: `${schemaFile}`,
+      language: extentionToLanguageMap[extension] || extension,
+      extension,
+    };
+  } catch (error) {
+    return null;
+  }
+};
+
+export const getOASFromDir = (pathToOASDir: string): OAS => {
+  try {
+    const files = fs.readdirSync(pathToOASDir);
+
+    // See if any oas are in there, ignoring extension
+    const oasFileName = files.find((fileName) => fileName.includes('oas'));
+    if (!oasFileName) throw new Error('No schema found');
+
+    const oasFile = fs.readFileSync(path.join(pathToOASDir, oasFileName), 'utf-8');
+    const extension = oasFileName.split('.').pop();
+
+    return {
+      snippet: `${oasFile}`,
       language: extentionToLanguageMap[extension] || extension,
       extension,
     };

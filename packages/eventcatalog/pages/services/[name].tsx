@@ -1,10 +1,11 @@
 import Head from 'next/head';
 import { MDXRemote } from 'next-mdx-remote';
 
-import { Service } from '@eventcatalog/types';
+import { OAS, Service } from '@eventcatalog/types';
 import ContentView from '@/components/ContentView';
 import { getAllServices, getServiceByName } from '@/lib/services';
 
+import OpenApiSpec from '@/components/Mdx/OpenApiSpec';
 import Admonition from '@/components/Mdx/Admonition';
 import Mermaid from '@/components/Mermaid';
 import ServiceSidebar from '@/components/Sidebars/ServiceSidebar';
@@ -32,8 +33,11 @@ function MermaidComponent({ title, service, charts }: { title?: string; service:
   );
 }
 
-const getComponents = (service) => ({
+const getComponents = (service, oas) => ({
   Admonition,
+  OAS: () => (
+    <OpenApiSpec spec={oas.snippet} />
+  ),
   Mermaid: ({ title, charts }: { title: string; charts?: string[] }) => (
     <MermaidComponent service={service} title={title} charts={charts} />
   ),
@@ -84,10 +88,10 @@ export default function Services(props: ServicesPageProps) {
       <NotFound type="service" name={service.name} editUrl={hasEditUrl ? getEditUrl(`/services/${service.name}/index.md`) : ''} />
     );
 
-  const { name, summary, draft } = service;
+  const { name, summary, draft, oas } = service;
   const { lastModifiedDate } = markdown;
 
-  const mdxComponents = getComponents(service);
+  const mdxComponents = getComponents(service,oas);
 
   return (
     <>

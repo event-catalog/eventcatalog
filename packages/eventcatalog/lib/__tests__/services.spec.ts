@@ -151,6 +151,7 @@ describe('services', () => {
         summary: 'Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS\n',
         owners: ['dboyne'],
         domain: null,
+        oas: null,
         repository: {
           url: 'https://github.com/boyney123/EmailPlatform',
           language: 'JavaScript',
@@ -194,6 +195,7 @@ describe('services', () => {
           summary: 'CRUD based API to handle User information\n',
           domain: 'User',
           owners: ['mSmith'],
+          oas: null,
           repository: {
             language: 'JavaScript',
             url: 'https://github.com/boyney123/pretend-basket-service',
