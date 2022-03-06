@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import { MDXRemote } from 'next-mdx-remote';
 
-import { OAS, Service } from '@eventcatalog/types';
+import { Service } from '@eventcatalog/types';
 import ContentView from '@/components/ContentView';
 import { getAllServices, getServiceByName } from '@/lib/services';
 
