@@ -160,7 +160,7 @@ This component will render any `openapi.yaml` or `openapi.json` file inside your
 
 EventCatalog uses [Swagger UI](https://petstore.swagger.io/?_ga=2.53430379.2146201950.1646656985-1065913731.1646656985) to render your OpenAPI document within EventCatalog.
 
-To understand how it works and use OpenAPI with your Services checkout the [schema guide for openapi](/docs/services/adding-openapi).
+To understand how it works and use OpenAPI with your Services checkout the [schema guide for openapi](/docs/services/adding-service-openapi).
 
 #### Props
 
