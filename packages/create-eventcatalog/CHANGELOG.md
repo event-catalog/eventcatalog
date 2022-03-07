@@ -1,5 +1,11 @@
 # @eventcatalog/create-eventcatalog
 
+## 0.2.3
+
+### Patch Changes
+
+- [`41f6b5a`](https://github.com/boyney123/eventcatalog/commit/41f6b5a03645bfac2006f80c013ed7315cbe3add) [#229](https://github.com/boyney123/eventcatalog/pull/229) Thanks [@rtoro](https://github.com/rtoro)! - feat(core): allow the use of swagger ui in service pages
+
 ## 0.2.2
 
 ### Patch Changes
