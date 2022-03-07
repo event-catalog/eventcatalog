@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { getSchemaFromDir, getLastModifiedDateOfFile } from '../file-reader';
+import { getSchemaFromDir, getLastModifiedDateOfFile, getOpenAPISpecFromDir } from '../file-reader';
 
 let PROJECT_DIR: any;
 
@@ -29,6 +29,25 @@ describe('file-reader lib', () => {
 
     it('returns null when no schema file can be found in the given directory path', () => {
       const result = getSchemaFromDir(path.join(process.env.PROJECT_DIR, 'events', 'EmailSent'));
+
+      expect(result).toEqual(null);
+    });
+  });
+
+  describe('getOpenAPISpecFromDir', () => {
+    it('returns the OPEN API file found in the given directory path', () => {
+      const rawFile = fs.readFileSync(
+        path.join(process.env.PROJECT_DIR, 'services', 'Payment Service', 'openapi.yaml'),
+        { encoding: 'utf-8' }
+      );
+
+      const result = getOpenAPISpecFromDir(path.join(process.env.PROJECT_DIR, 'services', 'Payment Service'));
+
+      expect(result).toEqual(rawFile);
+    });
+
+    it('returns null when no schema file can be found in the given directory path', () => {
+      const result = getSchemaFromDir(path.join(process.env.PROJECT_DIR, 'services', 'Email Service'));
 
       expect(result).toEqual(null);
     });

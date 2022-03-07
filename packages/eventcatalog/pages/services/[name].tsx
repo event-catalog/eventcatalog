@@ -33,11 +33,12 @@ function MermaidComponent({ title, service, charts }: { title?: string; service:
   );
 }
 
-const getComponents = (service, oas) => ({
+const getComponents = (service: Service) => ({
   Admonition,
-  OAS: () => (
-    <OpenApiSpec spec={oas.snippet} />
-  ),
+  OpenAPI: () => {
+    if (!service.openAPISpec) return null;
+    return <OpenApiSpec spec={service.openAPISpec} />
+  },
   Mermaid: ({ title, charts }: { title: string; charts?: string[] }) => (
     <MermaidComponent service={service} title={title} charts={charts} />
   ),
@@ -88,10 +89,10 @@ export default function Services(props: ServicesPageProps) {
       <NotFound type="service" name={service.name} editUrl={hasEditUrl ? getEditUrl(`/services/${service.name}/index.md`) : ''} />
     );
 
-  const { name, summary, draft, oas } = service;
+  const { name, summary, draft } = service;
   const { lastModifiedDate } = markdown;
 
-  const mdxComponents = getComponents(service,oas);
+  const mdxComponents = getComponents(service);
 
   return (
     <>

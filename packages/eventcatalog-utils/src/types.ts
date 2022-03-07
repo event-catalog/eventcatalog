@@ -19,11 +19,6 @@ export interface SchemaFile {
   fileContent: string;
 }
 
-export interface OASFile{
-  extension: string;
-  fileContent: string;
-}
-
 export interface CodeExample {
   fileName: string;
   fileContent: string;

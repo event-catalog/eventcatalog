@@ -19,29 +19,29 @@ describe('services', () => {
 
       expect(services).toEqual([
         {
+          name: 'Basket Service',
+          summary: 'CRUD based API to handle Basket interactions for users of the shopping website.\n',
+          domain: null,
+          owners: ['mSmith'],
+          repository: {
+            language: 'JavaScript',
+            url: 'https://github.com/boyney123/pretend-basket-service',
+          },
+          tags: [],
           externalLinks: [
             {
               label: 'AsyncAPI Specification',
               url: 'https://studio.asyncapi.com/#schema-lightMeasuredPayload',
             },
           ],
-          name: 'Basket Service',
-          owners: ['mSmith'],
           publishes: [],
-          repository: {
-            language: 'JavaScript',
-            url: 'https://github.com/boyney123/pretend-basket-service',
-          },
           subscribes: [],
-          domain: null,
-          summary: 'CRUD based API to handle Basket interactions for users of the shopping website.\n',
-          tags: [],
         },
         {
           name: 'Email Platform',
           summary: 'Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS\n',
-          owners: ['dboyne'],
           domain: null,
+          owners: ['dboyne'],
           repository: {
             url: 'https://github.com/boyney123/EmailPlatform',
             language: 'JavaScript',
@@ -55,21 +55,32 @@ describe('services', () => {
               url: 'https://www.apache.org/licenses/LICENSE-2.0',
             },
           ],
+          externalLinks: [],
           publishes: [
             {
               name: 'EmailSent',
               version: '0.0.1',
               summary: 'Tells us when an email has been sent\n',
+              domain: null,
               producerNames: ['Email Platform'],
               consumerNames: [],
+              owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
-              domain: null,
-              owners: ['dboyne', 'mSmith'],
             },
           ],
           subscribes: [],
+        },
+        {
+          name: 'Payment Service',
+          summary: 'Event based application that integrates with Stripe.\n',
+          domain: null,
+          owners: [],
+          repository: {},
+          tags: [],
           externalLinks: [],
+          publishes: [],
+          subscribes: [],
         },
         {
           name: 'User Service',
@@ -151,7 +162,7 @@ describe('services', () => {
         summary: 'Internal Email system. Used to send emails to 1000s of customers. Hosted in AWS\n',
         owners: ['dboyne'],
         domain: null,
-        oas: null,
+        openAPISpec: null,
         repository: {
           url: 'https://github.com/boyney123/EmailPlatform',
           language: 'JavaScript',
@@ -195,7 +206,7 @@ describe('services', () => {
           summary: 'CRUD based API to handle User information\n',
           domain: 'User',
           owners: ['mSmith'],
-          oas: null,
+          openAPISpec: null,
           repository: {
             language: 'JavaScript',
             url: 'https://github.com/boyney123/pretend-basket-service',

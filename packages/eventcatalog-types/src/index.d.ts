@@ -16,12 +16,6 @@ export interface Schema {
   extension?: string;
 }
 
-export interface OAS {
-  snippet: string;
-  language: string;
-  extension?: string;
-}
-
 export interface Event {
   name: string;
   version: string;
@@ -61,7 +55,7 @@ export interface Service {
   owners?: Owner[] | string[] | [];
   tags?: Tag[];
   externalLinks?: Tag[];
-  oas?: any; 
+  openAPISpec?: string; 
 }
 
 export interface Domain {

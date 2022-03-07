@@ -1,32 +1,14 @@
-swagger: '2.0'
+openapi: 3.0.0
 info:
   description: A Payment Service API
   version: 0.0.1
   title: Payment service API
-host: 'localhost:8080'
-basePath: /paymentservice
+servers:
+  - url: http://payment.example.com/v1
+    description: Optional server description, e.g. Main (production) server
+  - url: http://payment.example.com
+    description: Optional server description, e.g. Internal staging server for testing
 paths:
-  /getBeanstreamEndpoints:
-    get:
-      tags:
-        - PaymentServices
-      summary: Generates application callback endpoints for Payment Service
-      operationId: getBeanstreamEndpointsUsingGET
-      consumes:
-        - application/json
-      produces:
-        - application/xml
-      responses:
-        '200':
-          description: Successful operation
-          schema:
-            $ref: '#/definitions/BeanstreamEndpointResponse'
-        '401':
-          description: Unauthorized
-        '403':
-          description: Forbidden
-        '404':
-          description: Not Found
   /getSinglePaymentURL:
     get:
       tags:
@@ -109,18 +91,4 @@ definitions:
       respMsg:
         type: string
       respValue:
-        type: string
-  BeanstreamEndpointResponse:
-    type: object
-    properties:
-      approved:
-        type: string
-      declined:
-        type: string
-      error:
-        type: string
-      respCode:
-        type: integer
-        format: int32
-      respMsg:
         type: string
