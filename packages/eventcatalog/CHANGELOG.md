@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.9
+
+### Patch Changes
+
+- [`3740427`](https://github.com/boyney123/eventcatalog/commit/37404275e021c4d55ae43f5efbf12e321bf65025) [#230](https://github.com/boyney123/eventcatalog/pull/230) Thanks [@boyney123](https://github.com/boyney123)! - fix: visualiser now supports long names in diagram (again)
+
 ## 0.2.8
 
 ### Patch Changes
