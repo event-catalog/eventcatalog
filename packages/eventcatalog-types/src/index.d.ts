@@ -55,7 +55,7 @@ export interface Service {
   owners?: Owner[] | string[] | [];
   tags?: Tag[];
   externalLinks?: Tag[];
-  openAPISpec?: string; 
+  openAPISpec?: string;
 }
 
 export interface Domain {

@@ -37,7 +37,7 @@ const getComponents = (service: Service) => ({
   Admonition,
   OpenAPI: () => {
     if (!service.openAPISpec) return null;
-    return <OpenApiSpec spec={service.openAPISpec} />
+    return <OpenApiSpec spec={service.openAPISpec} />;
   },
   Mermaid: ({ title, charts }: { title: string; charts?: string[] }) => (
     <MermaidComponent service={service} title={title} charts={charts} />

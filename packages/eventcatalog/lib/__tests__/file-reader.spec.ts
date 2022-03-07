@@ -36,10 +36,9 @@ describe('file-reader lib', () => {
 
   describe('getOpenAPISpecFromDir', () => {
     it('returns the OPEN API file found in the given directory path', () => {
-      const rawFile = fs.readFileSync(
-        path.join(process.env.PROJECT_DIR, 'services', 'Payment Service', 'openapi.yaml'),
-        { encoding: 'utf-8' }
-      );
+      const rawFile = fs.readFileSync(path.join(process.env.PROJECT_DIR, 'services', 'Payment Service', 'openapi.yaml'), {
+        encoding: 'utf-8',
+      });
 
       const result = getOpenAPISpecFromDir(path.join(process.env.PROJECT_DIR, 'services', 'Payment Service'));
 

@@ -3,11 +3,10 @@ import 'swagger-ui-react/swagger-ui.css';
 
 interface OpenApiSpecProps {
   spec: string;
-  showTitle?: boolean
+  showTitle?: boolean;
 }
 
 export default function OpenApiSpec({ spec, showTitle = true }: OpenApiSpecProps) {
-
   const className = !showTitle ? 'swagger-hide-title' : '';
 
   return (

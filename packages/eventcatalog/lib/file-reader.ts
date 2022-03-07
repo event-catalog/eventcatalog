@@ -51,7 +51,6 @@ export const getOpenAPISpecFromDir = (pathToOpenAPISpecDir: string): string => {
     const openAPIFileName = files.find((fileName) => fileName.includes('openapi'));
     if (!openAPIFileName) throw new Error('No schema found');
     return fs.readFileSync(path.join(pathToOpenAPISpecDir, openAPIFileName), 'utf-8');
-
   } catch (error) {
     return null;
   }
