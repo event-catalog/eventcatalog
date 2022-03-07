@@ -64,3 +64,22 @@ event-table thead th {
 .d2h-diff-table .d2h-code-line-ctn {
   white-space: pre-wrap;
 }
+
+
+.swagger-ui .info .base-url, .swagger-ui .info .title small pre {
+  background:none;
+}
+
+.swagger-ui .wrapper {
+  padding: 0px !important;
+}
+
+.swagger-hide-title .swagger-ui .info .title {
+  display: none;
+}
+
+.eventcatalog-swagger .swagger-ui .scheme-container{
+  background: none;
+  box-shadow: none;
+  padding: 0;
+}

@@ -26,6 +26,7 @@
     "@tailwindcss/forms": "^0.3.4",
     "@tailwindcss/line-clamp": "^0.2.2",
     "@tailwindcss/typography": "^0.4.1",
+    "@types/swagger-ui-react": "^4.1.1",
     "compare-versions": "^4.1.2",
     "copy-text-to-clipboard": "^3.0.1",
     "dagre": "^0.8.5",
@@ -41,19 +42,20 @@
     "react-dom": "17.0.2",
     "react-flow-renderer": "^9.7.3",
     "react-force-graph-3d": "^1.21.10",
-    "react-syntax-highlighter": "^15.4.5"
+    "react-syntax-highlighter": "^15.4.5",
+    "swagger-ui-react": "^4.6.1"
   },
   "devDependencies": {
     "@eventcatalog/types": "0.1.0",
     "@types/react": "^17.0.36",
     "autoprefixer": "^10.4.0",
     "commander": "^8.3.0",
+    "cross-env": "^7.0.3",
     "eslint": "7.32.0",
     "eslint-config-next": "12.0.4",
     "postcss": "^8.3.11",
     "tailwindcss": "^2.2.19",
     "trim": "0.0.3",
-    "cross-env": "^7.0.3",
     "typescript": "^4.4.4"
   },
   "gitHead": "5f82ce7f267e9b3ec771bbd3cc81359ed0a8fd18"

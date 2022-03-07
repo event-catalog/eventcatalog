@@ -5,6 +5,7 @@ import { Service } from '@eventcatalog/types';
 import ContentView from '@/components/ContentView';
 import { getAllServices, getServiceByName } from '@/lib/services';
 
+import OpenApiSpec from '@/components/Mdx/OpenApiSpec';
 import Admonition from '@/components/Mdx/Admonition';
 import Mermaid from '@/components/Mermaid';
 import ServiceSidebar from '@/components/Sidebars/ServiceSidebar';
@@ -32,8 +33,12 @@ function MermaidComponent({ title, service, charts }: { title?: string; service:
   );
 }
 
-const getComponents = (service) => ({
+const getComponents = (service: Service) => ({
   Admonition,
+  OpenAPI: () => {
+    if (!service.openAPISpec) return null;
+    return <OpenApiSpec spec={service.openAPISpec} />;
+  },
   Mermaid: ({ title, charts }: { title: string; charts?: string[] }) => (
     <MermaidComponent service={service} title={title} charts={charts} />
   ),

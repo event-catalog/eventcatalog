@@ -1,0 +1,94 @@
+openapi: 3.0.0
+info:
+  description: A Payment Service API
+  version: 0.0.1
+  title: Payment service API
+servers:
+  - url: http://payment.example.com/v1
+    description: Optional server description, e.g. Main (production) server
+  - url: http://payment.example.com
+    description: Optional server description, e.g. Internal staging server for testing
+paths:
+  /getSinglePaymentURL:
+    get:
+      tags:
+        - PaymentServices
+      summary: Generate a Payment endpoint URL
+      operationId: singlepaymenturlUsingGET
+      consumes:
+        - application/json
+      produces:
+        - application/xml
+      parameters:
+        - name: transType
+          in: query
+          description: transType
+          required: true
+          type: string
+        - name: invoiceNumber
+          in: query
+          description: invoiceNumber
+          required: true
+          type: string
+        - name: approvedPage
+          in: query
+          description: approvedPage
+          required: true
+          type: string
+        - name: declinedPage
+          in: query
+          description: declinedPage
+          required: true
+          type: string
+        - in: query
+          name: errorPage
+          description: errorPage
+          required: true
+          type: string
+        - in: query
+          name: totalItemsAmount
+          description: totalItemsAmount
+          required: true
+          type: string
+        - name: ref1
+          in: query
+          description: ref1
+          required: false
+          type: string
+        - name: ref2
+          in: query
+          description: ref2
+          required: false
+          type: string
+        - name: ref3
+          in: query
+          description: ref3
+          required: false
+          type: string
+        - name: minutesToExpire
+          in: query
+          description: minutesToExpire
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Successful operation
+          schema:
+            $ref: '#/definitions/SinglePaymentResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+definitions:
+  SinglePaymentResponse:
+    type: object
+    properties:
+      respCode:
+        type: integer
+        format: int32
+      respMsg:
+        type: string
+      respValue:
+        type: string

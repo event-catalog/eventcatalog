@@ -154,3 +154,37 @@ EventCatalog will look inside your `examples` directory and every example will b
 
 If you want to learn more you can read the [code examples guide](/docs/events/adding-examples).
 
+### `<OpenAPI />`
+
+This component will render any `openapi.yaml` or `openapi.json` file inside your `service folder`.
+
+EventCatalog uses [Swagger UI](https://petstore.swagger.io/?_ga=2.53430379.2146201950.1646656985-1065913731.1646656985) to render your OpenAPI document within EventCatalog.
+
+To understand how it works and use OpenAPI with your Services checkout the [schema guide for openapi](/docs/services/adding-openapi).
+
+#### Props
+
+<APITable>
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| `showTitle` | `boolean` | `true` | Show or hide the title rendered by Swagger UI |
+</APITable>
+
+#### Rendered Example 
+![OpenAPI Example](/img/guides/mdx/openapi.png)
+
+
+#### Usage
+
+```md title="Render your OpenAPI File"
+<OpenAPI />
+```
+
+:::tip
+Make sure you have your `openapi.yaml` or `openapi.json` file inside your service.
+
+e.g `/services/Payment Service/openapi.yaml`
+
+**The `<OpenAPI />` will only work with a valid openapi file inside your service directory.**
+:::

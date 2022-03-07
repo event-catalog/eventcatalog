@@ -39,6 +39,7 @@ const sidebars = {
             'guides/services/introduction',
             'guides/services/adding-service',
             'guides/services/producers-consumers',
+            'guides/services/adding-service-openapi',
             'guides/services/adding-service-owners',
           ],
         },

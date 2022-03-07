@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { serialize } from 'next-mdx-remote/serialize';
 import { Service, Event } from '@eventcatalog/types';
-import { readMarkdownFile, getLastModifiedDateOfFile } from '@/lib/file-reader';
+import { readMarkdownFile, getLastModifiedDateOfFile, getOpenAPISpecFromDir } from '@/lib/file-reader';
 import { MarkdownFile } from '../types/index';
 
 import { getAllEvents, getAllEventsThatHaveRelationshipWithService } from '@/lib/events';
@@ -75,6 +75,7 @@ export const getServiceByName = async ({
       service: {
         ...service,
         domain,
+        openAPISpec: getOpenAPISpecFromDir(serviceDirectory),
         ...getAllEventsThatHaveRelationshipWithService(service, events),
       },
       markdown: {
