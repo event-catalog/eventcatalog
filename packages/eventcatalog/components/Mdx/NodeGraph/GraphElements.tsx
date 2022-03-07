@@ -25,11 +25,23 @@ const buildNodeEdge = ({ id, target, source, label, isAnimated = true }): Edge =
   labelBgStyle: { fill: 'white', color: '#fff', fillOpacity: 0.5 },
 });
 
-const buildNodeData = ({ name, label, type, maxWidth }: { name: string; label: string; type: NODE_TYPES; maxWidth?: number }) => {
+const buildNodeData = ({
+  name,
+  label,
+  type,
+  maxWidth,
+  renderInColumn,
+}: {
+  name: string;
+  label: string;
+  type: NODE_TYPES;
+  maxWidth?: number;
+  renderInColumn?: number;
+}) => {
   const width = calcWidth(label);
   const linkType = type === 'service' ? 'services' : 'events';
   const link = generateLink(name, linkType);
-  return { label, link, width, maxWidth };
+  return { label, link, width, maxWidth, renderInColumn };
 };
 
 const getNodeLabel = ({ type, label, includeIcon }: { type: NODE_TYPES; label: any; includeIcon: boolean }) => {
@@ -77,7 +89,7 @@ export const getEventElements = (
     const labelToRender = getNodeLabel({ type: 'service', label, includeIcon: includeNodeIcons });
     return {
       id,
-      data: buildNodeData({ name: label, label: labelToRender, type: 'service', maxWidth: nodeMaxWidth }),
+      data: buildNodeData({ name: label, label: labelToRender, type: 'service', maxWidth: nodeMaxWidth, renderInColumn: 1 }),
       style: { border: `2px solid ${producerColor}`, width: nodeWidth, ...nodeStyles },
       type: 'input',
       position,
@@ -88,7 +100,7 @@ export const getEventElements = (
     const labelToRender = getNodeLabel({ type: 'service', label, includeIcon: includeNodeIcons });
     return {
       id,
-      data: buildNodeData({ name: label, label: labelToRender, type: 'service', maxWidth: maxConsumersWidth }),
+      data: buildNodeData({ name: label, label: labelToRender, type: 'service', maxWidth: maxConsumersWidth, renderInColumn: 3 }),
       style: { border: `2px solid ${consumerColor}`, width, ...nodeStyles },
       type: 'output',
       position,
@@ -102,6 +114,7 @@ export const getEventElements = (
       label: getNodeLabel({ type: 'event', label: eventName, includeIcon: includeNodeIcons }),
       type: 'event',
       maxWidth: eventNodeWidth,
+      renderInColumn: 2,
     }),
     style: {
       border: `2px solid ${rootNodeColor}`,
@@ -171,7 +184,13 @@ export const getServiceElements = (
     const labelToRender = getNodeLabel({ type: 'event', label: node.name, includeIcon: includeNodeIcons });
     return {
       id: `pub-${node.name.replace(/ /g, '_')}`,
-      data: buildNodeData({ name: node.name, label: labelToRender, type: 'event', maxWidth: maxPublishesWidth }),
+      data: buildNodeData({
+        name: node.name,
+        label: labelToRender,
+        type: 'event',
+        maxWidth: maxPublishesWidth,
+        renderInColumn: 3,
+      }),
       style: { border: `2px solid ${publishColor}`, width: nodeWidth, ...nodeStyles },
       type: 'output',
       position,
@@ -184,7 +203,14 @@ export const getServiceElements = (
     const labelToRender = getNodeLabel({ type: 'event', label: node.name, includeIcon: includeNodeIcons });
     return {
       id: `sub-${node.name.replace(/ /g, '_')}`,
-      data: buildNodeData({ name: node.name, label: labelToRender, type: 'event', maxWidth: nodeMaxWidth, ...nodeStyles }),
+      data: buildNodeData({
+        name: node.name,
+        label: labelToRender,
+        type: 'event',
+        maxWidth: nodeMaxWidth,
+        ...nodeStyles,
+        renderInColumn: 1,
+      }),
       style: {
         border: `2px solid ${subscribeColor}`,
         width: nodeWidth,
@@ -202,6 +228,7 @@ export const getServiceElements = (
       label: getNodeLabel({ type: 'service', label: serviceName, includeIcon: includeNodeIcons }),
       type: 'service',
       maxWidth: calcWidth(serviceName),
+      renderInColumn: 2,
     }),
     style: {
       border: `2px solid ${rootNodeColor}`,

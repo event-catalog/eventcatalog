@@ -6,6 +6,27 @@ const nodeDefaultHeight = 36;
 const offset = 48;
 const verticalOffset = offset / 1.5;
 
+const getMaxWidthElementFromPreviousColumn = (elements, column) => {
+  const elementsInColumn = elements.filter((element) => element?.data?.renderInColumn === column);
+
+  if (elementsInColumn.length === 0) return {};
+  if (elementsInColumn.length === 1) return elementsInColumn[0];
+
+  const maxWidthElement = elementsInColumn.reduce((currentElement, element) => {
+    const currentElementWidth = currentElement?.data?.maxWidth || currentElement?.data?.width || nodeDefaultWidth;
+    const elementWidth = element?.data?.maxWidth || element?.data.width || nodeDefaultWidth;
+    return elementWidth > currentElementWidth ? element : currentElement;
+  }, elementsInColumn[0]);
+
+  return maxWidthElement;
+};
+
+const getXPositionFromElement = (elem) => {
+  const elementWidth = elem?.data?.maxWidth || elem.width || nodeDefaultWidth;
+  const currentXPositionOfElement = elem.position.x;
+  return currentXPositionOfElement + elementWidth;
+};
+
 export default function createGraphLayout(elements: Elements, isHorizontal: boolean): Elements {
   const dagreGraph = new dagre.graphlib.Graph();
 
@@ -29,21 +50,43 @@ export default function createGraphLayout(elements: Elements, isHorizontal: bool
   // Calculate the layout, to get the node positions with their widths and heights
   dagre.layout(dagreGraph);
 
-  return elements.map((element) => {
+  const allNodes = elements.filter((element) => element.data);
+  const allEdges = elements.filter((element) => !element.data);
+
+  const sortedNodesByColumn = allNodes.sort((nodeA, nodeB) =>
+    // eslint-disable-next-line no-nested-ternary
+    nodeA.data.renderInColumn > nodeB.data.renderInColumn ? 1 : nodeB.data.renderInColumn > nodeA.data.renderInColumn ? -1 : 0
+  );
+  const allData = [...sortedNodesByColumn, ...allEdges];
+
+  return allData.map((element) => {
     if (isNode(element)) {
       const node = dagreGraph.node(element.id);
       element.targetPosition = isHorizontal ? Position.Left : Position.Top;
       element.sourcePosition = isHorizontal ? Position.Right : Position.Bottom;
+
+      const paddingBetweenNodes = element.data.renderInColumn > 1 ? 75 : 0;
+      const currentColumnToRenderIn = element?.data?.renderInColumn;
+      const maxWidthElementFromPreviousColumn = getMaxWidthElementFromPreviousColumn(elements, currentColumnToRenderIn - 1);
+
+      const nodeX =
+        Object.keys(maxWidthElementFromPreviousColumn).length > 0
+          ? getXPositionFromElement(maxWidthElementFromPreviousColumn)
+          : 0;
+
       element.position = {
-        x: offset / 2 + node.x - (element?.data?.maxWidth || node.width) / 2,
+        x: nodeX + paddingBetweenNodes,
         y: node.y - node.height / 2,
       };
 
       // This is due to an issue with ReactFlow giving errors when we set the width in the styles.
       if (element.style.width) {
-        element.style.width = undefined;
+        if (element.style.width <= nodeDefaultWidth) {
+          element.style.width = undefined;
+        }
       }
     }
+
     return element;
   });
 }
