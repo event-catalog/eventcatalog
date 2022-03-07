@@ -1,5 +1,11 @@
 # @eventcatalog/create-eventcatalog
 
+## 0.2.2
+
+### Patch Changes
+
+- [`70393da`](https://github.com/boyney123/eventcatalog/commit/70393da6ca84b8434d40537103a9d769d4763c3e) [#232](https://github.com/boyney123/eventcatalog/pull/232) Thanks [@boyney123](https://github.com/boyney123)! - fix: domain index.md for example in create-eventcatalog
+
 ## 0.2.1
 
 ### Patch Changes
