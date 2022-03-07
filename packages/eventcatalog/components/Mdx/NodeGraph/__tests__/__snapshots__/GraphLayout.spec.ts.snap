@@ -11,7 +11,7 @@ Array [
     },
     "id": "s-My_Event_2",
     "position": Object {
-      "x": 24,
+      "x": 0,
       "y": 0,
     },
     "sourcePosition": "right",
@@ -31,7 +31,7 @@ Array [
     },
     "id": "c-My_Service",
     "position": Object {
-      "x": 270,
+      "x": 0,
       "y": 0,
     },
     "sourcePosition": "right",
@@ -50,7 +50,7 @@ Array [
     },
     "id": "p-My_Event",
     "position": Object {
-      "x": 516,
+      "x": 0,
       "y": 0,
     },
     "sourcePosition": "right",
