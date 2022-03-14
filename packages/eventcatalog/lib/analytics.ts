@@ -1,7 +1,7 @@
-import { AnalyticsConfig } from "@eventcatalog/types";
+import { AnalyticsConfig } from '@eventcatalog/types';
 
 // eslint-disable-next-line import/no-unresolved
-import config from "eventcatalog.config";
+import config from 'eventcatalog.config';
 
 const { analytics } = config;
 const { googleAnalyticsTrackingId } = analytics as AnalyticsConfig;
@@ -14,8 +14,8 @@ declare const window: any;
  */
 export const pageview = (url) => {
   if (window?.gtag && googleAnalyticsTrackingId) {
-    window.gtag("config", googleAnalyticsTrackingId, {
-      page_path: url
+    window.gtag('config', googleAnalyticsTrackingId, {
+      page_path: url,
     });
   }
 };
@@ -26,5 +26,5 @@ export const pageview = (url) => {
  * @param category
  */
 export const event = ({ action, params }) => {
-  window.gtag("event", action, params);
+  window.gtag('event', action, params);
 };

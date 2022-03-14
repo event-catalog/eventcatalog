@@ -3,14 +3,14 @@ import { AppProps } from 'next/app';
 
 import Head from 'next/head';
 import getConfig from 'next/config';
-import { AnalyticsConfig, OpenGraphConfig } from "@eventcatalog/types";
-import { useEffect } from "react";
-import { useRouter } from "next/router";
-import Script from "next/script";
+import { AnalyticsConfig, OpenGraphConfig } from '@eventcatalog/types';
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
+import Script from 'next/script';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { EventCatalogContextProvider, useConfig } from '@/hooks/EventCatalog';
-import * as ga from '../lib/analytics'
+import * as ga from '../lib/analytics';
 
 function Page({ Component, pageProps }: AppProps) {
   const {
@@ -29,19 +29,19 @@ function Page({ Component, pageProps }: AppProps) {
     ogUrl = homepageLink,
   } = openGraph as OpenGraphConfig;
 
-  const router = useRouter()
+  const router = useRouter();
   useEffect(() => {
     const handleRouteChange = (url) => {
       if (googleAnalyticsTrackingId) {
         // Track page views
         ga.pageview(url);
       }
-    }
-    router.events.on('routeChangeComplete', handleRouteChange)
+    };
+    router.events.on('routeChangeComplete', handleRouteChange);
     return () => {
-      router.events.off('routeChangeComplete', handleRouteChange)
-    }
-  }, [router.events, googleAnalyticsTrackingId])
+      router.events.off('routeChangeComplete', handleRouteChange);
+    };
+  }, [router.events, googleAnalyticsTrackingId]);
 
   return (
     <EventCatalogContextProvider>
@@ -72,7 +72,8 @@ function Page({ Component, pageProps }: AppProps) {
             {/* Global Site Tag (gtag.js) - Google Analytics */}
             <Script
               strategy="afterInteractive"
-              src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsTrackingId}`} />
+              src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsTrackingId}`}
+            />
             <Script
               strategy="afterInteractive"
               dangerouslySetInnerHTML={{
