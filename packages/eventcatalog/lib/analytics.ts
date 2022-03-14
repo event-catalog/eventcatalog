@@ -1,5 +1,6 @@
 import { AnalyticsConfig } from "@eventcatalog/types";
 
+// eslint-disable-next-line import/no-unresolved
 import config from 'eventcatalog.config';
 
 const {analytics} = config

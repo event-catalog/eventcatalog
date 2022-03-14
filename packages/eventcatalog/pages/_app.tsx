@@ -32,7 +32,6 @@ function Page({ Component, pageProps }: AppProps) {
   const router = useRouter()
   useEffect(() => {
     const handleRouteChange = (url) => {
-      console.log('googleAnalyticsTrackingId', googleAnalyticsTrackingId)
       if (googleAnalyticsTrackingId) {
         // Track page views
         ga.pageview(url);
@@ -42,7 +41,7 @@ function Page({ Component, pageProps }: AppProps) {
     return () => {
       router.events.off('routeChangeComplete', handleRouteChange)
     }
-  }, [router.events])
+  }, [router.events, googleAnalyticsTrackingId])
 
   return (
     <EventCatalogContextProvider>
