@@ -8,6 +8,9 @@ module.exports = {
     alt: 'EventCatalog Logo',
     src: 'logo.svg',
   },
+  analytics: {
+    googleAnalyticsTrackingId: 'G-Y0XQQQQQQQ',
+  },
   footerLinks: [
     { label: 'Events', href: '/events' },
     { label: 'Services', href: '/services' },

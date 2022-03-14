@@ -138,6 +138,16 @@ module.exports = {
 };
 ```
 
+### `analytics` {#analytics}
+
+- Type: `googleAnalyticsTrackingId`: value for the Google Analytics tracking ID
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  analytics: { googleAnalyticsTrackingId: 'GA-XXXXX-X' }
+};
+```
+
 ### `basePath` {#basepath}
 
 Set the `basePath` in order to be able to deploy the eventcatalog under a sub-path of the domain.
