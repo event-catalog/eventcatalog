@@ -74,9 +74,8 @@ function NodeGraphBuilder({
 }: NodeGraphBuilderProps) {
   const getElements = useCallback(() => {
     if (source === 'domain' || source === 'all') {
-      const graphData = source === 'domain' ? data : data;
-      const totalEventElements = graphData.events.map((event) => getEventElements(event, rootNodeColor, isAnimated, true, true));
-      const totalServiceElements = graphData.services.map((service) =>
+      const totalEventElements = data.events.map((event) => getEventElements(event, rootNodeColor, isAnimated, true, true));
+      const totalServiceElements = data.services.map((service) =>
         getServiceElements(service, rootNodeColor, isAnimated, true, true)
       );
       const eventsWithServices = totalEventElements.flat().concat(totalServiceElements.flat());
