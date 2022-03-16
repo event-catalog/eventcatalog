@@ -11,9 +11,29 @@ interface CombinedEventsAndServices {
   name?: string;
 }
 
-interface NodeGraphBuilderProps {
-  data: Event | Service | Domain | CombinedEventsAndServices;
-  source: 'event' | 'service' | 'domain' | 'all';
+interface CombinedEventsAndServicesSource {
+  data: CombinedEventsAndServices;
+  source: 'all';
+}
+
+interface DomainSource {
+  data: Domain;
+  source: 'domain';
+}
+
+interface ServiceSource {
+  data: Service;
+  source: 'service';
+}
+
+interface EventSource {
+  data: Event;
+  source: 'event';
+}
+
+export type DataSource = CombinedEventsAndServicesSource | DomainSource | ServiceSource | EventSource;
+
+interface NodeGraphBuilderSharedProps {
   title?: string;
   subtitle?: string;
   rootNodeColor?: string;
@@ -28,10 +48,12 @@ interface NodeGraphBuilderProps {
   includeNodeIcons?: boolean;
 }
 
-interface NodeGraphProps extends NodeGraphBuilderProps {
+type NodeGraphBuilderProps = NodeGraphBuilderSharedProps & DataSource;
+
+type NodeGraphProps = NodeGraphBuilderProps & {
   maxHeight?: number | string;
   renderWithBorder?: boolean;
-}
+};
 
 // NodeGraphBuilder component wrapping ReactFlow
 function NodeGraphBuilder({
@@ -52,7 +74,7 @@ function NodeGraphBuilder({
 }: NodeGraphBuilderProps) {
   const getElements = useCallback(() => {
     if (source === 'domain' || source === 'all') {
-      const graphData = source === 'domain' ? (data as Domain) : (data as CombinedEventsAndServices);
+      const graphData = source === 'domain' ? data : data;
       const totalEventElements = graphData.events.map((event) => getEventElements(event, rootNodeColor, isAnimated, true, true));
       const totalServiceElements = graphData.services.map((service) =>
         getServiceElements(service, rootNodeColor, isAnimated, true, true)
@@ -120,50 +142,18 @@ function NodeGraphBuilder({
 }
 
 // NodeGraph wrapping NodeGraphBuilder Component
-function NodeGraph({
-  data,
-  source,
-  rootNodeColor,
-  maxHeight,
-  maxZoom,
-  fitView,
-  zoomOnScroll,
-  isAnimated,
-  isDraggable,
-  isHorizontal,
-  includeBackground,
-  renderWithBorder = true,
-  title,
-  subtitle,
-  includeEdgeLabels,
-  includeNodeIcons,
-}: NodeGraphProps) {
+function NodeGraph({ maxHeight, renderWithBorder = true, ...builderProps }: NodeGraphProps) {
   // Set dynamic height of node graph
-  const dynamicHeight = maxHeight || calcCanvasHeight(data, source);
+  const dynamicHeight = maxHeight || calcCanvasHeight(builderProps);
 
   const borderClasses = `border-dashed border-2 border-slate-300`;
 
   return (
     <div className={`node-graph w-full h-screen ${renderWithBorder ? borderClasses : ''}`} style={{ height: dynamicHeight }}>
       <ReactFlowProvider>
-        <NodeGraphBuilder
-          source={source}
-          data={data}
-          rootNodeColor={rootNodeColor}
-          maxZoom={maxZoom}
-          fitView={fitView}
-          includeBackground={includeBackground}
-          zoomOnScroll={zoomOnScroll}
-          isAnimated={isAnimated}
-          isDraggable={isDraggable}
-          isHorizontal={isHorizontal}
-          includeEdgeLabels={includeEdgeLabels}
-          includeNodeIcons={includeNodeIcons}
-          title={title}
-          subtitle={subtitle}
-        />
+        <NodeGraphBuilder {...builderProps} />
       </ReactFlowProvider>
-      <Link href={`/visualiser?type=${source}&name=${data.name}`}>
+      <Link href={`/visualiser?type=${builderProps.source}&name=${builderProps.data.name}`}>
         <a className="block text-right  underline text-xs mt-4">Open in Visualiser &rarr;</a>
       </Link>
     </div>
