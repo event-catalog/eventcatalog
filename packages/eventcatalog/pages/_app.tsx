@@ -66,29 +66,28 @@ function Page({ Component, pageProps }: AppProps) {
         )}
         <meta property="og:locale" content="en-GB" />
         <meta name="author" content="David Boyne" />
-
-        {googleAnalyticsTrackingId && (
-          <>
-            {/* Global Site Tag (gtag.js) - Google Analytics */}
-            <Script
-              strategy="afterInteractive"
-              src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsTrackingId}`}
-            />
-            <Script
-              strategy="afterInteractive"
-              dangerouslySetInnerHTML={{
-                __html: `
+      </Head>
+      {googleAnalyticsTrackingId && (
+        <>
+          {/* Global Site Tag (gtag.js) - Google Analytics */}
+          <Script
+            strategy="afterInteractive"
+            src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsTrackingId}`}
+          />
+          <Script
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
               gtag('config', '${googleAnalyticsTrackingId}', {
                 page_path: window.location.pathname,
               });`,
-              }}
-            />
-          </>
-        )}
-      </Head>
+            }}
+          />
+        </>
+      )}
       <Header />
       <Component {...pageProps} />
       <Footer />
