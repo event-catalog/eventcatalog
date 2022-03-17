@@ -6,10 +6,7 @@ module.exports = {
   trailingSlash: true,
   logo: {
     alt: 'EventCatalog Logo',
-    src: 'logo.svg',
-  },
-  analytics: {
-    googleAnalyticsTrackingId: 'G-Y0XQQQQQQQ',
+    src: 'logo.svg'
   },
   footerLinks: [
     { label: 'Events', href: '/events' },
