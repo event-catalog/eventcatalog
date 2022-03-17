@@ -1,3 +1,4 @@
+import { Event, Service } from '@eventcatalog/types';
 import { Elements } from 'react-flow-renderer';
 import createGraphLayout, { calcCanvasHeight } from '../GraphLayout';
 
@@ -84,20 +85,30 @@ describe('GraphLayout', () => {
 
   describe('calcCanvasHeight', () => {
     it('takes all events and calculate the canvas height', () => {
-      const data = {
-        producerNames: [1, 2, 3, 4, 5, 6, 7, 8],
-        consumerNames: [1, 2, 3, 4, 5],
+      const data: Event = {
+        producerNames: ['1', '2', '3', '4', '5', '6', '7', '8'],
+        consumerNames: ['1', '2', '3', '4', '5'],
+        name: 'mock',
+        version: '1.0.0',
       };
-      const result = calcCanvasHeight(data, 'event');
+      const result = calcCanvasHeight({ data, source: 'event' });
       expect(result).toEqual(544);
     });
 
     it('takes all services and calculate the canvas height', () => {
-      const data = {
-        publishes: [1, 2, 3, 4, 5, 6, 7, 8, 9],
-        subscribes: [1, 2, 3, 4, 5],
+      const event: Event = {
+        producerNames: [],
+        consumerNames: [],
+        name: 'mock',
+        version: '1.0.0',
       };
-      const result = calcCanvasHeight(data, 'service');
+      const data: Service = {
+        publishes: [event, event, event, event, event, event, event, event, event],
+        subscribes: [event, event, event, event, event],
+        name: 'mock',
+        summary: 'mock',
+      };
+      const result = calcCanvasHeight({ data, source: 'service' });
       expect(result).toEqual(612);
     });
   });
