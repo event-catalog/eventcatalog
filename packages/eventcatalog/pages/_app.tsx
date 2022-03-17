@@ -70,10 +70,7 @@ function Page({ Component, pageProps }: AppProps) {
       {googleAnalyticsTrackingId && (
         <>
           {/* Global Site Tag (gtag.js) - Google Analytics */}
-          <Script
-            strategy="afterInteractive"
-            src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsTrackingId}`}
-          />
+          <Script strategy="afterInteractive" src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsTrackingId}`} />
           <Script
             strategy="afterInteractive"
             dangerouslySetInnerHTML={{
