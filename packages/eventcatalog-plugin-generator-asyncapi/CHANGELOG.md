@@ -1,5 +1,12 @@
 # @eventcatalog/plugin-doc-generator-asyncapi
 
+## 0.1.5
+
+### Patch Changes
+
+- Updated dependencies [[`4269b19`](https://github.com/boyney123/eventcatalog/commit/4269b199809807bd08968ce4f9c6e025c5d14794)]:
+  - @eventcatalog/utils@0.0.9
+
 ## 0.1.4
 
 ### Patch Changes
