@@ -1,5 +1,6 @@
 import { isNode, Elements, Position } from 'react-flow-renderer';
 import dagre from 'dagre';
+import { DataSource } from './NodeGraph';
 
 const nodeDefaultWidth = 150;
 const nodeDefaultHeight = 36;
@@ -92,16 +93,16 @@ export default function createGraphLayout(elements: Elements, isHorizontal: bool
 }
 
 // Helper - ReactFlow canvas height calculator
-export const calcCanvasHeight = (data, type): number => {
+export const calcCanvasHeight = ({ source, data }: DataSource): number => {
   const minHeight = 300;
   const nodeSpacing = nodeDefaultHeight + verticalOffset;
   let nodesHeight = 0;
 
-  if (type === 'event') {
+  if (source === 'event') {
     nodesHeight = Math.max(data.producerNames.length, data.consumerNames.length) * nodeSpacing;
   }
 
-  if (type === 'service') {
+  if (source === 'service') {
     nodesHeight = Math.max(data.publishes.length, data.subscribes.length) * nodeSpacing;
   }
 

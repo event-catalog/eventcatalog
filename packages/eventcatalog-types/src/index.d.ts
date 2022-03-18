@@ -22,13 +22,13 @@ export interface Event {
   draft?: boolean;
   summary?: string;
   domain?: string | null;
-  producerNames?: string[] | Service[] | [];
-  consumerNames?: string[] | Service[] | [];
-  producers?: Service[] | [];
-  consumers?: Service[] | [];
+  producerNames?: string[] | Service[];
+  consumerNames?: string[] | Service[];
+  producers?: Service[];
+  consumers?: Service[];
 
   historicVersions?: string[];
-  owners?: Owner[] | string[] | [];
+  owners?: Owner[] | string[];
   examples?: any;
   schema?: any;
   externalLinks?: Tag[];
@@ -50,9 +50,9 @@ export interface Service {
   repository?: Repository;
   draft?: boolean;
   domain?: string;
-  publishes?: Event[] | [];
-  subscribes?: Event[] | [];
-  owners?: Owner[] | string[] | [];
+  publishes?: Event[];
+  subscribes?: Event[];
+  owners?: Owner[] | string[];
   tags?: Tag[];
   externalLinks?: Tag[];
   openAPISpec?: string;
@@ -61,9 +61,9 @@ export interface Service {
 export interface Domain {
   name: string;
   summary: string;
-  services?: Service[] | [];
-  events?: Event[] | [];
-  owners?: Owner[] | string[] | [];
+  services?: Service[];
+  events?: Event[];
+  owners?: Owner[] | string[];
   tags?: Tag[];
   externalLinks?: Tag[];
 }

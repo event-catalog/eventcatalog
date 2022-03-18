@@ -35,7 +35,7 @@ export interface FrontMatterAllowedToCopy {
 
 export interface WriteEventToCatalogOptions {
   schema?: SchemaFile;
-  codeExamples?: CodeExample[] | [];
+  codeExamples?: CodeExample[];
   useMarkdownContentFromExistingEvent?: boolean;
   markdownContent?: string;
   frontMatterToCopyToNewVersions?: FrontMatterAllowedToCopy;
