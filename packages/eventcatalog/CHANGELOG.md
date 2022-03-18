@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.11
+
+### Patch Changes
+
+- [`8c3c719`](https://github.com/boyney123/eventcatalog/commit/8c3c719b94e005921f6caec16106466da3f86992) [#244](https://github.com/boyney123/eventcatalog/pull/244) Thanks [@otbe](https://github.com/otbe)! - Fix broken links for services that have no domain on events detail page
+
 ## 0.2.10
 
 ### Patch Changes
