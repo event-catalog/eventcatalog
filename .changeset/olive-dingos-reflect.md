@@ -4,4 +4,4 @@
 "@eventcatalog/core": patch
 ---
 
-improve typings
+chore: improve typings
