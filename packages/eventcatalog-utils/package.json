@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/utils",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Util functions for EventCatalog",
   "main": "lib/index.js",
   "scripts": {
@@ -28,6 +28,6 @@
     "node": ">=14"
   },
   "devDependencies": {
-    "@eventcatalog/types": "^0.1.0"
+    "@eventcatalog/types": "^0.1.2"
   }
 }

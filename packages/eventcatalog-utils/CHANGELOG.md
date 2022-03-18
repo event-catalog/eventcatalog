@@ -1,5 +1,11 @@
 # @eventcatalog/utils
 
+## 0.0.9
+
+### Patch Changes
+
+- [`4269b19`](https://github.com/boyney123/eventcatalog/commit/4269b199809807bd08968ce4f9c6e025c5d14794) [#241](https://github.com/boyney123/eventcatalog/pull/241) Thanks [@donaldpipowitch](https://github.com/donaldpipowitch)! - chore: improve typings
+
 ## 0.0.8
 
 ### Patch Changes
