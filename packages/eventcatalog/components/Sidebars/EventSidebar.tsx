@@ -18,7 +18,7 @@ interface EventSideBarProps {
 const getServiceLink = (serviceName: string, event: Event) => {
   const allEventServices = [...event.consumers, ...event.producers];
   const matchedService = allEventServices.find((service) => service.name === serviceName);
-  if (matchedService) return `/domains/${matchedService.domain}/services/${serviceName}`;
+  if (matchedService && matchedService.domain) return `/domains/${matchedService.domain}/services/${serviceName}`;
   return `/services/${serviceName}`;
 };
 
