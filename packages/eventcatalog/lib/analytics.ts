@@ -4,7 +4,7 @@ import { AnalyticsConfig } from '@eventcatalog/types';
 import config from 'eventcatalog.config';
 
 const { analytics } = config;
-const { googleAnalyticsTrackingId } = analytics as AnalyticsConfig;
+const { googleAnalyticsTrackingId } = analytics || ({} as AnalyticsConfig);
 
 declare const window: any;
 

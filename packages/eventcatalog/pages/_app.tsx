@@ -21,7 +21,7 @@ function Page({ Component, pageProps }: AppProps) {
     openGraph = {},
   } = useConfig();
   const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
-  const { googleAnalyticsTrackingId } = analytics as AnalyticsConfig;
+  const { googleAnalyticsTrackingId } = analytics || ({} as AnalyticsConfig);
   const {
     ogTitle = title,
     ogDescription = tagline,
