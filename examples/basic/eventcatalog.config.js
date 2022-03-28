@@ -6,7 +6,7 @@ module.exports = {
   trailingSlash: true,
   logo: {
     alt: 'EventCatalog Logo',
-    src: 'logo.svg',
+    src: 'logo.svg'
   },
   footerLinks: [
     { label: 'Events', href: '/events' },

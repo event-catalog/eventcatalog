@@ -84,7 +84,11 @@ export interface OpenGraphConfig {
   ogImage?: string;
 }
 
-export interface EventCataLogConfig {
+export interface AnalyticsConfig {
+  googleAnalyticsTrackingId?: string;
+}
+
+export interface EventCatalogConfig {
   title: string;
   tagline?: string;
   editUrl?: string;
@@ -95,8 +99,9 @@ export interface EventCataLogConfig {
   footerLinks?: Link[];
   homepageLink?: string;
   openGraph?: OpenGraphConfig;
+  analytics?: AnalyticsConfig;
 }
 
 export type LoadContext = {
-  eventCatalogConfig: EventCataLogConfig;
+  eventCatalogConfig: EventCatalogConfig;
 };
