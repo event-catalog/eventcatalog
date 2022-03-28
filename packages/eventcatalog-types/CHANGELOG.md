@@ -1,5 +1,11 @@
 # @eventcatalog/types
 
+## 0.1.3
+
+### Patch Changes
+
+- [`5211140`](https://github.com/boyney123/eventcatalog/commit/5211140b254353b7aa1c5baead6be416a853cc9d) [#240](https://github.com/boyney123/eventcatalog/pull/240) Thanks [@thim81](https://github.com/thim81)! - feat: Analytics - Added Google Analytics option
+
 ## 0.1.2
 
 ### Patch Changes
