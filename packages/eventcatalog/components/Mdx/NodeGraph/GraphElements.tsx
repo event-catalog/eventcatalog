@@ -8,7 +8,20 @@ const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 const MIN_NODE_WIDTH = 150;
 type NODE_TYPES = 'service' | 'event';
 
-const generateLink = (value, type) => (basePath !== '' ? `${basePath}/${type}/${value}` : `/${type}/${value}`);
+const generateLink = ({
+  name,
+  type,
+  source,
+}: {
+  name: string;
+  type: 'services' | 'events';
+  source?: { type: 'domain'; name: string };
+}) => {
+  let link = `/${type}/${name}`;
+  if (type === 'events' && source?.type === 'domain') link = `/domains/${source.name}${link}`;
+  if (basePath !== '') link = `${basePath}${link}`;
+  return link;
+};
 const calcWidth = (value) => (value.length * 8 > MIN_NODE_WIDTH ? value.length * 8 : MIN_NODE_WIDTH);
 
 const buildNodeEdge = ({ id, target, source, label, isAnimated = true }): Edge => ({
@@ -31,16 +44,18 @@ const buildNodeData = ({
   type,
   maxWidth,
   renderInColumn,
+  source,
 }: {
   name: string;
   label: string;
   type: NODE_TYPES;
   maxWidth?: number;
   renderInColumn?: number;
+  source?: { type: 'domain'; name: string };
 }) => {
   const width = calcWidth(label);
   const linkType = type === 'service' ? 'services' : 'events';
-  const link = generateLink(name, linkType);
+  const link = generateLink({ name, type: linkType, source });
   return { label, link, width, maxWidth, renderInColumn };
 };
 
@@ -51,17 +66,29 @@ const getNodeLabel = ({ type, label, includeIcon }: { type: NODE_TYPES; label: a
 
 /**
  * Builds a graph for a given event
- * @param {Event} - event
- * @param rootNodeColor - The color of the root node
- * @param isAnimated - whether to animate the graph
  */
-export const getEventElements = (
-  { name: eventName, producerNames: eventProducers, consumerNames: eventConsumers }: Event,
+export const getEventElements = ({
+  event,
   rootNodeColor = '#2563eb',
   isAnimated = true,
   includeLabels = false,
-  includeNodeIcons = false
-) => {
+  includeNodeIcons = false,
+  source,
+}: {
+  event: Event;
+  /** The color of the root node */
+  rootNodeColor?: string;
+  /** whether to animate the graph */
+  isAnimated?: boolean;
+  includeLabels?: boolean;
+  includeNodeIcons?: boolean;
+  /**
+   * currently there is only special behaviour for the source 'domain', but this could
+   * be extended in the future
+   */
+  source?: { type: 'domain'; name: string };
+}) => {
+  const { name: eventName, producerNames: eventProducers, consumerNames: eventConsumers } = event;
   const position: XYPosition = { x: 0, y: 0 };
 
   const consumerColor = '#818cf8';
@@ -89,7 +116,14 @@ export const getEventElements = (
     const labelToRender = getNodeLabel({ type: 'service', label, includeIcon: includeNodeIcons });
     return {
       id,
-      data: buildNodeData({ name: label, label: labelToRender, type: 'service', maxWidth: nodeMaxWidth, renderInColumn: 1 }),
+      data: buildNodeData({
+        name: label,
+        label: labelToRender,
+        type: 'service',
+        maxWidth: nodeMaxWidth,
+        renderInColumn: 1,
+        source,
+      }),
       style: { border: `2px solid ${producerColor}`, width: nodeWidth, ...nodeStyles },
       type: 'input',
       position,
@@ -100,7 +134,14 @@ export const getEventElements = (
     const labelToRender = getNodeLabel({ type: 'service', label, includeIcon: includeNodeIcons });
     return {
       id,
-      data: buildNodeData({ name: label, label: labelToRender, type: 'service', maxWidth: maxConsumersWidth, renderInColumn: 3 }),
+      data: buildNodeData({
+        name: label,
+        label: labelToRender,
+        type: 'service',
+        maxWidth: maxConsumersWidth,
+        renderInColumn: 3,
+        source,
+      }),
       style: { border: `2px solid ${consumerColor}`, width, ...nodeStyles },
       type: 'output',
       position,
@@ -115,6 +156,7 @@ export const getEventElements = (
       type: 'event',
       maxWidth: eventNodeWidth,
       renderInColumn: 2,
+      source,
     }),
     style: {
       border: `2px solid ${rootNodeColor}`,

@@ -68,7 +68,7 @@ describe('GraphElements', () => {
       const rootNodeColor = '#2563eb';
       const isAnimated = true;
 
-      const result = getEventElements(event as Event, rootNodeColor, isAnimated);
+      const result = getEventElements({ event: event as Event, rootNodeColor, isAnimated });
 
       expect(result).toMatchSnapshot();
     });
@@ -94,7 +94,7 @@ describe('GraphElements', () => {
       const rootNodeColor = '#2563eb';
       const isAnimated = true;
 
-      const result = getEventElements(event as Event, rootNodeColor, isAnimated);
+      const result = getEventElements({ event: event as Event, rootNodeColor, isAnimated });
 
       expect(result).toMatchSnapshot();
     });

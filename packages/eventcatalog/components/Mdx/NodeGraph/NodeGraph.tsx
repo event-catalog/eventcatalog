@@ -74,7 +74,16 @@ function NodeGraphBuilder({
 }: NodeGraphBuilderProps) {
   const getElements = useCallback(() => {
     if (source === 'domain' || source === 'all') {
-      const totalEventElements = data.events.map((event) => getEventElements(event, rootNodeColor, isAnimated, true, true));
+      const totalEventElements = data.events.map((event) =>
+        getEventElements({
+          event,
+          rootNodeColor,
+          isAnimated,
+          includeLabels: true,
+          includeNodeIcons: true,
+          source: source === 'domain' ? { type: 'domain', name: data.name } : undefined,
+        })
+      );
       const totalServiceElements = data.services.map((service) =>
         getServiceElements(service, rootNodeColor, isAnimated, true, true)
       );
@@ -85,10 +94,10 @@ function NodeGraphBuilder({
     }
 
     if (source === 'event') {
-      return getEventElements(data as Event, rootNodeColor, isAnimated, includeEdgeLabels, includeNodeIcons);
+      return getEventElements({ event: data, rootNodeColor, isAnimated, includeLabels: includeEdgeLabels, includeNodeIcons });
     }
 
-    return getServiceElements(data as Service, rootNodeColor, isAnimated, includeEdgeLabels, includeNodeIcons);
+    return getServiceElements(data, rootNodeColor, isAnimated, includeEdgeLabels, includeNodeIcons);
   }, [data, includeEdgeLabels, includeNodeIcons, isAnimated, rootNodeColor, source]);
 
   const { fitView: resetView } = useZoomPanHelper();
