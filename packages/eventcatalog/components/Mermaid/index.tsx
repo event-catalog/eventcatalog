@@ -26,14 +26,22 @@ mermaid.initialize({
   width: '100%',
 });
 
-interface MermaidProps {
-  data: Event | Service;
-  source: 'event' | 'service';
-  rootNodeColor?: string;
-  charts?: string[];
+interface MermaidEventSource {
+  data: Event;
+  source: 'event';
 }
 
-function Mermaid({ data, source = 'event', rootNodeColor, charts }: MermaidProps) {
+interface MermaidServiceSource {
+  data: Service;
+  source: 'service';
+}
+
+type MermaidProps = {
+  rootNodeColor?: string;
+  charts?: string[];
+} & (MermaidEventSource | MermaidServiceSource);
+
+function Mermaid({ data, source, rootNodeColor, charts }: MermaidProps) {
   useEffect(() => {
     mermaid.contentLoaded();
   }, []);
@@ -51,8 +59,8 @@ function Mermaid({ data, source = 'event', rootNodeColor, charts }: MermaidProps
   }
   const mermaidChart =
     source === 'event'
-      ? buildMermaidFlowChartForEvent(data as Event, rootNodeColor)
-      : buildMermaidFlowChartForService(data as Service, rootNodeColor);
+      ? buildMermaidFlowChartForEvent(data, rootNodeColor)
+      : buildMermaidFlowChartForService(data, rootNodeColor);
 
   return <div className="mermaid">{mermaidChart}</div>;
 }

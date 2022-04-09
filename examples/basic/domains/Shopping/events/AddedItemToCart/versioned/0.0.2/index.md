@@ -1,6 +1,6 @@
 ---
 name: AddedItemToCart
-version: 0.0.1
+version: 0.0.2
 summary: |
   Holds information about what the user added to their shopping cart.
 producers:

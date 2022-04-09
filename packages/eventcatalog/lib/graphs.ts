@@ -1,10 +1,11 @@
 import type { Event, Service } from '@eventcatalog/types';
 import getConfig from 'next/config';
 
-const MAX_LENGTH_FOR_NODES = '50';
+const MAX_LENGTH_FOR_NODES = 50;
 const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 
-const truncateNode = (value) => (value.length > MAX_LENGTH_FOR_NODES ? `${value.substring(0, MAX_LENGTH_FOR_NODES)}...` : value);
+const truncateNode = (value: string) =>
+  value.length > MAX_LENGTH_FOR_NODES ? `${value.substring(0, MAX_LENGTH_FOR_NODES)}...` : value;
 const generateLink = (value, type) => (basePath !== '' ? `${basePath}/${type}/${value}` : `/${type}/${value}`);
 
 /**
@@ -15,11 +16,11 @@ const generateLink = (value, type) => (basePath !== '' ? `${basePath}/${type}/${
  * @param rootNodeColor
  */
 const buildMermaid = (centerNode, leftNodes, rightNodes, rootNodeColor) => `flowchart LR\n
-${leftNodes.map((node) => `l-${node.id}[${node.name}]:::producer-->${centerNode.id}[${centerNode.name}]:::event\n`).join('')}
+${leftNodes.map((node) => `l-${node.id}["${node.name}"]:::producer-->${centerNode.id}[${centerNode.name}]:::event\n`).join('')}
 classDef event stroke:${rootNodeColor},stroke-width: 4px;\n
 classDef producer stroke:#75d7b6,stroke-width: 2px;\n
 classDef consumer stroke:#818cf8,stroke-width: 2px;\n
-${rightNodes.map((node) => `${centerNode.id}[${centerNode.name}]:::event-->r-${node.id}[${node.name}]:::consumer\n`).join('')}
+${rightNodes.map((node) => `${centerNode.id}[${centerNode.name}]:::event-->r-${node.id}["${node.name}"]:::consumer\n`).join('')}
 ${leftNodes.map((node) => `click l-${node.id} href "${node.link}" "Go to ${node.name}" _self\n`).join('')}
 ${rightNodes.map((node) => `click r-${node.id} href "${node.link}" "Go to ${node.name}" _self\n`).join('')}
 click ${centerNode.id} href "${centerNode.link}" "Go to ${centerNode.name}" _self\n
@@ -36,13 +37,13 @@ export const buildMermaidFlowChartForEvent = (
   rootNodeColor = '#2563eb'
 ) => {
   // Transforms services & event into a graph model
-  const leftNodes = producerNames.map(truncateNode).map((node) => ({
-    id: node.replace(/ /g, '_'),
+  const leftNodes = producerNames.map((node: string | Service) => ({
+    id: truncateNode((typeof node === 'string' ? node : node.name).replace(/ /g, '_')),
     name: node,
     link: generateLink(node, 'services'),
   }));
-  const rightNodes = consumerNames.map(truncateNode).map((node) => ({
-    id: node.replace(/ /g, '_'),
+  const rightNodes = consumerNames.map((node: string | Service) => ({
+    id: truncateNode((typeof node === 'string' ? node : node.name).replace(/ /g, '_')),
     name: node,
     link: generateLink(node, 'services'),
   }));
@@ -66,15 +67,15 @@ export const buildMermaidFlowChartForService = (
   rootNodeColor = '#2563eb'
 ) => {
   // Transforms services & event into a graph model
-  const leftNodes = subscribes.map(truncateNode).map((node) => ({
-    id: node.name.replace(/ /g, '_'),
-    name: node.name,
-    link: generateLink(node.name, 'events'),
+  const leftNodes = subscribes.map((node) => ({
+    id: truncateNode(node.name.replace(/ /g, '_')),
+    name: isLatestEvent(node) ? node.name : `${node.name} (${node.version})`,
+    link: isLatestEvent(node) ? generateLink(node.name, 'events') : `${generateLink(node.name, 'events')}/v/${node.version}`,
   }));
-  const rightNodes = publishes.map(truncateNode).map((node) => ({
-    id: node.name.replace(/ /g, '_'),
-    name: node.name,
-    link: generateLink(node.name, 'events'),
+  const rightNodes = publishes.map((node) => ({
+    id: truncateNode(node.name.replace(/ /g, '_')),
+    name: isLatestEvent(node) ? node.name : `${node.name} (${node.version})`,
+    link: isLatestEvent(node) ? generateLink(node.name, 'events') : `${generateLink(node.name, 'events')}/v/${node.version}`,
   }));
   const centerNode = {
     id: truncateNode(serviceName.replace(/ /g, '_')),
@@ -83,3 +84,5 @@ export const buildMermaidFlowChartForService = (
   };
   return buildMermaid(centerNode, leftNodes, rightNodes, rootNodeColor);
 };
+
+const isLatestEvent = (event: Event) => !event.historicVersions?.some((version) => version === event.version);

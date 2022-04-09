@@ -66,7 +66,7 @@ export const getServiceByName = async ({
     const { data, content } = readMarkdownFile(path.join(serviceDirectory, `index.md`));
     const service = buildService(data);
 
-    const events = getAllEvents();
+    const events = getAllEvents({ withVersions: true });
 
     const mdxSource = await serialize(content);
 

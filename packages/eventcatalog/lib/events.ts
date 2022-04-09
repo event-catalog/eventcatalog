@@ -4,6 +4,7 @@ import { serialize } from 'next-mdx-remote/serialize';
 import type { Service, Event } from '@eventcatalog/types';
 import compareVersions from 'compare-versions';
 import * as Diff from 'diff';
+import { gt } from 'semver';
 import { MarkdownFile } from '@/types/index';
 
 import { extentionToLanguageMap } from './file-reader';
@@ -160,12 +161,30 @@ export const getAllEventsFromPath = (eventsDir: string): Event[] => {
   return folders.map((folder) => getEventByPath(path.join(eventsDir, folder)));
 };
 
-export const getAllEvents = (): Event[] => {
-  const allEventsFromDomainFolders = getAllEventsFromDomains();
+export const getAllEvents = (options: { withVersions?: boolean } = {}): Event[] => {
+  const { withVersions = false } = options;
+  const allEventsFromDomainFolders = getAllEventsFromDomains({ withVersions });
   const eventsWithoutDomains = getAllEventsFromPath(path.join(process.env.PROJECT_DIR, 'events'));
 
   const events = [...eventsWithoutDomains, ...allEventsFromDomainFolders];
-  const sortedEvents = events.sort((a, b) => a.name.localeCompare(b.name));
+
+  if (withVersions) {
+    eventsWithoutDomains.forEach((event) =>
+      events.push(
+        ...getAllEventsFromPath(path.join(process.env.PROJECT_DIR, 'events', event.name, 'versioned')).map((versionedEvent) => ({
+          ...versionedEvent,
+          historicVersions: event.historicVersions,
+        }))
+      )
+    );
+  }
+
+  const sortedEvents = events.sort((a, b) => {
+    if (a.name === b.name) {
+      return gt(a.version, b.version) ? -1 : 1;
+    }
+    return a.name.localeCompare(b.name);
+  });
 
   return sortedEvents;
 };

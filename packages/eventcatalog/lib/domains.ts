@@ -30,7 +30,8 @@ export const getAllDomainsByOwnerId = async (ownerId): Promise<Domain[]> => {
   }));
 };
 
-export const getAllEventsFromDomains = () => {
+export const getAllEventsFromDomains = (options: { withVersions?: boolean } = {}): Event[] => {
+  const { withVersions = false } = options;
   const domainsDir = path.join(process.env.PROJECT_DIR, 'domains');
 
   if (!fs.existsSync(domainsDir)) return [];
@@ -48,7 +49,21 @@ export const getAllEventsFromDomains = () => {
       // Add domains onto events
       const eventsWithDomain = domainEvents.map((event) => ({ ...event, domain: domainFolder }));
 
-      return [...allEventsFromDomains, ...eventsWithDomain];
+      const events = [...allEventsFromDomains, ...eventsWithDomain];
+
+      if (withVersions) {
+        eventsWithDomain.forEach((event) =>
+          events.push(
+            ...getAllEventsFromPath(path.join(eventsForDomainDir, event.name, 'versioned')).map((versionedEvent) => ({
+              ...versionedEvent,
+              domain: domainFolder,
+              historicVersions: event.historicVersions,
+            }))
+          )
+        );
+      }
+
+      return events;
     }
 
     return allEventsFromDomains;
