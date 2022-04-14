@@ -142,7 +142,7 @@ export default function Events(props: EventsPageProps) {
 
   const { lastModifiedDate } = markdown;
 
-  const mdxComponents = getComponents({ event, schema, examples });
+  const mdxComponents = getComponents({ event, schema, examples }) as any;
 
   return (
     <>
