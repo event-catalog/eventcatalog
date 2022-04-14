@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.14
+
+### Patch Changes
+
+- [`17a5883`](https://github.com/boyney123/eventcatalog/commit/17a5883bcc15480872c2944296fcac503bfab8c4) [#251](https://github.com/boyney123/eventcatalog/pull/251) Thanks [@boyney123](https://github.com/boyney123)! - fix: build issues with eventcatalog core
+
 ## 0.2.13
 
 ### Patch Changes
