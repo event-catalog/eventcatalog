@@ -149,6 +149,7 @@ function NodeGraph({ maxHeight, renderWithBorder = true, ...builderProps }: Node
 
   return (
     <div className={`node-graph w-full h-screen ${renderWithBorder ? borderClasses : ''}`} style={{ height: dynamicHeight }}>
+      {/* @ts-ignore */}
       <ReactFlowProvider>
         <NodeGraphBuilder {...builderProps} />
       </ReactFlowProvider>
