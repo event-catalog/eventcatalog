@@ -26,7 +26,13 @@ export const useUser = () => {
 
 export const useUrl = () => {
   const config = useConfig();
-  const getEditUrl = (url: string) => path.join(config.editUrl, url);
+  const getEditUrl = (url: string) => {
+    const editBaseUrl = new URL(config.editUrl);
+
+    editBaseUrl.pathname = path.join(editBaseUrl.pathname, url);
+
+    return editBaseUrl.toString();
+  };
 
   return {
     getEditUrl,
