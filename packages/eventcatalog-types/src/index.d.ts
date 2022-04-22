@@ -22,8 +22,8 @@ export interface Event {
   draft?: boolean;
   summary?: string;
   domain?: string | null;
-  producerNames?: string[] | Service[];
-  consumerNames?: string[] | Service[];
+  producerNames?: string[];
+  consumerNames?: string[];
   producers?: Service[];
   consumers?: Service[];
 

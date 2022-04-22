@@ -1,13 +1,12 @@
-import path from 'path';
-import fs from 'fs';
+import { getLastModifiedDateOfFile, readMarkdownFile } from '@/lib/file-reader';
 import type { Event } from '@eventcatalog/types';
 import { Domain } from '@eventcatalog/types';
+import fs from 'fs';
 import { serialize } from 'next-mdx-remote/serialize';
+import path from 'path';
+import { MarkdownFile } from '../types/index';
 import { getAllEventsFromPath } from './events';
 import { getAllServicesFromPath } from './services';
-import { readMarkdownFile, getLastModifiedDateOfFile } from '@/lib/file-reader';
-
-import { MarkdownFile } from '../types/index';
 
 const buildDomain = (domainFrontMatter: any): Domain => {
   const { name, summary, owners = [], tags = [], externalLinks = [] } = domainFrontMatter;
@@ -92,8 +91,14 @@ export const getDomainByName = async ({
 
     const mdxSource = await serialize(content);
 
-    const eventsForDomain = getAllEventsFromPath(path.join(domainDirectory, 'events'));
-    const servicesForDomain = getAllServicesFromPath(path.join(domainDirectory, 'services'));
+    const eventsForDomain = getAllEventsFromPath(path.join(domainDirectory, 'events')).map((event) => ({
+      ...event,
+      domain: domainName,
+    }));
+    const servicesForDomain = getAllServicesFromPath(path.join(domainDirectory, 'services')).map((service) => ({
+      ...service,
+      domain: domainName,
+    }));
 
     return {
       // @ts-ignore
@@ -120,8 +125,14 @@ export const getDomainByPath = async (domainDirectory: string): Promise<{ domain
 
   const mdxSource = await serialize(content);
 
-  const eventsForDomain = getAllEventsFromPath(path.join(domainDirectory, 'events'));
-  const servicesForDomain = getAllServicesFromPath(path.join(domainDirectory, 'services'));
+  const eventsForDomain = getAllEventsFromPath(path.join(domainDirectory, 'events')).map((event) => ({
+    ...event,
+    domain: domain.name,
+  }));
+  const servicesForDomain = getAllServicesFromPath(path.join(domainDirectory, 'services')).map((service) => ({
+    ...service,
+    domain: domain.name,
+  }));
 
   return {
     // @ts-ignore

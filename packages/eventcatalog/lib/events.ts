@@ -1,17 +1,14 @@
-import fs from 'fs';
-import path from 'path';
-import { serialize } from 'next-mdx-remote/serialize';
-import type { Service, Event } from '@eventcatalog/types';
+import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader';
+import { MarkdownFile } from '@/types/index';
+import type { Event, Service } from '@eventcatalog/types';
 import compareVersions from 'compare-versions';
 import * as Diff from 'diff';
-import { MarkdownFile } from '@/types/index';
-
-import { extentionToLanguageMap } from './file-reader';
-
-import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader';
-
-import { getAllServices, hydrateEventProducersAndConsumers } from './services';
+import fs from 'fs';
+import { serialize } from 'next-mdx-remote/serialize';
+import path from 'path';
 import { getAllEventsFromDomains } from './domains';
+import { extentionToLanguageMap } from './file-reader';
+import { getAllServices, hydrateEventProducersAndConsumers } from './services';
 
 const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
   const {

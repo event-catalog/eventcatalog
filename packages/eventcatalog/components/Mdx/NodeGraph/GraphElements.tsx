@@ -8,7 +8,7 @@ const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 const MIN_NODE_WIDTH = 150;
 type NODE_TYPES = 'service' | 'event';
 
-const generateLink = (value, type) => (basePath !== '' ? `${basePath}/${type}/${value}` : `/${type}/${value}`);
+const generateLink = (value, type, domain?) => `${basePath}/${domain ? `domains/${domain}/` : ''}${type}/${value}`;
 const calcWidth = (value) => (value.length * 8 > MIN_NODE_WIDTH ? value.length * 8 : MIN_NODE_WIDTH);
 
 const buildNodeEdge = ({ id, target, source, label, isAnimated = true }): Edge => ({
@@ -31,16 +31,18 @@ const buildNodeData = ({
   type,
   maxWidth,
   renderInColumn,
+  domain,
 }: {
   name: string;
   label: string;
   type: NODE_TYPES;
   maxWidth?: number;
   renderInColumn?: number;
+  domain?: string;
 }) => {
   const width = calcWidth(label);
   const linkType = type === 'service' ? 'services' : 'events';
-  const link = generateLink(name, linkType);
+  const link = generateLink(name, linkType, domain);
   return { label, link, width, maxWidth, renderInColumn };
 };
 
@@ -56,7 +58,7 @@ const getNodeLabel = ({ type, label, includeIcon }: { type: NODE_TYPES; label: a
  * @param isAnimated - whether to animate the graph
  */
 export const getEventElements = (
-  { name: eventName, producerNames: eventProducers, consumerNames: eventConsumers }: Event,
+  { name: eventName, producerNames: eventProducers, consumerNames: eventConsumers, domain }: Event,
   rootNodeColor = '#2563eb',
   isAnimated = true,
   includeLabels = false,
@@ -89,7 +91,14 @@ export const getEventElements = (
     const labelToRender = getNodeLabel({ type: 'service', label, includeIcon: includeNodeIcons });
     return {
       id,
-      data: buildNodeData({ name: label, label: labelToRender, type: 'service', maxWidth: nodeMaxWidth, renderInColumn: 1 }),
+      data: buildNodeData({
+        name: label,
+        label: labelToRender,
+        type: 'service',
+        maxWidth: nodeMaxWidth,
+        renderInColumn: 1,
+        domain,
+      }),
       style: { border: `2px solid ${producerColor}`, width: nodeWidth, ...nodeStyles },
       type: 'input',
       position,
@@ -100,7 +109,14 @@ export const getEventElements = (
     const labelToRender = getNodeLabel({ type: 'service', label, includeIcon: includeNodeIcons });
     return {
       id,
-      data: buildNodeData({ name: label, label: labelToRender, type: 'service', maxWidth: maxConsumersWidth, renderInColumn: 3 }),
+      data: buildNodeData({
+        name: label,
+        label: labelToRender,
+        type: 'service',
+        maxWidth: maxConsumersWidth,
+        renderInColumn: 3,
+        domain,
+      }),
       style: { border: `2px solid ${consumerColor}`, width, ...nodeStyles },
       type: 'output',
       position,
@@ -115,6 +131,7 @@ export const getEventElements = (
       type: 'event',
       maxWidth: eventNodeWidth,
       renderInColumn: 2,
+      domain,
     }),
     style: {
       border: `2px solid ${rootNodeColor}`,
@@ -157,7 +174,7 @@ export const getEventElements = (
  * @returns {string} Mermaid Graph
  */
 export const getServiceElements = (
-  { publishes, subscribes, name: serviceName }: Service,
+  { publishes, subscribes, name: serviceName, domain }: Service,
   rootNodeColor = '#2563eb',
   isAnimated = true,
   includeEdgeLabels = false,
@@ -190,6 +207,7 @@ export const getServiceElements = (
         type: 'event',
         maxWidth: maxPublishesWidth,
         renderInColumn: 3,
+        domain: node.domain,
       }),
       style: { border: `2px solid ${publishColor}`, width: nodeWidth, ...nodeStyles },
       type: 'output',
@@ -210,6 +228,7 @@ export const getServiceElements = (
         maxWidth: nodeMaxWidth,
         ...nodeStyles,
         renderInColumn: 1,
+        domain: node.domain,
       }),
       style: {
         border: `2px solid ${subscribeColor}`,
@@ -229,6 +248,7 @@ export const getServiceElements = (
       type: 'service',
       maxWidth: calcWidth(serviceName),
       renderInColumn: 2,
+      domain,
     }),
     style: {
       border: `2px solid ${rootNodeColor}`,

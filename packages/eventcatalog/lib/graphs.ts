@@ -5,7 +5,7 @@ const MAX_LENGTH_FOR_NODES = '50';
 const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 
 const truncateNode = (value) => (value.length > MAX_LENGTH_FOR_NODES ? `${value.substring(0, MAX_LENGTH_FOR_NODES)}...` : value);
-const generateLink = (value, type) => (basePath !== '' ? `${basePath}/${type}/${value}` : `/${type}/${value}`);
+const generateLink = (value, type, domain?) => `${basePath}/${domain !== undefined ? `${domain}/` : ''}${type}/${value}`;
 
 /**
  * Build Mermaid graph output
@@ -32,24 +32,24 @@ click ${centerNode.id} href "${centerNode.link}" "Go to ${centerNode.name}" _sel
  * @returns {string} Mermaid Graph
  */
 export const buildMermaidFlowChartForEvent = (
-  { name: eventName, producerNames, consumerNames }: Event,
+  { name: eventName, producerNames, consumerNames, producers, consumers, domain }: Event,
   rootNodeColor = '#2563eb'
 ) => {
   // Transforms services & event into a graph model
   const leftNodes = producerNames.map(truncateNode).map((node) => ({
     id: node.replace(/ /g, '_'),
     name: node,
-    link: generateLink(node, 'services'),
+    link: generateLink(node, 'services', producers.find((producer) => producer.name === node)?.domain),
   }));
   const rightNodes = consumerNames.map(truncateNode).map((node) => ({
     id: node.replace(/ /g, '_'),
     name: node,
-    link: generateLink(node, 'services'),
+    link: generateLink(node, 'services', consumers.find((consumer) => consumer.name === node)?.domain),
   }));
   const centerNode = {
     id: truncateNode(eventName.replace(/ /g, '_')),
     name: eventName,
-    link: generateLink(eventName, 'events'),
+    link: generateLink(eventName, 'events', domain),
   };
 
   return buildMermaid(centerNode, leftNodes, rightNodes, rootNodeColor);
@@ -62,24 +62,28 @@ export const buildMermaidFlowChartForEvent = (
  * @returns {string} Mermaid Graph
  */
 export const buildMermaidFlowChartForService = (
-  { publishes, subscribes, name: serviceName }: Service,
+  { publishes, subscribes, name: serviceName, domain }: Service,
   rootNodeColor = '#2563eb'
 ) => {
   // Transforms services & event into a graph model
-  const leftNodes = subscribes.map(truncateNode).map((node) => ({
-    id: node.name.replace(/ /g, '_'),
-    name: node.name,
-    link: generateLink(node.name, 'events'),
-  }));
-  const rightNodes = publishes.map(truncateNode).map((node) => ({
-    id: node.name.replace(/ /g, '_'),
-    name: node.name,
-    link: generateLink(node.name, 'events'),
-  }));
+  const leftNodes = subscribes
+    .map((event) => ({ event, truncatedName: truncateNode(event.name) }))
+    .map(({ event, truncatedName }) => ({
+      id: truncatedName.replace(/ /g, '_'),
+      name: truncatedName,
+      link: generateLink(event.name, 'events', event.domain),
+    }));
+  const rightNodes = publishes
+    .map((event) => ({ event, truncatedName: truncateNode(event.name) }))
+    .map(({ event, truncatedName }) => ({
+      id: truncatedName.replace(/ /g, '_'),
+      name: truncatedName,
+      link: generateLink(event.name, 'events', event.domain),
+    }));
   const centerNode = {
     id: truncateNode(serviceName.replace(/ /g, '_')),
     name: serviceName,
-    link: generateLink(serviceName, 'services'),
+    link: generateLink(serviceName, 'services', domain),
   };
   return buildMermaid(centerNode, leftNodes, rightNodes, rootNodeColor);
 };
