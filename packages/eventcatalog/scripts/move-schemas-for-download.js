@@ -65,7 +65,7 @@ const main = async () => {
     // Write all events within domains
     const domains = fs.readdirSync(domainsDir);
     domains.forEach((domain) => {
-      if(fs.existsSync(path.join(domainsDir, domain, 'events'))){
+      if (fs.existsSync(path.join(domainsDir, domain, 'events'))) {
         parseEventDirectory(publicSchemaDir, path.join(domainsDir, domain, 'events'));
       }
     });
