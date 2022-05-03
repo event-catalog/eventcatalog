@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.15
+
+### Patch Changes
+
+- [`c5cb51f`](https://github.com/boyney123/eventcatalog/commit/c5cb51f60926d2edad806de59873aadab61e0d9d) [#258](https://github.com/boyney123/eventcatalog/pull/258) Thanks [@boyney123](https://github.com/boyney123)! - fix: now checks events folder in domains before moving them to public…
+
 ## 0.2.14
 
 ### Patch Changes
