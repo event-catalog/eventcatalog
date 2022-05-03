@@ -34,8 +34,14 @@ describe('events lib', () => {
           owners: ['dboyne', 'mSmith'],
           domain: null,
           historicVersions: [],
-          consumers: [],
-          producers: [],
+          consumers: [{
+            name: 'Customer Portal'
+          }],
+          producers: [{
+            name: 'Shopping API'
+          }, {
+            name: 'Application API'
+          }],
           externalLinks: [],
           schema: null,
           examples: [],
@@ -116,8 +122,12 @@ describe('events lib', () => {
           domain: 'User',
           historicVersions: [],
           externalLinks: [],
-          consumers: [],
-          producers: [],
+          consumers: [{
+            name: 'Customer Portal'
+          }],
+          producers: [{
+            name: 'Application API'
+          }],
           schema: null,
           examples: [],
         });

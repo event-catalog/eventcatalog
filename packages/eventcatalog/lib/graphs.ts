@@ -7,7 +7,7 @@ const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 const truncateNode = (value) => (value.length > MAX_LENGTH_FOR_NODES ? `${value.substring(0, MAX_LENGTH_FOR_NODES)}...` : value);
 const generateLink = (value, type, domain?) => {
   const url = `/${domain ? `domains/${domain}/` : ''}${type}/${value}`;
-  return basePath ? `${basePath}/${url}` : url;
+  return basePath ? `${basePath}${url}` : url;
 };
 
 /**
@@ -35,7 +35,7 @@ click ${centerNode.id} href "${centerNode.link}" "Go to ${centerNode.name}" _sel
  * @returns {string} Mermaid Graph
  */
 export const buildMermaidFlowChartForEvent = (
-  { name: eventName, producerNames, consumerNames, producers, consumers, domain }: Event,
+  { name: eventName, producerNames, consumerNames, producers = [], consumers = [], domain }: Event,
   rootNodeColor = '#2563eb'
 ) => {
   // Transforms services & event into a graph model

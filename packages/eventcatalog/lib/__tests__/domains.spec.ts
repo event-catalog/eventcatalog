@@ -97,6 +97,16 @@ describe('domains lib', () => {
             owners: ['dboyne', 'mSmith'],
             externalLinks: [],
             historicVersions: [],
+            producers: [
+              {
+                name: 'Application API',
+              },
+            ],
+            consumers: [
+              {
+                name: 'Customer Portal',
+              },
+            ],
           },
           {
             name: 'UserRemoved',
@@ -108,6 +118,16 @@ describe('domains lib', () => {
             owners: ['dboyne', 'mSmith'],
             externalLinks: [],
             historicVersions: [],
+            producers: [
+              {
+                name: 'Application API',
+              },
+            ],
+            consumers: [
+              {
+                name: 'Customer Portal',
+              },
+            ],
           },
         ],
         services: [
@@ -160,6 +180,16 @@ describe('domains lib', () => {
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              producers: [
+                {
+                  name: 'Application API',
+                },
+              ],
+              consumers: [
+                {
+                  name: 'Customer Portal',
+                },
+              ],
             },
             {
               name: 'UserRemoved',
@@ -171,6 +201,16 @@ describe('domains lib', () => {
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              producers: [
+                {
+                  name: 'Application API',
+                },
+              ],
+              consumers: [
+                {
+                  name: 'Customer Portal',
+                },
+              ],
             },
           ],
           services: [
@@ -226,6 +266,16 @@ describe('domains lib', () => {
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              producers: [
+                {
+                  name: 'Application API',
+                },
+              ],
+              consumers: [
+                {
+                  name: 'Customer Portal',
+                },
+              ],
             },
             {
               name: 'UserRemoved',
@@ -237,6 +287,16 @@ describe('domains lib', () => {
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              producers: [
+                {
+                  name: 'Application API',
+                },
+              ],
+              consumers: [
+                {
+                  name: 'Customer Portal',
+                },
+              ],
             },
           ],
           services: [
