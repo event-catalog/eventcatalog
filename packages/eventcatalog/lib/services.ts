@@ -96,8 +96,18 @@ export const hydrateEventProducersAndConsumers = (
 ): { producers: Service[]; consumers: Service[] } => {
   const findServiceByName = (name) => services.find((service) => service.name === name);
 
-  const producers = event.producerNames.map((name) => findServiceByName(name)).filter((service) => !!service);
-  const consumers = event.consumerNames.map((name) => findServiceByName(name)).filter((service) => !!service);
+  const hydratedProducers = event.producerNames.map((name) => findServiceByName(name)).filter((service) => !!service);
+  const producersWithNoMarkdown = event.producerNames
+    .filter((name) => !hydratedProducers.some((producer) => producer.name === name))
+    .map((name) => ({ name }));
+
+  const hydratedConsumers = event.consumerNames.map((name) => findServiceByName(name)).filter((service) => !!service);
+  const consumersWithNoMarkdown = event.consumerNames
+    .filter((name) => !hydratedConsumers.some((consumer) => consumer.name === name))
+    .map((name) => ({ name }));
+
+  const producers = hydratedProducers.concat(producersWithNoMarkdown as Service[]);
+  const consumers = hydratedConsumers.concat(consumersWithNoMarkdown as Service[]);
 
   return {
     producers: producers.length > 0 ? producers : [],

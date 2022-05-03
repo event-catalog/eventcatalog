@@ -42,6 +42,7 @@ const buildNodeData = ({
 }) => {
   const width = calcWidth(label);
   const linkType = type === 'service' ? 'services' : 'events';
+
   const link = generateLink(name, linkType, domain);
   return { label, link, width, maxWidth, renderInColumn };
 };
@@ -58,7 +59,7 @@ const getNodeLabel = ({ type, label, includeIcon }: { type: NODE_TYPES; label: a
  * @param isAnimated - whether to animate the graph
  */
 export const getEventElements = (
-  { name: eventName, producerNames: eventProducers, consumerNames: eventConsumers, domain }: Event,
+  { name: eventName, domain, consumers: eventConsumers = [], producers: eventProducers = [] }: Event,
   rootNodeColor = '#2563eb',
   isAnimated = true,
   includeLabels = false,
@@ -72,19 +73,27 @@ export const getEventElements = (
     fontSize: includeNodeIcons ? '8px' : 'auto',
   };
 
-  const producersNames = eventProducers.map((s) => calcWidth(s));
+  const producersNames = eventProducers.map((s) => calcWidth(s.name));
   const maxProducersWidth = Math.max(...producersNames);
-  const consumersNames = eventConsumers.map((s) => calcWidth(s));
+  const consumersNames = eventConsumers.map((s) => calcWidth(s.name));
   const maxConsumersWidth = Math.max(...consumersNames);
 
   const eventNameAsNodeID = `ev-${eventName.replace(/ /g, '_')}`;
   const eventNodeWidth = calcWidth(eventName);
 
-  const producers = eventProducers.map((node) => ({ label: node, id: `pr-${node.replace(/ /g, '_')}` }));
-  const consumers = eventConsumers.map((node) => ({ label: node, id: `co-${node.replace(/ /g, '_')}` }));
+  const producers = eventProducers.map((node) => ({
+    label: node.name,
+    id: `pr-${node.name.replace(/ /g, '_')}`,
+    domain: node.domain,
+  }));
+  const consumers = eventConsumers.map((node) => ({
+    label: node.name,
+    id: `co-${node.name.replace(/ /g, '_')}`,
+    domain: node.domain,
+  }));
 
   // Transforms services & event into a graph model
-  const producersNodes: Node[] = producers.map(({ label, id }) => {
+  const producersNodes: Node[] = producers.map(({ label, id, domain: producerDomain }) => {
     const nodeWidth = calcWidth(label);
     const diff = maxProducersWidth - nodeWidth;
     const nodeMaxWidth = diff !== 0 ? nodeWidth - diff : maxProducersWidth;
@@ -97,14 +106,14 @@ export const getEventElements = (
         type: 'service',
         maxWidth: nodeMaxWidth,
         renderInColumn: 1,
-        domain,
+        domain: producerDomain,
       }),
       style: { border: `2px solid ${producerColor}`, width: nodeWidth, ...nodeStyles },
       type: 'input',
       position,
     };
   });
-  const consumersNodes: Node[] = consumers.map(({ id, label }) => {
+  const consumersNodes: Node[] = consumers.map(({ id, label, domain: consumerDomain }) => {
     const width = calcWidth(label);
     const labelToRender = getNodeLabel({ type: 'service', label, includeIcon: includeNodeIcons });
     return {
@@ -115,7 +124,7 @@ export const getEventElements = (
         type: 'service',
         maxWidth: maxConsumersWidth,
         renderInColumn: 3,
-        domain,
+        domain: consumerDomain,
       }),
       style: { border: `2px solid ${consumerColor}`, width, ...nodeStyles },
       type: 'output',

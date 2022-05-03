@@ -5,7 +5,10 @@ const MAX_LENGTH_FOR_NODES = '50';
 const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 
 const truncateNode = (value) => (value.length > MAX_LENGTH_FOR_NODES ? `${value.substring(0, MAX_LENGTH_FOR_NODES)}...` : value);
-const generateLink = (value, type, domain?) => `${basePath}/${domain !== undefined ? `${domain}/` : ''}${type}/${value}`;
+const generateLink = (value, type, domain?) => {
+  const url = `/${domain ? `domains/${domain}/` : ''}${type}/${value}`;
+  return basePath ? `${basePath}/${url}` : url;
+};
 
 /**
  * Build Mermaid graph output
