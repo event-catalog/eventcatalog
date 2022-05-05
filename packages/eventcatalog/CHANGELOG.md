@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.16
+
+### Patch Changes
+
+- [`6ffc4af`](https://github.com/boyney123/eventcatalog/commit/6ffc4afe7059b98c02b496349ca624c9b672dbcb) [#261](https://github.com/boyney123/eventcatalog/pull/261) Thanks [@boyney123](https://github.com/boyney123)! - fix(core): Fixes node domain service/event linking
+
 ## 0.2.15
 
 ### Patch Changes
