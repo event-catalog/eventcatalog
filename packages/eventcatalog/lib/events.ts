@@ -1,17 +1,14 @@
-import fs from 'fs';
-import path from 'path';
-import { serialize } from 'next-mdx-remote/serialize';
-import type { Service, Event } from '@eventcatalog/types';
+import type { Event, Service } from '@eventcatalog/types';
 import compareVersions from 'compare-versions';
 import * as Diff from 'diff';
+import fs from 'fs';
+import { serialize } from 'next-mdx-remote/serialize';
+import path from 'path';
 import { MarkdownFile } from '@/types/index';
-
-import { extentionToLanguageMap } from './file-reader';
-
 import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader';
-
-import { getAllServices, hydrateEventProducersAndConsumers } from './services';
 import { getAllEventsFromDomains } from './domains';
+import { extentionToLanguageMap } from './file-reader';
+import { getAllServices, hydrateEventProducersAndConsumers } from './services';
 
 const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
   const {
@@ -145,24 +142,37 @@ const getEventExamplesFromDir = (pathToExamples) => {
   return examples;
 };
 
-export const getEventByPath = (eventDir: string): Event => {
+export const getEventByPath = (eventDir: string, hydrateWithProducersAndConsumers?: boolean): Event => {
   const { data } = readMarkdownFile(path.join(eventDir, 'index.md'));
   const historicVersions = versionsForEvents(path.join(eventDir));
+
+  const event = parseEventFrontMatterIntoEvent(data);
+
+  if (hydrateWithProducersAndConsumers) {
+    const services = getAllServices();
+    const consumersAndProducersAsServices = hydrateEventProducersAndConsumers(event, services);
+    return {
+      ...event,
+      historicVersions,
+      ...consumersAndProducersAsServices,
+    };
+  }
+
   return {
-    ...parseEventFrontMatterIntoEvent(data),
+    ...event,
     historicVersions,
   };
 };
 
-export const getAllEventsFromPath = (eventsDir: string): Event[] => {
+export const getAllEventsFromPath = (eventsDir: string, hydrateEvents?: boolean): Event[] => {
   if (!fs.existsSync(eventsDir)) return [];
   const folders = fs.readdirSync(eventsDir);
-  return folders.map((folder) => getEventByPath(path.join(eventsDir, folder)));
+  return folders.map((folder) => getEventByPath(path.join(eventsDir, folder), hydrateEvents));
 };
 
-export const getAllEvents = (): Event[] => {
-  const allEventsFromDomainFolders = getAllEventsFromDomains();
-  const eventsWithoutDomains = getAllEventsFromPath(path.join(process.env.PROJECT_DIR, 'events'));
+export const getAllEvents = ({ hydrateEvents }: { hydrateEvents?: boolean } = {}): Event[] => {
+  const allEventsFromDomainFolders = getAllEventsFromDomains(hydrateEvents);
+  const eventsWithoutDomains = getAllEventsFromPath(path.join(process.env.PROJECT_DIR, 'events'), hydrateEvents);
 
   const events = [...eventsWithoutDomains, ...allEventsFromDomainFolders];
   const sortedEvents = events.sort((a, b) => a.name.localeCompare(b.name));

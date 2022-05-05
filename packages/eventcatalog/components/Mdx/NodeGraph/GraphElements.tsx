@@ -8,7 +8,7 @@ const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 const MIN_NODE_WIDTH = 150;
 type NODE_TYPES = 'service' | 'event';
 
-const generateLink = (value, type) => (basePath !== '' ? `${basePath}/${type}/${value}` : `/${type}/${value}`);
+const generateLink = (value, type, domain?) => `${basePath}/${domain ? `domains/${domain}/` : ''}${type}/${value}`;
 const calcWidth = (value) => (value.length * 8 > MIN_NODE_WIDTH ? value.length * 8 : MIN_NODE_WIDTH);
 
 const buildNodeEdge = ({ id, target, source, label, isAnimated = true }): Edge => ({
@@ -31,16 +31,19 @@ const buildNodeData = ({
   type,
   maxWidth,
   renderInColumn,
+  domain,
 }: {
   name: string;
   label: string;
   type: NODE_TYPES;
   maxWidth?: number;
   renderInColumn?: number;
+  domain?: string;
 }) => {
   const width = calcWidth(label);
   const linkType = type === 'service' ? 'services' : 'events';
-  const link = generateLink(name, linkType);
+
+  const link = generateLink(name, linkType, domain);
   return { label, link, width, maxWidth, renderInColumn };
 };
 
@@ -56,7 +59,7 @@ const getNodeLabel = ({ type, label, includeIcon }: { type: NODE_TYPES; label: a
  * @param isAnimated - whether to animate the graph
  */
 export const getEventElements = (
-  { name: eventName, producerNames: eventProducers, consumerNames: eventConsumers }: Event,
+  { name: eventName, domain, consumers: eventConsumers = [], producers: eventProducers = [] }: Event,
   rootNodeColor = '#2563eb',
   isAnimated = true,
   includeLabels = false,
@@ -70,37 +73,59 @@ export const getEventElements = (
     fontSize: includeNodeIcons ? '8px' : 'auto',
   };
 
-  const producersNames = eventProducers.map((s) => calcWidth(s));
+  const producersNames = eventProducers.map((s) => calcWidth(s.name));
   const maxProducersWidth = Math.max(...producersNames);
-  const consumersNames = eventConsumers.map((s) => calcWidth(s));
+  const consumersNames = eventConsumers.map((s) => calcWidth(s.name));
   const maxConsumersWidth = Math.max(...consumersNames);
 
   const eventNameAsNodeID = `ev-${eventName.replace(/ /g, '_')}`;
   const eventNodeWidth = calcWidth(eventName);
 
-  const producers = eventProducers.map((node) => ({ label: node, id: `pr-${node.replace(/ /g, '_')}` }));
-  const consumers = eventConsumers.map((node) => ({ label: node, id: `co-${node.replace(/ /g, '_')}` }));
+  const producers = eventProducers.map((node) => ({
+    label: node.name,
+    id: `pr-${node.name.replace(/ /g, '_')}`,
+    domain: node.domain,
+  }));
+  const consumers = eventConsumers.map((node) => ({
+    label: node.name,
+    id: `co-${node.name.replace(/ /g, '_')}`,
+    domain: node.domain,
+  }));
 
   // Transforms services & event into a graph model
-  const producersNodes: Node[] = producers.map(({ label, id }) => {
+  const producersNodes: Node[] = producers.map(({ label, id, domain: producerDomain }) => {
     const nodeWidth = calcWidth(label);
     const diff = maxProducersWidth - nodeWidth;
     const nodeMaxWidth = diff !== 0 ? nodeWidth - diff : maxProducersWidth;
     const labelToRender = getNodeLabel({ type: 'service', label, includeIcon: includeNodeIcons });
     return {
       id,
-      data: buildNodeData({ name: label, label: labelToRender, type: 'service', maxWidth: nodeMaxWidth, renderInColumn: 1 }),
+      data: buildNodeData({
+        name: label,
+        label: labelToRender,
+        type: 'service',
+        maxWidth: nodeMaxWidth,
+        renderInColumn: 1,
+        domain: producerDomain,
+      }),
       style: { border: `2px solid ${producerColor}`, width: nodeWidth, ...nodeStyles },
       type: 'input',
       position,
     };
   });
-  const consumersNodes: Node[] = consumers.map(({ id, label }) => {
+  const consumersNodes: Node[] = consumers.map(({ id, label, domain: consumerDomain }) => {
     const width = calcWidth(label);
     const labelToRender = getNodeLabel({ type: 'service', label, includeIcon: includeNodeIcons });
     return {
       id,
-      data: buildNodeData({ name: label, label: labelToRender, type: 'service', maxWidth: maxConsumersWidth, renderInColumn: 3 }),
+      data: buildNodeData({
+        name: label,
+        label: labelToRender,
+        type: 'service',
+        maxWidth: maxConsumersWidth,
+        renderInColumn: 3,
+        domain: consumerDomain,
+      }),
       style: { border: `2px solid ${consumerColor}`, width, ...nodeStyles },
       type: 'output',
       position,
@@ -115,6 +140,7 @@ export const getEventElements = (
       type: 'event',
       maxWidth: eventNodeWidth,
       renderInColumn: 2,
+      domain,
     }),
     style: {
       border: `2px solid ${rootNodeColor}`,
@@ -157,7 +183,7 @@ export const getEventElements = (
  * @returns {string} Mermaid Graph
  */
 export const getServiceElements = (
-  { publishes, subscribes, name: serviceName }: Service,
+  { publishes, subscribes, name: serviceName, domain }: Service,
   rootNodeColor = '#2563eb',
   isAnimated = true,
   includeEdgeLabels = false,
@@ -190,6 +216,7 @@ export const getServiceElements = (
         type: 'event',
         maxWidth: maxPublishesWidth,
         renderInColumn: 3,
+        domain: node.domain,
       }),
       style: { border: `2px solid ${publishColor}`, width: nodeWidth, ...nodeStyles },
       type: 'output',
@@ -210,6 +237,7 @@ export const getServiceElements = (
         maxWidth: nodeMaxWidth,
         ...nodeStyles,
         renderInColumn: 1,
+        domain: node.domain,
       }),
       style: {
         border: `2px solid ${subscribeColor}`,
@@ -229,6 +257,7 @@ export const getServiceElements = (
       type: 'service',
       maxWidth: calcWidth(serviceName),
       renderInColumn: 2,
+      domain,
     }),
     style: {
       border: `2px solid ${rootNodeColor}`,

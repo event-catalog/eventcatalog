@@ -308,7 +308,7 @@ function ListItem({ data, onClick, type, isSelected }: ListItemProps) {
 export default Graph;
 
 export const getStaticProps = async () => {
-  const events = getAllEvents();
+  const events = getAllEvents({ hydrateEvents: true });
   const services = getAllServices();
   const domains = await getAllDomains();
 

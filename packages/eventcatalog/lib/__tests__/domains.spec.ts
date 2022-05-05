@@ -91,30 +91,50 @@ describe('domains lib', () => {
             name: 'UserCreated',
             version: '0.0.1',
             summary: 'Holds information about when the user has been created.\n',
-            domain: null,
+            domain: 'User',
             producerNames: ['Application API'],
             consumerNames: ['Customer Portal'],
             owners: ['dboyne', 'mSmith'],
             externalLinks: [],
             historicVersions: [],
+            producers: [
+              {
+                name: 'Application API',
+              },
+            ],
+            consumers: [
+              {
+                name: 'Customer Portal',
+              },
+            ],
           },
           {
             name: 'UserRemoved',
             version: '0.0.1',
             summary: 'Holds information about when the user has been removed.\n',
-            domain: null,
+            domain: 'User',
             producerNames: ['Application API'],
             consumerNames: ['Customer Portal'],
             owners: ['dboyne', 'mSmith'],
             externalLinks: [],
             historicVersions: [],
+            producers: [
+              {
+                name: 'Application API',
+              },
+            ],
+            consumers: [
+              {
+                name: 'Customer Portal',
+              },
+            ],
           },
         ],
         services: [
           {
             name: 'User Service',
             summary: 'CRUD based API to handle User information\n',
-            domain: null,
+            domain: 'User',
             owners: ['mSmith'],
             repository: {
               language: 'JavaScript',
@@ -154,30 +174,50 @@ describe('domains lib', () => {
               name: 'UserCreated',
               version: '0.0.1',
               summary: 'Holds information about when the user has been created.\n',
-              domain: null,
+              domain: 'User',
               producerNames: ['Application API'],
               consumerNames: ['Customer Portal'],
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              producers: [
+                {
+                  name: 'Application API',
+                },
+              ],
+              consumers: [
+                {
+                  name: 'Customer Portal',
+                },
+              ],
             },
             {
               name: 'UserRemoved',
               version: '0.0.1',
               summary: 'Holds information about when the user has been removed.\n',
-              domain: null,
+              domain: 'User',
               producerNames: ['Application API'],
               consumerNames: ['Customer Portal'],
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              producers: [
+                {
+                  name: 'Application API',
+                },
+              ],
+              consumers: [
+                {
+                  name: 'Customer Portal',
+                },
+              ],
             },
           ],
           services: [
             {
               name: 'User Service',
               summary: 'CRUD based API to handle User information\n',
-              domain: null,
+              domain: 'User',
               owners: ['mSmith'],
               repository: {
                 language: 'JavaScript',
@@ -220,30 +260,50 @@ describe('domains lib', () => {
               name: 'UserCreated',
               version: '0.0.1',
               summary: 'Holds information about when the user has been created.\n',
-              domain: null,
+              domain: 'User',
               producerNames: ['Application API'],
               consumerNames: ['Customer Portal'],
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              producers: [
+                {
+                  name: 'Application API',
+                },
+              ],
+              consumers: [
+                {
+                  name: 'Customer Portal',
+                },
+              ],
             },
             {
               name: 'UserRemoved',
               version: '0.0.1',
               summary: 'Holds information about when the user has been removed.\n',
-              domain: null,
+              domain: 'User',
               producerNames: ['Application API'],
               consumerNames: ['Customer Portal'],
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              producers: [
+                {
+                  name: 'Application API',
+                },
+              ],
+              consumers: [
+                {
+                  name: 'Customer Portal',
+                },
+              ],
             },
           ],
           services: [
             {
               name: 'User Service',
               summary: 'CRUD based API to handle User information\n',
-              domain: null,
+              domain: 'User',
               owners: ['mSmith'],
               repository: {
                 language: 'JavaScript',

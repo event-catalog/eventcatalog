@@ -1,13 +1,12 @@
-import path from 'path';
-import fs from 'fs';
 import type { Event } from '@eventcatalog/types';
 import { Domain } from '@eventcatalog/types';
+import fs from 'fs';
 import { serialize } from 'next-mdx-remote/serialize';
+import path from 'path';
+import { getLastModifiedDateOfFile, readMarkdownFile } from '@/lib/file-reader';
+import { MarkdownFile } from '../types/index';
 import { getAllEventsFromPath } from './events';
 import { getAllServicesFromPath } from './services';
-import { readMarkdownFile, getLastModifiedDateOfFile } from '@/lib/file-reader';
-
-import { MarkdownFile } from '../types/index';
 
 const buildDomain = (domainFrontMatter: any): Domain => {
   const { name, summary, owners = [], tags = [], externalLinks = [] } = domainFrontMatter;
@@ -30,7 +29,7 @@ export const getAllDomainsByOwnerId = async (ownerId): Promise<Domain[]> => {
   }));
 };
 
-export const getAllEventsFromDomains = () => {
+export const getAllEventsFromDomains = (hydrate?: boolean) => {
   const domainsDir = path.join(process.env.PROJECT_DIR, 'domains');
 
   if (!fs.existsSync(domainsDir)) return [];
@@ -43,7 +42,7 @@ export const getAllEventsFromDomains = () => {
     const domainHasEvents = fs.existsSync(eventsForDomainDir);
 
     if (domainHasEvents) {
-      const domainEvents = getAllEventsFromPath(eventsForDomainDir);
+      const domainEvents = getAllEventsFromPath(eventsForDomainDir, hydrate);
 
       // Add domains onto events
       const eventsWithDomain = domainEvents.map((event) => ({ ...event, domain: domainFolder }));
@@ -92,8 +91,15 @@ export const getDomainByName = async ({
 
     const mdxSource = await serialize(content);
 
-    const eventsForDomain = getAllEventsFromPath(path.join(domainDirectory, 'events'));
-    const servicesForDomain = getAllServicesFromPath(path.join(domainDirectory, 'services'));
+    const eventsForDomain = getAllEventsFromPath(path.join(domainDirectory, 'events'), true).map((event) => ({
+      ...event,
+      domain: domainName,
+    }));
+
+    const servicesForDomain = getAllServicesFromPath(path.join(domainDirectory, 'services')).map((service) => ({
+      ...service,
+      domain: domainName,
+    }));
 
     return {
       // @ts-ignore
@@ -120,8 +126,14 @@ export const getDomainByPath = async (domainDirectory: string): Promise<{ domain
 
   const mdxSource = await serialize(content);
 
-  const eventsForDomain = getAllEventsFromPath(path.join(domainDirectory, 'events'));
-  const servicesForDomain = getAllServicesFromPath(path.join(domainDirectory, 'services'));
+  const eventsForDomain = getAllEventsFromPath(path.join(domainDirectory, 'events'), true).map((event) => ({
+    ...event,
+    domain: domain.name,
+  }));
+  const servicesForDomain = getAllServicesFromPath(path.join(domainDirectory, 'services')).map((service) => ({
+    ...service,
+    domain: domain.name,
+  }));
 
   return {
     // @ts-ignore
