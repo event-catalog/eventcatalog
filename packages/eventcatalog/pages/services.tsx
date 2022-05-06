@@ -24,7 +24,6 @@ export interface PageProps {
 }
 
 export default function Page({ services }: PageProps) {
-
   const [servicesToRender, setServicesToRender] = useState(services);
   const [searchFilter, setSearchFilter] = useState('');
 
