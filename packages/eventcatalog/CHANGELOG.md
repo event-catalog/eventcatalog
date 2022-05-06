@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.18
+
+### Patch Changes
+
+- [`602f726`](https://github.com/boyney123/eventcatalog/commit/602f72693f9b4f3f9dd9838dd8cad2da6c4ff6a2) [#254](https://github.com/boyney123/eventcatalog/pull/254) Thanks [@drub0y](https://github.com/drub0y)! - fix(core): Fixes getEditUrl to build URLs w/URL vs just path.join
+
 ## 0.2.17
 
 ### Patch Changes
