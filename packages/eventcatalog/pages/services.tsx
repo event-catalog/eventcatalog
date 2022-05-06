@@ -1,9 +1,10 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useCallback, useEffect } from 'react';
 import Head from 'next/head';
 import { Service } from '@eventcatalog/types';
+import debounce from 'lodash.debounce';
 
 import { Menu, Transition } from '@headlessui/react';
-import { ChevronDownIcon } from '@heroicons/react/solid';
+import { ChevronDownIcon, SearchIcon } from '@heroicons/react/solid';
 import ServiceGrid from '@/components/Grids/ServiceGrid';
 import { getAllServices } from '@/lib/services';
 import { useConfig } from '@/hooks/EventCatalog';
@@ -19,10 +20,37 @@ const sortOptions = [
 ];
 
 export interface PageProps {
-  services: [Service];
+  services: Service[];
 }
 
 export default function Page({ services }: PageProps) {
+
+  const [servicesToRender, setServicesToRender] = useState(services);
+  const [searchFilter, setSearchFilter] = useState('');
+
+  const getFilteredServices = (): any => {
+    let filteredServices = services;
+
+    if (searchFilter) {
+      filteredServices = filteredServices.filter((service) => service.name.toLowerCase().includes(searchFilter.toLowerCase()));
+    }
+
+    return filteredServices;
+  };
+
+  useEffect(() => {
+    setServicesToRender(getFilteredServices());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchFilter]);
+
+  const debouncedFilter = useCallback(
+    debounce((e) => {
+      setSearchFilter(e.target.value);
+    }, 500),
+    [servicesToRender]
+  );
+
+  const filtersApplied = !!searchFilter;
   const [showMermaidDiagrams, setShowMermaidDiagrams] = useState(false);
   const { title } = useConfig();
 
@@ -86,6 +114,24 @@ export default function Page({ services }: PageProps) {
             {/* Filters */}
             <form className="hidden lg:block">
               <div className="border-b border-gray-200 pb-6">
+                <label htmlFor="service" className="font-bold block text-sm font-medium text-gray-700">
+                  Search Services
+                </label>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <SearchIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                  </div>
+                  <input
+                    type="text"
+                    name="service"
+                    id="service"
+                    onChange={debouncedFilter}
+                    className="focus:ring-gray-500 focus:border-gray-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                  />
+                </div>
+              </div>
+
+              <div className="border-b border-gray-200 pb-6">
                 <h3 className="-my-3 flow-root">
                   <div className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
                     <span className="font-medium text-gray-900">Features</span>
@@ -112,8 +158,20 @@ export default function Page({ services }: PageProps) {
 
             <div className="col-span-4 lg:col-span-3">
               <div>
-                <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">Services</h2>
-                <ServiceGrid services={services} showMermaidDiagrams={showMermaidDiagrams} />
+                <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">
+                  {filtersApplied
+                    ? `Filtered Events (${servicesToRender.length}/${services.length})`
+                    : `All Events (${services.length})`}
+                </h2>
+                <ServiceGrid services={servicesToRender} showMermaidDiagrams={showMermaidDiagrams} />
+                {servicesToRender.length === 0 && (
+                  <div className="text-gray-400 flex h-96  justify-center items-center">
+                    <div>
+                      <SearchIcon className="w-6 h-6 inline-block mr-1" />
+                      No services found.
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
