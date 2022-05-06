@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.17
+
+### Patch Changes
+
+- [`c5330cd`](https://github.com/boyney123/eventcatalog/commit/c5330cd9776de26389271a2bd7b0c589a59b0982) [#265](https://github.com/boyney123/eventcatalog/pull/265) Thanks [@boyney123](https://github.com/boyney123)! - fix: fixing small padding issues on various pages
+
 ## 0.2.16
 
 ### Patch Changes
