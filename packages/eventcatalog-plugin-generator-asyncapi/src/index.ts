@@ -47,7 +47,11 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
 };
 
 const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOptions, copyFrontMatter: boolean) => {
-  const { versionEvents = true } = options;
+  const { 
+    versionEvents = true,
+    renderMermaidDiagram = true,
+    renderNodeGraph = false,
+  } = options;
 
   let asyncAPIFile;
 
@@ -71,6 +75,8 @@ const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOpti
 
   await writeServiceToCatalog(service, {
     useMarkdownContentFromExistingService: true,
+    renderMermaidDiagram: renderMermaidDiagram,
+    renderNodeGraph: renderNodeGraph,
   });
 
   const eventFiles = events.map(async (event: any) => {
