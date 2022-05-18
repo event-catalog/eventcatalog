@@ -4,6 +4,8 @@ export interface FunctionInitInterface {
 
 export interface WriteServiceToCatalogInterface {
   useMarkdownContentFromExistingService?: boolean;
+  renderMermaidDiagram?: boolean;
+  renderNodeGraph?: boolean;
 }
 
 export interface WriteServiceToCatalogInterfaceReponse {
@@ -37,6 +39,8 @@ export interface WriteEventToCatalogOptions {
   schema?: SchemaFile;
   codeExamples?: CodeExample[];
   useMarkdownContentFromExistingEvent?: boolean;
+  renderMermaidDiagram?: boolean;
+  renderNodeGraph?: boolean;
   markdownContent?: string;
   frontMatterToCopyToNewVersions?: FrontMatterAllowedToCopy;
   versionExistingEvent?: boolean;
