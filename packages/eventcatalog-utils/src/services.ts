@@ -72,7 +72,12 @@ export const writeServiceToCatalog =
       markdownContent = data?.content ? data?.content : '';
     }
 
-    const data = buildServiceMarkdownForCatalog()(service, { markdownContent, options });
+    const data = buildServiceMarkdownForCatalog()(service, { 
+      markdownContent,
+      useMarkdownContentFromExistingService,
+      renderMermaidDiagram,
+      renderNodeGraph 
+    });
 
     fs.ensureDirSync(path.join(catalogDirectory, 'services', service.name));
     fs.writeFileSync(path.join(catalogDirectory, 'services', service.name, 'index.md'), data);
