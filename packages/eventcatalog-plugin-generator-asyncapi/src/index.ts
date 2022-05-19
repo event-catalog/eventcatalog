@@ -85,6 +85,8 @@ const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOpti
     await writeEventToCatalog(eventData, {
       useMarkdownContentFromExistingEvent: true,
       versionExistingEvent: versionEvents,
+      renderMermaidDiagram: renderMermaidDiagram,
+      renderNodeGraph: renderNodeGraph,
       frontMatterToCopyToNewVersions: {
         // only do consumers and producers if its not the first file.
         consumers: copyFrontMatter,
