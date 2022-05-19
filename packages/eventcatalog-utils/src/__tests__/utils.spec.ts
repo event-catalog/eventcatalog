@@ -700,6 +700,35 @@ describe('eventcatalog-utils', () => {
         ---
         # Testing`);
       });
+      
+      it('takes a given service and generates markdown with a node graph', () => {
+        const service = {
+          name: 'My Service',
+          summary: 'This is summary for my service',
+          repository: {
+            url: 'https://github.com/boyney123/eventcatalog',
+            language: 'JavaScript',
+          },
+          owners: ['dBoyne'],
+        };
+  
+        const result = buildServiceMarkdownForCatalog(service, {
+          renderMermaidDiagram: false,
+          renderNodeGraph: true
+        });
+  
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My Service'
+        summary: 'This is summary for my service'
+        repository:
+            url: 'https://github.com/boyney123/eventcatalog'
+            language: JavaScript
+        owners:
+            - dBoyne
+        ---
+        <NodeGraph />`);
+      });
     });
 
     describe('existsInCatalog (service)', () => {
