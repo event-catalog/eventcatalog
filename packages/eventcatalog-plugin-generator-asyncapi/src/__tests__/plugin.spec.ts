@@ -358,6 +358,50 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
             `);
         });
       });
+
+      describe('Custom graph templating', () => {
+        it('when options are set Mermaid is ignored and Node Graphs are templated', async () => {
+          const options: AsyncAPIPluginOptions = {
+            pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
+            renderMermaidDiagram: false,
+            renderNodeGraph: true
+          };
+
+          await plugin(pluginContext, options);
+
+          // just wait for files to be there in time.
+          await new Promise((r) => setTimeout(r, 200));
+
+          const { getEventFromCatalog, getServiceFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+
+          const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
+          const { raw: serviceFile } = getServiceFromCatalog('Account Service');
+
+          expect(eventFile).toMatchMarkdown(`
+            ---
+              name: UserSignedUp
+              summary: null
+              version: 1.0.0
+              producers:
+                  - 'Account Service'
+              consumers: []
+              externalLinks: []
+            ---
+
+            <NodeGraph />
+            <Schema />
+            `);
+
+          expect(serviceFile).toMatchMarkdown(
+          `---
+            name: 'Account Service'
+            summary: 'This service is in charge of processing user signups'
+            ---
+
+            <NodeGraph />`
+          );
+        });
+      });
     });
   });
 });
