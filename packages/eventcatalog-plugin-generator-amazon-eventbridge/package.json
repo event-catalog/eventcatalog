@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/plugin-doc-generator-amazon-eventbridge",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Documentation generator for EventCatalog using Amazon EventBridge",
   "main": "lib/index.js",
   "scripts": {
@@ -20,7 +20,7 @@
   "dependencies": {
     "@aws-sdk/client-eventbridge": "^3.47.0",
     "@aws-sdk/client-schemas": "^3.47.0",
-    "@eventcatalog/utils": "^0.0.9",
+    "@eventcatalog/utils": "^0.1.0",
     "aws-cdk-lib": "^2.8.0",
     "constructs": "^10.0.40",
     "chalk": "^4.1.2",

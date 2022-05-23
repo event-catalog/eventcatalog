@@ -1,5 +1,16 @@
 # @eventcatalog/plugin-doc-generator-asyncapi
 
+## 0.2.0
+
+### Minor Changes
+
+- [`1c520b3`](https://github.com/boyney123/eventcatalog/commit/1c520b348ae9d564a57bc761832c9ef5599ecebe) [#271](https://github.com/boyney123/eventcatalog/pull/271) Thanks [@dpwdec](https://github.com/dpwdec)! - feat(generator-asyncapi): Add options for graph type rendering when parsing AsyncAPI to markdown
+
+### Patch Changes
+
+- Updated dependencies [[`1c520b3`](https://github.com/boyney123/eventcatalog/commit/1c520b348ae9d564a57bc761832c9ef5599ecebe)]:
+  - @eventcatalog/utils@0.1.0
+
 ## 0.1.5
 
 ### Patch Changes

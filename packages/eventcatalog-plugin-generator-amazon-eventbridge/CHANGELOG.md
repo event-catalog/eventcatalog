@@ -1,5 +1,12 @@
 # @eventcatalog/plugin-doc-generator-amazon-eventbridge
 
+## 0.0.7
+
+### Patch Changes
+
+- Updated dependencies [[`1c520b3`](https://github.com/boyney123/eventcatalog/commit/1c520b348ae9d564a57bc761832c9ef5599ecebe)]:
+  - @eventcatalog/utils@0.1.0
+
 ## 0.0.6
 
 ### Patch Changes
