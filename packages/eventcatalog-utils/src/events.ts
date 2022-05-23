@@ -53,9 +53,18 @@ export const getAllEventsFromCatalog =
 
 export const buildEventMarkdownForCatalog =
   () =>
-  (event: Event, { markdownContent, includeSchemaComponent, defaultFrontMatter = {} }: any = {}) => {
+  (
+    event: Event,
+    { markdownContent, includeSchemaComponent, renderMermaidDiagram, renderNodeGraph, defaultFrontMatter = {} }: any = {}
+  ) => {
     const frontMatter = merge(event, defaultFrontMatter);
-    return buildMarkdownFile({ frontMatterObject: frontMatter, customContent: markdownContent, includeSchemaComponent });
+    return buildMarkdownFile({
+      frontMatterObject: frontMatter,
+      customContent: markdownContent,
+      includeSchemaComponent,
+      renderMermaidDiagram,
+      renderNodeGraph,
+    });
   };
 
 export const versionEvent =
@@ -105,6 +114,8 @@ export const writeEventToCatalog =
     const { name: eventName } = event;
     const {
       useMarkdownContentFromExistingEvent = true,
+      renderMermaidDiagram = true,
+      renderNodeGraph = false,
       versionExistingEvent = true,
       schema,
       codeExamples = [],
@@ -147,6 +158,8 @@ export const writeEventToCatalog =
     fs.ensureDirSync(path.join(catalogDirectory, 'events', eventName));
     const data = buildEventMarkdownForCatalog()(event, {
       markdownContent,
+      renderMermaidDiagram,
+      renderNodeGraph,
       includeSchemaComponent: !!schema,
       defaultFrontMatter: defaultFrontMatterForNewEvent,
     });

@@ -346,6 +346,35 @@ describe('eventcatalog-utils', () => {
         fs.rmdirSync(path.join(eventPath), { recursive: true });
       });
 
+      it('should write event with node graph when the options are set', () => {
+        const event = {
+          name: 'My Event That Needs a Node Graph',
+          summary: 'This is summary for my event',
+          owners: ['dBoyne'],
+        };
+
+        const { path: eventPath } = writeEventToCatalog(event, {
+          renderMermaidDiagram: false,
+          renderNodeGraph: true,
+        });
+
+        expect(fs.existsSync(eventPath)).toEqual(true);
+
+        const result = fs.readFileSync(path.join(eventPath, 'index.md'), 'utf-8');
+
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My Event That Needs a Node Graph'
+        summary: 'This is summary for my event'
+        owners:
+            - dBoyne
+        ---
+        <NodeGraph />`);
+
+        // clean up
+        fs.rmdirSync(path.join(eventPath), { recursive: true });
+      });
+
       describe('function options', () => {
         it('when given a `schema` the schema is written into the catalog with the event', () => {
           const event = {
@@ -670,6 +699,35 @@ describe('eventcatalog-utils', () => {
             - dBoyne
         ---
         # Testing`);
+      });
+
+      it('takes a given service and generates markdown with a node graph', () => {
+        const service = {
+          name: 'My Service',
+          summary: 'This is summary for my service',
+          repository: {
+            url: 'https://github.com/boyney123/eventcatalog',
+            language: 'JavaScript',
+          },
+          owners: ['dBoyne'],
+        };
+
+        const result = buildServiceMarkdownForCatalog(service, {
+          renderMermaidDiagram: false,
+          renderNodeGraph: true,
+        });
+
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My Service'
+        summary: 'This is summary for my service'
+        repository:
+            url: 'https://github.com/boyney123/eventcatalog'
+            language: JavaScript
+        owners:
+            - dBoyne
+        ---
+        <NodeGraph />`);
       });
     });
 

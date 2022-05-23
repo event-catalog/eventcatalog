@@ -47,7 +47,7 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
 };
 
 const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOptions, copyFrontMatter: boolean) => {
-  const { versionEvents = true } = options;
+  const { versionEvents = true, renderMermaidDiagram = true, renderNodeGraph = false } = options;
 
   let asyncAPIFile;
 
@@ -71,6 +71,8 @@ const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOpti
 
   await writeServiceToCatalog(service, {
     useMarkdownContentFromExistingService: true,
+    renderMermaidDiagram,
+    renderNodeGraph,
   });
 
   const eventFiles = events.map(async (event: any) => {
@@ -79,6 +81,8 @@ const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOpti
     await writeEventToCatalog(eventData, {
       useMarkdownContentFromExistingEvent: true,
       versionExistingEvent: versionEvents,
+      renderMermaidDiagram,
+      renderNodeGraph,
       frontMatterToCopyToNewVersions: {
         // only do consumers and producers if its not the first file.
         consumers: copyFrontMatter,
