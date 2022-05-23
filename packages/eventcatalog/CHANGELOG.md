@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.19
+
+### Patch Changes
+
+- [`6848067`](https://github.com/boyney123/eventcatalog/commit/68480677ed079bb73c0b8e19f60e15abb3aff707) [#264](https://github.com/boyney123/eventcatalog/pull/264) Thanks [@rtoro](https://github.com/rtoro)! - feat: adding search box into service page
+
 ## 0.2.18
 
 ### Patch Changes
