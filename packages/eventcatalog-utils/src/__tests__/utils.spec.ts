@@ -372,7 +372,7 @@ describe('eventcatalog-utils', () => {
         <NodeGraph />`);
 
         // clean up
-        fs.rmdirSync(path.join(eventPath), { recursive: true });        
+        fs.rmdirSync(path.join(eventPath), { recursive: true });
       });
 
       describe('function options', () => {
@@ -700,7 +700,7 @@ describe('eventcatalog-utils', () => {
         ---
         # Testing`);
       });
-      
+
       it('takes a given service and generates markdown with a node graph', () => {
         const service = {
           name: 'My Service',
@@ -711,12 +711,12 @@ describe('eventcatalog-utils', () => {
           },
           owners: ['dBoyne'],
         };
-  
+
         const result = buildServiceMarkdownForCatalog(service, {
           renderMermaidDiagram: false,
-          renderNodeGraph: true
+          renderNodeGraph: true,
         });
-  
+
         expect(result).toMatchMarkdown(`
         ---
         name: 'My Service'

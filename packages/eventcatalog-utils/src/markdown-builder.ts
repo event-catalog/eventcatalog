@@ -7,7 +7,7 @@ export default ({
   customContent,
   includeSchemaComponent = false,
   renderMermaidDiagram = true,
-  renderNodeGraph = false
+  renderNodeGraph = false,
 }: {
   frontMatterObject: Service | Event;
   customContent?: string;
@@ -22,11 +22,7 @@ export default ({
     return json2md(content);
   };
 
-  const content = [
-    { mermaid: renderMermaidDiagram }, 
-    { nodeGraph: renderNodeGraph },
-    { schema: includeSchemaComponent }
-  ];
+  const content = [{ mermaid: renderMermaidDiagram }, { nodeGraph: renderNodeGraph }, { schema: includeSchemaComponent }];
 
   return `---
 ${YAML.stringify(frontMatterObject)}---

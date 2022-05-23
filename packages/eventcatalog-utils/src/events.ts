@@ -53,20 +53,17 @@ export const getAllEventsFromCatalog =
 
 export const buildEventMarkdownForCatalog =
   () =>
-  (event: Event, { 
-    markdownContent, 
-    includeSchemaComponent, 
-    renderMermaidDiagram,
-    renderNodeGraph,
-    defaultFrontMatter = {} 
-  }: any = {}) => {
+  (
+    event: Event,
+    { markdownContent, includeSchemaComponent, renderMermaidDiagram, renderNodeGraph, defaultFrontMatter = {} }: any = {}
+  ) => {
     const frontMatter = merge(event, defaultFrontMatter);
-    return buildMarkdownFile({ 
-      frontMatterObject: frontMatter, 
-      customContent: markdownContent, 
+    return buildMarkdownFile({
+      frontMatterObject: frontMatter,
+      customContent: markdownContent,
       includeSchemaComponent,
       renderMermaidDiagram,
-      renderNodeGraph
+      renderNodeGraph,
     });
   };
 

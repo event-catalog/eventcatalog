@@ -364,7 +364,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           const options: AsyncAPIPluginOptions = {
             pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
             renderMermaidDiagram: false,
-            renderNodeGraph: true
+            renderNodeGraph: true,
           };
 
           await plugin(pluginContext, options);
@@ -393,7 +393,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
             `);
 
           expect(serviceFile).toMatchMarkdown(
-          `---
+            `---
             name: 'Account Service'
             summary: 'This service is in charge of processing user signups'
             ---

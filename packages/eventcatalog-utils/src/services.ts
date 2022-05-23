@@ -19,11 +19,11 @@ const readMarkdownFile = (pathToFile: string) => {
 export const buildServiceMarkdownForCatalog =
   () =>
   (service: Service, { markdownContent, renderMermaidDiagram = true, renderNodeGraph = false }: any = {}) =>
-    buildMarkdownFile({ 
-      frontMatterObject: service, 
+    buildMarkdownFile({
+      frontMatterObject: service,
       customContent: markdownContent,
       renderMermaidDiagram,
-      renderNodeGraph, 
+      renderNodeGraph,
     });
 
 export const getAllServicesFromCatalog =
@@ -58,11 +58,7 @@ export const writeServiceToCatalog =
   ({ catalogDirectory }: FunctionInitInterface) =>
   (service: Service, options?: WriteServiceToCatalogInterface): WriteServiceToCatalogInterfaceReponse => {
     const { name: serviceName } = service;
-    const { 
-      useMarkdownContentFromExistingService = true,
-      renderMermaidDiagram = true,
-      renderNodeGraph = false
-    } = options || {};
+    const { useMarkdownContentFromExistingService = true, renderMermaidDiagram = true, renderNodeGraph = false } = options || {};
     let markdownContent;
 
     if (!serviceName) throw new Error('No `name` found for given service');
@@ -72,11 +68,11 @@ export const writeServiceToCatalog =
       markdownContent = data?.content ? data?.content : '';
     }
 
-    const data = buildServiceMarkdownForCatalog()(service, { 
+    const data = buildServiceMarkdownForCatalog()(service, {
       markdownContent,
       useMarkdownContentFromExistingService,
       renderMermaidDiagram,
-      renderNodeGraph 
+      renderNodeGraph,
     });
 
     fs.ensureDirSync(path.join(catalogDirectory, 'services', service.name));

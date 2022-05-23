@@ -47,11 +47,7 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
 };
 
 const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOptions, copyFrontMatter: boolean) => {
-  const { 
-    versionEvents = true,
-    renderMermaidDiagram = true,
-    renderNodeGraph = false,
-  } = options;
+  const { versionEvents = true, renderMermaidDiagram = true, renderNodeGraph = false } = options;
 
   let asyncAPIFile;
 
