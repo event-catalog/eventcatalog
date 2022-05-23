@@ -159,8 +159,8 @@ export default function Page({ services }: PageProps) {
               <div>
                 <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">
                   {filtersApplied
-                    ? `Filtered Events (${servicesToRender.length}/${services.length})`
-                    : `All Events (${services.length})`}
+                    ? `Filtered Services (${servicesToRender.length}/${services.length})`
+                    : `All Services (${services.length})`}
                 </h2>
                 <ServiceGrid services={servicesToRender} showMermaidDiagrams={showMermaidDiagrams} />
                 {servicesToRender.length === 0 && (
