@@ -15,11 +15,7 @@ import {
   getAllServicesFromCatalog,
   getServiceFromCatalog,
 } from './services';
-import {
-  getDomainFromCatalog,
-  writeDomainToCatalog,
-  buildDomainMarkdownForCatalog,
-} from './domains';
+import { getDomainFromCatalog, writeDomainToCatalog, buildDomainMarkdownForCatalog } from './domains';
 
 interface ExistsInCatalogInterface {
   type: 'service' | 'event';

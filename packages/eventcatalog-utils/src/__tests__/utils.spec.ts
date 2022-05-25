@@ -866,7 +866,7 @@ describe('eventcatalog-utils', () => {
         expect(data).toEqual({
           name: 'Orders',
           summary: 'Domain that holds all the order information.\n',
-          owners: ['dboyne']
+          owners: ['dboyne'],
         });
 
         expect(content).toMatchMarkdown('# Testing');
@@ -976,7 +976,7 @@ describe('eventcatalog-utils', () => {
           summary: 'This is a summary for my domain',
           owners: ['dBoyne'],
         };
-        
+
         const { path: domainPath } = writeDomainToCatalog(domain, { useMarkdownContentFromExistingDomain: true });
 
         // expect(fs.existsSync(domainPath)).toEqual(true);

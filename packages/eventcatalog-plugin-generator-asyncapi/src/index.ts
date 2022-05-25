@@ -48,7 +48,13 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
 };
 
 const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOptions, copyFrontMatter: boolean) => {
-  const { versionEvents = true, renderMermaidDiagram = true, renderNodeGraph = false, domainName = '', domainSummary = '' } = options;
+  const {
+    versionEvents = true,
+    renderMermaidDiagram = true,
+    renderNodeGraph = false,
+    domainName = '',
+    domainSummary = '',
+  } = options;
 
   let asyncAPIFile;
 
@@ -73,17 +79,19 @@ const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOpti
 
     const domain: Domain = {
       name: domainName,
-      summary: domainSummary
+      summary: domainSummary,
     };
 
     await writeDomainToCatalog(domain, {
       useMarkdownContentFromExistingDomain: true,
       renderMermaidDiagram,
-      renderNodeGraph
+      renderNodeGraph,
     });
   }
 
-  const { writeServiceToCatalog, writeEventToCatalog } = utils({ catalogDirectory: domainName ? path.join(process.env.PROJECT_DIR, 'domains', domainName) : process.env.PROJECT_DIR });
+  const { writeServiceToCatalog, writeEventToCatalog } = utils({
+    catalogDirectory: domainName ? path.join(process.env.PROJECT_DIR, 'domains', domainName) : process.env.PROJECT_DIR,
+  });
 
   await writeServiceToCatalog(service, {
     useMarkdownContentFromExistingService: true,

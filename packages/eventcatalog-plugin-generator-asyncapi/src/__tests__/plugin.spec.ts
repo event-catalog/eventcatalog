@@ -410,7 +410,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
             renderMermaidDiagram: false,
             renderNodeGraph: true,
             domainName: 'My Domain',
-            domainSummary: 'A summary of my domain.'
+            domainSummary: 'A summary of my domain.',
           };
 
           await plugin(pluginContext, options);
@@ -419,7 +419,9 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           await new Promise((r) => setTimeout(r, 200));
 
           const { getDomainFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
-          const { getEventFromCatalog, getServiceFromCatalog } = utils({ catalogDirectory: path.join(process.env.PROJECT_DIR, 'domains', options.domainName) });
+          const { getEventFromCatalog, getServiceFromCatalog } = utils({
+            catalogDirectory: path.join(process.env.PROJECT_DIR, 'domains', options.domainName),
+          });
 
           const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
           const { raw: serviceFile } = getServiceFromCatalog('Account Service');
