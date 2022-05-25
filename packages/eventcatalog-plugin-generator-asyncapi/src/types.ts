@@ -4,4 +4,6 @@ export type AsyncAPIPluginOptions = {
   externalAsyncAPIUrl?: string;
   renderMermaidDiagram?: boolean;
   renderNodeGraph?: boolean;
+  domainName?: string;
+  domainSummary?: string;
 };

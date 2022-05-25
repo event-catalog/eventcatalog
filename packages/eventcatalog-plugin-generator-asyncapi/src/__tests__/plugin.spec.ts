@@ -402,6 +402,52 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           );
         });
       });
+
+      describe('In domain AsyncAPI parsing', () => {
+        it('Creates a domain with contained services and events when domain options are set', async () => {
+          const options: AsyncAPIPluginOptions = {
+            pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
+            renderMermaidDiagram: false,
+            renderNodeGraph: true,
+            domainName: 'My Domain',
+            domainSummary: 'A summary of my domain.'
+          };
+
+          await plugin(pluginContext, options);
+
+          // just wait for files to be there in time.
+          await new Promise((r) => setTimeout(r, 200));
+
+          const { getEventFromCatalog, getServiceFromCatalog } = utils({ catalogDirectory: path.join(process.env.PROJECT_DIR, 'domains', options.domainName) });
+
+          const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
+          const { raw: serviceFile } = getServiceFromCatalog('Account Service');
+
+          expect(eventFile).toMatchMarkdown(`
+            ---
+              name: UserSignedUp
+              summary: null
+              version: 1.0.0
+              producers:
+                  - 'Account Service'
+              consumers: []
+              externalLinks: []
+            ---
+
+            <NodeGraph />
+            <Schema />
+            `);
+
+          expect(serviceFile).toMatchMarkdown(
+            `---
+            name: 'Account Service'
+            summary: 'This service is in charge of processing user signups'
+            ---
+
+            <NodeGraph />`
+          );
+        });
+      });
     });
   });
 });
