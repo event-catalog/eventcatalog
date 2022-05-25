@@ -5,7 +5,7 @@ sidebar_label: Adding Events
 slug: /events/adding-event
 ---
 
-EventCatalog is designed with the developer experince in mind. 
+EventCatalog is designed with the developer experience in mind. 
 
 You should be able to add Events to your catalog within a few steps.
 
@@ -89,7 +89,7 @@ producers:
 
 As you can see we have our event named `UserSignedUp` which has **one producer** and **one consumer**.
 
-The mapping of [consumers](docs/api/event-frontmatter) and [producers](/docs/api/event-frontmatter) in this format allows EventCatalog to paint a picture of your Architecture and provide you with digrams, node graphs and enriched user experince.
+The mapping of [consumers](docs/api/event-frontmatter) and [producers](/docs/api/event-frontmatter) in this format allows EventCatalog to paint a picture of your Architecture and provide you with diagrams, node graphs and enriched user experience.
 
 
 If you wish to know more about the event configuration you can read the [api docs](/docs/api/event-frontmatter).
