@@ -15,6 +15,11 @@ import {
   getAllServicesFromCatalog,
   getServiceFromCatalog,
 } from './services';
+import {
+  getDomainFromCatalog,
+  writeDomainToCatalog,
+  buildDomainMarkdownForCatalog,
+} from './domains';
 
 interface ExistsInCatalogInterface {
   type: 'service' | 'event';
@@ -36,11 +41,16 @@ const utils = ({ catalogDirectory }: FunctionInitInterface) => ({
   getAllEventsFromCatalog: getAllEventsFromCatalog({ catalogDirectory }),
   versionEvent: versionEvent({ catalogDirectory }),
 
-  // service funs
+  // service funcs
   writeServiceToCatalog: writeServiceToCatalog({ catalogDirectory }),
   buildServiceMarkdownForCatalog: buildServiceMarkdownForCatalog(),
   getServiceFromCatalog: getServiceFromCatalog({ catalogDirectory }),
   getAllServicesFromCatalog: getAllServicesFromCatalog({ catalogDirectory }),
+
+  // domain funcs
+  getDomainFromCatalog: getDomainFromCatalog({ catalogDirectory }),
+  writeDomainToCatalog: writeDomainToCatalog({ catalogDirectory }),
+  buildDomainMarkdownForCatalog: buildDomainMarkdownForCatalog(),
 
   // generic
   existsInCatalog: existsInCatalog({ catalogDirectory }),

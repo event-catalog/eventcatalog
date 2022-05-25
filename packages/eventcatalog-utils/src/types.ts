@@ -45,3 +45,13 @@ export interface WriteEventToCatalogOptions {
   frontMatterToCopyToNewVersions?: FrontMatterAllowedToCopy;
   versionExistingEvent?: boolean;
 }
+
+export interface WriteDomainToCatalogOptions {
+  useMarkdownContentFromExistingDomain?: boolean;
+  renderMermaidDiagram?: boolean;
+  renderNodeGraph?: boolean;
+}
+
+export interface WriteDomainToCatalogResponse {
+  path: string;
+}

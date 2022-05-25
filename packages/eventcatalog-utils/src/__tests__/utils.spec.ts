@@ -10,13 +10,16 @@ const VERSIONED_CATALOG_DIRECTORY = path.join(__dirname, './assets/catalog_versi
 const {
   getEventFromCatalog,
   getServiceFromCatalog,
+  getDomainFromCatalog,
   getAllEventsFromCatalog,
   getAllServicesFromCatalog,
   buildEventMarkdownForCatalog,
   buildServiceMarkdownForCatalog,
+  buildDomainMarkdownForCatalog,
   writeServiceToCatalog,
   existsInCatalog,
   writeEventToCatalog,
+  writeDomainToCatalog,
 } = utils({
   catalogDirectory: CATALOG_DIRECTORY,
 });
@@ -850,6 +853,179 @@ describe('eventcatalog-utils', () => {
 
         expect(() => writeServiceToCatalog(service, { useMarkdownContentFromExistingService: false })).toThrow(
           'No `name` found for given service'
+        );
+      });
+    });
+  });
+
+  describe('domains', () => {
+    describe('getDomainFromCatalog', () => {
+      it('returns the given domain name from the catalog', () => {
+        const { content, data, raw } = getDomainFromCatalog('Orders');
+
+        expect(data).toEqual({
+          name: 'Orders',
+          summary: 'Domain that holds all the order information.\n',
+          owners: ['dboyne']
+        });
+
+        expect(content).toMatchMarkdown('# Testing');
+
+        expect(raw).toBeDefined();
+      });
+
+      it('returns null when a given service name does not exist in the catalog', () => {
+        const event = getDomainFromCatalog('RandomServiceThatDoesNotExist');
+
+        expect(event).toEqual(null);
+      });
+    });
+
+    describe('buildDomainMarkdownForCatalog', () => {
+      it('takes a given domain and generates the catalog domain markdown file', () => {
+        const domain = {
+          name: 'My Domain',
+          summary: 'This is a summary for my domain',
+          owners: ['dBoyne'],
+        };
+
+        const result = buildDomainMarkdownForCatalog(domain);
+
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My Domain'
+        summary: 'This is a summary for my domain'
+        owners:
+            - dBoyne
+        ---
+        <Mermaid />`);
+      });
+
+      it('takes a given domain and markdown content and returns the generated markdown file', () => {
+        const domain = {
+          name: 'My Domain',
+          summary: 'This is a summary for my domain',
+          owners: ['dBoyne'],
+        };
+
+        const result = buildDomainMarkdownForCatalog(domain, { markdownContent: '# Testing' });
+
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My Domain'
+        summary: 'This is a summary for my domain'
+        owners:
+            - dBoyne
+        ---
+        # Testing`);
+      });
+
+      it('takes a given domain and generates markdown with a node graph', () => {
+        const domain = {
+          name: 'My Domain',
+          summary: 'This is a summary for my domain',
+          owners: ['dBoyne'],
+        };
+
+        const result = buildDomainMarkdownForCatalog(domain, {
+          renderMermaidDiagram: false,
+          renderNodeGraph: true,
+        });
+
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My Domain'
+        summary: 'This is a summary for my domain'
+        owners:
+            - dBoyne
+        ---
+        <NodeGraph />`);
+      });
+    });
+
+    describe('writeDomainToCatalog', () => {
+      it('should take the given domain and write it into the catalog', () => {
+        const domain = {
+          name: 'My Domain',
+          summary: 'This is a summary for my domain',
+          owners: ['dBoyne'],
+        };
+
+        const { path: domainPath } = writeDomainToCatalog(domain);
+
+        expect(fs.existsSync(domainPath)).toEqual(true);
+
+        const result = fs.readFileSync(path.join(domainPath, 'index.md'), 'utf-8');
+
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My Domain'
+        summary: 'This is a summary for my domain'
+        owners:
+            - dBoyne
+        ---
+        <Mermaid />`);
+
+        // clean up
+        fs.rmdirSync(path.join(domainPath), { recursive: true });
+      });
+
+      it('when the same domain already exists in the catalog, that markdown content is used in the new domain', () => {
+        const domain = {
+          name: 'My Domain That Already Exists',
+          summary: 'This is a summary for my domain',
+          owners: ['dBoyne'],
+        };
+        
+        const { path: domainPath } = writeDomainToCatalog(domain, { useMarkdownContentFromExistingDomain: true });
+
+        // expect(fs.existsSync(domainPath)).toEqual(true);
+
+        const result = fs.readFileSync(path.join(domainPath, 'index.md'), 'utf-8');
+
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My Domain That Already Exists'
+        summary: 'This is a summary for my domain'
+        owners:
+            - dBoyne
+        ---
+        # Content already exists`);
+      });
+
+      it('writes the given domain into the catalog and does not copy of existing content if `useMarkdownContentFromExistingService` is set to false', () => {
+        const domain = {
+          name: 'My Domain That Overrides Content',
+          summary: 'This is a summary for my domain',
+          owners: ['dBoyne'],
+        };
+
+        const { path: domainPath } = writeDomainToCatalog(domain, { useMarkdownContentFromExistingDomain: false });
+
+        // expect(fs.existsSync(domainPath)).toEqual(true);
+
+        const result = fs.readFileSync(path.join(domainPath, 'index.md'), 'utf-8');
+
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My Domain That Overrides Content'
+        summary: 'This is a summary for my domain'
+        owners:
+            - dBoyne
+        ---
+        <Mermaid />`);
+
+        fs.rmdirSync(path.join(domainPath), { recursive: true });
+      });
+
+      it('throws an error when the given domain does not have a name', () => {
+        const domain = {
+          summary: 'This is a summary for my domain',
+          owners: ['dBoyne'],
+        };
+
+        expect(() => writeDomainToCatalog(domain, { useMarkdownContentFromExistingDomain: false })).toThrow(
+          'No `name` found for given domain'
         );
       });
     });
