@@ -418,10 +418,12 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           // just wait for files to be there in time.
           await new Promise((r) => setTimeout(r, 200));
 
+          const { getDomainFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
           const { getEventFromCatalog, getServiceFromCatalog } = utils({ catalogDirectory: path.join(process.env.PROJECT_DIR, 'domains', options.domainName) });
 
           const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
           const { raw: serviceFile } = getServiceFromCatalog('Account Service');
+          const { raw: domainFile } = getDomainFromCatalog('My Domain');
 
           expect(eventFile).toMatchMarkdown(`
             ---
@@ -446,6 +448,15 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
 
             <NodeGraph />`
           );
+
+          expect(domainFile).toMatchMarkdown(`
+            ---
+            name: 'My Domain'
+            summary: 'A summary of my domain.'
+            ---
+
+            <NodeGraph />
+          `);
         });
       });
     });
