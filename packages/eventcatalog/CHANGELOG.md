@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.2.20
+
+### Patch Changes
+
+- [`3ca978a`](https://github.com/boyney123/eventcatalog/commit/3ca978a5fd16267f3479d67c54fa0f8007f94dc9) [#281](https://github.com/boyney123/eventcatalog/pull/281) Thanks [@dytyniuk](https://github.com/dytyniuk)! - Fix a broken link behind View in Visualiser button on the Event Details page
+
 ## 0.2.19
 
 ### Patch Changes
