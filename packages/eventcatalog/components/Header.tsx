@@ -3,12 +3,12 @@ import getConfig from 'next/config';
 import { useRouter } from 'next/router';
 import { useConfig } from '@/hooks/EventCatalog';
 
-const navigation = [
-  { name: 'Events', href: '/events' },
-  { name: 'Services', href: '/services' },
-  { name: 'Domains', href: '/domains' },
-  { name: 'Visualiser', href: '/visualiser' },
-  { name: '3D Node Graph', href: '/overview' },
+const defaultNavigation = [
+  { label: 'Events', href: '/events' },
+  { label: 'Services', href: '/services' },
+  { label: 'Domains', href: '/domains' },
+  { label: 'Visualiser', href: '/visualiser' },
+  { label: '3D Node Graph', href: '/overview' },
 ];
 
 function classNames(...classes) {
@@ -16,11 +16,13 @@ function classNames(...classes) {
 }
 
 export default function Example() {
-  const { title, homepageLink, logo } = useConfig();
+  const { title, homepageLink, logo, headerLinks: configNavigation } = useConfig();
   const router = useRouter();
 
   const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
   const logoToLoad = logo || { alt: 'EventCatalog Logo', src: `logo.svg` };
+
+  const headerNavigation = configNavigation || defaultNavigation;
 
   return (
     <div className="bg-gray-800">
@@ -46,10 +48,10 @@ export default function Example() {
           </div>
           <div className="hidden sm:block sm:ml-6">
             <div className="flex space-x-4">
-              {navigation.map((item) => {
+              {headerNavigation.map((item) => {
                 const current = router.pathname === item.href;
                 return (
-                  <Link key={item.name} href={item.href}>
+                  <Link key={item.label} href={item.href}>
                     <a
                       className={classNames(
                         current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
@@ -57,7 +59,7 @@ export default function Example() {
                       )}
                       aria-current={current ? 'page' : undefined}
                     >
-                      {item.name}
+                      {item.label}
                     </a>
                   </Link>
                 );

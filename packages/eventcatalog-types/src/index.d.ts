@@ -98,6 +98,7 @@ export interface EventCatalogConfig {
   generators?: PluginConfig[] | [] | any;
   footerLinks?: Link[];
   homepageLink?: string;
+  headerLinks?: Link[];
   openGraph?: OpenGraphConfig;
   analytics?: AnalyticsConfig;
 }
