@@ -4,9 +4,9 @@ import { useRouter } from 'next/router';
 import { useConfig } from '@/hooks/EventCatalog';
 
 const defaultNavigation = [
-  { label: 'Events', href: '/events'},
+  { label: 'Events', href: '/events' },
   { label: 'Services', href: '/services' },
-  { label: 'Domains', href: '/domains'},
+  { label: 'Domains', href: '/domains' },
   { label: 'Visualiser', href: '/visualiser' },
   { label: '3D Node Graph', href: '/overview' },
 ];
@@ -23,7 +23,6 @@ export default function Example() {
   const logoToLoad = logo || { alt: 'EventCatalog Logo', src: `logo.svg` };
 
   const headerNavigation = configNavigation || defaultNavigation;
-
 
   return (
     <div className="bg-gray-800">
