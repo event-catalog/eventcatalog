@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.3.0
+
+### Minor Changes
+
+- [`93db111`](https://github.com/boyney123/eventcatalog/commit/93db11169279435a762a8098c2f50014a5698504) [#286](https://github.com/boyney123/eventcatalog/pull/286) Thanks [@boyney123](https://github.com/boyney123)! - feat - users can now edit header links
+
 ## 0.2.20
 
 ### Patch Changes
