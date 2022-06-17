@@ -37,7 +37,6 @@ module.exports = {
 };
 ```
 
-
 ## Optional fields {#optional-fields}
 
 ### `editUrl` {#editUrl}
@@ -119,6 +118,30 @@ module.exports = {
 };
 ```
 
+### `headerLinks` {#header-links}
+
+- Type: `Link[]`
+
+- Type: `Link`
+  - `label`: value that gets rendered on the UI
+  - `href`: URL for link
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  headerLinks: [
+    { label: 'Events', href: '/events' },
+    { label: 'Services', href: '/services' },
+    { label: 'Domains', href: '/domains' },
+    { label: 'Visualiser', href: '/visualiser' },
+    { label: '3D Node Graph', href: '/overview' },
+  ],
+};
+```
+
+:::tip Adding or Removing Pages from the Navigation Bar
+Using the `headerLinks` configuration you can add or remove any links you like in your header bar. If you want to remove a link to the page simplify just remove that item from the array.
+:::
+
 ### `footerLinks` {#footer-links}
 
 - Type: `FooterLink[]`
@@ -144,7 +167,7 @@ module.exports = {
 
 ```js title="eventcatalog.config.js"
 module.exports = {
-  analytics: { googleAnalyticsTrackingId: 'GA-XXXXX-X' }
+  analytics: { googleAnalyticsTrackingId: 'GA-XXXXX-X' },
 };
 ```
 

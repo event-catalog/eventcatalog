@@ -8,6 +8,13 @@ module.exports = {
     alt: 'EventCatalog Logo',
     src: 'logo.svg'
   },
+  headerLinks: [
+    { label: 'Events', href: '/events'},
+    { label: 'Services', href: '/services' },
+    { label: 'Domains', href: '/domains'},
+    { label: 'Visualiser', href: '/visualiser' },
+    { label: '3D Node Graph', href: '/overview' },
+  ],
   footerLinks: [
     { label: 'Events', href: '/events' },
     { label: 'Services', href: '/services' },
