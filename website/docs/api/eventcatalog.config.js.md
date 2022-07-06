@@ -90,6 +90,40 @@ module.exports = {
 };
 ```
 
+### `primaryCTA` {#primaryCTA}
+
+- Type: `Link`
+
+The primary call to action seen on the homescreen of EventCatalog. You can override the default by passing in the `primaryCTA` into your config file. 
+
+It will always default to `Explore Events` if you do not specify the primaryCTA.
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  primaryCTA: {
+    'href': "/events",
+    'label': "Explore Events"
+  }
+};
+```
+
+### `secondaryCTA` {#secondaryCTA}
+
+- Type: `Link`
+
+The secondary call to action seen on the homescreen of EventCatalog. You can set this to any internal EventCatalog page or external URL you want.
+
+If you do not pass in the `secondaryCTA` value, then no button will be shown.
+
+```js title="eventcatalog.config.js"
+module.exports = {
+  secondaryCTA: {
+    'href': "/services",
+    'label': "Explore Services"
+  }
+};
+```
+
 ### `users` {#users}
 
 Add user information here. You can reference these inside your Event and Service markdown files.

@@ -91,6 +91,8 @@ export interface AnalyticsConfig {
 export interface EventCatalogConfig {
   title: string;
   tagline?: string;
+  primaryCTA?: Link;
+  secondaryCTA?: Link;
   editUrl?: string;
   organizationName: string;
   logo?: { alt: string; src: string };

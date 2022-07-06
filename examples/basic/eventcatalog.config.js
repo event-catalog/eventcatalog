@@ -8,6 +8,14 @@ module.exports = {
     alt: 'EventCatalog Logo',
     src: 'logo.svg'
   },
+  primaryCTA: {
+    label: 'Explore Events',
+    href: '/events'
+  },
+  secondaryCTA: {
+    label: 'Getting Started',
+    href:"https://www.eventcatalog.dev/"
+  },
   headerLinks: [
     { label: 'Events', href: '/events'},
     { label: 'Services', href: '/services' },

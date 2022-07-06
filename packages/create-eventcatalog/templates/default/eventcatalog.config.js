@@ -5,6 +5,14 @@ module.exports = {
   projectName: 'Event Catalog',
   editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
   trailingSlash: true,
+  primaryCTA: {
+    label: 'Explore Events',
+    href: '/events'
+  },
+  secondaryCTA: {
+    label: 'Getting Started',
+    href:"https://www.eventcatalog.dev/"
+  },
   logo: {
     alt: 'EventCatalog Logo',
     // found in the public dir
