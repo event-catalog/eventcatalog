@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.3.1
+
+### Patch Changes
+
+- [`8ccc733`](https://github.com/boyney123/eventcatalog/commit/8ccc733c69b7b262c6d1d9751d331a101719de42) [#291](https://github.com/boyney123/eventcatalog/pull/291) Thanks [@boyney123](https://github.com/boyney123)! - fix - overflow issues with too many examples in the Examples MDX comp…
+
 ## 0.3.0
 
 ### Minor Changes
