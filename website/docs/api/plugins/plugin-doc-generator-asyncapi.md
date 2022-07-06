@@ -48,7 +48,7 @@ npm install --save @eventcatalog/plugin-doc-generator-asyncapi
 | `externalAsyncAPIUrl` | `string` | `` | When a AsyncAPI base url is set the, a external link to the AsyncAPI message documentation will be added to each event. |
 | `renderMermaidDiagram` | `boolean` | true | When set to true it will render the [Mermaid](/docs/components/overview#mermaid-) diagrams to matched events from AsyncAPI file. |
 | `renderNodeGraph` | `boolean` | false | When set to true is will render the [NodeGraph](/docs/components/overview#nodegraph-) diagram to the matched events from the AsyncAPI file. |
-| `domainName` | `string` | `` | The name of the [Domain](/docs/guides/domains/domains-adding-domains) into which to place the events and services parsed from the AsyncAPI document(s). |
+| `domainName` | `string` | `` | The name of the [Domain](/docs/domains/adding-domain) into which to place the events and services parsed from the AsyncAPI document(s). |
 | `domainSummary` | `string` | `` | Summary description of the domain. |
 
 In the case
