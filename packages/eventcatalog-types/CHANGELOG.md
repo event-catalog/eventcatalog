@@ -1,5 +1,11 @@
 # @eventcatalog/types
 
+## 0.2.1
+
+### Patch Changes
+
+- [`d7368d0`](https://github.com/boyney123/eventcatalog/commit/d7368d0a5dec261e99b3f556af4c90572d4bb38c) [#293](https://github.com/boyney123/eventcatalog/pull/293) Thanks [@boyney123](https://github.com/boyney123)! - fix - allow button configuration on the homescreen
+
 ## 0.2.0
 
 ### Minor Changes
