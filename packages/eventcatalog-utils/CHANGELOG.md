@@ -1,5 +1,11 @@
 # @eventcatalog/utils
 
+## 0.2.0
+
+### Minor Changes
+
+- [`518a8e1`](https://github.com/boyney123/eventcatalog/commit/518a8e16d3f7516e2b25ff20cbda6b1bd2a22e88) [#277](https://github.com/boyney123/eventcatalog/pull/277) Thanks [@dpwdec](https://github.com/dpwdec)! - feat(utils): Add utilities for writing and reading domains to the catalog
+
 ## 0.1.0
 
 ### Minor Changes
