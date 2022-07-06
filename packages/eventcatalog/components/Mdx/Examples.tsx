@@ -34,7 +34,7 @@ function Examples({ title = 'Examples', description, examples = [], showLineNumb
 
         <div>
           <div className="col-span-5">
-            <nav className="-mb-2 flex bg-gray-900" aria-label="Tabs">
+            <nav className="-mb-2 flex bg-gray-900 w-full overflow-hidden overflow-x-scroll" aria-label="Tabs">
               {tabs.map((tab) => {
                 const isSelected = tab.name === selectedTab.name;
                 return (
