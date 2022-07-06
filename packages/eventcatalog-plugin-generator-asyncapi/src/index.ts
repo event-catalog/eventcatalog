@@ -1,7 +1,8 @@
 import chalk from 'chalk';
-import type { Event, Service, LoadContext } from '@eventcatalog/types';
+import type { Event, Service, LoadContext, Domain } from '@eventcatalog/types';
 import { parse, AsyncAPIDocument } from '@asyncapi/parser';
 import fs from 'fs-extra';
+import path from 'path';
 import utils from '@eventcatalog/utils';
 
 import type { AsyncAPIPluginOptions } from './types';
@@ -47,7 +48,13 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
 };
 
 const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOptions, copyFrontMatter: boolean) => {
-  const { versionEvents = true, renderMermaidDiagram = true, renderNodeGraph = false } = options;
+  const {
+    versionEvents = true,
+    renderMermaidDiagram = true,
+    renderNodeGraph = false,
+    domainName = '',
+    domainSummary = '',
+  } = options;
 
   let asyncAPIFile;
 
@@ -67,7 +74,24 @@ const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOpti
     throw new Error('Please provide catalog url (env variable PROJECT_DIR)');
   }
 
-  const { writeServiceToCatalog, writeEventToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+  if (domainName) {
+    const { writeDomainToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+
+    const domain: Domain = {
+      name: domainName,
+      summary: domainSummary,
+    };
+
+    await writeDomainToCatalog(domain, {
+      useMarkdownContentFromExistingDomain: true,
+      renderMermaidDiagram,
+      renderNodeGraph,
+    });
+  }
+
+  const { writeServiceToCatalog, writeEventToCatalog } = utils({
+    catalogDirectory: domainName ? path.join(process.env.PROJECT_DIR, 'domains', domainName) : process.env.PROJECT_DIR,
+  });
 
   await writeServiceToCatalog(service, {
     useMarkdownContentFromExistingService: true,

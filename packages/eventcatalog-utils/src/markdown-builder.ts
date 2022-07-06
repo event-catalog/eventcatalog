@@ -1,6 +1,6 @@
 import YAML from 'yamljs';
 import json2md from 'json2md';
-import { Event, Service } from '@eventcatalog/types';
+import { Event, Service, Domain } from '@eventcatalog/types';
 
 export default ({
   frontMatterObject,
@@ -9,7 +9,7 @@ export default ({
   renderMermaidDiagram = true,
   renderNodeGraph = false,
 }: {
-  frontMatterObject: Service | Event;
+  frontMatterObject: Service | Event | Domain;
   customContent?: string;
   includeSchemaComponent?: boolean;
   renderMermaidDiagram?: boolean;

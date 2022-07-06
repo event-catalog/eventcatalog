@@ -48,6 +48,10 @@ npm install --save @eventcatalog/plugin-doc-generator-asyncapi
 | `externalAsyncAPIUrl` | `string` | `` | When a AsyncAPI base url is set the, a external link to the AsyncAPI message documentation will be added to each event. |
 | `renderMermaidDiagram` | `boolean` | true | When set to true it will render the [Mermaid](/docs/components/overview#mermaid-) diagrams to matched events from AsyncAPI file. |
 | `renderNodeGraph` | `boolean` | false | When set to true is will render the [NodeGraph](/docs/components/overview#nodegraph-) diagram to the matched events from the AsyncAPI file. |
+| `domainName` | `string` | `` | The name of the [Domain](/docs/guides/domains/domains-adding-domains) into which to place the events and services parsed from the AsyncAPI document(s). |
+| `domainSummary` | `string` | `` | Summary description of the domain. |
+
+In the case
 
 </APITable>
 
@@ -79,3 +83,40 @@ module.exports = {
 
 This will read the `asyncapi.yml` file in the root of your project. You can provide whatever path you wish.
 
+### What if I want to parse AsyncAPI files into different domains?
+
+If you want to specify several different domains into which different sets of AsyncAPI files should be parsed then you should use multiple AsyncAPI plugin instances in the `generators` array where each generator listed with a `domainName` will map to a unique domain into which the AsyncAPI file listed under the `pathToSpec` property will be parsed.
+
+```js title="eventcatalog.config.js"
+
+const path = require('path');
+
+module.exports = {
+   generators: [
+    // first generator pushes parsed files into the Orders domain
+    [
+      '@eventcatalog/plugin-doc-generator-asyncapi',
+      {
+        // path to your AsyncAPI files
+        pathToSpec: [path.join(__dirname, 'asyncapi-order-created.yml')],
+
+        // version events if already in catalog (optional)
+        versionEvents: true,
+        domainName: 'Orders'
+      },
+    ],
+    // second generator pushes parsed files in the Payments domain
+    [
+      '@eventcatalog/plugin-doc-generator-asyncapi',
+      {
+        // path to your AsyncAPI files
+        pathToSpec: [path.join(__dirname, 'asyncapi-payments-processed.yml')],
+
+        // version events if already in catalog (optional)
+        versionEvents: true,
+        domainName: 'Payments'
+      },
+    ],
+  ],
+};
+```
