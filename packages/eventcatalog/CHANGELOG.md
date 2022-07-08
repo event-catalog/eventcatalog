@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.3.3
+
+### Patch Changes
+
+- [`1e30f43`](https://github.com/boyney123/eventcatalog/commit/1e30f439364143022bac7094e06bfbed11e51af9) [#295](https://github.com/boyney123/eventcatalog/pull/295) Thanks [@boyney123](https://github.com/boyney123)! - chore - update mermaid package
+
 ## 0.3.2
 
 ### Patch Changes
