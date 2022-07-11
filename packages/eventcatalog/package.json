@@ -48,7 +48,7 @@
   "devDependencies": {
     "@eventcatalog/types": "0.2.1",
     "@types/react": "^17.0.36",
-    "autoprefixer": "^10.4.0",
+    "autoprefixer": "10.4.5",
     "commander": "^8.3.0",
     "cross-env": "^7.0.3",
     "eslint": "7.32.0",

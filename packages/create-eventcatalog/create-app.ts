@@ -173,7 +173,7 @@ export async function createApp({
         typescript: '^4.4.4',
         postcss: '^8.3.11',
         'cross-env': '^7.0.3',
-        autoprefixer: '^10.4.0',
+        autoprefixer: '10.4.5',
       },
     };
 
