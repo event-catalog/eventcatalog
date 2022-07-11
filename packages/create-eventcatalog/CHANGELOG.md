@@ -1,5 +1,11 @@
 # @eventcatalog/create-eventcatalog
 
+## 0.2.5
+
+### Patch Changes
+
+- [`390f0a1`](https://github.com/boyney123/eventcatalog/commit/390f0a103ca011afbb7611f88f69daf06a930bd5) [#297](https://github.com/boyney123/eventcatalog/pull/297) Thanks [@boyney123](https://github.com/boyney123)! - fix - autoprefix warning in console
+
 ## 0.2.4
 
 ### Patch Changes
