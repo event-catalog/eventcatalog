@@ -41,7 +41,7 @@
 
 # The problem
 
-Event-Driven Architectures allow us to scale, be agile and keen our architecture decoupled. 
+Event-Driven Architectures allow us to scale, be agile and keep our architecture decoupled. 
 
 When starting off with Event-Driven Architectures we spend time discovering our core business events, writing code to match them and maintain versions going forward.
 
