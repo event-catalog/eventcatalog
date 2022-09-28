@@ -34,6 +34,13 @@ describe('events lib', () => {
           owners: ['dboyne', 'mSmith'],
           domain: null,
           historicVersions: [],
+          badges: [
+            {
+              content: 'Deprecated',
+              backgroundColor: 'red',
+              textColor: 'red'
+            },
+          ],
           consumers: [
             {
               name: 'Customer Portal',
@@ -126,6 +133,13 @@ describe('events lib', () => {
           owners: ['dboyne', 'mSmith'],
           domain: 'User',
           historicVersions: [],
+          badges: [
+            {
+              content: 'New!',
+              backgroundColor: 'blue',
+              textColor: 'blue'
+            },
+          ],
           externalLinks: [],
           consumers: [
             {
@@ -208,6 +222,13 @@ describe('events lib', () => {
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
           historicVersions: [],
+          badges: [
+            {
+              content: 'Deprecated',
+              backgroundColor: 'red',
+              textColor: 'red'
+            },
+          ],
         },
         {
           name: 'EmailSent',
@@ -219,6 +240,7 @@ describe('events lib', () => {
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
           historicVersions: [],
+          badges: [],
         },
         {
           name: 'EventWithSchemaAndExamples',
@@ -230,6 +252,7 @@ describe('events lib', () => {
           owners: [],
           externalLinks: [],
           historicVersions: [],
+          badges: [],
         },
         {
           name: 'EventWithVersions',
@@ -241,6 +264,7 @@ describe('events lib', () => {
           owners: [],
           externalLinks: [],
           historicVersions: ['0.0.1'],
+          badges: [],
         },
         {
           name: 'UserCreated',
@@ -252,6 +276,13 @@ describe('events lib', () => {
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
           historicVersions: [],
+          badges: [
+            {
+              content: 'New!',
+              backgroundColor: 'blue',
+              textColor: 'blue'
+            },
+          ],
         },
         {
           name: 'UserRemoved',
@@ -263,6 +294,7 @@ describe('events lib', () => {
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
           historicVersions: [],
+          badges: [],
         },
       ]);
     });
@@ -325,6 +357,13 @@ describe('events lib', () => {
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
           historicVersions: [],
+          badges: [
+            {
+              content: 'Deprecated',
+              backgroundColor: 'red',
+              textColor: 'red'
+            },
+          ],
         },
         {
           name: 'EmailSent',
@@ -336,6 +375,7 @@ describe('events lib', () => {
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
           historicVersions: [],
+          badges: [],
         },
         {
           name: 'UserCreated',
@@ -347,6 +387,13 @@ describe('events lib', () => {
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
           historicVersions: [],
+          badges: [
+            {
+              content: 'New!',
+              backgroundColor: 'blue',
+              textColor: 'blue'
+            },
+          ],
         },
         {
           name: 'UserRemoved',
@@ -358,6 +405,7 @@ describe('events lib', () => {
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
           historicVersions: [],
+          badges: [],
         },
       ]);
     });

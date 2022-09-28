@@ -26,6 +26,7 @@ export interface Event {
   consumerNames?: string[];
   producers?: Service[];
   consumers?: Service[];
+  badges?: Badge[];
 
   historicVersions?: string[];
   owners?: Owner[] | string[];
@@ -108,3 +109,9 @@ export interface EventCatalogConfig {
 export type LoadContext = {
   eventCatalogConfig: EventCatalogConfig;
 };
+
+export interface Badge {
+  content: string;
+  backgroundColor: "red" | "blue" | "green" | "yellow" | "white" | "black"
+  textColor: "red" | "blue" | "green" | "yellow" | "white" | "black"
+}

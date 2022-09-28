@@ -55,3 +55,9 @@ export interface WriteDomainToCatalogOptions {
 export interface WriteDomainToCatalogResponse {
   path: string;
 }
+
+export interface Badge {
+  content: string;
+  backgroundColor: "red" | "blue" | "green" | "yellow" | "white" | "black"
+  textColor: "red" | "blue" | "green" | "yellow" | "white" | "black"
+}

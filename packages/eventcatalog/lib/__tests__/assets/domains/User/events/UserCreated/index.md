@@ -10,7 +10,11 @@ consumers:
 owners:
     - dboyne
     - mSmith
-draft: true    
+draft: true
+badges:
+    - content: New!
+      backgroundColor: blue
+      textColor: blue    
 ---
 
 # Testing

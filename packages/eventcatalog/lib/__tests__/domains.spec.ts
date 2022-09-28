@@ -33,6 +33,13 @@ describe('domains lib', () => {
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
           historicVersions: [],
+          badges: [
+            {
+              content: 'New!',
+              backgroundColor: 'blue',
+              textColor: 'blue'
+            },
+          ],
         },
         {
           name: 'UserRemoved',
@@ -44,6 +51,7 @@ describe('domains lib', () => {
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
           historicVersions: [],
+          badges: [],
         },
       ]);
     });
@@ -97,6 +105,13 @@ describe('domains lib', () => {
             owners: ['dboyne', 'mSmith'],
             externalLinks: [],
             historicVersions: [],
+            badges: [
+              {
+                content: 'New!',
+                backgroundColor: 'blue',
+                textColor: 'blue'
+              },
+            ],
             producers: [
               {
                 name: 'Application API',
@@ -118,6 +133,7 @@ describe('domains lib', () => {
             owners: ['dboyne', 'mSmith'],
             externalLinks: [],
             historicVersions: [],
+            badges: [],
             producers: [
               {
                 name: 'Application API',
@@ -180,6 +196,13 @@ describe('domains lib', () => {
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              badges: [
+                {
+                  content: 'New!',
+                  backgroundColor: 'blue',
+                  textColor: 'blue'
+                },
+              ],
               producers: [
                 {
                   name: 'Application API',
@@ -201,6 +224,7 @@ describe('domains lib', () => {
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              badges: [],
               producers: [
                 {
                   name: 'Application API',
@@ -266,6 +290,13 @@ describe('domains lib', () => {
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              badges: [
+                {
+                  content: 'New!',
+                  backgroundColor: 'blue',
+                  textColor: 'blue'
+                },
+              ],
               producers: [
                 {
                   name: 'Application API',
@@ -287,6 +318,7 @@ describe('domains lib', () => {
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              badges: [],
               producers: [
                 {
                   name: 'Application API',

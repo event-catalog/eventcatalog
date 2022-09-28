@@ -11,7 +11,11 @@ consumers:
 owners:
     - dboyne
     - mSmith
-draft: true    
+draft: true
+badges:
+    - content: Deprecated
+      backgroundColor: red
+      textColor: red
 ---
 
 # Testing
