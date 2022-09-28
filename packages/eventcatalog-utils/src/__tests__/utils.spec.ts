@@ -48,7 +48,6 @@ describe('eventcatalog-utils', () => {
           producers: ['Orders Service'],
           consumers: ['Data Lake'],
           owners: ['dboyne', 'mSmith'],
-          badges: [],
         });
 
         expect(content).toMatchMarkdown('# Testing');
@@ -75,7 +74,6 @@ describe('eventcatalog-utils', () => {
               producers: ['Orders Service'],
               consumers: ['Data Lake'],
               owners: ['dboyne', 'mSmith'],
-              badges: [],
             },
             content: '\n# Testing',
           },
@@ -87,7 +85,6 @@ describe('eventcatalog-utils', () => {
               producers: ['Orders Service'],
               consumers: ['Data Lake'],
               owners: ['dboyne', 'mSmith'],
-              badges: [],
             },
             content: '\n# Testing',
           },

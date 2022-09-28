@@ -10,8 +10,8 @@ import { FunctionInitInterface, WriteEventToCatalogOptions, WriteEventToCatalogR
 import { existsInCatalog } from './index';
 
 const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
-  const { name, version, summary, producers = [], consumers = [], owners = [], badges = [] } = eventFrontMatter;
-  return { name, version, summary, producers, consumers, owners, badges };
+  const { name, version, summary, producers = [], consumers = [], owners = [] } = eventFrontMatter;
+  return { name, version, summary, producers, consumers, owners };
 };
 
 const readMarkdownFile = (pathToFile: string) => {
