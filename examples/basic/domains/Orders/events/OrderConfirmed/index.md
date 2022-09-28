@@ -4,7 +4,7 @@ version: 0.0.1
 summary: |
   Event represents when an order has been confirmed and ready to be processed (shipped for example)
 producers:
-    Orders Service
+    - Orders Service
 consumers:
     - Shipping Service
 owners:

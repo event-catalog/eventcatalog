@@ -79,6 +79,13 @@ describe('domains lib', () => {
           ],
           publishes: [],
           subscribes: [],
+          badges: [
+            {
+              content: 'New!',
+              backgroundColor: 'blue',
+              textColor: 'blue',
+            },
+          ],
         },
       ]);
     });
@@ -165,6 +172,13 @@ describe('domains lib', () => {
             ],
             publishes: [],
             subscribes: [],
+            badges: [
+              {
+                content: 'New!',
+                backgroundColor: 'blue',
+                textColor: 'blue',
+              },
+            ],
           },
         ],
       });
@@ -256,6 +270,13 @@ describe('domains lib', () => {
               ],
               publishes: [],
               subscribes: [],
+              badges: [
+                {
+                  content: 'New!',
+                  backgroundColor: 'blue',
+                  textColor: 'blue',
+                },
+              ],
             },
           ],
         },
@@ -350,6 +371,13 @@ describe('domains lib', () => {
               ],
               publishes: [],
               subscribes: [],
+              badges: [
+                {
+                  content: 'New!',
+                  backgroundColor: 'blue',
+                  textColor: 'blue',
+                },
+              ],
             },
           ],
         },

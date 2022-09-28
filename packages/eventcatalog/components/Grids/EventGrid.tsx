@@ -46,7 +46,7 @@ function EventGrid({ events = [], showMermaidDiagrams = false }: EventGridProps)
                         v{event.version}
                       </span>
                       {
-                        event.badges.map((badge) => (
+                        event.badges?.map((badge) => (
                             <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${badge.backgroundColor}-100 text-${badge.textColor}-800`}>
                               {badge.content}
                             </span>

@@ -36,6 +36,18 @@ describe('services', () => {
           ],
           publishes: [],
           subscribes: [],
+          badges: [
+            {
+              content: 'Extra!',
+              backgroundColor: 'green',
+              textColor: 'green',
+            },
+            {
+              content: 'Long form',
+              backgroundColor: 'yellow',
+              textColor: 'red',
+            },
+          ],
         },
         {
           name: 'Email Platform',
@@ -71,6 +83,7 @@ describe('services', () => {
             },
           ],
           subscribes: [],
+          badges: [],
         },
         {
           name: 'Payment Service',
@@ -82,6 +95,7 @@ describe('services', () => {
           externalLinks: [],
           publishes: [],
           subscribes: [],
+          badges: [],
         },
         {
           name: 'User Service',
@@ -101,6 +115,13 @@ describe('services', () => {
           ],
           publishes: [],
           subscribes: [],
+          badges: [
+            {
+              content: 'New!',
+              backgroundColor: 'blue',
+              textColor: 'blue',
+            },
+          ],
         },
       ]);
     });
@@ -150,6 +171,7 @@ describe('services', () => {
           ],
           subscribes: [],
           externalLinks: [],
+          badges: [],
         },
       ]);
     });
@@ -194,6 +216,7 @@ describe('services', () => {
         ],
         subscribes: [],
         externalLinks: [],
+        badges: [],
       });
 
       // @ts-ignore
@@ -223,6 +246,13 @@ describe('services', () => {
           ],
           publishes: [],
           subscribes: [],
+          badges: [
+            {
+              content: 'New!',
+              backgroundColor: 'blue',
+              textColor: 'blue',
+            },
+          ],
         });
 
         // @ts-ignore

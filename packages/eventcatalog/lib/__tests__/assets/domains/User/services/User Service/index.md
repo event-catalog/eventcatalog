@@ -10,6 +10,10 @@ repository:
 externalLinks:
     - label: AsyncAPI Specification
       url: https://studio.asyncapi.com/#schema-lightMeasuredPayload
+badges:
+  - content: New!
+    backgroundColor: blue
+    textColor: blue
 ---
 
 # Testing

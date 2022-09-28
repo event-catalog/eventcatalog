@@ -10,6 +10,13 @@ repository:
 externalLinks:
     - label: AsyncAPI Specification
       url: https://studio.asyncapi.com/#schema-lightMeasuredPayload
+badges:
+  - content: Extra!
+    backgroundColor: green
+    textColor: green
+  - content: Long form
+    backgroundColor: yellow
+    textColor: red
 ---
 
 Simple API that handles interactions between users and their baskets. Use this service to add, remove and query the status of a users basket.
