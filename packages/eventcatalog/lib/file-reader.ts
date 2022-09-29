@@ -56,6 +56,19 @@ export const getOpenAPISpecFromDir = (pathToOpenAPISpecDir: string): string => {
   }
 };
 
+export const getAsyncAPISpecFromDir = (pathToAsyncAPISpecDir: string): string => {
+  try {
+    const files = fs.readdirSync(pathToAsyncAPISpecDir);
+
+    // See if any oas are in there, ignoring extension
+    const openAPIFileName = files.find((fileName) => fileName.includes('asyncapi'));
+    if (!openAPIFileName) throw new Error('No schema found');
+    return fs.readFileSync(path.join(pathToAsyncAPISpecDir, openAPIFileName), 'utf-8');
+  } catch (error) {
+    return null;
+  }
+};
+
 export const getLastModifiedDateOfFile = (filePath) => {
   const stats = fs.statSync(filePath);
   const lastModifiedDate = new Date(stats.mtime);
