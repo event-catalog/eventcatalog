@@ -114,6 +114,6 @@ export type LoadContext = {
 
 export interface Badge {
   content: string;
-  backgroundColor: "red" | "blue" | "green" | "yellow" | "white" | "black"
-  textColor: "red" | "blue" | "green" | "yellow" | "white" | "black"
+  backgroundColor: 'red' | 'blue' | 'green' | 'yellow' | 'white' | 'black';
+  textColor: 'red' | 'blue' | 'green' | 'yellow' | 'white' | 'black';
 }

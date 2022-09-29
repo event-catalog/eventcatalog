@@ -40,7 +40,7 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
         consumers: operation === 'publish' ? [service] : [],
         externalLinks: externalAsyncAPIUrl ? [externalLink] : [],
         schema: schema ? JSON.stringify(schema, null, 4) : '',
-        badges: []
+        badges: [],
       };
     });
 

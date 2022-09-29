@@ -9,7 +9,16 @@ import { getAllEvents, getAllEventsThatHaveRelationshipWithService } from '@/lib
 import { getAllServicesFromDomains } from '@/lib/domains';
 
 const buildService = (eventFrontMatter: any): Service => {
-  const { name, summary, domain = null, owners = [], repository = {}, tags = [], externalLinks = [], badges = [], } = eventFrontMatter;
+  const {
+    name,
+    summary,
+    domain = null,
+    owners = [],
+    repository = {},
+    tags = [],
+    externalLinks = [],
+    badges = [],
+  } = eventFrontMatter;
   return { name, summary, domain, owners, repository, tags, externalLinks, badges };
 };
 

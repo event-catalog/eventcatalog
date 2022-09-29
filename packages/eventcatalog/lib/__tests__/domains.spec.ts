@@ -37,7 +37,7 @@ describe('domains lib', () => {
             {
               content: 'New!',
               backgroundColor: 'blue',
-              textColor: 'blue'
+              textColor: 'blue',
             },
           ],
         },
@@ -105,7 +105,7 @@ describe('domains lib', () => {
           {
             content: 'New!',
             backgroundColor: 'blue',
-            textColor: 'blue'
+            textColor: 'blue',
           },
         ],
         events: [
@@ -123,7 +123,7 @@ describe('domains lib', () => {
               {
                 content: 'New!',
                 backgroundColor: 'blue',
-                textColor: 'blue'
+                textColor: 'blue',
               },
             ],
             producers: [
@@ -210,7 +210,7 @@ describe('domains lib', () => {
             {
               content: 'New!',
               backgroundColor: 'blue',
-              textColor: 'blue'
+              textColor: 'blue',
             },
           ],
           events: [
@@ -228,7 +228,7 @@ describe('domains lib', () => {
                 {
                   content: 'New!',
                   backgroundColor: 'blue',
-                  textColor: 'blue'
+                  textColor: 'blue',
                 },
               ],
               producers: [
@@ -318,7 +318,7 @@ describe('domains lib', () => {
             {
               content: 'New!',
               backgroundColor: 'blue',
-              textColor: 'blue'
+              textColor: 'blue',
             },
           ],
           events: [
@@ -336,7 +336,7 @@ describe('domains lib', () => {
                 {
                   content: 'New!',
                   backgroundColor: 'blue',
-                  textColor: 'blue'
+                  textColor: 'blue',
                 },
               ],
               producers: [

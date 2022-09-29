@@ -37,7 +37,7 @@ const buildEventFromEventBridgeSchema = (
     externalLinks,
     schema: schemaToUse,
     examples: [examples],
-    badges: []
+    badges: [],
   };
 };
 

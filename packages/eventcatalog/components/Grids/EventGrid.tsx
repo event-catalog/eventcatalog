@@ -45,14 +45,14 @@ function EventGrid({ events = [], showMermaidDiagrams = false }: EventGridProps)
                       <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                         v{event.version}
                       </span>
-                      {
-                        event.badges?.map((badge) => (
-                            <span key={`${event.name}-${badge.content}`} className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${badge.backgroundColor}-100 text-${badge.textColor}-800`}>
-                              {badge.content}
-                            </span>
-                          )
-                        )
-                      }
+                      {event.badges?.map((badge) => (
+                        <span
+                          key={`${event.name}-${badge.content}`}
+                          className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${badge.backgroundColor}-100 text-${badge.textColor}-800`}
+                        >
+                          {badge.content}
+                        </span>
+                      ))}
                       {isDraft && (
                         <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-500 text-gray-100">
                           Draft

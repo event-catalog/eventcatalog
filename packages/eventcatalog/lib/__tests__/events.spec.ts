@@ -38,7 +38,7 @@ describe('events lib', () => {
             {
               content: 'Deprecated',
               backgroundColor: 'red',
-              textColor: 'red'
+              textColor: 'red',
             },
           ],
           consumers: [
@@ -137,7 +137,7 @@ describe('events lib', () => {
             {
               content: 'New!',
               backgroundColor: 'blue',
-              textColor: 'blue'
+              textColor: 'blue',
             },
           ],
           externalLinks: [],
@@ -226,7 +226,7 @@ describe('events lib', () => {
             {
               content: 'Deprecated',
               backgroundColor: 'red',
-              textColor: 'red'
+              textColor: 'red',
             },
           ],
         },
@@ -280,7 +280,7 @@ describe('events lib', () => {
             {
               content: 'New!',
               backgroundColor: 'blue',
-              textColor: 'blue'
+              textColor: 'blue',
             },
           ],
         },
@@ -361,7 +361,7 @@ describe('events lib', () => {
             {
               content: 'Deprecated',
               backgroundColor: 'red',
-              textColor: 'red'
+              textColor: 'red',
             },
           ],
         },
@@ -391,7 +391,7 @@ describe('events lib', () => {
             {
               content: 'New!',
               backgroundColor: 'blue',
-              textColor: 'blue'
+              textColor: 'blue',
             },
           ],
         },
