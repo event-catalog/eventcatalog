@@ -30,7 +30,7 @@ function DomainGrid({ domains = [] }: DomainGridProps) {
                     <span className="text-gray-900 font-bold">{domain.name}</span>
                     {
                       domain.badges?.map((badge) => (
-                          <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${badge.backgroundColor}-100 text-${badge.textColor}-800`}>
+                          <span key={`${domain.name}-${badge.content}`} className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${badge.backgroundColor}-100 text-${badge.textColor}-800`}>
                             {badge.content}
                           </span>
                         )
