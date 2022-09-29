@@ -101,6 +101,13 @@ describe('domains lib', () => {
         owners: ['dboyne', 'mSmith'],
         tags: [],
         externalLinks: [],
+        badges: [
+          {
+            content: 'New!',
+            backgroundColor: 'blue',
+            textColor: 'blue'
+          },
+        ],
         events: [
           {
             name: 'UserCreated',
@@ -199,6 +206,13 @@ describe('domains lib', () => {
           owners: ['dboyne', 'mSmith'],
           tags: [],
           externalLinks: [],
+          badges: [
+            {
+              content: 'New!',
+              backgroundColor: 'blue',
+              textColor: 'blue'
+            },
+          ],
           events: [
             {
               name: 'UserCreated',
@@ -300,6 +314,13 @@ describe('domains lib', () => {
           owners: ['dboyne', 'mSmith'],
           tags: [],
           externalLinks: [],
+          badges: [
+            {
+              content: 'New!',
+              backgroundColor: 'blue',
+              textColor: 'blue'
+            },
+          ],
           events: [
             {
               name: 'UserCreated',

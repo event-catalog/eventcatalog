@@ -28,6 +28,14 @@ function DomainGrid({ domains = [] }: DomainGridProps) {
                 <div className="p-4 text-sm space-y-2 flex flex-col justify-between h-full">
                   <div>
                     <span className="text-gray-900 font-bold">{domain.name}</span>
+                    {
+                      domain.badges?.map((badge) => (
+                          <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${badge.backgroundColor}-100 text-${badge.textColor}-800`}>
+                            {badge.content}
+                          </span>
+                        )
+                      )
+                    }
                     <div className="text-gray-500 text-xs font-normal mt-2 line-clamp-3">{domain.summary}</div>
                   </div>
                   <div className="flex space-x-4 text-xs pt-2 relative bottom-0 left-0">

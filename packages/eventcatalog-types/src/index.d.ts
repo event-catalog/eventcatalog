@@ -68,6 +68,7 @@ export interface Domain {
   owners?: Owner[] | string[];
   tags?: Tag[];
   externalLinks?: Tag[];
+  badges?: Badge[];
 }
 
 export type PluginOpts = { id?: string } & Record<string, unknown>;

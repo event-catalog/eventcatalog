@@ -6,6 +6,10 @@ summary: |
 owners:
     - dboyne
     - mSmith
+badges:
+    - content: New!
+      backgroundColor: blue
+      textColor: blue
 ---
 
 <Admonition>Domain for everything to do with Orders. Before adding any events or services to this domain make sure you contact the domain owners and verify it's the correct place.</Admonition>
