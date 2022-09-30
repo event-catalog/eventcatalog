@@ -61,9 +61,9 @@ export const getAsyncAPISpecFromDir = (pathToAsyncAPISpecDir: string): string =>
     const files = fs.readdirSync(pathToAsyncAPISpecDir);
 
     // See if any oas are in there, ignoring extension
-    const openAPIFileName = files.find((fileName) => fileName.includes('asyncapi'));
-    if (!openAPIFileName) throw new Error('No schema found');
-    return fs.readFileSync(path.join(pathToAsyncAPISpecDir, openAPIFileName), 'utf-8');
+    const asyncAPIFile = files.find((fileName) => fileName.includes('asyncapi'));
+    if (!asyncAPIFile) throw new Error('No async api file found');
+    return fs.readFileSync(path.join(pathToAsyncAPISpecDir, asyncAPIFile), 'utf-8');
   } catch (error) {
     return null;
   }
