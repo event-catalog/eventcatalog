@@ -188,11 +188,6 @@
     react-icons "^4.4.0"
     use-resize-observer "^8.0.0"
 
-"@asyncapi/specs@^2.11.0":
-  version "2.12.0"
-  resolved "https://registry.yarnpkg.com/@asyncapi/specs/-/specs-2.12.0.tgz#15534ca9e518b561d33edfdfdbb234f9b274f261"
-  integrity sha512-X4Xkrl+9WXSk5EJhsueIxNx6ymHI5wpkw4ofetV+VRnPLNob/XO4trPSJClrL5hlknxbGADLvlrkI5d3XJ996g==
-
 "@asyncapi/specs@^3.2.0":
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/@asyncapi/specs/-/specs-3.2.1.tgz#b0dfe054154d3a6bb89f2ba23ea6379a754875d0"
