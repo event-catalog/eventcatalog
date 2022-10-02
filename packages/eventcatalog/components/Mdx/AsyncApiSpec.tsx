@@ -1,12 +1,12 @@
 import dynamic from 'next/dynamic';
-import "@asyncapi/react-component/styles/default.min.css";
+import '@asyncapi/react-component/styles/default.min.css';
 
 const AsyncApiComponent = dynamic(import('@asyncapi/react-component'), { ssr: false });
 
 const config = {
   show: {
-    errors: false
-  }
+    errors: false,
+  },
 };
 
 interface AsyncApiSpecProps {
