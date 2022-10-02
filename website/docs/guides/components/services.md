@@ -17,4 +17,6 @@ Here is the supported list of components you can use:
     - Displays events your service publishes and subscribes to.
 - **[<OpenAPI /\>](/docs/components/overview#openapi-)**
     - Displays [Swagger UI](https://petstore.swagger.io/?_ga=2.53430379.2146201950.1646656985-1065913731.1646656985) for your `openapi.yaml` files.
+- **[<AsyncAPI /\>](/docs/components/overview#asyncapi-)**
+    - Displays [AsyncAPI React Componnet](https://github.com/asyncapi/asyncapi-react) for your `asyncapi.yml` files.
 

@@ -188,3 +188,30 @@ e.g `/services/Payment Service/openapi.yaml`
 
 **The `<OpenAPI />` will only work with a valid openapi file inside your service directory.**
 :::
+
+### `<AsyncAPI />`
+
+This component will render any `asyncapi.yaml` file inside your `service folder`.
+
+EventCatalog uses [asyncapi-react](https://github.com/asyncapi/asyncapi-react) to render your AsyncAPI document within EventCatalog.
+
+To understand how it works and use AsyncAPI with your Services checkout the [schema guide for asyncapi](/docs/services/adding-service-asyncapi).
+
+#### Props
+
+#### Rendered Example 
+![AsyncAPI Example](/img/guides/mdx/asyncapi.gif)
+
+#### Usage
+
+```md title="Render your AsyncAPI File"
+<AsyncAPI />
+```
+
+:::tip
+Make sure you have your `asyncapi.yaml` file inside your service.
+
+e.g `/services/Payment Service/asyncapi.yaml`
+
+**The `<AsyncAPI />` will only work with a valid asyncapi file inside your service directory.**
+:::
