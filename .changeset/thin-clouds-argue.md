@@ -1,5 +1,6 @@
 ---
 '@eventcatalog/types': minor
+'@eventcatalog/core': minor
 ---
 
-Added asyncAPISpec to Service type
+feat: added support for asyncapi file in service directory. Now supports new AsyncAPI MDX component.
