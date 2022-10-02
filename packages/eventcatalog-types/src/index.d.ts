@@ -56,6 +56,7 @@ export interface Service {
   tags?: Tag[];
   externalLinks?: Tag[];
   openAPISpec?: string;
+  asyncAPISpec?: string;
 }
 
 export interface Domain {

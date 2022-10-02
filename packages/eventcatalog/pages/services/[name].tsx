@@ -6,6 +6,7 @@ import ContentView from '@/components/ContentView';
 import { getAllServices, getServiceByName } from '@/lib/services';
 
 import OpenApiSpec from '@/components/Mdx/OpenApiSpec';
+import AsyncApiSpec from '@/components/Mdx/AsyncApiSpec';
 import Admonition from '@/components/Mdx/Admonition';
 import Mermaid from '@/components/Mermaid';
 import ServiceSidebar from '@/components/Sidebars/ServiceSidebar';
@@ -35,6 +36,10 @@ function MermaidComponent({ title, service, charts }: { title?: string; service:
 
 const getComponents = (service: Service) => ({
   Admonition,
+  AsyncAPI: () => {
+    if (!service.asyncAPISpec) return null;
+    return <AsyncApiSpec spec={service.asyncAPISpec} />;
+  },
   OpenAPI: () => {
     if (!service.openAPISpec) return null;
     return <OpenApiSpec spec={service.openAPISpec} />;
