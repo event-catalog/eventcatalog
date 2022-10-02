@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.5.1
+
+### Patch Changes
+
+- [`8419a50`](https://github.com/boyney123/eventcatalog/commit/8419a506c7ffa686fb474235474261462949f888) [#308](https://github.com/boyney123/eventcatalog/pull/308) Thanks [@boyney123](https://github.com/boyney123)! - chore: updating to minify files and change cdn for font-awesome
+
 ## 0.5.0
 
 ### Minor Changes
