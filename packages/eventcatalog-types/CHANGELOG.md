@@ -1,5 +1,11 @@
 # @eventcatalog/types
 
+## 0.3.0
+
+### Minor Changes
+
+- [`cda7105`](https://github.com/boyney123/eventcatalog/commit/cda7105b03e5d5aa6fc9451552cc89c1e88e8859) [#304](https://github.com/boyney123/eventcatalog/pull/304) Thanks [@lcsbltm](https://github.com/lcsbltm)! - feat: added support for asyncapi file in service directory. Now supports new AsyncAPI MDX component.
+
 ## 0.2.1
 
 ### Patch Changes

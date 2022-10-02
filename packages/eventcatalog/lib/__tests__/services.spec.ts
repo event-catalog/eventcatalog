@@ -187,6 +187,7 @@ describe('services', () => {
         owners: ['dboyne'],
         domain: null,
         openAPISpec: null,
+        asyncAPISpec: null,
         repository: {
           url: 'https://github.com/boyney123/EmailPlatform',
           language: 'JavaScript',
@@ -233,6 +234,7 @@ describe('services', () => {
           domain: 'User',
           owners: ['mSmith'],
           openAPISpec: null,
+          asyncAPISpec: null,
           repository: {
             language: 'JavaScript',
             url: 'https://github.com/boyney123/pretend-basket-service',

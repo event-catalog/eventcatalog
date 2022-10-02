@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/types",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Common types for EventCatalog packages",
   "types": "./src/index.d.ts",
   "scripts": {

@@ -146,13 +146,25 @@
     call-me-maybe "^1.0.1"
     js-yaml "^4.1.0"
 
-"@asyncapi/parser@^1.13.0":
-  version "1.13.0"
-  resolved "https://registry.yarnpkg.com/@asyncapi/parser/-/parser-1.13.0.tgz#bc20d53ba870ead9d26d5a4e3a838c5765ba8d4c"
-  integrity sha512-UnTYSjx2Sc+VKWIIeIV5I+ogFbN5iWzNgx1UgTXQ5oPhtNlsdIkF+w7qV8GyiraaKbBqAuwepv4xbBvlEi8hkw==
+"@asyncapi/avro-schema-parser@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@asyncapi/avro-schema-parser/-/avro-schema-parser-0.3.0.tgz#6922acc559ef999c57e81297d78ffe680fc92b3c"
+  integrity sha512-gWAqS2CKxbChdX8hZY+5EYQl6atP8FTSBvoG5mGGQ89XUoNdlLX14lsvbgvBnDj5sSwqfs+b5Mh5PUZMR/8maA==
+
+"@asyncapi/openapi-schema-parser@^2.0.0":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@asyncapi/openapi-schema-parser/-/openapi-schema-parser-2.0.1.tgz#4d6e82cced907b14e0ad6f98261ff2562d968d96"
+  integrity sha512-algbtdM1gcAOa8+V8kp7WeBhdaNac82jmZUXx8YjyNfRVo02N2juDrjeBAGJd+FNva9Mb4MM7qfkJoAFpTL5VQ==
+  dependencies:
+    "@openapi-contrib/openapi-schema-to-json-schema" "^3.0.0"
+
+"@asyncapi/parser@^1.13.0", "@asyncapi/parser@^1.17.0":
+  version "1.17.0"
+  resolved "https://registry.yarnpkg.com/@asyncapi/parser/-/parser-1.17.0.tgz#93bc2ade6b7fad57819ad0721b7c6d8159ffcf8f"
+  integrity sha512-xNXtGZ/hTf8a1C4X65ESKkBJgSx0o9RDyX3LYdQfdQWsDjjmltK4saa9Peu+0Nr2bHU+xaziRo4tOv8QmJ5qfA==
   dependencies:
     "@apidevtools/json-schema-ref-parser" "^9.0.6"
-    "@asyncapi/specs" "^2.11.0"
+    "@asyncapi/specs" "^3.2.0"
     "@fmvilas/pseudo-yaml-ast" "^0.3.1"
     ajv "^6.10.1"
     js-yaml "^3.13.1"
@@ -161,10 +173,25 @@
     node-fetch "^2.6.0"
     tiny-merge-patch "^0.1.2"
 
-"@asyncapi/specs@^2.11.0":
-  version "2.12.0"
-  resolved "https://registry.yarnpkg.com/@asyncapi/specs/-/specs-2.12.0.tgz#15534ca9e518b561d33edfdfdbb234f9b274f261"
-  integrity sha512-X4Xkrl+9WXSk5EJhsueIxNx6ymHI5wpkw4ofetV+VRnPLNob/XO4trPSJClrL5hlknxbGADLvlrkI5d3XJ996g==
+"@asyncapi/react-component@^1.0.0-next.35":
+  version "1.0.0-next.43"
+  resolved "https://registry.yarnpkg.com/@asyncapi/react-component/-/react-component-1.0.0-next.43.tgz#97c4382ef393d7cf32f0f93490f4cbe4973a896e"
+  integrity sha512-lVCsdjJ5XAU0/C/qpJUAXfmP7rGJW0qPpy2Pqrj10s8pNrG4qpe7ablcaWChrwaHvX1AA+Dm2nhXl16nOcxTNA==
+  dependencies:
+    "@asyncapi/avro-schema-parser" "^0.3.0"
+    "@asyncapi/openapi-schema-parser" "^2.0.0"
+    "@asyncapi/parser" "^1.17.0"
+    highlight.js "^10.7.2"
+    isomorphic-dompurify "^0.13.0"
+    marked "^4.0.14"
+    openapi-sampler "^1.2.1"
+    react-icons "^4.4.0"
+    use-resize-observer "^8.0.0"
+
+"@asyncapi/specs@^3.2.0":
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/@asyncapi/specs/-/specs-3.2.1.tgz#b0dfe054154d3a6bb89f2ba23ea6379a754875d0"
+  integrity sha512-FO+EteK+Gk3zwumrBw6frpp9cJ4oQL5++hBBpfM81w16e9KaiA4sKrzvQsvVjifoZZHNvVEX4D2zoz9i8CLccQ==
 
 "@aws-crypto/ie11-detection@^2.0.0":
   version "2.0.0"
@@ -4258,6 +4285,13 @@
   dependencies:
     "@octokit/openapi-types" "^11.2.0"
 
+"@openapi-contrib/openapi-schema-to-json-schema@^3.0.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@openapi-contrib/openapi-schema-to-json-schema/-/openapi-schema-to-json-schema-3.2.0.tgz#c4c92edd4478b5ecb3d99c29ecb355118259dccc"
+  integrity sha512-Gj6C0JwCr8arj0sYuslWXUBSP/KnUlEGnPW4qxlXvAl543oaNQgMgIgkQUA6vs5BCCvwTEiL8m/wdWzfl4UvSw==
+  dependencies:
+    fast-deep-equal "^3.1.3"
+
 "@polka/url@^1.0.0-next.20":
   version "1.0.0-next.21"
   resolved "https://registry.yarnpkg.com/@polka/url/-/url-1.0.0-next.21.tgz#5de5a2385a35309427f6011992b544514d559aa1"
@@ -5102,6 +5136,13 @@
   dependencies:
     postcss "5 - 7"
 
+"@types/dompurify@^2.1.0":
+  version "2.3.4"
+  resolved "https://registry.yarnpkg.com/@types/dompurify/-/dompurify-2.3.4.tgz#94e997e30338ea24d4c8d08beca91ce4dd17a1b4"
+  integrity sha512-EXzDatIb5EspL2eb/xPGmaC8pePcTHrkDCONjeisusLFrVfl38Pjea/R0YJGu3k9ZQadSvMqW0WXPI2hEo2Ajg==
+  dependencies:
+    "@types/trusted-types" "*"
+
 "@types/eslint-scope@^3.7.0":
   version "3.7.1"
   resolved "https://registry.yarnpkg.com/@types/eslint-scope/-/eslint-scope-3.7.1.tgz#8dc390a7b4f9dd9f1284629efce982e41612116e"
@@ -5476,6 +5517,11 @@
   dependencies:
     "@types/minipass" "*"
     "@types/node" "*"
+
+"@types/trusted-types@*":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@types/trusted-types/-/trusted-types-2.0.2.tgz#fc25ad9943bcac11cceb8168db4f275e0e72e756"
+  integrity sha512-F5DIZ36YVLE+PN+Zwws4kJogq47hNgX3Nx6WyDJ3kcplxyke3XIzB8uK5n/Lpm1HBsbGzd6nmGehL8cPekP+Tg==
 
 "@types/unist@*", "@types/unist@^2.0.0", "@types/unist@^2.0.2", "@types/unist@^2.0.3":
   version "2.0.6"
@@ -9341,6 +9387,11 @@ dompurify@=2.3.3:
   resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.3.3.tgz#c1af3eb88be47324432964d8abc75cf4b98d634c"
   integrity sha512-dqnqRkPMAjOZE0FogZ+ceJNM2dZ3V/yNOuFB7+39qpO93hHhfRpHw3heYQC7DPK9FqbQTfBKUJhiSfz4MvXYwg==
 
+dompurify@^2.2.7:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-2.4.0.tgz#c9c88390f024c2823332615c9e20a453cf3825dd"
+  integrity sha512-Be9tbQMZds4a3C6xTmz68NlMfeONA//4dOavl/1rNw50E+/QO0KVpbcU0PcaW0nsQxurXls9ZocqFxk8R2mWEA==
+
 domutils@1.5.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/domutils/-/domutils-1.5.1.tgz#dcd8488a26f563d61079e48c9f7b7e32373682cf"
@@ -10601,6 +10652,11 @@ for-in@^1.0.2:
   resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
   integrity sha1-gQaNKVqBQuwKxybG4iAMMPttXoA=
 
+foreach@^2.0.4:
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/foreach/-/foreach-2.0.6.tgz#87bcc8a1a0e74000ff2bf9802110708cfb02eb6e"
+  integrity sha512-k6GAGDyqLe9JaebCsFCoudPPWfihKu8pylYXRlqP1J7ms39iPoTtk2fviNglIeQEwdh0bQeKJ01ZPyuyQvKzwg==
+
 forever-agent@~0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/forever-agent/-/forever-agent-0.6.1.tgz#fbc71f0c41adeb37f96c577ad1ed42d8fdacca91"
@@ -11490,7 +11546,7 @@ highlight.js@11.2.0:
   resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-11.2.0.tgz#a7e3b8c1fdc4f0538b93b2dc2ddd53a40c6ab0f0"
   integrity sha512-JOySjtOEcyG8s4MLR2MNbLUyaXqUunmSnL2kdV/KuGJOmHZuAR5xC54Ko7goAXBWNhf09Vy3B+U7vR62UZ/0iw==
 
-highlight.js@^10.4.1, highlight.js@^10.7.1, highlight.js@~10.7.0:
+highlight.js@^10.4.1, highlight.js@^10.7.1, highlight.js@^10.7.2, highlight.js@~10.7.0:
   version "10.7.3"
   resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-10.7.3.tgz#697272e3991356e40c3cac566a74eef681756531"
   integrity sha512-tzcUFauisWKNHaRkN4Wjl/ZA07gENAjFl3J/c480dprkGTg5EQstgaNFqBfUqCq54kZRIEcreTsAgF/m2quD7A==
@@ -12494,6 +12550,15 @@ isobject@^3.0.0, isobject@^3.0.1:
   resolved "https://registry.yarnpkg.com/isobject/-/isobject-3.0.1.tgz#4e431e92b11a9731636aa1f9c8d1ccbcfdab78df"
   integrity sha1-TkMekrEalzFjaqH5yNHMvP2reN8=
 
+isomorphic-dompurify@^0.13.0:
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/isomorphic-dompurify/-/isomorphic-dompurify-0.13.0.tgz#a4dde357e8531018a85ebb2dd56c4794b6739ba3"
+  integrity sha512-j2/kt/PGbxvfeEm1uiRLlttZkQdn3hFe1rMr/wm3qFnMXSIw0Nmqu79k+TIoSj+KOwO98Sz9TbuNHU7ejv7IZA==
+  dependencies:
+    "@types/dompurify" "^2.1.0"
+    dompurify "^2.2.7"
+    jsdom "^16.5.2"
+
 isstream@~0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/isstream/-/isstream-0.1.2.tgz#47e63f7af55afa6f92e1500e690eb8b8529c099a"
@@ -13458,7 +13523,7 @@ jsdom@^15.2.1:
     ws "^7.0.0"
     xml-name-validator "^3.0.0"
 
-jsdom@^16.4.0:
+jsdom@^16.4.0, jsdom@^16.5.2:
   version "16.7.0"
   resolved "https://registry.yarnpkg.com/jsdom/-/jsdom-16.7.0.tgz#918ae71965424b197c819f8183a754e18977b710"
   integrity sha512-u9Smc2G1USStM+s/x1ru5Sxrl6mPYCbByG1U/hUmqaVsm4tbNyS7CicOSRyuGQYZhTu0h84qkZZQ/I+dzizSVw==
@@ -13529,6 +13594,13 @@ json-parse-even-better-errors@^2.3.0, json-parse-even-better-errors@^2.3.1:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/json-parse-even-better-errors/-/json-parse-even-better-errors-2.3.1.tgz#7c47805a94319928e05777405dc12e1f7a4ee02d"
   integrity sha512-xyFwyhro/JEof6Ghe2iz2NcXoj2sloNsWr/XsERDK/oiPCfaNhl5ONfp+jQdAZRQQ0IJWNzH9zIZF7li91kh2w==
+
+json-pointer@0.6.2:
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/json-pointer/-/json-pointer-0.6.2.tgz#f97bd7550be5e9ea901f8c9264c9d436a22a93cd"
+  integrity sha512-vLWcKbOaXlO+jvRy4qNd+TI1QUPZzfJj1tpJ3vAXDych5XJf93ftpUKe5pKCrzyIIwgBJcOcCVRUfqQP25afBw==
+  dependencies:
+    foreach "^2.0.4"
 
 json-schema-compare@^0.2.2:
   version "0.2.2"
@@ -14462,6 +14534,11 @@ marked@^2.0.0, marked@^2.0.3:
   version "2.1.3"
   resolved "https://registry.yarnpkg.com/marked/-/marked-2.1.3.tgz#bd017cef6431724fd4b27e0657f5ceb14bff3753"
   integrity sha512-/Q+7MGzaETqifOMWYEA7HVMaZb4XbcRfaOzcSsHZEith83KGlvaSG33u0SKu89Mj5h+T8V2hM+8O45Qc5XTgwA==
+
+marked@^4.0.14:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/marked/-/marked-4.1.0.tgz#3fc6e7485f21c1ca5d6ec4a39de820e146954796"
+  integrity sha512-+Z6KDjSPa6/723PQYyc1axYZpYYpDnECDaU6hkaf5gqBieBkMKYReL5hteF2QizhlMbgbo8umXl/clZ67+GlsA==
 
 math-random@^1.0.1:
   version "1.0.4"
@@ -15809,6 +15886,14 @@ open@^8.0.9:
     define-lazy-prop "^2.0.0"
     is-docker "^2.1.1"
     is-wsl "^2.2.0"
+
+openapi-sampler@^1.2.1:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/openapi-sampler/-/openapi-sampler-1.3.0.tgz#5b99ceb4156b00d2aa3f860e52ccb768a5695793"
+  integrity sha512-2QfjK1oM9Sv0q82Ae1RrUe3yfFmAyjF548+6eAeb+h/cL1Uj51TW4UezraBEvwEdzoBgfo4AaTLVFGTKj+yYDw==
+  dependencies:
+    "@types/json-schema" "^7.0.7"
+    json-pointer "0.6.2"
 
 opener@^1.5.2:
   version "1.5.2"
@@ -17449,6 +17534,11 @@ react-helmet@^6.1.0:
     prop-types "^15.7.2"
     react-fast-compare "^3.1.1"
     react-side-effect "^2.1.0"
+
+react-icons@^4.4.0:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/react-icons/-/react-icons-4.4.0.tgz#a13a8a20c254854e1ec9aecef28a95cdf24ef703"
+  integrity sha512-fSbvHeVYo/B5/L4VhB7sBA1i2tS8MkT0Hb9t2H1AVPkwGfVHLJCqyr2Py9dKMxsyM63Eng1GkdZfbWj+Fmv8Rg==
 
 react-immutable-proptypes@2.2.0:
   version "2.2.0"
@@ -20679,6 +20769,13 @@ use-latest@^1.0.0:
   integrity sha512-d2TEuG6nSLKQLAfW3By8mKr8HurOlTkul0sOpxbClIv4SQ4iOd7BYr7VIzdbktUCnv7dua/60xzd8igMU6jmyw==
   dependencies:
     use-isomorphic-layout-effect "^1.0.0"
+
+use-resize-observer@^8.0.0:
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/use-resize-observer/-/use-resize-observer-8.0.0.tgz#69bd80c1ddd94f3758563fe107efb25fed85067a"
+  integrity sha512-n0iKSeiQpJCyaFh5JA0qsVLBIovsF4EIIR1G6XiBwKJN66ZrD4Oj62bjcuTAATPKiSp6an/2UZZxCf/67fk3sQ==
+  dependencies:
+    "@juggle/resize-observer" "^3.3.1"
 
 use-subscription@1.5.1:
   version "1.5.1"
