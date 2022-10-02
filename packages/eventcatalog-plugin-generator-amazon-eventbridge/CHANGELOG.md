@@ -1,5 +1,11 @@
 # @eventcatalog/plugin-doc-generator-amazon-eventbridge
 
+## 0.0.9
+
+### Patch Changes
+
+- [`a790134`](https://github.com/boyney123/eventcatalog/commit/a7901349fc12efce430f5aeda87d5befb03bd628) [#303](https://github.com/boyney123/eventcatalog/pull/303) Thanks [@dpwdec](https://github.com/dpwdec)! - feat: added new badges for event, services and domains
+
 ## 0.0.8
 
 ### Patch Changes

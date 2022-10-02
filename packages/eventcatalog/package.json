@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/core",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "publishConfig": {
     "access": "public"
   },
@@ -47,7 +47,7 @@
     "swagger-ui-react": "^4.6.1"
   },
   "devDependencies": {
-    "@eventcatalog/types": "0.3.0",
+    "@eventcatalog/types": "0.4.0",
     "@types/react": "^17.0.36",
     "autoprefixer": "10.4.5",
     "commander": "^8.3.0",
