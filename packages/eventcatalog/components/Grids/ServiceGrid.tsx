@@ -33,6 +33,14 @@ function ServiceGrid({ services = [], showMermaidDiagrams = false }: ServiceGrid
                   <div className="p-4 text-sm space-y-2 flex flex-col justify-between h-full">
                     <div>
                       <span className="text-gray-900 font-bold">{service.name}</span>
+                      {service.badges?.map((badge) => (
+                        <span
+                          key={`${service.name}-${badge.content}`}
+                          className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${badge.backgroundColor}-100 text-${badge.textColor}-800`}
+                        >
+                          {badge.content}
+                        </span>
+                      ))}
                       {isDraft && (
                         <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-500 text-gray-100">
                           Draft

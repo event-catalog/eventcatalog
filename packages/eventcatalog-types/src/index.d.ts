@@ -26,6 +26,7 @@ export interface Event {
   consumerNames?: string[];
   producers?: Service[];
   consumers?: Service[];
+  badges?: Badge[];
 
   historicVersions?: string[];
   owners?: Owner[] | string[];
@@ -57,6 +58,7 @@ export interface Service {
   externalLinks?: Tag[];
   openAPISpec?: string;
   asyncAPISpec?: string;
+  badges?: Badge[];
 }
 
 export interface Domain {
@@ -67,6 +69,7 @@ export interface Domain {
   owners?: Owner[] | string[];
   tags?: Tag[];
   externalLinks?: Tag[];
+  badges?: Badge[];
 }
 
 export type PluginOpts = { id?: string } & Record<string, unknown>;
@@ -109,3 +112,9 @@ export interface EventCatalogConfig {
 export type LoadContext = {
   eventCatalogConfig: EventCatalogConfig;
 };
+
+export interface Badge {
+  content: string;
+  backgroundColor: 'red' | 'blue' | 'green' | 'yellow' | 'white' | 'black';
+  textColor: 'red' | 'blue' | 'green' | 'yellow' | 'white' | 'black';
+}

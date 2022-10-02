@@ -33,6 +33,13 @@ describe('domains lib', () => {
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
           historicVersions: [],
+          badges: [
+            {
+              content: 'New!',
+              backgroundColor: 'blue',
+              textColor: 'blue',
+            },
+          ],
         },
         {
           name: 'UserRemoved',
@@ -44,6 +51,7 @@ describe('domains lib', () => {
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
           historicVersions: [],
+          badges: [],
         },
       ]);
     });
@@ -71,6 +79,13 @@ describe('domains lib', () => {
           ],
           publishes: [],
           subscribes: [],
+          badges: [
+            {
+              content: 'New!',
+              backgroundColor: 'blue',
+              textColor: 'blue',
+            },
+          ],
         },
       ]);
     });
@@ -86,6 +101,13 @@ describe('domains lib', () => {
         owners: ['dboyne', 'mSmith'],
         tags: [],
         externalLinks: [],
+        badges: [
+          {
+            content: 'New!',
+            backgroundColor: 'blue',
+            textColor: 'blue',
+          },
+        ],
         events: [
           {
             name: 'UserCreated',
@@ -97,6 +119,13 @@ describe('domains lib', () => {
             owners: ['dboyne', 'mSmith'],
             externalLinks: [],
             historicVersions: [],
+            badges: [
+              {
+                content: 'New!',
+                backgroundColor: 'blue',
+                textColor: 'blue',
+              },
+            ],
             producers: [
               {
                 name: 'Application API',
@@ -118,6 +147,7 @@ describe('domains lib', () => {
             owners: ['dboyne', 'mSmith'],
             externalLinks: [],
             historicVersions: [],
+            badges: [],
             producers: [
               {
                 name: 'Application API',
@@ -149,6 +179,13 @@ describe('domains lib', () => {
             ],
             publishes: [],
             subscribes: [],
+            badges: [
+              {
+                content: 'New!',
+                backgroundColor: 'blue',
+                textColor: 'blue',
+              },
+            ],
           },
         ],
       });
@@ -169,6 +206,13 @@ describe('domains lib', () => {
           owners: ['dboyne', 'mSmith'],
           tags: [],
           externalLinks: [],
+          badges: [
+            {
+              content: 'New!',
+              backgroundColor: 'blue',
+              textColor: 'blue',
+            },
+          ],
           events: [
             {
               name: 'UserCreated',
@@ -180,6 +224,13 @@ describe('domains lib', () => {
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              badges: [
+                {
+                  content: 'New!',
+                  backgroundColor: 'blue',
+                  textColor: 'blue',
+                },
+              ],
               producers: [
                 {
                   name: 'Application API',
@@ -201,6 +252,7 @@ describe('domains lib', () => {
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              badges: [],
               producers: [
                 {
                   name: 'Application API',
@@ -232,6 +284,13 @@ describe('domains lib', () => {
               ],
               publishes: [],
               subscribes: [],
+              badges: [
+                {
+                  content: 'New!',
+                  backgroundColor: 'blue',
+                  textColor: 'blue',
+                },
+              ],
             },
           ],
         },
@@ -255,6 +314,13 @@ describe('domains lib', () => {
           owners: ['dboyne', 'mSmith'],
           tags: [],
           externalLinks: [],
+          badges: [
+            {
+              content: 'New!',
+              backgroundColor: 'blue',
+              textColor: 'blue',
+            },
+          ],
           events: [
             {
               name: 'UserCreated',
@@ -266,6 +332,13 @@ describe('domains lib', () => {
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              badges: [
+                {
+                  content: 'New!',
+                  backgroundColor: 'blue',
+                  textColor: 'blue',
+                },
+              ],
               producers: [
                 {
                   name: 'Application API',
@@ -287,6 +360,7 @@ describe('domains lib', () => {
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              badges: [],
               producers: [
                 {
                   name: 'Application API',
@@ -318,6 +392,13 @@ describe('domains lib', () => {
               ],
               publishes: [],
               subscribes: [],
+              badges: [
+                {
+                  content: 'New!',
+                  backgroundColor: 'blue',
+                  textColor: 'blue',
+                },
+              ],
             },
           ],
         },

@@ -10,6 +10,10 @@ consumers:
 owners:
     - dboyne
     - mSmith
+badges:
+    - content: Deprecated
+      backgroundColor: red
+      textColor: red
 ---
 
 <Admonition>When firing this event make sure you set the `correlation-id` in the headers. Our schemas have standard metadata make sure you read and follow it.</Admonition>

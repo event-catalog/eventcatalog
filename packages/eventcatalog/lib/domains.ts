@@ -9,8 +9,8 @@ import { getAllEventsFromPath } from './events';
 import { getAllServicesFromPath } from './services';
 
 const buildDomain = (domainFrontMatter: any): Domain => {
-  const { name, summary, owners = [], tags = [], externalLinks = [] } = domainFrontMatter;
-  return { name, summary, owners, tags, externalLinks };
+  const { name, summary, owners = [], tags = [], externalLinks = [], badges = [] } = domainFrontMatter;
+  return { name, summary, owners, tags, externalLinks, badges };
 };
 
 export const getUniqueDomainNamesFromEvents = (events: Event[]) => {

@@ -97,6 +97,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
               - 'Account Service'
           consumers: []
           externalLinks: []
+          badges: []
         ---
 
         <Mermaid />
@@ -143,6 +144,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
               - 'Account Service'
             consumers: []
             externalLinks: []
+            badges: []
           ---
   
           <Mermaid />
@@ -212,6 +214,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
                   - 'Account Service'
               consumers: []
               externalLinks: []
+              badges: []
             ---
 
             <Mermaid />
@@ -255,6 +258,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
                   - 'Account Service'
               consumers: []
               externalLinks: []
+              badges: []
             ---
             # Content that already exists
             `);
@@ -302,6 +306,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
                   - 'Account Service'
               consumers: []
               externalLinks: []
+              badges: []
             ---
 
             <Mermaid />
@@ -351,6 +356,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
               consumers: []
               externalLinks:
                   - {label: 'View event in AsyncAPI', url: 'https://eventcatalog.dev/events#message-UserSignedUp'}
+              badges: []
             ---
 
             <Mermaid />
@@ -386,6 +392,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
                   - 'Account Service'
               consumers: []
               externalLinks: []
+              badges: []
             ---
 
             <NodeGraph />
@@ -436,6 +443,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
                   - 'Account Service'
               consumers: []
               externalLinks: []
+              badges: []
             ---
 
             <NodeGraph />

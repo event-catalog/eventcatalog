@@ -7,6 +7,10 @@ owners:
     - dboyne
     - mSmith
 draft: true    
+badges:
+    - content: New!
+      backgroundColor: blue
+      textColor: blue
 ---
 
 # Testing

@@ -4,6 +4,7 @@ version: '1'
 summary: 'Found on the "test-event-bus" Amazon EventBridge bus.'
 externalLinks:
     - {label: 'View Schema AWS Console', url: 'https://eu-west-1.console.aws.amazon.com/events/home?region=eu-west-1#/registries/discovered-schemas/schemas/users@UserDeleted'}
+badges: []
 ---
 No matched rules or targets found for event.
 <Schema />
@@ -15,6 +16,7 @@ version: '1'
 summary: 'Found on the "test-event-bus" Amazon EventBridge bus.'
 externalLinks:
     - {label: 'View Schema AWS Console', url: 'https://eu-west-1.console.aws.amazon.com/events/home?region=eu-west-1#/registries/discovered-schemas/schemas/users@UserCreated'}
+badges: []
 owners: []
 ---
 ## Matched rules for event

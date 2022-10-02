@@ -36,6 +36,18 @@ describe('services', () => {
           ],
           publishes: [],
           subscribes: [],
+          badges: [
+            {
+              content: 'Extra!',
+              backgroundColor: 'green',
+              textColor: 'green',
+            },
+            {
+              content: 'Long form',
+              backgroundColor: 'yellow',
+              textColor: 'red',
+            },
+          ],
         },
         {
           name: 'Email Platform',
@@ -67,9 +79,11 @@ describe('services', () => {
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              badges: [],
             },
           ],
           subscribes: [],
+          badges: [],
         },
         {
           name: 'Payment Service',
@@ -81,6 +95,7 @@ describe('services', () => {
           externalLinks: [],
           publishes: [],
           subscribes: [],
+          badges: [],
         },
         {
           name: 'User Service',
@@ -100,6 +115,13 @@ describe('services', () => {
           ],
           publishes: [],
           subscribes: [],
+          badges: [
+            {
+              content: 'New!',
+              backgroundColor: 'blue',
+              textColor: 'blue',
+            },
+          ],
         },
       ]);
     });
@@ -141,6 +163,7 @@ describe('services', () => {
               producerNames: ['Email Platform'],
               consumerNames: [],
               historicVersions: [],
+              badges: [],
               domain: null,
               externalLinks: [],
               owners: ['dboyne', 'mSmith'],
@@ -148,6 +171,7 @@ describe('services', () => {
           ],
           subscribes: [],
           externalLinks: [],
+          badges: [],
         },
       ]);
     });
@@ -185,6 +209,7 @@ describe('services', () => {
             producerNames: ['Email Platform'],
             consumerNames: [],
             historicVersions: [],
+            badges: [],
             domain: null,
             externalLinks: [],
             owners: ['dboyne', 'mSmith'],
@@ -192,6 +217,7 @@ describe('services', () => {
         ],
         subscribes: [],
         externalLinks: [],
+        badges: [],
       });
 
       // @ts-ignore
@@ -222,6 +248,13 @@ describe('services', () => {
           ],
           publishes: [],
           subscribes: [],
+          badges: [
+            {
+              content: 'New!',
+              backgroundColor: 'blue',
+              textColor: 'blue',
+            },
+          ],
         });
 
         // @ts-ignore
