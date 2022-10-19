@@ -27,10 +27,15 @@ export interface PageProps {
 }
 
 export default function Page({ events, services, domains }: PageProps) {
+  const [selectedFilters, setSelectedFilters] = useState({ services: [], domains: [], badges: [] });
+  const [showMermaidDiagrams, setShowMermaidDiagrams] = useState(false);
+  const [eventsToRender, setEventsToRender] = useState(events);
+  const [searchFilter, setSearchFilter] = useState('');
+
   const filters = [
     {
       id: 'domains',
-      name: `Filter by Domains (${domains.length})`,
+      name: `Filter by Domains`,
       options: domains.map((domain) => ({
         value: domain,
         label: domain,
@@ -39,19 +44,34 @@ export default function Page({ events, services, domains }: PageProps) {
     },
     {
       id: 'services',
-      name: `Filter by Services (${services.length})`,
+      name: `Filter by Services`,
       options: services.map((service) => ({
         value: service,
         label: service,
         checked: false,
       })),
     },
+    {
+      id: 'badges',
+      name: `Filter by Badges`,
+      options: events.reduce((p, c) => {
+        if (!c.badges) {
+          return p;
+        }
+        c.badges.forEach((badge) => {
+          const existing = p.map((b) => b.value);
+          if (!existing.includes(badge.content)) {
+            p.push({
+              value: badge.content,
+              label: badge.content,
+              checked: false,
+            });
+          }
+        });
+        return p;
+      }, [] as { value: string; label: string; checked: boolean }[]),
+    },
   ];
-
-  const [selectedFilters, setSelectedFilters] = useState({ services: [], domains: [] });
-  const [showMermaidDiagrams, setShowMermaidDiagrams] = useState(false);
-  const [eventsToRender, setEventsToRender] = useState(events);
-  const [searchFilter, setSearchFilter] = useState('');
 
   const handleFilterSelection = (option, type, event) => {
     console.log(option, type, event);
@@ -66,7 +86,7 @@ export default function Page({ events, services, domains }: PageProps) {
   };
 
   const getFilteredEvents = (): any => {
-    if (!selectedFilters.services && !searchFilter && !selectedFilters.domains) return events;
+    if (!selectedFilters.services && !searchFilter && !selectedFilters.domains && !selectedFilters.badges) return events;
 
     let filteredEvents = events;
 
@@ -90,6 +110,17 @@ export default function Page({ events, services, domains }: PageProps) {
       });
     }
 
+    if (selectedFilters.badges.length > 0) {
+      const { badges: badgeFilters } = selectedFilters;
+      // @ts-ignore
+      filteredEvents = filteredEvents.filter((event) => {
+        if (!event.badges) {
+          return false;
+        }
+        return event.badges.filter((badge) => badgeFilters.includes(badge.content)).length !== 0;
+      });
+    }
+
     if (searchFilter) {
       filteredEvents = filteredEvents.filter((event) => event.name.toLowerCase().includes(searchFilter.toLowerCase()));
     }
@@ -110,7 +141,7 @@ export default function Page({ events, services, domains }: PageProps) {
     [eventsToRender]
   );
 
-  const filtersApplied = !!searchFilter || selectedFilters.services.length > 0;
+  const filtersApplied = !!searchFilter || selectedFilters.services.length > 0 || selectedFilters.domains.length > 0 || selectedFilters.badges.length > 0;
   const { title } = useConfig();
 
   return (
@@ -195,7 +226,7 @@ export default function Page({ events, services, domains }: PageProps) {
                   <div key={section.id} className="border-b border-gray-200 py-6">
                     <h3 className="-my-3 flow-root">
                       <div className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
-                        <span className="font-bold font-medium text-gray-900">{section.name}</span>
+                        <span className="font-bold font-medium text-gray-900">{section.name} ({section.options.length})</span>
                       </div>
                     </h3>
                     <div className="pt-6">
