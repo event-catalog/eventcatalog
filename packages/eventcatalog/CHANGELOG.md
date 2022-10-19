@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.5.2
+
+### Patch Changes
+
+- [`7372407`](https://github.com/boyney123/eventcatalog/commit/73724077d528d48d16bfffaa97231e7f63e3903f) [#312](https://github.com/boyney123/eventcatalog/pull/312) Thanks [@boyney123](https://github.com/boyney123)! - fix version for spotlight
+
 ## 0.5.1
 
 ### Patch Changes
