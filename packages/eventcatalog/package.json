@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/core",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "publishConfig": {
     "access": "public"
   },
@@ -20,7 +20,7 @@
     "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
     "@mdx-js/react": "^1.6.22",
-    "@stoplight/json-schema-viewer": "^4.5.0",
+    "@stoplight/json-schema-viewer": "4.5.0",
     "@stoplight/markdown-viewer": "^5.4.2",
     "@stoplight/mosaic": "^1.15.3",
     "@stoplight/mosaic-code-viewer": "^1.15.3",
