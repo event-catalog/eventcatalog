@@ -1,16 +1,14 @@
 import Head from 'next/head';
-import { Service, Domain } from '@eventcatalog/types';
+import { Domain } from '@eventcatalog/types';
 
-import DomainGrid from '@/components/Grids/DomainGrid';
-import { getAllServices } from '@/lib/services';
-import { useConfig } from '@/hooks/EventCatalog';
-import { getAllDomains } from '@/lib/domains';
 import { useState, useCallback, useEffect } from 'react';
 import debounce from 'lodash.debounce';
 import { SearchIcon } from '@heroicons/react/outline';
+import DomainGrid from '@/components/Grids/DomainGrid';
+import { useConfig } from '@/hooks/EventCatalog';
+import { getAllDomains } from '@/lib/domains';
 
 export interface PageProps {
-  services: Service[];
   domains: Domain[];
 }
 
@@ -186,13 +184,11 @@ export default function Page({ domains }: PageProps) {
 }
 
 export async function getStaticProps() {
-  const services = getAllServices();
   const allDomains = await getAllDomains();
   const domains = allDomains.map((item) => item.domain);
 
   return {
     props: {
-      services,
       domains,
     },
   };
