@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.6.0
+
+### Minor Changes
+
+- [`34358f5`](https://github.com/boyney123/eventcatalog/commit/34358f5b55fa58a8502a81ed44fb9c4b1901bdd2) [#314](https://github.com/boyney123/eventcatalog/pull/314) Thanks [@martzcodes](https://github.com/martzcodes)! - Feature: Add Badge Filtering to Domains, Events, and Services
+
 ## 0.5.2
 
 ### Patch Changes
