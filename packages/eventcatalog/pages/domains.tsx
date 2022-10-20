@@ -130,7 +130,9 @@ export default function Page({ domains }: PageProps) {
                   <div key={section.id} className="border-b border-gray-200 py-6">
                     <h3 className="-my-3 flow-root">
                       <div className="py-3 bg-white w-full flex items-center justify-between text-sm text-gray-400 hover:text-gray-500">
-                        <span className="font-bold font-medium text-gray-900">{section.name} ({section.options.length})</span>
+                        <span className="font-bold font-medium text-gray-900">
+                          {section.name} ({section.options.length})
+                        </span>
                       </div>
                     </h3>
                     <div className="pt-6">
@@ -160,9 +162,11 @@ export default function Page({ domains }: PageProps) {
 
             <div className="col-span-4 lg:col-span-3">
               <div>
-                <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">{filtersApplied
+                <h2 className="text-gray-500 text-xs font-medium uppercase tracking-wide">
+                  {filtersApplied
                     ? `Filtered Domains (${domainsToRender.length}/${domains.length})`
-                    : `All Domains (${domains.length})`}</h2>
+                    : `All Domains (${domains.length})`}
+                </h2>
                 <DomainGrid domains={domainsToRender} />
                 {domainsToRender.length === 0 && (
                   <div className="text-gray-400 flex h-96  justify-center items-center">
