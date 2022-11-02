@@ -19,14 +19,15 @@ import { getDomainFromCatalog, writeDomainToCatalog, buildDomainMarkdownForCatal
 
 interface ExistsInCatalogInterface {
   type: 'service' | 'event';
+  version?: string;
 }
 
 export const existsInCatalog =
   ({ catalogDirectory }: FunctionInitInterface) =>
   (name: string, options: ExistsInCatalogInterface) => {
-    const { type } = options;
+    const { type, version } = options;
     const folder = `${type}s`;
-    return fs.existsSync(path.join(catalogDirectory, folder, name));
+    return fs.existsSync(path.join(catalogDirectory, folder, name, version ? path.join('versioned', version) : ''));
   };
 
 const utils = ({ catalogDirectory }: FunctionInitInterface) => ({

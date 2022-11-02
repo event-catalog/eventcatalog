@@ -35,6 +35,10 @@ export interface FrontMatterAllowedToCopy {
   summary?: boolean;
 }
 
+export interface GetEventFromCatalogOptions {
+  version?: string;
+}
+
 export interface WriteEventToCatalogOptions {
   schema?: SchemaFile;
   codeExamples?: CodeExample[];
@@ -44,6 +48,7 @@ export interface WriteEventToCatalogOptions {
   markdownContent?: string;
   frontMatterToCopyToNewVersions?: FrontMatterAllowedToCopy;
   versionExistingEvent?: boolean;
+  isLatestVersion?: boolean;
 }
 
 export interface WriteDomainToCatalogOptions {
