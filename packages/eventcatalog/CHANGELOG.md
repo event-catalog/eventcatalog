@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.6.1
+
+### Patch Changes
+
+- [`9315416`](https://github.com/boyney123/eventcatalog/commit/931541626315a753d630593083e2f1f87c7c51cc) [#320](https://github.com/boyney123/eventcatalog/pull/320) Thanks [@mikaelvesavuori](https://github.com/mikaelvesavuori)! - Mermaid component not working
+
 ## 0.6.0
 
 ### Minor Changes
