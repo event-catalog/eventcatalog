@@ -9,7 +9,6 @@ mermaid.initialize({
   securityLevel: 'loose',
   flowchart: {
     useMaxWidth: false,
-    width: '1000px',
   },
   themeCSS: `
   .node {
@@ -23,7 +22,6 @@ mermaid.initialize({
   }
     `,
   fontFamily: 'Fira Code',
-  width: '100%',
 });
 
 interface MermaidProps {
