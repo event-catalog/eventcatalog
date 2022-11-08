@@ -27,3 +27,11 @@ Here are some guides and places you can host static content
 - [Host in AWS S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html)
 - [Using Netlify to host Static Content](https://www.netlify.com/blog/2016/10/27/a-step-by-step-guide-deploying-a-static-site-or-single-page-app/)
 - [Deploy to NextJS](https://nextjs.org/docs/deployment)
+
+## Community blog posts
+
+### [Using AWS CDK to Deploy EventCatalog](https://matt.martz.codes/using-aws-cdk-to-deploy-eventcatalog)
+
+[Matt Martz](https://twitter.com/martzcodes) goes into a [very detailed blog post](https://matt.martz.codes/using-aws-cdk-to-deploy-eventcatalog) on how you can use EventCatalog and implementing **Event Driven Documentation**.
+
+![alt](https://cdn.hashnode.com/res/hashnode/image/upload/v1666473368096/jTQ0lrEnP.png?auto=compress,format&format=webp)
