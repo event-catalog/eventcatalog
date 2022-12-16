@@ -4,24 +4,26 @@ const fs = require('fs');
 const getAllEventsAndSchemaPaths = (directory) => {
   const folders = fs.readdirSync(directory);
   return folders
-    .filter((folder) => { return fs.lstatSync(path.join(directory, folder)).isDirectory() })
+    .filter((folder) => {
+      return fs.lstatSync(path.join(directory, folder)).isDirectory();
+    })
     .map((folder) => {
-    const allFilesInEventFolder = fs.readdirSync(path.join(directory, folder));
-    const schemaFileName = allFilesInEventFolder.find((fileName) => fileName.includes('schema'));
-    const eventHasVersions = !!allFilesInEventFolder.find((fileName) => fileName.includes('versioned'));
-    let versions = [];
+      const allFilesInEventFolder = fs.readdirSync(path.join(directory, folder));
+      const schemaFileName = allFilesInEventFolder.find((fileName) => fileName.includes('schema'));
+      const eventHasVersions = !!allFilesInEventFolder.find((fileName) => fileName.includes('versioned'));
+      let versions = [];
 
-    if (eventHasVersions) {
-      versions = getAllEventsAndSchemaPaths(path.join(directory, folder, 'versioned'));
-    }
+      if (eventHasVersions) {
+        versions = getAllEventsAndSchemaPaths(path.join(directory, folder, 'versioned'));
+      }
 
-    return {
-      name: folder,
-      schemaFileName,
-      schemaContent: schemaFileName ? fs.readFileSync(path.join(directory, folder, schemaFileName), 'utf-8') : null,
-      versions,
-    };
-  });
+      return {
+        name: folder,
+        schemaFileName,
+        schemaContent: schemaFileName ? fs.readFileSync(path.join(directory, folder, schemaFileName), 'utf-8') : null,
+        versions,
+      };
+    });
 };
 
 const parseEventDirectory = (publicSchemaDir, eventsDir) => {

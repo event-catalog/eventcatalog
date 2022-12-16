@@ -153,7 +153,11 @@ export const getDomainByPath = async (domainDirectory: string): Promise<{ domain
 export const getAllDomainsFromPath = async (domainsDir: string) => {
   if (!fs.existsSync(domainsDir)) return [];
   const folders = fs.readdirSync(domainsDir);
-  const allDomains = folders.filter((folder) => { return fs.lstatSync(path.join(domainsDir, folder)).isDirectory() }).map((folder) => getDomainByPath(path.join(domainsDir, folder)));
+  const allDomains = folders
+    .filter((folder) => {
+      return fs.lstatSync(path.join(domainsDir, folder)).isDirectory();
+    })
+    .map((folder) => getDomainByPath(path.join(domainsDir, folder)));
   return Promise.all(allDomains);
 };
 
