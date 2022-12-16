@@ -84,11 +84,11 @@ export const getLogsForEvent = ({ eventName, domain }: { eventName: string; doma
         value:
           schema && previousSchema
             ? Diff.createTwoFilesPatch(
-                `schema.${schema.extension} (${previousVersion})`,
-                `schema.${previousSchema.extension} (${version})`,
-                previousSchema.snippet,
-                schema.snippet
-              )
+              `schema.${schema.extension} (${previousVersion})`,
+              `schema.${previousSchema.extension} (${version})`,
+              previousSchema.snippet,
+              schema.snippet
+            )
             : null,
       };
 
@@ -168,7 +168,7 @@ export const getEventByPath = (eventDir: string, hydrateWithProducersAndConsumer
 export const getAllEventsFromPath = (eventsDir: string, hydrateEvents?: boolean): Event[] => {
   if (!fs.existsSync(eventsDir)) return [];
   const folders = fs.readdirSync(eventsDir);
-  return folders.map((folder) => getEventByPath(path.join(eventsDir, folder), hydrateEvents));
+  return folders.filter((folder) => { return fs.lstatSync(path.join(eventsDir, folder)).isDirectory() }).map((folder) => getEventByPath(path.join(eventsDir, folder), hydrateEvents));
 };
 
 export const getAllEvents = ({ hydrateEvents }: { hydrateEvents?: boolean } = {}): Event[] => {

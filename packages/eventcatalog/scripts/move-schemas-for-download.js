@@ -3,7 +3,9 @@ const fs = require('fs');
 
 const getAllEventsAndSchemaPaths = (directory) => {
   const folders = fs.readdirSync(directory);
-  return folders.map((folder) => {
+  return folders
+    .filter((folder) => { return fs.lstatSync(path.join(directory, folder)).isDirectory() })
+    .map((folder) => {
     const allFilesInEventFolder = fs.readdirSync(path.join(directory, folder));
     const schemaFileName = allFilesInEventFolder.find((fileName) => fileName.includes('schema'));
     const eventHasVersions = !!allFilesInEventFolder.find((fileName) => fileName.includes('versioned'));
