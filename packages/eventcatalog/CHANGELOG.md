@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.6.2
+
+### Patch Changes
+
+- [`8f72480`](https://github.com/boyney123/eventcatalog/commit/8f724804873317940d62b2887aa8f54ced430260) [#330](https://github.com/boyney123/eventcatalog/pull/330) Thanks [@michelgrootjans](https://github.com/michelgrootjans)! - Fix to the 3D node graph
+
 ## 0.6.1
 
 ### Patch Changes
