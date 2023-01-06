@@ -57,7 +57,7 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
 
   // the same service can be the producer and consumer of events, check and merge any matchs.
   const uniqueMessages = allMessages.reduce((acc: any, message: any) => {
-    const messageAlreadyDefined = acc.findIndex((m) => m.name === message.name);
+    const messageAlreadyDefined = acc.findIndex((m: any) => m.name === message.name);
 
     if (messageAlreadyDefined > -1) {
       acc[messageAlreadyDefined] = merge(acc[messageAlreadyDefined], message);
