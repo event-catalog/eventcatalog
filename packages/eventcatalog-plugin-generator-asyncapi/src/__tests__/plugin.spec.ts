@@ -474,9 +474,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
     describe('asyncapi service that is both producer and consumer', () => {
       it('writes the event with the same producer and consumer', async () => {
         const options: AsyncAPIPluginOptions = {
-          pathToSpec: [
-            path.join(__dirname, './assets/producer-and-consumer.yml')
-          ],
+          pathToSpec: [path.join(__dirname, './assets/producer-and-consumer.yml')],
         };
 
         await plugin(pluginContext, options);
@@ -505,15 +503,13 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         <Mermaid />
         <Schema />
           `);
-          
+
         expect(serviceFile).toMatchMarkdown(`
         ---
         name: ResultsDataService
         summary: 'Results API'
         ---
-        <Mermaid /> `
-        );
-     
+        <Mermaid /> `);
       });
     });
   });

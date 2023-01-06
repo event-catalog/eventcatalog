@@ -30,7 +30,7 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
       let messageName = message.name() || message.extension('x-parser-message-name');
 
       // If no name can be found from the message, and AsyncAPI defaults to "anonymous" value, try get the name from the payload itself
-      if(messageName.includes('anonymous-')){
+      if (messageName.includes('anonymous-')) {
         messageName = message.payload().uid() || messageName;
       }
 
@@ -59,7 +59,7 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
   const uniqueMessages = allMessages.reduce((acc: any, message: any) => {
     const messageAlreadyDefined = acc.findIndex((m) => m.name === message.name);
 
-    if(messageAlreadyDefined > -1){
+    if (messageAlreadyDefined > -1) {
       acc[messageAlreadyDefined] = merge(acc[messageAlreadyDefined], message);
     } else {
       acc.push(message);
@@ -67,7 +67,7 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
     return acc;
   }, []);
 
-  return uniqueMessages
+  return uniqueMessages;
 };
 
 const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOptions, copyFrontMatter: boolean) => {
