@@ -90,16 +90,15 @@ export default function Services(props: ServicesPageProps) {
   const { getEditUrl, hasEditUrl } = useUrl();
 
   const editURL = () => {
-    if(!hasEditUrl) return '';
-    const path = service.domain ? `/domains/${service.domain}/services/${service.name}/index.md` : `/services/${service.name}/index.md`
+    if (!hasEditUrl) return '';
+    const path = service.domain
+      ? `/domains/${service.domain}/services/${service.name}/index.md`
+      : `/services/${service.name}/index.md`;
 
     return getEditUrl(path);
   };
 
-  if (notFound)
-    return (
-      <NotFound type="service" name={service.name} editUrl={editURL()} />
-    );
+  if (notFound) return <NotFound type="service" name={service.name} editUrl={editURL()} />;
 
   const { name, summary, draft } = service;
   const { lastModifiedDate } = markdown;
