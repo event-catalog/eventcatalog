@@ -471,7 +471,7 @@ describe('eventcatalog-utils', () => {
         });
 
         describe('isLatestVersion', () => {
-          it('throws an error when isLatestVersion is false but no version is specifie', () => {
+          it('throws an error when isLatestVersion is false but no version is specified', () => {
             const event = {
               name: 'OrderCreated',
               summary: 'This is summary for my event',
