@@ -89,9 +89,16 @@ export default function Services(props: ServicesPageProps) {
   const { title } = useConfig();
   const { getEditUrl, hasEditUrl } = useUrl();
 
+  const editURL = () => {
+    if(!hasEditUrl) return '';
+    const path = service.domain ? `/domains/${service.domain}/services/${service.name}/index.md` : `/services/${service.name}/index.md`
+
+    return getEditUrl(path);
+  };
+
   if (notFound)
     return (
-      <NotFound type="service" name={service.name} editUrl={hasEditUrl ? getEditUrl(`/services/${service.name}/index.md`) : ''} />
+      <NotFound type="service" name={service.name} editUrl={editURL()} />
     );
 
   const { name, summary, draft } = service;
@@ -108,7 +115,7 @@ export default function Services(props: ServicesPageProps) {
       </Head>
       <ContentView
         title={name}
-        editUrl={hasEditUrl ? getEditUrl(`/services/${name}/index.md`) : ''}
+        editUrl={editURL()}
         subtitle={summary}
         draft={draft}
         lastModifiedDate={lastModifiedDate}
