@@ -6,7 +6,7 @@
 [![MIT License][license-badge]][license]
 [![PRs Welcome][prs-badge]][prs]
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-18-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-19-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![Watch on GitHub][github-watch-badge]][github-watch]
@@ -145,6 +145,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center"><a href="https://github.com/lcsbltm"><img src="https://avatars.githubusercontent.com/u/25868958?v=4?s=100" width="100px;" alt="lcsbltm"/><br /><sub><b>lcsbltm</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=lcsbltm" title="Code">💻</a></td>
       <td align="center"><a href="https://matt.martz.codes"><img src="https://avatars.githubusercontent.com/u/978362?v=4?s=100" width="100px;" alt="Matt Martz"/><br /><sub><b>Matt Martz</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=martzcodes" title="Code">💻</a></td>
       <td align="center"><a href="https://github.com/michelgrootjans"><img src="https://avatars.githubusercontent.com/u/345770?v=4?s=100" width="100px;" alt="Michel Grootjans"/><br /><sub><b>Michel Grootjans</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=michelgrootjans" title="Code">💻</a></td>
+      <td align="center"><a href="https://github.com/arturoabruzzini"><img src="https://avatars.githubusercontent.com/u/17528406?v=4?s=100" width="100px;" alt="Arturo Abruzzini"/><br /><sub><b>Arturo Abruzzini</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=arturoabruzzini" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
