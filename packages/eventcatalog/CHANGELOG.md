@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.6.3
+
+### Patch Changes
+
+- [`16e792e`](https://github.com/boyney123/eventcatalog/commit/16e792ea72ed524ac80108754a16f655ec6a2a91) [#336](https://github.com/boyney123/eventcatalog/pull/336) Thanks [@boyney123](https://github.com/boyney123)! - adding fix for 324 - domains with services edit link now correct
+
 ## 0.6.2
 
 ### Patch Changes
