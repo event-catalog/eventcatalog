@@ -26,7 +26,7 @@
     "canary:bumpVersion": "yarn lerna version `yarn --silent canary:version` --exact --no-push --yes",
     "canary:publish": "yarn lerna publish from-package --dist-tag canary --yes --no-verify-access",
     "postinstall": "yarn lock:update && yarn build:packages",
-    "lock:update": "npx yarn-deduplicate",
+    "lock:update": "npx --yes yarn-deduplicate",
     "start": "lerna run start --stream",
     "test": "cross-env PROJECT_DIR=/ jest",
     "lint": "yarn lint:js",
@@ -58,5 +58,8 @@
     "lerna-changelog": "^2.2.0",
     "prettier": "^2.1.2",
     "typescript": "^4.6.2"
+  },
+  "resolutions": {
+    "@types/react": "^17.0.36"
   }
 }

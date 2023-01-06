@@ -4,6 +4,7 @@ import { parse, AsyncAPIDocument } from '@asyncapi/parser';
 import fs from 'fs-extra';
 import path from 'path';
 import utils from '@eventcatalog/utils';
+import merge from 'lodash.merge';
 
 import type { AsyncAPIPluginOptions } from './types';
 
@@ -16,7 +17,8 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
   const { externalAsyncAPIUrl } = options;
 
   const channels = doc.channels();
-  return Object.keys(channels).reduce((data: any, channelName) => {
+
+  const allMessages = Object.keys(channels).reduce((data: any, channelName) => {
     const service = doc.info().title();
 
     const channel = channels[channelName];
@@ -25,7 +27,13 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
     const messages = channel[operation]().messages();
 
     const eventsFromMessages = messages.map((message) => {
-      const messageName = message.name() || message.extension('x-parser-message-name');
+      let messageName = message.name() || message.extension('x-parser-message-name');
+
+      // If no name can be found from the message, and AsyncAPI defaults to "anonymous" value, try get the name from the payload itself
+      if (messageName.includes('anonymous-')) {
+        messageName = message.payload().uid() || messageName;
+      }
+
       const schema = message.originalPayload();
       const externalLink = {
         label: `View event in AsyncAPI`,
@@ -46,6 +54,20 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
 
     return data.concat(eventsFromMessages);
   }, []);
+
+  // the same service can be the producer and consumer of events, check and merge any matchs.
+  const uniqueMessages = allMessages.reduce((acc: any, message: any) => {
+    const messageAlreadyDefined = acc.findIndex((m: any) => m.name === message.name);
+
+    if (messageAlreadyDefined > -1) {
+      acc[messageAlreadyDefined] = merge(acc[messageAlreadyDefined], message);
+    } else {
+      acc.push(message);
+    }
+    return acc;
+  }, []);
+
+  return uniqueMessages;
 };
 
 const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOptions, copyFrontMatter: boolean) => {

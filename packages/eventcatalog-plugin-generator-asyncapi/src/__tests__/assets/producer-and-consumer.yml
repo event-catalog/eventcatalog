@@ -1,0 +1,41 @@
+asyncapi: 2.4.0
+info:
+  title: ResultsDataService
+  version: 1.0.0
+  description: Results API
+servers:
+  rabbitmq:
+    url: localhost
+    protocol: amqp
+defaultContentType: application/json
+channels:
+  deliveries/deliveryevent:
+    subscribe:
+      operationId: NotifyDeliveryCreated
+      summary: Inform when delivery is created.
+      message:
+        $ref: '#/components/messages/deliveryEvent'
+  delivery-event:
+    publish:
+      operationId: DeliveryCreatedConsumer
+      summary: Updates deliverymapfeatures using Delivery event
+      message:
+        payload:
+          $ref: '#/components/schemas/deliveryEvent'
+components:
+  schemas:
+    deliveryEvent:
+      id: deliveryEvent
+      type: object
+      additionalProperties: false
+      properties:
+        eventType:
+          type: string
+        stampTime:
+          type: string
+          format: date-time
+  messages:
+    deliveryEvent:
+      payload:
+        $ref: '#/components/schemas/deliveryEvent'
+      name: deliveryEvent
