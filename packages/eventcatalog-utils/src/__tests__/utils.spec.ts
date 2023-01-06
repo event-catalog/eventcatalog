@@ -54,6 +54,22 @@ describe('eventcatalog-utils', () => {
         expect(raw).toBeDefined();
       });
 
+      it('returns the given event name of a given previous version from the catalog', () => {
+        const { content, data, raw } = getEventFromCatalog('OrderCreated', { version: '0.0.1' });
+
+        expect(data).toEqual({
+          name: 'OrderCreated',
+          version: '0.0.1',
+          summary: 'Event represents when an order has been complete. (Delivered and finished)\n',
+          producers: ['Orders Service'],
+          consumers: ['Data Lake'],
+          owners: ['dboyne', 'mSmith'],
+        });
+
+        expect(content).toMatchMarkdown('# Testing');
+        expect(raw).toBeDefined();
+      });
+
       it('returns null when a given event name does not exist in the catalog', () => {
         const event = getEventFromCatalog('RandomEventThatDoesNotExist');
 
@@ -80,7 +96,7 @@ describe('eventcatalog-utils', () => {
           {
             data: {
               name: 'OrderCreated',
-              version: '0.0.1',
+              version: '0.0.2',
               summary: 'Event represents when an order has been complete. (Delivered and finished)\n',
               producers: ['Orders Service'],
               consumers: ['Data Lake'],
@@ -454,6 +470,47 @@ describe('eventcatalog-utils', () => {
           fs.rmdirSync(path.join(updatedEventPath), { recursive: true });
         });
 
+        describe('isLatestVersion', () => {
+          it('throws an error when isLatestVersion is false but no version is specified', () => {
+            const event = {
+              name: 'OrderCreated',
+              summary: 'This is summary for my event',
+              owners: ['dBoyne'],
+            };
+            expect(() => writeEventToCatalog(event, { isLatestVersion: false })).toThrow('No `version` found for given event');
+          });
+
+          it('should take the given event of a given version and write it into the catalog as a versioned event', () => {
+            const event = {
+              name: 'OrderCreated',
+              version: '0.0.3',
+              summary: 'This is summary for my event',
+              owners: ['dBoyne'],
+            };
+
+            const { path: eventPath } = writeEventToCatalog(event, { isLatestVersion: false });
+
+            expect(fs.existsSync(eventPath)).toEqual(true);
+            expect(eventPath).toMatch(/events\/OrderCreated\/versioned\/0.0.3$/);
+
+            const result = fs.readFileSync(path.join(eventPath, 'index.md'), 'utf-8');
+
+            expect(result).toMatchMarkdown(`
+            ---
+            name: OrderCreated
+            version: 0.0.3
+            summary: 'This is summary for my event'
+            owners:
+                - dBoyne
+            ---
+            <Mermaid />
+            `);
+
+            // clean up
+            fs.rmdirSync(path.join(eventPath), { recursive: true });
+          });
+        });
+
         describe('frontMatterToCopyToNewVersions', () => {
           it('when automatically versioning an event the frontmatter is copied to the new event with any properties specified', () => {
             const event = {
@@ -586,6 +643,14 @@ describe('eventcatalog-utils', () => {
       });
       it('returns false when a given event does not exist in the catalog', () => {
         const result = existsInCatalog('RandomEVent', { type: 'event' });
+        expect(result).toEqual(false);
+      });
+      it('returns true when a given event of a given previous version exists in the catalog', () => {
+        const result = existsInCatalog('OrderCreated', { type: 'event', version: '0.0.1' });
+        expect(result).toEqual(true);
+      });
+      it('returns false when a given event of a given previous version does not exist in the catalog', () => {
+        const result = existsInCatalog('OrderCreated', { type: 'event', version: '0.0.3' });
         expect(result).toEqual(false);
       });
     });
