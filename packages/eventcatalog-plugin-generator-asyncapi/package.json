@@ -25,6 +25,7 @@
     "fs-extra": "^10.0.0",
     "js-yaml": "^4.1.0",
     "json2md": "^1.12.0",
+    "lodash.merge": "^4.6.2",
     "yamljs": "^0.3.0"
   },
   "engines": {
@@ -34,6 +35,7 @@
     "@eventcatalog/types": "0.4.0",
     "@types/fs-extra": "^9.0.13",
     "@types/json2md": "^1.5.1",
+    "@types/lodash.merge": "^4.6.7",
     "@types/yamljs": "^0.2.31"
   }
 }

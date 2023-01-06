@@ -470,5 +470,51 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         });
       });
     });
+
+    describe('asyncapi service that is both producer and consumer', () => {
+      it('writes the event with the same producer and consumer', async () => {
+        const options: AsyncAPIPluginOptions = {
+          pathToSpec: [
+            path.join(__dirname, './assets/producer-and-consumer.yml')
+          ],
+        };
+
+        await plugin(pluginContext, options);
+
+        // just wait for files to be there in time.
+        await new Promise((r) => setTimeout(r, 200));
+
+        const { getEventFromCatalog, getServiceFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+
+        const { raw: eventFile } = getEventFromCatalog('deliveryEvent');
+
+        const { raw: serviceFile } = getServiceFromCatalog('ResultsDataService');
+
+        expect(eventFile).toMatchMarkdown(`
+        ---
+        name: deliveryEvent
+        summary: null
+        version: 1.0.0
+        producers:
+            - ResultsDataService
+        consumers:
+            - ResultsDataService
+        externalLinks: []
+        badges: []
+        ---
+        <Mermaid />
+        <Schema />
+          `);
+          
+        expect(serviceFile).toMatchMarkdown(`
+        ---
+        name: ResultsDataService
+        summary: 'Results API'
+        ---
+        <Mermaid /> `
+        );
+     
+      });
+    });
   });
 });
