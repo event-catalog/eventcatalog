@@ -327,7 +327,7 @@ export default function Page({ events, services, domains }: PageProps) {
 }
 
 export const getStaticProps = () => {
-  const events = getAllEvents();
+  const events = getAllEvents({hydrateEvents: true});
   const services = getUniqueServicesNamesFromEvents(events);
   const domains = getUniqueDomainNamesFromEvents(events);
 
