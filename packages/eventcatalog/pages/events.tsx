@@ -308,7 +308,7 @@ export default function Page({ events, services, domains }: PageProps) {
                     ? `Filtered Events (${eventsToRender.length}/${events.length})`
                     : `All Events (${events.length})`}
                 </h2>
-                <EventGrid events={eventsToRender} showMermaidDiagrams={showMermaidDiagrams} showNodeGraphs={showNodeGraphs}  />
+                <EventGrid events={eventsToRender} showMermaidDiagrams={showMermaidDiagrams} showNodeGraphs={showNodeGraphs} />
                 {eventsToRender.length === 0 && (
                   <div className="text-gray-400 flex h-96  justify-center items-center">
                     <div>
@@ -327,7 +327,7 @@ export default function Page({ events, services, domains }: PageProps) {
 }
 
 export const getStaticProps = () => {
-  const events = getAllEvents({hydrateEvents: true});
+  const events = getAllEvents({ hydrateEvents: true });
   const services = getUniqueServicesNamesFromEvents(events);
   const domains = getUniqueDomainNamesFromEvents(events);
 

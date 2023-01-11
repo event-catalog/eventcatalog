@@ -7,7 +7,7 @@ import { Service } from '@eventcatalog/types';
 import Mermaid from '@/components/Mermaid';
 
 import getBackgroundColor from '@/utils/random-bg';
-import NodeGraph from "@/components/Mdx/NodeGraph/NodeGraph";
+import NodeGraph from '@/components/Mdx/NodeGraph/NodeGraph';
 
 interface ServiceGridProps {
   services: Service[];

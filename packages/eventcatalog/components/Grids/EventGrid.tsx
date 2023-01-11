@@ -7,7 +7,7 @@ import { Event } from '@eventcatalog/types';
 import getBackgroundColor from '@/utils/random-bg';
 
 import Mermaid from '@/components/Mermaid';
-import NodeGraph from "@/components/Mdx/NodeGraph/NodeGraph";
+import NodeGraph from '@/components/Mdx/NodeGraph/NodeGraph';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');

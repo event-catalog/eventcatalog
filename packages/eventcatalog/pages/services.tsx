@@ -263,7 +263,11 @@ export default function Page({ services }: PageProps) {
                     ? `Filtered Services (${servicesToRender.length}/${services.length})`
                     : `All Services (${services.length})`}
                 </h2>
-                <ServiceGrid services={servicesToRender} showMermaidDiagrams={showMermaidDiagrams} showNodeGraphs={showNodeGraphs} />
+                <ServiceGrid
+                  services={servicesToRender}
+                  showMermaidDiagrams={showMermaidDiagrams}
+                  showNodeGraphs={showNodeGraphs}
+                />
                 {servicesToRender.length === 0 && (
                   <div className="text-gray-400 flex h-96  justify-center items-center">
                     <div>
