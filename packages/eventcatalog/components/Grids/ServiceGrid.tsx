@@ -7,13 +7,15 @@ import { Service } from '@eventcatalog/types';
 import Mermaid from '@/components/Mermaid';
 
 import getBackgroundColor from '@/utils/random-bg';
+import NodeGraph from "@/components/Mdx/NodeGraph/NodeGraph";
 
 interface ServiceGridProps {
   services: Service[];
   showMermaidDiagrams?: boolean;
+  showNodeGraphs?: boolean;
 }
 
-function ServiceGrid({ services = [], showMermaidDiagrams = false }: ServiceGridProps) {
+function ServiceGrid({ services = [], showMermaidDiagrams = false, showNodeGraphs = false }: ServiceGridProps) {
   return (
     <ul className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2">
       {services.map((service) => {
@@ -51,6 +53,11 @@ function ServiceGrid({ services = [], showMermaidDiagrams = false }: ServiceGrid
                     {showMermaidDiagrams && (
                       <div className="h-full items-center flex">
                         <Mermaid source="service" data={service} rootNodeColor={getBackgroundColor(service.name)} />
+                      </div>
+                    )}
+                    {showNodeGraphs && (
+                      <div className="h-full items-center flex">
+                        <NodeGraph source="service" data={service} rootNodeColor={getBackgroundColor(service.name)} />
                       </div>
                     )}
                     <div className="flex space-x-4 text-xs pt-2 relative bottom-0 left-0">
