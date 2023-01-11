@@ -7,6 +7,7 @@ import { Event } from '@eventcatalog/types';
 import getBackgroundColor from '@/utils/random-bg';
 
 import Mermaid from '@/components/Mermaid';
+import NodeGraph from "@/components/Mdx/NodeGraph/NodeGraph";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -15,9 +16,10 @@ function classNames(...classes) {
 interface EventGridProps {
   events: Event[];
   showMermaidDiagrams?: boolean;
+  showNodeGraphs?: boolean;
 }
 
-function EventGrid({ events = [], showMermaidDiagrams = false }: EventGridProps) {
+function EventGrid({ events = [], showMermaidDiagrams = false, showNodeGraphs = false }: EventGridProps) {
   return (
     <ul className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2">
       {events.map((event) => {
@@ -63,6 +65,11 @@ function EventGrid({ events = [], showMermaidDiagrams = false }: EventGridProps)
                     {showMermaidDiagrams && (
                       <div className="h-full items-center flex">
                         <Mermaid source="event" data={event} rootNodeColor={getBackgroundColor(event.name)} />
+                      </div>
+                    )}
+                    {showNodeGraphs && (
+                      <div className="h-full items-center flex">
+                        <NodeGraph source="event" data={event} rootNodeColor={getBackgroundColor(event.name)} />
                       </div>
                     )}
                     <div className="flex space-x-4 text-xs pt-2 relative bottom-0 left-0">

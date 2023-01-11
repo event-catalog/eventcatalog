@@ -29,6 +29,7 @@ export interface PageProps {
 export default function Page({ events, services, domains }: PageProps) {
   const [selectedFilters, setSelectedFilters] = useState({ services: [], domains: [], badges: [] });
   const [showMermaidDiagrams, setShowMermaidDiagrams] = useState(false);
+  const [showNodeGraphs, setShowNodeGraphs] = useState(false);
   const [eventsToRender, setEventsToRender] = useState(events);
   const [searchFilter, setSearchFilter] = useState('');
 
@@ -281,6 +282,22 @@ export default function Page({ events, services, domains }: PageProps) {
                     </div>
                   </div>
                 </div>
+                <div className="pt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center">
+                      <input
+                        id="show-node-graph"
+                        type="checkbox"
+                        onChange={(e) => setShowNodeGraphs(e.target.checked)}
+                        defaultChecked={showNodeGraphs}
+                        className="h-4 w-4 border-gray-300 rounded text-gray-600 focus:ring-gray-500"
+                      />
+                      <label htmlFor="show-node-graph" className="ml-3 text-sm text-gray-600">
+                        Show Node Graphs
+                      </label>
+                    </div>
+                  </div>
+                </div>
               </div>
             </form>
 
@@ -291,7 +308,7 @@ export default function Page({ events, services, domains }: PageProps) {
                     ? `Filtered Events (${eventsToRender.length}/${events.length})`
                     : `All Events (${events.length})`}
                 </h2>
-                <EventGrid events={eventsToRender} showMermaidDiagrams={showMermaidDiagrams} />
+                <EventGrid events={eventsToRender} showMermaidDiagrams={showMermaidDiagrams} showNodeGraphs={showNodeGraphs}  />
                 {eventsToRender.length === 0 && (
                   <div className="text-gray-400 flex h-96  justify-center items-center">
                     <div>
