@@ -1,5 +1,11 @@
 # @eventcatalog/plugin-doc-generator-asyncapi
 
+## 0.3.2
+
+### Patch Changes
+
+- [`c407f03`](https://github.com/boyney123/eventcatalog/commit/c407f03fc7695a5fabc23d147c078180ea576a56) [#335](https://github.com/boyney123/eventcatalog/pull/335) Thanks [@boyney123](https://github.com/boyney123)! - fix: asyncapi now supports services that are both producer and consumers
+
 ## 0.3.1
 
 ### Patch Changes

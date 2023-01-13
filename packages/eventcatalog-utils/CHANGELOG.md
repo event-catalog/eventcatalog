@@ -1,5 +1,11 @@
 # @eventcatalog/utils
 
+## 0.2.1
+
+### Patch Changes
+
+- [`0964905`](https://github.com/boyney123/eventcatalog/commit/09649058338902b4a6216697f14df1cdad6aed00) - chore: allow writeEventToCatalog to write to previous versions of an event directly
+
 ## 0.2.0
 
 ### Minor Changes
