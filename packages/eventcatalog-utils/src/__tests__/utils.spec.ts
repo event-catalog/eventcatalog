@@ -353,8 +353,6 @@ describe('eventcatalog-utils', () => {
 
         const result = fs.readFileSync(path.join(eventPath, 'index.md'), 'utf-8');
 
-        console.log('result', result)
-
         expect(result).toMatchMarkdown(`
         ---
         name: 'My Event That Overrides Content'
@@ -1024,7 +1022,7 @@ describe('eventcatalog-utils', () => {
 
         const result = fs.readFileSync(path.join(domainPath, 'index.md'), 'utf-8');
 
-        console.log('result', result)
+        console.log('result', result);
 
         expect(result).toMatchMarkdown(`
         ---

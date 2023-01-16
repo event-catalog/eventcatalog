@@ -15,7 +15,6 @@ export default ({
   renderMermaidDiagram?: boolean;
   renderNodeGraph?: boolean;
 }) => {
-
   const customJSON2MD = (content: any) => {
     json2md.converters.mermaid = (render) => (render ? '<Mermaid />' : '');
     json2md.converters.schema = (render) => (render ? '<Schema />' : '');

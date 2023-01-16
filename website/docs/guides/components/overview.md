@@ -169,6 +169,7 @@ To understand how it works and use OpenAPI with your Services checkout the [sche
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
 | `showTitle` | `boolean` | `true` | Show or hide the title rendered by Swagger UI |
+| `url` | `string` | `` | Optional URL to load your OpenAPI file. If you provide a URL to load this will be used over the local file system and the file will be loaded from external URL. |
 </APITable>
 
 #### Rendered Example 

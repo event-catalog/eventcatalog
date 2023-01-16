@@ -143,7 +143,6 @@ export const writeEventToCatalog =
       version: !isLatestVersion ? version : undefined,
     });
 
-
     if (!markdownContent && useMarkdownContentFromExistingEvent && eventAlreadyInCatalog) {
       try {
         const data = getEventFromCatalog({ catalogDirectory })(eventName, { version: !isLatestVersion ? version : undefined });

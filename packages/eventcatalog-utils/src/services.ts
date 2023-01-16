@@ -75,7 +75,6 @@ export const writeServiceToCatalog =
       renderNodeGraph,
     });
 
-
     fs.ensureDirSync(path.join(catalogDirectory, 'services', service.name));
     fs.writeFileSync(path.join(catalogDirectory, 'services', service.name, 'index.md'), data);
 
