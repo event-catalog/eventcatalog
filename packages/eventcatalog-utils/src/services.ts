@@ -18,7 +18,7 @@ const readMarkdownFile = (pathToFile: string) => {
 
 export const buildServiceMarkdownForCatalog =
   () =>
-  (service: Service, { markdownContent, renderMermaidDiagram = true, renderNodeGraph = false }: any = {}) =>
+  (service: Service, { markdownContent, renderMermaidDiagram = false, renderNodeGraph = true }: any = {}) =>
     buildMarkdownFile({
       frontMatterObject: service,
       customContent: markdownContent,
@@ -58,7 +58,7 @@ export const writeServiceToCatalog =
   ({ catalogDirectory }: FunctionInitInterface) =>
   (service: Service, options?: WriteServiceToCatalogInterface): WriteServiceToCatalogInterfaceReponse => {
     const { name: serviceName } = service;
-    const { useMarkdownContentFromExistingService = true, renderMermaidDiagram = true, renderNodeGraph = false } = options || {};
+    const { useMarkdownContentFromExistingService = true, renderMermaidDiagram = false, renderNodeGraph = true } = options || {};
     let markdownContent;
 
     if (!serviceName) throw new Error('No `name` found for given service');

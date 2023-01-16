@@ -123,8 +123,8 @@ export const writeEventToCatalog =
     const { name: eventName, version } = event;
     const {
       useMarkdownContentFromExistingEvent = true,
-      renderMermaidDiagram = true,
-      renderNodeGraph = false,
+      renderMermaidDiagram = false,
+      renderNodeGraph = true,
       versionExistingEvent = true,
       isLatestVersion = true,
       schema,

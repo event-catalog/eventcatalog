@@ -6,8 +6,8 @@ export default ({
   frontMatterObject,
   customContent,
   includeSchemaComponent = false,
-  renderMermaidDiagram = true,
-  renderNodeGraph = false,
+  renderMermaidDiagram = false,
+  renderNodeGraph = true,
 }: {
   frontMatterObject: Service | Event | Domain;
   customContent?: string;

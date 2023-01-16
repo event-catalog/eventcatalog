@@ -34,7 +34,7 @@ export const getDomainFromCatalog =
 
 export const buildDomainMarkdownForCatalog =
   () =>
-  (domain: Domain, { markdownContent, renderMermaidDiagram = true, renderNodeGraph = false }: any = {}) =>
+  (domain: Domain, { markdownContent, renderMermaidDiagram = false, renderNodeGraph = true }: any = {}) =>
     buildMarkdownFile({
       frontMatterObject: domain,
       customContent: markdownContent,
@@ -46,7 +46,7 @@ export const writeDomainToCatalog =
   ({ catalogDirectory }: FunctionInitInterface) =>
   (domain: Domain, options?: WriteDomainToCatalogOptions): WriteDomainToCatalogResponse => {
     const { name: domainName } = domain;
-    const { useMarkdownContentFromExistingDomain = true, renderMermaidDiagram = true, renderNodeGraph = false } = options || {};
+    const { useMarkdownContentFromExistingDomain = true, renderMermaidDiagram = false, renderNodeGraph = true } = options || {};
     let markdownContent;
 
     if (!domainName) throw new Error('No `name` found for given domain');
