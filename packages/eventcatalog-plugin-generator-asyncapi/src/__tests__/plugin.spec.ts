@@ -100,7 +100,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           badges: []
         ---
 
-        <Mermaid />
+        <NodeGraph />
         <Schema />
         `);
 
@@ -110,7 +110,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           summary: 'This service is in charge of processing user signups'
           ---
 
-          <Mermaid />`
+          <NodeGraph />`
       );
     });
 
@@ -147,7 +147,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
             badges: []
           ---
   
-          <Mermaid />
+          <NodeGraph />
           <Schema />
           `);
 
@@ -157,7 +157,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
             summary: 'This service is in charge of processing user signups'
             ---
   
-            <Mermaid />`
+            <NodeGraph />`
         );
         expect(userServiceFile).toMatchMarkdown(
           `---
@@ -165,7 +165,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
             summary: 'This service is in charge of users'
             ---
   
-            <Mermaid />`
+            <NodeGraph />`
         );
       });
     });
@@ -500,7 +500,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         externalLinks: []
         badges: []
         ---
-        <Mermaid />
+        <NodeGraph />
         <Schema />
           `);
 
@@ -509,7 +509,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         name: ResultsDataService
         summary: 'Results API'
         ---
-        <Mermaid /> `);
+        <NodeGraph /> `);
       });
     });
   });
