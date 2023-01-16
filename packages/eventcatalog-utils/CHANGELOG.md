@@ -1,5 +1,11 @@
 # @eventcatalog/utils
 
+## 0.2.2
+
+### Patch Changes
+
+- [`118a86d`](https://github.com/boyney123/eventcatalog/commit/118a86de633f0222df06088607343123b42e048c) Thanks [@boyney123](https://github.com/boyney123)! - fix for 260 - nodegraphs used over mermaid graphs when writing to eve…
+
 ## 0.2.1
 
 ### Patch Changes
