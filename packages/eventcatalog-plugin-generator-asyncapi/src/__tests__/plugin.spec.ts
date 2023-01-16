@@ -217,7 +217,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
               badges: []
             ---
 
-            <Mermaid />
+            <NodeGraph />
             <Schema />
             `);
         });
@@ -309,7 +309,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
               badges: []
             ---
 
-            <Mermaid />
+            <NodeGraph />
             <Schema />
             `);
         });
@@ -336,6 +336,8 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
             schema: { extension: 'json', fileContent: 'hello' },
           });
 
+          console.log('eventPath', eventPath);
+
           // run plugin
           await plugin(pluginContext, options);
 
@@ -359,7 +361,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
               badges: []
             ---
 
-            <Mermaid />
+            <NodeGraph />
             <Schema />
             `);
         });
