@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.6.4
+
+### Patch Changes
+
+- [`adeda51`](https://github.com/boyney123/eventcatalog/commit/adeda51f7f1f5c375e0b54248ac33d4dd2476054) Thanks [@boyney123](https://github.com/boyney123)! - OpenAPI component now supports remote spec files.
+
 ## 0.6.3
 
 ### Patch Changes

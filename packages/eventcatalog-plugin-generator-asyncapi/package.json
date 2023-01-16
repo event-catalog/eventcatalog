@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/plugin-doc-generator-asyncapi",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Documentation generator for EventCatalog using AsyncAPI",
   "main": "lib/index.js",
   "scripts": {
@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@asyncapi/parser": "^1.13.0",
-    "@eventcatalog/utils": "^0.2.0",
+    "@eventcatalog/utils": "^0.2.2",
     "chalk": "^4.1.2",
     "front-matter": "^4.0.2",
     "fs-extra": "^10.0.0",
