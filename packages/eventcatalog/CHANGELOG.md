@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.6.5
+
+### Patch Changes
+
+- [`b63773b`](https://github.com/boyney123/eventcatalog/commit/b63773bbb774a1bbf518f3dd0195bba6c09687cd) [#348](https://github.com/boyney123/eventcatalog/pull/348) Thanks [@boyney123](https://github.com/boyney123)! - fix for 260 - nodegraphs used over mermaid graphs when writing to eve…
+
 ## 0.6.4
 
 ### Patch Changes
