@@ -32,18 +32,24 @@ export default function UserPage({ events, services, domains, userId }: UserPage
                   <h1 className="text-3xl font-bold text-gray-900 relative">{user.name}</h1>
                 </div>
               </div>
-              <div className="border-b border-gray-100 pb-6">
-                <h1 className="text-lg font-bold text-gray-800 relative mt-4">Owner of Events ({events.length})</h1>
-                <EventGrid events={events} />
-              </div>
-              <div className="border-b border-gray-100 pb-6">
-                <h1 className="text-lg font-bold text-gray-800 relative mt-4 ">Owner of Services ({services.length})</h1>
-                <ServiceGrid services={services} />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-800 relative mt-4">Owner of Domains ({domains.length})</h1>
-                <DomainGrid domains={domains} />
-              </div>
+              {events.length > 0 && (
+                <div className="border-b border-gray-100 pb-6">
+                  <h1 className="text-lg font-bold text-gray-800 relative mt-4">Owner of Events ({events.length})</h1>
+                  <EventGrid events={events} />
+                </div>
+              )}
+              {services.length > 0 && (
+                <div className="border-b border-gray-100 pb-6">
+                  <h1 className="text-lg font-bold text-gray-800 relative mt-4 ">Owner of Services ({services.length})</h1>
+                  <ServiceGrid services={services} />
+                </div>
+              )}
+              {domains.length > 0 && (
+                <div>
+                  <h1 className="text-lg font-bold text-gray-800 relative mt-4">Owner of Domains ({domains.length})</h1>
+                  <DomainGrid domains={domains} />
+                </div>
+              )}
             </div>
             <div className="px-8">
               <div className="flex items-center space-x-5 mt-4 ">
@@ -84,7 +90,7 @@ export const getStaticProps = async ({ params }) => {
 };
 
 export async function getStaticPaths() {
-  const owners = getAllOwners();
+  const owners = await getAllOwners();
 
   const paths = owners.map((owner) => ({ params: { id: owner } }));
 
