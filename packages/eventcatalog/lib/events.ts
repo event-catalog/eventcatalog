@@ -21,8 +21,9 @@ const parseEventFrontMatterIntoEvent = (eventFrontMatter: any): Event => {
     owners = [],
     externalLinks = [],
     badges = [],
+    tags = [],
   } = eventFrontMatter;
-  return { name, version, summary, domain, producerNames: producers, consumerNames: consumers, owners, externalLinks, badges };
+  return { name, version, summary, domain, producerNames: producers, consumerNames: consumers, owners, externalLinks, badges, tags };
 };
 
 const versionsForEvents = (pathToEvent) => {

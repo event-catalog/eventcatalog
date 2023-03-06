@@ -54,6 +54,12 @@ describe('events lib', () => {
               name: 'Application API',
             },
           ],
+          tags: [{
+            label: "Topic: add-item-to-cart"
+          }, {
+            label: "Broker: kafka",
+            url: "https://kafka.apache.org"
+          }],
           externalLinks: [],
           schema: null,
           examples: [],
@@ -141,6 +147,7 @@ describe('events lib', () => {
             },
           ],
           externalLinks: [],
+          tags: [],
           consumers: [
             {
               name: 'Customer Portal',
@@ -221,6 +228,12 @@ describe('events lib', () => {
           consumerNames: ['Customer Portal'],
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
+          tags: [{
+            label: "Topic: add-item-to-cart"
+          }, {
+            label: "Broker: kafka",
+            url: "https://kafka.apache.org"
+          }],
           historicVersions: [],
           badges: [
             {
@@ -239,6 +252,7 @@ describe('events lib', () => {
           consumerNames: [],
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
+          tags: [],
           historicVersions: [],
           badges: [],
         },
@@ -251,6 +265,7 @@ describe('events lib', () => {
           consumerNames: [],
           owners: [],
           externalLinks: [],
+          tags: [],
           historicVersions: [],
           badges: [],
         },
@@ -263,6 +278,7 @@ describe('events lib', () => {
           consumerNames: [],
           owners: [],
           externalLinks: [],
+          tags: [],
           historicVersions: ['0.0.1'],
           badges: [],
         },
@@ -275,6 +291,7 @@ describe('events lib', () => {
           consumerNames: ['Customer Portal'],
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
+          tags: [],
           historicVersions: [],
           badges: [
             {
@@ -293,6 +310,7 @@ describe('events lib', () => {
           consumerNames: ['Customer Portal'],
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
+          tags: [],
           historicVersions: [],
           badges: [],
         },
@@ -356,6 +374,12 @@ describe('events lib', () => {
           consumerNames: ['Customer Portal'],
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
+          tags: [{
+            label: "Topic: add-item-to-cart"
+          }, {
+            label: "Broker: kafka",
+            url: "https://kafka.apache.org"
+          }],
           historicVersions: [],
           badges: [
             {
@@ -374,6 +398,7 @@ describe('events lib', () => {
           consumerNames: [],
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
+          tags: [],
           historicVersions: [],
           badges: [],
         },
@@ -386,6 +411,7 @@ describe('events lib', () => {
           consumerNames: ['Customer Portal'],
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
+          tags: [],
           historicVersions: [],
           badges: [
             {
@@ -404,6 +430,7 @@ describe('events lib', () => {
           consumerNames: ['Customer Portal'],
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
+          tags: [],
           historicVersions: [],
           badges: [],
         },

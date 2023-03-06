@@ -32,6 +32,7 @@ describe('domains lib', () => {
           consumerNames: ['Customer Portal'],
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
+          tags: [],
           historicVersions: [],
           badges: [
             {
@@ -50,6 +51,7 @@ describe('domains lib', () => {
           consumerNames: ['Customer Portal'],
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
+          tags: [],
           historicVersions: [],
           badges: [],
         },
@@ -118,6 +120,7 @@ describe('domains lib', () => {
             consumerNames: ['Customer Portal'],
             owners: ['dboyne', 'mSmith'],
             externalLinks: [],
+            tags: [],
             historicVersions: [],
             badges: [
               {
@@ -146,6 +149,7 @@ describe('domains lib', () => {
             consumerNames: ['Customer Portal'],
             owners: ['dboyne', 'mSmith'],
             externalLinks: [],
+            tags: [],
             historicVersions: [],
             badges: [],
             producers: [
@@ -223,6 +227,7 @@ describe('domains lib', () => {
               consumerNames: ['Customer Portal'],
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
+              tags: [],
               historicVersions: [],
               badges: [
                 {
@@ -252,6 +257,7 @@ describe('domains lib', () => {
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
               historicVersions: [],
+              tags: [],
               badges: [],
               producers: [
                 {
@@ -331,6 +337,7 @@ describe('domains lib', () => {
               consumerNames: ['Customer Portal'],
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
+              tags: [],
               historicVersions: [],
               badges: [
                 {
@@ -359,6 +366,7 @@ describe('domains lib', () => {
               consumerNames: ['Customer Portal'],
               owners: ['dboyne', 'mSmith'],
               externalLinks: [],
+              tags: [],
               historicVersions: [],
               badges: [],
               producers: [

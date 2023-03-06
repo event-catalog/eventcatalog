@@ -5,6 +5,7 @@ import { CubeIcon, DownloadIcon, CollectionIcon } from '@heroicons/react/outline
 import type { Event } from '@eventcatalog/types';
 
 import ExternalLinks from './components/ExternalLinks';
+import Tags from './components/Tags';
 import Owners from './components/Owners';
 import ItemList from './components/ItemList';
 
@@ -31,6 +32,7 @@ function EventSideBar({ event, loadedVersion, isOldVersion, urlPath }: EventSide
     owners,
     producerNames: producers,
     consumerNames: consumers,
+    tags,
     historicVersions,
     externalLinks,
     schema,
@@ -161,6 +163,7 @@ function EventSideBar({ event, loadedVersion, isOldVersion, urlPath }: EventSide
         </Link>
 
         {externalLinks.length > 0 && <ExternalLinks externalLinks={externalLinks} />}
+        {tags.length > 0 && <Tags tags={tags} />}
       </div>
     </aside>
   );

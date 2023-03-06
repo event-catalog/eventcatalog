@@ -10,6 +10,10 @@ consumers:
 owners:
     - dboyne
     - mSmith
+tags:
+  - label: 'Topic: order-requested'
+  - label: 'Broker: kafka'
+    url: https://kafka.apache.org
 ---
 
 <Admonition>When firing this event make sure you set the `correlation-id` in the headers. Our schemas have standard metadata make sure you read and follow it.</Admonition>
