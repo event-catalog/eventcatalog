@@ -6,7 +6,7 @@ import { serialize } from 'next-mdx-remote/serialize';
 import path from 'path';
 import { MarkdownFile } from '@/types/index';
 import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader';
-import { getAllEventsFromDomains } from './domains';
+import { getAllDomains, getAllEventsFromDomains } from './domains';
 import { extentionToLanguageMap } from './file-reader';
 import { getAllServices, hydrateEventProducersAndConsumers } from './services';
 
@@ -193,12 +193,14 @@ export const getAllEvents = ({ hydrateEvents }: { hydrateEvents?: boolean } = {}
   return sortedEvents;
 };
 
-export const getAllOwners = (): string[] => {
+export const getAllOwners = async (): Promise<string[]> => {
+  const allDomains = await getAllDomains();
   const allEvents = getAllEvents();
   const allServices = getAllServices();
+  const allOwnersInDomains = allDomains.reduce((owners, file) => owners.concat(file.domain.owners), []);
   const allOwnersInEvents = allEvents.reduce((owners, event) => owners.concat(event.owners), []);
   const allOwnersInServices = allServices.reduce((owners, service) => owners.concat(service.owners), []);
-  const allOwnersDocumented = allOwnersInEvents.concat(allOwnersInServices);
+  const allOwnersDocumented = [].concat(allOwnersInDomains, allOwnersInEvents, allOwnersInServices);
   // @ts-ignore
   return [...new Set(allOwnersDocumented)];
 };
