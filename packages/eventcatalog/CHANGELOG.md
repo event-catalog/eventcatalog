@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.6.8
+
+### Patch Changes
+
+- [`78945be`](https://github.com/boyney123/eventcatalog/commit/78945be651c48e9194794eff4a73566cb8a045b4) [#360](https://github.com/boyney123/eventcatalog/pull/360) Thanks [@boyney123](https://github.com/boyney123)! - (fix) - fixing 404 issues with domain page
+
 ## 0.6.7
 
 ### Patch Changes
