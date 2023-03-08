@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.6.6
+
+### Patch Changes
+
+- [`c8b765b`](https://github.com/boyney123/eventcatalog/commit/c8b765b62446097781fd650675b04fe1d4daa287) [#354](https://github.com/boyney123/eventcatalog/pull/354) Thanks [@rafaelrenanpacheco](https://github.com/rafaelrenanpacheco)! - feat: add event tags
+
 ## 0.6.5
 
 ### Patch Changes
