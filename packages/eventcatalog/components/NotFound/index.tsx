@@ -1,7 +1,7 @@
 import { DocumentAddIcon } from '@heroicons/react/solid';
 
 interface NotFoundProps {
-  type: 'service' | 'event';
+  type: 'service' | 'event' | 'domain';
   name: string;
   editUrl?: string;
 }

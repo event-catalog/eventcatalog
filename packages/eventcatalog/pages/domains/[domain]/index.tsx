@@ -69,7 +69,7 @@ export default function Domains(props: DomainsPageProps) {
   if (notFound)
     return (
       // TODO: Allow domain not found
-      <NotFound type="service" name={domain.name} editUrl={hasEditUrl ? getEditUrl(`/domains/${domain.name}/index.md`) : ''} />
+      <NotFound type="domain" name={domain.name} editUrl={hasEditUrl ? getEditUrl(`/domains/${domain.name}/index.md`) : ''} />
     );
 
   const { name, summary } = domain;
@@ -118,7 +118,7 @@ export async function getStaticProps({ params }) {
     return {
       props: {
         notFound: true,
-        service: { name: params.name },
+        domain: { name: params.domain },
       },
     };
   }
@@ -129,6 +129,7 @@ export async function getStaticPaths() {
   const domains = data.map((item) => item.domain);
 
   const paths = domains.map((domain) => ({ params: { domain: domain.name } }));
+
   return {
     paths,
     fallback: false,
