@@ -18,7 +18,9 @@ const config = {
     [
       '@docusaurus/plugin-google-gtag',
       {
-        trackingID: 'G-DCBX4M3CVP',
+        gtag: {
+          trackingID: 'G-DCBX4M3CVP',
+        },
       },
     ],
   ],
@@ -101,6 +103,9 @@ const config = {
         disableSwitch: true,
         defaultMode: 'light',
       },
+      gtag: {
+        trackingID: 'G-DCBX4M3CVP',
+      },
       footer: {
         style: 'dark',
         links: [
@@ -147,7 +152,7 @@ const config = {
         copyright: `Open Source project built by David Boyne. Built for the community.`,
       },
       prism: {
-        theme: theme,
+        theme,
         darkTheme: theme,
       },
     }),
