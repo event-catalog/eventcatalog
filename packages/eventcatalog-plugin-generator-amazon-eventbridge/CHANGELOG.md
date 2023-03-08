@@ -1,5 +1,11 @@
 # @eventcatalog/plugin-doc-generator-amazon-eventbridge
 
+## 0.0.10
+
+### Patch Changes
+
+- [`24eda65`](https://github.com/boyney123/eventcatalog/commit/24eda6562b5c990627a1ad35570eaa0d26b100db) [#351](https://github.com/boyney123/eventcatalog/pull/351) Thanks [@adlecluse](https://github.com/adlecluse)! - fix(schemas): Dont fail for schemas in custom registries
+
 ## 0.0.9
 
 ### Patch Changes
