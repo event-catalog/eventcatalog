@@ -15,14 +15,6 @@ const config = {
   projectName: 'docusaurus', // Usually your repo name.
   plugins: [
     'my-loaders',
-    [
-      '@docusaurus/plugin-google-gtag',
-      {
-        gtag: {
-          trackingID: 'G-DCBX4M3CVP',
-        },
-      },
-    ],
   ],
   scripts: ['https://unpkg.com/browse/leader-line@1.0.7/leader-line.min.js'],
   presets: [
@@ -102,9 +94,6 @@ const config = {
       colorMode: {
         disableSwitch: true,
         defaultMode: 'light',
-      },
-      gtag: {
-        trackingID: 'G-DCBX4M3CVP',
       },
       footer: {
         style: 'dark',
