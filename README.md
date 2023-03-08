@@ -1,7 +1,7 @@
 <div align="center">
 
 <h1>📖 EventCatalog</h1>
-<p>Discover, Explore and Document your Event Driven Architectures.</>
+<p>Discover, Explore and Document your Event Driven Architectures.</p>
 
 [![MIT License][license-badge]][license]
 [![PRs Welcome][prs-badge]][prs]
@@ -105,7 +105,7 @@ You can see the markdown files that generated the website in the GitHub repo und
 If you have any questions, features or issues please raise any issue or pull requests you like. We will try my best to get back to you.
 
 [license-badge]: https://img.shields.io/github/license/boyney123/eventcatalog.svg?color=yellow
-[license]: https://github.com/boyney123/eventcatalog/blob/main/LICENCE
+[license]: https://github.com/boyney123/eventcatalog/blob/master/LICENSE
 [prs-badge]: https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square
 [prs]: http://makeapullrequest.com
 [github-watch-badge]: https://img.shields.io/github/watchers/boyney123/eventcatalog.svg?style=social
