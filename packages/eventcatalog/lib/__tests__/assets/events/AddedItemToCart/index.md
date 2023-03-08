@@ -16,6 +16,10 @@ badges:
     - content: Deprecated
       backgroundColor: red
       textColor: red
+tags:
+  - label: 'Topic: add-item-to-cart'
+  - label: 'Broker: kafka'
+    url: https://kafka.apache.org
 ---
 
 # Testing

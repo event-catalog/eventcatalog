@@ -27,6 +27,7 @@ export interface Event {
   producers?: Service[];
   consumers?: Service[];
   badges?: Badge[];
+  tags?: Tag[];
 
   historicVersions?: string[];
   owners?: Owner[] | string[];

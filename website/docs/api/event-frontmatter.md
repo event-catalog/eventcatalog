@@ -72,7 +72,7 @@ Short summary of your event, shown on event summary pages.
 
 ### `producers` {#producers}
 
-An array of `services` that produce the event. 
+An array of `services` that produce the event.
 
 ```mdx title="Example"
 ---
@@ -85,7 +85,7 @@ An array of `services` that produce the event.
 
 ### `consumers` {#consumers}
 
-An array of `services` that consume/subscribe the event. 
+An array of `services` that consume/subscribe the event.
 
 ```mdx title="Example"
 ---
@@ -123,8 +123,25 @@ List of URLs that can be used when people want to reference to external document
 
 ```mdx title="Example"
 ---
-  externalLinks: 
+  externalLinks:
     - label: AsyncAPI Specification
       url: https://studio.asyncapi.com/#schema-lightMeasuredPayload
+---
+```
+
+### `tags` {#tags}
+
+List of tags related to the event.
+
+- Type: `Tag`
+  - `label`: value that gets rendered on the UI
+  - `href`: URL for link (optional)
+
+```mdx title="Example"
+---
+  tags:
+    - label: 'Topic: order-requested'
+    - label: 'Broker: kafka'
+      url: https://kafka.apache.org
 ---
 ```
