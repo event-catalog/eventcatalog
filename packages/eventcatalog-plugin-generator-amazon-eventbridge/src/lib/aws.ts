@@ -1,6 +1,6 @@
 import { EventBridge, Rule } from '@aws-sdk/client-eventbridge';
 import { Arn, ArnFormat } from 'aws-cdk-lib';
-import { Schemas, Schemas as SchemaSDK, ExportSchemaCommandOutput } from '@aws-sdk/client-schemas';
+import { Schemas, Schemas as SchemaSDK, ExportSchemaCommandOutput, ForbiddenException } from '@aws-sdk/client-schemas';
 import { PluginOptions } from '../types';
 
 export interface CustomSchema extends ExportSchemaCommandOutput {
@@ -15,12 +15,22 @@ const getSchemas = (schemas: SchemaSDK, registryName: string) => async (): Promi
   const { Schemas: registrySchemas = [] } = await schemas.listSchemas({ RegistryName: registryName });
 
   const allSchemas = registrySchemas.map(async (registrySchema: any) => {
-    // Get the JSON schema
-    const schemaAsJSON = await schemas.exportSchema({
-      RegistryName: registryName,
-      SchemaName: registrySchema.SchemaName,
-      Type: 'JSONSchemaDraft4',
-    });
+    let schemaAsJSON: ExportSchemaCommandOutput = { $metadata: {} };
+
+    try {
+      // Get the JSON schema
+      schemaAsJSON = await schemas.exportSchema({
+        RegistryName: registryName,
+        SchemaName: registrySchema.SchemaName,
+        Type: 'JSONSchemaDraft4',
+      });
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        console.warn(error);
+      } else {
+        throw error;
+      }
+    }
 
     // Get the OpenAPI schema
     const schemaAsOpenAPI = await schemas.describeSchema({
