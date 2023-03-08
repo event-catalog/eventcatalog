@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 0.6.7
+
+### Patch Changes
+
+- [`a93ab13`](https://github.com/boyney123/eventcatalog/commit/a93ab13bf939d8ebdfc771cc6fff23167420a403) [#350](https://github.com/boyney123/eventcatalog/pull/350) Thanks [@ldiego73](https://github.com/ldiego73)! - fix to correctly display the user when there are no events associated with a domain.
+
+- [`a93ab13`](https://github.com/boyney123/eventcatalog/commit/a93ab13bf939d8ebdfc771cc6fff23167420a403) [#350](https://github.com/boyney123/eventcatalog/pull/350) Thanks [@ldiego73](https://github.com/ldiego73)! - fix: correct display of users in domain
+
 ## 0.6.6
 
 ### Patch Changes
