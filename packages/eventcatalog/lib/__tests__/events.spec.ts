@@ -54,12 +54,15 @@ describe('events lib', () => {
               name: 'Application API',
             },
           ],
-          tags: [{
-            label: "Topic: add-item-to-cart"
-          }, {
-            label: "Broker: kafka",
-            url: "https://kafka.apache.org"
-          }],
+          tags: [
+            {
+              label: 'Topic: add-item-to-cart',
+            },
+            {
+              label: 'Broker: kafka',
+              url: 'https://kafka.apache.org',
+            },
+          ],
           externalLinks: [],
           schema: null,
           examples: [],
@@ -228,12 +231,15 @@ describe('events lib', () => {
           consumerNames: ['Customer Portal'],
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
-          tags: [{
-            label: "Topic: add-item-to-cart"
-          }, {
-            label: "Broker: kafka",
-            url: "https://kafka.apache.org"
-          }],
+          tags: [
+            {
+              label: 'Topic: add-item-to-cart',
+            },
+            {
+              label: 'Broker: kafka',
+              url: 'https://kafka.apache.org',
+            },
+          ],
           historicVersions: [],
           badges: [
             {
@@ -374,12 +380,15 @@ describe('events lib', () => {
           consumerNames: ['Customer Portal'],
           owners: ['dboyne', 'mSmith'],
           externalLinks: [],
-          tags: [{
-            label: "Topic: add-item-to-cart"
-          }, {
-            label: "Broker: kafka",
-            url: "https://kafka.apache.org"
-          }],
+          tags: [
+            {
+              label: 'Topic: add-item-to-cart',
+            },
+            {
+              label: 'Broker: kafka',
+              url: 'https://kafka.apache.org',
+            },
+          ],
           historicVersions: [],
           badges: [
             {
