@@ -1,0 +1,12 @@
+asyncapi: 2.0.0
+info:
+  title: PersonUpateService
+  version: '1.0.0'
+channels:
+  personUpdated:
+    publish:
+      message:
+        name: personUpdated 
+        schemaFormat: application/vnd.apache.avro;version=1.9.0
+        payload:
+          $ref: 'packages/eventcatalog-plugin-generator-asyncapi/src/__tests__/assets/schemas/Person-1.99.0.avsc'
