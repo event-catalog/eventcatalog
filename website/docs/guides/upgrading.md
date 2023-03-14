@@ -4,7 +4,7 @@ id: upgrading
 title: Upgrade Catalog
 ---
 
-To upgrade your EventCatalog you can find the packages `"@eventcatalog/core"` and `"@eventcatalog/types"` to upgrade in your `package.json` file.
+To upgrade your EventCatalog you can find the packages `@eventcatalog/core` and `@eventcatalog/types` to upgrade in your `package.json` file.
 
 ```json
 {
@@ -18,7 +18,7 @@ To upgrade your EventCatalog you can find the packages `"@eventcatalog/core"` an
     "@eventcatalog/core": "0.6.8"
   },
   "devDependencies": {
-   "@eventcatalog/types": "0.4.1",
+    "@eventcatalog/types": "0.4.1",
   }
 }
 ```
