@@ -24,7 +24,7 @@ For exact reference to each of the configurable fields, you may refer to [**`eve
 
 ### Site metadata {#site-metadata}
 
-Site metadata contains the essential global metadata such as `title`, `url`, `tagling` and `organizationName`.
+Site metadata contains the essential global metadata such as `title`, `url`, `tagline` and `organizationName`.
 
 They are used in a number of places such as your site's title and headings, browser tab icon, and landing page.
 
