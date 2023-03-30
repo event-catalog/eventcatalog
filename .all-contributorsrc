@@ -221,6 +221,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "DanielRuf",
+      "name": "Daniel Ruf",
+      "avatar_url": "https://avatars.githubusercontent.com/u/827205?v=4",
+      "profile": "https://www.linkedin.com/in/danielruf/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
