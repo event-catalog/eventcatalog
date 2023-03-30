@@ -36,7 +36,7 @@ Find out more reading the [users documentation](/docs/api/eventcatalog-config#us
 
 :::
 
-Great, so we have added the user `David Boyne` with the id `dboyne`. Let's go back to our event and add this user.
+Great, so we have added the user `David Boyne` with the id `dboyne`. Let's go back to our service and add this user.
 
 ```mdx title="/services/Email Platform/index.md"
 ---
