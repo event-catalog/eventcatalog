@@ -47,7 +47,7 @@ my-catalog
 └── yarn.lock
 ```
 
-As you can see in the example we have versioned our `UserCreated event with `1.0.0` and `1.1.0` versions.
+As you can see in the example we have versioned our `UserCreated` event with `1.0.0` and `1.1.0` versions.
 
 Following this folder convension EventCatalog will know you have versioned your events and will version them and render them into a new url path `/event/{eventName}/v/{version}` for example.
 
