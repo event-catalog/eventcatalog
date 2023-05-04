@@ -6,6 +6,7 @@ export interface WriteServiceToCatalogInterface {
   useMarkdownContentFromExistingService?: boolean;
   renderMermaidDiagram?: boolean;
   renderNodeGraph?: boolean;
+  asyncApiFile?: AsyncApiFile;
 }
 
 export interface WriteServiceToCatalogInterfaceReponse {
@@ -17,6 +18,10 @@ export interface WriteEventToCatalogResponse {
 }
 
 export interface SchemaFile {
+  extension: string;
+  fileContent: string;
+}
+export interface AsyncApiFile {
   extension: string;
   fileContent: string;
 }
