@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.6.10
+
+### Patch Changes
+
+- [`97c0da5`](https://github.com/boyney123/eventcatalog/commit/97c0da5c2976f024286f7760cd688e93b9c53701) [#340](https://github.com/boyney123/eventcatalog/pull/340) Thanks [@michelgrootjans](https://github.com/michelgrootjans)! - - feat - added ability to show node graphs on the event and service overview pages.
+
 ## 0.6.9
 
 ### Patch Changes
