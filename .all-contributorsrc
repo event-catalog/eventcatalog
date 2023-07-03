@@ -232,10 +232,19 @@
       ]
     },
     {
-      "login": "gaddam1987",
+      "login": "frenkan",
+      "name": "Fredrik Johansson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/859840?v=4",
+      "profile": "https://github.com/frenkan",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
       "name": "Naresh Kumar Reddy Gaddam",
       "avatar_url": "https://avatars.githubusercontent.com/u/2576375?v=4",
       "profile": "https://gaddam1987.github.io/",
+      "login": "gaddam1987",
       "contributions": [
         "code"
       ]
