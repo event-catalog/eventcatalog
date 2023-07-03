@@ -164,6 +164,13 @@
   resolved "https://registry.yarnpkg.com/@asyncapi/avro-schema-parser/-/avro-schema-parser-0.3.0.tgz#6922acc559ef999c57e81297d78ffe680fc92b3c"
   integrity sha512-gWAqS2CKxbChdX8hZY+5EYQl6atP8FTSBvoG5mGGQ89XUoNdlLX14lsvbgvBnDj5sSwqfs+b5Mh5PUZMR/8maA==
 
+"@asyncapi/avro-schema-parser@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@asyncapi/avro-schema-parser/-/avro-schema-parser-1.1.0.tgz#5d0491b53331f0748d8f6e8c33781c27cafe0f30"
+  integrity sha512-7J7pzSw0/jF2bXy/Mf+80VKJfXRRfyLTJz413MkKLbLXbbz9rV4sVpYfp31ofqXgyZ9bhfmHJzunbi0Bt7Jcww==
+  dependencies:
+    avsc "^5.7.3"
+
 "@asyncapi/openapi-schema-parser@^2.0.0":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@asyncapi/openapi-schema-parser/-/openapi-schema-parser-2.0.1.tgz#4d6e82cced907b14e0ad6f98261ff2562d968d96"
@@ -7001,6 +7008,11 @@ available-typed-arrays@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz#92f95616501069d07d10edb2fc37d3e1c65123b7"
   integrity sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==
+
+avsc@^5.7.3:
+  version "5.7.7"
+  resolved "https://registry.yarnpkg.com/avsc/-/avsc-5.7.7.tgz#8d1b5fd85904cc96a1e439450633ff33f4aff57b"
+  integrity sha512-9cYNccliXZDByFsFliVwk5GvTq058Fj513CiR4E60ndDwmuXzTJEp/Bp8FyuRmGyYupLjHLs+JA9/CBoVS4/NQ==
 
 aws-cdk-lib@^2.8.0:
   version "2.59.0"
