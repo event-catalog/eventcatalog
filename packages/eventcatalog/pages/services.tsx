@@ -100,6 +100,7 @@ export default function Page({ services }: PageProps) {
 
   const filtersApplied = !!searchFilter || selectedFilters.badges.length > 0;
   const [showMermaidDiagrams, setShowMermaidDiagrams] = useState(false);
+  const [showNodeGraphs, setShowNodeGraphs] = useState(false);
   const { title } = useConfig();
 
   return (
@@ -236,6 +237,22 @@ export default function Page({ services }: PageProps) {
                     </div>
                   </div>
                 </div>
+                <div className="pt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center">
+                      <input
+                        id="show-node-graph"
+                        type="checkbox"
+                        onChange={(e) => setShowNodeGraphs(e.target.checked)}
+                        defaultChecked={showNodeGraphs}
+                        className="h-4 w-4 border-gray-300 rounded text-gray-600 focus:ring-gray-500"
+                      />
+                      <label htmlFor="show-node-graph" className="ml-3 text-sm text-gray-600">
+                        Show Node Graphs
+                      </label>
+                    </div>
+                  </div>
+                </div>
               </div>
             </form>
 
@@ -246,7 +263,11 @@ export default function Page({ services }: PageProps) {
                     ? `Filtered Services (${servicesToRender.length}/${services.length})`
                     : `All Services (${services.length})`}
                 </h2>
-                <ServiceGrid services={servicesToRender} showMermaidDiagrams={showMermaidDiagrams} />
+                <ServiceGrid
+                  services={servicesToRender}
+                  showMermaidDiagrams={showMermaidDiagrams}
+                  showNodeGraphs={showNodeGraphs}
+                />
                 {servicesToRender.length === 0 && (
                   <div className="text-gray-400 flex h-96  justify-center items-center">
                     <div>
