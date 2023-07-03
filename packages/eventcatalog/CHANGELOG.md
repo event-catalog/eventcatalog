@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.6.9
+
+### Patch Changes
+
+- [`264b6c8`](https://github.com/boyney123/eventcatalog/commit/264b6c8525e59c76bc28bec11d093c5740cf73bf) [#328](https://github.com/boyney123/eventcatalog/pull/328) Thanks [@dremonkey](https://github.com/dremonkey)! - fix: support spaces in projectDIR path
+
 ## 0.6.8
 
 ### Patch Changes
