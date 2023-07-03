@@ -230,8 +230,18 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "dremonkey",
+      "name": "Andre Deutmeyer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/480159?v=4",
+      "profile": "https://github.com/dremonkey",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
-  "skipCi": true
+  "skipCi": true,
+  "commitType": "docs"
 }
