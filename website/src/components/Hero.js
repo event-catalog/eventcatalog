@@ -38,7 +38,7 @@ function Hero() {
                   <p className="mt-3 text-base text-gray-300 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl">
                     EventCatalog is an Open Source project that helps you document your{' '}
                     <span className="text-green-500">events</span>, <span className="text-green-500">services</span> and{' '}
-                    <span className="text-green-500">domains</span>.
+                    <span className="text-green-500">domains</span>. Over <span className="text-green-500 text-bold underline">6,500</span> catalogs created.
                   </p>
                   <p className="mt-3 text-base text-gray-300 sm:mt-5 sm:text-xl lg:text-lg xl:text-sm">
                     Powered by markdown, components and plugins.
@@ -133,8 +133,8 @@ function Hero() {
                 <div className="h-full text-center ">
                   <img
                     alt="testimonial"
+                    src="/img/user.png"
                     className="w-20 h-20 mb-8 object-cover object-center rounded-full inline-block border-2 border-gray-200 bg-gray-100"
-                    src="https://pbs.twimg.com/profile_images/1447999798263656457/s0AtdUwf_400x400.jpg"
                   />
                   <p className="leading-relaxed px-10 md:px-20">
                     EventCatalog for us replaces a plain wiki. It offers much more insight into an EDA. Features such as the
@@ -247,6 +247,42 @@ function Hero() {
                   className="w-full rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 lg:absolute lg:right-0 lg:h-full lg:w-auto lg:max-w-none"
                   src="/img/NodeGraph.png"
                   alt="Customer profile user interface"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="relative mt-24">
+          <div className="lg:mx-auto lg:max-w-7xl lg:px-8 lg:grid lg:grid-cols-2 lg:grid-flow-col-dense lg:gap-24">
+            <div className="px-4 max-w-xl mx-auto sm:px-6 lg:py-16 lg:max-w-none lg:mx-0 lg:px-0">
+              <div>
+                <h4 className="text-gray-400 mb-2 uppercase">Search, tag and find events, domains and services</h4>
+                <h2 className="text-4xl font-extrabold tracking-tight text-gray-900">Filter and find events and services</h2>
+                <p className="mt-4 text-lg text-gray-500">
+                  <p>View your events, services and domains with a high level overview.</p>
+
+                  <p>Filter information, search and tag your events,services and domains.</p>
+
+                  <p>
+                   Generate a quick overview of everything your architecture is doing and dive deeper into the generated markdown pages.
+                  </p>
+                </p>
+                <div className="mt-6">
+                  <a
+                    href="https://app.eventcatalog.dev/events/"
+                    className="inline-flex px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700"
+                  >
+                    View example &rarr;
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div className="mt-12 sm:mt-16 lg:mt-0">
+              <div className="pl-4 -mr-48 sm:pl-6 md:-mr-16 lg:px-0 lg:m-0 lg:relative lg:h-full">
+                <img
+                  className="w-full rounded-xl shadow-xl ring-1 ring-black ring-opacity-5 lg:absolute lg:left-0 lg:h-full lg:w-auto lg:max-w-none"
+                  src="/img/event-grid.png"
+                  alt="Inbox user interface"
                 />
               </div>
             </div>

@@ -60,8 +60,11 @@ const config = {
             docId: 'cli',
             label: 'API',
           },
-
-          { to: '/blog', label: 'Blog', position: 'left' },
+          {
+            href: 'https://serverlessland.com/event-driven-architecture/visuals?ref=eventcatalog.dev',
+            label: 'Learn EDA',
+            position: 'left',
+          },
           {
             type: 'doc',
             position: 'left',
@@ -73,6 +76,7 @@ const config = {
             label: 'Discord',
             position: 'left',
           },
+          
           {
             href: 'https://app.eventcatalog.dev',
             label: 'Demo',
