@@ -88,7 +88,7 @@ const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOpti
     throw new Error(`Failed to read file with provided path`);
   }
 
-  const doc = await parse(asyncAPIFile);
+  const doc = await parse(asyncAPIFile, { path: pathToFile });
 
   const service = getServiceFromAsyncDoc(doc);
   const events = getAllEventsFromAsyncDoc(doc, options);
