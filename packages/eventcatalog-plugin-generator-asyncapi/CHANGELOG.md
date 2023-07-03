@@ -1,5 +1,11 @@
 # @eventcatalog/plugin-doc-generator-asyncapi
 
+## 0.3.5
+
+### Patch Changes
+
+- [`3646ea0`](https://github.com/boyney123/eventcatalog/commit/3646ea03150c0fc2e633a230a7ac1c543ea6d8fd) [#367](https://github.com/boyney123/eventcatalog/pull/367) Thanks [@gaddam1987](https://github.com/gaddam1987)! - fix: Process asyncapi files with avro schema
+
 ## 0.3.4
 
 ### Patch Changes
