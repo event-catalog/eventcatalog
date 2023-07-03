@@ -9,4 +9,5 @@ channels:
         name: personUpdated 
         schemaFormat: application/vnd.apache.avro;version=1.9.0
         payload:
-          $ref: 'packages/eventcatalog-plugin-generator-asyncapi/src/__tests__/assets/schemas/Person-1.99.0.avsc'
+          # Loads the schema from packages/eventcatalog-plugin-generator-asyncapi/src/__tests__/assets/schemas/Person-1.99.0.avsc
+          $ref: 'schemas/Person-1.99.0.avsc'
