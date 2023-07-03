@@ -6,7 +6,7 @@
 [![MIT License][license-badge]][license]
 [![PRs Welcome][prs-badge]][prs]
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-23-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-24-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![Watch on GitHub][github-watch-badge]][github-watch]
@@ -152,6 +152,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://ldiego73.github.io/"><img src="https://avatars.githubusercontent.com/u/394222?v=4?s=100" width="100px;" alt="Luis Diego"/><br /><sub><b>Luis Diego</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=ldiego73" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/danielruf/"><img src="https://avatars.githubusercontent.com/u/827205?v=4?s=100" width="100px;" alt="Daniel Ruf"/><br /><sub><b>Daniel Ruf</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=DanielRuf" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/frenkan"><img src="https://avatars.githubusercontent.com/u/859840?v=4?s=100" width="100px;" alt="Fredrik Johansson"/><br /><sub><b>Fredrik Johansson</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=frenkan" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
