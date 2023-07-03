@@ -514,5 +514,51 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         <NodeGraph /> `);
       });
     });
+
+    describe('asyncapi service with avro schema', () => {
+      it('writes the event with avro schema', async () => {
+        const options: AsyncAPIPluginOptions = {
+          pathToSpec: [path.join(__dirname, './assets/avro-asyncapi.yml')],
+        };
+
+        await plugin(pluginContext, options);
+
+        // just wait for files to be there in time.
+        await new Promise((r) => setTimeout(r, 200));
+
+        const { getEventFromCatalog, getServiceFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+
+        const { raw: eventFile } = getEventFromCatalog('personUpdated');
+
+        const { raw: serviceFile } = getServiceFromCatalog('PersonUpateService');
+
+        expect(eventFile).toMatchMarkdown(`
+        ---
+        name: personUpdated
+        summary: null
+        version: 1.0.0
+        producers: []
+        consumers:
+            - PersonUpateService
+        externalLinks: []
+        badges: []
+        ---
+        
+        
+        <NodeGraph />
+        
+        <Schema />
+          `);
+
+        expect(serviceFile).toMatchMarkdown(`
+        ---
+        name: PersonUpateService
+        summary: ""
+        ---
+        
+        
+        <NodeGraph />`);
+      });
+    });
   });
 });

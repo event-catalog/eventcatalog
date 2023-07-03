@@ -33,7 +33,7 @@ cli
   .command('start [siteDir]')
   .description('Start the development server.')
   .action(() => {
-    execSync(`cross-env PROJECT_DIR=${projectDIR} npm run start`, {
+    execSync(`cross-env PROJECT_DIR='${projectDIR}' npm run start`, {
       cwd: eventCatalogLibDir,
       stdio: 'inherit',
     });
@@ -51,13 +51,13 @@ cli
     fs.copySync(path.join(projectDIR, 'public'), path.join(eventCatalogLibDir, 'public'));
 
     // Move the schemas into public directory so we can download them from UI
-    execSync(`cross-env PROJECT_DIR=${projectDIR} npm run scripts:move-schema-for-download`, {
+    execSync(`cross-env PROJECT_DIR='${projectDIR}' npm run scripts:move-schema-for-download`, {
       cwd: eventCatalogLibDir,
       stdio: 'inherit',
     });
 
     // build using nextjs
-    execSync(`cross-env PROJECT_DIR=${projectDIR} npm run build`, {
+    execSync(`cross-env PROJECT_DIR='${projectDIR}' npm run build`, {
       cwd: eventCatalogLibDir,
       stdio: 'inherit',
     });
@@ -82,12 +82,12 @@ cli
     fs.copyFileSync(path.join(projectDIR, 'eventcatalog.config.js'), path.join(eventCatalogLibDir, 'eventcatalog.config.js'));
 
     // Move the schemas into public directory so we can download them from UI
-    execSync(`cross-env PROJECT_DIR=${projectDIR} npm run scripts:move-schema-for-download`, {
+    execSync(`cross-env PROJECT_DIR='${projectDIR}' npm run scripts:move-schema-for-download`, {
       cwd: eventCatalogLibDir,
       stdio: 'inherit',
     });
 
-    execSync(`cross-env PROJECT_DIR=${projectDIR} npm run dev`, {
+    execSync(`cross-env PROJECT_DIR='${projectDIR}' npm run dev`, {
       cwd: eventCatalogLibDir,
       stdio: 'inherit',
     });
@@ -105,7 +105,7 @@ cli
 
     fs.copyFileSync(path.join(projectDIR, 'eventcatalog.config.js'), path.join(eventCatalogLibDir, 'eventcatalog.config.js'));
 
-    execSync(`cross-env PROJECT_DIR=${projectDIR} npm run generate`, {
+    execSync(`cross-env PROJECT_DIR='${projectDIR}' npm run generate`, {
       cwd: eventCatalogLibDir,
       stdio: 'inherit',
     });
