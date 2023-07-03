@@ -1,5 +1,11 @@
 # @eventcatalog/plugin-doc-generator-asyncapi
 
+## 0.3.4
+
+### Patch Changes
+
+- [`2aeb419`](https://github.com/boyney123/eventcatalog/commit/2aeb41967989906d53f4cbfb977fa2540390dd3d) [#375](https://github.com/boyney123/eventcatalog/pull/375) Thanks [@frenkan](https://github.com/frenkan)! - resolve relative references
+
 ## 0.3.3
 
 ### Patch Changes
