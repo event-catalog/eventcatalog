@@ -1,12 +1,15 @@
 import chalk from 'chalk';
 import type { Event, Service, LoadContext, Domain } from '@eventcatalog/types';
-import { parse, AsyncAPIDocument } from '@asyncapi/parser';
+import { parse, AsyncAPIDocument, registerSchemaParser } from '@asyncapi/parser';
 import fs from 'fs-extra';
 import path from 'path';
 import utils from '@eventcatalog/utils';
 import merge from 'lodash.merge';
-
+// @ts-ignore
+import asyncAPIAvroParser from '@asyncapi/avro-schema-parser';
 import type { AsyncAPIPluginOptions } from './types';
+
+registerSchemaParser(asyncAPIAvroParser);
 
 const getServiceFromAsyncDoc = (doc: AsyncAPIDocument): Service => ({
   name: doc.info().title(),
