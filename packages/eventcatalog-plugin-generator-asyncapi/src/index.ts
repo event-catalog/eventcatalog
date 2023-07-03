@@ -5,6 +5,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import utils from '@eventcatalog/utils';
 import merge from 'lodash.merge';
+// @ts-ignore
 import asyncAPIAvroParser from '@asyncapi/avro-schema-parser';
 import type { AsyncAPIPluginOptions } from './types';
 

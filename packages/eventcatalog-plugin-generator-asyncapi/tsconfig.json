@@ -12,6 +12,5 @@
     "skipLibCheck": false,
     "incremental": true
   },
-  "include": ["index.d.ts"],
   "exclude": ["./scripts/**/*", "*/__tests__/**/*", "./lib/**/*"]
 }
