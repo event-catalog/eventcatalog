@@ -167,7 +167,7 @@ export const getEventByPath = (eventDir: string, hydrateWithProducersAndConsumer
     return {
       ...event,
       historicVersions,
-      ...consumersAndProducersAsServices
+      ...consumersAndProducersAsServices,
     };
   }
 

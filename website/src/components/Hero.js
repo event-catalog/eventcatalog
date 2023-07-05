@@ -38,7 +38,8 @@ function Hero() {
                   <p className="mt-3 text-base text-gray-300 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl">
                     EventCatalog is an Open Source project that helps you document your{' '}
                     <span className="text-green-500">events</span>, <span className="text-green-500">services</span> and{' '}
-                    <span className="text-green-500">domains</span>. Over <span className="text-green-500 text-bold underline">6,500</span> catalogs created.
+                    <span className="text-green-500">domains</span>. Over{' '}
+                    <span className="text-green-500 text-bold underline">6,500</span> catalogs created.
                   </p>
                   <p className="mt-3 text-base text-gray-300 sm:mt-5 sm:text-xl lg:text-lg xl:text-sm">
                     Powered by markdown, components and plugins.
@@ -264,7 +265,8 @@ function Hero() {
                   <p>Filter information, search and tag your events,services and domains.</p>
 
                   <p>
-                   Generate a quick overview of everything your architecture is doing and dive deeper into the generated markdown pages.
+                    Generate a quick overview of everything your architecture is doing and dive deeper into the generated markdown
+                    pages.
                   </p>
                 </p>
                 <div className="mt-6">
