@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.6.12
+
+### Patch Changes
+
+- [`3bf1979`](https://github.com/boyney123/eventcatalog/commit/3bf19799880cb379e8fbea1bf4cdc40b0c7be7b1) [#400](https://github.com/boyney123/eventcatalog/pull/400) Thanks [@boyney123](https://github.com/boyney123)! - feat- allow props to be used in openAPI components
+
 ## 0.6.11
 
 ### Patch Changes
