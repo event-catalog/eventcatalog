@@ -36,7 +36,7 @@ owners:
 
 OpenAPI schema for the event can be found below.
 
-<OpenAPI />
+<OpenAPI  />
 
 ```
 

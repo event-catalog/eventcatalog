@@ -9,13 +9,13 @@ interface OpenApiSpecProps {
   url?: string;
 }
 
-export default function OpenApiSpec({ spec, showTitle = true, url }: OpenApiSpecProps) {
+export default function OpenApiSpec({ spec, showTitle = true, url, ...props }: OpenApiSpecProps) {
   const className = !showTitle ? 'swagger-hide-title' : '';
 
   return (
     <div className={`my-4 border border-gray-300 border-dashed px-5 eventcatalog-swagger ${className}`}>
       {!showTitle && <span className="text-2xl block mt-10 font-bold -mb-8">OpenAPI Specification</span>}
-      <SwaggerUI spec={spec} tryItOutEnabled={false} url={url} />
+      <SwaggerUI spec={spec} tryItOutEnabled={false} url={url} {...props} />
     </div>
   );
 }
