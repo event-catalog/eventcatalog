@@ -25,6 +25,7 @@ const sidebars = {
             'guides/events/introduction',
             'guides/events/adding-events',
             'guides/events/adding-schemas',
+            'guides/events/events-adding-openapi',
             'guides/events/adding-examples',
             'guides/events/adding-event-owners',
             'guides/events/consumers-and-producers',
