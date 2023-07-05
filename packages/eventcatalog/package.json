@@ -27,7 +27,7 @@
     "@tailwindcss/forms": "^0.3.4",
     "@tailwindcss/line-clamp": "^0.2.2",
     "@tailwindcss/typography": "^0.4.1",
-    "@types/swagger-ui-react": "^4.1.1",
+    "@types/swagger-ui-react": "^4.18.0",
     "compare-versions": "^4.1.2",
     "copy-text-to-clipboard": "^3.0.1",
     "dagre": "^0.8.5",
@@ -44,7 +44,7 @@
     "react-flow-renderer": "^9.7.3",
     "react-force-graph-3d": "^1.21.10",
     "react-syntax-highlighter": "^15.4.5",
-    "swagger-ui-react": "^4.6.1"
+    "swagger-ui-react": "^5.1.0"
   },
   "devDependencies": {
     "@eventcatalog/types": "0.4.1",

@@ -7,6 +7,7 @@ import Examples from '@/components/Mdx/Examples';
 
 import getBackgroundColor from '@/utils/random-bg';
 
+import OpenApiSpec from '@/components/Mdx/OpenApiSpec';
 import ContentView from '@/components/ContentView';
 import Mermaid from '@/components/Mermaid';
 import EventSideBar from '@/components/Sidebars/EventSidebar';
@@ -78,6 +79,10 @@ export const getComponents = ({ event, schema, examples }: any) => ({
     );
   },
   Admonition,
+  OpenAPI: ({ url }: { url?: string }) => {
+    if (!event.openAPISpec) return null;
+    return <OpenApiSpec spec={event.openAPISpec} url={url} />;
+  },
   EventExamples: (props) => {
     if (examples.length > 0) {
       return <Examples {...props} examples={examples} showLineNumbers />;
