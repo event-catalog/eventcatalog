@@ -33,7 +33,7 @@
     "node": ">=14"
   },
   "devDependencies": {
-    "@eventcatalog/types": "0.4.1",
+    "@eventcatalog/types": "0.4.2",
     "@types/fs-extra": "^9.0.13",
     "@types/json2md": "^1.5.1",
     "@types/lodash.merge": "^4.6.7",

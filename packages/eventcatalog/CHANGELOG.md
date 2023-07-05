@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 0.6.11
+
+### Patch Changes
+
+- [`21c6260`](https://github.com/boyney123/eventcatalog/commit/21c6260b04bd849f93c11a571c6a6c9b55501911) [#397](https://github.com/boyney123/eventcatalog/pull/397) Thanks [@boyney123](https://github.com/boyney123)! - feta - Adding support for OpenAPI files in events.
+
 ## 0.6.10
 
 ### Patch Changes
