@@ -5,7 +5,7 @@ import fs from 'fs';
 import { serialize } from 'next-mdx-remote/serialize';
 import path from 'path';
 import { MarkdownFile } from '@/types/index';
-import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile } from '@/lib/file-reader';
+import { getLastModifiedDateOfFile, getSchemaFromDir, readMarkdownFile, getOpenAPISpecFromDir } from '@/lib/file-reader';
 import { getAllDomains, getAllEventsFromDomains } from './domains';
 import { extentionToLanguageMap } from './file-reader';
 import { getAllServices, hydrateEventProducersAndConsumers } from './services';
@@ -257,6 +257,7 @@ export const getEventByName = async ({
         ...event,
         ...consumersAndProducersAsServices,
         domain: domain || null,
+        openAPISpec: getOpenAPISpecFromDir(eventDirectory),
         historicVersions: versionsForEvents(eventDirectory),
         schema: getSchemaFromDir(directoryToLoadForEvent),
         examples: getEventExamplesFromDir(path.join(directoryToLoadForEvent, `examples`)),

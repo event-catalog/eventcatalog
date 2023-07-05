@@ -34,6 +34,7 @@ describe('events lib', () => {
           owners: ['dboyne', 'mSmith'],
           domain: null,
           historicVersions: [],
+          openAPISpec: null,
           badges: [
             {
               content: 'Deprecated',
@@ -142,6 +143,7 @@ describe('events lib', () => {
           owners: ['dboyne', 'mSmith'],
           domain: 'User',
           historicVersions: [],
+          openAPISpec: null,
           badges: [
             {
               content: 'New!',

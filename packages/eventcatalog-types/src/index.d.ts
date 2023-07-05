@@ -28,7 +28,7 @@ export interface Event {
   consumers?: Service[];
   badges?: Badge[];
   tags?: Tag[];
-
+  openAPISpec?: string;
   historicVersions?: string[];
   owners?: Owner[] | string[];
   examples?: any;

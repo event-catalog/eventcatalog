@@ -76,7 +76,7 @@ const config = {
             label: 'Discord',
             position: 'left',
           },
-          
+
           {
             href: 'https://app.eventcatalog.dev',
             label: 'Demo',

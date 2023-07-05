@@ -83,14 +83,14 @@ const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOpti
   } = options;
 
   let asyncAPIFile;
-  
+
   try {
     asyncAPIFile = fs.readFileSync(pathToFile, 'utf-8');
   } catch (error: any) {
     console.error(error);
     throw new Error(`Failed to read file with provided path`);
   }
-  
+
   const doc = await parse(asyncAPIFile, { path: pathToFile });
 
   const service = getServiceFromAsyncDoc(doc);
