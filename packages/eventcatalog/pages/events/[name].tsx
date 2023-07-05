@@ -79,9 +79,9 @@ export const getComponents = ({ event, schema, examples }: any) => ({
     );
   },
   Admonition,
-  OpenAPI: ({ url }: { url?: string }) => {
+  OpenAPI: ({ url, ...props }: { url?: string }) => {
     if (!event.openAPISpec) return null;
-    return <OpenApiSpec spec={event.openAPISpec} url={url} />;
+    return <OpenApiSpec spec={event.openAPISpec} url={url} {...props} />;
   },
   EventExamples: (props) => {
     if (examples.length > 0) {
