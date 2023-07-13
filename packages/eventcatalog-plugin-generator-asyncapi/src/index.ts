@@ -13,7 +13,7 @@ registerSchemaParser(asyncAPIAvroParser);
 
 const getServiceFromAsyncDoc = (doc: AsyncAPIDocument): Service => ({
   name: doc.info().title(),
-  summary: doc.info().description() || '',
+  summary: doc.info().description() || ''
 });
 
 const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPluginOptions): Event[] => {
@@ -43,16 +43,32 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
         url: `${externalAsyncAPIUrl}#message-${messageName}`,
       };
 
-      return {
-        name: messageName,
-        summary: message.summary(),
-        version: doc.info().version(),
-        producers: operation === 'publish' ? [service] : [],
-        consumers: operation === 'subscribe' ? [service] : [],
-        externalLinks: externalAsyncAPIUrl ? [externalLink] : [],
-        schema: schema ? JSON.stringify(schema, null, 4) : '',
-        badges: [],
-      };
+
+      if(options.viewPoint == "Provider")
+      {
+        return {
+          name: messageName,
+          summary: message.summary(),
+          version: doc.info().version(),
+          producers: operation === 'publish' ? [service] : [],
+          consumers: operation === 'subscribe' ? [service] : [],
+          externalLinks: externalAsyncAPIUrl ? [externalLink] : [],
+          schema: schema ? JSON.stringify(schema, null, 4) : '',
+          badges: [],
+        };
+      } 
+      else {
+        return {
+          name: messageName,
+          summary: message.summary(),
+          version: doc.info().version(),
+          producers: operation === 'subscribe' ? [service] : [],
+          consumers: operation === 'publish' ? [service] : [],
+          externalLinks: externalAsyncAPIUrl ? [externalLink] : [],
+          schema: schema ? JSON.stringify(schema, null, 4) : '',
+          badges: [],
+        };
+      }
     });
 
     return data.concat(eventsFromMessages);

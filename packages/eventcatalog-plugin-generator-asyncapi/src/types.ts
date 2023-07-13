@@ -6,4 +6,5 @@ export type AsyncAPIPluginOptions = {
   renderNodeGraph?: boolean;
   domainName?: string;
   domainSummary?: string;
+  viewPoint: "Provider"|"Client"
 };
