@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import mermaid from 'mermaid';
-import { Service, Event } from '@eventcatalog/types';
-import { buildMermaidFlowChartForEvent, buildMermaidFlowChartForService } from '@/lib/graphs';
+import { Service, Event, Domain } from '@eventcatalog/types';
+import { buildMermaidFlowChartForEvent, buildMermaidFlowChartForService, buildMermaidFlowChartForDomain } from '@/lib/graphs';
 
 mermaid.initialize({
   startOnLoad: true,
@@ -25,8 +25,8 @@ mermaid.initialize({
 });
 
 interface MermaidProps {
-  data: Event | Service;
-  source: 'event' | 'service';
+  data: Event | Service | Domain;
+  source: 'event' | 'service' | 'domain';
   rootNodeColor?: string;
   charts?: string[];
 }
@@ -47,12 +47,19 @@ function Mermaid({ data, source = 'event', rootNodeColor, charts }: MermaidProps
       </>
     );
   }
-  const mermaidChart =
-    source === 'event'
-      ? buildMermaidFlowChartForEvent(data as Event, rootNodeColor)
-      : buildMermaidFlowChartForService(data as Service, rootNodeColor);
 
-  return <div className="mermaid">{mermaidChart}</div>;
+  const mermaidChart = function(){
+    switch (source) {
+      case 'event':
+        return buildMermaidFlowChartForEvent(data as Event, rootNodeColor)
+      case 'service':
+        return buildMermaidFlowChartForService(data as Service, rootNodeColor);
+      case 'domain':
+        return buildMermaidFlowChartForDomain(data as Domain, rootNodeColor);
+    }
+  } 
+
+  return <div className="mermaid">{mermaidChart()}</div>;
 }
 
 export default Mermaid;

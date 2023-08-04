@@ -7,11 +7,14 @@ import { Domain } from '@eventcatalog/types';
 
 import getBackgroundColor from '@/utils/random-bg';
 
+import Mermaid from '@/components/Mermaid';
+
 interface DomainGridProps {
   domains: Domain[];
+  showMermaidDiagrams?: boolean;
 }
 
-function DomainGrid({ domains = [] }: DomainGridProps) {
+function DomainGrid({ domains = [], showMermaidDiagrams = false }: DomainGridProps) {
   return (
     <ul className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2">
       {domains.map((domain) => (
@@ -37,6 +40,11 @@ function DomainGrid({ domains = [] }: DomainGridProps) {
                       </span>
                     ))}
                     <div className="text-gray-500 text-xs font-normal mt-2 line-clamp-3">{domain.summary}</div>
+                    {showMermaidDiagrams && (
+                      <div className="h-full items-center flex">
+                        <Mermaid source="domain" data={domain} rootNodeColor={getBackgroundColor(domain.name)} />
+                      </div>
+                    )}
                   </div>
                   <div className="flex space-x-4 text-xs pt-2 relative bottom-0 left-0">
                     <div className=" font-medium text-gray-500">

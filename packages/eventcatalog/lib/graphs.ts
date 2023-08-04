@@ -1,9 +1,18 @@
-import type { Event, Service } from '@eventcatalog/types';
+import type { Event, Service, Domain } from '@eventcatalog/types';
 import getConfig from 'next/config';
+import Mermaid from './mermaid';
 
 const MAX_LENGTH_FOR_NODES = '50';
 const { publicRuntimeConfig: { basePath = '' } = {} } = getConfig();
 
+
+const node = (name, link) => {
+  return {
+    id: truncateNode(name.replace(/ /g, '_')),
+    name: name,
+    link: link
+  }
+}
 const truncateNode = (value) => (value.length > MAX_LENGTH_FOR_NODES ? `${value.substring(0, MAX_LENGTH_FOR_NODES)}...` : value);
 const generateLink = (value, type, domain?) => {
   const url = `/${domain ? `domains/${domain}/` : ''}${type}/${value}`;
@@ -37,23 +46,13 @@ click ${centerNode.id} href "${centerNode.link}" "Go to ${centerNode.name}" _sel
 export const buildMermaidFlowChartForEvent = (
   { name: eventName, producerNames, consumerNames, producers = [], consumers = [], domain }: Event,
   rootNodeColor = '#2563eb'
-) => {
+): String => {
   // Transforms services & event into a graph model
-  const leftNodes = producerNames.map(truncateNode).map((node) => ({
-    id: node.replace(/ /g, '_'),
-    name: node,
-    link: generateLink(node, 'services', producers.find((producer) => producer.name === node)?.domain),
-  }));
-  const rightNodes = consumerNames.map(truncateNode).map((node) => ({
-    id: node.replace(/ /g, '_'),
-    name: node,
-    link: generateLink(node, 'services', consumers.find((consumer) => consumer.name === node)?.domain),
-  }));
-  const centerNode = {
-    id: truncateNode(eventName.replace(/ /g, '_')),
-    name: eventName,
-    link: generateLink(eventName, 'events', domain),
-  };
+  const centerNode = node(eventName, generateLink(eventName, 'events', domain))
+  const leftNodes = producerNames
+    .map((producer) => node(producer, generateLink(producer, 'services', producers.find((item) => item.name === producer)?.domain)))
+  const rightNodes = consumerNames
+    .map((consumer) => node(consumer, generateLink(consumer, 'services', consumers.find((item) => item.name === consumer)?.domain)))
 
   return buildMermaid(centerNode, leftNodes, rightNodes, rootNodeColor);
 };
@@ -68,25 +67,49 @@ export const buildMermaidFlowChartForService = (
   { publishes, subscribes, name: serviceName, domain }: Service,
   rootNodeColor = '#2563eb'
 ) => {
-  // Transforms services & event into a graph model
-  const leftNodes = subscribes
-    .map((event) => ({ event, truncatedName: truncateNode(event.name) }))
-    .map(({ event, truncatedName }) => ({
-      id: truncatedName.replace(/ /g, '_'),
-      name: truncatedName,
-      link: generateLink(event.name, 'events', event.domain),
-    }));
-  const rightNodes = publishes
-    .map((event) => ({ event, truncatedName: truncateNode(event.name) }))
-    .map(({ event, truncatedName }) => ({
-      id: truncatedName.replace(/ /g, '_'),
-      name: truncatedName,
-      link: generateLink(event.name, 'events', event.domain),
-    }));
-  const centerNode = {
-    id: truncateNode(serviceName.replace(/ /g, '_')),
-    name: serviceName,
-    link: generateLink(serviceName, 'services', domain),
-  };
-  return buildMermaid(centerNode, leftNodes, rightNodes, rootNodeColor);
+  const builder = new Mermaid(rootNodeColor);
+
+  const centerNode = node(serviceName, generateLink(serviceName, 'services', domain))
+  subscribes
+    .map((event) => {
+      builder.addProducerFlow(node(event.name, generateLink(event.name, 'events', event.domain)), centerNode)
+    })
+  publishes
+    .map((event) => {
+      builder.addConsumerFlow(centerNode, node(event.name, generateLink(event.name, 'events', event.domain)))
+    })
+  
+  return builder.build();
 };
+
+/**
+ * Builds a graph for a given domain
+ * @param {Domain} domain
+ * @param {string} rootNodeColor of the root node
+ * @returns {string} Mermaid Graph
+ */
+export const buildMermaidFlowChartForDomain = (
+  domain: Domain,
+  rootNodeColor = '#2563eb'
+): String => {
+  const builder = new Mermaid(rootNodeColor);
+
+  domain.services
+    .map((service) => {
+      const serviceNode = node(service.name, generateLink(service.name, 'services', domain))
+
+      service.subscribes
+        .map((event) => {
+          const eventNode = node(event.name, generateLink(event.name, 'events', event.domain))
+          builder.addProducerFlow(eventNode, serviceNode)
+        })
+      service.publishes
+        .map((event) => {
+          const eventNode = node(event.name, generateLink(event.name, 'events', event.domain))
+          builder.addConsumerFlow(serviceNode, eventNode)
+        })
+    })
+
+
+  return builder.build()
+}

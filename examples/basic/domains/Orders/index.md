@@ -18,4 +18,4 @@ badges:
 
 This domain encapsulates everything in our business that has to do with orders. This might be customer orders, order replacement or internal systems that handle order management.
 
-<NodeGraph title="Domain Graph" />
+<Mermaid />

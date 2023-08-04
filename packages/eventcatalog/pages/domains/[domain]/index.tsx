@@ -15,6 +15,7 @@ import getBackgroundColor from '@/utils/random-bg';
 
 import { MarkdownFile } from '@/types/index';
 import NodeGraph from '@/components/Mdx/NodeGraph/NodeGraph';
+import Mermaid from '@/components/Mermaid';
 
 interface DomainsPageProps {
   domain: Domain;
@@ -24,6 +25,12 @@ interface DomainsPageProps {
 
 const getComponents = (domain: Domain) => ({
   Admonition,
+  Mermaid: ({ title, charts }: { title?: string; charts?: string[] }) => (
+    <div className="mx-auto w-full py-10">
+      {title && <h2 className="text-lg font-medium text-gray-900 underline">{title}</h2>}
+      <Mermaid source="domain" data={domain} rootNodeColor={getBackgroundColor(domain.name)} charts={charts} />
+    </div>
+  ),
   NodeGraph: ({
     title,
     maxHeight,
