@@ -52,7 +52,7 @@
     "autoprefixer": "10.4.5",
     "commander": "^8.3.0",
     "cross-env": "^7.0.3",
-    "eslint": "7.32.0",
+    "eslint": "8.46.0",
     "eslint-config-next": "12.0.4",
     "postcss": "^8.3.11",
     "tailwindcss": "^2.2.19",

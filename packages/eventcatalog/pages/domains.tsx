@@ -21,22 +21,25 @@ export default function Page({ domains }: PageProps) {
     {
       id: 'badges',
       name: `Filter by Badges`,
-      options: domains.reduce((p, c) => {
-        if (!c.badges) {
-          return p;
-        }
-        c.badges.forEach((badge) => {
-          const existing = p.map((b) => b.value);
-          if (!existing.includes(badge.content)) {
-            p.push({
-              value: badge.content,
-              label: badge.content,
-              checked: false,
-            });
+      options: domains.reduce(
+        (p, c) => {
+          if (!c.badges) {
+            return p;
           }
-        });
-        return p;
-      }, [] as { value: string; label: string; checked: boolean }[]),
+          c.badges.forEach((badge) => {
+            const existing = p.map((b) => b.value);
+            if (!existing.includes(badge.content)) {
+              p.push({
+                value: badge.content,
+                label: badge.content,
+                checked: false,
+              });
+            }
+          });
+          return p;
+        },
+        [] as { value: string; label: string; checked: boolean }[]
+      ),
     },
   ];
 
