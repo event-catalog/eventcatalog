@@ -41,6 +41,7 @@ module.exports = {
   },
   plugins: ['react-hooks'],
   rules: {
+    'import/order': OFF,
     'import/extensions': OFF,
     'no-use-before-define': OFF,
     'react/jsx-filename-extension': OFF,

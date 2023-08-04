@@ -1,67 +1,67 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`GraphLayout createGraphLayout calculate a graph layout 1`] = `
-Array [
-  Object {
-    "data": Object {
+[
+  {
+    "data": {
       "label": "My Event 2",
       "link": "/docs/events/My Event 2",
       "maxWidth": 150,
       "width": 150,
     },
     "id": "s-My_Event_2",
-    "position": Object {
+    "position": {
       "x": 0,
       "y": 0,
     },
     "sourcePosition": "right",
-    "style": Object {
+    "style": {
       "border": "2px solid #75d7b6",
       "width": undefined,
     },
     "targetPosition": "left",
     "type": "input",
   },
-  Object {
-    "data": Object {
+  {
+    "data": {
       "label": "My Service",
       "link": "/docs/services/My Service",
       "maxWidth": 150,
       "width": 150,
     },
     "id": "c-My_Service",
-    "position": Object {
+    "position": {
       "x": 0,
       "y": 0,
     },
     "sourcePosition": "right",
-    "style": Object {
+    "style": {
       "border": "2px solid #2563eb",
       "width": undefined,
     },
     "targetPosition": "left",
   },
-  Object {
-    "data": Object {
+  {
+    "data": {
       "label": "My Event",
       "link": "/docs/events/My Event",
       "maxWidth": 150,
       "width": 150,
     },
     "id": "p-My_Event",
-    "position": Object {
+    "position": {
       "x": 0,
       "y": 0,
     },
     "sourcePosition": "right",
-    "style": Object {
+    "style": {
       "border": "2px solid #818cf8",
       "width": undefined,
     },
     "targetPosition": "left",
     "type": "output",
   },
-  Object {
+  {
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "ecp-My_Event",
@@ -69,7 +69,7 @@ Array [
     "target": "p-My_Event",
     "type": "smoothstep",
   },
-  Object {
+  {
     "animated": true,
     "arrowHeadType": "arrowclosed",
     "id": "esc-My_Event_2",

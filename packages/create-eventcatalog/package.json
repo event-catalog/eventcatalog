@@ -57,7 +57,7 @@
     "eslint-plugin-security": "^1.4.0",
     "eslint-plugin-sonarjs": "^0.5.0",
     "got": "10.7.0",
-    "jest": "^25.5.0",
+    "jest": "^29.6.2",
     "jsdoc-to-markdown": "^5.0.0",
     "markdown-toc": "^1.2.0",
     "prompts": "2.1.0",
