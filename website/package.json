@@ -20,7 +20,7 @@
     "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
     "@mdx-js/react": "^1.6.21",
-    "@svgr/webpack": "^5.5.0",
+    "@svgr/webpack": "^8.0.1",
     "clsx": "^1.1.1",
     "file-loader": "^6.2.0",
     "my-loaders": "file:plugins/my-loaders",
