@@ -82,7 +82,7 @@ export default function createGraphLayout(elements: Elements, isHorizontal: bool
 
       // This is due to an issue with ReactFlow giving errors when we set the width in the styles.
       if (element.style.width) {
-        if (element.style.width <= nodeDefaultWidth) {
+        if (Number(element.style.width) <= nodeDefaultWidth) {
           element.style.width = undefined;
         }
       }
