@@ -17,6 +17,8 @@ This will output two directories
 - `out` - Your EventCatalog as Static HTML (recommended to use)
 - `.next` - If you wish to deploy to NextJS (NextJS outputs this by default, recommended to use the `out` directory)
 
+If you intend to deploy your catalog not in root of your domain (e.g. *www.abc.com/my-catalog/*) you need to set `basePath: '/my-catalog'` property in the
+[`eventcatalog.config.js`](api/eventcatalog.config.js.md) otherwise the output will not look like you would expect.
 
 ### Hosting Options
 
