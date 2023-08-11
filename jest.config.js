@@ -12,7 +12,9 @@ const ignorePatterns = [
 module.exports = {
   rootDir: path.resolve(__dirname),
   verbose: true,
-  testURL: 'http://localhost/',
+  testEnvironmentOptions: {
+    url: 'http://localhost/',
+  },
   testEnvironment: 'node',
   testPathIgnorePatterns: ignorePatterns,
   coveragePathIgnorePatterns: ignorePatterns,
