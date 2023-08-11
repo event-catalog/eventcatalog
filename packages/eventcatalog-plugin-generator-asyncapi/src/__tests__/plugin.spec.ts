@@ -37,7 +37,6 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
   });
 
   beforeEach(() => {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
 
