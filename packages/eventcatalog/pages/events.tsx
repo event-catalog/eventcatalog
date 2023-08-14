@@ -238,22 +238,24 @@ export default function Page({ events, services, domains }: PageProps) {
                     </h3>
                     <div className="pt-6">
                       <div className="space-y-4">
-                        {section.options.map((option, optionIdx) => (
-                          <div key={option.value} className="flex items-center">
-                            <input
-                              id={`filter-${section.id}-${optionIdx}`}
-                              name={`${section.id}[]`}
-                              defaultValue={option.value}
-                              type="checkbox"
-                              onChange={(event) => handleFilterSelection(option, section.id, event)}
-                              defaultChecked={option.checked}
-                              className="h-4 w-4 border-gray-300 rounded text-gray-600 focus:ring-gray-500"
-                            />
-                            <label htmlFor={`filter-${section.id}-${optionIdx}`} className="ml-3 text-sm text-gray-600">
-                              {option.label}
-                            </label>
-                          </div>
-                        ))}
+                        {section.options
+                          .sort((a, b) => a.value.localeCompare(b.value))
+                          .map((option, optionIdx) => (
+                            <div key={option.value} className="flex items-center">
+                              <input
+                                id={`filter-${section.id}-${optionIdx}`}
+                                name={`${section.id}[]`}
+                                defaultValue={option.value}
+                                type="checkbox"
+                                onChange={(event) => handleFilterSelection(option, section.id, event)}
+                                defaultChecked={option.checked}
+                                className="h-4 w-4 border-gray-300 rounded text-gray-600 focus:ring-gray-500"
+                              />
+                              <label htmlFor={`filter-${section.id}-${optionIdx}`} className="ml-3 text-sm text-gray-600">
+                                {option.label}
+                              </label>
+                            </div>
+                          ))}
                       </div>
                     </div>
                   </div>
