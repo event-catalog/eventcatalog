@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 1.0.1
+
+### Patch Changes
+
+- [`a83e9e5`](https://github.com/boyney123/eventcatalog/commit/a83e9e5e7922689b6ac3326c680a84b9ce582c2a) [#415](https://github.com/boyney123/eventcatalog/pull/415) Thanks [@rafaelrenanpacheco](https://github.com/rafaelrenanpacheco)! - feat: sort sidebar filters
+
 ## 1.0.0
 
 ### Major Changes
