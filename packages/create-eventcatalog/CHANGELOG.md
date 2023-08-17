@@ -1,5 +1,11 @@
 # @eventcatalog/create-eventcatalog
 
+## 1.0.2
+
+### Patch Changes
+
+- [`6a40cb4`](https://github.com/boyney123/eventcatalog/commit/6a40cb465d1952049e002346b111e4d5b5742b53) [#421](https://github.com/boyney123/eventcatalog/pull/421) Thanks [@boyney123](https://github.com/boyney123)! - Fixing docker file for eventcatalog
+
 ## 1.0.1
 
 ### Patch Changes
