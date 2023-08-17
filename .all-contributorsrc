@@ -266,6 +266,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "aholbreich",
+      "name": "Alexander Holbreich",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16252784?v=4",
+      "profile": "https://alexander.holbreich.org/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
