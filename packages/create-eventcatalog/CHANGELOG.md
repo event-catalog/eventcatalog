@@ -1,5 +1,11 @@
 # @eventcatalog/create-eventcatalog
 
+## 1.0.1
+
+### Patch Changes
+
+- [`c9d3e09`](https://github.com/boyney123/eventcatalog/commit/c9d3e09c2330d04f8ae69d204add7752b5b59ec7) [#418](https://github.com/boyney123/eventcatalog/pull/418) Thanks [@boyney123](https://github.com/boyney123)! - fix: issue with create-catalog cli
+
 ## 1.0.0
 
 ### Major Changes
