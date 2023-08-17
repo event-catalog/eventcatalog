@@ -28,7 +28,7 @@ npx @eventcatalog/create-eventcatalog@latest my-catalog
 
 Assuming you named your site `my-catalog`, you will see the following files generated under a new directory `my-catalog/`:
 
-```sh
+```bash
 my-catalog
 ├── services
 │   ├── Basket Service
