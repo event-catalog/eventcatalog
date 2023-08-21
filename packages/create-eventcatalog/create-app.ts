@@ -169,7 +169,7 @@ export async function createApp({
         test: 'echo "Error: no test specified" && exit 1',
       },
       devDependencies: {
-        tailwindcss: '^2.2.19',
+        tailwindcss: '^3.3.3',
         typescript: '^4.4.4',
         postcss: '^8.3.11',
         'cross-env': '^7.0.3',

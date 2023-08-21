@@ -6,7 +6,7 @@
 [![MIT License][license-badge]][license]
 [![PRs Welcome][prs-badge]][prs]
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-24-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-28-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![Watch on GitHub][github-watch-badge]][github-watch]
@@ -155,6 +155,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/frenkan"><img src="https://avatars.githubusercontent.com/u/859840?v=4?s=100" width="100px;" alt="Fredrik Johansson"/><br /><sub><b>Fredrik Johansson</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=frenkan" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://gaddam1987.github.io/"><img src="https://avatars.githubusercontent.com/u/2576375?v=4?s=100" width="100px;" alt="Naresh Kumar Reddy Gaddam"/><br /><sub><b>Naresh Kumar Reddy Gaddam</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=gaddam1987" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/dremonkey"><img src="https://avatars.githubusercontent.com/u/480159?v=4?s=100" width="100px;" alt="Andre Deutmeyer"/><br /><sub><b>Andre Deutmeyer</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=dremonkey" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/pebbz"><img src="https://avatars.githubusercontent.com/u/1685464?v=4?s=100" width="100px;" alt="Pebbz"/><br /><sub><b>Pebbz</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=pebbz" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://alexander.holbreich.org/"><img src="https://avatars.githubusercontent.com/u/16252784?v=4?s=100" width="100px;" alt="Alexander Holbreich"/><br /><sub><b>Alexander Holbreich</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=aholbreich" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>

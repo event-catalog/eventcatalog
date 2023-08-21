@@ -83,7 +83,6 @@ async function run(): Promise<void> {
   if (!valid) {
     console.error(`Could not create a project called ${chalk.red(`"${projectName}"`)} because of npm naming restrictions:`);
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     problems!.forEach((p) => console.error(`    ${chalk.red.bold('*')} ${p}`));
     process.exit(1);
   }

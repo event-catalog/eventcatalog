@@ -28,7 +28,7 @@ npx @eventcatalog/create-eventcatalog@latest my-catalog
 
 Assuming you named your site `my-catalog`, you will see the following files generated under a new directory `my-catalog/`:
 
-```sh
+```bash
 my-catalog
 ├── services
 │   ├── Basket Service
@@ -95,7 +95,7 @@ EventCatlaog uses NextJS under the hood. To build the website run the following 
 npm run build
 ```
 
-and contents will be generated within the `/build` directory. EventCatalog utilises a server to get access to files and much more....
+and contents will be generated within the `/out` directory. EventCatalog utilises a server to get access to files and much more...
 
 This means you will need to run EventCatalog on a server.
 

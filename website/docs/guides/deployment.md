@@ -8,7 +8,7 @@ EventCatalog exports your catalog to static HTML which means **you can deploy yo
 
 To build your Catalog you will need to run:
 
-```sh
+```bash
 npm run build
 ```
 
@@ -17,6 +17,8 @@ This will output two directories
 - `out` - Your EventCatalog as Static HTML (recommended to use)
 - `.next` - If you wish to deploy to NextJS (NextJS outputs this by default, recommended to use the `out` directory)
 
+If you intend to deploy your catalog not in root of your domain (e.g. *www.abc.com/my-catalog/*) you need to set `basePath: '/my-catalog'` property in the
+[`eventcatalog.config.js`](api/eventcatalog.config.js.md) otherwise the output will not look like you would expect.
 
 ### Hosting Options
 
@@ -24,9 +26,24 @@ You can host EventCatalog anywhere you want, as it's just static content.
 
 Here are some guides and places you can host static content
 
+- [Host with Docker](#host-with-docker)
 - [Host in AWS S3](https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html)
 - [Using Netlify to host Static Content](https://www.netlify.com/blog/2016/10/27/a-step-by-step-guide-deploying-a-static-site-or-single-page-app/)
 - [Deploy to NextJS](https://nextjs.org/docs/deployment)
+
+## Host with Docker
+
+EventCatalog comes with a [DockerFile](https://github.com/boyney123/eventcatalog/blob/master/packages/create-eventcatalog/templates/default/Dockerfile), you can build the image and deploy the container. The container exposes ports `3000`.
+
+To build the docker container you need to run:
+
+```bash
+# Builds the container
+docker build . eventcatalog
+
+# Runs the container locally
+docker run -p 3000:3000 -it eventcatalog
+```
 
 ## Community blog posts
 

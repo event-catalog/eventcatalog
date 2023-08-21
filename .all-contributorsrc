@@ -257,6 +257,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "pebbz",
+      "name": "Pebbz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1685464?v=4",
+      "profile": "https://github.com/pebbz",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "aholbreich",
+      "name": "Alexander Holbreich",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16252784?v=4",
+      "profile": "https://alexander.holbreich.org/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,

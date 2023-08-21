@@ -24,7 +24,7 @@ To version your events you will need to create a new folder within your `event` 
 
 Let's look at the directory structure of what a versioned event looks like
 
-```sh
+```bash
 my-catalog
 ├── events
 │   ├── UserCreated

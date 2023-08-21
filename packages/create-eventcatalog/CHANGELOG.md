@@ -1,5 +1,23 @@
 # @eventcatalog/create-eventcatalog
 
+## 1.0.2
+
+### Patch Changes
+
+- [`6a40cb4`](https://github.com/boyney123/eventcatalog/commit/6a40cb465d1952049e002346b111e4d5b5742b53) [#421](https://github.com/boyney123/eventcatalog/pull/421) Thanks [@boyney123](https://github.com/boyney123)! - Fixing docker file for eventcatalog
+
+## 1.0.1
+
+### Patch Changes
+
+- [`c9d3e09`](https://github.com/boyney123/eventcatalog/commit/c9d3e09c2330d04f8ae69d204add7752b5b59ec7) [#418](https://github.com/boyney123/eventcatalog/pull/418) Thanks [@boyney123](https://github.com/boyney123)! - fix: issue with create-catalog cli
+
+## 1.0.0
+
+### Major Changes
+
+- [`24634aa`](https://github.com/boyney123/eventcatalog/commit/24634aa00d14c05b56cf9fd6e5e7e7dcdd943b07) [#409](https://github.com/boyney123/eventcatalog/pull/409) Thanks [@pebbz](https://github.com/pebbz)! - FIX-276 - Fix bug 276 by upgrading packages
+
 ## 0.2.5
 
 ### Patch Changes

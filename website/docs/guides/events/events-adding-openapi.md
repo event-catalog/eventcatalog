@@ -40,6 +40,14 @@ OpenAPI schema for the event can be found below.
 
 ```
 
+### Props for Component
+
+The `<OpenAPI/>` component uses [swagger-ui-react](https://www.npmjs.com/package/swagger-ui-react) under the hood. If you want to configure your component you can pass these props into your component.
+
+```mdx title="Example of passing through props from swagger-ui-react"
+<OpenAPI docExpansion="full"  />
+```
+
 ### Example Output
 
 ![OpenAPI Example](/img/guides/mdx/openapi-full.jpeg)

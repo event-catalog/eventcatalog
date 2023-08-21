@@ -1,5 +1,17 @@
 # @eventcatalog/core
 
+## 1.0.1
+
+### Patch Changes
+
+- [`a83e9e5`](https://github.com/boyney123/eventcatalog/commit/a83e9e5e7922689b6ac3326c680a84b9ce582c2a) [#415](https://github.com/boyney123/eventcatalog/pull/415) Thanks [@rafaelrenanpacheco](https://github.com/rafaelrenanpacheco)! - feat: sort sidebar filters
+
+## 1.0.0
+
+### Major Changes
+
+- [`24634aa`](https://github.com/boyney123/eventcatalog/commit/24634aa00d14c05b56cf9fd6e5e7e7dcdd943b07) [#409](https://github.com/boyney123/eventcatalog/pull/409) Thanks [@pebbz](https://github.com/pebbz)! - FIX-276 - Fix bug 276 by upgrading packages
+
 ## 0.6.12
 
 ### Patch Changes
