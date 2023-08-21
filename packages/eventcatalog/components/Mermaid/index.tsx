@@ -56,7 +56,11 @@ function Mermaid({ data, source = 'event', rootNodeColor, charts }: MermaidProps
         return buildMermaidFlowChartForService(data as Service, rootNodeColor);
       case 'domain':
         return buildMermaidFlowChartForDomain(data as Domain, rootNodeColor);
+      default: 
+        break;
     }
+
+    return ''
   } 
 
   return <div className="mermaid">{mermaidChart()}</div>;

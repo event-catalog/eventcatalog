@@ -1,13 +1,14 @@
 export default class Mermaid {
-  script: String
-  rootNodeColor: String
+  script: string
+
+  rootNodeColor: string
 
   constructor(rootNodeColor) {
     this.script = ''
     this.rootNodeColor = rootNodeColor
   }
 
-  build(): String {
+  build(): string {
     return `flowchart LR\n
       ${this.script}
       classDef event stroke:${this.rootNodeColor},stroke-width: 4px;\n
@@ -16,12 +17,22 @@ export default class Mermaid {
     `
   }
 
+  /**
+   * add Producer
+   * @param left 
+   * @param right 
+  */
   addProducerFlow(left, right): Mermaid {
     this.script += `l-${left.id}[${left.name}]:::producer-->${right.id}[${right.name}]:::event\n`
     return this
   }
 
-  addConsumerFlow(left, right): Mermaid{
+  /**
+   * add Consumer
+   * @param left 
+   * @param right 
+  */
+  addConsumerFlow(left, right): Mermaid {
     this.script += `${left.id}[${left.name}]:::event-->r-${right.id}[${right.name}]:::consumer\n`
     return this
   }
