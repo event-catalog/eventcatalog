@@ -36,9 +36,9 @@ function MermaidComponent({ title, service, charts }: { title?: string; service:
 
 const getComponents = (service: Service) => ({
   Admonition,
-  AsyncAPI: () => {
+  AsyncAPI: ({ url }: { url?: string }) => {
     if (!service.asyncAPISpec) return null;
-    return <AsyncApiSpec spec={service.asyncAPISpec} />;
+    return <AsyncApiSpec spec={service.asyncAPISpec} url={url} />;
   },
   OpenAPI: ({ url, ...props }: { url?: string }) => {
     if (!service.openAPISpec) return null;
