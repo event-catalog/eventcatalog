@@ -177,6 +177,11 @@
     call-me-maybe "^1.0.1"
     js-yaml "^4.1.0"
 
+"@asyncapi/avro-schema-parser@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@asyncapi/avro-schema-parser/-/avro-schema-parser-0.3.0.tgz#6922acc559ef999c57e81297d78ffe680fc92b3c"
+  integrity sha512-gWAqS2CKxbChdX8hZY+5EYQl6atP8FTSBvoG5mGGQ89XUoNdlLX14lsvbgvBnDj5sSwqfs+b5Mh5PUZMR/8maA==
+
 "@asyncapi/avro-schema-parser@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@asyncapi/avro-schema-parser/-/avro-schema-parser-1.1.0.tgz#5d0491b53331f0748d8f6e8c33781c27cafe0f30"
@@ -184,7 +189,7 @@
   dependencies:
     avsc "^5.7.3"
 
-"@asyncapi/openapi-schema-parser@^2.0.1":
+"@asyncapi/openapi-schema-parser@^2.0.0":
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/@asyncapi/openapi-schema-parser/-/openapi-schema-parser-2.0.3.tgz#fc2940693a103e2429462caf4e6cebab750550c6"
   integrity sha512-o9fvibjx2n3L2SKNlWUQ59CxO2x2BKhbHxh81U39NMLgowN/avk1wfxkMvzL3G9pg4FlgCdcayDhu4+TzDX47A==
@@ -192,7 +197,7 @@
     "@openapi-contrib/openapi-schema-to-json-schema" "~3.2.0"
     conventional-changelog-conventionalcommits "^5.0.0"
 
-"@asyncapi/parser@^1.13.0", "@asyncapi/parser@^1.18.0":
+"@asyncapi/parser@^1.13.0", "@asyncapi/parser@^1.14.0":
   version "1.18.1"
   resolved "https://registry.yarnpkg.com/@asyncapi/parser/-/parser-1.18.1.tgz#5185754eb0fdf2a481a260e96766a443fcd4b391"
   integrity sha512-7sU9DajLV+vA2vShTYmD5lbtbTY6TOcGxB4Z4IcpRp8x5pejOsN32iU05eIYCnuamsi5SMscFxoi6fIO2vPK3Q==
@@ -207,28 +212,19 @@
     node-fetch "^2.6.0"
     tiny-merge-patch "^0.1.2"
 
-"@asyncapi/protobuf-schema-parser@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@asyncapi/protobuf-schema-parser/-/protobuf-schema-parser-1.0.0.tgz#9cafc9cd5092fef392b0b4838a9ff706532cf2ad"
-  integrity sha512-eLfFhV6L+idW83LUspD6pzVwp2Zz0t3oW7kZD+USynmKZMkXnLmY7ON0q82Y5k0KZ34itoyyKu7YBYe4JxIZsw==
+"@asyncapi/react-component@1.0.0-next.35":
+  version "1.0.0-next.35"
+  resolved "https://registry.yarnpkg.com/@asyncapi/react-component/-/react-component-1.0.0-next.35.tgz#6a66eaf188779592ae407dea0419b0044e003730"
+  integrity sha512-hcZeV+K7chtc10RuXfEGy1j7CjNKFPTOzfygvFrRT5vBpsvUYYkS66uxU8NnTI61ubdgnLBHX/n7m2/po5htBg==
   dependencies:
-    conventional-changelog-conventionalcommits "^5.0.0"
-    protocol-buffers-schema "^3.6.0"
-
-"@asyncapi/react-component@^1.0.0-next.35":
-  version "1.0.0-next.48"
-  resolved "https://registry.yarnpkg.com/@asyncapi/react-component/-/react-component-1.0.0-next.48.tgz#050c3c949a7601b29ccbac5e768d63da90b9908c"
-  integrity sha512-cF/tBMF7irQeImV5hqu8Ksm66ZY/+y5DsXpfLrOjTaZTVj90aR7Naj5OKIISg0jsW5modMAUAtAXO0agey8kig==
-  dependencies:
-    "@asyncapi/avro-schema-parser" "^1.1.0"
-    "@asyncapi/openapi-schema-parser" "^2.0.1"
-    "@asyncapi/parser" "^1.18.0"
-    "@asyncapi/protobuf-schema-parser" "^1.0.0"
+    "@asyncapi/avro-schema-parser" "^0.3.0"
+    "@asyncapi/openapi-schema-parser" "^2.0.0"
+    "@asyncapi/parser" "^1.14.0"
     highlight.js "^10.7.2"
     isomorphic-dompurify "^0.13.0"
-    marked "^4.0.14"
-    openapi-sampler "^1.2.1"
-    use-resize-observer "^8.0.0"
+    marked "^4.0.10"
+    openapi-sampler "^1.1.0"
+    use-resize-observer "^7.0.0"
 
 "@asyncapi/specs@^4.1.1":
   version "4.3.1"
@@ -14739,7 +14735,7 @@ marked@^2.0.0:
   resolved "https://registry.yarnpkg.com/marked/-/marked-2.1.3.tgz#bd017cef6431724fd4b27e0657f5ceb14bff3753"
   integrity sha512-/Q+7MGzaETqifOMWYEA7HVMaZb4XbcRfaOzcSsHZEith83KGlvaSG33u0SKu89Mj5h+T8V2hM+8O45Qc5XTgwA==
 
-marked@^4.0.10, marked@^4.0.14:
+marked@^4.0.10:
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/marked/-/marked-4.3.0.tgz#796362821b019f734054582038b116481b456cf3"
   integrity sha512-PRsaiG84bK+AMvxziE/lCFss8juXjNaWzVbN5tXAm4XjeaS9NAHhop+PjQxz2A9h8Q4M/xGmzP8vqNwy6JeK0A==
@@ -16900,7 +16896,7 @@ open@^9.1.0:
     is-inside-container "^1.0.0"
     is-wsl "^2.2.0"
 
-openapi-sampler@^1.2.1:
+openapi-sampler@^1.1.0:
   version "1.3.1"
   resolved "https://registry.yarnpkg.com/openapi-sampler/-/openapi-sampler-1.3.1.tgz#eebb2a1048f830cc277398bc8022b415f887e859"
   integrity sha512-Ert9mvc2tLPmmInwSyGZS+v4Ogu9/YoZuq9oP3EdUklg2cad6+IGndP9yqJJwbgdXwZibiq5fpv6vYujchdJFg==
@@ -18323,11 +18319,6 @@ proto-list@~1.2.1:
   version "1.2.4"
   resolved "https://registry.yarnpkg.com/proto-list/-/proto-list-1.2.4.tgz#212d5bfe1318306a420f6402b8e26ff39647a849"
   integrity sha512-vtK/94akxsTMhe0/cbfpR+syPuszcuwhqVjJq26CuNDgFGj682oRBXOP5MJpv2r7JtE8MsiepGIqvvOTBwn2vA==
-
-protocol-buffers-schema@^3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/protocol-buffers-schema/-/protocol-buffers-schema-3.6.0.tgz#77bc75a48b2ff142c1ad5b5b90c94cd0fa2efd03"
-  integrity sha512-TdDRD+/QNdrCGCE7v8340QyuXd4kIWIgapsE2+n/SaGiSSbomYl4TjHlvIoCWRpE7wFt02EpB35VVA2ImcBVqw==
 
 protocols@^2.0.0, protocols@^2.0.1:
   version "2.0.1"
@@ -22129,10 +22120,10 @@ use-latest@^1.2.1:
   dependencies:
     use-isomorphic-layout-effect "^1.1.1"
 
-use-resize-observer@^8.0.0:
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/use-resize-observer/-/use-resize-observer-8.0.0.tgz#69bd80c1ddd94f3758563fe107efb25fed85067a"
-  integrity sha512-n0iKSeiQpJCyaFh5JA0qsVLBIovsF4EIIR1G6XiBwKJN66ZrD4Oj62bjcuTAATPKiSp6an/2UZZxCf/67fk3sQ==
+use-resize-observer@^7.0.0:
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/use-resize-observer/-/use-resize-observer-7.1.0.tgz#709ea7540fbe0a60ceae41ee2bef933d7782e4d4"
+  integrity sha512-6DGWOnZpjAGP/MtslGg7OunZptyueQduMi0i8DC5nVKXtJ8Bdt0wR/1tSxugFRndzYCi/jtD+SlNs5PK8ijvXQ==
   dependencies:
     "@juggle/resize-observer" "^3.3.1"
 
