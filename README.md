@@ -6,7 +6,7 @@
 [![MIT License][license-badge]][license]
 [![PRs Welcome][prs-badge]][prs]
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-29-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-30-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![Watch on GitHub][github-watch-badge]][github-watch]
@@ -160,6 +160,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://www.josedelgadoing.com/"><img src="https://avatars.githubusercontent.com/u/30370263?v=4?s=100" width="100px;" alt="José Delgado"/><br /><sub><b>José Delgado</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=jslim" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jlee-spt"><img src="https://avatars.githubusercontent.com/u/135801616?v=4?s=100" width="100px;" alt="jlee-spt"/><br /><sub><b>jlee-spt</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=jlee-spt" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
