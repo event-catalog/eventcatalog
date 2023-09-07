@@ -275,6 +275,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "jslim",
+      "name": "José Delgado",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30370263?v=4",
+      "profile": "https://www.josedelgadoing.com/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
