@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 1.0.5
+
+### Patch Changes
+
+- [`4834e9f`](https://github.com/boyney123/eventcatalog/commit/4834e9f4d1761615e7e5d4740e98c66c00fdc99e) [#438](https://github.com/boyney123/eventcatalog/pull/438) Thanks [@boyney123](https://github.com/boyney123)! - fix: set key on rendered serices, no longer duplicates them
+
 ## 1.0.4
 
 ### Patch Changes
