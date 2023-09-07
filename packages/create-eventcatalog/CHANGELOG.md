@@ -1,5 +1,11 @@
 # @eventcatalog/create-eventcatalog
 
+## 1.0.3
+
+### Patch Changes
+
+- [`40a6221`](https://github.com/boyney123/eventcatalog/commit/40a62216f4d9a2d4bfba525bd1f9c92cbd63ecdb) [#414](https://github.com/boyney123/eventcatalog/pull/414) Thanks [@pebbz](https://github.com/pebbz)! - chore(core) - FIX-408 - upgrade typescript
+
 ## 1.0.2
 
 ### Patch Changes
