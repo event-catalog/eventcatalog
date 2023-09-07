@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 1.0.2
+
+### Patch Changes
+
+- [`69298ce`](https://github.com/boyney123/eventcatalog/commit/69298ce8b46b77c2662ab789af7c00295cb7fe06) [#432](https://github.com/boyney123/eventcatalog/pull/432) Thanks [@boyney123](https://github.com/boyney123)! - chore - locking down Asyncapi version
+
+- [`bfdd189`](https://github.com/boyney123/eventcatalog/commit/bfdd18917d3ec4e51a78dd6c4c93c445e6430e67) [#431](https://github.com/boyney123/eventcatalog/pull/431) Thanks [@jslim](https://github.com/jslim)! - Chore: including fs false by default
+
 ## 1.0.1
 
 ### Patch Changes
