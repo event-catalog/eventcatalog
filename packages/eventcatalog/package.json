@@ -61,7 +61,6 @@
   },
   "browser": {
     "fs": false,
-    "path": false,
     "os": false
   },
   "gitHead": "5f82ce7f267e9b3ec771bbd3cc81359ed0a8fd18"
