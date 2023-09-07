@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 1.0.3
+
+### Patch Changes
+
+- [`9476d74`](https://github.com/boyney123/eventcatalog/commit/9476d74af8fc3af8f1aaceb4e6def77e61c5e17f) [#428](https://github.com/boyney123/eventcatalog/pull/428) Thanks [@jlee-spt](https://github.com/jlee-spt)! - feat: Allow fetching of remote asyncapi docs
+
 ## 1.0.2
 
 ### Patch Changes
