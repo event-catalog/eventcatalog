@@ -10,7 +10,7 @@ const config = {
 };
 
 interface AsyncApiSpecProps {
-  spec: string;
+  spec?: string;
   url?: string;
 }
 
