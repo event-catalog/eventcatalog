@@ -18,11 +18,11 @@ interface ServiceGridProps {
 function ServiceGrid({ services = [], showMermaidDiagrams = false, showNodeGraphs = false }: ServiceGridProps) {
   return (
     <ul className="mt-3 grid grid-cols-1 gap-5 md:grid-cols-2">
-      {services.map((service) => {
+      {services.map((service, index) => {
         const { draft: isDraft, domain } = service;
         const serviceUrl = domain ? `/domains/${domain}/services/${service.name}` : `/services/${service.name}`;
         return (
-          <li key={service.name} className="flex">
+          <li key={`${service.name}-${index}`} className="flex">
             <Link href={serviceUrl}>
               <a className="flex shadow-sm w-full">
                 <div
