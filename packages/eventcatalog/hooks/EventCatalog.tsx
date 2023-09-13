@@ -40,7 +40,7 @@ export const useUrl = () => {
   };
 };
 
-export const useUsers = () =>{
+export const useUsers = () => {
   const config = useConfig();
 
   const getUsersArray = (): User[] => {
@@ -51,4 +51,4 @@ export const useUsers = () =>{
   return {
     getUsersArray,
   };
-}
+};

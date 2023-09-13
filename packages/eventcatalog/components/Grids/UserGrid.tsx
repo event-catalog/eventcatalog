@@ -1,7 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
 
-
 import { User } from '@eventcatalog/types';
 
 import getBackgroundColor from '@/utils/random-bg';
