@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "@asyncapi/avro-schema-parser": "^1.1.0",
-    "@asyncapi/parser": "^1.13.0",
+    "@asyncapi/parser": "^1.18.1",
     "@eventcatalog/utils": "^0.2.2",
     "chalk": "^4.1.2",
     "front-matter": "^4.0.2",

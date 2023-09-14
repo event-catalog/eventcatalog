@@ -197,7 +197,7 @@
     "@openapi-contrib/openapi-schema-to-json-schema" "~3.2.0"
     conventional-changelog-conventionalcommits "^5.0.0"
 
-"@asyncapi/parser@^1.13.0", "@asyncapi/parser@^1.14.0":
+"@asyncapi/parser@^1.14.0", "@asyncapi/parser@^1.18.1":
   version "1.18.1"
   resolved "https://registry.yarnpkg.com/@asyncapi/parser/-/parser-1.18.1.tgz#5185754eb0fdf2a481a260e96766a443fcd4b391"
   integrity sha512-7sU9DajLV+vA2vShTYmD5lbtbTY6TOcGxB4Z4IcpRp8x5pejOsN32iU05eIYCnuamsi5SMscFxoi6fIO2vPK3Q==
