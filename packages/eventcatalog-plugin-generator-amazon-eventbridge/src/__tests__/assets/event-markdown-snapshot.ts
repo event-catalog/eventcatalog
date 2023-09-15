@@ -18,10 +18,12 @@ externalLinks:
     - {label: 'View Schema AWS Console', url: 'https://eu-west-1.console.aws.amazon.com/events/home?region=eu-west-1#/registries/discovered-schemas/schemas/users@UserCreated'}
 badges: []
 owners: []
+producers: []
+consumers: []
 ---
 ## Matched rules for event
 
-The event \`users@UserCreated\` has **2** matched rules on the event bus **'test-event-bus'**.  
+The event \`users@UserCreated\` has **2** matched rules on the event bus **'test-event-bus'**.
 
 | Rules | Number Of Targets | Targets | Metrics |
 | --- | ------ | ----------- | ----------- |
@@ -44,7 +46,7 @@ usercreated-to-hello-world{{usercreated-to-hello-world}}:::rule-- fa:fa-cloud se
 <Schema />
 
 <EventExamples />
-    
+
     `;
 
 export default {

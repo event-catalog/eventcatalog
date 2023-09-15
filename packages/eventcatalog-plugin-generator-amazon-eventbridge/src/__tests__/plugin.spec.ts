@@ -168,12 +168,14 @@ describe('eventcatalog-plugin-generator-amazon-eventbridge', () => {
         expect(fs.existsSync(path.join(eventPath, 'versioned', '0.1', 'schema.json'))).toEqual(true);
       });
 
-      it('when new events are created in the catalog the `owners` from the previous version of the event is used in the new event metdata', async () => {
+      it('when new events are created in the catalog the `owners`, `producers` and `consumers` from the previous version of the event is used in the new event metdata', async () => {
         const oldEventFromAWSAlreadyInCatalog = {
           name: 'users@UserCreated',
           version: '0.1',
           summary: 'really old version of this event',
           owners: ['dboyne', 'tSmith'],
+          producers: ['Service A'],
+          consumers: ['Service B'],
         };
 
         const eventPath = path.join(process.env.PROJECT_DIR, 'events', 'users@UserCreated');
@@ -196,6 +198,8 @@ describe('eventcatalog-plugin-generator-amazon-eventbridge', () => {
 
         expect(newEventData.version).toEqual('1');
         expect(newEventData.owners).toEqual(['dboyne', 'tSmith']);
+        expect(newEventData.producers).toEqual(['Service A']);
+        expect(newEventData.consumers).toEqual(['Service B']);
       });
     });
 
