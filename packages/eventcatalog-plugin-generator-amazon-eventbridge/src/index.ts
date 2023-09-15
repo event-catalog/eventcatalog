@@ -77,6 +77,8 @@ export default async (_: LoadContext, options: PluginOptions) => {
       },
       frontMatterToCopyToNewVersions: {
         owners: true,
+        producers: true,
+        consumers: true,
       },
       versionExistingEvent: versionEvents && versionChangedFromPreviousEvent,
       useMarkdownContentFromExistingEvent: true,
@@ -88,9 +90,9 @@ export default async (_: LoadContext, options: PluginOptions) => {
   });
 
   console.log(
-    chalk.green(`  
-  Succesfully parsed "${schemas.length}" schemas from "${eventBusName}" event bus. 
-  
+    chalk.green(`
+  Succesfully parsed "${schemas.length}" schemas from "${eventBusName}" event bus.
+
   Generated ${events.length} events for EventCatalog.
 `)
   );
