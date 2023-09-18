@@ -18,6 +18,14 @@ module.exports = {
     // found in the public dir
     src: 'logo.svg',
   },
+  headerLinks: [
+    { label: 'Events', href: '/events'},
+    { label: 'Services', href: '/services' },
+    { label: 'Domains', href: '/domains'},
+    { label: 'Users', href: '/users'},
+    { label: 'Visualiser', href: '/visualiser' },
+    { label: '3D Node Graph', href: '/overview' },
+  ],
   footerLinks: [
     { label: 'Events', href: '/events' },
     { label: 'Services', href: '/services' },

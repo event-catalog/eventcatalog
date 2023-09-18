@@ -39,3 +39,16 @@ export const useUrl = () => {
     hasEditUrl: !!config.editUrl,
   };
 };
+
+export const useUsers = () => {
+  const config = useConfig();
+
+  const getUsersArray = (): User[] => {
+    const users = config.users || [];
+    return users;
+  };
+
+  return {
+    getUsersArray,
+  };
+};
