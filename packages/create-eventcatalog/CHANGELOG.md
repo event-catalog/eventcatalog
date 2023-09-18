@@ -1,5 +1,11 @@
 # @eventcatalog/create-eventcatalog
 
+## 1.0.4
+
+### Patch Changes
+
+- [`fc2dcd5`](https://github.com/boyney123/eventcatalog/commit/fc2dcd5acc09ea8e03e796537e6b8597f08d5546) [#440](https://github.com/boyney123/eventcatalog/pull/440) Thanks [@rtoro](https://github.com/rtoro)! - feat - added new page for users
+
 ## 1.0.3
 
 ### Patch Changes
