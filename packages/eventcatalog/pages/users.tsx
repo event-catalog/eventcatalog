@@ -28,7 +28,7 @@ export default function Page() {
                   <div className="xl:col-span-3 xl:pr-8  min-h-screen">
                     {users.length > 0 && (
                       <div className="pb-6">
-                        <UserGrid users={users} />  
+                        <UserGrid users={users} />
                       </div>
                     )}
                   </div>
