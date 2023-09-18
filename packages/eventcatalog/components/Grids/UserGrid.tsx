@@ -31,7 +31,7 @@ function UserGrid({ users = [] }: UserGridProps) {
                       <div className="font-medium text-gray-500">
                         <div className="flex-shrink-0">
                           <div className="relative">
-                            <img className="h-16 w-16 rounded-full" src={user.avatarUrl} alt="" />
+                            <img className="h-16 w-16 rounded-full max-w-none" src={user.avatarUrl} alt="" />
                             <span className="absolute inset-0 shadow-inner rounded-full" aria-hidden="true" />
                           </div>
                         </div>

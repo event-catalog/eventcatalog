@@ -20,6 +20,7 @@ module.exports = {
     { label: 'Events', href: '/events'},
     { label: 'Services', href: '/services' },
     { label: 'Domains', href: '/domains'},
+    { label: 'Users', href: '/users'},
     { label: 'Visualiser', href: '/visualiser' },
     { label: '3D Node Graph', href: '/overview' },
   ],
@@ -45,6 +46,20 @@ module.exports = {
       avatarUrl: 'https://pbs.twimg.com/profile_images/1262283153563140096/DYRDqKg6_400x400.png',
       role: 'Developer',
       summary: 'Currently building tools for Event Architectures.'
+    },
+    {
+      id: 'dboyne2',
+      name: 'David Boyne',
+      avatarUrl: 'https://pbs.twimg.com/profile_images/1262283153563140096/DYRDqKg6_400x400.png',
+      role: 'Developer',
+      summary: 'Currently building tools for Event Architectures.'
+    },
+    {
+      id: 'dboyne3',
+      name: 'David Boyne',
+      avatarUrl: 'https://pbs.twimg.com/profile_images/1262283153563140096/DYRDqKg6_400x400.png',
+      role: 'Developer',
+      summary: 'Currently building tools for Event Architectures Currently building tools for Event Architectures Currently building tools for Event Architectures Currently building tools for Event Architectures Currently building tools for Event Architectures Currently building tools for Event Architectures Currently building tools for Event Architectures.'
     },
     {
       id: 'mSmith',
