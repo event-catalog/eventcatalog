@@ -1,5 +1,37 @@
 # @eventcatalog/core
 
+## 1.0.6
+
+### Patch Changes
+
+- [`fc2dcd5`](https://github.com/boyney123/eventcatalog/commit/fc2dcd5acc09ea8e03e796537e6b8597f08d5546) [#440](https://github.com/boyney123/eventcatalog/pull/440) Thanks [@rtoro](https://github.com/rtoro)! - feat - added new page for users
+
+## 1.0.5
+
+### Patch Changes
+
+- [`4834e9f`](https://github.com/boyney123/eventcatalog/commit/4834e9f4d1761615e7e5d4740e98c66c00fdc99e) [#438](https://github.com/boyney123/eventcatalog/pull/438) Thanks [@boyney123](https://github.com/boyney123)! - fix: set key on rendered serices, no longer duplicates them
+
+## 1.0.4
+
+### Patch Changes
+
+- [`40a6221`](https://github.com/boyney123/eventcatalog/commit/40a62216f4d9a2d4bfba525bd1f9c92cbd63ecdb) [#414](https://github.com/boyney123/eventcatalog/pull/414) Thanks [@pebbz](https://github.com/pebbz)! - chore(core) - FIX-408 - upgrade typescript
+
+## 1.0.3
+
+### Patch Changes
+
+- [`9476d74`](https://github.com/boyney123/eventcatalog/commit/9476d74af8fc3af8f1aaceb4e6def77e61c5e17f) [#428](https://github.com/boyney123/eventcatalog/pull/428) Thanks [@jlee-spt](https://github.com/jlee-spt)! - feat: Allow fetching of remote asyncapi docs
+
+## 1.0.2
+
+### Patch Changes
+
+- [`69298ce`](https://github.com/boyney123/eventcatalog/commit/69298ce8b46b77c2662ab789af7c00295cb7fe06) [#432](https://github.com/boyney123/eventcatalog/pull/432) Thanks [@boyney123](https://github.com/boyney123)! - chore - locking down Asyncapi version
+
+- [`bfdd189`](https://github.com/boyney123/eventcatalog/commit/bfdd18917d3ec4e51a78dd6c4c93c445e6430e67) [#431](https://github.com/boyney123/eventcatalog/pull/431) Thanks [@jslim](https://github.com/jslim)! - Chore: including fs false by default
+
 ## 1.0.1
 
 ### Patch Changes

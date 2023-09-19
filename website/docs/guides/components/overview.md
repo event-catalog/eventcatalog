@@ -200,6 +200,13 @@ To understand how it works and use AsyncAPI with your Services checkout the [sch
 
 #### Props
 
+<APITable>
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| `url` | `string` | `` | Optional URL to load your AsyncAPI file. If you provide a URL to load this will be used over the local file system and the file will be loaded from external URL. |
+</APITable>
+
 #### Rendered Example 
 ![AsyncAPI Example](/img/guides/mdx/asyncapi.gif)
 

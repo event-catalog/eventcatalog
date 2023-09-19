@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/core",
-  "version": "1.0.1",
+  "version": "1.0.6",
   "publishConfig": {
     "access": "public"
   },
@@ -16,7 +16,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@asyncapi/react-component": "^1.0.0-next.35",
+    "@asyncapi/react-component": "1.0.0-next.35",
     "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
     "@mdx-js/react": "^1.6.22",
@@ -57,7 +57,11 @@
     "postcss": "^8.3.11",
     "tailwindcss": "^3.3.3",
     "trim": "0.0.3",
-    "typescript": "^4.6.2"
+    "typescript": "^5.1.6"
+  },
+  "browser": {
+    "fs": false,
+    "os": false
   },
   "gitHead": "5f82ce7f267e9b3ec771bbd3cc81359ed0a8fd18"
 }

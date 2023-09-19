@@ -1,5 +1,17 @@
 # @eventcatalog/create-eventcatalog
 
+## 1.0.4
+
+### Patch Changes
+
+- [`fc2dcd5`](https://github.com/boyney123/eventcatalog/commit/fc2dcd5acc09ea8e03e796537e6b8597f08d5546) [#440](https://github.com/boyney123/eventcatalog/pull/440) Thanks [@rtoro](https://github.com/rtoro)! - feat - added new page for users
+
+## 1.0.3
+
+### Patch Changes
+
+- [`40a6221`](https://github.com/boyney123/eventcatalog/commit/40a62216f4d9a2d4bfba525bd1f9c92cbd63ecdb) [#414](https://github.com/boyney123/eventcatalog/pull/414) Thanks [@pebbz](https://github.com/pebbz)! - chore(core) - FIX-408 - upgrade typescript
+
 ## 1.0.2
 
 ### Patch Changes

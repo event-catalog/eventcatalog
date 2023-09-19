@@ -10,13 +10,16 @@ const config = {
 };
 
 interface AsyncApiSpecProps {
-  spec: string;
+  spec?: string;
+  url?: string;
 }
 
-export default function AsyncApiSpec({ spec }: AsyncApiSpecProps) {
+export default function AsyncApiSpec({ spec, url }: AsyncApiSpecProps) {
+  const schema = !url ? spec : { url };
+
   return (
     <div className={`my-4 border border-gray-300 border-dashed px-5 `}>
-      <AsyncApiComponent schema={spec} config={config} />
+      <AsyncApiComponent schema={schema} config={config} />
     </div>
   );
 }
