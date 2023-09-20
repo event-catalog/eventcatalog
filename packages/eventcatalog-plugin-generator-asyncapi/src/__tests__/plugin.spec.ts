@@ -37,7 +37,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
   });
 
   beforeEach(() => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation();
   });
 
   afterAll(() => {

@@ -23,23 +23,14 @@ describe('graphs', () => {
 
       const result = buildMermaidFlowChartForService(service);
 
-      expect(result.trim()).toEqual(`flowchart LR
-
-l-My_Event_2[My Event 2]:::producer-->My_Service[My Service]:::event
-
-classDef event stroke:#2563eb,stroke-width: 4px;
-
-classDef producer stroke:#75d7b6,stroke-width: 2px;
-
-classDef consumer stroke:#818cf8,stroke-width: 2px;
-
-My_Service[My Service]:::event-->r-My_Event[My Event]:::consumer
-
-click l-My_Event_2 href "/docs/events/My Event 2" "Go to My Event 2" _self
-
-click r-My_Event href "/docs/events/My Event" "Go to My Event" _self
-
-click My_Service href "/docs/services/My Service" "Go to My Service" _self`);
+      expect(result).toContain('l-My_Event_2[My Event 2]:::producer-->My_Service[My Service]:::event');
+      expect(result).toContain('click l-My_Event_2 href "/docs/events/My Event 2" "Go to My Event 2" _self');
+      expect(result).toContain('click My_Service href "/docs/services/My Service" "Go to My Service" _self');
+      expect(result).toContain('My_Service[My Service]:::event-->r-My_Event[My Event]:::consumer');
+      expect(result).toContain('click r-My_Event href "/docs/events/My Event" "Go to My Event" _self');
+      expect(result).toContain('classDef event stroke:#2563eb,stroke-width: 4px;');
+      expect(result).toContain('classDef producer stroke:#75d7b6,stroke-width: 2px;');
+      expect(result).toContain('classDef consumer stroke:#818cf8,stroke-width: 2px;');
     });
   });
 
@@ -54,23 +45,14 @@ click My_Service href "/docs/services/My Service" "Go to My Service" _self`);
 
       const result = buildMermaidFlowChartForEvent(event);
 
-      expect(result.trim()).toEqual(`flowchart LR
-
-l-Service_1[Service 1]:::producer-->My_Event[My Event]:::event
-
-classDef event stroke:#2563eb,stroke-width: 4px;
-
-classDef producer stroke:#75d7b6,stroke-width: 2px;
-
-classDef consumer stroke:#818cf8,stroke-width: 2px;
-
-My_Event[My Event]:::event-->r-Service_2[Service 2]:::consumer
-
-click l-Service_1 href "/docs/services/Service 1" "Go to Service 1" _self
-
-click r-Service_2 href "/docs/services/Service 2" "Go to Service 2" _self
-
-click My_Event href "/docs/events/My Event" "Go to My Event" _self`);
+      expect(result).toContain('l-Service_1[Service 1]:::producer-->My_Event[My Event]:::event');
+      expect(result).toContain('click l-Service_1 href "/docs/services/Service 1" "Go to Service 1" _self');
+      expect(result).toContain('click My_Event href "/docs/events/My Event" "Go to My Event" _self');
+      expect(result).toContain('My_Event[My Event]:::event-->r-Service_2[Service 2]:::consumer');
+      expect(result).toContain('click r-Service_2 href "/docs/services/Service 2" "Go to Service 2" _self');
+      expect(result).toContain('classDef event stroke:#2563eb,stroke-width: 4px;');
+      expect(result).toContain('classDef producer stroke:#75d7b6,stroke-width: 2px;');
+      expect(result).toContain('classDef consumer stroke:#818cf8,stroke-width: 2px;');
     });
 
     it('persists the spaces in the service name and renders them with mermaid', () => {

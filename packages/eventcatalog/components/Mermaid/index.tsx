@@ -48,20 +48,20 @@ function Mermaid({ data, source = 'event', rootNodeColor, charts }: MermaidProps
     );
   }
 
-  const mermaidChart = function(){
+  const mermaidChart = function () {
     switch (source) {
       case 'event':
-        return buildMermaidFlowChartForEvent(data as Event, rootNodeColor)
+        return buildMermaidFlowChartForEvent(data as Event, rootNodeColor);
       case 'service':
         return buildMermaidFlowChartForService(data as Service, rootNodeColor);
       case 'domain':
         return buildMermaidFlowChartForDomain(data as Domain, rootNodeColor);
-      default: 
+      default:
         break;
     }
 
-    return ''
-  } 
+    return '';
+  };
 
   return <div className="mermaid">{mermaidChart()}</div>;
 }
