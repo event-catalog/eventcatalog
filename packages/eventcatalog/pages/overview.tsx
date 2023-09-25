@@ -55,6 +55,7 @@ function Graph({ events, services }: PageProps) {
         nodeRelSize={9}
         nodeThreeObject={(node) => {
           const nodeEl = document.createElement('div');
+          // @ts-ignore
           nodeEl.innerHTML = ReactDOMServer.renderToString(<NodeElement node={node} />);
           node.height = '100px';
           nodeEl.style.color = node.color;
