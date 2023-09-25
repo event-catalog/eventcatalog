@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 1.0.7
+
+### Patch Changes
+
+- [`63abb59`](https://github.com/boyney123/eventcatalog/commit/63abb596bb2a63caad6349d93b201bac01434f79) [#445](https://github.com/boyney123/eventcatalog/pull/445) Thanks [@boyney123](https://github.com/boyney123)! - fix- build for typescript and react types
+
 ## 1.0.6
 
 ### Patch Changes
