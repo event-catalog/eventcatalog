@@ -4,10 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "private": true,
-  "workspaces": [
-    "packages/*",
-    "website"
-  ],
+  "workspaces": ["packages/*", "website"],
   "scripts": {
     "dev": "lerna run dev:next --stream --parallel",
     "start:catalog": "node scripts/start-catalog-locally.js",
@@ -60,6 +57,7 @@
     "typescript": "^5.1.6"
   },
   "resolutions": {
-    "@types/react": "^17.0.36"
+    "@types/react": "^17.0.36",
+    "trim": "=0.0.3"
   }
 }
