@@ -1,5 +1,11 @@
 # @eventcatalog/create-eventcatalog
 
+## 1.1.0
+
+### Minor Changes
+
+- [`4b34273`](https://github.com/boyney123/eventcatalog/commit/4b34273931e141a651c0a56e1bc6fba5543869eb) [#447](https://github.com/boyney123/eventcatalog/pull/447) Thanks [@rberger](https://github.com/rberger)! - Force the dependency trim to be version 0.0.3 with a resolution to eliminate a high vulnerability
+
 ## 1.0.4
 
 ### Patch Changes
