@@ -60,6 +60,7 @@
     "typescript": "^5.1.6"
   },
   "resolutions": {
-    "@types/react": "^17.0.36"
+    "@types/react": "^17.0.36",
+    "trim": "=0.0.3"
   }
 }
