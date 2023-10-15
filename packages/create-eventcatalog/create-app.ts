@@ -170,7 +170,7 @@ export async function createApp({
       },
       devDependencies: {
         tailwindcss: '^3.3.3',
-        typescript: '^4.4.4',
+        typescript: '^5.1.6',
         postcss: '^8.3.11',
         'cross-env': '^7.0.3',
         autoprefixer: '10.4.5',
