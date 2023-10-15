@@ -1,5 +1,11 @@
 # @eventcatalog/create-eventcatalog
 
+## 1.1.1
+
+### Patch Changes
+
+- [`bea7786`](https://github.com/boyney123/eventcatalog/commit/bea778695343e768488734a494e84f0dae692ae0) [#451](https://github.com/boyney123/eventcatalog/pull/451) Thanks [@boyney123](https://github.com/boyney123)! - fix: fixing TypeScript version on new catalogs to v5 from v4
+
 ## 1.1.0
 
 ### Minor Changes
