@@ -1,5 +1,11 @@
 # @eventcatalog/plugin-doc-generator-amazon-eventbridge
 
+## 0.0.11
+
+### Patch Changes
+
+- [`011dd4c`](https://github.com/boyney123/eventcatalog/commit/011dd4c9fda275fe3e2ccaab3fddc8404f705d5a) [#443](https://github.com/boyney123/eventcatalog/pull/443) Thanks [@kimrejstrom](https://github.com/kimrejstrom)! - feat - Amazon EventBridge plugin now persists producers and consumers
+
 ## 0.0.10
 
 ### Patch Changes
