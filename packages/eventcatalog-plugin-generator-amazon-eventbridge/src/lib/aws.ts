@@ -5,7 +5,7 @@ import {
   Schemas as SchemaSDK,
   ExportSchemaCommandOutput,
   ForbiddenException,
-  SchemaSummary
+  SchemaSummary,
 } from '@aws-sdk/client-schemas';
 import { PluginOptions } from '../types';
 
@@ -16,13 +16,17 @@ export interface CustomSchema extends ExportSchemaCommandOutput {
   Description?: string;
 }
 
-const getSchemas = (schemas: SchemaSDK, registryName: string) => async (): Promise<CustomSchema[]> => {
+const getSchemas = (schemas: SchemaSDK, registryName: string, schemaNamePrefix?: string) => async (): Promise<CustomSchema[]> => {
   // First get all schemas
   let nextToken: string | undefined;
   let registrySchemas: SchemaSummary[] = [];
   do {
     // eslint-disable-next-line no-await-in-loop
-    const {Schemas: batchRegistrySchemas = [], NextToken: token} = await schemas.listSchemas({RegistryName: registryName, NextToken: nextToken});
+    const { Schemas: batchRegistrySchemas = [], NextToken: token } = await schemas.listSchemas({
+      RegistryName: registryName,
+      NextToken: nextToken,
+      SchemaNamePrefix: schemaNamePrefix,
+    });
     registrySchemas = registrySchemas.concat(batchRegistrySchemas);
     nextToken = token;
   } while (nextToken !== undefined);
@@ -156,14 +160,14 @@ const getEventBusRulesAndTargets = (eventbridge: EventBridge, eventBusName: stri
 };
 
 export default (options: PluginOptions) => {
-  const { credentials, registryName, region, eventBusName } = options;
+  const { credentials, registryName, region, eventBusName, schemaNamePrefix } = options;
 
   const schemas = new Schemas({ credentials, region });
 
   const eventbridge = new EventBridge({ credentials, region });
 
   return {
-    getSchemas: getSchemas(schemas, registryName),
+    getSchemas: getSchemas(schemas, registryName, schemaNamePrefix),
     getEventBusRulesAndTargets: getEventBusRulesAndTargets(eventbridge, eventBusName),
   };
 };

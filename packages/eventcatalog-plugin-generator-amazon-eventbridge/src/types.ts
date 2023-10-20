@@ -14,4 +14,5 @@ export interface PluginOptions {
   registryName: string;
   schemaTypeToRenderToEvent?: SchemaTypes;
   versionEvents?: boolean;
+  schemaNamePrefix?: string;
 }
