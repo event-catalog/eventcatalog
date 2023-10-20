@@ -1,6 +1,12 @@
 import { EventBridge, Rule } from '@aws-sdk/client-eventbridge';
 import { Arn, ArnFormat } from 'aws-cdk-lib';
-import { Schemas, Schemas as SchemaSDK, ExportSchemaCommandOutput, ForbiddenException } from '@aws-sdk/client-schemas';
+import {
+  Schemas,
+  Schemas as SchemaSDK,
+  ExportSchemaCommandOutput,
+  ForbiddenException,
+  SchemaSummary
+} from '@aws-sdk/client-schemas';
 import { PluginOptions } from '../types';
 
 export interface CustomSchema extends ExportSchemaCommandOutput {
@@ -12,7 +18,14 @@ export interface CustomSchema extends ExportSchemaCommandOutput {
 
 const getSchemas = (schemas: SchemaSDK, registryName: string) => async (): Promise<CustomSchema[]> => {
   // First get all schemas
-  const { Schemas: registrySchemas = [] } = await schemas.listSchemas({ RegistryName: registryName });
+  let nextToken: string | undefined;
+  let registrySchemas: SchemaSummary[] = [];
+  do {
+    // eslint-disable-next-line no-await-in-loop
+    const {Schemas: batchRegistrySchemas = [], NextToken: token} = await schemas.listSchemas({RegistryName: registryName, NextToken: nextToken});
+    registrySchemas = registrySchemas.concat(batchRegistrySchemas);
+    nextToken = token;
+  } while (nextToken !== undefined);
 
   const allSchemas = registrySchemas.map(async (registrySchema: any) => {
     let schemaAsJSON: ExportSchemaCommandOutput = { $metadata: {} };
