@@ -15,6 +15,7 @@ const main = async () => {
       eventBusName: process.env.EVENT_BUS_NAME,
       region: process.env.REGION,
       registryName: process.env.SCHEMA_REGISTRY_NAME,
+      schemaNamePrefix: process.env.SCHEMA_NAME_PREFIX,
     }
   );
 };

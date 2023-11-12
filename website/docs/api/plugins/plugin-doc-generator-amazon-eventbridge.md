@@ -88,6 +88,7 @@ module.exports = {
         eventBusName: 'boyne-test-bus', // your event bus name
         region: 'us-west-1', // your region
         registryName: 'discovered-schemas', // your registry normally "discovered-schemas"
+        schemaNamePrefix: 'my-prefix', // Schema name prefix filter, optional
         credentials: {
           accessKeyId: process.env.AWS_ACCESS_KEY,
           secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -115,13 +116,14 @@ This command will run through your plugin and generate your EventCatalog documen
 <APITable>
 
 | Name | Type | Default | Description |
-| --- | --- | --- | --- |
+| --- | --- | --- |  |
 | `eventBusName` | `string` | `` | Name of your EventBus |
 | `region` | `string` | `` | AWS Region of your eventbus |
 | `registryName` | `string` | `` | Name of your Schema Registry |
 | `credentials` | `AWSCredentials`- [View Schema](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Credentials.html) | `` | AWS `accessKeyId` and `secretAccessKey` |
 | `schemaTypeToRenderToEvent` | `string` (`JSONSchemaDraft4`/`OpenAPI`) | `JSONSchemaDraft4` | Schema type to render along side your event in EventCatalog |
 | `versionEvents` | `boolean` | `true` | Version your events as new versions get detected from your Schema Registry |
+| `schemaNamePrefix` | `string` | `` | Schema name prefix used to filter retrieved schemas |
 
 </APITable>
 
