@@ -1,5 +1,11 @@
 # @eventcatalog/plugin-doc-generator-amazon-eventbridge
 
+## 0.0.12
+
+### Patch Changes
+
+- [`9d9f34c`](https://github.com/boyney123/eventcatalog/commit/9d9f34c74556bf6ccf8acc7dfdfce3e860ba372b) [#457](https://github.com/boyney123/eventcatalog/pull/457) Thanks [@cgabard](https://github.com/cgabard)! - fix - eventbridge plugin now fetches over 100 schemas and also allows filtering
+
 ## 0.0.11
 
 ### Patch Changes
