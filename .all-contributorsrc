@@ -302,6 +302,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "cgabard",
+      "name": "Christophe Gabard",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6103932?v=4",
+      "profile": "https://github.com/cgabard",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
