@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 1.1.1
+
+### Patch Changes
+
+- [`7eb8c93`](https://github.com/boyney123/eventcatalog/commit/7eb8c93a2f13088e45c725dc18699e4f66bdf2c5) [#462](https://github.com/boyney123/eventcatalog/pull/462) Thanks [@boyney123](https://github.com/boyney123)! - fix - copy config file on build
+
 ## 1.1.0
 
 ### Minor Changes
