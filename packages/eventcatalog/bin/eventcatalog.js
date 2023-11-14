@@ -50,6 +50,9 @@ cli
     // copy any public assets over (from users to the lib itself)
     fs.copySync(path.join(projectDIR, 'public'), path.join(eventCatalogLibDir, 'public'));
 
+    // Copy the eventcatalog file over
+    fs.copyFileSync(path.join(projectDIR, 'eventcatalog.config.js'), path.join(eventCatalogLibDir, 'eventcatalog.config.js'));
+
     // Move the schemas into public directory so we can download them from UI
     execSync(`cross-env PROJECT_DIR='${projectDIR}' npm run scripts:move-schema-for-download`, {
       cwd: eventCatalogLibDir,
