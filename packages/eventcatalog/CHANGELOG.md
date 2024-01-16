@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 1.1.2
+
+### Patch Changes
+
+- [`b08f273`](https://github.com/boyney123/eventcatalog/commit/b08f2733b8f6cfea8b89e0708f3ad88bc2e9903f) [#470](https://github.com/boyney123/eventcatalog/pull/470) Thanks [@boyney123](https://github.com/boyney123)! - fix - fixed build with swagger version
+
 ## 1.1.1
 
 ### Patch Changes
