@@ -60,16 +60,16 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
     });
 
     it('throws an error when file has been provided but the file cannot be found', async () => {
-      const options: AsyncAPIPluginOptions = { pathToSpec: path.join(__dirname, 'random-location') };
+      const pathToSpec = path.join(__dirname, 'random-location');
+      const options: AsyncAPIPluginOptions = { pathToSpec };
 
-      await expect(plugin(pluginContext, options)).rejects.toThrow('Failed to read file with provided path');
+      await expect(plugin(pluginContext, options)).rejects.toThrow(`Given file does not exist: ${pathToSpec}`);
     });
 
     it('throws an error when failing to parse AsyncAPI file', async () => {
-      const options: AsyncAPIPluginOptions = {
-        pathToSpec: path.join(__dirname, './assets/invalid-asyncapi.yml'),
-      };
-      await expect(plugin(pluginContext, options)).rejects.toThrow('There were errors validating the AsyncAPI document.');
+      const pathToSpec = path.join(__dirname, './assets/invalid-asyncapi.yml');
+      const options: AsyncAPIPluginOptions = { pathToSpec };
+      await expect(plugin(pluginContext, options)).rejects.toThrow(`Unable to parse the given AsyncAPI document (${pathToSpec})`);
     });
 
     it('successfully takes a valid asyncapi file and creates the expected services and events markdown files from it', async () => {
@@ -113,12 +113,55 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
       );
     });
 
+    it('successfully takes a valid asyncapi v3 file and creates the expected services and events markdown files from it', async () => {
+      const options: AsyncAPIPluginOptions = {
+        pathToSpec: path.join(__dirname, './assets/valid-asyncapi-v3.yml'),
+      };
+
+      await plugin(pluginContext, options);
+
+      // just wait for files to be there in time.
+      await new Promise((r) => setTimeout(r, 200));
+
+      const { getEventFromCatalog, getServiceFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+
+      const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
+      const { raw: serviceFile } = getServiceFromCatalog('Account Service V3');
+
+      expect(eventFile).toMatchMarkdown(`
+        ---
+          name: UserSignedUp
+          summary: null
+          version: 1.0.0
+          producers:
+              - 'Account Service V3'
+          consumers: []
+          externalLinks: []
+          badges: []
+        ---
+
+        <NodeGraph />
+        <Schema />
+        `);
+
+      expect(serviceFile).toMatchMarkdown(
+        `---
+          name: 'Account Service V3'
+          summary: 'This service is in charge of processing user signups'
+          ---
+
+          <NodeGraph />`
+      );
+    });
+
     describe('multiple asyncapi files', () => {
       it('successfully takes multiple valid asyncapi files and creates the expected services and events markdown files from it', async () => {
         const options: AsyncAPIPluginOptions = {
           pathToSpec: [
             path.join(__dirname, './assets/valid-asyncapi.yml'),
+            path.join(__dirname, './assets/valid-asyncapi-v3.yml'),
             path.join(__dirname, './assets/valid-asyncapi-2.yml'),
+            path.join(__dirname, './assets/valid-asyncapi-v3-2.yml'),
           ],
         };
 
@@ -132,6 +175,8 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
         const { raw: serviceFile } = getServiceFromCatalog('Account Service');
         const { raw: userServiceFile } = getServiceFromCatalog('Users Service');
+        const { raw: serviceFileV3 } = getServiceFromCatalog('Account Service V3');
+        const { raw: userServiceFileV3 } = getServiceFromCatalog('Users Service V3');
 
         expect(eventFile).toMatchMarkdown(`
           ---
@@ -139,13 +184,15 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
             summary: null
             version: 1.0.0
             producers:
+              - 'Users Service V3'
               - 'Users Service'
+              - 'Account Service V3'
               - 'Account Service'
             consumers: []
             externalLinks: []
             badges: []
           ---
-  
+
           <NodeGraph />
           <Schema />
           `);
@@ -155,15 +202,31 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
             name: 'Account Service'
             summary: 'This service is in charge of processing user signups'
             ---
-  
+
             <NodeGraph />`
         );
         expect(userServiceFile).toMatchMarkdown(
           `---
-            name: 'Users Service'
-            summary: 'This service is in charge of users'
+          name: 'Users Service'
+          summary: 'This service is in charge of users'
+          ---
+
+          <NodeGraph />`
+        );
+        expect(serviceFileV3).toMatchMarkdown(
+          `---
+            name: 'Account Service V3'
+            summary: 'This service is in charge of processing user signups'
             ---
-  
+
+            <NodeGraph />`
+        );
+        expect(userServiceFileV3).toMatchMarkdown(
+          `---
+            name: 'Users Service V3'
+            summary: 'This service is in charge of processing user signups'
+            ---
+
             <NodeGraph />`
         );
       });
@@ -542,10 +605,10 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         externalLinks: []
         badges: []
         ---
-        
-        
+
+
         <NodeGraph />
-        
+
         <Schema />
           `);
 
@@ -554,8 +617,8 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         name: PersonUpateService
         summary: ""
         ---
-        
-        
+
+
         <NodeGraph />`);
       });
     });

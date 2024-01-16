@@ -1,59 +1,64 @@
 import chalk from 'chalk';
 import type { Event, Service, LoadContext, Domain } from '@eventcatalog/types';
-import { parse, AsyncAPIDocument, registerSchemaParser } from '@asyncapi/parser';
+import { AsyncAPIDocumentInterface, Parser, MessageInterface, OperationInterface, fromFile } from '@asyncapi/parser';
 import fs from 'fs-extra';
 import path from 'path';
 import utils from '@eventcatalog/utils';
 import merge from 'lodash.merge';
 // @ts-ignore
-import asyncAPIAvroParser from '@asyncapi/avro-schema-parser';
+import { AvroSchemaParser } from '@asyncapi/avro-schema-parser';
 import type { AsyncAPIPluginOptions } from './types';
 
-registerSchemaParser(asyncAPIAvroParser);
-
-const getServiceFromAsyncDoc = (doc: AsyncAPIDocument): Service => ({
+const getServiceFromAsyncDoc = (doc: AsyncAPIDocumentInterface): Service => ({
   name: doc.info().title(),
   summary: doc.info().description() || '',
 });
 
-const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPluginOptions): Event[] => {
+const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocumentInterface, options: AsyncAPIPluginOptions): Event[] => {
   const { externalAsyncAPIUrl } = options;
 
-  const channels = doc.channels();
+  const version = doc.info().version();
+  const service = doc.info().title();
+  const operations = doc.operations();
 
-  const allMessages = Object.keys(channels).reduce((data: any, channelName) => {
-    const service = doc.info().title();
+  const allMessages = operations.reduce((data: any, op: OperationInterface) => {
+    const action = op?.action();
+    const messages = op?.messages();
 
-    const channel = channels[channelName];
-    const operation = channel.hasSubscribe() ? 'subscribe' : 'publish';
+    if (messages === undefined) {
+      return data;
+    }
 
-    const messages = channel[operation]().messages();
-
-    const eventsFromMessages = messages.map((message) => {
-      let messageName = message.name() || message.extension('x-parser-message-name');
+    const eventsFromMessages = messages.reduce((messagesData: any, message: MessageInterface, i) => {
+      let messageName = message.name();
+      if (messageName === undefined) {
+        messageName = message.extensions().get('x-parser-message-name')?.value() || `anonymous-message-${i}`;
+      }
 
       // If no name can be found from the message, and AsyncAPI defaults to "anonymous" value, try get the name from the payload itself
       if (messageName.includes('anonymous-')) {
-        messageName = message.payload().uid() || messageName;
+        messageName = message.payload()?.id() || messageName;
       }
 
-      const schema = message.originalPayload();
+      const schema = message.extensions().get('x-parser-original-payload')?.value() || message.payload();
       const externalLink = {
         label: `View event in AsyncAPI`,
         url: `${externalAsyncAPIUrl}#message-${messageName}`,
       };
 
-      return {
+      const messageData = {
         name: messageName,
         summary: message.summary(),
-        version: doc.info().version(),
-        producers: operation === 'subscribe' ? [service] : [],
-        consumers: operation === 'publish' ? [service] : [],
+        version,
+        producers: ['send', 'subscribe'].includes(action) ? [service] : [],
+        consumers: ['receive', 'publish'].includes(action) ? [service] : [],
         externalLinks: externalAsyncAPIUrl ? [externalLink] : [],
         schema: schema ? JSON.stringify(schema, null, 4) : '',
         badges: [],
       };
-    });
+
+      return messagesData.concat([messageData]);
+    }, []);
 
     return data.concat(eventsFromMessages);
   }, []);
@@ -73,42 +78,63 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocument, options: AsyncAPIPlugin
   return uniqueMessages;
 };
 
-const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOptions, copyFrontMatter: boolean) => {
-  const {
-    versionEvents = true,
-    renderMermaidDiagram = false,
-    renderNodeGraph = true,
-    domainName = '',
-    domainSummary = '',
-  } = options;
+const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOptions) => {
+  const { domainName = '', domainSummary = '' } = options;
 
-  let asyncAPIFile;
+  if (!fs.existsSync(pathToFile)) {
+    throw new Error(`Given file does not exist: ${pathToFile}`);
+  }
 
+  const parser = new Parser();
+
+  parser.registerSchemaParser(AvroSchemaParser());
+
+  let parsed;
   try {
-    asyncAPIFile = fs.readFileSync(pathToFile, 'utf-8');
+    parsed = await fromFile(parser, pathToFile).parse();
   } catch (error: any) {
-    console.error(error);
-    throw new Error(`Failed to read file with provided path`);
+    throw new Error(error);
   }
 
-  const doc = await parse(asyncAPIFile, { path: pathToFile });
+  if (parsed.document === undefined) {
+    console.error(`${chalk.red('ERRORS IN SCHEMA:')} ${pathToFile}`);
+    parsed.diagnostics
+      .filter((d) => d.severity === 0)
+      .forEach((d) =>
+        console.error(`${chalk.red(`[${d.code}]`)} ${d.path.join('.')} - ${d.message} - ${pathToFile}:${d.range.start.line}`)
+      );
+    console.error();
 
-  const service = getServiceFromAsyncDoc(doc);
-  const events = getAllEventsFromAsyncDoc(doc, options);
-
-  if (!process.env.PROJECT_DIR) {
-    throw new Error('Please provide catalog url (env variable PROJECT_DIR)');
+    throw new Error(`Unable to parse the given AsyncAPI document (${pathToFile})`);
   }
 
+  const service = getServiceFromAsyncDoc(parsed.document);
+  const events = getAllEventsFromAsyncDoc(parsed.document, options);
+
+  let domain;
   if (domainName) {
-    const { writeDomainToCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
-
-    const domain: Domain = {
+    domain = <Domain>{
       name: domainName,
       summary: domainSummary,
     };
+  }
 
-    await writeDomainToCatalog(domain, {
+  return { service, domain, events };
+};
+
+const writeData = async (
+  destDir: string,
+  service: any,
+  events: any,
+  options: AsyncAPIPluginOptions,
+  copyFrontMatter: boolean,
+  domain?: Domain
+) => {
+  const { versionEvents = true, renderMermaidDiagram = false, renderNodeGraph = true } = options;
+
+  if (domain !== undefined) {
+    const { writeDomainToCatalog } = utils({ catalogDirectory: destDir });
+    writeDomainToCatalog(domain, {
       useMarkdownContentFromExistingDomain: true,
       renderMermaidDiagram,
       renderNodeGraph,
@@ -116,10 +142,10 @@ const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOpti
   }
 
   const { writeServiceToCatalog, writeEventToCatalog } = utils({
-    catalogDirectory: domainName ? path.join(process.env.PROJECT_DIR, 'domains', domainName) : process.env.PROJECT_DIR,
+    catalogDirectory: domain ? path.join(destDir, 'domains', domain.name) : destDir,
   });
 
-  await writeServiceToCatalog(service, {
+  writeServiceToCatalog(service, {
     useMarkdownContentFromExistingService: true,
     renderMermaidDiagram,
     renderNodeGraph,
@@ -128,7 +154,7 @@ const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOpti
   const eventFiles = events.map(async (event: any) => {
     const { schema, ...eventData } = event;
 
-    await writeEventToCatalog(eventData, {
+    writeEventToCatalog(eventData, {
       useMarkdownContentFromExistingEvent: true,
       versionExistingEvent: versionEvents,
       renderMermaidDiagram,
@@ -143,17 +169,20 @@ const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOpti
         fileContent: schema,
       },
     });
+
+    return events.length;
   });
 
-  // write all events to folders
-  Promise.all(eventFiles);
-
-  return {
-    generatedEvents: events,
-  };
+  return Promise.all(eventFiles);
 };
 
-export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
+const main = async (_: LoadContext, options: AsyncAPIPluginOptions) => {
+  if (!process.env.PROJECT_DIR) {
+    throw new Error('Please provide catalog url (env variable PROJECT_DIR)');
+  }
+
+  const destDir = process.env.PROJECT_DIR;
+
   const { pathToSpec } = options;
 
   const listOfAsyncAPIFilesToParse = Array.isArray(pathToSpec) ? pathToSpec : [pathToSpec];
@@ -162,13 +191,71 @@ export default async (context: LoadContext, options: AsyncAPIPluginOptions) => {
     throw new Error('No file provided in plugin.');
   }
 
-  // on first parse of files don't copy any frontmatter over.
-  const parsers = listOfAsyncAPIFilesToParse.map((specFile, index) => parseAsyncAPIFile(specFile, options, index !== 0));
+  const data = await Promise.all(listOfAsyncAPIFilesToParse.map((specFile) => parseAsyncAPIFile(specFile, options)));
 
-  const data = await Promise.all(parsers);
-  const totalEvents = data.reduce((sum, { generatedEvents }) => sum + generatedEvents.length, 0);
+  data.map((d, index) =>
+    writeData(
+      destDir,
+      d.service,
+      d.events,
+      options,
+      index !== 0, // on first write of files don't copy any frontmatter over.
+      d.domain
+    )
+  );
+
+  const totalEvents = data.reduce((sum: any, { events }: any) => sum + events.length, 0);
 
   console.log(
     chalk.green(`Successfully parsed ${listOfAsyncAPIFilesToParse.length} AsyncAPI file/s. Generated ${totalEvents} events`)
   );
 };
+
+export default main;
+
+/**
+ * This allows to run this file standalone
+ *
+ * Requires two environment variables to be set:
+ * * PROJECT_DIR - where to store generated files
+ * * ASYNCAPI_SCHEMAS - list of asyncapi scehma files (separated by pipe - | ).
+ *                      These will be looked for relative to the working dir/this file/PROJECT_DIR, in that order,
+ *                        or absolute path (takes precedence).
+ *
+ * Example of run cmd:
+ *
+ * PROJECT_DIR="output" ASYNCAPI_SCHEMAS="schema1.yml|schema2.yml" \
+ *    ts-node -T packages/eventcatalog-plugin-generator-asyncapi/src/index.ts
+ */
+if (require.main === module) {
+  if (!process.env.PROJECT_DIR) {
+    throw new Error('Please provide catalog url (env variable PROJECT_DIR)');
+  }
+
+  const destDir = process.env.PROJECT_DIR;
+
+  if (!process.env.ASYNCAPI_SCHEMAS) {
+    throw new Error('Please provide asyncapi schema file (env variable ASYNCAPI_SCHEMAS)');
+  }
+
+  const schemas = process.env.ASYNCAPI_SCHEMAS.split('|');
+
+  const schemasPaths = schemas.map((f) => {
+    const c = [
+      f, // absolute path
+      path.join(process.cwd(), f), // working dir
+      path.join(__dirname, f), // relative to this file
+      path.join(destDir, f), // relative to main project
+    ];
+
+    const schemaPath = c.find((p) => fs.existsSync(p));
+
+    if (schemaPath === undefined) {
+      throw new Error(`Given schema file not found (looked in ${c.join(', ')})`);
+    }
+
+    return schemaPath;
+  });
+
+  main(<LoadContext>{}, { pathToSpec: schemasPaths, versionEvents: !!process.env.PROJECT_DO_VERSIONS });
+}
