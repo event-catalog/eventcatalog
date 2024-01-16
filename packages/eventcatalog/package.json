@@ -44,7 +44,7 @@
     "react-flow-renderer": "^9.7.3",
     "react-force-graph-3d": "^1.21.10",
     "react-syntax-highlighter": "^15.4.5",
-    "swagger-ui-react": "^5.1.0"
+    "swagger-ui-react": "5.10.5"
   },
   "devDependencies": {
     "@eventcatalog/types": "0.4.2",
