@@ -1,5 +1,4 @@
 import '../styles/globals.css';
-// import '../eventcatalog.styles.css';
 
 import { AppProps } from 'next/app';
 
