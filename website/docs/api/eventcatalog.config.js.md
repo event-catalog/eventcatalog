@@ -1,5 +1,5 @@
 ---
-sidebar_position: 0
+sidebar_position: 2
 id: eventcatalog.config.js
 description: API reference for EventCatalog configuration file.
 slug: /api/eventcatalog-config

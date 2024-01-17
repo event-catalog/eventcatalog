@@ -113,19 +113,16 @@ This command will run through your plugin and generate your EventCatalog documen
 
 ## Plugin Configuration 
 
-<APITable>
+| Name                           | Type                                                       | Default             | Description                                                                           |
+| ------------------------------ | ---------------------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------- |
+| `eventBusName`                 | `string`                                                   | (empty)             | Name of your EventBus                                                                 |
+| `region`                       | `string`                                                   | (empty)             | AWS Region of your eventbus                                                           |
+| `registryName`                 | `string`                                                   | (empty)             | Name of your Schema Registry                                                          |
+| `credentials`                  | `AWSCredentials`- [View Schema](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Credentials.html) | (empty)             | AWS `accessKeyId` and `secretAccessKey`                                               |
+| `schemaTypeToRenderToEvent`    | `string` (`JSONSchemaDraft4`/`OpenAPI`)                    | `JSONSchemaDraft4`  | Schema type to render alongside your event in EventCatalog                            |
+| `versionEvents`                | `boolean`                                                  | `true`              | Version your events as new versions get detected from your Schema Registry            |
+| `schemaNamePrefix`             | `string`                                                   | (empty)             | Schema name prefix used to filter retrieved schemas                                   |
 
-| Name | Type | Default | Description |
-| --- | --- | --- |  |
-| `eventBusName` | `string` | `` | Name of your EventBus |
-| `region` | `string` | `` | AWS Region of your eventbus |
-| `registryName` | `string` | `` | Name of your Schema Registry |
-| `credentials` | `AWSCredentials`- [View Schema](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Credentials.html) | `` | AWS `accessKeyId` and `secretAccessKey` |
-| `schemaTypeToRenderToEvent` | `string` (`JSONSchemaDraft4`/`OpenAPI`) | `JSONSchemaDraft4` | Schema type to render along side your event in EventCatalog |
-| `versionEvents` | `boolean` | `true` | Version your events as new versions get detected from your Schema Registry |
-| `schemaNamePrefix` | `string` | `` | Schema name prefix used to filter retrieved schemas |
-
-</APITable>
 
 ## AWS Configuration
 

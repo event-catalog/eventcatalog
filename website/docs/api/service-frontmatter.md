@@ -1,5 +1,5 @@
 ---
-sidebar_position: 1
+sidebar_position: 3
 id: service-frontmatter
 slug: /api/serivce-frontmatter
 ---

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 1
+sidebar_position: 3
 id: event-frontmatter
 slug: /api/event-frontmatter
 ---

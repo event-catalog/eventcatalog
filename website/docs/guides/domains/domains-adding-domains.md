@@ -53,8 +53,8 @@ More reading:
 If you already have **events** or **services** in your catalog and want to add **domains** you can follow these steps:
 
 1. Create `/domains/` folder in the route of your Catalog
-2. Create your domains (e.g /domains/{Your Domain}/index.md)
-3. Move your events or services into the domains (e.g /domains/{Your Domain}/events/{Your events})
+2. Create your domains (e.g /domains/[Your Domain]/index.md)
+3. Move your events or services into the domains (e.g /domains/[Your Domain]/events/[Your events])
 
 After you move your **events** or **services** and run your Catalog you will see them grouped by the domain you specified.
 

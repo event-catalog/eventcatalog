@@ -19,15 +19,13 @@ For more information check out the [schema guide for events](/docs/events/adding
 
 #### Props
 
-<APITable>
 
-| Name | Type | Default | Description |
-| --- | --- | --- | --- |
-| `title` | `string` | '' | Title to render above your schema viewer |
-| `maxHeight` | `number` | '' | The max height of the schema viewer |
-| `defaultExpandedDepth` | `number` | 1 | Define the expand level for displaying nested objects/properties |
-| `renderRootTreeLines` | `boolean` | false | Define show/hide a visual line for the root level |
-</APITable>
+| Name                    | Type      | Default           | Description                                                       |
+| ----------------------- | --------- | ----------------- | ----------------------------------------------------------------- |
+| `title`                 | `string`  | (empty)           | Title to render above your schema viewer                          |
+| `maxHeight`             | `number`  | (empty)           | The max height of the schema viewer                               |
+| `defaultExpandedDepth`  | `number`  | `1`               | Define the expand level for displaying nested objects/properties  |
+| `renderRootTreeLines`   | `boolean` | `false`           | Define show/hide a visual line for the root level                 |
 
 #### Usage
 
@@ -51,14 +49,11 @@ Read [Mermaid documentation](https://mermaid-js.github.io/mermaid/#/) if you wan
 
 #### Props 
 
-<APITable>
 
-| Name | Type | Default | Description |
-| --- | --- | --- | --- |
-| `title` | `string` | '' | Title to render above your chart |
-| `charts` | `string[]` | [] | An array of [mermaid charts](https://mermaid-js.github.io/mermaid/#/) to render to the your document |
-
-</APITable>
+| Name      | Type       | Default | Description                                                                  |
+| --------- | ---------- | ------- | ---------------------------------------------------------------------------- |
+| `title`   | `string`   | (empty) | Title to render above your chart                                             |
+| `charts`  | `string[]` | `[]`    | An array of [mermaid charts](https://mermaid-js.github.io/mermaid/#/) to render to your document |
 
 #### Usage
 
@@ -86,17 +81,15 @@ EventCatalog will render the relationships between your consumers and producers.
 
 #### Props
 
-<APITable>
+| Name          | Type      | Default | Description                                                  |
+| ------------- | --------- | ------- | ------------------------------------------------------------ |
+| `title`       | `string`  | (empty) | Title to render above your node graph                        |
+| `maxHeight`   | `number`  | (empty) | Set the max height of the node graph                         |
+| `maxZoom`     | `number`  | `10`    | Set the max zoom level of the node graph                     |
+| `fitView`     | `boolean` | `true`  | Fit all elements on the view size                            |
+| `isAnimated`  | `boolean` | `true`  | Toggle if the node connections should be animating           |
+| `isDraggable` | `boolean` | `false` | Toggle if the nodes are draggable                            |
 
-| Name | Type | Default | Description |
-| --- | --- | --- | --- |
-| `title` | `string` | '' | Title to render above your node graph |
-| `maxHeight` | `number` | '' | Set the max height of the node graph |
-| `maxZoom` | `number` | '10' | Set the max zoom level of the node graph |
-| `fitView` | `boolean` | true | Fit all elements on the view size |
-| `isAnimated` | `boolean` | true | Toggle if the node connections should be animating |
-| `isDraggable` | `boolean` | false | Toggle if the nodes are draggable |
-</APITable>
 
 #### Usage
 
@@ -164,13 +157,11 @@ To understand how it works and use OpenAPI with your Services checkout the [sche
 
 #### Props
 
-<APITable>
+| Name        | Type      | Default | Description                                                                                                                                               |
+| ----------- | --------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `showTitle` | `boolean` | `true`  | Show or hide the title rendered by Swagger UI                                                                                                             |
+| `url`       | `string`  | (empty) | Optional URL to load your OpenAPI file. If you provide a URL to load, this will be used over the local file system, and the file will be loaded from an external URL. |
 
-| Name | Type | Default | Description |
-| --- | --- | --- | --- |
-| `showTitle` | `boolean` | `true` | Show or hide the title rendered by Swagger UI |
-| `url` | `string` | `` | Optional URL to load your OpenAPI file. If you provide a URL to load this will be used over the local file system and the file will be loaded from external URL. |
-</APITable>
 
 #### Rendered Example 
 ![OpenAPI Example](/img/guides/mdx/openapi.png)
@@ -200,12 +191,11 @@ To understand how it works and use AsyncAPI with your Services checkout the [sch
 
 #### Props
 
-<APITable>
 
-| Name | Type | Default | Description |
-| --- | --- | --- | --- |
-| `url` | `string` | `` | Optional URL to load your AsyncAPI file. If you provide a URL to load this will be used over the local file system and the file will be loaded from external URL. |
-</APITable>
+| Name | Type     | Default | Description                                                                                                                                  |
+| ---- | -------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `url` | `string` | (empty) | Optional URL to load your AsyncAPI file. If you provide a URL to load, this will be used over
+
 
 #### Rendered Example 
 ![AsyncAPI Example](/img/guides/mdx/asyncapi.gif)

@@ -2,19 +2,20 @@ import React from 'react';
 import {
   GlobeAltIcon,
   ChatAltIcon,
-  DocumentReportIcon,
   HeartIcon,
-  CodeIcon,
+  CodeBracketIcon,
   DocumentIcon,
   ChartBarIcon,
   UserGroupIcon,
-} from '@heroicons/react/outline';
+  DocumentCheckIcon,
+  ChatBubbleBottomCenterIcon
+} from '@heroicons/react/24/outline';
 
 const features = [
   {
     name: 'Open Source',
     description: 'Designed and Developed for the community. Free for everybody to use.',
-    icon: CodeIcon,
+    icon: CodeBracketIcon,
   },
   {
     name: 'Markdown',
@@ -35,7 +36,7 @@ const features = [
   {
     name: 'Plugins and API',
     description: 'Generate your documentation using Plugins. Generate your EventCatalog using your code.',
-    icon: DocumentReportIcon,
+    icon: DocumentCheckIcon,
   },
   {
     name: 'Users & Teams',
@@ -45,7 +46,7 @@ const features = [
   {
     name: 'Version Control',
     description: "It's just Markdown. Version your events like you would version your blog.",
-    icon: ChatAltIcon,
+    icon: ChatBubbleBottomCenterIcon,
   },
   {
     name: 'Community',
@@ -56,7 +57,7 @@ const features = [
 
 export default function Example() {
   return (
-    <div className="bg-gradient-to-r from-gray-800  to-gray-700">
+    <div className="bg-gradient-to-r from-gray-800  to-gray-700 bg-gray-800">
       <div className="max-w-7xl mx-auto py-8 md:py-16 px-4 sm:px-6 lg:py-24 lg:px-8 lg:grid lg:grid-cols-3 lg:gap-x-8">
         <div>
           <p className="mt-2 text-3xl font-extrabold text-gray-200 wide">
@@ -70,7 +71,6 @@ export default function Example() {
               <div key={feature.name} className="relative">
                 <dt>
                   <feature.icon className="absolute text-gray-200 h-6 w-6" aria-hidden="true" />
-                  {/* <CheckIcon className="absolute h-6 w-6 text-green-500" aria-hidden="true" /> */}
                   <p className="ml-9 text-lg leading-6 font-bold text-gray-200">{feature.name}</p>
                 </dt>
                 <dd className="mt-2 ml-9 text-base text-gray-300">{feature.description}</dd>

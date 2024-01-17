@@ -1,5 +1,5 @@
 ---
-sidebar_position: 1
+sidebar_position: 3
 id: domain-frontmatter
 slug: /api/domain-frontmatter
 ---

@@ -1,37 +1,63 @@
 // @ts-check
+// `@type` JSDoc annotations allow editor autocompletion and type checking
+// (when paired with `@ts-check`).
+// There are various equivalent ways to declare your Docusaurus config.
+// See: https://docusaurus.io/docs/api/docusaurus-config
 
-const theme = require('prism-react-renderer/themes/dracula');
+import { themes as prismThemes } from "prism-react-renderer";
+import * as path from 'path'
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'EventCatalog',
   tagline: 'Discover, Explore and Document your Event Driven Architectures.',
+  favicon: "img/favicon.ico",
+
+  // Set the production url of your site here
   url: 'https://eventcatalog.dev',
-  baseUrl: '/',
-  onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
-  favicon: 'img/favicon.ico',
-  organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
-  plugins: ['my-loaders'],
-  scripts: ['https://unpkg.com/browse/leader-line@1.0.7/leader-line.min.js'],
+  // Set the /<baseUrl>/ pathname under which your site is served
+  // For GitHub pages deployment, it is often '/<projectName>/'
+  baseUrl: "/",
+
+  // GitHub pages deployment config.
+  // If you aren't using GitHub pages, you don't need these.
+  organizationName: "eventcatalog", // Usually your GitHub org/user name.
+  projectName: "eventcatalog", // Usually your repo name.
+
+  onBrokenLinks: "throw",
+  onBrokenMarkdownLinks: "warn",
+
+  // Even if you don't use internationalization, you can use this field to set
+  // useful metadata like html lang. For example, if your site is Chinese, you
+  // may want to replace "en" with "zh-Hans".
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en"],
+  },
+
   presets: [
     [
-      '@docusaurus/preset-classic',
+      "classic",
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
+        gtag: {
+          trackingID: "G-Z523WEVYM5",
+          anonymizeIP: true,
+        },
         docs: {
-          sidebarPath: require.resolve('./sidebars.js'),
+          sidebarPath: "./sidebars.js",
           // Please change this to your repo.
-          editUrl: 'https://github.com/boyney123/eventcatalog/edit/master/website/',
+          // Remove this to remove the "edit this page" links.
+          editUrl: 'https://github.com/boyney123/eventcatalog/edit/master/website/blog/',
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
+          // Remove this to remove the "edit this page" links.
           editUrl: 'https://github.com/boyney123/eventcatalog/edit/master/website/blog/',
         },
         theme: {
-          customCss: require.resolve('./src/css/custom.css'),
+          customCss: "./src/css/custom.css",
         },
       }),
     ],
@@ -40,13 +66,27 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      // Replace with your project's social card
+      image: "img/opengraph.png",
+      
+      colorMode: {
+        defaultMode: "light",
+      },
+      announcementBar: {
+        content:
+        '⭐️ If you like EventCatalog, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/boyney123/eventcatalog">GitHub</a>! ⭐️',
+      },
+      docs: {
+        sidebar: {
+          autoCollapseCategories: false,
+        },
+      },
       navbar: {
         title: 'EventCatalog',
         logo: {
           alt: 'EventCatalog Logo',
           src: 'img/logo.svg',
         },
-
         items: [
           {
             type: 'doc',
@@ -57,7 +97,7 @@ const config = {
           {
             type: 'doc',
             position: 'left',
-            docId: 'cli',
+            docId: 'api/cli',
             label: 'API',
           },
           {
@@ -89,14 +129,7 @@ const config = {
           },
         ],
       },
-      announcementBar: {
-        content:
-          '⭐️ If you like EventCatalog, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/boyney123/eventcatalog">GitHub</a>! ⭐️',
-      },
-      colorMode: {
-        disableSwitch: true,
-        defaultMode: 'light',
-      },
+      
       footer: {
         style: 'dark',
         links: [
@@ -143,10 +176,36 @@ const config = {
         copyright: `Open Source project built by David Boyne. Built for the community.`,
       },
       prism: {
-        theme,
-        darkTheme: theme,
+        theme: prismThemes.nightOwl,
+        darkTheme: prismThemes.dracula,
       },
     }),
+  plugins: [
+    async function myPlugin(context, options) {
+      return {
+        name: "docusaurus-tailwindcss",
+        configurePostCss(postcssOptions) {
+          // Appends TailwindCSS and AutoPrefixer.
+          postcssOptions.plugins.push(require("tailwindcss"));
+          postcssOptions.plugins.push(require("autoprefixer"));
+          return postcssOptions;
+        },
+      };
+    },
+    () => ({
+      name: 'resolve-react',
+      configureWebpack() {
+        return {
+          resolve: {
+            alias: {
+              // assuming root node_modules is up from "./packages/<your-docusaurus>
+              react: path.resolve('./node_modules/react'), 
+            },
+          },
+        };
+      },
+    }),
+  ],
 };
 
-module.exports = config;
+export default config;
