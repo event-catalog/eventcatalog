@@ -45,8 +45,9 @@ jobs:
 
       - name: Release snapshot
         run: |
-          npx changeset version --snapshot
-          npx changeset publish --tag canary
+          npx changeset version --snapshot --openssl-legacy-provider
+          npx changeset publish --tag canary --openssl-legacy-provider
         env:
+          NODE_OPTIONS: --openssl-legacy-provider
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
