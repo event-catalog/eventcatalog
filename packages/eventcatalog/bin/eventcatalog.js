@@ -13,7 +13,7 @@ const coreDirectory = path.join(__dirname, '../');
 const eventCatalogLibDir = path.join(projectDIR, '.eventcatalog-core');
 
 const copyCoreApplicationCodeIntoUsersProjectDir = () => {
-  const excludeFilesForCopy = ['.next', 'eventcatalog.config.js', 'bin', 'README.md'];
+  const excludeFilesForCopy = ['.next', 'eventcatalog.config.js', 'eventcatalog.styles.css', 'bin', 'README.md'];
   const exclusions = excludeFilesForCopy.map((file) => path.join(eventCatalogLibDir, file));
 
   fs.ensureDirSync(eventCatalogLibDir);
@@ -52,6 +52,7 @@ cli
 
     // Copy the eventcatalog file over
     fs.copyFileSync(path.join(projectDIR, 'eventcatalog.config.js'), path.join(eventCatalogLibDir, 'eventcatalog.config.js'));
+    fs.copyFileSync(path.join(projectDIR, 'eventcatalog.styles.css'), path.join(eventCatalogLibDir, 'eventcatalog.styles.css'));
 
     // Move the schemas into public directory so we can download them from UI
     execSync(`cross-env PROJECT_DIR='${projectDIR}' npm run scripts:move-schema-for-download`, {
@@ -83,6 +84,7 @@ cli
     fs.copySync(path.join(projectDIR, 'public'), path.join(eventCatalogLibDir, 'public'));
 
     fs.copyFileSync(path.join(projectDIR, 'eventcatalog.config.js'), path.join(eventCatalogLibDir, 'eventcatalog.config.js'));
+    fs.copyFileSync(path.join(projectDIR, 'eventcatalog.styles.css'), path.join(eventCatalogLibDir, 'eventcatalog.styles.css'));
 
     // Move the schemas into public directory so we can download them from UI
     execSync(`cross-env PROJECT_DIR='${projectDIR}' npm run scripts:move-schema-for-download`, {
@@ -107,6 +109,7 @@ cli
     }
 
     fs.copyFileSync(path.join(projectDIR, 'eventcatalog.config.js'), path.join(eventCatalogLibDir, 'eventcatalog.config.js'));
+    fs.copyFileSync(path.join(projectDIR, 'eventcatalog.styles.css'), path.join(eventCatalogLibDir, 'eventcatalog.styles.css'));
 
     execSync(`cross-env PROJECT_DIR='${projectDIR}' npm run generate`, {
       cwd: eventCatalogLibDir,
