@@ -52,7 +52,10 @@ cli
 
     // Copy the eventcatalog file over
     fs.copyFileSync(path.join(projectDIR, 'eventcatalog.config.js'), path.join(eventCatalogLibDir, 'eventcatalog.config.js'));
-    fs.copyFileSync(path.join(projectDIR, 'eventcatalog.styles.css'), path.join(eventCatalogLibDir, 'eventcatalog.styles.css'));
+
+    if(fs.ensureFileSync(path.join(projectDIR, 'eventcatalog.styles.css'))){
+      fs.copyFileSync(path.join(projectDIR, 'eventcatalog.styles.css'), path.join(eventCatalogLibDir, 'eventcatalog.styles.css'));
+    }
 
     // Move the schemas into public directory so we can download them from UI
     execSync(`cross-env PROJECT_DIR='${projectDIR}' npm run scripts:move-schema-for-download`, {
@@ -84,7 +87,9 @@ cli
     fs.copySync(path.join(projectDIR, 'public'), path.join(eventCatalogLibDir, 'public'));
 
     fs.copyFileSync(path.join(projectDIR, 'eventcatalog.config.js'), path.join(eventCatalogLibDir, 'eventcatalog.config.js'));
-    fs.copyFileSync(path.join(projectDIR, 'eventcatalog.styles.css'), path.join(eventCatalogLibDir, 'eventcatalog.styles.css'));
+    if(fs.ensureFileSync(path.join(projectDIR, 'eventcatalog.styles.css'))){
+      fs.copyFileSync(path.join(projectDIR, 'eventcatalog.styles.css'), path.join(eventCatalogLibDir, 'eventcatalog.styles.css'));
+    }
 
     // Move the schemas into public directory so we can download them from UI
     execSync(`cross-env PROJECT_DIR='${projectDIR}' npm run scripts:move-schema-for-download`, {
@@ -108,8 +113,12 @@ cli
       copyCoreApplicationCodeIntoUsersProjectDir();
     }
 
+
+
     fs.copyFileSync(path.join(projectDIR, 'eventcatalog.config.js'), path.join(eventCatalogLibDir, 'eventcatalog.config.js'));
-    fs.copyFileSync(path.join(projectDIR, 'eventcatalog.styles.css'), path.join(eventCatalogLibDir, 'eventcatalog.styles.css'));
+    if(fs.ensureFileSync(path.join(projectDIR, 'eventcatalog.styles.css'))){
+      fs.copyFileSync(path.join(projectDIR, 'eventcatalog.styles.css'), path.join(eventCatalogLibDir, 'eventcatalog.styles.css'));
+    }
 
     execSync(`cross-env PROJECT_DIR='${projectDIR}' npm run generate`, {
       cwd: eventCatalogLibDir,
