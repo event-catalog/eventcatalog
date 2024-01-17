@@ -1,0 +1,15 @@
+
+/**
+
+Stylesheet overrides for EventCatalog. 
+There is currently a limit on what can be changed. 
+
+If you want to override some styles of particular elements, raise an issue for discussion. (https://github.com/boyney123/eventcatalog)
+
+Note: Override based on custom selectors / hacks at your own risk. EventCatalog selectors will change over time, which may break your styles.
+      use the styles marked with `ec-` for non breaking styling changes.
+
+*/
+.ec-homepage{
+    background:black;
+}

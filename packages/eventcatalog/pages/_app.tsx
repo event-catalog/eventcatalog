@@ -1,4 +1,6 @@
 import '../styles/globals.css';
+// import '../eventcatalog.styles.css';
+
 import { AppProps } from 'next/app';
 
 import Head from 'next/head';
@@ -30,6 +32,21 @@ function Page({ Component, pageProps }: AppProps) {
   } = openGraph as OpenGraphConfig;
 
   const router = useRouter();
+
+  useEffect(() => {
+    const loadStyles = async () => {
+      try {
+        // @ts-ignore
+        await import('../eventcatalog.styles.css');
+        console.log('Styles loaded successfully.');
+      } catch (error) {
+        console.log('Custom stylesheet does not exist. If you want to add one add eventcatalog.styles.css to your project');
+      }
+    };
+
+    loadStyles();
+  }, []);
+
   useEffect(() => {
     const handleRouteChange = (url) => {
       if (googleAnalyticsTrackingId) {
