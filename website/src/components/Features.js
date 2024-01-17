@@ -1,14 +1,13 @@
 import React from 'react';
 import {
   GlobeAltIcon,
-  ChatAltIcon,
   HeartIcon,
   CodeBracketIcon,
   DocumentIcon,
   ChartBarIcon,
   UserGroupIcon,
   DocumentCheckIcon,
-  ChatBubbleBottomCenterIcon
+  ChatBubbleBottomCenterIcon,
 } from '@heroicons/react/24/outline';
 
 const features = [

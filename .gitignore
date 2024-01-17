@@ -5,7 +5,6 @@ packages/*/lib
 !packages/eventcatalog/lib
 .eslintcache
 /packages/eventcatalog/eventcatalog.config.js
-/packages/eventcatalog/eventcatalog.styles.css
 
 packages/eventcatalog/public/schemas
 

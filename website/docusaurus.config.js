@@ -4,48 +4,48 @@
 // There are various equivalent ways to declare your Docusaurus config.
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
-import { themes as prismThemes } from "prism-react-renderer";
-import * as path from 'path'
+import { themes as prismThemes } from 'prism-react-renderer';
+import * as path from 'path';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'EventCatalog',
   tagline: 'Discover, Explore and Document your Event Driven Architectures.',
-  favicon: "img/favicon.ico",
+  favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
   url: 'https://eventcatalog.dev',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: "/",
+  baseUrl: '/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: "eventcatalog", // Usually your GitHub org/user name.
-  projectName: "eventcatalog", // Usually your repo name.
+  organizationName: 'eventcatalog', // Usually your GitHub org/user name.
+  projectName: 'eventcatalog', // Usually your repo name.
 
-  onBrokenLinks: "throw",
-  onBrokenMarkdownLinks: "warn",
+  onBrokenLinks: 'throw',
+  onBrokenMarkdownLinks: 'warn',
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
   // may want to replace "en" with "zh-Hans".
   i18n: {
-    defaultLocale: "en",
-    locales: ["en"],
+    defaultLocale: 'en',
+    locales: ['en'],
   },
 
   presets: [
     [
-      "classic",
+      'classic',
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         gtag: {
-          trackingID: "G-NGSDGQK7V1",
+          trackingID: 'G-NGSDGQK7V1',
           anonymizeIP: true,
         },
         docs: {
-          sidebarPath: "./sidebars.js",
+          sidebarPath: './sidebars.js',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl: 'https://github.com/boyney123/eventcatalog/edit/master/website/blog/',
@@ -57,7 +57,7 @@ const config = {
           editUrl: 'https://github.com/boyney123/eventcatalog/edit/master/website/blog/',
         },
         theme: {
-          customCss: "./src/css/custom.css",
+          customCss: './src/css/custom.css',
         },
       }),
     ],
@@ -67,14 +67,14 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       // Replace with your project's social card
-      image: "img/opengraph.png",
-      
+      image: 'img/opengraph.png',
+
       colorMode: {
-        defaultMode: "light",
+        defaultMode: 'light',
       },
       announcementBar: {
         content:
-        '⭐️ If you like EventCatalog, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/boyney123/eventcatalog">GitHub</a>! ⭐️',
+          '⭐️ If you like EventCatalog, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/boyney123/eventcatalog">GitHub</a>! ⭐️',
       },
       docs: {
         sidebar: {
@@ -129,7 +129,7 @@ const config = {
           },
         ],
       },
-      
+
       footer: {
         style: 'dark',
         links: [
@@ -183,11 +183,11 @@ const config = {
   plugins: [
     async function myPlugin(context, options) {
       return {
-        name: "docusaurus-tailwindcss",
+        name: 'docusaurus-tailwindcss',
         configurePostCss(postcssOptions) {
           // Appends TailwindCSS and AutoPrefixer.
-          postcssOptions.plugins.push(require("tailwindcss"));
-          postcssOptions.plugins.push(require("autoprefixer"));
+          postcssOptions.plugins.push(require('tailwindcss'));
+          postcssOptions.plugins.push(require('autoprefixer'));
           return postcssOptions;
         },
       };
@@ -199,7 +199,7 @@ const config = {
           resolve: {
             alias: {
               // assuming root node_modules is up from "./packages/<your-docusaurus>
-              react: path.resolve('./node_modules/react'), 
+              react: path.resolve('./node_modules/react'),
             },
           },
         };
