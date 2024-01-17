@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           cache: yarn
-          node-version: '16'
+          node-version: '18'
       - name: Installation
         run: yarn
       - name: Check immutable yarn.lock
