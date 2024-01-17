@@ -1,5 +1,4 @@
 import React from 'react';
-import { ArrowLeftIcon, ArrowRightIcon, RefreshIcon } from '@heroicons/react/20/solid';
 
 import 'prismjs';
 import 'prismjs/themes/prism-tomorrow.css';
