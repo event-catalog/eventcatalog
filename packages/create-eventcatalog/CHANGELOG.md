@@ -1,5 +1,11 @@
 # @eventcatalog/create-eventcatalog
 
+## 1.2.0
+
+### Minor Changes
+
+- [`59fc853`](https://github.com/boyney123/eventcatalog/commit/59fc853878b1e3c5413f7c6fd5bf982b30165693) [#473](https://github.com/boyney123/eventcatalog/pull/473) Thanks [@boyney123](https://github.com/boyney123)! - feat - added ability to add css overrides
+
 ## 1.1.1
 
 ### Patch Changes
