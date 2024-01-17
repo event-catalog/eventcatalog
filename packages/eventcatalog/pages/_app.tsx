@@ -38,7 +38,7 @@ function Page({ Component, pageProps }: AppProps) {
       try {
         // @ts-ignore
         await import('../eventcatalog.styles.css');
-        console.log('Styles loaded successfully.');
+        console.log('Styles loaded successfully');
       } catch (error) {
         console.log('Custom stylesheet does not exist. If you want to add one add eventcatalog.styles.css to your project');
       }
