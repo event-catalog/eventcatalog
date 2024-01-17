@@ -7,7 +7,7 @@ const eventCatalogDir = path.join(__dirname, '../packages/eventcatalog');
 const projectDIR = path.join(__dirname, '../examples/basic');
 
 fs.copyFileSync(path.join(projectDIR, 'eventcatalog.config.js'), path.join(eventCatalogDir, 'eventcatalog.config.js'));
-fs.copyFileSync(path.join(projectDIR, 'eventcatalog.styles.css'), path.join(eventCatalogDir, 'eventcatalog.styles.css'));
+fs.copyFileSync(path.join(projectDIR, 'eventcatalog.styles.css'), path.join(eventCatalogLibDir, 'eventcatalog.styles.css'));
 
 execSync(`PROJECT_DIR=${projectDIR} npm run scripts:move-schema-for-download`, {
   cwd: eventCatalogDir,
