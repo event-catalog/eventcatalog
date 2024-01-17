@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 1.2.1
+
+### Patch Changes
+
+- [`65a46b1`](https://github.com/boyney123/eventcatalog/commit/65a46b1ecea14837f9cbfa5e66ba3b369f36646a) [#475](https://github.com/boyney123/eventcatalog/pull/475) Thanks [@boyney123](https://github.com/boyney123)! - feat - copy over styles on dev and build
+
 ## 1.2.0
 
 ### Minor Changes
