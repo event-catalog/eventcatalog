@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 1.2.3
+
+### Patch Changes
+
+- [`c2faad3`](https://github.com/boyney123/eventcatalog/commit/c2faad32c756589f4e11e82b7a5b659257e6b98b) [#480](https://github.com/boyney123/eventcatalog/pull/480) Thanks [@boyney123](https://github.com/boyney123)! - fix: bug when copy styles over
+
 ## 1.2.2
 
 ### Patch Changes
