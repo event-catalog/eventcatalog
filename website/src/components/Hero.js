@@ -19,6 +19,46 @@ owners:
 <Mermaid />
 `;
 
+const testimonials = [
+  {
+    body: 'Creating easy to maintain and easy to consume API and event documentation that is always up to date has been one of the most consistent challenges of my career. EventCatalog has become the keystone tool to finally make it possible.',
+    author: {
+      name: 'Adam Fanello',
+      handle: 'Strategic Cloud Software Architect, Rackspace Technology',
+      imageUrl:
+        '/img/people/adam-fanello.jpeg',
+    },
+  },
+  {
+    body: 'When I started to work with EDA 4 years ago, I always wondering how to document events across the organization with easy access and useful for all stakeholders, recently I discovered Event Catalog which has been amazing because it automated the creation of EventBridge event powered by the plugging you created, big thanks!',
+    author: {
+      name: 'Daniel Castillo',
+      handle: 'Software Architect, Propelus',
+      imageUrl:
+        '/img/people/daniel-castillo.png',
+    },
+  },
+  {
+    body: 'EventCatalog does a tremendous job in bringing transparency to our landscape. With it\'s visualisation features it\'s easy to identify stakeholders for event changes.',
+    author: {
+      name: 'Benjamin Otto',
+      handle: 'Fullstack developer, Cloud lover',
+      imageUrl:
+        'https://pbs.twimg.com/profile_images/663759011205029889/zIraFLcq_400x400.jpg',
+    },
+  },
+  {
+    body: 'EventCatalog for us replaces a plain wiki. It offers much more insight into an EDA. Features such as the visualiser make seeing how events are used a breath of fresh air!',
+    author: {
+      name: 'Billy Mumby',
+      handle: '',
+      imageUrl:
+        '/img/user.png',
+    },
+  },
+  // More testimonials...
+]
+
 function Hero() {
   return (
     <>
@@ -125,10 +165,60 @@ function Hero() {
           </figcaption>
         </figure>
       </section>
-      <div className="bg-gradient-to-r bg-gray-800">
+
+      <div className="bg-gray-800 py-24 sm:py-32">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-xl text-center">
+          <h2 className="text-3xl font-semibold leading-8 tracking-tight text-green-400">Testimonials</h2>
+          <p className="mt-2 text-3xl font-bold tracking-tight text-gray-200 sm:text-4xl">
+            EventCatalog is helping developers around the world 🌎
+          </p>
+        </div>
+        <div className="mx-auto mt-16 flow-root max-w-2xl sm:mt-20 lg:mx-0 lg:max-w-none">
+          <div className="-mt-8 sm:-mx-4 sm:columns-2 sm:text-[0] lg:columns-2">
+            {testimonials.map((testimonial) => (
+              <div key={testimonial.author.handle} className="pt-8 sm:inline-block sm:w-full sm:px-4">
+                <figure className="rounded-2xl bg-gray-50 p-8 text-sm leading-6">
+                  <blockquote className="text-gray-900">
+                    <p>{`“${testimonial.body}”`}</p>
+                  </blockquote>
+                  <figcaption className="mt-6 flex items-center gap-x-4">
+                    <img className="h-10 w-10 rounded-full bg-gray-50" src={testimonial.author.imageUrl} alt="" />
+                    <div>
+                      <div className="font-semibold text-gray-900">{testimonial.author.name}</div>
+                      {testimonial.author.handle && <div className="text-gray-600">{`@${testimonial.author.handle}`}</div>}
+                    </div>
+                  </figcaption>
+                </figure>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+
+      {/* <div className="bg-gradient-to-r bg-gray-800">
         <section className="text-gray-300 body-font max-w-7xl mx-auto ">
           <div className="lg:container px-5 py-12 md:py-24 mx-auto">
             <div className="flex flex-wrap -m-4">
+              <div className="md:w-1/3 lg:mb-0 mb-6 p-4 ">
+                <div className="h-full text-center ">
+                  <img
+                    alt="testimonial"
+                    src="/img/people/adam-fanello.jpeg"
+                    className="w-20 h-20 mb-8 object-cover object-center rounded-full inline-block border-2 border-gray-200 bg-gray-100"
+                  />
+                  <p className="leading-relaxed px-4 md:px-4">
+                    Creating easy to maintain and easy to consume API and event documentation that is always up to date has been
+                    one of the most consistent challenges of my career. EventCatalog has become the keystone tool to finally make
+                    it possible.
+                  </p>
+                  <span className="inline-block h-1 w-10 rounded bg-green-500 mt-6 mb-4" />
+                  <h2 className="text-gray-400 font-medium title-font tracking-wider text-sm">
+                    Adam Fanello - Strategic Cloud Software Architect, Rackspace Technology
+                  </h2>
+                </div>
+              </div>
               <div className="md:w-1/3 lg:mb-0 mb-6 p-4 ">
                 <div className="h-full text-center ">
                   <img
@@ -177,26 +267,11 @@ function Hero() {
                   <h2 className="text-gray-400 font-medium title-font tracking-wider text-sm">Benjamin Otto</h2>
                 </div>
               </div>
-              {/* <div className="lg:w-1/3 lg:mb-0 p-4">
-                <div className="h-full text-center">
-                  <img
-                    alt="testimonial"
-                    className="w-20 h-20 mb-8 object-cover object-center rounded-full inline-block border-2 border-gray-200 bg-gray-100"
-                    src="https://dummyimage.com/305x305"
-                  />
-                  <p className="leading-relaxed">
-                    Edison bulb retro cloud bread echo park, helvetica stumptown taiyaki taxidermy 90's cronut +1 kinfolk.
-                    Single-origin coffee ennui shaman taiyaki vape DIY tote bag drinking vinegar cronut adaptogen squid fanny pack
-                    vaporware.
-                  </p>
-                  <span className="inline-block h-1 w-10 rounded bg-green-500 mt-6 mb-4" />
-                  <h2 className="text-gray-500 font-medium title-font tracking-wider text-sm">HENRY LETHAM</h2>
-                </div>
-              </div> */}
+             
             </div>
           </div>
         </section>
-      </div>
+      </div> */}
       <div className="relative bg-white pt-16 pb-32 overflow-hidden">
         <div className="relative">
           <div className="lg:mx-auto lg:max-w-7xl lg:px-8 lg:grid lg:grid-cols-2 lg:grid-flow-col-dense lg:gap-24">
