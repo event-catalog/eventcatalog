@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 1.2.2
+
+### Patch Changes
+
+- [`e8846cb`](https://github.com/boyney123/eventcatalog/commit/e8846cb66620581e6cc33a0c8d36ddac912c78b9) [#477](https://github.com/boyney123/eventcatalog/pull/477) Thanks [@boyney123](https://github.com/boyney123)! - feat - fixing copy over
+
 ## 1.2.1
 
 ### Patch Changes
