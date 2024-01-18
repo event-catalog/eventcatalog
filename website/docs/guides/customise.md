@@ -61,3 +61,33 @@ badges:
 Which would result in the following display on the grid style pages as:
 
 ![Custom Landingpage](/img/guides/customise/example-badge.png)
+
+
+### Styling EventCatalog
+
+EventCatalog supports custom styling. When you create your catalog you will have a `eventcatalog.styles.css` file.
+
+:::tip Upgrading to styling
+If you have an old version of EventCatalog, update to the latest version of `eventcatalog/core` and add a `eventcatalog.styles.css` in the root of your project.
+:::
+
+#### Custom classes
+
+EventCatalog has custom classes which you can change the styles of, these have a prefix of `ec-`.
+
+:::warning 
+In theory you can customise anything you want, but beware that classes my change. It's best to use the supported classed below to change the styles.
+:::
+
+#### Supported classes
+
+- `.ec-homepage` - Change the background of EventCatalog homepage
+
+```css
+.ec-homepage{
+    # Changes the background of the homepage to black
+    background:black;
+}
+```
+
+If you want any more customizations please raise a [GitHub issue](https://github.com/boyney123/eventcatalog) or join us in [Discord](https://discord.com/invite/3rjaZMmrAm).
