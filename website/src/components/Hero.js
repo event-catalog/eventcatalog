@@ -129,14 +129,28 @@ function Hero() {
         <section className="text-gray-300 body-font max-w-7xl mx-auto ">
           <div className="lg:container px-5 py-12 md:py-24 mx-auto">
             <div className="flex flex-wrap -m-4">
-              <div className="md:w-1/2 lg:mb-0 mb-6 p-4 ">
+              <div className="md:w-1/3 lg:mb-0 mb-6 p-4 ">
+                <div className="h-full text-center ">
+                  <img
+                    alt="testimonial"
+                    src="/img/people/adam-fanello.jpeg"
+                    className="w-20 h-20 mb-8 object-cover object-center rounded-full inline-block border-2 border-gray-200 bg-gray-100"
+                  />
+                  <p className="leading-relaxed px-4 md:px-4">
+                  Creating easy to maintain and easy to consume API and event documentation that is always up to date has been one of the most consistent challenges of my career. EventCatalog has become the keystone tool to finally make it possible.
+                  </p>
+                  <span className="inline-block h-1 w-10 rounded bg-green-500 mt-6 mb-4" />
+                  <h2 className="text-gray-400 font-medium title-font tracking-wider text-sm">Adam Fanello - Strategic Cloud Software Architect, Rackspace Technology</h2>
+                </div>
+              </div>
+              <div className="md:w-1/3 lg:mb-0 mb-6 p-4 ">
                 <div className="h-full text-center ">
                   <img
                     alt="testimonial"
                     src="/img/user.png"
                     className="w-20 h-20 mb-8 object-cover object-center rounded-full inline-block border-2 border-gray-200 bg-gray-100"
                   />
-                  <p className="leading-relaxed px-10 md:px-20">
+                  <p className="leading-relaxed px-4 md:px-4">
                     EventCatalog for us replaces a plain wiki. It offers much more insight into an EDA. Features such as the
                     visualiser make seeing how events are used a breath of fresh air!
                   </p>
@@ -144,14 +158,14 @@ function Hero() {
                   <h2 className="text-gray-400 font-medium title-font tracking-wider text-sm">Billy Mumby</h2>
                 </div>
               </div>
-              <div className="md:w-1/2 lg:mb-0 mb-6 p-4">
+              <div className="md:w-1/3 lg:mb-0 mb-6 p-4">
                 <div className="h-full text-center">
                   <img
                     alt="testimonial"
                     className="w-20 h-20 mb-8 object-cover object-center rounded-full inline-block border-2 border-gray-200 bg-gray-100"
                     src="https://pbs.twimg.com/profile_images/663759011205029889/zIraFLcq_400x400.jpg"
                   />
-                  <p className="leading-relaxed px-10 md:px-20">
+                  <p className="leading-relaxed px-4 md:px-4">
                     EventCatalog does a tremendous job in bringing transparency to our landscape. With it&apos;s visualisation
                     features it&apos;s easy to identify stakeholders for event changes.
                   </p>
