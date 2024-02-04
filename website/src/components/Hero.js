@@ -30,6 +30,15 @@ const testimonials = [
     },
   },
   {
+    body: 'EventCatalog unlocked the power to visualise events and flows. It simplifies event documentation, providing a clear and comprehensive view of all our events, producers, and consumers. It\'s the essential tool that was missing in my documentation process.',
+    author: {
+      name: 'Tim Haselaars',
+      handle: 'Product Manager , Apideck',
+      imageUrl:
+        '/img/people/tim-h.jpeg',
+    },
+  },
+  {
     body: 'When I started to work with EDA 4 years ago, I always wondering how to document events across the organization with easy access and useful for all stakeholders, recently I discovered Event Catalog which has been amazing because it automated the creation of EventBridge event powered by the plugging you created, big thanks!',
     author: {
       name: 'Daniel Castillo',
