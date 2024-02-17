@@ -108,7 +108,7 @@ function NodeGraphBuilder({
     if (element.data?.link) {
       window.open(element.data.link, '_self');
     }
-  }
+  };
 
   const onLoad = useCallback(
     (reactFlowInstance) => {

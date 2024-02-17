@@ -25,17 +25,15 @@ const testimonials = [
     author: {
       name: 'Adam Fanello',
       handle: 'Strategic Cloud Software Architect, Rackspace Technology',
-      imageUrl:
-        '/img/people/adam-fanello.jpeg',
+      imageUrl: '/img/people/adam-fanello.jpeg',
     },
   },
   {
-    body: 'EventCatalog unlocked the power to visualise events and flows. It simplifies event documentation, providing a clear and comprehensive view of all our events, producers, and consumers. It\'s the essential tool that was missing in my documentation process.',
+    body: "EventCatalog unlocked the power to visualise events and flows. It simplifies event documentation, providing a clear and comprehensive view of all our events, producers, and consumers. It's the essential tool that was missing in my documentation process.",
     author: {
       name: 'Tim Haselaars',
       handle: 'Product Manager , Apideck',
-      imageUrl:
-        '/img/people/tim-h.jpeg',
+      imageUrl: '/img/people/tim-h.jpeg',
     },
   },
   {
@@ -43,17 +41,15 @@ const testimonials = [
     author: {
       name: 'Daniel Castillo',
       handle: 'Software Architect, Propelus',
-      imageUrl:
-        '/img/people/daniel-castillo.png',
+      imageUrl: '/img/people/daniel-castillo.png',
     },
   },
   {
-    body: 'EventCatalog does a tremendous job in bringing transparency to our landscape. With it\'s visualisation features it\'s easy to identify stakeholders for event changes.',
+    body: "EventCatalog does a tremendous job in bringing transparency to our landscape. With it's visualisation features it's easy to identify stakeholders for event changes.",
     author: {
       name: 'Benjamin Otto',
       handle: 'Fullstack developer, Cloud lover',
-      imageUrl:
-        'https://pbs.twimg.com/profile_images/663759011205029889/zIraFLcq_400x400.jpg',
+      imageUrl: 'https://pbs.twimg.com/profile_images/663759011205029889/zIraFLcq_400x400.jpg',
     },
   },
   {
@@ -61,12 +57,11 @@ const testimonials = [
     author: {
       name: 'Billy Mumby',
       handle: '',
-      imageUrl:
-        '/img/user.png',
+      imageUrl: '/img/user.png',
     },
   },
   // More testimonials...
-]
+];
 
 function Hero() {
   return (
@@ -176,35 +171,35 @@ function Hero() {
       </section>
 
       <div className="bg-gray-800 py-24 sm:py-32">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-xl text-center">
-          <h2 className="text-3xl font-semibold leading-8 tracking-tight text-green-400">Testimonials</h2>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-gray-200 sm:text-4xl">
-            EventCatalog is helping developers around the world 🌎
-          </p>
-        </div>
-        <div className="mx-auto mt-16 flow-root max-w-2xl sm:mt-20 lg:mx-0 lg:max-w-none">
-          <div className="-mt-8 sm:-mx-4 sm:columns-2 sm:text-[0] lg:columns-2">
-            {testimonials.map((testimonial) => (
-              <div key={testimonial.author.handle} className="pt-8 sm:inline-block sm:w-full sm:px-4">
-                <figure className="rounded-2xl bg-gray-50 p-8 text-sm leading-6">
-                  <blockquote className="text-gray-900">
-                    <p>{`“${testimonial.body}”`}</p>
-                  </blockquote>
-                  <figcaption className="mt-6 flex items-center gap-x-4">
-                    <img className="h-10 w-10 rounded-full bg-gray-50" src={testimonial.author.imageUrl} alt="" />
-                    <div>
-                      <div className="font-semibold text-gray-900">{testimonial.author.name}</div>
-                      {testimonial.author.handle && <div className="text-gray-600">{`@${testimonial.author.handle}`}</div>}
-                    </div>
-                  </figcaption>
-                </figure>
-              </div>
-            ))}
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-xl text-center">
+            <h2 className="text-3xl font-semibold leading-8 tracking-tight text-green-400">Testimonials</h2>
+            <p className="mt-2 text-3xl font-bold tracking-tight text-gray-200 sm:text-4xl">
+              EventCatalog is helping developers around the world 🌎
+            </p>
+          </div>
+          <div className="mx-auto mt-16 flow-root max-w-2xl sm:mt-20 lg:mx-0 lg:max-w-none">
+            <div className="-mt-8 sm:-mx-4 sm:columns-2 sm:text-[0] lg:columns-2">
+              {testimonials.map((testimonial) => (
+                <div key={testimonial.author.handle} className="pt-8 sm:inline-block sm:w-full sm:px-4">
+                  <figure className="rounded-2xl bg-gray-50 p-8 text-sm leading-6">
+                    <blockquote className="text-gray-900">
+                      <p>{`“${testimonial.body}”`}</p>
+                    </blockquote>
+                    <figcaption className="mt-6 flex items-center gap-x-4">
+                      <img className="h-10 w-10 rounded-full bg-gray-50" src={testimonial.author.imageUrl} alt="" />
+                      <div>
+                        <div className="font-semibold text-gray-900">{testimonial.author.name}</div>
+                        {testimonial.author.handle && <div className="text-gray-600">{`@${testimonial.author.handle}`}</div>}
+                      </div>
+                    </figcaption>
+                  </figure>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
       {/* <div className="bg-gradient-to-r bg-gray-800">
         <section className="text-gray-300 body-font max-w-7xl mx-auto ">
