@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 1.2.4
+
+### Patch Changes
+
+- [`821a1a7`](https://github.com/boyney123/eventcatalog/commit/821a1a7553dbfebb6793923d1e49a81fee27826d) [#482](https://github.com/boyney123/eventcatalog/pull/482) Thanks [@WaYdotNET](https://github.com/WaYdotNET)! - fix: visualization of asyncapi: 3.0.0 file
+
 ## 1.2.3
 
 ### Patch Changes
