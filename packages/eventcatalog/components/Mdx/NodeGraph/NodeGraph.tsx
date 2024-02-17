@@ -104,7 +104,12 @@ function NodeGraphBuilder({
   }, [data, getElements, isHorizontal, resetView]);
 
   // ReactFlow operations
-  const onElementClick = (event, element) => window.open(element.data.link, '_self');
+  const onElementClick = (event, element) => {
+    if (element.data?.link) {
+      window.open(element.data.link, '_self');
+    }
+  };
+
   const onLoad = useCallback(
     (reactFlowInstance) => {
       if (fitView) {

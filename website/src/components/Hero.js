@@ -29,12 +29,11 @@ const testimonials = [
     },
   },
   {
-    body: 'EventCatalog unlocked the power to visualise events and flows. It simplifies event documentation, providing a clear and comprehensive view of all our events, producers, and consumers. It\'s the essential tool that was missing in my documentation process.',
+    body: "EventCatalog unlocked the power to visualise events and flows. It simplifies event documentation, providing a clear and comprehensive view of all our events, producers, and consumers. It's the essential tool that was missing in my documentation process.",
     author: {
       name: 'Tim Haselaars',
       handle: 'Product Manager , Apideck',
-      imageUrl:
-        '/img/people/tim-h.jpeg',
+      imageUrl: '/img/people/tim-h.jpeg',
     },
   },
   {
