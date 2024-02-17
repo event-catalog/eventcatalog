@@ -6,7 +6,7 @@
 [![MIT License][license-badge]][license]
 [![PRs Welcome][prs-badge]][prs]
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-32-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-33-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![Watch on GitHub][github-watch-badge]][github-watch]
@@ -163,6 +163,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/jlee-spt"><img src="https://avatars.githubusercontent.com/u/135801616?v=4?s=100" width="100px;" alt="jlee-spt"/><br /><sub><b>jlee-spt</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=jlee-spt" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/kimrejstrom"><img src="https://avatars.githubusercontent.com/u/26428365?v=4?s=100" width="100px;" alt="Kim Rejström"/><br /><sub><b>Kim Rejström</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=kimrejstrom" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/cgabard"><img src="https://avatars.githubusercontent.com/u/6103932?v=4?s=100" width="100px;" alt="Christophe Gabard"/><br /><sub><b>Christophe Gabard</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=cgabard" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://www.waydotnet.com"><img src="https://avatars.githubusercontent.com/u/197466?v=4?s=100" width="100px;" alt="Carlo Bertini"/><br /><sub><b>Carlo Bertini</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=WaYdotNET" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
