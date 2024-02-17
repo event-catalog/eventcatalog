@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 1.2.5
+
+### Patch Changes
+
+- [`56b9f0d`](https://github.com/boyney123/eventcatalog/commit/56b9f0daefde6cba75b68c4a5a33742376b540dd) [#485](https://github.com/boyney123/eventcatalog/pull/485) Thanks [@dreglad](https://github.com/dreglad)! - fix: (#484) ensure link exists before opening link in visualizer
+
+- [`56b9f0d`](https://github.com/boyney123/eventcatalog/commit/56b9f0daefde6cba75b68c4a5a33742376b540dd) [#485](https://github.com/boyney123/eventcatalog/pull/485) Thanks [@dreglad](https://github.com/dreglad)! - fix: (#484) ensure link exists before opening link in visualizer.
+
 ## 1.2.4
 
 ### Patch Changes
