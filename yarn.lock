@@ -187,7 +187,7 @@
     ajv-errors "^3.0.0"
     ajv-formats "^2.1.1"
 
-"@asyncapi/parser@^3.0.1", "@asyncapi/parser@^3.0.2", "@asyncapi/parser@^3.0.6":
+"@asyncapi/parser@^3.0.1", "@asyncapi/parser@^3.0.6":
   version "3.0.6"
   resolved "https://registry.yarnpkg.com/@asyncapi/parser/-/parser-3.0.6.tgz#f5593895094683c52b70376f65c888ceae9446f2"
   integrity sha512-oHTaeXG9DOdBlBZ90xCSPCl3kT5XE851+Rxn47bMfG05Z48csZ1o9wFUl/SzQt+L8HgplFeQG4n/7EJHYOlcWQ==
@@ -236,7 +236,7 @@
     openapi-sampler "^1.2.1"
     use-resize-observer "^8.0.0"
 
-"@asyncapi/specs@^6.2.0", "@asyncapi/specs@^6.4.0":
+"@asyncapi/specs@^6.4.0":
   version "6.4.0"
   resolved "https://registry.yarnpkg.com/@asyncapi/specs/-/specs-6.4.0.tgz#6021a472582815c6e51447c46fb1e43cf4d09544"
   integrity sha512-hTw0xF09i+eoSGP8LKo6aM+XOkvWsgV7kYpFHXd45VX9RcVZl5cADFIYDnPZkd52WaDJ4S+8Nrwkt/1vDb6SrQ==
