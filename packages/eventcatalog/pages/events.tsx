@@ -9,6 +9,7 @@ import EventGrid from '@/components/Grids/EventGrid';
 import { getAllEvents, getUniqueServicesNamesFromEvents } from '@/lib/events';
 import { getUniqueDomainNamesFromEvents } from '@/lib/domains';
 import { useConfig } from '@/hooks/EventCatalog';
+import { useRouter } from 'next/router';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -134,6 +135,14 @@ export default function Page({ events, services, domains }: PageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFilters, searchFilter]);
 
+  const router = useRouter();
+
+  useEffect(() => {
+    if (router.query.q) {
+      setSearchFilter(router.query.q as string);
+    }
+  }, [router.query.q]);
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedFilter = useCallback(
     debounce((e) => {
@@ -220,7 +229,11 @@ export default function Page({ events, services, domains }: PageProps) {
                     type="text"
                     name="event"
                     id="event"
-                    onChange={debouncedFilter}
+                    onChange={(e) => {
+                      setSearchFilter(e.target.value);
+                      debouncedFilter(e);
+                    }}
+                    value={searchFilter}
                     className="focus:ring-gray-500 focus:border-gray-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
                   />
                 </div>

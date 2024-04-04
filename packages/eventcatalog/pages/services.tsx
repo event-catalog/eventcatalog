@@ -8,6 +8,7 @@ import { ChevronDownIcon, SearchIcon } from '@heroicons/react/solid';
 import ServiceGrid from '@/components/Grids/ServiceGrid';
 import { getAllServices } from '@/lib/services';
 import { useConfig } from '@/hooks/EventCatalog';
+import { useRouter } from 'next/router';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -90,6 +91,14 @@ export default function Page({ services }: PageProps) {
     setServicesToRender(getFilteredServices());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFilters, searchFilter]);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (router.query.q) {
+      setSearchFilter(router.query.q as string);
+    }
+  }, [router.query.q]);
 
   const debouncedFilter = useCallback(
     debounce((e) => {
@@ -174,7 +183,11 @@ export default function Page({ services }: PageProps) {
                     type="text"
                     name="service"
                     id="service"
-                    onChange={debouncedFilter}
+                    onChange={(e) => {
+                      setSearchFilter(e.target.value);
+                      debouncedFilter(e);
+                    }}
+                    value={searchFilter}
                     className="focus:ring-gray-500 focus:border-gray-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
                   />
                 </div>
