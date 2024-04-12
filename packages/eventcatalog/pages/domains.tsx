@@ -7,6 +7,7 @@ import { SearchIcon } from '@heroicons/react/outline';
 import DomainGrid from '@/components/Grids/DomainGrid';
 import { useConfig } from '@/hooks/EventCatalog';
 import { getAllDomains } from '@/lib/domains';
+import { useRouter } from 'next/router';
 
 export interface PageProps {
   domains: Domain[];
@@ -80,6 +81,14 @@ export default function Page({ domains }: PageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFilters, searchFilter]);
 
+  const router = useRouter();
+
+  useEffect(() => {
+    if (router.query.q) {
+      setSearchFilter(router.query.q as string);
+    }
+  }, [router.query.q]);
+
   const debouncedFilter = useCallback(
     debounce((e) => {
       setSearchFilter(e.target.value);
@@ -116,7 +125,11 @@ export default function Page({ domains }: PageProps) {
                     type="text"
                     name="domain"
                     id="domain"
-                    onChange={debouncedFilter}
+                    onChange={(e) => {
+                      setSearchFilter(e.target.value);
+                      debouncedFilter(e);
+                    }}
+                    value={searchFilter}
                     className="focus:ring-gray-500 focus:border-gray-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
                   />
                 </div>
