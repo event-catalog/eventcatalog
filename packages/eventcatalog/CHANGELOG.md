@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 1.2.6
+
+### Patch Changes
+
+- [`1fce9a2`](https://github.com/boyney123/eventcatalog/commit/1fce9a298ff1820056fcbc4dc75cfd6f18535f60) [#499](https://github.com/boyney123/eventcatalog/pull/499) Thanks [@marciovmartins](https://github.com/marciovmartins)! - feat: add search via query parameter for events, services and domains (#498)
+
 ## 1.2.5
 
 ### Patch Changes
