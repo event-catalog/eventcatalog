@@ -329,6 +329,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "marciovmartins",
+      "name": "Marcio Vinicius",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6377735?v=4",
+      "profile": "https://blogdomarcioweb.wordpress.com/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
