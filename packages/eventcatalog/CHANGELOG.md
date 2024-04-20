@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 1.2.7
+
+### Patch Changes
+
+- [`65aa33d`](https://github.com/boyney123/eventcatalog/commit/65aa33d618b9f415768554bb85a926c1f1913698) [#510](https://github.com/boyney123/eventcatalog/pull/510) Thanks [@boyney123](https://github.com/boyney123)! - Update mermaid version to latest
+
 ## 1.2.6
 
 ### Patch Changes
