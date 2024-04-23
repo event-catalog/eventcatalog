@@ -6,7 +6,7 @@
 [![MIT License][license-badge]][license]
 [![PRs Welcome][prs-badge]][prs]
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-35-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-36-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![Watch on GitHub][github-watch-badge]][github-watch]
@@ -166,6 +166,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="http://www.waydotnet.com"><img src="https://avatars.githubusercontent.com/u/197466?v=4?s=100" width="100px;" alt="Carlo Bertini"/><br /><sub><b>Carlo Bertini</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=WaYdotNET" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/dreglad"><img src="https://avatars.githubusercontent.com/u/50302?v=4?s=100" width="100px;" alt="David Regla"/><br /><sub><b>David Regla</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=dreglad" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://blogdomarcioweb.wordpress.com/"><img src="https://avatars.githubusercontent.com/u/6377735?v=4?s=100" width="100px;" alt="Marcio Vinicius"/><br /><sub><b>Marcio Vinicius</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=marciovmartins" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/danielcastill0"><img src="https://avatars.githubusercontent.com/u/40574235?v=4?s=100" width="100px;" alt="Daniel Andres Castillo Ardila"/><br /><sub><b>Daniel Andres Castillo Ardila</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=danielcastill0" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
