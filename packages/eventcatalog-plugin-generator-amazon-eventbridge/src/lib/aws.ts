@@ -145,7 +145,7 @@ const getEventBusRulesAndTargets = (eventbridge: EventBridge, eventBusName: stri
       const { Targets = [] } = await eventbridge.listTargetsByRule({ Rule: rule.name, EventBusName: eventBusName });
       const targets = Targets.map(({ Arn: arnString = '' }) => {
         const { service, resource, resourceName } = Arn.split(arnString, ArnFormat.SLASH_RESOURCE_SLASH_RESOURCE_NAME);
-        return { service, resource, resourceName, arn: arnString };
+        return { service, resource, resourceName: resourceName || resource, arn: arnString };
       });
       return { ...rule, targets };
     });
