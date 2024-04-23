@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/plugin-doc-generator-amazon-eventbridge",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Documentation generator for EventCatalog using Amazon EventBridge",
   "main": "lib/index.js",
   "scripts": {
