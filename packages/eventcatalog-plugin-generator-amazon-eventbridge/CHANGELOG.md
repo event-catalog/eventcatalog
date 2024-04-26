@@ -1,5 +1,11 @@
 # @eventcatalog/plugin-doc-generator-amazon-eventbridge
 
+## 0.0.13
+
+### Patch Changes
+
+- [`74ca9c7`](https://github.com/boyney123/eventcatalog/commit/74ca9c701d57d2da730d8972137f3a00d3a5df3e) [#506](https://github.com/boyney123/eventcatalog/pull/506) Thanks [@danielcastill0](https://github.com/danielcastill0)! - fix: undefined values for eventbridge plugin
+
 ## 0.0.12
 
 ### Patch Changes
