@@ -1,4 +1,4 @@
-import type { Event } from '@eventcatalog/types';
+import type { Event, Service } from '@eventcatalog/types';
 import { Domain } from '@eventcatalog/types';
 import fs from 'fs';
 import { serialize } from 'next-mdx-remote/serialize';
@@ -59,7 +59,7 @@ export const getAllServicesFromDomains = () => {
   if (!fs.existsSync(domainsDir)) return [];
   const domains = fs.readdirSync(domainsDir);
 
-  return domains.reduce((allServicesFromDomains, domainFolder) => {
+  return domains.reduce<(Service & { domain: string })[]>((allServicesFromDomains, domainFolder) => {
     const domainDir = path.join(domainsDir, domainFolder);
     const servicesForDomainDir = path.join(domainDir, 'services');
     const domainHasServices = fs.existsSync(servicesForDomainDir);
@@ -67,10 +67,10 @@ export const getAllServicesFromDomains = () => {
     if (domainHasServices) {
       const domainServices = getAllServicesFromPath(servicesForDomainDir);
 
-      // Add domains onto events
-      const eventsWithDomain = domainServices.map((event) => ({ ...event, domain: domainFolder }));
+      // Add domains onto services
+      const servicesWithDomain = domainServices.map((service) => ({ ...service, domain: domainFolder }));
 
-      return [...allServicesFromDomains, ...eventsWithDomain];
+      return [...allServicesFromDomains, ...servicesWithDomain];
     }
 
     return allServicesFromDomains;

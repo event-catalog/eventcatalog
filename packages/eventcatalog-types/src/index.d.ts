@@ -60,6 +60,7 @@ export interface Service {
   openAPISpec?: string;
   asyncAPISpec?: string;
   badges?: Badge[];
+  extraDocs?: string[];
 }
 
 export interface Domain {

@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import type { Event, Service } from '@eventcatalog/types';
 
-import { CubeIcon, CollectionIcon } from '@heroicons/react/outline';
+import { CubeIcon, CollectionIcon, DocumentTextIcon } from '@heroicons/react/outline';
 import getBackgroundColor from '@/utils/random-bg';
 
 import ExternalLinks from './components/ExternalLinks';
@@ -18,7 +18,7 @@ interface ServiceSideBarProps {
 }
 
 function ServiceSidebar({ service }: ServiceSideBarProps) {
-  const { owners, subscribes, publishes, repository, tags = [], externalLinks, domain } = service;
+  const { owners, subscribes, publishes, repository, tags = [], externalLinks, domain, extraDocs } = service;
   const { language, url: repositoryUrl } = repository;
 
   let languages = [];
@@ -32,6 +32,8 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
   if (repositoryUrl) {
     trimmedUrl = repositoryUrl.replace(/(^\w+:|^)\/\//, '');
   }
+
+  const serviceBaseUrl = service.domain ? `/domains/${service.domain}/services/${service.name}` : `/services/${service.name}`;
 
   return (
     <aside className="hidden xl:block xl:pl-8 ">
@@ -71,6 +73,31 @@ function ServiceSidebar({ service }: ServiceSideBarProps) {
                   </a>
                 </Link>
               </li>
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {extraDocs.length > 0 && (
+        <div className="border-t border-gray-200 py-6 space-y-8">
+          <div>
+            <h2 className="text-sm font-medium text-gray-500">
+              <DocumentTextIcon className="h-5 w-5 text-teal-400 inline-block mr-2" aria-hidden="true" />
+              Extra documents
+            </h2>
+            <ul className="mt-2 leading-8">
+              {extraDocs.map((extraDoc) => (
+                <li className="inline" key={domain}>
+                  <Link href={`${serviceBaseUrl}/${extraDoc}`}>
+                    <a href="#" className="relative inline-flex items-center rounded-full border border-gray-300 px-3 py-0.5">
+                      <div className="absolute flex-shrink-0 flex items-center justify-center">
+                        <span className="h-1.5 w-1.5 rounded-full bg-gray-400 animate animate-pulse" aria-hidden="true" />
+                      </div>
+                      <div className="ml-3.5 text-sm font-medium text-gray-900">{extraDoc}</div>
+                    </a>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
