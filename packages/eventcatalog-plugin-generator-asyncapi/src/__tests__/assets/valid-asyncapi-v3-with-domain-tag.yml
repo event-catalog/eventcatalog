@@ -1,14 +1,11 @@
 asyncapi: 3.0.0
 info:
-  title: Account Service V3
+  title: Account Service V3 In Domain 
   version: 1.0.0
   description: This service is in charge of processing user signups
   tags:
-    - name: owner
-      description: myteam
-  externalDocs:
-    description: Find more info here
-    url: 'https://example.com'
+    - name: domain
+      description: My Domain
 
 channels:
   userSignedup:

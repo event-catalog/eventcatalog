@@ -1,6 +1,13 @@
 import chalk from 'chalk';
 import type { Event, Service, LoadContext, Domain } from '@eventcatalog/types';
-import { AsyncAPIDocumentInterface, Parser, MessageInterface, OperationInterface, fromFile } from '@asyncapi/parser';
+import {
+  AsyncAPIDocumentInterface,
+  Parser,
+  MessageInterface,
+  OperationInterface,
+  fromFile,
+  TagInterface,
+} from '@asyncapi/parser';
 import fs from 'fs-extra';
 import path from 'path';
 import utils from '@eventcatalog/utils';
@@ -9,10 +16,45 @@ import merge from 'lodash.merge';
 import { AvroSchemaParser } from '@asyncapi/avro-schema-parser';
 import type { AsyncAPIPluginOptions } from './types';
 
-const getServiceFromAsyncDoc = (doc: AsyncAPIDocumentInterface): Service => ({
-  name: doc.info().title(),
-  summary: doc.info().description() || '',
-});
+const GetTagValueFromSpec = (doc: AsyncAPIDocumentInterface, tagName: string): string | undefined => {
+  const tagFromSpec = doc
+    .info()
+    .tags()
+    .find((tag: TagInterface) => tag.name() === tagName);
+  return tagFromSpec?.description();
+}
+
+const getDomainFromAsyncDoc = (doc: AsyncAPIDocumentInterface, options: AsyncAPIPluginOptions) => {
+  const { domainSummary = '' } = options;
+  let { domainName } = options;
+  let domain;
+
+  if (!domainName)
+    domainName =  GetTagValueFromSpec(doc, 'domain');
+
+  if (domainName)
+    domain = <Domain>{
+      name: domainName,
+      summary: domainSummary,
+    };
+
+  return domain;
+};
+
+const getServiceFromAsyncDoc = (doc: AsyncAPIDocumentInterface): Service => {
+  const label = doc.info().externalDocs()?.description() || '';
+  const url = doc.info().externalDocs()?.url() || '';
+  const externalLink = doc.info().hasExternalDocs() ? { label, url } : undefined;
+
+  const owner = GetTagValueFromSpec(doc, 'owner');
+
+  return {
+    name: doc.info().title(),
+    summary: doc.info().description() || '',
+    externalLinks: externalLink ? [externalLink] : [],
+    owners: owner ? [owner] : [],
+  };
+};
 
 const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocumentInterface, options: AsyncAPIPluginOptions): Event[] => {
   const { externalAsyncAPIUrl } = options;
@@ -79,8 +121,6 @@ const getAllEventsFromAsyncDoc = (doc: AsyncAPIDocumentInterface, options: Async
 };
 
 const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOptions) => {
-  const { domainName = '', domainSummary = '' } = options;
-
   if (!fs.existsSync(pathToFile)) {
     throw new Error(`Given file does not exist: ${pathToFile}`);
   }
@@ -110,14 +150,7 @@ const parseAsyncAPIFile = async (pathToFile: string, options: AsyncAPIPluginOpti
 
   const service = getServiceFromAsyncDoc(parsed.document);
   const events = getAllEventsFromAsyncDoc(parsed.document, options);
-
-  let domain;
-  if (domainName) {
-    domain = <Domain>{
-      name: domainName,
-      summary: domainSummary,
-    };
-  }
+  const domain = getDomainFromAsyncDoc(parsed.document, options);
 
   return { service, domain, events };
 };
@@ -259,3 +292,5 @@ if (require.main === module) {
 
   main(<LoadContext>{}, { pathToSpec: schemasPaths, versionEvents: !!process.env.PROJECT_DO_VERSIONS });
 }
+
+
