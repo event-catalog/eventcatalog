@@ -622,5 +622,22 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         <NodeGraph />`);
       });
     });
+
+    describe('asyncapi service with spec file rendering', () => {
+      it('asyncapi service with spec file in service catalog', async () => {
+        const options: AsyncAPIPluginOptions = {
+          pathToSpec: [path.join(__dirname, './assets/valid-asyncapi-v3.yml')],
+          renderAsyncAPI: true,
+        };
+
+        await plugin(pluginContext, options);
+
+        // just wait for files to be there in time.
+        await new Promise((r) => setTimeout(r, 200));
+
+        const result = fs.readFileSync(path.join(process.env.PROJECT_DIR, 'services/Account Service V3', 'asyncapi.yml'), 'utf-8');
+        expect(result).not.toBeNull();
+      });
+    });
   });
 });
