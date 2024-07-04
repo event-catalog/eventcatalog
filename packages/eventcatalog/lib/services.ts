@@ -8,7 +8,7 @@ import { MarkdownFile } from '../types/index';
 import { getAllEvents, getAllEventsThatHaveRelationshipWithService } from '@/lib/events';
 import { getAllServicesFromDomains } from '@/lib/domains';
 
-const buildService = (eventFrontMatter: any): Service => {
+const buildService = (eventFrontMatter: any, extraDocs: string[]): Service => {
   const {
     name,
     summary,
@@ -19,12 +19,17 @@ const buildService = (eventFrontMatter: any): Service => {
     externalLinks = [],
     badges = [],
   } = eventFrontMatter;
-  return { name, summary, domain, owners, repository, tags, externalLinks, badges };
+  return { name, summary, domain, owners, repository, tags, externalLinks, badges, extraDocs };
 };
+
+export const getServiceExtraDocsByPath = (serviceDirPath: string): string[] =>
+  fs.readdirSync(serviceDirPath).filter((file) => file !== 'index.md' && file.endsWith('.md'));
 
 export const getServiceByPath = (serviceDirPath: string): Service => {
   const { data } = readMarkdownFile(path.join(serviceDirPath, 'index.md'));
-  return buildService(data);
+  const extraDocs = getServiceExtraDocsByPath(serviceDirPath);
+
+  return buildService(data, extraDocs);
 };
 
 export const getAllServicesFromPath = (serviceDir: string): Service[] => {
@@ -73,7 +78,8 @@ export const getServiceByName = async ({
 
     const serviceDirectory = path.join(servicesDir, serviceName);
     const { data, content } = readMarkdownFile(path.join(serviceDirectory, `index.md`));
-    const service = buildService(data);
+    const extraDocs = getServiceExtraDocsByPath(serviceDirectory);
+    const service = buildService(data, extraDocs);
 
     const events = getAllEvents();
 
@@ -96,6 +102,52 @@ export const getServiceByName = async ({
     };
   } catch (error) {
     console.log('Failed to get service by name', serviceName);
+    return Promise.reject();
+  }
+};
+
+export const getExtraDocByName = async ({
+  extraDoc,
+  serviceName,
+  domain = null,
+}: {
+  extraDoc: string;
+  serviceName: string;
+  domain?: string;
+}) => {
+  try {
+    let servicesDir = path.join(process.env.PROJECT_DIR, 'services');
+
+    if (domain) {
+      servicesDir = path.join(process.env.PROJECT_DIR, 'domains', domain, 'services');
+    }
+
+    const serviceDirectory = path.join(servicesDir, serviceName);
+    const { data } = readMarkdownFile(path.join(serviceDirectory, `index.md`));
+    const extraDocs = getServiceExtraDocsByPath(serviceDirectory);
+    const service = buildService(data, extraDocs);
+    const { content: extraFileContent } = readMarkdownFile(path.join(serviceDirectory, extraDoc));
+
+    const events = getAllEvents();
+
+    const mdxSource = await serialize(extraFileContent);
+
+    return {
+      service: {
+        ...service,
+        domain,
+        openAPISpec: getOpenAPISpecFromDir(serviceDirectory),
+        asyncAPISpec: getAsyncAPISpecFromDir(serviceDirectory),
+        ...getAllEventsThatHaveRelationshipWithService(service, events),
+      },
+      markdown: {
+        extraFileContent,
+        lastModifiedDate: getLastModifiedDateOfFile(path.join(serviceDirectory, extraDoc)),
+        source: mdxSource,
+      },
+    };
+  } catch (error) {
+    console.log('Failed to get extra doc by name', serviceName);
     return Promise.reject();
   }
 };

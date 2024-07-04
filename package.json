@@ -62,5 +62,9 @@
   "resolutions": {
     "@types/react": "^17.0.36",
     "trim": "=0.0.3"
+  },
+  "volta": {
+    "node": "20.12.2",
+    "yarn": "1.22.22"
   }
 }

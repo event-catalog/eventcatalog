@@ -36,6 +36,7 @@ describe('services', () => {
           ],
           publishes: [],
           subscribes: [],
+          extraDocs: [],
           badges: [
             {
               content: 'Extra!',
@@ -84,6 +85,7 @@ describe('services', () => {
             },
           ],
           subscribes: [],
+          extraDocs: ['contributing.md'],
           badges: [],
         },
         {
@@ -96,6 +98,7 @@ describe('services', () => {
           externalLinks: [],
           publishes: [],
           subscribes: [],
+          extraDocs: [],
           badges: [],
         },
         {
@@ -116,6 +119,7 @@ describe('services', () => {
           ],
           publishes: [],
           subscribes: [],
+          extraDocs: ['contributing.md'],
           badges: [
             {
               content: 'New!',
@@ -172,6 +176,7 @@ describe('services', () => {
             },
           ],
           subscribes: [],
+          extraDocs: ['contributing.md'],
           externalLinks: [],
           badges: [],
         },
@@ -220,6 +225,7 @@ describe('services', () => {
         ],
         subscribes: [],
         externalLinks: [],
+        extraDocs: ['contributing.md'],
         badges: [],
       });
 
@@ -251,6 +257,7 @@ describe('services', () => {
           ],
           publishes: [],
           subscribes: [],
+          extraDocs: ['contributing.md'],
           badges: [
             {
               content: 'New!',

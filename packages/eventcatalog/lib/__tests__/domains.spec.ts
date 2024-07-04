@@ -81,6 +81,7 @@ describe('domains lib', () => {
           ],
           publishes: [],
           subscribes: [],
+          extraDocs: ['contributing.md'],
           badges: [
             {
               content: 'New!',
@@ -183,6 +184,7 @@ describe('domains lib', () => {
             ],
             publishes: [],
             subscribes: [],
+            extraDocs: ['contributing.md'],
             badges: [
               {
                 content: 'New!',
@@ -290,6 +292,7 @@ describe('domains lib', () => {
               ],
               publishes: [],
               subscribes: [],
+              extraDocs: ['contributing.md'],
               badges: [
                 {
                   content: 'New!',
@@ -400,6 +403,7 @@ describe('domains lib', () => {
               ],
               publishes: [],
               subscribes: [],
+              extraDocs: ['contributing.md'],
               badges: [
                 {
                   content: 'New!',

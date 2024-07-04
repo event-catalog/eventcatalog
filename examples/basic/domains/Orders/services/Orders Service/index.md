@@ -11,5 +11,6 @@ badges:
 ---
 
 The order service is our internal API written in NodeJS that handles customer orders.
+[Contributing](./contributing.md)
 
 <NodeGraph />
