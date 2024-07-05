@@ -125,7 +125,7 @@ If you have any questions, features or issues please raise any issue or pull req
 You can find the [contributing guidelines here](https://eventcatalog.dev/docs/contributing/overview).
 
 [license-badge]: https://img.shields.io/github/license/event-catalog/eventcatalog.svg?color=yellow
-[license]: https://github.com/event-catalog/eventcatalog/blob/master/LICENSE
+[license]: https://github.com/event-catalog/eventcatalog/blob/main/LICENSE
 [prs-badge]: https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square
 [prs]: http://makeapullrequest.com
 [github-watch-badge]: https://img.shields.io/github/watchers/event-catalog/eventcatalog.svg?style=social

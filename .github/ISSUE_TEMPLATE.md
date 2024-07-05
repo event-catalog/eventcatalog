@@ -1,1 +1,1 @@
-## 👉 [Please follow one of these issue templates](https://github.com/boyney123/eventcatalog/issues/new/choose) 👈
+## 👉 [Please follow one of these issue templates](https://github.com/event-catalog/eventcatalog/issues/new/choose) 👈

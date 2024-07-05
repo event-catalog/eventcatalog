@@ -4,7 +4,7 @@ export default {
   tagline: 'Discover, Explore and Document your Event Driven Architectures',
   organizationName: 'Your Company',
   homepageLink: 'https://eventcatalog.dev/',
-  editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
+  editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
   logo: {
     alt: 'EventCatalog Logo',
     src: 'logo.svg'
