@@ -21,7 +21,7 @@
     "astro": "astro",
     "scripts:hydrate-content": "node scripts/catalog-to-astro-content-directory.js",
     "start:catalog": "node scripts/start-catalog-locally.js",
-    "verify-build:catalog": "rimraf packages/eventcatalog/dist && node scripts/verify-build.js",
+    "verify-build:catalog": "rimraf packages/eventcatalog/dist && npm run build:cd",
     "changeset": "changeset",
     "release": "changeset publish",
     "format": "prettier --config .prettierrc --write \"**/*.{js,jsx,ts,tsx,json}\"",
