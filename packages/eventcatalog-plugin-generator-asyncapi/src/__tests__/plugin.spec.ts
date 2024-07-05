@@ -107,6 +107,8 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         `---
           name: 'Account Service'
           summary: 'This service is in charge of processing user signups'
+          externalLinks: []
+          owners: []
           ---
 
           <NodeGraph />`
@@ -148,6 +150,10 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         `---
           name: 'Account Service V3'
           summary: 'This service is in charge of processing user signups'
+          externalLinks:
+            - {label: 'Find more info here', url: 'https://example.com'}
+          owners:
+            - myteam
           ---
 
           <NodeGraph />`
@@ -201,6 +207,8 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           `---
             name: 'Account Service'
             summary: 'This service is in charge of processing user signups'
+            externalLinks: []
+            owners: []
             ---
 
             <NodeGraph />`
@@ -209,6 +217,8 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           `---
           name: 'Users Service'
           summary: 'This service is in charge of users'
+          externalLinks: []
+          owners: []
           ---
 
           <NodeGraph />`
@@ -217,6 +227,10 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           `---
             name: 'Account Service V3'
             summary: 'This service is in charge of processing user signups'
+            externalLinks:
+              - {label: 'Find more info here', url: 'https://example.com'}
+            owners:
+              - myteam
             ---
 
             <NodeGraph />`
@@ -225,6 +239,8 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
           `---
             name: 'Users Service V3'
             summary: 'This service is in charge of processing user signups'
+            externalLinks: []
+            owners: []
             ---
 
             <NodeGraph />`
@@ -467,6 +483,8 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
             `---
             name: 'Account Service'
             summary: 'This service is in charge of processing user signups'
+            externalLinks: []
+            owners: []
             ---
 
             <NodeGraph />`
@@ -476,11 +494,12 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
 
       describe('In domain AsyncAPI parsing', () => {
         it('Creates a domain with contained services and events when domain options are set', async () => {
+          const domainName = 'My Domain';
           const options: AsyncAPIPluginOptions = {
-            pathToSpec: path.join(__dirname, './assets/valid-asyncapi.yml'),
+            pathToSpec: path.join(__dirname, './assets/valid-asyncapi-v3-with-domain-tag.yml'),
             renderMermaidDiagram: false,
             renderNodeGraph: true,
-            domainName: 'My Domain',
+            domainName,
             domainSummary: 'A summary of my domain.',
           };
 
@@ -491,11 +510,11 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
 
           const { getDomainFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
           const { getEventFromCatalog, getServiceFromCatalog } = utils({
-            catalogDirectory: path.join(process.env.PROJECT_DIR, 'domains', options.domainName),
+            catalogDirectory: path.join(process.env.PROJECT_DIR, 'domains', domainName),
           });
 
           const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
-          const { raw: serviceFile } = getServiceFromCatalog('Account Service');
+          const { raw: serviceFile } = getServiceFromCatalog('Account Service V3 In Domain');
           const { raw: domainFile } = getDomainFromCatalog('My Domain');
 
           expect(eventFile).toMatchMarkdown(`
@@ -504,7 +523,7 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
               summary: null
               version: 1.0.0
               producers:
-                  - 'Account Service'
+                  - 'Account Service V3 In Domain'
               consumers: []
               externalLinks: []
               badges: []
@@ -516,8 +535,69 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
 
           expect(serviceFile).toMatchMarkdown(
             `---
-            name: 'Account Service'
+            name: 'Account Service V3 In Domain'
             summary: 'This service is in charge of processing user signups'
+            externalLinks: []
+            owners: []
+            ---
+
+            <NodeGraph />`
+          );
+
+          expect(domainFile).toMatchMarkdown(`
+            ---
+            name: 'My Domain'
+            summary: 'A summary of my domain.'
+            ---
+
+            <NodeGraph />
+          `);
+        });
+        it('Creates a domain with contained services and events when Spec has a domain Tag and domainName Option not present', async () => {
+          const domainName = 'My Domain';
+          const options: AsyncAPIPluginOptions = {
+            pathToSpec: path.join(__dirname, './assets/valid-asyncapi-v3-with-domain-tag.yml'),
+            renderMermaidDiagram: false,
+            renderNodeGraph: true,
+            domainSummary: 'A summary of my domain.',
+          };
+
+          await plugin(pluginContext, options);
+
+          // just wait for files to be there in time.
+          await new Promise((r) => setTimeout(r, 200));
+
+          const { getDomainFromCatalog } = utils({ catalogDirectory: process.env.PROJECT_DIR });
+          const { getEventFromCatalog, getServiceFromCatalog } = utils({
+            catalogDirectory: path.join(process.env.PROJECT_DIR, 'domains', domainName),
+          });
+
+          const { raw: eventFile } = getEventFromCatalog('UserSignedUp');
+          const { raw: serviceFile } = getServiceFromCatalog('Account Service V3 In Domain');
+          const { raw: domainFile } = getDomainFromCatalog(domainName);
+
+          expect(eventFile).toMatchMarkdown(`
+            ---
+              name: UserSignedUp
+              summary: null
+              version: 1.0.0
+              producers:
+                  - 'Account Service V3 In Domain'
+              consumers: []
+              externalLinks: []
+              badges: []
+            ---
+
+            <NodeGraph />
+            <Schema />
+            `);
+
+          expect(serviceFile).toMatchMarkdown(
+            `---
+            name: 'Account Service V3 In Domain'
+            summary: 'This service is in charge of processing user signups'
+            externalLinks: []
+            owners: []
             ---
 
             <NodeGraph />`
@@ -572,6 +652,8 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         ---
         name: ResultsDataService
         summary: 'Results API'
+        externalLinks: []
+        owners: []
         ---
         <NodeGraph /> `);
       });
@@ -616,6 +698,8 @@ describe('eventcatalog-plugin-generator-asyncapi', () => {
         ---
         name: PersonUpateService
         summary: ""
+        externalLinks: []
+        owners: []
         ---
 
 

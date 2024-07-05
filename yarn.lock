@@ -187,7 +187,32 @@
     ajv-errors "^3.0.0"
     ajv-formats "^2.1.1"
 
-"@asyncapi/parser@^3.0.1", "@asyncapi/parser@^3.0.6":
+"@asyncapi/parser@^3.0.14":
+  version "3.0.14"
+  resolved "https://registry.yarnpkg.com/@asyncapi/parser/-/parser-3.0.14.tgz#9596ceafe24353af7722e04e6c009a2d6efdcdef"
+  integrity sha512-tC2gmKkw28PWWMcGUXHQjTfVftiZdr+FQtsfapaHh36spX9uwe13iYzkcTyCkwSJAHibtg7wvStuHsiufP8xng==
+  dependencies:
+    "@asyncapi/specs" "^6.6.0"
+    "@openapi-contrib/openapi-schema-to-json-schema" "~3.2.0"
+    "@stoplight/json" "^3.20.2"
+    "@stoplight/json-ref-readers" "^1.2.2"
+    "@stoplight/json-ref-resolver" "^3.1.5"
+    "@stoplight/spectral-core" "^1.16.1"
+    "@stoplight/spectral-functions" "^1.7.2"
+    "@stoplight/spectral-parsers" "^1.0.2"
+    "@stoplight/spectral-ref-resolver" "^1.0.3"
+    "@stoplight/types" "^13.12.0"
+    "@types/json-schema" "^7.0.11"
+    "@types/urijs" "^1.19.19"
+    ajv "^8.11.0"
+    ajv-errors "^3.0.0"
+    ajv-formats "^2.1.1"
+    avsc "^5.7.5"
+    js-yaml "^4.1.0"
+    jsonpath-plus "^7.2.0"
+    node-fetch "2.6.7"
+
+"@asyncapi/parser@^3.0.6":
   version "3.0.6"
   resolved "https://registry.yarnpkg.com/@asyncapi/parser/-/parser-3.0.6.tgz#f5593895094683c52b70376f65c888ceae9446f2"
   integrity sha512-oHTaeXG9DOdBlBZ90xCSPCl3kT5XE851+Rxn47bMfG05Z48csZ1o9wFUl/SzQt+L8HgplFeQG4n/7EJHYOlcWQ==
@@ -240,6 +265,13 @@
   version "6.4.0"
   resolved "https://registry.yarnpkg.com/@asyncapi/specs/-/specs-6.4.0.tgz#6021a472582815c6e51447c46fb1e43cf4d09544"
   integrity sha512-hTw0xF09i+eoSGP8LKo6aM+XOkvWsgV7kYpFHXd45VX9RcVZl5cADFIYDnPZkd52WaDJ4S+8Nrwkt/1vDb6SrQ==
+  dependencies:
+    "@types/json-schema" "^7.0.11"
+
+"@asyncapi/specs@^6.6.0":
+  version "6.7.1"
+  resolved "https://registry.yarnpkg.com/@asyncapi/specs/-/specs-6.7.1.tgz#f8b9795d66bf9d9d3e91cc9b00e8181ed2f27ae4"
+  integrity sha512-jEaW2vgAwD9GboCdO/TI1zN2k+iowL8YFYwiZwTIr4U4KDmsgo3BLypScl6Jl4+IvY9RdsWE67nuzVX7jooiqQ==
   dependencies:
     "@types/json-schema" "^7.0.11"
 
@@ -21887,7 +21919,12 @@ trim-trailing-lines@^1.0.0:
   resolved "https://registry.npmjs.org/trim-trailing-lines/-/trim-trailing-lines-1.1.4.tgz"
   integrity sha512-rjUWSqnfTNrjbB9NQWfPMH/xRK1deHeGsHoVfpxJ++XeYXE0d6B1En37AHfw3jtfTU7dzMzZL2jjpe8Qb5gLIQ==
 
-trim@0.0.1, trim@0.0.3, trim@=0.0.3:
+trim@0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/trim/-/trim-0.0.1.tgz#5858547f6b290757ee95cccc666fb50084c460dd"
+  integrity sha512-YzQV+TZg4AxpKxaTHK3c3D+kRDCGVEE7LemdlQZoQXn0iennk10RsIoY6ikzAqJTc9Xjl9C1/waHom/J86ziAQ==
+
+trim@0.0.3:
   version "0.0.3"
   resolved "https://registry.yarnpkg.com/trim/-/trim-0.0.3.tgz#05243a47a3a4113e6b49367880a9cca59697a20b"
   integrity sha512-h82ywcYhHK7veeelXrCScdH7HkWfbIT1D/CgYO+nmDarz3SGNssVBMws6jU16Ga60AJCRAvPV6w6RLuNerQqjg==
