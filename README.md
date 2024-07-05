@@ -11,7 +11,7 @@ event-driven architectures</h3>
 <!-- [![All Contributors](https://img.shields.io/badge/all_contributors-36-orange.svg?style=flat-square)](#contributors-) -->
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-[![Watch on GitHub][github-watch-badge]][github-watch]
+<!-- [![Watch on GitHub][github-watch-badge]][github-watch] -->
 [![Star on GitHub][github-star-badge]][github-star]
 
 <hr />
