@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.3
+
+### Patch Changes
+
+- dc89208: fix(core): core folder now copied on buld
+
 ## 2.0.2
 
 ### Patch Changes
