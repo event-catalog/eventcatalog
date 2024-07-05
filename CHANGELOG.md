@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.6
+
+### Patch Changes
+
+- c098f12: fix(core): hydrate content before building
+
 ## 2.0.5
 
 ### Patch Changes
