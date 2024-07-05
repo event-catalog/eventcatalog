@@ -34,12 +34,14 @@
 
 # Core Features
 
-- 📃 Document domains, services and messages
-- 📊 Visualise your architecture
-- ⭐ Supports any Schema format
-- 🗂️ Document any code examples (Any Language)
-- 💅 Custom MDX components
-- 🗄️ Content versioning
+- 📃 Document domains, services and messages ([demo](https://demo.eventcatalog.dev/docs))
+- 📊 Visualise your architecture ([demo](https://demo.eventcatalog.dev/visualiser))
+- ⭐ Supports any Schema format (e.g Avro, JSON) ([demo](https://demo.eventcatalog.dev/docs/events/InventoryAdjusted/0.0.4))
+- 🗂️ Document any code examples (Any code snippet)
+- 💅 Custom MDX components ([read more](https://eventcatalog.dev/docs/development/components/using-components))
+- 🗄️ Version domains, services and messages
+- ⭐ Discoverability feature (search, filter and more) ([demo](https://demo.eventcatalog.dev/discover/events))
+- ⭐ Document teams and users ([demo](https://demo.eventcatalog.dev/docs/teams/full-stack))
 - ⭐ And much more...
 
 
@@ -62,7 +64,7 @@ Read more on these blogposts and videos:
 - [Introducing EventCatalog v2 (2024)](https://eventcatalog.dev/blog/eventcatalog-v2)
 - [Introducing EventCatalog v1 (2022)](https://www.boyney.io/blog/2022-01-11-introducing-eventcatalog)
 - [Event-Driven Architecture: Beyond the Schema Registry (blog)](https://www.boyney.io/blog/2021-12-05-documenting-events)
-- [Complexity is the Gotcha of Event-driven Architecture by David Boyne](https://www.youtube.com/watch?v=VLUvfIm9wnQ&t=1s)
+- [Complexity is the Gotcha of Event-driven Architecture (VIDEO) by David Boyne](https://www.youtube.com/watch?v=VLUvfIm9wnQ&t=1s)
 
 # This solution
 
