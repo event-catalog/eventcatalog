@@ -98,6 +98,10 @@ program
   .command('build')
   .description('Run build of EventCatalog')
   .action((options) => {
+    console.log('Building EventCatalog...');
+
+    copyCore();
+
     // Copy the config and styles
     copyFolder(join(dir, 'public'), join(core, 'public'));
     copyFile(join(dir, 'eventcatalog.config.js'), join(core, 'eventcatalog.config.js'));
