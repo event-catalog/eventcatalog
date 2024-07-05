@@ -1,24 +1,30 @@
 <div align="center">
 
 <h1>📖 EventCatalog</h1>
-<h3>Bring discoverability to your
-event-driven architectures</h3>
-<p>Discover, Explore and Document your Event Driven Architectures.</p>
 
-[![MIT License][license-badge]][license]
-[![PRs Welcome][prs-badge]][prs]
+
+<!-- [![Star on GitHub][github-star-badge]][github-star] -->
+<!-- <h3>Bring discoverability to your -->
+<!-- event-driven architectures</h3> -->
+<!-- <p>Discover, Explore and Document your Event Driven Architectures.</p> -->
+
+<!-- [![MIT License][license-badge]][license] -->
+<!-- [![PRs Welcome][prs-badge]][prs] -->
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 <!-- [![All Contributors](https://img.shields.io/badge/all_contributors-36-orange.svg?style=flat-square)](#contributors-) -->
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 <!-- [![Watch on GitHub][github-watch-badge]][github-watch] -->
-[![Star on GitHub][github-star-badge]][github-star]
+<!-- [![Star on GitHub][github-star-badge]][github-star] -->
 
-<hr />
+<!-- <hr /> -->
 
 <img alt="header" src="./images/example.png" />
 
 <h4>Features: Documentation generator for Event Driven Architectures, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
+
+[![MIT License][license-badge]][license]
+[![PRs Welcome][prs-badge]][prs]
 
 [Read the Docs](https://eventcatalog.dev/) | [Edit the Docs](https://github.com/event-catalog/docs) | [View Demo](https://demo.eventcatalog.dev/)
 
