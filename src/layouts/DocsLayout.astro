@@ -1,0 +1,59 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+
+import SideBar from '../components/DocsNavigation.astro';
+import Header from '../components/Header.astro';
+import SEO from '../components/Seo.astro';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <SEO title={`EventCatalog | ${title}`} description={description} ogTitle={title} />
+  </head>
+<body>
+    <div class="px-10 max-w-[96em] mx-auto">
+      <Header />
+
+      <div class="md:pt-20">
+        <nav class="hidden sm:flex grow w-56 xl:w-[19em] fixed overflow-y-auto h-full py-2 ">
+          <div class="w-full ">
+            <SideBar />
+          </div>
+        </nav>
+
+        <div class="pl-0 sm:pl-64 lg:pl-72 xl:pl-80 w-full pt-0 pb-40">
+          <slot />
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  .expressive-code {
+    margin: 1.2em 0;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  h1,
+  h2,
+  h3 {
+    scroll-behavior: smooth;
+    scroll-margin: 70px;
+  }
+
+  .react-flow__handle {
+    opacity: 0;
+  }
+
+  .react-flow__attribution {
+    opacity: 0.1;
+  }
+</style>

@@ -1,0 +1,36 @@
+---
+import { getEvents } from '@utils/events';
+import DiscoverLayout from '@layouts/DiscoverLayout.astro';
+import type { CollectionEntry } from 'astro:content';
+import type { CollectionTypes } from '@types';
+import { getCommands } from '@utils/commands';
+import { getServices } from '@utils/services/services';
+import { getDomains } from '@utils/domains/domains';
+
+export async function getStaticPaths() {
+  const events = await getEvents();
+  const commands = await getCommands();
+  const services = await getServices();
+    const domains = await getDomains();
+
+  const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
+    return collection.map((item) => ({
+      params: {
+        type: item.collection,
+      },
+      props: {
+        type: item.collection,
+        data: collection,
+      },
+    }));
+  };
+
+  const pages = [events, commands, services, domains];
+  return pages.flatMap(buildPages);
+
+}
+
+const { type, data } = Astro.props;
+---
+
+<DiscoverLayout title={`${type} (${data.length})`} subtitle={`Find, filter and search for any ${type} in your system.`} data={data} type={type} />

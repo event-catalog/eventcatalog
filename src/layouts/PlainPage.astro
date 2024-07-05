@@ -1,0 +1,29 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+
+import Header from '@components/Header.astro';
+import SEO from '@components/Seo.astro';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <SEO title={`EventCatalog | ${title}`} description={description} ogTitle={title} />
+  </head>
+  <body>
+    <div class="px-10 max-w-[96em] mx-auto">
+      <Header />
+
+      <div class="md:pt-20">
+        <div>
+          <slot />
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

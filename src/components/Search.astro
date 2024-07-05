@@ -1,0 +1,108 @@
+---
+import PageFindSearch from 'astro-pagefind/components/Search';
+---
+
+<div>
+  <div class="relative mt-2 flex items-center">
+    <input
+      id="search-dummy-input"
+      type="text"
+      name="search"
+      id="search"
+      placeholder="Search EventCatalog"
+      class="block w-full rounded-md caret-transparent border-0 py-1.5 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 sm:text-sm sm:leading-6 px-4"
+    />
+    <div class="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
+      <kbd class="inline-flex items-center rounded border border-gray-200 px-1 font-sans text-xs text-gray-400">⌘K</kbd>
+    </div>
+  </div>
+</div>
+
+<div id="search-dialog" class="hidden relative z-10" role="dialog" aria-modal="true">
+  <div class="fixed inset-0 bg-gray-500 bg-opacity-25 transition-opacity search-background backdrop-blur-sm bg-black/10"></div>
+  <div id="search-background" class="fixed inset-0 z-10 w-screen overflow-y-auto p-4 sm:p-6 md:p-20">
+    <div id="command-pal" class="mx-auto max-w-xl divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 transition-all">
+      <div class="relative">
+        <svg class="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"></path>
+        </svg>
+        <PageFindSearch id="search" className="pagefind-ui" uiOptions={{ showImages: false }} />
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const dummyInput = document.getElementById('search-dummy-input');
+  const dialog = document.getElementById('search-dialog');
+
+  // Listen for the short cut keys
+  window.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+      event.preventDefault();
+      dummyInput?.click();
+    }
+    if(event.key === 'Escape') {
+      if(dialog){
+        dialog.style.display = 'none';
+      }
+    }
+  });
+
+  // Fake input, to load the dialog
+  if (dummyInput) {
+    dummyInput.addEventListener('click', function (e) {
+      e.preventDefault();
+      this.blur();
+      const input = document.querySelector('.pagefind-ui__search-input');
+      setTimeout(() => {
+        // @ts-ignore
+        input && input.focus();
+      }, 10);
+      // @ts-ignore
+      dialog.style.display = 'block';
+    });
+  }
+
+  // Close it
+  dialog?.addEventListener('click', function (e) {
+    // @ts-ignore
+    if (e.target.id === 'search-background') {
+      dialog.style.display = 'none';
+    }
+  });
+
+  //   document.getElementById('search-dummy-input').addEventListener('click', function () {
+  // document.getElementById('search-dialog').style.display = 'block';
+  //   });
+</script>
+
+<style is:global>
+  .pagefind-ui__search-input,
+  #search-dummy-input {
+    outline: none;
+  }
+
+  .pagefind-ui__drawer {
+    padding: 0 1em !important;
+  }
+
+  .pagefind-ui__result {
+    padding: 0.5em 0 !important;
+  }
+
+  .pagefind-ui__results-area {
+    margin: 0 !important;
+  }
+</style>
+
+<!--
+        Command palette, show/hide based on modal state.
+  
+        Entering: "ease-out duration-300"
+          From: "opacity-0 scale-95"
+          To: "opacity-100 scale-100"
+        Leaving: "ease-in duration-200"
+          From: "opacity-100 scale-100"
+          To: "opacity-0 scale-95"
+      -->

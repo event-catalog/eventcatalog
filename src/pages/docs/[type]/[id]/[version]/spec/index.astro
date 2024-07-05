@@ -1,0 +1,93 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import * as path from 'path';
+import fs from 'node:fs';
+
+import { getEvents } from '@utils/events';
+import { getServices } from '@utils/services/services';
+import { getCommands } from '@utils/commands';
+import { getDomains } from '@utils/domains/domains';
+import type { CollectionTypes } from '@types';
+import PlainPage from '@layouts/PlainPage.astro';
+import { DocumentMinusIcon } from '@heroicons/react/24/outline';
+
+export async function getStaticPaths() {
+  const events = await getEvents();
+  const commands = await getCommands();
+  const services = await getServices();
+  const domains = await getDomains();
+
+  const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
+    return collection.map((item) => ({
+      params: {
+        type: item.collection,
+        id: item.data.id,
+        version: item.data.version,
+      },
+      props: {
+        type: item.collection,
+        ...item,
+      },
+    }));
+  };
+
+  return [...buildPages(domains), ...buildPages(events), ...buildPages(services), ...buildPages(commands)];
+}
+
+// @ts-ignore
+const { data, catalog } = Astro.props;
+const pathToSpec = path.join(catalog.publicPath, 'openapi.yml');
+const pathOnDisk = path.join(process.cwd(), 'public', pathToSpec);
+const fileExists = fs.existsSync(pathOnDisk);
+---
+
+<PlainPage title="OpenAPI Spec">
+  <!-- {fileExists && <div>Here</div>} -->
+  {
+    !fileExists && (
+      <div class="text-center h-screen  flex flex-col justify-center ">
+       <DocumentMinusIcon className="mx-auto h-12 w-12 text-gray-400" />
+        <h3 class="mt-2 text-sm font-semibold text-gray-900">No OpenAPI spec file found</h3>
+        <p class="mt-1 text-xs text-gray-400">Could not find OpenAPI file for {data.name} in {`/${catalog.path}`}</p>
+        
+      </div>
+    )
+  }
+
+  {
+    fileExists && (
+      <rapi-doc
+        spec-url={pathToSpec}
+        render-style="table"
+        show-header="false"
+        allow-authentication="false"
+        allow-try="false"
+        style={{ height: '100vh', width: '100%' }}
+        class="py-4"
+        nav-bg-color="#fff"
+        schema-style="table"
+        primary-color="#e0baff"
+        bg-color="#fff"
+      />
+    )
+  }
+</PlainPage>
+
+<script>
+  // @ts-ignore
+  await import('rapidoc');
+</script>
+
+<style>
+  rapi-doc::part(section-servers) {
+    /* <<< targets the server div */
+    background: #6b5b95;
+    color: #d1c2e4;
+    margin: 0 24px 0 24px;
+    border-radius: 5px;
+  }
+  rapi-doc::part(label-selected-server) {
+    /* <<< targets selected server label */
+    color: #fff;
+  }
+</style>

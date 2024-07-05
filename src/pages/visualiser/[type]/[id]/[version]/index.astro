@@ -1,0 +1,46 @@
+---
+import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
+import VisualiserLayout from '@layouts/VisualiserLayout.astro';
+import type { CollectionTypes } from '@types';
+import { getCommands } from '@utils/commands';
+import { getDomains } from '@utils/domains/domains';
+import { getEvents } from '@utils/events';
+import { getServices } from '@utils/services/services';
+import type { CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+  const [services, events, commands, domains] = await Promise.all([getServices(), getEvents(), getCommands(), getDomains()]);
+
+  const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
+    return collection.map((item) => ({
+      params: {
+        type: item.collection,
+        id: item.data.id,
+        version: item.data.version,
+      },
+      props: {
+        type: item.collection,
+        ...item,
+      },
+    }));
+  };
+
+  return [...buildPages(services), ...buildPages(events), ...buildPages(commands), ...buildPages(domains)];
+}
+
+const props = Astro.props;
+
+console.log('TEST');
+
+const {
+  data: { id },
+  collection,
+} = props;
+---
+
+<VisualiserLayout title={`Visualiser | ${props.data.name} (${props.collection})`} description={props.data.summary}>
+  <div class="bg-gray-100/50">
+    <div class="h-[calc(100vh-110px)] w-full relative border border-gray-200" id={`${id}-portal`} transition:animate="fade"></div>
+    <NodeGraph id={id} collection={collection} title={`${props.data.name} (v${props.data.version})`} mode="full" linkTo="visualiser" version={props.data.version} href={{ label: `Open documentation for ${props.data.name} v${props.data.version}`, url: `/docs/${props.collection}/${props.data.id}/${props.data.version}`}} />
+  </div>
+</VisualiserLayout>

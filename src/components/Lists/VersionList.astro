@@ -1,0 +1,29 @@
+---
+import type { CollectionTypes } from '@types';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  versions: string[]
+  collectionItem: CollectionEntry<CollectionTypes>
+}
+
+const { versions, collectionItem } = Astro.props;
+const currentPath = Astro.url.pathname;
+---
+
+<div class="space-y-2 my-2 mb-8">
+  <span class="font-light text-black group-data-[hover]:text-black/80 capitalize">Versions ({collectionItem.data.versions?.length})</span>
+  <ul class="space-x-2 flex">
+  {versions.map((version) => {
+    const isCurrent = currentPath.includes(version);
+    return <li>
+      <a href={`/docs/${collectionItem.collection}/${collectionItem.data.id}/${version}`} class={`inline-flex items-center rounded-md  px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10 hover:bg-purple-100 hover:underline ${isCurrent ? 'bg-purple-100 text-purple-500 underline ' : 'bg-white'}`}>
+        <span>
+          v{version} 
+          {version === collectionItem.data.latestVersion && <span>(latest)</span>}
+        </span>
+      </a>
+    </li>
+  })}
+  </ul>
+</div>

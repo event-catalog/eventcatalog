@@ -1,0 +1,65 @@
+---
+import catalog from '@eventcatalog';
+// import Search from 'astro-pagefind/components/Search';
+import Search from '@components/Search.astro';
+
+const currentPath = Astro.url.pathname;
+
+const navItems = [
+  {
+    label: 'Docs',
+    href: '/docs',
+  },
+  {
+    label: 'Visualiser',
+    href: '/visualiser',
+  },
+  {
+    label: 'Discover',
+    href: '/discover/events',
+  }
+];
+
+---
+
+<nav class="md:fixed top-0 w-full z-20 bg-white border-b border-gray-200 py-4 font-bold text-xl max-w-[70em]">
+  <div class="flex justify-between items-center">
+    <div class="w-1/3 flex space-x-2 items-center">
+      <a href="/docs" class="flex space-x-2 items-center">
+        <img src="/logo.png" class="w-8" />
+        <span class="hidden sm:inline-block text-[1em]">{catalog.title}</span>
+      </a>
+    </div>
+    <div class="w-1/3 md:block hidden">
+      <Search />
+      <!-- <Search id="search" className="pagefind-ui" uiOptions={{ showImages: false }} /> -->
+    </div>
+    <!-- <div class="w-1/3 px-2">
+      <div class="2/3">
+        <div class="relative mt-2 flex items-center">
+          <input
+            type="text"
+            name="search"
+            id="search"
+            class="block w-full px-2 rounded-md border-0 py-2 pr-14 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            placeholder="Find something..."
+          />
+          <div class="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
+            <kbd class="inline-flex items-center rounded border border-gray-200 px-1 font-sans text-xs text-gray-400">⌘K</kbd>
+          </div>
+        </div>
+      </div>
+    </div> -->
+    <div class="w-1/3 justify-end text-md">
+      <ul class="text-right flex justify-end space-x-8">
+        {navItems.map((item) => {
+          const isActive = currentPath.includes(item.href) ;
+          return <li class={`font-light ${isActive ? 'border-b-2 border-purple-500': ''}`}>
+          <a href={item.href}>{item.label}</a>
+        </li>
+        })}
+      </ul>
+    </div>
+  </div>
+</nav>
+

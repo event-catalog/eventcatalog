@@ -1,0 +1,43 @@
+# build output
+dist/
+
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# environment variables
+.env
+.env.production
+
+# macOS-specific files
+.DS_Store
+
+# jetbrains setting folder
+.idea/
+
+# EventCatalog files
+/src/content/*
+!/src/content/config.ts
+/public/generated/*
+/src/catalog-files/*
+/.eventcatalog-core/*
+/examples/large-catalog/*
+
+eventcatalog.config.js
+eventcatalog.styles.css
+
+!/examples/default/eventcatalog.config.js
+!/examples/default/eventcatalog.styles.css
+
+
+
+.vscode/*
+

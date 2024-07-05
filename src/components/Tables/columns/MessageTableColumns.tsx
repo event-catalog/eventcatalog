@@ -1,0 +1,159 @@
+import { EnvelopeIcon } from '@heroicons/react/20/solid';
+import { ServerIcon } from '@heroicons/react/24/solid';
+import { createColumnHelper } from '@tanstack/react-table';
+import type { CollectionMessageTypes } from '@types';
+import type { CollectionEntry } from 'astro:content';
+import { useMemo } from 'react';
+import { filterByName, filterCollectionByName } from '../filters/custom-filters';
+
+const columnHelper = createColumnHelper<CollectionEntry<CollectionMessageTypes>>();
+
+export const columns = () => [
+  columnHelper.accessor('data.name', {
+    id: 'name',
+    header: () => <span>Message</span>,
+    cell: (info) => {
+      const messageRaw = info.row.original;
+      const type = useMemo(() => messageRaw.collection.slice(0, -1), [messageRaw.collection]);
+      const color = type === 'event' ? 'orange' : 'blue';
+      return (
+        <div className=" group ">
+          <a
+            href={`/docs/${messageRaw.collection}/${messageRaw.data.id}/${messageRaw.data.version}`}
+            className={`group-hover:text-${color}-500 flex space-x-1 items-center`}
+          >
+            <div className={`flex items-center border border-gray-300 shadow-sm rounded-md group-hover:border-${color}-400`}>
+              <span className="flex items-center">
+                <span className={`bg-${color}-500 group-hover:bg-${color}-600 h-full rounded-tl rounded-bl p-1`}>
+                  <EnvelopeIcon className="h-4 w-4 text-white" />
+                </span>
+                <span className="leading-none px-2 group-hover:underline group-hover:text-purple-500 font-light">
+                  {messageRaw.data.name} (v{messageRaw.data.version})
+                </span>
+              </span>
+            </div>
+          </a>
+        </div>
+      );
+    },
+    meta: {
+      filterVariant: 'name',
+    },
+    filterFn: filterByName,
+  }),
+  // columnHelper.accessor('data.version', {
+  //   header: () => <span>Version</span>,
+  //   cell: (info) => {
+  //     const message = info.row.original;
+  //     return <div className="text-left">{`v${info.getValue()} ${message.data.latestVersion === message.data.version ? '(latest)': ''}`}</div>
+  //   },
+  //   footer: (info) => info.column.id,
+  // }),
+  columnHelper.accessor('data.summary', {
+    id: 'summary',
+    header: () => 'Summary',
+    cell: (info) => <span className="font-light ">{info.renderValue()}</span>,
+    footer: (info) => info.column.id,
+    meta: {
+      showFilter: false,
+    },
+  }),
+
+  columnHelper.accessor('data.producers', {
+    header: () => <span>Producers</span>,
+    meta: {
+      filterVariant: 'collection',
+      collectionFilterKey: 'producers',
+    },
+    cell: (info) => {
+      const producers = info.getValue();
+      if (producers?.length === 0 || !producers)
+        return <div className="font-light text-sm text-gray-400/60 text-left italic">No producers documented</div>;
+      return (
+        <ul className="">
+          {producers.map((producer: any) => {
+            return (
+              <li className="py-2 group flex items-center space-x-2" key={producer.data.id}>
+                <a
+                  href={`/docs/${producer.collection}/${producer.data.id}/${producer.data.version}`}
+                  className="group-hover:text-purple-500 flex space-x-1 items-center "
+                >
+                  <div className="flex items-center border border-gray-300 shadow-sm rounded-md">
+                    <span className="flex items-center">
+                      <span className="bg-pink-500 h-full rounded-tl rounded-bl p-1">
+                        <ServerIcon className="h-4 w-4 text-white" />
+                      </span>
+                      <span className="font-light leading-none px-2 group-hover:underline">
+                        {producer.data.name} (v{producer.data.version})
+                      </span>
+                    </span>{' '}
+                  </div>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      );
+    },
+    footer: (info) => info.column.id,
+    filterFn: filterCollectionByName('producers'),
+  }),
+  columnHelper.accessor('data.consumers', {
+    header: () => <span>Consumers</span>,
+    meta: {
+      filterVariant: 'collection',
+      collectionFilterKey: 'consumers',
+    },
+    cell: (info) => {
+      const consumers = info.getValue();
+      if (consumers?.length === 0 || !consumers)
+        return <div className="font-light text-sm text-gray-400/80 text-left italic">No consumers documented</div>;
+
+      return (
+        <ul>
+          {consumers.map((consumer: any) => {
+            return (
+              <li key={consumer.data.id} className="py-1 group font-light ">
+                <a
+                  href={`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`}
+                  className="group-hover:text-purple-500 flex space-x-1 items-center "
+                >
+                  <div className="flex items-center border border-gray-300 shadow-sm rounded-md">
+                    <span className="flex items-center">
+                      <span className="bg-pink-500 h-full rounded-tl rounded-bl p-1">
+                        <ServerIcon className="h-4 w-4 text-white" />
+                      </span>
+                      <span className="leading-none px-2 group-hover:underline ">
+                        {consumer.data.name} (v{consumer.data.version})
+                      </span>
+                    </span>
+                  </div>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      );
+    },
+    footer: (info) => info.column.id,
+    filterFn: filterCollectionByName('consumers'),
+  }),
+  columnHelper.accessor('data.name', {
+    header: () => <span />,
+    cell: (info) => {
+      const domain = info.row.original;
+      return (
+        <a
+          className="hover:text-purple-500 hover:underline px-4 font-light"
+          href={`/visualiser/${domain.collection}/${domain.data.id}/${domain.data.version}`}
+        >
+          Visualiser &rarr;
+        </a>
+      );
+    },
+    id: 'actions',
+    meta: {
+      showFilter: false,
+    },
+  }),
+];

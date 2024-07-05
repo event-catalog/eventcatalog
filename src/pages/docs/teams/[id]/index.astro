@@ -1,0 +1,127 @@
+---
+import DocsLayout from '@layouts/DocsLayout.astro';
+
+import components from '@components/MDX/components';
+
+// SideBars
+import { getTeams } from '@utils/teams';
+import { getEntry } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import OwnersList from '@components/Lists/OwnersList';
+import PillList from '@components/Lists/PillList';
+import EnvelopeIcon from '@heroicons/react/16/solid/EnvelopeIcon';
+
+export async function getStaticPaths() {
+  const teams = await getTeams();
+
+  return teams.map((team) => ({
+    params: {
+      type: 'teams',
+      id: team.data.id,
+    },
+    props: {
+      type: 'team',
+      ...team,
+    },
+  }));
+}
+
+const { render, ...props } = Astro.props;
+
+const { Content } = await render();
+
+const membersRaw = props.data.members || [];
+const members = await Promise.all(membersRaw.map((m) => getEntry(m)));
+
+const services = props.data.ownedServices as CollectionEntry<'services'>[];
+const events = props.data.ownedEvents as CollectionEntry<'events'>[];
+const commands = props.data.ownedCommands as CollectionEntry<'commands'>[];
+
+const membersList = members.map((o) => ({
+  label: o.data.name,
+  type: o.collection,
+  badge: o.collection === 'users' ? o.data.role : 'Team',
+  avatarUrl: o.collection === 'users' ? o.data.avatarUrl : '',
+  href: `/docs/${o.collection}/${o.data.id}`,
+}));
+
+const ownedServicesList = services.map((p) => ({
+  label: `${p.data.name} (service)`,
+href: `/docs/${p.collection}/${p.data.id}`,
+  tag: `v${p.data.version}`
+}));
+
+const ownedEventsList = [...events, ...commands].map((p) => ({
+  label: `${p.data.name} (${p.collection.slice(0, -1)})`,
+  href: `/docs/${p.collection}/${p.data.id}`,
+  color: p.collection === 'events' ? 'orange' : 'blue',
+  tag: `v${p.data.version}`
+}));
+---
+
+<DocsLayout title={`Team | ${props.data.name}`} description={props.data.summary}>
+  <div class="flex min-h-screen docs-layout">
+    <main class="flex-1 w-full pr-10 pt-4">
+      <!-- <span class="text-purple-500 bg-purple-100 px-2 py-1 rounded-md">v{props.data.version}</span> -->
+    
+      <div class="border-b border-gray-200  py-4 pb-2">
+        <div class="flex justify-start">
+          <!-- <span class="shadow-md text-center flex items-center justify-center text-white text-4xl bg-red-500 h-28 w-28 rounded-full">{props.data.name.charAt(0)}</span> -->
+          <div class="flex flex-col justify-between space-y-2">
+            <div>
+              <h2 class="text-4xl font-bold">{props.data.name} <span class="text-gray-300">(Team)</span></h2>
+            </div>
+            <div class="space-y-2">
+              {
+                props.data.email && (
+                  <div class="flex space-x-1 items-center text-xs text-gray-500 font-bold hover:underline hover:text-purple-500">
+                    <EnvelopeIcon className="w-4 h-4 text-purple-400" />
+                    <a href={`mailto:${props.data.email}`}>Email</a>
+                  </div>
+                )
+              }
+              {
+                props.data.slackDirectMessageUrl && (
+                  <div class="flex space-x-1 items-center text-xs text-gray-500 font-bold hover:underline hover:text-purple-500">
+                    <img src="/slack-icon.svg" class="w-4 h-3" />
+                    <a href={`${props.data.slackDirectMessageUrl}`}>Send DM on Slack</a>
+                  </div>
+                )
+              }
+            </div>
+          </div>
+        </div>
+        <!-- {
+          props.data.badges && (
+            <div class="flex flex-wrap py-2">
+              {props.data.badges.map((badge) => (
+                <span class={`text-sm  text-gray-500 px-2 py-1 rounded-md mr-2 bg-${badge.backgroundColor}-200 text-${badge.textColor}-800`}>{badge.content}</span>
+              ))}
+            </div>
+          )
+        } -->
+        <h2 class="text-xl py-2 text-gray-500">{props.data.summary}</h2>
+      </div>
+      <div class="prose prose-md py-4 w-full">
+        <Content components={components(props)} />
+      </div>
+      <!-- <div class="h-full w-full">
+        <NodeGraph id={props.data.id} type={props?.catalog?.type} nodes={props.nodes} masterNode={{ name: props.data.name, id: props.data.id }} client:load />
+      </div> -->
+    </main>
+    <aside class="sticky top-20 h-[calc(100vh-theme(spacing.16))] w-56 overflow-y-auto">
+      <div class="divide-y-2 divide-gray-100">
+        <PillList color="blue" title={`Owned services (${ownedServicesList.length})`} pills={ownedServicesList} emptyMessage={`This team does not own any services .`} client:load/>
+        <PillList color="red" title={`Owned messages (${ownedEventsList.length})`} pills={ownedEventsList} emptyMessage={`This team does not own any messages .`} client:load/>
+        <OwnersList title={`Team members (${membersList.length})`} owners={membersList} emptyMessage={`This team does not have any members.`} client:load/>
+      </div>
+      <!-- {props?.collection === 'events' && <MessageSideBar message={props} />} -->
+    </aside>
+  </div>
+</DocsLayout>
+
+<style>
+  .docs-layout .prose {
+    max-width: none;
+  }
+</style>

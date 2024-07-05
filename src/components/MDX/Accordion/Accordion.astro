@@ -1,0 +1,10 @@
+---
+import AccordionClient from './Accordion'
+const {...props } = Astro.props;
+console.log('props', props )
+---
+
+<AccordionClient {...props} client:load> 
+    <slot />
+</AccordionClient> 
+

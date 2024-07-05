@@ -1,0 +1,100 @@
+---
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+
+import Header from '@components/Header.astro';
+import SideBar from '@components/DocsNavigation.astro';
+import catalog from '@eventcatalog';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Astro description" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="generator" content={Astro.generator} />
+    <title>EventCatalog</title>
+  </head>
+  <body>
+    <div class="px-10 max-w-[96em] mx-auto">
+      <Header />
+
+      <div class="md:pt-20">
+        <nav class="hidden sm:flex grow w-56 xl:w-[19em] fixed overflow-y-auto h-full py-2">
+          <div class="w-full">
+            <SideBar />
+          </div>
+        </nav>
+
+        <div class="pl-0 sm:pl-56 xl:pl-80 w-full pt-8 pb-40">
+          <div class="prose prose-sm">
+            <div class="bg-white">
+              <div class="mx-auto max-w-7xl ">
+                <div class="mx-auto max-w-2xl lg:mx-0 lg:max-w-none">
+                  <h1 class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-0">EventCatalog</h1>
+                  <div class=" grid max-w-xl grid-cols-1 md:gap-8 text-base leading-7 text-gray-700 lg:max-w-none lg:grid-cols-1">
+                    <div>
+                      <p>
+                        Welcome to <a href="https://www.eventcatalog.dev/">EventCatalog</a>. 
+                      </p>
+                      <p>
+                        This open-source project is designed to help you and your teams
+                        bring discoverability and clarity to your event-driven architectures (EDA). 
+                      </p>
+                      <p>
+                        To get started you can read the following guides: 
+                        <ul>
+                          <li><a class="text-purple-500" href="https://eventcatalog.dev/docs/development/getting-started/introduction">Getting started with EventCatalog</a></li>
+                          <li><a class="text-purple-500" href="https://eventcatalog.dev/docs/development/guides/domains/adding-domains">Creating domains</a></li>
+                          <li><a class="text-purple-500" href="https://eventcatalog.dev/docs/development/guides/services/adding-services">Creating services</a></li>
+                          <li><a class="text-purple-500" href="https://eventcatalog.dev/docs/development/guides/messages/commands/introduction">Creating commands</a></li>
+                          <li><a class="text-purple-500" href="https://eventcatalog.dev/docs/development/guides/messages/events/introduction">Creating events</a></li>
+                          <li><a class="text-purple-500" href="https://eventcatalog.dev/docs/owners">Assigning owners to resources</a></li>
+                          <li><a class="text-purple-500" href="https://eventcatalog.dev/docs/development/components/using-components">Using components in your pages (Schemas, OpenAPI, etc)</a></li>
+                          <li><a class="text-purple-500" href="https://eventcatalog.dev/docs/development/deployment">Deploying and hosting your EventCatalog</a></li>
+                        </ul>
+                      </p>
+                      <h3>
+                        Join the community
+                      </h3>
+                      <p>Got questions about EventCatalog? Feature requests or need support? <a class="text-purple-500" href="https://discord.gg/3rjaZMmrAm">Join our community on Discord.</a></p>
+                      <h3>
+                        Enterprise support
+                      </h3>
+                      <p>
+                        Using EventCatalog and needs enterprise support? Work with us, find out what we offer on our <a class="text-purple-500" href="https://eventcatalog.dev/enterprise">enterprise page</a>.
+                      </p>
+                    </div>
+                  </div>
+                
+                  <footer class="py-4 space-y-8 border-t border-gray-300">
+                    <div class="flex justify-between items-center py-8 text-gray-500 text-sm font-light">
+                      <div class="flex space-x-5">
+                        <a href="https://github.com/boyney123/eventcatalog" target="_blank"><svg class="w-5 h-5 bg-gray-400  hover:bg-purple-500 dark:hover:bg-gray-400" style="mask-image: url(&quot;/icons/github.svg&quot;); mask-repeat: no-repeat; mask-position: center center;"></svg></a>
+                        <a href="https://x.com/event_catalog" target="_blank"><span class="sr-only">x</span><svg class="w-5 h-5 bg-gray-400  hover:bg-purple-500 dark:hover:bg-gray-400" style="mask-image: url(&quot;/icons/x-twitter.svg&quot;); mask-repeat: no-repeat; mask-position: center center;"></svg></a>
+                      </div>
+                      <a target="_blank" class="hover:text-purple-500 hover:underline text-gray-400 font-light not-prose" href="https://eventcatalog.dev">Powered by EventCatalog</a>
+                    </div>
+                  </footer>
+                </div>
+              </div>
+            </div>
+
+            <!-- <slot /> -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+
+<style>
+  .prose {
+    max-width: none;
+  }
+</style>

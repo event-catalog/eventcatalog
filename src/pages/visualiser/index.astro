@@ -1,0 +1,25 @@
+---
+import Layout from '../../layouts/VisualiserLayout.astro'
+---
+
+<Layout>
+    <div class="hidden no-items py-56 text-center -ml-52 text-gray-400">No data loaded into your catalog. Please add some data to your to see visuals.</div>
+</Layout>
+
+<script is:inline>
+
+    // Find the total anchor links
+    const totalAnchorLinks = document.getElementById('visualiser-navigation').querySelectorAll('a');
+
+    console.log('totalAnchorLinks.length', totalAnchorLinks.length)
+
+    // Show no-items if there are none
+    if(totalAnchorLinks.length === 0) {
+        document.querySelector('.no-items').classList.remove('hidden');
+    }
+
+    // Find the element with the id visualiser-navigation and the first a link in there and click it
+    if(document.getElementById('visualiser-navigation').querySelector('a')){
+        document.getElementById('visualiser-navigation').querySelector('a').click();
+    }
+</script>

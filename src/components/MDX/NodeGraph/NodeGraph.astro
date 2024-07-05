@@ -1,0 +1,82 @@
+---
+import NodeGraphNew from './NodeGraph';
+import { getNodesAndEdges as getNodesAndEdgesForService } from '@utils/services/node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForEvent } from '@utils/events/node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForCommand } from '@utils/commands/node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/domains/node-graph';
+
+
+interface Props {
+  id: string;
+  collection: string;
+  title?: string;
+  version: string;
+  mode: 'full' | 'simple';
+  linkTo?: 'docs' | 'visualiser';
+  href: {
+    label: string;
+    url: string;
+  };
+}
+
+const { id, collection, title, mode = 'simple', linkTo='docs', version, href } = Astro.props;
+let nodes = [],
+  edges = [];
+
+if (collection === 'services') {
+  const { nodes: serviceNodes, edges: serviceEdges } = await getNodesAndEdgesForService({
+    id: id,
+    version,
+    mode,
+  });
+
+  nodes = serviceNodes;
+  edges = serviceEdges;
+}
+
+if (collection === 'events') {
+  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForEvent({
+    id: id,
+    version,
+    mode,
+  });
+
+  nodes = eventNodes;
+  edges = eventEdges;
+}
+
+if (collection === 'commands') {
+  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForCommand({
+    id: id,
+    version,
+    mode,
+  });
+
+  nodes = eventNodes;
+  edges = eventEdges;
+}
+
+if(collection === 'domains'){
+  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForDomain({
+    id: id,
+    version,
+    mode,
+  });
+
+  nodes = eventNodes;
+  edges = eventEdges;
+}
+
+
+
+---
+
+<div>
+  <NodeGraphNew id={id} nodes={nodes} edges={edges} title={title} hrefLabel={href.label} href={href.url} linkTo={linkTo} client:load />
+</div>
+
+<style is:global>
+  .react-flow__attribution {
+    display: none;
+  }
+</style>

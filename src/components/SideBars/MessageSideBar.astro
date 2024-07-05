@@ -1,0 +1,81 @@
+---
+import { getEntry, type CollectionEntry } from 'astro:content';
+import PillList from '@components/Lists/PillList';
+import OwnersList from '@components/Lists/OwnersList';
+import type { CollectionMessageTypes } from '@types';
+import * as path from 'path';
+import VersionList from '@components/Lists/VersionList.astro';
+interface Props {
+  message: CollectionEntry<CollectionMessageTypes>;
+}
+
+const { message } = Astro.props;
+
+const producers = (message.data.producers as CollectionEntry<'services'>[]) || [];
+const consumers = (message.data.consumers as CollectionEntry<'services'>[]) || [];
+
+const ownersRaw = message.data?.owners || [];
+const owners = await Promise.all(ownersRaw.map((o) => getEntry(o)));
+
+const producerList = producers.map((p) => ({
+  label: `${p.data.name} (service)`,
+  tag: `v${p.data.version}`,
+  href: `/docs/services/${p.data.id}/${p.data.version}`,
+}));
+
+const consumerList = consumers.map((p) => ({
+  label: `${p.data.name} (service)`,
+  tag: `v${p.data.version}`,
+  href: `/docs/services/${p.data.id}/${p.data.version}`,
+}));
+
+const ownersList = owners.map((o) => ({
+  label: o.data.name,
+  type: o.collection,
+  badge: o.collection === 'users' ? o.data.role : 'Team',
+  avatarUrl: o.collection === 'users' ? o.data.avatarUrl : '',
+  href: `/docs/${o.collection}/${o.data.id}`,
+}));
+
+const type = message.collection.slice(0, -1);
+
+// @ts-ignore
+const publicPath = message?.catalog?.publicPath;
+const schemaFilePath = message?.data?.schemaPath;
+const schemaURL = path.join(publicPath, schemaFilePath || '')
+
+---
+
+<aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto">
+  <div class="">
+    <PillList color="pink" title={`${type} Producers (${producerList.length})`} pills={producerList} emptyMessage={`This ${type} does not get produced by any services.`} client:load />
+    <PillList color="pink" title={`${type} Consumers (${consumerList.length})`} pills={consumerList} emptyMessage={`This ${type} does not get consumed by any services.`} client:load />
+    <OwnersList title={`${type} owners (${ownersList.length})`} owners={ownersList} emptyMessage={`This ${type} does not have any documented owners.`} client:load />
+
+    {message.data.versions && <VersionList versions={message.data.versions} collectionItem={message} />}
+
+    <div class="space-y-2">
+      {
+        message?.data?.schemaPath && (
+          <a
+            href={schemaURL}
+            download={`${message.data.name}(${message.data.version})-${schemaFilePath}`}
+            class="hidden w-full md:inline-flex h-10 justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-200 bg-gray-800 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
+          >
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" class="-ml-1 mr-2 h-5 w-5 text-gray-200">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>Download Schema</span>
+            </>
+          </a>
+        )
+      }
+      <a
+        href={`/visualiser/${message.collection}/${message.data.id}/${message.data.version}`}
+        class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500"
+        >View in Visualiser</a
+      >
+    </div>
+  </div>
+</aside>

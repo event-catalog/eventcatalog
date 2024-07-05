@@ -1,0 +1,120 @@
+---
+import { Table } from '@components/Tables/Table';
+import { RectangleGroupIcon } from '@heroicons/react/24/outline';
+import EnvelopeIcon from '@heroicons/react/24/outline/EnvelopeIcon';
+import ServerIcon from '@heroicons/react/24/outline/ServerIcon';
+import PlainPage from '@layouts/PlainPage.astro';
+import { getCommands } from '@utils/commands';
+import { getDomains } from '@utils/domains/domains';
+import { getEvents } from '@utils/events';
+import { getServices } from '@utils/services/services';
+
+const events = await getEvents();
+const commands = await getCommands();
+const services = await getServices();
+const domains = await getDomains();
+
+const { title, subtitle, data, type } = Astro.props;
+const currentPath = Astro.url.pathname;
+
+const tabs = [
+  {
+    label: `Events (${events.length})`,
+    href: '/discover/events',
+    isActive: currentPath === '/discover/events',
+    icon: EnvelopeIcon,
+    activeColor: 'orange',
+    enabled: events.length > 0,
+  },
+  {
+    label: `Commands (${commands.length})`,
+    href: '/discover/commands',
+    isActive: currentPath === '/discover/commands',
+    icon: EnvelopeIcon,
+    activeColor: 'blue',
+    enabled: commands.length > 0,
+  },
+  {
+    label: `Services (${services.length})`,
+    href: '/discover/services',
+    isActive: currentPath === '/discover/services',
+    icon: ServerIcon,
+    activeColor: 'pink',
+    enabled: services.length > 0,
+  },
+  {
+    label: `Domains (${domains.length})`,
+    href: '/discover/domains',
+    isActive: currentPath === '/discover/domains',
+    icon: RectangleGroupIcon,
+    activeColor: 'yellow',
+    enabled: services.length > 0,
+  },
+];
+---
+
+<PlainPage title={`Explore | ${title}`}>
+  <main>
+    <div>
+      <!-- <div class="sm:hidden">
+        <label for="tabs" class="sr-only">Select a tab</label>
+        <select id="tabs" name="tabs" class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+          <option>My Account</option>
+          <option>Company</option>
+          <option selected>Team Members</option>
+          <option>Billing</option>
+        </select>
+      </div> -->
+      <div class="hidden sm:block">
+        <div class="border-b border-gray-200">
+          <nav class="flex space-x-8 -mb-0.5" aria-label="Tabs">
+            {
+              tabs.map((tab) => (
+                <a
+                  href={tab.href}
+                  class={` text-black  group inline-flex items-center py-4 px-1 text-sm font-light ${tab.isActive ? `border-${tab.activeColor}-500 border-b-[2px] text-${tab.activeColor}-500` : 'opacity-80'} ${!tab.enabled ? 'disabled' : ''}`}
+                  aria-current="page"
+                >
+                  <tab.icon className={`w-6 h-6 -ml-0.5 mr-2  ${tab.isActive ? `text-${tab.activeColor}-500` : 'text-gray-500'}`} />
+                  <span>{tab.label}</span>
+                </a>
+              ))
+            }
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="pb-20">
+      <div>
+        <div class="sm:flex sm:items-center py-8 pb-4">
+          <div class="sm:flex-auto space-y-2">
+            <h1 class="text-4xl font-semibold text-gray-900 capitalize">{title}</h1>
+            <p class="text-md text-gray-700">{subtitle}</p>
+          </div>
+        </div>
+        <div class="mt-4 flow-root">
+          <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="inline-block min-w-full align-middle sm:px-6 lg:px-8">
+              <!-- @ts-ignore -->
+              <Table data={data} collection={type} client:load />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</PlainPage>
+
+<style>
+  .ec-align-top {
+    vertical-align: top !important;
+  }
+
+  a.disabled {
+    pointer-events: none;
+    cursor: default;
+    opacity: 0.25;
+  }
+</style>

@@ -1,0 +1,73 @@
+---
+import BasicList from '@components/Lists/BasicList';
+import PlainPage from '@layouts/PlainPage.astro';
+import type { CollectionTypes } from '@types';
+import { getCommands } from '@utils/commands';
+import { getDomains } from '@utils/domains/domains';
+import { getEvents } from '@utils/events';
+import { getServices } from '@utils/services/services';
+import type { CollectionEntry } from 'astro:content';
+import { ViewTransitions } from 'astro:transitions';
+
+const [services, events, commands, domains] = await Promise.all([getServices(), getEvents(), getCommands(), getDomains()]);
+const navItems = [...domains, ...services, ...events, ...commands];
+
+
+const navigation = navItems.reduce((acc, item) => {
+  //  @ts-ignore
+  const group = acc[item.collection] || [];
+
+  return {
+    ...acc,
+    [item.collection]: [...group, item],
+  };
+}, {}) as any;
+
+const currentPath = Astro.url.pathname;
+const { title, description } = Astro.props;
+
+const getColor = (collection: string) => {
+  switch (collection) {
+    case 'services':
+      return 'green';
+    case 'events':
+      return 'red';
+    case 'commands':
+      return 'yellow';
+    case 'domains':
+      return 'blue';
+    default:
+      return 'gray';
+  }
+};
+
+---
+
+<PlainPage title={title} description={description}>
+  <div class="flex min-h-full flex-row md:flex-col">
+    <div class="mx-auto flex flex-col-reverse md:flex-row w-full items-start">
+      <aside class="md:sticky mt-14 md:mt-0 top-0 w-full md:w-60 xl:w-[19em] shrink-0 lg:block font-light pr-10" id="visualiser-navigation">
+        {
+          Object.keys(navigation).map((key: any) => {
+            const items = navigation[key].map((item: any) => {
+              const isCurrent = currentPath.includes(`${item.collection}/${item.data.id}/${item.data.version}`);
+              return {
+                label: item.data.name,
+                version: item.data.version,
+                color: getColor(item.collection),
+                href: `/visualiser/${item.collection}/${item.data.id}/${item.data.version}`,
+                active: isCurrent
+              }
+            });
+            return <BasicList title={`${key} (${navigation[key].length})`} items={items} emptyMessage='Nothing to show' color="gray" client:load />
+          })
+        }
+      </aside>
+
+      <main class="flex-1 h-full w-full " >
+        <slot />
+      </main>
+    </div>
+    <ViewTransitions />
+  </div>
+</PlainPage>
