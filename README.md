@@ -26,7 +26,7 @@
 [![MIT License][license-badge]][license]
 [![PRs Welcome][prs-badge]][prs]
 
-[Read the Docs](https://eventcatalog.dev/) | [Edit the Docs](https://github.com/event-catalog/docs) | [View Demo](https://demo.eventcatalog.dev/)
+[Read the Docs](https://eventcatalog.dev/) | [Edit the Docs](https://github.com/event-catalog/docs) | [View Demo](https://demo.eventcatalog.dev/docs)
 
 </div>
 
