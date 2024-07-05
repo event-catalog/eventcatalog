@@ -82,16 +82,13 @@ program
     copyFile(join(dir, 'eventcatalog.config.js'), join(core, 'eventcatalog.config.js'));
     copyFile(join(dir, 'eventcatalog.styles.css'), join(core, 'eventcatalog.styles.css'));
 
-    const command = options.debug ? 'execSync' : 'exec';
-    const execOptions = { exec, execSync };
+    console.log('EventCatalog is starting at http://localhost:3000/docs');
 
-    execOptions[command](`PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run dev`, {
+    execSync(`PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run dev`, {
       cwd: core,
       // @ts-ignore
       stdio: 'inherit',
     });
-
-    console.log('EventCatalog has started on port 3000: http://localhost:3000/docs');
   });
 
 program
