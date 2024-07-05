@@ -15,7 +15,7 @@
     "prepublishOnly": "npm run build:bin",
     "test": "jest --config=$(pwd)/../../jest.config.js",
     "start": "astro dev",
-    "build": "astro check --minimumSeverity error && astro build",
+    "build": "npm run scripts:hydrate-content && astro check --minimumSeverity error && astro build",
     "build:cd": "node scripts/build-ci.js && astro check --minimumSeverity error && astro build",
     "preview": "astro preview",
     "astro": "astro",
