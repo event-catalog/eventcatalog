@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.2
+
+### Patch Changes
+
+- a4bfa8b: chore(core): update the project url to the github org
+
 ## 2.0.1
 
 ### Patch Changes
