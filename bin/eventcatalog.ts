@@ -113,4 +113,37 @@ program
     copyFolder(join(core, 'dist'), join(dir, 'dist'));
   });
 
+const previewCatalog = () => {
+  copyCore();
+
+  // Copy the config and styles
+  copyFolder(join(dir, 'public'), join(core, 'public'));
+  copyFile(join(dir, 'eventcatalog.config.js'), join(core, 'eventcatalog.config.js'));
+  copyFile(join(dir, 'eventcatalog.styles.css'), join(core, 'eventcatalog.styles.css'));
+
+  execSync(`PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run preview`, {
+    cwd: core,
+    stdio: 'inherit',
+  });
+
+  // // everything is built make sure its back in the users project directory
+  copyFolder(join(core, 'dist'), join(dir, 'dist'));
+};
+
+program
+  .command('preview')
+  .description('Serves the contents of your eventcatalog build directory')
+  .action((options) => {
+    console.log('Starting preview of your build...');
+    previewCatalog();
+  });
+
+program
+  .command('start')
+  .description('Serves the contents of your eventcatalog build directory')
+  .action((options) => {
+    console.log('Starting preview of your build...');
+    previewCatalog();
+  });
+
 program.parse();
