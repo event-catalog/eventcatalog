@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.4
+
+### Patch Changes
+
+- 00def6d: bug(core): now loads /docs when going to /
+
 ## 2.0.3
 
 ### Patch Changes
