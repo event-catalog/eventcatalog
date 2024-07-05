@@ -98,7 +98,6 @@ program
   .command('build')
   .description('Run build of EventCatalog')
   .action((options) => {
-
     console.log('Building EventCatalog...');
 
     copyCore();
