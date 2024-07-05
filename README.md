@@ -102,6 +102,12 @@ Interested in collaborating with us? Our offerings include dedicated support, pr
 
 Find more details on our [enterprise plan](https://eventcatalog.dev/enterprise).
 
+# Looking for v1?
+
+- Documentation: https://v1.eventcatalog.dev
+- Code: https://github.com/event-catalog/eventcatalog/tree/v1
+
+_Still using v1 of EventCatalog? We recommnded upgrading to the latest version. [Read more in the migration guide](https://eventcatalog.dev/docs/development/guides/upgrading-from-version-1)._
 
 
 # Contributing
