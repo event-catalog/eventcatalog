@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import matter from 'gray-matter';
 import { Service } from '@eventcatalog/types';
-import buildMarkdownFile from './markdown-builder';
+import buildMarkdownFile from './service-markdown-builder';
 
 import { FunctionInitInterface, WriteServiceToCatalogInterface, WriteServiceToCatalogInterfaceReponse } from './types';
 
@@ -18,12 +18,13 @@ const readMarkdownFile = (pathToFile: string) => {
 
 export const buildServiceMarkdownForCatalog =
   () =>
-  (service: Service, { markdownContent, renderMermaidDiagram = false, renderNodeGraph = true }: any = {}) =>
+  (service: Service, { markdownContent, renderMermaidDiagram = false, renderNodeGraph = true, renderAsyncAPI = false }: any = {}) =>
     buildMarkdownFile({
       frontMatterObject: service,
       customContent: markdownContent,
       renderMermaidDiagram,
       renderNodeGraph,
+      renderAsyncAPI,
     });
 
 export const getAllServicesFromCatalog =
@@ -58,7 +59,12 @@ export const writeServiceToCatalog =
   ({ catalogDirectory }: FunctionInitInterface) =>
   (service: Service, options?: WriteServiceToCatalogInterface): WriteServiceToCatalogInterfaceReponse => {
     const { name: serviceName } = service;
-    const { useMarkdownContentFromExistingService = true, renderMermaidDiagram = false, renderNodeGraph = true } = options || {};
+    const { 
+      useMarkdownContentFromExistingService = true, 
+      renderMermaidDiagram = false, 
+      renderNodeGraph = true, 
+      renderAsyncAPI = false } = options || {};
+      
     let markdownContent;
 
     if (!serviceName) throw new Error('No `name` found for given service');
@@ -73,6 +79,7 @@ export const writeServiceToCatalog =
       useMarkdownContentFromExistingService,
       renderMermaidDiagram,
       renderNodeGraph,
+      renderAsyncAPI,
     });
 
     fs.ensureDirSync(path.join(catalogDirectory, 'services', service.name));

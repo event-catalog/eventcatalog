@@ -6,6 +6,7 @@ export interface WriteServiceToCatalogInterface {
   useMarkdownContentFromExistingService?: boolean;
   renderMermaidDiagram?: boolean;
   renderNodeGraph?: boolean;
+  renderAsyncAPI?: boolean;
 }
 
 export interface WriteServiceToCatalogInterfaceReponse {

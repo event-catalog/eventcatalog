@@ -9,6 +9,8 @@ import merge from 'lodash.merge';
 import { AvroSchemaParser } from '@asyncapi/avro-schema-parser';
 import type { AsyncAPIPluginOptions } from './types';
 
+const getCatalogPath = (domain: Domain | undefined, destDir: string): string => domain ? path.join(destDir, 'domains', domain.name) : destDir
+
 const getServiceFromAsyncDoc = (doc: AsyncAPIDocumentInterface): Service => ({
   name: doc.info().title(),
   summary: doc.info().description() || '',
@@ -130,7 +132,7 @@ const writeData = async (
   copyFrontMatter: boolean,
   domain?: Domain
 ) => {
-  const { versionEvents = true, renderMermaidDiagram = false, renderNodeGraph = true } = options;
+  const { versionEvents = true, renderMermaidDiagram = false, renderNodeGraph = true, renderAsyncAPI = false } = options;
 
   if (domain !== undefined) {
     const { writeDomainToCatalog } = utils({ catalogDirectory: destDir });
@@ -142,13 +144,14 @@ const writeData = async (
   }
 
   const { writeServiceToCatalog, writeEventToCatalog } = utils({
-    catalogDirectory: domain ? path.join(destDir, 'domains', domain.name) : destDir,
+    catalogDirectory: getCatalogPath(domain, destDir),
   });
 
   writeServiceToCatalog(service, {
     useMarkdownContentFromExistingService: true,
     renderMermaidDiagram,
     renderNodeGraph,
+    renderAsyncAPI,
   });
 
   const eventFiles = events.map(async (event: any) => {
@@ -193,16 +196,25 @@ const main = async (_: LoadContext, options: AsyncAPIPluginOptions) => {
 
   const data = await Promise.all(listOfAsyncAPIFilesToParse.map((specFile) => parseAsyncAPIFile(specFile, options)));
 
-  data.map((d, index) =>
-    writeData(
+  data.map((d, index) => {
+    const result = writeData(
       destDir,
       d.service,
       d.events,
       options,
       index !== 0, // on first write of files don't copy any frontmatter over.
       d.domain
-    )
-  );
+    );
+
+    if( options.renderAsyncAPI ) {
+      fs.copySync(
+        listOfAsyncAPIFilesToParse[index], 
+        path.join(getCatalogPath(d.domain, destDir), 'services', d.service.name, 'asyncapi.yml'),
+        { overwrite: true });
+    }
+
+    return result;
+  });
 
   const totalEvents = data.reduce((sum: any, { events }: any) => sum + events.length, 0);
 
@@ -259,3 +271,4 @@ if (require.main === module) {
 
   main(<LoadContext>{}, { pathToSpec: schemasPaths, versionEvents: !!process.env.PROJECT_DO_VERSIONS });
 }
+

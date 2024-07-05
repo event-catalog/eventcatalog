@@ -744,6 +744,7 @@ describe('eventcatalog-utils', () => {
         ---
         <NodeGraph />`);
       });
+      
 
       it('takes a given service and markdown content and returns the generated markdown file', () => {
         const service = {
@@ -798,6 +799,36 @@ describe('eventcatalog-utils', () => {
             - dBoyne
         ---
         <NodeGraph />`);
+      });
+
+      it('takes a given service and generates markdown with a AsyncApi', () => {
+        const service = {
+          name: 'My Service',
+          summary: 'This is summary for my service',
+          repository: {
+            url: 'https://github.com/boyney123/eventcatalog',
+            language: 'JavaScript',
+          },
+          owners: ['dBoyne'],
+        };
+
+        const result = buildServiceMarkdownForCatalog(service, {
+          renderMermaidDiagram: false,
+          renderNodeGraph: false,
+          renderAsyncAPI: true,
+        });
+
+        expect(result).toMatchMarkdown(`
+        ---
+        name: 'My Service'
+        summary: 'This is summary for my service'
+        repository:
+            url: 'https://github.com/boyney123/eventcatalog'
+            language: JavaScript
+        owners:
+            - dBoyne
+        ---
+        <AsyncAPI />`);
       });
     });
 
