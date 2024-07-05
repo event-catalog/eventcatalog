@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.1
+
+### Patch Changes
+
+- 20aa425: chore(misc): Testing the release of EventCatalog
+
 ## 2.0.0
 
 New version launched of EventCatalog with major changes.
