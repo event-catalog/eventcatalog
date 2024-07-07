@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.8
+
+### Patch Changes
+
+- 5bde1d4: feat(core): versions now show as a dropdown
+
 ## 2.0.7
 
 ### Patch Changes
