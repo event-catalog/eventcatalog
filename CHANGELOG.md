@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.7
+
+### Patch Changes
+
+- b82d79e: feat(core): Renders names for services side bars and also links to services from domains fixed
+
 ## 2.0.6
 
 ### Patch Changes
