@@ -19,7 +19,7 @@ const serviceList = services.map((p) => ({
   label: p.data.id,
   badge: p.collection,
   tag: `v${p.data.version}`,
-  href: `/docs/${p.collection}/${p.data.id}`,
+  href: `/docs/${p.collection}/${p.data.id}/${p.data.version}`,
 }));
 
 const ownersList = owners.map((o) => ({
