@@ -19,14 +19,14 @@ const ownersRaw = service.data?.owners || [];
 const owners = await Promise.all(ownersRaw.map((o) => getEntry(o)));
 
 const sendsList = sends.map((p) => ({
-  label: p.data.id,
+  label: p.data.name,
   badge: p.collection,
   color: p.collection === 'events' ? 'orange' : 'blue',
   tag: `v${p.data.version}`,
   href: `/docs/${p.collection}/${p.data.id}/${p.data.version}`,
 }));
 const receivesList = receives.map((p) => ({
-  label: p.data.id,
+  label: p.data.name,
   badge: p.collection,
   color: p.collection === 'events' ? 'orange' : 'blue',
   tag: `v${p.data.version}`,
