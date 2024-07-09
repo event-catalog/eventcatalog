@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.11
+
+### Patch Changes
+
+- 45ea9f6: feat(core): added types file for eventcatalog.config.js
+
 ## 2.0.10
 
 ### Patch Changes
