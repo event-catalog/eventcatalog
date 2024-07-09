@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.0.10
+
+### Patch Changes
+
+- 62422dd: fix to build
+- 1c42b9f: feat(core): added ability to hide resources in sidebar
+
 ## 2.0.9
 
 ### Patch Changes
