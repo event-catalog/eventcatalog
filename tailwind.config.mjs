@@ -20,5 +20,5 @@ export default {
     'border-l-blue-500',
   ],
 
-  plugins: [require('@tailwindcss/typography')],
+  plugins: [require('@tailwindcss/typography'), require('@tailwindcss/forms')],
 };

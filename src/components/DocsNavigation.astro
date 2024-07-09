@@ -6,6 +6,7 @@ import { getServices } from '@utils/services/services';
 import { getTeams } from '@utils/teams';
 import { getUsers } from '@utils/users';
 import config from '@eventcatalog';
+import FilterableList from './FilterableList';
 
 const events = await getEvents({ getAllVersions: false });
 const commands = await getCommands({ getAllVersions: false });
@@ -33,7 +34,7 @@ const withHeadings =  await Promise.all(fetchHeadings);
 
 const sideNav = withHeadings.reduce((acc, item) => {
 
-  const title = (item.collection === 'events' || item.collection === 'commands') ? 'Messages' : item.collection;
+  const title = (item.collection === 'events' || item.collection === 'commands') ? 'messages' : item.collection;
 
   const group = acc[title] || [];
 
@@ -61,6 +62,10 @@ const currentPath = Astro.url.pathname;
     {
       Object.keys(sideNav).map((key) => {
         const collection = sideNav[key];
+        if(key === 'messages'){
+          return <FilterableList client:load collection={collection} currentPath={currentPath} />
+        }
+        console.log(key)
         return (
           <ul class=" w-full space-y-2 pb-8">
             <li class="font-semibold capitalize ">{key}</li>
