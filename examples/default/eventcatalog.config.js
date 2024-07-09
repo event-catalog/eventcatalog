@@ -12,7 +12,22 @@ export default {
   docs: {
     sidebar: {
       // Should the sub heading be rendered in the docs sidebar?
-      showPageHeadings: true
+      showPageHeadings: true,
+      services: {
+        visible: true
+      },
+      messages: {
+        visible: true
+      },
+      domains: {
+        visible: true
+      },
+      teams: {
+        visible: true
+      },
+      users: {
+        visible: true
+      }
     }
   }
 }
