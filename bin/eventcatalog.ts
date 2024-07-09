@@ -67,7 +67,7 @@ program
   .option('-d, --debug', 'Output EventCatalog application information into your terminal')
   .action((options) => {
     // // Copy EventCatalog core over
-    console.log('Setting up EventCatalog...');
+    console.log('Setting up EventCatalog....');
 
     if (options.debug) {
       console.log('Debug mode enabled');
