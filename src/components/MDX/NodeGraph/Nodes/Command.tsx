@@ -40,7 +40,7 @@ export default function CommandNode({ data, sourcePosition, targetPosition }: an
           </span>
         )}
       </div>
-      <div className="p-1">
+      <div className="p-1 min-w-60 max-w-[min-content]">
         {renderTarget && <Handle type="target" position={targetPosition} />}
         {renderSource && <Handle type="source" position={sourcePosition} />}
         <div className={classNames(mode === 'full' ? `border-b border-gray-200` : '')}>
