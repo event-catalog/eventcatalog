@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.12
+
+### Patch Changes
+
+- 18f1c3d: fix(core): fixed start and preview commands
+
 ## 2.0.11
 
 ### Patch Changes
