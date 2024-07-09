@@ -25,6 +25,7 @@
 
 [![MIT License][license-badge]][license]
 [![PRs Welcome][prs-badge]][prs]
+[![All Contributors](https://img.shields.io/badge/all_contributors-37-orange.svg?style=flat-square)](#contributors-)
 
 [Read the Docs](https://eventcatalog.dev/) | [Edit the Docs](https://github.com/event-catalog/docs) | [View Demo](https://demo.eventcatalog.dev/docs)
 
@@ -189,7 +190,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/danielcastill0"><img src="https://avatars.githubusercontent.com/u/40574235?v=4?s=100" width="100px;" alt="Daniel Andres Castillo Ardila"/><br /><sub><b>Daniel Andres Castillo Ardila</b></sub></a><br /><a href="https://github.com/boyney123/eventcatalog/commits?author=danielcastill0" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://www.ennovative-solutions.be"><img src="https://avatars.githubusercontent.com/u/2007116?v=4?s=100" width="100px;" alt="Baerten Dennis"/><br /><sub><b>Baerten Dennis</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=debae" title="Code">💻</a></td>
     </tr>
+    
   </tbody>
 </table>
 
