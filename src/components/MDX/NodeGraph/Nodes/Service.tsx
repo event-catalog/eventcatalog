@@ -39,7 +39,7 @@ export default function ServiceNode({ data, sourcePosition, targetPosition }: an
           </span>
         )}
       </div>
-      <div className="p-1">
+      <div className="p-1 min-w-60 max-w-[min-content]">
         {showTarget && <Handle type="target" position={targetPosition} />}
         {showSource && <Handle type="source" position={sourcePosition} />}
         {/* {mode === 'full' && (
