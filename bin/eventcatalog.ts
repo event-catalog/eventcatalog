@@ -121,7 +121,7 @@ const previewCatalog = () => {
   copyFile(join(dir, 'eventcatalog.config.js'), join(core, 'eventcatalog.config.js'));
   copyFile(join(dir, 'eventcatalog.styles.css'), join(core, 'eventcatalog.styles.css'));
 
-  execSync(`PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run preview`, {
+  execSync(`PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run preview -- --root ${dir} --port 3000`, {
     cwd: core,
     stdio: 'inherit',
   });
