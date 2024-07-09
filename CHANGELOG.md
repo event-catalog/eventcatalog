@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.9
+
+### Patch Changes
+
+- d4916a0: fix(core): configure width for nodes in visualiser (#560)
+
 ## 2.0.8
 
 ### Patch Changes
