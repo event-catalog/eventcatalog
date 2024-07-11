@@ -47,15 +47,17 @@ const membersList = members.map((o) => ({
 
 const ownedServicesList = services.map((p) => ({
   label: `${p.data.name} (service)`,
-href: `/docs/${p.collection}/${p.data.id}`,
-  tag: `v${p.data.version}`
+  href: `/docs/${p.collection}/${p.data.id}`,
+  tag: `v${p.data.version}`,
 }));
 
-const ownedEventsList = [...events, ...commands].map((p) => ({
+// @ts-ignore
+const messages = [...events, ...commands];
+const ownedEventsList = messages.map((p) => ({
   label: `${p.data.name} (${p.collection.slice(0, -1)})`,
   href: `/docs/${p.collection}/${p.data.id}`,
   color: p.collection === 'events' ? 'orange' : 'blue',
-  tag: `v${p.data.version}`
+  tag: `v${p.data.version}`,
 }));
 ---
 
@@ -63,8 +65,8 @@ const ownedEventsList = [...events, ...commands].map((p) => ({
   <div class="flex min-h-screen docs-layout">
     <main class="flex-1 w-full pr-10 pt-4">
       <!-- <span class="text-purple-500 bg-purple-100 px-2 py-1 rounded-md">v{props.data.version}</span> -->
-    
-      <div class="border-b border-gray-200  py-4 pb-2">
+
+      <div class="border-b border-gray-200 py-4 pb-2">
         <div class="flex justify-start">
           <!-- <span class="shadow-md text-center flex items-center justify-center text-white text-4xl bg-red-500 h-28 w-28 rounded-full">{props.data.name.charAt(0)}</span> -->
           <div class="flex flex-col justify-between space-y-2">
@@ -111,9 +113,26 @@ const ownedEventsList = [...events, ...commands].map((p) => ({
     </main>
     <aside class="sticky top-20 h-[calc(100vh-theme(spacing.16))] w-56 overflow-y-auto">
       <div class="divide-y-2 divide-gray-100">
-        <PillList color="blue" title={`Owned services (${ownedServicesList.length})`} pills={ownedServicesList} emptyMessage={`This team does not own any services .`} client:load/>
-        <PillList color="red" title={`Owned messages (${ownedEventsList.length})`} pills={ownedEventsList} emptyMessage={`This team does not own any messages .`} client:load/>
-        <OwnersList title={`Team members (${membersList.length})`} owners={membersList} emptyMessage={`This team does not have any members.`} client:load/>
+        <PillList
+          color="blue"
+          title={`Owned services (${ownedServicesList.length})`}
+          pills={ownedServicesList}
+          emptyMessage={`This team does not own any services .`}
+          client:load
+        />
+        <PillList
+          color="red"
+          title={`Owned messages (${ownedEventsList.length})`}
+          pills={ownedEventsList}
+          emptyMessage={`This team does not own any messages .`}
+          client:load
+        />
+        <OwnersList
+          title={`Team members (${membersList.length})`}
+          owners={membersList}
+          emptyMessage={`This team does not have any members.`}
+          client:load
+        />
       </div>
       <!-- {props?.collection === 'events' && <MessageSideBar message={props} />} -->
     </aside>

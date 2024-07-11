@@ -40,6 +40,7 @@ export async function getStaticPaths() {
   return [...buildPages(domains), ...buildPages(events), ...buildPages(services), ...buildPages(commands)];
 }
 
+// @ts-ignore
 const props = Astro.props;
 
 const { Content } = await props.render();
@@ -50,23 +51,26 @@ const contentBadges = props.data.badges || [];
 
 const getBadge = () => {
   if (props.collection === 'services') {
-    return { backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon, class: "text-pink-400" };
+    return { backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon, class: 'text-pink-400' };
   }
   if (props.collection === 'events') {
-    return { backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: EnvelopeIcon, class: "text-orange-400" };
+    return { backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: EnvelopeIcon, class: 'text-orange-400' };
   }
   if (props.collection === 'commands') {
-    return { backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: EnvelopeIcon, class: "text-blue-400" };
+    return { backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: EnvelopeIcon, class: 'text-blue-400' };
   }
   if (props.collection === 'domains') {
-    return { backgroundColor: 'yellow', textColor: 'yellow', content: 'Domain', icon: RectangleGroupIcon, class: "text-yellow-400" };
+    return {
+      backgroundColor: 'yellow',
+      textColor: 'yellow',
+      content: 'Domain',
+      icon: RectangleGroupIcon,
+      class: 'text-yellow-400',
+    };
   }
 };
 
-const badges = [
-  getBadge(),
-  ...contentBadges
-];
+const badges = [getBadge(), ...contentBadges];
 ---
 
 <DocsLayout title={pageTitle} description={props.data.summary}>
@@ -75,13 +79,18 @@ const badges = [
     <main class="flex-1 w-full lg:pr-10 md:pt-4">
       <div class="border-b border-gray-200 flex justify-between items-start py-4 md:py-8 md:pb-6">
         <div>
-          <h2 class="text-2xl md:text-4xl font-bold">{props.data.name} <span class="text-gray-300">(v{props.data.version})</span></h2>
+          <h2 class="text-2xl md:text-4xl font-bold">
+            {props.data.name}
+            <span class="text-gray-300">(v{props.data.version})</span>
+          </h2>
           <h2 class="text-lg pt-2 text-gray-500 font-light">{props.data.summary}</h2>
           {
             badges && (
               <div class="flex flex-wrap py-2 pt-4">
                 {badges.map((badge: any) => (
-                  <span class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2 bg-${badge.backgroundColor}-100 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}>
+                  <span
+                    class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2 bg-${badge.backgroundColor}-100 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}
+                  >
                     {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
                     <span>{badge.content}</span>
                   </span>
@@ -117,9 +126,14 @@ const badges = [
                   <h3 class="text-sm font-medium text-yellow-800">New version found</h3>
                   <div class="mt-2 text-sm text-yellow-700">
                     <p>
-                      You are looking at a previous version of the {props.collection.slice(0, props.collection.length - 1)} <strong>{props.data.name}</strong>.{' '}
-                      <a class="underline hover:text-purple-500 block pt-2" href={`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}`}>
-                        The latest version of this {props.collection.slice(0, props.collection.length - 1)} is v{props.data.latestVersion} &rarr;
+                      You are looking at a previous version of the {props.collection.slice(0, props.collection.length - 1)}{' '}
+                      <strong>{props.data.name}</strong>.{' '}
+                      <a
+                        class="underline hover:text-purple-500 block pt-2"
+                        href={`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}`}
+                      >
+                        The latest version of this {props.collection.slice(0, props.collection.length - 1)} is v
+                        {props.data.latestVersion} &rarr;
                       </a>
                     </p>
                   </div>
@@ -134,14 +148,24 @@ const badges = [
         <Content components={components(props)} />
       </div>
       <div>
-        <NodeGraph id={props.data.id} collection={props.collection} version={props.data.version} mode="simple" href={{ label: 'Open in Visualiser', url: `/visualiser/${props.collection}/${props.data.id}/${props.data.version}`}} />
+        <NodeGraph
+          id={props.data.id}
+          collection={props.collection}
+          version={props.data.version}
+          mode="simple"
+          href={{ label: 'Open in Visualiser', url: `/visualiser/${props.collection}/${props.data.id}/${props.data.version}` }}
+        />
       </div>
       <footer class="py-4 space-y-8 divide-y divide-gray-200/60">
-        <a href="#" class="flex space-x-2 items-center text-gray-500 hover:text-purple-500 hover:underline"><PencilIcon className="w-4 h-4" /><span>Edit this page</span></a>
+        <a href="#" class="flex space-x-2 items-center text-gray-500 hover:text-purple-500 hover:underline"
+          ><PencilIcon className="w-4 h-4" /><span>Edit this page</span></a
+        >
         <div class="flex justify-between items-center py-8 text-gray-500 text-sm font-light">
           <div class="flex space-x-5">
             <a href="https://github.com/event-catalog/eventcatalog" target="_blank"
-              ><svg class="w-5 h-5 bg-gray-400 hover:bg-purple-500 dark:hover:bg-gray-400" style='mask-image: url("/icons/github.svg"); mask-repeat: no-repeat; mask-position: center center;'></svg></a
+              ><svg
+                class="w-5 h-5 bg-gray-400 hover:bg-purple-500 dark:hover:bg-gray-400"
+                style='mask-image: url("/icons/github.svg"); mask-repeat: no-repeat; mask-position: center center;'></svg></a
             >
             <a href="https://x.com/event_catalog" target="_blank"
               ><span class="sr-only">x</span><svg
@@ -149,7 +173,9 @@ const badges = [
                 style='mask-image: url("/icons/x-twitter.svg"); mask-repeat: no-repeat; mask-position: center center;'></svg></a
             >
           </div>
-          <a target="_blank" class="hover:text-purple-500 hover:underline" href="https://eventcatalog.dev">Powered by EventCatalog</a>
+          <a target="_blank" class="hover:text-purple-500 hover:underline" href="https://eventcatalog.dev"
+            >Powered by EventCatalog</a
+          >
         </div>
       </footer>
     </main>
@@ -174,7 +200,6 @@ const badges = [
   .mermaid tspan {
     font-size: 8em;
   }
-
 </style>
 
 <script>

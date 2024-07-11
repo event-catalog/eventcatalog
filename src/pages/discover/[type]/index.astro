@@ -11,7 +11,7 @@ export async function getStaticPaths() {
   const events = await getEvents();
   const commands = await getCommands();
   const services = await getServices();
-    const domains = await getDomains();
+  const domains = await getDomains();
 
   const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
     return collection.map((item) => ({
@@ -26,11 +26,16 @@ export async function getStaticPaths() {
   };
 
   const pages = [events, commands, services, domains];
+  // @ts-ignore
   return pages.flatMap(buildPages);
-
 }
 
 const { type, data } = Astro.props;
 ---
 
-<DiscoverLayout title={`${type} (${data.length})`} subtitle={`Find, filter and search for any ${type} in your system.`} data={data} type={type} />
+<DiscoverLayout
+  title={`${type} (${data.length})`}
+  subtitle={`Find, filter and search for any ${type} in your system.`}
+  data={data}
+  type={type}
+/>

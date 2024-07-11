@@ -9,7 +9,11 @@ import path from 'path';
 
 export type Service = CollectionEntry<'services'>;
 
-export const getVersion = (collection: CollectionEntry<'events' | 'commands'>[], id: string, version?: string) => {
+export const getVersion = (
+  collection: CollectionEntry<'events' | 'commands'>[],
+  id: string,
+  version?: string
+): CollectionEntry<'events' | 'commands'> | CollectionEntry<'events' | 'commands'>[] | undefined => {
   const data = collection;
   if (version) {
     return data.find((event) => event.data.version === version && event.data.id === id);
