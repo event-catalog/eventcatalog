@@ -60,7 +60,6 @@ const sideNav = withHeadings.reduce((acc, item) => {
     items: item.collection === 'users' ? [] : item.headings,
     visible: visibleCollections[item.collection],
     // @ts-ignore
-    // href: item.data.version ? `/docs/${item.collection}/${item.data.id}/${item.data.version}` : `/docs/${item.collection}/${item.data.id}`,
     href: item.data.version ? buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`) : buildUrl(`/docs/${item.collection}/${item.data.id}`),
   };
 
