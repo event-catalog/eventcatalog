@@ -9,6 +9,8 @@ export default {
     alt: 'EventCatalog Logo',
     src: 'logo.svg'
   },
+  base: '/',
+  trailingSlash: true,
   docs: {
     sidebar: {
       // Should the sub heading be rendered in the docs sidebar?

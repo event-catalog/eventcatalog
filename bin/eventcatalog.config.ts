@@ -8,6 +8,7 @@ export interface Config {
   organizationName: string;
   homepageLink: string;
   editUrl: string;
+  base?: string;
   logo: {
     alt: string;
     src: string;

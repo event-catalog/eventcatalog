@@ -11,7 +11,7 @@ export async function getStaticPaths() {
   const events = await getEvents();
   const commands = await getCommands();
   const services = await getServices();
-    const domains = await getDomains();
+  const domains = await getDomains();
 
   const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
     return collection.map((item) => ({

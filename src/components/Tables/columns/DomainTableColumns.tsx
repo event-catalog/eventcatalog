@@ -3,6 +3,7 @@ import { RectangleGroupIcon } from '@heroicons/react/20/solid';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { CollectionEntry } from 'astro:content';
 import { filterByName, filterCollectionByName } from '../filters/custom-filters';
+import { buildUrl } from '@utils/url-builder';
 
 const columnHelper = createColumnHelper<CollectionEntry<'domains'>>();
 
@@ -16,7 +17,7 @@ export const columns = () => [
       return (
         <div className=" group ">
           <a
-            href={`/docs/${messageRaw.collection}/${messageRaw.data.id}/${messageRaw.data.version}`}
+            href={buildUrl(`/docs/${messageRaw.collection}/${messageRaw.data.id}/${messageRaw.data.version}`)}
             className={`group-hover:text-${color}-500 flex space-x-1 items-center`}
           >
             <div className={`flex items-center border border-gray-300 shadow-sm rounded-md group-hover:border-${color}-400`}>
@@ -74,7 +75,7 @@ export const columns = () => [
             return (
               <li key={consumer.data.id} className="py-1 group ">
                 <a
-                  href={`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`}
+                  href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
                   className="group-hover:text-purple-500 flex space-x-1 items-center "
                 >
                   <div className={`flex items-center border border-gray-300 rounded-md`}>
@@ -104,7 +105,7 @@ export const columns = () => [
       return (
         <a
           className="hover:text-purple-500 hover:underline px-4 font-light"
-          href={`/visualiser/${domain.collection}/${domain.data.id}/${domain.data.version}`}
+          href={buildUrl(`/visualiser/${domain.collection}/${domain.data.id}/${domain.data.version}`)}
         >
           Visualiser &rarr;
         </a>

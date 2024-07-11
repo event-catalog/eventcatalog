@@ -16,7 +16,7 @@ import catalog from '@eventcatalog';
     <meta charset="UTF-8" />
     <meta name="description" content="Astro description" />
     <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}/favicon.ico`} />
     <meta name="generator" content={Astro.generator} />
     <title>EventCatalog</title>
   </head>

@@ -9,6 +9,7 @@ import type { CollectionEntry } from 'astro:content';
 import { navigate } from 'astro:transitions/client';
 import type { CollectionTypes } from '@types';
 import DownloadButton from './DownloadButton';
+import { buildUrl } from '@utils/url-builder';
 
 interface Props {
   nodes: any;
@@ -21,10 +22,10 @@ interface Props {
 }
 
 const getDocUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
-  return `/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`;
+  return buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`);
 };
 const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
-  return `/visualiser/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`;
+  return buildUrl(`/visualiser/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`);
 };
 
 // const NodeGraphBuilder = ({ title, subtitle, includeBackground = true, includeControls = true }: Props) => {
