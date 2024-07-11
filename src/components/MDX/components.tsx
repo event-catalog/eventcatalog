@@ -1,23 +1,25 @@
-// Astro components
-
 // React components
 import Schema from '@components/MDX/Schema';
 import File from '@components/MDX/File';
 import Accordion from '@components/MDX/Accordion/Accordion.astro';
 import AccordionGroup from '@components/MDX/Accordion/AccordionGroup.astro';
 import Admonition from '@components/MDX/Admonition';
-import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
 import OpenAPI from '@components/MDX/OpenAPI/OpenAPI';
+
+//  Portals: required for server/client components
+import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
+import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
 
 const components = (props: any) => {
   return {
-    AccordionGroup,
     Accordion,
-    OpenAPI: (mdxProp: any) => <OpenAPI {...mdxProp} {...props} />,
+    AccordionGroup,
     Admonition: (mdxProp: any) => <Admonition {...mdxProp} {...props} />,
     File: (mdxProp: any) => File({ ...props, ...mdxProp }),
-    Schema: (mdxProp: any) => Schema({ ...props, ...mdxProp }),
     NodeGraph: (mdxProp: any) => NodeGraphPortal({ ...props.data, ...mdxProp }),
+    SchemaViewer: (mdxProp: any) => SchemaViewerPortal({ ...props.data, ...mdxProp }),
+    OpenAPI: (mdxProp: any) => <OpenAPI {...mdxProp} {...props} />,
+    Schema: (mdxProp: any) => Schema({ ...props, ...mdxProp }),
   };
 };
 

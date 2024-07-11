@@ -20,6 +20,8 @@ badges:
 schemaPath: 'schema.avro'
 ---
 
+
+
 ## Overview
 
 The `Inventory Adjusted` event is triggered whenever there is a change in the inventory levels of a product. This could occur due to various reasons such as receiving new stock, sales, returns, or manual adjustments by the inventory management team. The event ensures that all parts of the system that rely on inventory data are kept up-to-date with the latest inventory levels.
@@ -27,6 +29,8 @@ The `Inventory Adjusted` event is triggered whenever there is a change in the in
 ## Architecture diagram
 
 <NodeGraph />
+
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
 
 ## Payload example
 

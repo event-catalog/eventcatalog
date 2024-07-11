@@ -25,6 +25,8 @@ The UpdateInventory command is issued to update the existing stock levels of a p
 
 <NodeGraph />
 
+<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+
 ## Payload example
 
 ```json title="Payload example"

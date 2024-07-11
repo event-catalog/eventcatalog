@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
 
+const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
+
 export type Domain = CollectionEntry<'domains'>;
 
 interface Props {
@@ -41,6 +43,7 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
       },
       catalog: {
         path: path.join(domain.collection, domain.id.replace('/index.mdx', '')),
+        absoluteFilePath: path.join(PROJECT_DIR, domain.collection, domain.id.replace('/index.mdx', '/index.md')),
         filePath: path.join(process.cwd(), 'src', 'catalog-files', domain.collection, domain.id.replace('/index.mdx', '')),
         publicPath: path.join('/generated', domain.collection, domain.id.replace('/index.mdx', '')),
         type: 'service',
