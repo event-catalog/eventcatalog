@@ -75,7 +75,7 @@ try {
     <div>
       
       {schema.exists && 
-        <SchemaViewerClient {...schema} client:only />
+        <SchemaViewerClient {...schema} client:load />
       }
 
       {/* User has tried to load the schema, but it was not found on file system */}
