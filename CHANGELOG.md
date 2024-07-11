@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.13
+
+### Patch Changes
+
+- 1e4c805: feat(core): Adding <SchemaViewer /> component
+
 ## 2.0.12
 
 ### Patch Changes
