@@ -25,8 +25,8 @@ export default function Admonition({ children, type = 'info', className = '' }: 
     <div className={`bg-${color}-50 border-l-4 border-${color}-400 my-4 ${className}`}>
       <div className="flex">
         <div className="ml-3 py-2 text-sm flex items-center">
-          <Icon className={`inline-block mr-2 h-5 w-5 text-${color}-400`} aria-hidden="true" />
-          {children}
+          <Icon className={`block mr-2 h-7 w-7 text-${color}-400`} aria-hidden="true" />
+          <div>{children}</div>
         </div>
       </div>
     </div>

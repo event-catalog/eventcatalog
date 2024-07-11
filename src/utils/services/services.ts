@@ -2,10 +2,8 @@ import { getVersionForCollectionItem, getVersions } from '@utils/collections/uti
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
-// import { getEvents } from './events';
-// import { getCommands } from './commands';
 
-// import type { Service as ServiceInterface } from '../types/index'
+const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
 export type Service = CollectionEntry<'services'>;
 
@@ -79,6 +77,7 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
       },
       catalog: {
         path: path.join(service.collection, service.id.replace('/index.mdx', '')),
+        absoluteFilePath: path.join(PROJECT_DIR, service.collection, service.id.replace('/index.mdx', '/index.md')),
         filePath: path.join(process.cwd(), 'src', 'catalog-files', service.collection, service.id.replace('/index.mdx', '')),
         publicPath: path.join('/generated', service.collection, service.id.replace('/index.mdx', '')),
         type: 'service',

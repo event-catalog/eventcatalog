@@ -1,7 +1,9 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
-import { getVersionForCollectionItem, getVersions } from './collections/util';
+import { getVersionForCollectionItem } from './collections/util';
+
+const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
 type Command = CollectionEntry<'commands'> & {
   catalog: {
@@ -51,6 +53,7 @@ export const getCommands = async ({ getAllVersions = true }: Props = {}): Promis
       },
       catalog: {
         path: path.join(command.collection, command.id.replace('/index.mdx', '')),
+        absoluteFilePath: path.join(PROJECT_DIR, command.collection, command.id.replace('/index.mdx', '/index.md')),
         filePath: path.join(process.cwd(), 'src', 'catalog-files', command.collection, command.id.replace('/index.mdx', '')),
         publicPath: path.join('/generated', command.collection, command.id.replace('/index.mdx', '')),
         type: 'command',
