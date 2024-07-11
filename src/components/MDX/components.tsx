@@ -1,4 +1,3 @@
-
 // React components
 import Schema from '@components/MDX/Schema';
 import File from '@components/MDX/File';

@@ -8,20 +8,20 @@ import '@stoplight/mosaic/styles.css';
 import { createPortal } from 'react-dom';
 
 type Props = {
-  id: string
-  file: string
-  renderRootTreeLines?: boolean
-  hideExamples?: boolean
-  defaultExpandedDepth?: number
-  maxHeight?: string
-  schema: any
-  catalog: any
-  title?: string
+  id: string;
+  file: string;
+  renderRootTreeLines?: boolean;
+  hideExamples?: boolean;
+  defaultExpandedDepth?: number;
+  maxHeight?: string;
+  schema: any;
+  catalog: any;
+  title?: string;
 };
 
 const SchemaViewer = ({
   id,
-  maxHeight = "500",
+  maxHeight = '500',
   renderRootTreeLines = true,
   hideExamples = false,
   defaultExpandedDepth = 3,
@@ -30,20 +30,19 @@ const SchemaViewer = ({
   schema,
   file = 'schema.json',
 }: Props) => {
+  const [elem, setElem] = useState(null);
+  useEffect(() => {
+    // @ts-ignore
+    setElem(document.getElementById(`${id}-SchemaViewer-portal`));
+  }, []);
 
-    const [elem, setElem] = useState(null);
-    useEffect(() => {
-      // @ts-ignore
-      setElem(document.getElementById(`${id}-SchemaViewer-portal`));
-    }, []);
+  if (!elem) return null;
 
-    if (!elem) return null;
-
-    return (
-      <div>
-        {createPortal(
-          <section className="not-prose space-y-2 ">
-          {title && <h2 className='text-3xl font-bold'>{title}</h2>}
+  return (
+    <div>
+      {createPortal(
+        <section className="not-prose space-y-2 ">
+          {title && <h2 className="text-3xl font-bold">{title}</h2>}
           <div className="border border-gray-100 p-2 schemaViewer">
             <JsonSchemaViewer
               schema={schema}
@@ -56,10 +55,10 @@ const SchemaViewer = ({
             />
           </div>
         </section>,
-          elem
-        )}
-      </div>
-    );
+        elem
+      )}
+    </div>
+  );
 };
 
 export default SchemaViewer;

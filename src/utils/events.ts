@@ -44,9 +44,7 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
       });
     });
 
-    console.log('HERE WE ARE LOADS', process.env.PROJECT_DIR)
-
-
+    console.log('HERE WE ARE LOADS', process.env.PROJECT_DIR);
 
     return {
       ...event,
