@@ -25,10 +25,8 @@ const SchemaViewer = ({
   renderRootTreeLines = true,
   hideExamples = false,
   defaultExpandedDepth = 3,
-  catalog,
   title,
   schema,
-  file = 'schema.json',
 }: Props) => {
   const [elem, setElem] = useState(null);
   useEffect(() => {
