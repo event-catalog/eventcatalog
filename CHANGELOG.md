@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.14
+
+### Patch Changes
+
+- 9d61581: feat(core): added support for base url and slashes
+
 ## 2.0.13
 
 ### Patch Changes
