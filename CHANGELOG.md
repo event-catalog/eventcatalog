@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.15
+
+### Patch Changes
+
+- 73a40b4: fix(core): added support for trailingSlash in the EventCatalog types.
+
 ## 2.0.14
 
 ### Patch Changes
