@@ -10,9 +10,10 @@ export interface Config {
   editUrl: string;
   base?: string;
   trailingSlash?: boolean;
-  logo: {
+  logo?: {
     alt: string;
     src: string;
+    text?: string;
   };
   docs: {
     sidebar: {

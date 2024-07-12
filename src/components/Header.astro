@@ -21,13 +21,19 @@ const navItems = [
   }
 ];
 
+const logo = {
+  src: catalog?.logo?.src || '/logo.png',
+  alt: catalog?.logo?.alt || 'Event Catalog',
+  text: catalog?.logo?.text || "EventCatalog"
+}
+
 ---
 <nav class="md:fixed top-0 w-full z-20 bg-white border-b border-gray-200 py-4 font-bold text-xl max-w-[70em]">
   <div class="flex justify-between items-center">
     <div class="w-1/3 flex space-x-2 items-center">
       <a href={buildUrl('/docs')} class="flex space-x-2 items-center">
-        <img src={buildUrl('/logo.png', true)} class="w-8" />
-        <span class="hidden sm:inline-block text-[1em]">{catalog.title}</span>
+        {logo.src && <img alt={logo.alt} src={buildUrl(logo.src, true)} class="w-8" />}
+        {logo.text && <span class="hidden sm:inline-block text-[1em]">{logo.text}</span>}
       </a>
     </div>
     <div class="w-1/3 md:block hidden">

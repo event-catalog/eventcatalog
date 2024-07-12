@@ -100,6 +100,15 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
   // ensureDirSync(astroContentDir);
   fs.writeFileSync(path.join(astroContentDir, 'config.ts'), astroConfigFile);
 
+  // Copy the public directory files into the astro public directory
+  const usersPublicDirectory = path.join(source, 'public');
+  const astroPublicDir = path.join(astroContentDir, '../../public');
+
+  if (fs.existsSync(usersPublicDirectory)) {
+    // fs.mkdirSync(astroPublicDir, { recursive: true });
+    fs.cpSync(usersPublicDirectory, astroPublicDir, { recursive: true });
+  }
+
   // Copy all the event files over
   await copyFiles({
     source,
