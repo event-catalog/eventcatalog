@@ -6,8 +6,9 @@ export default {
   homepageLink: 'https://eventcatalog.dev/',
   editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
   logo: {
-    alt: 'EventCatalog Logo',
-    src: 'logo.svg'
+    alt: 'EventCatalog',
+    src: '/logo.png',
+    text: "EventCatalog",
   },
   base: '/',
   trailingSlash: false,
