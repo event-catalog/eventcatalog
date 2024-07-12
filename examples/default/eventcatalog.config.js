@@ -1,3 +1,4 @@
+/** @type {import('../../bin/eventcatalog.config').Config} */
 export default {
   title: 'EventCatalog',
   tagline: 'Discover, Explore and Document your Event Driven Architectures',

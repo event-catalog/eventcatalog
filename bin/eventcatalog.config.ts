@@ -9,6 +9,7 @@ export interface Config {
   homepageLink: string;
   editUrl: string;
   base?: string;
+  trailingSlash?: boolean;
   logo: {
     alt: string;
     src: string;
