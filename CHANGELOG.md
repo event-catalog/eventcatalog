@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.16
+
+### Patch Changes
+
+- cae7c0a: fix(core): added missing urls for slash support
+
 ## 2.0.15
 
 ### Patch Changes
