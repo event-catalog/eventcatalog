@@ -10,6 +10,7 @@ import type { CollectionEntry } from 'astro:content';
 import OwnersList from '@components/Lists/OwnersList';
 import PillList from '@components/Lists/PillList';
 import EnvelopeIcon from '@heroicons/react/16/solid/EnvelopeIcon';
+import { buildUrl } from '@utils/url-builder';
 
 export async function getStaticPaths() {
   const teams = await getTeams();
@@ -42,18 +43,18 @@ const membersList = members.map((o) => ({
   type: o.collection,
   badge: o.collection === 'users' ? o.data.role : 'Team',
   avatarUrl: o.collection === 'users' ? o.data.avatarUrl : '',
-  href: `/docs/${o.collection}/${o.data.id}`,
+  href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
 }));
 
 const ownedServicesList = services.map((p) => ({
   label: `${p.data.name} (service)`,
-href: `/docs/${p.collection}/${p.data.id}`,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
   tag: `v${p.data.version}`
 }));
 
 const ownedEventsList = [...events, ...commands].map((p) => ({
   label: `${p.data.name} (${p.collection.slice(0, -1)})`,
-  href: `/docs/${p.collection}/${p.data.id}`,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
   color: p.collection === 'events' ? 'orange' : 'blue',
   tag: `v${p.data.version}`
 }));

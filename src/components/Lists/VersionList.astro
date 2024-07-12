@@ -1,5 +1,6 @@
 ---
 import type { CollectionTypes } from '@types';
+import { buildUrl } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -17,7 +18,7 @@ const currentPath = Astro.url.pathname;
   <select id="version" class="block bg-gray-50 rounded-md border border-gray-200 px-1 py-0.5 text-xs"> 
     {versions.map((version) => {
       const isCurrent = currentPath.includes(version);
-      return <option selected={isCurrent} value={`/docs/${collectionItem.collection}/${collectionItem.data.id}/${version}`} class={`inline-flex items-center rounded-md  px-2 py-1 text-xs text-indigo-700 ring-1 ring-inset ring-indigo-700/10 hover:bg-purple-100 hover:underline ${isCurrent ? 'bg-purple-100 text-purple-500 underline ' : 'bg-white'}`}>
+      return <option selected={isCurrent} value={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${version}`)} class={`inline-flex items-center rounded-md  px-2 py-1 text-xs text-indigo-700 ring-1 ring-inset ring-indigo-700/10 hover:bg-purple-100 hover:underline ${isCurrent ? 'bg-purple-100 text-purple-500 underline ' : 'bg-white'}`}>
         <span>
           v{version} 
           {version === collectionItem.data.latestVersion && <span>(latest)</span>}

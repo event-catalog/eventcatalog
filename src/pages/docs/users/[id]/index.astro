@@ -8,6 +8,7 @@ import OwnersList from '@components/Lists/OwnersList';
 import PillList from '@components/Lists/PillList';
 import { getUsers } from '@utils/users';
 import EnvelopeIcon from '@heroicons/react/16/solid/EnvelopeIcon';
+import { buildUrl } from '@utils/url-builder';
 
 export async function getStaticPaths() {
   const teams = await getUsers();
@@ -35,7 +36,7 @@ const teams = props.data.associatedTeams as CollectionEntry<'teams'>[];
 
 const ownedServicesList = services.map((p) => ({
   label: `${p.data.name} (service)`,
-  href: `/docs/${p.collection}/${p.data.id}`,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
   tag: `v${p.data.version}`,
 }));
 
@@ -43,14 +44,14 @@ const ownedMessageList = [...events, ...commands].map((p) => ({
   label: `${p.data.name} (${p.collection.slice(0, -1)})`,
   color: p.collection === 'events' ? 'orange' : 'blue',
   tag: `v${p.data.version}`,
-  href: `/docs/${p.collection}/${p.data.id}`,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
 }));
 
 const associatedTeams = teams.map((o) => ({
   label: o.data.name,
   type: o.collection,
   badge: 'Team',
-  href: `/docs/${o.collection}/${o.data.id}`,
+  href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
 }));
 ---
 

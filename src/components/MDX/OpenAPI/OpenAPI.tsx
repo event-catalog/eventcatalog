@@ -2,6 +2,7 @@ import type { CollectionTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
 import * as path from 'path';
 import { existsSync } from 'node:fs';
+import { buildUrl } from '@utils/url-builder';
 
 const OpenAPI = (props: CollectionEntry<CollectionTypes>) => {
   // @ts-ignore
@@ -23,7 +24,7 @@ const OpenAPI = (props: CollectionEntry<CollectionTypes>) => {
       {fileExists && (
         <div>
           This {props.collection.slice(0, -1)} has an OpenAPI file{' '}
-          <a className="text-purple-500" href={`/docs/${props.collection}/${props.data.id}/${props.data.version}/spec`}>
+          <a className="text-purple-500" href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}/spec`)}>
             you can view here.
           </a>
         </div>
