@@ -17,6 +17,7 @@ import { getDomains } from '@utils/domains/domains';
 import DomainSideBar from '@components/SideBars/DomainSideBar.astro';
 import type { CollectionTypes } from '@types';
 import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewer.astro';
+import { buildUrl } from '@utils/url-builder';
 
 export async function getStaticPaths() {
   const events = await getEvents();
@@ -113,7 +114,7 @@ const badges = [
                   <div class="mt-2 text-sm text-yellow-700">
                     <p>
                       You are looking at a previous version of the {props.collection.slice(0, props.collection.length - 1)} <strong>{props.data.name}</strong>.{' '}
-                      <a class="underline hover:text-purple-500 block pt-2" href={`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}`}>
+                      <a class="underline hover:text-purple-500 block pt-2" href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}`)}>
                         The latest version of this {props.collection.slice(0, props.collection.length - 1)} is v{props.data.latestVersion} &rarr;
                       </a>
                     </p>
