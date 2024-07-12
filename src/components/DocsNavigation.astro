@@ -6,6 +6,7 @@ import { getServices } from '@utils/services/services';
 import { getTeams } from '@utils/teams';
 import { getUsers } from '@utils/users';
 import config, { type CatalogConfig } from '@eventcatalog';
+import { buildUrl } from '@utils/url-builder';
 
 const events = await getEvents({ getAllVersions: false });
 const commands = await getCommands({ getAllVersions: false });
@@ -59,7 +60,7 @@ const sideNav = withHeadings.reduce((acc, item) => {
     items: item.collection === 'users' ? [] : item.headings,
     visible: visibleCollections[item.collection],
     // @ts-ignore
-    href: item.data.version ? `/docs/${item.collection}/${item.data.id}/${item.data.version}` : `/docs/${item.collection}/${item.data.id}`,
+    href: item.data.version ? buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`) : buildUrl(`/docs/${item.collection}/${item.data.id}`),
   };
 
   group.push(navigationItem);

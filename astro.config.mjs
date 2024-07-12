@@ -9,12 +9,13 @@ import remarkGFM from 'remark-gfm';
 import pagefind from "astro-pagefind";
 import { mermaid } from "./src/remark-plugins/mermaid"
 
+
 import expressiveCode from 'astro-expressive-code';
 import config from './eventcatalog.config';
 
 // https://astro.build/config
 export default defineConfig({
-  base: '/',
+  base: config.base || '/',
   server: { port: 3000 },
 
   // https://docs.astro.build/en/reference/configuration-reference/#site

@@ -5,6 +5,7 @@ import type { CollectionMessageTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
 import { useMemo } from 'react';
 import { filterByName, filterCollectionByName } from '../filters/custom-filters';
+import { buildUrl } from '@utils/url-builder';
 
 const columnHelper = createColumnHelper<CollectionEntry<CollectionMessageTypes>>();
 
@@ -19,7 +20,7 @@ export const columns = () => [
       return (
         <div className=" group ">
           <a
-            href={`/docs/${messageRaw.collection}/${messageRaw.data.id}/${messageRaw.data.version}`}
+            href={buildUrl(`/docs/${messageRaw.collection}/${messageRaw.data.id}/${messageRaw.data.version}`)}
             className={`group-hover:text-${color}-500 flex space-x-1 items-center`}
           >
             <div className={`flex items-center border border-gray-300 shadow-sm rounded-md group-hover:border-${color}-400`}>
@@ -75,7 +76,7 @@ export const columns = () => [
             return (
               <li className="py-2 group flex items-center space-x-2" key={producer.data.id}>
                 <a
-                  href={`/docs/${producer.collection}/${producer.data.id}/${producer.data.version}`}
+                  href={buildUrl(`/docs/${producer.collection}/${producer.data.id}/${producer.data.version}`)}
                   className="group-hover:text-purple-500 flex space-x-1 items-center "
                 >
                   <div className="flex items-center border border-gray-300 shadow-sm rounded-md">
@@ -115,7 +116,7 @@ export const columns = () => [
             return (
               <li key={consumer.data.id} className="py-1 group font-light ">
                 <a
-                  href={`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`}
+                  href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
                   className="group-hover:text-purple-500 flex space-x-1 items-center "
                 >
                   <div className="flex items-center border border-gray-300 shadow-sm rounded-md">
@@ -145,7 +146,7 @@ export const columns = () => [
       return (
         <a
           className="hover:text-purple-500 hover:underline px-4 font-light"
-          href={`/visualiser/${domain.collection}/${domain.data.id}/${domain.data.version}`}
+          href={buildUrl(`/visualiser/${domain.collection}/${domain.data.id}/${domain.data.version}`)}
         >
           Visualiser &rarr;
         </a>

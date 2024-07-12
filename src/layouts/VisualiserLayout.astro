@@ -6,6 +6,7 @@ import { getCommands } from '@utils/commands';
 import { getDomains } from '@utils/domains/domains';
 import { getEvents } from '@utils/events';
 import { getServices } from '@utils/services/services';
+import { buildUrl } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
 import { ViewTransitions } from 'astro:transitions';
 
@@ -55,7 +56,7 @@ const getColor = (collection: string) => {
                 label: item.data.name,
                 version: item.data.version,
                 color: getColor(item.collection),
-                href: `/visualiser/${item.collection}/${item.data.id}/${item.data.version}`,
+                href: buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`),
                 active: isCurrent
               }
             });

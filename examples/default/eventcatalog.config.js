@@ -1,6 +1,5 @@
 export default {
   title: 'EventCatalog',
-  trailingSlash: false,
   tagline: 'Discover, Explore and Document your Event Driven Architectures',
   organizationName: 'Your Company',
   homepageLink: 'https://eventcatalog.dev/',
@@ -9,6 +8,8 @@ export default {
     alt: 'EventCatalog Logo',
     src: 'logo.svg'
   },
+  base: '/',
+  trailingSlash: false,
   docs: {
     sidebar: {
       // Should the sub heading be rendered in the docs sidebar?

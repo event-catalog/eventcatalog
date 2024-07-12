@@ -8,6 +8,7 @@ import { getCommands } from '@utils/commands';
 import { getDomains } from '@utils/domains/domains';
 import { getEvents } from '@utils/events';
 import { getServices } from '@utils/services/services';
+import { buildUrl } from '@utils/url-builder';
 
 const events = await getEvents();
 const commands = await getCommands();
@@ -20,7 +21,7 @@ const currentPath = Astro.url.pathname;
 const tabs = [
   {
     label: `Events (${events.length})`,
-    href: '/discover/events',
+    href: buildUrl('/discover/events'),
     isActive: currentPath === '/discover/events',
     icon: EnvelopeIcon,
     activeColor: 'orange',
@@ -28,7 +29,7 @@ const tabs = [
   },
   {
     label: `Commands (${commands.length})`,
-    href: '/discover/commands',
+    href: buildUrl('/discover/commands'),
     isActive: currentPath === '/discover/commands',
     icon: EnvelopeIcon,
     activeColor: 'blue',
@@ -36,7 +37,7 @@ const tabs = [
   },
   {
     label: `Services (${services.length})`,
-    href: '/discover/services',
+    href: buildUrl('/discover/services'),
     isActive: currentPath === '/discover/services',
     icon: ServerIcon,
     activeColor: 'pink',
@@ -44,7 +45,7 @@ const tabs = [
   },
   {
     label: `Domains (${domains.length})`,
-    href: '/discover/domains',
+    href: buildUrl('/discover/domains'),
     isActive: currentPath === '/discover/domains',
     icon: RectangleGroupIcon,
     activeColor: 'yellow',
