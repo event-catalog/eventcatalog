@@ -109,7 +109,6 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
     fs.cpSync(usersPublicDirectory, astroPublicDir, { recursive: true });
   }
 
-
   // Copy all the event files over
   await copyFiles({
     source,

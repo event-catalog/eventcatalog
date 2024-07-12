@@ -11,9 +11,9 @@ export interface Config {
   base?: string;
   trailingSlash?: boolean;
   logo?: {
-    alt: string
-    src: string
-    text?: string
+    alt: string;
+    src: string;
+    text?: string;
   };
   docs: {
     sidebar: {
