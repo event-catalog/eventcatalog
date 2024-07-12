@@ -17,7 +17,8 @@ const users = await getUsers();
 
 const messages = [...events, ...commands];
 
-const allData = [ ...domains, ...services, ...messages, ...teams, ...users];
+// @ts-ignore
+const allData = [...domains, ...services, ...messages, ...teams, ...users];
 
 const eventCatalogConfig = config as CatalogConfig;
 const { services: servicesConfig, domains: domainsConfig, messages: messagesConfig, teams: teamsConfig, users: usersConfig, showPageHeadings = true  } = eventCatalogConfig?.docs?.sidebar || {};
@@ -26,7 +27,7 @@ const getConfigValue = (obj: any, key:string, defaultValue: any) => {
   return obj?.[key] ?? defaultValue;
 }
 
-const visibleCollections = {
+const visibleCollections: {[key:string]: boolean} = {
   events: getConfigValue(messagesConfig, 'visible', true),
   commands: getConfigValue(messagesConfig, 'visible', true),
   domains: getConfigValue(domainsConfig, 'visible', true),
@@ -76,36 +77,36 @@ const currentPath = Astro.url.pathname;
 ---
 
 <div class="font-light w-full xl:pr-10 pb-20 ">
-    {
-      Object.keys(sideNav).map((key) => {
-        const collection = sideNav[key];
+  {
+    Object.keys(sideNav).map((key) => {
+      const collection = sideNav[key];
         if(collection[0] && collection[0].visible === false) return null;
-        return (
-          <ul class=" w-full space-y-2 pb-8">
-            <li class="font-semibold capitalize ">{key}</li>
-            {collection.map((item: any) => {
-              return (
+      return (
+        <ul class=" w-full space-y-2 pb-8">
+          <li class="font-semibold capitalize ">{key}</li>
+          {collection.map((item: any) => {
+            return (
                 <li class="px-2 w-full text-md xl:text-lg border-l border-gray-200 space-y-2 scroll-m-20" id={item.href} >
                   <a class={`flex justify-between items-center w-full px-2 rounded-md font-normal ${currentPath.includes(item.href) ? 'bg-purple-200 text-purple-800 ' : 'font-thin'}`} href={`${item.href}`}>
-                    <span class="block">{item.label}</span>
+                  <span class="block">{item.label}</span>
                     {item.version && <span class="block text-sm bg-purple-100 p-0.5 px-1 text-gray-600  rounded-md font-light">v{item.version}</span>}
-                  </a>
-                  <ul class="hidden xl:block px-4  text-gray-500 text-md space-y-2  ">
-                    {item.items.map((heading: any) => {
-                      return (
-                        <li class="text-xs">
-                          <a href={`${item.href}/#${heading.slug}`}>{heading.text}</a>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </li>
-              );
-            })}
-          </ul>
-        );
-      })
-    }
+                </a>
+                <ul class="hidden xl:block px-4  text-gray-500 text-md space-y-2  ">
+                  {item.items.map((heading: any) => {
+                    return (
+                      <li class="text-xs">
+                        <a href={`${item.href}/#${heading.slug}`}>{heading.text}</a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </li>
+            );
+          })}
+        </ul>
+      );
+    })
+  }
 </div>
 
 <script>

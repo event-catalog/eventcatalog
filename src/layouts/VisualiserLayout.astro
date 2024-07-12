@@ -11,8 +11,8 @@ import type { CollectionEntry } from 'astro:content';
 import { ViewTransitions } from 'astro:transitions';
 
 const [services, events, commands, domains] = await Promise.all([getServices(), getEvents(), getCommands(), getDomains()]);
+// @ts-ignore
 const navItems = [...domains, ...services, ...events, ...commands];
-
 
 const navigation = navItems.reduce((acc, item) => {
   //  @ts-ignore
@@ -41,13 +41,15 @@ const getColor = (collection: string) => {
       return 'gray';
   }
 };
-
 ---
 
 <PlainPage title={title} description={description}>
   <div class="flex min-h-full flex-row md:flex-col">
     <div class="mx-auto flex flex-col-reverse md:flex-row w-full items-start">
-      <aside class="md:sticky mt-14 md:mt-0 top-0 w-full md:w-60 xl:w-[19em] shrink-0 lg:block font-light pr-10" id="visualiser-navigation">
+      <aside
+        class="md:sticky mt-14 md:mt-0 top-0 w-full md:w-60 xl:w-[19em] shrink-0 lg:block font-light pr-10"
+        id="visualiser-navigation"
+      >
         {
           Object.keys(navigation).map((key: any) => {
             const items = navigation[key].map((item: any) => {
@@ -57,15 +59,23 @@ const getColor = (collection: string) => {
                 version: item.data.version,
                 color: getColor(item.collection),
                 href: buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`),
-                active: isCurrent
-              }
+                active: isCurrent,
+              };
             });
-            return <BasicList title={`${key} (${navigation[key].length})`} items={items} emptyMessage='Nothing to show' color="gray" client:load />
+            return (
+              <BasicList
+                title={`${key} (${navigation[key].length})`}
+                items={items}
+                emptyMessage="Nothing to show"
+                color="gray"
+                client:load
+              />
+            );
           })
         }
       </aside>
 
-      <main class="flex-1 h-full w-full " >
+      <main class="flex-1 h-full w-full">
         <slot />
       </main>
     </div>
