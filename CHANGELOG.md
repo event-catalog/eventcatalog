@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.17
+
+### Patch Changes
+
+- 6337769: feat(core): added ability to customise header text and logo
+
 ## 2.0.16
 
 ### Patch Changes
