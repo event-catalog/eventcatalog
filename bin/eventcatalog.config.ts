@@ -9,6 +9,7 @@ export interface Config {
   homepageLink: string;
   editUrl: string;
   base?: string;
+  port?: string;
   trailingSlash?: boolean;
   logo?: {
     alt: string;
