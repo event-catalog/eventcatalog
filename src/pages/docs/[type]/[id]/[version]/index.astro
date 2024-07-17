@@ -180,6 +180,7 @@ const badges = [
   // Fix to pass information to componets that are client side only
   // and require catalog information
   window.eventcatalog = {};
+  // @ts-ignore
   window.eventcatalog[`${props.collection}-${props.data.id}`] = props.catalog;
 </script>
 

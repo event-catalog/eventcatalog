@@ -1,23 +1,30 @@
 ---
-import Layout from '../../layouts/VisualiserLayout.astro'
+import Layout from '../../layouts/VisualiserLayout.astro';
 ---
 
 <Layout>
-    <div class="hidden no-items py-56 text-center -ml-52 text-gray-400">No data loaded into your catalog. Please add some data to your to see visuals.</div>
+  <div class="hidden no-items py-56 text-center -ml-52 text-gray-400">
+    No data loaded into your catalog. Please add some data to your to see visuals.
+  </div>
 </Layout>
 
 <script is:inline>
+  const navigationElem = document.getElementById('visualiser-navigation');
 
+  if (navigationElem) {
     // Find the total anchor links
-    const totalAnchorLinks = document.getElementById('visualiser-navigation').querySelectorAll('a');
+    const totalAnchorLinks = navigationElem.querySelectorAll('a');
+    const link = navigationElem.querySelector('a');
+    const noItems = document.querySelector('.no-items');
 
     // Show no-items if there are none
-    if(totalAnchorLinks.length === 0) {
-        document.querySelector('.no-items').classList.remove('hidden');
+    if (totalAnchorLinks.length === 0 && noItems) {
+      noItems.classList.remove('hidden');
     }
 
     // Find the element with the id visualiser-navigation and the first a link in there and click it
-    if(document.getElementById('visualiser-navigation').querySelector('a')){
-        document.getElementById('visualiser-navigation').querySelector('a').click();
+    if (link) {
+      link.click();
     }
+  }
 </script>
