@@ -365,6 +365,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "nathanbirrell",
+      "name": "Nathan Birrell",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4300215?v=4",
+      "profile": "https://natee.biz",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
