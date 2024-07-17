@@ -2,4 +2,4 @@
 '@eventcatalog/core': patch
 ---
 
-feat(config): add port config
+feat(core): added ability to configure port on EventCatlog
