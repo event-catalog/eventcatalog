@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 
 // @ts-ignore
 import { JsonSchemaViewer } from '@stoplight/json-schema-viewer';
-import styles from './SchemaViewer.module.css';
 
 import '@stoplight/mosaic/styles.css';
 import { createPortal } from 'react-dom';
@@ -49,7 +48,6 @@ const SchemaViewer = ({
               defaultExpandedDepth={defaultExpandedDepth}
               renderRootTreeLines={renderRootTreeLines}
               hideExamples={hideExamples}
-              className={styles.schemaViewer}
             />
           </div>
         </section>,
