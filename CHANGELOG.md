@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.19
+
+### Patch Changes
+
+- 4be2512: feat(core): added ability to configure port on EventCatlog
+
 ## 2.0.18
 
 ### Patch Changes
