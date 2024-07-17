@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.22
+
+### Patch Changes
+
+- 58a02a1: chore(core): removed console logs
+
 ## 2.0.21
 
 ### Patch Changes
