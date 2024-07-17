@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.18
+
+### Patch Changes
+
+- 209e428: fix(core): fixed domain nav bar in discovery page
+
 ## 2.0.17
 
 ### Patch Changes
