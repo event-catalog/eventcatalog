@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.23
+
+### Patch Changes
+
+- 66a764c: fix(core: fixed additional ts errors)
+
 ## 2.0.22
 
 ### Patch Changes
