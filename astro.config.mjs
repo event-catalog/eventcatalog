@@ -16,7 +16,7 @@ import config from './eventcatalog.config';
 // https://astro.build/config
 export default defineConfig({
   base: config.base || '/',
-  server: { port: 3000 },
+  server: { port: config.port || 3000 },
 
   // https://docs.astro.build/en/reference/configuration-reference/#site
   site: config.homepageLink || 'https://eventcatalog.dev/',
