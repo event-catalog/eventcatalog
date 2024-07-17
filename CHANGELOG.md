@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.21
+
+### Patch Changes
+
+- 22e4b6d: fix(core): fixed issues with styling
+
 ## 2.0.20
 
 ### Patch Changes
