@@ -17,7 +17,7 @@ const users = await getUsers();
 
 const messages = [...events, ...commands];
 
-// @ts-ignore
+// @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
 const allData = [...domains, ...services, ...messages, ...teams, ...users];
 
 const eventCatalogConfig = config as CatalogConfig;
@@ -80,7 +80,7 @@ const currentPath = Astro.url.pathname;
   {
     Object.keys(sideNav).map((key) => {
       const collection = sideNav[key];
-        if(collection[0] && collection[0].visible === false) return null;
+      if(collection[0] && collection[0].visible === false) return null;
       return (
         <ul class=" w-full space-y-2 pb-8">
           <li class="font-semibold capitalize ">{key}</li>

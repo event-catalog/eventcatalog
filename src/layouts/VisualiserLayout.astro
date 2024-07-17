@@ -11,7 +11,8 @@ import type { CollectionEntry } from 'astro:content';
 import { ViewTransitions } from 'astro:transitions';
 
 const [services, events, commands, domains] = await Promise.all([getServices(), getEvents(), getCommands(), getDomains()]);
-// @ts-ignore
+
+// @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
 const navItems = [...domains, ...services, ...events, ...commands];
 
 const navigation = navItems.reduce((acc, item) => {
