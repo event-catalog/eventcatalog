@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.28
+
+### Patch Changes
+
+- 0bad036: feat(core): added beta version of generators
+
 ## 2.0.27
 
 ### Patch Changes
