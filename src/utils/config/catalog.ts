@@ -8,11 +8,11 @@ export type CatalogConfig = {
   docs: {
     sidebar: {
       showPageHeadings?: boolean;
-      domains: SideBarItemConfig;
-      services: SideBarItemConfig;
-      messages: SideBarItemConfig;
-      teams: SideBarItemConfig;
-      users: SideBarItemConfig;
+      domains?: SideBarItemConfig;
+      services?: SideBarItemConfig;
+      messages?: SideBarItemConfig;
+      teams?: SideBarItemConfig;
+      users?: SideBarItemConfig;
     };
   };
 };
