@@ -151,9 +151,6 @@ program
   .description('Start the generator scripts.')
   .action(() => {
 
-    console.log(dir)
-    console.log(core)
-
     copyCore();
 
     copyFolder(join(dir, 'public'), join(core, 'public'));
