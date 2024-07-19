@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.27
+
+### Patch Changes
+
+- c6da224: feat(core): added ability to configure landing page
+
 ## 2.0.26
 
 ### Patch Changes
