@@ -1,6 +1,5 @@
 ---
 import catalog from '@eventcatalog';
-// import Search from 'astro-pagefind/components/Search';
 import Search from '@components/Search.astro';
 import { buildUrl } from '@utils/url-builder';
 
@@ -31,7 +30,7 @@ const logo = {
 <nav class="md:fixed top-0 w-full z-20 bg-white border-b border-gray-200 py-4 font-bold text-xl max-w-[70em]">
   <div class="flex justify-between items-center">
     <div class="w-1/3 flex space-x-2 items-center">
-      <a href={buildUrl('/docs')} class="flex space-x-2 items-center">
+      <a href={buildUrl(catalog.landingPage || '/docs')} class="flex space-x-2 items-center">
         {logo.src && <img alt={logo.alt} src={buildUrl(logo.src, true)} class="w-8" />}
         {logo.text && <span class="hidden sm:inline-block text-[1em]">{logo.text}</span>}
       </a>

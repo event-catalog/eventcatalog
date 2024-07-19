@@ -8,6 +8,7 @@ export interface Config {
   organizationName: string;
   homepageLink: string;
   editUrl: string;
+  landingPage?: string;
   base?: string;
   port?: string;
   trailingSlash?: boolean;
