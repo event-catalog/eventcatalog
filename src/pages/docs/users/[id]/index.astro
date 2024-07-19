@@ -91,20 +91,20 @@ const associatedTeams = teams.map((o) => ({
       <div class="border-b border-gray-200">
         <div class="mx-auto max-w-7xl px-6 lg:px-8">
           <div class="mx-auto max-w-2xl lg:max-w-none">
-            <dl class="grid grid-cols-1 gap-0.5 overflow-hidden rounded-2xl text-center sm:grid-cols-2 lg:grid-cols-4">
-              <div class="flex flex-col bg-gray-400/5 p-8">
+            <dl class="hidden lg:grid grid-cols-1 gap-0.5 overflow-hidden rounded-2xl text-center sm:grid-cols-3 lg:grid-cols-3">
+              <div class="flex flex-col  p-8">
                 <dt class="text-sm font-semibold leading-6 text-gray-600"># owned services</dt>
                 <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{ownedServicesList.length}</dd>
               </div>
-              <div class="flex flex-col bg-gray-400/5 p-8">
+              <div class="flex flex-col  p-8">
                 <dt class="text-sm font-semibold leading-6 text-gray-600"># owned messages</dt>
                 <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{ownedMessageList.length}</dd>
               </div>
-              <div class="flex flex-col bg-gray-400/5 p-8">
+              <!-- <div class="flex flex-col  p-8">
                 <dt class="text-sm font-semibold leading-6 text-gray-600"># owned domains</dt>
                 <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">2</dd>
-              </div>
-              <div class="flex flex-col bg-gray-400/5 p-8">
+              </div> -->
+              <div class="flex flex-col  p-8">
                 <dt class="text-sm font-semibold leading-6 text-gray-600"># teams joined</dt>
                 <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{associatedTeams.length}</dd>
               </div>
