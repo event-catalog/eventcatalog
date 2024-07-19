@@ -1,30 +1,29 @@
-// const path = require('path');
-// const chalk = require('chalk');
 import { readFile, writeFile } from 'node:fs/promises';
 import { createRequire } from 'module';
-
-
-
 import path from 'node:path';
 
 const generate = async () => {
   // Fix for the file
   const rawFile = await readFile(path.join(process.env.PROJECT_DIR, 'eventcatalog.config.js'), 'utf8');
 
-//   const require = createRequire(process.env.PROJECT_DIR);
-  const require = createRequire(import.meta.url);
-//   const require = require('esm');
-  const { default: esmRequire } = require('esm');
+  const require = createRequire(process.env.PROJECT_DIR);
 
-  // hack to get ready CJS etc...
+  // Convert export default to module.exports (Needed for dynamic require)
   if (rawFile.includes('export default')) {
     const fixedFile = rawFile.replace('export default', 'module.exports =');
     await writeFile(path.join(process.env.PROJECT_DIR, 'eventcatalog.config.js'), fixedFile);
   }
 
-  const config = esmRequire(path.join(process.env.PROJECT_DIR, 'eventcatalog.config.js'));
+  const config = require(path.join(process.env.PROJECT_DIR, 'eventcatalog.config.js'));
 
   const { generators = [] } = config;
+
+  if(!generators.length) {
+    console.log('No configured generators found, skipping generation');
+    return;
+  }
+
+  console.log('Running generators...');
 
   // Tidy up
   await writeFile(path.join(process.env.PROJECT_DIR, 'eventcatalog.config.js'), rawFile);
@@ -41,11 +40,9 @@ const generate = async () => {
         plugin = plugin.replace('<rootDir>', process.env.PROJECT_DIR);
     }
 
-    const importedGenerator = esmRequire(plugin);
-
+    const importedGenerator = require(plugin);
 
     console.log(`Generating EventCatalog docs using: ${plugin}`);
-    // console.log(chalk.blue(`Generating EventCatalog docs using: ${plugin}`));
 
     return importedGenerator({ eventCatalogConfig: config }, pluginConfig);
   });

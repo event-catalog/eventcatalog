@@ -3,7 +3,7 @@ export default {
   title: 'EventCatalog',
   tagline: 'Discover, Explore and Document your Event Driven Architectures',
   organizationName: 'Your Company',
-  homepageLink: 'https://eventcatalog.dev/',
+    homepageLink: 'https://eventcatalog.dev/',
   editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
   port: 3000,
   logo: {
@@ -11,18 +11,6 @@ export default {
     src: '/logo.png',
     text: "EventCatalog",
   },
-  generators: [
-    [
-      '@eventcatalog/plugin-doc-generator-asyncapi',
-      {
-        // path to your AsyncAPI files
-        pathToSpec: [path.join(__dirname, 'asyncapi.yml')],
-
-        // version events if already in catalog (optional)
-        versionEvents: true
-      },
-    ],
-  ],
   base: '/',
   trailingSlash: false,
   docs: {
