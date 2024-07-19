@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.26
+
+### Patch Changes
+
+- 3dc05d8: fix(core): fixed search, now set output path on build
+
 ## 2.0.25
 
 ### Patch Changes
