@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 2.0.24
+
+### Patch Changes
+
+- db66733: fix(core): favicon having invalid url with default base url configuration
+- 26a4a37: fix perf issues for discover pages in build step
+- f29d718: fix(core): sidebar configuration for section visibility is now optional
+- 3426ea8: fix(core): temp fix for domains for users
+
 ## 2.0.23
 
 ### Patch Changes
