@@ -150,7 +150,6 @@ program
   .command('generate [siteDir]')
   .description('Start the generator scripts.')
   .action(() => {
-
     copyCore();
 
     copyFolder(join(dir, 'public'), join(core, 'public'));

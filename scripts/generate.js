@@ -18,7 +18,7 @@ const generate = async () => {
 
   const { generators = [] } = config;
 
-  if(!generators.length) {
+  if (!generators.length) {
     console.log('No configured generators found, skipping generation');
     return;
   }
@@ -32,12 +32,12 @@ const generate = async () => {
     let plugin = generator[0];
     const pluginConfig = generator[1];
 
-    if(plugin.startsWith('./')) {
-        plugin = path.join(process.env.PROJECT_DIR, plugin);
+    if (plugin.startsWith('./')) {
+      plugin = path.join(process.env.PROJECT_DIR, plugin);
     }
 
-    if(plugin.includes('<rootDir>')) {
-        plugin = plugin.replace('<rootDir>', process.env.PROJECT_DIR);
+    if (plugin.includes('<rootDir>')) {
+      plugin = plugin.replace('<rootDir>', process.env.PROJECT_DIR);
     }
 
     const importedGenerator = require(plugin);
