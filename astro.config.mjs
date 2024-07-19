@@ -40,11 +40,7 @@ export default defineConfig({
       remarkPlugins: [mermaid],
       gfm: false,
     }),
-    pagefind({
-
-    }),
-
-    
+    pagefind(),
   ],
   redirects: {
     "/": "/docs"
