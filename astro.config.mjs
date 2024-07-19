@@ -44,5 +44,12 @@ export default defineConfig({
   ],
   redirects: {
     "/": config.landingPage || '/docs',
+  },
+  vite: {
+    build: {
+      commonjsOptions: {
+        transformMixedEsModules: true,
+      }
+    },
   }
 });
