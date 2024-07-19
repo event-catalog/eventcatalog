@@ -23,6 +23,7 @@
     "start:catalog": "node scripts/start-catalog-locally.js",
     "verify-build:catalog": "rimraf dist && npm run build:cd",
     "changeset": "changeset",
+    "generate": "node scripts/generate.js",
     "release": "changeset publish",
     "format": "prettier --config .prettierrc --write \"**/*.{js,jsx,ts,tsx,json}\"",
     "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json}\""
@@ -47,6 +48,7 @@
     "astro-pagefind": "^1.5.0",
     "astro-seo": "^0.8.4",
     "dagre": "^0.8.5",
+    "esm": "^3.2.25",
     "glob": "^10.4.1",
     "html-to-image": "^1.11.11",
     "mermaid": "^10.9.1",

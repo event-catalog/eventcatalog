@@ -11,6 +11,18 @@ export default {
     src: '/logo.png',
     text: "EventCatalog",
   },
+  generators: [
+    [
+      '@eventcatalog/plugin-doc-generator-asyncapi',
+      {
+        // path to your AsyncAPI files
+        pathToSpec: [path.join(__dirname, 'asyncapi.yml')],
+
+        // version events if already in catalog (optional)
+        versionEvents: true
+      },
+    ],
+  ],
   base: '/',
   trailingSlash: false,
   docs: {
