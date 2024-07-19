@@ -2,17 +2,12 @@ import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
-// import { rehypeHeadingIds } from '@astrojs/markdown-remark';
-// import rehypeMinifyHtml from 'rehype-minify-html';
-import rehypeSlug from 'rehype-slug';
-import remarkGFM from 'remark-gfm';
 import pagefind from "astro-pagefind";
 import { mermaid } from "./src/remark-plugins/mermaid"
 
-import expressiveCode from 'astro-expressive-code';
 /** @type {import('bin/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
-
+import expressiveCode from 'astro-expressive-code';
 
 // https://astro.build/config
 export default defineConfig({
@@ -31,23 +26,13 @@ export default defineConfig({
     react(),
     tailwind(),
     expressiveCode({
-      // themes: ['github-light'],
       themes: ['github-light'],
     }),
     
     mdx({
-      optimize: config.astro?.mdxOptimize || false,
-      // rehypePlugins: [rehypeMinifyHtml],
-      // syntaxHighlight: 'shiki',
-      // shikiConfig: {
-      //   theme: 'github-light',
-      //   langs: ['yaml']
-      // },
-
+      // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
+      optimize: config.mdxOptimize || false,
       remarkPlugins: [mermaid],
-      // remarkRehype: {
-      //   footnoteLabel: 'Footnotes',
-      // },
       gfm: false,
     }),
     pagefind(),
