@@ -11,10 +11,11 @@ import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
 
 const coreDirectory = process.env.CATALOG_DIR || process.cwd();
+const base = config.base || '/';
 
 // https://astro.build/config
 export default defineConfig({
-  base: config.base || '/',
+  base,
   server: { port: config.port || 3000 },
 
   outDir: join(coreDirectory, 'dist'),
@@ -43,6 +44,6 @@ export default defineConfig({
     pagefind(),
   ],
   redirects: {
-    "/": config.landingPage || '/docs',
+    "/": join(base, config.landingPage || '/docs'),
   }
 });
