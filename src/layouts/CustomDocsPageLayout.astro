@@ -8,6 +8,7 @@ const { title } = Astro.props;
 import Header from '@components/Header.astro';
 import SideBar from '@components/DocsNavigation.astro';
 import catalog from '@eventcatalog';
+import { buildUrl } from '@utils/url-builder';
 ---
 
 <!doctype html>
@@ -16,7 +17,7 @@ import catalog from '@eventcatalog';
     <meta charset="UTF-8" />
     <meta name="description" content="Astro description" />
     <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}/favicon.ico`} />
+    <link rel="icon" type="image/svg+xml" href={buildUrl('/favicon.ico')} />
     <meta name="generator" content={Astro.generator} />
     <title>EventCatalog</title>
   </head>
