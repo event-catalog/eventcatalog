@@ -9,7 +9,7 @@ export default {
   logo: {
     alt: 'EventCatalog',
     src: '/logo.png',
-    text: "EventCatalog",
+    text: 'EventCatalog',
   },
   base: '/',
   trailingSlash: false,
@@ -18,20 +18,20 @@ export default {
       // Should the sub heading be rendered in the docs sidebar?
       showPageHeadings: true,
       services: {
-        visible: true
+        visible: true,
       },
       messages: {
-        visible: true
+        visible: true,
       },
       domains: {
-        visible: true
+        visible: true,
       },
       teams: {
-        visible: true
+        visible: true,
       },
       users: {
-        visible: true
-      }
-    }
-  }
-}
+        visible: true,
+      },
+    },
+  },
+};

@@ -146,4 +146,20 @@ program
     previewCatalog();
   });
 
+program
+  .command('generate [siteDir]')
+  .description('Start the generator scripts.')
+  .action(() => {
+    copyCore();
+
+    copyFolder(join(dir, 'public'), join(core, 'public'));
+    copyFile(join(dir, 'eventcatalog.config.js'), join(core, 'eventcatalog.config.js'));
+    copyFile(join(dir, 'eventcatalog.styles.css'), join(core, 'eventcatalog.styles.css'));
+
+    execSync(`PROJECT_DIR='${dir}' npm run generate`, {
+      cwd: core,
+      stdio: 'inherit',
+    });
+  });
+
 program.parse();
