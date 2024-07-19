@@ -2,6 +2,10 @@ type SideBarConfig = {
   visible: boolean;
 };
 
+export type AstroConfig = {
+  mdxOptimize?: boolean;
+};
+
 export interface Config {
   title: string;
   tagline: false;
@@ -16,6 +20,7 @@ export interface Config {
     src: string;
     text?: string;
   };
+  astro?: AstroConfig;
   docs: {
     sidebar: {
       showPageHeadings: true;

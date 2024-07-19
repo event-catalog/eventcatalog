@@ -9,9 +9,10 @@ import remarkGFM from 'remark-gfm';
 import pagefind from "astro-pagefind";
 import { mermaid } from "./src/remark-plugins/mermaid"
 
-
 import expressiveCode from 'astro-expressive-code';
+/** @type {import('bin/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
+
 
 // https://astro.build/config
 export default defineConfig({
@@ -35,11 +36,7 @@ export default defineConfig({
     }),
     
     mdx({
-      remarkPlugins: [
-        // Add ids to headings
-        // rehypeSlug,
-        // remarkGFM
-      ],
+      optimize: config.astro?.mdxOptimize || false,
       // rehypePlugins: [rehypeMinifyHtml],
       // syntaxHighlight: 'shiki',
       // shikiConfig: {
