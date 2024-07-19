@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.25
+
+### Patch Changes
+
+- 109ce19: feat(core): added optimize flag to make eventcatalog work with large catalogs
+
 ## 2.0.24
 
 ### Patch Changes
