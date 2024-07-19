@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.0.24
+
+### Patch Changes
+
+- 26a4a37: fix perf issues for discover pages in build step
+- 3426ea8: fix(core): temp fix for domains for users
+
 ## 2.0.23
 
 ### Patch Changes
