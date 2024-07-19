@@ -16,6 +16,7 @@ export interface Config {
     src: string;
     text?: string;
   };
+  mdxOptimize?: boolean;
   docs: {
     sidebar: {
       showPageHeadings: true;
