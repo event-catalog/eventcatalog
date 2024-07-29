@@ -14,7 +14,7 @@ fs.copyFileSync(join(projectDIR, 'eventcatalog.config.js'), join(catalogDir, 'ev
 fs.copyFileSync(join(projectDIR, 'eventcatalog.styles.css'), join(catalogDir, 'eventcatalog.styles.css'));
 
 execSync(
-  `NODE_ENV=development PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npm run scripts:hydrate-content && PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npm run dev:local`,
+  `cross-env NODE_ENV=development PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npm run scripts:hydrate-content && cross-env PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npm run dev:local`,
   {
     cwd: catalogDir,
     stdio: 'inherit',
