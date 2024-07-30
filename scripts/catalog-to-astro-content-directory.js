@@ -2,13 +2,14 @@ import { glob } from 'glob';
 import * as path from 'node:path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import os from 'node:os';
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptsDir = path.dirname(__filename);
 
 const getTargetPath = (source, target, type, file) => {
   const relativePath = path.relative(source, file);
-  const cleanedRelativePath = relativePath.split(`${type}/`);
+  const cleanedRelativePath = relativePath.split(type);
   const targetForEvents = path.join(type, cleanedRelativePath[1]);
   return path.join(target, targetForEvents);
 };
@@ -25,12 +26,14 @@ const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles,
   // Find all the event files
   const markdownFiles = await glob(pathToMarkdownFiles, {
     nodir: true,
+    windowsPathsNoEscape: os.platform() == 'win32',
   });
   const files = await glob(pathToAllFiles, {
     ignore: {
       ignored: (p) => /\.md$/.test(p.name),
     },
     nodir: true,
+    windowsPathsNoEscape: os.platform() == 'win32',
   });
 
   const publicDir = path.join(target, '../../public/generated');
@@ -52,7 +55,7 @@ const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles,
     }
 
     const relativePath = path.relative(source, file);
-    const cleanedRelativePath = relativePath.split(`${type}/`);
+    const cleanedRelativePath = relativePath.split(type);
     if (!cleanedRelativePath[1]) continue;
     const targetForEvents = path.join(type, cleanedRelativePath[1]);
 
