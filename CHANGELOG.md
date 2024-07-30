@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.29
+
+### Patch Changes
+
+- 83d76b7: fix(core): fixed the json schema viewer require issues
+
 ## 2.0.28
 
 ### Patch Changes
