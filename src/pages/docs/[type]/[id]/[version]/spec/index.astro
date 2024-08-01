@@ -10,6 +10,7 @@ import { getDomains } from '@utils/domains/domains';
 import type { CollectionTypes } from '@types';
 import PlainPage from '@layouts/PlainPage.astro';
 import { DocumentMinusIcon } from '@heroicons/react/24/outline';
+import { buildUrl } from '@utils/url-builder';
 
 export async function getStaticPaths() {
   const events = await getEvents();
@@ -42,22 +43,18 @@ const fileExists = fs.existsSync(pathOnDisk);
 ---
 
 <PlainPage title="OpenAPI Spec">
-  <!-- {fileExists && <div>Here</div>} -->
   {
-    !fileExists && (
+    !fileExists ? (
       <div class="text-center h-screen  flex flex-col justify-center ">
-       <DocumentMinusIcon className="mx-auto h-12 w-12 text-gray-400" />
+        <DocumentMinusIcon className="mx-auto h-12 w-12 text-gray-400" />
         <h3 class="mt-2 text-sm font-semibold text-gray-900">No OpenAPI spec file found</h3>
-        <p class="mt-1 text-xs text-gray-400">Could not find OpenAPI file for {data.name} in {`/${catalog.path}`}</p>
-        
+        <p class="mt-1 text-xs text-gray-400">
+          Could not find OpenAPI file for {data.name} in {`/${catalog.path}`}
+        </p>
       </div>
-    )
-  }
-
-  {
-    fileExists && (
+    ) : (
       <rapi-doc
-        spec-url={pathToSpec}
+        spec-url={buildUrl(pathToSpec, true)}
         render-style="table"
         show-header="false"
         allow-authentication="false"
