@@ -10,7 +10,7 @@ const catalogDirectory = process.env.CATALOG_DIR;
 
 const contentPath = path.join(catalogDirectory, 'src', 'content');
 
-const watchList = ['domains', 'commands', 'events', 'services', 'teams', 'users'];
+const watchList = ['domains', 'commands', 'events', 'services', 'teams', 'users', 'pages'];
 // const absoluteWatchList = watchList.map((item) => path.join(projectDirectory, item));
 
 // confirm folders exist before watching them
