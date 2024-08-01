@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 2.0.30
+
+### Patch Changes
+
+- 32f93a9: fix(core): running eventcatalog on windows (cross-compatibility between operational systems)
+- 956dd32: fix(core): updated service list to render with with name rather than id
+- 6580ff2: fix(core): fixed missing base in redirect target
+
 ## 2.0.29
 
 ### Patch Changes
