@@ -1,10 +1,16 @@
-import catalog from '@eventcatalog';
 import { z, defineCollection, reference } from 'astro:content';
 
 const badge = z.object({
   content: z.string(),
   backgroundColor: z.string(),
   textColor: z.string(),
+});
+
+const pages = defineCollection({
+  type: 'content',
+  schema: z.object({
+    id: z.string(),
+  }),
 });
 
 // Create a union type for owners
@@ -116,4 +122,5 @@ export const collections = {
   users,
   teams,
   domains,
+  pages,
 };

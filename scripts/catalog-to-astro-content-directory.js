@@ -187,6 +187,16 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
     pathToAllFiles: [],
     type: 'teams',
   });
+
+  // // Copy all the pages (optional)
+  await copyFiles({
+    source,
+    target: astroContentDir,
+    catalogFilesDir,
+    pathToMarkdownFiles: [path.join(source, 'pages/**/*.md')],
+    pathToAllFiles: [],
+    type: 'pages',
+  });
 };
 
 if (process.env.NODE_ENV !== 'test') {

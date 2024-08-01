@@ -1,0 +1,40 @@
+---
+import Layout from '@layouts/DocsLayout.astro';
+import DefaultDocsLandingPage from '@layouts/CustomDocsPageLayout.astro';
+import components from '@components/MDX/page-components';
+import { getIndexPage } from '@utils/pages';
+
+const page = await getIndexPage();
+let CustomContent = null;
+
+if(page){
+  const { Content } = await page.render();
+  CustomContent = Content;
+}
+
+---
+
+{CustomContent && 
+  <Layout title="EventCatalog">
+    <main class="py-8">
+      <div class="prose prose-md w-full !max-w-none">
+        <CustomContent components={components}   />
+      </div>
+      <footer class="py-4 space-y-8 border-t border-gray-300">
+        <div class="flex justify-between items-center py-8 text-gray-500 text-sm font-light">
+          <div class="flex space-x-5">
+            <a href="https://github.com/event-catalog/eventcatalog" target="_blank"><svg class="w-5 h-5 bg-gray-400  hover:bg-purple-500 dark:hover:bg-gray-400" style="mask-image: url(&quot;/icons/github.svg&quot;); mask-repeat: no-repeat; mask-position: center center;"></svg></a>
+            <a href="https://x.com/event_catalog" target="_blank"><span class="sr-only">x</span><svg class="w-5 h-5 bg-gray-400  hover:bg-purple-500 dark:hover:bg-gray-400" style="mask-image: url(&quot;/icons/x-twitter.svg&quot;); mask-repeat: no-repeat; mask-position: center center;"></svg></a>
+          </div>
+          <a target="_blank" class="hover:text-purple-500 hover:underline text-gray-400 font-light not-prose" href="https://eventcatalog.dev">Powered by EventCatalog</a>
+        </div>
+      </footer>
+    </main>
+  </Layout>
+}
+
+{!CustomContent && 
+  <DefaultDocsLandingPage title="EventCatalog" />
+}
+
+
