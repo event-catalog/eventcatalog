@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.1.0
+
+### Minor Changes
+
+- 35fa4a3: feat(core): added ability to customize the landing page
+
 ## 2.0.31
 
 ### Patch Changes
