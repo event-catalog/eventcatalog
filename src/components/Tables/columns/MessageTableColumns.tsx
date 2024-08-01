@@ -57,6 +57,7 @@ export const columns = () => [
     footer: (info) => info.column.id,
     meta: {
       showFilter: false,
+      className: 'max-w-md',
     },
   }),
 
