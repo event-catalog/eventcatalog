@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.0.31
+
+### Patch Changes
+
+- c4f6f40: fix(core): discover table width now fixed on long summarys
+
 ## 2.0.30
 
 ### Patch Changes
