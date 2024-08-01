@@ -17,7 +17,7 @@ const ownersRaw = domain.data?.owners || [];
 const owners = await Promise.all(ownersRaw.map((o) => getEntry(o)));
 
 const serviceList = services.map((p) => ({
-  label: p.data.id,
+  label: p.data.name,
   badge: p.collection,
   tag: `v${p.data.version}`,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
