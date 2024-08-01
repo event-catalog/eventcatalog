@@ -6,21 +6,32 @@ export type ChangeLog = CollectionEntry<'changelogs'>;
 export const getChangeLogs = async (item: CollectionEntry<CollectionTypes>): Promise<ChangeLog[]> => {
   const { collection, data } = item;
 
-  // Get all logs for collection type
+  // Get all logs for collection type and filter by given collection
   const logs = await getCollection('changelogs', (log) => {
     return log.id.includes(`${collection}/`) && log.id.includes(`/${data.id}/`);
   });
 
   const hydratedLogs = logs.map((log) => {
+
+    
+    
+    // Check if there is a version in the url
+    const isVersioned = log.id.includes('versioned');
+    
     const parts = log.id.split('/');
+    // hack to get the version of the id (url)
+    const version = parts[parts.length - 2]
+    console.log('aasdsa', isVersioned, version)
     return {
       ...log,
       data: {
         ...log.data,
-        version: parts[parts.length - 2]
+        version: isVersioned ? version : (data.latestVersion || 'latest')
       }
     };
   });
+
+  console.log(hydratedLogs)
 
   // Order by version string
   return hydratedLogs.sort((a, b) => {

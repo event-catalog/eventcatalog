@@ -26,6 +26,7 @@ const currentPath = Astro.url.pathname;
       </option>
     })}
   </select>
+  <a href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.latestVersion}/changelog`)} class="text-[10px] text-gray-500">View changelogs</a>
 </div>
 
 <script>

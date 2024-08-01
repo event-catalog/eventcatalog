@@ -38,6 +38,9 @@ const ownersList = owners.map((o) => ({
     <PillList title={`Services (${services.length})`} pills={serviceList} emptyMessage={`This domain does not contain any services.`} color="pink" client:load />
     <OwnersList title={`Service owners (${ownersList.length})`} owners={ownersList} emptyMessage={`This domain does not have any documented owners.`} client:load />
     {domain.data.versions && <VersionList versions={domain.data.versions} collectionItem={domain} />}
-    <a href={buildUrl(`/visualiser/${domain.collection}/${domain.data.id}/${domain.data.version}`)} class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500">View in Visualiser</a>
+    <div class="space-y-2">
+      <a href={buildUrl(`/visualiser/${domain.collection}/${domain.data.id}/${domain.data.version}`)} class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500">View in Visualiser</a>
+      <a href={buildUrl(`${domain.data.version}/changelog`)} class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500">Changelog</a>
+    </div>
   </div>
 </aside>

@@ -16,6 +16,7 @@ const pages = defineCollection({
 const changelogs = defineCollection({
   type: 'content',
   schema: z.object({
+    createdAt: z.date().optional(),
     badges: z.array(badge).optional(),
     // Used by eventcatalog
     version: z.string().optional(),

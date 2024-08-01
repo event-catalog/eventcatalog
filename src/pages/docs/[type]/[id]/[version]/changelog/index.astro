@@ -10,7 +10,6 @@ import Layout from '@layouts/DocsLayout.astro';
 import { getChangeLogs } from '@utils/changelogs/changelogs';
 import { EnvelopeIcon, RectangleGroupIcon, ServerIcon } from '@heroicons/react/24/outline';
 
-import {  DocumentTextIcon } from '@heroicons/react/20/solid'
 import { buildUrl } from '@utils/url-builder';
 
 export async function getStaticPaths() {
@@ -44,8 +43,7 @@ const { data } = props;
 const latestVersion = data.latestVersion;
 
 const renderedLogs = await logs.map(async (log) => {
-  const { Content, remarkPluginFrontmatter } = await log.render();
-  console.log('TIME', remarkPluginFrontmatter.lastModified)
+  const { Content } = await log.render();
   return {
     Content,
     ...log
@@ -56,9 +54,10 @@ const logsToRender = await Promise.all(renderedLogs);
 
 const logList = logsToRender.map((log, index) => ({
     id: log.id,
-    from: log.data.version,
-    to: index === 0 ? latestVersion : logsToRender[index - 1].data.version,
     url: buildUrl(`/docs/${props.collection}/${props.data.id}`),
+    isLatest: log.data.version === latestVersion,
+    version: log.data.version,
+    createdAt: log.data.createdAt,
     badges: log.data.badges || [],
     Content: log.Content,
 }));
@@ -86,9 +85,9 @@ const badges = [
 
 <Layout title="ChangeLog">
   <main class="flex-1 w-full lg:pr-10 md:pt-4">
-    <div class="border-b border-gray-200 flex justify-between items-start py-4">
+    <div class="border-b border-gray-200 flex justify-between items-start py-4 w-full ">
       <div>
-        <h2 class="text-2xl md:text-4xl font-bold">{props.data.name} <span class="text-gray-300">(Changelog)</span></h2>
+        <h2 class="text-2xl md:text-4xl font-bold">{props.data.name} (Changelog)</h2>
         <h2 class="text-lg pt-2 text-gray-500 font-light">{props.data.summary}</h2>
         {
           badges && (
@@ -115,25 +114,28 @@ const badges = [
           <li>
             <div class="relative pb-8">
               {index !== logList.length - 1 ? (
-                <span aria-hidden="true" class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200" />
+                <span aria-hidden="true" class="absolute left-6 top-4 -ml-px h-full w-0.5 bg-gray-200" />
               ) : null}
               <div class="relative flex space-x-3">
                 <div>
-                  <span
-                    class={'bg-purple-500 flex h-8 w-8 items-center justify-center rounded-full ring-8 ring-white'}
+                  <a
+                    href={log.isLatest ? `${log.url}` : `${log.url}/${log.version}`}
+                    class={'bg-purple-500 hover:bg-purple-400 text-white flex h-8 w-14 items-center justify-center rounded-full ring-8 ring-white'}
                   >
-                    <DocumentTextIcon aria-hidden="true" className="h-5 w-5 text-white" />
-                  </span>
+                    {log.version}
+                    {/* <DocumentTextIcon aria-hidden="true" className="h-5 w-5 text-white" /> */}
+                  </a>
                 </div>
-                <div>
-                    <h3 class="text-xl text-gray-800 font-bold">
-                      Changelog from <a class="text-purple-500 underline" href={`${log.url}/${log.from}`}>{log.from}</a> to <a class="text-purple-500 underline" href={`${log.url}/${log.from}`}>
-                        {log.to === latestVersion ? `${log.to} (latest)` : log.to}
-                      </a>
-                    </h3>
-                </div>
+                
               </div>
-              <div class="px-8 py-2">
+              <div class="pl-[70px] py-2 -mt-10">
+                {log.createdAt && 
+                  <div class="pb-2">
+                      <h3 class="text-2xl text-gray-800 font-bold">
+                          <span>{log.createdAt.toISOString().split('T')[0]} {`${log.isLatest ? '(latest)' : ''}`}</span>
+                      </h3>
+                  </div>
+                  }
                 {
                   log.badges && (
                     <div class="flex flex-wrap">
@@ -155,6 +157,15 @@ const badges = [
         ))}
       </ul>
     </div>
+    <footer class="py-4 space-y-8 border-t border-gray-300">
+      <div class="flex justify-between items-center py-8 text-gray-500 text-sm font-light">
+        <div class="flex space-x-5">
+          <a href="https://github.com/event-catalog/eventcatalog" target="_blank"><svg class="w-5 h-5 bg-gray-400  hover:bg-purple-500 dark:hover:bg-gray-400" style="mask-image: url(&quot;/icons/github.svg&quot;); mask-repeat: no-repeat; mask-position: center center;"></svg></a>
+          <a href="https://x.com/event_catalog" target="_blank"><span class="sr-only">x</span><svg class="w-5 h-5 bg-gray-400  hover:bg-purple-500 dark:hover:bg-gray-400" style="mask-image: url(&quot;/icons/x-twitter.svg&quot;); mask-repeat: no-repeat; mask-position: center center;"></svg></a>
+        </div>
+        <a target="_blank" class="hover:text-purple-500 hover:underline text-gray-400 font-light not-prose" href="https://eventcatalog.dev">Powered by EventCatalog</a>
+      </div>
+    </footer>
   </main>
 
 </Layout>
