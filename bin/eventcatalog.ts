@@ -84,7 +84,7 @@ program
 
     console.log('EventCatalog is starting at http://localhost:3000/docs');
 
-    execSync(`PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run dev`, {
+    execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run dev`, {
       cwd: core,
       // @ts-ignore
       stdio: 'inherit',
@@ -104,7 +104,7 @@ program
     copyFile(join(dir, 'eventcatalog.config.js'), join(core, 'eventcatalog.config.js'));
     copyFile(join(dir, 'eventcatalog.styles.css'), join(core, 'eventcatalog.styles.css'));
 
-    execSync(`PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run build`, {
+    execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run build`, {
       cwd: core,
       stdio: 'inherit',
     });
@@ -121,7 +121,7 @@ const previewCatalog = () => {
   copyFile(join(dir, 'eventcatalog.config.js'), join(core, 'eventcatalog.config.js'));
   copyFile(join(dir, 'eventcatalog.styles.css'), join(core, 'eventcatalog.styles.css'));
 
-  execSync(`PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run preview -- --root ${dir} --port 3000`, {
+  execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run preview -- --root ${dir} --port 3000`, {
     cwd: core,
     stdio: 'inherit',
   });
@@ -156,7 +156,7 @@ program
     copyFile(join(dir, 'eventcatalog.config.js'), join(core, 'eventcatalog.config.js'));
     copyFile(join(dir, 'eventcatalog.styles.css'), join(core, 'eventcatalog.styles.css'));
 
-    execSync(`PROJECT_DIR='${dir}' npm run generate`, {
+    execSync(`cross-env PROJECT_DIR='${dir}' npm run generate`, {
       cwd: core,
       stdio: 'inherit',
     });
