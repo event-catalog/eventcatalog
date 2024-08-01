@@ -11,7 +11,7 @@
 <!-- [![MIT License][license-badge]][license] -->
 <!-- [![PRs Welcome][prs-badge]][prs] -->
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-39-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-40-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 <!-- [![Watch on GitHub][github-watch-badge]][github-watch] -->
@@ -193,6 +193,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="http://www.ennovative-solutions.be"><img src="https://avatars.githubusercontent.com/u/2007116?v=4?s=100" width="100px;" alt="Baerten Dennis"/><br /><sub><b>Baerten Dennis</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=debae" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ryancormack"><img src="https://avatars.githubusercontent.com/u/1962883?v=4?s=100" width="100px;" alt="Ryan Cormack"/><br /><sub><b>Ryan Cormack</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=ryancormack" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://natee.biz"><img src="https://avatars.githubusercontent.com/u/4300215?v=4?s=100" width="100px;" alt="Nathan Birrell"/><br /><sub><b>Nathan Birrell</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=nathanbirrell" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.jacktomlinson.co.uk/"><img src="https://avatars.githubusercontent.com/u/15871032?v=4?s=100" width="100px;" alt="Jack Tomlinson"/><br /><sub><b>Jack Tomlinson</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=jacktomlinson" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
