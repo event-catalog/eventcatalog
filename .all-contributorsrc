@@ -374,6 +374,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "jacktomlinson",
+      "name": "Jack Tomlinson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15871032?v=4",
+      "profile": "https://www.jacktomlinson.co.uk/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
