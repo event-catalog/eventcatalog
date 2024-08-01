@@ -13,6 +13,25 @@ const pages = defineCollection({
   }),
 });
 
+const changelogs = defineCollection({
+  type: 'content',
+  schema: z.object({
+    badges: z.array(badge).optional(),
+    // Used by eventcatalog
+    version: z.string().optional(),
+    versions: z.array(z.string()).optional(),
+    latestVersion: z.string().optional(),
+    catalog: z
+      .object({
+        path: z.string(),
+        filePath: z.string(),
+        publicPath: z.string(),
+        type: z.string(),
+      })
+      .optional(),
+  }),
+});
+
 // Create a union type for owners
 const ownerReference = z.union([reference('users'), reference('teams')]);
 
@@ -123,4 +142,5 @@ export const collections = {
   teams,
   domains,
   pages,
+  changelogs,
 };

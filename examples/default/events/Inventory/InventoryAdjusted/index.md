@@ -1,7 +1,7 @@
 ---
 id: InventoryAdjusted
 name: Inventory adjusted
-version: 0.0.4
+version: 1.0.1
 summary: |
   Indicates a change in inventory level
 owners:
