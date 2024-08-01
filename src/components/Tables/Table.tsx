@@ -90,7 +90,7 @@ export const Table = ({
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
-                    className={`whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900  ${cell.column.columnDef.meta?.className}`}
+                    className={` py-4 pl-4 pr-3 text-sm font-medium text-gray-900  ${cell.column.columnDef.meta?.className}`}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
