@@ -1,0 +1,161 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+import { getEvents } from '@utils/events';
+import { getServices } from '@utils/services/services';
+import { getCommands } from '@utils/commands';
+import { getDomains } from '@utils/domains/domains';
+import type { CollectionTypes } from '@types';
+import Layout from '@layouts/DocsLayout.astro';
+import { getChangeLogs } from '@utils/changelogs/changelogs';
+import { EnvelopeIcon, RectangleGroupIcon, ServerIcon } from '@heroicons/react/24/outline';
+
+import {  DocumentTextIcon } from '@heroicons/react/20/solid'
+import { buildUrl } from '@utils/url-builder';
+
+export async function getStaticPaths() {
+  const events = await getEvents();
+  const commands = await getCommands();
+  const services = await getServices();
+  const domains = await getDomains();
+
+  const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
+
+    return collection.map((item) => ({
+      params: {
+        type: item.collection,
+        id: item.data.id,
+        version: item.data.version,
+      },
+      props: {
+        type: item.collection,
+        ...item,
+      },
+    }));
+  };
+
+  return [...buildPages(domains), ...buildPages(events), ...buildPages(services), ...buildPages(commands)];
+}
+
+const props = Astro.props;
+const logs = await getChangeLogs(props);
+
+const { data } = props;
+const latestVersion = data.latestVersion;
+
+const renderedLogs = await logs.map(async (log) => {
+  const { Content, remarkPluginFrontmatter } = await log.render();
+  console.log('TIME', remarkPluginFrontmatter.lastModified)
+  return {
+    Content,
+    ...log
+  }
+});
+
+const logsToRender = await Promise.all(renderedLogs);
+
+const logList = logsToRender.map((log, index) => ({
+    id: log.id,
+    from: log.data.version,
+    to: index === 0 ? latestVersion : logsToRender[index - 1].data.version,
+    url: buildUrl(`/docs/${props.collection}/${props.data.id}`),
+    badges: log.data.badges || [],
+    Content: log.Content,
+}));
+
+const getBadge = () => {
+  if (props.collection === 'services') {
+    return { backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon, class: "text-pink-400" };
+  }
+  if (props.collection === 'events') {
+    return { backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: EnvelopeIcon, class: "text-orange-400" };
+  }
+  if (props.collection === 'commands') {
+    return { backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: EnvelopeIcon, class: "text-blue-400" };
+  }
+  if (props.collection === 'domains') {
+    return { backgroundColor: 'yellow', textColor: 'yellow', content: 'Domain', icon: RectangleGroupIcon, class: "text-yellow-400" };
+  }
+};
+
+const badges = [
+  getBadge()
+];
+
+---
+
+<Layout title="ChangeLog">
+  <main class="flex-1 w-full lg:pr-10 md:pt-4">
+    <div class="border-b border-gray-200 flex justify-between items-start py-4">
+      <div>
+        <h2 class="text-2xl md:text-4xl font-bold">{props.data.name} <span class="text-gray-300">(Changelog)</span></h2>
+        <h2 class="text-lg pt-2 text-gray-500 font-light">{props.data.summary}</h2>
+        {
+          badges && (
+            <div class="flex flex-wrap py-2 pt-4">
+              {badges.map((badge: any) => (
+                <span class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2 bg-${badge.backgroundColor}-100 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}>
+                  {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
+                  <span>{badge.content}</span>
+                </span>
+              ))}
+            </div>
+          )
+        }
+      </div>
+    </div>
+    {logList.length === 0 && 
+      <div class="py-4 text-gray-400 prose prose-md">
+        <p>No changelogs found.</p>
+      </div>
+    }
+    <div class="flow-root py-8">
+      <ul role="list" class="-mb-8">
+        {logList.map((log, index) => (
+          <li>
+            <div class="relative pb-8">
+              {index !== logList.length - 1 ? (
+                <span aria-hidden="true" class="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200" />
+              ) : null}
+              <div class="relative flex space-x-3">
+                <div>
+                  <span
+                    class={'bg-purple-500 flex h-8 w-8 items-center justify-center rounded-full ring-8 ring-white'}
+                  >
+                    <DocumentTextIcon aria-hidden="true" className="h-5 w-5 text-white" />
+                  </span>
+                </div>
+                <div>
+                    <h3 class="text-xl text-gray-800 font-bold">
+                      Changelog from <a class="text-purple-500 underline" href={`${log.url}/${log.from}`}>{log.from}</a> to <a class="text-purple-500 underline" href={`${log.url}/${log.from}`}>
+                        {log.to === latestVersion ? `${log.to} (latest)` : log.to}
+                      </a>
+                    </h3>
+                </div>
+              </div>
+              <div class="px-8 py-2">
+                {
+                  log.badges && (
+                    <div class="flex flex-wrap">
+                      {log.badges.map((badge: any) => (
+                        <span class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2 bg-${badge.backgroundColor}-100 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}>
+                          {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
+                          <span>{badge.content}</span>
+                        </span>
+                      ))}
+                    </div>
+                  )
+                }
+                <div class="prose prose-md !max-w-none py-2">
+                  <log.Content />
+                </div>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </main>
+
+</Layout>
+
