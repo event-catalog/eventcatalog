@@ -132,7 +132,7 @@ const badges = [
       <div>
         <!-- @ts-ignore -->
         <SchemaViewer id={props.data.id} catalog={props.catalog}  />
-        <NodeGraph id={props.data.id} collection={props.collection} version={props.data.version} mode="simple" href={{ label: 'Open in Visualiser', url: `/visualiser/${props.collection}/${props.data.id}/${props.data.version}`}} />
+        <NodeGraph id={props.data.id} collection={props.collection} version={props.data.version} mode="simple" href={{ label: 'Open in Visualiser', url: buildUrl(`/visualiser/${props.collection}/${props.data.id}/${props.data.version}`)}} />
       </div>
       <footer class="py-4 space-y-8 divide-y divide-gray-200/60">
         <a href="#" class="flex space-x-2 items-center text-gray-500 hover:text-purple-500 hover:underline"><PencilIcon className="w-4 h-4" /><span>Edit this page</span></a>
