@@ -44,7 +44,13 @@ const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles,
 
     //ensure the directory exists
     ensureDirSync(path.dirname(targetPath));
-    fs.cpSync(file, targetPath.replace('index.md', 'index.mdx'));
+
+    if (file.includes('changelog.md')) {
+      const target = targetPath.replace('/content', '/content/changelogs');
+      fs.cpSync(file, target.replace('changelog.md', 'changelog.mdx'));
+    } else {
+      fs.cpSync(file, targetPath.replace('index.md', 'index.mdx').replace('changelog.md', 'changelog.mdx'));
+    }
   }
 
   // Copy all other files (non markdown) files into catalog-files directory (non collection)
@@ -121,6 +127,7 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
       path.join(source, 'events/**/**/index.md'),
       path.join(source, 'services/**/events/**/index.md'),
       path.join(source, 'domains/**/events/**/index.md'),
+      path.join(source, 'events/**/**/changelog.md'),
     ],
     pathToAllFiles: [
       path.join(source, 'events/**'),
@@ -139,6 +146,7 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
       path.join(source, 'commands/**/**/index.md'),
       path.join(source, 'services/**/commands/**/index.md'),
       path.join(source, 'domains/**/commands/**/index.md'),
+      path.join(source, 'commands/**/**/changelog.md'),
     ],
     pathToAllFiles: [
       path.join(source, 'commands/**'),
@@ -153,7 +161,11 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
     source,
     target: astroContentDir,
     catalogFilesDir,
-    pathToMarkdownFiles: [path.join(source, 'services/**/**/index.md'), path.join(source, 'domains/**/services/**/index.md')],
+    pathToMarkdownFiles: [
+      path.join(source, 'services/**/**/index.md'),
+      path.join(source, 'domains/**/services/**/index.md'),
+      path.join(source, 'services/**/**/changelog.md'),
+    ],
     pathToAllFiles: [path.join(source, 'services/**'), path.join(source, 'domains/**/services/**')],
     type: 'services',
   });
@@ -163,7 +175,7 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
     source,
     target: astroContentDir,
     catalogFilesDir,
-    pathToMarkdownFiles: [path.join(source, 'domains/**/**/index.md')],
+    pathToMarkdownFiles: [path.join(source, 'domains/**/**/index.md'), path.join(source, 'domains/**/**/changelog.md')],
     pathToAllFiles: [path.join(source, 'domains/**')],
     type: 'domains',
   });

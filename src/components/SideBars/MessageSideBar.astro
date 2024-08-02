@@ -47,7 +47,7 @@ const schemaURL = path.join(publicPath, schemaFilePath || '')
 
 ---
 
-<aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto">
+<aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto pb-20 ">
   <div class="">
     <PillList color="pink" title={`${type} Producers (${producerList.length})`} pills={producerList} emptyMessage={`This ${type} does not get produced by any services.`} client:load />
     <PillList color="pink" title={`${type} Consumers (${consumerList.length})`} pills={consumerList} emptyMessage={`This ${type} does not get consumed by any services.`} client:load />
@@ -77,6 +77,9 @@ const schemaURL = path.join(publicPath, schemaFilePath || '')
         class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500"
         >View in Visualiser</a
       >
+
+      <a href={buildUrl(`${message.data.version}/changelog`)} class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500">Changelog</a>
+     
     </div>
   </div>
 </aside>

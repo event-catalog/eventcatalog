@@ -30,7 +30,12 @@ for (let item of [...verifiedWatchList]) {
     for (let event of events) {
       const { path: eventPath, type } = event;
       const file = eventPath.split(item)[1];
-      const newPath = path.join(contentPath, item, extensionReplacer(item, file));
+      let newPath = path.join(contentPath, item, extensionReplacer(item, file));
+
+      // Check if changlogs, they need to go into their own content folder
+      if (file.includes('changelog.md')) {
+        newPath = newPath.replace('src/content', 'src/content/changelogs');
+      }
 
       // If config files have changes
       if (eventPath.includes('eventcatalog.config.js') || eventPath.includes('eventcatalog.styles.css')) {

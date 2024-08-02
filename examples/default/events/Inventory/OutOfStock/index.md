@@ -1,7 +1,7 @@
 ---
 id: OutOfStock
 name: Inventory out of stock
-version: 0.0.3
+version: 0.0.4
 summary: |
   Indicates inventory is out of stock
 owners:

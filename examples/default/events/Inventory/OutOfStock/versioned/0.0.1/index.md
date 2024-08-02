@@ -1,9 +1,9 @@
 ---
-id: InventoryAdjusted
-name: Inventory adjusted
-version: 1.0.1
+id: OutOfStock
+name: Inventory out of stock
+version: 0.0.1
 summary: |
-  Indicates a change in inventory level
+  Indicates inventory is out of stock
 owners:
     - dboyne
     - msmith
@@ -17,41 +17,30 @@ badges:
     - content: Channel:Apache Kafka
       backgroundColor: yellow
       textColor: yellow
-schemaPath: 'schema.avro'
 ---
-
-
 
 ## Overview
 
 The `Inventory Adjusted` event is triggered whenever there is a change in the inventory levels of a product. This could occur due to various reasons such as receiving new stock, sales, returns, or manual adjustments by the inventory management team. The event ensures that all parts of the system that rely on inventory data are kept up-to-date with the latest inventory levels.
 
-## Architecture diagram
-
 <NodeGraph />
 
-<SchemaViewer file="schema.json" title="JSON Schema" maxHeight="500" />
+### Payload
+The payload of the `Inventory Adjusted` event includes the following fields:
 
-## Payload example
-
-Event example you my see being published.
-
-```json title="Payload example"
+```json title="Example of payload" frame="terminal"
 {
-  "Name": "John Doe",
-  "Age": 30,
-  "Department": "Engineering",
-  "Position": "Software Engineer",
-  "Salary": 85000.50,
-  "JoinDate": "2024-01-15"
+  "event_id": "string",
+  "timestamp": "ISO 8601 date-time",
+  "product_id": "string",
+  "adjusted_quantity": "integer",
+  "new_quantity": "integer",
+  "adjustment_reason": "string",
+  "adjusted_by": "string"
 }
 ```
 
-## Schema (avro)
-
-<Schema file="schema.avro" title="Inventory Adjusted Schema (avro)" />
-
-## Producing the Event
+### Producing the Event
 
 To produce an Inventory Adjusted event, use the following example Kafka producer configuration in Python:
 
