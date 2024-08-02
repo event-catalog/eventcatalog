@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.2.2
+
+### Patch Changes
+
+- 5ec8513: chore(core): added new footer component to tidy up code
+- 7a0e839: fix(core): added defaults for no pages in catalog
+
 ## 2.2.1
 
 ### Patch Changes
