@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.2.1
+
+### Patch Changes
+
+- abac0a7: fix(core): fixed urls on changelogs
+
 ## 2.2.0
 
 ### Minor Changes
