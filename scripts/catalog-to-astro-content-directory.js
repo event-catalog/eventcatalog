@@ -47,7 +47,6 @@ const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles,
 
     if (file.includes('changelog.md')) {
       const target = targetPath.replace('/content', '/content/changelogs');
-      console.log('new target', target);
       fs.cpSync(file, target.replace('changelog.md', 'changelog.mdx'));
     } else {
       fs.cpSync(file, targetPath.replace('index.md', 'index.mdx').replace('changelog.md', 'changelog.mdx'));
