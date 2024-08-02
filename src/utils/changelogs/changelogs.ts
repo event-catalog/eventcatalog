@@ -18,7 +18,6 @@ export const getChangeLogs = async (item: CollectionEntry<CollectionTypes>): Pro
     const parts = log.id.split('/');
     // hack to get the version of the id (url)
     const version = parts[parts.length - 2];
-    console.log('aasdsa', isVersioned, version);
     return {
       ...log,
       data: {
@@ -27,8 +26,6 @@ export const getChangeLogs = async (item: CollectionEntry<CollectionTypes>): Pro
       },
     };
   });
-
-  console.log(hydratedLogs);
 
   // Order by version string
   return hydratedLogs.sort((a, b) => {
