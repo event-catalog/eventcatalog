@@ -1,6 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import DocsLayout from '@layouts/DocsLayout.astro';
+import Footer from '@layouts/Footer.astro';
 
 import components from '@components/MDX/components';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
@@ -134,22 +135,7 @@ const badges = [
         <SchemaViewer id={props.data.id} catalog={props.catalog}  />
         <NodeGraph id={props.data.id} collection={props.collection} version={props.data.version} mode="simple" href={{ label: 'Open in Visualiser', url: `/visualiser/${props.collection}/${props.data.id}/${props.data.version}`}} />
       </div>
-      <footer class="py-4 space-y-8 divide-y divide-gray-200/60">
-        <a href="#" class="flex space-x-2 items-center text-gray-500 hover:text-purple-500 hover:underline"><PencilIcon className="w-4 h-4" /><span>Edit this page</span></a>
-        <div class="flex justify-between items-center py-8 text-gray-500 text-sm font-light">
-          <div class="flex space-x-5">
-            <a href="https://github.com/event-catalog/eventcatalog" target="_blank"
-              ><svg class="w-5 h-5 bg-gray-400 hover:bg-purple-500 dark:hover:bg-gray-400" style='mask-image: url("/icons/github.svg"); mask-repeat: no-repeat; mask-position: center center;'></svg></a
-            >
-            <a href="https://x.com/event_catalog" target="_blank"
-              ><span class="sr-only">x</span><svg
-                class="w-5 h-5 bg-gray-400 hover:bg-purple-500 dark:hover:bg-gray-400"
-                style='mask-image: url("/icons/x-twitter.svg"); mask-repeat: no-repeat; mask-position: center center;'></svg></a
-            >
-          </div>
-          <a target="_blank" class="hover:text-purple-500 hover:underline" href="https://eventcatalog.dev">Powered by EventCatalog</a>
-        </div>
-      </footer>
+      <Footer />
     </main>
     <aside class="hidden lg:block sticky top-20 h-[calc(100vh-theme(spacing.16))] w-56 overflow-y-auto">
       <!-- @ts-ignore -->

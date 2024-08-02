@@ -3,11 +3,9 @@ interface Props {
   title: string;
 }
 
-const { title } = Astro.props;
-
+import Footer from '@layouts/Footer.astro';
 import Header from '@components/Header.astro';
 import SideBar from '@components/DocsNavigation.astro';
-import catalog from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
 ---
 
@@ -73,15 +71,7 @@ import { buildUrl } from '@utils/url-builder';
                     </div>
                   </div>
                 
-                  <footer class="py-4 space-y-8 border-t border-gray-300">
-                    <div class="flex justify-between items-center py-8 text-gray-500 text-sm font-light">
-                      <div class="flex space-x-5">
-                        <a href="https://github.com/event-catalog/eventcatalog" target="_blank"><svg class="w-5 h-5 bg-gray-400  hover:bg-purple-500 dark:hover:bg-gray-400" style="mask-image: url(&quot;/icons/github.svg&quot;); mask-repeat: no-repeat; mask-position: center center;"></svg></a>
-                        <a href="https://x.com/event_catalog" target="_blank"><span class="sr-only">x</span><svg class="w-5 h-5 bg-gray-400  hover:bg-purple-500 dark:hover:bg-gray-400" style="mask-image: url(&quot;/icons/x-twitter.svg&quot;); mask-repeat: no-repeat; mask-position: center center;"></svg></a>
-                      </div>
-                      <a target="_blank" class="hover:text-purple-500 hover:underline text-gray-400 font-light not-prose" href="https://eventcatalog.dev">Powered by EventCatalog</a>
-                    </div>
-                  </footer>
+                  <Footer />
                 </div>
               </div>
             </div>
