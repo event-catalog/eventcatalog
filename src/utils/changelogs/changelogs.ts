@@ -12,30 +12,26 @@ export const getChangeLogs = async (item: CollectionEntry<CollectionTypes>): Pro
   });
 
   const hydratedLogs = logs.map((log) => {
-
-    
-    
     // Check if there is a version in the url
     const isVersioned = log.id.includes('versioned');
-    
+
     const parts = log.id.split('/');
     // hack to get the version of the id (url)
-    const version = parts[parts.length - 2]
-    console.log('aasdsa', isVersioned, version)
+    const version = parts[parts.length - 2];
+    console.log('aasdsa', isVersioned, version);
     return {
       ...log,
       data: {
         ...log.data,
-        version: isVersioned ? version : (data.latestVersion || 'latest')
-      }
+        version: isVersioned ? version : data.latestVersion || 'latest',
+      },
     };
   });
 
-  console.log(hydratedLogs)
+  console.log(hydratedLogs);
 
   // Order by version string
   return hydratedLogs.sort((a, b) => {
     return b.data.version.localeCompare(a.data.version);
   });
-
 };
