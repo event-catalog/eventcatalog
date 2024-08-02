@@ -17,7 +17,6 @@ const watchList = ['domains', 'commands', 'events', 'services', 'teams', 'users'
 const verifiedWatchList = watchList.filter((item) => fs.existsSync(path.join(projectDirectory, item)));
 
 const extensionReplacer = (collection, file) => {
-  console.log('c', collection, file);
   if (collection === 'teams' || collection == 'users') return file;
   return file.replace('.md', '.mdx');
 };
@@ -37,9 +36,6 @@ for (let item of [...verifiedWatchList]) {
       if (file.includes('changelog.md')) {
         newPath = newPath.replace('src/content', 'src/content/changelogs');
       }
-
-      console.log('NEW PATH', newPath);
-      //Users/davidboyne/new-dev/eventcatalog/eventcatalog/src/content/events/Inventory/InventoryAdjusted/versioned/0.0.1/changelog.mdx
 
       // If config files have changes
       if (eventPath.includes('eventcatalog.config.js') || eventPath.includes('eventcatalog.styles.css')) {

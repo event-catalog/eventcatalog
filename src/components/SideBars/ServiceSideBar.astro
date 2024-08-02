@@ -2,7 +2,6 @@
 import OwnersList from '@components/Lists/OwnersList';
 import PillList from '@components/Lists/PillList';
 import VersionList from '@components/Lists/VersionList.astro';
-import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
 import { getEntry, type CollectionEntry } from 'astro:content';
 import { join } from 'node:path'
@@ -47,8 +46,6 @@ const ownersList = owners.map((o) => ({
 const publicPath = service?.catalog?.publicPath;
 const schemaFilePath = service?.data?.schemaPath;
 const schemaURL = join(publicPath, schemaFilePath || '')
-
-
 ---
 
 <aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto">
@@ -77,7 +74,6 @@ const schemaURL = join(publicPath, schemaFilePath || '')
         )
       }
       <a href={buildUrl(`/visualiser/${service.collection}/${service.data.id}/${service.data.version}`)} class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500">View in Visualiser</a>
-      {service.data.versions && service.data.versions.length > 0 &&
       <a id="open-api-button" href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}/spec`)} class="hidden text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500">View API spec</a>
       <a href={buildUrl(`${service.data.version}/changelog`)} class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500">Changelog</a>
     </div>
