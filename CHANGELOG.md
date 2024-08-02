@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.2.0
+
+### Minor Changes
+
+- 9b92648: feat(core): added changelog support for domains, services and messages
+
 ## 2.1.0
 
 ### Minor Changes
