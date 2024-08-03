@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.2.3
+
+### Patch Changes
+
+- ea7302b: fix(core): fixed changelog urls on resource pages
+
 ## 2.2.2
 
 ### Patch Changes
