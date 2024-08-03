@@ -75,7 +75,7 @@ const schemaURL = join(publicPath, schemaFilePath || '')
       }
       <a href={buildUrl(`/visualiser/${service.collection}/${service.data.id}/${service.data.version}`)} class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500">View in Visualiser</a>
       <a id="open-api-button" href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}/spec`)} class="hidden text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500">View API spec</a>
-      <a href={buildUrl(`${service.data.version}/changelog`)} class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500">Changelog</a>
+      <a href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}/changelog`)} class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500">Changelog</a>
     </div>
   </div>
 </aside>
