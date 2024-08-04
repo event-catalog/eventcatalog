@@ -21,7 +21,7 @@ const navItems = [
 ];
 
 const logo = {
-  src: catalog?.logo?.src || '/logo.png',
+  src: ('/' + (catalog?.logo?.src || 'logo.png')).replace(/^\/+/, '/'), // replace the leading slashes with a single one
   alt: catalog?.logo?.alt || 'Event Catalog',
   text: catalog?.logo?.text || "EventCatalog"
 }
