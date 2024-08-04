@@ -48,7 +48,7 @@ vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
     // this will only affect "foo" outside of the original module
-    getCollection: (key) => {
+    getCollection: (key: string) => {
       if (key === 'services') {
         return Promise.resolve(mockServices);
       }
@@ -63,8 +63,6 @@ vi.mock('astro:content', async (importOriginal) => {
 
 describe('Services NodeGraph', () => {
   beforeEach(() => {
-    // Mock get collection
-    // getCollection.mockClear();
     vi.restoreAllMocks();
   });
 
