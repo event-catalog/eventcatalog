@@ -33,6 +33,10 @@ export default defineConfig({
     tailwind(),
     expressiveCode({
       themes: ['github-light'],
+      defaultProps: {
+        // Enable word wrap by default
+        wrap: true,
+      },
     }),
     
     mdx({
