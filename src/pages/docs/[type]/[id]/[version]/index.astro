@@ -53,24 +53,26 @@ const contentBadges = props.data.badges || [];
 
 const getBadge = () => {
   if (props.collection === 'services') {
-    return { backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon, class: "text-pink-400" };
+    return { backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon, class: 'text-pink-400' };
   }
   if (props.collection === 'events') {
-    return { backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: EnvelopeIcon, class: "text-orange-400" };
+    return { backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: EnvelopeIcon, class: 'text-orange-400' };
   }
   if (props.collection === 'commands') {
-    return { backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: EnvelopeIcon, class: "text-blue-400" };
+    return { backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: EnvelopeIcon, class: 'text-blue-400' };
   }
   if (props.collection === 'domains') {
-    return { backgroundColor: 'yellow', textColor: 'yellow', content: 'Domain', icon: RectangleGroupIcon, class: "text-yellow-400" };
+    return {
+      backgroundColor: 'yellow',
+      textColor: 'yellow',
+      content: 'Domain',
+      icon: RectangleGroupIcon,
+      class: 'text-yellow-400',
+    };
   }
 };
 
-const badges = [
-  getBadge(),
-  ...contentBadges
-];
-
+const badges = [getBadge(), ...contentBadges];
 ---
 
 <DocsLayout title={pageTitle} description={props.data.summary}>
@@ -79,13 +81,18 @@ const badges = [
     <main class="flex-1 w-full lg:pr-10 md:pt-4">
       <div class="border-b border-gray-200 flex justify-between items-start py-4 md:py-8 md:pb-6">
         <div>
-          <h2 class="text-2xl md:text-4xl font-bold">{props.data.name} <span class="text-gray-300">(v{props.data.version})</span></h2>
+          <h2 class="text-2xl md:text-4xl font-bold">
+            {props.data.name}
+            <span class="text-gray-300">(v{props.data.version})</span>
+          </h2>
           <h2 class="text-lg pt-2 text-gray-500 font-light">{props.data.summary}</h2>
           {
             badges && (
               <div class="flex flex-wrap py-2 pt-4">
                 {badges.map((badge: any) => (
-                  <span class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2 bg-${badge.backgroundColor}-100 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}>
+                  <span
+                    class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2 bg-${badge.backgroundColor}-100 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}
+                  >
                     {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
                     <span>{badge.content}</span>
                   </span>
@@ -114,9 +121,14 @@ const badges = [
                   <h3 class="text-sm font-medium text-yellow-800">New version found</h3>
                   <div class="mt-2 text-sm text-yellow-700">
                     <p>
-                      You are looking at a previous version of the {props.collection.slice(0, props.collection.length - 1)} <strong>{props.data.name}</strong>.{' '}
-                      <a class="underline hover:text-purple-500 block pt-2" href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}`)}>
-                        The latest version of this {props.collection.slice(0, props.collection.length - 1)} is v{props.data.latestVersion} &rarr;
+                      You are looking at a previous version of the {props.collection.slice(0, props.collection.length - 1)}{' '}
+                      <strong>{props.data.name}</strong>.{' '}
+                      <a
+                        class="underline hover:text-purple-500 block pt-2"
+                        href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}`)}
+                      >
+                        The latest version of this {props.collection.slice(0, props.collection.length - 1)} is v
+                        {props.data.latestVersion} &rarr;
                       </a>
                     </p>
                   </div>
@@ -128,12 +140,21 @@ const badges = [
       </div>
 
       <div class="prose prose-md py-4 w-full">
-          <Content components={components(props)} />
+        <Content components={components(props)} />
       </div>
       <div>
         <!-- @ts-ignore -->
-        <SchemaViewer id={props.data.id} catalog={props.catalog}  />
-        <NodeGraph id={props.data.id} collection={props.collection} version={props.data.version} mode="simple" href={{ label: 'Open in Visualiser', url: buildUrl(`/visualiser/${props.collection}/${props.data.id}/${props.data.version}`)}} />
+        <SchemaViewer id={props.data.id} catalog={props.catalog} />
+        <NodeGraph
+          id={props.data.id}
+          collection={props.collection}
+          version={props.data.version}
+          mode="simple"
+          href={{
+            label: 'Open in Visualiser',
+            url: buildUrl(`/visualiser/${props.collection}/${props.data.id}/${props.data.version}`),
+          }}
+        />
       </div>
       <Footer />
     </main>
@@ -158,9 +179,7 @@ const badges = [
   .mermaid tspan {
     font-size: 8em;
   }
-
 </style>
-
 
 <script define:vars={{ props }}>
   // Fix to pass information to componets that are client side only
@@ -171,7 +190,6 @@ const badges = [
 </script>
 
 <script>
-
   /**
    * @params {HTMLCollectionOf<HTMLElement>} graphs
    */

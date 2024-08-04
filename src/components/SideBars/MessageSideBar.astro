@@ -43,15 +43,31 @@ const type = message.collection.slice(0, -1);
 // @ts-ignore
 const publicPath = message?.catalog?.publicPath;
 const schemaFilePath = message?.data?.schemaPath;
-const schemaURL = path.join(publicPath, schemaFilePath || '')
-
+const schemaURL = path.join(publicPath, schemaFilePath || '');
 ---
 
-<aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto pb-20 ">
+<aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto pb-20">
   <div class="">
-    <PillList color="pink" title={`${type} Producers (${producerList.length})`} pills={producerList} emptyMessage={`This ${type} does not get produced by any services.`} client:load />
-    <PillList color="pink" title={`${type} Consumers (${consumerList.length})`} pills={consumerList} emptyMessage={`This ${type} does not get consumed by any services.`} client:load />
-    <OwnersList title={`${type} owners (${ownersList.length})`} owners={ownersList} emptyMessage={`This ${type} does not have any documented owners.`} client:load />
+    <PillList
+      color="pink"
+      title={`${type} Producers (${producerList.length})`}
+      pills={producerList}
+      emptyMessage={`This ${type} does not get produced by any services.`}
+      client:load
+    />
+    <PillList
+      color="pink"
+      title={`${type} Consumers (${consumerList.length})`}
+      pills={consumerList}
+      emptyMessage={`This ${type} does not get consumed by any services.`}
+      client:load
+    />
+    <OwnersList
+      title={`${type} owners (${ownersList.length})`}
+      owners={ownersList}
+      emptyMessage={`This ${type} does not have any documented owners.`}
+      client:load
+    />
 
     {message.data.versions && <VersionList versions={message.data.versions} collectionItem={message} />}
 
@@ -64,8 +80,20 @@ const schemaURL = path.join(publicPath, schemaFilePath || '')
             class="hidden w-full md:inline-flex h-10 justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-200 bg-gray-800 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
           >
             <>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true" class="-ml-1 mr-2 h-5 w-5 text-gray-200">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="2"
+                stroke="currentColor"
+                aria-hidden="true"
+                class="-ml-1 mr-2 h-5 w-5 text-gray-200"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
               </svg>
               <span>Download Schema</span>
             </>
@@ -78,8 +106,11 @@ const schemaURL = path.join(publicPath, schemaFilePath || '')
         >View in Visualiser</a
       >
 
-      <a href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}/changelog`)} class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500">Changelog</a>
-     
+      <a
+        href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}/changelog`)}
+        class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500"
+        >Changelog</a
+      >
     </div>
   </div>
 </aside>
