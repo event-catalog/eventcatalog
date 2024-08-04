@@ -36,30 +36,23 @@ const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles,
     windowsPathsNoEscape: os.platform() == 'win32',
   });
 
-  console.log('type', type);
-  console.log('markdown files', markdownFiles);
-  console.log('othefiles', files);
-
   const publicDir = path.join(target, '../../public/generated');
 
   // Copy markdown files into the astro content (collection) folder
   for (const file of markdownFiles) {
     const targetPath = getTargetPath(source, target, type, file);
 
-    console.log('Lopping over markdownfiles', targetPath)
-
     //ensure the directory exists
     ensureDirSync(path.dirname(targetPath));
 
     if (file.includes('changelog.md')) {
-
       let target = targetPath.replace('/content', '/content/changelogs');
-      
+
       // Fix for windows path replacement
-      if(os.platform() == 'win32') {
+      if (os.platform() == 'win32') {
         target = targetPath.replace('\\content', '\\content\\changelogs');
       }
-      console.log('new target', target)
+      console.log('new target', target);
       fs.cpSync(file, target.replace('changelog.md', 'changelog.mdx'));
     } else {
       fs.cpSync(file, targetPath.replace('index.md', 'index.mdx').replace('changelog.md', 'changelog.mdx'));
@@ -109,11 +102,8 @@ const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles,
 };
 
 export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) => {
-
   // Config file
   const astroConfigFile = fs.readFileSync(path.join(astroContentDir, 'config.ts'));
-
-  console.log('Copying files to ', astroConfigFile)
 
   // Clear the astro directory before we copy files over
   await fs.rmSync(astroContentDir, { recursive: true });
@@ -133,9 +123,6 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
     // fs.mkdirSync(astroPublicDir, { recursive: true });
     fs.cpSync(usersPublicDirectory, astroPublicDir, { recursive: true });
   }
-
-  console.log('source directory', source);
-  console.log('target directory', astroContentDir);
 
   // Copy all the event files over
   await copyFiles({

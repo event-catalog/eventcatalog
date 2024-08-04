@@ -35,6 +35,10 @@ for (let item of [...verifiedWatchList]) {
       // Check if changlogs, they need to go into their own content folder
       if (file.includes('changelog.md')) {
         newPath = newPath.replace('src/content', 'src/content/changelogs');
+
+        if (os.platform() == 'win32') {
+          newPath = newPath.replace('src\\content', 'src\\content\\changelogs');
+        }
       }
 
       // If config files have changes
