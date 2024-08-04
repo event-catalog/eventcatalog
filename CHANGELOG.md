@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.2.4
+
+### Patch Changes
+
+- 34fa215: fix(core): now word wrapping code blocks by default in markdown files so not to break the layout of the page
+
 ## 2.2.3
 
 ### Patch Changes
