@@ -54,12 +54,11 @@ const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles,
     if (file.includes('changelog.md')) {
       console.log('Copying changelog file', file)
 
-      let target = targetPath.replace('/content', '/content/changelogs').replace(/\\/g, '/');
-      //D:\a\eventcatalog\eventcatalog\src\content\events\Inventory\InventoryAdjusted\changelog.md
+      let target = targetPath.replace('/content', '/content/changelogs');
       
       // Fix for windows path replacement
       if(os.platform() == 'win32') {
-        // target = targetPath.replace('\content', '\content\changelogs');
+        target = targetPath.replace('\\content', '\\content\changelogs');
       }
       console.log('new target', target)
       fs.cpSync(file, target.replace('changelog.md', 'changelog.mdx'));
