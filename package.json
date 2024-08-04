@@ -13,7 +13,7 @@
     "dev:local": "concurrently \"node scripts/watcher.js\" \"astro dev\"",
     "build:bin": "tsup",
     "prepublishOnly": "npm run build:bin",
-    "test": "jest --config=$(pwd)/../../jest.config.js",
+    "test": "vitest",
     "start": "astro dev",
     "build": "npm run scripts:hydrate-content && astro check --minimumSeverity error && astro build",
     "build:cd": "node scripts/build-ci.js",
@@ -63,15 +63,14 @@
   },
   "devDependencies": {
     "@parcel/watcher": "^2.4.1",
-    "@types/jest": "^29.5.12",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "commander": "^12.1.0",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
-    "jest": "^29.7.0",
     "prettier": "^3.3.2",
     "rimraf": "^5.0.7",
-    "tsup": "^8.1.0"
+    "tsup": "^8.1.0",
+    "vitest": "^2.0.5"
   }
 }
