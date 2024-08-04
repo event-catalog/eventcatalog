@@ -24,7 +24,7 @@ jobs:
         run: npm i
       - name: List directory on windows
         if: matrix.os == 'windows-latest'
-        run: dir
+        run: cd src && dir
       - name: List directory on windows
         if: matrix.os == 'windows-latest'
         run: cd src/content && dir
