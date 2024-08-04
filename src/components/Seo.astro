@@ -4,12 +4,7 @@ import config from '@config';
 import defaultImageFile from '../../public/opengraph.png';
 import { buildUrl } from '@utils/url-builder';
 
-const {
-	title = config.title,
-	description = config.tagline,
-	ogTitle = title,
-	ogType = 'website',
-} = Astro.props;
+const { title = config.title, description = config.tagline, ogTitle = title, ogType = 'website' } = Astro.props;
 
 const siteBaseURL = new URL(Astro.url);
 const defaultImage = new URL(defaultImageFile.src, siteBaseURL);
@@ -19,13 +14,12 @@ _image = _image || defaultImage;
 
 let image = null;
 if (typeof _image === 'string') {
-    image = new URL(_image, siteBaseURL);
+  image = new URL(_image, siteBaseURL);
 } else if (_image && typeof _image['href'] !== 'undefined') {
-    image = new URL(_image['href'], siteBaseURL);
+  image = new URL(_image['href'], siteBaseURL);
 } else {
-	image = defaultImage;
+  image = defaultImage;
 }
-
 ---
 
 <meta charset="UTF-8" />
@@ -34,47 +28,47 @@ if (typeof _image === 'string') {
 <link rel="icon" type="image/svg+xml" href={buildUrl('/favicon.ico', true)} />
 
 <SEO
-	title={title}
-	description={description}
-	openGraph={{
-		basic: {
-			url: config.homepageLink,
-			title: ogTitle,
-			type: ogType,
-			image: _image?.src ? _image.src : defaultImage.toString(),
-		},
-		image: {
-			url: image.toString(),
-			secureUrl: image.toString(),
-			alt: ogTitle,
-			height: _image?.height,
-			width: _image?.width,
-			type: _image?.format && `image/${_image.format}`,
-		},
-	}}
-	twitter={{
-		creator: '@liran_tal',
-		image: image ? image.toString() : undefined,
-		imageAlt: ogTitle,
-		title: ogTitle,
-		site: '@liran_tal',
-		description: description,
-		card: image ? 'summary_large_image' : 'summary',
-	}}
-	extend={{
-		meta: [
-			{
-				name: 'og:locale',
-				content: 'en_US',
-			},
-			{
-				name: 'og:description',
-				content: description,
-			},
-			{
-				name: 'og:site_name',
-				content: config.homepageLink,
-			}
-		]
-	}}
+  title={title}
+  description={description}
+  openGraph={{
+    basic: {
+      url: config.homepageLink,
+      title: ogTitle,
+      type: ogType,
+      image: _image?.src ? _image.src : defaultImage.toString(),
+    },
+    image: {
+      url: image.toString(),
+      secureUrl: image.toString(),
+      alt: ogTitle,
+      height: _image?.height,
+      width: _image?.width,
+      type: _image?.format && `image/${_image.format}`,
+    },
+  }}
+  twitter={{
+    creator: '@liran_tal',
+    image: image ? image.toString() : undefined,
+    imageAlt: ogTitle,
+    title: ogTitle,
+    site: '@liran_tal',
+    description: description,
+    card: image ? 'summary_large_image' : 'summary',
+  }}
+  extend={{
+    meta: [
+      {
+        name: 'og:locale',
+        content: 'en_US',
+      },
+      {
+        name: 'og:description',
+        content: description,
+      },
+      {
+        name: 'og:site_name',
+        content: config.homepageLink,
+      },
+    ],
+  }}
 />

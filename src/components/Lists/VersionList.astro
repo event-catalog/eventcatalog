@@ -4,34 +4,46 @@ import { buildUrl } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
-  versions: string[]
-  collectionItem: CollectionEntry<CollectionTypes>
+  versions: string[];
+  collectionItem: CollectionEntry<CollectionTypes>;
 }
 
 const { versions, collectionItem } = Astro.props;
 const currentPath = Astro.url.pathname;
-
 ---
 
 <div class="space-y-2 my-2 mb-8">
-  <span class="font-light text-black group-data-[hover]:text-black/80 capitalize">Versions ({collectionItem.data.versions?.length})</span>
-  <select id="version" class="block bg-gray-50 rounded-md border border-gray-200 px-1 py-0.5 text-xs"> 
-    {versions.map((version) => {
-      const isCurrent = currentPath.includes(version);
-      return <option selected={isCurrent} value={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${version}`)} class={`inline-flex items-center rounded-md  px-2 py-1 text-xs text-indigo-700 ring-1 ring-inset ring-indigo-700/10 hover:bg-purple-100 hover:underline ${isCurrent ? 'bg-purple-100 text-purple-500 underline ' : 'bg-white'}`}>
-        <span>
-          v{version} 
-          {version === collectionItem.data.latestVersion && <span>(latest)</span>}
-        </span>
-      </option>
-    })}
+  <span class="font-light text-black group-data-[hover]:text-black/80 capitalize"
+    >Versions ({collectionItem.data.versions?.length})</span
+  >
+  <select id="version" class="block bg-gray-50 rounded-md border border-gray-200 px-1 py-0.5 text-xs">
+    {
+      versions.map((version) => {
+        const isCurrent = currentPath.includes(version);
+        return (
+          <option
+            selected={isCurrent}
+            value={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${version}`)}
+            class={`inline-flex items-center rounded-md  px-2 py-1 text-xs text-indigo-700 ring-1 ring-inset ring-indigo-700/10 hover:bg-purple-100 hover:underline ${isCurrent ? 'bg-purple-100 text-purple-500 underline ' : 'bg-white'}`}
+          >
+            <span>
+              v{version}
+              {version === collectionItem.data.latestVersion && <span>(latest)</span>}
+            </span>
+          </option>
+        );
+      })
+    }
   </select>
-  <a href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.latestVersion}/changelog`)} class="text-[10px] text-gray-500">View changelogs</a>
+  <a
+    href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.latestVersion}/changelog`)}
+    class="text-[10px] text-gray-500">View changelogs</a
+  >
 </div>
 
 <script>
   document.getElementById('version')?.addEventListener('change', (e: any) => {
-    if (!e.target) return
+    if (!e.target) return;
     window.location.href = e.target.value;
-  })
+  });
 </script>

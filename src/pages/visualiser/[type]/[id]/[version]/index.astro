@@ -40,6 +40,17 @@ const {
 <VisualiserLayout title={`Visualiser | ${props.data.name} (${props.collection})`} description={props.data.summary}>
   <div class="bg-gray-100/50">
     <div class="h-[calc(100vh-110px)] w-full relative border border-gray-200" id={`${id}-portal`} transition:animate="fade"></div>
-    <NodeGraph id={id} collection={collection} title={`${props.data.name} (v${props.data.version})`} mode="full" linkTo="visualiser" version={props.data.version} href={{ label: `Open documentation for ${props.data.name} v${props.data.version}`, url: buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}`)}} />
+    <NodeGraph
+      id={id}
+      collection={collection}
+      title={`${props.data.name} (v${props.data.version})`}
+      mode="full"
+      linkTo="visualiser"
+      version={props.data.version}
+      href={{
+        label: `Open documentation for ${props.data.name} v${props.data.version}`,
+        url: buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}`),
+      }}
+    />
   </div>
 </VisualiserLayout>
