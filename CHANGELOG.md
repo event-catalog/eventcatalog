@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.2.5
+
+### Patch Changes
+
+- edd58a6: fix(core): enforce the leading slash to the logo
+- 269aef9: fix(core): fixed url paths for EC assets
+
 ## 2.2.4
 
 ### Patch Changes
