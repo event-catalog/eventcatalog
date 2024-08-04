@@ -95,7 +95,7 @@ const currentPath = Astro.url.pathname;
                   {item.items.map((heading: any) => {
                     return (
                       <li class="text-xs">
-                        <a href={`${item.href}/#${heading.slug}`}>{heading.text}</a>
+                        <a href={`${item.href}#${heading.slug}`}>{heading.text}</a>
                       </li>
                     );
                   })}
