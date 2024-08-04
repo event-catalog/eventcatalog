@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.2.6
+
+### Patch Changes
+
+- 50a43e0: core(fix): removed forward slash before # to prevent double trailing slash
+- 8104078: chore(core): added windows tests and fixed watcher to work with changelogs files on windows
+
 ## 2.2.5
 
 ### Patch Changes
