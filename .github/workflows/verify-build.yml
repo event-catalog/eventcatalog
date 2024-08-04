@@ -25,5 +25,8 @@ jobs:
       - name: List directory on windows
         if: matrix.os == 'windows-latest'
         run: dir
+      - name: List directory on windows
+        if: matrix.os == 'windows-latest'
+        run: cd src/content && dir
       - name: Build
         run: npm run verify-build:catalog
