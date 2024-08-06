@@ -23,6 +23,6 @@ jobs:
       - name: Installation
         run: npm i
       - name: Test
-        run: node scripts/ci/test.js
+        run: npm run test:ci
       - name: Build
         run: npm run verify-build:catalog

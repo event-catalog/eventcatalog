@@ -14,6 +14,7 @@
     "build:bin": "tsup",
     "prepublishOnly": "npm run build:bin",
     "test": "vitest --config vitest.config.ts",
+    "test:ci": "node scripts/ci/test.js",
     "start": "astro dev",
     "build": "npm run scripts:hydrate-content && astro check --minimumSeverity error && astro build",
     "build:cd": "node scripts/build-ci.js",
