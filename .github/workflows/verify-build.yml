@@ -22,9 +22,7 @@ jobs:
           node-version: '20.x'
       - name: Installation
         run: npm i
-      - name: Setup project
-        run: node scripts/ci/setup.js
       - name: Test
-        run: npm run test
+        run: node scripts/ci/test.js
       - name: Build
         run: npm run verify-build:catalog
