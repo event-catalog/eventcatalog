@@ -40,17 +40,19 @@ const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles,
 
   // Copy markdown files into the astro content (collection) folder
   for (const file of markdownFiles) {
-    const targetPath = getTargetPath(source, target, type, file);
+    let fileTarget = target;
+
+    // If they are change logs they need to go into their own content folder
+    if (file.includes('changelog.md')) {
+      fileTarget = path.join(target, 'changelogs');
+    }
+
+    const targetPath = getTargetPath(source, fileTarget, type, file);
 
     //ensure the directory exists
     ensureDirSync(path.dirname(targetPath));
 
-    if (file.includes('changelog.md')) {
-      const target = targetPath.replace('/content', '/content/changelogs');
-      fs.cpSync(file, target.replace('changelog.md', 'changelog.mdx'));
-    } else {
-      fs.cpSync(file, targetPath.replace('index.md', 'index.mdx').replace('changelog.md', 'changelog.mdx'));
-    }
+    fs.cpSync(file, targetPath.replace('index.md', 'index.mdx').replace('changelog.md', 'changelog.mdx'));
   }
 
   // Copy all other files (non markdown) files into catalog-files directory (non collection)

@@ -92,11 +92,11 @@ const associatedTeams = teams.map((o) => ({
         <div class="mx-auto max-w-7xl px-6 lg:px-8">
           <div class="mx-auto max-w-2xl lg:max-w-none">
             <dl class="hidden lg:grid grid-cols-1 gap-0.5 overflow-hidden rounded-2xl text-center sm:grid-cols-3 lg:grid-cols-3">
-              <div class="flex flex-col  p-8">
+              <div class="flex flex-col p-8">
                 <dt class="text-sm font-semibold leading-6 text-gray-600"># owned services</dt>
                 <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{ownedServicesList.length}</dd>
               </div>
-              <div class="flex flex-col  p-8">
+              <div class="flex flex-col p-8">
                 <dt class="text-sm font-semibold leading-6 text-gray-600"># owned messages</dt>
                 <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{ownedMessageList.length}</dd>
               </div>
@@ -104,7 +104,7 @@ const associatedTeams = teams.map((o) => ({
                 <dt class="text-sm font-semibold leading-6 text-gray-600"># owned domains</dt>
                 <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">2</dd>
               </div> -->
-              <div class="flex flex-col  p-8">
+              <div class="flex flex-col p-8">
                 <dt class="text-sm font-semibold leading-6 text-gray-600"># teams joined</dt>
                 <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{associatedTeams.length}</dd>
               </div>
@@ -118,9 +118,26 @@ const associatedTeams = teams.map((o) => ({
     </main>
     <aside class="sticky top-20 h-[calc(100vh-theme(spacing.16))] w-56 overflow-y-auto">
       <div class="divide-y-2 divide-gray-100">
-        <PillList color="pink" title={`Owned services (${ownedServicesList.length})`} pills={ownedServicesList} emptyMessage={`${props.data.name} does not own any services .`} client:load/>
-        <PillList color="orange" title={`Owned messages (${ownedMessageList.length})`} pills={ownedMessageList} emptyMessage={`${props.data.name} does not own any messages .`} client:load/>
-        <OwnersList title={`Member of team (${associatedTeams.length})`} owners={associatedTeams} emptyMessage={`${props.data.name} is not part of any documented team.`} client:load/>
+        <PillList
+          color="pink"
+          title={`Owned services (${ownedServicesList.length})`}
+          pills={ownedServicesList}
+          emptyMessage={`${props.data.name} does not own any services .`}
+          client:load
+        />
+        <PillList
+          color="orange"
+          title={`Owned messages (${ownedMessageList.length})`}
+          pills={ownedMessageList}
+          emptyMessage={`${props.data.name} does not own any messages .`}
+          client:load
+        />
+        <OwnersList
+          title={`Member of team (${associatedTeams.length})`}
+          owners={associatedTeams}
+          emptyMessage={`${props.data.name} is not part of any documented team.`}
+          client:load
+        />
       </div>
     </aside>
   </div>

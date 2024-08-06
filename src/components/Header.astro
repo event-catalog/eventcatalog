@@ -17,16 +17,16 @@ const navItems = [
   {
     label: 'Discover',
     href: buildUrl('/discover/events'),
-  }
+  },
 ];
 
 const logo = {
   src: ('/' + (catalog?.logo?.src || 'logo.png')).replace(/^\/+/, '/'), // replace the leading slashes with a single one
   alt: catalog?.logo?.alt || 'Event Catalog',
-  text: catalog?.logo?.text || "EventCatalog"
-}
-
+  text: catalog?.logo?.text || 'EventCatalog',
+};
 ---
+
 <nav class="md:fixed top-0 w-full z-20 bg-white border-b border-gray-200 py-4 font-bold text-xl max-w-[70em]">
   <div class="flex justify-between items-center">
     <div class="w-1/3 flex space-x-2 items-center">
@@ -57,14 +57,17 @@ const logo = {
     </div> -->
     <div class="w-1/3 justify-end text-md">
       <ul class="text-right flex justify-end space-x-8">
-        {navItems.map((item) => {
-          const isActive = currentPath.includes(item.href) ;
-          return <li class={`font-light ${isActive ? 'border-b-2 border-purple-500': ''}`}>
-          <a href={item.href}>{item.label}</a>
-        </li>
-        })}
+        {
+          navItems.map((item) => {
+            const isActive = currentPath.includes(item.href);
+            return (
+              <li class={`font-light ${isActive ? 'border-b-2 border-purple-500' : ''}`}>
+                <a href={item.href}>{item.label}</a>
+              </li>
+            );
+          })
+        }
       </ul>
     </div>
   </div>
 </nav>
-

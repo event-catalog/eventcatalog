@@ -5,7 +5,6 @@ import { getNodesAndEdges as getNodesAndEdgesForEvent } from '@utils/events/node
 import { getNodesAndEdges as getNodesAndEdgesForCommand } from '@utils/commands/node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/domains/node-graph';
 
-
 interface Props {
   id: string;
   collection: string;
@@ -19,7 +18,7 @@ interface Props {
   };
 }
 
-const { id, collection, title, mode = 'simple', linkTo='docs', version, href } = Astro.props;
+const { id, collection, title, mode = 'simple', linkTo = 'docs', version, href } = Astro.props;
 let nodes = [],
   edges = [];
 
@@ -56,7 +55,7 @@ if (collection === 'commands') {
   edges = eventEdges;
 }
 
-if(collection === 'domains'){
+if (collection === 'domains') {
   const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForDomain({
     id: id,
     version,
@@ -66,13 +65,19 @@ if(collection === 'domains'){
   nodes = eventNodes;
   edges = eventEdges;
 }
-
-
-
 ---
 
 <div>
-  <NodeGraphNew id={id} nodes={nodes} edges={edges} title={title} hrefLabel={href.label} href={href.url} linkTo={linkTo} client:load />
+  <NodeGraphNew
+    id={id}
+    nodes={nodes}
+    edges={edges}
+    title={title}
+    hrefLabel={href.label}
+    href={href.url}
+    linkTo={linkTo}
+    client:load
+  />
 </div>
 
 <style is:global>

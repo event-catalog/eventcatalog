@@ -8,26 +8,23 @@ import { getIndexPage } from '@utils/pages';
 const page = await getIndexPage();
 let CustomContent = null;
 
-if(page){
+if (page) {
   const { Content } = await page.render();
   CustomContent = Content;
 }
-
 ---
 
-{CustomContent && 
-  <Layout title="EventCatalog">
-    <main class="py-8">
-      <div class="prose prose-md w-full !max-w-none">
-        <CustomContent components={components}   />
-      </div>
-      <Footer />
-    </main>
-  </Layout>
+{
+  CustomContent && (
+    <Layout title="EventCatalog">
+      <main class="py-8">
+        <div class="prose prose-md w-full !max-w-none">
+          <CustomContent components={components} />
+        </div>
+        <Footer />
+      </main>
+    </Layout>
+  )
 }
 
-{!CustomContent && 
-  <DefaultDocsLandingPage title="EventCatalog" />
-}
-
-
+{!CustomContent && <DefaultDocsLandingPage title="EventCatalog" />}

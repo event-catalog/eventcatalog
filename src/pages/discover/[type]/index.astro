@@ -8,32 +8,37 @@ import { getServices } from '@utils/services/services';
 import { getDomains } from '@utils/domains/domains';
 
 export async function getStaticPaths() {
-    const events = await getEvents();
-    const commands = await getCommands();
-    const services = await getServices();
-    const domains = await getDomains();
+  const events = await getEvents();
+  const commands = await getCommands();
+  const services = await getServices();
+  const domains = await getDomains();
 
-    const buildPage = (type: string, collection: CollectionEntry<CollectionTypes>[]) => {
-        return {
-            params: {
-                type,
-            },
-            props: {
-                type,
-                data: collection,
-            },
-        };
+  const buildPage = (type: string, collection: CollectionEntry<CollectionTypes>[]) => {
+    return {
+      params: {
+        type,
+      },
+      props: {
+        type,
+        data: collection,
+      },
     };
+  };
 
-    return [
-        buildPage('events', events),
-        buildPage('commands', commands),
-        buildPage('services', services),
-        buildPage('domains', domains),
-    ];
+  return [
+    buildPage('events', events),
+    buildPage('commands', commands),
+    buildPage('services', services),
+    buildPage('domains', domains),
+  ];
 }
 
 const { type, data } = Astro.props;
 ---
 
-<DiscoverLayout title={`${type} (${data.length})`} subtitle={`Find, filter and search for any ${type} in your system.`} data={data} type={type} />
+<DiscoverLayout
+  title={`${type} (${data.length})`}
+  subtitle={`Find, filter and search for any ${type} in your system.`}
+  data={data}
+  type={type}
+/>
