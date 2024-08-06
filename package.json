@@ -1,7 +1,7 @@
 {
   "name": "@eventcatalog/core",
   "type": "module",
-  "version": "2.2.6",
+  "version": "2.2.7",
   "publishConfig": {
     "access": "public"
   },

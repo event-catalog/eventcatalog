@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.2.7
+
+### Patch Changes
+
+- d7148fa: chore(core): fixed long labels on the documentation sidebar
+
 ## 2.2.6
 
 ### Patch Changes
