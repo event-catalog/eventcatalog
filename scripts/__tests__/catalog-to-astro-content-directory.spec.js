@@ -1,6 +1,7 @@
 import { catalogToAstro } from '../catalog-to-astro-content-directory';
 import * as path from 'path';
 import * as fs from 'fs-extra';
+import { describe, it, beforeAll, afterAll, expect } from 'vitest'
 
 const TMP_DIRECTORY = path.join(__dirname, 'tmp');
 const ASTRO_OUTPUT = path.join(TMP_DIRECTORY, 'content');

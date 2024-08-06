@@ -1,5 +1,5 @@
 import { getNodesAndEdges } from '../../events/node-graph';
-import { getCollection } from 'astro:content';
+import { vi, describe, it, expect } from 'vitest'
 
 const mockServices = [
   {
@@ -45,8 +45,9 @@ const mockEvents = [
   },
 ];
 
-const mockCollections = () => {
-  getCollection.mockImplementation((key, filterFn) => {
+// mockCollections
+vi.mock('astro:content', () => ({
+  getCollection: (key, _filterFn) => {
     if (key === 'services') {
       return Promise.resolve(mockServices);
     }
@@ -54,19 +55,12 @@ const mockCollections = () => {
       return Promise.resolve(mockEvents);
     }
     return Promise.resolve([]);
-  });
-};
+  },
+}));
 
 describe('Services NodeGraph', () => {
-  beforeEach(() => {
-    getCollection.mockClear();
-  });
-
   describe('getNodesAndEdges', () => {
     it('should return nodes and edges for a given event', async () => {
-      // getCollection.mockResolvedValueOnce(mockServices);
-      mockCollections();
-
       const { nodes, edges } = await getNodesAndEdges({ id: 'OrderCreatedEvent', version: '0.0.1' });
 
       // The middle node itself, the service
@@ -141,8 +135,6 @@ describe('Services NodeGraph', () => {
     });
 
     it('returns empty nodes and edges if no event is found', async () => {
-      mockCollections();
-
       const { nodes, edges } = await getNodesAndEdges({ id: 'UnknownEvent' });
 
       expect(nodes).toEqual([]);

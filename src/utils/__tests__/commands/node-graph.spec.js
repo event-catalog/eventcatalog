@@ -1,5 +1,5 @@
 import { getNodesAndEdges } from '../../commands/node-graph';
-import { getCollection } from 'astro:content';
+import { vi, describe, it, expect } from 'vitest'
 
 const mockServices = [
   {
@@ -45,8 +45,9 @@ const mockCommands = [
   },
 ];
 
-const mockCollections = () => {
-  getCollection.mockImplementation((key, filterFn) => {
+// mockCollections
+vi.mock('astro:content', () => ({
+  getCollection: (key, _filterFn) => {
     if (key === 'services') {
       return Promise.resolve(mockServices);
     }
@@ -54,19 +55,12 @@ const mockCollections = () => {
       return Promise.resolve(mockCommands);
     }
     return Promise.resolve([]);
-  });
-};
+  },
+}));
 
 describe('Commands NodeGraph', () => {
-  beforeEach(() => {
-    getCollection.mockClear();
-  });
-
   describe('getNodesAndEdges', () => {
     it('should return nodes and edges for a given event', async () => {
-      // getCollection.mockResolvedValueOnce(mockServices);
-      mockCollections();
-
       const { nodes, edges } = await getNodesAndEdges({ id: 'AdjustOrder', version: '0.0.1' });
 
       // The middle node itself, the service
@@ -140,8 +134,6 @@ describe('Commands NodeGraph', () => {
     });
 
     it('returns an empty array if no commands are found', async () => {
-      mockCollections();
-
       const { nodes, edges } = await getNodesAndEdges({ id: 'UnknownCommand' });
 
       expect(nodes).toEqual([]);
