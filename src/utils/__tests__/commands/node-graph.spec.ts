@@ -138,7 +138,7 @@ describe('Commands NodeGraph', () => {
     });
 
     it('returns an empty array if no commands are found', async () => {
-      const { nodes, edges } = await getNodesAndEdges({ id: 'UnknownCommand' });
+      const { nodes, edges } = await getNodesAndEdges({ id: 'UnknownCommand', version: '1.0.0' });
 
       expect(nodes).toEqual([]);
       expect(edges).toEqual([]);
