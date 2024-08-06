@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * Script for GitHub Actions
  * Sets up the project with required files
