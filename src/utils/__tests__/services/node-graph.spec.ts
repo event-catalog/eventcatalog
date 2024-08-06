@@ -60,7 +60,6 @@ vi.mock('astro:content', async (importOriginal) => {
   };
 });
 
-
 describe('Services NodeGraph', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -68,7 +67,6 @@ describe('Services NodeGraph', () => {
 
   describe('getNodesAndEdges', () => {
     it('should return nodes and edges for a given service', async () => {
-
       const { nodes, edges } = await getNodesAndEdges({ id: 'OrderService', version: '1.0.0' });
 
       // The middle node itself, the service
@@ -139,7 +137,6 @@ describe('Services NodeGraph', () => {
     });
 
     it('returns empty nodes and edges if no service is found', async () => {
-
       const { nodes, edges } = await getNodesAndEdges({ id: 'UnknownService', version: '1.0.0' });
 
       expect(nodes).toEqual([]);
