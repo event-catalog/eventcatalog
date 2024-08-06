@@ -5,6 +5,7 @@
 
 import { join } from 'node:path';
 import fs from 'fs';
+import { execSync } from 'node:child_process';
 const __dirname = import.meta.dirname;
 
 const args = process.argv.slice(2);
