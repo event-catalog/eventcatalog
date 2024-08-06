@@ -7,7 +7,7 @@ import { mermaid } from "./src/remark-plugins/mermaid"
 import { join } from 'node:path';
 
 /** @type {import('bin/eventcatalog.config').Config} */
-import config from './eventcatalog.config.js';
+import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
 
 const coreDirectory = process.env.CATALOG_DIR || process.cwd();

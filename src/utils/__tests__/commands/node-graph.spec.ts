@@ -1,6 +1,5 @@
 import { getNodesAndEdges } from '../../commands/node-graph';
-import { getCollection } from 'astro:content';
-import { expect, describe, it, vi, beforeEach } from 'vitest';
+import { expect, describe, it, vi } from 'vitest';
 
 const mockServices = [
   {
