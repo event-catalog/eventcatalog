@@ -76,8 +76,5 @@
     "tsup": "^8.1.0",
     "vite-tsconfig-paths": "^4.3.2",
     "vitest": "^2.0.5"
-  },
-  "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "^4.20.0"
   }
 }
