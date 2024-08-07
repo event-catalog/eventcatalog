@@ -2,6 +2,12 @@
 
 <h1>📖 EventCatalog</h1>
 
+[![MIT License][license-badge]][license]
+[![PRs Welcome][prs-badge]][prs]
+<img src="https://img.shields.io/github/actions/workflow/status/event-catalog/eventcatalog/verify-build.yml"/>
+[![Star on GitHub][github-star-badge]][github-star]
+
+
 
 <!-- [![Star on GitHub][github-star-badge]][github-star] -->
 <!-- <h3>Bring discoverability to your -->
@@ -10,9 +16,7 @@
 
 <!-- [![MIT License][license-badge]][license] -->
 <!-- [![PRs Welcome][prs-badge]][prs] -->
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-41-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
+
 
 <!-- [![Watch on GitHub][github-watch-badge]][github-watch] -->
 <!-- [![Star on GitHub][github-star-badge]][github-star] -->
@@ -23,9 +27,9 @@
 
 <h4>Features: Documentation generator for Event Driven Architectures, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
 
-[![MIT License][license-badge]][license]
-[![PRs Welcome][prs-badge]][prs]
-[![All Contributors](https://img.shields.io/badge/all_contributors-37-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-41-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [Read the Docs](https://eventcatalog.dev/) | [Edit the Docs](https://github.com/event-catalog/docs) | [View Demo](https://demo.eventcatalog.dev/docs)
 
