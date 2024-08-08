@@ -17,6 +17,8 @@ badges:
 schemaPath: schema.json
 ---
 
+import Footer from '@catalog/components/footer.astro';
+
 ## Overview
 
 The OrderConfirmed event is triggered when an order has been successfully confirmed. This event notifies relevant services that the order is ready for further processing, such as inventory adjustment, payment finalization, and preparation for shipping.
@@ -49,3 +51,5 @@ The OrderConfirmed event is triggered when an order has been successfully confir
 ## Schema
 
 <Schema file="schema.json"/>
+
+<Footer />

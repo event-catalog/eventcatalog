@@ -7,6 +7,7 @@
       "@config": ["./eventcatalog.config.js"],
       "@eventcatalog": ["src/utils/config/catalog.ts"],
       "@components/*": ["src/components/*"],
+      "@catalog/components/*": ["src/custom-defined-components/*"],
       "@types": ["src/types/index.ts"],
       "@utils/*": ["src/utils/*"],
       "@layouts/*": ["src/layouts/*"]

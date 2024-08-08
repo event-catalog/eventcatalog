@@ -18,6 +18,8 @@ repository:
 schemaPath: "openapi.yml"
 ---
 
+import Footer from '@catalog/components/footer.astro';
+
 ## Overview
 
 The Orders Service is responsible for managing customer orders within the system. It handles order creation, updating, status tracking, and interactions with other services such as Inventory, Payment, and Notification services to ensure smooth order processing and fulfillment.
@@ -27,3 +29,5 @@ The Orders Service is responsible for managing customer orders within the system
 ## Architecture diagram 
 
 <NodeGraph />
+
+<Footer />

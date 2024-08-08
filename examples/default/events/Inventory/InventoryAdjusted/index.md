@@ -20,7 +20,7 @@ badges:
 schemaPath: 'schema.avro'
 ---
 
-
+import Footer from '@catalog/components/footer.astro';
 
 ## Overview
 
@@ -105,3 +105,5 @@ for message in consumer:
     event_data = json.loads(message.value)
     print(f"Received Inventory Adjusted event: {event_data}")
 ```
+
+<Footer />

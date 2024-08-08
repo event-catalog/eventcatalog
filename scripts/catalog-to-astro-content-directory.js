@@ -97,6 +97,23 @@ const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles,
   }
 };
 
+const copyComponents = async ({ source, target }) => {
+  const componentsDir = path.join(source, 'components');
+  const componentsTarget = path.join(target, '../custom-defined-components');
+
+  // Clear the component directory before we copy files over
+  if (fs.existsSync(componentsTarget)) {
+    await fs.rmSync(componentsTarget, { recursive: true });
+  }
+
+  if (!fs.existsSync(componentsDir) || !fs.statSync(componentsDir).isDirectory()) {
+    return;
+  }
+
+  // Copy files
+  await fs.cpSync(componentsDir, componentsTarget, { recursive: true });
+};
+
 export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) => {
   // Config file
   const astroConfigFile = fs.readFileSync(path.join(astroContentDir, 'config.ts'));
@@ -211,6 +228,9 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
     pathToAllFiles: [],
     type: 'pages',
   });
+
+  // Copy the components if they are defined
+  await copyComponents({ source, target: astroContentDir, catalogFilesDir });
 };
 
 if (process.env.NODE_ENV !== 'test') {

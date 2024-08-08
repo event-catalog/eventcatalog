@@ -17,6 +17,8 @@ badges:
 schemaPath: 'schema.json'
 ---
 
+import Footer from '@catalog/components/footer.astro';
+
 ## Overview
 
 The OrderCancelled event is triggered whenever an existing order is cancelled. This event ensures that all relevant services are notified of the cancellation, allowing them to take appropriate actions such as updating inventory levels, refunding payments, and notifying the user. The event helps maintain consistency across the system by ensuring all dependent services are aware of the order cancellation.
@@ -49,3 +51,5 @@ The OrderCancelled event is triggered whenever an existing order is cancelled. T
 JSON schema for the event.
 
 <Schema title="JSON Schema" file="schema.json"/>
+
+<Footer />

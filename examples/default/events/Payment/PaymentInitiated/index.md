@@ -7,6 +7,8 @@ owners:
     - dboyne
 ---
 
+import Footer from '@catalog/components/footer.astro';
+
 ## Overview
 
 The Payment Initiated event is triggered when a user initiates a payment through the Payment Service. This event signifies the beginning of the payment process and contains all necessary information to process the payment.
@@ -30,3 +32,5 @@ The Payment Initiated event is triggered when a user initiates a payment through
 - **Authentication**: Ensure that only authenticated users can initiate a payment, and the userId in the payload matches the authenticated user.
 - **Data Validation**: Validate all input data to prevent injection attacks or other malicious input.
 - **Sensitive Data Handling**: Avoid including sensitive information (e.g., credit card numbers) in the event payload. Use secure channels and encryption for such data.
+
+<Footer />

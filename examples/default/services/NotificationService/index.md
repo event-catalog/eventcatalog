@@ -14,6 +14,8 @@ repository:
   url: https://github.com/boyney123/pretend-shipping-service
 ---
 
+import Footer from '@catalog/components/footer.astro';
+
 ## Overview
 
 The Notification Service is responsible for managing and delivering notifications to users and other services. It supports various notification channels such as email, SMS, push notifications, and in-app notifications. The service ensures reliable and timely delivery of messages and integrates with other services to trigger notifications based on specific events.
@@ -34,3 +36,5 @@ The Notification Service is responsible for managing and delivering notification
     - Attributes: channelId, name, provider, configuration 
   </Accordion>
 </AccordionGroup>
+
+<Footer />

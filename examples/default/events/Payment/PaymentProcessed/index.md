@@ -7,6 +7,8 @@ owners:
     - dboyne
 ---
 
+import Footer from '@catalog/components/footer.astro';
+
 ## Overview
 
 The PaymentProcessed event is triggered after the payment has been successfully processed by the Payment Service. This event signifies that a payment has been confirmed, and it communicates the outcome to other services and components within the system.
@@ -36,3 +38,5 @@ The PaymentProcessed event is triggered after the payment has been successfully 
 - **Data Validation**: Ensure that all data in the event payload is validated before publishing to prevent injection attacks or other malicious activities.
 - **Sensitive Data Handling**: Avoid including sensitive information (e.g., full credit card numbers) in the event payload. Use secure channels and encryption for such data.
 - **Authentication and Authorization**: Ensure that only authorized services can publish or consume PaymentProcessed events.
+
+<Footer />
