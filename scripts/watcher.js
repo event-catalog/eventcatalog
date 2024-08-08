@@ -22,7 +22,6 @@ const extensionReplacer = (collection, file) => {
   return file.replace('.md', '.mdx');
 };
 
-
 for (let item of [...verifiedWatchList]) {
   // Listen to the users directory for any changes.
   watcher.subscribe(path.join(projectDirectory, item), (err, events) => {
