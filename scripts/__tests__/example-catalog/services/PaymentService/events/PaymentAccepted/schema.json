@@ -9,9 +9,7 @@
     },
     "eventType": {
       "type": "string",
-      "enum": [
-        "PaymentAccepted"
-      ],
+      "enum": ["PaymentAccepted"],
       "description": "The type of the event, which in this case is always 'PaymentAccepted'"
     },
     "timestamp": {
@@ -43,30 +41,18 @@
     "paymentMethod": {
       "type": "string",
       "description": "The payment method used",
-      "enum": [
-        "CreditCard",
-        "PayPal",
-        "BankTransfer",
-        "Cryptocurrency"
-      ]
+      "enum": ["CreditCard", "PayPal", "BankTransfer", "Cryptocurrency"]
     },
     "status": {
       "type": "string",
       "description": "The status of the payment",
-      "enum": [
-        "Accepted"
-      ]
+      "enum": ["Accepted"]
     },
     "metadata": {
       "type": "object",
       "description": "Optional additional data related to the payment",
       "additionalProperties": {
-        "type": [
-          "string",
-          "number",
-          "boolean",
-          "null"
-        ]
+        "type": ["string", "number", "boolean", "null"]
       }
     }
   },
