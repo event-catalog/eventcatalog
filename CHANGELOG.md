@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.3.1
+
+### Patch Changes
+
+- 0de35d9: fix(core): vitest no longer added to the npm package
+
 ## 2.3.0
 
 ### Minor Changes
