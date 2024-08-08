@@ -17,6 +17,8 @@ badges:
 schemaPath: "schema.json"
 ---
 
+import Footer from '@catalog/components/footer.astro';
+
 ## Overview
 
 The UpdateInventory command is issued to update the existing stock levels of a product in the inventory. This command is used by the inventory management system to adjust the quantity of products available in the warehouse or store, either by increasing or decreasing the current stock levels.
@@ -42,3 +44,4 @@ The UpdateInventory command is issued to update the existing stock levels of a p
 
 <Schema file="schema.json"/>
 
+<Footer />

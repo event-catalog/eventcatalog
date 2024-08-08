@@ -27,6 +27,8 @@ repository:
   url: https://github.com/boyney123/pretend-shipping-service
 ---
 
+import Footer from '@catalog/components/footer.astro';
+
 ## Overview
 
 The Inventory Service is a critical component of the system responsible for managing product stock levels, tracking inventory movements, and ensuring product availability. It interacts with other services to maintain accurate inventory records and supports operations such as order fulfillment, restocking, and inventory audits.
@@ -34,3 +36,5 @@ The Inventory Service is a critical component of the system responsible for mana
 ## Architecture diagram
 
 <NodeGraph title="Hello world" />
+
+<Footer />

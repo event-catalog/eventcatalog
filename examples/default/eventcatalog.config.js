@@ -2,7 +2,7 @@
 export default {
   title: 'EventCatalog',
   tagline: 'Discover, Explore and Document your Event Driven Architectures',
-  organizationName: 'Your Company',
+  organizationName: 'Awesome Fake Company',
   homepageLink: 'https://eventcatalog.dev/',
   editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
   port: 3000,

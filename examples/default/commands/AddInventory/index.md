@@ -17,6 +17,8 @@ badges:
 schemaPath: 'schema.json'
 ---
 
+import Footer from '@catalog/components/footer.astro';
+
 ## Overview
 
 The AddInventory command is issued to add new stock to the inventory. This command is used by the inventory management system to update the quantity of products available in the warehouse or store.
@@ -40,3 +42,7 @@ The AddInventory command is issued to add new stock to the inventory. This comma
 ## Schema
 
 <Schema file="schema.json"/>
+
+<Footer />
+
+

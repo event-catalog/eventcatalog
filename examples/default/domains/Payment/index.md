@@ -15,6 +15,8 @@ badges:
       textColor: blue
 ---
 
+import Footer from '@catalog/components/footer.astro';
+
 ## Overview
 
 The Payment Domain encompasses all services and components related to handling financial transactions within the system. It is responsible for managing payments, transactions, billing, and financial records. The domain ensures secure, reliable, and efficient processing of all payment-related activities
@@ -22,3 +24,5 @@ The Payment Domain encompasses all services and components related to handling f
 ## Bounded context
 
 <NodeGraph />
+
+<Footer />

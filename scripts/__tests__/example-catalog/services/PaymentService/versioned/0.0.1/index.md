@@ -17,6 +17,8 @@ repository:
   url: https://github.com/boyney123/pretend-shipping-service
 ---
 
+import Footer from '@catalog/components/footer.astro';
+
 The Payment Service is a crucial component of our system that handles all payment-related operations. It processes payments, manages transactions, and communicates with other services through events. Using an event-driven architecture, it ensures that all actions are asynchronous, decoupled, and scalable.
 
 <NodeGraph />
@@ -29,3 +31,5 @@ The Payment Service is a crucial component of our system that handles all paymen
 - Transaction Service: Manages transaction records and states.
 - Notification Service: Sends notifications related to payment status changes.
 - Database: Stores transaction data and payment status.
+
+<Footer />

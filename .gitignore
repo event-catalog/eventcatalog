@@ -28,6 +28,7 @@ pnpm-debug.log*
 !/src/content/config.ts
 /public/generated/*
 /src/catalog-files/*
+/src/custom-defined-components/*
 /.eventcatalog-core/*
 /examples/large-catalog/*
 
