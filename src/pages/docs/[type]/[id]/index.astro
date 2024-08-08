@@ -1,0 +1,46 @@
+---
+import Seo from '@components/Seo.astro';
+import { buildUrl } from '@utils/url-builder';
+import { getEvents } from '@utils/events';
+import { getCommands } from '@utils/commands';
+import { getServices } from '@utils/services/services';
+import { getDomains } from '@utils/domains/domains';
+import type { CollectionEntry } from 'astro:content';
+import type { CollectionTypes } from '@types';
+
+export async function getStaticPaths() {
+  const [events, commands, services, domains] = await Promise.all([getEvents(), getCommands(), getServices(), getDomains()]);
+
+  const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
+    return collection.map((item) => ({
+      params: {
+        type: item.collection,
+        id: item.data.id,
+      },
+      props: {
+        type: item.collection,
+        ...item,
+      },
+    }));
+  };
+
+  return [...buildPages(domains), ...buildPages(events), ...buildPages(services), ...buildPages(commands)];
+}
+
+const props = Astro.props;
+const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
+
+const { pathname } = Astro.url;
+const redirectUrl = buildUrl(pathname + '/' + props.data.latestVersion);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta http-equiv="refresh" content={`0; url=${redirectUrl}`} />
+    <Seo title={`EventCatalog | ${pageTitle}`} ogTitle={pageTitle} />
+  </head>
+  <body>
+    <p>You are being redirected to <a href={redirectUrl}>{redirectUrl}</a></p>
+  </body>
+</html>
