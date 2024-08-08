@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.3.0
+
+### Minor Changes
+
+- d662cb1: feat(core): added custom component support for eventcatalog
+
 ## 2.2.7
 
 ### Patch Changes
