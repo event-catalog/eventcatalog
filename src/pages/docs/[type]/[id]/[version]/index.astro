@@ -19,12 +19,14 @@ import DomainSideBar from '@components/SideBars/DomainSideBar.astro';
 import type { CollectionTypes } from '@types';
 import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewer.astro';
 import { buildUrl } from '@utils/url-builder';
+import { getFlows } from '@utils/flows/flows';
 
 export async function getStaticPaths() {
   const events = await getEvents();
   const commands = await getCommands();
   const services = await getServices();
   const domains = await getDomains();
+  const flows = await getFlows();
 
   const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
     return collection.map((item) => ({
@@ -40,7 +42,7 @@ export async function getStaticPaths() {
     }));
   };
 
-  return [...buildPages(domains), ...buildPages(events), ...buildPages(services), ...buildPages(commands)];
+  return [...buildPages(domains), ...buildPages(events), ...buildPages(services), ...buildPages(commands), ...buildPages(flows)];
 }
 
 const props = Astro.props;
@@ -70,6 +72,8 @@ const getBadge = () => {
       class: 'text-yellow-400',
     };
   }
+
+  return { backgroundColor: 'gray', textColor: 'gray', content: props.collection, icon: PencilIcon, class: 'text-gray'}
 };
 
 const badges = [getBadge(), ...contentBadges];

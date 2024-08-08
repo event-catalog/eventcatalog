@@ -58,6 +58,26 @@ const baseSchema = z.object({
     .optional(),
 });
 
+const pointer = z.object({
+  id: z.string(),
+  version: z.string(),
+});
+
+const flows = defineCollection({
+  type: 'content',
+  schema: z
+    .object({
+      steps: z.array(
+        z.object({
+          title: z.string(),
+          summary: z.string().optional(),
+          message: pointer.optional(),
+        })
+      ),
+    })
+    .merge(baseSchema),
+});
+
 const events = defineCollection({
   type: 'content',
   schema: z
@@ -76,11 +96,6 @@ const commands = defineCollection({
       consumers: z.array(reference('services')).optional(),
     })
     .merge(baseSchema),
-});
-
-const pointer = z.object({
-  id: z.string(),
-  version: z.string(),
 });
 
 const services = defineCollection({
@@ -142,6 +157,7 @@ export const collections = {
   users,
   teams,
   domains,
+  flows,
   pages,
   changelogs,
 };

@@ -199,6 +199,16 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
     type: 'domains',
   });
 
+  // // Copy all the flow files over
+  await copyFiles({
+    source,
+    target: astroContentDir,
+    catalogFilesDir,
+    pathToMarkdownFiles: [path.join(source, 'flows/**/**/index.md'), path.join(source, 'flows/**/**/changelog.md')],
+    pathToAllFiles: [path.join(source, 'flows/**')],
+    type: 'flows',
+  });
+
   // // Copy all the users
   await copyFiles({
     source,
