@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PaymentAcceptedEvent",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "description": "A unique identifier for the event"
+    },
+    "eventType": {
+      "type": "string",
+      "enum": ["PaymentAccepted"],
+      "description": "The type of the event, which in this case is always 'PaymentAccepted'"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The time at which the event was created"
+    },
+    "paymentId": {
+      "type": "string",
+      "description": "A unique identifier for the payment"
+    },
+    "orderId": {
+      "type": "string",
+      "description": "A unique identifier for the order associated with the payment"
+    },
+    "userId": {
+      "type": "string",
+      "description": "A unique identifier for the user who made the payment"
+    },
+    "amount": {
+      "type": "number",
+      "description": "The amount of the payment"
+    },
+    "currency": {
+      "type": "string",
+      "description": "The currency of the payment, represented by its ISO 4217 code",
+      "pattern": "^[A-Z]{3}$"
+    },
+    "paymentMethod": {
+      "type": "string",
+      "description": "The payment method used",
+      "enum": ["CreditCard", "PayPal", "BankTransfer", "Cryptocurrency"]
+    },
+    "status": {
+      "type": "string",
+      "description": "The status of the payment",
+      "enum": ["Accepted"]
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional additional data related to the payment",
+      "additionalProperties": {
+        "type": ["string", "number", "boolean", "null"]
+      }
+    }
+  },
+  "required": [
+    "eventId",
+    "eventType",
+    "timestamp",
+    "paymentId",
+    "orderId",
+    "userId",
+    "amount",
+    "currency",
+    "paymentMethod",
+    "status"
+  ],
+  "additionalProperties": false
+}
