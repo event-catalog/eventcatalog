@@ -10,6 +10,7 @@ bin/eventcatalog.ts
 scripts/start-catalog.locally.js
 scripts/verify-build.js
 tsup.config.js
+vitest.config.ts
 
 # EventCatalog files that get overridden / not used in npm package
 __tests__/
