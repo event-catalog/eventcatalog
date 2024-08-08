@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.3.2
+
+### Patch Changes
+
+- 90c9219: feat(core): added page redirect to latest version when going to /{resource/{id}
+
 ## 2.3.1
 
 ### Patch Changes
