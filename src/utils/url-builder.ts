@@ -1,7 +1,9 @@
 import config from '@eventcatalog';
 
-const cleanUrl = (url: string) => {
-  return url.replace(/\/+/g, '/');
+const cleanUrl = (urlString: string) => {
+  const url = new URL(urlString);
+  url.pathname = url.pathname.replace(/\/+/g, '/');
+  return url.toString();
 };
 
 // Custom URL builder as Astro does not support this stuff out the box
