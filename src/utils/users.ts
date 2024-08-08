@@ -24,21 +24,23 @@ export const getUsers = async (): Promise<User[]> => {
   });
 
   return users.map((user) => {
-    const ownedServices = services.filter((service) => {
-      return service.data.owners?.find((owner) => owner.slug === user.data.id);
-    });
-
-    const ownedEvents = events.filter((event) => {
-      return event.data.owners?.find((owner) => owner.slug === user.data.id);
-    });
-
-    const ownedCommands = commands.filter((command) => {
-      return command.data.owners?.find((owner) => owner.slug === user.data.id);
-    });
-
     const associatedTeams = teams.filter((team) => {
-      return team.data.members?.find((member) => member.slug === user.data.id);
+      return team.data.members?.some((member) => member.slug === user.data.id);
     });
+
+    const isOwnedByUserOrAssociatedTeam = () => {
+      const associatedTeamsSlug: string[] = associatedTeams.map((team) => team.slug);
+
+      return ({ data }: { data: { owners?: Array<{ slug: string }> } }) => {
+        return data.owners?.some((owner) => owner.slug === user.data.id || associatedTeamsSlug.includes(owner.slug));
+      };
+    };
+
+    const ownedServices = services.filter(isOwnedByUserOrAssociatedTeam());
+
+    const ownedEvents = events.filter(isOwnedByUserOrAssociatedTeam());
+
+    const ownedCommands = commands.filter(isOwnedByUserOrAssociatedTeam());
 
     return {
       ...user,
