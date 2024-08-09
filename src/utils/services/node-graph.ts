@@ -40,16 +40,13 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   const messages = [...events, ...commands];
 
   const receivesHydrated = receivesRaw
-    .map((message) => {
-      return getVersion(messages, message.id, message.version);
-    })
+    .map((message) => getVersion(messages, message.id, message.version))
+    .flat()
     .filter((e) => e !== undefined);
 
   const sendsHydrated = sendsRaw
-    .map((message) => {
-      return getVersion(messages, message.id, message.version);
-      // return messages.find((message) => message.data.id === messageId);
-    })
+    .map((message) => getVersion(messages, message.id, message.version))
+    .flat()
     .filter((e) => e !== undefined);
 
   const receives = (receivesHydrated as CollectionEntry<'events' | 'commands'>[]) || [];

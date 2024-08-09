@@ -1,6 +1,6 @@
 ---
 id: InventoryService
-version: 0.0.2
+version: 0.0.1
 name: Inventory Service
 summary: |
   Service that handles the inventory

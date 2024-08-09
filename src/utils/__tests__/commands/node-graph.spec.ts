@@ -15,6 +15,12 @@ const mockServices = [
           version: '0.0.1',
         },
       ],
+      receives: [
+        {
+          id: 'PlaceOrder',
+          version: '>1.5.0',
+        },
+      ],
     },
   },
   {
@@ -41,6 +47,24 @@ const mockCommands = [
     data: {
       id: 'AdjustOrder',
       version: '0.0.1',
+    },
+  },
+  {
+    id: 'PlaceOrder',
+    slug: 'PlaceOrder',
+    collection: 'commands',
+    data: {
+      id: 'PlaceOrder',
+      version: '1.5.1',
+    },
+  },
+  {
+    id: 'PlaceOrder',
+    slug: 'PlaceOrder',
+    collection: 'commands',
+    data: {
+      id: 'PlaceOrder',
+      version: '2.0.1',
     },
   },
 ];
@@ -141,6 +165,58 @@ describe('Commands NodeGraph', () => {
 
       expect(nodes).toEqual([]);
       expect(edges).toEqual([]);
+    });
+
+    it('should return nodes and edges for a given event using semver range', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'PlaceOrder', version: '2.0.1' });
+
+      // The middle node itself, the service
+      const expectedCommandNode = {
+        id: 'PlaceOrder-2.0.1',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', message: expect.anything(), showTarget: false, showSource: true },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'commands',
+      };
+
+      const expectedConsumerNode = {
+        id: 'OrderService-0.0.1',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: {
+          title: 'OrderService',
+          mode: 'simple',
+          service: mockServices[0],
+          showSource: false,
+        },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'services',
+      };
+
+      const expectedEdges = [
+        {
+          id: 'PlaceOrder-2.0.1-OrderService-0.0.1',
+          source: 'PlaceOrder-2.0.1',
+          target: 'OrderService-0.0.1',
+          type: 'smoothstep',
+          label: 'accepts',
+          animated: false,
+          markerEnd: { type: 'arrow' },
+        },
+      ];
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          // The command node itself
+          expect.objectContaining(expectedCommandNode),
+
+          // Nodes on the Right
+          expect.objectContaining(expectedConsumerNode),
+        ])
+      );
+
+      expect(edges).toEqual(expectedEdges);
     });
   });
 });

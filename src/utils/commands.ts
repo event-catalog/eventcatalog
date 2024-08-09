@@ -2,6 +2,7 @@ import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
 import { getVersionForCollectionItem } from './collections/util';
+import { satisfies } from 'semver';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
@@ -29,16 +30,16 @@ export const getCommands = async ({ getAllVersions = true }: Props = {}): Promis
     const producers = services.filter((service) => {
       if (!service.data.sends) return false;
       return service.data.sends.find((item) => {
-        if (item.version) return item.id === command.data.id && item.version === command.data.version;
-        return item.id == command.data.id;
+        if (item.version) return item.id === command.data.id && satisfies(command.data.version, item.version);
+        return item.id == command.data.id; // ??
       });
     });
 
     const consumers = services.filter((service) => {
       if (!service.data.receives) return false;
       return service.data.receives.find((item) => {
-        if (item.version) return item.id === command.data.id && item.version === command.data.version;
-        return item.id == command.data.id;
+        if (item.version) return item.id === command.data.id && satisfies(command.data.version, item.version);
+        return item.id == command.data.id; // ??
       });
     });
 
