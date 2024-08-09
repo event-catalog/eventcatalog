@@ -1,19 +1,18 @@
 ---
 import BasicList from '@components/Lists/BasicList';
 import PlainPage from '@layouts/PlainPage.astro';
-import type { CollectionTypes } from '@types';
 import { getCommands } from '@utils/commands';
 import { getDomains } from '@utils/domains/domains';
 import { getEvents } from '@utils/events';
+import { getFlows } from '@utils/flows/flows';
 import { getServices } from '@utils/services/services';
 import { buildUrl } from '@utils/url-builder';
-import type { CollectionEntry } from 'astro:content';
 import { ViewTransitions } from 'astro:transitions';
 
-const [services, events, commands, domains] = await Promise.all([getServices(), getEvents(), getCommands(), getDomains()]);
+const [services, events, commands, domains, flows] = await Promise.all([getServices(), getEvents(), getCommands(), getDomains(), getFlows()]);
 
 // @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
-const navItems = [...domains, ...services, ...events, ...commands];
+const navItems = [...domains, ...services, ...events, ...commands, ...flows];
 
 const navigation = navItems.reduce((acc, item) => {
   //  @ts-ignore
@@ -24,6 +23,7 @@ const navigation = navItems.reduce((acc, item) => {
     [item.collection]: [...group, item],
   };
 }, {}) as any;
+
 
 const currentPath = Astro.url.pathname;
 const { title, description } = Astro.props;
@@ -55,6 +55,8 @@ const getColor = (collection: string) => {
           Object.keys(navigation).map((key: any) => {
             const items = navigation[key].map((item: any) => {
               const isCurrent = currentPath.includes(`${item.collection}/${item.data.id}/${item.data.version}`);
+              const isLatest = item.data.version === item.data.latestVersion;
+              if(!isLatest) return null;
               return {
                 label: item.data.name,
                 version: item.data.version,
@@ -62,7 +64,7 @@ const getColor = (collection: string) => {
                 href: buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`),
                 active: isCurrent,
               };
-            });
+            }).filter((n: any) => n !== null);
             return (
               <BasicList
                 title={`${key} (${navigation[key].length})`}

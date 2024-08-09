@@ -7,6 +7,7 @@ export default {
   safelist: [
     {pattern: /border-.*-(200|400|500)/},
     {pattern: /bg-.*-(100|200|400|500)/},
+    {pattern: /from-.*-(100|200|400|500|700)/},
     {pattern: /text-.*-(400|500|800)/},
     'border-blue-200',
     'border-green-300',

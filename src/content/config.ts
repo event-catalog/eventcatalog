@@ -68,11 +68,36 @@ const flows = defineCollection({
   schema: z
     .object({
       steps: z.array(
-        z.object({
-          title: z.string(),
-          summary: z.string().optional(),
-          message: pointer.optional(),
-        })
+        z
+          .object({
+            id: z.union([z.string(), z.number()]),
+            type: z.enum(['node', 'message', 'user', 'actor']).optional(),
+            title: z.string(),
+            summary: z.string().optional(),
+            message: pointer.optional(),
+            service: pointer.optional(),
+            actor: z.object({
+              name: z.string(),
+            }).optional(),
+            externalSystem: z.object({
+              name: z.string(),
+              summary: z.string().optional(),
+              url: z.string().optional(),
+            }).optional(),
+            paths: z
+              .array(
+                z.object({
+                  step: z.number(),
+                  label: z.string().optional(),
+                })
+              )
+              .optional(),
+          })
+          .refine((data) => {
+            if(!data.message && !data.service && !data.actor) return true;
+            // Either message or service or actor must be present, but not all
+            return (data.message && !data.service && !data.actor) || (!data.message && data.service) || (data.actor && !data.message && !data.service);
+          })
       ),
     })
     .merge(baseSchema),

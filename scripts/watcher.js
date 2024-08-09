@@ -62,7 +62,6 @@ for (let item of [...verifiedWatchList]) {
 
       // IF directory remove it
       if (type === 'delete') {
-        console.log('eventPath', eventPath);
         fs.rmSync(newPath);
       }
     }

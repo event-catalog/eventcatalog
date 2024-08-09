@@ -1,4 +1,5 @@
 import { getVersionForCollectionItem, getVersions } from '@utils/collections/util';
+import { getVersion } from '@utils/services/services';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
@@ -35,40 +36,32 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
   });
 
 
-  // const events = await getCollection('events');
-  // const commands = await getCollection('commands');
+  const events = await getCollection('events');
+  const commands = await getCollection('commands');
 
-  // const allMessages = [...events, ...commands];
+  const allMessages = [...events, ...commands];
 
   // @ts-ignore // TODO: Fix this type
   return flows.map((flow) => {
     // @ts-ignore
     const { latestVersion, versions } = getVersionForCollectionItem(flow, flows);
+    const steps = flow.data.steps || [];
 
-    // // const receives = service.data.receives || [];
-    // const sendsMessages = service.data.sends || [];
-    // const receivesMessages = service.data.receives || [];
-
-    // const sends = sendsMessages
-    //   .map((message) => {
-    //     const event = getVersion(allMessages, message.id, message.version);
-    //     // const event = allMessages.find((_message) => _message.data.id === message.id && _message.data.version === message.version);
-    //     return event;
-    //   })
-    //   .filter((e) => e !== undefined);
-
-    // const receives = receivesMessages
-    //   .map((message) => {
-    //     const event = getVersion(allMessages, message.id, message.version);
-    //     // const event = allMessages.find((_message) => _message.data.id === message.id && _message.data.version === message.version);
-    //     return event;
-    //   })
-    //   .filter((e) => e !== undefined);
+    const hydrateSteps = steps.map((step) => {
+      if(!step.message) return { ...flow, data: { ...flow.data, type: 'node' } };
+      const message = getVersion(allMessages, step.message.id, step.message.version);
+      return {
+        ...step,
+        type: 'message',
+        message: message,
+      };
+    })
 
     return {
       ...flow,
       data: {
         ...flow.data,
+        steps: hydrateSteps,
         versions,
         latestVersion,
       },

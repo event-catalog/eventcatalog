@@ -13,7 +13,7 @@ import MessageSideBar from '@components/SideBars/MessageSideBar.astro';
 import { getEvents } from '@utils/events';
 import { getServices } from '@utils/services/services';
 import { getCommands } from '@utils/commands';
-import { EnvelopeIcon, PencilIcon, RectangleGroupIcon, ServerIcon } from '@heroicons/react/24/outline';
+import { EnvelopeIcon, PencilIcon, QueueListIcon, RectangleGroupIcon, ServerIcon } from '@heroicons/react/24/outline';
 import { getDomains } from '@utils/domains/domains';
 import DomainSideBar from '@components/SideBars/DomainSideBar.astro';
 import type { CollectionTypes } from '@types';
@@ -73,7 +73,11 @@ const getBadge = () => {
     };
   }
 
-  return { backgroundColor: 'gray', textColor: 'gray', content: props.collection, icon: PencilIcon, class: 'text-gray'}
+  if (props.collection === 'flows') {
+    return { backgroundColor: 'teal', textColor: 'teal', content: 'Flow', icon: QueueListIcon, class: 'text-gray' };
+  }
+
+  return { backgroundColor: 'teal', textColor: 'teal', content: '', icon: QueueListIcon, class: 'text-gray'}
 };
 
 const badges = [getBadge(), ...contentBadges];

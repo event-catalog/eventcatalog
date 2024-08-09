@@ -4,6 +4,7 @@ import { getNodesAndEdges as getNodesAndEdgesForService } from '@utils/services/
 import { getNodesAndEdges as getNodesAndEdgesForEvent } from '@utils/events/node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForCommand } from '@utils/commands/node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/domains/node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/flows/node-graph';
 
 interface Props {
   id: string;
@@ -57,6 +58,17 @@ if (collection === 'commands') {
 
 if (collection === 'domains') {
   const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForDomain({
+    id: id,
+    version,
+    mode,
+  });
+
+  nodes = eventNodes;
+  edges = eventEdges;
+}
+
+if (collection === 'flows') {
+  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForFlows({
     id: id,
     version,
     mode,
