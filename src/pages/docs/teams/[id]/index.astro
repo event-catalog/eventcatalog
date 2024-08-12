@@ -34,6 +34,7 @@ const { Content } = await render();
 const membersRaw = props.data.members || [];
 const members = await Promise.all(membersRaw.map((m) => getEntry(m)));
 
+const domains = props.data.ownedDomains as CollectionEntry<'domains'>[];
 const services = props.data.ownedServices as CollectionEntry<'services'>[];
 const events = props.data.ownedEvents as CollectionEntry<'events'>[];
 const commands = props.data.ownedCommands as CollectionEntry<'commands'>[];
@@ -44,6 +45,12 @@ const membersList = members.map((o) => ({
   badge: o.collection === 'users' ? o.data.role : 'Team',
   avatarUrl: o.collection === 'users' ? o.data.avatarUrl : '',
   href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
+}));
+
+const ownedDomainsList = domains.map((p) => ({
+  label: `${p.data.name}`,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+  tag: `v${p.data.version}`,
 }));
 
 const ownedServicesList = services.map((p) => ({
@@ -112,6 +119,13 @@ const ownedEventsList = [...events, ...commands].map((p) => ({
     </main>
     <aside class="sticky top-20 h-[calc(100vh-theme(spacing.16))] w-56 overflow-y-auto">
       <div class="divide-y-2 divide-gray-100">
+        <PillList
+          color="pink"
+          title={`Owned domains (${ownedDomainsList.length})`}
+          pills={ownedDomainsList}
+          emptyMessage={`${props.data.name} does not own any domains.`}
+          client:load
+        />
         <PillList
           color="blue"
           title={`Owned services (${ownedServicesList.length})`}

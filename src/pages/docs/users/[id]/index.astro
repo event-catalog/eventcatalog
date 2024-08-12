@@ -29,10 +29,17 @@ const { render, ...props } = Astro.props;
 
 const { Content } = await render();
 
+const domains = props.data.ownedDomains as CollectionEntry<'domains'>[];
 const services = props.data.ownedServices as CollectionEntry<'services'>[];
 const events = props.data.ownedEvents as CollectionEntry<'events'>[];
 const commands = props.data.ownedCommands as CollectionEntry<'commands'>[];
 const teams = props.data.associatedTeams as CollectionEntry<'teams'>[];
+
+const ownedDomainsList = domains.map((p) => ({
+  label: `${p.data.name}`,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+  tag: `v${p.data.version}`,
+}));
 
 const ownedServicesList = services.map((p) => ({
   label: `${p.data.name} (service)`,
@@ -41,7 +48,8 @@ const ownedServicesList = services.map((p) => ({
 }));
 
 const ownedMessageList = [...events, ...commands].map((p) => ({
-  label: `${p.data.name} (${p.collection.slice(0, -1)})`,
+  label: `${p.data.name}`,
+  badge: p.collection,
   color: p.collection === 'events' ? 'orange' : 'blue',
   tag: `v${p.data.version}`,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
@@ -91,7 +99,11 @@ const associatedTeams = teams.map((o) => ({
       <div class="border-b border-gray-200">
         <div class="mx-auto max-w-7xl px-6 lg:px-8">
           <div class="mx-auto max-w-2xl lg:max-w-none">
-            <dl class="hidden lg:grid grid-cols-1 gap-0.5 overflow-hidden rounded-2xl text-center sm:grid-cols-3 lg:grid-cols-3">
+            <dl class="hidden lg:grid grid-cols-1 gap-0.5 overflow-hidden rounded-2xl text-center sm:grid-cols-4 lg:grid-cols-4">
+              <div class="flex flex-col p-8">
+                <dt class="text-sm font-semibold leading-6 text-gray-600"># owned domains</dt>
+                <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{ownedDomainsList.length}</dd>
+              </div>
               <div class="flex flex-col p-8">
                 <dt class="text-sm font-semibold leading-6 text-gray-600"># owned services</dt>
                 <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{ownedServicesList.length}</dd>
@@ -120,16 +132,23 @@ const associatedTeams = teams.map((o) => ({
       <div class="divide-y-2 divide-gray-100">
         <PillList
           color="pink"
+          title={`Owned domains (${ownedDomainsList.length})`}
+          pills={ownedDomainsList}
+          emptyMessage={`${props.data.name} does not own any domains.`}
+          client:load
+        />
+        <PillList
+          color="pink"
           title={`Owned services (${ownedServicesList.length})`}
           pills={ownedServicesList}
-          emptyMessage={`${props.data.name} does not own any services .`}
+          emptyMessage={`${props.data.name} does not own any services.`}
           client:load
         />
         <PillList
           color="orange"
           title={`Owned messages (${ownedMessageList.length})`}
           pills={ownedMessageList}
-          emptyMessage={`${props.data.name} does not own any messages .`}
+          emptyMessage={`${props.data.name} does not own any messages.`}
           client:load
         />
         <OwnersList

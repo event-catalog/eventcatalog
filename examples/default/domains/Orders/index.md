@@ -4,6 +4,7 @@ name: Orders
 version: 0.0.3
 owners:
   - dboyne
+  - full-stack
 services:
   - id: InventoryService
     version: 0.0.2
@@ -21,7 +22,7 @@ import Footer from '@catalog/components/footer.astro';
 
 ## Overview
 
-The Orders domain handles all operations related to customer orders, from creation to fulfillment. This documentation provides an overview of the events and services involved in the Orders domain, helping developers and stakeholders understand the event-driven architecture.
+AAA The Orders domain handles all operations related to customer orders, from creation to fulfillment. This documentation provides an overview of the events and services involved in the Orders domain, helping developers and stakeholders understand the event-driven architecture.
 
 <Admonition type="warning">Please ensure all services are updated to the latest version for compatibility and performance improvements.</Admonition>
 

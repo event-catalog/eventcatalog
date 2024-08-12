@@ -6,6 +6,7 @@ summary: |
   Domain for everything shopping
 owners:
     - dboyne
+    - full-stack
 services:
     - id: InventoryService
       version: 0.0.2
