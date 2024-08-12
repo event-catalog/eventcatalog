@@ -1,4 +1,3 @@
-// import { getColor } from '@utils/colors';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
 import { getVersion } from '../services/services';

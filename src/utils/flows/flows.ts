@@ -8,23 +8,6 @@ const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
 export type Flow = CollectionEntry<'flows'>;
 
-// export const getVersion = (collection: CollectionEntry<'events' | 'commands'>[], id: string, version?: string) => {
-//   const data = collection;
-//   if (version) {
-//     return data.find((event) => event.data.version === version && event.data.id === id);
-//   }
-
-//   const filteredEvents = data.filter((event) => event.data.id === id);
-
-//   // Order by version
-//   const sorted = filteredEvents.sort((a, b) => {
-//     return a.data.version.localeCompare(b.data.version);
-//   });
-
-//   // latest version
-//   return sorted[sorted.length - 1];
-// };
-
 interface Props {
   getAllVersions?: boolean;
 }
