@@ -63,6 +63,19 @@ const baseSchema = z.object({
     .optional(),
 });
 
+const flowStep = z
+  .union([
+    // Can be a string or a number just to reference a step
+    z.union([z.string(), z.number()]),
+    z
+      .object({
+        id: z.union([z.string(), z.number()]),
+        label: z.string().optional(),
+      })
+      .optional(),
+  ])
+  .optional();
+
 const flows = defineCollection({
   type: 'content',
   schema: z
@@ -88,17 +101,13 @@ const flows = defineCollection({
                 url: z.string().url().optional(),
               })
               .optional(),
-            paths: z
-              .array(
-                z.object({
-                  step: z.number(),
-                  label: z.string().optional(),
-                })
-              )
-              .optional(),
+            next_step: flowStep,
+            next_steps: z.array(flowStep).optional(),
           })
           .refine((data) => {
             if (!data.message && !data.service && !data.actor) return true;
+            // Cant have both next_steps and next_steps
+            if (data.next_step && data.next_steps) return false;
             // Either message or service or actor must be present, but not all
             return (
               (data.message && !data.service && !data.actor) ||

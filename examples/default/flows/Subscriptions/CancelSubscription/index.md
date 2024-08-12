@@ -1,59 +1,68 @@
 ---
-id: CancelSubscription
-name: User cancels subscription
-version: 0.0.1
-summary: Flow for when a user has cancelled a subscription
+id: "CancelSubscription"
+name: "User Cancels Subscription"
+version: "0.0.1"
+summary: "Flow for when a user has cancelled a subscription"
 steps:
-    - id: 1
-      title: Cancels subscription
-      summary: User cancels their subscription
-      actor:
-        name: User
-      paths:
-        - step: 2
-          label: http request
-    - id: 2
-      title: Cancel Subscription
-      message:
-        id: CancelSubscription
-        version: 0.0.1
-      paths:
-        - step: 4
-    - id: 3
-      title: Stripe
-      externalSystem:
-        name: Stripe
-        summary: 3rd party payment system
-        url: https://stripe.com/
-      paths:
-        - step: 4
-    - id: 4
-      title: Subscription Service
-      service:
-        id: SubscriptionService
-        version: 0.0.1
-      paths:
-        - step: 3
-          label: 'Cancel subscription'
-        - step: 5
-          label: 'successful'
-        - step: 6  
-          label: 'failed'
-    - id: 5
-      title: Subscription has been cancelled
-      message:
-        id: UserSubscriptionCancelled
-        version: 0.0.1
-      paths:
-        - step: 7
-          label: 'email customer'
-    - id: 6
-      title: Subscription has been rejected
-    - id: 7
-      title: Notifications Service
-      service:
-        id: NotificationService
-        version: 0.0.2
+  - id: "cancel_subscription_initiated"
+    title: "Cancels Subscription"
+    summary: "User cancels their subscription"
+    actor:
+      name: "User"
+    next_step: 
+      id: "cancel_subscription_request"
+      label: "Initiate subscription cancellation"
+
+  - id: "cancel_subscription_request"
+    title: "Cancel Subscription"
+    message:
+      id: "CancelSubscription"
+      version: "0.0.1"
+    next_step: 
+      id: "subscription_service"
+      label: "Proceed to subscription service"
+
+  - id: "stripe_integration"
+    title: "Stripe"
+    externalSystem:
+      name: "Stripe"
+      summary: "3rd party payment system"
+      url: "https://stripe.com/"
+    next_step: 
+      id: "subscription_service"
+      label: "Return to subscription service"
+
+  - id: "subscription_service"
+    title: "Subscription Service"
+    service:
+      id: "SubscriptionService"
+      version: "0.0.1"
+    next_steps:
+      - id: "stripe_integration"
+        label: "Cancel subscription via Stripe"
+      - id: "subscription_cancelled"
+        label: "Successful cancellation"
+      - id: "subscription_rejected"
+        label: "Failed cancellation"
+
+  - id: "subscription_cancelled"
+    title: "Subscription has been Cancelled"
+    message:
+      id: "UserSubscriptionCancelled"
+      version: "0.0.1"
+    next_step:
+      id: "notification_service"
+      label: "Email customer"
+
+  - id: "subscription_rejected"
+    title: "Subscription cancellation has been rejected"
+
+  - id: "notification_service"
+    title: "Notifications Service"
+    service:
+      id: "NotificationService"
+      version: "0.0.2"
+
 ---
 
 <NodeGraph />

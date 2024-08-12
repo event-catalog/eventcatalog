@@ -1,9 +1,9 @@
 // import { getColor } from '@utils/colors';
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
 import { getVersion } from '../services/services';
 import { createDagreGraph, calculatedNodes } from '@utils/node-graph-utils/utils';
-import { MarkerType } from 'reactflow';
+import { MarkerType, Node } from 'reactflow';
 
 type DagreGraph = any;
 
@@ -15,8 +15,29 @@ interface Props {
   renderAllEdges?: boolean;
 }
 
+const getServiceNode = (step: any, services: CollectionEntry<'services'>[]) => {
+  const service = services.find(
+    (service) => service.data.id === step.service.id && service.data.version === step.service.version
+  );
+  return {
+    ...step,
+    type: service ? service.collection : 'step',
+    service,
+  };
+};
+
+const getMessageNode = (step: any, messages: CollectionEntry<'events' | 'commands'>[]) => {
+  const messagesForVersion = getVersion(messages, step.message.id, step.message.version);
+  const message = messagesForVersion[0];
+  return {
+    ...step,
+    type: message ? message.collection : 'step',
+    message,
+  };
+};
+
 export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simple', renderAllEdges = false }: Props) => {
-  const graph = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 200 });
+  const graph = defaultFlow || createDagreGraph({ ranksep: 360, nodesep: 200 });
   const nodes = [] as any,
     edges = [] as any;
 
@@ -38,80 +59,65 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   const messages = [...events, ...commands];
 
   const steps = flow?.data.steps || [];
+
+  //  Hydrate the steps with information they may need.
   const hydratedSteps = steps.map((step: any) => {
-    const type = step.type || 'step';
-
-    
-
-    if (step.service) {
-      const service = services.find(
-        (service) => service.data.id === step.service.id && service.data.version === step.service.version
-      );
-      return {
-        ...step,
-        type: service ? service.collection : type,
-        service,
-      };
-    }
-
-    if (step.message) {
-      const message = getVersion(messages, step.message.id, step.message.version);
-      return {
-        ...step,
-        type: message ? message.collection : type,
-        message,
-      };
-    }
-
-    if (step.actor) {
-      return {
-        ...step,
-        type: 'actor',
-        actor: step.actor,
-      };
-    }
-
-    if (step.externalSystem) {
-      return {
-        ...step,
-        type: 'externalSystem',
-        externalSystem: step.externalSystem,
-      };
-    }
-
+    if (step.service) return getServiceNode(step, services);
+    if (step.message) return getMessageNode(step, messages);
+    if (step.actor) return { ...step, type: 'actor', actor: step.actor };
+    if (step.externalSystem) return { ...step, type: 'externalSystem', externalSystem: step.externalSystem };
     return { ...step, type: 'step' };
   });
 
   // Create nodes
   hydratedSteps.forEach((step, index: number) => {
-    nodes.push({
+    const node = {
       id: `step-${step.id}`,
       sourcePosition: 'right',
       targetPosition: 'left',
       data: {
         mode,
         step: step,
-        message: step.message,
-        service: step.service,
-        actor: step.actor,
-        externalSystem: step.externalSystem,
         showTarget: true,
         showSource: true,
       },
       position: { x: 250, y: index * 150 },
       type: step.type,
-    });
-  });
+    } as Node;
 
+    if (step.service) node.data.service = step.service;
+    if (step.message) node.data.message = step.message;
+    if (step.actor) node.data.actor = step.actor;
+    if (step.externalSystem) node.data.externalSystem = step.externalSystem;
+
+    nodes.push(node);
+  });
 
   // Create Edges
   hydratedSteps.forEach((step, index: number) => {
-    const paths = step.paths || [];
+    let paths = step.next_steps || [];
+
+    if (step.next_step) {
+      // If its a string
+      if (typeof step.next_step === 'string') {
+        paths = [{ id: step.next_step }];
+      } else {
+        paths = [step.next_step];
+      }
+    }
+
+    paths = paths.map((path: any) => {
+      if (typeof path === 'string') {
+        return { id: path };
+      }
+      return path;
+    });
+
     paths.forEach((path: any) => {
       edges.push({
-        id: `step-${step.id}-step-${path.step}`,
+        id: `step-${step.id}-step-${path.id}`,
         source: `step-${step.id}`,
-        target: `step-${path.step}`,
+        target: `step-${path.id}`,
         type: 'smoothstep',
         label: path.label,
         animated: true,

@@ -24,12 +24,11 @@ export default function UserNode({ data, sourcePosition, targetPosition }: any) 
   const renderTarget = showTarget || true;
   const renderSource = showSource || true;
 
-  const minHeight = mode === 'full' ? '5em' : '2em';
-
   return (
     <div
       className={classNames(
-        `w-full rounded-md border flex justify-start  bg-white text-black border-yellow-400 min-h-[${minHeight}]`
+        `w-full rounded-md border flex justify-start  bg-white text-black border-yellow-400`,
+        mode === 'full' ? 'min-h-[5em]' : 'min-h-[2em]'
       )}
     >
       <div

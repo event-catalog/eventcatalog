@@ -1,19 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-<<<<<<< HEAD
 import ReactFlow, { Background, ConnectionLineType, Controls, Panel, ReactFlowProvider, useNodesState, type Edge, type Node } from 'reactflow';
-=======
-import ReactFlow, {
-  Background,
-  ConnectionLineType,
-  Controls,
-  Panel,
-  ReactFlowProvider,
-  useNodesState,
-  type Edge,
-  type Node,
-} from 'reactflow';
->>>>>>> main
 import 'reactflow/dist/style.css';
 import ServiceNode from './Nodes/Service';
 import EventNode from './Nodes/Event';
@@ -45,19 +32,9 @@ const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<Collectio
 };
 
 // const NodeGraphBuilder = ({ title, subtitle, includeBackground = true, includeControls = true }: Props) => {
-<<<<<<< HEAD
 const NodeGraphBuilder = ({ nodes:initialNodes, edges, title, includeBackground = true, linkTo = 'docs' }: Props) => {
-  // const { fitView, viewportInitialized } = useReactFlow();
-
-  // const nodeTypes = useMemo(() => ({ service: ServiceNode, event: EventNode, command: CommandNode }), []);
   const nodeTypes = useMemo(() => ({ services: ServiceNode, events: EventNode, commands: CommandNode, step: StepNode, user: UserNode, actor: UserNode, externalSystem: ExternalSystemNode }), []);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-=======
-const NodeGraphBuilder = ({ nodes: initialNodes, edges, title, includeBackground = true, linkTo = 'docs' }: Props) => {
-  const [nodes, _, onNodesChange] = useNodesState(initialNodes);
-
-  const nodeTypes = useMemo(() => ({ services: ServiceNode, events: EventNode, commands: CommandNode }), []);
->>>>>>> main
   const nodeOrigin = [0.5, 0.5];
 
   const handleNodeClick = (_: any, node: Node) => {
@@ -76,10 +53,6 @@ const NodeGraphBuilder = ({ nodes: initialNodes, edges, title, includeBackground
       nodes={nodes}
       edges={edges}
       fitView
-<<<<<<< HEAD
-=======
-      nodesDraggable
->>>>>>> main
       onNodesChange={onNodesChange}
       connectionLineType={ConnectionLineType.SmoothStep}
       // @ts-ignore

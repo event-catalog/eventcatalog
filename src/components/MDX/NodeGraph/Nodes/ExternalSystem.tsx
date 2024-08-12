@@ -22,14 +22,11 @@ export default function ExternalSystemNode({ data, sourcePosition, targetPositio
   const { externalSystem } = step;
   const { name, summary, url } = externalSystem;
 
-  const minHeight = mode === 'full' ? '7em' : '2em';
-
-  // const { version, owners = [], sends = [], receives = [], name } = service.data;
-
   return (
     <div
       className={classNames(
-        `w-full rounded-md border flex justify-start  bg-white text-black border-pink-500 min-h-[${minHeight}]`
+        `w-full rounded-md border flex justify-start  bg-white text-black border-pink-500`,
+        mode === 'full' ? 'min-h-[7em]' : 'min-h-[2em]'
       )}
     >
       <div
