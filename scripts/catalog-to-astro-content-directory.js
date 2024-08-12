@@ -198,7 +198,11 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
     catalogFilesDir,
     pathToMarkdownFiles: [path.join(source, 'domains/**/**/index.md'), path.join(source, 'domains/**/**/changelog.md')],
     pathToAllFiles: [path.join(source, 'domains/**')],
-    ignore: [path.join(source, 'domains/**/services/**'), path.join(source, 'domains/**/commands/**'), path.join(source, 'domains/**/events/**')],
+    ignore: [
+      path.join(source, 'domains/**/services/**'),
+      path.join(source, 'domains/**/commands/**'),
+      path.join(source, 'domains/**/events/**'),
+    ],
     type: 'domains',
   });
 

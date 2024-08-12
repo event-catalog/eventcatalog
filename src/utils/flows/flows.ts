@@ -35,7 +35,6 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
     return (getAllVersions || !flow.slug.includes('versioned')) && flow.data.hidden !== true;
   });
 
-
   const events = await getCollection('events');
   const commands = await getCollection('commands');
 
@@ -48,14 +47,14 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
     const steps = flow.data.steps || [];
 
     const hydrateSteps = steps.map((step) => {
-      if(!step.message) return { ...flow, data: { ...flow.data, type: 'node' } };
+      if (!step.message) return { ...flow, data: { ...flow.data, type: 'node' } };
       const message = getVersion(allMessages, step.message.id, step.message.version);
       return {
         ...step,
         type: 'message',
         message: message,
       };
-    })
+    });
 
     return {
       ...flow,

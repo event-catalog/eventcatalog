@@ -44,7 +44,7 @@ export default function StepNode({ data, sourcePosition, targetPosition }: any) 
         {renderSource && <Handle type="source" position={sourcePosition} />}
 
         {!summary && (
-          <div className='h-full flex items-center'>
+          <div className="h-full flex items-center">
             <span className="text-sm font-bold block pb-0.5">{title}</span>
           </div>
         )}

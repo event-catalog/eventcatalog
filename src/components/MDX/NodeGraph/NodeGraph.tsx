@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import ReactFlow, { Background, ConnectionLineType, Controls, Panel, ReactFlowProvider, useNodesState, type Edge, type Node } from 'reactflow';
+import ReactFlow, {
+  Background,
+  ConnectionLineType,
+  Controls,
+  Panel,
+  ReactFlowProvider,
+  useNodesState,
+  type Edge,
+  type Node,
+} from 'reactflow';
 import 'reactflow/dist/style.css';
 import ServiceNode from './Nodes/Service';
 import EventNode from './Nodes/Event';
@@ -32,8 +41,19 @@ const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<Collectio
 };
 
 // const NodeGraphBuilder = ({ title, subtitle, includeBackground = true, includeControls = true }: Props) => {
-const NodeGraphBuilder = ({ nodes:initialNodes, edges, title, includeBackground = true, linkTo = 'docs' }: Props) => {
-  const nodeTypes = useMemo(() => ({ services: ServiceNode, events: EventNode, commands: CommandNode, step: StepNode, user: UserNode, actor: UserNode, externalSystem: ExternalSystemNode }), []);
+const NodeGraphBuilder = ({ nodes: initialNodes, edges, title, includeBackground = true, linkTo = 'docs' }: Props) => {
+  const nodeTypes = useMemo(
+    () => ({
+      services: ServiceNode,
+      events: EventNode,
+      commands: CommandNode,
+      step: StepNode,
+      user: UserNode,
+      actor: UserNode,
+      externalSystem: ExternalSystemNode,
+    }),
+    []
+  );
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const nodeOrigin = [0.5, 0.5];
 

@@ -45,7 +45,9 @@ export const columns = () => [
     header: () => <span>Version</span>,
     cell: (info) => {
       const service = info.row.original;
-      return <div className="text-left font-light">{`v${info.getValue()} ${service.data.latestVersion === service.data.version ? '(latest)': ''}`}</div>
+      return (
+        <div className="text-left font-light">{`v${info.getValue()} ${service.data.latestVersion === service.data.version ? '(latest)' : ''}`}</div>
+      );
     },
     footer: (info) => info.column.id,
   }),
