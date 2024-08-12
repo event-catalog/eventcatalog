@@ -80,7 +80,7 @@ const commands = defineCollection({
 
 const pointer = z.object({
   id: z.string(),
-  version: z.string(),
+  version: z.string().optional().default('latest'),
 });
 
 const services = defineCollection({

@@ -1,16 +1,23 @@
-import { getVersionForCollectionItem, getVersions } from '@utils/collections/util';
+import { getVersionForCollectionItem } from '@utils/collections/util';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
+import { satisfies, validRange } from 'semver';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
 export type Service = CollectionEntry<'services'>;
 
-export const getVersion = (collection: CollectionEntry<'events' | 'commands'>[], id: string, version?: string) => {
+export const getVersion = (
+  collection: CollectionEntry<'events' | 'commands'>[],
+  id: string,
+  version?: string
+): CollectionEntry<'events' | 'commands'>[] => {
   const data = collection;
-  if (version) {
-    return data.find((event) => event.data.version === version && event.data.id === id);
+  const semverRange = validRange(version);
+
+  if (semverRange) {
+    return data.filter((msg) => msg.data.id == id).filter((msg) => satisfies(msg.data.version, semverRange));
   }
 
   const filteredEvents = data.filter((event) => event.data.id === id);
@@ -21,7 +28,7 @@ export const getVersion = (collection: CollectionEntry<'events' | 'commands'>[],
   });
 
   // latest version
-  return sorted[sorted.length - 1];
+  return [sorted[sorted.length - 1]];
 };
 
 interface Props {
@@ -42,24 +49,17 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
   return services.map((service) => {
     const { latestVersion, versions } = getVersionForCollectionItem(service, services);
 
-    // const receives = service.data.receives || [];
     const sendsMessages = service.data.sends || [];
     const receivesMessages = service.data.receives || [];
 
     const sends = sendsMessages
-      .map((message) => {
-        const event = getVersion(allMessages, message.id, message.version);
-        // const event = allMessages.find((_message) => _message.data.id === message.id && _message.data.version === message.version);
-        return event;
-      })
+      .map((message) => getVersion(allMessages, message.id, message.version))
+      .flat()
       .filter((e) => e !== undefined);
 
     const receives = receivesMessages
-      .map((message) => {
-        const event = getVersion(allMessages, message.id, message.version);
-        // const event = allMessages.find((_message) => _message.data.id === message.id && _message.data.version === message.version);
-        return event;
-      })
+      .map((message) => getVersion(allMessages, message.id, message.version))
+      .flat()
       .filter((e) => e !== undefined);
 
     return {

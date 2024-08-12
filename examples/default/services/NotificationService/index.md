@@ -8,7 +8,12 @@ owners:
     - dboyne
 receives:
   - id: InventoryAdjusted
-    version: 0.0.1
+    version: ">1.0.0"
+  - id: PaymentProcessed
+    version: ^1.0.0
+sends:
+  - id: OutOfStock
+    version: 0.0.x
 repository:
   language: JavaScript
   url: https://github.com/boyney123/pretend-shipping-service

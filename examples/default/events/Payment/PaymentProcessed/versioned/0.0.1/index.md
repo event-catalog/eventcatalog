@@ -1,7 +1,7 @@
 ---
 id: PaymentProcessed
 name: Payment Processed
-version: 1.0.0
+version: 0.0.1
 summary: Event is triggered after the payment has been successfully processed
 owners:
     - dboyne
