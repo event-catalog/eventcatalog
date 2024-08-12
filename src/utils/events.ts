@@ -2,6 +2,7 @@ import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
 import { getVersionForCollectionItem } from './collections/util';
+import { satisfies } from 'semver';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
@@ -30,14 +31,14 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
     const producers = services.filter((service) => {
       if (!service.data.sends) return false;
       return service.data.sends.find((item) => {
-        return item.id === event.data.id && item.version === event.data.version;
+        return item.id === event.data.id && satisfies(event.data.version, item.version);
       });
     });
 
     const consumers = services.filter((service) => {
       if (!service.data.receives) return false;
       return service.data.receives.find((item) => {
-        return item.id === event.data.id && item.version === event.data.version;
+        return item.id === event.data.id && satisfies(event.data.version, item.version);
 
         // If no version has been found, then get try find the latest one
         // return item.id == event.data.id

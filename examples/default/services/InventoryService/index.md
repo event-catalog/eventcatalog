@@ -17,6 +17,8 @@ receives:
     version: 0.0.1
   - id: UpdateInventory
     version: 0.0.3
+  - id: AddInventory
+    version: x
 sends:
   - id: InventoryAdjusted
     version: 0.0.4

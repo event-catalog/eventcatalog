@@ -13,6 +13,11 @@ const pages = defineCollection({
   }),
 });
 
+const pointer = z.object({
+  id: z.string(),
+  version: z.string().optional().default('latest'),
+});
+
 const changelogs = defineCollection({
   type: 'content',
   schema: z.object({
@@ -58,11 +63,6 @@ const baseSchema = z.object({
     .optional(),
 });
 
-const pointer = z.object({
-  id: z.string(),
-  version: z.string(),
-});
-
 const flows = defineCollection({
   type: 'content',
   schema: z
@@ -76,14 +76,18 @@ const flows = defineCollection({
             summary: z.string().optional(),
             message: pointer.optional(),
             service: pointer.optional(),
-            actor: z.object({
-              name: z.string(),
-            }).optional(),
-            externalSystem: z.object({
-              name: z.string(),
-              summary: z.string().optional(),
-              url: z.string().optional(),
-            }).optional(),
+            actor: z
+              .object({
+                name: z.string(),
+              })
+              .optional(),
+            externalSystem: z
+              .object({
+                name: z.string(),
+                summary: z.string().optional(),
+                url: z.string().url().optional(),
+              })
+              .optional(),
             paths: z
               .array(
                 z.object({
@@ -94,9 +98,13 @@ const flows = defineCollection({
               .optional(),
           })
           .refine((data) => {
-            if(!data.message && !data.service && !data.actor) return true;
+            if (!data.message && !data.service && !data.actor) return true;
             // Either message or service or actor must be present, but not all
-            return (data.message && !data.service && !data.actor) || (!data.message && data.service) || (data.actor && !data.message && !data.service);
+            return (
+              (data.message && !data.service && !data.actor) ||
+              (!data.message && data.service) ||
+              (data.actor && !data.message && !data.service)
+            );
           })
       ),
     })
