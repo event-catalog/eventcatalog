@@ -27,7 +27,6 @@ export const getUsers = async (): Promise<User[]> => {
   });
 
   return users.map((user) => {
-
     const ownedDomains = domains.filter((domain) => {
       return domain.data.owners?.find((owner) => owner.slug === user.data.id);
     });
