@@ -3,7 +3,8 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
 import { getVersion } from '../services/services';
 import { createDagreGraph, calculatedNodes } from '@utils/node-graph-utils/utils';
-import { MarkerType, Node } from 'reactflow';
+import { MarkerType } from 'reactflow';
+import type { Node as NodeType } from 'reactflow';
 
 type DagreGraph = any;
 
@@ -83,7 +84,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
       },
       position: { x: 250, y: index * 150 },
       type: step.type,
-    } as Node;
+    } as NodeType;
 
     if (step.service) node.data.service = step.service;
     if (step.message) node.data.message = step.message;
@@ -98,8 +99,8 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     let paths = step.next_steps || [];
 
     if (step.next_step) {
-      // If its a string
-      if (typeof step.next_step === 'string') {
+      // If its a string or number
+      if (!step.next_step?.id) {
         paths = [{ id: step.next_step }];
       } else {
         paths = [step.next_step];
