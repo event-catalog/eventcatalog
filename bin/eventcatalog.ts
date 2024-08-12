@@ -56,10 +56,15 @@ const copyCore = () => {
   });
 };
 
+const clearCore = () => {
+  if (fs.existsSync(core)) fs.rmSync(core, { recursive: true });
+};
+
 program
   .command('dev')
   .description('Run development server of EventCatalog')
   .option('-d, --debug', 'Output EventCatalog application information into your terminal')
+  .option('--force-recreate', 'Recreate the eventcatalog-core directory', false)
   .action((options) => {
     // // Copy EventCatalog core over
     console.log('Setting up EventCatalog....');
@@ -70,6 +75,7 @@ program
       console.log('CATALOG_DIR', core);
     }
 
+    if (options.forceRecreate) clearCore();
     copyCore();
 
     // // Copy the config and styles
