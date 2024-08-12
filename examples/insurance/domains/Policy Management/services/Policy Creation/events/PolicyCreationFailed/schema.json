@@ -1,0 +1,23 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "PolicyCreationFailedEvent",
+    "type": "object",
+    "properties": {
+      "customerId": {
+        "type": "string",
+        "description": "A unique identifier for the customer."
+      },
+      "reason": {
+        "type": "string",
+        "description": "The reason why the policy creation failed."
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "description": "The timestamp when the failure occurred."
+      }
+    },
+    "required": ["customerId", "reason", "timestamp"],
+    "additionalProperties": false
+  }
+  

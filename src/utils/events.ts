@@ -39,9 +39,6 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
       if (!service.data.receives) return false;
       return service.data.receives.find((item) => {
         return item.id === event.data.id && satisfies(event.data.version, item.version);
-
-        // If no version has been found, then get try find the latest one
-        // return item.id == event.data.id
       });
     });
 
@@ -56,7 +53,6 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
       },
       catalog: {
         path: path.join(event.collection, event.id.replace('/index.mdx', '')),
-        absoluteFilePath: path.join(PROJECT_DIR, event.collection, event.id.replace('/index.mdx', '/index.md')),
         filePath: path.join(process.cwd(), 'src', 'catalog-files', event.collection, event.id.replace('/index.mdx', '')),
         publicPath: path.join('/generated', event.collection, event.id.replace('/index.mdx', '')),
         type: 'event',

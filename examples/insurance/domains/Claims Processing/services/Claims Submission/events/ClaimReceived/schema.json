@@ -1,0 +1,23 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ClaimReceivedEvent",
+    "type": "object",
+    "properties": {
+      "claimId": {
+        "type": "string",
+        "description": "A unique identifier for the received claim."
+      },
+      "customerId": {
+        "type": "string",
+        "description": "A unique identifier for the customer associated with the claim."
+      },
+      "receivedDate": {
+        "type": "string",
+        "format": "date-time",
+        "description": "The date and time when the claim was received."
+      }
+    },
+    "required": ["claimId", "customerId", "receivedDate"],
+    "additionalProperties": false
+  }
+  

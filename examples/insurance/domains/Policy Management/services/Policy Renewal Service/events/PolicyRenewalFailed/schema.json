@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PolicyRenewalFailedEvent",
+  "type": "object",
+  "properties": {
+    "policyId": {
+      "type": "string",
+      "description": "A unique identifier for the policy whose renewal failed."
+    },
+    "customerId": {
+      "type": "string",
+      "description": "A unique identifier for the customer associated with the policy."
+    },
+    "reason": {
+      "type": "string",
+      "description": "The reason why the policy renewal failed."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The timestamp when the renewal failure occurred."
+    }
+  },
+  "required": [
+    "policyId",
+    "customerId",
+    "reason",
+    "timestamp"
+  ],
+  "additionalProperties": false
+}

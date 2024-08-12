@@ -27,7 +27,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
 
   const domains = await getCollection('domains');
 
-  const domain = domains.find((service) => service.data.id === id && service.data.version === version);
+  const domain = domains.find((domain) => domain.data.id === id && domain.data.version === version);
 
   // Nothing found...
   if (!domain) {

@@ -1,0 +1,65 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "PolicyCreatedEvent",
+    "type": "object",
+    "properties": {
+      "policyId": {
+        "type": "string",
+        "description": "A unique identifier for the policy."
+      },
+      "customerId": {
+        "type": "string",
+        "description": "A unique identifier for the customer."
+      },
+      "policyNumber": {
+        "type": "string",
+        "description": "The unique policy number assigned to the created policy."
+      },
+      "coverageDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The type of coverage provided by the policy."
+          },
+          "amount": {
+            "type": "number",
+            "description": "The amount of coverage provided by the policy."
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "description": "The start date of the policy coverage."
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "description": "The end date of the policy coverage."
+          }
+        },
+        "required": ["type", "amount", "startDate", "endDate"]
+      },
+      "premium": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "description": "The premium amount to be paid for the policy."
+          },
+          "frequency": {
+            "type": "string",
+            "description": "The frequency of premium payments (e.g., monthly, yearly)."
+          }
+        },
+        "required": ["amount", "frequency"]
+      },
+      "issuedDate": {
+        "type": "string",
+        "format": "date",
+        "description": "The date the policy was issued."
+      }
+    },
+    "required": ["policyId", "customerId", "policyNumber", "coverageDetails", "premium", "issuedDate"],
+    "additionalProperties": false
+  }
+  

@@ -1,0 +1,85 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "CreatePolicyCommand",
+    "type": "object",
+    "properties": {
+      "customerId": {
+        "type": "string",
+        "description": "A unique identifier for the customer."
+      },
+      "coverageDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The type of coverage being requested."
+          },
+          "amount": {
+            "type": "number",
+            "description": "The amount of coverage requested."
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "description": "The start date for the coverage."
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "description": "The end date for the coverage."
+          }
+        },
+        "required": ["type", "amount", "startDate", "endDate"],
+        "description": "Details of the coverage being requested."
+      },
+      "premium": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "description": "The premium amount to be paid for the policy."
+          },
+          "frequency": {
+            "type": "string",
+            "description": "The frequency of premium payments (e.g., monthly, yearly)."
+          }
+        },
+        "required": ["amount", "frequency"],
+        "description": "Details of the premium for the policy."
+      },
+      "customerDetails": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the customer."
+          },
+          "address": {
+            "type": "string",
+            "description": "The address of the customer."
+          },
+          "contact": {
+            "type": "object",
+            "properties": {
+              "phone": {
+                "type": "string",
+                "description": "The phone number of the customer."
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "description": "The email address of the customer."
+              }
+            },
+            "required": ["phone", "email"],
+            "description": "The contact details of the customer."
+          }
+        },
+        "required": ["name", "address", "contact"],
+        "description": "Customer information required for policy creation."
+      }
+    },
+    "required": ["customerId", "coverageDetails", "premium", "customerDetails"],
+    "additionalProperties": false
+  }
+  
