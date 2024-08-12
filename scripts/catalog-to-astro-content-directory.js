@@ -22,11 +22,12 @@ const ensureDirSync = async (filePath) => {
   }
 };
 
-const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles, pathToAllFiles, type }) => {
+const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles, pathToAllFiles, type, ignore = null }) => {
   // Find all the event files
   const markdownFiles = await glob(pathToMarkdownFiles, {
     nodir: true,
     windowsPathsNoEscape: os.platform() == 'win32',
+    ignore: ignore,
   });
   const files = await glob(pathToAllFiles, {
     ignore: {
@@ -186,6 +187,11 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
       path.join(source, 'services/**/**/changelog.md'),
     ],
     pathToAllFiles: [path.join(source, 'services/**'), path.join(source, 'domains/**/services/**')],
+    ignore: [
+      path.join(source, 'services/**/events/**'),
+      path.join(source, 'services/**/commands/**'),
+      path.join(source, 'services/**/flows/**'),
+    ],
     type: 'services',
   });
 
@@ -196,7 +202,32 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
     catalogFilesDir,
     pathToMarkdownFiles: [path.join(source, 'domains/**/**/index.md'), path.join(source, 'domains/**/**/changelog.md')],
     pathToAllFiles: [path.join(source, 'domains/**')],
+    ignore: [
+      path.join(source, 'domains/**/services/**'),
+      path.join(source, 'domains/**/commands/**'),
+      path.join(source, 'domains/**/events/**'),
+      path.join(source, 'domains/**/flows/**'),
+    ],
     type: 'domains',
+  });
+
+  // // Copy all the flow files over
+  await copyFiles({
+    source,
+    target: astroContentDir,
+    catalogFilesDir,
+    pathToMarkdownFiles: [
+      path.join(source, 'flows/**/**/index.md'),
+      path.join(source, 'flows/**/**/changelog.md'),
+      path.join(source, 'services/**/flows/**/index.md'),
+      path.join(source, 'domains/**/flows/**/index.md'),
+    ],
+    pathToAllFiles: [
+      path.join(source, 'flows/**'),
+      path.join(source, 'services/**/flows/**'),
+      path.join(source, 'domains/**/flows/**'),
+    ],
+    type: 'flows',
   });
 
   // // Copy all the users

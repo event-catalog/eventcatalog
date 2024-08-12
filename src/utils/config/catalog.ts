@@ -9,6 +9,7 @@ export type CatalogConfig = {
     sidebar: {
       showPageHeadings?: boolean;
       domains?: SideBarItemConfig;
+      flows?: SideBarItemConfig;
       services?: SideBarItemConfig;
       messages?: SideBarItemConfig;
       teams?: SideBarItemConfig;

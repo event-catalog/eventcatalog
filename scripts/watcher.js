@@ -11,7 +11,7 @@ const catalogDirectory = process.env.CATALOG_DIR;
 
 const contentPath = path.join(catalogDirectory, 'src', 'content');
 
-const watchList = ['domains', 'commands', 'events', 'services', 'teams', 'users', 'pages', 'components'];
+const watchList = ['domains', 'commands', 'events', 'services', 'teams', 'users', 'pages', 'components', 'flows'];
 // const absoluteWatchList = watchList.map((item) => path.join(projectDirectory, item));
 
 // confirm folders exist before watching them
@@ -62,7 +62,6 @@ for (let item of [...verifiedWatchList]) {
 
       // IF directory remove it
       if (type === 'delete') {
-        console.log('eventPath', eventPath);
         fs.rmSync(newPath);
       }
     }

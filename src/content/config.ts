@@ -13,6 +13,11 @@ const pages = defineCollection({
   }),
 });
 
+const pointer = z.object({
+  id: z.string(),
+  version: z.string().optional().default('latest'),
+});
+
 const changelogs = defineCollection({
   type: 'content',
   schema: z.object({
@@ -58,6 +63,63 @@ const baseSchema = z.object({
     .optional(),
 });
 
+const flowStep = z
+  .union([
+    // Can be a string or a number just to reference a step
+    z.union([z.string(), z.number()]),
+    z
+      .object({
+        id: z.union([z.string(), z.number()]),
+        label: z.string().optional(),
+      })
+      .optional(),
+  ])
+  .optional();
+
+const flows = defineCollection({
+  type: 'content',
+  schema: z
+    .object({
+      steps: z.array(
+        z
+          .object({
+            id: z.union([z.string(), z.number()]),
+            type: z.enum(['node', 'message', 'user', 'actor']).optional(),
+            title: z.string(),
+            summary: z.string().optional(),
+            message: pointer.optional(),
+            service: pointer.optional(),
+            actor: z
+              .object({
+                name: z.string(),
+              })
+              .optional(),
+            externalSystem: z
+              .object({
+                name: z.string(),
+                summary: z.string().optional(),
+                url: z.string().url().optional(),
+              })
+              .optional(),
+            next_step: flowStep,
+            next_steps: z.array(flowStep).optional(),
+          })
+          .refine((data) => {
+            if (!data.message && !data.service && !data.actor) return true;
+            // Cant have both next_steps and next_steps
+            if (data.next_step && data.next_steps) return false;
+            // Either message or service or actor must be present, but not all
+            return (
+              (data.message && !data.service && !data.actor) ||
+              (!data.message && data.service) ||
+              (data.actor && !data.message && !data.service)
+            );
+          })
+      ),
+    })
+    .merge(baseSchema),
+});
+
 const events = defineCollection({
   type: 'content',
   schema: z
@@ -76,11 +138,6 @@ const commands = defineCollection({
       consumers: z.array(reference('services')).optional(),
     })
     .merge(baseSchema),
-});
-
-const pointer = z.object({
-  id: z.string(),
-  version: z.string().optional().default('latest'),
 });
 
 const services = defineCollection({
@@ -142,6 +199,7 @@ export const collections = {
   users,
   teams,
   domains,
+  flows,
   pages,
   changelogs,
 };

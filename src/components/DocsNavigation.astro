@@ -3,6 +3,7 @@ import { getCommands } from '@utils/commands';
 import { getDomains } from '@utils/domains/domains';
 import { getEvents } from '@utils/events';
 import { getServices } from '@utils/services/services';
+import { getFlows } from '@utils/flows/flows';
 import { getTeams } from '@utils/teams';
 import { getUsers } from '@utils/users';
 import config, { type CatalogConfig } from '@eventcatalog';
@@ -12,19 +13,21 @@ const events = await getEvents({ getAllVersions: false });
 const commands = await getCommands({ getAllVersions: false });
 const services = await getServices({ getAllVersions: false });
 const domains = await getDomains({ getAllVersions: false });
+const flows = await getFlows({ getAllVersions: false });
 const teams = await getTeams();
 const users = await getUsers();
 
 const messages = [...events, ...commands];
 
 // @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
-const allData = [...domains, ...services, ...messages, ...teams, ...users];
+const allData = [...domains, ...services, ...messages, ...flows, ...teams, ...users];
 
 const eventCatalogConfig = config as CatalogConfig;
 const {
   services: servicesConfig,
   domains: domainsConfig,
   messages: messagesConfig,
+  flows: flowsConfig,
   teams: teamsConfig,
   users: usersConfig,
   showPageHeadings = true,
@@ -38,6 +41,7 @@ const visibleCollections: { [key: string]: boolean } = {
   events: getConfigValue(messagesConfig, 'visible', true),
   commands: getConfigValue(messagesConfig, 'visible', true),
   domains: getConfigValue(domainsConfig, 'visible', true),
+  flows: getConfigValue(flowsConfig, 'visible', true),
   services: getConfigValue(servicesConfig, 'visible', true),
   teams: getConfigValue(teamsConfig, 'visible', true),
   users: getConfigValue(usersConfig, 'visible', true),

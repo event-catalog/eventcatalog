@@ -6,12 +6,14 @@ import type { CollectionTypes } from '@types';
 import { getCommands } from '@utils/commands';
 import { getServices } from '@utils/services/services';
 import { getDomains } from '@utils/domains/domains';
+import { getFlows } from '@utils/flows/flows';
 
 export async function getStaticPaths() {
   const events = await getEvents();
   const commands = await getCommands();
   const services = await getServices();
   const domains = await getDomains();
+  const flows = await getFlows();
 
   const buildPage = (type: string, collection: CollectionEntry<CollectionTypes>[]) => {
     return {
@@ -30,6 +32,7 @@ export async function getStaticPaths() {
     buildPage('commands', commands),
     buildPage('services', services),
     buildPage('domains', domains),
+    buildPage('flows', flows),
   ];
 }
 

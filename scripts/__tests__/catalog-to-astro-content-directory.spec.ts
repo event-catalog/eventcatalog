@@ -146,6 +146,39 @@ describe('catalog-to-astro-content-directory', () => {
     });
   });
 
+  describe('flows', () => {
+    describe('/flows directory', () => {
+      it('takes flows from the users catalog and puts it into the expected directory structure', async () => {
+        expect(existsSync(path.join(ASTRO_OUTPUT, 'flows', 'Payment', 'PaymentProcessed', 'index.mdx'))).toBe(true);
+      });
+
+      it('when a flow is versioned it copies this version into the correct location', async () => {
+        expect(
+          existsSync(path.join(ASTRO_OUTPUT, 'flows', 'Payment', 'PaymentProcessed', 'versioned', '0.0.1', 'index.mdx'))
+        ).toBe(true);
+      });
+    });
+    describe('flows within the /services directory', () => {
+      it('takes flows from the users catalog (which are in a services folder) and puts it into the expected directory structure', async () => {
+        expect(existsSync(path.join(ASTRO_OUTPUT, 'flows', 'PaymentAccepted', 'index.mdx'))).toBe(true);
+      });
+
+      it('when a flow is versioned (within a services folder) it copies this version into the correct location', async () => {
+        expect(existsSync(path.join(ASTRO_OUTPUT, 'flows', 'PaymentAccepted', 'versioned', '0.0.1', 'index.mdx'))).toBe(true);
+      });
+    });
+
+    describe('flows within the /domains directory', () => {
+      it('takes flows from the users catalog (which are in a domains folder) and puts it into the expected directory structure', async () => {
+        expect(existsSync(path.join(ASTRO_OUTPUT, 'flows', 'ProcessingOfAnOrder', 'index.mdx'))).toBe(true);
+      });
+
+      it('when a flow is versioned (within a domains folder) it copies this version into the correct location', async () => {
+        expect(existsSync(path.join(ASTRO_OUTPUT, 'flows', 'ProcessingOfAnOrder', 'versioned', '0.0.1', 'index.mdx'))).toBe(true);
+      });
+    });
+  });
+
   describe('users', () => {
     it('takes users from the catalog and puts it into the expected directory structure', async () => {
       expect(existsSync(path.join(ASTRO_OUTPUT, 'users', 'dboyne.md'))).toBe(true);

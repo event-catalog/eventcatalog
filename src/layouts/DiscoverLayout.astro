@@ -1,11 +1,12 @@
 ---
 import { Table } from '@components/Tables/Table';
-import { RectangleGroupIcon } from '@heroicons/react/24/outline';
+import { QueueListIcon, RectangleGroupIcon } from '@heroicons/react/24/outline';
 import EnvelopeIcon from '@heroicons/react/24/outline/EnvelopeIcon';
 import ServerIcon from '@heroicons/react/24/outline/ServerIcon';
 import PlainPage from '@layouts/PlainPage.astro';
 import { getCommands } from '@utils/commands';
 import { getDomains } from '@utils/domains/domains';
+import { getFlows } from '@utils/flows/flows';
 import { getEvents } from '@utils/events';
 import { getServices } from '@utils/services/services';
 import { buildUrl } from '@utils/url-builder';
@@ -14,6 +15,7 @@ const events = await getEvents();
 const commands = await getCommands();
 const services = await getServices();
 const domains = await getDomains();
+const flows = await getFlows();
 
 const { title, subtitle, data, type } = Astro.props;
 const currentPath = Astro.url.pathname;
@@ -50,6 +52,14 @@ const tabs = [
     icon: RectangleGroupIcon,
     activeColor: 'yellow',
     enabled: domains.length > 0,
+  },
+  {
+    label: `Flows (${flows.length})`,
+    href: buildUrl('/discover/flows'),
+    isActive: currentPath === '/discover/flows',
+    icon: QueueListIcon,
+    activeColor: 'teal',
+    enabled: flows.length > 0,
   },
 ];
 ---

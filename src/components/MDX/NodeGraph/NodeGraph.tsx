@@ -13,7 +13,10 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import ServiceNode from './Nodes/Service';
 import EventNode from './Nodes/Event';
+import UserNode from './Nodes/User';
+import StepNode from './Nodes/Step';
 import CommandNode from './Nodes/Command';
+import ExternalSystemNode from './Nodes/ExternalSystem';
 import type { CollectionEntry } from 'astro:content';
 import { navigate } from 'astro:transitions/client';
 import type { CollectionTypes } from '@types';
@@ -39,9 +42,19 @@ const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<Collectio
 
 // const NodeGraphBuilder = ({ title, subtitle, includeBackground = true, includeControls = true }: Props) => {
 const NodeGraphBuilder = ({ nodes: initialNodes, edges, title, includeBackground = true, linkTo = 'docs' }: Props) => {
-  const [nodes, _, onNodesChange] = useNodesState(initialNodes);
-
-  const nodeTypes = useMemo(() => ({ services: ServiceNode, events: EventNode, commands: CommandNode }), []);
+  const nodeTypes = useMemo(
+    () => ({
+      services: ServiceNode,
+      events: EventNode,
+      commands: CommandNode,
+      step: StepNode,
+      user: UserNode,
+      actor: UserNode,
+      externalSystem: ExternalSystemNode,
+    }),
+    []
+  );
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const nodeOrigin = [0.5, 0.5];
 
   const handleNodeClick = (_: any, node: Node) => {
@@ -60,7 +73,6 @@ const NodeGraphBuilder = ({ nodes: initialNodes, edges, title, includeBackground
       nodes={nodes}
       edges={edges}
       fitView
-      nodesDraggable
       onNodesChange={onNodesChange}
       connectionLineType={ConnectionLineType.SmoothStep}
       // @ts-ignore
