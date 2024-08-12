@@ -187,7 +187,11 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
       path.join(source, 'services/**/**/changelog.md'),
     ],
     pathToAllFiles: [path.join(source, 'services/**'), path.join(source, 'domains/**/services/**')],
-    ignore: [path.join(source, 'services/**/events/**'), path.join(source, 'services/**/commands/**')],
+    ignore: [
+      path.join(source, 'services/**/events/**'),
+      path.join(source, 'services/**/commands/**'),
+      path.join(source, 'services/**/flows/**'),
+    ],
     type: 'services',
   });
 
@@ -202,6 +206,7 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
       path.join(source, 'domains/**/services/**'),
       path.join(source, 'domains/**/commands/**'),
       path.join(source, 'domains/**/events/**'),
+      path.join(source, 'domains/**/flows/**'),
     ],
     type: 'domains',
   });
@@ -211,8 +216,17 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
     source,
     target: astroContentDir,
     catalogFilesDir,
-    pathToMarkdownFiles: [path.join(source, 'flows/**/**/index.md'), path.join(source, 'flows/**/**/changelog.md')],
-    pathToAllFiles: [path.join(source, 'flows/**')],
+    pathToMarkdownFiles: [
+      path.join(source, 'flows/**/**/index.md'),
+      path.join(source, 'flows/**/**/changelog.md'),
+      path.join(source, 'services/**/flows/**/index.md'),
+      path.join(source, 'domains/**/flows/**/index.md'),
+    ],
+    pathToAllFiles: [
+      path.join(source, 'flows/**'),
+      path.join(source, 'services/**/flows/**'),
+      path.join(source, 'domains/**/flows/**'),
+    ],
     type: 'flows',
   });
 
