@@ -41,11 +41,6 @@ const ensureDir = (dir: string) => {
 };
 
 const copyCore = () => {
-  // First empty the core directory.
-  if (fs.existsSync(core)) {
-    fs.rmSync(core, { recursive: true });
-  }
-
   // make sure the core folder exists
   ensureDir(core);
 
