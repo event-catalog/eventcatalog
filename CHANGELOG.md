@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.4.0
+
+### Minor Changes
+
+- 3a4b8ec: feat(c0re): add semantic version support, referencing services or messages can now be done with semver
+
 ## 2.3.4
 
 ### Patch Changes
