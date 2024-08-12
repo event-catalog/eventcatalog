@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import ReactFlow, { Background, ConnectionLineType, Controls, Panel, ReactFlowProvider, type Edge, type Node } from 'reactflow';
+import ReactFlow, {
+  Background,
+  ConnectionLineType,
+  Controls,
+  Panel,
+  ReactFlowProvider,
+  useNodesState,
+  type Edge,
+  type Node,
+} from 'reactflow';
 import 'reactflow/dist/style.css';
 import ServiceNode from './Nodes/Service';
 import EventNode from './Nodes/Event';
@@ -29,21 +38,18 @@ const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<Collectio
 };
 
 // const NodeGraphBuilder = ({ title, subtitle, includeBackground = true, includeControls = true }: Props) => {
-const NodeGraphBuilder = ({ nodes, edges, title, includeBackground = true, linkTo = 'docs' }: Props) => {
-  // const { fitView, viewportInitialized } = useReactFlow();
+const NodeGraphBuilder = ({ nodes: initialNodes, edges, title, includeBackground = true, linkTo = 'docs' }: Props) => {
+  const [nodes, _, onNodesChange] = useNodesState(initialNodes);
 
-  // const nodeTypes = useMemo(() => ({ service: ServiceNode, event: EventNode, command: CommandNode }), []);
   const nodeTypes = useMemo(() => ({ services: ServiceNode, events: EventNode, commands: CommandNode }), []);
   const nodeOrigin = [0.5, 0.5];
 
   const handleNodeClick = (_: any, node: Node) => {
     if (node.type === 'events' || node.type === 'commands') {
-      // return (window.location.href = linkTo === 'docs' ? getDocUrlForCollection(node.data.message) : getVisualiserUrlForCollection(node.data.message));
       navigate(linkTo === 'docs' ? getDocUrlForCollection(node.data.message) : getVisualiserUrlForCollection(node.data.message));
     }
     if (node.type === 'services') {
       navigate(linkTo === 'docs' ? getDocUrlForCollection(node.data.service) : getVisualiserUrlForCollection(node.data.service));
-      // return (window.location.href = linkTo === 'docs' ? getDocUrlForCollection(node.data.service) : getVisualiserUrlForCollection(node.data.service));
     }
   };
 
@@ -55,6 +61,7 @@ const NodeGraphBuilder = ({ nodes, edges, title, includeBackground = true, linkT
       edges={edges}
       fitView
       nodesDraggable
+      onNodesChange={onNodesChange}
       connectionLineType={ConnectionLineType.SmoothStep}
       // @ts-ignore
       nodeOrigin={nodeOrigin}

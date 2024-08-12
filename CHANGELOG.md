@@ -1,5 +1,17 @@
 # @eventcatalog/core
 
+## 2.3.4
+
+### Patch Changes
+
+- a99057e: feat(core): added ability to drag nodes in visualizer
+
+## 2.3.3
+
+### Patch Changes
+
+- dad4df7: fix(core): visualiser now truncates labels on sidebar
+
 ## 2.3.2
 
 ### Patch Changes

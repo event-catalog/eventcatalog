@@ -13,7 +13,7 @@ interface Props {
 }
 
 export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple' }: Props) => {
-  const flow = defaultFlow || createDagreGraph({ ranksep: 180, nodesep: 50 });
+  const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
   const nodes = [] as any,
     edges = [] as any;
 
