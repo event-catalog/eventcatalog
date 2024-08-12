@@ -28,7 +28,7 @@
 <h4>Features: Documentation generator for Event Driven Architectures, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-41-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-42-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [Read the Docs](https://eventcatalog.dev/) | [Edit the Docs](https://github.com/event-catalog/docs) | [View Demo](https://demo.eventcatalog.dev/docs)
@@ -199,6 +199,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://natee.biz"><img src="https://avatars.githubusercontent.com/u/4300215?v=4?s=100" width="100px;" alt="Nathan Birrell"/><br /><sub><b>Nathan Birrell</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=nathanbirrell" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.jacktomlinson.co.uk/"><img src="https://avatars.githubusercontent.com/u/15871032?v=4?s=100" width="100px;" alt="Jack Tomlinson"/><br /><sub><b>Jack Tomlinson</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=jacktomlinson" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/carlosallexandre"><img src="https://avatars.githubusercontent.com/u/20143946?v=4?s=100" width="100px;" alt="Carlos Rodrigues"/><br /><sub><b>Carlos Rodrigues</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=carlosallexandre" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/c-wygoda"><img src="https://avatars.githubusercontent.com/u/103508637?v=4?s=100" width="100px;" alt="Christian Wygoda"/><br /><sub><b>Christian Wygoda</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=c-wygoda" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
