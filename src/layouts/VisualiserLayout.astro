@@ -20,7 +20,7 @@ const [services, events, commands, domains, flows] = await Promise.all([
 // @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
 const navItems = [...domains, ...services, ...events, ...commands, ...flows];
 
-const navigation = navItems.reduce((acc, item) => {
+const navigation = navItems.filter(item => item.data.version === item.data.latestVersion).reduce((acc, item) => {
   //  @ts-ignore
   const group = acc[item.collection] || [];
 
