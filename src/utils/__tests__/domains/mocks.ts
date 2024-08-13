@@ -2,6 +2,7 @@ export const mockDomains = [
   {
     id: 'domains/Shipping/index.mdx',
     slug: 'domains/Shipping',
+    collection: 'domains',
     data: {
       id: 'Shipping',
       name: 'Shipping',
@@ -12,11 +13,23 @@ export const mockDomains = [
   {
     id: 'domains/Checkout/index.mdx',
     slug: 'domains/Checkout',
+    collection: 'domains',
     data: {
       id: 'Checkout',
       name: 'Checkout',
       version: '0.0.1',
-      services: [{ id: 'OrderService', version: '1.0.0' }, { id: 'PaymentService' }],
+      services: [{ id: 'OrderService' /* version: latest */ }, { id: 'PaymentService', version: '0.0.1' }],
+    },
+  },
+  {
+    id: 'domains/Notification/index.mdx',
+    slug: 'domains/Notification',
+    collection: 'domains',
+    data: {
+      id: 'Notification',
+      name: 'Notification',
+      version: '0.0.1',
+      services: [{ id: 'MailService' }],
     },
   },
 ];

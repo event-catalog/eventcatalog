@@ -1,9 +1,8 @@
-// import { getColor } from '@utils/colors';
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 import dagre from 'dagre';
 import { getNodesAndEdges as getServicesNodeAndEdges } from '../services/node-graph';
-import { validRange, satisfies } from 'semver';
 import merge from 'lodash.merge';
+import { getVersion } from './domains';
 
 type DagreGraph = any;
 
@@ -21,28 +20,6 @@ interface Props {
   defaultFlow?: DagreGraph;
   mode?: 'simple' | 'full';
 }
-
-/**
- * Get the services from the collection with the same id that satisfies the
- * semver range (if version is defind) or the latest version (if version is not defined).
- */
-const getVersion = (collection: CollectionEntry<'services'>[], id: string, version?: string): CollectionEntry<'services'>[] => {
-  const semverRange = validRange(version);
-
-  const filteredCollection = collection.filter((c) => c.data.id == id);
-
-  if (semverRange) {
-    return filteredCollection.filter((c) => satisfies(c.data.version, semverRange));
-  }
-
-  // Order by version
-  const sorted = filteredCollection.sort((a, b) => {
-    return a.data.version.localeCompare(b.data.version);
-  });
-
-  // latest version
-  return sorted.length > 0 ? [sorted[sorted.length - 1]] : [];
-};
 
 export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple' }: Props) => {
   const flow = defaultFlow || getDagreGraph();
