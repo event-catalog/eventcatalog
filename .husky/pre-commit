@@ -1,0 +1,2 @@
+npm run format:diff
+npm run test -- --no-watch

@@ -27,7 +27,8 @@
     "generate": "node scripts/generate.js",
     "release": "changeset publish",
     "format": "prettier --config .prettierrc --write \"**/*.{js,jsx,ts,tsx,json,astro}\"",
-    "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json,astro}\""
+    "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json,astro}\"",
+    "prepare": "husky"
   },
   "dependencies": {
     "@astrojs/check": "^0.7.0",
@@ -70,6 +71,7 @@
     "commander": "^12.1.0",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
+    "husky": "9.1.4",
     "prettier": "^3.3.3",
     "prettier-plugin-astro": "^0.14.1",
     "rimraf": "^5.0.7",
