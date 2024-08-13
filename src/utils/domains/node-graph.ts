@@ -2,7 +2,7 @@ import { getCollection } from 'astro:content';
 import dagre from 'dagre';
 import { getNodesAndEdges as getServicesNodeAndEdges } from '../services/node-graph';
 import merge from 'lodash.merge';
-import { getVersion } from './domains';
+import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 
 type DagreGraph = any;
 
@@ -43,7 +43,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
   const servicesCollection = await getCollection('services');
 
   const domainServicesWithVersion = rawServices
-    .map((service) => getVersion(servicesCollection, service.id, service.version))
+    .map((service) => getItemsFromCollectionByIdAndSemverOrLatest(servicesCollection, service.id, service.version))
     .flat()
     .map((svc) => ({ id: svc.data.id, version: svc.data.version }));
 
