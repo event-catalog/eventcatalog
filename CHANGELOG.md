@@ -1,5 +1,18 @@
 # @eventcatalog/core
 
+## 2.5.0
+
+### Minor Changes
+
+- 067fd89: feat(core): added flows to eventcatalog
+- c336807: feat(core): only latest versions are now shown in visualizer
+- 20c2cba: fix(core): fixing search not working after builds
+- 7476fa6: fix(core): nodegraphs for domains now work with semver versions
+- 737380a: feat(core): added ability to see how many domains a team and users own
+- a1490d3: chore(core): updated astro versions
+  feat(core): visuzlier arrows stroke width increased
+- 58d6a2d: chore(core): fixing default for flows
+
 ## 2.4.0
 
 ### Minor Changes
