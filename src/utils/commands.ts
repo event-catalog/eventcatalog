@@ -28,18 +28,18 @@ export const getCommands = async ({ getAllVersions = true }: Props = {}): Promis
     const { latestVersion, versions } = getVersionForCollectionItem(command, commands);
 
     const producers = services.filter((service) => {
-      if (!service.data.sends) return false;
-      return service.data.sends.find((item) => {
-        if (item.version) return item.id === command.data.id && satisfies(command.data.version, item.version);
-        return item.id == command.data.id; // ??
+      return service.data.sends?.some((item) => {
+        if (item.id != command.data.id) return false;
+        if (item.version == 'latest' || item.version == undefined) return command.data.version == latestVersion;
+        return satisfies(command.data.version, item.version);
       });
     });
 
     const consumers = services.filter((service) => {
-      if (!service.data.receives) return false;
-      return service.data.receives.find((item) => {
-        if (item.version) return item.id === command.data.id && satisfies(command.data.version, item.version);
-        return item.id == command.data.id; // ??
+      return service.data.receives?.some((item) => {
+        if (item.id != command.data.id) return false;
+        if (item.version == 'latest' || item.version == undefined) return command.data.version == latestVersion;
+        return satisfies(command.data.version, item.version);
       });
     });
 
