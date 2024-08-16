@@ -1,3 +1,4 @@
+import { MarkerType } from 'reactflow';
 import { getNodesAndEdges } from '../../events/node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 
@@ -151,7 +152,14 @@ describe('Services NodeGraph', () => {
           type: 'smoothstep',
           label: 'publishes event',
           animated: false,
-          markerEnd: { type: 'arrow' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
         },
         {
           id: 'OrderCreatedEvent-0.0.1-PaymentService-0.0.1',
@@ -160,7 +168,14 @@ describe('Services NodeGraph', () => {
           type: 'smoothstep',
           label: 'subscribed by',
           animated: false,
-          markerEnd: { type: 'arrow' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
         },
       ];
 
@@ -226,7 +241,14 @@ describe('Services NodeGraph', () => {
           type: 'smoothstep',
           label: 'publishes event',
           animated: false,
-          markerEnd: { type: 'arrow' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
         },
         {
           id: 'InventoryAdjusted-1.5.1-CatalogService-0.0.1',
@@ -235,7 +257,14 @@ describe('Services NodeGraph', () => {
           type: 'smoothstep',
           label: 'subscribed by',
           animated: false,
-          markerEnd: { type: 'arrow' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
         },
       ];
 

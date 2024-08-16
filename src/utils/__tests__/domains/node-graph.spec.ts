@@ -2,6 +2,7 @@ import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { mockDomains, mockServices, mockEvents, mockCommands } from './mocks';
 import { getNodesAndEdges } from '../../domains/node-graph';
+import { MarkerType } from 'reactflow';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
@@ -62,7 +63,14 @@ describe('Domains NodeGraph', () => {
           type: 'smoothstep',
           label: 'receives event',
           animated: false,
-          markerEnd: { type: 'arrow' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
         },
       ];
 
@@ -168,7 +176,14 @@ describe('Domains NodeGraph', () => {
           type: 'smoothstep',
           label: 'accepts',
           animated: false,
-          markerEnd: { type: 'arrow' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
         },
         {
           id: 'OrderService-1.0.0-OrderPlaced-0.0.1',
@@ -177,7 +192,14 @@ describe('Domains NodeGraph', () => {
           type: 'smoothstep',
           label: 'publishes event',
           animated: false,
-          markerEnd: { type: 'arrow' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
         },
         {
           id: 'OrderPlaced-0.0.1-PaymentService-0.0.1',
@@ -186,7 +208,14 @@ describe('Domains NodeGraph', () => {
           type: 'smoothstep',
           label: 'receives event',
           animated: false,
-          markerEnd: { type: 'arrow' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
         },
         {
           id: 'PaymentService-0.0.1-PaymentRefunded-1.0.0',
@@ -195,7 +224,14 @@ describe('Domains NodeGraph', () => {
           type: 'smoothstep',
           label: 'publishes event',
           animated: false,
-          markerEnd: { type: 'arrow' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
         },
         {
           id: 'PaymentService-0.0.1-PaymentFailed-1.0.0',
@@ -204,7 +240,14 @@ describe('Domains NodeGraph', () => {
           type: 'smoothstep',
           label: 'publishes event',
           animated: false,
-          markerEnd: { type: 'arrow' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
         },
         {
           id: 'PaymentService-0.0.1-PaymentPaid-0.0.1',
@@ -213,7 +256,14 @@ describe('Domains NodeGraph', () => {
           type: 'smoothstep',
           label: 'publishes event',
           animated: false,
-          markerEnd: { type: 'arrow' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
         },
         {
           id: 'PaymentService-0.0.1-PaymentPaid-0.0.2',
@@ -222,7 +272,14 @@ describe('Domains NodeGraph', () => {
           type: 'smoothstep',
           label: 'publishes event',
           animated: false,
-          markerEnd: { type: 'arrow' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
         },
       ];
 

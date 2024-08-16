@@ -3,6 +3,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
 import { getVersion } from './services';
 import { createDagreGraph, generateIdForNode, generatedIdForEdge, calculatedNodes } from '@utils/node-graph-utils/utils';
+import { MarkerType } from 'reactflow';
 
 type DagreGraph = any;
 
@@ -73,7 +74,12 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         label: receive?.collection === 'events' ? 'receives event' : 'accepts',
         animated: false,
         markerEnd: {
-          type: 'arrow',
+          type: MarkerType.ArrowClosed,
+          width: 40,
+          height: 40,
+        },
+        style: {
+          strokeWidth: 1,
         },
       });
     });
@@ -107,7 +113,12 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
       label: send?.collection === 'events' ? 'publishes event' : 'invokes command',
       animated: false,
       markerEnd: {
-        type: 'arrow',
+        type: MarkerType.ArrowClosed,
+        width: 40,
+        height: 40,
+      },
+      style: {
+        strokeWidth: 1,
       },
     });
   });

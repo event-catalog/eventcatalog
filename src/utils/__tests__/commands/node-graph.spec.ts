@@ -1,3 +1,4 @@
+import { MarkerType } from 'reactflow';
 import { getNodesAndEdges } from '../../commands/node-graph';
 import { expect, describe, it, vi } from 'vitest';
 
@@ -131,7 +132,14 @@ describe('Commands NodeGraph', () => {
           type: 'smoothstep',
           label: 'invokes',
           animated: false,
-          markerEnd: { type: 'arrow' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
         },
         {
           id: 'AdjustOrder-0.0.1-PaymentService-0.0.1',
@@ -140,7 +148,14 @@ describe('Commands NodeGraph', () => {
           type: 'smoothstep',
           label: 'accepts',
           animated: false,
-          markerEnd: { type: 'arrow' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
         },
       ];
 
@@ -202,7 +217,14 @@ describe('Commands NodeGraph', () => {
           type: 'smoothstep',
           label: 'accepts',
           animated: false,
-          markerEnd: { type: 'arrow' },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
         },
       ];
 

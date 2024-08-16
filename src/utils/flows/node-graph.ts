@@ -125,11 +125,11 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
           type: MarkerType.ArrowClosed,
           width: 20,
           height: 20,
-          color: '#742fca75',
+          color: '#acacac',
         },
         style: {
           strokeWidth: 2,
-          stroke: '#742fca75',
+          stroke: '#acacac',
         },
       });
     });

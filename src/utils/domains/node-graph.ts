@@ -9,7 +9,7 @@ type DagreGraph = any;
 // Creates a new dagre graph
 export const getDagreGraph = () => {
   const graph = new dagre.graphlib.Graph({ compound: true });
-  graph.setGraph({ rankdir: 'LR', ranksep: 200, nodesep: 200 });
+  graph.setGraph({ rankdir: 'LR', ranksep: 200, nodesep: 100 });
   graph.setDefaultEdgeLabel(() => ({}));
   return graph;
 };
