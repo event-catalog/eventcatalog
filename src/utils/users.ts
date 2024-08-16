@@ -11,6 +11,9 @@ export const getUsers = async (): Promise<User[]> => {
   });
 
   // What do they own?
+  const domains = await getCollection('domains');
+
+  // What do they own?
   const services = await getCollection('services');
 
   // What do they own?
@@ -24,6 +27,10 @@ export const getUsers = async (): Promise<User[]> => {
   });
 
   return users.map((user) => {
+    const ownedDomains = domains.filter((domain) => {
+      return domain.data.owners?.find((owner) => owner.slug === user.data.id);
+    });
+
     const ownedServices = services.filter((service) => {
       return service.data.owners?.find((owner) => owner.slug === user.data.id);
     });
@@ -44,6 +51,7 @@ export const getUsers = async (): Promise<User[]> => {
       ...user,
       data: {
         ...user.data,
+        ownedDomains,
         ownedServices,
         ownedEvents,
         ownedCommands,

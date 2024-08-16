@@ -9,7 +9,8 @@ export const getTeams = async (): Promise<Team[]> => {
   const teams = await getCollection('teams', (team) => {
     return team.data.hidden !== true;
   });
-
+  // What do they own?
+  const domains = await getCollection('domains');
   // What do they own?
   const services = await getCollection('services');
   // What do they own?
@@ -17,6 +18,10 @@ export const getTeams = async (): Promise<Team[]> => {
   const commands = await getCollection('commands');
 
   return teams.map((team) => {
+    const ownedDomains = domains.filter((domain) => {
+      return domain.data.owners?.find((owner) => owner.slug === team.data.id);
+    });
+
     const ownedServices = services.filter((service) => {
       return service.data.owners?.find((owner) => owner.slug === team.data.id);
     });
@@ -33,6 +38,7 @@ export const getTeams = async (): Promise<Team[]> => {
       ...team,
       data: {
         ...team.data,
+        ownedDomains,
         ownedServices,
         ownedCommands,
         ownedEvents,

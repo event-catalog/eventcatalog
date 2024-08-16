@@ -4,6 +4,7 @@ name: Orders
 version: 0.0.3
 owners:
   - dboyne
+  - full-stack
 services:
   - id: InventoryService
     version: 0.0.2
