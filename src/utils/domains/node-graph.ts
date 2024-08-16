@@ -1,7 +1,8 @@
-// import { getColor } from '@utils/colors';
 import { getCollection } from 'astro:content';
 import dagre from 'dagre';
 import { getNodesAndEdges as getServicesNodeAndEdges } from '../services/node-graph';
+import merge from 'lodash.merge';
+import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 
 type DagreGraph = any;
 
@@ -22,8 +23,8 @@ interface Props {
 
 export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple' }: Props) => {
   const flow = defaultFlow || getDagreGraph();
-  let nodes = [] as any,
-    edges = [] as any;
+  let nodes = new Map(),
+    edges = new Map();
 
   const domains = await getCollection('domains');
 
@@ -39,9 +40,16 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
 
   const rawServices = domain?.data.services || [];
 
+  const servicesCollection = await getCollection('services');
+
+  const domainServicesWithVersion = rawServices
+    .map((service) => getItemsFromCollectionByIdAndSemverOrLatest(servicesCollection, service.id, service.version))
+    .flat()
+    .map((svc) => ({ id: svc.data.id, version: svc.data.version }));
+
   // Get all the nodes for everyhing
 
-  for (const service of rawServices) {
+  for (const service of domainServicesWithVersion) {
     const { nodes: serviceNodes, edges: serviceEdges } = await getServicesNodeAndEdges({
       id: service.id,
       version: service.version,
@@ -49,12 +57,23 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
       mode,
       renderAllEdges: true,
     });
-    nodes = [...nodes, ...serviceNodes];
-    edges = [...edges, ...serviceEdges];
+    serviceNodes.forEach((n) => {
+      /**
+       * A message could be sent by one service and received by another service on the same domain.
+       * So, we need deep merge the message to keep the `showSource` and `showTarget` as true.
+       *
+       * Let's see an example:
+       *  Take an `OrderPlaced` event sent by the `OrderService` `{ showSource: true }` and
+       *  received by `PaymentService` `{ showTarget: true }`.
+       */
+      nodes.set(n.id, nodes.has(n.id) ? merge(nodes.get(n.id), n) : n);
+    });
+    // @ts-ignore
+    serviceEdges.forEach((e) => edges.set(e.id, e));
   }
 
   return {
-    nodes: nodes,
-    edges: edges,
+    nodes: [...nodes.values()],
+    edges: [...edges.values()],
   };
 };

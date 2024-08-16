@@ -1,4 +1,4 @@
-import { getVersionForCollectionItem, getVersions } from '@utils/collections/util';
+import { getItemsFromCollectionByIdAndSemverOrLatest, getVersionForCollectionItem } from '@utils/collections/util';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
@@ -28,10 +28,8 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
     const servicesInDomain = domain.data.services || [];
 
     const services = servicesInDomain
-      .map((_service) => {
-        return servicesCollection.find((service) => _service.id === service.data.id);
-      })
-      .filter((e) => e !== undefined);
+      .map((_service) => getItemsFromCollectionByIdAndSemverOrLatest(servicesCollection, _service.id, _service.version))
+      .flat();
 
     return {
       ...domain,
