@@ -22,6 +22,14 @@ export const getVersionForCollectionItem = (
   return { versions, latestVersion };
 };
 
+// /**
+//  * @returns {boolean} Returns true if the version satisfies the range.
+//  */
+// export const satisfies = (version: string, range: string): boolean => {
+//   // TODO: coerce the version to a valid semver and then compare
+//   return satisfiesRange(version, range);
+// }
+
 export const getItemsFromCollectionByIdAndSemverOrLatest = <T extends { data: { id: string; version: string } }>(
   collection: T[],
   id: string,
