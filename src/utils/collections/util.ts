@@ -1,6 +1,6 @@
 import type { CollectionTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
-import { satisfies, validRange } from 'semver';
+import { coerce, satisfies as satisfiesRange, validRange } from 'semver';
 
 export const getVersions = (data: CollectionEntry<CollectionTypes>[]) => {
   const allVersions = data.map((item) => item.data.version).sort();
@@ -22,24 +22,26 @@ export const getVersionForCollectionItem = (
   return { versions, latestVersion };
 };
 
-// /**
-//  * @returns {boolean} Returns true if the version satisfies the range.
-//  */
-// export const satisfies = (version: string, range: string): boolean => {
-//   // TODO: coerce the version to a valid semver and then compare
-//   return satisfiesRange(version, range);
-// }
+/**
+ * @param {string} version A valid version (number | v{\d+} | semver)
+ * @param {string} range A semver range or exact version to compare
+ * @returns {boolean} Returns true if the version satisfies the range.
+ */
+export const satisfies = (version: string, range: string): boolean => {
+  const coercedVersion = coerce(version);
+  if (!coercedVersion) return false;
+  return satisfiesRange(coercedVersion, range);
+};
 
 export const getItemsFromCollectionByIdAndSemverOrLatest = <T extends { data: { id: string; version: string } }>(
   collection: T[],
   id: string,
   version?: string
 ): T[] => {
-  const semverRange = validRange(version);
   const filteredCollection = collection.filter((c) => c.data.id == id);
 
-  if (semverRange) {
-    return filteredCollection.filter((c) => satisfies(c.data.version, semverRange));
+  if (version && version != 'latest') {
+    return filteredCollection.filter((c) => satisfies(c.data.version, version));
   }
 
   // Order by version

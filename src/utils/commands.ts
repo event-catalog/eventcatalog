@@ -1,8 +1,7 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
-import { getVersionForCollectionItem } from './collections/util';
-import { satisfies } from 'semver';
+import { getVersionForCollectionItem, satisfies } from './collections/util';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
