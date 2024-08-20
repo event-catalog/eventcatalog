@@ -10,7 +10,6 @@ const { id, version = 'latest', maxHeight, includeKey = true } = Astro.props;
 // Find the flow for the given id and version
 const flows = await getFlows();
 const flowCollection = getVersionFromCollection(flows, id, version) || [];
-console.log('flowCollection', flowCollection);
 const flow = flowCollection[0];
 
 // const flow = flows.find((flow) => flow.data.id === id && flow.data.version === version);
