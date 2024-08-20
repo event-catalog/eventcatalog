@@ -113,7 +113,7 @@ You can see the markdown files that generated the website in the GitHub repo und
 
 Interested in collaborating with us? Our offerings include dedicated support, priority assistance, feature development, custom integrations, and more.
 
-Find more details on our [enterprise plan](https://eventcatalog.dev/enterprise).
+Find more details on our [services page](https://eventcatalog.dev/services).
 
 # Looking for v1?
 
