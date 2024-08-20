@@ -24,6 +24,8 @@ import Footer from '@catalog/components/footer.astro';
 
 The Orders domain handles all operations related to customer orders, from creation to fulfillment. This documentation provides an overview of the events and services involved in the Orders domain, helping developers and stakeholders understand the event-driven architecture.
 
+
+
 <Admonition type="warning">Please ensure all services are updated to the latest version for compatibility and performance improvements.</Admonition>
 
 ## Bounded context
@@ -48,5 +50,17 @@ sequenceDiagram
     OrdersService->>Customer: Order Placed Successfully
     OrdersService->>InventoryService: Update Inventory
 ```
+
+## Flows
+
+### Cancel Subscription flow
+Documented flow when a user cancels their subscription.
+
+<Flow id="CancelSubscription" version="latest" includeKey={false} />
+
+### Payment processing flow
+Documented flow when a user makes a payment within the order domain
+
+<Flow id="PaymentFlow" version="latest" includeKey={false} />
 
 <Footer />

@@ -31,6 +31,7 @@ interface Props {
   includeBackground?: boolean;
   includeControls?: boolean;
   linkTo: 'docs' | 'visualiser';
+  includeKey?: boolean;
 }
 
 const getDocUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
@@ -41,7 +42,14 @@ const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<Collectio
 };
 
 // const NodeGraphBuilder = ({ title, subtitle, includeBackground = true, includeControls = true }: Props) => {
-const NodeGraphBuilder = ({ nodes: initialNodes, edges, title, includeBackground = true, linkTo = 'docs' }: Props) => {
+const NodeGraphBuilder = ({
+  nodes: initialNodes,
+  edges,
+  title,
+  includeBackground = true,
+  linkTo = 'docs',
+  includeKey = true,
+}: Props) => {
   const nodeTypes = useMemo(
     () => ({
       services: ServiceNode,
@@ -89,25 +97,27 @@ const NodeGraphBuilder = ({ nodes: initialNodes, edges, title, includeBackground
       <DownloadButton filename={title} addPadding={!!title} />
       {includeBackground && <Background color="#bbb" gap={16} />}
       {includeBackground && <Controls />}
-      <Panel position="bottom-right">
-        <div className=" bg-white font-light px-4 text-[14px] shadow-md py-1 rounded-md">
-          <span className="font-bold">Key</span>
-          <ul>
-            <li className="flex space-x-2 items-center text-[12px]">
-              <span className="w-2 h-2 bg-orange-500 block" />
-              <span className="block">Event</span>
-            </li>
-            <li className="flex space-x-2 items-center text-[12px]">
-              <span className="w-2 h-2 bg-pink-500 block" />
-              <span className="block">Service</span>
-            </li>
-            <li className="flex space-x-2 items-center text-[12px]">
-              <span className="w-2 h-2 bg-blue-500 block" />
-              <span className="block">Command</span>
-            </li>
-          </ul>
-        </div>
-      </Panel>
+      {includeKey && (
+        <Panel position="bottom-right">
+          <div className=" bg-white font-light px-4 text-[14px] shadow-md py-1 rounded-md">
+            <span className="font-bold">Key</span>
+            <ul>
+              <li className="flex space-x-2 items-center text-[12px]">
+                <span className="w-2 h-2 bg-orange-500 block" />
+                <span className="block">Event</span>
+              </li>
+              <li className="flex space-x-2 items-center text-[12px]">
+                <span className="w-2 h-2 bg-pink-500 block" />
+                <span className="block">Service</span>
+              </li>
+              <li className="flex space-x-2 items-center text-[12px]">
+                <span className="w-2 h-2 bg-blue-500 block" />
+                <span className="block">Command</span>
+              </li>
+            </ul>
+          </div>
+        </Panel>
+      )}
     </ReactFlow>
   );
 };
@@ -120,9 +130,21 @@ interface NodeGraphProps {
   nodes: Node[];
   edges: Edge[];
   linkTo: 'docs' | 'visualiser';
+  includeKey?: boolean;
+  footerLabel?: string;
 }
 
-const NodeGraph = ({ id, nodes, edges, title, href, linkTo = 'docs', hrefLabel = 'Open in visualiser' }: NodeGraphProps) => {
+const NodeGraph = ({
+  id,
+  nodes,
+  edges,
+  title,
+  href,
+  linkTo = 'docs',
+  hrefLabel = 'Open in visualizer',
+  includeKey = true,
+  footerLabel,
+}: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
 
   useEffect(() => {
@@ -136,15 +158,23 @@ const NodeGraph = ({ id, nodes, edges, title, href, linkTo = 'docs', hrefLabel =
     <div>
       {createPortal(
         <ReactFlowProvider>
-          <NodeGraphBuilder edges={edges} nodes={nodes} title={title} linkTo={linkTo} />
+          <NodeGraphBuilder edges={edges} nodes={nodes} title={title} linkTo={linkTo} includeKey={includeKey} />
 
-          {href && (
-            <div className="py-2 w-full text-right">
-              <a className=" text-sm no-underline py-2 text-gray-800 hover:text-purple-500" href={href}>
-                {hrefLabel} &rarr;
-              </a>
-            </div>
-          )}
+          <div className="flex justify-between">
+            {footerLabel && (
+              <div className="py-2 w-full text-left ">
+                <span className=" text-sm no-underline py-2 text-gray-300">{footerLabel}</span>
+              </div>
+            )}
+
+            {href && (
+              <div className="py-2 w-full text-right">
+                <a className=" text-sm no-underline py-2 text-gray-800 hover:text-purple-500" href={href}>
+                  {hrefLabel} &rarr;
+                </a>
+              </div>
+            )}
+          </div>
         </ReactFlowProvider>,
         elem
       )}

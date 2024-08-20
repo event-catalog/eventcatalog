@@ -5,6 +5,7 @@ import Footer from '@layouts/Footer.astro';
 
 import components from '@components/MDX/components';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
+import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewer.astro';
 
 // SideBars
 import ServiceSideBar from '@components/SideBars/ServiceSideBar.astro';
@@ -17,7 +18,7 @@ import { EnvelopeIcon, PencilIcon, QueueListIcon, RectangleGroupIcon, ServerIcon
 import { getDomains } from '@utils/domains/domains';
 import DomainSideBar from '@components/SideBars/DomainSideBar.astro';
 import type { CollectionTypes } from '@types';
-import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewer.astro';
+
 import { buildUrl } from '@utils/url-builder';
 import { getFlows } from '@utils/flows/flows';
 

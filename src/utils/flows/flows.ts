@@ -1,5 +1,5 @@
 import { getVersionForCollectionItem, getVersions } from '@utils/collections/util';
-import { getVersion } from '@utils/services/services';
+import { getVersionFromCollection } from '@utils/versions/versions';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
@@ -31,7 +31,7 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
 
     const hydrateSteps = steps.map((step) => {
       if (!step.message) return { ...flow, data: { ...flow.data, type: 'node' } };
-      const message = getVersion(allMessages, step.message.id, step.message.version);
+      const message = getVersionFromCollection(allMessages, step.message.id, step.message.version);
       return {
         ...step,
         type: 'message',

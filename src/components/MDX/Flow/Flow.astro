@@ -1,0 +1,64 @@
+---
+import { getFlows } from '@utils/flows/flows';
+import { getNodesAndEdges } from '@utils/flows/node-graph';
+import Admonition from '@components/MDX/Admonition';
+import NodeGraph from '../NodeGraph/NodeGraph';
+import { getVersionFromCollection } from '@utils/versions/versions';
+
+const { id, version = 'latest', maxHeight, includeKey = true } = Astro.props;
+
+// Find the flow for the given id and version
+const flows = await getFlows();
+const flowCollection = getVersionFromCollection(flows, id, version) || [];
+console.log('flowCollection', flowCollection);
+const flow = flowCollection[0];
+
+// const flow = flows.find((flow) => flow.data.id === id && flow.data.version === version);
+
+const { nodes, edges } = await getNodesAndEdges({
+  id: id,
+  version: flow.data.version,
+});
+---
+
+{
+  !flow && (
+    <Admonition type="warning">
+      <>
+        <span class="block font-bold">{`<Flow/>`} failed to load</span>
+        <span class="block">
+          Tried to load flow id: {id} with version {version}. Make sure you have this flow defined in your project.
+        </span>
+      </>
+    </Admonition>
+  )
+}
+
+<div
+  class="h-[30em] my-6 mb-12 w-full relative border border-gray-200 rounded-md"
+  id={`${id}-portal`}
+  style={{
+    maxHeight: maxHeight ? `${maxHeight}em` : `30em`,
+  }}
+>
+</div>
+
+<div>
+  <NodeGraph
+    id={id}
+    nodes={nodes}
+    edges={edges}
+    hrefLabel={'View in visualizer'}
+    href={`/visualiser/flows/${id}/${version}`}
+    linkTo={'visualiser'}
+    includeKey={includeKey}
+    footerLabel=`Flow diagram - ${flow.data.name} - v(${flow.data.version})`
+    client:load
+  />
+</div>
+
+<style is:global>
+  .react-flow__attribution {
+    display: none;
+  }
+</style>
