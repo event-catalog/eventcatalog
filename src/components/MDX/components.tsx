@@ -3,6 +3,7 @@ import Schema from '@components/MDX/Schema';
 import File from '@components/MDX/File';
 import Accordion from '@components/MDX/Accordion/Accordion.astro';
 import AccordionGroup from '@components/MDX/Accordion/AccordionGroup.astro';
+import Flow from '@components/MDX/Flow/Flow.astro';
 import Admonition from '@components/MDX/Admonition';
 import OpenAPI from '@components/MDX/OpenAPI/OpenAPI';
 
@@ -14,6 +15,7 @@ const components = (props: any) => {
   return {
     Accordion,
     AccordionGroup,
+    Flow,
     Admonition: (mdxProp: any) => <Admonition {...mdxProp} {...props} />,
     File: (mdxProp: any) => File({ ...props, ...mdxProp }),
     NodeGraph: (mdxProp: any) => NodeGraphPortal({ ...props.data, ...mdxProp }),

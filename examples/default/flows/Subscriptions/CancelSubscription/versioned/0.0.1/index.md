@@ -1,7 +1,7 @@
 ---
 id: "CancelSubscription"
 name: "User Cancels Subscription"
-version: "1.0.0"
+version: "0.0.1"
 summary: "Flow for when a user has cancelled a subscription"
 steps:
   - id: "cancel_subscription_initiated"
@@ -44,25 +44,6 @@ steps:
         label: "Successful cancellation"
       - id: "subscription_rejected"
         label: "Failed cancellation"
-
-  - id: "subscription_cancelled"
-    title: "Subscription has been Cancelled"
-    message:
-      id: "UserSubscriptionCancelled"
-      version: "0.0.1"
-    next_step:
-      id: "notification_service"
-      label: "Email customer"
-
-  - id: "subscription_rejected"
-    title: "Subscription cancellation has been rejected"
-
-  - id: "notification_service"
-    title: "Notifications Service"
-    service:
-      id: "NotificationService"
-      version: "0.0.2"
-
 ---
 
 <NodeGraph />
