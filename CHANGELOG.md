@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.5.1
+
+### Patch Changes
+
+- 2bbccf8: feat(core): added new MDX component for Flows
+
 ## 2.5.0
 
 ### Minor Changes
