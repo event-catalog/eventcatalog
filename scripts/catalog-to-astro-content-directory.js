@@ -22,17 +22,23 @@ const ensureDirSync = async (filePath) => {
   }
 };
 
-const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles, pathToAllFiles, type, ignore = null }) => {
+const hydrateFileWithMetaData = async (file, { file: filePath }) => {
+  const fileContent = fs.readFileSync(file, 'utf-8');
+  const newField = `absolutePath: ${filePath}`;
+  const updatedContent = fileContent.replace(/^(---\n)/, `$1${newField}\n`);
+  fs.writeFileSync(file, updatedContent);
+}
+
+const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles, pathToAllFiles, type, ignore = [] }) => {
   // Find all the event files
   const markdownFiles = await glob(pathToMarkdownFiles, {
     nodir: true,
     windowsPathsNoEscape: os.platform() == 'win32',
     ignore: ignore,
   });
+
   const files = await glob(pathToAllFiles, {
-    ignore: {
-      ignored: (p) => /\.md$/.test(p.name),
-    },
+    ignore: [...ignore],
     nodir: true,
     windowsPathsNoEscape: os.platform() == 'win32',
   });
@@ -53,7 +59,13 @@ const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles,
     //ensure the directory exists
     ensureDirSync(path.dirname(targetPath));
 
-    fs.cpSync(file, targetPath.replace('index.md', 'index.mdx').replace('changelog.md', 'changelog.mdx'));
+    const newTarget = targetPath.replace('index.md', 'index.mdx').replace('changelog.md', 'changelog.mdx');
+
+    // Add file onto the frontmatter of the content.md file
+    fs.cpSync(file, newTarget);
+
+    await hydrateFileWithMetaData(newTarget, { file });
+
   }
 
   // Copy all other files (non markdown) files into catalog-files directory (non collection)
@@ -62,6 +74,8 @@ const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles,
     if (file.endsWith('.md')) {
       continue;
     }
+
+    const targetPath2 = getTargetPath(source, target, type, file);
 
     const relativePath = path.relative(source, file);
     const cleanedRelativePath = relativePath.split(type);
@@ -119,11 +133,17 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
   // Config file
   const astroConfigFile = fs.readFileSync(path.join(astroContentDir, 'config.ts'));
 
-  // Clear the astro directory before we copy files over
-  await fs.rmSync(astroContentDir, { recursive: true });
+  // Clear the astro directory and catalog files before we copy files over
+  if(fs.existsSync(astroContentDir)) {
+    await fs.rmSync(astroContentDir, { recursive: true });
+  }
+  if(fs.existsSync(catalogFilesDir)) {
+    await fs.rmSync(catalogFilesDir, { recursive: true });
+  }
 
-  // Create the folder again
+  // Create folders again
   fs.mkdirSync(astroContentDir);
+  fs.mkdirSync(catalogFilesDir);
 
   // Write config file back
   // ensureDirSync(astroContentDir);
@@ -188,6 +208,8 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
     ],
     pathToAllFiles: [path.join(source, 'services/**'), path.join(source, 'domains/**/services/**')],
     ignore: [
+      path.join(source, 'domains/**/services/**/events/**'),
+      path.join(source, 'domains/**/services/**/commands/**'),
       path.join(source, 'services/**/events/**'),
       path.join(source, 'services/**/commands/**'),
       path.join(source, 'services/**/flows/**'),
@@ -204,6 +226,9 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
     pathToAllFiles: [path.join(source, 'domains/**')],
     ignore: [
       path.join(source, 'domains/**/services/**'),
+      path.join(source, 'domains/**/services/**/commands'),
+      path.join(source, 'domains/**/services/**/events'),
+      path.join(source, 'domains/**/services/**/flows/**'),
       path.join(source, 'domains/**/commands/**'),
       path.join(source, 'domains/**/events/**'),
       path.join(source, 'domains/**/flows/**'),
@@ -211,7 +236,7 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
     type: 'domains',
   });
 
-  // // Copy all the flow files over
+  // Copy all the flow files over
   await copyFiles({
     source,
     target: astroContentDir,

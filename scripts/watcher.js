@@ -12,15 +12,28 @@ const catalogDirectory = process.env.CATALOG_DIR;
 const contentPath = path.join(catalogDirectory, 'src', 'content');
 
 const watchList = ['domains', 'commands', 'events', 'services', 'teams', 'users', 'pages', 'components', 'flows'];
-// const absoluteWatchList = watchList.map((item) => path.join(projectDirectory, item));
 
 // confirm folders exist before watching them
 const verifiedWatchList = watchList.filter((item) => fs.existsSync(path.join(projectDirectory, item)));
+
+const ensureDirSync = async (filePath) => {
+  const dir = path.dirname(filePath);
+
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+};
 
 const extensionReplacer = (collection, file) => {
   if (collection === 'teams' || collection == 'users') return file;
   return file.replace('.md', '.mdx');
 };
+
+const hydrateFileWithMetaData = (contents, { file: filePath }) => {
+  const newField = `absolutePath: ${filePath}`;
+  const updatedContent = contents.replace(/^(---\n)/, `$1${newField}\n`);
+  return updatedContent;
+}
 
 for (let item of [...verifiedWatchList]) {
   // Listen to the users directory for any changes.
@@ -28,41 +41,45 @@ for (let item of [...verifiedWatchList]) {
     if (err) {
       return;
     }
+
     for (let event of events) {
-      const { path: eventPath, type } = event;
-      const file = eventPath.split(item)[1];
-      let newPath = path.join(contentPath, item, extensionReplacer(item, file));
+      const { path: changedFile, type } = event;
+
+      // normalize path for OS (windows/mac)
+      const normalizedPath = path.normalize(changedFile);
+
+      // Split parts
+      const parts = normalizedPath.split('/').reverse();
+
+      // Get the last collection that we find in the path (e.g /domains/services/My Service/events would be events)
+      const collection = parts.find((part) => watchList.includes(part));
+
+      // split by the last event catalog content directory
+      const file = path.join(collection, changedFile.split(collection)[1]);
+
+      let newPath = path.join(contentPath, extensionReplacer(item, file));
 
       // Check if changlogs, they need to go into their own content folder
       if (file.includes('changelog.md')) {
         newPath = newPath.replace('src/content', 'src/content/changelogs');
-        if (os.platform() == 'win32') {
-          newPath = newPath.replace('src\\content', 'src\\content\\changelogs');
-        }
       }
 
       // Check if its a component, need to move to the correct location
       if (newPath.includes('components')) {
         newPath = newPath.replace('src/content/components', 'src/custom-defined-components');
-        if (os.platform() == 'win32') {
-          newPath = newPath.replace('src\\content\\components', 'src\\custom-defined-components');
-        }
-      }
-
-      // If config files have changes
-      if (eventPath.includes('eventcatalog.config.js') || eventPath.includes('eventcatalog.styles.css')) {
-        fs.cpSync(eventPath, path.join(catalogDirectory, file));
-        return;
       }
 
       // If markdown files or astro files copy file over to the required location
-      if ((eventPath.endsWith('.md') || eventPath.endsWith('.astro')) && type === 'update') {
-        fs.cpSync(eventPath, newPath);
+      if ((changedFile.endsWith('.md') || changedFile.endsWith('.astro')) && type === 'update') {
+        const rawFile = fs.readFileSync(changedFile, 'utf-8');
+        const file  = hydrateFileWithMetaData(rawFile, { file: changedFile });
+        ensureDirSync(path.join(newPath));;
+        fs.writeFileSync(path.join(newPath), file);
       }
 
       // IF directory remove it
       if (type === 'delete') {
-        fs.rmSync(newPath);
+        fs.rmSync(path.join(newPath));
       }
     }
   });

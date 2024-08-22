@@ -1,0 +1,42 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ClaimSubmittedCommand",
+    "type": "object",
+    "properties": {
+      "claimId": {
+        "type": "string",
+        "description": "A unique identifier for the claim."
+      },
+      "customerId": {
+        "type": "string",
+        "description": "A unique identifier for the customer submitting the claim."
+      },
+      "incidentDetails": {
+        "type": "object",
+        "properties": {
+          "incidentDate": {
+            "type": "string",
+            "format": "date",
+            "description": "The date when the incident occurred."
+          },
+          "description": {
+            "type": "string",
+            "description": "A detailed description of the incident."
+          }
+        },
+        "required": ["incidentDate", "description"],
+        "description": "Details of the incident related to the claim."
+      },
+      "supportingDocuments": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "description": "A URL or reference to a supporting document."
+        },
+        "description": "A list of supporting documents for the claim."
+      }
+    },
+    "required": ["claimId", "customerId", "incidentDetails"],
+    "additionalProperties": false
+  }
+  

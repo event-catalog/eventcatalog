@@ -82,6 +82,7 @@ const getBadge = () => {
 };
 
 const badges = [getBadge(), ...contentBadges];
+
 ---
 
 <DocsLayout title={pageTitle} description={props.data.summary}>
@@ -153,7 +154,7 @@ const badges = [getBadge(), ...contentBadges];
       </div>
       <div>
         <!-- @ts-ignore -->
-        <SchemaViewer id={props.data.id} catalog={props.catalog} />
+        <SchemaViewer id={props.data.id} contentPath={props.data.absolutePath} catalog={props.catalog} />
         <NodeGraph
           id={props.data.id}
           collection={props.collection}

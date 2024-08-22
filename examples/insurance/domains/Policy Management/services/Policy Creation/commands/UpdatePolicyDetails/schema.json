@@ -1,0 +1,85 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "UpdatePolicyDetailsCommand",
+    "type": "object",
+    "properties": {
+      "policyId": {
+        "type": "string",
+        "description": "A unique identifier for the policy being updated."
+      },
+      "coverageDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "The type of coverage provided by the policy."
+          },
+          "amount": {
+            "type": "number",
+            "description": "The updated amount of coverage provided by the policy."
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "description": "The updated start date of the policy coverage."
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "description": "The updated end date of the policy coverage."
+          }
+        },
+        "required": ["type", "amount", "startDate", "endDate"],
+        "description": "Details of the policy coverage being updated."
+      },
+      "premium": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "description": "The updated premium amount for the policy."
+          },
+          "frequency": {
+            "type": "string",
+            "description": "The updated frequency of premium payments (e.g., monthly, yearly)."
+          }
+        },
+        "required": ["amount", "frequency"],
+        "description": "Details of the premium for the policy being updated."
+      },
+      "customerDetails": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The updated name of the policyholder."
+          },
+          "address": {
+            "type": "string",
+            "description": "The updated address of the policyholder."
+          },
+          "contact": {
+            "type": "object",
+            "properties": {
+              "phone": {
+                "type": "string",
+                "description": "The updated phone number of the policyholder."
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "description": "The updated email address of the policyholder."
+              }
+            },
+            "required": ["phone", "email"],
+            "description": "The updated contact details of the policyholder."
+          }
+        },
+        "required": ["name", "address", "contact"],
+        "description": "Updated customer information for the policy."
+      }
+    },
+    "required": ["policyId", "coverageDetails", "premium", "customerDetails"],
+    "additionalProperties": false
+  }
+  

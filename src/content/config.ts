@@ -51,6 +51,7 @@ const baseSchema = z.object({
   schemaPath: z.string().optional(),
   hidden: z.boolean().optional(),
   // Used by eventcatalog
+  absolutePath: z.string().optional(),
   versions: z.array(z.string()).optional(),
   latestVersion: z.string().optional(),
   catalog: z
