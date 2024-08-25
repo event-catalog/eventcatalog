@@ -109,6 +109,20 @@ Here is an example of a Retail system using domains, services and messages.
 
 You can see the markdown files that generated the website in the GitHub repo under [examples](/examples).
 
+# Sponsors
+
+Thank you to our project sponsors.
+
+<div style="text-align:center;padding: 14px 0;">
+  <img alt="header" src="./images/sponsors/hookdeck.svg" />
+  <span style="display:block;font-size:10px">Serverless infrastructure for event-driven architecture. </span>
+  <a href="https://hookdeck.com/?ref=eventcatalog-sponsor" target="_blank" style="font-size:10px">Learn more</a>
+</div>
+
+
+
+_Sponsors help make EventCatalog sustainable, want to help the project? Get in touch! Or [visit our sponsor page](https://www.eventcatalog.dev/support)._
+
 # Enterprise support
 
 Interested in collaborating with us? Our offerings include dedicated support, priority assistance, feature development, custom integrations, and more.
