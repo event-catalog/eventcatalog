@@ -3,7 +3,7 @@ import dagre from 'dagre';
 import { createDagreGraph, calculatedNodes } from '@utils/node-graph-utils/utils';
 import { MarkerType } from 'reactflow';
 import type { Node as NodeType } from 'reactflow';
-import { getVersionFromCollection } from '@utils/versions/versions';
+import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 
 type DagreGraph = any;
 
@@ -27,7 +27,7 @@ const getServiceNode = (step: any, services: CollectionEntry<'services'>[]) => {
 };
 
 const getMessageNode = (step: any, messages: CollectionEntry<'events' | 'commands'>[]) => {
-  const messagesForVersion = getVersionFromCollection(messages, step.message.id, step.message.version);
+  const messagesForVersion = getItemsFromCollectionByIdAndSemverOrLatest(messages, step.message.id, step.message.version);
   const message = messagesForVersion[0];
   return {
     ...step,

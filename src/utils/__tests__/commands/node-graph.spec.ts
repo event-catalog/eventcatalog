@@ -1,74 +1,7 @@
 import { MarkerType } from 'reactflow';
 import { getNodesAndEdges } from '../../commands/node-graph';
 import { expect, describe, it, vi } from 'vitest';
-
-const mockServices = [
-  {
-    id: 'OrderService',
-    slug: 'OrderService',
-    collection: 'services',
-    data: {
-      id: 'OrderService',
-      version: '0.0.1',
-      sends: [
-        {
-          id: 'AdjustOrder',
-          version: '0.0.1',
-        },
-      ],
-      receives: [
-        {
-          id: 'PlaceOrder',
-          version: '>1.5.0',
-        },
-      ],
-    },
-  },
-  {
-    id: 'PaymentService',
-    slug: 'PaymentService',
-    collection: 'services',
-    data: {
-      id: 'PaymentService',
-      version: '0.0.1',
-      receives: [
-        {
-          id: 'AdjustOrder',
-          version: '0.0.1',
-        },
-      ],
-    },
-  },
-];
-const mockCommands = [
-  {
-    id: 'AdjustOrder',
-    slug: 'AdjustOrder',
-    collection: 'commands',
-    data: {
-      id: 'AdjustOrder',
-      version: '0.0.1',
-    },
-  },
-  {
-    id: 'PlaceOrder',
-    slug: 'PlaceOrder',
-    collection: 'commands',
-    data: {
-      id: 'PlaceOrder',
-      version: '1.5.1',
-    },
-  },
-  {
-    id: 'PlaceOrder',
-    slug: 'PlaceOrder',
-    collection: 'commands',
-    data: {
-      id: 'PlaceOrder',
-      version: '2.0.1',
-    },
-  },
-];
+import { mockCommands, mockServices } from './mocks';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {

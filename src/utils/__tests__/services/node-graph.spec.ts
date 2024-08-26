@@ -1,130 +1,22 @@
 import { MarkerType } from 'reactflow';
 import { getNodesAndEdges } from '../../services/node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-
-const mockServices = [
-  {
-    slug: 'OrderService',
-    collection: 'services',
-    data: {
-      id: 'OrderService',
-      version: '1.0.0',
-      sends: [
-        {
-          id: 'OrderCreatedEvent',
-          version: '0.0.1',
-        },
-      ],
-      receives: [
-        {
-          id: 'PaymentProcessed',
-          version: '0.0.1',
-        },
-      ],
-    },
-  },
-  {
-    slug: 'InventoryService',
-    collection: 'services',
-    data: {
-      id: 'InventoryService',
-      version: '1.0.0',
-      receives: [
-        {
-          id: 'OrderCreatedEvent',
-          version: '^1.3.0',
-        },
-      ],
-      sends: [
-        {
-          id: 'InventoryAdjusted',
-          version: '~2',
-        },
-      ],
-    },
-  },
-];
-const mockEvents = [
-  {
-    slug: 'OrderCreatedEvent',
-    collection: 'events',
-    data: {
-      id: 'OrderCreatedEvent',
-      version: '0.0.1',
-    },
-  },
-  {
-    slug: 'OrderCreatedEvent',
-    collection: 'events',
-    data: {
-      id: 'OrderCreatedEvent',
-      version: '1.0.0',
-    },
-  },
-  {
-    slug: 'OrderCreatedEvent',
-    collection: 'events',
-    data: {
-      id: 'OrderCreatedEvent',
-      version: '1.3.9',
-    },
-  },
-  {
-    slug: 'OrderCreatedEvent',
-    collection: 'events',
-    data: {
-      id: 'OrderCreatedEvent',
-      version: '2.0.0',
-    },
-  },
-  {
-    slug: 'InventoryAdjusted',
-    collection: 'events',
-    data: {
-      id: 'InventoryAdjusted',
-      version: '0.0.1',
-    },
-  },
-  {
-    slug: 'InventoryAdjusted',
-    collection: 'events',
-    data: {
-      id: 'InventoryAdjusted',
-      version: '1.0.0',
-    },
-  },
-  {
-    slug: 'InventoryAdjusted',
-    collection: 'events',
-    data: {
-      id: 'InventoryAdjusted',
-      version: '2.0.0',
-    },
-  },
-];
-const mockCommands = [
-  {
-    slug: 'PaymentProcessed',
-    collection: 'commands',
-    data: {
-      id: 'PaymentProcessed',
-      version: '0.0.1',
-    },
-  },
-];
+import { mockCommands, mockEvents, mockServices } from './mocks';
+import type { ContentCollectionKey } from 'astro:content';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
     // this will only affect "foo" outside of the original module
-    getCollection: (key: string) => {
-      if (key === 'services') {
-        return Promise.resolve(mockServices);
+    getCollection: (key: ContentCollectionKey) => {
+      switch (key) {
+        case 'services':
+          return Promise.resolve(mockServices);
+        case 'events':
+          return Promise.resolve(mockEvents);
+        case 'commands':
+          return Promise.resolve(mockCommands);
       }
-      if (key === 'events') {
-        return Promise.resolve(mockEvents);
-      }
-      return Promise.resolve(mockCommands);
     },
   };
 });

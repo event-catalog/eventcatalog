@@ -1,8 +1,7 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
-import { getVersionForCollectionItem } from './collections/util';
-import { satisfies } from 'semver';
+import { getVersionForCollectionItem, satisfies } from './collections/util';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
@@ -28,22 +27,21 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
   return events.map((event) => {
     const { latestVersion, versions } = getVersionForCollectionItem(event, events);
 
-    const producers = services.filter((service) => {
-      if (!service.data.sends) return false;
-      return service.data.sends.find((item) => {
-        return item.id === event.data.id && satisfies(event.data.version, item.version);
-      });
-    });
+    const producers = services.filter((service) =>
+      service.data.sends?.some((item) => {
+        if (item.id != event.data.id) return false;
+        if (item.version == 'latest' || item.version == undefined) return event.data.version == latestVersion;
+        return satisfies(event.data.version, item.version);
+      })
+    );
 
-    const consumers = services.filter((service) => {
-      if (!service.data.receives) return false;
-      return service.data.receives.find((item) => {
-        return item.id === event.data.id && satisfies(event.data.version, item.version);
-
-        // If no version has been found, then get try find the latest one
-        // return item.id == event.data.id
-      });
-    });
+    const consumers = services.filter((service) =>
+      service.data.receives?.some((item) => {
+        if (item.id != event.data.id) return false;
+        if (item.version == 'latest' || item.version == undefined) return event.data.version == latestVersion;
+        return satisfies(event.data.version, item.version);
+      })
+    );
 
     return {
       ...event,
