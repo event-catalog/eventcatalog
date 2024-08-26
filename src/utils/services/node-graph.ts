@@ -2,6 +2,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
 import { createDagreGraph, generateIdForNode, generatedIdForEdge, calculatedNodes } from '@utils/node-graph-utils/utils';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+import { MarkerType } from 'reactflow';
 
 type DagreGraph = any;
 
