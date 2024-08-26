@@ -113,13 +113,15 @@ You can see the markdown files that generated the website in the GitHub repo und
 
 Thank you to our project sponsors.
 
-<div style="text-align:center;padding: 14px 0;">
-  <img alt="header" src="./images/sponsors/hookdeck.svg" />
-  <span style="display:block;font-size:10px">Serverless infrastructure for event-driven architecture. </span>
-  <a href="https://hookdeck.com/?ref=eventcatalog-sponsor" target="_blank" style="font-size:10px">Learn more</a>
+<hr />
+
+<div align="center">
+  <img alt="hookdeck" src="./images/sponsors/hookdeck.svg" />
+  <p style="margin: 0; padding: 0;">Serverless infrastructure for event-driven architecture. </p>
+  <a href="https://hookdeck.com/?ref=eventcatalog-sponsor" target="_blank" >Learn more</a>
 </div>
 
-
+<hr />
 
 _Sponsors help make EventCatalog sustainable, want to help the project? Get in touch! Or [visit our sponsor page](https://www.eventcatalog.dev/support)._
 
@@ -230,13 +232,6 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
-
-# Sponsor
-
-Using EventCatalog and want to give back? We would love your support.
-
-You can find more [details on our website](https://eventcatalog.dev/support).
-
 
 
 # License
