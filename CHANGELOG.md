@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.5.2
+
+### Patch Changes
+
+- deacd55: fix(core): can now add producers/consumers without required version number or latest or undefined
+- 2d8ef10: fix(core): homepage redirect status code from permanent to temporary
+
 ## 2.5.1
 
 ### Patch Changes
