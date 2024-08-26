@@ -1,5 +1,4 @@
-import { getVersionForCollectionItem } from '@utils/collections/util';
-import { getVersionFromCollection } from '@utils/versions/versions';
+import { getItemsFromCollectionByIdAndSemverOrLatest, getVersionForCollectionItem } from '@utils/collections/util';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
@@ -30,12 +29,12 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
     const receivesMessages = service.data.receives || [];
 
     const sends = sendsMessages
-      .map((message) => getVersionFromCollection(allMessages, message.id, message.version))
+      .map((message) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
       .flat()
       .filter((e) => e !== undefined);
 
     const receives = receivesMessages
-      .map((message) => getVersionFromCollection(allMessages, message.id, message.version))
+      .map((message) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
       .flat()
       .filter((e) => e !== undefined);
 
@@ -48,11 +47,13 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
         versions,
         latestVersion,
       },
+      // TODO: verify if it could be deleted.
       nodes: {
         receives,
         sends,
       },
       catalog: {
+        // TODO: avoid use string replace at path due to win32
         path: path.join(service.collection, service.id.replace('/index.mdx', '')),
         absoluteFilePath: path.join(PROJECT_DIR, service.collection, service.id.replace('/index.mdx', '/index.md')),
         filePath: path.join(process.cwd(), 'src', 'catalog-files', service.collection, service.id.replace('/index.mdx', '')),

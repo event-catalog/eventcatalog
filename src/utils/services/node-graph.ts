@@ -1,9 +1,7 @@
-// import { getColor } from '@utils/colors';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
 import { createDagreGraph, generateIdForNode, generatedIdForEdge, calculatedNodes } from '@utils/node-graph-utils/utils';
-import { MarkerType } from 'reactflow';
-import { getVersionFromCollection } from '@utils/versions/versions';
+import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 
 type DagreGraph = any;
 
@@ -41,12 +39,12 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   const messages = [...events, ...commands];
 
   const receivesHydrated = receivesRaw
-    .map((message) => getVersionFromCollection(messages, message.id, message.version))
+    .map((message) => getItemsFromCollectionByIdAndSemverOrLatest(messages, message.id, message.version))
     .flat()
     .filter((e) => e !== undefined);
 
   const sendsHydrated = sendsRaw
-    .map((message) => getVersionFromCollection(messages, message.id, message.version))
+    .map((message) => getItemsFromCollectionByIdAndSemverOrLatest(messages, message.id, message.version))
     .flat()
     .filter((e) => e !== undefined);
 
