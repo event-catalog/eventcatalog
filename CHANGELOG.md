@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.5.4
+
+### Patch Changes
+
+- b6052d9: fix(core): added client side url builder
+
 ## 2.5.3
 
 ### Patch Changes
