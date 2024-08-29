@@ -52,7 +52,7 @@ const { nodes, edges } = await getNodesAndEdges({
     linkTo={'visualiser'}
     includeKey={includeKey}
     footerLabel=`Flow diagram - ${flow.data.name} - v(${flow.data.version})`
-    client:load
+    client:only="react"
   />
 </div>
 

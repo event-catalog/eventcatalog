@@ -72,7 +72,7 @@ try {
     schemas.length > 0 &&
       schemas.map((schema) => (
         <div>
-          {schema.exists && <SchemaViewerClient {...schema} client:load />}
+          {schema.exists && <SchemaViewerClient {...schema} client:only="react" />}
 
           {/* User has tried to load the schema, but it was not found on file system */}
           {!schema.exists && (
