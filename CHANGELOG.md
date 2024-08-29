@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.5.3
+
+### Patch Changes
+
+- a7f1bd0: fix(core): fixed generate script for plugins
+
 ## 2.5.2
 
 ### Patch Changes
