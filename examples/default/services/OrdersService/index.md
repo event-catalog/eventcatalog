@@ -26,6 +26,8 @@ The Orders Service is responsible for managing customer orders within the system
 
 <OpenAPI />
 
+<AsyncAPI />
+
 ## Architecture diagram 
 
 <NodeGraph />

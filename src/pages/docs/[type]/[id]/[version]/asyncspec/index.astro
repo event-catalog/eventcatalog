@@ -1,0 +1,69 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import type { CollectionTypes } from '@types';
+import path from "path";
+import { readFileSync } from "fs";
+
+import PlainPage from '@layouts/PlainPage.astro';
+
+import { createElement } from "react";
+import { renderToString } from "react-dom/server";
+
+import { Parser } from "@asyncapi/parser";
+
+import { getEvents } from '@utils/events';
+import { getServices } from '@utils/services/services';
+import { getCommands } from '@utils/commands';
+import { getDomains } from '@utils/domains/domains';
+
+import "@asyncapi/react-component/styles/default.min.css";
+import js from "@asyncapi/react-component/browser/standalone/without-parser.js?url";
+import {AsyncApiComponentWP, type ConfigInterface } from "@asyncapi/react-component";
+
+export async function getStaticPaths() {
+  const events = await getEvents();
+  const commands = await getCommands();
+  const services = await getServices();
+  const domains = await getDomains();
+
+  const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
+    return collection.map((item) => ({
+      params: {
+        type: item.collection,
+        id: item.data.id,
+        version: item.data.version,
+      },
+      props: {
+        type: item.collection,
+        ...item,
+      },
+    }));
+  };
+
+  return [...buildPages(domains), ...buildPages(events), ...buildPages(services), ...buildPages(commands)];
+}
+
+// @ts-ignore
+const { catalog } = Astro.props;
+const pathToSpec = path.join(catalog.publicPath, 'asyncapi.yaml');
+const pathOnDisk = path.join(process.cwd(), 'public', pathToSpec);
+const fileContent = readFileSync(pathOnDisk, 'utf-8');
+
+const parsed = await new Parser().parse(fileContent);
+const stringified = parsed.document?.json();
+const config: ConfigInterface = { show: { sidebar: true, errors: true } };
+
+const component = createElement(AsyncApiComponentWP, { schema:{stringified}, config });
+const renderedComponent = renderToString(component);
+
+---
+
+<PlainPage title="AsyncApi Spec">
+  <div id="asyncapi" set:html={renderedComponent}></div>
+</PlainPage>
+
+<script is:inline src={js}></script>
+<script define:vars={{ schema: stringified, config }}>
+  const root = document.getElementById("asyncapi");
+  AsyncApiStandalone.hydrate({ schema, config }, root);  
+</script>

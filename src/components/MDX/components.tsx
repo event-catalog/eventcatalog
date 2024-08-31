@@ -6,6 +6,7 @@ import AccordionGroup from '@components/MDX/Accordion/AccordionGroup.astro';
 import Flow from '@components/MDX/Flow/Flow.astro';
 import Admonition from '@components/MDX/Admonition';
 import OpenAPI from '@components/MDX/OpenAPI/OpenAPI';
+import AsyncAPI from '@components/MDX/AsyncAPI/AsyncAPI';
 
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
@@ -21,6 +22,7 @@ const components = (props: any) => {
     NodeGraph: (mdxProp: any) => NodeGraphPortal({ ...props.data, ...mdxProp }),
     SchemaViewer: (mdxProp: any) => SchemaViewerPortal({ ...props.data, ...mdxProp }),
     OpenAPI: (mdxProp: any) => <OpenAPI {...mdxProp} {...props} />,
+    AsyncAPI: (mdxProp: any) => <AsyncAPI {...mdxProp} {...props} />,
     Schema: (mdxProp: any) => Schema({ ...props, ...mdxProp }),
   };
 };

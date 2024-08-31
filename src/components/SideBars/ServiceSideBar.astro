@@ -114,6 +114,12 @@ const schemaURL = join(publicPath, schemaFilePath || '');
         >View API spec</a
       >
       <a
+        id="async-api-button"
+        href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}/asyncspec`)}
+        class="hidden text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500"
+        >View Async API spec</a
+      >
+      <a
         href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}/changelog`)}
         class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500"
         >Changelog</a
@@ -129,6 +135,11 @@ const schemaURL = join(publicPath, schemaFilePath || '');
     const openApiButton = document.getElementById('open-api-button');
     if (openApiComponent && openApiButton) {
       openApiButton.style.display = 'block';
+    }
+    const asyncApiComponent = document.getElementById('asyncapi-component');
+    const asyncApiButton = document.getElementById('async-api-button');
+    if (asyncApiComponent && asyncApiButton) {
+      asyncApiButton.style.display = 'block';
     }
   });
 </script>
