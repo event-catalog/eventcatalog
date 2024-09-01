@@ -9,7 +9,7 @@ const scriptsDir = path.dirname(__filename);
 
 const getTargetPath = (source, target, type, file) => {
   const relativePath = path.relative(source, file);
-  const cleanedRelativePath = relativePath.split(type);
+  const cleanedRelativePath = relativePath.split(`${type}/`);
   const targetForEvents = path.join(type, cleanedRelativePath[1]);
   return path.join(target, targetForEvents);
 };
@@ -64,7 +64,7 @@ const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles,
     }
 
     const relativePath = path.relative(source, file);
-    const cleanedRelativePath = relativePath.split(type);
+    const cleanedRelativePath = relativePath.split(`${type}/`);
     if (!cleanedRelativePath[1]) continue;
     const targetForEvents = path.join(type, cleanedRelativePath[1]);
 
