@@ -81,7 +81,39 @@ const getBadge = () => {
   return { backgroundColor: 'teal', textColor: 'teal', content: '', icon: QueueListIcon, class: 'text-gray' };
 };
 
-const badges = [getBadge(), ...contentBadges];
+const getSpecificationBadges = () => {
+  const badges = [];
+  const hasOpenAPISpec = !!props.data.specifications?.openapiPath;
+  const hasAsyncAPISpec = !!props.data.specifications?.asyncapiPath;
+
+  if (hasOpenAPISpec) {
+    badges.push({
+      backgroundColor: 'white',
+      textColor: 'gray',
+      content: 'OpenAPI Spec',
+      iconURL: '/icons/openapi.svg',
+      class: 'text-black hover:underline',
+      id: 'open-api-badge',
+      url: buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}/spec`),
+    });
+  }
+
+  if (hasAsyncAPISpec) {
+    badges.push({
+      backgroundColor: 'white',
+      textColor: 'gray',
+      content: 'AsyncAPI Spec',
+      iconURL: '/icons/asyncapi.svg',
+      class: 'text-black hover:underline',
+      id: 'asyncapi-badge',
+      url: buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}/asyncapi`),
+    });
+  }
+
+  return badges;
+};
+
+const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
 ---
 
 <DocsLayout title={pageTitle} description={props.data.summary}>
@@ -98,14 +130,20 @@ const badges = [getBadge(), ...contentBadges];
           {
             badges && (
               <div class="flex flex-wrap py-2 pt-4">
-                {badges.map((badge: any) => (
-                  <span
-                    class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2 bg-${badge.backgroundColor}-100 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}
-                  >
-                    {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
-                    <span>{badge.content}</span>
-                  </span>
-                ))}
+                {badges.map((badge: any) => {
+                  return (
+                    <a href={badge.url || '#'}>
+                      <span
+                        id={badge.id || ''}
+                        class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2 bg-${badge.backgroundColor}-100 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}
+                      >
+                        {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
+                        {badge.iconURL && <img src={badge.iconURL} class="w-5 h-5 inline-block " />}
+                        <span>{badge.content}</span>
+                      </span>
+                    </a>
+                  );
+                })}
               </div>
             )
           }

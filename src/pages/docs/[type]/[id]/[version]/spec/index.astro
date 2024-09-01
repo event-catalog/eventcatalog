@@ -18,8 +18,12 @@ export async function getStaticPaths() {
   const services = await getServices();
   const domains = await getDomains();
 
+  const hasOpenAPISpec = (item: CollectionEntry<CollectionTypes>) => item.data.specifications?.openapiPath !== undefined;
+
   const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
-    return collection.map((item) => ({
+    const filteredCollection = collection.filter(hasOpenAPISpec);
+
+    return filteredCollection.map((item) => ({
       params: {
         type: item.collection,
         id: item.data.id,
@@ -37,7 +41,8 @@ export async function getStaticPaths() {
 
 // @ts-ignore
 const { data, catalog } = Astro.props;
-const pathToSpec = path.join(catalog.publicPath, 'openapi.yml');
+const fileName = data.specifications?.openapiPath || 'openapi.yml';
+const pathToSpec = path.join(catalog.publicPath, fileName);
 const pathOnDisk = path.join(process.cwd(), 'public', pathToSpec);
 const fileExists = fs.existsSync(pathOnDisk);
 ---

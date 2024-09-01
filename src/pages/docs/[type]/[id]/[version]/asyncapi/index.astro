@@ -1,24 +1,24 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import type { CollectionTypes } from '@types';
-import path from "path";
-import { readFileSync } from "fs";
+import path from 'path';
+import { readFileSync } from 'fs';
 
 import PlainPage from '@layouts/PlainPage.astro';
 
-import { createElement } from "react";
-import { renderToString } from "react-dom/server";
+import { createElement } from 'react';
+import { renderToString } from 'react-dom/server';
 
-import { Parser } from "@asyncapi/parser";
+import { Parser } from '@asyncapi/parser';
 
 import { getEvents } from '@utils/events';
 import { getServices } from '@utils/services/services';
 import { getCommands } from '@utils/commands';
 import { getDomains } from '@utils/domains/domains';
 
-import "@asyncapi/react-component/styles/default.min.css";
-import js from "@asyncapi/react-component/browser/standalone/without-parser.js?url";
-import {AsyncApiComponentWP, type ConfigInterface } from "@asyncapi/react-component";
+import '@asyncapi/react-component/styles/default.min.css';
+import js from '@asyncapi/react-component/browser/standalone/without-parser.js?url';
+import { AsyncApiComponentWP, type ConfigInterface } from '@asyncapi/react-component';
 
 export async function getStaticPaths() {
   const events = await getEvents();
@@ -26,8 +26,12 @@ export async function getStaticPaths() {
   const services = await getServices();
   const domains = await getDomains();
 
+  const hasAsyncAPISpec = (item: CollectionEntry<CollectionTypes>) => item.data.specifications?.asyncapiPath !== undefined;
+
   const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
-    return collection.map((item) => ({
+    const filteredCollection = collection.filter(hasAsyncAPISpec);
+
+    return filteredCollection.map((item) => ({
       params: {
         type: item.collection,
         id: item.data.id,
@@ -44,8 +48,9 @@ export async function getStaticPaths() {
 }
 
 // @ts-ignore
-const { catalog } = Astro.props;
-const pathToSpec = path.join(catalog.publicPath, 'asyncapi.yaml');
+const { catalog, data } = Astro.props;
+const fileName = data.specifications?.asyncapiPath || 'asyncapi.yaml';
+const pathToSpec = path.join(catalog.publicPath, fileName);
 const pathOnDisk = path.join(process.cwd(), 'public', pathToSpec);
 const fileContent = readFileSync(pathOnDisk, 'utf-8');
 
@@ -53,17 +58,26 @@ const parsed = await new Parser().parse(fileContent);
 const stringified = parsed.document?.json();
 const config: ConfigInterface = { show: { sidebar: true, errors: true } };
 
-const component = createElement(AsyncApiComponentWP, { schema:{stringified}, config });
+const component = createElement(AsyncApiComponentWP, { schema: { stringified }, config });
 const renderedComponent = renderToString(component);
-
 ---
 
 <PlainPage title="AsyncApi Spec">
-  <div id="asyncapi" set:html={renderedComponent}></div>
+  <div id="asyncapi" class="md:pr-14" set:html={renderedComponent} />
 </PlainPage>
 
 <script is:inline src={js}></script>
 <script define:vars={{ schema: stringified, config }}>
-  const root = document.getElementById("asyncapi");
-  AsyncApiStandalone.hydrate({ schema, config }, root);  
+  const root = document.getElementById('asyncapi');
+  AsyncApiStandalone.hydrate({ schema, config }, root);
 </script>
+
+<style>
+  #asyncapi {
+    @media screen and (min-width: 1417px) {
+      .sidebar {
+        z-index: 1 !important;
+      }
+    }
+  }
+</style>
