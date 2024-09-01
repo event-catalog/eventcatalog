@@ -97,8 +97,8 @@ const getVisualiserUrlForCollection = () => {
     hrefLabel={href.label}
     href={href.url}
     linkTo={linkTo}
+    client:only="react"
     urlHasTrailingSlash={config.trailingSlash}
-    client:load
   />
 </div>
 
