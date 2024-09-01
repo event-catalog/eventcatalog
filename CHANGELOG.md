@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.5.5
+
+### Patch Changes
+
+- 2b84b47: fix(core): moved node graphs to only load on client fixing the invalid hook call warning
+
 ## 2.5.4
 
 ### Patch Changes
