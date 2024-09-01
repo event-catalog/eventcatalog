@@ -1,5 +1,17 @@
 # @eventcatalog/core
 
+## 2.5.4
+
+### Patch Changes
+
+- b6052d9: fix(core): added client side url builder
+
+## 2.5.3
+
+### Patch Changes
+
+- a7f1bd0: fix(core): fixed generate script for plugins
+
 ## 2.5.2
 
 ### Patch Changes

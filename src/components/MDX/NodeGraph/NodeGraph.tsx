@@ -21,7 +21,7 @@ import type { CollectionEntry } from 'astro:content';
 import { navigate } from 'astro:transitions/client';
 import type { CollectionTypes } from '@types';
 import DownloadButton from './DownloadButton';
-import { buildUrl } from '@utils/url-builder';
+import { buildUrl } from '@utils/url-builder-client';
 
 interface Props {
   nodes: any;
@@ -32,13 +32,17 @@ interface Props {
   includeControls?: boolean;
   linkTo: 'docs' | 'visualiser';
   includeKey?: boolean;
+  urlHasTrailingSlash?: boolean;
 }
 
-const getDocUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
-  return buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`);
+const getDocUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>, trailingSlash?: boolean) => {
+  return buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`, trailingSlash);
 };
-const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
-  return buildUrl(`/visualiser/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`);
+const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>, trailingSlash?: boolean) => {
+  return buildUrl(
+    `/visualiser/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`,
+    trailingSlash
+  );
 };
 
 // const NodeGraphBuilder = ({ title, subtitle, includeBackground = true, includeControls = true }: Props) => {
@@ -49,6 +53,7 @@ const NodeGraphBuilder = ({
   includeBackground = true,
   linkTo = 'docs',
   includeKey = true,
+  urlHasTrailingSlash,
 }: Props) => {
   const nodeTypes = useMemo(
     () => ({
@@ -67,10 +72,18 @@ const NodeGraphBuilder = ({
 
   const handleNodeClick = (_: any, node: Node) => {
     if (node.type === 'events' || node.type === 'commands') {
-      navigate(linkTo === 'docs' ? getDocUrlForCollection(node.data.message) : getVisualiserUrlForCollection(node.data.message));
+      navigate(
+        linkTo === 'docs'
+          ? getDocUrlForCollection(node.data.message, urlHasTrailingSlash)
+          : getVisualiserUrlForCollection(node.data.message, urlHasTrailingSlash)
+      );
     }
     if (node.type === 'services') {
-      navigate(linkTo === 'docs' ? getDocUrlForCollection(node.data.service) : getVisualiserUrlForCollection(node.data.service));
+      navigate(
+        linkTo === 'docs'
+          ? getDocUrlForCollection(node.data.service, urlHasTrailingSlash)
+          : getVisualiserUrlForCollection(node.data.service, urlHasTrailingSlash)
+      );
     }
   };
 
@@ -132,6 +145,7 @@ interface NodeGraphProps {
   linkTo: 'docs' | 'visualiser';
   includeKey?: boolean;
   footerLabel?: string;
+  urlHasTrailingSlash?: boolean;
 }
 
 const NodeGraph = ({
@@ -144,6 +158,7 @@ const NodeGraph = ({
   hrefLabel = 'Open in visualizer',
   includeKey = true,
   footerLabel,
+  urlHasTrailingSlash,
 }: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
 
@@ -158,7 +173,14 @@ const NodeGraph = ({
     <div>
       {createPortal(
         <ReactFlowProvider>
-          <NodeGraphBuilder edges={edges} nodes={nodes} title={title} linkTo={linkTo} includeKey={includeKey} />
+          <NodeGraphBuilder
+            edges={edges}
+            nodes={nodes}
+            title={title}
+            linkTo={linkTo}
+            includeKey={includeKey}
+            urlHasTrailingSlash={urlHasTrailingSlash}
+          />
 
           <div className="flex justify-between">
             {footerLabel && (
