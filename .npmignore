@@ -19,3 +19,5 @@ __tests__/
 /public/generated/*
 /src/catalog-files/*
 
+Dockerfile
+.dockerignore
