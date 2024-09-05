@@ -1,0 +1,40 @@
+---
+import type { CollectionTypes } from '@types';
+import { buildUrl } from '@utils/url-builder';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  collectionItem: CollectionEntry<CollectionTypes>;
+}
+
+const { collectionItem } = Astro.props;
+
+const specVersions = collectionItem.data.specifications || {};
+const numberOfSpecifications = Object.keys(specVersions).length;
+---
+
+<div class="space-y-2 my-2 mb-8">
+  <span class="font-light text-black group-data-[hover]:text-black/80 capitalize">Specifications ({numberOfSpecifications})</span>
+  {
+    collectionItem.data.specifications?.openapiPath && (
+      <a
+        href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}/spec`)}
+        class="text-sm flex items-center space-x-1 hover:underline hover:text-purple-500"
+      >
+        <img src="/icons/openapi.svg" class="h-4 w-4" />
+        <span>OpenAPI spec</span>
+      </a>
+    )
+  }
+  {
+    collectionItem.data.specifications?.asyncapiPath && (
+      <a
+        href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}/asyncapi`)}
+        class="text-sm flex items-center space-x-1 hover:underline hover:text-purple-500"
+      >
+        <img src="/icons/asyncapi.svg" class="h-4 w-4" />
+        <span>AsyncAPI spec</span>
+      </a>
+    )
+  }
+</div>

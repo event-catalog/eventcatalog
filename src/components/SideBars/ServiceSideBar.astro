@@ -1,6 +1,7 @@
 ---
 import OwnersList from '@components/Lists/OwnersList';
 import PillList from '@components/Lists/PillList';
+import SpecificationsList from '@components/Lists/SpecificationsList.astro';
 import VersionList from '@components/Lists/VersionList.astro';
 import { buildUrl } from '@utils/url-builder';
 import { getEntry, type CollectionEntry } from 'astro:content';
@@ -72,6 +73,7 @@ const schemaURL = join(publicPath, schemaFilePath || '');
     />
 
     {service.data.versions && <VersionList versions={service.data.versions} collectionItem={service} />}
+    {service.data.specifications && <SpecificationsList collectionItem={service} />}
 
     <div class="space-y-2">
       {
@@ -108,12 +110,6 @@ const schemaURL = join(publicPath, schemaFilePath || '');
         >View in Visualiser</a
       >
       <a
-        id="open-api-button"
-        href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}/spec`)}
-        class="hidden text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500"
-        >View API spec</a
-      >
-      <a
         href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}/changelog`)}
         class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-purple-500"
         >Changelog</a
@@ -121,14 +117,3 @@ const schemaURL = join(publicPath, schemaFilePath || '');
     </div>
   </div>
 </aside>
-
-<script>
-  // If openapi-component is in the dom then show the button, when dom has loaded
-  document.addEventListener('DOMContentLoaded', () => {
-    const openApiComponent = document.getElementById('openapi-component');
-    const openApiButton = document.getElementById('open-api-button');
-    if (openApiComponent && openApiButton) {
-      openApiButton.style.display = 'block';
-    }
-  });
-</script>
