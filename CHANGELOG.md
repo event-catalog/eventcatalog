@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.6.0
+
+### Minor Changes
+
+- 76bebd7: feat(core): added AsyncAPI pages and new specifications frontmatter api. Deprecated the AsyncAPI and OpenAPI MDX components
+
 ## 2.5.5
 
 ### Patch Changes
