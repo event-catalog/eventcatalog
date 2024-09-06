@@ -101,7 +101,6 @@ const generate = async () => {
     }
 
     await cleanup();
-
   } catch (error) {
     // Failed to generate clean up...
     console.error(error);
