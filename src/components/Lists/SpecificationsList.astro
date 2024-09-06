@@ -21,7 +21,7 @@ const numberOfSpecifications = Object.keys(specVersions).length;
         href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}/spec`)}
         class="text-sm flex items-center space-x-1 hover:underline hover:text-purple-500"
       >
-        <img src="/icons/openapi.svg" class="h-4 w-4" />
+        <img src={buildUrl('/icons/openapi.svg')} class="h-4 w-4" />
         <span>OpenAPI spec</span>
       </a>
     )
@@ -32,7 +32,7 @@ const numberOfSpecifications = Object.keys(specVersions).length;
         href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}/asyncapi`)}
         class="text-sm flex items-center space-x-1 hover:underline hover:text-purple-500"
       >
-        <img src="/icons/asyncapi.svg" class="h-4 w-4" />
+        <img src={buildUrl('/icons/asyncapi.svg')} class="h-4 w-4" />
         <span>AsyncAPI spec</span>
       </a>
     )
