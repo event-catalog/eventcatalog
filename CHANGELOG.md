@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.6.1
+
+### Patch Changes
+
+- 4aecf6a: fix(core): fixed broken images for specifications on the service page
+
 ## 2.6.0
 
 ### Minor Changes
