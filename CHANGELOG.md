@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.6.2
+
+### Patch Changes
+
+- 498f58c: fix(core): generate command now removes any tmp files required for ge…
+
 ## 2.6.1
 
 ### Patch Changes
