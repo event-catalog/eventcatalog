@@ -20,7 +20,6 @@ export async function getStaticPaths() {
   const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
   const hasAsyncAPISpec = (item: CollectionEntry<CollectionTypes>) => item.data.specifications?.asyncapiPath !== undefined;
-
   const filteredItems = allItems.map((items) => items.filter(hasAsyncAPISpec));
 
   return filteredItems.flatMap((items, index) =>
