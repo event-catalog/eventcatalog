@@ -1,19 +1,24 @@
 ---
 import Seo from '@components/Seo.astro';
 import { buildUrl } from '@utils/url-builder';
-import type { PageTypes } from '@types';
+import type { CollectionTypes, PageTypes } from '@types';
 import { pageDataLoader } from '@utils/pages/pages';
+import type { CollectionEntry } from 'astro:content';
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'services', 'domains'];
 
   const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
-  return allItems.flatMap((items, index) =>
+  const hasOpenAPISpec = (item: CollectionEntry<CollectionTypes>) => item.data.specifications?.openapiPath !== undefined;
+  const filteredItems = allItems.map((items) => items.filter(hasOpenAPISpec));
+
+  return filteredItems.flatMap((items, index) =>
     items.map((item) => ({
       params: {
         type: itemTypes[index],
         id: item.data.id,
+        version: item.data.version,
       },
       props: {
         type: itemTypes[index],

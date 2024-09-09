@@ -5,7 +5,7 @@ import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { Parser } from '@asyncapi/parser';
 
-import type { PageTypes } from '@types';
+import type { CollectionTypes, PageTypes } from '@types';
 
 import PlainPage from '@layouts/PlainPage.astro';
 
@@ -13,14 +13,20 @@ import '@asyncapi/react-component/styles/default.min.css';
 import js from '@asyncapi/react-component/browser/standalone/without-parser.js?url';
 import { AsyncApiComponentWP, type ConfigInterface } from '@asyncapi/react-component';
 import { pageDataLoader } from '@utils/pages/pages';
+import type { CollectionEntry } from 'astro:content';
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'services', 'domains'];
   const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
-  return allItems.flatMap((items, index) =>
+  const hasAsyncAPISpec = (item: CollectionEntry<CollectionTypes>) => item.data.specifications?.asyncapiPath !== undefined;
+
+  const filteredItems = allItems.map((items) => items.filter(hasAsyncAPISpec));
+
+  return filteredItems.flatMap((items, index) =>
     items.map((item) => ({
       params: {
+        id: item.data.id,
         type: itemTypes[index],
         version: item.data.version,
       },
