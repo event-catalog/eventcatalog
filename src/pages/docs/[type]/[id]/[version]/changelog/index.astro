@@ -1,40 +1,31 @@
 ---
-import type { CollectionEntry } from 'astro:content';
-
 import Layout from '@layouts/DocsLayout.astro';
 import Footer from '@layouts/Footer.astro';
 
-import { getEvents } from '@utils/events';
-import { getServices } from '@utils/services/services';
-import { getCommands } from '@utils/commands';
-import { getDomains } from '@utils/domains/domains';
-import type { CollectionTypes } from '@types';
+import type { PageTypes } from '@types';
 import { getChangeLogs } from '@utils/changelogs/changelogs';
 import { EnvelopeIcon, RectangleGroupIcon, ServerIcon } from '@heroicons/react/24/outline';
+import { pageDataLoader } from '@utils/pages/pages';
 
 import { buildUrl } from '@utils/url-builder';
 
 export async function getStaticPaths() {
-  const events = await getEvents();
-  const commands = await getCommands();
-  const services = await getServices();
-  const domains = await getDomains();
+  const itemTypes: PageTypes[] = ['events', 'commands', 'services', 'domains'];
+  const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
-  const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
-    return collection.map((item) => ({
+  return allItems.flatMap((items, index) =>
+    items.map((item) => ({
       params: {
-        type: item.collection,
+        type: itemTypes[index],
         id: item.data.id,
         version: item.data.version,
       },
       props: {
-        type: item.collection,
+        type: itemTypes[index],
         ...item,
       },
-    }));
-  };
-
-  return [...buildPages(domains), ...buildPages(events), ...buildPages(services), ...buildPages(commands)];
+    }))
+  );
 }
 
 const props = Astro.props;
