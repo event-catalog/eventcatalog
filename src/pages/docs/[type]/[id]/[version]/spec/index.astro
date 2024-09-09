@@ -1,9 +1,13 @@
 ---
-import Seo from '@components/Seo.astro';
-import { buildUrl } from '@utils/url-builder';
-import type { CollectionTypes, PageTypes } from '@types';
-import { pageDataLoader } from '@utils/pages/pages';
 import type { CollectionEntry } from 'astro:content';
+import * as path from 'path';
+import fs from 'node:fs';
+
+import type { CollectionTypes, PageTypes } from '@types';
+import PlainPage from '@layouts/PlainPage.astro';
+import { DocumentMinusIcon } from '@heroicons/react/24/outline';
+import { buildUrl } from '@utils/url-builder';
+import { pageDataLoader } from '@utils/pages/pages';
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'services', 'domains'];
@@ -28,20 +32,57 @@ export async function getStaticPaths() {
   );
 }
 
-const props = Astro.props;
-const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
-
-const { pathname } = Astro.url;
-const redirectUrl = buildUrl(pathname + '/' + props.data.latestVersion);
+// @ts-ignore
+const { data, catalog } = Astro.props;
+const fileName = data.specifications?.openapiPath || 'openapi.yml';
+const pathToSpec = path.join(catalog.publicPath, fileName);
+const pathOnDisk = path.join(process.cwd(), 'public', pathToSpec);
+const fileExists = fs.existsSync(pathOnDisk);
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta http-equiv="refresh" content={`0; url=${redirectUrl}`} />
-    <Seo title={`EventCatalog | ${pageTitle}`} ogTitle={pageTitle} />
-  </head>
-  <body>
-    <p>You are being redirected to <a href={redirectUrl}>{redirectUrl}</a></p>
-  </body>
-</html>
+<PlainPage title="OpenAPI Spec">
+  {
+    !fileExists ? (
+      <div class="text-center h-screen  flex flex-col justify-center ">
+        <DocumentMinusIcon className="mx-auto h-12 w-12 text-gray-400" />
+        <h3 class="mt-2 text-sm font-semibold text-gray-900">No OpenAPI spec file found</h3>
+        <p class="mt-1 text-xs text-gray-400">
+          Could not find OpenAPI file for {data.name} in {`/${catalog.path}`}
+        </p>
+      </div>
+    ) : (
+      <rapi-doc
+        spec-url={buildUrl(pathToSpec, true)}
+        render-style="table"
+        show-header="false"
+        allow-authentication="false"
+        allow-try="false"
+        style={{ height: '100vh', width: '100%' }}
+        class="py-4"
+        nav-bg-color="#fff"
+        schema-style="table"
+        primary-color="#e0baff"
+        bg-color="#fff"
+      />
+    )
+  }
+</PlainPage>
+
+<script>
+  // @ts-ignore
+  await import('rapidoc');
+</script>
+
+<style>
+  rapi-doc::part(section-servers) {
+    /* <<< targets the server div */
+    background: #6b5b95;
+    color: #d1c2e4;
+    margin: 0 24px 0 24px;
+    border-radius: 5px;
+  }
+  rapi-doc::part(label-selected-server) {
+    /* <<< targets selected server label */
+    color: #fff;
+  }
+</style>
