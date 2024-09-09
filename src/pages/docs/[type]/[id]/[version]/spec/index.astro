@@ -60,16 +60,24 @@ const fileExists = fs.existsSync(pathOnDisk);
     ) : (
       <rapi-doc
         spec-url={buildUrl(pathToSpec, true)}
-        render-style="table"
         show-header="false"
-        allow-authentication="false"
-        allow-try="false"
+        allow-authentication="true"
+        allow-try="true"
         style={{ height: '100vh', width: '100%' }}
         class="py-4"
-        nav-bg-color="#fff"
+        regular-font="ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji"
         schema-style="table"
-        primary-color="#e0baff"
-        bg-color="#fff"
+        default-schema-tab="schema"
+        bg-color="#ffffff"
+        text-color=""
+        nav-bg-color="#fafafa"
+        nav-text-color=""
+        nav-hover-bg-color="#ffebea"
+        nav-hover-text-color="#9b0700"
+        nav-accent-color=""
+        primary-color="#F63C41"
+        theme="light"
+        render-style="read"
       />
     )
   }
