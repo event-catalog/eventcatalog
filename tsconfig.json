@@ -3,6 +3,7 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
+    "allowJs": true,
     "paths": {
       "@config": ["./eventcatalog.config.js"],
       "@eventcatalog": ["src/utils/config/catalog.ts"],

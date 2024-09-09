@@ -2,7 +2,6 @@
 import type { CollectionEntry } from 'astro:content';
 import * as path from 'path';
 import fs from 'node:fs';
-
 import { getEvents } from '@utils/events';
 import { getServices } from '@utils/services/services';
 import { getCommands } from '@utils/commands';
@@ -58,46 +57,20 @@ const fileExists = fs.existsSync(pathOnDisk);
         </p>
       </div>
     ) : (
-      <rapi-doc
-        spec-url={buildUrl(pathToSpec, true)}
-        show-header="false"
-        allow-authentication="true"
-        allow-try="true"
-        style={{ height: '100vh', width: '100%' }}
-        class="py-4"
-        regular-font="ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji"
-        schema-style="table"
-        default-schema-tab="schema"
-        bg-color="#ffffff" 
-        text-color="" 
-        nav-bg-color="#fafafa" 
-        nav-text-color="" 
-        nav-hover-bg-color="#ffebea" 
-        nav-hover-text-color="#9b0700" 
-        nav-accent-color="" 
-        primary-color="#F63C41" 
-        theme="light" 
-        render-style="read"
-      />
+      <div id="swagger-ui" class="md:pr-14" />
     )
   }
 </PlainPage>
-
-<script>
-  // @ts-ignore
-  await import('rapidoc');
+<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
+<script is:inline src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js"></script>
+<script is:inline src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-standalone-preset.js"></script>
+<script define:vars={{ url: buildUrl(pathToSpec) }}>
+  window.onload = () => {
+    window.ui = SwaggerUIBundle({
+      urls: [{ url: url, name: 'OpenAPI spec' }],
+      dom_id: '#swagger-ui',
+      presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+      layout: 'StandaloneLayout',
+    });
+  };
 </script>
-
-<style>
-  rapi-doc::part(section-servers) {
-    /* <<< targets the server div */
-    background: #6b5b95;
-    color: #d1c2e4;
-    margin: 0 24px 0 24px;
-    border-radius: 5px;
-  }
-  rapi-doc::part(label-selected-server) {
-    /* <<< targets selected server label */
-    color: #fff;
-  }
-</style>
