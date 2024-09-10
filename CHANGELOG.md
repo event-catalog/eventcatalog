@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.6.3
+
+### Patch Changes
+
+- d35846b: chore(core): refactored the way pages are rendered reducing code
+
 ## 2.6.2
 
 ### Patch Changes
