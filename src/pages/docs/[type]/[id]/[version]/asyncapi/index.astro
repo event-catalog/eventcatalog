@@ -1,50 +1,40 @@
 ---
-import type { CollectionEntry } from 'astro:content';
-import type { CollectionTypes } from '@types';
 import path from 'path';
 import { readFileSync } from 'fs';
-
-import PlainPage from '@layouts/PlainPage.astro';
-
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
-
 import { Parser } from '@asyncapi/parser';
 
-import { getEvents } from '@utils/events';
-import { getServices } from '@utils/services/services';
-import { getCommands } from '@utils/commands';
-import { getDomains } from '@utils/domains/domains';
+import type { CollectionTypes, PageTypes } from '@types';
+
+import PlainPage from '@layouts/PlainPage.astro';
 
 import '@asyncapi/react-component/styles/default.min.css';
 import js from '@asyncapi/react-component/browser/standalone/without-parser.js?url';
 import { AsyncApiComponentWP, type ConfigInterface } from '@asyncapi/react-component';
+import { pageDataLoader } from '@utils/pages/pages';
+import type { CollectionEntry } from 'astro:content';
 
 export async function getStaticPaths() {
-  const events = await getEvents();
-  const commands = await getCommands();
-  const services = await getServices();
-  const domains = await getDomains();
+  const itemTypes: PageTypes[] = ['events', 'commands', 'services', 'domains'];
+  const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
   const hasAsyncAPISpec = (item: CollectionEntry<CollectionTypes>) => item.data.specifications?.asyncapiPath !== undefined;
+  const filteredItems = allItems.map((items) => items.filter(hasAsyncAPISpec));
 
-  const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
-    const filteredCollection = collection.filter(hasAsyncAPISpec);
-
-    return filteredCollection.map((item) => ({
+  return filteredItems.flatMap((items, index) =>
+    items.map((item) => ({
       params: {
-        type: item.collection,
         id: item.data.id,
+        type: itemTypes[index],
         version: item.data.version,
       },
       props: {
-        type: item.collection,
+        type: itemTypes[index],
         ...item,
       },
-    }));
-  };
-
-  return [...buildPages(domains), ...buildPages(events), ...buildPages(services), ...buildPages(commands)];
+    }))
+  );
 }
 
 // @ts-ignore
