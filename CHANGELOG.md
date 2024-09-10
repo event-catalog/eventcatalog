@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.6.4
+
+### Patch Changes
+
+- 0459eec: chore(core): fixed styled for openapi pages
+
 ## 2.6.3
 
 ### Patch Changes
