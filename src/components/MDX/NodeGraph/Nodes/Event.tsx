@@ -1,4 +1,4 @@
-import { EnvelopeIcon } from '@heroicons/react/16/solid';
+import { BoltIcon } from '@heroicons/react/16/solid';
 import type { CollectionEntry } from 'astro:content';
 import { Handle } from 'reactflow';
 
@@ -33,7 +33,7 @@ export default function EventNode({ data, sourcePosition, targetPosition }: any)
           `border-r-[1px] border-orange-500`
         )}
       >
-        <EnvelopeIcon className="w-4 h-4 opacity-90 text-white absolute top-1 " />
+        <BoltIcon className="w-4 h-4 opacity-90 text-white absolute top-1 " />
         {mode === 'full' && (
           <span className="rotate -rotate-90 w-1/2 text-center absolute bottom-1 text-[9px] text-white font-bold uppercase tracking-[3px] ">
             Event

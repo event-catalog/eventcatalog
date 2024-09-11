@@ -1,5 +1,3 @@
-import { EnvelopeIcon } from '@heroicons/react/16/solid';
-import type { CollectionEntry } from 'astro:content';
 import { Handle } from 'reactflow';
 
 interface Data {

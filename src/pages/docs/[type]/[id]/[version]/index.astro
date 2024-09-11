@@ -11,7 +11,7 @@ import ServiceSideBar from '@components/SideBars/ServiceSideBar.astro';
 import MessageSideBar from '@components/SideBars/MessageSideBar.astro';
 import DomainSideBar from '@components/SideBars/DomainSideBar.astro';
 
-import { EnvelopeIcon, QueueListIcon, RectangleGroupIcon, ServerIcon } from '@heroicons/react/24/outline';
+import { QueueListIcon, RectangleGroupIcon, ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import type { PageTypes } from '@types';
 
 import { buildUrl } from '@utils/url-builder';
@@ -57,10 +57,10 @@ const getBadge = () => {
     return { backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon, class: 'text-pink-400' };
   }
   if (props.collection === 'events') {
-    return { backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: EnvelopeIcon, class: 'text-orange-400' };
+    return { backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: BoltIcon, class: 'text-orange-400' };
   }
   if (props.collection === 'commands') {
-    return { backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: EnvelopeIcon, class: 'text-blue-400' };
+    return { backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: ChatBubbleLeftIcon, class: 'text-blue-400' };
   }
   if (props.collection === 'domains') {
     return {
@@ -118,7 +118,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
   <!-- <main class="flex py-8 sm:px-8 docs-layout"> -->
   <div class="flex min-h-screen docs-layout">
     <main class="flex-1 w-full lg:pr-10 md:pt-4">
-      <div class="border-b border-gray-200 flex justify-between items-start py-4 md:py-8 md:pb-6">
+      <div class="border-b border-gray-200 flex justify-between items-start py-4 md:pb-6">
         <div>
           <h2 class="text-2xl md:text-4xl font-bold">
             {props.data.name}

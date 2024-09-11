@@ -1,7 +1,6 @@
 ---
 import { Table } from '@components/Tables/Table';
-import { QueueListIcon, RectangleGroupIcon } from '@heroicons/react/24/outline';
-import EnvelopeIcon from '@heroicons/react/24/outline/EnvelopeIcon';
+import { QueueListIcon, RectangleGroupIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import ServerIcon from '@heroicons/react/24/outline/ServerIcon';
 import PlainPage from '@layouts/PlainPage.astro';
 import { getCommands } from '@utils/commands';
@@ -25,7 +24,7 @@ const tabs = [
     label: `Events (${events.length})`,
     href: buildUrl('/discover/events'),
     isActive: currentPath === '/discover/events',
-    icon: EnvelopeIcon,
+    icon: BoltIcon,
     activeColor: 'orange',
     enabled: events.length > 0,
   },
@@ -33,7 +32,7 @@ const tabs = [
     label: `Commands (${commands.length})`,
     href: buildUrl('/discover/commands'),
     isActive: currentPath === '/discover/commands',
-    icon: EnvelopeIcon,
+    icon: ChatBubbleLeftIcon,
     activeColor: 'blue',
     enabled: commands.length > 0,
   },
