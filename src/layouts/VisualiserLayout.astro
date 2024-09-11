@@ -54,43 +54,112 @@ const getColor = (collection: string) => {
 <PlainPage title={title} description={description}>
   <div class="flex min-h-full flex-row md:flex-col">
     <div class="mx-auto flex flex-col-reverse md:flex-row w-full items-start">
-      <aside
-        class="md:sticky mt-14 md:mt-0 top-0 w-full md:w-60 xl:w-[19em] shrink-0 lg:block font-light pr-10"
-        id="visualiser-navigation"
-      >
-        {
-          Object.keys(navigation).map((key: any) => {
-            const items = navigation[key]
-              .map((item: any) => {
-                const isCurrent = currentPath.includes(`${item.collection}/${item.data.id}/${item.data.version}`);
-                const isLatest = item.data.version === item.data.latestVersion;
-                if (!isLatest) return null;
-                return {
-                  label: item.data.name,
-                  version: item.data.version,
-                  color: getColor(item.collection),
-                  href: buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`),
-                  active: isCurrent,
-                };
-              })
-              .filter((n: any) => n !== null);
-            return (
-              <BasicList
-                title={`${key} (${navigation[key].length})`}
-                items={items}
-                emptyMessage="Nothing to show"
-                color="gray"
-                client:load
-              />
-            );
-          })
-        }
-      </aside>
+      <div>
+        <aside
+          class="md:sticky mt-8 md:mt-0 top-0 w-full md:w-60 xl:w-[19em] shrink-0 lg:block font-light pr-10"
+          id="visualiser-navigation"
+        >
+          {
+            Object.keys(navigation).map((key: any) => {
+              const items = navigation[key]
+                .map((item: any) => {
+                  const isCurrent = currentPath.includes(`${item.collection}/${item.data.id}/${item.data.version}`);
+                  const isLatest = item.data.version === item.data.latestVersion;
+                  if (!isLatest) return null;
+                  return {
+                    label: item.data.name,
+                    version: item.data.version,
+                    color: getColor(item.collection),
+                    href: buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`),
+                    active: isCurrent,
+                  };
+                })
+                .filter((n: any) => n !== null);
+              return (
+                <BasicList
+                  title={`${key} (${navigation[key].length})`}
+                  items={items}
+                  emptyMessage="Nothing to show"
+                  color="gray"
+                  client:load
+                />
+              );
+            })
+          }
+        </aside>
+      </div>
 
-      <main class="flex-1 h-full w-full">
+      <main class="flex-1 h-full w-full relative">
+        <button
+          id="fullscreen-toggle"
+          class="absolute top-[1em] z-40 left-5 bg-white hover:bg-gray-100/50 border border-gray-200 hover:text-purple-500 text-gray-800 font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+          </svg>
+          <span>Toggle Fullscreen</span>
+        </button>
         <slot />
       </main>
     </div>
     <ViewTransitions />
   </div>
 </PlainPage>
+
+<script>
+  function setupSidebarToggle() {
+    const sidebar = document.getElementById('visualiser-navigation');
+    const toggleButton = document.getElementById('fullscreen-toggle');
+    const eventCatalogHeader = document.getElementById('eventcatalog-header');
+    const eventCatalogHeaderSpacer = document.getElementById('eventcatalog-header-spacer');
+    let isSidebarVisible = true;
+
+    if (!sidebar || !toggleButton) return;
+
+    function toggleSidebar() {
+      isSidebarVisible = !isSidebarVisible;
+      if (sidebar) sidebar.style.display = isSidebarVisible ? 'block' : 'none';
+      if (eventCatalogHeader) eventCatalogHeader.style.display = isSidebarVisible ? 'block' : 'none';
+      if (eventCatalogHeaderSpacer) eventCatalogHeaderSpacer.style.display = isSidebarVisible ? 'block' : 'none';
+    }
+
+    // Remove existing event listener if it exists
+    toggleButton.removeEventListener('click', toggleSidebar);
+
+    // Add the event listener
+    toggleButton.addEventListener('click', toggleSidebar);
+  }
+
+  // Run the setup immediately
+  setupSidebarToggle();
+
+  // Re-run the setup after each navigation
+  document.addEventListener('astro:page-load', setupSidebarToggle);
+</script>
+
+<style>
+  #visualiser-navigation {
+    transform: translateX(0);
+  }
+</style>
+
+<style>
+  #visualiser-navigation {
+    transition:
+      transform 0.3s ease-in-out,
+      opacity 0.3s ease-in-out;
+    transform: translateX(0);
+    opacity: 1;
+  }
+  #visualiser-navigation.hidden {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  main {
+    transition: margin-left 0.3s ease-in-out;
+  }
+</style>

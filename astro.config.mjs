@@ -47,12 +47,6 @@ export default defineConfig({
     }),
     pagefind(),
   ],
-  redirects: {
-    "/": {
-      status: 302,
-      destination: join(base, config.landingPage || '/docs'),
-    },
-  },
   vite: {
     build: {
       commonjsOptions: {

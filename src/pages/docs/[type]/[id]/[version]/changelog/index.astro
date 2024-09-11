@@ -4,7 +4,7 @@ import Footer from '@layouts/Footer.astro';
 
 import type { PageTypes } from '@types';
 import { getChangeLogs } from '@utils/changelogs/changelogs';
-import { EnvelopeIcon, RectangleGroupIcon, ServerIcon } from '@heroicons/react/24/outline';
+import { RectangleGroupIcon, ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { pageDataLoader } from '@utils/pages/pages';
 
 import { buildUrl } from '@utils/url-builder';
@@ -59,10 +59,10 @@ const getBadge = () => {
     return { backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon, class: 'text-pink-400' };
   }
   if (props.collection === 'events') {
-    return { backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: EnvelopeIcon, class: 'text-orange-400' };
+    return { backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: BoltIcon, class: 'text-orange-400' };
   }
   if (props.collection === 'commands') {
-    return { backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: EnvelopeIcon, class: 'text-blue-400' };
+    return { backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: ChatBubbleLeftIcon, class: 'text-blue-400' };
   }
   if (props.collection === 'domains') {
     return {

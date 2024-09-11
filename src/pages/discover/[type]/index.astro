@@ -1,39 +1,31 @@
 ---
-import { getEvents } from '@utils/events';
 import DiscoverLayout from '@layouts/DiscoverLayout.astro';
-import type { CollectionEntry } from 'astro:content';
-import type { CollectionTypes } from '@types';
-import { getCommands } from '@utils/commands';
-import { getServices } from '@utils/services/services';
-import { getDomains } from '@utils/domains/domains';
+import type { PageTypes } from '@types';
 import { getFlows } from '@utils/flows/flows';
 
-export async function getStaticPaths() {
-  const events = await getEvents();
-  const commands = await getCommands();
-  const services = await getServices();
-  const domains = await getDomains();
-  const flows = await getFlows();
+import { pageDataLoader } from '@utils/pages/pages';
+type PageTypesWithFlows = PageTypes | 'flows';
 
-  const buildPage = (type: string, collection: CollectionEntry<CollectionTypes>[]) => {
-    return {
-      params: {
-        type,
-      },
-      props: {
-        type,
-        data: collection,
-      },
-    };
+export async function getStaticPaths() {
+  const loaders = {
+    ...pageDataLoader,
+    flows: getFlows,
   };
 
-  return [
-    buildPage('events', events),
-    buildPage('commands', commands),
-    buildPage('services', services),
-    buildPage('domains', domains),
-    buildPage('flows', flows),
-  ];
+  const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'services', 'domains', 'flows'];
+  const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
+
+  return allItems.flatMap((items, index) =>
+    items.map((item) => ({
+      params: {
+        type: itemTypes[index],
+      },
+      props: {
+        data: items,
+        type: itemTypes[index],
+      },
+    }))
+  );
 }
 
 const { type, data } = Astro.props;

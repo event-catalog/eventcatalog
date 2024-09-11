@@ -1,5 +1,4 @@
-import { EnvelopeIcon } from '@heroicons/react/24/solid';
-import { ServerIcon } from '@heroicons/react/24/solid';
+import { ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/solid';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { CollectionEntry } from 'astro:content';
 import { useMemo } from 'react';
@@ -75,6 +74,7 @@ export const columns = () => [
           {receives.map((consumer: any) => {
             const type = consumer.collection.slice(0, -1);
             const color = type === 'event' ? 'orange' : 'blue';
+            const Icon = type === 'event' ? BoltIcon : ChatBubbleLeftIcon;
             return (
               <li key={consumer.data.id} className="py-1 group font-light ">
                 <a
@@ -84,7 +84,7 @@ export const columns = () => [
                   <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
                     <span className="flex items-center">
                       <span className={`bg-${color}-500 h-full rounded-tl rounded-bl p-1`}>
-                        <EnvelopeIcon className="h-4 w-4 text-white" />
+                        <Icon className="h-4 w-4 text-white" />
                       </span>
                       <span className="leading-none px-2 group-hover:underline ">
                         {consumer.data.name} (v{consumer.data.version})
@@ -117,6 +117,7 @@ export const columns = () => [
           {sends.map((consumer: any) => {
             const type = consumer.collection.slice(0, -1);
             const color = type === 'event' ? 'orange' : 'blue';
+            const Icon = type === 'event' ? BoltIcon : ChatBubbleLeftIcon;
             return (
               <li key={consumer.data.id} className="py-1 group font-light">
                 <a
@@ -126,7 +127,7 @@ export const columns = () => [
                   <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
                     <span className="flex items-center">
                       <span className={`bg-${color}-500 h-full rounded-tl rounded-bl p-1`}>
-                        <EnvelopeIcon className="h-4 w-4 text-white" />
+                        <Icon className="h-4 w-4 text-white" />
                       </span>
                       <span className="leading-none px-2 group-hover:underline ">
                         {consumer.data.name} (v{consumer.data.version})
