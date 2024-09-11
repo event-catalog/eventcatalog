@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.1
+
+### Patch Changes
+
+- 29ccffc: fix(core): fixed changelogs path matching
+
 ## 2.7.0
 
 ### Minor Changes
