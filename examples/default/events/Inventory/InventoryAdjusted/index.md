@@ -1,5 +1,5 @@
 ---
-id: inventuryadjusted
+id: InventoryAdjusted
 name: Inventory adjusted
 version: 1.0.1
 summary: |
