@@ -6,8 +6,6 @@ export type ChangeLog = CollectionEntry<'changelogs'>;
 export const getChangeLogs = async (item: CollectionEntry<CollectionTypes>): Promise<ChangeLog[]> => {
   const { collection, data, slug } = item;
 
-  
-
   // Get all logs for collection type and filter by given collection
   const logs = await getCollection('changelogs', (log) => {
     return log.id.includes(`${collection}/`) && log.slug.includes(slug);
