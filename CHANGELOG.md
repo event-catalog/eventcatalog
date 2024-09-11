@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.0
+
+### Minor Changes
+
+- 515b01f: feat(core): added ability to full screen visuals, new icons for messages and new landing page
+
 ## 2.6.4
 
 ### Patch Changes
