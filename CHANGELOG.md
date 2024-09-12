@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.4
+
+### Patch Changes
+
+- 0189ebb: fix(core): ignore trailing slash for icons
+
 ## 2.7.3
 
 ### Patch Changes
