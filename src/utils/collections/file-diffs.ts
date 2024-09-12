@@ -1,6 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { diffLines } from 'diff';
+import { diffLines, type Change } from 'diff';
 import { html, parse } from 'diff2html';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from './util';
 import type { CollectionEntry } from 'astro:content';
