@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.2
+
+### Patch Changes
+
+- ac64dc4: fix(core): only generate discover page for each collection
+
 ## 2.7.1
 
 ### Patch Changes
