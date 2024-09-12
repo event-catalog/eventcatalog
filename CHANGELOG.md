@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.3
+
+### Patch Changes
+
+- 1c56b8d: feat(core): added automatic diffs for changelogs for json, yml and avro files
+
 ## 2.7.2
 
 ### Patch Changes
