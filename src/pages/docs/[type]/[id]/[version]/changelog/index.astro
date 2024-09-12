@@ -6,8 +6,11 @@ import type { PageTypes } from '@types';
 import { getChangeLogs } from '@utils/changelogs/changelogs';
 import { RectangleGroupIcon, ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { pageDataLoader } from '@utils/pages/pages';
+import 'diff2html/bundles/css/diff2html.min.css';
 
 import { buildUrl } from '@utils/url-builder';
+import { getVersions, getPreviousVersion } from '@utils/collections/util';
+import { getDiffsForCurrentAndPreviousVersion } from '@utils/collections/file-diffs';
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'services', 'domains'];
@@ -22,6 +25,8 @@ export async function getStaticPaths() {
       },
       props: {
         type: itemTypes[index],
+        allVersionsForCollection: getVersions(items).versions,
+        allCollectionItems: items,
         ...item,
       },
     }))
@@ -29,6 +34,7 @@ export async function getStaticPaths() {
 }
 
 const props = Astro.props;
+let collectionItem = props;
 const logs = await getChangeLogs(props);
 
 const { data } = props;
@@ -44,15 +50,30 @@ const renderedLogs = await logs.map(async (log) => {
 
 const logsToRender = await Promise.all(renderedLogs);
 
-const logList = logsToRender.map((log, index) => ({
-  id: log.id,
-  url: buildUrl(`/docs/${props.collection}/${props.data.id}`),
-  isLatest: log.data.version === latestVersion,
-  version: log.data.version,
-  createdAt: log.data.createdAt,
-  badges: log.data.badges || [],
-  Content: log.Content,
-}));
+const logListPromise = logsToRender.map(async (log, index) => {
+  const currentLogVersion = log.data.version;
+  const previousLogVersion = log.data.version ? getPreviousVersion(log.data.version, props.allVersionsForCollection) : '';
+  return {
+    id: log.id,
+    url: buildUrl(`/docs/${props.collection}/${props.data.id}`),
+    isLatest: log.data.version === latestVersion,
+    version: log.data.version,
+    createdAt: log.data.createdAt,
+    badges: log.data.badges || [],
+    Content: log.Content,
+    diffs:
+      currentLogVersion && previousLogVersion
+        ? await getDiffsForCurrentAndPreviousVersion(
+            currentLogVersion,
+            previousLogVersion,
+            collectionItem.data.id,
+            props.allCollectionItems
+          )
+        : [],
+  };
+});
+
+const logList = await Promise.all(logListPromise);
 
 const getBadge = () => {
   if (props.collection === 'services') {
@@ -154,6 +175,7 @@ const badges = [getBadge()];
                   <div class="prose prose-md !max-w-none py-2">
                     <log.Content />
                   </div>
+                  {log.diffs && log.diffs.map((diff) => <div id="diff-container" set:html={diff} />)}
                 </div>
               </div>
             </li>

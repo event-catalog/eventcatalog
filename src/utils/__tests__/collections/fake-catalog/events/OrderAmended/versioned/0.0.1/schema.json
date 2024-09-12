@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrderAmendedEvent",
+  "type": "object",
+  "properties": {
+    "orderId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the order that was amended."
+    }
+  },
+  "required": ["userId", "amendedItems", "orderStatus", "totalAmount", "timestamp"],
+  "additionalProperties": false
+}

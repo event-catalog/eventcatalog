@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Simple Task - API
-  version: 1.0.2
+  version: 1.0.0
   description: Simple Api
   contact: {}
   license:
@@ -59,57 +59,6 @@ paths:
           required: true
           schema:
             type: string
-  
-  /v1/tasks:
-    get:
-      summary: Get List of Tasks
-      operationId: GetTaskList
-      responses:
-        '200':
-          description: Successfully retrieved list of tasks
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Task'
-        '400':
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Not Authorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Unauthorized'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      description: Retrieves a list of all tasks
-      security:
-        - authorization: []
-      parameters:
-        - in: query
-          name: limit
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-          description: The maximum number of tasks to return
-        - in: query
-          name: offset
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-          description: The number of tasks to skip before starting to return results
 
 components:
   schemas:
