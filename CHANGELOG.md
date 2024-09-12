@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.5
+
+### Patch Changes
+
+- fde6544: chore(core): updated astro versions
+
 ## 2.7.4
 
 ### Patch Changes
