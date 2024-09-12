@@ -30,6 +30,7 @@ const changelogs = defineCollection({
     catalog: z
       .object({
         path: z.string(),
+        absoluteFilePath: z.string(),
         filePath: z.string(),
         publicPath: z.string(),
         type: z.string(),

@@ -50,6 +50,8 @@
     "astro-pagefind": "^1.5.0",
     "astro-seo": "^0.8.4",
     "dagre": "^0.8.5",
+    "diff": "^7.0.0",
+    "diff2html": "^3.4.48",
     "glob": "^10.4.1",
     "html-to-image": "^1.11.11",
     "lodash.merge": "4.6.2",
@@ -67,6 +69,7 @@
   },
   "devDependencies": {
     "@parcel/watcher": "^2.4.1",
+    "@types/diff": "^5.2.2",
     "@types/lodash.merge": "4.6.9",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",

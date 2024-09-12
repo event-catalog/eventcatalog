@@ -1,6 +1,11 @@
 import type { CollectionTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
-import { coerce, satisfies as satisfiesRange, validRange } from 'semver';
+import { coerce, satisfies as satisfiesRange } from 'semver';
+
+export const getPreviousVersion = (version: string, versions: string[]) => {
+  const index = versions.indexOf(version);
+  return index === -1 ? null : versions[index + 1];
+};
 
 export const getVersions = (data: CollectionEntry<CollectionTypes>[]) => {
   const allVersions = data.map((item) => item.data.version).sort();
