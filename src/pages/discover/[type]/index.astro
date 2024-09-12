@@ -15,17 +15,15 @@ export async function getStaticPaths() {
   const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'services', 'domains', 'flows'];
   const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
 
-  return allItems.flatMap((items, index) =>
-    items.map((item) => ({
-      params: {
-        type: itemTypes[index],
-      },
-      props: {
-        data: items,
-        type: itemTypes[index],
-      },
-    }))
-  );
+  return allItems.flatMap((items, index) => ({
+    params: {
+      type: itemTypes[index],
+    },
+    props: {
+      data: items,
+      type: itemTypes[index],
+    },
+  }));
 }
 
 const { type, data } = Astro.props;
