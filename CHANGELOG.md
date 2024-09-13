@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.8
+
+### Patch Changes
+
+- c67052f: fix(core): fixed generate command
+
 ## 2.7.7
 
 ### Patch Changes
