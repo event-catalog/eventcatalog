@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.10
+
+### Patch Changes
+
+- d4e2013: chore(core): added ability to check and add properties on users catal…
+
 ## 2.7.9
 
 ### Patch Changes
