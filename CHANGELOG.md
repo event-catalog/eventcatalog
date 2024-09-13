@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.12
+
+### Patch Changes
+
+- 3016b7f: feat(core): added tile MDX components
+
 ## 2.7.11
 
 ### Patch Changes
