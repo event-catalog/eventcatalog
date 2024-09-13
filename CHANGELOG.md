@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.13
+
+### Patch Changes
+
+- 6268155: feat(core): new styles added to header and docs sidebar
+
 ## 2.7.12
 
 ### Patch Changes
