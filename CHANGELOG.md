@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.6
+
+### Patch Changes
+
+- bb7333d: feat(core): added protobuf support for auto diffs
+
 ## 2.7.5
 
 ### Patch Changes
