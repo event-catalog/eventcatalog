@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import os from 'node:os';
+import { verifyRequiredFieldsAreInCatalogConfigFile } from './eventcatalog-config-file-utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const scriptsDir = path.dirname(__filename);
@@ -262,6 +263,9 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
 
   // Copy the components if they are defined
   await copyComponents({ source, target: astroContentDir, catalogFilesDir });
+
+  // Verify required fields are in the catalog config file
+  await verifyRequiredFieldsAreInCatalogConfigFile(source);
 };
 
 if (process.env.NODE_ENV !== 'test') {

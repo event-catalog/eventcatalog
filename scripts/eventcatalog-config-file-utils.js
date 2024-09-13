@@ -1,6 +1,7 @@
 import { readFile, writeFile, rm } from 'node:fs/promises';
 import { existsSync } from 'fs';
 import path from 'node:path';
+import { v4 as uuidV4 } from 'uuid';
 
 // * Very strange behaviour when importing ESM files from catalogs into core.
 //  * Core (node) does not know how to handle ESM files, so we have to try and convert them.
@@ -92,5 +93,18 @@ export const writeEventCatalogConfigFile = async (projectDirectory, newConfig) =
     await cleanup(projectDirectory);
   } catch (error) {
     await cleanup(projectDirectory);
+  }
+};
+
+// Check the eventcatalog.config.js and add any missing required fields on it
+export const verifyRequiredFieldsAreInCatalogConfigFile = async (projectDirectory) => {
+  try {
+    const config = await getEventCatalogConfigFile(projectDirectory);
+
+    if (!config.cId) {
+      await writeEventCatalogConfigFile(projectDirectory, { cId: uuidV4() });
+    }
+  } catch (error) {
+    // fail silently, it's overly important
   }
 };
