@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.7
+
+### Patch Changes
+
+- f699aed: feat(core): added utils to read and write catalog files
+
 ## 2.7.6
 
 ### Patch Changes
