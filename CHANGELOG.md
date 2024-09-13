@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.11
+
+### Patch Changes
+
+- b106e34: chore(core): added logs for builds
+
 ## 2.7.10
 
 ### Patch Changes
