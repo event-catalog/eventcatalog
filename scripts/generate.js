@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { getEventCatalogConfigFile, cleanup } from './eventcatalog-config-file-utils';
+import { getEventCatalogConfigFile, cleanup } from './eventcatalog-config-file-utils.js';
 
 function getDefaultExport(importedModule) {
   if (importedModule === null || typeof importedModule !== 'object') {
