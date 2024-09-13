@@ -27,8 +27,11 @@ const logo = {
 };
 ---
 
-<nav id="eventcatalog-header" class="fixed top-0 left-0 right-0 z-20 bg-white border-b border-gray-200 py-4 font-bold text-xl">
-  <div class="max-w-[120em] mx-auto px-4 sm:px-6 lg:px-8 xxl:max-w-[96em]">
+<nav
+  id="eventcatalog-header"
+  class="fixed top-0 left-0 right-0 z-20 bg-white border-b border-gray-100 py-3 font-bold text-xl bg-opacity-50 backdrop-blur-sm"
+>
+  <div class="max-w-[120em] mx-auto px-4 sm:px-6 lg:px-10 xxl:max-w-[96em]">
     <div class="flex justify-between items-center">
       <div class="flex-shrink-0 flex items-center w-1/3">
         <a href={buildUrl(catalog.landingPage || '/')} class="flex space-x-2 items-center">
@@ -37,7 +40,7 @@ const logo = {
         </a>
       </div>
 
-      <div class="hidden lg:block flex-grow mx-4 w-1/3">
+      <div class="hidden lg:block flex-grow w-1/3">
         <Search />
       </div>
 
@@ -47,7 +50,7 @@ const logo = {
             navItems.map((item) => {
               const isActive = currentPath.includes(item.href);
               return (
-                <li class={`font-light ${isActive ? 'border-b-2 border-purple-500' : ''}`}>
+                <li class={`font-light text-[0.8em] ${isActive ? 'border-b-2 border-purple-500' : ''}`}>
                   <a href={item.href}>{item.label}</a>
                 </li>
               );
@@ -90,7 +93,7 @@ const logo = {
   </div>
 </nav>
 
-<div id="eventcatalog-header-spacer" class="h-20"></div>
+<div id="eventcatalog-header-spacer" class="h-16"></div>
 <!-- Spacer to prevent content from being hidden under the fixed header -->
 
 <script>

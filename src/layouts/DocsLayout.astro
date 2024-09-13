@@ -21,8 +21,11 @@ import SEO from '../components/Seo.astro';
       <Header />
 
       <div>
-        <nav class="hidden sm:flex grow w-56 xl:w-[19em] fixed overflow-y-auto h-full py-2">
-          <div class="w-full pt-4">
+        <nav class="hidden sm:flex grow w-56 xl:w-[19em] fixed overflow-y-auto h-full">
+          <div class="w-full">
+            <div class="sticky top-0 z-10 h-8 pointer-events-none -mt-4">
+              <div class="h-full bg-gradient-to-b from-white to-transparent"></div>
+            </div>
             <SideBar />
           </div>
         </nav>
