@@ -18,9 +18,8 @@ function getDefaultExport(importedModule) {
 }
 
 const generate = async () => {
+  const PROJECT_DIRECTORY = process.env.PROJECT_DIR;
   try {
-    const PROJECT_DIRECTORY = process.env.PROJECT_DIR;
-
     const config = await getEventCatalogConfigFile(PROJECT_DIRECTORY);
 
     const { generators = [] } = config;
@@ -53,16 +52,16 @@ const generate = async () => {
         // Use importedGenerator here
       } catch (error) {
         console.error('Error loading plugin:', error);
-        await cleanup();
+        await cleanup(PROJECT_DIRECTORY);
         return;
       }
     }
 
-    await cleanup();
+    await cleanup(PROJECT_DIRECTORY);
   } catch (error) {
     // Failed to generate clean up...
     console.error(error);
-    await cleanup();
+    await cleanup(PROJECT_DIRECTORY);
   }
 };
 
