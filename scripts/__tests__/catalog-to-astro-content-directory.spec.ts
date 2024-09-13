@@ -25,6 +25,8 @@ describe('catalog-to-astro-content-directory', () => {
   afterAll(async () => {
     await fs.rm(TMP_DIRECTORY, { recursive: true });
     await fs.rm(path.join(__dirname, 'public'), { recursive: true });
+    const defaultFile = await fs.readFile(path.join(CATALOG_DIR, 'eventcatalog.config.defaults.js'), 'utf8');
+    await fs.writeFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), defaultFile);
   });
 
   describe('events', () => {
@@ -188,6 +190,13 @@ describe('catalog-to-astro-content-directory', () => {
   describe('teams', () => {
     it('takes teams from the catalog and puts it into the expected directory structure', async () => {
       expect(existsSync(path.join(ASTRO_OUTPUT, 'teams', 'full-stack.md'))).toBe(true);
+    });
+  });
+
+  describe('eventcatalog.config.js file', () => {
+    it('adds cId missing property on the eventcatalog.config.js file', async () => {
+      const file = await fs.readFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), 'utf8');
+      expect(file).toContain('cId:');
     });
   });
 });

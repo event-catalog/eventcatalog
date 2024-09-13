@@ -5,9 +5,18 @@ import { existsSync } from 'fs';
 const CATALOG_DIR = path.join(__dirname, 'example-catalog');
 
 import { expect, describe, it } from 'vitest';
-import { getEventCatalogConfigFile, writeEventCatalogConfigFile } from 'scripts/eventcatalog-config-file-utils';
+import {
+  getEventCatalogConfigFile,
+  verifyRequiredFieldsAreInCatalogConfigFile,
+  writeEventCatalogConfigFile,
+} from 'scripts/eventcatalog-config-file-utils';
 
 describe('catalog-to-astro-content-directory', () => {
+  afterEach(async () => {
+    const defaultFile = await fs.readFile(path.join(CATALOG_DIR, 'eventcatalog.config.defaults.js'), 'utf8');
+    await fs.writeFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), defaultFile);
+  });
+
   describe('getEventCatalogConfigFile', () => {
     it('returns the eventcatalog.config.js file from the catalog directory', async () => {
       const config = await getEventCatalogConfigFile(CATALOG_DIR);
@@ -102,16 +111,14 @@ describe('catalog-to-astro-content-directory', () => {
 
   describe('writeEventCatalogConfigFile', () => {
     it('takes given configuration and writes it to the eventcatalog.config.js file', async () => {
-      const file = await fs.readFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), 'utf8');
+      // const file = await fs.readFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), 'utf8');
 
       const propertiesToAdd = { extraProperty: 'testing' };
       await writeEventCatalogConfigFile(CATALOG_DIR, propertiesToAdd);
 
-      const config = await getEventCatalogConfigFile(CATALOG_DIR);
-
-      expect(config.extraProperty).toBe('testing');
-
-      await fs.writeFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), file);
+      // Have to read the file as we have import caching....
+      const fileWithChanges = await fs.readFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), 'utf8');
+      expect(fileWithChanges).contains("extraProperty: 'testing'");
     });
 
     it('when writing to the eventcatalog.config.js file, all imports are left untouched', async () => {
@@ -123,6 +130,22 @@ describe('catalog-to-astro-content-directory', () => {
       expect(file).toContain("import path from 'path';");
       expect(file).toContain("import url from 'url';");
       expect(file).toContain('const __dirname = path.dirname(url.fileURLToPath(import.meta.url));');
+    });
+  });
+
+  describe('verifyRequiredFieldsAreInCatalogConfigFile', () => {
+    it('if cId (catalog id) is not in the config file it is added', async () => {
+      // Verify its not there first
+      const config = await getEventCatalogConfigFile(CATALOG_DIR);
+      expect(config.cId).toBeUndefined();
+
+      await verifyRequiredFieldsAreInCatalogConfigFile(CATALOG_DIR);
+
+      // Have to read the file as we have import caching....
+      const file = await fs.readFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), 'utf8');
+
+      // cId: '2aa9384e-b0f3-4ea3-a6e0-97188f4027cb' expect this to be there, but the uiid dan be anything
+      expect(file).toContain("cId: '");
     });
   });
 });
