@@ -13,4 +13,4 @@ COPY examples/default/ .
 COPY --from=builder /usr/eventcatalog/*.tgz /usr/eventcatalog/
 RUN npm init -y && \
     npm install /usr/eventcatalog/*.tgz
-CMD npx eventcatalog build
+CMD ["npx", "eventcatalog", "build"]
