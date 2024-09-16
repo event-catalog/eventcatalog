@@ -1,18 +1,31 @@
 /** @type {import('tailwindcss').Config} */
+import config from './eventcatalog.config.js';
+const theme = config.theme || {};
 export default {
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
   theme: {
     extend: {
       screens: {
-        'xxl': '1990px',
+        xxl: '1990px',
+      },
+      colors: {
+        primary: {
+          DEFAULT: '#a855f7',
+        },
+        secondary: {
+          light: '#ff9980',
+          DEFAULT: '#ff6633',
+          dark: '#cc3300',
+        },
+        ...theme
       },
     },
   },
   safelist: [
-    {pattern: /border-.*-(200|400|500)/},
-    {pattern: /bg-.*-(100|200|400|500)/},
-    {pattern: /from-.*-(100|200|400|500|700)/},
-    {pattern: /text-.*-(400|500|800)/},
+    { pattern: /border-.*-(200|400|500)/ },
+    { pattern: /bg-.*-(100|200|400|500)/ },
+    { pattern: /from-.*-(100|200|400|500|700)/ },
+    { pattern: /text-.*-(400|500|800)/ },
     'border-blue-200',
     'border-green-300',
     'bg-blue-600',

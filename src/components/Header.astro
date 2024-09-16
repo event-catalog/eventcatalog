@@ -50,7 +50,7 @@ const logo = {
             navItems.map((item) => {
               const isActive = currentPath.includes(item.href);
               return (
-                <li class={`font-light text-[0.8em] ${isActive ? 'border-b-2 border-purple-500' : ''}`}>
+                <li class={`font-light hover:text-primary text-[0.8em] ${isActive ? 'border-b-2 border-primary' : ''}`}>
                   <a href={item.href}>{item.label}</a>
                 </li>
               );
@@ -82,7 +82,7 @@ const logo = {
           navItems.map((item) => {
             const isActive = currentPath.includes(item.href);
             return (
-              <li class={`font-light ${isActive ? 'font-bold text-purple-500' : ''}`}>
+              <li class={`font-light ${isActive ? 'font-bold text-primary' : ''}`}>
                 <a href={item.href}>{item.label}</a>
               </li>
             );
