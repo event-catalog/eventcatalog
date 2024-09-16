@@ -6,6 +6,8 @@ import AccordionGroup from '@components/MDX/Accordion/AccordionGroup.astro';
 import Flow from '@components/MDX/Flow/Flow.astro';
 import Tiles from '@components/MDX/Tiles/Tiles.astro';
 import Tile from '@components/MDX/Tiles/Tile.astro';
+import Steps from '@components/MDX/Steps/Steps.astro';
+import Step from '@components/MDX/Steps/Step.astro';
 import Admonition from '@components/MDX/Admonition';
 import OpenAPI from '@components/MDX/OpenAPI/OpenAPI.astro';
 import AsyncAPI from '@components/MDX/AsyncAPI/AsyncAPI.astro';
@@ -21,8 +23,10 @@ const components = (props: any) => {
     Flow,
     OpenAPI,
     AsyncAPI,
-    Tiles,
     Tile,
+    Tiles,
+    Step,
+    Steps,
     Admonition: (mdxProp: any) => <Admonition {...mdxProp} {...props} />,
     File: (mdxProp: any) => File({ ...props, ...mdxProp }),
     NodeGraph: (mdxProp: any) => NodeGraphPortal({ ...props.data, ...mdxProp }),
