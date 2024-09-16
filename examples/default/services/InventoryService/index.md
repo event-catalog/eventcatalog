@@ -49,4 +49,39 @@ The Inventory Service is a critical component of the system responsible for mana
 
 <NodeGraph title="Hello world" />
 
+
+<Steps title="How to connect to Inventory Service">
+  <Step title="Obtain API credentials">
+    Request API credentials from the Inventory Service team.
+  </Step>
+  <Step title="Install the SDK">
+    Run the following command in your project directory:
+    ```bash
+    npm install inventory-service-sdk
+    ```
+  </Step>
+  <Step title="Initialize the client">
+  Use the following code to initialize the Inventory Service client:
+
+  ```js
+  const InventoryService = require('inventory-service-sdk');
+  const client = new InventoryService.Client({
+    clientId: 'YOUR_CLIENT_ID',
+    clientSecret: 'YOUR_CLIENT_SECRET',
+    apiUrl: 'https://api.inventoryservice.com/v1'
+  });
+```
+  </Step>
+  <Step title="Make API calls">
+  
+  You can now use the client to make API calls. For example, to get all products:
+
+  ```js
+  client.getProducts()
+    .then(products => console.log(products))
+    .catch(error => console.error(error));
+  ```
+  </Step>
+</Steps>
+
 <Footer />
