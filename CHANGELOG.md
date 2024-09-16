@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.15
+
+### Patch Changes
+
+- 7e63592: fix(core): user ownership on resources within a team
+
 ## 2.7.14
 
 ### Patch Changes
