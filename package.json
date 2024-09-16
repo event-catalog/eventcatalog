@@ -68,8 +68,8 @@
     "typescript": "^5.4.5",
     "unist-util-visit": "^5.0.0",
     "uuid": "^10.0.0",
-    "@types/lodash.merge": "4.6.9",
-    "@types/diff": "^5.2.2"
+    "@types/diff": "^5.2.2",
+    "@types/lodash.merge": "4.6.9"
   },
   "devDependencies": {
     "@parcel/watcher": "^2.4.1",
