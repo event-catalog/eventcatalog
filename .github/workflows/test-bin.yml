@@ -1,4 +1,4 @@
-name: Test eventcatalog bin
+name: Verify install with dependencies
 
 on:
   pull_request:

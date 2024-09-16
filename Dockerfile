@@ -1,3 +1,4 @@
+# Docker file used for CI/CD pipeline to verify builds with their dependencies
 FROM node:20.17 AS builder
 WORKDIR /usr/eventcatalog/
 COPY package*.json .
