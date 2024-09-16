@@ -1,5 +1,4 @@
 ---
-import type { CollectionEntry } from 'astro:content';
 import DocsLayout from '@layouts/DocsLayout.astro';
 import Footer from '@layouts/Footer.astro';
 
@@ -10,40 +9,39 @@ import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewer.astro';
 // SideBars
 import ServiceSideBar from '@components/SideBars/ServiceSideBar.astro';
 import MessageSideBar from '@components/SideBars/MessageSideBar.astro';
-
-import { getEvents } from '@utils/events';
-import { getServices } from '@utils/services/services';
-import { getCommands } from '@utils/commands';
-import { EnvelopeIcon, PencilIcon, QueueListIcon, RectangleGroupIcon, ServerIcon } from '@heroicons/react/24/outline';
-import { getDomains } from '@utils/domains/domains';
 import DomainSideBar from '@components/SideBars/DomainSideBar.astro';
-import type { CollectionTypes } from '@types';
+
+import { QueueListIcon, RectangleGroupIcon, ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import type { PageTypes } from '@types';
 
 import { buildUrl } from '@utils/url-builder';
 import { getFlows } from '@utils/flows/flows';
+import { pageDataLoader } from '@utils/pages/pages';
+
+type PageTypesWithFlows = PageTypes | 'flows';
 
 export async function getStaticPaths() {
-  const events = await getEvents();
-  const commands = await getCommands();
-  const services = await getServices();
-  const domains = await getDomains();
-  const flows = await getFlows();
+  const loaders = {
+    ...pageDataLoader,
+    flows: getFlows,
+  };
 
-  const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
-    return collection.map((item) => ({
+  const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'services', 'domains', 'flows'];
+  const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
+
+  return allItems.flatMap((items, index) =>
+    items.map((item) => ({
       params: {
-        type: item.collection,
+        type: itemTypes[index],
         id: item.data.id,
         version: item.data.version,
       },
       props: {
-        type: item.collection,
+        type: itemTypes[index],
         ...item,
       },
-    }));
-  };
-
-  return [...buildPages(domains), ...buildPages(events), ...buildPages(services), ...buildPages(commands), ...buildPages(flows)];
+    }))
+  );
 }
 
 const props = Astro.props;
@@ -59,10 +57,10 @@ const getBadge = () => {
     return { backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon, class: 'text-pink-400' };
   }
   if (props.collection === 'events') {
-    return { backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: EnvelopeIcon, class: 'text-orange-400' };
+    return { backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: BoltIcon, class: 'text-orange-400' };
   }
   if (props.collection === 'commands') {
-    return { backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: EnvelopeIcon, class: 'text-blue-400' };
+    return { backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: ChatBubbleLeftIcon, class: 'text-blue-400' };
   }
   if (props.collection === 'domains') {
     return {
@@ -81,14 +79,46 @@ const getBadge = () => {
   return { backgroundColor: 'teal', textColor: 'teal', content: '', icon: QueueListIcon, class: 'text-gray' };
 };
 
-const badges = [getBadge(), ...contentBadges];
+const getSpecificationBadges = () => {
+  const badges = [];
+  const hasOpenAPISpec = !!props.data.specifications?.openapiPath;
+  const hasAsyncAPISpec = !!props.data.specifications?.asyncapiPath;
+
+  if (hasOpenAPISpec) {
+    badges.push({
+      backgroundColor: 'white',
+      textColor: 'gray',
+      content: 'OpenAPI Spec',
+      iconURL: buildUrl('/icons/openapi.svg', true),
+      class: 'text-black hover:underline',
+      id: 'open-api-badge',
+      url: buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}/spec`),
+    });
+  }
+
+  if (hasAsyncAPISpec) {
+    badges.push({
+      backgroundColor: 'white',
+      textColor: 'gray',
+      content: 'AsyncAPI Spec',
+      iconURL: buildUrl('/icons/asyncapi.svg', true),
+      class: 'text-black hover:underline',
+      id: 'asyncapi-badge',
+      url: buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}/asyncapi`),
+    });
+  }
+
+  return badges;
+};
+
+const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
 ---
 
 <DocsLayout title={pageTitle} description={props.data.summary}>
   <!-- <main class="flex py-8 sm:px-8 docs-layout"> -->
   <div class="flex min-h-screen docs-layout">
     <main class="flex-1 w-full lg:pr-10 md:pt-4">
-      <div class="border-b border-gray-200 flex justify-between items-start py-4 md:py-8 md:pb-6">
+      <div class="border-b border-gray-200 flex justify-between items-start py-4 md:pb-6">
         <div>
           <h2 class="text-2xl md:text-4xl font-bold">
             {props.data.name}
@@ -98,14 +128,20 @@ const badges = [getBadge(), ...contentBadges];
           {
             badges && (
               <div class="flex flex-wrap py-2 pt-4">
-                {badges.map((badge: any) => (
-                  <span
-                    class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2 bg-${badge.backgroundColor}-100 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}
-                  >
-                    {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
-                    <span>{badge.content}</span>
-                  </span>
-                ))}
+                {badges.map((badge: any) => {
+                  return (
+                    <a href={badge.url || '#'}>
+                      <span
+                        id={badge.id || ''}
+                        class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2 bg-${badge.backgroundColor}-100 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}
+                      >
+                        {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
+                        {badge.iconURL && <img src={badge.iconURL} class="w-5 h-5 inline-block " />}
+                        <span>{badge.content}</span>
+                      </span>
+                    </a>
+                  );
+                })}
               </div>
             )
           }

@@ -17,12 +17,15 @@ import SEO from '../components/Seo.astro';
     <SEO title={`EventCatalog | ${title}`} description={description} ogTitle={title} />
   </head>
   <body>
-    <div class="px-10 max-w-[96em] mx-auto">
+    <div class="px-10 max-w-[120em] mx-auto">
       <Header />
 
-      <div class="md:pt-20">
-        <nav class="hidden sm:flex grow w-56 xl:w-[19em] fixed overflow-y-auto h-full py-2">
+      <div>
+        <nav class="hidden sm:flex grow w-56 xl:w-[19em] fixed overflow-y-auto h-full">
           <div class="w-full">
+            <div class="sticky top-0 z-10 h-8 pointer-events-none -mt-4">
+              <div class="h-full bg-gradient-to-b from-white to-transparent"></div>
+            </div>
             <SideBar />
           </div>
         </nav>

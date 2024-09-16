@@ -1,0 +1,148 @@
+asyncapi: 3.0.0
+
+info:
+  title: Order service
+  description: | 
+    This service is in charge of processing order events.
+  version: '1.0.0'
+
+servers: 
+  topic:
+    host: https://mytopic.com
+    description: Custom Topic.
+    protocol: HTTPS
+
+defaultContentType: application/json
+
+channels:
+  orderEventsChannel:
+    address: 'orders.{orderId}'
+    description: All Order related events are distributed and broadcasted for the interested consumers.
+    title: Order events channel
+    messages:
+      OrderConfirmed:
+        summary: Order confirmed event
+        $ref: '#/components/messages/OrderConfirmed'
+      OrderPlaced:
+        summary: Order placed event
+        $ref: '#/components/messages/OrderPlaced'
+
+operations: 
+  onOrderConfirmation:
+    summary: Action to confirm an order.
+    description: The product availability of an order will lead to the confirmation of the order.
+    title: Order Confirmed
+    channel:
+      $ref: '#/channels/orderEventsChannel'
+    action: send
+  onOrderPlacement:
+    summary: Action to place an order.
+    description: The reception and validation of an order will lead to the placement of the order.
+    title: Order Placed
+    channel:
+      $ref: '#/channels/orderEventsChannel'
+    action: send
+
+components:
+  messages:
+    OrderConfirmed:
+      payload:
+        $ref: '#/components/schemas/OrderConfirmed'
+
+    OrderPlaced:
+      payload:
+        $ref: '#/components/schemas/OrderPlaced'
+
+  schemas:
+    orderId:
+      description: The unique identifier of an order
+      type: string
+      pattern: ^([A-Za-z0-9_-]{21})$
+
+    userId:
+      description: The unique identifier of a user
+      type: string
+      pattern: ^([A-Za-z0-9_-]{21})$
+
+    productId:
+      description: The product unique identifier
+      type: string
+      pattern: ^([A-Za-z0-9_-]{21})$
+
+    Order:
+      required:
+        - orderId
+        - userId
+        - productId
+        - price
+        - quantity
+        - orderDate
+      type: object
+      description: order model
+      properties:
+        orderId:
+          "$ref": "#/components/schemas/orderId"
+        orderDate:
+          description: Date of order submition.
+          type: string
+          format: date-time
+        userId:
+          "$ref": "#/components/schemas/userId"
+        productId:
+          "$ref": "#/components/schemas/productId"
+        price:
+          type: number
+        quantity:
+          type: integer
+      title: Order
+
+    EventEnvelope:
+      type: object
+      allOf:
+      - $ref: 'https://raw.githubusercontent.com/cloudevents/spec/v1.0.1/spec.json'
+      properties:
+        id:
+          type: string
+          format: uuid
+        idempotencykey:
+          type: string
+          format: uuid
+        correlationid:
+          type: string
+          format: uuid
+        causationid:
+          type: string
+          format: uuid
+
+    EventType:
+      type: string
+      enum: 
+        - "order.placed" 
+        - "order.confirmed"
+
+    OrderConfirmed:
+      type: object
+      additionalProperties: false
+      allOf:
+        - $ref: '#/components/schemas/EventEnvelope'  
+      properties:
+        data:
+          $ref: '#/components/schemas/Order'
+        type:
+          $ref: '#/components/schemas/EventType'
+
+      required:
+        - data
+
+    OrderPlaced:
+      type: object
+      additionalProperties: false
+      allOf:
+        - $ref: '#/components/schemas/EventEnvelope'
+      properties:
+        data:
+          $ref: '#/components/schemas/Order'
+        type:
+          $ref: '#/components/schemas/EventType'
+      required:
+        - data

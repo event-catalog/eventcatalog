@@ -1,39 +1,35 @@
 ---
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import VisualiserLayout from '@layouts/VisualiserLayout.astro';
-import type { CollectionTypes } from '@types';
-import { getCommands } from '@utils/commands';
-import { getDomains } from '@utils/domains/domains';
-import { getEvents } from '@utils/events';
+import type { PageTypes } from '@types';
 import { getFlows } from '@utils/flows/flows';
-import { getServices } from '@utils/services/services';
 import { buildUrl } from '@utils/url-builder';
-import type { CollectionEntry } from 'astro:content';
+
+import { pageDataLoader } from '@utils/pages/pages';
+type PageTypesWithFlows = PageTypes | 'flows';
 
 export async function getStaticPaths() {
-  const [services, events, commands, domains, flows] = await Promise.all([
-    getServices(),
-    getEvents(),
-    getCommands(),
-    getDomains(),
-    getFlows(),
-  ]);
+  const loaders = {
+    ...pageDataLoader,
+    flows: getFlows,
+  };
 
-  const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
-    return collection.map((item) => ({
+  const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'services', 'domains', 'flows'];
+  const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
+
+  return allItems.flatMap((items, index) =>
+    items.map((item) => ({
       params: {
-        type: item.collection,
+        type: itemTypes[index],
         id: item.data.id,
         version: item.data.version,
       },
       props: {
-        type: item.collection,
+        type: itemTypes[index],
         ...item,
       },
-    }));
-  };
-
-  return [...buildPages(services), ...buildPages(events), ...buildPages(commands), ...buildPages(domains), ...buildPages(flows)];
+    }))
+  );
 }
 
 const props = Astro.props;

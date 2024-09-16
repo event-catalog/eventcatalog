@@ -30,6 +30,7 @@ const changelogs = defineCollection({
     catalog: z
       .object({
         path: z.string(),
+        absoluteFilePath: z.string(),
         filePath: z.string(),
         publicPath: z.string(),
         type: z.string(),
@@ -49,6 +50,12 @@ const baseSchema = z.object({
   badges: z.array(badge).optional(),
   owners: z.array(ownerReference).optional(),
   schemaPath: z.string().optional(),
+  specifications: z
+    .object({
+      openapiPath: z.string().optional(),
+      asyncapiPath: z.string().optional(),
+    })
+    .optional(),
   hidden: z.boolean().optional(),
   // Used by eventcatalog
   versions: z.array(z.string()).optional(),

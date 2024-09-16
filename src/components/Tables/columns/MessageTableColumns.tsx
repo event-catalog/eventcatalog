@@ -1,5 +1,4 @@
-import { EnvelopeIcon } from '@heroicons/react/20/solid';
-import { ServerIcon } from '@heroicons/react/24/solid';
+import { ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/solid';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { CollectionMessageTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
@@ -17,6 +16,7 @@ export const columns = () => [
       const messageRaw = info.row.original;
       const type = useMemo(() => messageRaw.collection.slice(0, -1), [messageRaw.collection]);
       const color = type === 'event' ? 'orange' : 'blue';
+      const Icon = type === 'event' ? BoltIcon : ChatBubbleLeftIcon;
       return (
         <div className=" group ">
           <a
@@ -26,7 +26,7 @@ export const columns = () => [
             <div className={`flex items-center border border-gray-300 shadow-sm rounded-md group-hover:border-${color}-400`}>
               <span className="flex items-center">
                 <span className={`bg-${color}-500 group-hover:bg-${color}-600 h-full rounded-tl rounded-bl p-1`}>
-                  <EnvelopeIcon className="h-4 w-4 text-white" />
+                  <Icon className="h-4 w-4 text-white" />
                 </span>
                 <span className="leading-none px-2 group-hover:underline group-hover:text-purple-500 font-light">
                   {messageRaw.data.name} (v{messageRaw.data.version})
@@ -42,14 +42,6 @@ export const columns = () => [
     },
     filterFn: filterByName,
   }),
-  // columnHelper.accessor('data.version', {
-  //   header: () => <span>Version</span>,
-  //   cell: (info) => {
-  //     const message = info.row.original;
-  //     return <div className="text-left">{`v${info.getValue()} ${message.data.latestVersion === message.data.version ? '(latest)': ''}`}</div>
-  //   },
-  //   footer: (info) => info.column.id,
-  // }),
   columnHelper.accessor('data.summary', {
     id: 'summary',
     header: () => 'Summary',

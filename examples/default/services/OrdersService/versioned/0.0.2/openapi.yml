@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: Simple Task - API
+  version: 1.0.0
+  description: Simple Api
+  contact: {}
+  license:
+    name: apache 2.0
+    identifier: apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: https://example.com/
+    
+paths:
+  /v1/task/{id}:
+    put:
+      summary: Do Simple Task
+      operationId: DoSimpleTask
+      responses:
+        '200':
+          description: do a task by id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '204':
+          description: No content
+        '400':
+          description: Problem with data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not Authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      description: Allows to do a simple task
+      security:
+        - authorization: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+
+components:
+  schemas:
+    Task:
+      properties:
+        comments:
+          type: string
+        creationDate:
+          type: string
+        taskId:
+          type: string
+        description:
+          type: string
+        lastUpdate:
+          type: string
+      type: object
+      additionalProperties: false
+    Error:
+      properties:
+        error:
+          type: string
+      required:
+        - error
+      type: object
+    Unauthorized:
+      properties:
+        message:
+          type: string
+      required:
+        - message
+      type: object
+  securitySchemes:
+    authorization:
+      type: http
+      scheme: bearer

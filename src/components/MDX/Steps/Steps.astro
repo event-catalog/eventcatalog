@@ -1,0 +1,27 @@
+---
+const { title } = Astro.props;
+const html = await Astro.slots.render('default');
+
+function splitByLi(html: string) {
+  // Use regex to match <li> tags and their contents, including nested tags
+  const liRegex = /<li[\s\S]*?<\/li>/g;
+
+  // Find all matches
+  const matches = html.match(liRegex) || [];
+
+  // Add data-step attribute to each li
+  return matches.map((li: string, index: number) => {
+    // Replace the opening <li tag with <li data-step="index+1"
+    return li.replace(/<li/, `<li data-step="${index + 1}"`);
+  });
+}
+
+const data = splitByLi(html);
+---
+
+<div class="bg-white text-gray-800 py-10 pb-0 font-sans not-prose">
+  {title && <h2 class="text-2xl font-bold text-gray-800 mb-6">{title}</h2>}
+  <ol class="relative border-l border-gray-200 ml-3">
+    {data.map((item: any) => <Fragment set:html={item} />)}
+  </ol>
+</div>

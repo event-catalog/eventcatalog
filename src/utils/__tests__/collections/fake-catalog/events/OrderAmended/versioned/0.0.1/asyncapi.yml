@@ -1,0 +1,35 @@
+asyncapi: 3.0.0
+info:
+  title: Account Service
+  version: 1.0.0
+  description: This service is in charge of processing user signups
+channels:
+  userSignedup:
+    address: user/signedup
+    messages:
+      UserSignedUp:
+        $ref: '#/components/messages/UserSignedUp'
+operations:
+  sendUserSignedup:
+    action: send
+    channel:
+      $ref: '#/channels/userSignedup'
+    messages:
+      - $ref: '#/channels/userSignedup/messages/UserSignedUp'
+components:
+  messages:
+    UserSignedUp:
+      payload:
+        type: object
+        properties:
+          displayName:
+            type: string
+            description: Name of the user
+          email:
+            type: string
+            format: email
+            description: Email of the user
+          createdAt:
+            type: string
+            format: date-time
+            description: Date and time when the user signed up

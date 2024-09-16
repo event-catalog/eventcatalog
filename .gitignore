@@ -35,6 +35,7 @@ pnpm-debug.log*
 eventcatalog.config.js
 eventcatalog.styles.css
 
+!/scripts/__tests__/example-catalog/eventcatalog.config.js
 !/examples/default/eventcatalog.config.js
 !/examples/default/eventcatalog.styles.css
 

@@ -1,0 +1,168 @@
+---
+import Footer from '@layouts/Footer.astro';
+import PlainPage from '@layouts/PlainPage.astro';
+import { buildUrl } from '@utils/url-builder';
+import { BoltIcon, ChatBubbleLeftIcon, QueueListIcon, RectangleGroupIcon, ServerIcon } from '@heroicons/react/24/outline';
+
+import { getMessages } from '@utils/messages';
+import { getDomains } from '@utils/domains/domains';
+import { getServices } from '@utils/services/services';
+import { getFlows } from '@utils/flows/flows';
+
+const { commands = [], events = [] } = await getMessages();
+const domains = await getDomains();
+const services = await getServices();
+const flows = await getFlows();
+---
+
+<PlainPage title="EventCatalog">
+  <body class="min-h-screen">
+    <main class="container mx-auto px-6 py-20 max-w-[90em]">
+      <section class="text-center mb-8">
+        <h1 class="text-5xl font-bold mb-6 text-gray-800">Welcome to <span class="text-purple-600">EventCatalog</span></h1>
+        <p class="text-xl mb-8 text-gray-700 max-w-2xl mx-auto font-light">
+          Discover and document your event-driven architecture effortlessly. EventCatalog centralizes your events, services, and
+          schemas in one place.
+        </p>
+      </section>
+
+      <div class="hidden md:block">
+        <h2 class="text-center text-xl font-bold">Architecture insights</h2>
+        <section class="mb-16 bg-white rounded-xl shadow-lg p-6">
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div class="text-center">
+              <div class="flex justify-center mb-2">
+                <RectangleGroupIcon className="w-8 h-8 text-yellow-600" />
+              </div>
+              <div class="text-2xl font-bold text-yellow-600 mb-1">
+                <span class="statistic" data-target="5">0</span>
+              </div>
+              <div class="text-sm text-gray-600">Domains</div>
+            </div>
+            <div class="text-center">
+              <div class="flex justify-center mb-2">
+                <ServerIcon className="w-8 h-8 text-pink-500" />
+              </div>
+              <div class="text-2xl font-bold text-pink-500 mb-1">
+                <span class="statistic" data-target="12">0</span>
+              </div>
+              <div class="text-sm text-gray-600">Services</div>
+            </div>
+            <div class="text-center">
+              <div class="flex justify-center mb-2">
+                <ChatBubbleLeftIcon className="w-8 h-8 text-blue-500" />
+              </div>
+              <div class="text-2xl font-bold text-blue-500 mb-1">
+                <span class="statistic" data-target="30">0</span>
+              </div>
+              <div class="text-sm text-gray-600">Commands</div>
+            </div>
+            <div class="text-center">
+              <div class="flex justify-center mb-2">
+                <BoltIcon className="w-8 h-8 text-orange-400" />
+              </div>
+              <div class="text-2xl font-bold text-orange-400 mb-1">
+                <span class="statistic" data-target="20">0</span>
+              </div>
+              <div class="text-sm text-gray-600">Events</div>
+            </div>
+
+            <div class="text-center">
+              <div class="flex justify-center mb-2">
+                <QueueListIcon className="w-8 h-8 text-green-800" />
+              </div>
+              <div class="text-2xl font-bold text-green-800 mb-1">
+                <span class="statistic" data-target="8">0</span>
+              </div>
+              <div class="text-sm text-gray-600">Flows</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1"
+        >
+          <div class="h-2 bg-blue-400"></div>
+          <div class="p-6">
+            <h2 class="text-2xl font-semibold mb-4 text-blue-700">Documentation</h2>
+            <p class="text-gray-600 mb-4">
+              Create and maintain comprehensive documentation for your events, including schemas, examples, and versioning.
+            </p>
+            <a href={buildUrl('/docs')} class="text-blue-600 hover:text-blue-800 font-semibold">Explore docs →</a>
+          </div>
+        </div>
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1"
+        >
+          <div class="h-2 bg-teal-400"></div>
+          <div class="p-6">
+            <h2 class="text-2xl font-semibold mb-4 text-teal-700">Visualiser</h2>
+            <p class="text-gray-600 mb-4">
+              Transform complex event flows into clear, interactive diagrams. Gain insights at a glance and communicate
+              effectively across teams.
+            </p>
+            <a href={buildUrl('/visualiser')} class="text-teal-600 hover:text-teal-800 font-semibold">Explore visualiser →</a>
+          </div>
+        </div>
+
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1"
+        >
+          <div class="h-2 bg-red-700"></div>
+          <div class="p-6">
+            <h2 class="text-2xl font-semibold mb-4 text-red-700">Discover</h2>
+            <p class="text-gray-600 mb-4">
+              Dive deep into your event catalog. Search, filter, and analyze your events to gain insights and improve your
+              architecture.
+            </p>
+            <a href={buildUrl('/discover/events')} class="text-red-600 hover:text-red-800 font-semibold">Start exploring →</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script define:vars={{ domains, services, commands, events, flows }}>
+      function animateStatistics() {
+        const statistics = document.querySelectorAll('.statistic');
+        statistics.forEach((statistic) => {
+          let target;
+          switch (statistic.parentElement.nextElementSibling.textContent.trim()) {
+            case 'Domains':
+              target = domains.length;
+              break;
+            case 'Services':
+              target = services.length;
+              break;
+            case 'Commands':
+              target = commands.length;
+              break;
+            case 'Events':
+              target = events.length;
+              break;
+            case 'Flows':
+              target = flows.length;
+              break;
+            default:
+              target = parseInt(statistic.getAttribute('data-target'));
+          }
+          let current = 0;
+          const increment = target / 50;
+          const timer = setInterval(() => {
+            current += increment;
+            statistic.textContent = Math.round(current);
+            if (current >= target) {
+              clearInterval(timer);
+              statistic.textContent = target;
+            }
+          }, 20);
+        });
+      }
+
+      window.addEventListener('load', animateStatistics);
+    </script>
+  </body>
+</PlainPage>
+
+<Footer className="px-10" />

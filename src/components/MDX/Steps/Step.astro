@@ -1,0 +1,25 @@
+---
+const { title } = Astro.props;
+---
+
+<li class="mb-8 ml-6 w-full xl:max-w-[50%]">
+  <div class="flex items-center mb-4">
+    <span class="step-number absolute flex items-center justify-center w-6 h-6 bg-purple-500/70 rounded-md -left-3 text-white">
+      <div></div>
+    </span>
+    <h3 class="font-semibold text-lg ml-0">{title}</h3>
+  </div>
+  <p class="text-gray-500 text-sm ml-4"><slot /></p>
+</li>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('li[data-step]').forEach((li) => {
+      const stepNumber = li.getAttribute('data-step');
+      const stepSpan = li.querySelector('.step-number div');
+      if (stepSpan) {
+        stepSpan.textContent = stepNumber;
+      }
+    });
+  });
+</script>

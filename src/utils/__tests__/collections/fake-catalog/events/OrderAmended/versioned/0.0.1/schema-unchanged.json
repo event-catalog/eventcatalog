@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrderAmendedEvent",
+  "type": "object",
+  "properties": {
+    "orderId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the order that was amended."
+    },
+    "amendedItems": {
+      "type": "array",
+      "description": "A list of items that were amended in the order, each containing product details and updated quantities.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The unique identifier of the product."
+          },
+          "productName": {
+            "type": "string",
+            "description": "The name of the product."
+          },
+          "oldQuantity": {
+            "type": "integer",
+            "description": "The original quantity of the product ordered."
+          },
+          "newQuantity": {
+            "type": "integer",
+            "description": "The new quantity of the product ordered."
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "float",
+            "description": "The price per unit of the product."
+          },
+          "totalPrice": {
+            "type": "number",
+            "format": "float",
+            "description": "The total price for this order item (newQuantity * unitPrice)."
+          }
+        },
+        "required": ["productId", "productName", "oldQuantity", "newQuantity", "unitPrice", "totalPrice"]
+      }
+    },
+    "orderStatus": {
+      "type": "string",
+      "description": "The current status of the order after the amendment."
+    },
+    "totalAmount": {
+      "type": "number",
+      "format": "float",
+      "description": "The total amount of the order after the amendment."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The date and time when the order was amended, in ISO 8601 format."
+    }
+  },
+  "required": ["orderId", "userId", "amendedItems", "orderStatus", "totalAmount", "timestamp"],
+  "additionalProperties": false
+}

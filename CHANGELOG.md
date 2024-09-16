@@ -1,5 +1,125 @@
 # @eventcatalog/core
 
+## 2.7.14
+
+### Patch Changes
+
+- c45ebd0: feat(core): added new steps component
+
+## 2.7.13
+
+### Patch Changes
+
+- 6268155: feat(core): new styles added to header and docs sidebar
+
+## 2.7.12
+
+### Patch Changes
+
+- 3016b7f: feat(core): added tile MDX components
+
+## 2.7.11
+
+### Patch Changes
+
+- b106e34: chore(core): added logs for builds
+
+## 2.7.10
+
+### Patch Changes
+
+- d4e2013: chore(core): added ability to check and add properties on users catal…
+
+## 2.7.9
+
+### Patch Changes
+
+- 4cad2eb: fix(core): fixing generate command (again)
+
+## 2.7.8
+
+### Patch Changes
+
+- c67052f: fix(core): fixed generate command
+
+## 2.7.7
+
+### Patch Changes
+
+- f699aed: feat(core): added utils to read and write catalog files
+
+## 2.7.6
+
+### Patch Changes
+
+- bb7333d: feat(core): added protobuf support for auto diffs
+
+## 2.7.5
+
+### Patch Changes
+
+- fde6544: chore(core): updated astro versions
+
+## 2.7.4
+
+### Patch Changes
+
+- 0189ebb: fix(core): ignore trailing slash for icons
+
+## 2.7.3
+
+### Patch Changes
+
+- 1c56b8d: feat(core): added automatic diffs for changelogs for json, yml and avro files
+
+## 2.7.2
+
+### Patch Changes
+
+- ac64dc4: fix(core): only generate discover page for each collection
+
+## 2.7.1
+
+### Patch Changes
+
+- 29ccffc: fix(core): fixed changelogs path matching
+
+## 2.7.0
+
+### Minor Changes
+
+- 515b01f: feat(core): added ability to full screen visuals, new icons for messages and new landing page
+
+## 2.6.4
+
+### Patch Changes
+
+- 0459eec: chore(core): fixed styled for openapi pages
+
+## 2.6.3
+
+### Patch Changes
+
+- d35846b: chore(core): refactored the way pages are rendered reducing code
+
+## 2.6.2
+
+### Patch Changes
+
+- 498f58c: fix(core): generate command now removes any tmp files required for ge…
+
+## 2.6.1
+
+### Patch Changes
+
+- 4aecf6a: fix(core): fixed broken images for specifications on the service page
+
+## 2.6.0
+
+### Minor Changes
+
+- 76bebd7: feat(core): added AsyncAPI pages and new specifications frontmatter api. Deprecated the AsyncAPI and OpenAPI MDX components
+
 ## 2.5.5
 
 ### Patch Changes
