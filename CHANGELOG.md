@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.14
+
+### Patch Changes
+
+- c45ebd0: feat(core): added new steps component
+
 ## 2.7.13
 
 ### Patch Changes
