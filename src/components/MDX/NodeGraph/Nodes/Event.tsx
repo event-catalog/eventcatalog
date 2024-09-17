@@ -1,6 +1,7 @@
 import { BoltIcon } from '@heroicons/react/16/solid';
 import type { CollectionEntry } from 'astro:content';
 import { Handle } from 'reactflow';
+import { buildUrl } from '@utils/url-builder-client';
 
 interface Data {
   title: string;
@@ -11,19 +12,36 @@ interface Data {
   message: CollectionEntry<'events'>;
   showTarget?: boolean;
   showSource?: boolean;
+  linkTo: 'docs' | 'visualiser';
+  urlHasTrailingSlash?: boolean;
 }
 
 function classNames(...classes: any) {
   return classes.filter(Boolean).join(' ');
 }
 
+const getDocUrlForCollection = (collectionItem: CollectionEntry<'events'>, trailingSlash?: boolean) => {
+  return buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`, trailingSlash);
+};
+
+const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<'events'>, trailingSlash?: boolean) => {
+  return buildUrl(
+    `/visualiser/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`,
+    trailingSlash
+  );
+};
+
 export default function EventNode({ data, sourcePosition, targetPosition }: any) {
-  const { mode, message, showTarget = true, showSource = true } = data as Data;
+  const { mode, message, showTarget = true, showSource = true, linkTo = 'docs', urlHasTrailingSlash } = data as Data;
 
   const { name, version, summary, owners = [], producers = [], consumers = [] } = message.data;
 
   const renderTarget = showTarget || (targetPosition && producers.length > 0);
   const renderSource = showSource || (sourcePosition && consumers.length > 0);
+
+  const eventUrl = linkTo === 'docs'
+    ? getDocUrlForCollection(message, urlHasTrailingSlash)
+    : getVisualiserUrlForCollection(message, urlHasTrailingSlash);
 
   return (
     <div className={classNames('w-full rounded-md border flex justify-start  bg-white text-black border-orange-400')}>
@@ -40,7 +58,7 @@ export default function EventNode({ data, sourcePosition, targetPosition }: any)
           </span>
         )}
       </div>
-      <div className="p-1 min-w-60 max-w-[min-content]">
+      <div className="p-1 min-w-60 max-w-[min-content] relative">
         {renderTarget && <Handle type="target" position={targetPosition} />}
         {renderSource && <Handle type="source" position={sourcePosition} />}
         <div className={classNames(mode === 'full' ? `border-b border-gray-200` : '')}>
@@ -68,6 +86,12 @@ export default function EventNode({ data, sourcePosition, targetPosition }: any)
             </div>
           </div>
         )}
+        <a href={eventUrl} className="absolute bottom-1 right-1 text-[10px] text-purple-500 hover:underline flex items-center">
+          <span>View</span>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
       </div>
     </div>
   );
