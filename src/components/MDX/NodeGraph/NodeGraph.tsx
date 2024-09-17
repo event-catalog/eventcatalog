@@ -91,6 +91,7 @@ const NodeGraphBuilder = ({
 
   const handleNodeClick = useCallback(
     (_: any, node: Node) => {
+      
       if (linksToVisualiser) {
         if (node.type === 'events' || node.type === 'commands') {
           navigate(getVisualiserUrlForCollection(node.data.message, urlHasTrailingSlash));
@@ -131,21 +132,7 @@ const NodeGraphBuilder = ({
         duration: 800,
         nodes: updatedNodes.filter((n) => connectedNodeIds.has(n.id)),
       });
-
-      // if (node.type === 'events' || node.type === 'commands') {
-      //   navigate(
-      //     linkTo === 'docs'
-      //       ? getDocUrlForCollection(node.data.message, urlHasTrailingSlash)
-      //       : getVisualiserUrlForCollection(node.data.message, urlHasTrailingSlash)
-      //   );
-      // }
-      // if (node.type === 'services') {
-      //   navigate(
-      //     linkTo === 'docs'
-      //       ? getDocUrlForCollection(node.data.service, urlHasTrailingSlash)
-      //       : getVisualiserUrlForCollection(node.data.service, urlHasTrailingSlash)
-      //   );
-      // }
+    
     },
     [nodes, edges, setNodes, setEdges, resetNodesAndEdges, fitView]
   );
