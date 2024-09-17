@@ -19,7 +19,7 @@ const numberOfSpecifications = Object.keys(specVersions).length;
     collectionItem.data.specifications?.openapiPath && (
       <a
         href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}/spec`)}
-        class="text-sm flex items-center space-x-1 hover:underline hover:text-purple-500"
+        class="text-sm flex items-center space-x-1 hover:underline hover:text-primary"
       >
         <img src={buildUrl('/icons/openapi.svg', true)} class="h-4 w-4" />
         <span>OpenAPI spec</span>
@@ -30,7 +30,7 @@ const numberOfSpecifications = Object.keys(specVersions).length;
     collectionItem.data.specifications?.asyncapiPath && (
       <a
         href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}/asyncapi`)}
-        class="text-sm flex items-center space-x-1 hover:underline hover:text-purple-500"
+        class="text-sm flex items-center space-x-1 hover:underline hover:text-primary"
       >
         <img src={buildUrl('/icons/asyncapi.svg', true)} class="h-4 w-4" />
         <span>AsyncAPI spec</span>

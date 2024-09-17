@@ -169,7 +169,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
                       You are looking at a previous version of the {props.collection.slice(0, props.collection.length - 1)}{' '}
                       <strong>{props.data.name}</strong>.{' '}
                       <a
-                        class="underline hover:text-purple-500 block pt-2"
+                        class="underline hover:text-primary block pt-2"
                         href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}`)}
                       >
                         The latest version of this {props.collection.slice(0, props.collection.length - 1)} is v

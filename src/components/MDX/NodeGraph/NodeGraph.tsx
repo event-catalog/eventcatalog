@@ -247,7 +247,7 @@ const NodeGraph = ({
 
             {href && (
               <div className="py-2 w-full text-right">
-                <a className=" text-sm no-underline py-2 text-gray-800 hover:text-purple-500" href={href}>
+                <a className=" text-sm no-underline py-2 text-gray-800 hover:text-primary" href={href}>
                   {hrefLabel} &rarr;
                 </a>
               </div>

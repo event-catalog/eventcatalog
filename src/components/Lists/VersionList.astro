@@ -24,7 +24,7 @@ const currentPath = Astro.url.pathname;
           <option
             selected={isCurrent}
             value={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${version}`)}
-            class={`inline-flex items-center rounded-md  px-2 py-1 text-xs text-indigo-700 ring-1 ring-inset ring-indigo-700/10 hover:bg-purple-100 hover:underline ${isCurrent ? 'bg-purple-100 text-purple-500 underline ' : 'bg-white'}`}
+            class={`inline-flex items-center rounded-md  px-2 py-1 text-xs text-indigo-700 ring-1 ring-inset ring-indigo-700/10 hover:bg-purple-100 hover:underline ${isCurrent ? 'bg-purple-100 text-primary underline ' : 'bg-white'}`}
           >
             <span>
               v{version}
