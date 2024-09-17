@@ -6,4 +6,5 @@ export default defineConfig({
   outDir: 'bin/dist',
   format: ['esm', 'cjs'],
   shims: true,
+  clean: true,
 });
