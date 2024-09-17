@@ -35,6 +35,7 @@ interface Props {
   linkTo: 'docs' | 'visualiser';
   includeKey?: boolean;
   urlHasTrailingSlash?: boolean;
+  linksToVisualiser?: boolean;
 }
 
 const getDocUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>, trailingSlash?: boolean) => {
@@ -47,6 +48,8 @@ const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<Collectio
   );
 };
 
+
+
 const NodeGraphBuilder = ({
   nodes: initialNodes,
   edges: initialEdges,
@@ -55,6 +58,7 @@ const NodeGraphBuilder = ({
   linkTo = 'docs',
   includeKey = true,
   urlHasTrailingSlash,
+  linksToVisualiser = false,
 }: Props) => {
   const nodeTypes = useMemo(
     () => ({
@@ -70,7 +74,6 @@ const NodeGraphBuilder = ({
   );
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const nodeOrigin = [0.1, 0.1];
   const { fitView } = useReactFlow();
 
   const resetNodesAndEdges = useCallback(() => {
@@ -90,6 +93,16 @@ const NodeGraphBuilder = ({
 
   const handleNodeClick = useCallback(
     (_: any, node: Node) => {
+      if (linksToVisualiser) {
+        if (node.type === 'events' || node.type === 'commands') {
+          navigate(getVisualiserUrlForCollection(node.data.message, urlHasTrailingSlash));
+        }
+        if (node.type === 'services') {
+          navigate(getVisualiserUrlForCollection(node.data.service, urlHasTrailingSlash));
+        }
+        return;
+      }
+
       resetNodesAndEdges();
 
       const connectedNodeIds = new Set<string>();
@@ -120,7 +133,6 @@ const NodeGraphBuilder = ({
         duration: 800,
         nodes: updatedNodes.filter((n) => connectedNodeIds.has(n.id)),
       });
-
 
       // if (node.type === 'events' || node.type === 'commands') {
       //   navigate(
@@ -154,7 +166,7 @@ const NodeGraphBuilder = ({
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       connectionLineType={ConnectionLineType.SmoothStep}
-      nodeOrigin={nodeOrigin}
+      nodeOrigin={[0.1, 0.1]}
       onNodeClick={handleNodeClick}
       onPaneClick={handlePaneClick}
     >
@@ -204,6 +216,7 @@ interface NodeGraphProps {
   includeKey?: boolean;
   footerLabel?: string;
   urlHasTrailingSlash?: boolean;
+  linksToVisualiser?: boolean;
 }
 
 const NodeGraph = ({
@@ -217,6 +230,7 @@ const NodeGraph = ({
   includeKey = true,
   footerLabel,
   urlHasTrailingSlash,
+  linksToVisualiser = false,
 }: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
 
@@ -238,6 +252,7 @@ const NodeGraph = ({
             linkTo={linkTo}
             includeKey={includeKey}
             urlHasTrailingSlash={urlHasTrailingSlash}
+            linksToVisualiser={linksToVisualiser}
           />
 
           <div className="flex justify-between">

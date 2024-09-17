@@ -19,9 +19,10 @@ interface Props {
     label: string;
     url: string;
   };
+  linksToVisualiser?: boolean;
 }
 
-const { id, collection, title, mode = 'simple', linkTo = 'docs', version, href } = Astro.props;
+const { id, collection, title, mode = 'simple', linkTo = 'docs', version, href, linksToVisualiser } = Astro.props;
 let nodes = [],
   edges = [];
 
@@ -99,6 +100,7 @@ const getVisualiserUrlForCollection = () => {
     linkTo={linkTo}
     client:only="react"
     urlHasTrailingSlash={config.trailingSlash}
+    linksToVisualiser={linksToVisualiser}
   />
 </div>
 
