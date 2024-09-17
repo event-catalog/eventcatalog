@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.7.16
+
+### Patch Changes
+
+- 4d15fdf: fix(core): fixed windows issue for fetching config files
+
 ## 2.7.15
 
 ### Patch Changes
