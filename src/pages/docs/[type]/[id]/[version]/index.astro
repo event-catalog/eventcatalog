@@ -195,6 +195,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
           collection={props.collection}
           version={props.data.version}
           mode="simple"
+          linksToVisualiser={true}
           href={{
             label: 'Open in Visualiser',
             url: buildUrl(`/visualiser/${props.collection}/${props.data.id}/${props.data.version}`),
