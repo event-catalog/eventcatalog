@@ -48,8 +48,6 @@ const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<Collectio
   );
 };
 
-
-
 const NodeGraphBuilder = ({
   nodes: initialNodes,
   edges: initialEdges,
