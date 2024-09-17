@@ -30,7 +30,8 @@ for (let item of [...verifiedWatchList]) {
     }
     for (let event of events) {
       const { path: eventPath, type } = event;
-      const file = eventPath.split(item)[1];
+      const pathParts = eventPath.split(item);
+      const file = pathParts[pathParts.length - 1];
       let newPath = path.join(contentPath, item, extensionReplacer(item, file));
 
       // Check if changlogs, they need to go into their own content folder
