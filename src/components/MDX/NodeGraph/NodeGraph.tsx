@@ -91,7 +91,6 @@ const NodeGraphBuilder = ({
 
   const handleNodeClick = useCallback(
     (_: any, node: Node) => {
-      
       if (linksToVisualiser) {
         if (node.type === 'events' || node.type === 'commands') {
           navigate(getVisualiserUrlForCollection(node.data.message, urlHasTrailingSlash));
@@ -132,7 +131,6 @@ const NodeGraphBuilder = ({
         duration: 800,
         nodes: updatedNodes.filter((n) => connectedNodeIds.has(n.id)),
       });
-    
     },
     [nodes, edges, setNodes, setEdges, resetNodesAndEdges, fitView]
   );
