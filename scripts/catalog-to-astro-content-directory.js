@@ -67,7 +67,7 @@ const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles,
     const relativePath = path.relative(source, file);
     const cleanedRelativePath = relativePath.split(type);
     if (!cleanedRelativePath[1]) continue;
-    const targetForEvents = path.join(type, cleanedRelativePath[cleanedRelativePath.length - 1]);
+    const targetForEvents = path.join(type, cleanedRelativePath[1]);
 
     // Catalog-files-directory
     const targetPath = path.join(catalogFilesDir, targetForEvents);
