@@ -46,52 +46,57 @@ import PageFindSearch from 'astro-pagefind/components/Search';
 </div>
 
 <script>
-  const dummyInput = document.getElementById('search-dummy-input');
-  const dialog = document.getElementById('search-dialog');
-  const header = document.getElementById('eventcatalog-header');
+  function setup() {
+    const dummyInput = document.getElementById('search-dummy-input');
+    const dialog = document.getElementById('search-dialog');
+    const header = document.getElementById('eventcatalog-header');
 
-  // Listen for the short cut keys
-  window.addEventListener('keydown', (event) => {
-    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
-      event.preventDefault();
-      dummyInput?.click();
-    }
-    if (event.key === 'Escape') {
-      if (dialog) {
-        dialog.style.display = 'none';
-        if (header) header.classList.add('backdrop-blur-sm');
+    // Listen for the short cut keys
+    window.addEventListener('keydown', (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+        event.preventDefault();
+        dummyInput?.click();
       }
-    }
-  });
+      if (event.key === 'Escape') {
+        if (dialog) {
+          dialog.style.display = 'none';
+          if (header) header.classList.add('backdrop-blur-sm');
+        }
+      }
+    });
 
-  // Fake input, to load the dialog
-  if (dummyInput) {
-    dummyInput.addEventListener('click', function (e) {
-      e.preventDefault();
-      this.blur();
-      const input = document.querySelector('.pagefind-ui__search-input');
-      setTimeout(() => {
+    // Fake input, to load the dialog
+    if (dummyInput) {
+      dummyInput.addEventListener('click', function (e) {
+        e.preventDefault();
+        this.blur();
+        const input = document.querySelector('.pagefind-ui__search-input');
+        setTimeout(() => {
+          // @ts-ignore
+          input && input.focus();
+        }, 10);
+        if (header) header.classList.remove('backdrop-blur-sm');
         // @ts-ignore
-        input && input.focus();
-      }, 10);
-      if (header) header.classList.remove('backdrop-blur-sm');
+        dialog.style.display = 'block';
+      });
+    }
+
+    // Close it
+    dialog?.addEventListener('click', function (e) {
       // @ts-ignore
-      dialog.style.display = 'block';
+      if (e.target.id === 'search-background') {
+        if (header) header.classList.add('backdrop-blur-sm');
+        dialog.style.display = 'none';
+      }
     });
   }
 
-  // Close it
-  dialog?.addEventListener('click', function (e) {
-    // @ts-ignore
-    if (e.target.id === 'search-background') {
-      if (header) header.classList.add('backdrop-blur-sm');
-      dialog.style.display = 'none';
-    }
-  });
-
-  //   document.getElementById('search-dummy-input').addEventListener('click', function () {
-  // document.getElementById('search-dialog').style.display = 'block';
-  //   });
+  document.addEventListener('astro:page-load', setup);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setup);
+  } else {
+    setup();
+  }
 </script>
 
 <style is:global>
