@@ -1,106 +1,130 @@
 import watcher from '@parcel/watcher';
-import path from 'path';
-import fs from 'fs';
-import os from 'os';
+import fs from 'node:fs';
+import path from 'node:path';
+import { mapCatalogToAstro } from './map-catalog-to-astro.js';
 
 /**
  * @typedef {Object} Event
  * @property {string} path
  * @property {"create"|"update"|"delete"} type
+ *
+ * @typedef {(err: Error | null, events: Event[]) => unknown} SubscribeCallback
  */
 
 /**
  *
  * @param {string} projectDirectory
  * @param {string} catalogDirectory
- * @param {(err: Error | null, events: Event[]) => void | undefined} callback
+ * @param {SubscribeCallback|undefined} callback
  */
-export async function watch(projectDirectory, catalogDirectory, callback) {
-  const contentPath = path.join(catalogDirectory, 'src', 'content');
+export async function watch(projectDirectory, catalogDirectory, callback = undefined) {
+  console.log('Subscribing to ' + projectDirectory);
 
-  const watchList = ['domains', 'commands', 'events', 'services', 'teams', 'users', 'pages', 'components', 'flows'];
-  // const absoluteWatchList = watchList.map((item) => path.join(projectDirectory, item));
+  const subscription = await watcher.subscribe(
+    projectDirectory,
+    compose(
+      console.debug,
+      /**
+       * @param {Error|null} err
+       * @param {Event[]} events
+       * @returns {unknown}
+       */
+      (err, events) => {
+        if (err) {
+          return;
+        }
 
-  // confirm folders exist before watching them
-  const verifiedWatchList = watchList.filter((item) => fs.existsSync(path.join(projectDirectory, item)));
+        for (let event of events) {
+          const { path: filePath, type } = event;
 
-  const extensionReplacer = (collection, file) => {
-    if (collection === 'teams' || collection == 'users') return file;
-    return file.replace('.md', '.mdx');
-  };
+          const astroPaths = mapCatalogToAstro({
+            filePath,
+            astroDir: catalogDirectory,
+            projectDir: projectDirectory,
+          });
 
-  const subscriptions = await Promise.all(
-    verifiedWatchList.map((item) =>
-      watcher.subscribe(
-        path.join(projectDirectory, item),
-        compose((err, events) => {
-          if (err) {
-            return;
-          }
-
-          for (let event of events) {
-            const { path: eventPath, type } = event;
-            const file = eventPath.split(item)[1];
-            let newPath = path.join(contentPath, item, extensionReplacer(item, file));
-
-            // Check if changlogs, they need to go into their own content folder
-            if (file.includes('changelog.md')) {
-              newPath = newPath.replace('src/content', 'src/content/changelogs');
-              if (os.platform() == 'win32') {
-                newPath = newPath.replace('src\\content', 'src\\content\\changelogs');
-              }
-            }
-
-            // Check if its a component, need to move to the correct location
-            if (newPath.includes('components')) {
-              newPath = newPath.replace('src/content/components', 'src/custom-defined-components');
-              if (os.platform() == 'win32') {
-                newPath = newPath.replace('src\\content\\components', 'src\\custom-defined-components');
-              }
-            }
-
-            // If config files have changes
-            if (eventPath.includes('eventcatalog.config.js') || eventPath.includes('eventcatalog.styles.css')) {
-              fs.cpSync(eventPath, path.join(catalogDirectory, file));
-              return;
-            }
-
-            // If markdown files or astro files copy file over to the required location
-            if ((eventPath.endsWith('.md') || eventPath.endsWith('.astro')) && type === 'update') {
-              fs.cpSync(eventPath, newPath);
-            }
-
-            // IF directory remove it
-            if (type === 'delete') {
-              fs.rmSync(newPath);
+          for (const astroPath of astroPaths) {
+            switch (type) {
+              case 'create':
+              case 'update':
+                if (fs.statSync(filePath).isDirectory()) fs.mkdirSync(astroPath, { recursive: true });
+                else retryCopy(filePath, astroPath);
+                break;
+              case 'delete':
+                try {
+                  fs.rmSync(astroPath, { recursive: true });
+                } catch (e) {
+                  if (e.code == 'ENOENT') {
+                    // fail silently - The parent directory could have been deleted before.
+                  } else throw e;
+                }
+                break;
             }
           }
-        }, callback)
-      )
-    )
+        }
+      },
+      callback
+    ),
+    {
+      ignore: [catalogDirectory],
+    }
   );
 
-  return async () => {
-    await Promise.allSettled(subscriptions.map((sub) => sub.unsubscribe()));
+  console.log('Watching for changes...');
+
+  return () => {
+    console.log('Unsubscribing...');
+    return subscription.unsubscribe().then(() => console.log('Unsubscribed successfully!'));
   };
 }
 
 /**
  *
  * @param  {...Function} fns
- * @returns {Function}
+ * @returns {SubscribeCallback}
  */
 function compose(...fns) {
-  return function (_err, events) {
-    let error = _err;
-    fns.filter(Boolean).forEach((fn) => {
+  return function (err, events) {
+    fns.filter(Boolean).forEach((fn, i) => {
       try {
-        fn(error, events);
-      } catch (e) {
-        error = e;
+        fn(err, events);
+      } catch (error) {
+        console.error({ error });
+        throw error;
       }
     });
   };
+}
+
+/**
+ *
+ * @param {string} src
+ * @param {string} dest
+ * @param {number} retries
+ * @param {number} delay
+ */
+function retryCopy(src, dest, retries = 5, delay = 100) {
+  let attempts = 0;
+
+  const tryCopy = () => {
+    try {
+      fs.cpSync(src, dest);
+      console.log('File copied successfully!');
+    } catch (err) {
+      // In win32 some tests failed when attempting copy the file at the same time
+      // that another process is editing it.
+      if (err.code === 'EPERM' && attempts < retries) {
+        attempts++;
+        console.log(`Retrying copy... Attempt ${attempts}`);
+        setTimeout(tryCopy, delay); // Retry after a delay
+      } else {
+        console.error('Error during file copy:', err);
+        throw err;
+      }
+    }
+  };
+
+  tryCopy();
 }
 
 /**
@@ -112,7 +136,12 @@ if (process.env.NODE_ENV !== 'test') {
   // Where the users project is located
   const projectDirectory = process.env.PROJECT_DIR || process.cwd();
   // Where the catalog code is located.
-  const catalogDirectory = process.env.CATALOG_DIR;
+  const catalogDirectory = process.env.CATALOG_DIR || path.join(projectDirectory, '.eventcatalog-core');
 
-  watch(projectDirectory, catalogDirectory);
+  const unsub = await watch(projectDirectory, catalogDirectory);
+
+  process.on('exit', () => {
+    console.log('Unsubscribing...');
+    return unsub();
+  });
 }
