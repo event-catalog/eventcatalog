@@ -59,7 +59,45 @@ paths:
           required: true
           schema:
             type: string
-  
+    delete: 
+      summary: Delete Task
+      operationId: DeleteTask
+      responses:
+        '204':
+          description: Task deleted
+        '400':
+          description: Problem with data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Not Authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '404':
+          description: not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      description: Delete a task
+      security:
+        - authorization: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
   /v1/tasks:
     get:
       summary: Get List of Tasks
