@@ -30,7 +30,7 @@ for (let item of [...verifiedWatchList]) {
     }
     for (let event of events) {
       const { path: eventPath, type } = event;
-      const pathParts = eventPath.split(item);
+      const pathParts = eventPath.split(`${path.sep}${item}${path.sep}`);
       const file = pathParts[pathParts.length - 1];
       let newPath = path.join(contentPath, item, extensionReplacer(item, file));
 
