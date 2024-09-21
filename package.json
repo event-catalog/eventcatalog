@@ -1,5 +1,10 @@
 {
   "name": "@eventcatalog/core",
+  "homepage": "https://github.com/event-catalog/eventcatalog",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/event-catalog/eventcatalog.git"
+  },
   "type": "module",
   "version": "2.7.16",
   "publishConfig": {
