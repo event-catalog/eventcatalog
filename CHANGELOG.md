@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.8.0
+
+### Minor Changes
+
+- 6f882b3: feat(core): added ability to focus nodes in the node graph on visualiser
+- dddb730: feat(core): added basic theming support for colors
+
 ## 2.7.16
 
 ### Patch Changes
