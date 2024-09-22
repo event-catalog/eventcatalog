@@ -9,7 +9,7 @@ import {
   getEventCatalogConfigFile,
   verifyRequiredFieldsAreInCatalogConfigFile,
   writeEventCatalogConfigFile,
-} from 'scripts/eventcatalog-config-file-utils';
+} from '../src/eventcatalog-config-file-utils';
 
 describe('catalog-to-astro-content-directory', () => {
   afterEach(async () => {
