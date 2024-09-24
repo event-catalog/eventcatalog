@@ -2,11 +2,11 @@ import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
-import pagefind from "astro-pagefind";
-import { mermaid } from "./src/remark-plugins/mermaid"
+import pagefind from 'astro-pagefind';
+import { mermaid } from './src/remark-plugins/mermaid';
 import { join } from 'node:path';
 
-/** @type {import('bin/eventcatalog.config').Config} */
+/** @type {import('@eventcatalog/core/bin/dist/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
 
@@ -24,7 +24,7 @@ export default defineConfig({
   site: config.homepageLink || 'https://eventcatalog.dev/',
 
   // https://docs.astro.build/en/reference/configuration-reference/#trailingslash
-  trailingSlash: config.trailingSlash === true ? "always" : "ignore",
+  trailingSlash: config.trailingSlash === true ? 'always' : 'ignore',
 
   // just turn this off for all users (for now...)
   devToolbar: { enabled: false },
@@ -38,7 +38,7 @@ export default defineConfig({
         wrap: true,
       },
     }),
-    
+
     mdx({
       // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
       optimize: config.mdxOptimize || false,
@@ -51,7 +51,7 @@ export default defineConfig({
     build: {
       commonjsOptions: {
         transformMixedEsModules: true,
-      }
+      },
     },
-  }
+  },
 });

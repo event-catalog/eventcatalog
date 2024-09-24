@@ -4,6 +4,7 @@
   "devDependencies": {
     "@eventcatalog/core": "*"
   },
+  "type": "module",
   "scripts": {
     "dev": "eventcatalog dev",
     "build": "eventcatalog build",

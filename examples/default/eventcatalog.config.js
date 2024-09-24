@@ -1,4 +1,4 @@
-/** @type {import('../../bin/eventcatalog.config').Config} */
+/** @type {import('../../bin/dist/eventcatalog.config').Config} */
 export default {
   cId: '8027010c-f3d6-417a-8234-e2f46087fc56',
   title: 'EventCatalog',

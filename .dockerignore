@@ -2,6 +2,5 @@ node_modules/
 .changeset/
 .github/
 .vscode/
-images/
 
 **/dist/

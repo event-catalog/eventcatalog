@@ -3,6 +3,7 @@ type SideBarConfig = {
 };
 
 export interface Config {
+  cId?: string;
   title: string;
   tagline: false;
   organizationName: string;

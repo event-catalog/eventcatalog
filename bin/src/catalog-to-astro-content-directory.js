@@ -267,13 +267,3 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
   // Verify required fields are in the catalog config file
   await verifyRequiredFieldsAreInCatalogConfigFile(source);
 };
-
-if (process.env.NODE_ENV !== 'test') {
-  // // Get the project directory of the source
-  const source = process.env.PROJECT_DIR;
-
-  const astroContentDir = path.join(process.env.CATALOG_DIR, 'src/content');
-  const catalogFilesDir = path.join(process.env.CATALOG_DIR, 'src/catalog-files');
-
-  catalogToAstro(source, astroContentDir, catalogFilesDir);
-}

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "author": "event-catalog",
   "private": true,
+  "type": "module",
   "scripts": {
     "astro": "astro",
     "build": "astro check --minimumSeverity error && astro build",
