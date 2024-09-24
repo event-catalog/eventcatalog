@@ -17,7 +17,7 @@ const dir = process.cwd();
 const core = join(dir, '.eventcatalog-core');
 
 // The project itself
-const eventCatalogDir = join(currentDir, '../../');
+const eventCatalogDir = join(currentDir, '../../astro');
 
 program.name('eventcatalog').description('Documentation tool for event-driven architectures');
 

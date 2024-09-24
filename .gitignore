@@ -1,9 +1,3 @@
-# build output
-dist/
-
-# generated types
-.astro/
-
 # dependencies
 node_modules/
 
@@ -22,24 +16,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
-
-# EventCatalog files
-/src/content/*
-!/src/content/config.ts
-/public/generated/*
-/src/catalog-files/*
-/src/custom-defined-components/*
-/.eventcatalog-core/*
-/examples/large-catalog/*
-
-eventcatalog.config.js
-eventcatalog.styles.css
-
-!/scripts/__tests__/example-catalog/eventcatalog.config.js
-!/examples/default/eventcatalog.config.js
-!/examples/default/eventcatalog.styles.css
-
-
 
 .vscode/*
 

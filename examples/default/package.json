@@ -1,0 +1,13 @@
+{
+  "name": "@eventcatalog/examples-default",
+  "private": true,
+  "devDependencies": {
+    "@eventcatalog/core": "*"
+  },
+  "scripts": {
+    "dev": "eventcatalog dev",
+    "build": "eventcatalog build",
+    "preview": "eventcatalog preview",
+    "generate": "eventcatalog generate"
+  }
+}

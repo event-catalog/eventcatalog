@@ -8,7 +8,7 @@ import { join } from 'node:path';
 const args = process.argv.slice(2);
 const catalog = args[0] || 'default';
 
-const catalogDir = join(process.cwd());
+const catalogDir = join(process.cwd(), '/astro');
 const projectDIR = join(process.cwd(), `/examples/${catalog}`);
 
 fs.copyFileSync(join(projectDIR, 'eventcatalog.config.js'), join(catalogDir, 'eventcatalog.config.js'));
@@ -16,6 +16,6 @@ fs.copyFileSync(join(projectDIR, 'eventcatalog.config.js'), join(catalogDir, 'ev
 fs.copyFileSync(join(projectDIR, 'eventcatalog.styles.css'), join(catalogDir, 'eventcatalog.styles.css'));
 
 execSync(`cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npm run build`, {
-  cwd: catalogDir,
+  // cwd: catalogDir,
   stdio: 'inherit',
 });

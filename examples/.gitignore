@@ -1,0 +1,5 @@
+large-catalog/*
+
+# EventCatalog generated
+**/.eventcatalog-core
+**/dist

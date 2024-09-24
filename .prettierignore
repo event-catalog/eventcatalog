@@ -1,6 +1,6 @@
 dist
 node_modules
-astro
+.astro
 dist
 eventcatalog.config.js
 examples/

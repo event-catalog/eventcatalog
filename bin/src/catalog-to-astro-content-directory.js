@@ -89,7 +89,7 @@ const copyFiles = async ({ source, target, catalogFilesDir, pathToMarkdownFiles,
   // Check if the directory is empty. EC (astro collections) requires at least 1 item in the collection
   // insert empty one that is filtered out
   if (markdownFiles.length === 0) {
-    const defaultCollectionFilesDir = path.join(scriptsDir, 'default-files-for-collections');
+    const defaultCollectionFilesDir = path.resolve(scriptsDir, '../default-files-for-collections');
     const defaultFile = path.join(defaultCollectionFilesDir, `${type}.md`);
     const targetDir = path.join(target, type);
     if (!fs.existsSync(targetDir)) {
