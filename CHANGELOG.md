@@ -1,5 +1,19 @@
 # @eventcatalog/core
 
+## 2.8.1
+
+### Patch Changes
+
+- 16c6a28: feat(core): added api path and http verb in openapi viewer
+- c8118b7: fix(core): downloading images in visualizer now shows the whole diagram
+
+## 2.8.0
+
+### Minor Changes
+
+- 6f882b3: feat(core): added ability to focus nodes in the node graph on visualiser
+- dddb730: feat(core): added basic theming support for colors
+
 ## 2.7.16
 
 ### Patch Changes
