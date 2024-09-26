@@ -3,7 +3,8 @@ import path from 'node:path';
 import { Command } from 'commander';
 import concurrently from 'concurrently';
 import { catalogToAstro } from '../catalog-to-astro-content-directory';
-import { prepareCore } from '../prepare-eventcatalog-core-directory';
+import { ExitCode, prepareCore } from '../prepare-eventcatalog-core-directory';
+import { watch } from '../watcher';
 
 const clearDir = (dir: string) => {
   if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true });
@@ -26,22 +27,18 @@ export const dev = (dir: string, core: string) =>
 
       if (options.forceRecreate) clearDir(core);
 
-      prepareCore(dir, core);
+      const res = await prepareCore(dir, core);
+      if (res == ExitCode.Aborted) return;
 
       console.log('EventCatalog is starting at http://localhost:3000/docs');
 
       // hydrate astro
       await catalogToAstro(dir, path.join(core, 'src/content'), path.join(core, 'src/catalog-files'));
 
+      // watch user's project directory
+      const subscription = await watch(dir, core);
+
       const { result } = concurrently([
-        {
-          name: 'watcher',
-          command: 'node bin/dist/watcher.js',
-          env: {
-            PROJECT_DIR: dir,
-            CATALOG_DIR: core,
-          },
-        },
         {
           name: 'astro',
           command: 'npm run dev',
@@ -53,5 +50,9 @@ export const dev = (dir: string, core: string) =>
         },
       ]);
 
-      await result;
+      try {
+        await result;
+      } finally {
+        await subscription.unsubscribe();
+      }
     });

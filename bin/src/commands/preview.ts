@@ -3,7 +3,7 @@ import { Command } from 'commander';
 import path from 'node:path';
 
 export const previewCatalog = (dir: string, core: string) => {
-  execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run preview -- --root ${path.resolve(dir)} --port 3000`, {
+  execSync(`npm run preview -- --root ${path.resolve(dir)} --port 3000`, {
     cwd: core,
     stdio: 'inherit',
   });

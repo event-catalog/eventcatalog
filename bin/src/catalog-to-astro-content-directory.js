@@ -139,6 +139,18 @@ export const catalogToAstro = async (source, astroContentDir, catalogFilesDir) =
     fs.cpSync(usersPublicDirectory, astroPublicDir, { recursive: true });
   }
 
+  // Copy eventcatalog.config into the astro directory
+  const ecConfig = path.join(source, 'eventcatalog.config.js');
+  if (fs.existsSync(ecConfig)) {
+    fs.cpSync(ecConfig, path.join(astroContentDir, '../../eventcatalog.config.js'));
+  }
+
+  // Copy eventcatalog.styles into the astro directory
+  const ecStyles = path.join(source, 'eventcatalog.styles.js');
+  if (fs.existsSync(ecStyles)) {
+    fs.cpSync(ecStyles, path.join(astroContentDir, '../../eventcatalog.styles.js'));
+  }
+
   // Copy all the event files over
   await copyFiles({
     source,
