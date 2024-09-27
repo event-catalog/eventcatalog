@@ -16,6 +16,7 @@ export const dev = (dir: string, core: string) =>
     .description('Run development server of EventCatalog')
     .option('-d, --debug', 'Output EventCatalog application information into your terminal')
     .option('--force-recreate', 'Recreate the eventcatalog-core directory', false)
+    .option('--no-auto-install', 'Disable automatic installation of dependencies')
     .action(async (options) => {
       console.log('Setting up EventCatalog....');
 
@@ -27,7 +28,7 @@ export const dev = (dir: string, core: string) =>
 
       if (options.forceRecreate) clearDir(core);
 
-      const res = await prepareCore(core);
+      const res = await prepareCore(core, options);
       if (res == ExitCode.Aborted) return;
 
       console.log('EventCatalog is starting at http://localhost:3000/docs');

@@ -2,7 +2,6 @@ import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import prompts from 'prompts';
 import { getPkgManager } from './get-pkg-manager';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
@@ -25,7 +24,7 @@ export enum ExitCode {
   Aborted = 134,
 }
 
-export async function prepareCore(coreDir: string): Promise<ExitCode> {
+export async function prepareCore(coreDir: string, options: { autoInstall: boolean } = { autoInstall: true }): Promise<ExitCode> {
   if (!fs.existsSync(coreDir)) {
     console.log('Copying core folder...');
     copyCore(coreDir);
@@ -33,16 +32,8 @@ export async function prepareCore(coreDir: string): Promise<ExitCode> {
 
   const hasNodeModules = fs.existsSync(path.join(coreDir, 'node_modules'));
   if (!hasNodeModules) {
-    // Install dependencies only if it's a fresh project
-    const res = await prompts({
-      type: 'confirm',
-      name: 'install',
-      message: 'No dependencies are installed. Do you want to install them now?',
-      initial: true,
-    });
-
-    if (!res.install) {
-      console.log('Installation skipped. Remember to install the dependencies before using the project.');
+    if (!options.autoInstall) {
+      console.log('Auto installation skipped. Remember to install the dependencies before using the project.');
       return ExitCode.Aborted;
     }
 
