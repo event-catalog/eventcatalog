@@ -5,7 +5,7 @@ import { generate as runGenerate } from '../generate';
 export const generate = (dir: string, core: string) =>
   new Command('generate').description('Start the generator scripts.').action(async () => {
     // TODO: Verify if is this really needed?
-    const res = await prepareCore(dir, core);
+    const res = await prepareCore(core);
     if (res == ExitCode.Aborted) return;
 
     await runGenerate(dir);

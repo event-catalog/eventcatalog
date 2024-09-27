@@ -25,7 +25,7 @@ export enum ExitCode {
   Aborted = 134,
 }
 
-export async function prepareCore(projectDir: string, coreDir: string): Promise<ExitCode> {
+export async function prepareCore(coreDir: string): Promise<ExitCode> {
   if (!fs.existsSync(coreDir)) {
     console.log('Copying core folder...');
     copyCore(coreDir);

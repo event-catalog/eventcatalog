@@ -27,7 +27,7 @@ export const dev = (dir: string, core: string) =>
 
       if (options.forceRecreate) clearDir(core);
 
-      const res = await prepareCore(dir, core);
+      const res = await prepareCore(core);
       if (res == ExitCode.Aborted) return;
 
       console.log('EventCatalog is starting at http://localhost:3000/docs');

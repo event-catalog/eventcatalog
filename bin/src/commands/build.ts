@@ -17,7 +17,7 @@ export const build = (dir: string, core: string) =>
   new Command('build').description('Run build of EventCatalog').action(async (options) => {
     console.log('Building EventCatalog...');
 
-    const res = await prepareCore(dir, core);
+    const res = await prepareCore(core);
     if (res == ExitCode.Aborted) return;
 
     // hydrate
