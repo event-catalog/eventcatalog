@@ -33,8 +33,7 @@
     "release": "changeset publish",
     "test": "vitest",
     "test:ci": "node ./.github/scripts/test.js",
-    "test:run": "vitest run",
-    "verify-build:catalog": "node ./.github/scripts/build-ci.js"
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@parcel/watcher": "^2.4.1",
@@ -56,7 +55,6 @@
     "vitest": "^2.0.5"
   },
   "workspaces": [
-    "astro",
-    "examples/default"
+    "astro"
   ]
 }

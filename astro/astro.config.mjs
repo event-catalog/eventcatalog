@@ -6,7 +6,7 @@ import pagefind from 'astro-pagefind';
 import { mermaid } from './src/remark-plugins/mermaid';
 import { join } from 'node:path';
 
-/** @type {import('@eventcatalog/core/bin/dist/eventcatalog.config').Config} */
+/** @type {import('../bin/dist/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
 

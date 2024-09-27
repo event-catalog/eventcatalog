@@ -3,6 +3,7 @@ import os from 'os';
 import fs from 'fs';
 import path from 'path';
 
+// Adicionar --version to npx eventcatalog
 async function getVersion() {
   try {
     const pkg = await fs.readFileSync(path.join(process.env.CATALOG_DIR, 'package.json'));
