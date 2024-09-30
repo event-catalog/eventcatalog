@@ -10,8 +10,8 @@ const scriptsDir = path.dirname(__filename);
 
 const getTargetPath = (source, target, type, file) => {
   const relativePath = path.relative(source, file);
-  const cleanedRelativePath = relativePath.split(type);
-  const targetForEvents = path.join(type, cleanedRelativePath[1]);
+  const cleanedRelativePath = relativePath.replace(type, "");
+  const targetForEvents = path.join(type, cleanedRelativePath);
   return path.join(target, targetForEvents);
 };
 
