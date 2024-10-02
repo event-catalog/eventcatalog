@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.8.2
+
+### Patch Changes
+
+- 591e06f: chore(core): fixed css issues with badges on pages
+
 ## 2.8.1
 
 ### Patch Changes
