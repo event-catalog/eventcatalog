@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const scriptsDir = path.dirname(__filename);
 
 const cleanRelativePath = (relativePath, type) => {
-  const position = relativePath.indexOf(`${type}${path.sep}`);
+  const position = relativePath.indexOf(`${path.sep}${type}${path.sep}`);
 
   return relativePath.slice(position + `${type}${path.sep}`.length);
 };
