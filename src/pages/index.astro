@@ -35,7 +35,7 @@ const flows = await getFlows();
                 <RectangleGroupIcon className="w-8 h-8 text-yellow-600" />
               </div>
               <div class="text-2xl font-bold text-yellow-600 mb-1">
-                <span class="statistic" data-target="5">0</span>
+                <span class="statistic" data-target={domains.length}>0</span>
               </div>
               <div class="text-sm text-gray-600">Domains</div>
             </div>
@@ -44,7 +44,7 @@ const flows = await getFlows();
                 <ServerIcon className="w-8 h-8 text-pink-500" />
               </div>
               <div class="text-2xl font-bold text-pink-500 mb-1">
-                <span class="statistic" data-target="12">0</span>
+                <span class="statistic" data-target={services.length}>0</span>
               </div>
               <div class="text-sm text-gray-600">Services</div>
             </div>
@@ -53,7 +53,7 @@ const flows = await getFlows();
                 <ChatBubbleLeftIcon className="w-8 h-8 text-blue-500" />
               </div>
               <div class="text-2xl font-bold text-blue-500 mb-1">
-                <span class="statistic" data-target="30">0</span>
+                <span class="statistic" data-target={commands.length}>0</span>
               </div>
               <div class="text-sm text-gray-600">Commands</div>
             </div>
@@ -62,17 +62,16 @@ const flows = await getFlows();
                 <BoltIcon className="w-8 h-8 text-orange-400" />
               </div>
               <div class="text-2xl font-bold text-orange-400 mb-1">
-                <span class="statistic" data-target="20">0</span>
+                <span class="statistic" data-target={events.length}>0</span>
               </div>
               <div class="text-sm text-gray-600">Events</div>
             </div>
-
             <div class="text-center">
               <div class="flex justify-center mb-2">
                 <QueueListIcon className="w-8 h-8 text-green-800" />
               </div>
               <div class="text-2xl font-bold text-green-800 mb-1">
-                <span class="statistic" data-target="8">0</span>
+                <span class="statistic" data-target={flows.length}>0</span>
               </div>
               <div class="text-sm text-gray-600">Flows</div>
             </div>
