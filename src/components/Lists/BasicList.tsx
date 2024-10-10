@@ -11,6 +11,7 @@ interface Props {
     href: string;
     color: string;
     active: boolean;
+    items: { text: string; slug: string }[];
   }[];
   emptyMessage: string;
 }
@@ -40,6 +41,17 @@ const BasicList = ({ title, items, emptyMessage, color = 'gray' }: Props) => {
                         </span>
                       )}
                     </a>
+                    {item.items && (
+                      <ul className="hidden xl:block px-4  text-gray-500 text-md space-y-2  ">
+                        {item.items.map((heading: any) => {
+                          return (
+                            <li className="text-xs">
+                              <a href={`${item.href}#${heading.slug}`}>{heading.text}</a>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
                   </li>
                 );
               })}
