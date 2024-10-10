@@ -8,14 +8,17 @@ import { getTeams } from '@utils/teams';
 import { getUsers } from '@utils/users';
 import config, { type CatalogConfig } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
+import BasicList from './Lists/BasicList';
 
-const events = await getEvents({ getAllVersions: false });
-const commands = await getCommands({ getAllVersions: false });
-const services = await getServices({ getAllVersions: false });
-const domains = await getDomains({ getAllVersions: false });
-const flows = await getFlows({ getAllVersions: false });
-const teams = await getTeams();
-const users = await getUsers();
+const [events, commands, services, domains, flows, teams, users] = await Promise.all([
+  getEvents({ getAllVersions: false }),
+  getCommands({ getAllVersions: false }),
+  getServices({ getAllVersions: false }),
+  getDomains({ getAllVersions: false }),
+  getFlows({ getAllVersions: false }),
+  getTeams(),
+  getUsers(),
+]);
 
 const messages = [...events, ...commands];
 
@@ -57,6 +60,7 @@ const fetchHeadings = allData.map(async (item) => {
 });
 
 const withHeadings = await Promise.all(fetchHeadings);
+const currentPath = Astro.url.pathname;
 
 const sideNav = withHeadings.reduce((acc, item) => {
   const title = item.collection === 'events' || item.collection === 'commands' ? 'Messages' : item.collection;
@@ -68,6 +72,7 @@ const sideNav = withHeadings.reduce((acc, item) => {
     version: item.collection === 'teams' || item.collection === 'users' ? null : item.data.version,
     items: item.collection === 'users' ? [] : item.headings,
     visible: visibleCollections[item.collection],
+    current: currentPath.includes(`${item.collection}`),
     // @ts-ignore
     href: item.data.version
       ? // @ts-ignore
@@ -82,8 +87,6 @@ const sideNav = withHeadings.reduce((acc, item) => {
     [title]: group,
   };
 }, {} as any);
-
-const currentPath = Astro.url.pathname;
 ---
 
 <div class="font-light w-full xl:pr-10 pb-20">
@@ -92,35 +95,13 @@ const currentPath = Astro.url.pathname;
       const collection = sideNav[key];
       if (collection[0] && collection[0].visible === false) return null;
       return (
-        <ul class=" w-full space-y-2 pb-8">
-          <li class="font-semibold capitalize ">{key}</li>
-          {collection.map((item: any) => {
-            return (
-              <li class="px-2 w-full text-md xl:text-lg border-l border-gray-200 space-y-2 scroll-m-20" id={item.href}>
-                <a
-                  class={`flex justify-between items-center w-full px-2 rounded-md font-normal ${currentPath.includes(item.href) ? 'bg-primary/5 text-primary ' : 'font-thin'}`}
-                  href={`${item.href}`}
-                >
-                  <span class="block truncate !whitespace-normal">{item.label}</span>
-                  {item.version && (
-                    <span class="block text-sm bg-primary/10 p-0.5 px-1 text-gray-600  rounded-md font-light">
-                      v{item.version}
-                    </span>
-                  )}
-                </a>
-                <ul class="hidden xl:block px-4  text-gray-500 text-md space-y-2  ">
-                  {item.items.map((heading: any) => {
-                    return (
-                      <li class="text-xs">
-                        <a href={`${item.href}#${heading.slug}`}>{heading.text}</a>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </li>
-            );
-          })}
-        </ul>
+        <BasicList
+          title={`${key} (${collection.length})`}
+          items={collection}
+          emptyMessage="Nothing to show"
+          color="gray"
+          client:load
+        />
       );
     })
   }
