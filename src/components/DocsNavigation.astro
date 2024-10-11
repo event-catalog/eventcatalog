@@ -17,6 +17,7 @@ const flows = await getFlows({ getAllVersions: false });
 const teams = await getTeams();
 const users = await getUsers();
 
+// @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/857
 const messages = [...events, ...commands];
 
 // @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552

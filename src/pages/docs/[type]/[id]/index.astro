@@ -24,6 +24,7 @@ export async function getStaticPaths() {
     }));
   };
 
+  // @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/857
   return [...buildPages(domains), ...buildPages(events), ...buildPages(services), ...buildPages(commands)];
 }
 

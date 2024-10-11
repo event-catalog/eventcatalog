@@ -59,6 +59,7 @@ const ownedServicesList = services.map((p) => ({
   tag: `v${p.data.version}`,
 }));
 
+// @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/857
 const ownedEventsList = [...events, ...commands].map((p) => ({
   label: `${p.data.name} (${p.collection.slice(0, -1)})`,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
