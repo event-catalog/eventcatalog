@@ -41,9 +41,7 @@ const getDocUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>
   return buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`);
 };
 const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
-  return buildUrl(
-    `/visualiser/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`,
-  );
+  return buildUrl(`/visualiser/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`);
 };
 
 const NodeGraphBuilder = ({
