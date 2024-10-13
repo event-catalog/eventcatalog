@@ -30,6 +30,7 @@ describe('catalog-to-astro-content-directory', () => {
           landingPage: '',
           editUrl: 'https://github.com/boyney123/eventcatalog-demo/edit/master',
           trailingSlash: false,
+          outDir: 'dist',
           base: '/company',
           logo: {
             alt: 'EventCatalog Logo',
