@@ -16,9 +16,8 @@ interface Props {
 }
 
 const getServiceNode = (step: any, services: CollectionEntry<'services'>[]) => {
-  const service = services.find(
-    (service) => service.data.id === step.service.id && service.data.version === step.service.version
-  );
+  const servicesForVersion = getItemsFromCollectionByIdAndSemverOrLatest(services, step.service.id, step.service.version);
+  const service = servicesForVersion?.[0];
   return {
     ...step,
     type: service ? service.collection : 'step',
