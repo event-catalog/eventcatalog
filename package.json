@@ -20,6 +20,7 @@
     "prepublishOnly": "npm run build:bin",
     "test": "vitest --config vitest.config.ts",
     "test:ci": "node scripts/ci/test.js",
+    "test:e2e": "playwright test",
     "start": "astro dev",
     "build": "npm run scripts:hydrate-content && node scripts/analytics/log-build.js && astro build",
     "build:cd": "node scripts/build-ci.js",
@@ -52,6 +53,7 @@
     "@types/diff": "^5.2.2",
     "@types/lodash.merge": "4.6.9",
     "@types/node": "^20.14.2",
+    "@types/semver": "^7.5.8",
     "astro": "^4.16.5",
     "astro-expressive-code": "^0.36.1",
     "astro-pagefind": "^1.6.0",
@@ -77,11 +79,11 @@
     "tailwindcss": "^3.4.3",
     "typescript": "^5.4.5",
     "unist-util-visit": "^5.0.0",
-    "uuid": "^10.0.0",
-    "@types/semver": "^7.5.8"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.5",
+    "@playwright/test": "^1.48.1",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "prettier": "^3.3.3",
