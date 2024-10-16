@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.8.3
+
+### Patch Changes
+
+- d07a946: chore(core): updated astro versions
+
 ## 2.8.2
 
 ### Patch Changes
