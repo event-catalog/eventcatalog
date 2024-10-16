@@ -23,7 +23,7 @@ import type { CollectionEntry } from 'astro:content';
 import { navigate } from 'astro:transitions/client';
 import type { CollectionTypes } from '@types';
 import DownloadButton from './DownloadButton';
-import { buildUrl } from '@utils/url-builder-client';
+import { buildUrl } from '@utils/url-builder';
 
 interface Props {
   nodes: any;
@@ -34,18 +34,14 @@ interface Props {
   includeControls?: boolean;
   linkTo: 'docs' | 'visualiser';
   includeKey?: boolean;
-  urlHasTrailingSlash?: boolean;
   linksToVisualiser?: boolean;
 }
 
-const getDocUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>, trailingSlash?: boolean) => {
-  return buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`, trailingSlash);
+const getDocUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
+  return buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`);
 };
-const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>, trailingSlash?: boolean) => {
-  return buildUrl(
-    `/visualiser/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`,
-    trailingSlash
-  );
+const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
+  return buildUrl(`/visualiser/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`);
 };
 
 const NodeGraphBuilder = ({
@@ -55,7 +51,6 @@ const NodeGraphBuilder = ({
   includeBackground = true,
   linkTo = 'docs',
   includeKey = true,
-  urlHasTrailingSlash,
   linksToVisualiser = false,
 }: Props) => {
   const nodeTypes = useMemo(
@@ -93,10 +88,10 @@ const NodeGraphBuilder = ({
     (_: any, node: Node) => {
       if (linksToVisualiser) {
         if (node.type === 'events' || node.type === 'commands') {
-          navigate(getVisualiserUrlForCollection(node.data.message, urlHasTrailingSlash));
+          navigate(getVisualiserUrlForCollection(node.data.message));
         }
         if (node.type === 'services') {
-          navigate(getVisualiserUrlForCollection(node.data.service, urlHasTrailingSlash));
+          navigate(getVisualiserUrlForCollection(node.data.service));
         }
         return;
       }
@@ -198,7 +193,6 @@ interface NodeGraphProps {
   linkTo: 'docs' | 'visualiser';
   includeKey?: boolean;
   footerLabel?: string;
-  urlHasTrailingSlash?: boolean;
   linksToVisualiser?: boolean;
 }
 
@@ -212,7 +206,6 @@ const NodeGraph = ({
   hrefLabel = 'Open in visualizer',
   includeKey = true,
   footerLabel,
-  urlHasTrailingSlash,
   linksToVisualiser = false,
 }: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
@@ -234,7 +227,6 @@ const NodeGraph = ({
             title={title}
             linkTo={linkTo}
             includeKey={includeKey}
-            urlHasTrailingSlash={urlHasTrailingSlash}
             linksToVisualiser={linksToVisualiser}
           />
 

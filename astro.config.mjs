@@ -48,6 +48,15 @@ export default defineConfig({
     pagefind(),
   ],
   vite: {
+    define: {
+      /**
+       * Trailing slash is exposed as global variable here principally for `@utils/url-builder`.
+       * The utility is used by client components and because of that it can't direct import 
+       * the eventcatalog.config, as the config use packages that only run in node environments,
+       * such as `node:path`.
+       */
+      '__EC_TRAILING_SLASH__': config.trailingSlash || false,
+    },
     build: {
       commonjsOptions: {
         transformMixedEsModules: true,

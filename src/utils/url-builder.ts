@@ -1,5 +1,3 @@
-import config from '@eventcatalog';
-
 const cleanUrl = (url: string) => {
   return url.replace(/\/+/g, '/');
 };
@@ -7,7 +5,7 @@ const cleanUrl = (url: string) => {
 // Custom URL builder as Astro does not support this stuff out the box
 export const buildUrl = (url: string, ignoreTrailingSlash = false) => {
   // Should a trailingSlash be added to urls?
-  const trailingSlash = config.trailingSlash || false;
+  const trailingSlash = __EC_TRAILING_SLASH__;
 
   let newUrl = url;
 
