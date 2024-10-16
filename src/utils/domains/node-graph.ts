@@ -1,18 +1,10 @@
 import { getCollection } from 'astro:content';
-import dagre from 'dagre';
+import { createDagreGraph, calculatedNodes } from '@utils/node-graph-utils/utils';
 import { getNodesAndEdges as getServicesNodeAndEdges } from '../services/node-graph';
 import merge from 'lodash.merge';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 
 type DagreGraph = any;
-
-// Creates a new dagre graph
-export const getDagreGraph = () => {
-  const graph = new dagre.graphlib.Graph({ compound: true });
-  graph.setGraph({ rankdir: 'LR', ranksep: 200, nodesep: 100 });
-  graph.setDefaultEdgeLabel(() => ({}));
-  return graph;
-};
 
 interface Props {
   id: string;
@@ -22,7 +14,7 @@ interface Props {
 }
 
 export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple' }: Props) => {
-  const flow = defaultFlow || getDagreGraph();
+  const flow = defaultFlow || createDagreGraph({ ranksep: 360, nodesep: 50, edgesep: 50 });
   let nodes = new Map(),
     edges = new Map();
 
@@ -73,7 +65,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
   }
 
   return {
-    nodes: [...nodes.values()],
+    nodes: calculatedNodes(flow, Array.from(nodes.values())),
     edges: [...edges.values()],
   };
 };

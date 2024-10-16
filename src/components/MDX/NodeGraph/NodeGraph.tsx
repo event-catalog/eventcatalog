@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import ReactFlow, {
   Background,
@@ -7,8 +7,10 @@ import ReactFlow, {
   Panel,
   ReactFlowProvider,
   useNodesState,
+  useEdgesState,
   type Edge,
   type Node,
+  useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import ServiceNode from './Nodes/Service';
@@ -21,7 +23,7 @@ import type { CollectionEntry } from 'astro:content';
 import { navigate } from 'astro:transitions/client';
 import type { CollectionTypes } from '@types';
 import DownloadButton from './DownloadButton';
-import { buildUrl } from '@utils/url-builder-client';
+import { buildUrl } from '@utils/url-builder';
 
 interface Props {
   nodes: any;
@@ -32,28 +34,24 @@ interface Props {
   includeControls?: boolean;
   linkTo: 'docs' | 'visualiser';
   includeKey?: boolean;
-  urlHasTrailingSlash?: boolean;
+  linksToVisualiser?: boolean;
 }
 
-const getDocUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>, trailingSlash?: boolean) => {
-  return buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`, trailingSlash);
+const getDocUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
+  return buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`);
 };
-const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>, trailingSlash?: boolean) => {
-  return buildUrl(
-    `/visualiser/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`,
-    trailingSlash
-  );
+const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
+  return buildUrl(`/visualiser/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`);
 };
 
-// const NodeGraphBuilder = ({ title, subtitle, includeBackground = true, includeControls = true }: Props) => {
 const NodeGraphBuilder = ({
   nodes: initialNodes,
-  edges,
+  edges: initialEdges,
   title,
   includeBackground = true,
   linkTo = 'docs',
   includeKey = true,
-  urlHasTrailingSlash,
+  linksToVisualiser = false,
 }: Props) => {
   const nodeTypes = useMemo(
     () => ({
@@ -68,37 +66,87 @@ const NodeGraphBuilder = ({
     []
   );
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const nodeOrigin = [0.5, 0.5];
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const { fitView } = useReactFlow();
 
-  const handleNodeClick = (_: any, node: Node) => {
-    if (node.type === 'events' || node.type === 'commands') {
-      navigate(
-        linkTo === 'docs'
-          ? getDocUrlForCollection(node.data.message, urlHasTrailingSlash)
-          : getVisualiserUrlForCollection(node.data.message, urlHasTrailingSlash)
-      );
-    }
-    if (node.type === 'services') {
-      navigate(
-        linkTo === 'docs'
-          ? getDocUrlForCollection(node.data.service, urlHasTrailingSlash)
-          : getVisualiserUrlForCollection(node.data.service, urlHasTrailingSlash)
-      );
-    }
-  };
+  const resetNodesAndEdges = useCallback(() => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        node.style = { ...node.style, opacity: 1 };
+        return { ...node, animated: false };
+      })
+    );
+    setEdges((eds) =>
+      eds.map((edge) => {
+        edge.style = { ...edge.style, opacity: 1 };
+        return { ...edge, animated: false };
+      })
+    );
+  }, [setNodes, setEdges]);
+
+  const handleNodeClick = useCallback(
+    (_: any, node: Node) => {
+      if (linksToVisualiser) {
+        if (node.type === 'events' || node.type === 'commands') {
+          navigate(getVisualiserUrlForCollection(node.data.message));
+        }
+        if (node.type === 'services') {
+          navigate(getVisualiserUrlForCollection(node.data.service));
+        }
+        return;
+      }
+
+      resetNodesAndEdges();
+
+      const connectedNodeIds = new Set<string>();
+      connectedNodeIds.add(node.id);
+
+      const updatedEdges = edges.map((edge) => {
+        if (edge.source === node.id || edge.target === node.id) {
+          connectedNodeIds.add(edge.source);
+          connectedNodeIds.add(edge.target);
+          return { ...edge, style: { ...edge.style, opacity: 1 }, animated: true };
+        }
+        return { ...edge, style: { ...edge.style, opacity: 0.1 }, animated: false };
+      });
+
+      const updatedNodes = nodes.map((n) => {
+        if (connectedNodeIds.has(n.id)) {
+          return { ...n, style: { ...n.style, opacity: 1 } };
+        }
+        return { ...n, style: { ...n.style, opacity: 0.1 } };
+      });
+
+      setNodes(updatedNodes);
+      setEdges(updatedEdges);
+
+      // Fit the clicked node and its connected nodes into view
+      fitView({
+        padding: 0.2,
+        duration: 800,
+        nodes: updatedNodes.filter((n) => connectedNodeIds.has(n.id)),
+      });
+    },
+    [nodes, edges, setNodes, setEdges, resetNodesAndEdges, fitView]
+  );
+
+  const handlePaneClick = useCallback(() => {
+    resetNodesAndEdges();
+    fitView({ duration: 800 });
+  }, [resetNodesAndEdges, fitView]);
 
   return (
-    // @ts-ignore
     <ReactFlow
       nodeTypes={nodeTypes}
       nodes={nodes}
       edges={edges}
       fitView
       onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
       connectionLineType={ConnectionLineType.SmoothStep}
-      // @ts-ignore
-      nodeOrigin={nodeOrigin}
+      nodeOrigin={[0.1, 0.1]}
       onNodeClick={handleNodeClick}
+      onPaneClick={handlePaneClick}
     >
       {title && (
         <Panel position="top-right">
@@ -145,7 +193,7 @@ interface NodeGraphProps {
   linkTo: 'docs' | 'visualiser';
   includeKey?: boolean;
   footerLabel?: string;
-  urlHasTrailingSlash?: boolean;
+  linksToVisualiser?: boolean;
 }
 
 const NodeGraph = ({
@@ -158,7 +206,7 @@ const NodeGraph = ({
   hrefLabel = 'Open in visualizer',
   includeKey = true,
   footerLabel,
-  urlHasTrailingSlash,
+  linksToVisualiser = false,
 }: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
 
@@ -179,7 +227,7 @@ const NodeGraph = ({
             title={title}
             linkTo={linkTo}
             includeKey={includeKey}
-            urlHasTrailingSlash={urlHasTrailingSlash}
+            linksToVisualiser={linksToVisualiser}
           />
 
           <div className="flex justify-between">
@@ -191,7 +239,7 @@ const NodeGraph = ({
 
             {href && (
               <div className="py-2 w-full text-right">
-                <a className=" text-sm no-underline py-2 text-gray-800 hover:text-purple-500" href={href}>
+                <a className=" text-sm no-underline py-2 text-gray-800 hover:text-primary" href={href}>
                   {hrefLabel} &rarr;
                 </a>
               </div>

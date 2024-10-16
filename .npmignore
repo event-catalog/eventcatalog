@@ -19,3 +19,9 @@ __tests__/
 /public/generated/*
 /src/catalog-files/*
 
+Dockerfile
+.dockerignore
+
+# e2e
+e2e/
+playwright.config.ts

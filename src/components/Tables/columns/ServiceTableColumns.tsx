@@ -26,7 +26,7 @@ export const columns = () => [
                 <span className={`bg-${color}-500 group-hover:bg-${color}-600 h-full rounded-tl rounded-bl p-1`}>
                   <ServerIcon className="h-4 w-4 text-white" />
                 </span>
-                <span className="leading-none px-2 group-hover:underline group-hover:text-purple-500">
+                <span className="leading-none px-2 group-hover:underline group-hover:text-primary">
                   {messageRaw.data.name} (v{messageRaw.data.version})
                 </span>
               </span>
@@ -79,7 +79,7 @@ export const columns = () => [
               <li key={consumer.data.id} className="py-1 group font-light ">
                 <a
                   href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
-                  className="group-hover:text-purple-500 flex space-x-1 items-center "
+                  className="group-hover:text-primary flex space-x-1 items-center "
                 >
                   <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
                     <span className="flex items-center">
@@ -122,7 +122,7 @@ export const columns = () => [
               <li key={consumer.data.id} className="py-1 group font-light">
                 <a
                   href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
-                  className="group-hover:text-purple-500 flex space-x-1 items-center "
+                  className="group-hover:text-primary flex space-x-1 items-center "
                 >
                   <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
                     <span className="flex items-center">
@@ -150,7 +150,7 @@ export const columns = () => [
       const domain = info.row.original;
       return (
         <a
-          className="hover:text-purple-500 hover:underline px-4 font-light"
+          className="hover:text-primary hover:underline px-4 font-light"
           href={buildUrl(`/visualiser/${domain.collection}/${domain.data.id}/${domain.data.version}`)}
         >
           Visualiser &rarr;

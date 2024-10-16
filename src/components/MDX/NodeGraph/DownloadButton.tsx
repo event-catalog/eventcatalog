@@ -1,4 +1,4 @@
-import { Panel, useReactFlow, getRectOfNodes } from 'reactflow';
+import { Panel, useReactFlow, getNodesBounds, getViewportForBounds } from 'reactflow';
 import { toPng } from 'html-to-image';
 import { DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 
@@ -16,7 +16,10 @@ const imageHeight = 768;
 function DownloadButton({ filename, addPadding = true }: { filename?: string; addPadding?: boolean }) {
   const { getNodes } = useReactFlow();
   const onClick = () => {
-    const nodesBounds = getRectOfNodes(getNodes());
+    const nodesBounds = getNodesBounds(getNodes());
+    const width = imageWidth > nodesBounds.width ? imageWidth : nodesBounds.width;
+    const height = imageHeight > nodesBounds.height ? imageHeight : nodesBounds.height;
+    const viewport = getViewportForBounds(nodesBounds, width, height, 0.5, 2);
 
     // Hide the button
     // @ts-ignore
@@ -25,13 +28,14 @@ function DownloadButton({ filename, addPadding = true }: { filename?: string; ad
     document.querySelector('.react-flow__controls').style.display = 'none';
 
     // @ts-ignore
-    toPng(document.querySelector('.react-flow'), {
+    toPng(document.querySelector('.react-flow__viewport'), {
       backgroundColor: '#f1f1f1',
-      width: imageWidth * 1.2,
-      height: imageHeight,
+      width,
+      height,
       style: {
-        width: imageWidth * 1.2,
-        height: imageHeight,
+        width,
+        height,
+        transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
       },
     }).then((dataUrl: string) => {
       downloadImage(dataUrl, filename);
@@ -48,8 +52,8 @@ function DownloadButton({ filename, addPadding = true }: { filename?: string; ad
         className={`hidden md:flex bg-white group download-btn items-center space-x-1 text-[14px] border border-gray-200 px-1 py-0.5 rounded-md hover:bg-gray-100/50 ${addPadding ? 'mt-14' : '-mt-1'}`}
         onClick={onClick}
       >
-        <DocumentArrowDownIcon className="w-4 h-4 group-hover:text-purple-500" />
-        <span className="group-hover:text-purple-500">Download visual </span>
+        <DocumentArrowDownIcon className="w-4 h-4 group-hover:text-primary" />
+        <span className="group-hover:text-primary">Download visual </span>
       </button>
     </Panel>
   );

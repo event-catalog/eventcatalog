@@ -50,6 +50,7 @@ const {
       mode="full"
       linkTo="visualiser"
       version={props.data.version}
+      linksToVisualiser={false}
       href={{
         label: `Open documentation for ${props.data.name} v${props.data.version}`,
         url: buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}`),

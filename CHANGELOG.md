@@ -1,5 +1,62 @@
 # @eventcatalog/core
 
+## 2.8.7
+
+### Patch Changes
+
+- ce04693: fix(core): fixed visualization node graph for domains, reduced overlapping
+
+## 2.8.6
+
+### Patch Changes
+
+- b4c49ef: feat(core): added links to the landing page and fixed resource counter values
+
+## 2.8.5
+
+### Patch Changes
+
+- db41392: fix(core): flows now work with latest semver for services
+- 8376da8: chore(core): fixed url builder for server/client components
+
+## 2.8.4
+
+### Patch Changes
+
+- 95ca9aa: chore(core): removed type checks for consuming catalogs
+
+## 2.8.3
+
+### Patch Changes
+
+- d07a946: chore(core): updated astro versions
+
+## 2.8.2
+
+### Patch Changes
+
+- 591e06f: chore(core): fixed css issues with badges on pages
+
+## 2.8.1
+
+### Patch Changes
+
+- 16c6a28: feat(core): added api path and http verb in openapi viewer
+- c8118b7: fix(core): downloading images in visualizer now shows the whole diagram
+
+## 2.8.0
+
+### Minor Changes
+
+- 6f882b3: feat(core): added ability to focus nodes in the node graph on visualiser
+- dddb730: feat(core): added basic theming support for colors
+
+## 2.7.16
+
+### Patch Changes
+
+- 4d15fdf: fix(core): fixed windows issue for fetching config files
+
 ## 2.7.15
 
 ### Patch Changes

@@ -5,8 +5,6 @@ import { getNodesAndEdges as getNodesAndEdgesForEvent } from '@utils/events/node
 import { getNodesAndEdges as getNodesAndEdgesForCommand } from '@utils/commands/node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/domains/node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/flows/node-graph';
-import { buildUrl } from '@utils/url-builder';
-import config from '@eventcatalog';
 
 interface Props {
   id: string;
@@ -19,9 +17,10 @@ interface Props {
     label: string;
     url: string;
   };
+  linksToVisualiser?: boolean;
 }
 
-const { id, collection, title, mode = 'simple', linkTo = 'docs', version, href } = Astro.props;
+const { id, collection, title, mode = 'simple', linkTo = 'docs', version, href, linksToVisualiser } = Astro.props;
 let nodes = [],
   edges = [];
 
@@ -79,13 +78,6 @@ if (collection === 'flows') {
   nodes = eventNodes;
   edges = eventEdges;
 }
-
-const getDocUrlForCollection = () => {
-  return buildUrl(`/docs/${collection}/${id}/${version}`);
-};
-const getVisualiserUrlForCollection = () => {
-  return buildUrl(`/visualiser/${collection}/${id}/${version}`);
-};
 ---
 
 <div>
@@ -98,7 +90,7 @@ const getVisualiserUrlForCollection = () => {
     href={href.url}
     linkTo={linkTo}
     client:only="react"
-    urlHasTrailingSlash={config.trailingSlash}
+    linksToVisualiser={linksToVisualiser}
   />
 </div>
 

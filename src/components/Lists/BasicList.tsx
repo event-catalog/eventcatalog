@@ -30,12 +30,12 @@ const BasicList = ({ title, items, emptyMessage, color = 'gray' }: Props) => {
                 return (
                   <li key={item.version} className="px-2 w-full text-md xl:text-lg border-l border-gray-200 py-1 ">
                     <a
-                      className={`flex justify-between items-center w-full px-2 rounded-md font-normal   ${item.active ? 'bg-purple-200 text-purple-800 ' : 'font-thin'}`}
+                      className={`flex justify-between items-center w-full px-2 rounded-md font-normal   ${item.active ? 'bg-primary/10 text-primary ' : 'font-thin'}`}
                       href={item.href}
                     >
                       <span className="block truncate !whitespace-normal">{item.label}</span>
                       {item.version && (
-                        <span className="block text-sm bg-purple-100 p-0.5 px-1 text-gray-600  rounded-md font-light">
+                        <span className="block text-sm bg-primary/20 p-0.5 px-1 text-gray-600  rounded-md font-light">
                           v{item.version}
                         </span>
                       )}

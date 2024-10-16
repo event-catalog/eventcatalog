@@ -33,15 +33,15 @@ const PillList = ({ title, pills, emptyMessage, color = 'gray' }: Props) => {
                       href={item.href}
                     >
                       <div className="w-full">
-                        <h3 className="flex-auto truncate text-sm font-semibold leading-6 text-black group-hover:underline group-hover:text-purple-500">
+                        <h3 className="flex-auto truncate text-sm font-semibold leading-6 text-black group-hover:underline group-hover:text-primary">
                           {item.label}
                         </h3>
                         <div className=" flex justify-between">
-                          <span className="text-xs font-light bg-gray-100 text-gray-700 rounded-md py-0.5 group-hover:bg-purple-100">
+                          <span className="text-xs font-light bg-gray-100 text-gray-700 rounded-md py-0.5 group-hover:bg-primary/20">
                             {item.tag}
                           </span>
                           {item.badge && (
-                            <span className="text-xs font-light bg-gray-100 text-gray-700 rounded-md py-0.5 group-hover:bg-purple-100 capitalize">
+                            <span className="text-xs font-light bg-gray-100 text-gray-700 rounded-md py-0.5 group-hover:bg-primary/20 capitalize">
                               {item.badge.slice(0, -1)}
                             </span>
                           )}

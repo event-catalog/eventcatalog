@@ -44,3 +44,8 @@ eventcatalog.styles.css
 .vscode/*
 
 git-push.sh
+
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

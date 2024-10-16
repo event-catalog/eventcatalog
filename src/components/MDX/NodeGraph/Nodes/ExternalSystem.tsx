@@ -65,7 +65,7 @@ export default function ExternalSystemNode({ data, sourcePosition, targetPositio
               <div className="grid grid-cols-2 gap-x-4 py-1">
                 <span className="text-xs" style={{ fontSize: '0.2em' }}>
                   URL:{' '}
-                  <a href={url} target="_blank" className="text-purple-500 underline">
+                  <a href={url} target="_blank" className="text-primary underline">
                     {url}
                   </a>
                 </span>

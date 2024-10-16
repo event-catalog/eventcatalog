@@ -32,21 +32,21 @@ const OwnersList2 = ({ title, owners, emptyMessage }: Props) => {
                         <img
                           src={item.avatarUrl}
                           alt={item.label}
-                          className="w-7 h-7 rounded-full border group-hover:border-purple-300"
+                          className="w-7 h-7 rounded-full border group-hover:border-primary/60"
                         />
                       )}
                       {(item.type === 'teams' || !item.avatarUrl) && (
-                        <span className="w-6 rounded-full mt-1 bg-red-500 block text-center text-white uppercase group-hover:bg-purple-500">
+                        <span className="w-6 rounded-full mt-1 bg-red-500 block text-center text-white uppercase group-hover:bg-primary">
                           {item.label.charAt(0)}
                         </span>
                       )}
                       {/*  <span className="w-6 rounded-full mt-1 bg-red-500 block text-center text-white uppercase">{item.label.charAt(0)}</span> */}
                       <div>
-                        <h3 className="flex-auto truncate text-sm font-semibold leading-6 text-black group-hover:underline group-hover:text-purple-500">
+                        <h3 className="flex-auto truncate text-sm font-semibold leading-6 text-black group-hover:underline group-hover:text-primary">
                           {item.label}
                         </h3>
                         <div className="-mt-0.5">
-                          <span className="text-xs font-light bg-gray-100 text-gray-700 rounded-md py-0.5 group-hover:bg-purple-100">
+                          <span className="text-xs font-light bg-gray-100 text-gray-700 rounded-md py-0.5 group-hover:bg-primary/10">
                             {item.badge}
                           </span>
                         </div>
@@ -79,7 +79,7 @@ export default OwnersList2;
 //           <a class="flex items-center gap-x-3 group " href={item.href}>
 //             {item.type === 'users' && item.avatarUrl && <img src={item.avatarUrl} alt={item.label} class="w-7 h-7 rounded-full border group-hover:border-purple-300" />}
 //             {(item.type === 'teams' || !item.avatarUrl) && (
-//               <span class="w-6 rounded-full mt-1 bg-red-500 block text-center text-white uppercase group-hover:bg-purple-500">{item.label.charAt(0)}</span>
+//               <span class="w-6 rounded-full mt-1 bg-red-500 block text-center text-white uppercase group-hover:bg-primary">{item.label.charAt(0)}</span>
 //             )}
 //             {/* // <span class="w-6 rounded-full mt-1 bg-red-500 block text-center text-white uppercase">{item.label.charAt(0)}</span> */}
 //             <div>
