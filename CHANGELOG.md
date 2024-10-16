@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.8.7
+
+### Patch Changes
+
+- ce04693: fix(core): fixed visualization node graph for domains, reduced overlapping
+
 ## 2.8.6
 
 ### Patch Changes
