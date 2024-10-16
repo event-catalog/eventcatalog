@@ -28,9 +28,14 @@ describe('Watcher', { retry: 2 }, () => {
   });
 
   describe('Commands', () => {
-    describe('/commands directory', () => {
+    describe.each([
+      { dir: '/commands' },
+      { dir: '/services/FakeService/commands' },
+      { dir: '/domains/FakeDomain/commands' },
+      { dir: '/domains/FakeDomain/services/FakeService/commands' },
+    ])('within $dir directory', ({ dir: dirPrefix }) => {
       test('when a command is created, it adds it to the correct location in astro', async () => {
-        const filePath = path.join(`commands/${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -41,13 +46,16 @@ describe('Watcher', { retry: 2 }, () => {
         // Assert
         await vi.waitFor(() =>
           expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'), 'utf8')
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/commands/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+              'utf8'
+            )
           ).resolves.toEqual(`---${os.EOL}id: FakeCommand${os.EOL}---${os.EOL}`)
         );
       });
 
       test('when a command is updated, it updates the corresponding command in astro', async () => {
-        const filePath = path.join(`commands/${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -59,34 +67,45 @@ describe('Watcher', { retry: 2 }, () => {
         // Assert
         await vi.waitFor(() =>
           expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'), 'utf-8')
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/commands/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+              'utf-8'
+            )
           ).resolves.toContain('UPDATE TEST')
         );
       });
 
       test('when a command is deleted, it deletes the corresponding command from astro', async () => {
-        const filePath = path.join(`commands/${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
         await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeCommand${os.EOL}---${os.EOL}`);
-        await vi.waitUntil(() => existsSync(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx')), {
-          timeout: 3000,
-        });
+        await vi.waitUntil(
+          () =>
+            existsSync(
+              path.join(EC_CORE_DIR, 'src/content/commands/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+            ),
+          {
+            timeout: 3000,
+          }
+        );
 
         // Act
         await fs.rm(path.join(PROJECT_DIR, filePath));
 
         // Assert
         await vi.waitFor(() =>
-          expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'))).rejects.toThrow(
-            /ENOENT: no such file or directory/
-          )
+          expect(
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/commands/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+            )
+          ).rejects.toThrow(/ENOENT: no such file or directory/)
         );
       });
 
       test('when a versioned command is created, it adds it to the correct location in astro', async () => {
-        const filePath = path.join(`commands/${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -100,7 +119,10 @@ describe('Watcher', { retry: 2 }, () => {
         // Assert
         await vi.waitFor(() =>
           expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'), 'utf8')
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/commands/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+              'utf8'
+            )
           ).resolves.toEqual(
             `---${os.EOL}id: FakeCommand${os.EOL}version: 0.0.1${os.EOL}---${os.EOL}${os.EOL}# Overview${os.EOL}${os.EOL}`
           )
@@ -108,7 +130,7 @@ describe('Watcher', { retry: 2 }, () => {
       });
 
       test('when a versioned command is updated, it updates the corresponding command in astro', async () => {
-        const filePath = path.join(`commands/${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -120,38 +142,88 @@ describe('Watcher', { retry: 2 }, () => {
         // Assert
         await vi.waitFor(() =>
           expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'), 'utf-8')
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/commands/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+              'utf-8'
+            )
           ).resolves.toContain('UPDATE TEST')
         );
       });
 
       test('when a versioned command is deleted, it deletes the corresponding command from astro', async () => {
-        const filePath = path.join(`commands/${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
         await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeCommand${os.EOL}version: 0.0.1${os.EOL}---`);
-        await vi.waitUntil(() => existsSync(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx')), {
-          timeout: 3000,
-        });
+        await vi.waitUntil(
+          () =>
+            existsSync(
+              path.join(EC_CORE_DIR, 'src/content/commands/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+            ),
+          {
+            timeout: 3000,
+          }
+        );
 
         // Act
         await fs.rm(path.join(PROJECT_DIR, filePath));
 
         // Assert
         await vi.waitFor(() =>
-          expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'))).rejects.toThrow(
-            /ENOENT: no such file or directory/
-          )
+          expect(
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/commands/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+            )
+          ).rejects.toThrow(/ENOENT: no such file or directory/)
+        );
+      });
+
+      let prevDir: string = '';
+      test.each(
+        dirPrefix
+          .split('/')
+          .filter(Boolean)
+          .map((dir) => (prevDir += '/' + dir))
+      )('when the %s directory is deleted, it deletes the corresponding commands from astro', async (dirToDelete) => {
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+
+        // Arrange
+        await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+        await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeCommand${os.EOL}---${os.EOL}`);
+        await vi.waitUntil(
+          () =>
+            existsSync(
+              path.join(EC_CORE_DIR, 'src/content/commands/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+            ),
+          {
+            timeout: 3000,
+          }
+        );
+
+        // Act
+        await fs.rm(path.join(PROJECT_DIR, dirToDelete), { recursive: true });
+
+        // Assert
+        await vi.waitFor(() =>
+          expect(
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/commands/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+            )
+          ).rejects.toThrow(/ENOENT: no such file or directory/)
         );
       });
     });
   });
 
   describe('Domains', () => {
-    describe('/domains directory', () => {
+    describe.each([
+      {
+        dir: '/domains',
+      },
+    ])('within $dir directory', ({ dir: dirPrefix }) => {
       test('when a domain is created, it adds to the correct location in astro', async () => {
-        const filePath = path.join(`domains/${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -162,13 +234,16 @@ describe('Watcher', { retry: 2 }, () => {
         // Assert
         await vi.waitFor(() =>
           expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'), 'utf8')
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/domains/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+              'utf8'
+            )
           ).resolves.toEqual(`---${os.EOL}id: FakeDomain${os.EOL}---${os.EOL}`)
         );
       });
 
       test('when a domain is updated, it updates the corresponding domain in astro', async () => {
-        const filePath = path.join(`domains/${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -180,34 +255,45 @@ describe('Watcher', { retry: 2 }, () => {
         // Assert
         await vi.waitFor(() =>
           expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'), 'utf-8')
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/domains/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+              'utf-8'
+            )
           ).resolves.toContain('UPDATE TEST')
         );
       });
 
       test('when a domain is deleted, it deletes the corresponding domain from astro', async () => {
-        const filePath = path.join(`domains/${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
         await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeDomain${os.EOL}---${os.EOL}`);
-        await vi.waitUntil(() => existsSync(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx')), {
-          timeout: 3000,
-        });
+        await vi.waitUntil(
+          () =>
+            existsSync(
+              path.join(EC_CORE_DIR, 'src/content/domains/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+            ),
+          {
+            timeout: 3000,
+          }
+        );
 
         // Act
         await fs.rm(path.join(PROJECT_DIR, filePath));
 
         // Assert
         await vi.waitFor(() =>
-          expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'))).rejects.toThrow(
-            /ENOENT: no such file or directory/
-          )
+          expect(
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/domains/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+            )
+          ).rejects.toThrow(/ENOENT: no such file or directory/)
         );
       });
 
       test('when a versioned domain is created, it adds to the correct location in astro', async () => {
-        const filePath = path.join(`domains/${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -221,13 +307,16 @@ describe('Watcher', { retry: 2 }, () => {
         // Assert
         await vi.waitFor(() =>
           expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'), 'utf8')
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/domains/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+              'utf8'
+            )
           ).resolves.toEqual(`---${os.EOL}id: FakeDomain${os.EOL}version: 0.0.1${os.EOL}---${os.EOL}`)
         );
       });
 
       test('when a versioned domain is updated, it updates the corresponding domain in astro', async () => {
-        const filePath = path.join(`domains/${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -241,13 +330,16 @@ describe('Watcher', { retry: 2 }, () => {
 
         await vi.waitFor(() =>
           expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'), 'utf-8')
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/domains/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+              'utf-8'
+            )
           ).resolves.toContain('UPDATE TEST')
         );
       });
 
       test('when a versioned domain is deleted, it deletes the corresponding domain in astro', async () => {
-        const filePath = path.join(`domains/${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -255,27 +347,40 @@ describe('Watcher', { retry: 2 }, () => {
           path.join(PROJECT_DIR, filePath),
           `---${os.EOL}id: FakeDomain${os.EOL}version: 0.0.1${os.EOL}---${os.EOL}`
         );
-        await vi.waitUntil(() => existsSync(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx')), {
-          timeout: 3000,
-        });
+        await vi.waitUntil(
+          () =>
+            existsSync(
+              path.join(EC_CORE_DIR, 'src/content/domains/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+            ),
+          {
+            timeout: 3000,
+          }
+        );
 
         // Act
         await fs.rm(path.join(PROJECT_DIR, filePath));
 
         // Assert
         await vi.waitFor(() =>
-          expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'))).rejects.toThrow(
-            /ENOENT: no such file or directory/
-          )
+          expect(
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/domains', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+            )
+          ).rejects.toThrow(/ENOENT: no such file or directory/)
         );
       });
     });
   });
 
   describe('Events', () => {
-    describe('/events directory', () => {
+    describe.each([
+      { dir: '/events' },
+      { dir: '/services/FakeService/events' },
+      { dir: '/domains/FakeDomain/events' },
+      { dir: '/domains/FakeDomain/services/FakeService/events' },
+    ])('within $dir directory', ({ dir: dirPrefix }) => {
       test('when an event is created, it adds it to the correct location in astro', async () => {
-        const filePath = path.join(`events/${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -286,13 +391,16 @@ describe('Watcher', { retry: 2 }, () => {
         // Assert
         await vi.waitFor(() =>
           expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx'), 'utf8')
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/events', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+              'utf8'
+            )
           ).resolves.toEqual(`---${os.EOL}id: FakeEvent${os.EOL}---${os.EOL}`)
         );
       });
 
       test('when an event is updated, it updates the corresponding event in astro', async () => {
-        const filePath = path.join(`events/${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -304,34 +412,45 @@ describe('Watcher', { retry: 2 }, () => {
         // Assert
         await vi.waitFor(() =>
           expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'), 'utf-8')
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/events/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+              'utf-8'
+            )
           ).resolves.toContain('UPDATE TEST')
         );
       });
 
       test('when an event is deleted, it deletes the corresponding event from astro', async () => {
-        const filePath = path.join(`events/${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
         await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeEvent${os.EOL}---${os.EOL}`);
-        await vi.waitUntil(() => existsSync(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx')), {
-          timeout: 3000,
-        });
+        await vi.waitUntil(
+          () =>
+            existsSync(
+              path.join(EC_CORE_DIR, 'src/content/events/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+            ),
+          {
+            timeout: 3000,
+          }
+        );
 
         // Act
         await fs.rm(path.join(PROJECT_DIR, filePath));
 
         // Assert
         await vi.waitFor(() =>
-          expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx'))).rejects.toThrow(
-            /ENOENT: no such file or directory/
-          )
+          expect(
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/events/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+            )
+          ).rejects.toThrow(/ENOENT: no such file or directory/)
         );
       });
 
       test('when a versioned event is created, it adds it to the correct location in astro', async () => {
-        const filePath = path.join(`events/${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -345,13 +464,16 @@ describe('Watcher', { retry: 2 }, () => {
         // Assert
         await vi.waitFor(() =>
           expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'), 'utf8')
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/events/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+              'utf8'
+            )
           ).resolves.toEqual(`---${os.EOL}id: FakeEvent${os.EOL}version: 0.0.1${os.EOL}---${os.EOL}`)
         );
       });
 
       test('when a versioned event is updated, it updates the corresponding event in astro', async () => {
-        const filePath = path.join(`events/${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -366,13 +488,16 @@ describe('Watcher', { retry: 2 }, () => {
         // Assert
         await vi.waitFor(() =>
           expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'), 'utf-8')
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/events/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+              'utf-8'
+            )
           ).resolves.toContain('UPDATE TEST')
         );
       });
 
       test('when a versioned event is deleted, it deletes the corresponding event from astro', async () => {
-        const filePath = path.join(`events/${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -380,144 +505,250 @@ describe('Watcher', { retry: 2 }, () => {
           path.join(PROJECT_DIR, filePath),
           `---${os.EOL}id: FakeEvent${os.EOL}version: 0.0.1${os.EOL}---${os.EOL}`
         );
-        await vi.waitUntil(() => existsSync(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath))), { timeout: 3000 });
+        await vi.waitUntil(
+          () => existsSync(path.join(EC_CORE_DIR, 'src/content/events/', path.dirname(path.relative(dirPrefix, filePath)))),
+          { timeout: 3000 }
+        );
 
         // Act
         await fs.rm(path.join(PROJECT_DIR, filePath));
 
         // Assert
         await vi.waitFor(() =>
-          expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx'))).rejects.toThrow(
-            /ENOENT: no such file or directory/
-          )
+          expect(
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/events/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+            )
+          ).rejects.toThrow(/ENOENT: no such file or directory/)
+        );
+      });
+
+      let prevDir: string = '';
+      test.each(
+        dirPrefix
+          .split('/')
+          .filter(Boolean)
+          .map((dir) => (prevDir += '/' + dir))
+      )('when the %s directory is deleted, it deletes the corresponding events from astro', async (dirToDelete) => {
+        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+
+        // Arrange
+        await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+        await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeEvent${os.EOL}---${os.EOL}`);
+        await vi.waitUntil(
+          () =>
+            existsSync(
+              path.join(EC_CORE_DIR, 'src/content/events/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+            ),
+          {
+            timeout: 3000,
+          }
+        );
+
+        // Act
+        await fs.rm(path.join(PROJECT_DIR, dirToDelete), { recursive: true });
+
+        // Assert
+        await vi.waitFor(() =>
+          expect(
+            fs.readFile(
+              path.join(EC_CORE_DIR, 'src/content/events/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+            )
+          ).rejects.toThrow(/ENOENT: no such file or directory/)
         );
       });
     });
   });
 
   describe('Services', () => {
-    describe('/services directory', () => {
-      test('when a service is created, it adds it to the correct location in astro', async () => {
-        const filePath = path.join(`services/${getUniqueName()}/index.md`);
+    describe.each([{ dir: '/services' }, { dir: '/domains/FakeDomain/services' }])(
+      'within $dir directory',
+      ({ dir: dirPrefix }) => {
+        test('when a service is created, it adds it to the correct location in astro', async () => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
 
-        // Arrange
-        await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
 
-        // Act
-        await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeService${os.EOL}---${os.EOL}`);
+          // Act
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeService${os.EOL}---${os.EOL}`);
 
-        // Assert
-        await vi.waitFor(() =>
-          expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx'), 'utf8')
-          ).resolves.toEqual(`---${os.EOL}id: FakeService${os.EOL}---${os.EOL}`)
-        );
-      });
-
-      test('when a service is updated, it updates the corresponding service in astro', async () => {
-        const filePath = path.join(`services/${getUniqueName()}/index.md`);
-
-        // Arrange
-        await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
-        await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeService${os.EOL}---${os.EOL}`);
-
-        // Act
-        await fs.appendFile(path.join(PROJECT_DIR, filePath), 'UPDATE TEST');
-
-        // Assert
-        await vi.waitFor(() =>
-          expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx'), 'utf-8')
-          ).resolves.toContain('UPDATE TEST')
-        );
-      });
-
-      test('when a service is deleted, it deletes the corresponding service from astro', async () => {
-        const filePath = path.join(`services/${getUniqueName()}/index.md`);
-
-        // Arrange
-        await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
-        await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeService${os.EOL}---${os.EOL}`);
-        await vi.waitUntil(() => existsSync(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx')), {
-          timeout: 3000,
+          // Assert
+          await vi.waitFor(() =>
+            expect(
+              fs.readFile(
+                path.join(EC_CORE_DIR, 'src/content/services/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+                'utf8'
+              )
+            ).resolves.toEqual(`---${os.EOL}id: FakeService${os.EOL}---${os.EOL}`)
+          );
         });
 
-        // Act
-        await fs.rm(path.join(PROJECT_DIR, filePath));
+        test('when a service is updated, it updates the corresponding service in astro', async () => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
 
-        // Assert
-        await vi.waitFor(() =>
-          expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx'))).rejects.toThrow(
-            /ENOENT: no such file or directory/
-          )
-        );
-      });
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeService${os.EOL}---${os.EOL}`);
 
-      test('when a versioned service is created, it adds to the correct location in astro', async () => {
-        const filePath = path.join(`services/${getUniqueName()}/versioned/0.0.1/index.md`);
+          // Act
+          await fs.appendFile(path.join(PROJECT_DIR, filePath), 'UPDATE TEST');
 
-        // Arrange
-        await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
-
-        // Act
-        await fs.writeFile(
-          path.join(PROJECT_DIR, filePath),
-          `---${os.EOL}id: FakeService${os.EOL}version: 0.0.1${os.EOL}---${os.EOL}`
-        );
-
-        // Assert
-        await vi.waitFor(() =>
-          expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx'), 'utf8')
-          ).resolves.toEqual(`---${os.EOL}id: FakeService${os.EOL}version: 0.0.1${os.EOL}---${os.EOL}`)
-        );
-      });
-
-      test('when a versioned service is updated, it updates the corresponding service in astro', async () => {
-        const filePath = path.join(`services/${getUniqueName()}/versioned/0.0.1/index.md`);
-
-        // Arrange
-        await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
-        await fs.writeFile(
-          path.join(PROJECT_DIR, filePath),
-          `---${os.EOL}id: FakeService${os.EOL}version: 0.0.1${os.EOL}---${os.EOL}`
-        );
-
-        // Act
-        await fs.appendFile(path.join(PROJECT_DIR, filePath), 'UPDATE TEST');
-
-        // Assert
-        await vi.waitFor(() =>
-          expect(
-            fs.readFile(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx'), 'utf-8')
-          ).resolves.toContain('UPDATE TEST')
-        );
-      });
-
-      test('when a versioned service is deleted, it deletes the corresponding service from astro', async () => {
-        const filePath = path.join(`services/${getUniqueName()}/versioned/0.0.1/index.md`);
-
-        // Arrange
-        await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
-        await fs.writeFile(
-          path.join(PROJECT_DIR, filePath),
-          `---${os.EOL}id: FakeService${os.EOL}version: 0.0.1${os.EOL}---${os.EOL}`
-        );
-        await vi.waitUntil(() => existsSync(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx')), {
-          timeout: 3000,
+          // Assert
+          await vi.waitFor(() =>
+            expect(
+              fs.readFile(
+                path.join(EC_CORE_DIR, 'src/content/services/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+                'utf-8'
+              )
+            ).resolves.toContain('UPDATE TEST')
+          );
         });
 
-        // Act
-        await fs.rm(path.join(PROJECT_DIR, filePath));
+        test('when a service is deleted, it deletes the corresponding service from astro', async () => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
 
-        // Assert
-        await vi.waitFor(() =>
-          expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx'))).rejects.toThrow(
-            /ENOENT: no such file or directory/
-          )
-        );
-      });
-    });
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeService${os.EOL}---${os.EOL}`);
+          await vi.waitUntil(
+            () =>
+              existsSync(
+                path.join(EC_CORE_DIR, 'src/content/services/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+              ),
+            {
+              timeout: 3000,
+            }
+          );
+
+          // Act
+          await fs.rm(path.join(PROJECT_DIR, filePath));
+
+          // Assert
+          await vi.waitFor(() =>
+            expect(
+              fs.readFile(
+                path.join(EC_CORE_DIR, 'src/content/services/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+              )
+            ).rejects.toThrow(/ENOENT: no such file or directory/)
+          );
+        });
+
+        test('when a versioned service is created, it adds to the correct location in astro', async () => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+
+          // Act
+          await fs.writeFile(
+            path.join(PROJECT_DIR, filePath),
+            `---${os.EOL}id: FakeService${os.EOL}version: 0.0.1${os.EOL}---${os.EOL}`
+          );
+
+          // Assert
+          await vi.waitFor(() =>
+            expect(
+              fs.readFile(
+                path.join(EC_CORE_DIR, 'src/content/services/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+                'utf8'
+              )
+            ).resolves.toEqual(`---${os.EOL}id: FakeService${os.EOL}version: 0.0.1${os.EOL}---${os.EOL}`)
+          );
+        });
+
+        test('when a versioned service is updated, it updates the corresponding service in astro', async () => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(
+            path.join(PROJECT_DIR, filePath),
+            `---${os.EOL}id: FakeService${os.EOL}version: 0.0.1${os.EOL}---${os.EOL}`
+          );
+
+          // Act
+          await fs.appendFile(path.join(PROJECT_DIR, filePath), 'UPDATE TEST');
+
+          // Assert
+          await vi.waitFor(() =>
+            expect(
+              fs.readFile(
+                path.join(EC_CORE_DIR, 'src/content/services/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+                'utf-8'
+              )
+            ).resolves.toContain('UPDATE TEST')
+          );
+        });
+
+        test('when a versioned service is deleted, it deletes the corresponding service from astro', async () => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(
+            path.join(PROJECT_DIR, filePath),
+            `---${os.EOL}id: FakeService${os.EOL}version: 0.0.1${os.EOL}---${os.EOL}`
+          );
+          await vi.waitUntil(
+            () =>
+              existsSync(
+                path.join(EC_CORE_DIR, 'src/content/services/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+              ),
+            {
+              timeout: 3000,
+            }
+          );
+
+          // Act
+          await fs.rm(path.join(PROJECT_DIR, filePath));
+
+          // Assert
+          await vi.waitFor(() =>
+            expect(
+              fs.readFile(
+                path.join(EC_CORE_DIR, 'src/content/services/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+              )
+            ).rejects.toThrow(/ENOENT: no such file or directory/)
+          );
+        });
+
+        let prevDir: string = '';
+        test.each(
+          dirPrefix
+            .split('/')
+            .filter(Boolean)
+            .map((dir) => (prevDir += '/' + dir))
+        )('when the %s directory is deleted, it deletes the corresponding services from astro', async (dirToDelete) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeService${os.EOL}---${os.EOL}`);
+          await vi.waitUntil(
+            () =>
+              existsSync(
+                path.join(EC_CORE_DIR, 'src/content/services/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+              ),
+            {
+              timeout: 3000,
+            }
+          );
+
+          // Act
+          await fs.rm(path.join(PROJECT_DIR, dirToDelete), { recursive: true });
+
+          // Assert
+          await vi.waitFor(() =>
+            expect(
+              fs.readFile(
+                path.join(EC_CORE_DIR, 'src/content/services/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+              )
+            ).rejects.toThrow(/ENOENT: no such file or directory/)
+          );
+        });
+      }
+    );
   });
 
   describe('Teams', () => {
@@ -740,117 +971,185 @@ describe('Watcher', { retry: 2 }, () => {
   });
 
   describe('Flows', () => {
-    test('when a flow is created, it adds it to the correct location in astro', async () => {
-      const filePath = path.join(`flows/Payment/${getUniqueName()}/index.md`);
+    describe.each([{ dir: '/flows' }, { dir: '/services/flows' }, { dir: '/domains/flows' }])(
+      'within $dir directory',
+      ({ dir: dirPrefix }) => {
+        test('when a flow is created, it adds it to the correct location in astro', async () => {
+          const filePath = path.join(dirPrefix, `FakeFlow/${getUniqueName()}/index.md`);
 
-      // Arrange
-      await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
 
-      // Act
-      await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`);
+          // Act
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`);
 
-      // Assert
-      await vi.waitFor(() =>
-        expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx'), 'utf-8')).resolves.toEqual(
-          `---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`
-        )
-      );
-    });
+          // Assert
+          await vi.waitFor(() =>
+            expect(
+              fs.readFile(
+                path.join(EC_CORE_DIR, 'src/content/flows/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+                'utf-8'
+              )
+            ).resolves.toEqual(`---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`)
+          );
+        });
 
-    test('when a flow is updated, it updates the corresponding flow in astro', async () => {
-      const filePath = path.join(`flows/Payment/${getUniqueName()}/index.md`);
+        test('when a flow is updated, it updates the corresponding flow in astro', async () => {
+          const filePath = path.join(dirPrefix, `FakeFlow/${getUniqueName()}/index.md`);
 
-      // Arrange
-      await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
-      await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`);
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`);
 
-      // Act
-      await fs.appendFile(path.join(PROJECT_DIR, filePath), 'UPDATE TEST');
+          // Act
+          await fs.appendFile(path.join(PROJECT_DIR, filePath), 'UPDATE TEST');
 
-      // Assert
-      await vi.waitFor(() =>
-        expect(
-          fs.readFile(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx'), 'utf-8')
-        ).resolves.toContain('UPDATE TEST')
-      );
-    });
+          // Assert
+          await vi.waitFor(() =>
+            expect(
+              fs.readFile(
+                path.join(EC_CORE_DIR, 'src/content/flows/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+                'utf-8'
+              )
+            ).resolves.toContain('UPDATE TEST')
+          );
+        });
 
-    test('when a flow is deleted, it deletes the corresponding flow from astro', async () => {
-      const filePath = path.join(`flows/Payment/${getUniqueName()}/index.md`);
+        test('when a flow is deleted, it deletes the corresponding flow from astro', async () => {
+          const filePath = path.join(dirPrefix, `FakeFlow/${getUniqueName()}/index.md`);
 
-      // Arrange
-      await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
-      await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`);
-      await vi.waitUntil(() => existsSync(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx')), {
-        timeout: 3000,
-      });
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`);
+          await vi.waitUntil(
+            () =>
+              existsSync(
+                path.join(EC_CORE_DIR, 'src/content/flows/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+              ),
+            {
+              timeout: 3000,
+            }
+          );
 
-      // Act
-      await fs.rm(path.join(PROJECT_DIR, filePath));
+          // Act
+          await fs.rm(path.join(PROJECT_DIR, filePath));
 
-      // Assert
-      await vi.waitFor(() =>
-        expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx'))).rejects.toThrowError(
-          /ENOENT: no such file or directory/
-        )
-      );
-    });
+          // Assert
+          await vi.waitFor(() =>
+            expect(
+              fs.readFile(
+                path.join(EC_CORE_DIR, 'src/content/flows/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+              )
+            ).rejects.toThrowError(/ENOENT: no such file or directory/)
+          );
+        });
 
-    test('when a versioned flow is created, it adds it to the correct location in astro', async () => {
-      const filePath = path.join(`flows/Payment/${getUniqueName()}/versioned/0.0.1/index.md`);
+        test('when a versioned flow is created, it adds it to the correct location in astro', async () => {
+          const filePath = path.join(dirPrefix, `FakeFlow/${getUniqueName()}/versioned/0.0.1/index.md`);
 
-      // Arrange
-      await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
 
-      // Act
-      await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`);
+          // Act
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`);
 
-      // Assert
-      await vi.waitFor(() =>
-        expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx'), 'utf-8')).resolves.toEqual(
-          `---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`
-        )
-      );
-    });
+          // Assert
+          await vi.waitFor(() =>
+            expect(
+              fs.readFile(
+                path.join(EC_CORE_DIR, 'src/content/flows/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+                'utf-8'
+              )
+            ).resolves.toEqual(`---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`)
+          );
+        });
 
-    test('when a versioned flow is updated, it updates the corresponding flow in astro', async () => {
-      const filePath = path.join(`flows/Payment/${getUniqueName()}/versioned/0.0.1/index.md`);
+        test('when a versioned flow is updated, it updates the corresponding flow in astro', async () => {
+          const filePath = path.join(dirPrefix, `FakeFlow/${getUniqueName()}/versioned/0.0.1/index.md`);
 
-      // Arrange
-      await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
-      await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`);
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`);
 
-      // Act
-      await fs.appendFile(path.join(PROJECT_DIR, filePath), 'UPDATE TEST');
+          // Act
+          await fs.appendFile(path.join(PROJECT_DIR, filePath), 'UPDATE TEST');
 
-      // Assert
-      await vi.waitFor(() =>
-        expect(
-          fs.readFile(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx'), 'utf-8')
-        ).resolves.toContain('UPDATE TEST')
-      );
-    });
+          // Assert
+          await vi.waitFor(() =>
+            expect(
+              fs.readFile(
+                path.join(EC_CORE_DIR, 'src/content/flows/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx'),
+                'utf-8'
+              )
+            ).resolves.toContain('UPDATE TEST')
+          );
+        });
 
-    test('when a versioned flow is deleted, it deletes the corresponding flow from astro', async () => {
-      const filePath = path.join(`flows/Payment/${getUniqueName()}/versioned/0.0.1/index.md`);
+        test('when a versioned flow is deleted, it deletes the corresponding flow from astro', async () => {
+          const filePath = path.join(dirPrefix, `FakeFlow/${getUniqueName()}/versioned/0.0.1/index.md`);
 
-      // Arrange
-      await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
-      await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`);
-      await vi.waitUntil(() => existsSync(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx')), {
-        timeout: 3000,
-      });
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`);
+          await vi.waitUntil(
+            () =>
+              existsSync(
+                path.join(EC_CORE_DIR, 'src/content/flows/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+              ),
+            {
+              timeout: 3000,
+            }
+          );
 
-      // Act
-      await fs.rm(path.join(PROJECT_DIR, filePath));
+          // Act
+          await fs.rm(path.join(PROJECT_DIR, filePath));
 
-      // Assert
-      await vi.waitFor(() =>
-        expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content', path.dirname(filePath), 'index.mdx'))).rejects.toThrowError(
-          /ENOENT: no such file or directory/
-        )
-      );
-    });
+          // Assert
+          await vi.waitFor(() =>
+            expect(
+              fs.readFile(
+                path.join(EC_CORE_DIR, 'src/content/flows/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+              )
+            ).rejects.toThrowError(/ENOENT: no such file or directory/)
+          );
+        });
+
+        let prevDir: string = '';
+        test.each(
+          dirPrefix
+            .split('/')
+            .filter(Boolean)
+            .map((dir) => (prevDir += '/' + dir))
+        )('when the %s directory is deleted, it deletes the corresponding flows from astro', async (dirToDelete) => {
+          const filePath = path.join(dirPrefix, `FakeFlow/${getUniqueName()}/index.md`);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeFlow${os.EOL}---${os.EOL}`);
+          await vi.waitUntil(
+            () =>
+              existsSync(
+                path.join(EC_CORE_DIR, 'src/content/flows/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+              ),
+            {
+              timeout: 3000,
+            }
+          );
+
+          // Act
+          await fs.rm(path.join(PROJECT_DIR, dirToDelete), { recursive: true });
+
+          // Assert
+          await vi.waitFor(() =>
+            expect(
+              fs.readFile(
+                path.join(EC_CORE_DIR, 'src/content/flows/', path.dirname(path.relative(dirPrefix, filePath)), 'index.mdx')
+              )
+            ).rejects.toThrowError(/ENOENT: no such file or directory/)
+          );
+        });
+      }
+    );
   });
 
   describe('Pages', () => {
