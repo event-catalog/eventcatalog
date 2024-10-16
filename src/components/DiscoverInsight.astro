@@ -1,0 +1,52 @@
+---
+import { buildUrl } from '@utils/url-builder';
+import type React from 'react';
+
+interface Props {
+  color: string;
+  dataTarget: number;
+  icon: React.ElementType;
+  label: 'domains' | 'services' | 'commands' | 'events' | 'flows';
+}
+
+const { color, dataTarget, icon: Icon, label } = Astro.props;
+---
+
+<div class={`relative text-center ${color}`}>
+  <div class="flex justify-center mb-2">
+    <Icon className="w-8 h-8" />
+  </div>
+
+  <div class="text-2xl font-bold mb-1">
+    <span class="statistic" data-target={dataTarget}>0</span>
+  </div>
+
+  <a
+    href={buildUrl(`/discover/${label}`)}
+    class="static before:block before:absolute before:top-0 before:left-0 before:z-0 before:w-full before:h-full hover:underline underline-offset-8 text-sm text-gray-600 capitalize"
+  >
+    {label}
+  </a>
+</div>
+
+<script>
+  function animateStatistics() {
+    const statistics = document.querySelectorAll('.statistic');
+    statistics.forEach((statistic) => {
+      let target = parseInt(statistic.getAttribute('data-target')!);
+      let current = 0;
+      const increment = target / 50;
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+          clearInterval(timer);
+          statistic.textContent = target.toString();
+        } else {
+          statistic.textContent = Math.round(current).toString();
+        }
+      }, 20);
+    });
+  }
+
+  window.addEventListener('load', animateStatistics);
+</script>
