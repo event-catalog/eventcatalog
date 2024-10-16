@@ -2,8 +2,6 @@ import type { CollectionEntry } from 'astro:content';
 import type { Node } from 'reactflow';
 import dagre from 'dagre';
 
-type DagreGraph = any;
-
 export const generateIdForNode = (node: CollectionEntry<'events' | 'services' | 'commands'>) => {
   return `${node.data.id}-${node.data.version}`;
 };
@@ -23,9 +21,9 @@ export const calculatedNodes = (flow: dagre.graphlib.Graph, nodes: Node[]) => {
 };
 
 // Creates a new dagre graph
-export const createDagreGraph = ({ ranksep = 180, nodesep = 50 }: any) => {
+export const createDagreGraph = ({ ranksep = 180, nodesep = 50, ...rest }: any) => {
   const graph = new dagre.graphlib.Graph({ compound: true });
-  graph.setGraph({ rankdir: 'LR', ranksep, nodesep });
+  graph.setGraph({ rankdir: 'LR', ranksep, nodesep, ...rest });
   graph.setDefaultEdgeLabel(() => ({}));
   return graph;
 };
