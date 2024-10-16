@@ -52,7 +52,7 @@ export async function watch(projectDirectory, catalogDirectory, callback = undef
                 break;
               case 'delete':
                 try {
-                  fs.rmSync(astroPath, { recursive: true });
+                  fs.rmSync(astroPath, { recursive: true, force: true });
                 } catch (e) {
                   if (e.code == 'ENOENT') {
                     // fail silently - The parent directory could have been deleted before.
