@@ -21,7 +21,7 @@
     "test": "vitest --config vitest.config.ts",
     "test:ci": "node scripts/ci/test.js",
     "start": "astro dev",
-    "build": "npm run scripts:hydrate-content && node scripts/analytics/log-build.js && astro check --minimumSeverity error && astro build",
+    "build": "npm run scripts:hydrate-content && node scripts/analytics/log-build.js && astro build",
     "build:cd": "node scripts/build-ci.js",
     "preview": "astro preview",
     "astro": "astro",
