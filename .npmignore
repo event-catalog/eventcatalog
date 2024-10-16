@@ -21,3 +21,7 @@ __tests__/
 
 Dockerfile
 .dockerignore
+
+# e2e
+e2e/
+playwright.config.ts

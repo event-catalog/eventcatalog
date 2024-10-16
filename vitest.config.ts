@@ -6,5 +6,6 @@ export default getViteConfig({
   plugins: [tsConfigPaths()],
   test: {
     globals: true,
+    include: ['**/__tests__/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
   },
 });
