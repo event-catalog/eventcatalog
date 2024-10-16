@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.8.4
+
+### Patch Changes
+
+- 95ca9aa: chore(core): removed type checks for consuming catalogs
+
 ## 2.8.3
 
 ### Patch Changes
