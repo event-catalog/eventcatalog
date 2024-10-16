@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.8.5
+
+### Patch Changes
+
+- db41392: fix(core): flows now work with latest semver for services
+- 8376da8: chore(core): fixed url builder for server/client components
+
 ## 2.8.4
 
 ### Patch Changes
