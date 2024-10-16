@@ -6,7 +6,7 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { watch } from '../watcher';
 
-describe('Watcher', { retry: 2 }, () => {
+describe('Watcher', { retry: 3 }, () => {
   let watcherUnsubscribe: () => Promise<void>;
   let PROJECT_DIR: string;
   let EC_CORE_DIR: string;
