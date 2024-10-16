@@ -410,6 +410,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "d-o-h",
+      "name": "d-o-h",
+      "avatar_url": "https://avatars.githubusercontent.com/u/23699653?v=4",
+      "profile": "https://github.com/d-o-h",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

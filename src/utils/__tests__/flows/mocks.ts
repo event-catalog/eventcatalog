@@ -17,6 +17,17 @@ export const mockEvents = [
   },
 ];
 
+export const mockServices = [
+  {
+    slug: 'SubscriptionService',
+    collection: 'services',
+    data: {
+      id: 'SubscriptionService',
+      version: '0.0.1',
+    },
+  },
+];
+
 export const mockFlow = [
   {
     id: 'Payment/PaymentProcessed/index.mdx',
@@ -117,6 +128,74 @@ export const mockFlowByIds = [
       summary: 'Business flow for processing payments in an e-commerce platform',
       version: '1.0.0',
       type: 'node',
+    },
+  },
+  {
+    id: 'Subscriptions/CancelSubscription/index.mdx',
+    slug: 'subscriptions/CancelSubscription',
+    body: '',
+    collection: 'flows',
+    data: {
+      steps: [
+        {
+          id: 'cancel_subscription_initiated',
+          title: 'Cancels Subscription',
+          actor: {
+            name: 'User',
+          },
+          next_step: {
+            id: 'cancel_subscription_request',
+            label: 'Initiate subscription cancellation',
+          },
+        },
+        {
+          id: 'cancel_subscription_request',
+          title: 'Cancel Subscription',
+          message: {
+            id: 'CancelSubscription',
+            version: '0.0.1',
+          },
+          next_step: {
+            id: 'subscription_service',
+            label: 'Proceed to subscription service',
+          },
+        },
+        {
+          id: 'subscription_service',
+          title: 'Subscription Service',
+          service: {
+            id: 'SubscriptionService',
+            version: 'latest',
+          },
+          next_steps: [
+            {
+              id: 'subscription_cancelled',
+              label: 'Successful cancellation',
+            },
+            {
+              id: 'subscription_rejected',
+              label: 'Failed cancellation',
+            },
+          ],
+        },
+        {
+          id: 'subscription_cancelled',
+          title: 'Subscription has been cancelled',
+          message: {
+            id: 'UserSubscriptionCancelled',
+            version: '0.0.1',
+          },
+        },
+        {
+          id: 'subscription_rejected',
+          title: 'Subscription cancellation has been rejected',
+        },
+      ],
+      id: 'CancelSubscription',
+      name: 'User Cancels Subscription',
+      summary: 'Flow for when a user has cancelled a subscription',
+      version: '1.0.0',
+      // type: 'node',
     },
   },
 ];

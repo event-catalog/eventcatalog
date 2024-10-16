@@ -1,6 +1,7 @@
 import { getNodesAndEdges } from '../../flows/node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockEvents, mockFlow, mockFlowByIds } from './mocks';
+import { mockEvents, mockFlow, mockFlowByIds, mockServices } from './mocks';
+import { getCollection } from 'astro:content';
 let expectedNodes: any;
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -13,6 +14,9 @@ vi.mock('astro:content', async (importOriginal) => {
       }
       if (key === 'events') {
         return Promise.resolve(mockEvents);
+      }
+      if (key === 'services') {
+        return Promise.resolve(mockServices);
       }
       return Promise.resolve([]);
     },
@@ -113,8 +117,29 @@ describe('Flows NodeGraph', () => {
       expect(edges).toEqual(expect.arrayContaining([expect.objectContaining(expectedEdges[0])]));
     });
 
+    it('should resolves the correct node when it is a service with version as latest', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'CancelSubscription', version: '1.0.0' });
+
+      expect(nodes).toContainEqual(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            step: expect.objectContaining({
+              type: 'services',
+              service: expect.objectContaining({
+                data: {
+                  id: 'SubscriptionService',
+                  version: '0.0.1',
+                },
+              }),
+            }),
+          }),
+        })
+      );
+    });
+
     describe('when steps are referenced only by id', () => {
       it('should return the correct nodes and edges', async () => {
+        // TODO: This mock seems to be overriding the first mock...
         // Mock
         vi.mock('astro:content', async (importOriginal) => {
           return {
@@ -126,6 +151,9 @@ describe('Flows NodeGraph', () => {
               }
               if (key === 'events') {
                 return Promise.resolve(mockEvents);
+              }
+              if (key === 'services') {
+                return Promise.resolve(mockServices);
               }
               return Promise.resolve([]);
             },

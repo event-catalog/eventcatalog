@@ -1,5 +1,36 @@
 # @eventcatalog/core
 
+## 2.8.7
+
+### Patch Changes
+
+- ce04693: fix(core): fixed visualization node graph for domains, reduced overlapping
+
+## 2.8.6
+
+### Patch Changes
+
+- b4c49ef: feat(core): added links to the landing page and fixed resource counter values
+
+## 2.8.5
+
+### Patch Changes
+
+- db41392: fix(core): flows now work with latest semver for services
+- 8376da8: chore(core): fixed url builder for server/client components
+
+## 2.8.4
+
+### Patch Changes
+
+- 95ca9aa: chore(core): removed type checks for consuming catalogs
+
+## 2.8.3
+
+### Patch Changes
+
+- d07a946: chore(core): updated astro versions
+
 ## 2.8.2
 
 ### Patch Changes
