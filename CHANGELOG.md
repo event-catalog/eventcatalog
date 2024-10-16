@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.8.6
+
+### Patch Changes
+
+- b4c49ef: feat(core): added links to the landing page and fixed resource counter values
+
 ## 2.8.5
 
 ### Patch Changes
