@@ -16,7 +16,7 @@ fs.copyFileSync(join(projectDIR, 'eventcatalog.config.js'), join(catalogDir, 'ev
 
 fs.copyFileSync(join(projectDIR, 'eventcatalog.styles.css'), join(catalogDir, 'eventcatalog.styles.css'));
 
-execSync(`cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npm run build`, {
+execSync(`cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npm run build && astro check --minimumSeverity error`, {
   cwd: catalogDir,
   stdio: 'inherit',
 });
