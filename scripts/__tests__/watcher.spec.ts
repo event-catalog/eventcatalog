@@ -11,9 +11,6 @@ describe('Watcher', { retry: 5 }, () => {
   let PROJECT_DIR: string;
   let EC_CORE_DIR: string;
 
-  let c = 0;
-  const getUniqueName = () => `test${c++}${Math.random().toString(31).slice(2)}`;
-
   const assetsCatalogDirs = ['public/generated/', 'src/catalog-files/'];
   const assets = [
     {
@@ -53,8 +50,10 @@ describe('Watcher', { retry: 5 }, () => {
       { dir: '/domains/FakeDomain/commands' },
       { dir: '/domains/FakeDomain/services/FakeService/commands' },
     ])('within $dir directory', ({ dir: dirPrefix }) => {
+      const commandName = 'FakeCommand';
+
       test('when a command is created, it adds it to the correct location in astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, commandName, 'index.md');
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -74,7 +73,7 @@ describe('Watcher', { retry: 5 }, () => {
       });
 
       test('when a command is updated, it updates the corresponding command in astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, commandName, `index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -95,7 +94,7 @@ describe('Watcher', { retry: 5 }, () => {
       });
 
       test('when a command is deleted, it deletes the corresponding command from astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, commandName, `index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -126,7 +125,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the asset $filename is created, it adds it to the correct location in astro',
         async ({ filename, content }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+          const filePath = path.join(dirPrefix, commandName, filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -150,7 +149,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the asset $filename is updated, it updates the corresponding asset in astro',
         async ({ filename, content, updatedContent }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+          const filePath = path.join(dirPrefix, commandName, filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -175,7 +174,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the asset $filename is deleted, it deletes the corresponding asset from astro',
         async ({ filename, content }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+          const filePath = path.join(dirPrefix, commandName, filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -205,7 +204,7 @@ describe('Watcher', { retry: 5 }, () => {
       );
 
       test('when a versioned command is created, it adds it to the correct location in astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, commandName, `versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -230,7 +229,7 @@ describe('Watcher', { retry: 5 }, () => {
       });
 
       test('when a versioned command is updated, it updates the corresponding command in astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, commandName, `versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -251,7 +250,7 @@ describe('Watcher', { retry: 5 }, () => {
       });
 
       test('when a versioned command is deleted, it deletes the corresponding command from astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, commandName, `versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -282,7 +281,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the versioned asset $filename is created, it adds it to the correct location in astro',
         async ({ filename, content }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, 'versioned/0.0.1/', filename);
+          const filePath = path.join(dirPrefix, commandName, 'versioned/0.0.1/', filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -306,7 +305,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the versioned asset $filename is updated, it updates the corresponding asset in astro',
         async ({ filename, content, updatedContent }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, 'versioned/0.0.1/', filename);
+          const filePath = path.join(dirPrefix, commandName, 'versioned/0.0.1/', filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -331,7 +330,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the versioned asset $filename is deleted, it deletes the corresponding asset from astro',
         async ({ filename, content }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, 'versioned/0.0.1/', filename);
+          const filePath = path.join(dirPrefix, commandName, 'versioned/0.0.1/', filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -367,7 +366,7 @@ describe('Watcher', { retry: 5 }, () => {
           .filter(Boolean)
           .map((dir) => (prevDir += '/' + dir))
       )('when the %s directory is deleted, it deletes the corresponding commands from astro', async (dirToDelete) => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, commandName, `index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -403,8 +402,10 @@ describe('Watcher', { retry: 5 }, () => {
         dir: '/domains',
       },
     ])('within $dir directory', ({ dir: dirPrefix }) => {
+      const domainName = 'FakeDomain';
+
       test('when a domain is created, it adds to the correct location in astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, domainName, `index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -424,7 +425,7 @@ describe('Watcher', { retry: 5 }, () => {
       });
 
       test('when a domain is updated, it updates the corresponding domain in astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, domainName, `index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -445,7 +446,7 @@ describe('Watcher', { retry: 5 }, () => {
       });
 
       test('when a domain is deleted, it deletes the corresponding domain from astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, domainName, `index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -476,7 +477,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the asset $filename is created, it adds it to the correct location in astro',
         async ({ filename, content }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+          const filePath = path.join(dirPrefix, domainName, filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -500,7 +501,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the asset $filename is updated, it updates the corresponding asset in astro',
         async ({ filename, content, updatedContent }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+          const filePath = path.join(dirPrefix, domainName, filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -525,7 +526,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the asset $filename is deleted, it deletes the corresponding asset from astro',
         async ({ filename, content }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+          const filePath = path.join(dirPrefix, domainName, filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -555,7 +556,7 @@ describe('Watcher', { retry: 5 }, () => {
       );
 
       test('when a versioned domain is created, it adds to the correct location in astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, domainName, `versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -578,7 +579,7 @@ describe('Watcher', { retry: 5 }, () => {
       });
 
       test('when a versioned domain is updated, it updates the corresponding domain in astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, domainName, `versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -601,7 +602,7 @@ describe('Watcher', { retry: 5 }, () => {
       });
 
       test('when a versioned domain is deleted, it deletes the corresponding domain in astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, domainName, `versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -635,7 +636,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the versioned asset $filename is created, it adds it to the correct location in astro',
         async ({ filename, content }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, 'versioned/0.0.1/', filename);
+          const filePath = path.join(dirPrefix, domainName, 'versioned/0.0.1/', filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -659,7 +660,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the versioned asset $filename is updated, it updates the corresponding asset in astro',
         async ({ filename, content, updatedContent }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, 'versioned/0.0.1/', filename);
+          const filePath = path.join(dirPrefix, domainName, 'versioned/0.0.1/', filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -684,7 +685,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the versioned asset $filename is deleted, it deletes the corresponding asset from astro',
         async ({ filename, content }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, 'versioned/0.0.1/', filename);
+          const filePath = path.join(dirPrefix, domainName, 'versioned/0.0.1/', filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -722,8 +723,10 @@ describe('Watcher', { retry: 5 }, () => {
       { dir: '/domains/FakeDomain/events' },
       { dir: '/domains/FakeDomain/services/FakeService/events' },
     ])('within $dir directory', ({ dir: dirPrefix }) => {
+      const eventName = 'FakeEvent';
+
       test('when an event is created, it adds it to the correct location in astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, eventName, `index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -743,7 +746,7 @@ describe('Watcher', { retry: 5 }, () => {
       });
 
       test('when an event is updated, it updates the corresponding event in astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, eventName, `index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -764,7 +767,7 @@ describe('Watcher', { retry: 5 }, () => {
       });
 
       test('when an event is deleted, it deletes the corresponding event from astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, eventName, `index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -795,7 +798,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the asset $filename is created, it adds it to the correct location in astro',
         async ({ filename, content }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+          const filePath = path.join(dirPrefix, eventName, filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -819,7 +822,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the asset $filename is updated, it updates the corresponding asset in astro',
         async ({ filename, content, updatedContent }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+          const filePath = path.join(dirPrefix, eventName, filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -844,7 +847,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the asset $filename is deleted, it deletes the corresponding asset from astro',
         async ({ filename, content }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+          const filePath = path.join(dirPrefix, eventName, filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -874,7 +877,7 @@ describe('Watcher', { retry: 5 }, () => {
       );
 
       test('when a versioned event is created, it adds it to the correct location in astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, eventName, `versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -897,7 +900,7 @@ describe('Watcher', { retry: 5 }, () => {
       });
 
       test('when a versioned event is updated, it updates the corresponding event in astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, eventName, `versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -921,7 +924,7 @@ describe('Watcher', { retry: 5 }, () => {
       });
 
       test('when a versioned event is deleted, it deletes the corresponding event from astro', async () => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
+        const filePath = path.join(dirPrefix, eventName, `versioned/0.0.1/index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -950,7 +953,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the versioned asset $filename is created, it adds it to the correct location in astro',
         async ({ filename, content }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+          const filePath = path.join(dirPrefix, eventName, filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -974,7 +977,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the versioned asset $filename is updated, it updates the corresponding asset in astro',
         async ({ filename, content, updatedContent }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+          const filePath = path.join(dirPrefix, eventName, filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -999,7 +1002,7 @@ describe('Watcher', { retry: 5 }, () => {
       test.each(assets)(
         'when the versioned asset $filename is deleted, it deletes the corresponding asset from astro',
         async ({ filename, content }) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+          const filePath = path.join(dirPrefix, eventName, filename);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1035,7 +1038,7 @@ describe('Watcher', { retry: 5 }, () => {
           .filter(Boolean)
           .map((dir) => (prevDir += '/' + dir))
       )('when the %s directory is deleted, it deletes the corresponding events from astro', async (dirToDelete) => {
-        const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+        const filePath = path.join(dirPrefix, eventName, `index.md`);
 
         // Arrange
         await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1069,8 +1072,10 @@ describe('Watcher', { retry: 5 }, () => {
     describe.each([{ dir: '/services' }, { dir: '/domains/FakeDomain/services' }])(
       'within $dir directory',
       ({ dir: dirPrefix }) => {
+        const serviceName = 'FakeService';
+
         test('when a service is created, it adds it to the correct location in astro', async () => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+          const filePath = path.join(dirPrefix, serviceName, `index.md`);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1090,7 +1095,7 @@ describe('Watcher', { retry: 5 }, () => {
         });
 
         test('when a service is updated, it updates the corresponding service in astro', async () => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+          const filePath = path.join(dirPrefix, serviceName, `index.md`);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1111,7 +1116,7 @@ describe('Watcher', { retry: 5 }, () => {
         });
 
         test('when a service is deleted, it deletes the corresponding service from astro', async () => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+          const filePath = path.join(dirPrefix, serviceName, `index.md`);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1142,7 +1147,7 @@ describe('Watcher', { retry: 5 }, () => {
         test.each(assets)(
           'when the asset $filename is created, it adds it to the correct location in astro',
           async ({ filename, content }) => {
-            const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+            const filePath = path.join(dirPrefix, serviceName, filename);
 
             // Arrange
             await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1166,7 +1171,7 @@ describe('Watcher', { retry: 5 }, () => {
         test.each(assets)(
           'when the asset $filename is updated, it updates the corresponding asset in astro',
           async ({ filename, content, updatedContent }) => {
-            const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+            const filePath = path.join(dirPrefix, serviceName, filename);
 
             // Arrange
             await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1191,7 +1196,7 @@ describe('Watcher', { retry: 5 }, () => {
         test.each(assets)(
           'when the asset $filename is deleted, it deletes the corresponding asset from astro',
           async ({ filename, content }) => {
-            const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+            const filePath = path.join(dirPrefix, serviceName, filename);
 
             // Arrange
             await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1221,7 +1226,7 @@ describe('Watcher', { retry: 5 }, () => {
         );
 
         test('when a versioned service is created, it adds to the correct location in astro', async () => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
+          const filePath = path.join(dirPrefix, serviceName, 'versioned/0.0.1/', 'index.md');
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1244,7 +1249,7 @@ describe('Watcher', { retry: 5 }, () => {
         });
 
         test('when a versioned service is updated, it updates the corresponding service in astro', async () => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
+          const filePath = path.join(dirPrefix, serviceName, 'versioned/0.0.1/', 'index.md');
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1268,7 +1273,7 @@ describe('Watcher', { retry: 5 }, () => {
         });
 
         test('when a versioned service is deleted, it deletes the corresponding service from astro', async () => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
+          const filePath = path.join(dirPrefix, serviceName, 'versioned/0.0.1/', 'index.md');
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1302,7 +1307,7 @@ describe('Watcher', { retry: 5 }, () => {
         test.each(assets)(
           'when the versioned asset $filename is created, it adds it to the correct location in astro',
           async ({ filename, content }) => {
-            const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+            const filePath = path.join(dirPrefix, serviceName, filename);
 
             // Arrange
             await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1326,7 +1331,7 @@ describe('Watcher', { retry: 5 }, () => {
         test.each(assets)(
           'when the versioned asset $filename is updated, it updates the corresponding asset in astro',
           async ({ filename, content, updatedContent }) => {
-            const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+            const filePath = path.join(dirPrefix, serviceName, filename);
 
             // Arrange
             await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1351,7 +1356,7 @@ describe('Watcher', { retry: 5 }, () => {
         test.each(assets)(
           'when the versioned asset $filename is deleted, it deletes the corresponding asset from astro',
           async ({ filename, content }) => {
-            const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+            const filePath = path.join(dirPrefix, serviceName, filename);
 
             // Arrange
             await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1387,7 +1392,7 @@ describe('Watcher', { retry: 5 }, () => {
             .filter(Boolean)
             .map((dir) => (prevDir += '/' + dir))
         )('when the %s directory is deleted, it deletes the corresponding services from astro', async (dirToDelete) => {
-          const filePath = path.join(dirPrefix, `${getUniqueName()}/index.md`);
+          const filePath = path.join(dirPrefix, serviceName, `index.md`);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1420,7 +1425,7 @@ describe('Watcher', { retry: 5 }, () => {
 
   describe('Teams', () => {
     test('when a team is created, it adds it to the correct location in astro', async () => {
-      const filePath = path.join(`teams/${getUniqueName()}.md`);
+      const filePath = path.join('teams/', 'FakeTeam.md');
 
       // Arrange
       await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1437,7 +1442,7 @@ describe('Watcher', { retry: 5 }, () => {
     });
 
     test('when a team is updated, it updates the corresponding team in astro', async () => {
-      const filePath = path.join(`teams/${getUniqueName()}.md`);
+      const filePath = path.join('teams/', 'FakeTeam.md');
 
       // Arrange
       await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1453,7 +1458,7 @@ describe('Watcher', { retry: 5 }, () => {
     });
 
     test('when a team is deleted, it deletes the corresponding team from astro', async () => {
-      const filePath = path.join(`teams/${getUniqueName()}.md`);
+      const filePath = path.join('teams/', 'FakeTeam.md');
 
       // Arrange
       await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1472,7 +1477,7 @@ describe('Watcher', { retry: 5 }, () => {
 
   describe('Users', () => {
     test('when an user is created, it adds it to the correct location in astro', async () => {
-      const filePath = path.join(`users/${getUniqueName()}.md`);
+      const filePath = path.join('users/', 'FakeUser.md');
 
       // Arrange
       await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1489,7 +1494,7 @@ describe('Watcher', { retry: 5 }, () => {
     });
 
     test('when an user is updated, it updates the corresponding user in astro', async () => {
-      const filePath = path.join(`users/${getUniqueName()}.md`);
+      const filePath = path.join('users/', 'FakeUser.md');
 
       // Arrange
       await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1504,7 +1509,7 @@ describe('Watcher', { retry: 5 }, () => {
     });
 
     test('when an user is deleted, it deletes the corresponding user from astro', async () => {
-      const filePath = path.join(`users/${getUniqueName()}.md`);
+      const filePath = path.join('users/', 'FakeUser.md');
 
       // Arrange
       await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1523,7 +1528,7 @@ describe('Watcher', { retry: 5 }, () => {
 
   describe('Changelogs', () => {
     test('when a changelog is created, it adds it to the correct location in astro', async () => {
-      const filePath = path.join(`events/Inventory/${getUniqueName()}/changelog.md`);
+      const filePath = path.join(`events/PaymentAccepted/changelog.md`);
 
       // Arrange
       await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1540,7 +1545,7 @@ describe('Watcher', { retry: 5 }, () => {
     });
 
     test('when a changelog is updated, it updates the corresponding changelog in astro', async () => {
-      const filePath = path.join(`events/Inventory/${getUniqueName()}/changelog.md`);
+      const filePath = path.join(`events/PaymentAccepted/changelog.md`);
 
       // Arrange
       await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1558,7 +1563,7 @@ describe('Watcher', { retry: 5 }, () => {
     });
 
     test('when a changelog is deleted, it deletes the corresponding changelog from astro', async () => {
-      const filePath = path.join(`events/Inventory/${getUniqueName()}/changelog.md`);
+      const filePath = path.join(`events/PaymentAccepted/changelog.md`);
 
       // Arrange
       await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1580,7 +1585,7 @@ describe('Watcher', { retry: 5 }, () => {
     });
 
     test('when a versioned changelog is created, it adds to the correct location in astro', async () => {
-      const filePath = path.join(`events/Inventory/${getUniqueName()}/versioned/0.0.1/changelog.md`);
+      const filePath = path.join(`events/PaymentAccepted/versioned/0.0.1/changelog.md`);
 
       // Arrange
       await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1597,7 +1602,7 @@ describe('Watcher', { retry: 5 }, () => {
     });
 
     test('when a versioned changelog is updated, it updates the corresponding changelog in astro', async () => {
-      const filePath = path.join(`events/Inventory/${getUniqueName()}/versioned/0.0.1/changelog.md`);
+      const filePath = path.join(`events/PaymentAccepted/versioned/0.0.1/changelog.md`);
 
       // Arrange
       await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1615,7 +1620,7 @@ describe('Watcher', { retry: 5 }, () => {
     });
 
     test('when a versioned changelog is deleted, it deletes the corresponding changelog from astro', async () => {
-      const filePath = path.join(`events/Inventory/${getUniqueName()}/versioned/0.0.1/changelog.md`);
+      const filePath = path.join(`events/PaymentAccepted/versioned/0.0.1/changelog.md`);
 
       // Arrange
       await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1642,7 +1647,7 @@ describe('Watcher', { retry: 5 }, () => {
       'within $dir directory',
       ({ dir: dirPrefix }) => {
         test('when a flow is created, it adds it to the correct location in astro', async () => {
-          const filePath = path.join(dirPrefix, `FakeFlow/${getUniqueName()}/index.md`);
+          const filePath = path.join(dirPrefix, `FakeFlow/index.md`);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1662,7 +1667,7 @@ describe('Watcher', { retry: 5 }, () => {
         });
 
         test('when a flow is updated, it updates the corresponding flow in astro', async () => {
-          const filePath = path.join(dirPrefix, `FakeFlow/${getUniqueName()}/index.md`);
+          const filePath = path.join(dirPrefix, `FakeFlow/index.md`);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1683,7 +1688,7 @@ describe('Watcher', { retry: 5 }, () => {
         });
 
         test('when a flow is deleted, it deletes the corresponding flow from astro', async () => {
-          const filePath = path.join(dirPrefix, `FakeFlow/${getUniqueName()}/index.md`);
+          const filePath = path.join(dirPrefix, `FakeFlow/index.md`);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1712,7 +1717,7 @@ describe('Watcher', { retry: 5 }, () => {
         });
 
         test('when a versioned flow is created, it adds it to the correct location in astro', async () => {
-          const filePath = path.join(dirPrefix, `FakeFlow/${getUniqueName()}/versioned/0.0.1/index.md`);
+          const filePath = path.join(dirPrefix, `FakeFlow/versioned/0.0.1/index.md`);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1732,7 +1737,7 @@ describe('Watcher', { retry: 5 }, () => {
         });
 
         test('when a versioned flow is updated, it updates the corresponding flow in astro', async () => {
-          const filePath = path.join(dirPrefix, `FakeFlow/${getUniqueName()}/versioned/0.0.1/index.md`);
+          const filePath = path.join(dirPrefix, `FakeFlow/versioned/0.0.1/index.md`);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1753,7 +1758,7 @@ describe('Watcher', { retry: 5 }, () => {
         });
 
         test('when a versioned flow is deleted, it deletes the corresponding flow from astro', async () => {
-          const filePath = path.join(dirPrefix, `FakeFlow/${getUniqueName()}/versioned/0.0.1/index.md`);
+          const filePath = path.join(dirPrefix, `FakeFlow/versioned/0.0.1/index.md`);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1788,7 +1793,7 @@ describe('Watcher', { retry: 5 }, () => {
             .filter(Boolean)
             .map((dir) => (prevDir += '/' + dir))
         )('when the %s directory is deleted, it deletes the corresponding flows from astro', async (dirToDelete) => {
-          const filePath = path.join(dirPrefix, `FakeFlow/${getUniqueName()}/index.md`);
+          const filePath = path.join(dirPrefix, `FakeFlow/index.md`);
 
           // Arrange
           await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
@@ -1820,9 +1825,8 @@ describe('Watcher', { retry: 5 }, () => {
   });
 
   describe('Pages', () => {
-    // TODO: fix extension replacer at map-catalog-to-astro
     test('when a page is created, it adds it to the correct location in astro', async () => {
-      const filename = getUniqueName();
+      const filename = 'SomePage';
       const filePath = path.join(`pages/${filename}.md`);
 
       // Arrange
@@ -1840,7 +1844,7 @@ describe('Watcher', { retry: 5 }, () => {
     });
 
     test('when a page is updated, it updates the corresponding page in astro', async () => {
-      const filename = getUniqueName() + '.md';
+      const filename = 'SomePage.md';
       const filePath = path.join('pages/', filename);
 
       // Arrange
@@ -1859,7 +1863,7 @@ describe('Watcher', { retry: 5 }, () => {
     });
 
     test('when a page is deleted, it deletes the corresponding page from astro', async () => {
-      const filename = getUniqueName() + '.md';
+      const filename = 'SomePage.md';
       const filePath = path.join('pages/', filename);
 
       // Arrange
@@ -1883,7 +1887,7 @@ describe('Watcher', { retry: 5 }, () => {
 
   describe('Custom components', () => {
     test('when a custom component is created, it adds it to the correct location in astro', async () => {
-      const filename = getUniqueName() + '.astro';
+      const filename = 'SomeComponent.astro';
       const filePath = path.join(`components/${filename}`);
 
       // Arrange
@@ -1900,7 +1904,7 @@ describe('Watcher', { retry: 5 }, () => {
     });
 
     test('when a custom component is updated, it updates the corresponding custom component in astro', async () => {
-      const filename = getUniqueName() + '.astro';
+      const filename = 'SomeComponent.astro';
       const filePath = path.join('components/', filename);
 
       // Arrange
@@ -1919,7 +1923,7 @@ describe('Watcher', { retry: 5 }, () => {
     });
 
     test('when a custom component is deleted, it deletes the corresponding custom component from astro', async () => {
-      const filename = getUniqueName() + '.astro';
+      const filename = 'SomeComponent.astro';
       const filePath = path.join('components/', filename);
 
       // Arrange
@@ -1970,7 +1974,7 @@ describe('Watcher', { retry: 5 }, () => {
     `;
 
     test('when a public asset is created, it adds it to the correct location in astro', async () => {
-      const filename = getUniqueName() + '.svg';
+      const filename = 'logo.svg';
 
       // Arrange
       await mkdir(path.join(PROJECT_DIR, 'public'));
@@ -1982,7 +1986,7 @@ describe('Watcher', { retry: 5 }, () => {
     });
 
     test('when a public asset is updated, it updates the corresponding public asset in astro', async () => {
-      const filename = getUniqueName() + '.svg';
+      const filename = 'logo.svg';
       const filePath = path.join('public/', filename);
 
       // Arrange
@@ -1997,7 +2001,7 @@ describe('Watcher', { retry: 5 }, () => {
     });
 
     test('when a public asset is deleted, it deletes the corresponding public asset from astro', async () => {
-      const filename = getUniqueName() + '.svg';
+      const filename = 'logo.svg';
       const filePath = path.join('public/', filename);
 
       // Arrange
