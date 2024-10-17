@@ -394,6 +394,23 @@ describe('Watcher', { retry: 5 }, () => {
         );
       });
     });
+
+    test('when the path contains `commands`, it should identify correct path to astro', async () => {
+      const filePath = path.join('commands/foo-bar-commands/index.md');
+
+      // Arrange
+      await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+
+      // Act
+      await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeCommand${os.EOL}---${os.EOL}`);
+
+      // Assert
+      await vi.waitFor(() =>
+        expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'), 'utf8')).resolves.toEqual(
+          `---${os.EOL}id: FakeCommand${os.EOL}---${os.EOL}`
+        )
+      );
+    });
   });
 
   describe('Domains', () => {
@@ -712,6 +729,23 @@ describe('Watcher', { retry: 5 }, () => {
             )
           );
         }
+      );
+    });
+
+    test('when the path contains `domains`, it should identify correct path to astro', async () => {
+      const filePath = path.join('domains/foo-bar-domains/index.md');
+
+      // Arrange
+      await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+
+      // Act
+      await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeDomain${os.EOL}---${os.EOL}`);
+
+      // Assert
+      await vi.waitFor(() =>
+        expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'), 'utf8')).resolves.toEqual(
+          `---${os.EOL}id: FakeDomain${os.EOL}---${os.EOL}`
+        )
       );
     });
   });
@@ -1065,6 +1099,23 @@ describe('Watcher', { retry: 5 }, () => {
           ).rejects.toThrow(/ENOENT: no such file or directory/)
         );
       });
+    });
+
+    test('when the path contains `events`, it should identify correct path to astro', async () => {
+      const filePath = path.join('events/foo-bar-events/index.md');
+
+      // Arrange
+      await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+
+      // Act
+      await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeEvent${os.EOL}---${os.EOL}`);
+
+      // Assert
+      await vi.waitFor(() =>
+        expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'), 'utf8')).resolves.toEqual(
+          `---${os.EOL}id: FakeEvent${os.EOL}---${os.EOL}`
+        )
+      );
     });
   });
 
@@ -1421,6 +1472,23 @@ describe('Watcher', { retry: 5 }, () => {
         });
       }
     );
+
+    test('when the path contains `services`, it should identify correct path to astro', async () => {
+      const filePath = path.join('services/foo-bar-services/index.md');
+
+      // Arrange
+      await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+
+      // Act
+      await fs.writeFile(path.join(PROJECT_DIR, filePath), `---${os.EOL}id: FakeService${os.EOL}---${os.EOL}`);
+
+      // Assert
+      await vi.waitFor(() =>
+        expect(fs.readFile(path.join(EC_CORE_DIR, 'src/content/', path.dirname(filePath), 'index.mdx'), 'utf8')).resolves.toEqual(
+          `---${os.EOL}id: FakeService${os.EOL}---${os.EOL}`
+        )
+      );
+    });
   });
 
   describe('Teams', () => {
