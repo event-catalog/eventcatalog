@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.8.8
+
+### Patch Changes
+
+- 3d3f56e: chore(core): changed the way eventcatalog file is now imported into the project
+
 ## 2.8.7
 
 ### Patch Changes
