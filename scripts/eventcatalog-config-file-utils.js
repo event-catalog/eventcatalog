@@ -17,8 +17,10 @@ export const getEventCatalogConfigFile = async (projectDirectory) => {
   try {
     let configFilePath = path.join(projectDirectory, 'eventcatalog.config.js');
 
-    const packageJson = await import(/* @vite-ignore */ path.join(projectDirectory, 'package.json'));
-    if (packageJson.default?.type !== 'module') {
+    const filePath = path.join(projectDirectory, 'package.json');
+    const packageJson = JSON.parse(await readFile(filePath, 'utf-8'));
+
+    if (packageJson?.type !== 'module') {
       await copyFile(configFilePath, path.join(tmpdir(), 'eventcatalog.config.mjs'));
       configFilePath = path.join(tmpdir(), 'eventcatalog.config.mjs');
     }
