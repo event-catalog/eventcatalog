@@ -4,10 +4,9 @@ import { copyFile } from 'node:fs/promises';
 import path from 'node:path';
 import { v4 as uuidV4 } from 'uuid';
 import { pathToFileURL } from 'url';
-import { tmpdir } from 'node:os';
 
-export async function cleanup() {
-  const filePath = path.join(tmpdir(), 'eventcatalog.config.mjs');
+export async function cleanup(projectDirectory) {
+  const filePath = path.join(projectDirectory, 'eventcatalog.config.mjs');
   if (existsSync(filePath)) {
     await rm(filePath);
   }
@@ -21,8 +20,8 @@ export const getEventCatalogConfigFile = async (projectDirectory) => {
     const packageJson = JSON.parse(await readFile(filePath, 'utf-8'));
 
     if (packageJson?.type !== 'module') {
-      await copyFile(configFilePath, path.join(tmpdir(), 'eventcatalog.config.mjs'));
-      configFilePath = path.join(tmpdir(), 'eventcatalog.config.mjs');
+      await copyFile(configFilePath, path.join(projectDirectory, 'eventcatalog.config.mjs'));
+      configFilePath = path.join(projectDirectory, 'eventcatalog.config.mjs');
     }
 
     const configFileURL = pathToFileURL(configFilePath).href;
@@ -30,7 +29,7 @@ export const getEventCatalogConfigFile = async (projectDirectory) => {
 
     return config.default;
   } finally {
-    await cleanup();
+    await cleanup(projectDirectory);
   }
 };
 
@@ -65,7 +64,7 @@ export const writeEventCatalogConfigFile = async (projectDirectory, newConfig) =
     // Write the updated content back to the file
     await writeFile(configFilePath, content);
   } finally {
-    await cleanup();
+    await cleanup(projectDirectory);
   }
 };
 
