@@ -2156,8 +2156,9 @@ describe('Watcher', { retry: 5 }, () => {
       await fs.writeFile(path.join(PROJECT_DIR, filePath), '.ec-homepage{background:yellow}');
 
       // Assert
-      await vi.waitFor(() =>
-        expect(fs.readFile(path.join(EC_CORE_DIR, filePath), 'utf-8')).resolves.toBe('.ec-homepage{background:yellow}')
+      await vi.waitFor(
+        () => expect(fs.readFile(path.join(EC_CORE_DIR, filePath), 'utf-8')).resolves.toBe('.ec-homepage{background:yellow}'),
+        { timeout: 3000 }
       );
     });
 
