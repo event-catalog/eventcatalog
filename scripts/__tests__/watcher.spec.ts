@@ -14,6 +14,25 @@ describe('Watcher', { retry: 5 }, () => {
   let c = 0;
   const getUniqueName = () => `test${c++}${Math.random().toString(31).slice(2)}`;
 
+  const assetsCatalogDirs = ['public/generated/', 'src/catalog-files/'];
+  const assets = [
+    {
+      filename: 'asyncapi.yml',
+      content: 'asyncapi: 3.0.0\n info:\n  title: AsyncApi',
+      updatedContent: 'asyncapi: 3.0.0\n info:\n  title: FakeAsyncApi',
+    },
+    {
+      filename: 'schema.json',
+      content: '{\n "$schema": "http://json-schema.org/draft-07/schema#",\n "title": "Schema",\n "type": "object"\n}',
+      updatedContent: '{\n "$schema": "http://json-schema.org/draft-07/schema#",\n "title": "FakeSchema",\n "type": "object"\n}',
+    },
+    {
+      filename: 'schema.avro',
+      content: '{\n"type" : "record",\n "namespace" : "Tutorialspoint",\n "name" : "Employee"\n}',
+      updatedContent: '{\n"type" : "record",\n "namespace" : "Tutorialspoint",\n "name" : "FakeEmployee"\n}',
+    },
+  ];
+
   beforeEach(async () => {
     PROJECT_DIR = path.join(__dirname, 'tmp-watcher', randomUUID());
     EC_CORE_DIR = path.join(PROJECT_DIR, '.eventcatalog-core');
@@ -104,6 +123,87 @@ describe('Watcher', { retry: 5 }, () => {
         );
       });
 
+      test.each(assets)(
+        'when the asset $filename is created, it adds it to the correct location in astro',
+        async ({ filename, content }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+
+          // Act
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(
+                  fs.readFile(path.join(EC_CORE_DIR, dir, 'commands', path.relative(dirPrefix, filePath)), 'utf8')
+                ).resolves.toEqual(content)
+              )
+            )
+          );
+        }
+      );
+
+      test.each(assets)(
+        'when the asset $filename is updated, it updates the corresponding asset in astro',
+        async ({ filename, content, updatedContent }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+          // Act
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), updatedContent);
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(
+                  fs.readFile(path.join(EC_CORE_DIR, dir, 'commands', path.relative(dirPrefix, filePath)), 'utf-8')
+                ).resolves.toEqual(updatedContent)
+              )
+            )
+          );
+        }
+      );
+
+      test.each(assets)(
+        'when the asset $filename is deleted, it deletes the corresponding asset from astro',
+        async ({ filename, content }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+          await vi.waitUntil(
+            () =>
+              assetsCatalogDirs
+                .map((dir) => existsSync(path.join(EC_CORE_DIR, dir, 'commands', path.relative(dirPrefix, filePath))))
+                .every(Boolean),
+            { timeout: 3000 }
+          );
+
+          // Act
+          await fs.rm(path.join(PROJECT_DIR, filePath));
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(fs.readFile(path.join(EC_CORE_DIR, dir, 'commands/', path.relative(dirPrefix, filePath)))).rejects.toThrow(
+                  /ENOENT: no such file or directory/
+                )
+              )
+            )
+          );
+        }
+      );
+
       test('when a versioned command is created, it adds it to the correct location in astro', async () => {
         const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
 
@@ -178,6 +278,87 @@ describe('Watcher', { retry: 5 }, () => {
           ).rejects.toThrow(/ENOENT: no such file or directory/)
         );
       });
+
+      test.each(assets)(
+        'when the versioned asset $filename is created, it adds it to the correct location in astro',
+        async ({ filename, content }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, 'versioned/0.0.1/', filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+
+          // Act
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(
+                  fs.readFile(path.join(EC_CORE_DIR, dir, 'commands', path.relative(dirPrefix, filePath)), 'utf8')
+                ).resolves.toEqual(content)
+              )
+            )
+          );
+        }
+      );
+
+      test.each(assets)(
+        'when the versioned asset $filename is updated, it updates the corresponding asset in astro',
+        async ({ filename, content, updatedContent }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, 'versioned/0.0.1/', filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+          // Act
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), updatedContent);
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(
+                  fs.readFile(path.join(EC_CORE_DIR, dir, 'commands', path.relative(dirPrefix, filePath)), 'utf-8')
+                ).resolves.toEqual(updatedContent)
+              )
+            )
+          );
+        }
+      );
+
+      test.each(assets)(
+        'when the versioned asset $filename is deleted, it deletes the corresponding asset from astro',
+        async ({ filename, content }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, 'versioned/0.0.1/', filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+          await vi.waitUntil(
+            () =>
+              assetsCatalogDirs
+                .map((dir) => existsSync(path.join(EC_CORE_DIR, dir, 'commands', path.relative(dirPrefix, filePath))))
+                .every(Boolean),
+            { timeout: 3000 }
+          );
+
+          // Act
+          await fs.rm(path.join(PROJECT_DIR, filePath));
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(fs.readFile(path.join(EC_CORE_DIR, dir, 'commands/', path.relative(dirPrefix, filePath)))).rejects.toThrow(
+                  /ENOENT: no such file or directory/
+                )
+              )
+            )
+          );
+        }
+      );
 
       let prevDir: string = '';
       test.each(
@@ -292,6 +473,87 @@ describe('Watcher', { retry: 5 }, () => {
         );
       });
 
+      test.each(assets)(
+        'when the asset $filename is created, it adds it to the correct location in astro',
+        async ({ filename, content }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+
+          // Act
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(
+                  fs.readFile(path.join(EC_CORE_DIR, dir, 'domains', path.relative(dirPrefix, filePath)), 'utf8')
+                ).resolves.toEqual(content)
+              )
+            )
+          );
+        }
+      );
+
+      test.each(assets)(
+        'when the asset $filename is updated, it updates the corresponding asset in astro',
+        async ({ filename, content, updatedContent }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+          // Act
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), updatedContent);
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(
+                  fs.readFile(path.join(EC_CORE_DIR, dir, 'domains', path.relative(dirPrefix, filePath)), 'utf-8')
+                ).resolves.toEqual(updatedContent)
+              )
+            )
+          );
+        }
+      );
+
+      test.each(assets)(
+        'when the asset $filename is deleted, it deletes the corresponding asset from astro',
+        async ({ filename, content }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+          await vi.waitUntil(
+            () =>
+              assetsCatalogDirs
+                .map((dir) => existsSync(path.join(EC_CORE_DIR, dir, 'domains/', path.relative(dirPrefix, filePath))))
+                .every(Boolean),
+            { timeout: 3000 }
+          );
+
+          // Act
+          await fs.rm(path.join(PROJECT_DIR, filePath));
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(fs.readFile(path.join(EC_CORE_DIR, dir, 'domains/', path.relative(dirPrefix, filePath)))).rejects.toThrow(
+                  /ENOENT: no such file or directory/
+                )
+              )
+            )
+          );
+        }
+      );
+
       test('when a versioned domain is created, it adds to the correct location in astro', async () => {
         const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
 
@@ -369,6 +631,87 @@ describe('Watcher', { retry: 5 }, () => {
           ).rejects.toThrow(/ENOENT: no such file or directory/)
         );
       });
+
+      test.each(assets)(
+        'when the versioned asset $filename is created, it adds it to the correct location in astro',
+        async ({ filename, content }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, 'versioned/0.0.1/', filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+
+          // Act
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(
+                  fs.readFile(path.join(EC_CORE_DIR, dir, 'domains', path.relative(dirPrefix, filePath)), 'utf8')
+                ).resolves.toEqual(content)
+              )
+            )
+          );
+        }
+      );
+
+      test.each(assets)(
+        'when the versioned asset $filename is updated, it updates the corresponding asset in astro',
+        async ({ filename, content, updatedContent }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, 'versioned/0.0.1/', filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+          // Act
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), updatedContent);
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(
+                  fs.readFile(path.join(EC_CORE_DIR, dir, 'domains', path.relative(dirPrefix, filePath)), 'utf-8')
+                ).resolves.toEqual(updatedContent)
+              )
+            )
+          );
+        }
+      );
+
+      test.each(assets)(
+        'when the versioned asset $filename is deleted, it deletes the corresponding asset from astro',
+        async ({ filename, content }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, 'versioned/0.0.1/', filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+          await vi.waitUntil(
+            () =>
+              assetsCatalogDirs
+                .map((dir) => existsSync(path.join(EC_CORE_DIR, dir, 'domains/', path.relative(dirPrefix, filePath))))
+                .every(Boolean),
+            { timeout: 3000 }
+          );
+
+          // Act
+          await fs.rm(path.join(PROJECT_DIR, filePath));
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(fs.readFile(path.join(EC_CORE_DIR, dir, 'domains/', path.relative(dirPrefix, filePath)))).rejects.toThrow(
+                  /ENOENT: no such file or directory/
+                )
+              )
+            )
+          );
+        }
+      );
     });
   });
 
@@ -449,6 +792,87 @@ describe('Watcher', { retry: 5 }, () => {
         );
       });
 
+      test.each(assets)(
+        'when the asset $filename is created, it adds it to the correct location in astro',
+        async ({ filename, content }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+
+          // Act
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(
+                  fs.readFile(path.join(EC_CORE_DIR, dir, 'events', path.relative(dirPrefix, filePath)), 'utf8')
+                ).resolves.toEqual(content)
+              )
+            )
+          );
+        }
+      );
+
+      test.each(assets)(
+        'when the asset $filename is updated, it updates the corresponding asset in astro',
+        async ({ filename, content, updatedContent }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+          // Act
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), updatedContent);
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(
+                  fs.readFile(path.join(EC_CORE_DIR, dir, 'events', path.relative(dirPrefix, filePath)), 'utf-8')
+                ).resolves.toEqual(updatedContent)
+              )
+            )
+          );
+        }
+      );
+
+      test.each(assets)(
+        'when the asset $filename is deleted, it deletes the corresponding asset from astro',
+        async ({ filename, content }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+          await vi.waitUntil(
+            () =>
+              assetsCatalogDirs
+                .map((dir) => existsSync(path.join(EC_CORE_DIR, dir, 'events/', path.relative(dirPrefix, filePath))))
+                .every(Boolean),
+            { timeout: 3000 }
+          );
+
+          // Act
+          await fs.rm(path.join(PROJECT_DIR, filePath));
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(fs.readFile(path.join(EC_CORE_DIR, dir, 'events/', path.relative(dirPrefix, filePath)))).rejects.toThrow(
+                  /ENOENT: no such file or directory/
+                )
+              )
+            )
+          );
+        }
+      );
+
       test('when a versioned event is created, it adds it to the correct location in astro', async () => {
         const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
 
@@ -522,6 +946,87 @@ describe('Watcher', { retry: 5 }, () => {
           ).rejects.toThrow(/ENOENT: no such file or directory/)
         );
       });
+
+      test.each(assets)(
+        'when the versioned asset $filename is created, it adds it to the correct location in astro',
+        async ({ filename, content }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+
+          // Act
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(
+                  fs.readFile(path.join(EC_CORE_DIR, dir, 'events', path.relative(dirPrefix, filePath)), 'utf8')
+                ).resolves.toEqual(content)
+              )
+            )
+          );
+        }
+      );
+
+      test.each(assets)(
+        'when the versioned asset $filename is updated, it updates the corresponding asset in astro',
+        async ({ filename, content, updatedContent }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+          // Act
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), updatedContent);
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(
+                  fs.readFile(path.join(EC_CORE_DIR, dir, 'events', path.relative(dirPrefix, filePath)), 'utf-8')
+                ).resolves.toEqual(updatedContent)
+              )
+            )
+          );
+        }
+      );
+
+      test.each(assets)(
+        'when the versioned asset $filename is deleted, it deletes the corresponding asset from astro',
+        async ({ filename, content }) => {
+          const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+          // Arrange
+          await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+          await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+          await vi.waitUntil(
+            () =>
+              assetsCatalogDirs
+                .map((dir) => existsSync(path.join(EC_CORE_DIR, dir, 'events/', path.relative(dirPrefix, filePath))))
+                .every(Boolean),
+            { timeout: 3000 }
+          );
+
+          // Act
+          await fs.rm(path.join(PROJECT_DIR, filePath));
+
+          // Assert
+          await vi.waitFor(() =>
+            Promise.all(
+              assetsCatalogDirs.map((dir) =>
+                expect(fs.readFile(path.join(EC_CORE_DIR, dir, 'events/', path.relative(dirPrefix, filePath)))).rejects.toThrow(
+                  /ENOENT: no such file or directory/
+                )
+              )
+            )
+          );
+        }
+      );
 
       let prevDir: string = '';
       test.each(
@@ -634,6 +1139,87 @@ describe('Watcher', { retry: 5 }, () => {
           );
         });
 
+        test.each(assets)(
+          'when the asset $filename is created, it adds it to the correct location in astro',
+          async ({ filename, content }) => {
+            const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+            // Arrange
+            await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+
+            // Act
+            await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+            // Assert
+            await vi.waitFor(() =>
+              Promise.all(
+                assetsCatalogDirs.map((dir) =>
+                  expect(
+                    fs.readFile(path.join(EC_CORE_DIR, dir, 'services', path.relative(dirPrefix, filePath)), 'utf8')
+                  ).resolves.toEqual(content)
+                )
+              )
+            );
+          }
+        );
+
+        test.each(assets)(
+          'when the asset $filename is updated, it updates the corresponding asset in astro',
+          async ({ filename, content, updatedContent }) => {
+            const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+            // Arrange
+            await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+            await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+            // Act
+            await fs.writeFile(path.join(PROJECT_DIR, filePath), updatedContent);
+
+            // Assert
+            await vi.waitFor(() =>
+              Promise.all(
+                assetsCatalogDirs.map((dir) =>
+                  expect(
+                    fs.readFile(path.join(EC_CORE_DIR, dir, 'services', path.relative(dirPrefix, filePath)), 'utf-8')
+                  ).resolves.toEqual(updatedContent)
+                )
+              )
+            );
+          }
+        );
+
+        test.each(assets)(
+          'when the asset $filename is deleted, it deletes the corresponding asset from astro',
+          async ({ filename, content }) => {
+            const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+            // Arrange
+            await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+            await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+            await vi.waitUntil(
+              () =>
+                assetsCatalogDirs
+                  .map((dir) => existsSync(path.join(EC_CORE_DIR, dir, 'services/', path.relative(dirPrefix, filePath))))
+                  .every(Boolean),
+              { timeout: 3000 }
+            );
+
+            // Act
+            await fs.rm(path.join(PROJECT_DIR, filePath));
+
+            // Assert
+            await vi.waitFor(() =>
+              Promise.all(
+                assetsCatalogDirs.map((dir) =>
+                  expect(
+                    fs.readFile(path.join(EC_CORE_DIR, dir, 'services/', path.relative(dirPrefix, filePath)))
+                  ).rejects.toThrow(/ENOENT: no such file or directory/)
+                )
+              )
+            );
+          }
+        );
+
         test('when a versioned service is created, it adds to the correct location in astro', async () => {
           const filePath = path.join(dirPrefix, `${getUniqueName()}/versioned/0.0.1/index.md`);
 
@@ -712,6 +1298,87 @@ describe('Watcher', { retry: 5 }, () => {
             ).rejects.toThrow(/ENOENT: no such file or directory/)
           );
         });
+
+        test.each(assets)(
+          'when the versioned asset $filename is created, it adds it to the correct location in astro',
+          async ({ filename, content }) => {
+            const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+            // Arrange
+            await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+
+            // Act
+            await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+            // Assert
+            await vi.waitFor(() =>
+              Promise.all(
+                assetsCatalogDirs.map((dir) =>
+                  expect(
+                    fs.readFile(path.join(EC_CORE_DIR, dir, 'services', path.relative(dirPrefix, filePath)), 'utf8')
+                  ).resolves.toEqual(content)
+                )
+              )
+            );
+          }
+        );
+
+        test.each(assets)(
+          'when the versioned asset $filename is updated, it updates the corresponding asset in astro',
+          async ({ filename, content, updatedContent }) => {
+            const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+            // Arrange
+            await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+            await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+
+            // Act
+            await fs.writeFile(path.join(PROJECT_DIR, filePath), updatedContent);
+
+            // Assert
+            await vi.waitFor(() =>
+              Promise.all(
+                assetsCatalogDirs.map((dir) =>
+                  expect(
+                    fs.readFile(path.join(EC_CORE_DIR, dir, 'services', path.relative(dirPrefix, filePath)), 'utf-8')
+                  ).resolves.toEqual(updatedContent)
+                )
+              )
+            );
+          }
+        );
+
+        test.each(assets)(
+          'when the versioned asset $filename is deleted, it deletes the corresponding asset from astro',
+          async ({ filename, content }) => {
+            const filePath = path.join(dirPrefix, `${getUniqueName()}`, filename);
+
+            // Arrange
+            await mkdir(path.dirname(path.join(PROJECT_DIR, filePath)));
+            await fs.writeFile(path.join(PROJECT_DIR, filePath), content);
+            await vi.waitUntil(
+              () =>
+                assetsCatalogDirs
+                  .map((dir) => existsSync(path.join(EC_CORE_DIR, dir, 'services/', path.relative(dirPrefix, filePath))))
+                  .every(Boolean),
+              { timeout: 3000 }
+            );
+
+            // Act
+            await fs.rm(path.join(PROJECT_DIR, filePath));
+
+            // Assert
+            await vi.waitFor(() =>
+              Promise.all(
+                assetsCatalogDirs.map((dir) =>
+                  expect(
+                    fs.readFile(path.join(EC_CORE_DIR, dir, 'services/', path.relative(dirPrefix, filePath)))
+                  ).rejects.toThrow(/ENOENT: no such file or directory/)
+                )
+              )
+            );
+          }
+        );
 
         let prevDir: string = '';
         test.each(
