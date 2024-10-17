@@ -19,12 +19,9 @@ import { rimrafSync } from 'rimraf';
  * @param {SubscribeCallback|undefined} callback
  */
 export async function watch(projectDirectory, catalogDirectory, callback = undefined) {
-  console.log('Subscribing to ' + projectDirectory);
-
   const subscription = await watcher.subscribe(
     projectDirectory,
     compose(
-      console.debug,
       /**
        * @param {Error|null} err
        * @param {Event[]} events
@@ -65,12 +62,7 @@ export async function watch(projectDirectory, catalogDirectory, callback = undef
     }
   );
 
-  console.log('Watching for changes...');
-
-  return () => {
-    console.log('Unsubscribing...');
-    return subscription.unsubscribe().then(() => console.log('Unsubscribed successfully!'));
-  };
+  return () => subscription.unsubscribe();
 }
 
 /**
@@ -125,8 +117,5 @@ if (process.env.NODE_ENV !== 'test') {
 
   const unsub = await watch(projectDirectory, catalogDirectory);
 
-  process.on('exit', () => {
-    console.log('Unsubscribing...');
-    return unsub();
-  });
+  process.on('exit', () => unsub());
 }
