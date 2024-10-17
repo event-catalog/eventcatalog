@@ -49,10 +49,10 @@ export async function watch(projectDirectory, catalogDirectory, callback = undef
               case 'create':
               case 'update':
                 if (fs.statSync(filePath).isDirectory()) fs.mkdirSync(astroPath, { recursive: true });
-                else retryCopy(filePath, astroPath);
+                else retryEPERM(fs.cpSync)(filePath, astroPath);
                 break;
               case 'delete':
-                rimrafSync(astroPath);
+                retryEPERM(rimrafSync)(astroPath);
                 break;
             }
           }
@@ -91,35 +91,25 @@ function compose(...fns) {
   };
 }
 
-/**
- *
- * @param {string} src
- * @param {string} dest
- * @param {number} retries
- * @param {number} delay
- */
-function retryCopy(src, dest, retries = 5, delay = 100) {
-  let attempts = 0;
+const MAX_RETRIES = 5;
+const DELAY_MS = 100;
 
-  const tryCopy = () => {
-    try {
-      fs.cpSync(src, dest);
-      console.log('File copied successfully!');
-    } catch (err) {
-      // In win32 some tests failed when attempting copy the file at the same time
-      // that another process is editing it.
-      if (err.code === 'EPERM' && attempts < retries) {
-        attempts++;
-        console.log(`Retrying copy... Attempt ${attempts}`);
-        setTimeout(tryCopy, delay); // Retry after a delay
-      } else {
-        console.error('Error during file copy:', err);
-        throw err;
+// In win32 some tests failed when attempting copy the file at the same time
+// that another process is editing it.
+function retryEPERM(fn) {
+  return (...args) => {
+    let retries = 0;
+
+    while (retries < MAX_RETRIES) {
+      try {
+        return fn(...args);
+      } catch (err) {
+        if (err.code !== 'EPERM') throw err;
+        setTimeout(() => {}, DELAY_MS);
+        retries += 1;
       }
     }
   };
-
-  tryCopy();
 }
 
 /**
