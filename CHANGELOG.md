@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.8.9
+
+### Patch Changes
+
+- 4e0823d: fix(core): fixed issue with importing users package json files
+
 ## 2.8.8
 
 ### Patch Changes
