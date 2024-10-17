@@ -2,6 +2,7 @@ import watcher from '@parcel/watcher';
 import fs from 'node:fs';
 import path from 'node:path';
 import { mapCatalogToAstro } from './map-catalog-to-astro.js';
+import { rimrafSync } from 'rimraf';
 
 /**
  * @typedef {Object} Event
@@ -51,13 +52,7 @@ export async function watch(projectDirectory, catalogDirectory, callback = undef
                 else retryCopy(filePath, astroPath);
                 break;
               case 'delete':
-                try {
-                  fs.rmSync(astroPath, { recursive: true, force: true });
-                } catch (e) {
-                  if (e.code == 'ENOENT') {
-                    // fail silently - The parent directory could have been deleted before.
-                  } else throw e;
-                }
+                rimrafSync(astroPath);
                 break;
             }
           }
