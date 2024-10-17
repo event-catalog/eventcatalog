@@ -10,6 +10,7 @@ import {
   verifyRequiredFieldsAreInCatalogConfigFile,
   writeEventCatalogConfigFile,
 } from 'scripts/eventcatalog-config-file-utils';
+import { tmpdir } from 'os';
 
 describe('catalog-to-astro-content-directory', () => {
   afterEach(async () => {
@@ -101,11 +102,11 @@ describe('catalog-to-astro-content-directory', () => {
         })
       );
     });
-    it('eventcatalog.config.cjs (temp commonjs file) is removed when fetching the catalog file', async () => {
+    it('removes eventcatalog config from the tmpdir', async () => {
       await getEventCatalogConfigFile(CATALOG_DIR);
 
-      const commonJsFile = path.join(CATALOG_DIR, 'eventcatalog.config.cjs');
-      expect(existsSync(commonJsFile)).toBe(false);
+      const configFile = path.join(tmpdir(), 'eventcatalog.config.mjs');
+      expect(existsSync(configFile)).toBe(false);
     });
   });
 
