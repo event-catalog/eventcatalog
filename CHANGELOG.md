@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.8.11
+
+### Patch Changes
+
+- b1912da: fix(core): fixed rapi-docs for large openapi files
+
 ## 2.8.10
 
 ### Patch Changes
