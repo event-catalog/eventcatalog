@@ -58,7 +58,8 @@ const fileExists = fs.existsSync(pathOnDisk);
         allow-authentication="true"
         allow-try="true"
         default-schema-tab="schema"
-        show-curl-before-try="true"
+        // this is causing the page to not load for large openAPI files, if you want this raise an issue we can look again.
+        // show-curl-before-try="true"
         use-path-in-nav-bar="true"
         show-method-in-nav-bar="as-colored-block"
         theme="light"
