@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.8.10
+
+### Patch Changes
+
+- 2f4b7af: fix(core): fixed issue with using tmp directories
+
 ## 2.8.9
 
 ### Patch Changes
