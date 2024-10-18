@@ -1,0 +1,29 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "AddInventoryCommand",
+    "type": "object",
+    "properties": {
+      "productId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "The unique identifier of the product being added to the inventory."
+      },
+      "quantity": {
+        "type": "integer",
+        "description": "The quantity of the product being added to the inventory."
+      },
+      "warehouseId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "The unique identifier of the warehouse where the inventory is being added."
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "description": "The date and time when the inventory was added."
+      }
+    },
+    "required": ["productId", "quantity", "warehouseId", "timestamp"],
+    "additionalProperties": false
+  }
+  
