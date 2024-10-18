@@ -1,5 +1,29 @@
 # @eventcatalog/core
 
+## 2.8.11
+
+### Patch Changes
+
+- b1912da: fix(core): fixed rapi-docs for large openapi files
+
+## 2.8.10
+
+### Patch Changes
+
+- 2f4b7af: fix(core): fixed issue with using tmp directories
+
+## 2.8.9
+
+### Patch Changes
+
+- 4e0823d: fix(core): fixed issue with importing users package json files
+
+## 2.8.8
+
+### Patch Changes
+
+- 3d3f56e: chore(core): changed the way eventcatalog file is now imported into the project
+
 ## 2.8.7
 
 ### Patch Changes
