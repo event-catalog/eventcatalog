@@ -31,6 +31,7 @@ const changelogs = defineCollection({
       .object({
         path: z.string(),
         absoluteFilePath: z.string(),
+        astroContentFilePath: z.string(),
         filePath: z.string(),
         publicPath: z.string(),
         type: z.string(),

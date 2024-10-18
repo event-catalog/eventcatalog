@@ -54,6 +54,7 @@ export const getCommands = async ({ getAllVersions = true }: Props = {}): Promis
       catalog: {
         path: path.join(command.collection, command.id.replace('/index.mdx', '')),
         absoluteFilePath: path.join(PROJECT_DIR, command.collection, command.id.replace('/index.mdx', '/index.md')),
+        astroContentFilePath: path.join(process.cwd(), 'src', 'content', command.collection, command.id),
         filePath: path.join(process.cwd(), 'src', 'catalog-files', command.collection, command.id.replace('/index.mdx', '')),
         publicPath: path.join('/generated', command.collection, command.id.replace('/index.mdx', '')),
         type: 'command',
