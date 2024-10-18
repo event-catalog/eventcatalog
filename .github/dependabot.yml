@@ -1,0 +1,16 @@
+version: 2
+updates:
+  # Weekly major/minor/patch version updates
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    groups:
+      astro:
+        patterns:
+          - '@astrojs/*'
+          - 'astro*'
+      prod-dependencies:
+        dependency-type: 'production'
+      dev-dependencies:
+        dependency-type: 'development'
