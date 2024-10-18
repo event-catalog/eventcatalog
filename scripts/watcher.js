@@ -58,7 +58,7 @@ export async function watch(projectDirectory, catalogDirectory, callback = undef
       callback
     ),
     {
-      ignore: [`**/${catalogDirectory}/!(${projectDirectory})**`]
+      ignore: [`**/${catalogDirectory}/!(${projectDirectory})**`],
     }
   );
 
