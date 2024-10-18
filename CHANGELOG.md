@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.8.12
+
+### Patch Changes
+
+- e7cb5d7: chore(core): added astro file path to resources
+
 ## 2.8.11
 
 ### Patch Changes
