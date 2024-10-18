@@ -1,9 +1,10 @@
 version: 2
 updates:
+  # Weekly major/minor/patch version updates
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
-      interval: 'daily'
+      interval: 'weekly'
     groups:
       astro:
         patterns:
@@ -11,11 +12,5 @@ updates:
           - 'astro*'
       prod-dependencies:
         dependency-type: 'production'
-        update-types:
-          - 'minor'
-          - 'patch'
       dev-dependencies:
         dependency-type: 'development'
-        update-types:
-          - 'minor'
-          - 'patch'
