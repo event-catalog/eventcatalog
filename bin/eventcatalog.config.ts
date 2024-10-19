@@ -11,6 +11,7 @@ export interface Config {
   landingPage?: string;
   base?: string;
   port?: string;
+  outDir?: string;
   trailingSlash?: boolean;
   logo?: {
     alt: string;

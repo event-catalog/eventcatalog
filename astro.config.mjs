@@ -10,7 +10,7 @@ import { join } from 'node:path';
 import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
 
-const coreDirectory = process.env.CATALOG_DIR || process.cwd();
+const projectDirectory = process.env.PROJECT_DIR || process.cwd();
 const base = config.base || '/';
 
 // https://astro.build/config
@@ -18,7 +18,7 @@ export default defineConfig({
   base,
   server: { port: config.port || 3000 },
 
-  outDir: join(coreDirectory, 'dist'),
+  outDir: join(projectDirectory, config.outDir || 'dist'),
 
   // https://docs.astro.build/en/reference/configuration-reference/#site
   site: config.homepageLink || 'https://eventcatalog.dev/',
