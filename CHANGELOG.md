@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.9.1
+
+### Patch Changes
+
+- 5fa9228: fix(core): moving rimraf to dep of project
+
 ## 2.9.0
 
 ### Minor Changes
