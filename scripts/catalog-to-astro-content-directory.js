@@ -69,6 +69,8 @@ const ensureAstroCollectionNotEmpty = async (astroDir) => {
 export const catalogToAstro = async (source, astroDir) => {
   const astroContentDir = path.join(astroDir, 'src/content/');
 
+  console.log(path.join(astroContentDir, 'config.ts'));
+
   // Config file
   const astroConfigFile = fs.readFileSync(path.join(astroContentDir, 'config.ts'));
 
