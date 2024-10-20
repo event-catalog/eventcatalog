@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.9.0
+
+### Minor Changes
+
+- 70d27a7: feat(core): support nested folder structures for domains, services and messages
+
 ## 2.8.12
 
 ### Patch Changes
