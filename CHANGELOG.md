@@ -1,5 +1,23 @@
 # @eventcatalog/core
 
+## 2.9.1
+
+### Patch Changes
+
+- 5fa9228: fix(core): moving rimraf to dep of project
+
+## 2.9.0
+
+### Minor Changes
+
+- 70d27a7: feat(core): support nested folder structures for domains, services and messages
+
+## 2.8.12
+
+### Patch Changes
+
+- e7cb5d7: chore(core): added astro file path to resources
+
 ## 2.8.11
 
 ### Patch Changes

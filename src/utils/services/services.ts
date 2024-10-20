@@ -56,6 +56,7 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
         // TODO: avoid use string replace at path due to win32
         path: path.join(service.collection, service.id.replace('/index.mdx', '')),
         absoluteFilePath: path.join(PROJECT_DIR, service.collection, service.id.replace('/index.mdx', '/index.md')),
+        astroContentFilePath: path.join(process.cwd(), 'src', 'content', service.collection, service.id),
         filePath: path.join(process.cwd(), 'src', 'catalog-files', service.collection, service.id.replace('/index.mdx', '')),
         publicPath: path.join('/generated', service.collection, service.id.replace('/index.mdx', '')),
         type: 'service',

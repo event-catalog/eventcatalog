@@ -1,69 +1,134 @@
-#!/usr/bin/env node
 import watcher from '@parcel/watcher';
-import path from 'path';
-import fs from 'fs';
-import os from 'os';
+import fs from 'node:fs';
+import path from 'node:path';
+import { mapCatalogToAstro } from './map-catalog-to-astro.js';
+import { rimrafSync } from 'rimraf';
+import { addPropertyToFrontMatter } from './eventcatalog-config-file-utils.js';
 
-// Where the users project is located
-const projectDirectory = process.env.PROJECT_DIR || process.cwd();
-// Where the catalog code is located.
-const catalogDirectory = process.env.CATALOG_DIR;
+/**
+ * @typedef {Object} Event
+ * @property {string} path
+ * @property {"create"|"update"|"delete"} type
+ *
+ * @typedef {(err: Error | null, events: Event[]) => unknown} SubscribeCallback
+ */
 
-const contentPath = path.join(catalogDirectory, 'src', 'content');
-
-const watchList = ['domains', 'commands', 'events', 'services', 'teams', 'users', 'pages', 'components', 'flows'];
-// const absoluteWatchList = watchList.map((item) => path.join(projectDirectory, item));
-
-// confirm folders exist before watching them
-const verifiedWatchList = watchList.filter((item) => fs.existsSync(path.join(projectDirectory, item)));
-
-const extensionReplacer = (collection, file) => {
-  if (collection === 'teams' || collection == 'users') return file;
-  return file.replace('.md', '.mdx');
-};
-
-for (let item of [...verifiedWatchList]) {
-  // Listen to the users directory for any changes.
-  watcher.subscribe(path.join(projectDirectory, item), (err, events) => {
-    if (err) {
-      return;
-    }
-    for (let event of events) {
-      const { path: eventPath, type } = event;
-      const file = eventPath.split(item)[1];
-      let newPath = path.join(contentPath, item, extensionReplacer(item, file));
-
-      // Check if changlogs, they need to go into their own content folder
-      if (file.includes('changelog.md')) {
-        newPath = newPath.replace('src/content', 'src/content/changelogs');
-        if (os.platform() == 'win32') {
-          newPath = newPath.replace('src\\content', 'src\\content\\changelogs');
+/**
+ *
+ * @param {string} projectDirectory
+ * @param {string} catalogDirectory
+ * @param {SubscribeCallback|undefined} callback
+ */
+export async function watch(projectDirectory, catalogDirectory, callback = undefined) {
+  const subscription = await watcher.subscribe(
+    projectDirectory,
+    compose(
+      /**
+       * @param {Error|null} err
+       * @param {Event[]} events
+       * @returns {unknown}
+       */
+      (err, events) => {
+        if (err) {
+          return;
         }
-      }
 
-      // Check if its a component, need to move to the correct location
-      if (newPath.includes('components')) {
-        newPath = newPath.replace('src/content/components', 'src/custom-defined-components');
-        if (os.platform() == 'win32') {
-          newPath = newPath.replace('src\\content\\components', 'src\\custom-defined-components');
+        for (let event of events) {
+          const { path: filePath, type } = event;
+
+          const astroPaths = mapCatalogToAstro({
+            filePath,
+            astroDir: catalogDirectory,
+            projectDir: projectDirectory,
+          });
+
+          for (const astroPath of astroPaths) {
+            switch (type) {
+              case 'create':
+              case 'update':
+                try {
+                  // EventCatalog requires the original path to be in the frontmatter for Schemas and Changelogs
+                  if (astroPath.endsWith('.mdx')) {
+                    const content = fs.readFileSync(astroPath, 'utf-8');
+                    const frontmatter = addPropertyToFrontMatter(content, 'pathToFile', filePath);
+                    fs.writeFileSync(astroPath, frontmatter);
+                  }
+                } catch (error) {
+                  // silent fail
+                }
+
+                if (fs.statSync(filePath).isDirectory()) fs.mkdirSync(astroPath, { recursive: true });
+                else retryEPERM(fs.cpSync)(filePath, astroPath);
+
+                break;
+              case 'delete':
+                retryEPERM(rimrafSync)(astroPath);
+                break;
+            }
+          }
         }
-      }
+      },
+      callback
+    ),
+    {
+      ignore: [`**/${catalogDirectory}/!(${projectDirectory})**`],
+    }
+  );
 
-      // If config files have changes
-      if (eventPath.includes('eventcatalog.config.js') || eventPath.includes('eventcatalog.styles.css')) {
-        fs.cpSync(eventPath, path.join(catalogDirectory, file));
-        return;
-      }
+  return () => subscription.unsubscribe();
+}
 
-      // If markdown files or astro files copy file over to the required location
-      if ((eventPath.endsWith('.md') || eventPath.endsWith('.astro')) && type === 'update') {
-        fs.cpSync(eventPath, newPath);
+/**
+ *
+ * @param  {...Function} fns
+ * @returns {SubscribeCallback}
+ */
+function compose(...fns) {
+  return function (err, events) {
+    fns.filter(Boolean).forEach((fn, i) => {
+      try {
+        fn(err, events);
+      } catch (error) {
+        console.error({ error });
+        throw error;
       }
+    });
+  };
+}
 
-      // IF directory remove it
-      if (type === 'delete') {
-        fs.rmSync(newPath);
+const MAX_RETRIES = 5;
+const DELAY_MS = 100;
+
+// In win32 some tests failed when attempting copy the file at the same time
+// that another process is editing it.
+function retryEPERM(fn) {
+  return (...args) => {
+    let retries = 0;
+
+    while (retries < MAX_RETRIES) {
+      try {
+        return fn(...args);
+      } catch (err) {
+        if (err.code !== 'EPERM') throw err;
+        setTimeout(() => {}, DELAY_MS);
+        retries += 1;
       }
     }
-  });
+  };
+}
+
+/**
+ * TODO: call `watch` from the dev command.
+ * Calling `watch` there will avoid these if statement.
+ * The same could be done to `catalog-to-astro-content-directory`
+ */
+if (process.env.NODE_ENV !== 'test') {
+  // Where the users project is located
+  const projectDirectory = process.env.PROJECT_DIR || process.cwd();
+  // Where the catalog code is located.
+  const catalogDirectory = process.env.CATALOG_DIR || path.join(projectDirectory, '.eventcatalog-core');
+
+  const unsub = await watch(projectDirectory, catalogDirectory);
+
+  process.on('exit', () => unsub());
 }

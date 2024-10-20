@@ -6,7 +6,7 @@
     "url": "https://github.com/event-catalog/eventcatalog.git"
   },
   "type": "module",
-  "version": "2.8.11",
+  "version": "2.9.1",
   "publishConfig": {
     "access": "public"
   },
@@ -79,7 +79,8 @@
     "tailwindcss": "3.4.3",
     "typescript": "5.4.5",
     "unist-util-visit": "5.0.0",
-    "uuid": "10.0.0"
+    "uuid": "10.0.0",
+    "rimraf": "5.0.7"
   },
   "devDependencies": {
     "@changesets/cli": "2.27.5",
@@ -88,7 +89,6 @@
     "@types/react-dom": "18.3.0",
     "prettier": "3.3.3",
     "prettier-plugin-astro": "0.14.1",
-    "rimraf": "5.0.7",
     "tsup": "8.1.0",
     "vite-tsconfig-paths": "4.3.2",
     "vitest": "2.0.5"

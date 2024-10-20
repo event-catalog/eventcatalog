@@ -9,8 +9,12 @@ owners:
 receives:
   - id: SubscribeUser
     version: 0.0.1
+  - id: CancelSubscription
+    version: 0.0.1
 sends:
-  - id: UserSubscriptionStarted  
+  - id: UserSubscriptionStarted
+    version: 0.0.1
+  - id: UserSubscriptionCancelled  
     version: 0.0.1
 repository:
   language: JavaScript
