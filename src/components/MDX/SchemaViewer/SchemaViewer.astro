@@ -36,7 +36,7 @@ function findSchemaViewers(document: string) {
 }
 
 try {
-  const file = await fs.readFile(catalog.absoluteFilePath, 'utf-8');
+  const file = await fs.readFile(catalog.astroContentFilePath, 'utf-8');
   const schemaViewers = findSchemaViewers(file);
 
   // Loop around all the possible SchemaViewers in the file.

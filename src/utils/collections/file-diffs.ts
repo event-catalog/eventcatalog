@@ -50,7 +50,7 @@ export async function getFilesForDiffInCollection(
   collection: CollectionEntry<CollectionTypes>
 ): Promise<Array<{ file: string; dir: string }>> {
   // @ts-ignore
-  const pathToFolder = collection.catalog?.absoluteFilePath;
+  const pathToFolder = collection.data.pathToFile;
   if (!pathToFolder) return [];
 
   const dir = dirname(pathToFolder);
