@@ -61,10 +61,12 @@ const baseSchema = z.object({
   // Used by eventcatalog
   versions: z.array(z.string()).optional(),
   latestVersion: z.string().optional(),
+  pathToFile: z.string().optional(),
   catalog: z
     .object({
       path: z.string(),
       filePath: z.string(),
+      astroContentFilePath: z.string(),
       publicPath: z.string(),
       type: z.string(),
     })

@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import os from 'node:os';
-import { verifyRequiredFieldsAreInCatalogConfigFile } from './eventcatalog-config-file-utils.js';
+import { verifyRequiredFieldsAreInCatalogConfigFile, addPropertyToFrontMatter } from './eventcatalog-config-file-utils.js';
 import { mapCatalogToAstro } from './map-catalog-to-astro.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -20,7 +20,22 @@ const copyFiles = async (source, target) => {
       filePath: file,
       astroDir: target,
       projectDir: source,
-    }).map((astroPath) => fs.cpSync(file, astroPath));
+    })
+      .map((astroPath) => {
+        fs.cpSync(file, astroPath);
+        return { oldPath: file, newPath: astroPath };
+      })
+      .map(({ oldPath, newPath }) => {
+        if (!oldPath.endsWith('.md') && !oldPath.endsWith('.mdx')) return;
+        try {
+          // EventCatalog requires the original path to be in the frontmatter for Schemas and Changelogs
+          const content = fs.readFileSync(newPath, 'utf-8');
+          const frontmatter = addPropertyToFrontMatter(content, 'pathToFile', oldPath);
+          fs.writeFileSync(newPath, frontmatter);
+        } catch (error) {
+          // silent fail
+        }
+      });
   }
 };
 
