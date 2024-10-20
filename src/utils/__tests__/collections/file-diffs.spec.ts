@@ -19,12 +19,14 @@ describe('Diff Utilities', () => {
       // add data object to these
       const allEvents = [
         {
-          data: { id: 'myevent', version: '1.0.0' },
-          catalog: { absoluteFilePath: join(pathToTestCatalog, 'events', 'OrderAmended', 'index.md') },
+          data: { id: 'myevent', version: '1.0.0', pathToFile: join(pathToTestCatalog, 'events', 'OrderAmended', 'index.md') },
         },
         {
-          data: { id: 'myevent', version: '0.9.0' },
-          catalog: { absoluteFilePath: join(pathToTestCatalog, 'events', 'OrderAmended', 'versioned', '0.0.1', 'index.md') },
+          data: {
+            id: 'myevent',
+            version: '0.9.0',
+            pathToFile: join(pathToTestCatalog, 'events', 'OrderAmended', 'versioned', '0.0.1', 'index.md'),
+          },
         },
       ];
       const currentEvent = allEvents[0];
@@ -48,12 +50,14 @@ describe('Diff Utilities', () => {
       // add data object to these
       const allEvents = [
         {
-          data: { id: 'myevent', version: '1.0.0' },
-          catalog: { absoluteFilePath: join(pathToTestCatalog, 'events', 'OrderAmended', 'index.md') },
+          data: { id: 'myevent', version: '1.0.0', pathToFile: join(pathToTestCatalog, 'events', 'OrderAmended', 'index.md') },
         },
         {
-          data: { id: 'myevent', version: '0.9.0' },
-          catalog: { absoluteFilePath: join(pathToTestCatalog, 'events', 'OrderAmended', 'versioned', '0.0.1', 'index.md') },
+          data: {
+            id: 'myevent',
+            version: '0.9.0',
+            pathToFile: join(pathToTestCatalog, 'events', 'OrderAmended', 'versioned', '0.0.1', 'index.md'),
+          },
         },
       ];
       const currentEvent = allEvents[0];
@@ -77,12 +81,14 @@ describe('Diff Utilities', () => {
       // add data object to these
       const allEvents = [
         {
-          data: { id: 'myevent', version: '1.0.0' },
-          catalog: { absoluteFilePath: join(pathToTestCatalog, 'events', 'OrderAmended', 'index.md') },
+          data: { id: 'myevent', version: '1.0.0', pathToFile: join(pathToTestCatalog, 'events', 'OrderAmended', 'index.md') },
         },
         {
-          data: { id: 'myevent', version: '0.9.0' },
-          catalog: { absoluteFilePath: join(pathToTestCatalog, 'events', 'OrderAmended', 'versioned', '0.0.1', 'index.md') },
+          data: {
+            id: 'myevent',
+            version: '0.9.0',
+            pathToFile: join(pathToTestCatalog, 'events', 'OrderAmended', 'versioned', '0.0.1', 'index.md'),
+          },
         },
       ];
       const currentEvent = allEvents[0];
