@@ -1,16 +1,52 @@
 version: 2
 updates:
-  # Weekly major/minor/patch version updates
+  # Weekly minor/patch version updates
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
       interval: 'weekly'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
     groups:
       astro:
         patterns:
           - '@astrojs/*'
           - 'astro*'
+        update-types:
+          - 'minor'
+          - 'patch'
       prod-dependencies:
         dependency-type: 'production'
+        update-types:
+          - 'minor'
+          - 'patch'
       dev-dependencies:
         dependency-type: 'development'
+        update-types:
+          - 'minor'
+          - 'patch'
+
+  - package-ecosystem: 'npm'
+    directory: '/'
+    target-branch: 'main'
+    groups:
+      astro:
+        patterns:
+          - '@astrojs/*'
+          - 'astro*'
+        update-types:
+          - 'major'
+      prod-dependencies:
+        dependency-type: 'production'
+        update-types:
+          - 'major'
+      dev-dependencies:
+        dependency-type: 'development'
+        update-types:
+          - 'major'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-minor', 'version-update:semver-patch']
+    schedule:
+      interval: 'monthly'
