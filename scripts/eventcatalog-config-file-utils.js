@@ -83,7 +83,7 @@ export const verifyRequiredFieldsAreInCatalogConfigFile = async (projectDirector
 
 export function addPropertyToFrontMatter(input, newProperty, newValue) {
   // Split the input into front matter and content
-  const [_, frontMatter, content] = input.split('---');
+  const [_, frontMatter, ...rest] = input.split('---');
 
   // Parse the front matter
   const frontMatterLines = frontMatter.trim().split('\n');
@@ -94,7 +94,6 @@ export function addPropertyToFrontMatter(input, newProperty, newValue) {
 
   // Reconstruct the updated input
   const updatedFrontMatter = updatedFrontMatterLines.join('\n');
-  const updatedInput = `---\n${updatedFrontMatter}\n---\n${content.trim()}`;
 
-  return updatedInput;
+  return `---\n${updatedFrontMatter}\n---\n${rest.join('---')}`;
 }

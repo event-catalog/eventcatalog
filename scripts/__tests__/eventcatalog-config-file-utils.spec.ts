@@ -6,6 +6,7 @@ const CATALOG_DIR = path.join(__dirname, 'example-catalog');
 
 import { expect, describe, it } from 'vitest';
 import {
+  addPropertyToFrontMatter,
   getEventCatalogConfigFile,
   verifyRequiredFieldsAreInCatalogConfigFile,
   writeEventCatalogConfigFile,
@@ -147,6 +148,14 @@ describe('catalog-to-astro-content-directory', () => {
 
       // cId: '2aa9384e-b0f3-4ea3-a6e0-97188f4027cb' expect this to be there, but the uiid dan be anything
       expect(file).toContain("cId: '");
+    });
+  });
+
+  describe('addPropertyToFrontMatter', () => {
+    it('should support content containing ----', async () => {
+      const result = addPropertyToFrontMatter('---\nfront: matter\n---hello\n---\nworld', 'foo', 'bar');
+
+      expect(result).toBe('---\nfront: matter\nfoo: bar\n---\nhello\n---\nworld');
     });
   });
 });
