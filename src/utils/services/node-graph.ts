@@ -14,6 +14,31 @@ interface Props {
   renderAllEdges?: boolean;
 }
 
+const getSendsMessageByMessageType = (messageType: string) => {
+  switch (messageType) {
+    case 'events':
+      return 'publishes event';
+    case 'commands':
+      return 'invokes command';
+    case 'queries':
+      return 'requests';
+    default:
+      return 'invokes message';
+  }
+};
+
+const getReceivesMessageByMessageType = (messageType: string) => {
+  switch (messageType) {
+    case 'events':
+      return 'receives event';
+    case 'commands':
+    case 'queries':
+      return 'accepts';
+    default:
+      return 'accepts message';
+  }
+};
+
 export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simple', renderAllEdges = false }: Props) => {
   const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
   const nodes = [] as any,
@@ -36,8 +61,9 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
 
   const events = await getCollection('events');
   const commands = await getCollection('commands');
+  const queries = await getCollection('queries');
 
-  const messages = [...events, ...commands];
+  const messages = [...events, ...commands, ...queries];
 
   const receivesHydrated = receivesRaw
     .map((message) => getItemsFromCollectionByIdAndSemverOrLatest(messages, message.id, message.version))
@@ -49,8 +75,8 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     .flat()
     .filter((e) => e !== undefined);
 
-  const receives = (receivesHydrated as CollectionEntry<'events' | 'commands'>[]) || [];
-  const sends = (sendsHydrated as CollectionEntry<'events' | 'commands'>[]) || [];
+  const receives = (receivesHydrated as CollectionEntry<'events' | 'commands' | 'queries'>[]) || [];
+  const sends = (sendsHydrated as CollectionEntry<'events' | 'commands' | 'queries'>[]) || [];
 
   // Get all the data from them
 
@@ -70,7 +96,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         source: generateIdForNode(receive),
         target: generateIdForNode(service),
         type: 'smoothstep',
-        label: receive?.collection === 'events' ? 'receives event' : 'accepts',
+        label: getReceivesMessageByMessageType(receive?.collection),
         animated: false,
         markerEnd: {
           type: MarkerType.ArrowClosed,
@@ -109,7 +135,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
       source: generateIdForNode(service),
       target: generateIdForNode(send),
       type: 'smoothstep',
-      label: send?.collection === 'events' ? 'publishes event' : 'invokes command',
+      label: getSendsMessageByMessageType(send?.collection),
       animated: false,
       markerEnd: {
         type: MarkerType.ArrowClosed,

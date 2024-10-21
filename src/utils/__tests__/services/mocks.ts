@@ -171,3 +171,13 @@ export const mockCommands = [
     },
   },
 ];
+export const mockQueries = [
+  {
+    slug: 'GetOrder',
+    collection: 'queries',
+    data: {
+      id: 'GetOrder',
+      version: '0.0.1',
+    },
+  },
+];

@@ -25,7 +25,7 @@ const getServiceNode = (step: any, services: CollectionEntry<'services'>[]) => {
   };
 };
 
-const getMessageNode = (step: any, messages: CollectionEntry<'events' | 'commands'>[]) => {
+const getMessageNode = (step: any, messages: CollectionEntry<'events' | 'commands' | 'queries'>[]) => {
   const messagesForVersion = getItemsFromCollectionByIdAndSemverOrLatest(messages, step.message.id, step.message.version);
   const message = messagesForVersion[0];
   return {
@@ -53,9 +53,10 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
 
   const events = await getCollection('events');
   const commands = await getCollection('commands');
+  const queries = await getCollection('queries');
   const services = await getCollection('services');
 
-  const messages = [...events, ...commands];
+  const messages = [...events, ...commands, ...queries];
 
   const steps = flow?.data.steps || [];
 
@@ -69,7 +70,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   });
 
   // Create nodes
-  hydratedSteps.forEach((step, index: number) => {
+  hydratedSteps.forEach((step: any, index: number) => {
     const node = {
       id: `step-${step.id}`,
       sourcePosition: 'right',
@@ -93,7 +94,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   });
 
   // Create Edges
-  hydratedSteps.forEach((step, index: number) => {
+  hydratedSteps.forEach((step: any, index: number) => {
     let paths = step.next_steps || [];
 
     if (step.next_step) {
