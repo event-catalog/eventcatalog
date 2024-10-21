@@ -4,6 +4,7 @@ import { copyFile } from 'node:fs/promises';
 import path from 'node:path';
 import { v4 as uuidV4 } from 'uuid';
 import { pathToFileURL } from 'url';
+import matter, { stringify } from 'gray-matter';
 
 export async function cleanup(projectDirectory) {
   const filePath = path.join(projectDirectory, 'eventcatalog.config.mjs');
@@ -82,18 +83,7 @@ export const verifyRequiredFieldsAreInCatalogConfigFile = async (projectDirector
 };
 
 export function addPropertyToFrontMatter(input, newProperty, newValue) {
-  // Split the input into front matter and content
-  const [_, frontMatter, ...rest] = input.split('---');
+  const file = matter(input);
 
-  // Parse the front matter
-  const frontMatterLines = frontMatter.trim().split('\n');
-  const updatedFrontMatterLines = [...frontMatterLines];
-
-  // Add the new property
-  updatedFrontMatterLines.push(`${newProperty}: ${newValue}`);
-
-  // Reconstruct the updated input
-  const updatedFrontMatter = updatedFrontMatterLines.join('\n');
-
-  return `---\n${updatedFrontMatter}\n---\n${rest.join('---')}`;
+  return stringify(file.content, { ...file.data, [newProperty]: newValue });
 }

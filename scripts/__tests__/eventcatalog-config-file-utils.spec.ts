@@ -155,7 +155,7 @@ describe('catalog-to-astro-content-directory', () => {
     it('should support content containing ----', async () => {
       const result = addPropertyToFrontMatter('---\nfront: matter\n---hello\n---\nworld', 'foo', 'bar');
 
-      expect(result).toBe('---\nfront: matter\nfoo: bar\n---\nhello\n---\nworld');
+      expect(result).toBe('---\nfront: matter\nfoo: bar\n---\nhello\n---\nworld\n');
     });
   });
 });
