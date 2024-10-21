@@ -1,0 +1,46 @@
+
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GetSubscriptionStatusResponse",
+  "type": "object",
+  "properties": {
+    "userId": {
+      "type": "string",
+      "description": "The unique identifier for the user."
+    },
+    "subscriptionStatus": {
+      "type": "string",
+      "enum": ["active", "canceled", "expired", "pending"],
+      "description": "The current status of the user's subscription."
+    },
+    "subscriptionPlan": {
+      "type": "string",
+      "description": "The name or tier of the subscription plan."
+    },
+    "nextBillingDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The date and time of the next billing or renewal."
+    },
+    "billingFrequency": {
+      "type": "string",
+      "enum": ["monthly", "yearly"],
+      "description": "The frequency of the billing cycle."
+    },
+    "amount": {
+      "type": "number",
+      "description": "The amount to be billed for the subscription."
+    },
+    "currency": {
+      "type": "string",
+      "description": "The currency in which the subscription is billed (e.g., USD, EUR)."
+    },
+    "lastPaymentDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The date and time when the last payment was processed."
+    }
+  },
+  "required": ["userId", "subscriptionStatus", "subscriptionPlan", "nextBillingDate", "billingFrequency", "amount", "currency", "lastPaymentDate"],
+  "additionalProperties": false
+}

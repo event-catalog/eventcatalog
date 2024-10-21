@@ -1,0 +1,47 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "GetUserNotificationsResponse",
+    "type": "object",
+    "properties": {
+      "userId": {
+        "type": "string",
+        "description": "The unique identifier for the user."
+      },
+      "notifications": {
+        "type": "array",
+        "description": "A list of notifications for the user.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "notificationId": {
+              "type": "string",
+              "description": "The unique identifier for the notification."
+            },
+            "title": {
+              "type": "string",
+              "description": "The title or subject of the notification."
+            },
+            "message": {
+              "type": "string",
+              "description": "The message body of the notification."
+            },
+            "status": {
+              "type": "string",
+              "enum": ["unread", "read"],
+              "description": "The read status of the notification."
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time",
+              "description": "The date and time when the notification was created."
+            }
+          },
+          "required": ["notificationId", "title", "message", "status", "createdAt"],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": ["userId", "notifications"],
+    "additionalProperties": false
+  }
+  
