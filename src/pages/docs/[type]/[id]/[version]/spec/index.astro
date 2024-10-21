@@ -10,7 +10,7 @@ import { buildUrl } from '@utils/url-builder';
 import { pageDataLoader } from '@utils/pages/pages';
 
 export async function getStaticPaths() {
-  const itemTypes: PageTypes[] = ['events', 'commands', 'services', 'domains'];
+  const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];
 
   const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 

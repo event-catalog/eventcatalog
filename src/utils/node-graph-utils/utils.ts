@@ -2,13 +2,13 @@ import type { CollectionEntry } from 'astro:content';
 import type { Node } from 'reactflow';
 import dagre from 'dagre';
 
-export const generateIdForNode = (node: CollectionEntry<'events' | 'services' | 'commands'>) => {
+export const generateIdForNode = (node: CollectionEntry<'events' | 'services' | 'commands' | 'queries'>) => {
   return `${node.data.id}-${node.data.version}`;
 };
 
 export const generatedIdForEdge = (
-  source: CollectionEntry<'events' | 'services' | 'commands'>,
-  target: CollectionEntry<'events' | 'services' | 'commands'>
+  source: CollectionEntry<'events' | 'services' | 'commands' | 'queries'>,
+  target: CollectionEntry<'events' | 'services' | 'commands' | 'queries'>
 ) => {
   return `${source.data.id}-${source.data.version}-${target.data.id}-${target.data.version}`;
 };
