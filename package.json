@@ -66,6 +66,7 @@
     "diff": "^7.0.0",
     "diff2html": "^3.4.48",
     "glob": "^10.4.1",
+    "gray-matter": "^4.0.3",
     "html-to-image": "^1.11.11",
     "lodash.merge": "4.6.2",
     "mermaid": "^10.9.1",
@@ -75,12 +76,12 @@
     "reactflow": "^11.11.4",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^3.0.1",
+    "rimraf": "^5.0.7",
     "semver": "7.6.3",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.4.5",
     "unist-util-visit": "^5.0.0",
-    "uuid": "^10.0.0",
-    "rimraf": "^5.0.7"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.5",
