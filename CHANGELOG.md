@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.10.0
+
+### Minor Changes
+
+- aa2090b: feat(core): added support for query message types/resources
+
 ## 2.9.1
 
 ### Patch Changes
