@@ -107,7 +107,7 @@ const visibleCollections: { [key: string]: boolean } = {
 };
 
 const sideNav = allData.reduce((acc, item) => {
-  const title = item.collection === 'events' || item.collection === 'commands' ? 'Messages' : item.collection;
+  const title = item.collection;
 
   const group = acc[title] || [];
 
@@ -171,16 +171,17 @@ const { title, description } = Astro.props;
               {
                 navigationItems.map((item) => {
                   return (
-                    <button
+                    <a
                       id={item.id}
                       data-role="nav-item"
+                      href={item.href}
                       class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${item.current ? 'text-purple-700 bg-purple-100 ' : 'text-gray-500  hover:bg-gray-100 '}`}
                     >
                       <div class="has-tooltip">
                         <span class="tooltip rounded shadow-lg p-1 text-xs bg-black text-white ml-10">{item.label}</span>
                         <item.icon className="h-6 w-6 text-gray-700" />
                       </div>
-                    </button>
+                    </a>
                   );
                 })
               }
