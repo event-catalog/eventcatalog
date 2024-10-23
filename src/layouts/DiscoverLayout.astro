@@ -11,6 +11,7 @@ import { getServices } from '@utils/services/services';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/queries';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
+import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
 
 const events = await getEvents();
 const queries = await getQueries();
@@ -74,7 +75,7 @@ const tabs = [
 ];
 ---
 
-<PlainPage title={`Explore | ${title}`}>
+<VerticalSideBarLayout title={`Explore | ${title}`}>
   <main>
     <div>
       <!-- <div class="sm:hidden">
@@ -128,7 +129,7 @@ const tabs = [
       </div>
     </div>
   </main>
-</PlainPage>
+</VerticalSideBarLayout>
 
 <style>
   .ec-align-top {

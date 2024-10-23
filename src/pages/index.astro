@@ -16,6 +16,7 @@ import { getDomains } from '@utils/domains/domains';
 import { getServices } from '@utils/services/services';
 import { getFlows } from '@utils/flows/flows';
 import DiscoverInsight from '@components/DiscoverInsight.astro';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 
 const { commands = [], events = [], queries = [] } = await getMessages();
 const domains = await getDomains();
@@ -23,7 +24,7 @@ const services = await getServices();
 const flows = await getFlows();
 ---
 
-<PlainPage title="EventCatalog">
+<VerticalSideBarLayout title="EventCatalog">
   <body class="min-h-screen">
     <main class="container mx-auto px-6 py-20 max-w-[90em]">
       <section class="text-center mb-8">
@@ -94,8 +95,7 @@ const flows = await getFlows();
           </div>
         </section>
       </div>
+      <!-- <Footer className="px-10" /> -->
     </main>
   </body>
-</PlainPage>
-
-<Footer className="px-10" />
+</VerticalSideBarLayout>

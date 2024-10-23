@@ -1,0 +1,380 @@
+---
+import { DocumentIcon, HomeIcon, MapIcon, DocumentMagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import Header from '../components/Header.astro';
+
+import { getCommands } from '@utils/commands';
+import { getDomains } from '@utils/domains/domains';
+import { getEvents } from '@utils/events';
+import { getServices } from '@utils/services/services';
+import { getFlows } from '@utils/flows/flows';
+import { getTeams } from '@utils/teams';
+import { getUsers } from '@utils/users';
+import config, { type CatalogConfig } from '@eventcatalog';
+import { buildUrl } from '@utils/url-builder';
+import { getQueries } from '@utils/queries';
+
+const events = await getEvents({ getAllVersions: false });
+const commands = await getCommands({ getAllVersions: false });
+const queries = await getQueries({ getAllVersions: false });
+const services = await getServices({ getAllVersions: false });
+const domains = await getDomains({ getAllVersions: false });
+const flows = await getFlows({ getAllVersions: false });
+const teams = await getTeams();
+const users = await getUsers();
+
+const messages = [...events, ...commands, ...queries];
+
+// @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
+const allData = [...domains, ...services, ...messages, ...flows, ...teams, ...users];
+
+const currentPath = Astro.url.pathname;
+
+const navigationItems = [
+  {
+    id: '/',
+    label: 'Home',
+    icon: HomeIcon,
+    href: '/',
+    current: currentPath === '/',
+    sidebar: false,
+  },
+  {
+    id: '/docs',
+    label: 'Documentation',
+    icon: DocumentIcon,
+    href: '/docs',
+    current: currentPath.includes('/docs'),
+    sidebar: true,
+  },
+  {
+    id: '/visualiser',
+    label: 'Visualiser',
+    icon: MapIcon,
+    href: '/visualiser',
+    current: currentPath.includes('/visualiser'),
+    sidebar: true,
+  },
+  {
+    id: '/discover',
+    label: 'Discover domains, services and messages',
+    icon: DocumentMagnifyingGlassIcon,
+    href: '/discover/events',
+    current: currentPath.includes('/discover/'),
+    sidebar: false,
+  },
+];
+
+const eventCatalogConfig = config as CatalogConfig;
+
+const {
+  services: servicesConfig,
+  domains: domainsConfig,
+  messages: messagesConfig,
+  flows: flowsConfig,
+  teams: teamsConfig,
+  users: usersConfig,
+} = eventCatalogConfig?.docs?.sidebar || {};
+
+const getConfigValue = (obj: any, key: string, defaultValue: any) => {
+  return obj?.[key] ?? defaultValue;
+};
+
+const visibleCollections: { [key: string]: boolean } = {
+  events: getConfigValue(messagesConfig, 'visible', true),
+  commands: getConfigValue(messagesConfig, 'visible', true),
+  domains: getConfigValue(domainsConfig, 'visible', true),
+  flows: getConfigValue(flowsConfig, 'visible', true),
+  services: getConfigValue(servicesConfig, 'visible', true),
+  teams: getConfigValue(teamsConfig, 'visible', true),
+  users: getConfigValue(usersConfig, 'visible', true),
+};
+
+const sideNav = allData.reduce((acc, item) => {
+  const title = item.collection === 'events' || item.collection === 'commands' ? 'Messages' : item.collection;
+
+  const group = acc[title] || [];
+
+  const currentPath = Astro.url.pathname;
+  const route = currentPath.includes('visualiser') ? 'visualiser' : 'docs';
+
+  const navigationItem = {
+    label: item.data.name,
+    version: item.collection === 'teams' || item.collection === 'users' ? null : item.data.version,
+    // items: item.collection === 'users' ? [] : item.headings,
+    visible: visibleCollections[item.collection],
+    // @ts-ignore
+    href: item.data.version
+      ? // @ts-ignore
+        buildUrl(`/${route}/${item.collection}/${item.data.id}/${item.data.version}`)
+      : buildUrl(`/${route}/${item.collection}/${item.data.id}`),
+  };
+
+  group.push(navigationItem);
+
+  return {
+    ...acc,
+    [title]: group,
+  };
+}, {} as any);
+
+const currentNavigationItem = navigationItems.find((item) => item.current);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <style>
+      .sidebar-transition {
+        transition-property: width, transform;
+        transition-duration: 300ms;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .tooltip {
+        visibility: hidden;
+        position: absolute;
+      }
+      .has-tooltip:hover .tooltip {
+        visibility: visible;
+        z-index: 100;
+      }
+    </style>
+  </head>
+  <body>
+    <Header />
+    <div class="-mt-1 flex">
+      <aside class="flex">
+        <div class="fixed flex flex-col items-center w-16 h-screen py-4 bg-white border-r border-gray-200 z-20 shadow-md">
+          <nav class="flex flex-col items-center flex-1 space-y-8">
+            {
+              navigationItems.map((item) => {
+                return (
+                  <a
+                    id={item.id}
+                    data-role="nav-item"
+                    href={item.href}
+                    class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${item.current ? 'text-purple-500 bg-purple-100 ' : 'text-gray-500  hover:bg-gray-100 '}`}
+                  >
+                    <div class="has-tooltip">
+                      <span class="tooltip rounded shadow-lg p-1 text-xs bg-black text-white ml-10">{item.label}</span>
+                      <item.icon className="h-6 w-6" />
+                    </div>
+                  </a>
+                );
+              })
+            }
+          </nav>
+
+          <div class="flex flex-col items-center mt-4 space-y-4">
+            <a href="#" class="text-gray-500 transition-colors duration-200 rotate-180 rtl:rotate-0 hover:text-purple-500">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="w-6 h-6"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
+                ></path>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <div
+          id="sidebar"
+          class="sidebar-transition h-[100vh] px-5 py-4 overflow-y-auto bg-white border-r border-gray-200 w-60 shadow-lg ml-16"
+        >
+          <nav class="mt-0 -mx-3 space-y-6">
+            <div class="space-y-2">
+              <div class="mb-4">
+                <input
+                  type="text"
+                  placeholder="Search documentation"
+                  class="w-full px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              {
+                Object.keys(sideNav).map((key) => {
+                  const collection = sideNav[key];
+                  if (collection[0] && collection[0].visible === false) return null;
+                  return (
+                    <ul class="w-full space-y-1.5 pb-2 pl-1">
+                      <li class="font capitalize ">{key}</li>
+                      {collection.map((item: any) => {
+                        return (
+                          <li class="px-2 w-full text-md xl:text-sm space-y-2 scroll-m-20" id={item.href}>
+                            <a
+                              class={`flex justify-between items-center w-full px-2 rounded-md font-normal ${currentPath.includes(item.href) ? 'bg-primary/15 font-thin ' : 'font-thin'}`}
+                              href={`${item.href}`}
+                            >
+                              <span class="block truncate  !whitespace-normal">{item.label}</span>
+                              {/* {item.version && (
+                                <span class="block text-xs bg-primary/10 p-0.5 px-1 text-gray-600 rounded-md font-light">
+                                  v{item.version}
+                                </span>
+                              )} */}
+                            </a>
+                            {/* <ul class="hidden xl:block px-4  text-gray-500 text-md space-y-2  ">
+                              {item.items.map((heading: any) => {
+                                return (
+                                  <li class="text-xs">
+                                    <a href={`${item.href}#${heading.slug}`}>{heading.text}</a>
+                                  </li>
+                                );
+                              })}
+                            </ul> */}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  );
+                })
+              }
+            </div>
+          </nav>
+        </div>
+      </aside>
+      <main class="sidebar-transition w-full max-h-screen" id="content">
+        <slot />
+      </main>
+    </div>
+  </body>
+</html>
+<script define:vars={{ navigationItems, currentNavigationItem }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.getElementById('sidebar');
+    const content = document.getElementById('content');
+
+    // Hide the sidebar if the current navigation item is not a sidebar item
+    if (!currentNavigationItem.sidebar) {
+      sidebar.style.display = 'none';
+      content.style.width = '100%';
+      content.classList.add('ml-16');
+    }
+
+    const navItems = document.querySelectorAll('[data-role="nav-item"]');
+    // Check if sidebar is on the page, not localstorage
+    let isOpen = sidebar.style.display === 'block';
+
+    navItems.forEach((item) => {
+      item.addEventListener('click', (e) => {
+        const currentPath = window.location.href;
+        const id = item.getAttribute('id');
+
+        const navItem = navigationItems.find((navItem) => navItem.id === id);
+
+        // If no nav item on selected item do nothing
+        if (!navItem.sidebar) return;
+
+        // not on the target page then just go to it.
+        if (!currentPath.includes(navItem.id)) return;
+
+        if (currentPath.includes(navItem.id)) {
+          e.preventDefault();
+          if (isOpen) {
+            hideSidebar();
+          } else {
+            showSidebar();
+          }
+        }
+      });
+    });
+
+    // const openSidebar = document.getElementById('open-sidebar');
+    // const closeSidebar = document.getElementById('close-sidebar');
+    // let isOpen = localStorage.getItem('sidebarState') === 'open';
+
+    function showSidebar() {
+      if (!sidebar || !content) return;
+      isOpen = true;
+      localStorage.setItem('sidebarState', 'open');
+      sidebar.style.display = 'block';
+      setTimeout(() => {
+        sidebar.style.transform = 'translateX(0)';
+        content.style.transform = 'translateX(0)';
+        content.classList.remove('ml-16');
+        content.style.width = 'calc(100% - 240px)';
+      }, 10); // Small timeout to allow the browser to register the display change
+      //   openSidebar.style.display = 'none';
+      //   closeSidebar.style.display = 'block';
+    }
+
+    function hideSidebar() {
+      if (!sidebar || !content) return;
+      isOpen = false;
+      //   localStorage.setItem('sidebarState', 'closed');
+      sidebar.style.transform = 'translateX(-100%)';
+      content.style.transform = 'translateX(0px)';
+      content.style.width = '100%';
+      content.classList.add('ml-16');
+      //   openSidebar.style.display = 'block';
+      //   closeSidebar.style.display = 'none';
+    }
+
+    // // Initialize sidebar position based on local storage
+    // if (isOpen) {
+    //   showSidebar();
+    // } else {
+    //   if (sidebar && content && openSidebar && closeSidebar) {
+    //     sidebar.style.display = 'none';
+    //     content.style.width = '100%';
+    //     openSidebar.style.display = 'block';
+    //     closeSidebar.style.display = 'none';
+    //   }
+    // }
+
+    // if (toggleButton) {
+    //   toggleButton.addEventListener('click', () => {
+    //     if (isOpen) {
+    //       hideSidebar();
+    //     } else {
+    //       showSidebar();
+    //     }
+    //   });
+    // }
+
+    // if (docIcon) {
+    //   docIcon.addEventListener('click', (e) => {
+    //     const currentPath = window.location.href;
+    //     if (currentPath.includes('/docs')) {
+    //       e.preventDefault();
+    //       if (isOpen) {
+    //         console.log('HIDE!');
+    //         hideSidebar();
+    //       } else {
+    //         showSidebar();
+    //       }
+    //     }
+    //   });
+    // }
+    // if (visualiserIcon) {
+    //   visualiserIcon.addEventListener('click', (e) => {
+    //     const currentPath = window.location.href;
+    //     if (currentPath.includes('/visualiser')) {
+    //       e.preventDefault();
+    //       if (isOpen) {
+    //         console.log('HIDE!');
+    //         hideSidebar();
+    //       } else {
+    //         showSidebar();
+    //       }
+    //     }
+    //   });
+    // }
+
+    if (sidebar) {
+      sidebar.addEventListener('transitionend', () => {
+        if (!isOpen && sidebar && content) {
+          sidebar.style.display = 'none';
+          content.style.transform = 'translateX(0px)';
+          //   content.style.marginLeft = '42px';
+        }
+      });
+    }
+  });
+</script>

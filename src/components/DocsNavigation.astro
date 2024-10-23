@@ -130,16 +130,16 @@ const currentPath = Astro.url.pathname;
 
 <script>
   // Scroll to the current page element
-  document.addEventListener('DOMContentLoaded', () => {
-    const currentPath = document.location.pathname;
-    const currentElement = document.getElementById(currentPath);
-    if (currentElement) {
-      // scroll to the current element with padding
-      currentElement.scrollIntoView({
-        behavior: 'auto',
-        block: 'start',
-        inline: 'start',
-      });
-    }
-  });
+  // document.addEventListener('DOMContentLoaded', () => {
+  //   const currentPath = document.location.pathname;
+  //   const currentElement = document.getElementById(currentPath);
+  //   if (currentElement) {
+  //     // scroll to the current element with padding
+  //     currentElement.scrollIntoView({
+  //       behavior: 'auto',
+  //       block: 'start',
+  //       inline: 'start',
+  //     });
+  //   }
+  // });
 </script>

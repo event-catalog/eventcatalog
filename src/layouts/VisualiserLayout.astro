@@ -9,6 +9,7 @@ import { getQueries } from '@utils/queries';
 import { getServices } from '@utils/services/services';
 import { buildUrl } from '@utils/url-builder';
 import { ViewTransitions } from 'astro:transitions';
+import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
 
 const [services, events, commands, queries, domains, flows] = await Promise.all([
   getServices(),
@@ -55,10 +56,10 @@ const getColor = (collection: string) => {
 };
 ---
 
-<PlainPage title={title} description={description}>
+<VerticalSideBarLayout title={title} description={description}>
   <div class="">
     <div class="">
-      <div class="hidden md:block">
+      <!-- <div class="hidden md:block">
         <aside class="sm:fixed grow w-56 xl:w-[19em] overflow-y-auto h-full z-10 pb-20" id="visualiser-navigation">
           <div class="w-full">
             <div class="sticky top-0 z-10 h-8 pointer-events-none -mt-7">
@@ -93,9 +94,9 @@ const getColor = (collection: string) => {
             }
           </div>
         </aside>
-      </div>
+      </div> -->
 
-      <main class="flex-1 h-full w-full relative sm:pl-60 xl:pl-80">
+      <main class="flex-1 h-full w-full relative">
         <!-- <button
           id="fullscreen-toggle"
           class="absolute top-[1em] z-40 left-5 bg-white hover:bg-gray-100/50 border border-gray-200 hover:text-primary text-gray-800 font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
@@ -114,7 +115,7 @@ const getColor = (collection: string) => {
     </div>
     <ViewTransitions />
   </div>
-</PlainPage>
+</VerticalSideBarLayout>
 
 <script>
   function setupSidebarToggle() {

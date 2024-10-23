@@ -4,6 +4,7 @@ import Footer from '@layouts/Footer.astro';
 import DefaultDocsLandingPage from '@layouts/CustomDocsPageLayout.astro';
 import components from '@components/MDX/page-components';
 import { getIndexPage } from '@utils/pages';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 
 const page = await getIndexPage();
 let CustomContent = null;
@@ -16,14 +17,14 @@ if (page) {
 
 {
   CustomContent && (
-    <Layout title="EventCatalog">
+    <VerticalSideBarLayout title="EventCatalog">
       <main class="py-8">
         <div class="prose prose-md w-full !max-w-none">
           <CustomContent components={components} />
         </div>
         <Footer />
       </main>
-    </Layout>
+    </VerticalSideBarLayout>
   )
 }
 
