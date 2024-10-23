@@ -1,5 +1,4 @@
 ---
-import DocsLayout from '@layouts/DocsLayout.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import Footer from '@layouts/Footer.astro';
 
@@ -18,6 +17,7 @@ import type { PageTypes } from '@types';
 import { buildUrl } from '@utils/url-builder';
 import { getFlows } from '@utils/flows/flows';
 import { pageDataLoader } from '@utils/pages/pages';
+import { ViewTransitions } from 'astro:transitions';
 
 type PageTypesWithFlows = PageTypes | 'flows';
 
@@ -113,14 +113,12 @@ const getSpecificationBadges = () => {
 };
 
 const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
-
-const Layout = true ? VerticalSideBarLayout : DocsLayout;
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
   <main class="flex sm:px-8 docs-layout h-full">
-    <div class="flex docs-layout">
-      <main class="w-full lg:mr-6 pr-8 overflow-y-auto py-8">
+    <div class="flex docs-layout w-full">
+      <div class="w-full lg:mr-6 pr-8 overflow-y-auto py-8">
         <div class="border-b border-gray-200 flex justify-between items-start md:pb-2">
           <div>
             <h2 class="text-2xl md:text-4xl font-bold">
@@ -205,8 +203,8 @@ const Layout = true ? VerticalSideBarLayout : DocsLayout;
             }}
           />
         </div>
-        <!-- <Footer /> -->
-      </main>
+        <Footer />
+      </div>
       <aside class="hidden lg:block sticky top-0 h-[calc(100vh-theme(spacing.16))] w-72 overflow-y-auto py-2">
         <!-- @ts-ignore -->
         {
@@ -218,6 +216,7 @@ const Layout = true ? VerticalSideBarLayout : DocsLayout;
         {props?.collection === 'domains' && <DomainSideBar domain={props} />}
       </aside>
     </div>
+    <ViewTransitions />
   </main>
 
   <style is:global>

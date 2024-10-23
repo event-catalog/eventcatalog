@@ -76,7 +76,7 @@ const tabs = [
 ---
 
 <VerticalSideBarLayout title={`Explore | ${title}`}>
-  <main>
+  <main class="ml-0">
     <div>
       <!-- <div class="sm:hidden">
         <label for="tabs" class="sr-only">Select a tab</label>
@@ -89,7 +89,7 @@ const tabs = [
       </div> -->
       <div class="hidden sm:block">
         <div class="border-b border-gray-200">
-          <nav class="flex space-x-8 -mb-0.5" aria-label="Tabs">
+          <nav class="flex space-x-8 -mb-0.5 pl-6" aria-label="Tabs">
             {
               tabs.map((tab) => (
                 <a
@@ -110,9 +110,9 @@ const tabs = [
     </div>
 
     <!-- Table -->
-    <div class="pb-20">
+    <div class="pb-20 ml-6">
       <div>
-        <div class="sm:flex sm:items-center py-8 pb-4">
+        <div class="sm:flex sm:items-center py-4 pb-4">
           <div class="sm:flex-auto space-y-2">
             <h1 class="text-4xl font-semibold text-gray-900 capitalize">{title}</h1>
             <p class="text-md text-gray-700">{subtitle}</p>

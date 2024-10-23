@@ -1,6 +1,4 @@
 ---
-import DocsLayout from '@layouts/DocsLayout.astro';
-
 import components from '@components/MDX/components';
 
 // SideBars
@@ -11,6 +9,7 @@ import OwnersList from '@components/Lists/OwnersList';
 import PillList from '@components/Lists/PillList';
 import EnvelopeIcon from '@heroicons/react/16/solid/EnvelopeIcon';
 import { buildUrl } from '@utils/url-builder';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 
 export async function getStaticPaths() {
   const teams = await getTeams();
@@ -67,8 +66,8 @@ const ownedEventsList = [...events, ...commands].map((p) => ({
 }));
 ---
 
-<DocsLayout title={`Team | ${props.data.name}`} description={props.data.summary}>
-  <div class="flex min-h-screen docs-layout">
+<VerticalSideBarLayout title={`Team | ${props.data.name}`} description={props.data.summary}>
+  <div class="flex min-h-screen docs-layout sm:px-8">
     <main class="flex-1 w-full pr-10 pt-4">
       <!-- <span class="text-purple-500 bg-purple-100 px-2 py-1 rounded-md">v{props.data.version}</span> -->
 
@@ -150,7 +149,7 @@ const ownedEventsList = [...events, ...commands].map((p) => ({
       <!-- {props?.collection === 'events' && <MessageSideBar message={props} />} -->
     </aside>
   </div>
-</DocsLayout>
+</VerticalSideBarLayout>
 
 <style>
   .docs-layout .prose {
