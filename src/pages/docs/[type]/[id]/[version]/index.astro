@@ -118,12 +118,12 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
   <main class="flex sm:px-8 docs-layout h-full">
     <div class="flex docs-layout w-full">
-      <div class="w-full lg:mr-6 pr-8 overflow-y-auto py-8">
+      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
         <div class="border-b border-gray-200 flex justify-between items-start md:pb-2">
           <div>
-            <h2 class="text-2xl md:text-4xl font-bold">
+            <h2 class="text-2xl md:text-4xl font-bold text-primary">
               {props.data.name}
-              <span class="text-gray-300">(v{props.data.version})</span>
+              <span class="text-primary">(v{props.data.version})</span>
             </h2>
             <h2 class="text-lg pt-2 text-gray-500 font-light">{props.data.summary}</h2>
             {
@@ -185,7 +185,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
           }
         </div>
 
-        <div class="prose prose-md py-4 w-full">
+        <div class="prose prose-md py-4 w-full prose-headings:text-primary">
           <Content components={components(props)} />
         </div>
         <div>
@@ -205,7 +205,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
         </div>
         <Footer />
       </div>
-      <aside class="hidden lg:block sticky top-0 h-[calc(100vh-theme(spacing.16))] w-72 overflow-y-auto py-2">
+      <aside class="hidden lg:block sticky top-0 pb-10  w-72 overflow-y-auto py-2">
         <!-- @ts-ignore -->
         {
           (props?.collection === 'events' || props.collection === 'commands' || props.collection === 'queries') && (

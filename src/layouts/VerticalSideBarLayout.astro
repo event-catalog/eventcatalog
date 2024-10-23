@@ -106,11 +106,11 @@ const visibleCollections: { [key: string]: boolean } = {
   users: getConfigValue(usersConfig, 'visible', true),
 };
 
+
+
 const sideNav = allData.reduce((acc, item) => {
   const title = item.collection;
-
   const group = acc[title] || [];
-
   const currentPath = Astro.url.pathname;
   const route = currentPath.includes('visualiser') ? 'visualiser' : 'docs';
 
@@ -124,6 +124,7 @@ const sideNav = allData.reduce((acc, item) => {
       ? // @ts-ignore
         buildUrl(`/${route}/${item.collection}/${item.data.id}/${item.data.version}`)
       : buildUrl(`/${route}/${item.collection}/${item.data.id}`),
+    collection: item.collection
   };
 
   group.push(navigationItem);
@@ -161,12 +162,12 @@ const { title, description } = Astro.props;
   </head>
   <body>
     <Header />
-    <div class="-mt-1 flex">
-      <aside class="flex">
+    <div class="flex" >
+      <aside class="flex" id="eventcatalog-vertical-nav">
         <div
-          class="fixed mt-0.5 flex flex-col items-center w-16 h-screen py-4 bg-white border-r border-gray-200 z-20 shadow-md justify-between"
+          class="fixed mt-0.5 flex flex-col items-center w-16 h-screen py-4 bg-white bg-gradient-to-b from-white  to-gray-100 border-r border-gray-200  z-20 shadow-md justify-between"
         >
-          <nav class="flex flex-col h-[85vh] justify-between">
+          <nav class="flex flex-col h-[84vh] justify-between">
             <div class="flex flex-col items-center flex-1 space-y-8">
               {
                 navigationItems.map((item) => {
@@ -175,11 +176,11 @@ const { title, description } = Astro.props;
                       id={item.id}
                       data-role="nav-item"
                       href={item.href}
-                      class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${item.current ? 'text-purple-700 bg-purple-100 ' : 'text-gray-500  hover:bg-gray-100 '}`}
+                      class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${item.current ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700' : 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-700 hover:text-white text-gray-700'}`}
                     >
                       <div class="has-tooltip">
-                        <span class="tooltip rounded shadow-lg p-1 text-xs bg-black text-white ml-10">{item.label}</span>
-                        <item.icon className="h-6 w-6 text-gray-700" />
+                        <span class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10">{item.label}</span>
+                        <item.icon className="h-6 w-6  " />
                       </div>
                     </a>
                   );
@@ -197,7 +198,7 @@ const { title, description } = Astro.props;
                 <span class="tooltip rounded shadow-lg p-1 text-xs bg-black text-white ml-10 w-[175px]"
                   >Found an issue? Let us know</span
                 >
-                <img src="/icons/github.svg" class="w-7 h-7" />
+                <img src="/icons/github-purple.svg" class="w-7 h-7" />
               </a>
             </div>
           </nav>
@@ -205,7 +206,7 @@ const { title, description } = Astro.props;
 
         <div
           id="sidebar"
-          class={`sidebar-transition h-[100vh] px-5 py-4 overflow-y-auto bg-white border-r border-gray-200 w-60 shadow-lg ml-16 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
+          class={`sidebar-transition h-[100vh] px-5 py-4 overflow-y-auto bg-white bg-gradient-to-b from-white  to-gray-100 border-r border-gray-200 w-60 shadow-lg ml-16 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
         >
           <CatalogResourcesSideBar resources={sideNav} currentPath={currentPath} client:load />
         </div>

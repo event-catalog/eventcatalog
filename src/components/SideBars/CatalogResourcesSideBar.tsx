@@ -1,11 +1,34 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import debounce from 'lodash.debounce';
-import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, ChevronUpIcon, ServerIcon, RectangleGroupIcon, BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon, QueueListIcon, UserGroupIcon, UserIcon } from '@heroicons/react/24/outline';
 
 const CatalogResourcesSideBar = ({ resources, currentPath }: any) => {
   const [data, setData] = useState(resources);
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState<{ [key: string]: boolean }>({});
+
+const getIconForCollection = useMemo(() => (collection: string) => {
+    switch (collection) {
+        case 'domains':
+            return RectangleGroupIcon;
+        case 'services':
+            return ServerIcon;
+        case 'events':
+            return BoltIcon;
+        case 'commands':
+            return ChatBubbleLeftIcon;
+        case 'queries':
+            return MagnifyingGlassIcon;
+        case 'flows':
+            return QueueListIcon;
+        case 'teams':
+            return UserGroupIcon;
+        case 'users':
+            return UserIcon;
+        default:
+            return ServerIcon;
+    }
+}, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -43,40 +66,42 @@ const CatalogResourcesSideBar = ({ resources, currentPath }: any) => {
   }, [searchQuery, data]);
 
   return (
-    <nav className="mt-0 -mx-3 space-y-6">
+    <nav className="mt-0 -mx-3 space-y-6 text-black">
       <div className="space-y-2">
         <div className="mb-4 px-1">
           <input
             type="text"
-            placeholder="Filter documentation"
-            className="w-full font-light px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Filter catalog..."
+            className="w-full font-light px-3 py-1 text-sm text-gray-600 border border-purple-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             onChange={debouncedHandleSearch}
           />
         </div>
 
         {Object.keys(filteredData).length === 0 ? (
-          <div className="px-2 text-gray-400 text-sm">No results found</div>
+          <div className="px-2 text-gray-400 dark:text-gray-200 text-sm">No results found</div>
         ) : (
           Object.keys(filteredData).map((key) => {
             const collection = filteredData[key];
             if (collection[0] && collection[0].visible === false) return null;
             const isCollapsed = collapsedGroups[key];
             return (
-              <ul className="w-full space-y-1.5 pb-2 pl-1" key={key}>
-                <li className="font capitalize cursor-pointer flex items-center ml-1" onClick={() => toggleGroupCollapse(key)}>
-                  <span className="text-purple-500">{`${key} (${collection.length})`}</span>
+              <ul className="w-full space-y-1.5 pb-2 pl-1 text-black " key={key}>
+                <li className="font capitalize cursor-pointer flex items-center ml-1 text-[14px]" onClick={() => toggleGroupCollapse(key)}>
+                  <span className="">{`${key} (${collection.length})`}</span>
                   <span className="ml-2 block">
                     {isCollapsed ? <ChevronDownIcon className="w-3 h-3" /> : <ChevronUpIcon className="w-3 h-3" />}
                   </span>
                 </li>
                 {!isCollapsed &&
                   collection.map((item: any) => {
+                    const Icon = getIconForCollection(item.collection);
                     return (
-                      <li className="px-2 w-full text-md xl:text-sm space-y-2 scroll-m-20" id={item.href} key={item.href}>
+                      <li className={`w-full text-md xl:text-sm space-y-2 scroll-m-20 rounded-md text-black   ${currentPath.includes(item.href) ? ' bg-gradient-to-l from-purple-500 to-purple-700  font-normal text-white ' : 'font-thin'}`} id={item.href} key={item.href}>
                         <a
-                          className={`flex justify-between items-center w-full px-2 rounded-md font-normal ${currentPath.includes(item.href) ? 'bg-primary/15 font-thin ' : 'font-thin'}`}
+                          className={`flex px-1 justify-start items-center w-full rounded-md  `}
                           href={`${item.href}`}
                         >
+                          <Icon className="w-3 mr-2" />
                           <span className="block truncate  !whitespace-normal">{item.label}</span>
                         </a>
                       </li>
