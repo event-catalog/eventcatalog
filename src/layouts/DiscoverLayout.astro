@@ -9,8 +9,11 @@ import { getFlows } from '@utils/flows/flows';
 import { getEvents } from '@utils/events';
 import { getServices } from '@utils/services/services';
 import { buildUrl } from '@utils/url-builder';
+import { getQueries } from '@utils/queries';
+import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 
 const events = await getEvents();
+const queries = await getQueries();
 const commands = await getCommands();
 const services = await getServices();
 const domains = await getDomains();
@@ -35,6 +38,14 @@ const tabs = [
     icon: ChatBubbleLeftIcon,
     activeColor: 'blue',
     enabled: commands.length > 0,
+  },
+  {
+    label: `Queries (${queries.length})`,
+    href: buildUrl('/discover/queries'),
+    isActive: currentPath === '/discover/queries',
+    icon: MagnifyingGlassIcon,
+    activeColor: 'green',
+    enabled: queries.length > 0,
   },
   {
     label: `Services (${services.length})`,

@@ -11,6 +11,7 @@ receives:
     version: 0.0.1
   - id: CancelSubscription
     version: 0.0.1
+  - id: GetSubscriptionStatus  
 sends:
   - id: UserSubscriptionStarted
     version: 0.0.1

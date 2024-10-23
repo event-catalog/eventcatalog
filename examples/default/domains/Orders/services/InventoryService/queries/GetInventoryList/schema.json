@@ -1,0 +1,53 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "GetInventoryList",
+    "description": "A query to retrieve a list of all available inventory items with their details.",
+    "type": "object",
+    "properties": {
+      "filters": {
+        "type": "object",
+        "description": "Optional filters to narrow down the inventory search.",
+        "properties": {
+          "category": {
+            "type": "string",
+            "description": "Filter items by category (e.g., electronics, clothing, etc.)."
+          },
+          "location": {
+            "type": "string",
+            "description": "Filter items by storage location or warehouse."
+          },
+          "minStockLevel": {
+            "type": "integer",
+            "description": "Filter items with a stock level greater than or equal to this value."
+          },
+          "inStock": {
+            "type": "boolean",
+            "description": "Filter items that are currently in stock (true) or out of stock (false)."
+          }
+        },
+        "additionalProperties": false
+      },
+      "pagination": {
+        "type": "object",
+        "description": "Pagination options for the query.",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "The current page of results.",
+            "minimum": 1,
+            "default": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "The number of items per page.",
+            "minimum": 1,
+            "default": 10
+          }
+        },
+        "required": ["page", "pageSize"]
+      }
+    },
+    "required": [],
+    "additionalProperties": false
+  }
+  

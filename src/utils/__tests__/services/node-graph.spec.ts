@@ -1,7 +1,7 @@
 import { MarkerType } from 'reactflow';
 import { getNodesAndEdges } from '../../services/node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockCommands, mockEvents, mockServices } from './mocks';
+import { mockCommands, mockEvents, mockQueries, mockServices } from './mocks';
 import type { ContentCollectionKey } from 'astro:content';
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -16,6 +16,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockEvents);
         case 'commands':
           return Promise.resolve(mockCommands);
+        case 'queries':
+          return Promise.resolve(mockQueries);
       }
     },
   };

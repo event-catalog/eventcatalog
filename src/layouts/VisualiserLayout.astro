@@ -5,20 +5,22 @@ import { getCommands } from '@utils/commands';
 import { getDomains } from '@utils/domains/domains';
 import { getEvents } from '@utils/events';
 import { getFlows } from '@utils/flows/flows';
+import { getQueries } from '@utils/queries';
 import { getServices } from '@utils/services/services';
 import { buildUrl } from '@utils/url-builder';
 import { ViewTransitions } from 'astro:transitions';
 
-const [services, events, commands, domains, flows] = await Promise.all([
+const [services, events, commands, queries, domains, flows] = await Promise.all([
   getServices(),
   getEvents(),
   getCommands(),
+  getQueries(),
   getDomains(),
   getFlows(),
 ]);
 
 // @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
-const navItems = [...domains, ...services, ...events, ...commands, ...flows];
+const navItems = [...domains, ...services, ...events, ...commands, ...queries, ...flows];
 
 const navigation = navItems
   .filter((item) => item.data.version === item.data.latestVersion)
@@ -41,6 +43,8 @@ const getColor = (collection: string) => {
       return 'green';
     case 'events':
       return 'red';
+    case 'queries':
+      return 'green';
     case 'commands':
       return 'yellow';
     case 'domains':
@@ -52,45 +56,47 @@ const getColor = (collection: string) => {
 ---
 
 <PlainPage title={title} description={description}>
-  <div class="flex min-h-full flex-row md:flex-col">
-    <div class="mx-auto flex flex-col-reverse md:flex-row w-full items-start">
-      <div>
-        <aside
-          class="md:sticky mt-8 md:mt-0 top-0 w-full md:w-60 xl:w-[19em] shrink-0 lg:block font-light pr-10"
-          id="visualiser-navigation"
-        >
-          {
-            Object.keys(navigation).map((key: any) => {
-              const items = navigation[key]
-                .map((item: any) => {
-                  const isCurrent = currentPath.includes(`${item.collection}/${item.data.id}/${item.data.version}`);
-                  const isLatest = item.data.version === item.data.latestVersion;
-                  if (!isLatest) return null;
-                  return {
-                    label: item.data.name,
-                    version: item.data.version,
-                    color: getColor(item.collection),
-                    href: buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`),
-                    active: isCurrent,
-                  };
-                })
-                .filter((n: any) => n !== null);
-              return (
-                <BasicList
-                  title={`${key} (${navigation[key].length})`}
-                  items={items}
-                  emptyMessage="Nothing to show"
-                  color="gray"
-                  client:load
-                />
-              );
-            })
-          }
+  <div class="">
+    <div class="">
+      <div class="hidden md:block">
+        <aside class="sm:fixed grow w-56 xl:w-[19em] overflow-y-auto h-full z-10 pb-20" id="visualiser-navigation">
+          <div class="w-full">
+            <div class="sticky top-0 z-10 h-8 pointer-events-none -mt-7">
+              <div class="h-full bg-gradient-to-b from-white to-transparent"></div>
+            </div>
+            {
+              Object.keys(navigation).map((key: any) => {
+                const items = navigation[key]
+                  .map((item: any) => {
+                    const isCurrent = currentPath.includes(`${item.collection}/${item.data.id}/${item.data.version}`);
+                    const isLatest = item.data.version === item.data.latestVersion;
+                    if (!isLatest) return null;
+                    return {
+                      label: item.data.name,
+                      version: item.data.version,
+                      color: getColor(item.collection),
+                      href: buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`),
+                      active: isCurrent,
+                    };
+                  })
+                  .filter((n: any) => n !== null);
+                return (
+                  <BasicList
+                    title={`${key} (${navigation[key].length})`}
+                    items={items}
+                    emptyMessage="Nothing to show"
+                    color="gray"
+                    client:load
+                  />
+                );
+              })
+            }
+          </div>
         </aside>
       </div>
 
-      <main class="flex-1 h-full w-full relative">
-        <button
+      <main class="flex-1 h-full w-full relative sm:pl-60 xl:pl-80">
+        <!-- <button
           id="fullscreen-toggle"
           class="absolute top-[1em] z-40 left-5 bg-white hover:bg-gray-100/50 border border-gray-200 hover:text-primary text-gray-800 font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
         >
@@ -102,7 +108,7 @@ const getColor = (collection: string) => {
               d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
           </svg>
           <span>Toggle Fullscreen</span>
-        </button>
+        </button> -->
         <slot />
       </main>
     </div>

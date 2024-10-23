@@ -41,7 +41,7 @@ const copyFiles = async (source, target) => {
 
 const ensureAstroCollectionNotEmpty = async (astroDir) => {
   // TODO: maybe import collections from `src/content/config.ts`...
-  const COLLECTIONS = ['events', 'commands', 'services', 'users', 'teams', 'domains', 'flows', 'pages', 'changelogs'];
+  const COLLECTIONS = ['events', 'commands', 'services', 'users', 'teams', 'domains', 'flows', 'pages', 'changelogs', 'queries'];
 
   // Check empty collections
   const emptyCollections = [];
@@ -68,8 +68,6 @@ const ensureAstroCollectionNotEmpty = async (astroDir) => {
 
 export const catalogToAstro = async (source, astroDir) => {
   const astroContentDir = path.join(astroDir, 'src/content/');
-
-  console.log(path.join(astroContentDir, 'config.ts'));
 
   // Config file
   const astroConfigFile = fs.readFileSync(path.join(astroContentDir, 'config.ts'));

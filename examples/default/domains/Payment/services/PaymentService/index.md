@@ -9,9 +9,11 @@ owners:
 receives:
   - id: PaymentInitiated
     version: 0.0.1
+  - id: GetPaymentStatus
 sends:
   - id: PaymentProcessed
     version: 0.0.1
+  - id: GetOrder
 repository:
   language: JavaScript
   url: https://github.com/boyney123/pretend-shipping-service

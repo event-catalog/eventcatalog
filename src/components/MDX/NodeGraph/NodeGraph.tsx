@@ -15,6 +15,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import ServiceNode from './Nodes/Service';
 import EventNode from './Nodes/Event';
+import QueryNode from './Nodes/Query';
 import UserNode from './Nodes/User';
 import StepNode from './Nodes/Step';
 import CommandNode from './Nodes/Command';
@@ -57,6 +58,7 @@ const NodeGraphBuilder = ({
     () => ({
       services: ServiceNode,
       events: EventNode,
+      queries: QueryNode,
       commands: CommandNode,
       step: StepNode,
       user: UserNode,
@@ -160,20 +162,24 @@ const NodeGraphBuilder = ({
       {includeBackground && <Controls />}
       {includeKey && (
         <Panel position="bottom-right">
-          <div className=" bg-white font-light px-4 text-[14px] shadow-md py-1 rounded-md">
-            <span className="font-bold">Key</span>
-            <ul>
-              <li className="flex space-x-2 items-center text-[12px]">
+          <div className=" bg-white font-light px-4 text-[12px] shadow-md py-1 rounded-md">
+            {/* <span className="font-bold">Key</span> */}
+            <ul className="m-0 p-0">
+              <li className="flex space-x-2 items-center text-[10px]">
                 <span className="w-2 h-2 bg-orange-500 block" />
                 <span className="block">Event</span>
               </li>
-              <li className="flex space-x-2 items-center text-[12px]">
+              <li className="flex space-x-2 items-center text-[10px]">
                 <span className="w-2 h-2 bg-pink-500 block" />
                 <span className="block">Service</span>
               </li>
-              <li className="flex space-x-2 items-center text-[12px]">
+              <li className="flex space-x-2 items-center text-[10px]">
                 <span className="w-2 h-2 bg-blue-500 block" />
                 <span className="block">Command</span>
+              </li>
+              <li className="flex space-x-2 items-center text-[10px]">
+                <span className="w-2 h-2 bg-green-500 block" />
+                <span className="block">Query</span>
               </li>
             </ul>
           </div>

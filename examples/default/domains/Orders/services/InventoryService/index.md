@@ -11,7 +11,9 @@ owners:
 receives:
   - id: OrderConfirmed
     version: 0.0.1
-  - id: OrderCancelled
+  - id: OrderConfirmed
+    version: 0.0.1
+  - id: GetInventoryList
     version: 0.0.1
   - id: OrderAmended
     version: 0.0.1
@@ -19,11 +21,14 @@ receives:
     version: 0.0.3
   - id: AddInventory
     version: x
+  - id: GetInventoryStatus
 sends:
   - id: InventoryAdjusted
     version: 0.0.4
   - id: OutOfStock
     version: 0.0.3
+  - id: GetOrder
+    version: 0.0.1
 repository:
   language: JavaScript
   url: https://github.com/boyney123/pretend-shipping-service

@@ -26,7 +26,7 @@ export async function getStaticPaths() {
     flows: getFlows,
   };
 
-  const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'services', 'domains', 'flows'];
+  const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows'];
   const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
 
   return allItems.flatMap((items, index) =>
@@ -206,7 +206,11 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
     </main>
     <aside class="hidden lg:block sticky top-20 h-[calc(100vh-theme(spacing.16))] w-56 overflow-y-auto">
       <!-- @ts-ignore -->
-      {(props?.collection === 'events' || props.collection === 'commands') && <MessageSideBar message={props} />}
+      {
+        (props?.collection === 'events' || props.collection === 'commands' || props.collection === 'queries') && (
+          <MessageSideBar message={props} />
+        )
+      }
       {props?.collection === 'services' && <ServiceSideBar service={props} />}
       {props?.collection === 'domains' && <DomainSideBar domain={props} />}
     </aside>

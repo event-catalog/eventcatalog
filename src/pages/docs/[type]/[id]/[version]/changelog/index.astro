@@ -4,7 +4,7 @@ import Footer from '@layouts/Footer.astro';
 
 import type { PageTypes } from '@types';
 import { getChangeLogs } from '@utils/changelogs/changelogs';
-import { RectangleGroupIcon, ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import { RectangleGroupIcon, ServerIcon, BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { pageDataLoader } from '@utils/pages/pages';
 import 'diff2html/bundles/css/diff2html.min.css';
 
@@ -13,7 +13,7 @@ import { getVersions, getPreviousVersion } from '@utils/collections/util';
 import { getDiffsForCurrentAndPreviousVersion } from '@utils/collections/file-diffs';
 
 export async function getStaticPaths() {
-  const itemTypes: PageTypes[] = ['events', 'commands', 'services', 'domains'];
+  const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];
   const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
   return allItems.flatMap((items, index) =>
@@ -84,6 +84,9 @@ const getBadge = () => {
   }
   if (props.collection === 'commands') {
     return { backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: ChatBubbleLeftIcon, class: 'text-blue-400' };
+  }
+  if (props.collection === 'queries') {
+    return { backgroundColor: 'green', textColor: 'green', content: 'Query', icon: MagnifyingGlassIcon, class: 'text-blue-400' };
   }
   if (props.collection === 'domains') {
     return {

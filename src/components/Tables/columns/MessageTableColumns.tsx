@@ -1,4 +1,4 @@
-import { ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/solid';
+import { ServerIcon, BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { CollectionMessageTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
@@ -8,6 +8,20 @@ import { buildUrl } from '@utils/url-builder';
 
 const columnHelper = createColumnHelper<CollectionEntry<CollectionMessageTypes>>();
 
+export const getColorAndIconForMessageType = (type: string) => {
+  switch (type) {
+    case 'event':
+      return { color: 'orange', Icon: BoltIcon };
+    case 'command':
+      return { color: 'blue', Icon: ChatBubbleLeftIcon };
+    case 'querie':
+    case 'query':
+      return { color: 'green', Icon: MagnifyingGlassIcon };
+    default:
+      return { color: 'gray', Icon: ChatBubbleLeftIcon };
+  }
+};
+
 export const columns = () => [
   columnHelper.accessor('data.name', {
     id: 'name',
@@ -15,8 +29,7 @@ export const columns = () => [
     cell: (info) => {
       const messageRaw = info.row.original;
       const type = useMemo(() => messageRaw.collection.slice(0, -1), [messageRaw.collection]);
-      const color = type === 'event' ? 'orange' : 'blue';
-      const Icon = type === 'event' ? BoltIcon : ChatBubbleLeftIcon;
+      const { color, Icon } = getColorAndIconForMessageType(type);
       return (
         <div className=" group ">
           <a

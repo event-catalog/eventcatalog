@@ -7,6 +7,7 @@ export const getColumnsByCollection = (collection: string): any => {
   switch (collection) {
     case 'events':
     case 'commands':
+    case 'queries':
       return MessageTableColumns();
     case 'services':
       return ServiceTableColumns();

@@ -2,7 +2,14 @@
 import Footer from '@layouts/Footer.astro';
 import PlainPage from '@layouts/PlainPage.astro';
 import { buildUrl } from '@utils/url-builder';
-import { BoltIcon, ChatBubbleLeftIcon, QueueListIcon, RectangleGroupIcon, ServerIcon } from '@heroicons/react/24/outline';
+import {
+  BoltIcon,
+  ChatBubbleLeftIcon,
+  QueueListIcon,
+  RectangleGroupIcon,
+  ServerIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
 
 import { getMessages } from '@utils/messages';
 import { getDomains } from '@utils/domains/domains';
@@ -10,7 +17,7 @@ import { getServices } from '@utils/services/services';
 import { getFlows } from '@utils/flows/flows';
 import DiscoverInsight from '@components/DiscoverInsight.astro';
 
-const { commands = [], events = [] } = await getMessages();
+const { commands = [], events = [], queries = [] } = await getMessages();
 const domains = await getDomains();
 const services = await getServices();
 const flows = await getFlows();
@@ -30,12 +37,14 @@ const flows = await getFlows();
       <div class="hidden md:block">
         <h2 class="text-center text-xl font-bold">Architecture insights</h2>
         <section class="mb-16 bg-white rounded-xl shadow-lg p-6">
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <DiscoverInsight color="text-yellow-600" dataTarget={domains.length} icon={RectangleGroupIcon} label="domains" />
 
             <DiscoverInsight color="text-pink-500" dataTarget={services.length} icon={ServerIcon} label="services" />
 
             <DiscoverInsight color="text-blue-500" dataTarget={commands.length} icon={ChatBubbleLeftIcon} label="commands" />
+
+            <DiscoverInsight color="text-green-500" dataTarget={queries.length} icon={MagnifyingGlassIcon} label="queries" />
 
             <DiscoverInsight color="text-orange-400" dataTarget={events.length} icon={BoltIcon} label="events" />
 

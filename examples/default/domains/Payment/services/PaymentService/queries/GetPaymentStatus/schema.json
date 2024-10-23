@@ -1,0 +1,40 @@
+
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GetPaymentStatusResponse",
+  "type": "object",
+  "properties": {
+    "orderId": {
+      "type": "string",
+      "description": "The unique identifier for the order."
+    },
+    "paymentStatus": {
+      "type": "string",
+      "enum": ["pending", "completed", "failed", "refunded"],
+      "description": "The current payment status of the order."
+    },
+    "amount": {
+      "type": "number",
+      "description": "The amount paid for the order."
+    },
+    "currency": {
+      "type": "string",
+      "description": "The currency in which the payment was made (e.g., USD, EUR)."
+    },
+    "paymentMethod": {
+      "type": "string",
+      "description": "The payment method used for the transaction (e.g., Credit Card, PayPal)."
+    },
+    "transactionId": {
+      "type": "string",
+      "description": "The unique identifier for the payment transaction."
+    },
+    "paymentDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The date and time when the payment was processed."
+    }
+  },
+  "required": ["orderId", "paymentStatus", "amount", "currency", "paymentMethod", "transactionId", "paymentDate"],
+  "additionalProperties": false
+}

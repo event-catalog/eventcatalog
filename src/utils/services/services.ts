@@ -18,8 +18,9 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
   });
   const events = await getCollection('events');
   const commands = await getCollection('commands');
+  const queries = await getCollection('queries');
 
-  const allMessages = [...events, ...commands];
+  const allMessages = [...events, ...commands, ...queries];
 
   // @ts-ignore // TODO: Fix this type
   return services.map((service) => {
@@ -29,14 +30,14 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
     const receivesMessages = service.data.receives || [];
 
     const sends = sendsMessages
-      .map((message) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
+      .map((message: any) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
       .flat()
-      .filter((e) => e !== undefined);
+      .filter((e: any) => e !== undefined);
 
     const receives = receivesMessages
-      .map((message) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
+      .map((message: any) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
       .flat()
-      .filter((e) => e !== undefined);
+      .filter((e: any) => e !== undefined);
 
     return {
       ...service,
