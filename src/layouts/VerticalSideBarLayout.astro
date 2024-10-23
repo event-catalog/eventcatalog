@@ -4,7 +4,7 @@ interface Props {
   description?: string;
 }
 
-import { DocumentIcon, HomeIcon, MapIcon, DocumentMagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { BookOpenText, Workflow, TableProperties, House } from 'lucide-react';
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 
@@ -19,7 +19,6 @@ import config, { type CatalogConfig } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/queries';
 import CatalogResourcesSideBar from '@components/SideBars/CatalogResourcesSideBar';
-import { ViewTransitions } from 'astro:transitions';
 
 const events = await getEvents({ getAllVersions: false });
 const commands = await getCommands({ getAllVersions: false });
@@ -37,18 +36,20 @@ const allData = [...domains, ...services, ...messages, ...flows, ...teams, ...us
 
 const currentPath = Astro.url.pathname;
 
-const getDefaultURLForVisualizer = () => {
-  if (domains.length > 0) return buildUrl(`/visualiser/domains/${domains[0].data.id}/${domains[0].data.latestVersion}`);
-  if (services.length > 0) return buildUrl(`/visualiser/domains/${services[0].data.id}/${services[0].data.latestVersion}`);
-  if (messages.length > 0) return buildUrl(`/visualiser/domains/${messages[0].data.id}/${messages[0].data.latestVersion}`);
-  return '';
+const getDefaultUrl = (route: string, defaultValue: string) => {
+  if (domains.length > 0) return buildUrl(`/${route}/domains/${domains[0].data.id}/${domains[0].data.latestVersion}`);
+  if (services.length > 0) return buildUrl(`/${route}/services/${services[0].data.id}/${services[0].data.latestVersion}`);
+  if (messages.length > 0)
+    return buildUrl(`/${route}/${messages[0].collection}/${messages[0].data.id}/${messages[0].data.latestVersion}`);
+  if (flows.length > 0) return buildUrl(`/${route}/flows/${flows[0].data.id}/${flows[0].data.latestVersion}`);
+  return buildUrl(defaultValue);
 };
 
 const navigationItems = [
   {
     id: '/',
     label: 'Home',
-    icon: HomeIcon,
+    icon: House,
     href: buildUrl('/'),
     current: currentPath === '/',
     sidebar: false,
@@ -56,23 +57,24 @@ const navigationItems = [
   {
     id: '/docs',
     label: 'Documentation',
-    icon: DocumentIcon,
-    href: buildUrl('/docs'),
+    icon: BookOpenText,
+    Workflow,
+    href: getDefaultUrl('docs', '/docs'),
     current: currentPath.includes('/docs'),
     sidebar: true,
   },
   {
     id: '/visualiser',
     label: 'Visualiser',
-    icon: MapIcon,
-    href: getDefaultURLForVisualizer(),
+    icon: Workflow,
+    href: getDefaultUrl('visualiser', '/visualiser'),
     current: currentPath.includes('/visualiser'),
     sidebar: true,
   },
   {
     id: '/discover',
     label: 'Explore',
-    icon: DocumentMagnifyingGlassIcon,
+    icon: TableProperties,
     href: buildUrl('/discover/events'),
     current: currentPath.includes('/discover/'),
     sidebar: false,
@@ -133,6 +135,7 @@ const sideNav = allData.reduce((acc, item) => {
 }, {} as any);
 
 const currentNavigationItem = navigationItems.find((item) => item.current);
+const showSideBarOnLoad = currentNavigationItem?.sidebar;
 const { title, description } = Astro.props;
 ---
 
@@ -161,30 +164,38 @@ const { title, description } = Astro.props;
     <div class="-mt-1 flex">
       <aside class="flex">
         <div
-          class="fixed flex flex-col items-center w-16 h-screen py-4 bg-white border-r border-gray-200 z-20 shadow-md justify-between"
+          class="fixed mt-0.5 flex flex-col items-center w-16 h-screen py-4 bg-white border-r border-gray-200 z-20 shadow-md justify-between"
         >
           <nav class="flex flex-col h-[85vh] justify-between">
             <div class="flex flex-col items-center flex-1 space-y-8">
               {
                 navigationItems.map((item) => {
                   return (
-                    <a
+                    <button
                       id={item.id}
                       data-role="nav-item"
-                      href={item.href}
-                      class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${item.current ? 'text-purple-500 bg-purple-100 ' : 'text-gray-500  hover:bg-gray-100 '}`}
+                      class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${item.current ? 'text-purple-700 bg-purple-100 ' : 'text-gray-500  hover:bg-gray-100 '}`}
                     >
                       <div class="has-tooltip">
                         <span class="tooltip rounded shadow-lg p-1 text-xs bg-black text-white ml-10">{item.label}</span>
-                        <item.icon className="h-6 w-6" />
+                        <item.icon className="h-6 w-6 text-gray-700" />
                       </div>
-                    </a>
+                    </button>
                   );
                 })
               }
             </div>
             <div class="flex flex-col items-center mt-4 space-y-4 -mb-10">
-              <a href="https://github.com/event-catalog/eventcatalog" class="text-gray-500">
+              <a href="https://discord.com/invite/3rjaZMmrAm" class="text-gray-500 has-tooltip">
+                <span class="tooltip rounded shadow-lg p-1 text-xs bg-black text-white ml-10 w-[162px]"
+                  >Join EventCatalog Discord</span
+                >
+                <img src="/icons/discord.svg" class="w-7 h-7" />
+              </a>
+              <a href="https://github.com/event-catalog/eventcatalog" class="text-gray-500 has-tooltip">
+                <span class="tooltip rounded shadow-lg p-1 text-xs bg-black text-white ml-10 w-[175px]"
+                  >Found an issue? Let us know</span
+                >
                 <img src="/icons/github.svg" class="w-7 h-7" />
               </a>
             </div>
@@ -193,7 +204,7 @@ const { title, description } = Astro.props;
 
         <div
           id="sidebar"
-          class="sidebar-transition h-[100vh] px-5 py-4 overflow-y-auto bg-white border-r border-gray-200 w-60 shadow-lg ml-16"
+          class={`sidebar-transition h-[100vh] px-5 py-4 overflow-y-auto bg-white border-r border-gray-200 w-60 shadow-lg ml-16 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
         >
           <CatalogResourcesSideBar resources={sideNav} currentPath={currentPath} client:load />
         </div>
@@ -204,7 +215,7 @@ const { title, description } = Astro.props;
     </div>
   </body>
 </html>
-<script define:vars={{ navigationItems, currentNavigationItem }}>
+<script define:vars={{ navigationItems, currentNavigationItem, showSideBarOnLoad }}>
   document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.getElementById('sidebar');
     const content = document.getElementById('content');
@@ -214,11 +225,12 @@ const { title, description } = Astro.props;
       sidebar.style.display = 'none';
       content.style.width = '100%';
       content.classList.add('ml-16');
+    } else {
+      sidebar.style.display = 'block';
     }
 
     const navItems = document.querySelectorAll('[data-role="nav-item"]');
-    // Check if sidebar is on the page, not localstorage
-    let isOpen = sidebar.style.display === 'block';
+    let isOpen = showSideBarOnLoad;
 
     navItems.forEach((item) => {
       item.addEventListener('click', (e) => {
@@ -227,8 +239,12 @@ const { title, description } = Astro.props;
 
         const navItem = navigationItems.find((navItem) => navItem.id === id);
 
-        // If no nav item on selected item do nothing
-        if (!navItem.sidebar) return;
+        console.log(navItem);
+
+        if (!navItem.sidebar || !currentPath.includes(navItem.id)) {
+          window.location.href = navItem.href;
+          return;
+        }
 
         // not on the target page then just go to it.
         if (!currentPath.includes(navItem.id)) return;
@@ -244,10 +260,6 @@ const { title, description } = Astro.props;
       });
     });
 
-    // const openSidebar = document.getElementById('open-sidebar');
-    // const closeSidebar = document.getElementById('close-sidebar');
-    // let isOpen = localStorage.getItem('sidebarState') === 'open';
-
     function showSidebar() {
       if (!sidebar || !content) return;
       isOpen = true;
@@ -258,80 +270,23 @@ const { title, description } = Astro.props;
         content.style.transform = 'translateX(0)';
         content.classList.remove('ml-16');
         content.style.width = 'calc(100% - 240px)';
-      }, 10); // Small timeout to allow the browser to register the display change
-      //   openSidebar.style.display = 'none';
-      //   closeSidebar.style.display = 'block';
+      }, 10);
     }
 
     function hideSidebar() {
       if (!sidebar || !content) return;
       isOpen = false;
-      //   localStorage.setItem('sidebarState', 'closed');
       sidebar.style.transform = 'translateX(-100%)';
       content.style.transform = 'translateX(0px)';
       content.style.width = '100%';
       content.classList.add('ml-16');
-      //   openSidebar.style.display = 'block';
-      //   closeSidebar.style.display = 'none';
     }
-
-    // // Initialize sidebar position based on local storage
-    // if (isOpen) {
-    //   showSidebar();
-    // } else {
-    //   if (sidebar && content && openSidebar && closeSidebar) {
-    //     sidebar.style.display = 'none';
-    //     content.style.width = '100%';
-    //     openSidebar.style.display = 'block';
-    //     closeSidebar.style.display = 'none';
-    //   }
-    // }
-
-    // if (toggleButton) {
-    //   toggleButton.addEventListener('click', () => {
-    //     if (isOpen) {
-    //       hideSidebar();
-    //     } else {
-    //       showSidebar();
-    //     }
-    //   });
-    // }
-
-    // if (docIcon) {
-    //   docIcon.addEventListener('click', (e) => {
-    //     const currentPath = window.location.href;
-    //     if (currentPath.includes('/docs')) {
-    //       e.preventDefault();
-    //       if (isOpen) {
-    //         console.log('HIDE!');
-    //         hideSidebar();
-    //       } else {
-    //         showSidebar();
-    //       }
-    //     }
-    //   });
-    // }
-    // if (visualiserIcon) {
-    //   visualiserIcon.addEventListener('click', (e) => {
-    //     const currentPath = window.location.href;
-    //     if (currentPath.includes('/visualiser')) {
-    //       e.preventDefault();
-    //       if (isOpen) {
-    //         console.log('HIDE!');
-    //         hideSidebar();
-    //       } else {
-    //         showSidebar();
-    //       }
-    //     }
-    //   });
-    // }
 
     if (sidebar) {
       sidebar.addEventListener('transitionend', () => {
         if (!isOpen && sidebar && content) {
           sidebar.style.display = 'none';
           content.style.transform = 'translateX(0px)';
-          //   content.style.marginLeft = '42px';
         }
       });
     }

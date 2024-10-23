@@ -78,9 +78,9 @@ export const columns = () => [
         return <div className="font-light text-sm text-gray-400/60 text-left italic">No producers documented</div>;
       return (
         <ul className="">
-          {producers.map((producer: any) => {
+          {producers.map((producer: any, index: number) => {
             return (
-              <li className="py-2 group flex items-center space-x-2" key={producer.data.id}>
+              <li className="py-2 group flex items-center space-x-2" key={`${producer.data.id}-${index}`}>
                 <a
                   href={buildUrl(`/docs/${producer.collection}/${producer.data.id}/${producer.data.version}`)}
                   className="group-hover:text-primary flex space-x-1 items-center "
@@ -118,9 +118,9 @@ export const columns = () => [
 
       return (
         <ul>
-          {consumers.map((consumer: any) => {
+          {consumers.map((consumer: any, index:number) => {
             return (
-              <li key={consumer.data.id} className="py-1 group font-light ">
+              <li key={`${consumer.data.id}-${index}`} className="py-1 group font-light ">
                 <a
                   href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
                   className="group-hover:text-primary flex space-x-1 items-center "

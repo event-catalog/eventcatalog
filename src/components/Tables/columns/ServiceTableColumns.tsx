@@ -71,11 +71,11 @@ export const columns = () => [
 
       return (
         <ul>
-          {receives.map((consumer: any) => {
+          {receives.map((consumer: any, index:number) => {
             const type = consumer.collection.slice(0, -1);
             const { color, Icon } = useMemo(() => getColorAndIconForMessageType(type), [type]);
             return (
-              <li key={consumer.data.id} className="py-1 group font-light ">
+              <li key={`${consumer.data.id}-${index}`} className="py-1 group font-light ">
                 <a
                   href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
                   className="group-hover:text-primary flex space-x-1 items-center "
@@ -113,12 +113,12 @@ export const columns = () => [
 
       return (
         <ul>
-          {sends.map((consumer: any) => {
+          {sends.map((consumer: any, index:number) => {
             const type = consumer.collection.slice(0, -1);
             const color = type === 'event' ? 'orange' : 'blue';
             const Icon = type === 'event' ? BoltIcon : ChatBubbleLeftIcon;
             return (
-              <li key={consumer.data.id} className="py-1 group font-light">
+              <li key={`${consumer.data.id}-${index}`} className="py-1 group font-light">
                 <a
                   href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
                   className="group-hover:text-primary flex space-x-1 items-center "
