@@ -150,6 +150,16 @@ const commands = defineCollection({
     .merge(baseSchema),
 });
 
+const queries = defineCollection({
+  type: 'content',
+  schema: z
+    .object({
+      producers: z.array(reference('services')).optional(),
+      consumers: z.array(reference('services')).optional(),
+    })
+    .merge(baseSchema),
+});
+
 const services = defineCollection({
   type: 'content',
   schema: z
@@ -207,6 +217,7 @@ const teams = defineCollection({
 export const collections = {
   events,
   commands,
+  queries,
   services,
   users,
   teams,

@@ -1,5 +1,17 @@
 # @eventcatalog/core
 
+## 2.10.1
+
+### Patch Changes
+
+- e2c99e7: fix(core): fixed issue adding additional properties to users frontmatter on build
+
+## 2.10.0
+
+### Minor Changes
+
+- aa2090b: feat(core): added support for query message types/resources
+
 ## 2.9.1
 
 ### Patch Changes

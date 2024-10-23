@@ -1,6 +1,6 @@
 import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
-import { mockCommands, mockEvents, mockServices } from './mocks';
+import { mockCommands, mockEvents, mockQueries, mockServices } from './mocks';
 import { getServices } from '@utils/services/services';
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -15,6 +15,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockEvents);
         case 'commands':
           return Promise.resolve(mockCommands);
+        case 'queries':
+          return Promise.resolve(mockQueries);
       }
     },
   };

@@ -3,6 +3,7 @@ import NodeGraphNew from './NodeGraph';
 import { getNodesAndEdges as getNodesAndEdgesForService } from '@utils/services/node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForEvent } from '@utils/events/node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForCommand } from '@utils/commands/node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForQueries } from '@utils/queries/node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/domains/node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/flows/node-graph';
 
@@ -48,6 +49,17 @@ if (collection === 'events') {
 
 if (collection === 'commands') {
   const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForCommand({
+    id: id,
+    version,
+    mode,
+  });
+
+  nodes = eventNodes;
+  edges = eventEdges;
+}
+
+if (collection === 'queries') {
+  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForQueries({
     id: id,
     version,
     mode,

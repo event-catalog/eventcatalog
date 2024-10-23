@@ -4,6 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import { useMemo } from 'react';
 import { filterByName, filterCollectionByName } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';
+import { getColorAndIconForMessageType } from './MessageTableColumns';
 
 const columnHelper = createColumnHelper<CollectionEntry<'services'>>();
 
@@ -13,7 +14,6 @@ export const columns = () => [
     header: () => <span>Service</span>,
     cell: (info) => {
       const messageRaw = info.row.original;
-      const type = useMemo(() => messageRaw.collection.slice(0, -1), [messageRaw.collection]);
       const color = 'pink';
       return (
         <div className="group font-light">
@@ -73,8 +73,7 @@ export const columns = () => [
         <ul>
           {receives.map((consumer: any) => {
             const type = consumer.collection.slice(0, -1);
-            const color = type === 'event' ? 'orange' : 'blue';
-            const Icon = type === 'event' ? BoltIcon : ChatBubbleLeftIcon;
+            const { color, Icon } = useMemo(() => getColorAndIconForMessageType(type), [type]);
             return (
               <li key={consumer.data.id} className="py-1 group font-light ">
                 <a

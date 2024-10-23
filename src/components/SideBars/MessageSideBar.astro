@@ -38,7 +38,38 @@ const ownersList = owners.map((o) => ({
   href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
 }));
 
-const type = message.collection.slice(0, -1);
+const getType = (type: string) => {
+  switch (type) {
+    case 'queries':
+      return 'Query';
+    default:
+      return message.collection.slice(0, -1);
+  }
+};
+
+const getProducerEmptyMessage = (type: string) => {
+  const value = type.toLowerCase();
+  switch (value) {
+    case 'query':
+    case 'command':
+      return `This ${value} does not get invoked by any services.`;
+    default:
+      return `This ${value} does not get produced by any services.`;
+  }
+};
+
+const getConsumerEmptyMessage = (type: string) => {
+  const value = type.toLowerCase();
+  switch (value) {
+    case 'query':
+    case 'command':
+      return `This ${value} does not invoke any service.`;
+    default:
+      return `This ${value} does not get consumed by any services.`;
+  }
+};
+
+const type = getType(message.collection);
 
 // @ts-ignore
 const publicPath = message?.catalog?.publicPath;
@@ -52,14 +83,14 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
       color="pink"
       title={`${type} Producers (${producerList.length})`}
       pills={producerList}
-      emptyMessage={`This ${type} does not get produced by any services.`}
+      emptyMessage={getProducerEmptyMessage(type)}
       client:load
     />
     <PillList
       color="pink"
       title={`${type} Consumers (${consumerList.length})`}
       pills={consumerList}
-      emptyMessage={`This ${type} does not get consumed by any services.`}
+      emptyMessage={getConsumerEmptyMessage(type)}
       client:load
     />
     <OwnersList

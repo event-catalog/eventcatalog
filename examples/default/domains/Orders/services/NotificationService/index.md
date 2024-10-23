@@ -11,8 +11,14 @@ receives:
     version: ">1.0.0"
   - id: PaymentProcessed
     version: ^1.0.0
+  - id: GetUserNotifications
+    version: x
+  - id: GetNotificationDetails
+    version: x
 sends:
   - id: OutOfStock
+    version: 0.0.x
+  - id: GetInventoryList
     version: 0.0.x
 repository:
   language: JavaScript
