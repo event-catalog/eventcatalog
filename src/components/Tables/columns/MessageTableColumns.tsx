@@ -118,7 +118,7 @@ export const columns = () => [
 
       return (
         <ul>
-          {consumers.map((consumer: any, index:number) => {
+          {consumers.map((consumer: any, index: number) => {
             return (
               <li key={`${consumer.data.id}-${index}`} className="py-1 group font-light ">
                 <a

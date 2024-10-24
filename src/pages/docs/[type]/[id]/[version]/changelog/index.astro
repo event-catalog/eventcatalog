@@ -110,8 +110,8 @@ const pages = [
 ---
 
 <VerticalSideBarLayout title="ChangeLog">
-  <main class="w-full md:pt-4 px-8 overflow-y-auto h-full  max-w-[95%]">
-    <nav aria-label="Breadcrumb" class="flex ">
+  <main class="w-full md:pt-4 px-8 overflow-y-auto h-full max-w-[95%]">
+    <nav aria-label="Breadcrumb" class="flex">
       <ol role="list" class="flex items-center space-x-2">
         <li>
           <div>
@@ -126,7 +126,7 @@ const pages = [
         <li>
           <div class="flex items-center">
             <svg fill="currentColor" viewBox="0 0 20 20" aria-hidden="true" class="h-5 w-5 flex-shrink-0 text-gray-300">
-              <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
+              <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z"></path>
             </svg>
             <a
               href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}`)}
@@ -212,7 +212,7 @@ const pages = [
                   <div class="prose prose-md !max-w-none py-2">
                     <log.Content />
                   </div>
-                  {log.diffs && log.diffs.map((diff) => <div id="diff-container"  set:html={diff} />)}
+                  {log.diffs && log.diffs.map((diff) => <div id="diff-container" set:html={diff} />)}
                 </div>
               </div>
             </li>

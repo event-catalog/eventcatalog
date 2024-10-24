@@ -106,8 +106,6 @@ const visibleCollections: { [key: string]: boolean } = {
   users: getConfigValue(usersConfig, 'visible', true),
 };
 
-
-
 const sideNav = allData.reduce((acc, item) => {
   const title = item.collection;
   const group = acc[title] || [];
@@ -124,7 +122,7 @@ const sideNav = allData.reduce((acc, item) => {
       ? // @ts-ignore
         buildUrl(`/${route}/${item.collection}/${item.data.id}/${item.data.version}`)
       : buildUrl(`/${route}/${item.collection}/${item.data.id}`),
-    collection: item.collection
+    collection: item.collection,
   };
 
   group.push(navigationItem);
@@ -162,10 +160,10 @@ const { title, description } = Astro.props;
   </head>
   <body>
     <Header />
-    <div class="flex" >
+    <div class="flex">
       <aside class="flex" id="eventcatalog-vertical-nav">
         <div
-          class="fixed mt-0.5 flex flex-col items-center w-16 h-screen py-4 bg-white bg-gradient-to-b from-white  to-gray-100 border-r border-gray-200  z-20 shadow-md justify-between"
+          class="fixed mt-0.5 flex flex-col items-center w-16 h-screen py-4 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 z-20 shadow-md justify-between"
         >
           <nav class="flex flex-col h-[84vh] justify-between">
             <div class="flex flex-col items-center flex-1 space-y-8">
@@ -179,7 +177,9 @@ const { title, description } = Astro.props;
                       class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${item.current ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700' : 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-700 hover:text-white text-gray-700'}`}
                     >
                       <div class="has-tooltip">
-                        <span class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10">{item.label}</span>
+                        <span class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10">
+                          {item.label}
+                        </span>
                         <item.icon className="h-6 w-6  " />
                       </div>
                     </a>
@@ -211,14 +211,24 @@ const { title, description } = Astro.props;
           <CatalogResourcesSideBar resources={sideNav} currentPath={currentPath} client:load />
         </div>
       </aside>
-      <main class="sidebar-transition w-full max-h-screen" id="content">
+      <main class={`sidebar-transition w-full max-h-screen ${showSideBarOnLoad ? 'ml-0' : 'ml-16'}`} id="content">
         <slot />
       </main>
     </div>
   </body>
 </html>
 <script define:vars={{ navigationItems, currentNavigationItem, showSideBarOnLoad }}>
+  // Listen for Astro transititions
+  document.addEventListener('astro:page-load', () => {
+    document.dispatchEvent(new CustomEvent('contentLoaded'));
+  });
+
+  // Listen for DOM loaded
   document.addEventListener('DOMContentLoaded', () => {
+    document.dispatchEvent(new CustomEvent('contentLoaded'));
+  });
+
+  document.addEventListener('contentLoaded', () => {
     const sidebar = document.getElementById('sidebar');
     const content = document.getElementById('content');
 

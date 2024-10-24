@@ -71,7 +71,7 @@ export const columns = () => [
 
       return (
         <ul>
-          {receives.map((consumer: any, index:number) => {
+          {receives.map((consumer: any, index: number) => {
             const type = consumer.collection.slice(0, -1);
             const { color, Icon } = useMemo(() => getColorAndIconForMessageType(type), [type]);
             return (
@@ -113,7 +113,7 @@ export const columns = () => [
 
       return (
         <ul>
-          {sends.map((consumer: any, index:number) => {
+          {sends.map((consumer: any, index: number) => {
             const type = consumer.collection.slice(0, -1);
             const color = type === 'event' ? 'orange' : 'blue';
             const Icon = type === 'event' ? BoltIcon : ChatBubbleLeftIcon;

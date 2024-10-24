@@ -28,7 +28,7 @@ const currentPath = Astro.url.pathname;
           >
             <>
               v{version}
-              {version === collectionItem.data.latestVersion && <>{' '}(latest)</>}
+              {version === collectionItem.data.latestVersion && <> (latest)</>}
             </>
           </option>
         );

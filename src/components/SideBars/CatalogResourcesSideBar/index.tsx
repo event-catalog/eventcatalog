@@ -1,34 +1,49 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import debounce from 'lodash.debounce';
-import { ChevronDownIcon, ChevronUpIcon, ServerIcon, RectangleGroupIcon, BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon, QueueListIcon, UserGroupIcon, UserIcon } from '@heroicons/react/24/outline';
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ServerIcon,
+  RectangleGroupIcon,
+  BoltIcon,
+  ChatBubbleLeftIcon,
+  MagnifyingGlassIcon,
+  QueueListIcon,
+  UserGroupIcon,
+  UserIcon,
+} from '@heroicons/react/24/outline';
+import './styles.css';
 
 const CatalogResourcesSideBar = ({ resources, currentPath }: any) => {
   const [data, setData] = useState(resources);
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState<{ [key: string]: boolean }>({});
 
-const getIconForCollection = useMemo(() => (collection: string) => {
-    switch (collection) {
+  const getIconForCollection = useMemo(
+    () => (collection: string) => {
+      switch (collection) {
         case 'domains':
-            return RectangleGroupIcon;
+          return RectangleGroupIcon;
         case 'services':
-            return ServerIcon;
+          return ServerIcon;
         case 'events':
-            return BoltIcon;
+          return BoltIcon;
         case 'commands':
-            return ChatBubbleLeftIcon;
+          return ChatBubbleLeftIcon;
         case 'queries':
-            return MagnifyingGlassIcon;
+          return MagnifyingGlassIcon;
         case 'flows':
-            return QueueListIcon;
+          return QueueListIcon;
         case 'teams':
-            return UserGroupIcon;
+          return UserGroupIcon;
         case 'users':
-            return UserIcon;
+          return UserIcon;
         default:
-            return ServerIcon;
-    }
-}, []);
+          return ServerIcon;
+      }
+    },
+    []
+  );
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -85,8 +100,11 @@ const getIconForCollection = useMemo(() => (collection: string) => {
             if (collection[0] && collection[0].visible === false) return null;
             const isCollapsed = collapsedGroups[key];
             return (
-              <ul className="w-full space-y-1.5 pb-2 pl-1 text-black " key={key}>
-                <li className="font capitalize cursor-pointer flex items-center ml-1 text-[14px]" onClick={() => toggleGroupCollapse(key)}>
+              <ul className="w-full space-y-1.5 pb-2 pl-1 text-black  " key={key}>
+                <li
+                  className="font capitalize cursor-pointer flex items-center ml-1 text-[14px]"
+                  onClick={() => toggleGroupCollapse(key)}
+                >
                   <span className="">{`${key} (${collection.length})`}</span>
                   <span className="ml-2 block">
                     {isCollapsed ? <ChevronDownIcon className="w-3 h-3" /> : <ChevronUpIcon className="w-3 h-3" />}
@@ -96,13 +114,19 @@ const getIconForCollection = useMemo(() => (collection: string) => {
                   collection.map((item: any) => {
                     const Icon = getIconForCollection(item.collection);
                     return (
-                      <li className={`w-full text-md xl:text-sm space-y-2 scroll-m-20 rounded-md text-black   ${currentPath.includes(item.href) ? ' bg-gradient-to-l from-purple-500 to-purple-700  font-normal text-white ' : 'font-thin'}`} id={item.href} key={item.href}>
-                        <a
-                          className={`flex px-1 justify-start items-center w-full rounded-md  `}
-                          href={`${item.href}`}
-                        >
+                      <li
+                        className={`w-full has-tooltip text-md xl:text-sm space-y-2 scroll-m-20 rounded-md text-black   ${currentPath.includes(item.href) ? ' bg-gradient-to-l from-purple-500 to-purple-700  font-normal text-white ' : 'font-thin'}`}
+                        id={item.href}
+                        key={item.href}
+                      >
+                        <a className={`flex px-1 justify-start items-center w-full rounded-md  `} href={`${item.href}`}>
                           <Icon className="w-3 mr-2" />
                           <span className="block truncate  !whitespace-normal">{item.label}</span>
+                          {item.label.length > 24 && (
+                            <span className="tooltip rounded shadow-lg p-1 font-normal text-xs bg-white  text-black ml-[30px] mt-12">
+                              {item.label}
+                            </span>
+                          )}
                         </a>
                       </li>
                     );
