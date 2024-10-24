@@ -121,9 +121,9 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
         <div class="border-b border-gray-200 flex justify-between items-start md:pb-2">
           <div>
-            <h2 class="text-2xl md:text-4xl font-bold text-primary">
+            <h2 class="text-2xl md:text-4xl font-bold text-black">
               {props.data.name}
-              <span class="text-primary">(v{props.data.version})</span>
+              <span class="text-gray-300">(v{props.data.version})</span>
             </h2>
             <h2 class="text-lg pt-2 text-gray-500 font-light">{props.data.summary}</h2>
             {
@@ -185,7 +185,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
           }
         </div>
 
-        <div class="prose prose-md py-4 w-full prose-headings:text-primary">
+        <div class="prose prose-md py-4 w-full ">
           <Content components={components(props)} />
         </div>
         <div>
