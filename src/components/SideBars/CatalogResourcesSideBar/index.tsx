@@ -13,37 +13,12 @@ import {
   UserIcon,
 } from '@heroicons/react/24/outline';
 import './styles.css';
+import { getIconForCollection as getIconForCollectionOriginal } from '@utils/collections/icons';
 
 const CatalogResourcesSideBar = ({ resources, currentPath }: any) => {
   const [data, setData] = useState(resources);
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState<{ [key: string]: boolean }>({});
-
-  const getIconForCollection = useMemo(
-    () => (collection: string) => {
-      switch (collection) {
-        case 'domains':
-          return RectangleGroupIcon;
-        case 'services':
-          return ServerIcon;
-        case 'events':
-          return BoltIcon;
-        case 'commands':
-          return ChatBubbleLeftIcon;
-        case 'queries':
-          return MagnifyingGlassIcon;
-        case 'flows':
-          return QueueListIcon;
-        case 'teams':
-          return UserGroupIcon;
-        case 'users':
-          return UserIcon;
-        default:
-          return ServerIcon;
-      }
-    },
-    []
-  );
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -80,8 +55,12 @@ const CatalogResourcesSideBar = ({ resources, currentPath }: any) => {
     }, {} as any);
   }, [searchQuery, data]);
 
+  const getIconForCollection = useMemo(() => getIconForCollectionOriginal, []);
+
+  
+
   return (
-    <nav className="mt-0 -mx-3 space-y-6 text-black">
+    <nav className="space-y-6 text-black ">
       <div className="space-y-2">
         <div className="mb-4 px-1">
           <input
@@ -100,7 +79,7 @@ const CatalogResourcesSideBar = ({ resources, currentPath }: any) => {
             if (collection[0] && collection[0].visible === false) return null;
             const isCollapsed = collapsedGroups[key];
             return (
-              <ul className="w-full space-y-1.5 pb-2 pl-1 text-black  " key={key}>
+              <ul className="w-full space-y-1.5 pb-2 pl-1 text-black" key={key}>
                 <li
                   className="font capitalize cursor-pointer flex items-center ml-1 text-[14px]"
                   onClick={() => toggleGroupCollapse(key)}
@@ -115,18 +94,18 @@ const CatalogResourcesSideBar = ({ resources, currentPath }: any) => {
                     const Icon = getIconForCollection(item.collection);
                     return (
                       <li
-                        className={`w-full has-tooltip text-md xl:text-sm space-y-2 scroll-m-20 rounded-md text-black   ${currentPath.includes(item.href) ? ' bg-gradient-to-l from-purple-500 to-purple-700  font-normal text-white ' : 'font-thin'}`}
+                        className={`w-full has-tooltip text-md xl:text-sm space-y-2 scroll-m-20 rounded-md text-black hover:bg-gradient-to-l hover:from-purple-500 hover:to-purple-700 hover:text-white    ${currentPath.includes(item.href) ? ' bg-gradient-to-l from-purple-500 to-purple-700  font-normal text-white ' : 'font-thin'}`}
                         id={item.href}
                         key={item.href}
                       >
                         <a className={`flex px-1 justify-start items-center w-full rounded-md  `} href={`${item.href}`}>
                           <Icon className="w-3 mr-2" />
                           <span className="block truncate  !whitespace-normal">{item.label}</span>
-                          {item.label.length > 24 && (
-                            <span className="tooltip rounded shadow-lg p-1 font-normal text-xs bg-white  text-black ml-[30px] mt-12">
+                          {/* {item.label.length > 2 && (
+                            <span className="tooltip rounded relative shadow-lg p-1 font-normal text-xs bg-white  text-black ml-[30px] mt-12">
                               {item.label}
                             </span>
-                          )}
+                          )} */}
                         </a>
                       </li>
                     );

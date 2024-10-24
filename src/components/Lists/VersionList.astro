@@ -2,21 +2,43 @@
 import type { CollectionTypes } from '@types';
 import { buildUrl } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
+import { HistoryIcon } from 'lucide-react';
 
 interface Props {
+  title?: string;
   versions: string[];
   collectionItem: CollectionEntry<CollectionTypes>;
 }
 
-const { versions, collectionItem } = Astro.props;
+const { versions, collectionItem, title } = Astro.props;
 const currentPath = Astro.url.pathname;
 ---
 
-<div class="space-y-2 my-2 mb-8">
-  <span class="font-light text-black group-data-[hover]:text-black/80 capitalize"
-    >Versions ({collectionItem.data.versions?.length})</span
-  >
-  <select id="version" class="block bg-gray-50 rounded-md border border-gray-200 px-1 py-0.5 text-xs">
+<div class="space-y-2 pb-8">
+  <span class="text-sm text-black group-data-[hover]:text-black/80 capitalize">
+    {title || `Versions (${collectionItem.data.versions?.length})`}
+  </span>
+  <ul role="list" class="space-y-2">
+    {
+      versions.map((version) => {
+        const isCurrent = currentPath.includes(version);
+        return (
+          <li
+            class="rounded-md px-1 group w-full hover:bg-gradient-to-l  hover:from-purple-500 hover:to-purple-700 hover:text-white hover:font-normal  "
+          >
+            <a class={`flex items-center space-x-2 cursor-pointer`} href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${version}`)}>
+              {/* {Icon && <Icon class={`h-4 w-4`} />} */}
+              <HistoryIcon className="h-4 w-4 text-gray-800 group-hover:text-white" strokeWidth={1} />
+              <span class={`font-light text-sm ${isCurrent ? 'underline ' : ''}`}>
+                {version === collectionItem.data.latestVersion ? `v${version} (latest)` : `v${version}`}
+              </span>
+            </a>
+          </li>
+        );
+      })
+    }
+  </ul>
+  <!-- <select id="version" class="block bg-gray-50 rounded-md border border-gray-200 px-1 py-0.5 text-xs">
     {
       versions.map((version) => {
         const isCurrent = currentPath.includes(version);
@@ -26,19 +48,16 @@ const currentPath = Astro.url.pathname;
             value={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${version}`)}
             class={`inline-flex items-center rounded-md  px-2 py-1 text-xs text-indigo-700 ring-1 ring-inset ring-indigo-700/10 hover:bg-purple-100 hover:underline ${isCurrent ? 'bg-purple-100 text-primary underline ' : 'bg-white'}`}
           >
-            <>
-              v{version}
-              {version === collectionItem.data.latestVersion && <> (latest)</>}
-            </>
+            {version === collectionItem.data.latestVersion ? `v${version} (latest)` : `v${version}`}
           </option>
         );
       })
     }
-  </select>
-  <a
+  </select> -->
+  <!-- <a
     href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.latestVersion}/changelog`)}
     class="text-[10px] text-gray-500">View changelogs</a
-  >
+  > -->
 </div>
 
 <script>

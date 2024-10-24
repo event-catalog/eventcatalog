@@ -17,13 +17,13 @@ const OwnersList2 = ({ title, owners, emptyMessage }: Props) => {
   return (
     <div>
       <div className="mx-auto w-full max-w-lg divide-y divide-white/5 rounded-xl bg-white/5">
-        <Disclosure as="div" className="py-4" defaultOpen={owners.length <= 5}>
-          <DisclosureButton className="group flex w-full items-center justify-between">
-            <span className="font-light text-black group-data-[hover]:text-black/80 capitalize"> {title} </span>
+        <Disclosure as="div" className="pb-8" defaultOpen={owners.length <= 5}>
+        <DisclosureButton className="group flex w-full items-center justify-start space-x-4">
+            <span className="text-sm text-black group-data-[hover]:text-black/80 capitalize"> {title} </span>
             <ChevronDownIcon className="size-5 fill-black/60 group-data-[hover]:fill-black/50 group-data-[open]:rotate-180" />
           </DisclosureButton>
-          <DisclosurePanel className="mt-2 text-sm/5 text-black/50">
-            <ul role="list" className="divide-y divide-black/5">
+          <DisclosurePanel className="text-sm/5 text-black/50">
+            <ul role="list" className="divide-y  divide-black/5">
               {owners.map((item) => {
                 return (
                   <li className="py-3" key={item.href}>
@@ -42,11 +42,11 @@ const OwnersList2 = ({ title, owners, emptyMessage }: Props) => {
                       )}
                       {/*  <span className="w-6 rounded-full mt-1 bg-red-500 block text-center text-white uppercase">{item.label.charAt(0)}</span> */}
                       <div>
-                        <h3 className="flex-auto truncate text-sm font-semibold leading-6 text-black group-hover:underline group-hover:text-primary">
+                        <h3 className="flex-auto truncate text-[12px] text-black group-hover:underline group-hover:text-primary">
                           {item.label}
                         </h3>
                         <div className="-mt-0.5">
-                          <span className="text-xs font-light bg-gray-100 text-gray-700 rounded-md py-0.5 group-hover:bg-primary/10">
+                          <span className="text-[10px] font-light  text-gray-500 rounded-md group-hover:bg-primary/10">
                             {item.badge}
                           </span>
                         </div>

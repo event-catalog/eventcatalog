@@ -1,9 +1,10 @@
 ---
 import OwnersList from '@components/Lists/OwnersList';
-import PillList from '@components/Lists/PillList';
+import PillListFlat from '@components/Lists/PillListFlat';
 import VersionList from '@components/Lists/VersionList.astro';
 import { buildUrl } from '@utils/url-builder';
 import { getEntry, type CollectionEntry } from 'astro:content';
+import { ScrollText, Workflow } from 'lucide-react';
 interface Props {
   domain: CollectionEntry<'domains'>;
 }
@@ -20,6 +21,7 @@ const serviceList = services.map((p) => ({
   label: p.data.name,
   badge: p.collection,
   tag: `v${p.data.version}`,
+  collection: p.collection,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
 }));
 
@@ -32,33 +34,38 @@ const ownersList = owners.map((o) => ({
 }));
 ---
 
-<aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto">
+<aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto py-4">
   <div>
-    <PillList
+    <PillListFlat
       title={`Services (${services.length})`}
       pills={serviceList}
       emptyMessage={`This domain does not contain any services.`}
       color="pink"
+      icon="ServerIcon"
       client:load
     />
+    {domain.data.versions && <VersionList versions={domain.data.versions} collectionItem={domain} />}
     <OwnersList
       title={`Domain owners (${ownersList.length})`}
       owners={ownersList}
       emptyMessage={`This domain does not have any documented owners.`}
       client:load
     />
-    {domain.data.versions && <VersionList versions={domain.data.versions} collectionItem={domain} />}
     <div class="space-y-2">
       <a
         href={buildUrl(`/visualiser/${domain.collection}/${domain.data.id}/${domain.data.version}`)}
-        class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
-        >View in Visualiser</a
+        class="flex items-center justify-center space-x-2 text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
       >
+        <Workflow strokeWidth={2} size={16} />
+        <span class="block">View in visualiser</span>
+      </a>
       <a
         href={buildUrl(`/docs/${domain.collection}/${domain.data.id}/${domain.data.version}/changelog`)}
-        class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
-        >Changelog</a
+        class="flex items-center space-x-2 justify-center text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
       >
+        <ScrollText strokeWidth={2} size={16} />
+        <span class="block">Read changelog</span>
+      </a>
     </div>
   </div>
 </aside>

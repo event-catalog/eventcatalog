@@ -8,6 +8,8 @@ import PlainPage from '@layouts/PlainPage.astro';
 import { DocumentMinusIcon } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
 import { pageDataLoader } from '@utils/pages/pages';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import "./styles.css";
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];
@@ -40,7 +42,7 @@ const pathOnDisk = path.join(process.cwd(), 'public', pathToSpec);
 const fileExists = fs.existsSync(pathOnDisk);
 ---
 
-<PlainPage title="OpenAPI Spec">
+<VerticalSideBarLayout title="OpenAPI Spec"}>
   {
     !fileExists ? (
       <div class="text-center h-screen  flex flex-col justify-center ">
@@ -75,7 +77,7 @@ const fileExists = fs.existsSync(pathOnDisk);
       />
     )
   }
-</PlainPage>
+</VerticalSideBarLayout>
 
 <script>
   // @ts-ignore
@@ -97,9 +99,17 @@ const fileExists = fs.existsSync(pathOnDisk);
   }
 
   rapi-doc::part(section-navbar-search) {
-    margin: 0;
+    margin: 0 10px;
     padding: 0;
     margin-bottom: 1em;
+  }
+  rapi-doc::part(section-navbar) {
+    margin: 0;
+    padding: 10px important;
+    margin-bottom: 1em;
+    background-image: linear-gradient(to bottom, rgb(255, 255, 255), rgb(243, 244, 246));
+    border-right-width: 1px;
+    border-right-color: rgb(229, 231, 235);
   }
   rapi-doc::part(section-overview) {
     margin: 0 2em 0 2em;
