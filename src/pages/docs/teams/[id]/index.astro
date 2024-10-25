@@ -1,6 +1,4 @@
 ---
-import DocsLayout from '@layouts/DocsLayout.astro';
-
 import components from '@components/MDX/components';
 
 // SideBars
@@ -8,9 +6,10 @@ import { getTeams } from '@utils/teams';
 import { getEntry } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import OwnersList from '@components/Lists/OwnersList';
-import PillList from '@components/Lists/PillList';
+import PillListFlat from '@components/Lists/PillListFlat';
 import EnvelopeIcon from '@heroicons/react/16/solid/EnvelopeIcon';
 import { buildUrl } from '@utils/url-builder';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 
 export async function getStaticPaths() {
   const teams = await getTeams();
@@ -43,12 +42,14 @@ const membersList = members.map((o) => ({
   label: o.data.name,
   type: o.collection,
   badge: o.collection === 'users' ? o.data.role : 'Team',
+  collection: o.collection,
   avatarUrl: o.collection === 'users' ? o.data.avatarUrl : '',
   href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
 }));
 
 const ownedDomainsList = domains.map((p) => ({
   label: `${p.data.name}`,
+  collection: p.collection,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
   tag: `v${p.data.version}`,
 }));
@@ -56,6 +57,7 @@ const ownedDomainsList = domains.map((p) => ({
 const ownedServicesList = services.map((p) => ({
   label: `${p.data.name} (service)`,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+  collection: p.collection,
   tag: `v${p.data.version}`,
 }));
 
@@ -63,12 +65,13 @@ const ownedEventsList = [...events, ...commands].map((p) => ({
   label: `${p.data.name} (${p.collection.slice(0, -1)})`,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
   color: p.collection === 'events' ? 'orange' : 'blue',
+  collection: p.collection,
   tag: `v${p.data.version}`,
 }));
 ---
 
-<DocsLayout title={`Team | ${props.data.name}`} description={props.data.summary}>
-  <div class="flex min-h-screen docs-layout">
+<VerticalSideBarLayout title={`Team | ${props.data.name}`} description={props.data.summary}>
+  <div class="flex min-h-screen docs-layout sm:px-8">
     <main class="flex-1 w-full pr-10 pt-4">
       <!-- <span class="text-purple-500 bg-purple-100 px-2 py-1 rounded-md">v{props.data.version}</span> -->
 
@@ -117,23 +120,23 @@ const ownedEventsList = [...events, ...commands].map((p) => ({
         <NodeGraph id={props.data.id} type={props?.catalog?.type} nodes={props.nodes} masterNode={{ name: props.data.name, id: props.data.id }} client:load />
       </div> -->
     </main>
-    <aside class="sticky top-20 h-[calc(100vh-theme(spacing.16))] w-56 overflow-y-auto">
+    <aside class="sticky top-20 h-[calc(100vh-theme(spacing.16))] w-72 overflow-y-auto">
       <div class="divide-y-2 divide-gray-100">
-        <PillList
+        <PillListFlat
           color="pink"
           title={`Owned domains (${ownedDomainsList.length})`}
           pills={ownedDomainsList}
           emptyMessage={`${props.data.name} does not own any domains.`}
           client:load
         />
-        <PillList
+        <PillListFlat
           color="blue"
           title={`Owned services (${ownedServicesList.length})`}
           pills={ownedServicesList}
           emptyMessage={`This team does not own any services .`}
           client:load
         />
-        <PillList
+        <PillListFlat
           color="red"
           title={`Owned messages (${ownedEventsList.length})`}
           pills={ownedEventsList}
@@ -150,7 +153,7 @@ const ownedEventsList = [...events, ...commands].map((p) => ({
       <!-- {props?.collection === 'events' && <MessageSideBar message={props} />} -->
     </aside>
   </div>
-</DocsLayout>
+</VerticalSideBarLayout>
 
 <style>
   .docs-layout .prose {

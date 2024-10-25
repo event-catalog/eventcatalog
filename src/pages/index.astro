@@ -1,6 +1,4 @@
 ---
-import Footer from '@layouts/Footer.astro';
-import PlainPage from '@layouts/PlainPage.astro';
 import { buildUrl } from '@utils/url-builder';
 import {
   BoltIcon,
@@ -16,86 +14,108 @@ import { getDomains } from '@utils/domains/domains';
 import { getServices } from '@utils/services/services';
 import { getFlows } from '@utils/flows/flows';
 import DiscoverInsight from '@components/DiscoverInsight.astro';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { BookOpen, BookOpenText, TableProperties, Workflow } from 'lucide-react';
 
 const { commands = [], events = [], queries = [] } = await getMessages();
 const domains = await getDomains();
 const services = await getServices();
 const flows = await getFlows();
+
+const getDefaultUrl = (route: string, defaultValue: string) => {
+  if (domains.length > 0) return buildUrl(`/${route}/domains/${domains[0].data.id}/${domains[0].data.latestVersion}`);
+  if (services.length > 0) return buildUrl(`/${route}/services/${services[0].data.id}/${services[0].data.latestVersion}`);
+  if (flows.length > 0) return buildUrl(`/${route}/flows/${flows[0].data.id}/${flows[0].data.latestVersion}`);
+  return buildUrl(defaultValue);
+};
 ---
 
-<PlainPage title="EventCatalog">
+<VerticalSideBarLayout title="EventCatalog">
   <body class="min-h-screen">
-    <main class="container mx-auto px-6 py-20 max-w-[90em]">
-      <section class="text-center mb-8">
-        <h1 class="text-5xl font-bold mb-6 text-gray-800">Welcome to <span class="text-primary">EventCatalog</span></h1>
-        <p class="text-xl mb-8 text-gray-700 max-w-2xl mx-auto font-light">
-          Discover and document your event-driven architecture effortlessly. EventCatalog centralizes your events, services, and
-          schemas in one place.
-        </p>
-      </section>
-
-      <div class="hidden md:block">
-        <h2 class="text-center text-xl font-bold">Architecture insights</h2>
-        <section class="mb-16 bg-white rounded-xl shadow-lg p-6">
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <DiscoverInsight color="text-yellow-600" dataTarget={domains.length} icon={RectangleGroupIcon} label="domains" />
-
-            <DiscoverInsight color="text-pink-500" dataTarget={services.length} icon={ServerIcon} label="services" />
-
-            <DiscoverInsight color="text-blue-500" dataTarget={commands.length} icon={ChatBubbleLeftIcon} label="commands" />
-
-            <DiscoverInsight color="text-green-500" dataTarget={queries.length} icon={MagnifyingGlassIcon} label="queries" />
-
-            <DiscoverInsight color="text-orange-400" dataTarget={events.length} icon={BoltIcon} label="events" />
-
-            <DiscoverInsight color="text-green-800" dataTarget={flows.length} icon={QueueListIcon} label="flows" />
-          </div>
+    <main class="">
+      <div class="container mx-auto px-6 py-20 max-w-[90em]">
+        <section class="text-center mb-8">
+          <h1 class="text-5xl font-bold mb-6 text-gray-800">Welcome to <span class="text-primary">EventCatalog</span></h1>
+          <p class="text-xl mb-8 text-gray-700 max-w-2xl mx-auto font-light">
+            Discover and document your event-driven architecture effortlessly. EventCatalog centralizes your events, services, and
+            schemas in one place.
+          </p>
         </section>
 
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          <div
-            class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1"
-          >
-            <div class="h-2 bg-blue-400"></div>
-            <div class="p-6">
-              <h2 class="text-2xl font-semibold mb-4 text-blue-700">Documentation</h2>
-              <p class="text-gray-600 mb-4">
-                Create and maintain comprehensive documentation for your events, including schemas, examples, and versioning.
-              </p>
-              <a href={buildUrl('/docs')} class="text-blue-600 hover:text-blue-800 font-semibold">Explore docs →</a>
-            </div>
-          </div>
-          <div
-            class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1"
-          >
-            <div class="h-2 bg-teal-400"></div>
-            <div class="p-6">
-              <h2 class="text-2xl font-semibold mb-4 text-teal-700">Visualiser</h2>
-              <p class="text-gray-600 mb-4">
-                Transform complex event flows into clear, interactive diagrams. Gain insights at a glance and communicate
-                effectively across teams.
-              </p>
-              <a href={buildUrl('/visualiser')} class="text-teal-600 hover:text-teal-800 font-semibold">Explore visualiser →</a>
-            </div>
-          </div>
+        <div class="hidden md:block">
+          <!-- <h2 class="text-center text-xl ">Architecture insights</h2> -->
+          <section class="mb-16 bg-white rounded-xl shadow-lg p-6">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <DiscoverInsight color="text-yellow-600" dataTarget={domains.length} icon={RectangleGroupIcon} label="domains" />
 
-          <div
-            class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1"
-          >
-            <div class="h-2 bg-red-700"></div>
-            <div class="p-6">
-              <h2 class="text-2xl font-semibold mb-4 text-red-700">Discover</h2>
-              <p class="text-gray-600 mb-4">
-                Dive deep into your event catalog. Search, filter, and analyze your events to gain insights and improve your
-                architecture.
-              </p>
-              <a href={buildUrl('/discover/events')} class="text-red-600 hover:text-red-800 font-semibold">Start exploring →</a>
+              <DiscoverInsight color="text-pink-500" dataTarget={services.length} icon={ServerIcon} label="services" />
+
+              <DiscoverInsight color="text-blue-500" dataTarget={commands.length} icon={ChatBubbleLeftIcon} label="commands" />
+
+              <DiscoverInsight color="text-green-500" dataTarget={queries.length} icon={MagnifyingGlassIcon} label="queries" />
+
+              <DiscoverInsight color="text-orange-400" dataTarget={events.length} icon={BoltIcon} label="events" />
+
+              <DiscoverInsight color="text-green-800" dataTarget={flows.length} icon={QueueListIcon} label="flows" />
             </div>
-          </div>
-        </section>
+          </section>
+
+          <section class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <div
+              class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1"
+            >
+              <div class="h-2 bg-blue-400"></div>
+              <div class="p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-blue-700 flex items-center">
+                  <BookOpenText size={24} className="inline-block mr-2" />
+                  <span class="block">Documentation</span>
+                </h2>
+                <p class="text-gray-600 mb-4">
+                  Create and maintain comprehensive documentation for your events, including schemas, examples, and versioning.
+                </p>
+                <a href={getDefaultUrl('docs', '/docs')} class="text-blue-600 hover:text-blue-800 font-semibold">Explore docs →</a
+                >
+              </div>
+            </div>
+            <div
+              class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1"
+            >
+              <div class="h-2 bg-teal-400"></div>
+              <div class="p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-teal-700 flex items-center">
+                  <Workflow size={24} className="inline-block mr-2" />
+                  <span class="block">Visualiser</span>
+                </h2>
+                <p class="text-gray-600 mb-4">
+                  Transform complex event flows into clear, interactive diagrams. Gain insights at a glance and communicate
+                  effectively across teams.
+                </p>
+                <a href={getDefaultUrl('visualiser', '/visualiser')} class="text-teal-600 hover:text-teal-800 font-semibold"
+                  >Explore visualiser →</a
+                >
+              </div>
+            </div>
+
+            <div
+              class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1"
+            >
+              <div class="h-2 bg-red-700"></div>
+              <div class="p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-red-700 flex items-center">
+                  <TableProperties size={24} className="inline-block mr-2" />
+                  <span class="block">Discover</span>
+                </h2>
+                <p class="text-gray-600 mb-4">
+                  Dive deep into your event catalog. Search, filter, and analyze your events to gain insights and improve your
+                  architecture.
+                </p>
+                <a href={buildUrl('/discover/events')} class="text-red-600 hover:text-red-800 font-semibold">Start exploring →</a>
+              </div>
+            </div>
+          </section>
+        </div>
+        <!-- <Footer className="px-10" /> -->
       </div>
     </main>
   </body>
-</PlainPage>
-
-<Footer className="px-10" />
+</VerticalSideBarLayout>

@@ -6,6 +6,7 @@ import { getFlows } from '@utils/flows/flows';
 import { buildUrl } from '@utils/url-builder';
 
 import { pageDataLoader } from '@utils/pages/pages';
+import { ViewTransitions } from 'astro:transitions';
 type PageTypesWithFlows = PageTypes | 'flows';
 
 export async function getStaticPaths() {
@@ -41,7 +42,7 @@ const {
 ---
 
 <VisualiserLayout title={`Visualiser | ${props.data.name} (${props.collection})`} description={props.data.summary}>
-  <div class="bg-gray-100/50">
+  <div class="bg-gray-100/50 m-4">
     <div class="h-[calc(100vh-110px)] w-full relative border border-gray-200" id={`${id}-portal`} transition:animate="fade"></div>
     <NodeGraph
       id={id}
@@ -57,4 +58,5 @@ const {
       }}
     />
   </div>
+  <ViewTransitions />
 </VisualiserLayout>

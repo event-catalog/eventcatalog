@@ -11,8 +11,6 @@ owners:
 receives:
   - id: OrderConfirmed
     version: 0.0.1
-  - id: OrderConfirmed
-    version: 0.0.1
   - id: GetInventoryList
     version: 0.0.1
   - id: OrderAmended

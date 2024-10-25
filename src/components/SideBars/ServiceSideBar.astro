@@ -1,10 +1,11 @@
 ---
 import OwnersList from '@components/Lists/OwnersList';
-import PillList from '@components/Lists/PillList';
+import PillListFlat from '@components/Lists/PillListFlat';
 import SpecificationsList from '@components/Lists/SpecificationsList.astro';
 import VersionList from '@components/Lists/VersionList.astro';
 import { buildUrl } from '@utils/url-builder';
 import { getEntry, type CollectionEntry } from 'astro:content';
+import { ScrollText, Workflow, FileDownIcon } from 'lucide-react';
 import { join } from 'node:path';
 interface Props {
   service: CollectionEntry<'services'>;
@@ -24,6 +25,7 @@ const sendsList = sends.map((p) => ({
   label: p.data.name,
   badge: p.collection,
   color: p.collection === 'events' ? 'orange' : 'blue',
+  collection: p.collection,
   tag: `v${p.data.version}`,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
 }));
@@ -32,6 +34,7 @@ const receivesList = receives.map((p) => ({
   badge: p.collection,
   color: p.collection === 'events' ? 'orange' : 'blue',
   tag: `v${p.data.version}`,
+  collection: p.collection,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
 }));
 
@@ -49,22 +52,26 @@ const schemaFilePath = service?.data?.schemaPath;
 const schemaURL = join(publicPath, schemaFilePath || '');
 ---
 
-<aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto">
-  <div id="sidebar-cta-portal">
-    <PillList
+<aside class="sticky top-28 left-0 h-full overflow-y-auto pr-6 py-4">
+  <div id="sidebar-cta-portal" class="">
+    <PillListFlat
       title={`Receives Messages (${receivesList.length})`}
       pills={receivesList}
       emptyMessage={`This service does not receive any messages.`}
       color="orange"
       client:load
     />
-    <PillList
+    <PillListFlat
       title={`Sends Messages (${sendsList.length})`}
       pills={sendsList}
       emptyMessage={`This service does not send any messages.`}
       color="orange"
       client:load
     />
+    {service.data.versions && <VersionList versions={service.data.versions} collectionItem={service} />}
+
+    {service.data.specifications && <SpecificationsList collectionItem={service} />}
+
     <OwnersList
       title={`Service owners (${ownersList.length})`}
       owners={ownersList}
@@ -72,48 +79,33 @@ const schemaURL = join(publicPath, schemaFilePath || '');
       client:load
     />
 
-    {service.data.versions && <VersionList versions={service.data.versions} collectionItem={service} />}
-    {service.data.specifications && <SpecificationsList collectionItem={service} />}
-
     <div class="space-y-2">
       {
         service?.data?.schemaPath && (
           <a
             href={buildUrl(schemaURL, true)}
             download={`${service.data.name}(${service.data.version})-${schemaFilePath}`}
-            class="hidden w-full md:inline-flex h-10 justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-200 bg-gray-800 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
+            class="flex items-center justify-center space-x-2 text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
           >
-            <>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="2"
-                stroke="currentColor"
-                aria-hidden="true"
-                class="-ml-1 mr-2 h-5 w-5 text-gray-200"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                />
-              </svg>
-              <span>Download Schema</span>
-            </>
+            <FileDownIcon strokeWidth={2} size={16} />
+            <span>Download schema</span>
           </a>
         )
       }
       <a
         href={buildUrl(`/visualiser/${service.collection}/${service.data.id}/${service.data.version}`)}
-        class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
-        >View in Visualiser</a
+        class="flex items-center justify-center space-x-2 text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
       >
+        <Workflow strokeWidth={2} size={16} />
+        <span class="block">View in visualiser</span>
+      </a>
       <a
         href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}/changelog`)}
-        class="block text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
-        >Changelog</a
+        class="flex items-center space-x-2 justify-center text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
       >
+        <ScrollText strokeWidth={2} size={16} />
+        <span class="block">Read changelog</span>
+      </a>
     </div>
   </div>
 </aside>

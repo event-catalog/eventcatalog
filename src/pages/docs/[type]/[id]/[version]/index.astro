@@ -1,5 +1,5 @@
 ---
-import DocsLayout from '@layouts/DocsLayout.astro';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import Footer from '@layouts/Footer.astro';
 
 import components from '@components/MDX/components';
@@ -17,6 +17,7 @@ import type { PageTypes } from '@types';
 import { buildUrl } from '@utils/url-builder';
 import { getFlows } from '@utils/flows/flows';
 import { pageDataLoader } from '@utils/pages/pages';
+import { ViewTransitions } from 'astro:transitions';
 
 type PageTypesWithFlows = PageTypes | 'flows';
 
@@ -114,164 +115,168 @@ const getSpecificationBadges = () => {
 const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
 ---
 
-<DocsLayout title={pageTitle} description={props.data.summary}>
-  <!-- <main class="flex py-8 sm:px-8 docs-layout"> -->
-  <div class="flex min-h-screen docs-layout">
-    <main class="flex-1 w-full lg:pr-10 md:pt-4">
-      <div class="border-b border-gray-200 flex justify-between items-start py-4 md:pb-2">
+<VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
+  <main class="flex sm:px-8 docs-layout h-full">
+    <div class="flex docs-layout w-full">
+      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
+        <div class="border-b border-gray-200 flex justify-between items-start md:pb-2">
+          <div>
+            <h2 class="text-2xl md:text-4xl font-bold text-black">
+              {props.data.name}
+              <span class="">(v{props.data.version})</span>
+            </h2>
+            <h2 class="text-lg pt-2 text-gray-500 font-light">{props.data.summary}</h2>
+            {
+              badges && (
+                <div class="flex flex-wrap py-2 pt-4">
+                  {badges.map((badge: any) => {
+                    return (
+                      <a href={badge.url || '#'} class="pb-2">
+                        <span
+                          id={badge.id || ''}
+                          class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2  bg-gradient-to-b  from-${badge.backgroundColor}-100 to-${badge.backgroundColor}-200 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}
+                        >
+                          {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
+                          {badge.iconURL && <img src={badge.iconURL} class="w-5 h-5 inline-block " />}
+                          <span>{badge.content}</span>
+                        </span>
+                      </a>
+                    );
+                  })}
+                </div>
+              )
+            }
+          </div>
+        </div>
+
         <div>
-          <h2 class="text-2xl md:text-4xl font-bold">
-            {props.data.name}
-            <span class="text-gray-300">(v{props.data.version})</span>
-          </h2>
-          <h2 class="text-lg pt-2 text-gray-500 font-light">{props.data.summary}</h2>
           {
-            badges && (
-              <div class="flex flex-wrap py-2 pt-4">
-                {badges.map((badge: any) => {
-                  return (
-                    <a href={badge.url || '#'} class="pb-2">
-                      <span
-                        id={badge.id || ''}
-                        class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2 bg-${badge.backgroundColor}-100 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}
-                      >
-                        {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
-                        {badge.iconURL && <img src={badge.iconURL} class="w-5 h-5 inline-block " />}
-                        <span>{badge.content}</span>
-                      </span>
-                    </a>
-                  );
-                })}
+            props.data.version !== props.data.latestVersion && (
+              <div class="rounded-md bg-gradient-to-r from-purple-50 to-purple-100 p-4 not-prose my-4">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path
+                        fill-rule="evenodd"
+                        d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <h3 class="text-sm font-medium text-purple-800">New version found</h3>
+                    <div class="mt-2 text-sm text-purple-700">
+                      <p>
+                        You are looking at a previous version of the {props.collection.slice(0, props.collection.length - 1)}{' '}
+                        <strong>{props.data.name}</strong>.{' '}
+                        <a
+                          class="underline hover:text-primary block pt-2"
+                          href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}`)}
+                        >
+                          The latest version of this {props.collection.slice(0, props.collection.length - 1)} is v
+                          {props.data.latestVersion} &rarr;
+                        </a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )
           }
         </div>
-      </div>
 
-      <div>
+        <div class="prose prose-md py-4 w-full">
+          <Content components={components(props)} />
+        </div>
+        <div>
+          <!-- @ts-ignore -->
+          <SchemaViewer id={props.data.id} catalog={props.catalog} />
+          <NodeGraph
+            id={props.data.id}
+            collection={props.collection}
+            version={props.data.version}
+            mode="simple"
+            linksToVisualiser={true}
+            href={{
+              label: 'Open in Visualiser',
+              url: buildUrl(`/visualiser/${props.collection}/${props.data.id}/${props.data.version}`),
+            }}
+          />
+        </div>
+        <Footer />
+      </div>
+      <aside class="hidden lg:block sticky top-0 pb-10 w-96 overflow-y-auto py-2">
+        <!-- @ts-ignore -->
         {
-          props.data.version !== props.data.latestVersion && (
-            <div class="rounded-md bg-yellow-50 p-4 not-prose my-4">
-              <div class="flex">
-                <div class="flex-shrink-0">
-                  <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path
-                      fill-rule="evenodd"
-                      d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div class="ml-3">
-                  <h3 class="text-sm font-medium text-yellow-800">New version found</h3>
-                  <div class="mt-2 text-sm text-yellow-700">
-                    <p>
-                      You are looking at a previous version of the {props.collection.slice(0, props.collection.length - 1)}{' '}
-                      <strong>{props.data.name}</strong>.{' '}
-                      <a
-                        class="underline hover:text-primary block pt-2"
-                        href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}`)}
-                      >
-                        The latest version of this {props.collection.slice(0, props.collection.length - 1)} is v
-                        {props.data.latestVersion} &rarr;
-                      </a>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+          (props?.collection === 'events' || props.collection === 'commands' || props.collection === 'queries') && (
+            <MessageSideBar message={props} />
           )
         }
-      </div>
+        {props?.collection === 'services' && <ServiceSideBar service={props} />}
+        {props?.collection === 'domains' && <DomainSideBar domain={props} />}
+      </aside>
+    </div>
+    <ViewTransitions />
+  </main>
 
-      <div class="prose prose-md py-4 w-full">
-        <Content components={components(props)} />
-      </div>
-      <div>
-        <!-- @ts-ignore -->
-        <SchemaViewer id={props.data.id} catalog={props.catalog} />
-        <NodeGraph
-          id={props.data.id}
-          collection={props.collection}
-          version={props.data.version}
-          mode="simple"
-          linksToVisualiser={true}
-          href={{
-            label: 'Open in Visualiser',
-            url: buildUrl(`/visualiser/${props.collection}/${props.data.id}/${props.data.version}`),
-          }}
-        />
-      </div>
-      <Footer />
-    </main>
-    <aside class="hidden lg:block sticky top-20 h-[calc(100vh-theme(spacing.16))] w-56 overflow-y-auto">
-      <!-- @ts-ignore -->
-      {
-        (props?.collection === 'events' || props.collection === 'commands' || props.collection === 'queries') && (
-          <MessageSideBar message={props} />
-        )
-      }
-      {props?.collection === 'services' && <ServiceSideBar service={props} />}
-      {props?.collection === 'domains' && <DomainSideBar domain={props} />}
-    </aside>
-  </div>
-</DocsLayout>
-
-<style is:global>
-  .docs-layout .prose {
-    max-width: none;
-  }
-
-  .mermaid svg {
-    margin: 1em auto 2em;
-  }
-
-  .mermaid tspan {
-    font-size: 8em;
-  }
-</style>
-
-<script define:vars={{ props }}>
-  // Fix to pass information to componets that are client side only
-  // and require catalog information
-  window.eventcatalog = {};
-  // @ts-ignore
-  window.eventcatalog[`${props.collection}-${props.data.id}`] = props.catalog;
-</script>
-
-<script>
-  /**
-   * @params {HTMLCollectionOf<HTMLElement>} graphs
-   */
-  async function renderDiagrams(graphs: any) {
-    const { default: mermaid } = await import('mermaid');
-    mermaid.initialize({
-      fontSize: 2,
-      flowchart: {
-        curve: 'linear',
-        rankSpacing: 0,
-        nodeSpacing: 0,
-      },
-      startOnLoad: false,
-      fontFamily: 'var(--sans-font)',
-      // @ts-ignore This works, but TS expects a enum for some reason
-      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default',
-    });
-
-    for (const graph of graphs) {
-      const content = graph.getAttribute('data-content');
-      if (!content) continue;
-      let svg = document.createElement('svg');
-      const id = (svg.id = 'mermaid-' + Math.round(Math.random() * 100000));
-      graph.appendChild(svg);
-      mermaid.render(id, content).then((result) => {
-        graph.innerHTML = result.svg;
-      });
+  <style is:global>
+    .docs-layout .prose {
+      max-width: none;
+      /* max-height: 80vh; */
+      overflow: auto;
     }
-  }
 
-  const graphs = document.getElementsByClassName('mermaid');
-  if (document.getElementsByClassName('mermaid').length > 0) {
-    renderDiagrams(graphs);
-  }
-</script>
+    .mermaid svg {
+      margin: 1em auto 2em;
+    }
+
+    .mermaid tspan {
+      font-size: 8em;
+    }
+  </style>
+
+  <script define:vars={{ props }}>
+    // Fix to pass information to componets that are client side only
+    // and require catalog information
+    window.eventcatalog = {};
+    // @ts-ignore
+    window.eventcatalog[`${props.collection}-${props.data.id}`] = props.catalog;
+  </script>
+
+  <script>
+    /**
+     * @params {HTMLCollectionOf<HTMLElement>} graphs
+     */
+    async function renderDiagrams(graphs: any) {
+      const { default: mermaid } = await import('mermaid');
+      mermaid.initialize({
+        fontSize: 2,
+        flowchart: {
+          curve: 'linear',
+          rankSpacing: 0,
+          nodeSpacing: 0,
+        },
+        startOnLoad: false,
+        fontFamily: 'var(--sans-font)',
+        // @ts-ignore This works, but TS expects a enum for some reason
+        theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default',
+      });
+
+      for (const graph of graphs) {
+        const content = graph.getAttribute('data-content');
+        if (!content) continue;
+        let svg = document.createElement('svg');
+        const id = (svg.id = 'mermaid-' + Math.round(Math.random() * 100000));
+        graph.appendChild(svg);
+        mermaid.render(id, content).then((result) => {
+          graph.innerHTML = result.svg;
+        });
+      }
+    }
+
+    const graphs = document.getElementsByClassName('mermaid');
+    if (document.getElementsByClassName('mermaid').length > 0) {
+      renderDiagrams(graphs);
+    }
+  </script>
+</VerticalSideBarLayout>

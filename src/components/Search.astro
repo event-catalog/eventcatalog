@@ -20,9 +20,9 @@ import PageFindSearch from 'astro-pagefind/components/Search';
   </div>
 </div>
 
-<div id="search-dialog" class="hidden relative z-50" role="dialog" aria-modal="true">
+<div id="search-dialog" class="hidden relative z-[100]" role="dialog" aria-modal="true">
   <div class="fixed inset-0 bg-gray-500 bg-opacity-25 transition-opacity search-background backdrop-blur-sm bg-black/10"></div>
-  <div id="search-background" class="fixed inset-0 z-10 w-screen overflow-y-auto p-4 sm:p-6 md:p-20">
+  <div id="search-background" class="fixed inset-0 z-40 w-screen overflow-y-auto p-4 sm:p-6 md:p-20">
     <div
       id="command-pal"
       class="mx-auto max-w-xl divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 transition-all"
@@ -49,6 +49,7 @@ import PageFindSearch from 'astro-pagefind/components/Search';
   const dummyInput = document.getElementById('search-dummy-input');
   const dialog = document.getElementById('search-dialog');
   const header = document.getElementById('eventcatalog-header');
+  const verticalNav = document.getElementById('eventcatalog-vertical-nav');
 
   // Listen for the short cut keys
   window.addEventListener('keydown', (event) => {
@@ -75,6 +76,7 @@ import PageFindSearch from 'astro-pagefind/components/Search';
         input && input.focus();
       }, 10);
       if (header) header.classList.remove('backdrop-blur-sm');
+      if (verticalNav) verticalNav.style.zIndex = '-100';
       // @ts-ignore
       dialog.style.display = 'block';
     });
@@ -85,6 +87,7 @@ import PageFindSearch from 'astro-pagefind/components/Search';
     // @ts-ignore
     if (e.target.id === 'search-background') {
       if (header) header.classList.add('backdrop-blur-sm');
+      if (verticalNav) verticalNav.style.zIndex = '10';
       dialog.style.display = 'none';
     }
   });

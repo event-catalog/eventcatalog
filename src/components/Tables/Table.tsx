@@ -64,8 +64,8 @@ export const Table = ({
       <div className=" bg-gray-100/20 rounded-md border-2 border-gray-200 shadow-sm ">
         <table className="min-w-full divide-y divide-gray-200 rounded-md ">
           <thead className="bg-gray-200/50">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="rounded-tl-lg">
+            {table.getHeaderGroups().map((headerGroup, index) => (
+              <tr key={`${headerGroup}-${index}`} className="rounded-tl-lg">
                 {headerGroup.headers.map((header) => (
                   <th key={`${header.id}`} className="pl-4 pr-3 text-left text-sm font-semibold text-gray-800 sm:pl-0  ">
                     <div className="flex flex-col justify-start px-2 py-2 space-y-2">
