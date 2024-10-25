@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.11.2
+
+### Patch Changes
+
+- 48d61f3: feat(core): added repo support for all resources
+
 ## 2.11.1
 
 ### Patch Changes
