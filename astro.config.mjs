@@ -18,7 +18,7 @@ export default defineConfig({
   base,
   server: { port: config.port || 3000 },
 
-  outDir: join(coreDirectory, 'dist'),
+  outDir: config.outDir ? join(coreDirectory, config.outDir) : join(coreDirectory, 'dist'),
 
   // https://docs.astro.build/en/reference/configuration-reference/#site
   site: config.homepageLink || 'https://eventcatalog.dev/',
