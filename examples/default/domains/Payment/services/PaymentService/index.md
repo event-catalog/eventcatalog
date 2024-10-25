@@ -16,7 +16,7 @@ sends:
   - id: GetOrder
 repository:
   language: JavaScript
-  url: https://github.com/boyney123/pretend-shipping-service
+  url: https://github.com/event-catalog/pretend-shipping-service
 ---
 
 The Payment Service is a crucial component of our system that handles all payment-related operations. It processes payments, manages transactions, and communicates with other services through events. Using an event-driven architecture, it ensures that all actions are asynchronous, decoupled, and scalable.

@@ -29,7 +29,7 @@ sends:
     version: 0.0.1
 repository:
   language: JavaScript
-  url: https://github.com/boyney123/pretend-shipping-service
+  url: https://github.com/event-catalog/pretend-shipping-service
 ---
 
 import Footer from '@catalog/components/footer.astro';

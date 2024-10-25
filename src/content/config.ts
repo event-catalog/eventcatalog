@@ -51,6 +51,12 @@ const baseSchema = z.object({
   badges: z.array(badge).optional(),
   owners: z.array(ownerReference).optional(),
   schemaPath: z.string().optional(),
+  repository: z
+    .object({
+      language: z.string().optional(),
+      url: z.string().optional(),
+    })
+    .optional(),
   specifications: z
     .object({
       openapiPath: z.string().optional(),

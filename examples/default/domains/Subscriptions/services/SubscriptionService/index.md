@@ -19,7 +19,7 @@ sends:
     version: 0.0.1
 repository:
   language: JavaScript
-  url: https://github.com/boyney123/pretend-subscription-service
+  url: https://github.com/event-catalog/pretend-subscription-service
 ---
 
 import Footer from '@catalog/components/footer.astro';
