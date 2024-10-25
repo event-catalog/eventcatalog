@@ -7,6 +7,7 @@ import * as path from 'path';
 import VersionList from '@components/Lists/VersionList.astro';
 import { buildUrl } from '@utils/url-builder';
 import { FileDownIcon, ScrollText, Workflow } from 'lucide-react';
+import RepositoryList from '@components/Lists/RepositoryList.astro';
 interface Props {
   message: CollectionEntry<CollectionMessageTypes>;
 }
@@ -121,6 +122,12 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
       emptyMessage={`This ${type} does not have any documented owners.`}
       client:load
     />
+
+    {
+      message.data.repository && (
+        <RepositoryList repository={message.data.repository?.url} language={message.data.repository?.language} />
+      )
+    }
 
     <div class="space-y-2">
       {
