@@ -17,10 +17,10 @@ import DiscoverInsight from '@components/DiscoverInsight.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { BookOpen, BookOpenText, TableProperties, Workflow } from 'lucide-react';
 
-const { commands = [], events = [], queries = [] } = await getMessages();
-const domains = await getDomains();
-const services = await getServices();
-const flows = await getFlows();
+const { commands = [], events = [], queries = [] } = await getMessages({ getAllVersions: false });
+const domains = await getDomains({ getAllVersions: false });
+const services = await getServices({ getAllVersions: false });
+const flows = await getFlows({ getAllVersions: false });
 
 const getDefaultUrl = (route: string, defaultValue: string) => {
   if (domains.length > 0) return buildUrl(`/${route}/domains/${domains[0].data.id}/${domains[0].data.latestVersion}`);
