@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.11.0
+
+### Minor Changes
+
+- 597dcf2: feat(core): UI improvements to EventCatalog
+
 ## 2.10.1
 
 ### Patch Changes
