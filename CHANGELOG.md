@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.11.4
+
+### Patch Changes
+
+- 7749acd: feat(core): added support for outDir
+
 ## 2.11.3
 
 ### Patch Changes
