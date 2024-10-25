@@ -1,5 +1,29 @@
 # @eventcatalog/core
 
+## 2.11.4
+
+### Patch Changes
+
+- 7749acd: feat(core): added support for outDir
+
+## 2.11.3
+
+### Patch Changes
+
+- 5442d40: fix(core): counters on homepage only include latest versions
+
+## 2.11.2
+
+### Patch Changes
+
+- 48d61f3: feat(core): added repo support for all resources
+
+## 2.11.1
+
+### Patch Changes
+
+- 214f164: chore(core): minor changes to ui
+
 ## 2.11.0
 
 ### Minor Changes

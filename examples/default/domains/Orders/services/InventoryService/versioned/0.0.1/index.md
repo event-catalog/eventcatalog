@@ -24,7 +24,7 @@ sends:
     version: 0.0.3
 repository:
   language: JavaScript
-  url: https://github.com/boyney123/pretend-shipping-service
+  url: https://github.com/event-catalog/pretend-shipping-service
 ---
 
 ## Overview
