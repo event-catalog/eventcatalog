@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.11.3
+
+### Patch Changes
+
+- 5442d40: fix(core): counters on homepage only include latest versions
+
 ## 2.11.2
 
 ### Patch Changes
