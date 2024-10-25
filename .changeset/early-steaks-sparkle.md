@@ -2,4 +2,4 @@
 "@eventcatalog/core": patch
 ---
 
-feat(core): added api path and http verb in openapi viewer
+fix(core): counters on homepage only include latest versions
