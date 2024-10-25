@@ -1,5 +1,4 @@
 ---
-import Layout from '@layouts/DocsLayout.astro';
 import Footer from '@layouts/Footer.astro';
 
 import type { PageTypes } from '@types';
@@ -11,6 +10,8 @@ import 'diff2html/bundles/css/diff2html.min.css';
 import { buildUrl } from '@utils/url-builder';
 import { getVersions, getPreviousVersion } from '@utils/collections/util';
 import { getDiffsForCurrentAndPreviousVersion } from '@utils/collections/file-diffs';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { ViewTransitions } from 'astro:transitions';
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];
@@ -100,10 +101,43 @@ const getBadge = () => {
 };
 
 const badges = [getBadge()];
+import { HomeIcon } from '@heroicons/react/20/solid';
+
+const pages = [
+  { name: 'Projects', href: '#', current: false },
+  { name: 'Project Nero', href: '#', current: true },
+];
 ---
 
-<Layout title="ChangeLog">
-  <main class="flex-1 w-full lg:pr-10 md:pt-4">
+<VerticalSideBarLayout title="ChangeLog">
+  <main class="w-full md:pt-4 px-8 overflow-y-auto h-full max-w-[95%]">
+    <nav aria-label="Breadcrumb" class="flex">
+      <ol role="list" class="flex items-center space-x-2">
+        <li>
+          <div>
+            <a
+              href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}`)}
+              class="text-sm font-medium text-gray-500 hover:text-gray-700"
+            >
+              {props.data.name}
+            </a>
+          </div>
+        </li>
+        <li>
+          <div class="flex items-center">
+            <svg fill="currentColor" viewBox="0 0 20 20" aria-hidden="true" class="h-5 w-5 flex-shrink-0 text-gray-300">
+              <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z"></path>
+            </svg>
+            <a
+              href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}`)}
+              class="text-sm font-medium text-gray-500 hover:text-gray-700"
+            >
+              Changelog
+            </a>
+          </div>
+        </li>
+      </ol>
+    </nav>
     <div class="border-b border-gray-200 flex justify-between items-start py-4 w-full">
       <div>
         <h2 class="text-2xl md:text-4xl font-bold">{props.data.name} (Changelog)</h2>
@@ -131,7 +165,7 @@ const badges = [getBadge()];
         </div>
       )
     }
-    <div class="flow-root py-8">
+    <div class="flow-root py-8 w-full">
       <ul role="list" class="-mb-8">
         {
           logList.map((log, index) => (
@@ -188,4 +222,5 @@ const badges = [getBadge()];
     </div>
     <Footer />
   </main>
-</Layout>
+  <ViewTransitions />
+</VerticalSideBarLayout>

@@ -14,6 +14,7 @@ import js from '@asyncapi/react-component/browser/standalone/without-parser.js?u
 import { AsyncApiComponentWP, type ConfigInterface } from '@asyncapi/react-component';
 import { pageDataLoader } from '@utils/pages/pages';
 import type { CollectionEntry } from 'astro:content';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];
@@ -52,9 +53,9 @@ const component = createElement(AsyncApiComponentWP, { schema: { stringified }, 
 const renderedComponent = renderToString(component);
 ---
 
-<PlainPage title="AsyncApi Spec">
+<VerticalSideBarLayout title="AsyncApi Spec">
   <div id="asyncapi" class="md:pr-14" set:html={renderedComponent} />
-</PlainPage>
+</VerticalSideBarLayout>
 
 <script is:inline src={js}></script>
 <script define:vars={{ schema: stringified, config }}>

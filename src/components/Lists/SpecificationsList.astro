@@ -13,13 +13,13 @@ const specVersions = collectionItem.data.specifications || {};
 const numberOfSpecifications = Object.keys(specVersions).length;
 ---
 
-<div class="space-y-2 my-2 mb-8">
-  <span class="font-light text-black group-data-[hover]:text-black/80 capitalize">Specifications ({numberOfSpecifications})</span>
+<div class="space-y-2 mb-8">
+  <span class="text-sm text-black group-data-[hover]:text-black/80 capitalize">Specifications ({numberOfSpecifications})</span>
   {
     collectionItem.data.specifications?.openapiPath && (
       <a
         href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}/spec`)}
-        class="text-sm flex items-center space-x-1 hover:underline hover:text-primary"
+        class="px-1 text-sm font-light flex items-center space-x-1 hover:underline hover:text-primary rounded-md hover:bg-gradient-to-l  hover:from-purple-500 hover:to-purple-700 hover:text-white"
       >
         <img src={buildUrl('/icons/openapi.svg', true)} class="h-4 w-4" />
         <span>OpenAPI spec</span>
@@ -30,7 +30,7 @@ const numberOfSpecifications = Object.keys(specVersions).length;
     collectionItem.data.specifications?.asyncapiPath && (
       <a
         href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}/asyncapi`)}
-        class="text-sm flex items-center space-x-1 hover:underline hover:text-primary"
+        class="px-1 text-sm font-light flex items-center space-x-1 hover:underline rounded-md hover:bg-gradient-to-l  hover:from-purple-500 hover:to-purple-700 hover:text-white"
       >
         <img src={buildUrl('/icons/asyncapi.svg', true)} class="h-4 w-4" />
         <span>AsyncAPI spec</span>
