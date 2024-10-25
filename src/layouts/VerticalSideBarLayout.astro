@@ -112,6 +112,10 @@ const sideNav = allData.reduce((acc, item) => {
   const currentPath = Astro.url.pathname;
   const route = currentPath.includes('visualiser') ? 'visualiser' : 'docs';
 
+  if (currentPath.includes('visualiser') && (item.collection === 'teams' || item.collection === 'users')) {
+    return acc;
+  }
+
   const navigationItem = {
     label: item.data.name,
     version: item.collection === 'teams' || item.collection === 'users' ? null : item.data.version,
@@ -164,7 +168,7 @@ const showSideBarOnLoad = currentNavigationItem?.sidebar;
     <div class="flex">
       <aside class="flex" id="eventcatalog-vertical-nav">
         <div
-          class="fixed mt-0.5 flex flex-col items-center w-16 h-screen py-4 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 z-20 shadow-md justify-between"
+          class="fixed flex flex-col items-center w-16 h-screen py-4 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 z-20 shadow-md justify-between"
         >
           <nav class="flex flex-col h-[84vh] justify-between">
             <div class="flex flex-col items-center flex-1 space-y-8">

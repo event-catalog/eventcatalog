@@ -4,7 +4,7 @@ import components from '@components/MDX/components';
 // SideBars
 import type { CollectionEntry } from 'astro:content';
 import OwnersList from '@components/Lists/OwnersList';
-import PillList from '@components/Lists/PillList';
+import PillListFlat from '@components/Lists/PillListFlat';
 import { getUsers } from '@utils/users';
 import EnvelopeIcon from '@heroicons/react/16/solid/EnvelopeIcon';
 import { buildUrl } from '@utils/url-builder';
@@ -38,12 +38,14 @@ const teams = props.data.associatedTeams as CollectionEntry<'teams'>[];
 const ownedDomainsList = domains.map((p) => ({
   label: `${p.data.name}`,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+  collection: p.collection,
   tag: `v${p.data.version}`,
 }));
 
 const ownedServicesList = services.map((p) => ({
   label: `${p.data.name} (service)`,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+  collection: p.collection,
   tag: `v${p.data.version}`,
 }));
 
@@ -51,6 +53,7 @@ const ownedMessageList = [...events, ...commands].map((p) => ({
   label: `${p.data.name}`,
   badge: p.collection,
   color: p.collection === 'events' ? 'orange' : 'blue',
+  collection: p.collection,
   tag: `v${p.data.version}`,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
 }));
@@ -133,33 +136,49 @@ const associatedTeams = teams.map((o) => ({
       </div>
       <aside class="hidden lg:block sticky top-0 h-[calc(100vh-theme(spacing.16))] w-72 overflow-y-auto py-2">
         <div class="divide-y-2 divide-gray-100 pr-6">
-          <PillList
-            color="pink"
-            title={`Owned domains (${ownedDomainsList.length})`}
-            pills={ownedDomainsList}
-            emptyMessage={`${props.data.name} does not own any domains.`}
-            client:load
-          />
-          <PillList
-            color="pink"
-            title={`Owned services (${ownedServicesList.length})`}
-            pills={ownedServicesList}
-            emptyMessage={`${props.data.name} does not own any services.`}
-            client:load
-          />
-          <PillList
-            color="orange"
-            title={`Owned messages (${ownedMessageList.length})`}
-            pills={ownedMessageList}
-            emptyMessage={`${props.data.name} does not own any messages.`}
-            client:load
-          />
-          <OwnersList
-            title={`Member of team (${associatedTeams.length})`}
-            owners={associatedTeams}
-            emptyMessage={`${props.data.name} is not part of any documented team.`}
-            client:load
-          />
+          {
+            ownedDomainsList.length > 0 && (
+              <PillListFlat
+                color="pink"
+                title={`Owned domains (${ownedDomainsList.length})`}
+                pills={ownedDomainsList}
+                emptyMessage={`${props.data.name} does not own any domains.`}
+                client:load
+              />
+            )
+          }
+          {
+            ownedServicesList.length > 0 && (
+              <PillListFlat
+                color="pink"
+                title={`Owned services (${ownedServicesList.length})`}
+                pills={ownedServicesList}
+                emptyMessage={`${props.data.name} does not own any services.`}
+                client:load
+              />
+            )
+          }
+          {
+            ownedMessageList.length > 0 && (
+              <PillListFlat
+                color="orange"
+                title={`Owned messages (${ownedMessageList.length})`}
+                pills={ownedMessageList}
+                emptyMessage={`${props.data.name} does not own any messages.`}
+                client:load
+              />
+            )
+          }
+          {
+            associatedTeams.length > 0 && (
+              <OwnersList
+                title={`Member of team (${associatedTeams.length})`}
+                owners={associatedTeams}
+                emptyMessage={`${props.data.name} is not part of any documented team.`}
+                client:load
+              />
+            )
+          }
         </div>
       </aside>
     </div>
