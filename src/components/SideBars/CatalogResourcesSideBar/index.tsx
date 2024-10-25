@@ -57,8 +57,6 @@ const CatalogResourcesSideBar = ({ resources, currentPath }: any) => {
 
   const getIconForCollection = useMemo(() => getIconForCollectionOriginal, []);
 
-  
-
   return (
     <nav className="space-y-6 text-black ">
       <div className="space-y-2">

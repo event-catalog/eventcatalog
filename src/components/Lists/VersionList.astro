@@ -23,10 +23,11 @@ const currentPath = Astro.url.pathname;
       versions.map((version) => {
         const isCurrent = currentPath.includes(version);
         return (
-          <li
-            class="rounded-md px-1 group w-full hover:bg-gradient-to-l  hover:from-purple-500 hover:to-purple-700 hover:text-white hover:font-normal  "
-          >
-            <a class={`flex items-center space-x-2 cursor-pointer`} href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${version}`)}>
+          <li class="rounded-md px-1 group w-full hover:bg-gradient-to-l  hover:from-purple-500 hover:to-purple-700 hover:text-white hover:font-normal  ">
+            <a
+              class={`flex items-center space-x-2 cursor-pointer`}
+              href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${version}`)}
+            >
               {/* {Icon && <Icon class={`h-4 w-4`} />} */}
               <HistoryIcon className="h-4 w-4 text-gray-800 group-hover:text-white" strokeWidth={1} />
               <span class={`font-light text-sm ${isCurrent ? 'underline ' : ''}`}>

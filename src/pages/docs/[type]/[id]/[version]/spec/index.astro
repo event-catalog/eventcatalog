@@ -9,7 +9,7 @@ import { DocumentMinusIcon } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
 import { pageDataLoader } from '@utils/pages/pages';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import "./styles.css";
+import './styles.css';
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];
@@ -42,7 +42,7 @@ const pathOnDisk = path.join(process.cwd(), 'public', pathToSpec);
 const fileExists = fs.existsSync(pathOnDisk);
 ---
 
-<VerticalSideBarLayout title="OpenAPI Spec"}>
+<VerticalSideBarLayout title="OpenAPI Spec" }>
   {
     !fileExists ? (
       <div class="text-center h-screen  flex flex-col justify-center ">

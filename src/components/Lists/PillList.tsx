@@ -34,17 +34,15 @@ const PillList = ({ title, pills, emptyMessage, color = 'gray' }: Props) => {
                       href={item.href}
                     >
                       <div className="flex w-full">
-                        <div className={`bg-${color}-500 bg-gradient-to-b from-pink-500 to-pink-700 flex items-start py-2 px-2 rounded-tl rounded-bl`}>
-                          <ServerIcon className='h-4 w-4 text-white' />
+                        <div
+                          className={`bg-${color}-500 bg-gradient-to-b from-pink-500 to-pink-700 flex items-start py-2 px-2 rounded-tl rounded-bl`}
+                        >
+                          <ServerIcon className="h-4 w-4 text-white" />
                         </div>
                         <div className="w-full px-2 py-1 ">
-                          <h3 className="flex-auto truncate text-xs font-semibold  text-black">
-                            {item.label}
-                          </h3>
+                          <h3 className="flex-auto truncate text-xs font-semibold  text-black">{item.label}</h3>
                           <div className="flex justify-between w-full">
-                            <span className="text-[10px] font-light  text-gray-700 rounded-md ">
-                              {item.tag}
-                            </span>
+                            <span className="text-[10px] font-light  text-gray-700 rounded-md ">{item.tag}</span>
                             {item.badge && (
                               <span className="text-[10px] font-light  text-gray-700 rounded-md  capitalize">
                                 {item.badge.slice(0, -1)}
