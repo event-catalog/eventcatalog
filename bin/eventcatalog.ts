@@ -21,13 +21,6 @@ const eventCatalogDir = join(currentDir, '../../');
 
 program.name('eventcatalog').description('Documentation tool for event-driven architectures');
 
-const copyFile = (from: string, to: string) => {
-  if (fs.existsSync(from)) {
-    // fs.copyFileSync(from, to);
-    fs.cpSync(from, to);
-  }
-};
-
 const copyFolder = (from: string, to: string) => {
   if (fs.existsSync(from)) {
     fs.cpSync(from, to, { recursive: true });
@@ -78,11 +71,6 @@ program
     if (options.forceRecreate) clearCore();
     copyCore();
 
-    // // Copy the config and styles
-    copyFolder(join(dir, 'public'), join(core, 'public'));
-    copyFile(join(dir, 'eventcatalog.config.js'), join(core, 'eventcatalog.config.js'));
-    copyFile(join(dir, 'eventcatalog.styles.css'), join(core, 'eventcatalog.styles.css'));
-
     console.log('EventCatalog is starting at http://localhost:3000/docs');
 
     execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run dev`, {
@@ -100,11 +88,6 @@ program
 
     copyCore();
 
-    // Copy the config and styles
-    copyFolder(join(dir, 'public'), join(core, 'public'));
-    copyFile(join(dir, 'eventcatalog.config.js'), join(core, 'eventcatalog.config.js'));
-    copyFile(join(dir, 'eventcatalog.styles.css'), join(core, 'eventcatalog.styles.css'));
-
     execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run build`, {
       cwd: core,
       stdio: 'inherit',
@@ -116,11 +99,6 @@ program
 
 const previewCatalog = () => {
   copyCore();
-
-  // Copy the config and styles
-  copyFolder(join(dir, 'public'), join(core, 'public'));
-  copyFile(join(dir, 'eventcatalog.config.js'), join(core, 'eventcatalog.config.js'));
-  copyFile(join(dir, 'eventcatalog.styles.css'), join(core, 'eventcatalog.styles.css'));
 
   execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run preview -- --root ${dir} --port 3000`, {
     cwd: core,
@@ -152,10 +130,6 @@ program
   .description('Start the generator scripts.')
   .action(() => {
     copyCore();
-
-    copyFolder(join(dir, 'public'), join(core, 'public'));
-    copyFile(join(dir, 'eventcatalog.config.js'), join(core, 'eventcatalog.config.js'));
-    copyFile(join(dir, 'eventcatalog.styles.css'), join(core, 'eventcatalog.styles.css'));
 
     execSync(`cross-env PROJECT_DIR='${dir}' npm run generate`, {
       cwd: core,
