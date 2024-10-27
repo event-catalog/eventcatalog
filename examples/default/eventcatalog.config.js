@@ -12,7 +12,7 @@ export default {
     src: '/logo.png',
     text: 'EventCatalog',
   },
-  base: '/',
+  base: '/docs/',
   trailingSlash: false,
   docs: {
     sidebar: {
