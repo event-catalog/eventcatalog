@@ -37,52 +37,9 @@ const allData = [...domains, ...services, ...messages, ...flows, ...teams, ...us
 
 const currentPath = Astro.url.pathname;
 
-const getDefaultUrl = (route: string, defaultValue: string) => {
-  if (domains.length > 0) return buildUrl(`/${route}/domains/${domains[0].data.id}/${domains[0].data.latestVersion}`);
-  if (services.length > 0) return buildUrl(`/${route}/services/${services[0].data.id}/${services[0].data.latestVersion}`);
-  if (messages.length > 0)
-    return buildUrl(`/${route}/${messages[0].collection}/${messages[0].data.id}/${messages[0].data.latestVersion}`);
-  if (flows.length > 0) return buildUrl(`/${route}/flows/${flows[0].data.id}/${flows[0].data.latestVersion}`);
-  return buildUrl(defaultValue);
-};
-
-const navigationItems = [
-  {
-    id: '/',
-    label: 'Home',
-    icon: House,
-    href: buildUrl('/'),
-    current: currentPath === '/',
-    sidebar: false,
-  },
-  {
-    id: '/docs',
-    label: 'Documentation',
-    icon: BookOpenText,
-    href: getDefaultUrl('docs', '/docs'),
-    current: currentPath.includes('/docs'),
-    sidebar: true,
-  },
-  {
-    id: '/visualiser',
-    label: 'Visualiser',
-    icon: Workflow,
-    href: getDefaultUrl('visualiser', '/visualiser'),
-    current: currentPath.includes('/visualiser'),
-    sidebar: true,
-  },
-  {
-    id: '/discover',
-    label: 'Explore',
-    icon: TableProperties,
-    href: buildUrl('/discover/events'),
-    current: currentPath.includes('/discover/'),
-    sidebar: false,
-  },
-];
-
 const eventCatalogConfig = config as CatalogConfig;
 
+const basePath = config?.base;
 const {
   services: servicesConfig,
   domains: domainsConfig,
@@ -105,6 +62,54 @@ const visibleCollections: { [key: string]: boolean } = {
   teams: getConfigValue(teamsConfig, 'visible', true),
   users: getConfigValue(usersConfig, 'visible', true),
 };
+
+const getDefaultUrl = (route: string, defaultValue: string) => {
+  if (basePath) return buildUrl(basePath + `/${route}`);
+  if (domains.length > 0 && visibleCollections['domains'])
+    return buildUrl(`/${route}/domains/${domains[0].data.id}/${domains[0].data.latestVersion}`);
+  if (services.length > 0 && visibleCollections['services'])
+    return buildUrl(`/${route}/services/${services[0].data.id}/${services[0].data.latestVersion}`);
+  if (messages.length > 0 && visibleCollections['messages'])
+    return buildUrl(`/${route}/${messages[0].collection}/${messages[0].data.id}/${messages[0].data.latestVersion}`);
+  if (flows.length > 0 && visibleCollections['flows'])
+    return buildUrl(`/${route}/flows/${flows[0].data.id}/${flows[0].data.latestVersion}`);
+  return buildUrl(defaultValue);
+};
+
+const navigationItems = [
+  {
+    id: '/',
+    label: 'Home',
+    icon: House,
+    href: buildUrl('/'),
+    current: currentPath === '/',
+    sidebar: false,
+  },
+  {
+    id: '/docs',
+    label: 'Documentation',
+    icon: BookOpenText,
+    href: basePath ?? getDefaultUrl('docs', '/docs'),
+    current: currentPath.includes('/docs'),
+    sidebar: true,
+  },
+  {
+    id: '/visualiser',
+    label: 'Visualiser',
+    icon: Workflow,
+    href: getDefaultUrl('visualiser', '/visualiser'),
+    current: currentPath.includes('/visualiser'),
+    sidebar: true,
+  },
+  {
+    id: '/discover',
+    label: 'Explore',
+    icon: TableProperties,
+    href: buildUrl('/discover/events'),
+    current: currentPath.includes('/discover/'),
+    sidebar: false,
+  },
+];
 
 const sideNav = allData.reduce((acc, item) => {
   const title = item.collection;
