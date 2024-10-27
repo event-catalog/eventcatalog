@@ -1,0 +1,174 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "enrolled",
+      "enrollmentEci",
+      "customerId",
+      "gatewayAccountId",
+      "paymentCardId",
+      "websiteId",
+      "currency",
+      "amount"
+    ],
+    "properties": {
+      "id": {
+        "description": "The 3D Secure entry identifier string",
+        "readOnly": true,
+        "allOf": [
+          {
+            "type": "string",
+            "description": "The resource ID. Defaults to UUID v4",
+            "maxLength": 50,
+            "example": "4f6cf35x-2c4y-483z-a0a9-158621f77a21"
+          }
+        ]
+      },
+      "customerId": {
+        "description": "Related customer ID",
+        "allOf": [
+          {
+            "type": "string",
+            "description": "The resource ID. Defaults to UUID v4",
+            "maxLength": 50,
+            "example": "4f6cf35x-2c4y-483z-a0a9-158621f77a21"
+          }
+        ]
+      },
+      "gatewayAccountId": {
+        "description": "Related gateway account ID",
+        "allOf": [
+          {
+            "type": "string",
+            "description": "The resource ID. Defaults to UUID v4",
+            "maxLength": 50,
+            "example": "4f6cf35x-2c4y-483z-a0a9-158621f77a21"
+          }
+        ]
+      },
+      "paymentCardId": {
+        "description": "Related payment card ID",
+        "allOf": [
+          {
+            "type": "string",
+            "description": "The resource ID. Defaults to UUID v4",
+            "maxLength": 50,
+            "example": "4f6cf35x-2c4y-483z-a0a9-158621f77a21"
+          }
+        ]
+      },
+      "websiteId": {
+        "description": "Related Website ID",
+        "allOf": [
+          {
+            "type": "string",
+            "description": "The resource ID. Defaults to UUID v4",
+            "maxLength": 50,
+            "example": "4f6cf35x-2c4y-483z-a0a9-158621f77a21"
+          }
+        ]
+      },
+      "enrolled": {
+        "description": "Is the cardholder enrolled in 3DSecure",
+        "type": "string",
+        "enum": [
+          "Y",
+          "N",
+          "U"
+        ]
+      },
+      "enrollmentEci": {
+        "description": "The 3D Secure entry enrollment eci",
+        "type": "string"
+      },
+      "eci": {
+        "description": "The 3D Secure entry electronic commerce indicator",
+        "type": "integer"
+      },
+      "cavv": {
+        "description": "The 3D Secure entry cardholder authentication verification value",
+        "type": "string"
+      },
+      "xid": {
+        "description": "The 3D Secure entry transaction Id",
+        "type": "string"
+      },
+      "payerAuthResponseStatus": {
+        "description": "The 3D Secure entry Auth Response Status",
+        "type": "string",
+        "enum": [
+          "Y",
+          "N",
+          "U",
+          "A"
+        ]
+      },
+      "signatureVerification": {
+        "description": "If signature was verified",
+        "type": "string",
+        "enum": [
+          "Y",
+          "N"
+        ]
+      },
+      "amount": {
+        "description": "Transaction amount",
+        "type": "number",
+        "format": "double"
+      },
+      "currency": {
+        "description": "The currency three letter code",
+        "type": "string"
+      },
+      "createdTime": {
+        "description": "The 3D Secure entry created time",
+        "allOf": [
+          {
+            "type": "string",
+            "description": "Read-only timestamp, automatically assigned on back-end.",
+            "format": "date-time",
+            "readOnly": true
+          }
+        ]
+      },
+      "_links": {
+        "type": "array",
+        "description": "The links related to resource",
+        "readOnly": true,
+        "minItems": 1,
+        "maxItems": 1,
+        "items": {
+          "type": "object",
+          "allOf": [
+            {
+              "type": "object",
+              "properties": {
+                "href": {
+                  "description": "The link URL",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "href"
+              ]
+            }
+          ],
+          "properties": {
+            "rel": {
+              "description": "The link type",
+              "type": "string",
+              "enum": [
+                "self"
+              ]
+            }
+          },
+          "required": [
+            "rel"
+          ]
+        }
+      }
+    }
+  },
+  "isSchema": true
+}
