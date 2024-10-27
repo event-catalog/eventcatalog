@@ -92,9 +92,6 @@ program
       cwd: core,
       stdio: 'inherit',
     });
-
-    // // everything is built make sure its back in the users project directory
-    copyFolder(join(core, 'dist'), join(dir, 'dist'));
   });
 
 const previewCatalog = () => {
@@ -104,9 +101,6 @@ const previewCatalog = () => {
     cwd: core,
     stdio: 'inherit',
   });
-
-  // // everything is built make sure its back in the users project directory
-  copyFolder(join(core, 'dist'), join(dir, 'dist'));
 };
 
 program
