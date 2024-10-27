@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: '20.x'
+          version: 9
       - name: Installation
-        run: npm ci
+        run: pnpm i
       - name: Prettier Code
-        run: npm run format:diff
+        run: pnpm run format:diff
