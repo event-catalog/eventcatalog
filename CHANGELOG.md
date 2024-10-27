@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 2.11.5
+
+### Patch Changes
+
+- 61e5cf1: fix(core): fixed outdir to output to users directory now
+- 6e88fcf: chore(core): moved some GitHub CI/CD to pnpm
+- b29d4f9: chore(core): removed code that copies over files twice to users catalog.
+- a283534: fix(docs): remove blank space from the version tag
+
 ## 2.11.4
 
 ### Patch Changes
