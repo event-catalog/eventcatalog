@@ -173,8 +173,8 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
                           class="underline hover:text-primary block pt-2"
                           href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}`)}
                         >
-                          The latest version of this {props.collection.slice(0, props.collection.length - 1)} is v
-                          {props.data.latestVersion} &rarr;
+                          The latest version of this {props.collection.slice(0, props.collection.length - 1)} is
+                          <span>v{props.data.latestVersion}</span> &rarr;
                         </a>
                       </p>
                     </div>
