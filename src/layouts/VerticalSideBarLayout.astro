@@ -192,20 +192,6 @@ const showSideBarOnLoad = currentNavigationItem?.sidebar;
                 })
               }
             </div>
-            <!-- <div class="flex flex-col items-center mt-4 space-y-4 -mb-10">
-              <a href="https://discord.com/invite/3rjaZMmrAm" class="text-gray-500 has-tooltip">
-                <span class="tooltip rounded shadow-lg p-1 text-xs bg-black text-white ml-10 w-[162px]"
-                  >Join EventCatalog Discord</span
-                >
-                <img src="/icons/discord.svg" class="w-7 h-7" />
-              </a>
-              <a href="https://github.com/event-catalog/eventcatalog" class="text-gray-500 has-tooltip">
-                <span class="tooltip rounded shadow-lg p-1 text-xs bg-black text-white ml-10 w-[175px]"
-                  >Found an issue? Let us know</span
-                >
-                <img src="/icons/github-purple.svg" class="w-7 h-7" />
-              </a>
-            </div> -->
           </nav>
         </div>
 
@@ -234,6 +220,21 @@ const showSideBarOnLoad = currentNavigationItem?.sidebar;
   });
 
   document.addEventListener('contentLoaded', () => {
+    // Users can add ?embed=true to the URL to hide the navigation
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const params = Object.fromEntries(urlSearchParams.entries());
+    const embeded = params.embed === 'true' ? true : false;
+
+    if (embeded) {
+      // hide the element eventcatalog-vertical-nav
+      const verticalNav = document.getElementById('eventcatalog-vertical-nav');
+      const headerNav = document.getElementById('eventcatalog-header');
+      const headerSpacer = document.getElementById('eventcatalog-header-spacer');
+      verticalNav.style.display = 'none';
+      headerNav.style.display = 'none';
+      headerSpacer.style.display = 'none';
+    }
+
     const sidebar = document.getElementById('sidebar');
     const content = document.getElementById('content');
     const currentPath = window.location.href;
