@@ -60,3 +60,16 @@ const {
   </div>
   <ViewTransitions />
 </VisualiserLayout>
+
+<script define:vars={{ id }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const params = Object.fromEntries(urlSearchParams.entries());
+    const embeded = params.embed === 'true' ? true : false;
+    const viewport = document.getElementById(`${id}-portal`);
+
+    if (embeded) {
+      viewport.style.height = 'calc(100vh - 30px)';
+    }
+  });
+</script>

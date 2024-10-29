@@ -226,13 +226,17 @@ const showSideBarOnLoad = currentNavigationItem?.sidebar;
     const embeded = params.embed === 'true' ? true : false;
 
     if (embeded) {
-      // hide the element eventcatalog-vertical-nav
-      const verticalNav = document.getElementById('eventcatalog-vertical-nav');
-      const headerNav = document.getElementById('eventcatalog-header');
-      const headerSpacer = document.getElementById('eventcatalog-header-spacer');
-      verticalNav.style.display = 'none';
-      headerNav.style.display = 'none';
-      headerSpacer.style.display = 'none';
+      const elementsToHide = [
+        'eventcatalog-vertical-nav',
+        'eventcatalog-header',
+        'eventcatalog-header-spacer',
+        'visualiser-footer',
+      ];
+
+      elementsToHide.forEach((id) => {
+        const element = document.getElementById(id);
+        if (element) element.style.display = 'none';
+      });
     }
 
     const sidebar = document.getElementById('sidebar');
