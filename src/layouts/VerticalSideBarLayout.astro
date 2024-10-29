@@ -224,6 +224,7 @@ const showSideBarOnLoad = currentNavigationItem?.sidebar;
     const urlSearchParams = new URLSearchParams(window.location.search);
     const params = Object.fromEntries(urlSearchParams.entries());
     const embeded = params.embed === 'true' ? true : false;
+    const content = document.getElementById('content');
 
     if (embeded) {
       const elementsToHide = [
@@ -231,16 +232,19 @@ const showSideBarOnLoad = currentNavigationItem?.sidebar;
         'eventcatalog-header',
         'eventcatalog-header-spacer',
         'visualiser-footer',
+        'discover-collection-tabs',
       ];
 
       elementsToHide.forEach((id) => {
         const element = document.getElementById(id);
         if (element) element.style.display = 'none';
       });
+
+      content.classList.remove('ml-16');
+      return;
     }
 
     const sidebar = document.getElementById('sidebar');
-    const content = document.getElementById('content');
     const currentPath = window.location.href;
 
     // Hide the sidebar if the current navigation item is not a sidebar item
