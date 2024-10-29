@@ -5,8 +5,7 @@ import { join } from 'node:path';
 import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-
-const currentDir = path.dirname(fileURLToPath(import.meta.url));
+import pkgJson from '../package.json';
 
 const program = new Command();
 
@@ -16,37 +15,49 @@ const dir = process.cwd();
 // The tmp core directory
 const core = join(dir, '.eventcatalog-core');
 
-// The project itself
-const eventCatalogDir = join(currentDir, '../../');
+program.name('eventcatalog').description('Documentation tool for event-driven architectures').version(pkgJson.version);
 
-program.name('eventcatalog').description('Documentation tool for event-driven architectures');
-
-const copyFolder = (from: string, to: string) => {
-  if (fs.existsSync(from)) {
-    fs.cpSync(from, to, { recursive: true });
-  }
+const getPackageVersion = async (directory: string): Promise<string | undefined> => {
+  return import(path.resolve(directory, 'package.json'), { with: { type: 'json' } })
+    .then((mod) => mod.default.version)
+    .catch(() => undefined);
 };
 
-const ensureDir = (dir: string) => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir);
-  }
-};
+const copyCore = async () => {
+  console.debug('Copying core...');
 
-const copyCore = () => {
-  // make sure the core folder exists
-  ensureDir(core);
+  if (fs.existsSync(core)) {
+    console.debug("Checking user's .eventcatalog-core version...");
+    // Get verion of user's .evetcatalog-core
+    const usersECCoreVersion = await getPackageVersion(core);
+
+    console.debug("User's .eventcatalog-core: ", usersECCoreVersion);
+
+    // Check user's .eventcatalog-core version is same as the current version
+    if (usersECCoreVersion === pkgJson.version) {
+      console.debug("User's .eventcatalog-core has the same version as the current version.\nSkipping copying files...");
+      // Do nothing
+      return;
+    } else {
+      console.debug(
+        "User's .eventcatalog-core has different version than the current version.\nCleaning up user's .eventcatalog-core..."
+      );
+      // Remove user's .eventcatalog-core
+      fs.rmSync(core, { recursive: true });
+    }
+  }
+
+  console.debug("Creating user's .eventcatalog-core...");
+  fs.mkdirSync(core);
+
+  console.debug("Copying required files to user's .eventcatalog-core...");
+
+  const currentDir = path.dirname(fileURLToPath(import.meta.url));
+  // The project itself
+  const eventCatalogDir = join(currentDir, '../../');
 
   // Copy required eventcatlog files into users directory
-  fs.cpSync(eventCatalogDir, core, {
-    recursive: true,
-    filter: (src) => {
-      // if(src.includes('node_modules')) {
-      //   return false;
-      // }
-      return true;
-    },
-  });
+  fs.cpSync(eventCatalogDir, core, { recursive: true });
 };
 
 const clearCore = () => {
@@ -58,7 +69,7 @@ program
   .description('Run development server of EventCatalog')
   .option('-d, --debug', 'Output EventCatalog application information into your terminal')
   .option('--force-recreate', 'Recreate the eventcatalog-core directory', false)
-  .action((options) => {
+  .action(async (options) => {
     // // Copy EventCatalog core over
     console.log('Setting up EventCatalog....');
 
@@ -69,7 +80,7 @@ program
     }
 
     if (options.forceRecreate) clearCore();
-    copyCore();
+    await copyCore();
 
     console.log('EventCatalog is starting at http://localhost:3000/docs');
 
@@ -83,10 +94,10 @@ program
 program
   .command('build')
   .description('Run build of EventCatalog')
-  .action((options) => {
+  .action(async (options) => {
     console.log('Building EventCatalog...');
 
-    copyCore();
+    await copyCore();
 
     execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run build`, {
       cwd: core,
@@ -94,8 +105,8 @@ program
     });
   });
 
-const previewCatalog = () => {
-  copyCore();
+const previewCatalog = async () => {
+  await copyCore();
 
   execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run preview -- --root ${dir} --port 3000`, {
     cwd: core,
@@ -106,24 +117,24 @@ const previewCatalog = () => {
 program
   .command('preview')
   .description('Serves the contents of your eventcatalog build directory')
-  .action((options) => {
+  .action(async (options) => {
     console.log('Starting preview of your build...');
-    previewCatalog();
+    await previewCatalog();
   });
 
 program
   .command('start')
   .description('Serves the contents of your eventcatalog build directory')
-  .action((options) => {
+  .action(async (options) => {
     console.log('Starting preview of your build...');
-    previewCatalog();
+    await previewCatalog();
   });
 
 program
   .command('generate [siteDir]')
   .description('Start the generator scripts.')
-  .action(() => {
-    copyCore();
+  .action(async () => {
+    await copyCore();
 
     execSync(`cross-env PROJECT_DIR='${dir}' npm run generate`, {
       cwd: core,
@@ -131,4 +142,4 @@ program
     });
   });
 
-program.parse();
+program.parseAsync();
