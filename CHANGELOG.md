@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.11.7
+
+### Patch Changes
+
+- 159e2d4: feat(core): added ability to embed discovery table
+
 ## 2.11.6
 
 ### Patch Changes
