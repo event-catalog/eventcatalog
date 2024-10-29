@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 2.11.6
+
+### Patch Changes
+
+- 9a531d2: feat(core): added ability to embed discovery table
+- 2352fc0: feat(core): added ability to embed catalog pages
+- 112f735: feat(core): added ability to embed visualiser without footers
+
 ## 2.11.5
 
 ### Patch Changes
