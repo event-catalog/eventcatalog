@@ -97,12 +97,14 @@ program
 program
   .command('build')
   .description('Run build of EventCatalog')
+  .option('--force-recreate', 'Recreate the eventcatalog-core directory', false)
   .action(async (options) => {
     const logger = new Logger();
 
     logger.info('Building EventCatalog...');
 
-    await copyCore();
+    if (options.forceRecreate) clearCore();
+    await copyCore({ logger });
 
     execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run build`, {
       cwd: core,
