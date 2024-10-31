@@ -6,6 +6,7 @@ import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pkgJson from '../package.json';
+import { Logger } from './logger';
 
 const program = new Command();
 
@@ -23,23 +24,25 @@ const getPackageVersion = async (directory: string): Promise<string | undefined>
     .catch(() => undefined);
 };
 
-const copyCore = async () => {
-  console.debug('Copying core...');
+const copyCore = async (opts?: { logger: Logger }) => {
+  const logger = opts?.logger;
+
+  logger?.debug('Copying core...');
 
   if (fs.existsSync(core)) {
-    console.debug("Checking user's .eventcatalog-core version...");
+    logger?.debug("Checking user's .eventcatalog-core version...");
     // Get verion of user's .evetcatalog-core
     const usersECCoreVersion = await getPackageVersion(core);
 
-    console.debug("User's .eventcatalog-core: ", usersECCoreVersion);
+    logger?.debug("User's .eventcatalog-core: ", usersECCoreVersion);
 
     // Check user's .eventcatalog-core version is same as the current version
     if (usersECCoreVersion === pkgJson.version) {
-      console.debug("User's .eventcatalog-core has the same version as the current version.\nSkipping copying files...");
+      logger?.debug("User's .eventcatalog-core has the same version as the current version.\nSkipping copying files...");
       // Do nothing
       return;
     } else {
-      console.debug(
+      logger?.debug(
         "User's .eventcatalog-core has different version than the current version.\nCleaning up user's .eventcatalog-core..."
       );
       // Remove user's .eventcatalog-core
@@ -47,10 +50,10 @@ const copyCore = async () => {
     }
   }
 
-  console.debug("Creating user's .eventcatalog-core...");
+  logger?.debug("Creating user's .eventcatalog-core...");
   fs.mkdirSync(core);
 
-  console.debug("Copying required files to user's .eventcatalog-core...");
+  logger?.debug("Copying required files to user's .eventcatalog-core...");
 
   const currentDir = path.dirname(fileURLToPath(import.meta.url));
   // The project itself
@@ -70,19 +73,19 @@ program
   .option('-d, --debug', 'Output EventCatalog application information into your terminal')
   .option('--force-recreate', 'Recreate the eventcatalog-core directory', false)
   .action(async (options) => {
-    // // Copy EventCatalog core over
-    console.log('Setting up EventCatalog....');
+    const logger = new Logger({ level: options.debug ? 'debug' : 'info' });
 
-    if (options.debug) {
-      console.log('Debug mode enabled');
-      console.log('PROJECT_DIR', dir);
-      console.log('CATALOG_DIR', core);
-    }
+    // // Copy EventCatalog core over
+    logger.info('Setting up EventCatalog....');
+
+    logger.debug('Debug mode enabled');
+    logger.debug('PROJECT_DIR', dir);
+    logger.debug('CATALOG_DIR', core);
 
     if (options.forceRecreate) clearCore();
-    await copyCore();
+    await copyCore({ logger });
 
-    console.log('EventCatalog is starting at http://localhost:3000/docs');
+    logger.info('EventCatalog is starting at http://localhost:3000/docs');
 
     execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run dev`, {
       cwd: core,
@@ -95,7 +98,9 @@ program
   .command('build')
   .description('Run build of EventCatalog')
   .action(async (options) => {
-    console.log('Building EventCatalog...');
+    const logger = new Logger();
+
+    logger.info('Building EventCatalog...');
 
     await copyCore();
 
@@ -118,7 +123,8 @@ program
   .command('preview')
   .description('Serves the contents of your eventcatalog build directory')
   .action(async (options) => {
-    console.log('Starting preview of your build...');
+    const logger = new Logger();
+    logger.info('Starting preview of your build...');
     await previewCatalog();
   });
 
@@ -126,7 +132,8 @@ program
   .command('start')
   .description('Serves the contents of your eventcatalog build directory')
   .action(async (options) => {
-    console.log('Starting preview of your build...');
+    const logger = new Logger();
+    logger.info('Starting preview of your build...');
     await previewCatalog();
   });
 
