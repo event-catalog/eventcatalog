@@ -113,8 +113,6 @@ program
   });
 
 const previewCatalog = async () => {
-  await copyCore();
-
   execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run preview -- --root ${dir} --port 3000`, {
     cwd: core,
     stdio: 'inherit',
@@ -143,8 +141,6 @@ program
   .command('generate [siteDir]')
   .description('Start the generator scripts.')
   .action(async () => {
-    await copyCore();
-
     execSync(`cross-env PROJECT_DIR='${dir}' npm run generate`, {
       cwd: core,
       stdio: 'inherit',
