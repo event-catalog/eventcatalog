@@ -5,10 +5,12 @@ import { join } from 'node:path';
 import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import concurrently from 'concurrently';
 import pkgJson from '../package.json';
 import { Logger } from './logger';
 import { catalogToAstro } from 'scripts/catalog-to-astro-content-directory';
 import logBuild from 'scripts/analytics/log-build';
+import { watch } from 'scripts/watcher';
 
 const program = new Command();
 
@@ -93,11 +95,25 @@ program
     await catalogToAstro(projectDir, ecCoreDir);
 
     logger.info('EventCatalog is starting at http://localhost:3000/docs');
+    const unsubWatcher = await watch(projectDir, ecCoreDir);
 
-    execSync(`cross-env PROJECT_DIR='${projectDir}' CATALOG_DIR='${ecCoreDir}' npm run dev`, {
-      cwd: ecCoreDir,
-      stdio: 'inherit',
-    });
+    const { result } = concurrently([
+      {
+        command: 'npm run dev',
+        env: {
+          PROJECT_DIR: projectDir,
+          CATALOG_DIR: ecCoreDir,
+        },
+        cwd: ecCoreDir,
+        name: 'astro',
+      },
+    ]);
+
+    try {
+      await result;
+    } finally {
+      await unsubWatcher();
+    }
   });
 
 program

@@ -12,6 +12,8 @@ export default defineConfig({
     // LogBuild and dependencies
     'scripts/analytics/log-build.ts',
     'scripts/analytics/analytics.js',
+    // Watcher
+    'scripts/watcher.js',
   ],
   dts: true,
   outDir: 'dist/',
