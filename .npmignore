@@ -8,7 +8,6 @@ eventcatalog.styles.css
 README.md
 bin/
 scripts/start-catalog.locally.js
-scripts/verify-build.js
 tsup.config.js
 vitest.config.ts
 
