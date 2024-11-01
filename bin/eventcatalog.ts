@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import { exec, execSync } from 'node:child_process';
 import { join } from 'node:path';
 import fs from 'fs';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import concurrently from 'concurrently';
@@ -18,9 +19,13 @@ const program = new Command();
 program.name('eventcatalog').description('Documentation tool for event-driven architectures').version(pkgJson.version);
 
 const getPackageVersion = async (directory: string): Promise<string | undefined> => {
-  return import(path.resolve(directory, 'package.json'), { with: { type: 'json' } })
-    .then((mod) => mod.default.version)
-    .catch(() => undefined);
+  try {
+    const filePath = path.join(directory, 'package.json');
+    const packageJson = JSON.parse(await readFile(filePath, 'utf-8'));
+    return packageJson.version;
+  } catch (_) {
+    return undefined;
+  }
 };
 
 const copyAstroTo = async (coreDir: string, opts?: { logger: Logger }) => {
