@@ -18,7 +18,7 @@
     "build:bin": "tsup",
     "prepublishOnly": "npm run build:bin",
     "test": "vitest --config vitest.config.ts",
-    "test:ci": "node scripts/ci/test.js",
+    "test:ci": "node .github/scripts/test.js",
     "test:e2e": "playwright test",
     "start": "astro dev",
     "build": "astro build",
