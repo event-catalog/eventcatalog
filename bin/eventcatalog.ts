@@ -11,6 +11,7 @@ import { Logger } from './logger';
 import { catalogToAstro } from 'scripts/catalog-to-astro-content-directory';
 import logBuild from 'scripts/analytics/log-build';
 import { watch } from 'scripts/watcher';
+import { generate } from 'scripts/generate';
 
 const program = new Command();
 
@@ -194,22 +195,12 @@ program
   });
 
 program
-  .command('generate [siteDir]')
+  .command('generate')
   .description('Start the generator scripts.')
   .option('--project-dir <path>', 'Project directory path. Defaults to cwd.', path.resolve(process.cwd()))
-  .option(
-    '--ec-core-dir <path>',
-    'Path to .eventcatalog-core directory. Defaults to cwd + .eventcatalog-core',
-    path.resolve(process.cwd(), '.eventcatalog-core')
-  )
   .action(async (options) => {
     const projectDir = path.resolve(options.projectDir);
-    const ecCoreDir = path.resolve(options.ecCoreDir);
-
-    execSync(`cross-env PROJECT_DIR='${projectDir}' npm run generate`, {
-      cwd: ecCoreDir,
-      stdio: 'inherit',
-    });
+    await generate(projectDir);
   });
 
 program.parseAsync();

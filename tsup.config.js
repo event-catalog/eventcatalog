@@ -14,6 +14,8 @@ export default defineConfig({
     'scripts/analytics/analytics.js',
     // Watcher
     'scripts/watcher.js',
+    // Generate
+    'scripts/generate.js',
   ],
   dts: true,
   outDir: 'dist/',

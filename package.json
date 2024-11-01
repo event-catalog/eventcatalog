@@ -27,7 +27,7 @@
     "start:catalog": "npm run build:bin && npx . dev --project-dir examples/default/ --ec-core-dir .",
     "verify-build:catalog": "rimraf dist && npm run build:bin && npx . build --project-dir examples/default --ec-core-dir .",
     "changeset": "changeset",
-    "generate": "node scripts/generate.js",
+    "generate": "npm run build:bin && npx . generate --project-dir examples/default/",
     "release": "changeset publish",
     "format": "prettier --config .prettierrc --write \"**/*.{js,jsx,ts,tsx,json,astro}\"",
     "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json,astro}\""
