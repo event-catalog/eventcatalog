@@ -21,7 +21,7 @@
     "test:ci": "node scripts/ci/test.js",
     "test:e2e": "playwright test",
     "start": "astro dev",
-    "build": "node scripts/analytics/log-build.js && astro build",
+    "build": "astro build",
     "build:cd": "node scripts/build-ci.js",
     "preview": "astro preview",
     "astro": "astro",

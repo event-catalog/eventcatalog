@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import pkgJson from '../package.json';
 import { Logger } from './logger';
 import { catalogToAstro } from 'scripts/catalog-to-astro-content-directory';
+import logBuild from 'scripts/analytics/log-build';
 
 const program = new Command();
 
@@ -121,6 +122,8 @@ program
 
     logger.info('Hydrating...');
     await catalogToAstro(projectDir, ecCoreDir);
+
+    await logBuild(projectDir);
 
     execSync(`cross-env PROJECT_DIR='${projectDir}' CATALOG_DIR='${ecCoreDir}' npm run build`, {
       cwd: ecCoreDir,
