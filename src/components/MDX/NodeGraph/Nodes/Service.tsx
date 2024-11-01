@@ -17,7 +17,7 @@ function classNames(...classes: any) {
 }
 
 export default function ServiceNode({ data, sourcePosition, targetPosition }: any) {
-  const { label, bgColor = 'bg-blue-500', mode, service, showTarget = true, showSource = true } = data as Data;
+  const { label, bgColor = 'bg-blue-500', mode, service } = data as Data;
 
   const { version, owners = [], sends = [], receives = [], name } = service.data;
 
@@ -37,8 +37,8 @@ export default function ServiceNode({ data, sourcePosition, targetPosition }: an
         )}
       </div>
       <div className="p-1 min-w-60 max-w-[min-content]">
-        {showTarget && <Handle type="target" position={targetPosition} />}
-        {showSource && <Handle type="source" position={sourcePosition} />}
+        {targetPosition && <Handle type="target" position={targetPosition} />}
+        {sourcePosition && <Handle type="source" position={sourcePosition} />}
         <div className={classNames(mode === 'full' ? `border-b border-gray-200` : '')}>
           <span className="text-xs font-bold block pt-0.5 pb-0.5">{name}</span>
           <div className="flex justify-between">

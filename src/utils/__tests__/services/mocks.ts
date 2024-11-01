@@ -64,6 +64,25 @@ export const mockServices = [
       ],
     },
   },
+  {
+    id: 'services/Notifications/NotificationsService/index.mdx',
+    slug: 'services/Notifications/NotificationsService',
+    collection: 'services',
+    data: {
+      id: 'NotificationsService',
+      version: '1.0.0',
+      receives: [
+        {
+          id: 'OrderCreatedEvent',
+        },
+      ],
+      sends: [
+        {
+          id: 'OrderCreatedEvent',
+        },
+      ],
+    },
+  },
 ];
 
 export const mockEvents = [

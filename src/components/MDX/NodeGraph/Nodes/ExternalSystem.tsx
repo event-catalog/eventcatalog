@@ -18,7 +18,7 @@ function classNames(...classes: any) {
 }
 
 export default function ExternalSystemNode({ data, sourcePosition, targetPosition }: any) {
-  const { mode, step, showTarget = true, showSource = true } = data as Data;
+  const { mode, step } = data as Data;
   const { externalSystem } = step;
   const { name, summary, url } = externalSystem;
 
@@ -43,8 +43,8 @@ export default function ExternalSystemNode({ data, sourcePosition, targetPositio
         )}
       </div>
       <div className="p-1 min-w-60 max-w-[min-content]">
-        {showTarget && <Handle type="target" position={targetPosition} />}
-        {showSource && <Handle type="source" position={sourcePosition} />}
+        {targetPosition && <Handle type="target" position={targetPosition} />}
+        {sourcePosition && <Handle type="source" position={sourcePosition} />}
         <div className={classNames(mode === 'full' ? `border-b border-gray-200` : '')}>
           <div className="h-full ">
             <span className="text-sm font-bold pb-0.5 block w-full">{name}</span>

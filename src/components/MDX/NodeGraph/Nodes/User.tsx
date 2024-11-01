@@ -21,9 +21,6 @@ export default function UserNode({ data, sourcePosition, targetPosition }: any) 
 
   const { summary, actor: { name } = {} } = step;
 
-  const renderTarget = showTarget || true;
-  const renderSource = showSource || true;
-
   return (
     <div
       className={classNames(
@@ -45,8 +42,8 @@ export default function UserNode({ data, sourcePosition, targetPosition }: any) 
         )}
       </div>
       <div className="p-1 min-w-60 max-w-[min-content]">
-        {renderTarget && <Handle type="target" position={targetPosition} />}
-        {renderSource && <Handle type="source" position={sourcePosition} />}
+        {targetPosition && <Handle type="target" position={targetPosition} />}
+        {sourcePosition && <Handle type="source" position={sourcePosition} />}
 
         {(!summary || mode !== 'full') && (
           <div className="h-full ">

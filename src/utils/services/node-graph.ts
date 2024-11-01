@@ -1,7 +1,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
 import { createDagreGraph, generateIdForNode, generatedIdForEdge, calculatedNodes } from '@utils/node-graph-utils/utils';
-import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+import { findMatchingNodes, getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 import { MarkerType } from 'reactflow';
 
 type DagreGraph = any;
@@ -78,10 +78,12 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   const receives = (receivesHydrated as CollectionEntry<'events' | 'commands' | 'queries'>[]) || [];
   const sends = (sendsHydrated as CollectionEntry<'events' | 'commands' | 'queries'>[]) || [];
 
-  // Get all the data from them
+  // Track messages that are both sent and received
+  const bothSentAndReceived = findMatchingNodes(receives, sends);
 
+  // Get all the data from them
   if (receives && receives.length > 0) {
-    //All the messages the service receives
+    // All the messages the service receives
     receives.forEach((receive, index) => {
       nodes.push({
         id: generateIdForNode(receive),
@@ -89,7 +91,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         sourcePosition: 'right',
         targetPosition: 'left',
         data: { mode, message: receive, showTarget: renderAllEdges },
-        position: { x: 250, y: 0 },
+        position: { x: 250, y: index * 100 },
       });
       edges.push({
         id: generatedIdForEdge(receive, service),
@@ -121,13 +123,13 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   });
 
   // The messages the service sends
-  sends.forEach((send) => {
+  sends.forEach((send, index) => {
     nodes.push({
       id: generateIdForNode(send),
       sourcePosition: 'right',
       targetPosition: 'left',
       data: { mode, message: send, showSource: renderAllEdges },
-      position: { x: 0, y: 0 },
+      position: { x: 500, y: index * 100 },
       type: send?.collection,
     });
     edges.push({
@@ -148,6 +150,28 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     });
   });
 
+  // Handle messages that are both sent and received
+  bothSentAndReceived.forEach((message) => {
+    if (message) {
+      edges.push({
+        id: generatedIdForEdge(service, message) + '-both',
+        source: generateIdForNode(service),
+        target: generateIdForNode(message),
+        type: 'smoothstep',
+        label: `${getSendsMessageByMessageType(message?.collection)} & ${getReceivesMessageByMessageType(message?.collection)}`,
+        animated: false,
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 40,
+          height: 40,
+        },
+        style: {
+          strokeWidth: 1,
+        },
+      });
+    }
+  });
+
   nodes.forEach((node: any) => {
     flow.setNode(node.id, { width: 150, height: 100 });
   });
@@ -156,7 +180,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     flow.setEdge(edge.source, edge.target);
   });
 
-  // Render the diagram in memory getting hte X and Y
+  // Render the diagram in memory getting the X and Y
   dagre.layout(flow);
 
   return {

@@ -1,3 +1,4 @@
+import { findMatchingNodes } from '@utils/collections/util';
 import { getCommands } from '@utils/commands';
 import { calculatedNodes, createDagreGraph, generateIdForNode, generatedIdForEdge } from '@utils/node-graph-utils/utils';
 import { type CollectionEntry } from 'astro:content';
@@ -33,6 +34,9 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
   const producers = (command.data.producers as CollectionEntry<'services'>[]) || [];
   const consumers = (command.data.consumers as CollectionEntry<'services'>[]) || [];
 
+  // Track nodes that are both sent and received
+  const bothSentAndReceived = findMatchingNodes(producers, consumers);
+
   if (producers && producers.length > 0) {
     producers.forEach((producer, index) => {
       nodes.push({
@@ -40,7 +44,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
         type: producer?.collection,
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode, service: producer, showTarget: false },
+        data: { mode, service: producer },
         position: { x: 250, y: 0 },
       });
       edges.push({
@@ -67,7 +71,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
     id: generateIdForNode(command),
     sourcePosition: 'right',
     targetPosition: 'left',
-    data: { mode, message: command, showTarget: producers.length > 0, showSource: consumers.length > 0 },
+    data: { mode, message: command },
     position: { x: 0, y: 0 },
     type: command.collection,
   });
@@ -78,7 +82,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
       id: generateIdForNode(consumer),
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: { title: consumer?.data.id, mode, service: consumer, showSource: false },
+      data: { title: consumer?.data.id, mode, service: consumer },
       position: { x: 0, y: 0 },
       type: consumer?.collection,
     });
@@ -98,6 +102,28 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
         strokeWidth: 1,
       },
     });
+  });
+
+  // Handle nodes that are both sent and received
+  bothSentAndReceived.forEach((message) => {
+    if (message) {
+      edges.push({
+        id: generatedIdForEdge(command, message) + '-both',
+        source: generateIdForNode(command),
+        target: generateIdForNode(message),
+        type: 'smoothstep',
+        label: `publishes and subscribes`,
+        animated: false,
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 40,
+          height: 40,
+        },
+        style: {
+          strokeWidth: 1,
+        },
+      });
+    }
   });
 
   nodes.forEach((node: any) => {
