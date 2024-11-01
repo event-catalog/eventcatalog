@@ -24,7 +24,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "start:catalog": "node scripts/start-catalog-locally.js",
+    "start:catalog": "npm run build:bin && npx . dev --project-dir examples/default/ --ec-core-dir .",
     "verify-build:catalog": "rimraf dist && npm run build:bin && npx . build --project-dir examples/default --ec-core-dir .",
     "changeset": "changeset",
     "generate": "node scripts/generate.js",
