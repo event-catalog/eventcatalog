@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.12.0
+
+### Minor Changes
+
+- a136d50: feat(core): services can now send and receive the same messages in vis…
+
 ## 2.11.7
 
 ### Patch Changes
