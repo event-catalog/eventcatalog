@@ -4,6 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
 import { calculatedNodes, createDagreGraph, generatedIdForEdge, generateIdForNode } from '../node-graph-utils/utils';
 import { MarkerType } from 'reactflow';
+import { findMatchingNodes } from '@utils/collections/util';
 
 type DagreGraph = any;
 
@@ -33,6 +34,9 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
 
   const producers = (event.data.producers as CollectionEntry<'services'>[]) || [];
   const consumers = (event.data.consumers as CollectionEntry<'services'>[]) || [];
+
+  // Track nodes that are both sent and received
+  const bothSentAndReceived = findMatchingNodes(producers, consumers);
 
   if (producers && producers.length > 0) {
     producers.forEach((producer) => {
@@ -99,6 +103,28 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
         strokeWidth: 1,
       },
     });
+  });
+
+  // Handle messages that are both sent and received
+  bothSentAndReceived.forEach((message) => {
+    if (message) {
+      edges.push({
+        id: generatedIdForEdge(event, message) + '-both',
+        source: generateIdForNode(event),
+        target: generateIdForNode(message),
+        type: 'smoothstep',
+        label: `publishes and subscribes`,
+        animated: false,
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 40,
+          height: 40,
+        },
+        style: {
+          strokeWidth: 1,
+        },
+      });
+    }
   });
 
   nodes.forEach((node: any) => {

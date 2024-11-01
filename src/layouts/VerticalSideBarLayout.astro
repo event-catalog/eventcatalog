@@ -268,8 +268,6 @@ const showSideBarOnLoad = currentNavigationItem?.sidebar;
 
         const navItem = navigationItems.find((navItem) => navItem.id === id);
 
-        console.log(navItem);
-
         if (!navItem.sidebar || !currentPath.includes(navItem.id)) {
           window.location.href = navItem.href;
           return;

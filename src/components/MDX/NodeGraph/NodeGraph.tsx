@@ -81,6 +81,7 @@ const NodeGraphBuilder = ({
     setEdges((eds) =>
       eds.map((edge) => {
         edge.style = { ...edge.style, opacity: 1 };
+        edge.labelStyle = { ...edge.labelStyle, opacity: 1 };
         return { ...edge, animated: false };
       })
     );
@@ -107,9 +108,19 @@ const NodeGraphBuilder = ({
         if (edge.source === node.id || edge.target === node.id) {
           connectedNodeIds.add(edge.source);
           connectedNodeIds.add(edge.target);
-          return { ...edge, style: { ...edge.style, opacity: 1 }, animated: true };
+          return {
+            ...edge,
+            style: { ...edge.style, opacity: 1 },
+            labelStyle: { ...edge.labelStyle, opacity: 1 },
+            animated: true,
+          };
         }
-        return { ...edge, style: { ...edge.style, opacity: 0.1 }, animated: false };
+        return {
+          ...edge,
+          style: { ...edge.style, opacity: 0.1 },
+          labelStyle: { ...edge.labelStyle, opacity: 0.1 },
+          animated: false,
+        };
       });
 
       const updatedNodes = nodes.map((n) => {

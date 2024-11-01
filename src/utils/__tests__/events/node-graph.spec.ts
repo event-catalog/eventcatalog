@@ -113,6 +113,110 @@ describe('Services NodeGraph', () => {
       expect(edges).toEqual(expectedEdges);
     });
 
+    it('if the event is produced and consumed by a service it will render a custom edge', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'EmailSent', version: '1.0.0' });
+
+      // The middle node itself, the service
+      const expectedEventNode = {
+        id: 'EmailSent-1.0.0',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        // data: { mode: 'simple', message: expect.anything(), showTarget: false, showSource: false },
+        data: expect.anything(),
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'events',
+      };
+
+      const expectedProducerNode = {
+        id: 'NotificationsService-0.0.1',
+        type: 'services',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', service: mockServices[4], showTarget: false },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
+      const expectedConsumerNode = {
+        id: 'NotificationsService-0.0.1',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: {
+          title: 'NotificationsService',
+          mode: 'simple',
+          service: mockServices[4],
+          showSource: false,
+        },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'services',
+      };
+
+      const expectedEdges = [
+        {
+          id: 'NotificationsService-0.0.1-EmailSent-1.0.0',
+          source: 'NotificationsService-0.0.1',
+          target: 'EmailSent-1.0.0',
+          type: 'smoothstep',
+          label: 'publishes event',
+          animated: false,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
+        },
+        {
+          id: 'EmailSent-1.0.0-NotificationsService-0.0.1',
+          source: 'EmailSent-1.0.0',
+          target: 'NotificationsService-0.0.1',
+          type: 'smoothstep',
+          label: 'subscribed by',
+          animated: false,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
+        },
+        {
+          id: 'EmailSent-1.0.0-NotificationsService-0.0.1-both',
+          source: 'EmailSent-1.0.0',
+          target: 'NotificationsService-0.0.1',
+          type: 'smoothstep',
+          label: 'publishes and subscribes',
+          animated: false,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
+        },
+      ];
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          // Nodes on the left
+          expect.objectContaining(expectedConsumerNode),
+
+          // The event node itself
+          expect.objectContaining(expectedEventNode),
+
+          // Nodes on the right
+          expect.objectContaining(expectedProducerNode),
+        ])
+      );
+
+      expect(edges).toEqual(expectedEdges);
+    });
+
     it('returns empty nodes and edges if no event is found', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'UnknownEvent', version: '1.0.0' });
 

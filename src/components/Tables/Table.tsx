@@ -41,10 +41,6 @@ export const Table = ({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   useEffect(() => {
-    console.log(window.location.pathname);
-  }, []);
-
-  useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
     if (id) {

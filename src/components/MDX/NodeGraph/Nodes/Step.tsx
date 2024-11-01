@@ -16,12 +16,9 @@ function classNames(...classes: any) {
 }
 
 export default function StepNode({ data, sourcePosition, targetPosition }: any) {
-  const { mode, step, showTarget = true, showSource = true } = data as Data;
+  const { mode, step } = data as Data;
 
   const { title, summary } = step;
-
-  const renderTarget = showTarget || true;
-  const renderSource = showSource || true;
 
   return (
     <div className={classNames('w-full rounded-md border flex justify-start  bg-white text-black border-blue-400 min-h-[3em]')}>
@@ -38,8 +35,8 @@ export default function StepNode({ data, sourcePosition, targetPosition }: any) 
         )}
       </div>
       <div className="p-1 min-w-60 max-w-[min-content]">
-        {renderTarget && <Handle type="target" position={targetPosition} />}
-        {renderSource && <Handle type="source" position={sourcePosition} />}
+        {targetPosition && <Handle type="target" position={targetPosition} />}
+        {sourcePosition && <Handle type="source" position={sourcePosition} />}
 
         {!summary && (
           <div className="h-full flex items-center">

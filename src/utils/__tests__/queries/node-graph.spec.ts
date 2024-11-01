@@ -44,7 +44,7 @@ describe('Queries NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: mockServices[0], showTarget: false },
+        data: { mode: 'simple', service: mockServices[0] },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -56,7 +56,6 @@ describe('Queries NodeGraph', () => {
           title: 'PaymentService',
           mode: 'simple',
           service: mockServices[1],
-          showSource: false,
         },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
@@ -113,6 +112,108 @@ describe('Queries NodeGraph', () => {
       expect(edges).toEqual(expectedEdges);
     });
 
+    it('if the query is produced and consumed by a service it will render a custom edge', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'GetOrderLegacy', version: '0.0.1' });
+
+      // The middle node itself, the service
+      const expectedQueryNode = {
+        id: 'GetOrderLegacy-0.0.1',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', message: expect.anything() },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'queries',
+      };
+
+      const expectedProducerNode = {
+        id: 'LegacyOrderService-0.0.1',
+        type: 'services',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', service: mockServices[4], title: 'LegacyOrderService' },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
+      const expectedConsumerNode = {
+        id: 'LegacyOrderService-0.0.1',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: {
+          title: 'LegacyOrderService',
+          mode: 'simple',
+          service: mockServices[4],
+        },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'services',
+      };
+
+      const expectedEdges = [
+        {
+          id: 'LegacyOrderService-0.0.1-GetOrderLegacy-0.0.1',
+          source: 'LegacyOrderService-0.0.1',
+          target: 'GetOrderLegacy-0.0.1',
+          type: 'smoothstep',
+          label: 'requests',
+          animated: false,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
+        },
+        {
+          id: 'GetOrderLegacy-0.0.1-LegacyOrderService-0.0.1',
+          source: 'GetOrderLegacy-0.0.1',
+          target: 'LegacyOrderService-0.0.1',
+          type: 'smoothstep',
+          label: 'accepts',
+          animated: false,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
+        },
+        {
+          id: 'GetOrderLegacy-0.0.1-LegacyOrderService-0.0.1-both',
+          source: 'GetOrderLegacy-0.0.1',
+          target: 'LegacyOrderService-0.0.1',
+          type: 'smoothstep',
+          label: 'publishes and subscribes',
+          animated: false,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
+        },
+      ];
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          // Nodes on the left
+          expect.objectContaining(expectedConsumerNode),
+
+          // The query node itself
+          expect.objectContaining(expectedQueryNode),
+
+          // Nodes on the right
+          expect.objectContaining(expectedProducerNode),
+        ])
+      );
+
+      expect(edges).toEqual(expectedEdges);
+    });
+
     it('returns empty nodes and edges if no query is found', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'UnknownQuery', version: '1.0.0' });
 
@@ -138,7 +239,7 @@ describe('Queries NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: mockServices[2], showTarget: false },
+        data: { mode: 'simple', service: mockServices[2] },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -146,7 +247,7 @@ describe('Queries NodeGraph', () => {
         id: 'CatalogService-0.0.1',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { title: 'CatalogService', mode: 'simple', service: mockServices[3], showSource: false },
+        data: { title: 'CatalogService', mode: 'simple', service: mockServices[3] },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
       };

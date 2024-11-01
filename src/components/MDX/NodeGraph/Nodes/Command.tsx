@@ -18,12 +18,9 @@ function classNames(...classes: any) {
 }
 
 export default function CommandNode({ data, sourcePosition, targetPosition }: any) {
-  const { mode, message, showSource = true, showTarget = true } = data as Data;
+  const { mode, message } = data as Data;
 
   const { name, version, summary, owners = [], producers = [], consumers = [] } = message.data;
-
-  const renderTarget = showTarget || (targetPosition && producers.length > 0);
-  const renderSource = showSource || (sourcePosition && consumers.length > 0);
 
   return (
     <div className={classNames('w-full rounded-md border flex justify-start  bg-white text-black border-blue-400')}>
@@ -41,8 +38,8 @@ export default function CommandNode({ data, sourcePosition, targetPosition }: an
         )}
       </div>
       <div className="p-1 min-w-60 max-w-[min-content]">
-        {renderTarget && <Handle type="target" position={targetPosition} />}
-        {renderSource && <Handle type="source" position={sourcePosition} />}
+        {targetPosition && <Handle type="target" position={targetPosition} />}
+        {sourcePosition && <Handle type="source" position={sourcePosition} />}
         <div className={classNames(mode === 'full' ? `border-b border-gray-200` : '')}>
           <span className="text-xs font-bold block pb-0.5">{name}</span>
           <div className="flex justify-between">

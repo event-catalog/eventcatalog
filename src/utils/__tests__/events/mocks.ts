@@ -69,6 +69,25 @@ export const mockServices = [
       ],
     },
   },
+  {
+    id: 'NotificationsService',
+    slug: 'NotificationsService',
+    collection: 'services',
+    data: {
+      id: 'NotificationsService',
+      version: '0.0.1',
+      receives: [
+        {
+          id: 'EmailSent',
+        },
+      ],
+      sends: [
+        {
+          id: 'EmailSent',
+        },
+      ],
+    },
+  },
 ];
 
 export const mockEvents = [
@@ -114,6 +133,15 @@ export const mockEvents = [
     collection: 'events',
     data: {
       id: 'ProductDiscontinued',
+      version: '1.0.0',
+    },
+  },
+  {
+    id: 'EmailSent',
+    slug: 'EmailSent',
+    collection: 'events',
+    data: {
+      id: 'EmailSent',
       version: '1.0.0',
     },
   },
