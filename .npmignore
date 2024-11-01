@@ -1,5 +1,6 @@
 .astro/
 .vscode/
+.github/
 dist/
 examples/
 node_modules/
