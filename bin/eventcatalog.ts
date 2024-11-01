@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pkgJson from '../package.json';
 import { Logger } from './logger';
+import { catalogToAstro } from 'scripts/catalog-to-astro-content-directory';
 
 const program = new Command();
 
@@ -51,7 +52,7 @@ const copyAstroTo = async (coreDir: string, opts?: { logger: Logger }) => {
 
   const currentDir = path.dirname(fileURLToPath(import.meta.url));
   // The project itself
-  const eventCatalogDir = join(currentDir, '../../');
+  const eventCatalogDir = join(currentDir, '../../'); // TODO: group astro files and change this
 
   // Copy required eventcatlog files into users directory
   fs.cpSync(eventCatalogDir, coreDir, { recursive: true });
@@ -87,6 +88,9 @@ program
     if (options.forceRecreate) clearDir(ecCoreDir);
     await copyAstroTo(ecCoreDir, { logger });
 
+    logger.info('Hydrating...');
+    await catalogToAstro(projectDir, ecCoreDir);
+
     logger.info('EventCatalog is starting at http://localhost:3000/docs');
 
     execSync(`cross-env PROJECT_DIR='${projectDir}' CATALOG_DIR='${ecCoreDir}' npm run dev`, {
@@ -114,6 +118,9 @@ program
 
     if (options.forceRecreate) clearDir(ecCoreDir);
     await copyAstroTo(ecCoreDir, { logger });
+
+    logger.info('Hydrating...');
+    await catalogToAstro(projectDir, ecCoreDir);
 
     execSync(`cross-env PROJECT_DIR='${projectDir}' CATALOG_DIR='${ecCoreDir}' npm run build`, {
       cwd: ecCoreDir,

@@ -6,7 +6,7 @@ node_modules/
 eventcatalog.config.js
 eventcatalog.styles.css
 README.md
-bin/eventcatalog.ts
+bin/
 scripts/start-catalog.locally.js
 scripts/verify-build.js
 tsup.config.js

@@ -9,10 +9,6 @@ const catalog = args[0] || 'default';
 const catalogDir = join(__dirname, '../');
 const projectDIR = join(__dirname, `../examples/${catalog}`);
 
-execSync(
-  `cross-env NODE_ENV=development PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npm run scripts:hydrate-content && cross-env PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npm run dev:local`,
-  {
-    cwd: catalogDir,
-    stdio: 'inherit',
-  }
-);
+execSync(`npx tsup --silent && npx . dev --project-dir ${projectDIR} --ec-core-dir ${catalogDir}`, {
+  stdio: 'inherit',
+});

@@ -11,22 +11,20 @@
     "access": "public"
   },
   "bin": {
-    "eventcatalog": "bin/dist/eventcatalog.cjs"
+    "eventcatalog": "dist/bin/eventcatalog.cjs"
   },
   "scripts": {
-    "dev": "concurrently \"node scripts/watcher.js\" \"npm run scripts:hydrate-content && astro dev\"",
-    "dev:local": "concurrently \"node scripts/watcher.js\" \"astro dev\"",
+    "dev": "concurrently \"node scripts/watcher.js\" \"astro dev\"",
     "build:bin": "tsup",
     "prepublishOnly": "npm run build:bin",
     "test": "vitest --config vitest.config.ts",
     "test:ci": "node scripts/ci/test.js",
     "test:e2e": "playwright test",
     "start": "astro dev",
-    "build": "npm run scripts:hydrate-content && node scripts/analytics/log-build.js && astro build",
+    "build": "node scripts/analytics/log-build.js && astro build",
     "build:cd": "node scripts/build-ci.js",
     "preview": "astro preview",
     "astro": "astro",
-    "scripts:hydrate-content": "node scripts/catalog-to-astro-content-directory.js",
     "start:catalog": "node scripts/start-catalog-locally.js",
     "verify-build:catalog": "rimraf dist && npm run build:cd",
     "changeset": "changeset",
