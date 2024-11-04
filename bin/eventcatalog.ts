@@ -207,8 +207,9 @@ program
   .description('Start the generator scripts.')
   .option('--project-dir <path>', 'Project directory path. Defaults to cwd.', path.resolve(process.cwd()))
   .action(async (options) => {
+    const logger = pino(pinoPrettyStream);
     const projectDir = path.resolve(options.projectDir);
-    await generate(projectDir);
+    await generate(projectDir, { logger });
   });
 
 program.parseAsync();
