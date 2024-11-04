@@ -8,7 +8,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import concurrently from 'concurrently';
 import pkgJson from '../package.json';
-import { Logger } from './logger';
+import type { Logger } from 'pino';
+import { pino } from 'pino';
+import pinoPretty from 'pino-pretty';
 import { catalogToAstro } from 'scripts/catalog-to-astro-content-directory';
 import logBuild from 'scripts/analytics/log-build';
 import { watch } from 'scripts/watcher';
@@ -38,17 +40,17 @@ const copyAstroTo = async (coreDir: string, opts?: { logger: Logger }) => {
     // Get verion of user's .evetcatalog-core
     const usersECCoreVersion = await getPackageVersion(coreDir);
 
-    logger?.debug("User's .eventcatalog-core: ", usersECCoreVersion);
+    logger?.debug(`User's .eventcatalog-core: ${usersECCoreVersion}`);
 
     // Check user's .eventcatalog-core version is same as the current version
     if (usersECCoreVersion === pkgJson.version) {
-      logger?.debug("User's .eventcatalog-core has the same version as the current version.\nSkipping copying files...");
+      logger?.debug("User's .eventcatalog-core has the same version as the current version.");
+      logger?.debug('Skipping copying files...');
       // Do nothing
       return;
     } else {
-      logger?.debug(
-        "User's .eventcatalog-core has different version than the current version.\nCleaning up user's .eventcatalog-core..."
-      );
+      logger?.debug("User's .eventcatalog-core has different version than the current version.");
+      logger?.debug("Cleaning up user's .eventcatalog-core...");
       // Remove user's .eventcatalog-core
       fs.rmSync(coreDir, { recursive: true });
     }
@@ -71,6 +73,8 @@ const clearDir = (dir: string) => {
   if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true });
 };
 
+const pinoPrettyStream = pinoPretty({ colorize: true });
+
 program
   .command('dev')
   .description('Run development server of EventCatalog')
@@ -83,7 +87,7 @@ program
     path.resolve(process.cwd(), '.eventcatalog-core')
   )
   .action(async (options) => {
-    const logger = new Logger({ level: options.debug ? 'debug' : 'info' });
+    const logger = pino({ level: options.debug ? 'debug' : 'info' }, pinoPrettyStream);
     const ecCoreDir = path.resolve(options.ecCoreDir);
     const projectDir = path.resolve(options.projectDir);
 
@@ -91,8 +95,7 @@ program
     logger.info('Setting up EventCatalog....');
 
     logger.debug('Debug mode enabled');
-    logger.debug('PROJECT_DIR', projectDir);
-    logger.debug('CATALOG_DIR', ecCoreDir);
+    logger.debug({ PROJECT_DIR: projectDir, CATALOG_DIR: ecCoreDir });
 
     if (options.forceRecreate) clearDir(ecCoreDir);
     await copyAstroTo(ecCoreDir, { logger });
@@ -133,7 +136,7 @@ program
     path.resolve(process.cwd(), '.eventcatalog-core')
   )
   .action(async (options) => {
-    const logger = new Logger();
+    const logger = pino(pinoPrettyStream);
     const ecCoreDir = path.resolve(options.ecCoreDir);
     const projectDir = path.resolve(options.projectDir);
 
@@ -173,7 +176,7 @@ program
     path.resolve(process.cwd(), '.eventcatalog-core')
   )
   .action(async (options) => {
-    const logger = new Logger();
+    const logger = pino(pinoPrettyStream);
     const ecCoreDir = path.resolve(options.ecCoreDir);
     const projectDir = path.resolve(options.projectDir);
 
@@ -191,7 +194,7 @@ program
     path.resolve(process.cwd(), '.eventcatalog-core')
   )
   .action(async (options) => {
-    const logger = new Logger();
+    const logger = pino(pinoPrettyStream);
     const ecCoreDir = path.resolve(options.ecCoreDir);
     const projectDir = path.resolve(options.projectDir);
 

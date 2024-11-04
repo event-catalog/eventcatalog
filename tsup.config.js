@@ -4,7 +4,6 @@ export default defineConfig({
   entry: [
     'bin/eventcatalog.ts',
     'bin/eventcatalog.config.ts',
-    'bin/logger.ts',
     // Hydrate and dependencies
     'scripts/catalog-to-astro-content-directory.js',
     'scripts/map-catalog-to-astro.js',
