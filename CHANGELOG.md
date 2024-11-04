@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.12.1
+
+### Patch Changes
+
+- a57282e: fix(core): new property for AsyncAPI rendering
+- d739d7b: fix(core): changelog buttons now render the correct changelog
+
 ## 2.12.0
 
 ### Minor Changes
