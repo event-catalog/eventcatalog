@@ -53,7 +53,7 @@ export const generate = async (PROJECT_DIRECTORY: string, ctx?: { logger?: Logge
 
         // Use importedGenerator here
       } catch (error) {
-        logger?.error('Error loading plugin:', error);
+        logger?.error(error, 'Error loading plugin');
         await cleanup(PROJECT_DIRECTORY);
         return;
       }
