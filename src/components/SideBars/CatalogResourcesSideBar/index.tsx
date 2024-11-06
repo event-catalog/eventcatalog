@@ -3,14 +3,6 @@ import debounce from 'lodash.debounce';
 import {
   ChevronDownIcon,
   ChevronUpIcon,
-  ServerIcon,
-  RectangleGroupIcon,
-  BoltIcon,
-  ChatBubbleLeftIcon,
-  MagnifyingGlassIcon,
-  QueueListIcon,
-  UserGroupIcon,
-  UserIcon,
 } from '@heroicons/react/24/outline';
 import './styles.css';
 import { getIconForCollection as getIconForCollectionOriginal } from '@utils/collections/icons';

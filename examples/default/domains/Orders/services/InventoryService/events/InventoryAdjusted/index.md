@@ -10,6 +10,8 @@ owners:
     - asmith
     - full-stack
     - mobile-devs
+channels:
+  - id: inventory.orders
 badges:
     - content: Recently updated!
       backgroundColor: green

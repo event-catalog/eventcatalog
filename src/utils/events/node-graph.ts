@@ -2,7 +2,14 @@
 import { getEvents } from '@utils/events';
 import type { CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
-import { calculatedNodes, createDagreGraph, generatedIdForEdge, generateIdForNode } from '../node-graph-utils/utils';
+import {
+  calculatedNodes,
+  createDagreGraph,
+  createEdge,
+  generatedIdForEdge,
+  generateIdForNode,
+  getChannelNodesAndEdges,
+} from '../node-graph-utils/utils';
 import { MarkerType } from 'reactflow';
 import { findMatchingNodes } from '@utils/collections/util';
 
@@ -22,7 +29,9 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
 
   const events = await getEvents();
 
-  const event = events.find((event) => event.data.id === id && event.data.version === version);
+  const event = events.find((event) => {
+    return event.data.id === id && event.data.version === version;
+  });
 
   // Nothing found...
   if (!event) {
@@ -34,20 +43,33 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
 
   const producers = (event.data.producers as CollectionEntry<'services'>[]) || [];
   const consumers = (event.data.consumers as CollectionEntry<'services'>[]) || [];
+  const channels = (event.data.messageChannels as CollectionEntry<'channels'>[]) || [];
 
   // Track nodes that are both sent and received
   const bothSentAndReceived = findMatchingNodes(producers, consumers);
 
-  if (producers && producers.length > 0) {
-    producers.forEach((producer) => {
-      nodes.push({
-        id: generateIdForNode(producer),
-        type: producer?.collection,
-        sourcePosition: 'right',
-        targetPosition: 'left',
-        data: { mode, service: producer, showTarget: false },
-        position: { x: 250, y: 0 },
+  producers.forEach((producer) => {
+    nodes.push({
+      id: generateIdForNode(producer),
+      type: producer?.collection,
+      sourcePosition: 'right',
+      targetPosition: 'left',
+      data: { mode, service: producer, showTarget: false },
+      position: { x: 250, y: 0 },
+    });
+
+    // If the event has channels, we need to render them, otherwise connect the producer to the event
+    if (event.data.channels) {
+      const { nodes: channelNodes, edges: channelEdges } = getChannelNodesAndEdges({
+        channels,
+        channelsToRender: event.data.channels,
+        source: producer,
+        target: event,
+        channelToTargetLabel: 'publishes event',
       });
+      nodes.push(...channelNodes);
+      edges.push(...channelEdges);
+    } else {
       edges.push({
         id: generatedIdForEdge(producer, event),
         source: generateIdForNode(producer),
@@ -64,8 +86,8 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
           strokeWidth: 1,
         },
       });
-    });
-  }
+    }
+  });
 
   // The event itself
   nodes.push({
@@ -87,43 +109,44 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
       position: { x: 0, y: 0 },
       type: consumer?.collection,
     });
-    edges.push({
-      id: generatedIdForEdge(event, consumer),
-      source: generateIdForNode(event),
-      target: generateIdForNode(consumer),
-      type: 'smoothstep',
-      label: 'subscribed by',
-      animated: false,
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        width: 40,
-        height: 40,
-      },
-      style: {
-        strokeWidth: 1,
-      },
-    });
+
+    if (event.data.channels) {
+      const { nodes: channelNodes, edges: channelEdges } = getChannelNodesAndEdges({
+        channels,
+        channelsToRender: channels.map((channel) => ({ id: channel.data.id, version: channel.data.version })),
+        source: event,
+        target: consumer,
+        sourceToChannelLabel: 'sent to channel',
+        channelToTargetLabel: 'subscribed by',
+      });
+
+      nodes.push(...channelNodes);
+      edges.push(...channelEdges);
+    } else {
+      const sourceNodes = [event];
+      sourceNodes.forEach((sourceNode) => {
+        edges.push(
+          createEdge({
+            id: generatedIdForEdge(sourceNode, consumer),
+            source: generateIdForNode(sourceNode),
+            target: generateIdForNode(consumer),
+          })
+        );
+      });
+    }
   });
 
   // Handle messages that are both sent and received
   bothSentAndReceived.forEach((message) => {
     if (message) {
-      edges.push({
-        id: generatedIdForEdge(event, message) + '-both',
-        source: generateIdForNode(event),
-        target: generateIdForNode(message),
-        type: 'smoothstep',
-        label: `publishes and subscribes`,
-        animated: false,
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          width: 40,
-          height: 40,
-        },
-        style: {
-          strokeWidth: 1,
-        },
-      });
+      edges.push(
+        createEdge({
+          id: generatedIdForEdge(event, message) + '-both',
+          source: generateIdForNode(event),
+          target: generateIdForNode(message),
+          label: 'publishes and subscribes',
+        })
+      );
     }
   });
 

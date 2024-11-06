@@ -25,6 +25,7 @@ import { navigate } from 'astro:transitions/client';
 import type { CollectionTypes } from '@types';
 import DownloadButton from './DownloadButton';
 import { buildUrl } from '@utils/url-builder';
+import ChannelNode from './Nodes/Channel';
 
 interface Props {
   nodes: any;
@@ -58,6 +59,7 @@ const NodeGraphBuilder = ({
     () => ({
       services: ServiceNode,
       events: EventNode,
+      channels: ChannelNode,
       queries: QueryNode,
       commands: CommandNode,
       step: StepNode,
@@ -191,6 +193,10 @@ const NodeGraphBuilder = ({
               <li className="flex space-x-2 items-center text-[10px]">
                 <span className="w-2 h-2 bg-green-500 block" />
                 <span className="block">Query</span>
+              </li>
+              <li className="flex space-x-2 items-center text-[10px]">
+                <span className="w-2 h-2 bg-gray-500 block" />
+                <span className="block">Channel</span>
               </li>
             </ul>
           </div>

@@ -41,7 +41,7 @@ const copyFiles = async (source, target) => {
 
 const ensureAstroCollectionNotEmpty = async (astroDir) => {
   // TODO: maybe import collections from `src/content/config.ts`...
-  const COLLECTIONS = ['events', 'commands', 'services', 'users', 'teams', 'domains', 'flows', 'pages', 'changelogs', 'queries'];
+  const COLLECTIONS = ['events', 'commands', 'services', 'users', 'teams', 'domains', 'flows', 'pages', 'changelogs', 'queries', 'channels'];
 
   // Check empty collections
   const emptyCollections = [];

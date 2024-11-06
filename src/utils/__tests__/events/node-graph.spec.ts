@@ -1,7 +1,7 @@
 import { MarkerType } from 'reactflow';
 import { getNodesAndEdges } from '../../events/node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockEvents, mockServices } from './mocks';
+import { mockEvents, mockServices, mockChannels } from './mocks';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
@@ -10,6 +10,9 @@ vi.mock('astro:content', async (importOriginal) => {
     getCollection: (key: string) => {
       if (key === 'services') {
         return Promise.resolve(mockServices);
+      }
+      if (key === 'channels') {
+        return Promise.resolve(mockChannels);
       }
       if (key === 'events') {
         return Promise.resolve(mockEvents);
@@ -215,6 +218,81 @@ describe('Services NodeGraph', () => {
       );
 
       expect(edges).toEqual(expectedEdges);
+    });
+
+    it('creates channel nodes and edges between the producer and the event if the event has a channel specified', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'EmailVerified', version: '1.0.0' });
+
+      const expectedProducerNode = {
+        id: 'NotificationsService-0.0.1',
+        type: 'services',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', service: mockServices[4], showTarget: false },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
+      const expectedChannelNode = {
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        id: 'NotificationsService-0.0.1-EmailChannel-1.0.0',
+        data: {
+          title: 'EmailChannel',
+          mode: 'full',
+          channel: expect.anything(),
+          showSource: false,
+        },
+        position: { x: 525, y: 50 },
+        type: 'channels',
+      };
+
+      // The middle node itself, the service
+      const expectedEventNode = {
+        id: 'EmailVerified-1.0.0',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: expect.anything(),
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'events',
+      };
+
+      expect(nodes).toHaveLength(3);
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          // Nodes on the left
+          expect.objectContaining(expectedProducerNode),
+
+          // channel
+          expect.objectContaining(expectedChannelNode),
+
+          // The event node itself
+          expect.objectContaining(expectedEventNode),
+        ])
+      );
+
+      expect(edges).toEqual([
+        {
+          type: 'smoothstep',
+          label: 'sends to channel',
+          animated: false,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
+          style: { strokeWidth: 1 },
+          id: 'NotificationsService-0.0.1-EmailChannel-1.0.0',
+          source: 'NotificationsService-0.0.1',
+          target: 'NotificationsService-0.0.1-EmailChannel-1.0.0',
+        },
+        {
+          type: 'smoothstep',
+          label: 'publishes event',
+          animated: false,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
+          style: { strokeWidth: 1 },
+          id: 'EmailChannel-1.0.0-EmailVerified-1.0.0',
+          source: 'NotificationsService-0.0.1-EmailChannel-1.0.0',
+          target: 'EmailVerified-1.0.0',
+        },
+      ]);
     });
 
     it('returns empty nodes and edges if no event is found', async () => {

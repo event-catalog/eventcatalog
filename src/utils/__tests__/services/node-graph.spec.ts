@@ -1,7 +1,7 @@
 import { MarkerType } from 'reactflow';
 import { getNodesAndEdges } from '../../services/node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockCommands, mockEvents, mockQueries, mockServices } from './mocks';
+import { mockCommands, mockEvents, mockQueries, mockServices, mockChannels } from './mocks';
 import type { ContentCollectionKey } from 'astro:content';
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -12,6 +12,8 @@ vi.mock('astro:content', async (importOriginal) => {
       switch (key) {
         case 'services':
           return Promise.resolve(mockServices);
+        case 'channels':
+          return Promise.resolve(mockChannels);
         case 'events':
           return Promise.resolve(mockEvents);
         case 'commands':
@@ -230,7 +232,7 @@ describe('Services NodeGraph', () => {
         id: 'InventoryAdjusted-2.0.0',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', message: mockEvents[6], showSource: false },
+        data: { mode: 'simple', message: mockEvents[7], showSource: false },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'events',
       };
@@ -284,6 +286,147 @@ describe('Services NodeGraph', () => {
       );
 
       expect(edges).toEqual(expectedEdges);
+    });
+
+    it('creates channel nodes and edges between the service and messages if the message has a channel defined', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'PaymentService', version: '1.0.0' });
+
+      // The middle node itself, the service
+      const expectedServiceNode = {
+        id: 'PaymentService-1.0.0',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', service: mockServices[2], showSource: true, showTarget: true },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'services',
+      };
+
+      // Message coming into the service with a channel
+      const expectedRecivesNode = {
+        id: 'OrderDeletedEvent-2.0.0',
+        type: 'events',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', message: expect.anything(), showTarget: false },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
+      // Message coming into the service with a channel
+      const expectedRecivesChannelNode = {
+        id: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0',
+        type: 'channels',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
+      // Nodes going out of the service (right)
+      const expectedSendsNode = {
+        id: 'EmailVerified-1.0.0',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'events',
+      };
+
+      // Nodes going out of the service with channel (right)
+      const expectedSendsChannelNode = {
+        id: 'PaymentService-1.0.0-EmailChannel-1.0.0',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'channels',
+      };
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          // Nodes on the left
+          expect.objectContaining(expectedRecivesNode),
+          expect.objectContaining(expectedRecivesChannelNode),
+
+          // channel
+          // expect.objectContaining(expectedChannelNode),
+
+          expect.objectContaining(expectedServiceNode),
+
+          // The event node itself
+          expect.objectContaining(expectedSendsNode),
+          expect.objectContaining(expectedSendsChannelNode),
+        ])
+      );
+
+      expect(edges).toEqual([
+        {
+          type: 'smoothstep',
+          label: 'receives event',
+          animated: false,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
+          style: { strokeWidth: 1 },
+          id: 'OrderCreatedEvent-2.0.0-PaymentService-1.0.0',
+          source: 'OrderCreatedEvent-2.0.0',
+          target: 'PaymentService-1.0.0'
+        },
+        {
+          type: 'smoothstep',
+          label: 'sends to channel',
+          animated: false,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
+          style: { strokeWidth: 1 },
+          id: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0',
+          source: 'OrderDeletedEvent-2.0.0',
+          target: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0'
+        },
+        {
+          type: 'smoothstep',
+          label: 'sends from channel',
+          animated: false,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
+          style: { strokeWidth: 1 },
+          id: 'OrderChannel-1.0.0-PaymentService-1.0.0',
+          source: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0',
+          target: 'PaymentService-1.0.0'
+        },
+        {
+          type: 'smoothstep',
+          label: 'publishes event',
+          animated: false,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
+          style: { strokeWidth: 1 },
+          id: 'PaymentService-1.0.0-PaymentPaid-2.0.0',
+          source: 'PaymentService-1.0.0',
+          target: 'PaymentPaid-2.0.0'
+        },
+        {
+          type: 'smoothstep',
+          label: 'publishes event',
+          animated: false,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
+          style: { strokeWidth: 1 },
+          id: 'PaymentService-1.0.0-PaymentFailed-1.2.3',
+          source: 'PaymentService-1.0.0',
+          target: 'PaymentFailed-1.2.3'
+        },
+        {
+          type: 'smoothstep',
+          label: 'sends to channel',
+          animated: false,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
+          style: { strokeWidth: 1 },
+          id: 'PaymentService-1.0.0-EmailChannel-1.0.0',
+          source: 'PaymentService-1.0.0',
+          target: 'PaymentService-1.0.0-EmailChannel-1.0.0'
+        },
+        {
+          type: 'smoothstep',
+          label: 'sends from channel',
+          animated: false,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
+          style: { strokeWidth: 1 },
+          id: 'EmailChannel-1.0.0-EmailVerified-1.0.0',
+          source: 'PaymentService-1.0.0-EmailChannel-1.0.0',
+          target: 'EmailVerified-1.0.0'
+        }
+      ])
     });
   });
 });

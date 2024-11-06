@@ -142,6 +142,9 @@ const events = defineCollection({
     .object({
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
+      channels: z.array(pointer).optional(),
+      // Used by eventcatalog
+      messageChannels: z.array(reference('channels')).optional(),
     })
     .merge(baseSchema),
 });
@@ -152,6 +155,9 @@ const commands = defineCollection({
     .object({
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
+      channels: z.array(pointer).optional(),
+      // Used by eventcatalog
+      messageChannels: z.array(reference('channels')).optional(),
     })
     .merge(baseSchema),
 });
@@ -162,6 +168,9 @@ const queries = defineCollection({
     .object({
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
+      channels: z.array(pointer).optional(),
+      // Used by eventcatalog
+      messageChannels: z.array(reference('channels')).optional(),
     })
     .merge(baseSchema),
 });
@@ -172,6 +181,18 @@ const services = defineCollection({
     .object({
       sends: z.array(pointer).optional(),
       receives: z.array(pointer).optional(),
+    })
+    .merge(baseSchema),
+});
+
+const channels = defineCollection({
+  type: 'content',
+  schema: z
+    .object({
+      address: z.string().optional(),
+      technology: z.string().optional(),
+      // sends: z.array(pointer).optional(),
+      // receives: z.array(pointer).optional(),
     })
     .merge(baseSchema),
 });
@@ -225,6 +246,7 @@ export const collections = {
   commands,
   queries,
   services,
+  channels,
   users,
   teams,
   domains,

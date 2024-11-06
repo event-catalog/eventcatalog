@@ -85,9 +85,24 @@ export const mockServices = [
         {
           id: 'EmailSent',
         },
+        {
+          id: 'EmailVerified'
+        }
       ],
     },
   },
+];
+
+export const mockChannels = [
+  {
+    id: 'EmailChannel',
+    slug: 'EmailChannel',
+    collection: 'channels',
+    data: {
+      id: 'EmailChannel',
+      version: '1.0.0',
+    },
+  }
 ];
 
 export const mockEvents = [
@@ -143,6 +158,21 @@ export const mockEvents = [
     data: {
       id: 'EmailSent',
       version: '1.0.0',
+    },
+  },
+  {
+    id: 'EmailVerified',
+    slug: 'EmailVerified',
+    collection: 'events',
+    data: {
+      id: 'EmailVerified',
+      version: '1.0.0',
+      channels: [
+        { 
+          id: 'EmailChannel',
+          version: '1.0.0',
+        }
+      ]
     },
   },
 ];

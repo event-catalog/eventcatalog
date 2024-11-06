@@ -1,4 +1,5 @@
 import type { CollectionTypes, PageTypes } from '@types';
+import { getChannels } from '@utils/channels';
 import { getDomains } from '@utils/domains/domains';
 import { getCommands, getEvents } from '@utils/messages';
 import { getQueries } from '@utils/queries';
@@ -11,4 +12,5 @@ export const pageDataLoader: Record<PageTypes, () => Promise<CollectionEntry<Col
   queries: getQueries,
   services: getServices,
   domains: getDomains,
+  channels: getChannels
 };

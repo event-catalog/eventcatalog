@@ -1,8 +1,16 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
-import { createDagreGraph, generateIdForNode, generatedIdForEdge, calculatedNodes } from '@utils/node-graph-utils/utils';
+import {
+  createDagreGraph,
+  generateIdForNode,
+  generatedIdForEdge,
+  calculatedNodes,
+  createEdge,
+  getChannelNodesAndEdges,
+} from '@utils/node-graph-utils/utils';
 import { findMatchingNodes, getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 import { MarkerType } from 'reactflow';
+import type { CollectionMessageTypes } from '@types';
 
 type DagreGraph = any;
 
@@ -62,6 +70,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   const events = await getCollection('events');
   const commands = await getCollection('commands');
   const queries = await getCollection('queries');
+  const channels = await getCollection('channels');
 
   const messages = [...events, ...commands, ...queries];
 
@@ -75,42 +84,46 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     .flat()
     .filter((e) => e !== undefined);
 
-  const receives = (receivesHydrated as CollectionEntry<'events' | 'commands' | 'queries'>[]) || [];
-  const sends = (sendsHydrated as CollectionEntry<'events' | 'commands' | 'queries'>[]) || [];
+  const receives = (receivesHydrated as CollectionEntry<CollectionMessageTypes>[]) || [];
+  const sends = (sendsHydrated as CollectionEntry<CollectionMessageTypes>[]) || [];
 
   // Track messages that are both sent and received
   const bothSentAndReceived = findMatchingNodes(receives, sends);
 
-  // Get all the data from them
-  if (receives && receives.length > 0) {
-    // All the messages the service receives
-    receives.forEach((receive, index) => {
-      nodes.push({
-        id: generateIdForNode(receive),
-        type: receive?.collection,
-        sourcePosition: 'right',
-        targetPosition: 'left',
-        data: { mode, message: receive, showTarget: renderAllEdges },
-        position: { x: 250, y: index * 100 },
-      });
-      edges.push({
-        id: generatedIdForEdge(receive, service),
-        source: generateIdForNode(receive),
-        target: generateIdForNode(service),
-        type: 'smoothstep',
-        label: getReceivesMessageByMessageType(receive?.collection),
-        animated: false,
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          width: 40,
-          height: 40,
-        },
-        style: {
-          strokeWidth: 1,
-        },
-      });
+  // All the messages the service receives
+  receives.forEach((receive) => {
+    // Create the node for the message
+    nodes.push({
+      id: generateIdForNode(receive),
+      type: receive?.collection,
+      sourcePosition: 'right',
+      targetPosition: 'left',
+      data: { mode, message: receive, showTarget: renderAllEdges },
     });
-  }
+
+    // does the message have channels defined?
+    if (receive.data.channels) {
+      const { nodes: channelNodes, edges: channelEdges } = getChannelNodesAndEdges({
+        channels,
+        channelsToRender: receive.data.channels,
+        source: receive,
+        target: service,
+      });
+
+      nodes.push(...channelNodes);
+      edges.push(...channelEdges);
+    } else {
+      // No channels, just link the message to the service
+      edges.push(
+        createEdge({
+          id: generatedIdForEdge(receive, service),
+          source: generateIdForNode(receive),
+          target: generateIdForNode(service),
+          label: getReceivesMessageByMessageType(receive?.collection),
+        })
+      );
+    }
+  });
 
   // The service itself
   nodes.push({
@@ -118,7 +131,6 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     sourcePosition: 'right',
     targetPosition: 'left',
     data: { mode, service: service, showSource: sends.length > 0, showTarget: receives.length > 0 },
-    position: { x: 0, y: 0 },
     type: service.collection,
   });
 
@@ -129,25 +141,31 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
       sourcePosition: 'right',
       targetPosition: 'left',
       data: { mode, message: send, showSource: renderAllEdges },
-      position: { x: 500, y: index * 100 },
       type: send?.collection,
     });
-    edges.push({
-      id: generatedIdForEdge(service, send),
-      source: generateIdForNode(service),
-      target: generateIdForNode(send),
-      type: 'smoothstep',
-      label: getSendsMessageByMessageType(send?.collection),
-      animated: false,
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        width: 40,
-        height: 40,
-      },
-      style: {
-        strokeWidth: 1,
-      },
-    });
+
+    if (send.data.channels) {
+
+      const { nodes: channelNodes, edges: channelEdges } = getChannelNodesAndEdges({
+        channels,
+        channelsToRender: send.data.channels,
+        source: service,
+        target: send,
+      });
+      nodes.push(...channelNodes);
+      edges.push(...channelEdges);
+
+    } else {
+      // No channels, just link the message to the service
+      edges.push(
+        createEdge({
+          id: generatedIdForEdge(service, send),
+          source: generateIdForNode(service),
+          target: generateIdForNode(send),
+          label: getSendsMessageByMessageType(send?.collection),
+        })
+      );
+    }
   });
 
   // Handle messages that are both sent and received

@@ -18,6 +18,7 @@ import { buildUrl } from '@utils/url-builder';
 import { getFlows } from '@utils/flows/flows';
 import { pageDataLoader } from '@utils/pages/pages';
 import { ViewTransitions } from 'astro:transitions';
+import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
 
 type PageTypesWithFlows = PageTypes | 'flows';
 
@@ -27,7 +28,7 @@ export async function getStaticPaths() {
     flows: getFlows,
   };
 
-  const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows'];
+  const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows', 'channels'];
   const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
 
   return allItems.flatMap((items, index) =>
@@ -75,6 +76,10 @@ const getBadge = () => {
 
   if (props.collection === 'flows') {
     return { backgroundColor: 'teal', textColor: 'teal', content: 'Flow', icon: QueueListIcon, class: 'text-gray' };
+  }
+
+  if (props.collection === 'channels') {
+    return { backgroundColor: 'teal', textColor: 'teal', content: 'Channel', icon: ArrowsRightLeftIcon, class: 'text-gray' };
   }
 
   return { backgroundColor: 'teal', textColor: 'teal', content: '', icon: QueueListIcon, class: 'text-gray' };
