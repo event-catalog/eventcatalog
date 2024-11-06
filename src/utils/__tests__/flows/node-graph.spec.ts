@@ -1,4 +1,4 @@
-import { getNodesAndEdges } from '../../flows/node-graph';
+import { getNodesAndEdges } from '../../node-graphs/flows-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 import { mockEvents, mockFlow, mockFlowByIds, mockServices } from './mocks';
 import { getCollection } from 'astro:content';

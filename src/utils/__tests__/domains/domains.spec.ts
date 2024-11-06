@@ -1,7 +1,7 @@
 import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { mockDomains, mockServices, mockEvents, mockCommands } from './mocks';
-import { getDomains } from '../../domains/domains';
+import { getDomains } from '../../collections/domains';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {

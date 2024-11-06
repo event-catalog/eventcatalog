@@ -1,9 +1,9 @@
 ---
 import DiscoverLayout from '@layouts/DiscoverLayout.astro';
 import type { PageTypes } from '@types';
-import { getFlows } from '@utils/flows/flows';
+import { getFlows } from '@utils/collections/flows';
 
-import { pageDataLoader } from '@utils/pages/pages';
+import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 type PageTypesWithFlows = PageTypes | 'flows';
 
 export async function getStaticPaths() {

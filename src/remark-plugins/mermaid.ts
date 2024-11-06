@@ -1,6 +1,5 @@
 import type { RemarkPlugin } from '@astrojs/markdown-remark';
 import { visit } from 'unist-util-visit';
-// import dedent from "ts-dedent"
 
 const escapeMap: Record<string, string> = {
   '&': '&amp;',

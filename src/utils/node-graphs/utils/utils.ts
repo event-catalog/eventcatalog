@@ -61,6 +61,7 @@ export const getChannelNodesAndEdges = ({
   target,
   channelToTargetLabel = 'sends from channel',
   sourceToChannelLabel = 'sends to channel',
+  mode = 'full',
 }: {
   channels: CollectionEntry<'channels'>[];
   channelsToRender: { id: string; version: string }[];
@@ -68,6 +69,7 @@ export const getChannelNodesAndEdges = ({
   target: CollectionEntry<CollectionTypes>;
   channelToTargetLabel?: string;
   sourceToChannelLabel?: string;
+  mode?: 'simple' | 'full';
 }) => {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
@@ -82,7 +84,7 @@ export const getChannelNodesAndEdges = ({
     nodes.push(
       createNode({
         id: channelId,
-        data: { title: channel?.data.id, mode: 'full', channel, showSource: false },
+        data: { title: channel?.data.id, mode, channel },
         position: { x: 0, y: 0 },
         type: channel?.collection,
       })

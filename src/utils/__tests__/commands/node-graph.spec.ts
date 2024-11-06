@@ -1,5 +1,5 @@
 import { MarkerType } from 'reactflow';
-import { getNodesAndEdges } from '../../commands/node-graph';
+import { getNodesAndEdgesForCommands as getNodesAndEdges } from '../../node-graphs/message-node-graph';
 import { expect, describe, it, vi } from 'vitest';
 import { mockCommands, mockServices } from './mocks';
 
@@ -90,6 +90,8 @@ describe('Commands NodeGraph', () => {
           },
         },
       ];
+
+      console.log(JSON.stringify(nodes, null, 2));
 
       expect(nodes).toEqual(
         expect.arrayContaining([

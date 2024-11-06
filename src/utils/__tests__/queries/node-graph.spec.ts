@@ -1,5 +1,5 @@
 import { MarkerType } from 'reactflow';
-import { getNodesAndEdges } from '../../queries/node-graph';
+import { getNodesAndEdgesForQueries as getNodesAndEdges } from '../../node-graphs/message-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 import { mockQueries, mockServices } from './mocks';
 

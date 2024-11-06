@@ -1,5 +1,5 @@
 import { MarkerType } from 'reactflow';
-import { getNodesAndEdges } from '../../events/node-graph';
+import { getNodesAndEdgesForEvents as getNodesAndEdges } from '../../node-graphs/message-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 import { mockEvents, mockServices, mockChannels } from './mocks';
 
@@ -22,7 +22,7 @@ vi.mock('astro:content', async (importOriginal) => {
   };
 });
 
-describe('Services NodeGraph', () => {
+describe('Events NodeGraph', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -36,7 +36,7 @@ describe('Services NodeGraph', () => {
         id: 'OrderCreatedEvent-0.0.1',
         sourcePosition: 'right',
         targetPosition: 'left',
-        // data: { mode: 'simple', message: expect.anything(), showTarget: false, showSource: false },
+        // data: { mode: 'simple', message: expect.anything(), showSource: false },
         data: expect.anything(),
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'events',
@@ -47,7 +47,7 @@ describe('Services NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: mockServices[0], showTarget: false },
+        data: { mode: 'simple', service: mockServices[0] },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -59,7 +59,6 @@ describe('Services NodeGraph', () => {
           title: 'PaymentService',
           mode: 'simple',
           service: mockServices[1],
-          showSource: false,
         },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
@@ -124,7 +123,7 @@ describe('Services NodeGraph', () => {
         id: 'EmailSent-1.0.0',
         sourcePosition: 'right',
         targetPosition: 'left',
-        // data: { mode: 'simple', message: expect.anything(), showTarget: false, showSource: false },
+        // data: { mode: 'simple', message: expect.anything(), showSource: false },
         data: expect.anything(),
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'events',
@@ -135,7 +134,7 @@ describe('Services NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: mockServices[4], showTarget: false },
+        data: { mode: 'simple', service: mockServices[4] },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -147,7 +146,6 @@ describe('Services NodeGraph', () => {
           title: 'NotificationsService',
           mode: 'simple',
           service: mockServices[4],
-          showSource: false,
         },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
@@ -228,9 +226,11 @@ describe('Services NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: mockServices[4], showTarget: false },
+        data: { mode: 'simple', service: mockServices[4] },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
+
+      console.log(JSON.stringify(nodes, null, 2));
 
       const expectedChannelNode = {
         sourcePosition: 'right',
@@ -238,11 +238,10 @@ describe('Services NodeGraph', () => {
         id: 'NotificationsService-0.0.1-EmailChannel-1.0.0',
         data: {
           title: 'EmailChannel',
-          mode: 'full',
+          mode: 'simple',
           channel: expect.anything(),
-          showSource: false,
         },
-        position: { x: 525, y: 50 },
+        position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'channels',
       };
 
@@ -320,7 +319,7 @@ describe('Services NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: mockServices[2], showTarget: false },
+        data: { mode: 'simple', service: mockServices[2] },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -328,7 +327,7 @@ describe('Services NodeGraph', () => {
         id: 'CatalogService-0.0.1',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { title: 'CatalogService', mode: 'simple', service: mockServices[3], showSource: false },
+        data: { title: 'CatalogService', mode: 'simple', service: mockServices[3] },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
       };

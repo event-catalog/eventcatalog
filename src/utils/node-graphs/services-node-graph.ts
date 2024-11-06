@@ -7,7 +7,7 @@ import {
   calculatedNodes,
   createEdge,
   getChannelNodesAndEdges,
-} from '@utils/node-graph-utils/utils';
+} from '@utils/node-graphs/utils/utils';
 import { findMatchingNodes, getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 import { MarkerType } from 'reactflow';
 import type { CollectionMessageTypes } from '@types';

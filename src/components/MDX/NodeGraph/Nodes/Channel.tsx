@@ -54,7 +54,6 @@ export default function ChannelNode({ data, sourcePosition, targetPosition }: an
                 className="w-5 h-5 opacity-50"
                 version="1.1"
                 xmlns="http://www.w3.org/2000/svg"
-                xmlns:xlink="http://www.w3.org/1999/xlink"
                 preserveAspectRatio="xMidYMid"
                 fill="#000000"
               >
@@ -81,7 +80,6 @@ export default function ChannelNode({ data, sourcePosition, targetPosition }: an
                 viewBox="0 0 80 80"
                 version="1.1"
                 xmlns="http://www.w3.org/2000/svg"
-                xmlns:xlink="http://www.w3.org/1999/xlink"
               >
                 <title>Icon-Architecture/64/Arch_AWS-Simple-Queue-Service_64</title>
                 <desc>Created with Sketch.</desc>

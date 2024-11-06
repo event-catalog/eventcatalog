@@ -1,6 +1,6 @@
 import { getCollection } from 'astro:content';
-import { createDagreGraph, calculatedNodes } from '@utils/node-graph-utils/utils';
-import { getNodesAndEdges as getServicesNodeAndEdges } from '../services/node-graph';
+import { createDagreGraph, calculatedNodes } from '@utils/node-graphs/utils/utils';
+import { getNodesAndEdges as getServicesNodeAndEdges } from './services-node-graph';
 import merge from 'lodash.merge';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 

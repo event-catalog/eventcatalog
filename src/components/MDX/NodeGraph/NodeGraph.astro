@@ -1,11 +1,9 @@
 ---
 import NodeGraphNew from './NodeGraph';
-import { getNodesAndEdges as getNodesAndEdgesForService } from '@utils/services/node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForEvent } from '@utils/events/node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForCommand } from '@utils/commands/node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForQueries } from '@utils/queries/node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/domains/node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/flows/node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForService } from '@utils/node-graphs/services-node-graph';
+import { getNodesAndEdgesForCommands, getNodesAndEdgesForEvents, getNodesAndEdgesForQueries } from '@utils/node-graphs/message-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/node-graphs/domains-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs/flows-node-graph';
 
 interface Props {
   id: string;
@@ -37,7 +35,7 @@ if (collection === 'services') {
 }
 
 if (collection === 'events') {
-  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForEvent({
+  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForEvents({
     id: id,
     version,
     mode,
@@ -48,7 +46,7 @@ if (collection === 'events') {
 }
 
 if (collection === 'commands') {
-  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForCommand({
+  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForCommands({
     id: id,
     version,
     mode,

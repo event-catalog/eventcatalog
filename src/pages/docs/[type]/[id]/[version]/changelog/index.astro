@@ -2,9 +2,9 @@
 import Footer from '@layouts/Footer.astro';
 
 import type { PageTypes } from '@types';
-import { getChangeLogs } from '@utils/changelogs/changelogs';
+import { getChangeLogs } from '@utils/collections/changelogs';
 import { RectangleGroupIcon, ServerIcon, BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { pageDataLoader } from '@utils/pages/pages';
+import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import 'diff2html/bundles/css/diff2html.min.css';
 
 import { buildUrl } from '@utils/url-builder';

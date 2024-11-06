@@ -2,10 +2,10 @@
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import VisualiserLayout from '@layouts/VisualiserLayout.astro';
 import type { PageTypes } from '@types';
-import { getFlows } from '@utils/flows/flows';
+import { getFlows } from '@utils/collections/flows';
 import { buildUrl } from '@utils/url-builder';
 
-import { pageDataLoader } from '@utils/pages/pages';
+import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { ViewTransitions } from 'astro:transitions';
 type PageTypesWithFlows = PageTypes | 'flows';
 
