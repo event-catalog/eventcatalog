@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import debounce from 'lodash.debounce';
-import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-} from '@heroicons/react/24/outline';
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import './styles.css';
 import { getIconForCollection as getIconForCollectionOriginal } from '@utils/collections/icons';
 

@@ -86,8 +86,8 @@ export const mockServices = [
           id: 'EmailSent',
         },
         {
-          id: 'EmailVerified'
-        }
+          id: 'EmailVerified',
+        },
       ],
     },
   },
@@ -102,7 +102,7 @@ export const mockChannels = [
       id: 'EmailChannel',
       version: '1.0.0',
     },
-  }
+  },
 ];
 
 export const mockEvents = [
@@ -168,11 +168,11 @@ export const mockEvents = [
       id: 'EmailVerified',
       version: '1.0.0',
       channels: [
-        { 
+        {
           id: 'EmailChannel',
           version: '1.0.0',
-        }
-      ]
+        },
+      ],
     },
   },
 ];

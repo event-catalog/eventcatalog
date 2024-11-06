@@ -7,7 +7,7 @@ import {
   QueueListIcon,
   UserGroupIcon,
   UserIcon,
-  ArrowsRightLeftIcon
+  ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline';
 
 export const getIconForCollection = (collection: string) => {

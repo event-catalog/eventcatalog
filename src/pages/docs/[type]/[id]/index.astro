@@ -10,7 +10,13 @@ import type { CollectionTypes } from '@types';
 import { getChannels } from '@utils/channels';
 
 export async function getStaticPaths() {
-  const [events, commands, services, domains, channels] = await Promise.all([getEvents(), getCommands(), getServices(), getDomains(), getChannels()]);
+  const [events, commands, services, domains, channels] = await Promise.all([
+    getEvents(),
+    getCommands(),
+    getServices(),
+    getDomains(),
+    getChannels(),
+  ]);
 
   const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
     return collection.map((item) => ({
@@ -25,7 +31,13 @@ export async function getStaticPaths() {
     }));
   };
 
-  return [...buildPages(domains), ...buildPages(events), ...buildPages(services), ...buildPages(commands), ...buildPages(channels)];
+  return [
+    ...buildPages(domains),
+    ...buildPages(events),
+    ...buildPages(services),
+    ...buildPages(commands),
+    ...buildPages(channels),
+  ];
 }
 
 const props = Astro.props;

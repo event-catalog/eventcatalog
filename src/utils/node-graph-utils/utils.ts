@@ -10,10 +10,7 @@ export const generateIdForNode = (node: CollectionEntry<CollectionTypes>) => {
 export const generateIdForNodes = (nodes: any) => {
   return nodes.map((node: any) => `${node.data.id}-${node.data.version}`).join('-');
 };
-export const generatedIdForEdge = (
-  source: CollectionEntry<CollectionTypes>,
-  target: CollectionEntry<CollectionTypes>
-) => {
+export const generatedIdForEdge = (source: CollectionEntry<CollectionTypes>, target: CollectionEntry<CollectionTypes>) => {
   return `${source.data.id}-${source.data.version}-${target.data.id}-${target.data.version}`;
 };
 
@@ -69,10 +66,9 @@ export const getChannelNodesAndEdges = ({
   channelsToRender: { id: string; version: string }[];
   source: CollectionEntry<CollectionTypes>;
   target: CollectionEntry<CollectionTypes>;
-  channelToTargetLabel?: string
-  sourceToChannelLabel?: string
+  channelToTargetLabel?: string;
+  sourceToChannelLabel?: string;
 }) => {
-
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
@@ -98,7 +94,7 @@ export const getChannelNodesAndEdges = ({
         id: generatedIdForEdge(source, channel),
         source: generateIdForNode(source),
         target: channelId,
-        label: sourceToChannelLabel
+        label: sourceToChannelLabel,
       })
     );
 
@@ -108,10 +104,9 @@ export const getChannelNodesAndEdges = ({
         id: generatedIdForEdge(channel, target),
         source: channelId,
         target: generateIdForNode(target),
-        label: channelToTargetLabel
+        label: channelToTargetLabel,
       })
     );
-
   });
 
   return { nodes, edges };

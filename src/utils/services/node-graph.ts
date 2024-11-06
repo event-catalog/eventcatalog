@@ -145,7 +145,6 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     });
 
     if (send.data.channels) {
-
       const { nodes: channelNodes, edges: channelEdges } = getChannelNodesAndEdges({
         channels,
         channelsToRender: send.data.channels,
@@ -154,7 +153,6 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
       });
       nodes.push(...channelNodes);
       edges.push(...channelEdges);
-
     } else {
       // No channels, just link the message to the service
       edges.push(

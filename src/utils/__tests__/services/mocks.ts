@@ -17,7 +17,6 @@ export const mockServices = [
           id: 'PaymentProcessed',
           version: '0.0.1',
         },
-
       ],
     },
   },
@@ -54,8 +53,8 @@ export const mockServices = [
           id: 'OrderCreatedEvent',
         },
         {
-          id: 'OrderDeletedEvent'
-        }
+          id: 'OrderDeletedEvent',
+        },
       ],
       sends: [
         {
@@ -66,8 +65,8 @@ export const mockServices = [
           version: 'latest',
         },
         {
-          id: 'EmailVerified'
-        }
+          id: 'EmailVerified',
+        },
       ],
     },
   },
@@ -87,7 +86,6 @@ export const mockServices = [
         {
           id: 'OrderCreatedEvent',
         },
-       
       ],
     },
   },
@@ -133,11 +131,11 @@ export const mockEvents = [
       id: 'OrderDeletedEvent',
       version: '2.0.0',
       channels: [
-        { 
+        {
           id: 'OrderChannel',
           version: '1.0.0',
-        }
-      ]
+        },
+      ],
     },
   },
   {
@@ -208,11 +206,11 @@ export const mockEvents = [
       id: 'EmailVerified',
       version: '1.0.0',
       channels: [
-        { 
+        {
           id: 'EmailChannel',
           version: '1.0.0',
-        }
-      ]
+        },
+      ],
     },
   },
 ];
@@ -256,5 +254,5 @@ export const mockChannels = [
       id: 'OrderChannel',
       version: '1.0.0',
     },
-  }
+  },
 ];

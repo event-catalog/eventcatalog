@@ -35,7 +35,7 @@ const users = await getUsers();
 const messages = [...events, ...commands, ...queries];
 
 // @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
-const allData = [...domains, ...services, ...messages, ...channels, ...flows, ...teams, ...users, ];
+const allData = [...domains, ...services, ...messages, ...channels, ...flows, ...teams, ...users];
 
 const currentPath = Astro.url.pathname;
 

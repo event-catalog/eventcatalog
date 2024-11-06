@@ -12,5 +12,5 @@ export const pageDataLoader: Record<PageTypes, () => Promise<CollectionEntry<Col
   queries: getQueries,
   services: getServices,
   domains: getDomains,
-  channels: getChannels
+  channels: getChannels,
 };

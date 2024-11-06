@@ -364,7 +364,7 @@ describe('Services NodeGraph', () => {
           style: { strokeWidth: 1 },
           id: 'OrderCreatedEvent-2.0.0-PaymentService-1.0.0',
           source: 'OrderCreatedEvent-2.0.0',
-          target: 'PaymentService-1.0.0'
+          target: 'PaymentService-1.0.0',
         },
         {
           type: 'smoothstep',
@@ -374,7 +374,7 @@ describe('Services NodeGraph', () => {
           style: { strokeWidth: 1 },
           id: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0',
           source: 'OrderDeletedEvent-2.0.0',
-          target: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0'
+          target: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0',
         },
         {
           type: 'smoothstep',
@@ -384,7 +384,7 @@ describe('Services NodeGraph', () => {
           style: { strokeWidth: 1 },
           id: 'OrderChannel-1.0.0-PaymentService-1.0.0',
           source: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0',
-          target: 'PaymentService-1.0.0'
+          target: 'PaymentService-1.0.0',
         },
         {
           type: 'smoothstep',
@@ -394,7 +394,7 @@ describe('Services NodeGraph', () => {
           style: { strokeWidth: 1 },
           id: 'PaymentService-1.0.0-PaymentPaid-2.0.0',
           source: 'PaymentService-1.0.0',
-          target: 'PaymentPaid-2.0.0'
+          target: 'PaymentPaid-2.0.0',
         },
         {
           type: 'smoothstep',
@@ -404,7 +404,7 @@ describe('Services NodeGraph', () => {
           style: { strokeWidth: 1 },
           id: 'PaymentService-1.0.0-PaymentFailed-1.2.3',
           source: 'PaymentService-1.0.0',
-          target: 'PaymentFailed-1.2.3'
+          target: 'PaymentFailed-1.2.3',
         },
         {
           type: 'smoothstep',
@@ -414,7 +414,7 @@ describe('Services NodeGraph', () => {
           style: { strokeWidth: 1 },
           id: 'PaymentService-1.0.0-EmailChannel-1.0.0',
           source: 'PaymentService-1.0.0',
-          target: 'PaymentService-1.0.0-EmailChannel-1.0.0'
+          target: 'PaymentService-1.0.0-EmailChannel-1.0.0',
         },
         {
           type: 'smoothstep',
@@ -424,9 +424,9 @@ describe('Services NodeGraph', () => {
           style: { strokeWidth: 1 },
           id: 'EmailChannel-1.0.0-EmailVerified-1.0.0',
           source: 'PaymentService-1.0.0-EmailChannel-1.0.0',
-          target: 'EmailVerified-1.0.0'
-        }
-      ])
+          target: 'EmailVerified-1.0.0',
+        },
+      ]);
     });
   });
 });
