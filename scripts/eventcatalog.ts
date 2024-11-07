@@ -6,10 +6,10 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import concurrently from 'concurrently';
-import pkgJson from '../package.json';
 import type { Logger } from 'pino';
 import { pino } from 'pino';
 import pinoPretty from 'pino-pretty';
+import { VERSION } from './constants';
 import { catalogToAstro } from 'scripts/catalog-to-astro-content-directory';
 import logBuild from 'scripts/analytics/log-build';
 import { watch } from 'scripts/watcher';
@@ -17,7 +17,7 @@ import { generate } from 'scripts/generate';
 
 const program = new Command();
 
-program.name('eventcatalog').description('Documentation tool for event-driven architectures').version(pkgJson.version);
+program.name('eventcatalog').description('Documentation tool for event-driven architectures').version(VERSION);
 
 const getPackageVersion = async (directory: string): Promise<string | undefined> => {
   try {
@@ -42,7 +42,7 @@ const copyAstroTo = async (coreDir: string, opts?: { logger: Logger }) => {
     logger?.debug(`User's .eventcatalog-core: ${usersECCoreVersion}`);
 
     // Check user's .eventcatalog-core version is same as the current version
-    if (usersECCoreVersion === pkgJson.version) {
+    if (usersECCoreVersion === VERSION) {
       logger?.debug("User's .eventcatalog-core has the same version as the current version.");
       logger?.debug('Skipping copying files...');
       // Do nothing
