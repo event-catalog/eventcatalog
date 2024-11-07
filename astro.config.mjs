@@ -2,11 +2,11 @@ import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
-import pagefind from "astro-pagefind";
-import { mermaid } from "./src/remark-plugins/mermaid"
+import pagefind from 'astro-pagefind';
+import { mermaid } from './src/remark-plugins/mermaid';
 import { join } from 'node:path';
 
-/** @type {import('bin/eventcatalog.config').Config} */
+/** @type {import('scripts/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
 
@@ -24,7 +24,7 @@ export default defineConfig({
   site: config.homepageLink || 'https://eventcatalog.dev/',
 
   // https://docs.astro.build/en/reference/configuration-reference/#trailingslash
-  trailingSlash: config.trailingSlash === true ? "always" : "ignore",
+  trailingSlash: config.trailingSlash === true ? 'always' : 'ignore',
 
   // just turn this off for all users (for now...)
   devToolbar: { enabled: false },
@@ -38,7 +38,7 @@ export default defineConfig({
         wrap: true,
       },
     }),
-    
+
     mdx({
       // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
       optimize: config.mdxOptimize || false,
@@ -51,16 +51,16 @@ export default defineConfig({
     define: {
       /**
        * Trailing slash is exposed as global variable here principally for `@utils/url-builder`.
-       * The utility is used by client components and because of that it can't direct import 
+       * The utility is used by client components and because of that it can't direct import
        * the eventcatalog.config, as the config use packages that only run in node environments,
        * such as `node:path`.
        */
-      '__EC_TRAILING_SLASH__': config.trailingSlash || false,
+      __EC_TRAILING_SLASH__: config.trailingSlash || false,
     },
     build: {
       commonjsOptions: {
         transformMixedEsModules: true,
-      }
+      },
     },
-  }
+  },
 });

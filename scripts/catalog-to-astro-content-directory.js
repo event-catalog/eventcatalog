@@ -55,7 +55,7 @@ const ensureAstroCollectionNotEmpty = async (astroDir) => {
   }
 
   // Hydrate empty collections
-  const defaultCollectionFilesDir = path.join(scriptsDir, '../../default-files-for-collections');
+  const defaultCollectionFilesDir = path.join(scriptsDir, '../default-files-for-collections');
   for (const collection of emptyCollections) {
     const defaultFile = path.join(defaultCollectionFilesDir, `${collection}.md`);
     const targetDir = path.join(astroDir, 'src/content/', collection);

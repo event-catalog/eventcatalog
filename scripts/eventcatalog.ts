@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { Command } from 'commander';
 import { exec, execSync } from 'node:child_process';
 import { join } from 'node:path';
@@ -63,7 +62,7 @@ const copyAstroTo = async (coreDir: string, opts?: { logger: Logger }) => {
 
   const currentDir = path.dirname(fileURLToPath(import.meta.url));
   // The project itself
-  const eventCatalogDir = join(currentDir, '../../'); // TODO: group astro files and change this
+  const eventCatalogDir = join(currentDir, '../'); // TODO: group astro files and change this
 
   // Copy required eventcatlog files into users directory
   fs.cpSync(eventCatalogDir, coreDir, { recursive: true });

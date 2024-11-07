@@ -11,7 +11,7 @@
     "access": "public"
   },
   "bin": {
-    "eventcatalog": "dist/bin/eventcatalog.cjs"
+    "eventcatalog": "bin/eventcatalog.js"
   },
   "scripts": {
     "dev": "astro dev",
