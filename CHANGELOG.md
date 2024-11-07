@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.12.2
+
+### Patch Changes
+
+- 93e224c: fix(core): custom defined landing page for docs now render on docs tab
+
 ## 2.12.1
 
 ### Patch Changes
