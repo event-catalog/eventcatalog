@@ -10,7 +10,7 @@ import {
   getEventCatalogConfigFile,
   verifyRequiredFieldsAreInCatalogConfigFile,
   writeEventCatalogConfigFile,
-} from 'scripts/eventcatalog-config-file-utils';
+} from '@/eventcatalog-config-file-utils';
 import { tmpdir } from 'os';
 
 describe('catalog-to-astro-content-directory', () => {

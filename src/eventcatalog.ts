@@ -1,8 +1,7 @@
 import { Command } from 'commander';
-import { exec, execSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import fs from 'fs';
-import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import concurrently from 'concurrently';
@@ -10,59 +9,34 @@ import type { Logger } from 'pino';
 import { pino } from 'pino';
 import pinoPretty from 'pino-pretty';
 import { VERSION } from './constants';
-import { catalogToAstro } from 'scripts/catalog-to-astro-content-directory';
-import logBuild from 'scripts/analytics/log-build';
-import { watch } from 'scripts/watcher';
-import { generate } from 'scripts/generate';
+import { catalogToAstro } from '@/catalog-to-astro-content-directory';
+import logBuild from '@/analytics/log-build';
+import { watch } from '@/watcher';
+import { generate } from '@/generate';
 
 const program = new Command();
 
 program.name('eventcatalog').description('Documentation tool for event-driven architectures').version(VERSION);
 
-const getPackageVersion = async (directory: string): Promise<string | undefined> => {
-  try {
-    const filePath = path.join(directory, 'package.json');
-    const packageJson = JSON.parse(await readFile(filePath, 'utf-8'));
-    return packageJson.version;
-  } catch (_) {
-    return undefined;
-  }
-};
-
 const copyAstroTo = async (coreDir: string, opts?: { logger: Logger }) => {
   const logger = opts?.logger;
 
-  logger?.debug('Copying core...');
+  const currentDir = path.dirname(fileURLToPath(import.meta.url));
+  const eventCatalogDir = join(currentDir, '../astro'); // The project itself
 
-  if (fs.existsSync(coreDir)) {
-    logger?.debug("Checking user's .eventcatalog-core version...");
-    // Get verion of user's .evetcatalog-core
-    const usersECCoreVersion = await getPackageVersion(coreDir);
-
-    logger?.debug(`User's .eventcatalog-core: ${usersECCoreVersion}`);
-
-    // Check user's .eventcatalog-core version is same as the current version
-    if (usersECCoreVersion === VERSION) {
-      logger?.debug("User's .eventcatalog-core has the same version as the current version.");
-      logger?.debug('Skipping copying files...');
-      // Do nothing
-      return;
-    } else {
-      logger?.debug("User's .eventcatalog-core has different version than the current version.");
-      logger?.debug("Cleaning up user's .eventcatalog-core...");
-      // Remove user's .eventcatalog-core
-      fs.rmSync(coreDir, { recursive: true });
-    }
+  if (coreDir === eventCatalogDir) {
+    // This is only needed for development purposes as we can't copy the path to itself.
+    return;
   }
 
-  logger?.debug("Creating user's .eventcatalog-core...");
-  fs.mkdirSync(coreDir); // TODO: mkdir -p
+  logger?.debug('Copying core...');
+
+  if (!fs.existsSync(coreDir)) {
+    logger?.debug("Creating user's .eventcatalog-core...");
+    fs.mkdirSync(coreDir); // TODO: mkdir -p
+  }
 
   logger?.debug("Copying required files to user's .eventcatalog-core...");
-
-  const currentDir = path.dirname(fileURLToPath(import.meta.url));
-  // The project itself
-  const eventCatalogDir = join(currentDir, '../'); // TODO: group astro files and change this
 
   // Copy required eventcatlog files into users directory
   fs.cpSync(eventCatalogDir, coreDir, { recursive: true });
@@ -107,12 +81,11 @@ program
 
     const { result } = concurrently([
       {
-        command: 'npm run dev',
+        command: `npx astro dev --root ${ecCoreDir}`,
         env: {
           PROJECT_DIR: projectDir,
           CATALOG_DIR: ecCoreDir,
         },
-        cwd: ecCoreDir,
         name: 'astro',
       },
     ]);
@@ -149,20 +122,27 @@ program
 
     await logBuild(projectDir);
 
-    execSync(`cross-env PROJECT_DIR='${projectDir}' CATALOG_DIR='${ecCoreDir}' npm run build`, {
-      cwd: ecCoreDir,
+    execSync(`npx astro build --root ${ecCoreDir}`, {
       stdio: 'inherit',
+      env: {
+        ...process.env,
+        PROJECT_DIR: projectDir,
+        CATALOG_DIR: ecCoreDir,
+      },
     });
   });
 
 const previewCatalog = async ({ projectDir, ecCoreDir }: { projectDir: string; ecCoreDir: string }) => {
-  execSync(
-    `cross-env PROJECT_DIR='${projectDir}' CATALOG_DIR='${ecCoreDir}' npm run preview -- --root ${projectDir} --port 3000`,
-    {
-      cwd: ecCoreDir,
-      stdio: 'inherit',
-    }
-  );
+  // TODO: resolve the --root from the eventcatalog.config.js -> outDir having as rootDir the projectDir `path.resolve(projectDir, config.outDir)`
+  // TODO: get the port from eventcatalog.config.js
+  execSync(`npx astro preview --root ${projectDir} --port 3000`, {
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      PROJECT_DIR: projectDir,
+      CATALOG_DIR: ecCoreDir,
+    },
+  });
 };
 
 program

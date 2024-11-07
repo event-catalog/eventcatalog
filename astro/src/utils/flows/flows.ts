@@ -49,8 +49,8 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
       catalog: {
         path: path.join(flow.collection, flow.id.replace('/index.mdx', '')),
         absoluteFilePath: path.join(PROJECT_DIR, flow.collection, flow.id.replace('/index.mdx', '/index.md')),
-        astroContentFilePath: path.join(process.cwd(), 'src', 'content', flow.collection, flow.id),
-        filePath: path.join(process.cwd(), 'src', 'catalog-files', flow.collection, flow.id.replace('/index.mdx', '')),
+        astroContentFilePath: path.join(process.env.CATALOG_DIR!, 'src', 'content', flow.collection, flow.id),
+        filePath: path.join(process.env.CATALOG_DIR!, 'src', 'catalog-files', flow.collection, flow.id.replace('/index.mdx', '')),
         publicPath: path.join('/generated', flow.collection, flow.id.replace('/index.mdx', '')),
         type: 'flow',
       },

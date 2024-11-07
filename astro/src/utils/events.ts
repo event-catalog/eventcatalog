@@ -55,8 +55,14 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
       catalog: {
         path: path.join(event.collection, event.id.replace('/index.mdx', '')),
         absoluteFilePath: path.join(PROJECT_DIR, event.collection, event.id.replace('/index.mdx', '/index.md')),
-        astroContentFilePath: path.join(process.cwd(), 'src', 'content', event.collection, event.id),
-        filePath: path.join(process.cwd(), 'src', 'catalog-files', event.collection, event.id.replace('/index.mdx', '')),
+        astroContentFilePath: path.join(process.env.CATALOG_DIR!, 'src', 'content', event.collection, event.id),
+        filePath: path.join(
+          process.env.CATALOG_DIR!,
+          'src',
+          'catalog-files',
+          event.collection,
+          event.id.replace('/index.mdx', '')
+        ),
         publicPath: path.join('/generated', event.collection, event.id.replace('/index.mdx', '')),
         type: 'event',
       },

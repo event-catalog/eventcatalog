@@ -55,8 +55,14 @@ export const getQueries = async ({ getAllVersions = true }: Props = {}): Promise
       catalog: {
         path: path.join(query.collection, query.id.replace('/index.mdx', '')),
         absoluteFilePath: path.join(PROJECT_DIR, query.collection, query.id.replace('/index.mdx', '/index.md')),
-        astroContentFilePath: path.join(process.cwd(), 'src', 'content', query.collection, query.id),
-        filePath: path.join(process.cwd(), 'src', 'catalog-files', query.collection, query.id.replace('/index.mdx', '')),
+        astroContentFilePath: path.join(process.env.CATALOG_DIR!, 'src', 'content', query.collection, query.id),
+        filePath: path.join(
+          process.env.CATALOG_DIR!,
+          'src',
+          'catalog-files',
+          query.collection,
+          query.id.replace('/index.mdx', '')
+        ),
         publicPath: path.join('/generated', query.collection, query.id.replace('/index.mdx', '')),
         type: 'event',
       },

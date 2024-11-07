@@ -42,8 +42,14 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
       catalog: {
         path: path.join(domain.collection, domain.id.replace('/index.mdx', '')),
         absoluteFilePath: path.join(PROJECT_DIR, domain.collection, domain.id.replace('/index.mdx', '/index.md')),
-        astroContentFilePath: path.join(process.cwd(), 'src', 'content', domain.collection, domain.id),
-        filePath: path.join(process.cwd(), 'src', 'catalog-files', domain.collection, domain.id.replace('/index.mdx', '')),
+        astroContentFilePath: path.join(process.env.CATALOG_DIR!, 'src', 'content', domain.collection, domain.id),
+        filePath: path.join(
+          process.env.CATALOG_DIR!,
+          'src',
+          'catalog-files',
+          domain.collection,
+          domain.id.replace('/index.mdx', '')
+        ),
         publicPath: path.join('/generated', domain.collection, domain.id.replace('/index.mdx', '')),
         type: 'service',
       },

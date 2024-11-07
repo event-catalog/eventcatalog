@@ -4,11 +4,12 @@ import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import pagefind from 'astro-pagefind';
 import { mermaid } from './src/remark-plugins/mermaid';
-import { join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 
-/** @type {import('scripts/eventcatalog.config').Config} */
+/** @type {import('../scripts/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
+import { fileURLToPath } from 'node:url';
 
 const projectDirectory = process.env.PROJECT_DIR || process.cwd();
 const base = config.base || '/';
@@ -30,7 +31,13 @@ export default defineConfig({
   devToolbar: { enabled: false },
   integrations: [
     react(),
-    tailwind(),
+    tailwind({
+      /**
+       * We need pass absolute path, otherwise it will be resolved to the current working directory
+       * @see https://docs.astro.build/en/guides/integrations-guide/tailwind/#configfile
+       */
+      configFile: resolve(dirname(fileURLToPath(import.meta.url)), 'tailwind.config.mjs'),
+    }),
     expressiveCode({
       themes: ['github-light'],
       defaultProps: {

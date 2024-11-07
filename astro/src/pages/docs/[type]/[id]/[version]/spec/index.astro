@@ -38,7 +38,7 @@ export async function getStaticPaths() {
 const { data, catalog } = Astro.props;
 const fileName = data.specifications?.openapiPath || 'openapi.yml';
 const pathToSpec = path.join(catalog.publicPath, fileName);
-const pathOnDisk = path.join(process.cwd(), 'public', pathToSpec);
+const pathOnDisk = path.join(process.env.CATALOG_DIR!, 'public', pathToSpec);
 const fileExists = fs.existsSync(pathOnDisk);
 ---
 

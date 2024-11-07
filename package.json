@@ -18,22 +18,17 @@
     "default-files-for-collections/",
     "dist/",
     "public/",
-    "src/",
-    "!src/**/__tests__/"
+    "astro/",
+    "!astro/**/__tests__/"
   ],
   "scripts": {
-    "dev": "astro dev",
     "build:bin": "tsup",
     "prepublishOnly": "npm run build:bin",
     "test": "vitest --config vitest.config.ts",
     "test:ci": "node .github/scripts/test.js",
     "test:e2e": "playwright test",
-    "start": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro",
-    "start:catalog": "npm run build:bin && npx . dev --project-dir examples/default/ --ec-core-dir . --debug",
-    "verify-build:catalog": "rimraf dist && npm run build:bin && npx . build --project-dir examples/default --ec-core-dir .",
+    "start:catalog": "npm run build:bin && npx . dev --project-dir examples/default/ --ec-core-dir astro/ --debug",
+    "verify-build:catalog": "rimraf dist && npm run build:bin && npx . build --project-dir examples/default --ec-core-dir astro/ && npx astro check --minimumSeverity error --root astro/",
     "changeset": "changeset",
     "generate": "npm run build:bin && npx . generate --project-dir examples/default/",
     "release": "changeset publish",
@@ -41,7 +36,6 @@
     "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json,astro}\""
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.4",
     "@astrojs/markdown-remark": "^5.3.0",
     "@astrojs/mdx": "^3.1.8",
     "@astrojs/react": "^3.6.2",
@@ -67,7 +61,6 @@
     "axios": "^1.7.7",
     "commander": "^12.1.0",
     "concurrently": "^8.2.2",
-    "cross-env": "^7.0.3",
     "dagre": "^0.8.5",
     "diff": "^7.0.0",
     "diff2html": "^3.4.48",
@@ -94,10 +87,12 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.4",
     "@changesets/cli": "^2.27.5",
     "@playwright/test": "^1.48.1",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "cross-env": "^7.0.3",
     "prettier": "^3.3.3",
     "prettier-plugin-astro": "^0.14.1",
     "tsup": "^8.1.0",

@@ -61,7 +61,7 @@ export const getUsers = async (): Promise<User[]> => {
       },
       catalog: {
         path: path.join(user.collection, user.id.replace('/index.mdx', '')),
-        filePath: path.join(process.cwd(), 'src', 'catalog-files', user.collection, user.id.replace('/index.mdx', '')),
+        filePath: path.join(process.env.CATALOG_DIR!, 'src', 'catalog-files', user.collection, user.id.replace('/index.mdx', '')),
         type: 'user',
       },
     };

@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['scripts/**/*.{j,t}s', '!scripts/**/__tests__/**'],
+  entry: ['src/**/*.{j,t}s', '!src/**/__tests__/**'],
   dts: true,
   outDir: 'dist/',
   format: ['esm', 'cjs'],

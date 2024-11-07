@@ -1,0 +1,3 @@
+{
+  "extends": ["../../astro/tsconfig.json"]
+}

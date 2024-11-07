@@ -45,7 +45,7 @@ export const getTeams = async (): Promise<Team[]> => {
       },
       catalog: {
         path: path.join(team.collection, team.id.replace('/index.mdx', '')),
-        filePath: path.join(process.cwd(), 'src', 'catalog-files', team.collection, team.id.replace('/index.mdx', '')),
+        filePath: path.join(process.env.CATALOG_DIR!, 'src', 'catalog-files', team.collection, team.id.replace('/index.mdx', '')),
         type: 'team',
       },
     };

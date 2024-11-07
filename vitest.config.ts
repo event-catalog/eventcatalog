@@ -8,5 +8,9 @@ export default getViteConfig({
   test: {
     globals: true,
     exclude: [...defaultExclude, 'e2e/**'],
+    env: {
+      PROJECT_DIR: 'examples/default/',
+      CATALOG_DIR: 'astro/',
+    },
   },
 });
