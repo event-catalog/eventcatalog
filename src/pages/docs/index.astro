@@ -17,11 +17,15 @@ if (page) {
 {
   CustomContent && (
     <VerticalSideBarLayout title="EventCatalog">
-      <main class="py-8 px-8">
-        <div class="prose prose-md w-full !max-w-none">
-          <CustomContent components={components} />
+      <main class="flex sm:px-8 docs-layout h-full">
+        <div class="flex docs-layout w-full">
+          <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
+            <div class="prose prose-md w-full !max-w-none">
+              <CustomContent components={components} />
+            </div>
+            <Footer />
+          </div>
         </div>
-        <Footer />
       </main>
     </VerticalSideBarLayout>
   )
