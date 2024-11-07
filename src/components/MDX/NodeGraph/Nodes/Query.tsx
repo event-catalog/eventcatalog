@@ -22,8 +22,8 @@ export default function QueryNode({ data, sourcePosition, targetPosition }: any)
 
   const { name, version, summary, owners = [], producers = [], consumers = [] } = message.data;
 
-  const renderTarget = showTarget || (targetPosition && producers.length > 0);
-  const renderSource = showSource || (sourcePosition && consumers.length > 0);
+  const renderTarget = true; //showTarget || (targetPosition && producers.length > 0);
+  const renderSource = true; // showSource || (sourcePosition && consumers.length > 0);
 
   return (
     <div className={classNames('w-full rounded-md border flex justify-start  bg-white text-black border-green-400')}>

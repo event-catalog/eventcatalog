@@ -14,13 +14,15 @@ receives:
   - id: GetInventoryList
     version: 0.0.1
   - id: OrderAmended
-    version: 0.0.1
   - id: UpdateInventory
     version: 0.0.3
   - id: AddInventory
     version: x
   - id: GetInventoryStatus
 sends:
+  - id: OrderConfirmed
+    version: 0.0.1
+  - id: OrderAmended
   - id: InventoryAdjusted
     version: 0.0.4
   - id: OutOfStock

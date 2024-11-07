@@ -15,7 +15,7 @@ import type { CollectionEntry } from 'astro:content';
 import DebouncedInput from './DebouncedInput';
 
 import { getColumnsByCollection } from './columns';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { CollectionTypes } from '@types';
 
 declare module '@tanstack/react-table' {
@@ -39,6 +39,14 @@ export const Table = ({
 }) => {
   const [data, _setData] = useState(initialData);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    if (id) {
+      setColumnFilters([{ id: 'name', value: id }]);
+    }
+  }, []);
 
   const columns = useMemo(() => getColumnsByCollection(collection), [collection]);
 

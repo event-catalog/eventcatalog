@@ -113,6 +113,88 @@ describe('Services NodeGraph', () => {
       expect(edges).toEqual(expectedEdges);
     });
 
+    it('if a message is sent and received by the same service it will render a custom edge', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'NotificationsService', version: '1.0.0' });
+
+      // The middle node itself, the service
+      const expectedServiceNode = {
+        id: 'NotificationsService-1.0.0',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', service: mockServices[3], showSource: true, showTarget: true },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'services',
+      };
+
+      // Nodes coming into the service (left)
+      const expectedRecivesNode = {
+        id: 'OrderCreatedEvent-2.0.0',
+        type: 'events',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', message: mockEvents[3], showTarget: false },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
+      // Nodes going out of the service (right)
+      const expectedSendsNode = {
+        id: 'OrderCreatedEvent-2.0.0',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', message: mockEvents[3], showSource: false },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'events',
+      };
+
+      const expectedEdges = [
+        {
+          id: 'OrderCreatedEvent-2.0.0-NotificationsService-1.0.0',
+          source: 'OrderCreatedEvent-2.0.0',
+          target: 'NotificationsService-1.0.0',
+          type: 'smoothstep',
+          label: 'receives event',
+          animated: false,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
+          style: { strokeWidth: 1 },
+        },
+        {
+          id: 'NotificationsService-1.0.0-OrderCreatedEvent-2.0.0',
+          source: 'NotificationsService-1.0.0',
+          target: 'OrderCreatedEvent-2.0.0',
+          type: 'smoothstep',
+          label: 'publishes event',
+          animated: false,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
+          style: { strokeWidth: 1 },
+        },
+        {
+          id: 'NotificationsService-1.0.0-OrderCreatedEvent-2.0.0-both',
+          source: 'NotificationsService-1.0.0',
+          target: 'OrderCreatedEvent-2.0.0',
+          type: 'smoothstep',
+          label: 'publishes event & receives event',
+          animated: false,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
+          style: { strokeWidth: 1 },
+        },
+      ];
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          // Nodes on the left
+          expect.objectContaining(expectedRecivesNode),
+
+          // The service node itself
+          expect.objectContaining(expectedServiceNode),
+
+          // Nodes on the right
+          expect.objectContaining(expectedSendsNode),
+        ])
+      );
+
+      expect(edges).toEqual(expectedEdges);
+    });
+
     it('returns empty nodes and edges if no service is found', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'UnknownService', version: '1.0.0' });
 

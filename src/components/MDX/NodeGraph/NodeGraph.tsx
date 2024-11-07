@@ -81,6 +81,7 @@ const NodeGraphBuilder = ({
     setEdges((eds) =>
       eds.map((edge) => {
         edge.style = { ...edge.style, opacity: 1 };
+        edge.labelStyle = { ...edge.labelStyle, opacity: 1 };
         return { ...edge, animated: false };
       })
     );
@@ -107,9 +108,19 @@ const NodeGraphBuilder = ({
         if (edge.source === node.id || edge.target === node.id) {
           connectedNodeIds.add(edge.source);
           connectedNodeIds.add(edge.target);
-          return { ...edge, style: { ...edge.style, opacity: 1 }, animated: true };
+          return {
+            ...edge,
+            style: { ...edge.style, opacity: 1 },
+            labelStyle: { ...edge.labelStyle, opacity: 1 },
+            animated: true,
+          };
         }
-        return { ...edge, style: { ...edge.style, opacity: 0.1 }, animated: false };
+        return {
+          ...edge,
+          style: { ...edge.style, opacity: 0.1 },
+          labelStyle: { ...edge.labelStyle, opacity: 0.1 },
+          animated: false,
+        };
       });
 
       const updatedNodes = nodes.map((n) => {
@@ -215,10 +226,19 @@ const NodeGraph = ({
   linksToVisualiser = false,
 }: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
+  const [showFooter, setShowFooter] = useState(true);
 
   useEffect(() => {
     // @ts-ignore
     setElem(document.getElementById(`${id}-portal`));
+  }, []);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const embed = urlParams.get('embed');
+    if (embed === 'true') {
+      setShowFooter(false);
+    }
   }, []);
 
   if (!elem) return null;
@@ -236,21 +256,23 @@ const NodeGraph = ({
             linksToVisualiser={linksToVisualiser}
           />
 
-          <div className="flex justify-between">
-            {footerLabel && (
-              <div className="py-2 w-full text-left ">
-                <span className=" text-sm no-underline py-2 text-gray-300">{footerLabel}</span>
-              </div>
-            )}
+          {showFooter && (
+            <div className="flex justify-between" id="visualiser-footer">
+              {footerLabel && (
+                <div className="py-2 w-full text-left ">
+                  <span className=" text-sm no-underline py-2 text-gray-300">{footerLabel}</span>
+                </div>
+              )}
 
-            {href && (
-              <div className="py-2 w-full text-right">
-                <a className=" text-sm no-underline py-2 text-gray-800 hover:text-primary" href={href}>
-                  {hrefLabel} &rarr;
-                </a>
-              </div>
-            )}
-          </div>
+              {href && (
+                <div className="py-2 w-full text-right">
+                  <a className=" text-sm no-underline py-2 text-gray-800 hover:text-primary" href={href}>
+                    {hrefLabel} &rarr;
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
         </ReactFlowProvider>,
         elem
       )}

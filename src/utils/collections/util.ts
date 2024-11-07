@@ -57,3 +57,15 @@ export const getItemsFromCollectionByIdAndSemverOrLatest = <T extends { data: { 
   // latest version
   return sorted.length > 0 ? [sorted[sorted.length - 1]] : [];
 };
+
+export const findMatchingNodes = (
+  nodesA: CollectionEntry<'events' | 'commands' | 'queries' | 'services'>[],
+  nodesB: CollectionEntry<'events' | 'commands' | 'queries' | 'services'>[]
+) => {
+  // Track messages that are both sent and received
+  return nodesA.filter((nodeA) => {
+    return nodesB.some((nodeB) => {
+      return nodeB.data.id === nodeA.data.id && nodeB.data.version === nodeA.data.version;
+    });
+  });
+};

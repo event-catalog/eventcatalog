@@ -17,6 +17,9 @@ export interface Config {
     src: string;
     text?: string;
   };
+  asyncAPI?: {
+    renderParsedSchemas?: boolean;
+  };
   mdxOptimize?: boolean;
   docs: {
     sidebar: {

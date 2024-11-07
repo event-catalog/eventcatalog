@@ -69,6 +69,25 @@ export const mockServices = [
       ],
     },
   },
+  {
+    id: 'LegacyOrderService',
+    slug: 'LegacyOrderService',
+    collection: 'services',
+    data: {
+      id: 'LegacyOrderService',
+      version: '0.0.1',
+      receives: [
+        {
+          id: 'GetOrderLegacy',
+        },
+      ],
+      sends: [
+        {
+          id: 'GetOrderLegacy',
+        },
+      ],
+    },
+  },
 ];
 
 export const mockQueries = [
@@ -114,6 +133,15 @@ export const mockQueries = [
     collection: 'queries',
     data: {
       id: 'GetProductStatus',
+      version: '0.0.1',
+    },
+  },
+  {
+    id: 'GetOrderLegacy',
+    slug: 'GetOrderLegacy',
+    collection: 'queries',
+    data: {
+      id: 'GetOrderLegacy',
       version: '0.0.1',
     },
   },
