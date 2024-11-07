@@ -13,6 +13,14 @@
   "bin": {
     "eventcatalog": "bin/eventcatalog.js"
   },
+  "files": [
+    "bin/",
+    "default-files-for-collections/",
+    "dist/",
+    "public/",
+    "src/",
+    "!src/**/__tests__/"
+  ],
   "scripts": {
     "dev": "astro dev",
     "build:bin": "tsup",
