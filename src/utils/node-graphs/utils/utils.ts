@@ -31,7 +31,7 @@ export const createDagreGraph = ({ ranksep = 180, nodesep = 50, ...rest }: any) 
 
 export const createEdge = (edgeOptions: Edge) => {
   return {
-    type: 'smoothstep',
+    type: 'bezier',
     label: 'subscribed by',
     animated: false,
     markerEnd: {
@@ -90,6 +90,9 @@ export const getChannelNodesAndEdges = ({
       })
     );
 
+    // if the source (left node) is a service, use the target as the edge message
+    const edgeMessage = source.collection === 'services' ? target : source;
+
     // Link from left to channel
     edges.push(
       createEdge({
@@ -97,6 +100,7 @@ export const getChannelNodesAndEdges = ({
         source: generateIdForNode(source),
         target: channelId,
         label: sourceToChannelLabel,
+        data: { message: edgeMessage },
       })
     );
 
@@ -107,6 +111,7 @@ export const getChannelNodesAndEdges = ({
         source: channelId,
         target: generateIdForNode(target),
         label: channelToTargetLabel,
+        data: { message: edgeMessage },
       })
     );
   });

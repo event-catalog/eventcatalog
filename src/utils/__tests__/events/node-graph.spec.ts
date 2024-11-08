@@ -69,7 +69,7 @@ describe('Events NodeGraph', () => {
           id: 'OrderService-0.0.1-OrderCreatedEvent-0.0.1',
           source: 'OrderService-0.0.1',
           target: 'OrderCreatedEvent-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes event',
           animated: false,
           markerEnd: {
@@ -80,12 +80,13 @@ describe('Events NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'OrderCreatedEvent-0.0.1-PaymentService-0.0.1',
           source: 'OrderCreatedEvent-0.0.1',
           target: 'PaymentService-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'subscribed by',
           animated: false,
           markerEnd: {
@@ -96,6 +97,7 @@ describe('Events NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
       ];
 
@@ -156,7 +158,7 @@ describe('Events NodeGraph', () => {
           id: 'NotificationsService-0.0.1-EmailSent-1.0.0',
           source: 'NotificationsService-0.0.1',
           target: 'EmailSent-1.0.0',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes event',
           animated: false,
           markerEnd: {
@@ -167,12 +169,13 @@ describe('Events NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'EmailSent-1.0.0-NotificationsService-0.0.1',
           source: 'EmailSent-1.0.0',
           target: 'NotificationsService-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'subscribed by',
           animated: false,
           markerEnd: {
@@ -183,12 +186,13 @@ describe('Events NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'EmailSent-1.0.0-NotificationsService-0.0.1-both',
           source: 'EmailSent-1.0.0',
           target: 'NotificationsService-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes and subscribes',
           animated: false,
           markerEnd: {
@@ -199,6 +203,7 @@ describe('Events NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
       ];
 
@@ -229,8 +234,6 @@ describe('Events NodeGraph', () => {
         data: { mode: 'simple', service: mockServices[4] },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
-
-      console.log(JSON.stringify(nodes, null, 2));
 
       const expectedChannelNode = {
         sourcePosition: 'right',
@@ -272,17 +275,18 @@ describe('Events NodeGraph', () => {
 
       expect(edges).toEqual([
         {
-          type: 'smoothstep',
-          label: 'sends to channel',
+          type: 'bezier',
+          label: 'publishes event',
           animated: false,
           markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
           style: { strokeWidth: 1 },
           id: 'NotificationsService-0.0.1-EmailChannel-1.0.0',
           source: 'NotificationsService-0.0.1',
           target: 'NotificationsService-0.0.1-EmailChannel-1.0.0',
+          data: { message: expect.anything() },
         },
         {
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes event',
           animated: false,
           markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
@@ -290,6 +294,7 @@ describe('Events NodeGraph', () => {
           id: 'EmailChannel-1.0.0-EmailVerified-1.0.0',
           source: 'NotificationsService-0.0.1-EmailChannel-1.0.0',
           target: 'EmailVerified-1.0.0',
+          data: { message: expect.anything() },
         },
       ]);
     });
@@ -337,7 +342,7 @@ describe('Events NodeGraph', () => {
           id: 'InventoryService-0.0.1-InventoryAdjusted-1.5.1',
           source: 'InventoryService-0.0.1',
           target: 'InventoryAdjusted-1.5.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes event',
           animated: false,
           markerEnd: {
@@ -348,12 +353,13 @@ describe('Events NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'InventoryAdjusted-1.5.1-CatalogService-0.0.1',
           source: 'InventoryAdjusted-1.5.1',
           target: 'CatalogService-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'subscribed by',
           animated: false,
           markerEnd: {
@@ -364,6 +370,7 @@ describe('Events NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
       ];
 

@@ -171,7 +171,7 @@ export const mockEvents = [
       version: '1.0.0',
     },
   },
-  // 8
+  // 9
   {
     slug: 'PaymentPaid',
     collection: 'events',
@@ -180,7 +180,7 @@ export const mockEvents = [
       version: '2.0.0',
     },
   },
-  // 9
+  // 10
   {
     slug: 'PaymentFailed',
     collection: 'events',
@@ -189,7 +189,7 @@ export const mockEvents = [
       version: '1.0.0',
     },
   },
-  // 10
+  // 11
   {
     slug: 'PaymentFailed',
     collection: 'events',
@@ -198,6 +198,7 @@ export const mockEvents = [
       version: '1.2.3',
     },
   },
+  // 12
   {
     id: 'EmailVerified',
     slug: 'EmailVerified',

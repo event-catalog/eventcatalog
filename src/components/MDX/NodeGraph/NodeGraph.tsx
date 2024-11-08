@@ -11,8 +11,13 @@ import ReactFlow, {
   type Edge,
   type Node,
   useReactFlow,
+  getBezierPath,
+  BaseEdge,
+  SmoothStepEdge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+
+// Nodes and edges
 import ServiceNode from './Nodes/Service';
 import EventNode from './Nodes/Event';
 import QueryNode from './Nodes/Query';
@@ -20,12 +25,15 @@ import UserNode from './Nodes/User';
 import StepNode from './Nodes/Step';
 import CommandNode from './Nodes/Command';
 import ExternalSystemNode from './Nodes/ExternalSystem';
+import AnimatedMessageEdge from './Edges/AnimatedMessageEdge';
+
 import type { CollectionEntry } from 'astro:content';
 import { navigate } from 'astro:transitions/client';
 import type { CollectionTypes } from '@types';
 import DownloadButton from './DownloadButton';
 import { buildUrl } from '@utils/url-builder';
 import ChannelNode from './Nodes/Channel';
+import { CogIcon } from '@heroicons/react/20/solid';
 
 interface Props {
   nodes: any;
@@ -39,9 +47,6 @@ interface Props {
   linksToVisualiser?: boolean;
 }
 
-const getDocUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
-  return buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`);
-};
 const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
   return buildUrl(`/visualiser/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`);
 };
@@ -69,25 +74,35 @@ const NodeGraphBuilder = ({
     }),
     []
   );
+  const edgeTypes = useMemo(
+    () => ({
+      animated: AnimatedMessageEdge,
+    }),
+    []
+  );
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAnimated, setIsAnimated] = useState(false);
+  const [animateMessages, setAnimateMessages] = useState(false);
+
   const { fitView } = useReactFlow();
 
   const resetNodesAndEdges = useCallback(() => {
     setNodes((nds) =>
       nds.map((node) => {
         node.style = { ...node.style, opacity: 1 };
-        return { ...node, animated: false };
+        return { ...node, animated: animateMessages };
       })
     );
     setEdges((eds) =>
       eds.map((edge) => {
         edge.style = { ...edge.style, opacity: 1 };
         edge.labelStyle = { ...edge.labelStyle, opacity: 1 };
-        return { ...edge, animated: false };
+        return { ...edge, data: { ...edge.data, opacity: 1 }, animated: animateMessages };
       })
     );
-  }, [setNodes, setEdges]);
+  }, [setNodes, setEdges, animateMessages]);
 
   const handleNodeClick = useCallback(
     (_: any, node: Node) => {
@@ -112,6 +127,7 @@ const NodeGraphBuilder = ({
           connectedNodeIds.add(edge.target);
           return {
             ...edge,
+            data: { ...edge.data, opacity: 1 },
             style: { ...edge.style, opacity: 1 },
             labelStyle: { ...edge.labelStyle, opacity: 1 },
             animated: true,
@@ -119,9 +135,10 @@ const NodeGraphBuilder = ({
         }
         return {
           ...edge,
+          data: { ...edge.data, opacity: 0.1 },
           style: { ...edge.style, opacity: 0.1 },
           labelStyle: { ...edge.labelStyle, opacity: 0.1 },
-          animated: false,
+          animated: animateMessages,
         };
       });
 
@@ -145,7 +162,42 @@ const NodeGraphBuilder = ({
     [nodes, edges, setNodes, setEdges, resetNodesAndEdges, fitView]
   );
 
+  const toggleAnimation = () => {
+    setIsAnimated(!isAnimated);
+    setEdges((eds) =>
+      eds.map((edge) => ({
+        ...edge,
+        animated: !isAnimated,
+      }))
+    );
+  };
+
+  const toggleAnimateMessages = () => {
+    setAnimateMessages(!animateMessages);
+    localStorage.setItem('EventCatalog:animateMessages', JSON.stringify(!animateMessages));
+  };
+
+  // animate messages, between views
+  useEffect(() => {
+    const storedAnimateMessages = localStorage.getItem('EventCatalog:animateMessages');
+    if (storedAnimateMessages !== null) {
+      setAnimateMessages(storedAnimateMessages === 'true');
+    }
+  }, []);
+
+  useEffect(() => {
+    setEdges((eds) =>
+      eds.map((edge) => ({
+        ...edge,
+        animated: animateMessages,
+        type: animateMessages ? 'animated' : 'bezier',
+        data: { ...edge.data, animateMessages },
+      }))
+    );
+  }, [animateMessages]);
+
   const handlePaneClick = useCallback(() => {
+    setIsSettingsOpen(false);
     resetNodesAndEdges();
     fitView({ duration: 800 });
   }, [resetNodesAndEdges, fitView]);
@@ -153,6 +205,7 @@ const NodeGraphBuilder = ({
   return (
     <ReactFlow
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
       nodes={nodes}
       edges={edges}
       fitView
@@ -162,15 +215,58 @@ const NodeGraphBuilder = ({
       nodeOrigin={[0.1, 0.1]}
       onNodeClick={handleNodeClick}
       onPaneClick={handlePaneClick}
+      className="relative"
     >
-      {title && (
-        <Panel position="top-right">
-          <span className="block shadow-sm bg-white text-xl z-10 text-black px-4 py-2 border-gray-200 rounded-md border">
-            <strong>Visualiser</strong> | {title}
-          </span>
-        </Panel>
+      <Panel position="top-center" className="w-full pr-6 ">
+        <div className="flex space-x-2 justify-between  items-center">
+          <div>
+            <button
+              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+              className="py-2.5 px-3 bg-white rounded-md shadow-md hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+              aria-label="Open settings"
+            >
+              <CogIcon className="h-5 w-5 text-gray-600" />
+            </button>
+          </div>
+          {title && (
+            <span className="block shadow-sm bg-white text-xl z-10 text-black px-4 py-2 border-gray-200 rounded-md border">
+              <strong>Visualiser</strong> | {title}
+            </span>
+          )}
+        </div>
+        <div className="flex justify-end py-4">
+          <DownloadButton filename={title} addPadding={false} />
+        </div>
+      </Panel>
+
+      {isSettingsOpen && (
+        <div className="absolute top-[68px] left-5 w-72 p-4 bg-white rounded-lg shadow-lg z-30 border border-gray-200">
+          <h3 className="text-lg font-semibold mb-4">Visualizer Settings</h3>
+          <div className="space-y-4 ">
+            <div>
+              <div className="flex items-center justify-between">
+                <label htmlFor="message-animation-toggle" className="text-sm font-medium text-gray-700">
+                  Simulate Messages
+                </label>
+                <button
+                  id="message-animation-toggle"
+                  onClick={toggleAnimateMessages}
+                  className={`${
+                    animateMessages ? 'bg-purple-600' : 'bg-gray-200'
+                  } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
+                >
+                  <span
+                    className={`${
+                      animateMessages ? 'translate-x-6' : 'translate-x-1'
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                  />
+                </button>
+              </div>
+              <p className="text-[10px] text-gray-500">Animate events, queries and commands.</p>
+            </div>
+          </div>
+        </div>
       )}
-      <DownloadButton filename={title} addPadding={!!title} />
       {includeBackground && <Background color="#bbb" gap={16} />}
       {includeBackground && <Controls />}
       {includeKey && (

@@ -9,8 +9,8 @@ owners:
 receives:
   - id: InventoryAdjusted
     version: 0.0.3
-  - id: GetOrder
-    version: 0.0.1
+  # - id: GetOrder
+    # version: 0.0.1
 sends:
   - id: AddInventory  
     version: 0.0.3

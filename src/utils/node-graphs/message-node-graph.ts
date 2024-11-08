@@ -94,7 +94,8 @@ const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', col
         channelsToRender: message.data.channels,
         source: producer,
         target: message,
-        channelToTargetLabel: 'publishes event',
+        sourceToChannelLabel: getEdgeLabelForServiceAsTarget(message),
+        channelToTargetLabel: getEdgeLabelForServiceAsTarget(message),
         mode,
       });
       nodes.push(...channelNodes);
@@ -104,8 +105,9 @@ const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', col
         id: generatedIdForEdge(producer, message),
         source: generateIdForNode(producer),
         target: generateIdForNode(message),
-        type: 'smoothstep',
+        type: 'bezier',
         label: getEdgeLabelForServiceAsTarget(message),
+        data: { message },
         animated: false,
         markerEnd: {
           type: MarkerType.ArrowClosed,
@@ -146,8 +148,7 @@ const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', col
         channelsToRender: channels.map((channel) => ({ id: channel.data.id, version: channel.data.version })),
         source: message,
         target: consumer,
-        sourceToChannelLabel: 'sent to channel',
-        channelToTargetLabel: 'subscribed by',
+        channelToTargetLabel: getEdgeLabelForMessageAsSource(message),
         mode,
       });
 
@@ -160,6 +161,7 @@ const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', col
           source: generateIdForNode(message),
           target: generateIdForNode(consumer),
           label: getEdgeLabelForMessageAsSource(message),
+          data: { message },
         })
       );
     }
@@ -174,6 +176,7 @@ const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', col
           source: generateIdForNode(message),
           target: generateIdForNode(_message),
           label: 'publishes and subscribes',
+          data: { message },
         })
       );
     }

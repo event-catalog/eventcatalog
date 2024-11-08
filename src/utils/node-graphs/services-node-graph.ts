@@ -108,6 +108,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         channelsToRender: receive.data.channels,
         source: receive,
         target: service,
+        mode,
       });
 
       nodes.push(...channelNodes);
@@ -120,6 +121,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
           source: generateIdForNode(receive),
           target: generateIdForNode(service),
           label: getReceivesMessageByMessageType(receive?.collection),
+          data: { message: receive },
         })
       );
     }
@@ -150,6 +152,9 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         channelsToRender: send.data.channels,
         source: service,
         target: send,
+        mode,
+        sourceToChannelLabel: `${getSendsMessageByMessageType(send?.collection)}`,
+        channelToTargetLabel: getSendsMessageByMessageType(send?.collection),
       });
       nodes.push(...channelNodes);
       edges.push(...channelEdges);
@@ -161,6 +166,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
           source: generateIdForNode(service),
           target: generateIdForNode(send),
           label: getSendsMessageByMessageType(send?.collection),
+          data: { message: send },
         })
       );
     }
@@ -173,9 +179,10 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         id: generatedIdForEdge(service, message) + '-both',
         source: generateIdForNode(service),
         target: generateIdForNode(message),
-        type: 'smoothstep',
+        type: 'bezier',
         label: `${getSendsMessageByMessageType(message?.collection)} & ${getReceivesMessageByMessageType(message?.collection)}`,
         animated: false,
+        data: { message },
         markerEnd: {
           type: MarkerType.ArrowClosed,
           width: 40,

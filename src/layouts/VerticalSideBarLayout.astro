@@ -114,7 +114,10 @@ const sideNav = allData.reduce((acc, item) => {
   const currentPath = Astro.url.pathname;
   const route = currentPath.includes('visualiser') ? 'visualiser' : 'docs';
 
-  if (currentPath.includes('visualiser') && (item.collection === 'teams' || item.collection === 'users')) {
+  if (
+    currentPath.includes('visualiser') &&
+    (item.collection === 'teams' || item.collection === 'users' || item.collection === 'channels')
+  ) {
     return acc;
   }
 

@@ -60,7 +60,7 @@ describe('Domains NodeGraph', () => {
           id: 'OrderPlaced-0.0.1-LocationService-0.0.1',
           source: 'OrderPlaced-0.0.1',
           target: 'LocationService-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'receives event',
           animated: false,
           markerEnd: {
@@ -71,6 +71,7 @@ describe('Domains NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
       ];
 
@@ -173,7 +174,7 @@ describe('Domains NodeGraph', () => {
           id: 'PlaceOrder-1.7.7-OrderService-1.0.0',
           source: 'PlaceOrder-1.7.7',
           target: 'OrderService-1.0.0',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'accepts',
           animated: false,
           markerEnd: {
@@ -184,12 +185,13 @@ describe('Domains NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'OrderService-1.0.0-OrderPlaced-0.0.1',
           source: 'OrderService-1.0.0',
           target: 'OrderPlaced-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes event',
           animated: false,
           markerEnd: {
@@ -200,12 +202,13 @@ describe('Domains NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'OrderPlaced-0.0.1-PaymentService-0.0.1',
           source: 'OrderPlaced-0.0.1',
           target: 'PaymentService-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'receives event',
           animated: false,
           markerEnd: {
@@ -216,12 +219,13 @@ describe('Domains NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'PaymentService-0.0.1-PaymentRefunded-1.0.0',
           source: 'PaymentService-0.0.1',
           target: 'PaymentRefunded-1.0.0',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes event',
           animated: false,
           markerEnd: {
@@ -232,12 +236,13 @@ describe('Domains NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'PaymentService-0.0.1-PaymentFailed-1.0.0',
           source: 'PaymentService-0.0.1',
           target: 'PaymentFailed-1.0.0',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes event',
           animated: false,
           markerEnd: {
@@ -248,12 +253,13 @@ describe('Domains NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'PaymentService-0.0.1-PaymentPaid-0.0.1',
           source: 'PaymentService-0.0.1',
           target: 'PaymentPaid-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes event',
           animated: false,
           markerEnd: {
@@ -264,12 +270,13 @@ describe('Domains NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'PaymentService-0.0.1-PaymentPaid-0.0.2',
           source: 'PaymentService-0.0.1',
           target: 'PaymentPaid-0.0.2',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes event',
           animated: false,
           markerEnd: {
@@ -280,6 +287,7 @@ describe('Domains NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
       ];
 

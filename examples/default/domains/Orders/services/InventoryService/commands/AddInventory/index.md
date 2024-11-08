@@ -14,6 +14,8 @@ badges:
     - content: Recently updated!
       backgroundColor: green
       textColor: green
+channels:
+  - id: orders.{orderId}.events
 schemaPath: 'schema.json'
 ---
 

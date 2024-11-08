@@ -69,7 +69,7 @@ describe('Services NodeGraph', () => {
           id: 'PaymentProcessed-0.0.1-OrderService-1.0.0',
           source: 'PaymentProcessed-0.0.1',
           target: 'OrderService-1.0.0',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'accepts',
           animated: false,
           markerEnd: {
@@ -80,12 +80,13 @@ describe('Services NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'OrderService-1.0.0-OrderCreatedEvent-0.0.1',
           source: 'OrderService-1.0.0',
           target: 'OrderCreatedEvent-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes event',
           animated: false,
           markerEnd: {
@@ -93,6 +94,7 @@ describe('Services NodeGraph', () => {
             width: 40,
             height: 40,
           },
+          data: { message: expect.anything() },
           style: {
             strokeWidth: 1,
           },
@@ -153,31 +155,34 @@ describe('Services NodeGraph', () => {
           id: 'OrderCreatedEvent-2.0.0-NotificationsService-1.0.0',
           source: 'OrderCreatedEvent-2.0.0',
           target: 'NotificationsService-1.0.0',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'receives event',
           animated: false,
           markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
           style: { strokeWidth: 1 },
+          data: { message: expect.anything() },
         },
         {
           id: 'NotificationsService-1.0.0-OrderCreatedEvent-2.0.0',
           source: 'NotificationsService-1.0.0',
           target: 'OrderCreatedEvent-2.0.0',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes event',
           animated: false,
           markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
           style: { strokeWidth: 1 },
+          data: { message: expect.anything() },
         },
         {
           id: 'NotificationsService-1.0.0-OrderCreatedEvent-2.0.0-both',
           source: 'NotificationsService-1.0.0',
           target: 'OrderCreatedEvent-2.0.0',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes event & receives event',
           animated: false,
           markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
           style: { strokeWidth: 1 },
+          data: { message: expect.anything() },
         },
       ];
 
@@ -242,7 +247,7 @@ describe('Services NodeGraph', () => {
           id: 'OrderCreatedEvent-1.3.9-InventoryService-1.0.0',
           source: 'OrderCreatedEvent-1.3.9',
           target: 'InventoryService-1.0.0',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'receives event',
           animated: false,
           markerEnd: {
@@ -253,12 +258,13 @@ describe('Services NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'InventoryService-1.0.0-InventoryAdjusted-2.0.0',
           source: 'InventoryService-1.0.0',
           target: 'InventoryAdjusted-2.0.0',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes event',
           animated: false,
           markerEnd: {
@@ -269,6 +275,7 @@ describe('Services NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
       ];
 
@@ -357,7 +364,7 @@ describe('Services NodeGraph', () => {
 
       expect(edges).toEqual([
         {
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'receives event',
           animated: false,
           markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
@@ -365,9 +372,10 @@ describe('Services NodeGraph', () => {
           id: 'OrderCreatedEvent-2.0.0-PaymentService-1.0.0',
           source: 'OrderCreatedEvent-2.0.0',
           target: 'PaymentService-1.0.0',
+          data: { message: expect.anything() },
         },
         {
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'sends to channel',
           animated: false,
           markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
@@ -375,9 +383,10 @@ describe('Services NodeGraph', () => {
           id: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0',
           source: 'OrderDeletedEvent-2.0.0',
           target: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0',
+          data: { message: expect.anything() },
         },
         {
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'sends from channel',
           animated: false,
           markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
@@ -385,9 +394,10 @@ describe('Services NodeGraph', () => {
           id: 'OrderChannel-1.0.0-PaymentService-1.0.0',
           source: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0',
           target: 'PaymentService-1.0.0',
+          data: { message: expect.anything() },
         },
         {
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes event',
           animated: false,
           markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
@@ -395,9 +405,10 @@ describe('Services NodeGraph', () => {
           id: 'PaymentService-1.0.0-PaymentPaid-2.0.0',
           source: 'PaymentService-1.0.0',
           target: 'PaymentPaid-2.0.0',
+          data: { message: expect.anything() },
         },
         {
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes event',
           animated: false,
           markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
@@ -405,26 +416,29 @@ describe('Services NodeGraph', () => {
           id: 'PaymentService-1.0.0-PaymentFailed-1.2.3',
           source: 'PaymentService-1.0.0',
           target: 'PaymentFailed-1.2.3',
+          data: { message: expect.anything() },
         },
         {
-          type: 'smoothstep',
-          label: 'sends to channel',
+          type: 'bezier',
+          label: 'publishes event',
           animated: false,
           markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
           style: { strokeWidth: 1 },
           id: 'PaymentService-1.0.0-EmailChannel-1.0.0',
           source: 'PaymentService-1.0.0',
           target: 'PaymentService-1.0.0-EmailChannel-1.0.0',
+          data: { message: expect.anything() },
         },
         {
-          type: 'smoothstep',
-          label: 'sends from channel',
+          type: 'bezier',
+          label: 'publishes event',
           animated: false,
           markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
           style: { strokeWidth: 1 },
           id: 'EmailChannel-1.0.0-EmailVerified-1.0.0',
           source: 'PaymentService-1.0.0-EmailChannel-1.0.0',
           target: 'EmailVerified-1.0.0',
+          data: { message: expect.anything() },
         },
       ]);
     });

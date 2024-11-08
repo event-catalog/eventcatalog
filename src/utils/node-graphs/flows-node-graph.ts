@@ -118,7 +118,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         id: `step-${step.id}-step-${path.id}`,
         source: `step-${step.id}`,
         target: `step-${path.id}`,
-        type: 'smoothstep',
+        type: 'bezier',
         label: path.label,
         animated: true,
         markerEnd: {

@@ -26,7 +26,8 @@ export default function ChannelNode({ data, sourcePosition, targetPosition }: an
   return (
     <div
       className={classNames(
-        'w-full rounded-md border flex justify-start  bg-white text-black border-gray-400 transform min-h-[6.5em] '
+        mode === 'simple' ? 'min-h-[3em]' : 'min-h-[6.5em]',
+        'w-full rounded-md border flex justify-start  bg-white text-black border-gray-400 transform  '
       )}
     >
       <div
@@ -75,12 +76,7 @@ export default function ChannelNode({ data, sourcePosition, targetPosition }: an
             )}
             {technology == 'http' && <span className="uppercase text-[10px]">HTTP</span>}
             {technology == 'sqs' && (
-              <svg
-                className="w-6 h-6"
-                viewBox="0 0 80 80"
-                version="1.1"
-                xmlns="http://www.w3.org/2000/svg"
-              >
+              <svg className="w-6 h-6" viewBox="0 0 80 80" version="1.1" xmlns="http://www.w3.org/2000/svg">
                 <title>Icon-Architecture/64/Arch_AWS-Simple-Queue-Service_64</title>
                 <desc>Created with Sketch.</desc>
 
@@ -105,7 +101,7 @@ export default function ChannelNode({ data, sourcePosition, targetPosition }: an
           </div>
           <div className="flex justify-between">
             <span className="text-[10px] font-light block pt-0.5 pb-0.5 ">v{version}</span>
-            {mode === 'simple' && <span className="text-[10px] text-gray-500 font-light block pt-0.5 pb-0.5 ">Event</span>}
+            {mode === 'simple' && <span className="text-[10px] text-gray-500 font-light block pt-0.5 pb-0.5 ">Channel</span>}
           </div>
         </div>
         {mode === 'full' && (

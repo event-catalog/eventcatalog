@@ -21,7 +21,7 @@ vi.mock('astro:content', async (importOriginal) => {
 
 describe('Commands NodeGraph', () => {
   describe('getNodesAndEdges', () => {
-    it('should return nodes and edges for a given event', async () => {
+    it('should return nodes and edges for a given command', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'AdjustOrder', version: '0.0.1' });
 
       // The middle node itself, the service
@@ -61,7 +61,7 @@ describe('Commands NodeGraph', () => {
           id: 'OrderService-0.0.1-AdjustOrder-0.0.1',
           source: 'OrderService-0.0.1',
           target: 'AdjustOrder-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'invokes',
           animated: false,
           markerEnd: {
@@ -72,12 +72,13 @@ describe('Commands NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'AdjustOrder-0.0.1-PaymentService-0.0.1',
           source: 'AdjustOrder-0.0.1',
           target: 'PaymentService-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'accepts',
           animated: false,
           markerEnd: {
@@ -88,10 +89,9 @@ describe('Commands NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
       ];
-
-      console.log(JSON.stringify(nodes, null, 2));
 
       expect(nodes).toEqual(
         expect.arrayContaining([
@@ -149,7 +149,7 @@ describe('Commands NodeGraph', () => {
           id: 'LegacyOrderService-0.0.1-GetOrder-0.0.1',
           source: 'LegacyOrderService-0.0.1',
           target: 'GetOrder-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'invokes',
           animated: false,
           markerEnd: {
@@ -160,12 +160,13 @@ describe('Commands NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'GetOrder-0.0.1-LegacyOrderService-0.0.1',
           source: 'GetOrder-0.0.1',
           target: 'LegacyOrderService-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'accepts',
           animated: false,
           markerEnd: {
@@ -176,12 +177,13 @@ describe('Commands NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'GetOrder-0.0.1-LegacyOrderService-0.0.1-both',
           source: 'GetOrder-0.0.1',
           target: 'LegacyOrderService-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'publishes and subscribes',
           animated: false,
           markerEnd: {
@@ -192,6 +194,7 @@ describe('Commands NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
       ];
 
@@ -249,7 +252,7 @@ describe('Commands NodeGraph', () => {
           id: 'PlaceOrder-2.0.1-OrderService-0.0.1',
           source: 'PlaceOrder-2.0.1',
           target: 'OrderService-0.0.1',
-          type: 'smoothstep',
+          type: 'bezier',
           label: 'accepts',
           animated: false,
           markerEnd: {
@@ -260,6 +263,7 @@ describe('Commands NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
       ];
 
