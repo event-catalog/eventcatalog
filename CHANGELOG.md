@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.12.3
+
+### Patch Changes
+
+- d0d13c9: chore(core): fixing z-index issue with the header nav and removing the max-width
+
 ## 2.12.2
 
 ### Patch Changes
