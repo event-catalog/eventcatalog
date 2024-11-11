@@ -65,6 +65,7 @@ jobs:
 
       - name: Install package in ./examples/default/
         working-directory: ./examples/default/
+        shell: bash
         run: |
           if [ "${{ matrix.package-manager }}" == "npm" ]; then
             npm install ../../package.tgz
