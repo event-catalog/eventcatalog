@@ -6,7 +6,7 @@
     "url": "https://github.com/event-catalog/eventcatalog.git"
   },
   "type": "module",
-  "version": "2.11.5",
+  "version": "2.12.3",
   "publishConfig": {
     "access": "public"
   },
@@ -40,7 +40,7 @@
     "@astrojs/mdx": "^3.1.8",
     "@astrojs/react": "^3.6.2",
     "@astrojs/tailwind": "^5.1.2",
-    "@asyncapi/react-component": "^2.2.2",
+    "@asyncapi/react-component": "^2.4.3",
     "@headlessui/react": "^2.0.3",
     "@heroicons/react": "^2.1.3",
     "@parcel/watcher": "^2.4.1",

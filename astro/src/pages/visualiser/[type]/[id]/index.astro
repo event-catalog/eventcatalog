@@ -31,6 +31,8 @@ const props = Astro.props;
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
 
 const { pathname } = Astro.url;
+
+// redirect with any search params too
 const redirectUrl = buildUrl(pathname + '/' + props.data.latestVersion);
 ---
 

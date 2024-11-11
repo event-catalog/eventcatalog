@@ -13,3 +13,8 @@ export const getIndexPage = async (): Promise<Page> => {
   const pages = await getCollection('pages');
   return pages.find((page) => page.slug === 'index')!;
 };
+
+export const hasLandingPageForDocs = async (): Promise<boolean> => {
+  const pages = await getCollection('pages');
+  return pages.some((page) => page.slug === 'index')!;
+};

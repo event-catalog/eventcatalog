@@ -55,6 +55,17 @@ export const mockServices = [
       receives: [{ id: 'NotifyLowStock', version: 'latest' }],
     },
   },
+  {
+    id: 'LegacyOrderService',
+    slug: 'LegacyOrderService',
+    collection: 'services',
+    data: {
+      id: 'LegacyOrderService',
+      version: '0.0.1',
+      receives: [{ id: 'GetOrder', version: 'latest' }],
+      sends: [{ id: 'GetOrder', version: 'latest' }],
+    },
+  },
 ];
 
 export const mockCommands = [
@@ -101,6 +112,15 @@ export const mockCommands = [
     data: {
       id: 'NotifyLowStock',
       version: '2.0.1',
+    },
+  },
+  {
+    id: 'GetOrder',
+    slug: 'GetOrder',
+    collection: 'commands',
+    data: {
+      id: 'GetOrder',
+      version: '0.0.1',
     },
   },
 ];

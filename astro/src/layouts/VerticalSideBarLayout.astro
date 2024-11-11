@@ -16,10 +16,11 @@ import { getServices } from '@utils/services/services';
 import { getFlows } from '@utils/flows/flows';
 import { getTeams } from '@utils/teams';
 import { getUsers } from '@utils/users';
-import config, { type CatalogConfig } from '@eventcatalog';
+import { isCollectionVisibleInCatalog } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/queries';
 import CatalogResourcesSideBar from '@components/SideBars/CatalogResourcesSideBar';
+import { hasLandingPageForDocs } from '@utils/pages';
 
 const events = await getEvents({ getAllVersions: false });
 const commands = await getCommands({ getAllVersions: false });
@@ -37,12 +38,23 @@ const allData = [...domains, ...services, ...messages, ...flows, ...teams, ...us
 
 const currentPath = Astro.url.pathname;
 
+const catalogHasDefaultLandingPageForDocs = await hasLandingPageForDocs();
+
 const getDefaultUrl = (route: string, defaultValue: string) => {
-  if (domains.length > 0) return buildUrl(`/${route}/domains/${domains[0].data.id}/${domains[0].data.latestVersion}`);
-  if (services.length > 0) return buildUrl(`/${route}/services/${services[0].data.id}/${services[0].data.latestVersion}`);
-  if (messages.length > 0)
-    return buildUrl(`/${route}/${messages[0].collection}/${messages[0].data.id}/${messages[0].data.latestVersion}`);
-  if (flows.length > 0) return buildUrl(`/${route}/flows/${flows[0].data.id}/${flows[0].data.latestVersion}`);
+  const collections = [
+    { data: domains, key: 'domains' },
+    { data: services, key: 'services' },
+    { data: messages, key: 'messages' },
+    { data: flows, key: 'flows' },
+  ];
+
+  for (const { data, key } of collections) {
+    if (data.length > 0 && isCollectionVisibleInCatalog(key)) {
+      const item = data[0];
+      return buildUrl(`/${route}/${key}/${item.data.id}/${item.data.latestVersion}`);
+    }
+  }
+
   return buildUrl(defaultValue);
 };
 
@@ -59,7 +71,7 @@ const navigationItems = [
     id: '/docs',
     label: 'Documentation',
     icon: BookOpenText,
-    href: getDefaultUrl('docs', '/docs'),
+    href: catalogHasDefaultLandingPageForDocs ? buildUrl('/docs') : getDefaultUrl('docs', '/docs'),
     current: currentPath.includes('/docs'),
     sidebar: true,
   },
@@ -81,31 +93,6 @@ const navigationItems = [
   },
 ];
 
-const eventCatalogConfig = config as CatalogConfig;
-
-const {
-  services: servicesConfig,
-  domains: domainsConfig,
-  messages: messagesConfig,
-  flows: flowsConfig,
-  teams: teamsConfig,
-  users: usersConfig,
-} = eventCatalogConfig?.docs?.sidebar || {};
-
-const getConfigValue = (obj: any, key: string, defaultValue: any) => {
-  return obj?.[key] ?? defaultValue;
-};
-
-const visibleCollections: { [key: string]: boolean } = {
-  events: getConfigValue(messagesConfig, 'visible', true),
-  commands: getConfigValue(messagesConfig, 'visible', true),
-  domains: getConfigValue(domainsConfig, 'visible', true),
-  flows: getConfigValue(flowsConfig, 'visible', true),
-  services: getConfigValue(servicesConfig, 'visible', true),
-  teams: getConfigValue(teamsConfig, 'visible', true),
-  users: getConfigValue(usersConfig, 'visible', true),
-};
-
 const sideNav = allData.reduce((acc, item) => {
   const title = item.collection;
   const group = acc[title] || [];
@@ -120,7 +107,7 @@ const sideNav = allData.reduce((acc, item) => {
     label: item.data.name,
     version: item.collection === 'teams' || item.collection === 'users' ? null : item.data.version,
     // items: item.collection === 'users' ? [] : item.headings,
-    visible: visibleCollections[item.collection],
+    visible: isCollectionVisibleInCatalog(item.collection),
     // @ts-ignore
     href: item.data.version
       ? // @ts-ignore
@@ -192,20 +179,6 @@ const showSideBarOnLoad = currentNavigationItem?.sidebar;
                 })
               }
             </div>
-            <!-- <div class="flex flex-col items-center mt-4 space-y-4 -mb-10">
-              <a href="https://discord.com/invite/3rjaZMmrAm" class="text-gray-500 has-tooltip">
-                <span class="tooltip rounded shadow-lg p-1 text-xs bg-black text-white ml-10 w-[162px]"
-                  >Join EventCatalog Discord</span
-                >
-                <img src="/icons/discord.svg" class="w-7 h-7" />
-              </a>
-              <a href="https://github.com/event-catalog/eventcatalog" class="text-gray-500 has-tooltip">
-                <span class="tooltip rounded shadow-lg p-1 text-xs bg-black text-white ml-10 w-[175px]"
-                  >Found an issue? Let us know</span
-                >
-                <img src="/icons/github-purple.svg" class="w-7 h-7" />
-              </a>
-            </div> -->
           </nav>
         </div>
 
@@ -234,8 +207,33 @@ const showSideBarOnLoad = currentNavigationItem?.sidebar;
   });
 
   document.addEventListener('contentLoaded', () => {
-    const sidebar = document.getElementById('sidebar');
+    // Users can add ?embed=true to the URL to hide the navigation
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const params = Object.fromEntries(urlSearchParams.entries());
+    const embeded = params.embed === 'true' ? true : false;
     const content = document.getElementById('content');
+
+    if (embeded) {
+      const elementsToHide = [
+        'eventcatalog-vertical-nav',
+        'eventcatalog-header',
+        'eventcatalog-header-spacer',
+        'visualiser-footer',
+        // /discover page elements
+        'discover-collection-tabs',
+        'discover-title',
+      ];
+
+      elementsToHide.forEach((id) => {
+        const element = document.getElementById(id);
+        if (element) element.style.display = 'none';
+      });
+
+      content.classList.remove('ml-16');
+      return;
+    }
+
+    const sidebar = document.getElementById('sidebar');
     const currentPath = window.location.href;
 
     // Hide the sidebar if the current navigation item is not a sidebar item
@@ -256,8 +254,6 @@ const showSideBarOnLoad = currentNavigationItem?.sidebar;
         const id = item.getAttribute('id');
 
         const navItem = navigationItems.find((navItem) => navItem.id === id);
-
-        console.log(navItem);
 
         if (!navItem.sidebar || !currentPath.includes(navItem.id)) {
           window.location.href = navItem.href;

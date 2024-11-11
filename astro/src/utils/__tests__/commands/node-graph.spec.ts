@@ -29,7 +29,7 @@ describe('Commands NodeGraph', () => {
         id: 'AdjustOrder-0.0.1',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', message: expect.anything(), showTarget: true, showSource: true },
+        data: { mode: 'simple', message: expect.anything() },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'commands',
       };
@@ -39,7 +39,7 @@ describe('Commands NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: mockServices[0], showTarget: false },
+        data: { mode: 'simple', service: mockServices[0] },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -51,7 +51,6 @@ describe('Commands NodeGraph', () => {
           title: 'PaymentService',
           mode: 'simple',
           service: mockServices[1],
-          showSource: false,
         },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
@@ -108,6 +107,108 @@ describe('Commands NodeGraph', () => {
       expect(edges).toEqual(expectedEdges);
     });
 
+    it('if the command is produced and consumed by a service it will render a custom edge', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'GetOrder', version: '0.0.1' });
+
+      // The middle node itself, the service
+      const expectedCommandNode = {
+        id: 'GetOrder-0.0.1',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', message: expect.anything() },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'commands',
+      };
+
+      const expectedProducerNode = {
+        id: 'LegacyOrderService-0.0.1',
+        type: 'services',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', service: mockServices[4] },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
+      const expectedConsumerNode = {
+        id: 'LegacyOrderService-0.0.1',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: {
+          title: 'LegacyOrderService',
+          mode: 'simple',
+          service: mockServices[4],
+        },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'services',
+      };
+
+      const expectedEdges = [
+        {
+          id: 'LegacyOrderService-0.0.1-GetOrder-0.0.1',
+          source: 'LegacyOrderService-0.0.1',
+          target: 'GetOrder-0.0.1',
+          type: 'smoothstep',
+          label: 'invokes',
+          animated: false,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
+        },
+        {
+          id: 'GetOrder-0.0.1-LegacyOrderService-0.0.1',
+          source: 'GetOrder-0.0.1',
+          target: 'LegacyOrderService-0.0.1',
+          type: 'smoothstep',
+          label: 'accepts',
+          animated: false,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
+        },
+        {
+          id: 'GetOrder-0.0.1-LegacyOrderService-0.0.1-both',
+          source: 'GetOrder-0.0.1',
+          target: 'LegacyOrderService-0.0.1',
+          type: 'smoothstep',
+          label: 'publishes and subscribes',
+          animated: false,
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
+        },
+      ];
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          // Nodes on the left
+          expect.objectContaining(expectedConsumerNode),
+
+          // The event node itself
+          expect.objectContaining(expectedCommandNode),
+
+          // Nodes on the right
+          expect.objectContaining(expectedProducerNode),
+        ])
+      );
+
+      expect(edges).toEqual(expectedEdges);
+    });
+
     it('returns an empty array if no commands are found', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'UnknownCommand', version: '1.0.0' });
 
@@ -123,7 +224,7 @@ describe('Commands NodeGraph', () => {
         id: 'PlaceOrder-2.0.1',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', message: expect.anything(), showTarget: false, showSource: true },
+        data: { mode: 'simple', message: expect.anything() },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'commands',
       };
@@ -136,7 +237,6 @@ describe('Commands NodeGraph', () => {
           title: 'OrderService',
           mode: 'simple',
           service: mockServices[0],
-          showSource: false,
         },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',

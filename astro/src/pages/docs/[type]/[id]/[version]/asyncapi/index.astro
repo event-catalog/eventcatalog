@@ -7,14 +7,13 @@ import { Parser } from '@asyncapi/parser';
 
 import type { CollectionTypes, PageTypes } from '@types';
 
-import PlainPage from '@layouts/PlainPage.astro';
-
 import '@asyncapi/react-component/styles/default.min.css';
 import js from '@asyncapi/react-component/browser/standalone/without-parser.js?url';
 import { AsyncApiComponentWP, type ConfigInterface } from '@asyncapi/react-component';
 import { pageDataLoader } from '@utils/pages/pages';
 import type { CollectionEntry } from 'astro:content';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import Config from '@eventcatalog';
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];
@@ -45,7 +44,9 @@ const pathToSpec = path.join(catalog.publicPath, fileName);
 const pathOnDisk = path.join(process.env.CATALOG_DIR!, 'public', pathToSpec);
 const fileContent = readFileSync(pathOnDisk, 'utf-8');
 
-const parsed = await new Parser().parse(fileContent);
+// AsyncAPI parser will parser schemas for users, they can turn this off.
+const parseSchemas = Config?.asyncAPI?.renderParsedSchemas ?? true;
+const parsed = await new Parser().parse(fileContent, { parseSchemas });
 const stringified = parsed.document?.json();
 const config: ConfigInterface = { show: { sidebar: true, errors: true } };
 

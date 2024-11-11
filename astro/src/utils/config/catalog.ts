@@ -18,4 +18,19 @@ export type CatalogConfig = {
   };
 };
 
+const getConfigValue = (obj: any, key: string, defaultValue: any) => {
+  return obj?.[key] ?? defaultValue;
+};
+
+export const isCollectionVisibleInCatalog = (collection: string) => {
+  const sidebarConfig = config?.default?.docs?.sidebar || {};
+  const collections = ['events', 'commands', 'queries', 'domains', 'flows', 'services', 'teams', 'users'];
+
+  if (!collections.includes(collection)) return false;
+
+  const collectionConfig =
+    sidebarConfig[collection === 'events' || collection === 'commands' || collection === 'queries' ? 'messages' : collection];
+  return getConfigValue(collectionConfig, 'visible', true);
+};
+
 export default config.default;

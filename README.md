@@ -130,6 +130,15 @@ Thank you to our project sponsors.
 
 <hr />
 
+<div align="center">
+  <img alt="oso" src=".github/images/sponsors/oso-logo-green.png" width="30%" />
+  <p style="margin: 0; padding: 0;">Delivering Apache Kafka professional services to your business
+</p>
+  <a href="https://oso.sh/?utm_source=eventcatalog&utm_medium=web&utm_campaign=sponsorship" target="_blank" >Learn more</a>
+</div>
+
+<hr />
+
 _Sponsors help make EventCatalog sustainable, want to help the project? Get in touch! Or [visit our sponsor page](https://www.eventcatalog.dev/support)._
 
 # Enterprise support

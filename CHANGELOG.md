@@ -1,5 +1,44 @@
 # @eventcatalog/core
 
+## 2.12.3
+
+### Patch Changes
+
+- d0d13c9: chore(core): fixing z-index issue with the header nav and removing the max-width
+
+## 2.12.2
+
+### Patch Changes
+
+- 93e224c: fix(core): custom defined landing page for docs now render on docs tab
+
+## 2.12.1
+
+### Patch Changes
+
+- a57282e: fix(core): new property for AsyncAPI rendering
+- d739d7b: fix(core): changelog buttons now render the correct changelog
+
+## 2.12.0
+
+### Minor Changes
+
+- a136d50: feat(core): services can now send and receive the same messages in vis…
+
+## 2.11.7
+
+### Patch Changes
+
+- 159e2d4: feat(core): added ability to embed discovery table
+
+## 2.11.6
+
+### Patch Changes
+
+- 9a531d2: feat(core): added ability to embed discovery table
+- 2352fc0: feat(core): added ability to embed catalog pages
+- 112f735: feat(core): added ability to embed visualiser without footers
+
 ## 2.11.5
 
 ### Patch Changes
