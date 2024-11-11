@@ -8,6 +8,7 @@ import concurrently from 'concurrently';
 import type { Logger } from 'pino';
 import { pino } from 'pino';
 import pinoPretty from 'pino-pretty';
+import whichPm from 'which-pm';
 import { VERSION } from './constants';
 import { catalogToAstro } from '@/catalog-to-astro-content-directory';
 import logBuild from '@/analytics/log-build';
@@ -41,6 +42,24 @@ const copyAstroTo = async (coreDir: string, opts?: { logger: Logger }) => {
   // Copy required eventcatlog files into users directory
   fs.cpSync(eventCatalogDir, coreDir, { recursive: true });
 };
+
+/**
+ * Get the command to execute a package (e.g. `npx`, `yarn dlx`, `pnpm dlx`, etc.)
+ * @returns The command to execute a package
+ */
+async function getExecCommand(): Promise<string> {
+  const packageManager = (await whichPm(process.cwd()))?.name ?? 'npm';
+
+  switch (packageManager) {
+    case 'yarn':
+      return 'yarn dlx';
+    case 'pnpm':
+      return 'pnpm dlx';
+    case 'npm':
+    default:
+      return 'npx';
+  }
+}
 
 const clearDir = (dir: string) => {
   if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true });
@@ -79,9 +98,10 @@ program
     logger.info('EventCatalog is starting at http://localhost:3000/docs');
     const unsubWatcher = await watch(projectDir, ecCoreDir);
 
+    const execCommand = await getExecCommand();
     const { result } = concurrently([
       {
-        command: `npx astro dev --root ${ecCoreDir}`,
+        command: `${execCommand} astro dev --root ${ecCoreDir}`,
         env: {
           PROJECT_DIR: projectDir,
           CATALOG_DIR: ecCoreDir,
@@ -122,7 +142,8 @@ program
 
     await logBuild(projectDir);
 
-    execSync(`npx astro build --root ${ecCoreDir}`, {
+    const execCommand = await getExecCommand();
+    execSync(`${execCommand} astro build --root ${ecCoreDir}`, {
       stdio: 'inherit',
       env: {
         ...process.env,
@@ -135,7 +156,8 @@ program
 const previewCatalog = async ({ projectDir, ecCoreDir }: { projectDir: string; ecCoreDir: string }) => {
   // TODO: resolve the --root from the eventcatalog.config.js -> outDir having as rootDir the projectDir `path.resolve(projectDir, config.outDir)`
   // TODO: get the port from eventcatalog.config.js
-  execSync(`npx astro preview --root ${projectDir} --port 3000`, {
+  const execCommand = await getExecCommand();
+  execSync(`${execCommand} astro preview --root ${projectDir} --port 3000`, {
     stdio: 'inherit',
     env: {
       ...process.env,
@@ -191,4 +213,10 @@ program
     await generate(projectDir, { logger });
   });
 
-program.parseAsync();
+program
+  .parseAsync()
+  .then(() => process.exit(0))
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });

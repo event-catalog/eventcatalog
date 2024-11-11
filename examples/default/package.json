@@ -2,9 +2,5 @@
   "type": "module",
   "scripts": {
     "build": "eventcatalog build"
-  },
-  "dependencies": {
-    "@eventcatalog/core": "../../eventcatalog-core-2.11.5.tgz"
-  },
-  "version": "0.0.0"
+  }
 }
