@@ -24,7 +24,7 @@
   "scripts": {
     "build:bin": "tsup",
     "prepublishOnly": "npm run build:bin",
-    "test": "vitest --config vitest.config.ts",
+    "test": "vitest",
     "test:ci": "node .github/scripts/test.js",
     "test:e2e": "playwright test",
     "start:catalog": "npm run build:bin && npx . dev --project-dir examples/default/ --ec-core-dir astro/ --debug",
