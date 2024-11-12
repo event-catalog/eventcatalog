@@ -1,7 +1,7 @@
 import { MarkerType } from 'reactflow';
-import { getNodesAndEdges } from '../../events/node-graph';
+import { getNodesAndEdgesForEvents as getNodesAndEdges } from '../../node-graphs/message-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockEvents, mockServices } from './mocks';
+import { mockEvents, mockServices, mockChannels } from './mocks';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
@@ -11,6 +11,9 @@ vi.mock('astro:content', async (importOriginal) => {
       if (key === 'services') {
         return Promise.resolve(mockServices);
       }
+      if (key === 'channels') {
+        return Promise.resolve(mockChannels);
+      }
       if (key === 'events') {
         return Promise.resolve(mockEvents);
       }
@@ -19,7 +22,7 @@ vi.mock('astro:content', async (importOriginal) => {
   };
 });
 
-describe('Services NodeGraph', () => {
+describe('Events NodeGraph', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -33,7 +36,7 @@ describe('Services NodeGraph', () => {
         id: 'OrderCreatedEvent-0.0.1',
         sourcePosition: 'right',
         targetPosition: 'left',
-        // data: { mode: 'simple', message: expect.anything(), showTarget: false, showSource: false },
+        // data: { mode: 'simple', message: expect.anything(), showSource: false },
         data: expect.anything(),
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'events',
@@ -44,7 +47,7 @@ describe('Services NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: mockServices[0], showTarget: false },
+        data: { mode: 'simple', service: mockServices[0] },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -56,7 +59,6 @@ describe('Services NodeGraph', () => {
           title: 'PaymentService',
           mode: 'simple',
           service: mockServices[1],
-          showSource: false,
         },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
@@ -67,7 +69,6 @@ describe('Services NodeGraph', () => {
           id: 'OrderService-0.0.1-OrderCreatedEvent-0.0.1',
           source: 'OrderService-0.0.1',
           target: 'OrderCreatedEvent-0.0.1',
-          type: 'smoothstep',
           label: 'publishes event',
           animated: false,
           markerEnd: {
@@ -78,12 +79,12 @@ describe('Services NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'OrderCreatedEvent-0.0.1-PaymentService-0.0.1',
           source: 'OrderCreatedEvent-0.0.1',
           target: 'PaymentService-0.0.1',
-          type: 'smoothstep',
           label: 'subscribed by',
           animated: false,
           markerEnd: {
@@ -94,6 +95,7 @@ describe('Services NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
       ];
 
@@ -121,7 +123,7 @@ describe('Services NodeGraph', () => {
         id: 'EmailSent-1.0.0',
         sourcePosition: 'right',
         targetPosition: 'left',
-        // data: { mode: 'simple', message: expect.anything(), showTarget: false, showSource: false },
+        // data: { mode: 'simple', message: expect.anything(), showSource: false },
         data: expect.anything(),
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'events',
@@ -132,7 +134,7 @@ describe('Services NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: mockServices[4], showTarget: false },
+        data: { mode: 'simple', service: mockServices[4] },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -144,7 +146,6 @@ describe('Services NodeGraph', () => {
           title: 'NotificationsService',
           mode: 'simple',
           service: mockServices[4],
-          showSource: false,
         },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
@@ -155,7 +156,6 @@ describe('Services NodeGraph', () => {
           id: 'NotificationsService-0.0.1-EmailSent-1.0.0',
           source: 'NotificationsService-0.0.1',
           target: 'EmailSent-1.0.0',
-          type: 'smoothstep',
           label: 'publishes event',
           animated: false,
           markerEnd: {
@@ -166,12 +166,12 @@ describe('Services NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'EmailSent-1.0.0-NotificationsService-0.0.1',
           source: 'EmailSent-1.0.0',
           target: 'NotificationsService-0.0.1',
-          type: 'smoothstep',
           label: 'subscribed by',
           animated: false,
           markerEnd: {
@@ -182,12 +182,12 @@ describe('Services NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'EmailSent-1.0.0-NotificationsService-0.0.1-both',
           source: 'EmailSent-1.0.0',
           target: 'NotificationsService-0.0.1',
-          type: 'smoothstep',
           label: 'publishes and subscribes',
           animated: false,
           markerEnd: {
@@ -198,6 +198,7 @@ describe('Services NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
       ];
 
@@ -215,6 +216,82 @@ describe('Services NodeGraph', () => {
       );
 
       expect(edges).toEqual(expectedEdges);
+    });
+
+    it('creates channel nodes and edges between the producer and the event if the event has a channel specified', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'EmailVerified', version: '1.0.0' });
+
+      const expectedProducerNode = {
+        id: 'NotificationsService-0.0.1',
+        type: 'services',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', service: mockServices[4] },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
+      const expectedChannelNode = {
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        id: 'NotificationsService-0.0.1-EmailChannel-1.0.0-EmailVerified-1.0.0',
+        data: {
+          title: 'EmailChannel',
+          mode: 'simple',
+          channel: expect.anything(),
+          source: expect.anything(),
+          target: expect.anything(),
+        },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'channels',
+      };
+
+      // The middle node itself, the service
+      const expectedEventNode = {
+        id: 'EmailVerified-1.0.0',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: expect.anything(),
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'events',
+      };
+
+      expect(nodes).toHaveLength(3);
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          // Nodes on the left
+          expect.objectContaining(expectedProducerNode),
+
+          // channel
+          expect.objectContaining(expectedChannelNode),
+
+          // The event node itself
+          expect.objectContaining(expectedEventNode),
+        ])
+      );
+
+      expect(edges).toEqual([
+        {
+          label: '',
+          animated: false,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
+          style: { strokeWidth: 1 },
+          id: 'NotificationsService-0.0.1-EmailChannel-1.0.0-EmailVerified-1.0.0',
+          source: 'NotificationsService-0.0.1',
+          target: 'NotificationsService-0.0.1-EmailChannel-1.0.0-EmailVerified-1.0.0',
+          data: { message: expect.anything() },
+        },
+        {
+          label: 'publishes event',
+          animated: false,
+          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
+          style: { strokeWidth: 1 },
+          id: 'EmailChannel-1.0.0-EmailVerified-1.0.0-NotificationsService-0.0.1',
+          source: 'NotificationsService-0.0.1-EmailChannel-1.0.0-EmailVerified-1.0.0',
+          target: 'EmailVerified-1.0.0',
+          data: { message: expect.anything() },
+        },
+      ]);
     });
 
     it('returns empty nodes and edges if no event is found', async () => {
@@ -242,7 +319,7 @@ describe('Services NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: mockServices[2], showTarget: false },
+        data: { mode: 'simple', service: mockServices[2] },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -250,7 +327,7 @@ describe('Services NodeGraph', () => {
         id: 'CatalogService-0.0.1',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { title: 'CatalogService', mode: 'simple', service: mockServices[3], showSource: false },
+        data: { title: 'CatalogService', mode: 'simple', service: mockServices[3] },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
       };
@@ -260,7 +337,6 @@ describe('Services NodeGraph', () => {
           id: 'InventoryService-0.0.1-InventoryAdjusted-1.5.1',
           source: 'InventoryService-0.0.1',
           target: 'InventoryAdjusted-1.5.1',
-          type: 'smoothstep',
           label: 'publishes event',
           animated: false,
           markerEnd: {
@@ -271,12 +347,12 @@ describe('Services NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
         {
           id: 'InventoryAdjusted-1.5.1-CatalogService-0.0.1',
           source: 'InventoryAdjusted-1.5.1',
           target: 'CatalogService-0.0.1',
-          type: 'smoothstep',
           label: 'subscribed by',
           animated: false,
           markerEnd: {
@@ -287,6 +363,7 @@ describe('Services NodeGraph', () => {
           style: {
             strokeWidth: 1,
           },
+          data: { message: expect.anything() },
         },
       ];
 

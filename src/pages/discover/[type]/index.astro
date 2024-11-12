@@ -1,9 +1,9 @@
 ---
 import DiscoverLayout from '@layouts/DiscoverLayout.astro';
 import type { PageTypes } from '@types';
-import { getFlows } from '@utils/flows/flows';
+import { getFlows } from '@utils/collections/flows';
 
-import { pageDataLoader } from '@utils/pages/pages';
+import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 type PageTypesWithFlows = PageTypes | 'flows';
 
 export async function getStaticPaths() {
@@ -12,7 +12,7 @@ export async function getStaticPaths() {
     flows: getFlows,
   };
 
-  const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows'];
+  const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows', 'channels'];
   const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
 
   return allItems.flatMap((items, index) => ({

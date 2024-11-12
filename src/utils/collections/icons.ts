@@ -7,6 +7,8 @@ import {
   QueueListIcon,
   UserGroupIcon,
   UserIcon,
+  ArrowsRightLeftIcon,
+  VariableIcon,
 } from '@heroicons/react/24/outline';
 
 export const getIconForCollection = (collection: string) => {
@@ -27,6 +29,10 @@ export const getIconForCollection = (collection: string) => {
       return UserGroupIcon;
     case 'users':
       return UserIcon;
+    case 'channels':
+      return ArrowsRightLeftIcon;
+    case 'channels-parameter':
+      return VariableIcon;
     default:
       return ServerIcon;
   }

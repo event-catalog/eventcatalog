@@ -11,6 +11,7 @@ import Step from '@components/MDX/Steps/Step.astro';
 import Admonition from '@components/MDX/Admonition';
 import OpenAPI from '@components/MDX/OpenAPI/OpenAPI.astro';
 import AsyncAPI from '@components/MDX/AsyncAPI/AsyncAPI.astro';
+import ChannelInformation from '@components/MDX/ChannelInformation/ChannelInformation';
 
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
@@ -30,6 +31,7 @@ const components = (props: any) => {
     Admonition: (mdxProp: any) => <Admonition {...mdxProp} {...props} />,
     File: (mdxProp: any) => File({ ...props, ...mdxProp }),
     NodeGraph: (mdxProp: any) => NodeGraphPortal({ ...props.data, ...mdxProp }),
+    ChannelInformation: (mdxProp: any) => ChannelInformation({ ...props.data, ...mdxProp }),
     SchemaViewer: (mdxProp: any) => SchemaViewerPortal({ ...props.data, ...mdxProp }),
     Schema: (mdxProp: any) => Schema({ ...props, ...mdxProp }),
   };

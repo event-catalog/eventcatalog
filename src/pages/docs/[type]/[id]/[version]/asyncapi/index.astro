@@ -10,10 +10,10 @@ import type { CollectionTypes, PageTypes } from '@types';
 import '@asyncapi/react-component/styles/default.min.css';
 import js from '@asyncapi/react-component/browser/standalone/without-parser.js?url';
 import { AsyncApiComponentWP, type ConfigInterface } from '@asyncapi/react-component';
-import { pageDataLoader } from '@utils/pages/pages';
+import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import type { CollectionEntry } from 'astro:content';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import Config from '@eventcatalog';
+import Config from '@utils/eventcatalog-config/catalog';
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];

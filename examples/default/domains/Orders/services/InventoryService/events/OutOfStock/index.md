@@ -10,6 +10,8 @@ owners:
     - asmith
     - full-stack
     - mobile-devs
+channels:
+  - id: inventory.{env}.events
 badges:
     - content: Recently updated!
       backgroundColor: green

@@ -1,11 +1,13 @@
 ---
 import NodeGraphNew from './NodeGraph';
-import { getNodesAndEdges as getNodesAndEdgesForService } from '@utils/services/node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForEvent } from '@utils/events/node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForCommand } from '@utils/commands/node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForQueries } from '@utils/queries/node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/domains/node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/flows/node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForService } from '@utils/node-graphs/services-node-graph';
+import {
+  getNodesAndEdgesForCommands,
+  getNodesAndEdgesForEvents,
+  getNodesAndEdgesForQueries,
+} from '@utils/node-graphs/message-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/node-graphs/domains-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs/flows-node-graph';
 
 interface Props {
   id: string;
@@ -24,71 +26,26 @@ interface Props {
 const { id, collection, title, mode = 'simple', linkTo = 'docs', version, href, linksToVisualiser } = Astro.props;
 let nodes = [],
   edges = [];
+const getNodesAndEdgesFunctions = {
+  services: getNodesAndEdgesForService,
+  events: getNodesAndEdgesForEvents,
+  commands: getNodesAndEdgesForCommands,
+  queries: getNodesAndEdgesForQueries,
+  domains: getNodesAndEdgesForDomain,
+  flows: getNodesAndEdgesForFlows,
+};
 
-if (collection === 'services') {
-  const { nodes: serviceNodes, edges: serviceEdges } = await getNodesAndEdgesForService({
-    id: id,
+if (collection in getNodesAndEdgesFunctions) {
+  const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesFunctions[
+    collection as keyof typeof getNodesAndEdgesFunctions
+  ]({
+    id,
     version,
     mode,
   });
 
-  nodes = serviceNodes;
-  edges = serviceEdges;
-}
-
-if (collection === 'events') {
-  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForEvent({
-    id: id,
-    version,
-    mode,
-  });
-
-  nodes = eventNodes;
-  edges = eventEdges;
-}
-
-if (collection === 'commands') {
-  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForCommand({
-    id: id,
-    version,
-    mode,
-  });
-
-  nodes = eventNodes;
-  edges = eventEdges;
-}
-
-if (collection === 'queries') {
-  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForQueries({
-    id: id,
-    version,
-    mode,
-  });
-
-  nodes = eventNodes;
-  edges = eventEdges;
-}
-
-if (collection === 'domains') {
-  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForDomain({
-    id: id,
-    version,
-    mode,
-  });
-
-  nodes = eventNodes;
-  edges = eventEdges;
-}
-
-if (collection === 'flows') {
-  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForFlows({
-    id: id,
-    version,
-    mode,
-  });
-
-  nodes = eventNodes;
-  edges = eventEdges;
+  nodes = fetchedNodes;
+  edges = fetchedEdges;
 }
 ---
 

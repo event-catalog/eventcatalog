@@ -1,7 +1,7 @@
 import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { mockCommands, mockEvents, mockQueries, mockServices } from './mocks';
-import { getServices } from '@utils/services/services';
+import { getServices } from '@utils/collections/services';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
@@ -85,7 +85,7 @@ describe('Services', () => {
               id: 'InventoryService',
               version: '1.0.0',
               receives: [mockEvents[2]],
-              sends: [mockEvents[6]],
+              sends: [mockEvents[7]],
             }),
           }),
         ])
@@ -104,8 +104,8 @@ describe('Services', () => {
             data: expect.objectContaining({
               id: 'PaymentService',
               version: '1.0.0',
-              receives: [mockEvents[3]],
-              sends: [mockEvents[8], mockEvents[10]],
+              receives: [mockEvents[3], mockEvents[4]],
+              sends: [mockEvents[9], mockEvents[11], mockEvents[12]],
             }),
           }),
         ])

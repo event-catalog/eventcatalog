@@ -1,10 +1,10 @@
 ---
 import { getCommands } from '@utils/commands';
-import { getDomains } from '@utils/domains/domains';
+import { getDomains } from '@utils/collections/domains';
 import { getEvents } from '@utils/events';
-import { getFlows } from '@utils/flows/flows';
+import { getFlows } from '@utils/collections/flows';
 import { getQueries } from '@utils/queries';
-import { getServices } from '@utils/services/services';
+import { getServices } from '@utils/collections/services';
 import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
 
 const [services, events, commands, queries, domains, flows] = await Promise.all([

@@ -47,15 +47,15 @@ function DownloadButton({ filename, addPadding = true }: { filename?: string; ad
   };
 
   return (
-    <Panel position="top-right" id="download-visual">
+    <div id="download-visual">
       <button
         className={`hidden md:flex bg-white group download-btn items-center space-x-1 text-[14px] border border-gray-200 px-1 py-0.5 rounded-md hover:bg-gray-100/50 ${addPadding ? 'mt-14' : '-mt-1'}`}
         onClick={onClick}
       >
         <DocumentArrowDownIcon className="w-4 h-4 group-hover:text-primary" />
-        <span className="group-hover:text-primary">Download visual </span>
+        <span className="group-hover:text-primary">Export visual </span>
       </button>
-    </Panel>
+    </div>
   );
 }
 

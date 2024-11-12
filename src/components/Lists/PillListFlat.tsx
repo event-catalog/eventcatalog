@@ -12,12 +12,14 @@ interface Props {
   pills: {
     label: string;
     badge?: string;
-    href: string;
+    href?: string;
     tag?: string;
     color?: string;
     collection?: string;
+    description?: string;
+    icon?: string;
   }[];
-  emptyMessage: string;
+  emptyMessage?: string;
 }
 
 const PillList = ({ title, pills, emptyMessage, color = 'gray', ...props }: Props) => {
@@ -33,27 +35,32 @@ const PillList = ({ title, pills, emptyMessage, color = 'gray', ...props }: Prop
           <DisclosurePanel className="mt-2 text-sm/5 text-black/50">
             <ul role="list" className="space-y-2">
               {pills.map((item) => {
+                const href = item.href ?? '#';
                 const Icon = item.collection ? getIconForCollection(item.collection) : null;
+
                 return (
                   <li
                     className=" has-tooltip rounded-md text-gray-600 group px-1 w-full hover:bg-gradient-to-l hover:from-purple-500 hover:to-purple-700 hover:text-white hover:font-normal  "
                     key={item.href}
                   >
-                    <a className={`flex items-center space-x-2`} href={item.href}>
-                      {Icon && <Icon className={`h-4 w-4`} />}
-                      <span className="font-light text-sm truncate">
-                        {item.label} ({item.tag})
-                      </span>
-                      {item.label.length > 24 && (
-                        <span className="tooltip rounded relative shadow-lg p-1 font-normal text-xs bg-white  text-black ml-[30px] mt-12">
-                          {item.label} ({item.tag})
+                    <a className={`leading-3`} href={href}>
+                      <span className="space-x-2 flex items-center">
+                        {Icon && <Icon className={`h-4 w-4`} />}
+                        <span className="font-light text-sm truncate">
+                          {item.label} {item.tag && <>({item.tag})</>}
                         </span>
-                      )}
+                        {item.label.length > 24 && (
+                          <span className="tooltip rounded relative shadow-lg p-1 font-normal text-xs bg-white  text-black ml-[30px] mt-12">
+                            {item.label} ({item.tag})
+                          </span>
+                        )}
+                      </span>
+                      {item.description && <span className="text-[9px] block ml-6 mt-1 leading-0">{item.description}</span>}
                     </a>
                   </li>
                 );
               })}
-              {pills.length === 0 && (
+              {pills.length === 0 && emptyMessage && (
                 <li className="inline mr-2 leading-tight text-xs">
                   <span className="text-gray-400">{emptyMessage}</span>
                 </li>

@@ -23,6 +23,7 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
   });
 
   const services = await getCollection('services');
+  const allChannels = await getCollection('channels');
 
   return events.map((event) => {
     const { latestVersion, versions } = getVersionForCollectionItem(event, events);
@@ -43,10 +44,14 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
       })
     );
 
+    const messageChannels = event.data.channels || [];
+    const channelsForEvent = allChannels.filter((c) => messageChannels.some((channel) => c.data.id === channel.id));
+
     return {
       ...event,
       data: {
         ...event.data,
+        messageChannels: channelsForEvent,
         producers,
         consumers,
         versions,

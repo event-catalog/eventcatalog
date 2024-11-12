@@ -10,14 +10,16 @@ import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewer.astro';
 import ServiceSideBar from '@components/SideBars/ServiceSideBar.astro';
 import MessageSideBar from '@components/SideBars/MessageSideBar.astro';
 import DomainSideBar from '@components/SideBars/DomainSideBar.astro';
+import ChannelSideBar from '@components/SideBars/ChannelSideBar.astro';
 
 import { QueueListIcon, RectangleGroupIcon, ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import type { PageTypes } from '@types';
 
 import { buildUrl } from '@utils/url-builder';
-import { getFlows } from '@utils/flows/flows';
-import { pageDataLoader } from '@utils/pages/pages';
+import { getFlows } from '@utils/collections/flows';
+import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { ViewTransitions } from 'astro:transitions';
+import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
 
 type PageTypesWithFlows = PageTypes | 'flows';
 
@@ -27,7 +29,7 @@ export async function getStaticPaths() {
     flows: getFlows,
   };
 
-  const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows'];
+  const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows', 'channels'];
   const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
 
   return allItems.flatMap((items, index) =>
@@ -77,6 +79,10 @@ const getBadge = () => {
     return { backgroundColor: 'teal', textColor: 'teal', content: 'Flow', icon: QueueListIcon, class: 'text-gray' };
   }
 
+  if (props.collection === 'channels') {
+    return { backgroundColor: 'teal', textColor: 'teal', content: 'Channel', icon: ArrowsRightLeftIcon, class: 'text-gray' };
+  }
+
   return { backgroundColor: 'teal', textColor: 'teal', content: '', icon: QueueListIcon, class: 'text-gray' };
 };
 
@@ -121,7 +127,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
         <div class="border-b border-gray-200 flex justify-between items-start md:pb-2">
           <div>
-            <h2 class="text-2xl md:text-4xl font-bold text-black">
+            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-black">
               {props.data.name}
               <span class="">(v{props.data.version})</span>
             </h2>
@@ -214,6 +220,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
         }
         {props?.collection === 'services' && <ServiceSideBar service={props} />}
         {props?.collection === 'domains' && <DomainSideBar domain={props} />}
+        {props?.collection === 'channels' && <ChannelSideBar channel={props} />}
       </aside>
     </div>
     <ViewTransitions />

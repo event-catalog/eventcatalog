@@ -18,6 +18,12 @@ const pointer = z.object({
   version: z.string().optional().default('latest'),
 });
 
+const channelPointer = z
+  .object({
+    parameters: z.record(z.string()).optional(),
+  })
+  .merge(pointer);
+
 const changelogs = defineCollection({
   type: 'content',
   schema: z.object({
@@ -142,6 +148,9 @@ const events = defineCollection({
     .object({
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
+      channels: z.array(channelPointer).optional(),
+      // Used by eventcatalog
+      messageChannels: z.array(reference('channels')).optional(),
     })
     .merge(baseSchema),
 });
@@ -152,6 +161,9 @@ const commands = defineCollection({
     .object({
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
+      channels: z.array(channelPointer).optional(),
+      // Used by eventcatalog
+      messageChannels: z.array(reference('channels')).optional(),
     })
     .merge(baseSchema),
 });
@@ -162,6 +174,9 @@ const queries = defineCollection({
     .object({
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
+      channels: z.array(channelPointer).optional(),
+      // Used by eventcatalog
+      messageChannels: z.array(reference('channels')).optional(),
     })
     .merge(baseSchema),
 });
@@ -172,6 +187,27 @@ const services = defineCollection({
     .object({
       sends: z.array(pointer).optional(),
       receives: z.array(pointer).optional(),
+    })
+    .merge(baseSchema),
+});
+
+const channels = defineCollection({
+  type: 'content',
+  schema: z
+    .object({
+      address: z.string().optional(),
+      protocols: z.array(z.string()).optional(),
+      parameters: z
+        .record(
+          z.object({
+            enum: z.array(z.string()).optional(),
+            default: z.string().optional(),
+            examples: z.array(z.string()).optional(),
+            description: z.string().optional(),
+          })
+        )
+        .optional(),
+      messages: z.array(z.object({ collection: z.string(), name: z.string(), ...pointer.shape })).optional(),
     })
     .merge(baseSchema),
 });
@@ -225,6 +261,7 @@ export const collections = {
   commands,
   queries,
   services,
+  channels,
   users,
   teams,
   domains,

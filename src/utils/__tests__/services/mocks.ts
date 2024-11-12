@@ -52,6 +52,9 @@ export const mockServices = [
         {
           id: 'OrderCreatedEvent',
         },
+        {
+          id: 'OrderDeletedEvent',
+        },
       ],
       sends: [
         {
@@ -60,6 +63,9 @@ export const mockServices = [
         {
           id: 'PaymentFailed',
           version: 'latest',
+        },
+        {
+          id: 'EmailVerified',
         },
       ],
     },
@@ -119,6 +125,20 @@ export const mockEvents = [
     },
   },
   {
+    slug: 'OrderDeletedEvent',
+    collection: 'events',
+    data: {
+      id: 'OrderDeletedEvent',
+      version: '2.0.0',
+      channels: [
+        {
+          id: 'OrderChannel',
+          version: '1.0.0',
+        },
+      ],
+    },
+  },
+  {
     slug: 'InventoryAdjusted',
     collection: 'events',
     data: {
@@ -151,7 +171,7 @@ export const mockEvents = [
       version: '1.0.0',
     },
   },
-  // 8
+  // 9
   {
     slug: 'PaymentPaid',
     collection: 'events',
@@ -160,7 +180,7 @@ export const mockEvents = [
       version: '2.0.0',
     },
   },
-  // 9
+  // 10
   {
     slug: 'PaymentFailed',
     collection: 'events',
@@ -169,13 +189,29 @@ export const mockEvents = [
       version: '1.0.0',
     },
   },
-  // 10
+  // 11
   {
     slug: 'PaymentFailed',
     collection: 'events',
     data: {
       id: 'PaymentFailed',
       version: '1.2.3',
+    },
+  },
+  // 12
+  {
+    id: 'EmailVerified',
+    slug: 'EmailVerified',
+    collection: 'events',
+    data: {
+      id: 'EmailVerified',
+      version: '1.0.0',
+      channels: [
+        {
+          id: 'EmailChannel',
+          version: '1.0.0',
+        },
+      ],
     },
   },
 ];
@@ -197,6 +233,27 @@ export const mockQueries = [
     data: {
       id: 'GetOrder',
       version: '0.0.1',
+    },
+  },
+];
+
+export const mockChannels = [
+  {
+    id: 'EmailChannel',
+    slug: 'EmailChannel',
+    collection: 'channels',
+    data: {
+      id: 'EmailChannel',
+      version: '1.0.0',
+    },
+  },
+  {
+    id: 'OrderChannel',
+    slug: 'OrderChannel',
+    collection: 'channels',
+    data: {
+      id: 'OrderChannel',
+      version: '1.0.0',
     },
   },
 ];

@@ -1,9 +1,9 @@
 ---
-import { getFlows } from '@utils/flows/flows';
-import { getNodesAndEdges } from '@utils/flows/node-graph';
+import { getFlows } from '@utils/collections/flows';
+import { getNodesAndEdges } from '@utils/node-graphs/flows-node-graph';
 import Admonition from '@components/MDX/Admonition';
 import NodeGraph from '../NodeGraph/NodeGraph';
-import { getVersionFromCollection } from '@utils/versions/versions';
+import { getVersionFromCollection } from '@utils/collections/versions';
 
 const { id, version = 'latest', maxHeight, includeKey = true } = Astro.props;
 

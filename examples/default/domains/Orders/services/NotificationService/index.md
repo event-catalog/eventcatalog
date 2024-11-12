@@ -17,7 +17,7 @@ receives:
     version: x
 sends:
   - id: OutOfStock
-    version: 0.0.x
+    version: latest
   - id: GetInventoryList
     version: 0.0.x
 repository:

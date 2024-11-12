@@ -1,4 +1,4 @@
-import { getNodesAndEdges } from '../../flows/node-graph';
+import { getNodesAndEdges } from '../../node-graphs/flows-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 import { mockEvents, mockFlow, mockFlowByIds, mockServices } from './mocks';
 import { getCollection } from 'astro:content';
@@ -105,7 +105,7 @@ describe('Flows NodeGraph', () => {
           id: 'step-1-step-2',
           source: 'step-1',
           target: 'step-2',
-          type: 'smoothstep',
+          type: 'bezier',
           animated: true,
           markerEnd: expect.objectContaining({ type: 'arrowclosed' }),
           style: expect.any(Object),
@@ -236,7 +236,7 @@ describe('Flows NodeGraph', () => {
             id: 'step-1-step-2',
             source: 'step-1',
             target: 'step-2',
-            type: 'smoothstep',
+            type: 'bezier',
             animated: true,
             markerEnd: expect.objectContaining({ type: 'arrowclosed' }),
             style: expect.any(Object),

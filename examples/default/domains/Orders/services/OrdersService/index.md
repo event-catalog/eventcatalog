@@ -10,8 +10,10 @@ receives:
   - id: InventoryAdjusted
     version: 0.0.3
   - id: GetOrder
-    version: 0.0.1
 sends:
+  - id: OrderAmended
+  - id: OrderCancelled
+  - id: OrderConfirmed
   - id: AddInventory  
     version: 0.0.3
 repository:

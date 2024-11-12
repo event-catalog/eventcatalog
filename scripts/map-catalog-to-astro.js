@@ -11,6 +11,7 @@ const COLLECTION_KEYS = [
   'pages',
   'changelogs',
   'queries',
+  'channels',
 ];
 
 /**

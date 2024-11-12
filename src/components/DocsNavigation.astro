@@ -1,12 +1,12 @@
 ---
 import { getCommands } from '@utils/commands';
-import { getDomains } from '@utils/domains/domains';
+import { getDomains } from '@utils/collections/domains';
 import { getEvents } from '@utils/events';
-import { getServices } from '@utils/services/services';
-import { getFlows } from '@utils/flows/flows';
+import { getServices } from '@utils/collections/services';
+import { getFlows } from '@utils/collections/flows';
 import { getTeams } from '@utils/teams';
 import { getUsers } from '@utils/users';
-import config, { type CatalogConfig } from '@eventcatalog';
+import config, { type CatalogConfig } from '@utils/eventcatalog-config/catalog';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/queries';
 

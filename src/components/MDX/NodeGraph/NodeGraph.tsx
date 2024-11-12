@@ -11,8 +11,13 @@ import ReactFlow, {
   type Edge,
   type Node,
   useReactFlow,
+  getBezierPath,
+  BaseEdge,
+  SmoothStepEdge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+
+// Nodes and edges
 import ServiceNode from './Nodes/Service';
 import EventNode from './Nodes/Event';
 import QueryNode from './Nodes/Query';
@@ -20,11 +25,15 @@ import UserNode from './Nodes/User';
 import StepNode from './Nodes/Step';
 import CommandNode from './Nodes/Command';
 import ExternalSystemNode from './Nodes/ExternalSystem';
+import AnimatedMessageEdge from './Edges/AnimatedMessageEdge';
+
 import type { CollectionEntry } from 'astro:content';
 import { navigate } from 'astro:transitions/client';
 import type { CollectionTypes } from '@types';
 import DownloadButton from './DownloadButton';
 import { buildUrl } from '@utils/url-builder';
+import ChannelNode from './Nodes/Channel';
+import { CogIcon } from '@heroicons/react/20/solid';
 
 interface Props {
   nodes: any;
@@ -38,9 +47,6 @@ interface Props {
   linksToVisualiser?: boolean;
 }
 
-const getDocUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
-  return buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`);
-};
 const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
   return buildUrl(`/visualiser/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`);
 };
@@ -58,6 +64,7 @@ const NodeGraphBuilder = ({
     () => ({
       services: ServiceNode,
       events: EventNode,
+      channels: ChannelNode,
       queries: QueryNode,
       commands: CommandNode,
       step: StepNode,
@@ -67,25 +74,35 @@ const NodeGraphBuilder = ({
     }),
     []
   );
+  const edgeTypes = useMemo(
+    () => ({
+      animated: AnimatedMessageEdge,
+    }),
+    []
+  );
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAnimated, setIsAnimated] = useState(false);
+  const [animateMessages, setAnimateMessages] = useState(false);
+
   const { fitView } = useReactFlow();
 
   const resetNodesAndEdges = useCallback(() => {
     setNodes((nds) =>
       nds.map((node) => {
         node.style = { ...node.style, opacity: 1 };
-        return { ...node, animated: false };
+        return { ...node, animated: animateMessages };
       })
     );
     setEdges((eds) =>
       eds.map((edge) => {
         edge.style = { ...edge.style, opacity: 1 };
         edge.labelStyle = { ...edge.labelStyle, opacity: 1 };
-        return { ...edge, animated: false };
+        return { ...edge, data: { ...edge.data, opacity: 1 }, animated: animateMessages };
       })
     );
-  }, [setNodes, setEdges]);
+  }, [setNodes, setEdges, animateMessages]);
 
   const handleNodeClick = useCallback(
     (_: any, node: Node) => {
@@ -110,6 +127,7 @@ const NodeGraphBuilder = ({
           connectedNodeIds.add(edge.target);
           return {
             ...edge,
+            data: { ...edge.data, opacity: 1 },
             style: { ...edge.style, opacity: 1 },
             labelStyle: { ...edge.labelStyle, opacity: 1 },
             animated: true,
@@ -117,9 +135,10 @@ const NodeGraphBuilder = ({
         }
         return {
           ...edge,
+          data: { ...edge.data, opacity: 0.1 },
           style: { ...edge.style, opacity: 0.1 },
           labelStyle: { ...edge.labelStyle, opacity: 0.1 },
-          animated: false,
+          animated: animateMessages,
         };
       });
 
@@ -143,14 +162,105 @@ const NodeGraphBuilder = ({
     [nodes, edges, setNodes, setEdges, resetNodesAndEdges, fitView]
   );
 
+  const toggleAnimation = () => {
+    setIsAnimated(!isAnimated);
+    setEdges((eds) =>
+      eds.map((edge) => ({
+        ...edge,
+        animated: !isAnimated,
+      }))
+    );
+  };
+
+  const toggleAnimateMessages = () => {
+    setAnimateMessages(!animateMessages);
+    localStorage.setItem('EventCatalog:animateMessages', JSON.stringify(!animateMessages));
+  };
+
+  // animate messages, between views
+  useEffect(() => {
+    const storedAnimateMessages = localStorage.getItem('EventCatalog:animateMessages');
+    if (storedAnimateMessages !== null) {
+      setAnimateMessages(storedAnimateMessages === 'true');
+    }
+  }, []);
+
+  useEffect(() => {
+    setEdges((eds) =>
+      eds.map((edge) => ({
+        ...edge,
+        animated: animateMessages,
+        type: animateMessages ? 'animated' : 'default',
+        data: { ...edge.data, animateMessages },
+      }))
+    );
+  }, [animateMessages]);
+
   const handlePaneClick = useCallback(() => {
+    setIsSettingsOpen(false);
     resetNodesAndEdges();
     fitView({ duration: 800 });
   }, [resetNodesAndEdges, fitView]);
 
+  const handleLegendClick = useCallback(
+    (collectionType: string) => {
+      const updatedNodes = nodes.map((node) => {
+        if (node.type === collectionType) {
+          return { ...node, style: { ...node.style, opacity: 1 } };
+        }
+        return { ...node, style: { ...node.style, opacity: 0.1 } };
+      });
+
+      const updatedEdges = edges.map((edge) => {
+        return {
+          ...edge,
+          data: { ...edge.data, opacity: 0.1 },
+          style: { ...edge.style, opacity: 0.1 },
+          labelStyle: { ...edge.labelStyle, opacity: 0.1 },
+          animated: animateMessages,
+        };
+      });
+
+      setNodes(updatedNodes);
+      setEdges(updatedEdges);
+
+      fitView({
+        padding: 0.2,
+        duration: 800,
+        nodes: updatedNodes.filter((node) => node.type === collectionType),
+      });
+    },
+    [nodes, edges, setNodes, setEdges, fitView]
+  );
+
+  const getNodesByCollectionWithColors = useCallback((nodes: Node[]) => {
+    const colors = {
+      events: 'orange',
+      services: 'pink',
+      commands: 'blue',
+      queries: 'green',
+      channels: 'gray',
+    };
+
+    return nodes.reduce((acc: { [key: string]: { count: number; color: string } }, node) => {
+      const collection = node.type;
+      if (collection) {
+        if (acc[collection]) {
+          acc[collection].count += 1;
+        } else {
+          acc[collection] = { count: 1, color: colors[collection as keyof typeof colors] || 'black' };
+        }
+      }
+      return acc;
+    }, {});
+  }, []);
+
+  const legend = getNodesByCollectionWithColors(nodes);
+
   return (
     <ReactFlow
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
       nodes={nodes}
       edges={edges}
       fitView
@@ -160,25 +270,82 @@ const NodeGraphBuilder = ({
       nodeOrigin={[0.1, 0.1]}
       onNodeClick={handleNodeClick}
       onPaneClick={handlePaneClick}
+      className="relative"
     >
-      {title && (
-        <Panel position="top-right">
-          <span className="block shadow-sm bg-white text-xl z-10 text-black px-4 py-2 border-gray-200 rounded-md border">
-            <strong>Visualiser</strong> | {title}
-          </span>
-        </Panel>
+      <Panel position="top-center" className="w-full pr-6 ">
+        <div className="flex space-x-2 justify-between  items-center">
+          <div>
+            <button
+              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+              className="py-2.5 px-3 bg-white rounded-md shadow-md hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+              aria-label="Open settings"
+            >
+              <CogIcon className="h-5 w-5 text-gray-600" />
+            </button>
+          </div>
+          {title && (
+            <span className="block shadow-sm bg-white text-xl z-10 text-black px-4 py-2 border-gray-200 rounded-md border opacity-80">
+              {title}
+            </span>
+          )}
+          <div className="flex justify-end ">
+            <DownloadButton filename={title} addPadding={false} />
+          </div>
+        </div>
+      </Panel>
+
+      {isSettingsOpen && (
+        <div className="absolute top-[68px] left-5 w-72 p-4 bg-white rounded-lg shadow-lg z-30 border border-gray-200">
+          <h3 className="text-lg font-semibold mb-4">Visualizer Settings</h3>
+          <div className="space-y-4 ">
+            <div>
+              <div className="flex items-center justify-between">
+                <label htmlFor="message-animation-toggle" className="text-sm font-medium text-gray-700">
+                  Simulate Messages
+                </label>
+                <button
+                  id="message-animation-toggle"
+                  onClick={toggleAnimateMessages}
+                  className={`${
+                    animateMessages ? 'bg-purple-600' : 'bg-gray-200'
+                  } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
+                >
+                  <span
+                    className={`${
+                      animateMessages ? 'translate-x-6' : 'translate-x-1'
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                  />
+                </button>
+              </div>
+              <p className="text-[10px] text-gray-500">Animate events, queries and commands.</p>
+            </div>
+          </div>
+        </div>
       )}
-      <DownloadButton filename={title} addPadding={!!title} />
       {includeBackground && <Background color="#bbb" gap={16} />}
       {includeBackground && <Controls />}
       {includeKey && (
         <Panel position="bottom-right">
           <div className=" bg-white font-light px-4 text-[12px] shadow-md py-1 rounded-md">
+            <ul className="m-0 p-0 ">
+              {Object.entries(legend).map(([key, { count, color }]) => (
+                <li
+                  key={key}
+                  className="flex space-x-2 items-center text-[10px] cursor-pointer hover:text-purple-600 hover:underline"
+                  onClick={() => handleLegendClick(key)}
+                >
+                  <span className={`w-2 h-2 block`} style={{ backgroundColor: color }} />
+                  <span className="block capitalize">
+                    {key} ({count})
+                  </span>
+                </li>
+              ))}
+            </ul>
             {/* <span className="font-bold">Key</span> */}
-            <ul className="m-0 p-0">
+            {/* <ul className="m-0 p-0">
               <li className="flex space-x-2 items-center text-[10px]">
                 <span className="w-2 h-2 bg-orange-500 block" />
-                <span className="block">Event</span>
+                <span className="block">Events</span>
               </li>
               <li className="flex space-x-2 items-center text-[10px]">
                 <span className="w-2 h-2 bg-pink-500 block" />
@@ -192,7 +359,11 @@ const NodeGraphBuilder = ({
                 <span className="w-2 h-2 bg-green-500 block" />
                 <span className="block">Query</span>
               </li>
-            </ul>
+              <li className="flex space-x-2 items-center text-[10px]">
+                <span className="w-2 h-2 bg-gray-500 block" />
+                <span className="block">Channel</span>
+              </li>
+            </ul> */}
           </div>
         </Panel>
       )}

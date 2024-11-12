@@ -14,6 +14,10 @@ badges:
     - content: Recently updated!
       backgroundColor: green
       textColor: green
+channels:
+  - id: inventory.{env}.events
+    parameters:
+      env: staging
 schemaPath: 'schema.json'
 ---
 

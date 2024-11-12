@@ -10,15 +10,16 @@ import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 
 import { getCommands } from '@utils/commands';
-import { getDomains } from '@utils/domains/domains';
+import { getDomains } from '@utils/collections/domains';
 import { getEvents } from '@utils/events';
-import { getServices } from '@utils/services/services';
-import { getFlows } from '@utils/flows/flows';
+import { getServices } from '@utils/collections/services';
+import { getFlows } from '@utils/collections/flows';
 import { getTeams } from '@utils/teams';
 import { getUsers } from '@utils/users';
 import { isCollectionVisibleInCatalog } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/queries';
+import { getChannels } from '@utils/channels';
 import CatalogResourcesSideBar from '@components/SideBars/CatalogResourcesSideBar';
 import { hasLandingPageForDocs } from '@utils/pages';
 
@@ -27,6 +28,7 @@ const commands = await getCommands({ getAllVersions: false });
 const queries = await getQueries({ getAllVersions: false });
 const services = await getServices({ getAllVersions: false });
 const domains = await getDomains({ getAllVersions: false });
+const channels = await getChannels({ getAllVersions: false });
 const flows = await getFlows({ getAllVersions: false });
 const teams = await getTeams();
 const users = await getUsers();
@@ -34,7 +36,7 @@ const users = await getUsers();
 const messages = [...events, ...commands, ...queries];
 
 // @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
-const allData = [...domains, ...services, ...messages, ...flows, ...teams, ...users];
+const allData = [...domains, ...services, ...messages, ...channels, ...flows, ...teams, ...users];
 
 const currentPath = Astro.url.pathname;
 
@@ -99,7 +101,10 @@ const sideNav = allData.reduce((acc, item) => {
   const currentPath = Astro.url.pathname;
   const route = currentPath.includes('visualiser') ? 'visualiser' : 'docs';
 
-  if (currentPath.includes('visualiser') && (item.collection === 'teams' || item.collection === 'users')) {
+  if (
+    currentPath.includes('visualiser') &&
+    (item.collection === 'teams' || item.collection === 'users' || item.collection === 'channels')
+  ) {
     return acc;
   }
 

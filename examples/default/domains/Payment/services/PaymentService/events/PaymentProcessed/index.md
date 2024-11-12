@@ -5,6 +5,10 @@ version: 1.0.0
 summary: Event is triggered after the payment has been successfully processed
 owners:
     - dboyne
+channels:
+  - id: payments.{env}.events
+    parameters:
+      env: staging
 ---
 
 import Footer from '@catalog/components/footer.astro';
