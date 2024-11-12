@@ -26,71 +26,26 @@ interface Props {
 const { id, collection, title, mode = 'simple', linkTo = 'docs', version, href, linksToVisualiser } = Astro.props;
 let nodes = [],
   edges = [];
+const getNodesAndEdgesFunctions = {
+  services: getNodesAndEdgesForService,
+  events: getNodesAndEdgesForEvents,
+  commands: getNodesAndEdgesForCommands,
+  queries: getNodesAndEdgesForQueries,
+  domains: getNodesAndEdgesForDomain,
+  flows: getNodesAndEdgesForFlows,
+};
 
-if (collection === 'services') {
-  const { nodes: serviceNodes, edges: serviceEdges } = await getNodesAndEdgesForService({
-    id: id,
+if (collection in getNodesAndEdgesFunctions) {
+  const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesFunctions[
+    collection as keyof typeof getNodesAndEdgesFunctions
+  ]({
+    id,
     version,
     mode,
   });
 
-  nodes = serviceNodes;
-  edges = serviceEdges;
-}
-
-if (collection === 'events') {
-  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForEvents({
-    id: id,
-    version,
-    mode,
-  });
-
-  nodes = eventNodes;
-  edges = eventEdges;
-}
-
-if (collection === 'commands') {
-  const { nodes: commandNodes, edges: commandEdges } = await getNodesAndEdgesForCommands({
-    id: id,
-    version,
-    mode,
-  });
-
-  nodes = commandNodes;
-  edges = commandEdges;
-}
-
-if (collection === 'queries') {
-  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForQueries({
-    id: id,
-    version,
-    mode,
-  });
-
-  nodes = eventNodes;
-  edges = eventEdges;
-}
-
-if (collection === 'domains') {
-  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForDomain({
-    id: id,
-    version,
-    mode,
-  });
-
-  nodes = eventNodes;
-  edges = eventEdges;
-}
-
-if (collection === 'flows') {
-  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForFlows({
-    id: id,
-    version,
-    mode,
-  });
-
-  nodes = eventNodes;
-  edges = eventEdges;
+  nodes = fetchedNodes;
+  edges = fetchedEdges;
 }
 ---
 

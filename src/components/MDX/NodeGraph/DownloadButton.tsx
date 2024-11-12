@@ -53,7 +53,7 @@ function DownloadButton({ filename, addPadding = true }: { filename?: string; ad
         onClick={onClick}
       >
         <DocumentArrowDownIcon className="w-4 h-4 group-hover:text-primary" />
-        <span className="group-hover:text-primary">Download visual </span>
+        <span className="group-hover:text-primary">Export visual </span>
       </button>
     </div>
   );

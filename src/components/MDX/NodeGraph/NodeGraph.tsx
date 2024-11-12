@@ -202,6 +202,61 @@ const NodeGraphBuilder = ({
     fitView({ duration: 800 });
   }, [resetNodesAndEdges, fitView]);
 
+  const handleLegendClick = useCallback(
+    (collectionType: string) => {
+      const updatedNodes = nodes.map((node) => {
+        if (node.type === collectionType) {
+          return { ...node, style: { ...node.style, opacity: 1 } };
+        }
+        return { ...node, style: { ...node.style, opacity: 0.1 } };
+      });
+
+      const updatedEdges = edges.map((edge) => {
+        return {
+          ...edge,
+          data: { ...edge.data, opacity: 0.1 },
+          style: { ...edge.style, opacity: 0.1 },
+          labelStyle: { ...edge.labelStyle, opacity: 0.1 },
+          animated: animateMessages,
+        };
+      });
+
+      setNodes(updatedNodes);
+      setEdges(updatedEdges);
+
+      fitView({
+        padding: 0.2,
+        duration: 800,
+        nodes: updatedNodes.filter((node) => node.type === collectionType),
+      });
+    },
+    [nodes, edges, setNodes, setEdges, fitView]
+  );
+
+  const getNodesByCollectionWithColors = useCallback((nodes: Node[]) => {
+    const colors = {
+      events: 'orange',
+      services: 'pink',
+      commands: 'blue',
+      queries: 'green',
+      channels: 'gray',
+    };
+
+    return nodes.reduce((acc: { [key: string]: { count: number; color: string } }, node) => {
+      const collection = node.type;
+      if (collection) {
+        if (acc[collection]) {
+          acc[collection].count += 1;
+        } else {
+          acc[collection] = { count: 1, color: colors[collection as keyof typeof colors] || 'black' };
+        }
+      }
+      return acc;
+    }, {});
+  }, []);
+
+  const legend = getNodesByCollectionWithColors(nodes);
+
   return (
     <ReactFlow
       nodeTypes={nodeTypes}
@@ -229,13 +284,13 @@ const NodeGraphBuilder = ({
             </button>
           </div>
           {title && (
-            <span className="block shadow-sm bg-white text-xl z-10 text-black px-4 py-2 border-gray-200 rounded-md border">
-              <strong>Visualiser</strong> | {title}
+            <span className="block shadow-sm bg-white text-xl z-10 text-black px-4 py-2 border-gray-200 rounded-md border opacity-80">
+              {title}
             </span>
           )}
-        </div>
-        <div className="flex justify-end py-4">
-          <DownloadButton filename={title} addPadding={false} />
+          <div className="flex justify-end ">
+            <DownloadButton filename={title} addPadding={false} />
+          </div>
         </div>
       </Panel>
 
@@ -272,11 +327,25 @@ const NodeGraphBuilder = ({
       {includeKey && (
         <Panel position="bottom-right">
           <div className=" bg-white font-light px-4 text-[12px] shadow-md py-1 rounded-md">
+            <ul className="m-0 p-0 ">
+              {Object.entries(legend).map(([key, { count, color }]) => (
+                <li
+                  key={key}
+                  className="flex space-x-2 items-center text-[10px] cursor-pointer hover:text-purple-600 hover:underline"
+                  onClick={() => handleLegendClick(key)}
+                >
+                  <span className={`w-2 h-2 block`} style={{ backgroundColor: color }} />
+                  <span className="block capitalize">
+                    {key} ({count})
+                  </span>
+                </li>
+              ))}
+            </ul>
             {/* <span className="font-bold">Key</span> */}
-            <ul className="m-0 p-0">
+            {/* <ul className="m-0 p-0">
               <li className="flex space-x-2 items-center text-[10px]">
                 <span className="w-2 h-2 bg-orange-500 block" />
-                <span className="block">Event</span>
+                <span className="block">Events</span>
               </li>
               <li className="flex space-x-2 items-center text-[10px]">
                 <span className="w-2 h-2 bg-pink-500 block" />
@@ -294,7 +363,7 @@ const NodeGraphBuilder = ({
                 <span className="w-2 h-2 bg-gray-500 block" />
                 <span className="block">Channel</span>
               </li>
-            </ul>
+            </ul> */}
           </div>
         </Panel>
       )}
