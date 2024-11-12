@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.13.0
+
+### Minor Changes
+
+- 003c1f2: feat(core): adding channels to eventcatalog
+
 ## 2.12.3
 
 ### Patch Changes
