@@ -50,9 +50,10 @@
     "rimraf": "^5.0.7",
     "semver": "7.6.3",
     "uuid": "^10.0.0",
-    "which-pm": "^3.0.0"
+    "which-pm-runs": "^1.1.0"
   },
   "devDependencies": {
+    "@types/which-pm-runs": "^1.0.2",
     "tsup": "^8.1.0",
     "typescript": "^5.4.5"
   }

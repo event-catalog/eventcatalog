@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import concurrently from 'concurrently';
 import type { Logger } from 'pino';
 import { pino } from 'pino';
-import whichPm from 'which-pm';
+import whichPmRuns from 'which-pm-runs';
 import pinoPretty from 'pino-pretty';
 import { catalogToAstro } from '@/catalog-to-astro-content-directory';
 import logBuild from '@/analytics/log-build';
@@ -54,9 +54,8 @@ const installDeps = async (coreDir: string, ctx?: { logger?: Logger }) => {
   if (hasNodeModules) return;
 
   const logger = ctx.logger;
-
   logger?.debug('Installing dependencies...');
-  const pkgManger = (await whichPm(coreDir))?.name || 'npm';
+  const pkgManger = whichPmRuns()?.name || 'npm';
   execSync(`${pkgManger} install`, {
     cwd: coreDir,
     stdio: 'inherit',
