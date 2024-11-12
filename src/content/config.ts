@@ -207,6 +207,7 @@ const channels = defineCollection({
           })
         )
         .optional(),
+      messages: z.array(z.object({ collection: z.string(), name: z.string(), ...pointer.shape })).optional(),
     })
     .merge(baseSchema),
 });

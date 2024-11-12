@@ -16,6 +16,7 @@ const { message } = Astro.props;
 
 const producers = (message.data.producers as CollectionEntry<'services'>[]) || [];
 const consumers = (message.data.consumers as CollectionEntry<'services'>[]) || [];
+const channels = (message.data.messageChannels as CollectionEntry<'channels'>[]) || [];
 
 const ownersRaw = message.data?.owners || [];
 const owners = await Promise.all(ownersRaw.map((o) => getEntry(o)));
@@ -40,6 +41,13 @@ const ownersList = owners.map((o) => ({
   badge: o.collection === 'users' ? o.data.role : 'Team',
   avatarUrl: o.collection === 'users' ? o.data.avatarUrl : '',
   href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
+}));
+
+const channelList = channels.map((c) => ({
+  label: `${c.data.name}`,
+  tag: `v${c.data.version}`,
+  collection: c.collection,
+  href: buildUrl(`/docs/channels/${c.data.id}/${c.data.version}`),
 }));
 
 const getType = (type: string) => {
@@ -103,6 +111,11 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
           emptyMessage={getConsumerEmptyMessage(type)}
           client:load
         />
+      )
+    }
+    {
+      channelList.length > 0 && (
+        <PillListFlat color="pink" title={`Channels (${channelList.length})`} pills={channelList} client:load />
       )
     }
 
