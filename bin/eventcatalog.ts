@@ -3,132 +3,213 @@ import { Command } from 'commander';
 import { exec, execSync } from 'node:child_process';
 import { join } from 'node:path';
 import fs from 'fs';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-
-const currentDir = path.dirname(fileURLToPath(import.meta.url));
+import concurrently from 'concurrently';
+import pkgJson from '../package.json';
+import type { Logger } from 'pino';
+import { pino } from 'pino';
+import pinoPretty from 'pino-pretty';
+import { catalogToAstro } from 'scripts/catalog-to-astro-content-directory';
+import logBuild from 'scripts/analytics/log-build';
+import { watch } from 'scripts/watcher';
+import { generate } from 'scripts/generate';
 
 const program = new Command();
 
-// The users dierctory
-const dir = process.cwd();
+program.name('eventcatalog').description('Documentation tool for event-driven architectures').version(pkgJson.version);
 
-// The tmp core directory
-const core = join(dir, '.eventcatalog-core');
-
-// The project itself
-const eventCatalogDir = join(currentDir, '../../');
-
-program.name('eventcatalog').description('Documentation tool for event-driven architectures');
-
-const copyFolder = (from: string, to: string) => {
-  if (fs.existsSync(from)) {
-    fs.cpSync(from, to, { recursive: true });
+const getPackageVersion = async (directory: string): Promise<string | undefined> => {
+  try {
+    const filePath = path.join(directory, 'package.json');
+    const packageJson = JSON.parse(await readFile(filePath, 'utf-8'));
+    return packageJson.version;
+  } catch (_) {
+    return undefined;
   }
 };
 
-const ensureDir = (dir: string) => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir);
-  }
-};
+const copyAstroTo = async (coreDir: string, opts?: { logger: Logger }) => {
+  const logger = opts?.logger;
 
-const copyCore = () => {
-  // make sure the core folder exists
-  ensureDir(core);
+  logger?.debug('Copying core...');
+
+  if (fs.existsSync(coreDir)) {
+    logger?.debug("Checking user's .eventcatalog-core version...");
+    // Get verion of user's .evetcatalog-core
+    const usersECCoreVersion = await getPackageVersion(coreDir);
+
+    logger?.debug(`User's .eventcatalog-core: ${usersECCoreVersion}`);
+
+    // Check user's .eventcatalog-core version is same as the current version
+    if (usersECCoreVersion === pkgJson.version) {
+      logger?.debug("User's .eventcatalog-core has the same version as the current version.");
+      logger?.debug('Skipping copying files...');
+      // Do nothing
+      return;
+    } else {
+      logger?.debug("User's .eventcatalog-core has different version than the current version.");
+      logger?.debug("Cleaning up user's .eventcatalog-core...");
+      // Remove user's .eventcatalog-core
+      fs.rmSync(coreDir, { recursive: true });
+    }
+  }
+
+  logger?.debug("Creating user's .eventcatalog-core...");
+  fs.mkdirSync(coreDir); // TODO: mkdir -p
+
+  logger?.debug("Copying required files to user's .eventcatalog-core...");
+
+  const currentDir = path.dirname(fileURLToPath(import.meta.url));
+  // The project itself
+  const eventCatalogDir = join(currentDir, '../../'); // TODO: group astro files and change this
 
   // Copy required eventcatlog files into users directory
-  fs.cpSync(eventCatalogDir, core, {
-    recursive: true,
-    filter: (src) => {
-      // if(src.includes('node_modules')) {
-      //   return false;
-      // }
-      return true;
-    },
-  });
+  fs.cpSync(eventCatalogDir, coreDir, { recursive: true });
 };
 
-const clearCore = () => {
-  if (fs.existsSync(core)) fs.rmSync(core, { recursive: true });
+const clearDir = (dir: string) => {
+  if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true });
 };
+
+const pinoPrettyStream = pinoPretty({ colorize: true });
 
 program
   .command('dev')
   .description('Run development server of EventCatalog')
   .option('-d, --debug', 'Output EventCatalog application information into your terminal')
   .option('--force-recreate', 'Recreate the eventcatalog-core directory', false)
-  .action((options) => {
-    // // Copy EventCatalog core over
-    console.log('Setting up EventCatalog....');
+  .option('--project-dir <path>', 'Project directory path. Defaults to cwd.', path.resolve(process.cwd()))
+  .option(
+    '--ec-core-dir <path>',
+    'Path to .eventcatalog-core directory. Defaults to cwd + .eventcatalog-core',
+    path.resolve(process.cwd(), '.eventcatalog-core')
+  )
+  .action(async (options) => {
+    const logger = pino({ level: options.debug ? 'debug' : 'info' }, pinoPrettyStream);
+    const ecCoreDir = path.resolve(options.ecCoreDir);
+    const projectDir = path.resolve(options.projectDir);
 
-    if (options.debug) {
-      console.log('Debug mode enabled');
-      console.log('PROJECT_DIR', dir);
-      console.log('CATALOG_DIR', core);
+    // Copy EventCatalog core over
+    logger.info('Setting up EventCatalog....');
+
+    logger.debug('Debug mode enabled');
+    logger.debug({ PROJECT_DIR: projectDir, CATALOG_DIR: ecCoreDir });
+
+    if (options.forceRecreate) clearDir(ecCoreDir);
+    await copyAstroTo(ecCoreDir, { logger });
+
+    logger.info('Hydrating...');
+    await catalogToAstro(projectDir, ecCoreDir);
+
+    logger.info('EventCatalog is starting at http://localhost:3000/docs');
+    const unsubWatcher = await watch(projectDir, ecCoreDir);
+
+    const { result } = concurrently([
+      {
+        command: 'npm run dev',
+        env: {
+          PROJECT_DIR: projectDir,
+          CATALOG_DIR: ecCoreDir,
+        },
+        cwd: ecCoreDir,
+        name: 'astro',
+      },
+    ]);
+
+    try {
+      await result;
+    } finally {
+      await unsubWatcher();
     }
-
-    if (options.forceRecreate) clearCore();
-    copyCore();
-
-    console.log('EventCatalog is starting at http://localhost:3000/docs');
-
-    execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run dev`, {
-      cwd: core,
-      // @ts-ignore
-      stdio: 'inherit',
-    });
   });
 
 program
   .command('build')
   .description('Run build of EventCatalog')
-  .action((options) => {
-    console.log('Building EventCatalog...');
+  .option('--force-recreate', 'Recreate the eventcatalog-core directory', false)
+  .option('--project-dir <path>', 'Project directory path. Defaults to cwd.', path.resolve(process.cwd()))
+  .option(
+    '--ec-core-dir <path>',
+    'Path to .eventcatalog-core directory. Defaults to cwd + .eventcatalog-core',
+    path.resolve(process.cwd(), '.eventcatalog-core')
+  )
+  .action(async (options) => {
+    const logger = pino(pinoPrettyStream);
+    const ecCoreDir = path.resolve(options.ecCoreDir);
+    const projectDir = path.resolve(options.projectDir);
 
-    copyCore();
+    logger.info('Building EventCatalog...');
 
-    execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run build`, {
-      cwd: core,
+    if (options.forceRecreate) clearDir(ecCoreDir);
+    await copyAstroTo(ecCoreDir, { logger });
+
+    logger.info('Hydrating...');
+    await catalogToAstro(projectDir, ecCoreDir);
+
+    await logBuild(projectDir);
+
+    execSync(`cross-env PROJECT_DIR='${projectDir}' CATALOG_DIR='${ecCoreDir}' npm run build`, {
+      cwd: ecCoreDir,
       stdio: 'inherit',
     });
   });
 
-const previewCatalog = () => {
-  copyCore();
-
-  execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run preview -- --root ${dir} --port 3000`, {
-    cwd: core,
-    stdio: 'inherit',
-  });
+const previewCatalog = async ({ projectDir, ecCoreDir }: { projectDir: string; ecCoreDir: string }) => {
+  execSync(
+    `cross-env PROJECT_DIR='${projectDir}' CATALOG_DIR='${ecCoreDir}' npm run preview -- --root ${projectDir} --port 3000`,
+    {
+      cwd: ecCoreDir,
+      stdio: 'inherit',
+    }
+  );
 };
 
 program
   .command('preview')
   .description('Serves the contents of your eventcatalog build directory')
-  .action((options) => {
-    console.log('Starting preview of your build...');
-    previewCatalog();
+  .option('--project-dir <path>', 'Project directory path. Defaults to cwd.', path.resolve(process.cwd()))
+  .option(
+    '--ec-core-dir <path>',
+    'Path to .eventcatalog-core directory. Defaults to cwd + .eventcatalog-core',
+    path.resolve(process.cwd(), '.eventcatalog-core')
+  )
+  .action(async (options) => {
+    const logger = pino(pinoPrettyStream);
+    const ecCoreDir = path.resolve(options.ecCoreDir);
+    const projectDir = path.resolve(options.projectDir);
+
+    logger.info('Starting preview of your build...');
+    await previewCatalog({ ecCoreDir, projectDir });
   });
 
 program
   .command('start')
   .description('Serves the contents of your eventcatalog build directory')
-  .action((options) => {
-    console.log('Starting preview of your build...');
-    previewCatalog();
+  .option('--project-dir <path>', 'Project directory path. Defaults to cwd.', path.resolve(process.cwd()))
+  .option(
+    '--ec-core-dir <path>',
+    'Path to .eventcatalog-core directory. Defaults to cwd + .eventcatalog-core',
+    path.resolve(process.cwd(), '.eventcatalog-core')
+  )
+  .action(async (options) => {
+    const logger = pino(pinoPrettyStream);
+    const ecCoreDir = path.resolve(options.ecCoreDir);
+    const projectDir = path.resolve(options.projectDir);
+
+    logger.info('Starting preview of your build...');
+    await previewCatalog({ ecCoreDir, projectDir });
   });
 
 program
-  .command('generate [siteDir]')
+  .command('generate')
   .description('Start the generator scripts.')
-  .action(() => {
-    copyCore();
-
-    execSync(`cross-env PROJECT_DIR='${dir}' npm run generate`, {
-      cwd: core,
-      stdio: 'inherit',
-    });
+  .option('--project-dir <path>', 'Project directory path. Defaults to cwd.', path.resolve(process.cwd()))
+  .action(async (options) => {
+    const logger = pino(pinoPrettyStream);
+    const projectDir = path.resolve(options.projectDir);
+    await generate(projectDir, { logger });
   });
 
-program.parse();
+program.parseAsync();

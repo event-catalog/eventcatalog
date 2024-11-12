@@ -5,10 +5,7 @@
 [![MIT License][license-badge]][license]
 [![PRs Welcome][prs-badge]][prs]
 <img src="https://img.shields.io/github/actions/workflow/status/event-catalog/eventcatalog/verify-build.yml"/>
-[![](https://dcbadge.limes.pink/api/server/https://discord.gg/3rjaZMmrAm?style=flat)](https://discord.gg/3rjaZMmrAm) [<img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" height="20px" />](https://www.linkedin.com/in/david-boyne/) [![blog](https://img.shields.io/badge/blog-EDA--Visuals-brightgreen)](https://eda-visuals.boyney.io/?utm_source=event-catalog-gihub) 
-
-
-
+[![](https://dcbadge.limes.pink/api/server/https://discord.gg/3rjaZMmrAm?style=flat)](https://discord.gg/3rjaZMmrAm) [<img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" height="20px" />](https://www.linkedin.com/in/david-boyne/) [![blog](https://img.shields.io/badge/blog-EDA--Visuals-brightgreen)](https://eda-visuals.boyney.io/?utm_source=event-catalog-gihub)
 
 <!-- [![Star on GitHub][github-star-badge]][github-star] -->
 <!-- <h3>Bring discoverability to your -->
@@ -18,18 +15,19 @@
 <!-- [![MIT License][license-badge]][license] -->
 <!-- [![PRs Welcome][prs-badge]][prs] -->
 
-
 <!-- [![Watch on GitHub][github-watch-badge]][github-watch] -->
 <!-- [![Star on GitHub][github-star-badge]][github-star] -->
 
 <!-- <hr /> -->
 
-<img alt="header" src="./images/example.png" />
+<img alt="header" src=".github/images/example.png" />
 
 <h4>Features: Documentation generator for Event Driven Architectures, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
 [![All Contributors](https://img.shields.io/badge/all_contributors-45-orange.svg?style=flat-square)](#contributors-)
+
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [Read the Docs](https://eventcatalog.dev/) | [Edit the Docs](https://github.com/event-catalog/docs) | [View Demo](https://demo.eventcatalog.dev/docs)
@@ -50,7 +48,6 @@
 - ⭐ Document teams and users ([demo](https://demo.eventcatalog.dev/docs/teams/full-stack))
 - 🤖 Automate your catalogs with [generators](https://www.eventcatalog.dev/docs/development/plugins/plugin-overview) (e.g generate your catalogs from your [AsyncAPI](https://www.eventcatalog.dev/docs/ascynapi)/[OpenAPI](https://www.eventcatalog.dev/docs/openapi) documents)
 - ⭐ And much more...
-
 
 # The problem
 
@@ -113,12 +110,12 @@ You can see the markdown files that generated the website in the GitHub repo und
 
 # Sponsors
 
-Thank you to our project  sponsors.
+Thank you to our project sponsors.
 
 ## Gold sponsors
 
 <div align="center">
-  <img alt="hookdeck" src="./images/sponsors/hookdeck.svg" />
+  <img alt="hookdeck" src=".github/images/sponsors/hookdeck.svg" />
   <p style="margin: 0; padding: 0;">Serverless infrastructure for event-driven architecture. </p>
   <a href="https://hookdeck.com/?ref=eventcatalog-sponsor" target="_blank" >Learn more</a>
 </div>
@@ -126,7 +123,7 @@ Thank you to our project  sponsors.
 <hr />
 
 <div align="center">
-  <img alt="hookdeck" src="./images/sponsors/gravitee-logo-black.svg" width="50%" />
+  <img alt="hookdeck" src=".github/images/sponsors/gravitee-logo-black.svg" width="50%" />
   <p style="margin: 0; padding: 0;">Manage, secure, and govern every API in your organization</p>
   <a href="https://gravitee.io?utm_source=eventcatalog&utm_medium=web&utm_campaign=sponsorship" target="_blank" >Learn more</a>
 </div>
@@ -134,7 +131,7 @@ Thank you to our project  sponsors.
 <hr />
 
 <div align="center">
-  <img alt="oso" src="./images/sponsors/oso-logo-green.png" width="30%" />
+  <img alt="oso" src=".github/images/sponsors/oso-logo-green.png" width="30%" />
   <p style="margin: 0; padding: 0;">Delivering Apache Kafka professional services to your business
 </p>
   <a href="https://oso.sh/?utm_source=eventcatalog&utm_medium=web&utm_campaign=sponsorship" target="_blank" >Learn more</a>
@@ -157,7 +154,6 @@ Find more details on our [services page](https://eventcatalog.dev/services).
 
 _Still using v1 of EventCatalog? We recommnded upgrading to the latest version. [Read more in the migration guide](https://eventcatalog.dev/docs/development/guides/upgrading-from-version-1)._
 
-
 # Contributing
 
 If you have any questions, features or issues please raise any issue or pull requests you like. We will try my best to get back to you.
@@ -169,7 +165,7 @@ You can find the [contributing guidelines here](https://eventcatalog.dev/docs/co
 1. Clone the repo
 1. Install required dependencies `npm run i`
 1. Run the command `npm run start:catalog`
-    - This will start the catalog found in `/examples` repo, locally on your machine
+   - This will start the catalog found in `/examples` repo, locally on your machine
 
 [license-badge]: https://img.shields.io/github/license/event-catalog/eventcatalog.svg?color=yellow
 [license]: https://github.com/event-catalog/eventcatalog/blob/main/LICENSE

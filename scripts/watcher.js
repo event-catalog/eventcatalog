@@ -1,6 +1,5 @@
 import watcher from '@parcel/watcher';
 import fs from 'node:fs';
-import path from 'node:path';
 import { mapCatalogToAstro } from './map-catalog-to-astro.js';
 import { rimrafSync } from 'rimraf';
 import { addPropertyToFrontMatter } from './eventcatalog-config-file-utils.js';
@@ -115,20 +114,4 @@ function retryEPERM(fn) {
       }
     }
   };
-}
-
-/**
- * TODO: call `watch` from the dev command.
- * Calling `watch` there will avoid these if statement.
- * The same could be done to `catalog-to-astro-content-directory`
- */
-if (process.env.NODE_ENV !== 'test') {
-  // Where the users project is located
-  const projectDirectory = process.env.PROJECT_DIR || process.cwd();
-  // Where the catalog code is located.
-  const catalogDirectory = process.env.CATALOG_DIR || path.join(projectDirectory, '.eventcatalog-core');
-
-  const unsub = await watch(projectDirectory, catalogDirectory);
-
-  process.on('exit', () => unsub());
 }

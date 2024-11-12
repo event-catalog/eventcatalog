@@ -1,7 +1,8 @@
 import path from 'node:path';
+import type { Logger } from 'pino';
 import { getEventCatalogConfigFile, cleanup } from './eventcatalog-config-file-utils.js';
 
-function getDefaultExport(importedModule) {
+function getDefaultExport(importedModule: any) {
   if (importedModule === null || typeof importedModule !== 'object') {
     throw new Error('Invalid module');
   }
@@ -17,15 +18,16 @@ function getDefaultExport(importedModule) {
   return importedModule;
 }
 
-const generate = async () => {
-  const PROJECT_DIRECTORY = process.env.PROJECT_DIR;
+export const generate = async (PROJECT_DIRECTORY: string, ctx?: { logger?: Logger }) => {
+  const logger = ctx?.logger;
+
   try {
     const config = await getEventCatalogConfigFile(PROJECT_DIRECTORY);
 
     const { generators = [] } = config;
 
     if (!generators.length) {
-      console.log('No configured generators found, skipping generation');
+      logger?.info('No configured generators found, skipping generation');
       return;
     }
 
@@ -51,7 +53,7 @@ const generate = async () => {
 
         // Use importedGenerator here
       } catch (error) {
-        console.error('Error loading plugin:', error);
+        logger?.error(error, 'Error loading plugin');
         await cleanup(PROJECT_DIRECTORY);
         return;
       }
@@ -60,9 +62,7 @@ const generate = async () => {
     await cleanup(PROJECT_DIRECTORY);
   } catch (error) {
     // Failed to generate clean up...
-    console.error(error);
+    logger?.error(error);
     await cleanup(PROJECT_DIRECTORY);
   }
 };
-
-generate();

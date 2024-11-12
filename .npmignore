@@ -1,14 +1,14 @@
 .astro/
 .vscode/
+.github/
 dist/
 examples/
 node_modules/
 eventcatalog.config.js
 eventcatalog.styles.css
 README.md
-bin/eventcatalog.ts
-scripts/start-catalog.locally.js
-scripts/verify-build.js
+bin/
+scripts/
 tsup.config.js
 vitest.config.ts
 

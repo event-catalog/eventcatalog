@@ -1,12 +1,13 @@
 import { getEventCatalogConfigFile, verifyRequiredFieldsAreInCatalogConfigFile } from '../eventcatalog-config-file-utils.js';
 import { raiseEvent } from './analytics.js';
 
-const main = async () => {
+export default async (projectDir: string) => {
   if (process.env.NODE_ENV === 'CI') return;
   try {
-    await verifyRequiredFieldsAreInCatalogConfigFile(process.env.PROJECT_DIR);
-    const configFile = await getEventCatalogConfigFile(process.env.PROJECT_DIR);
+    await verifyRequiredFieldsAreInCatalogConfigFile(projectDir);
+    const configFile = await getEventCatalogConfigFile(projectDir);
     const { cId, organizationName, generators = [] } = configFile;
+    // @ts-ignore
     const generatorNames = generators.length > 0 ? generators.map((generator) => generator[0]) : ['none'];
     await raiseEvent({
       command: 'build',
@@ -18,5 +19,3 @@ const main = async () => {
     // Just swallow the error
   }
 };
-
-main();
