@@ -6,6 +6,7 @@
     "paths": {
       "@config": ["./eventcatalog.config.js"],
       "@eventcatalog": ["src/utils/eventcatalog-config/catalog.ts"],
+      "@icons/*": ["src/icons/*"],
       "@components/*": ["src/components/*"],
       "@catalog/components/*": ["src/custom-defined-components/*"],
       "@types": ["src/types/index.ts"],

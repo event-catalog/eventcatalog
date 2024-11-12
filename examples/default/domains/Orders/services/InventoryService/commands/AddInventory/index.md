@@ -15,7 +15,9 @@ badges:
       backgroundColor: green
       textColor: green
 channels:
-  - id: orders.{orderId}.events
+  - id: inventory.{env}.events
+    parameters:
+      env: staging
 schemaPath: 'schema.json'
 ---
 

@@ -50,14 +50,14 @@ if (collection === 'events') {
 }
 
 if (collection === 'commands') {
-  const { nodes: eventNodes, edges: eventEdges } = await getNodesAndEdgesForCommands({
+  const { nodes: commandNodes, edges: commandEdges } = await getNodesAndEdgesForCommands({
     id: id,
     version,
     mode,
   });
 
-  nodes = eventNodes;
-  edges = eventEdges;
+  nodes = commandNodes;
+  edges = commandEdges;
 }
 
 if (collection === 'queries') {

@@ -18,6 +18,12 @@ const pointer = z.object({
   version: z.string().optional().default('latest'),
 });
 
+const channelPointer = z
+  .object({
+    parameters: z.record(z.string()).optional(),
+  })
+  .merge(pointer);
+
 const changelogs = defineCollection({
   type: 'content',
   schema: z.object({
@@ -142,7 +148,7 @@ const events = defineCollection({
     .object({
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
-      channels: z.array(pointer).optional(),
+      channels: z.array(channelPointer).optional(),
       // Used by eventcatalog
       messageChannels: z.array(reference('channels')).optional(),
     })
@@ -155,7 +161,7 @@ const commands = defineCollection({
     .object({
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
-      channels: z.array(pointer).optional(),
+      channels: z.array(channelPointer).optional(),
       // Used by eventcatalog
       messageChannels: z.array(reference('channels')).optional(),
     })
@@ -168,7 +174,7 @@ const queries = defineCollection({
     .object({
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
-      channels: z.array(pointer).optional(),
+      channels: z.array(channelPointer).optional(),
       // Used by eventcatalog
       messageChannels: z.array(reference('channels')).optional(),
     })
@@ -190,9 +196,17 @@ const channels = defineCollection({
   schema: z
     .object({
       address: z.string().optional(),
-      technology: z.string().optional(),
-      // sends: z.array(pointer).optional(),
-      // receives: z.array(pointer).optional(),
+      protocols: z.array(z.string()).optional(),
+      parameters: z
+        .record(
+          z.object({
+            enum: z.array(z.string()).optional(),
+            default: z.string().optional(),
+            examples: z.array(z.string()).optional(),
+            description: z.string().optional(),
+          })
+        )
+        .optional(),
     })
     .merge(baseSchema),
 });

@@ -11,7 +11,7 @@ owners:
     - full-stack
     - mobile-devs
 channels:
-  - id: inventory.orders
+  - id: inventory.{env}.events
 badges:
     - content: Recently updated!
       backgroundColor: green

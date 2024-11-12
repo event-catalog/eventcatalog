@@ -98,7 +98,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
       type: receive?.collection,
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: { mode, message: receive, showTarget: renderAllEdges },
+      data: { mode, message: receive },
     });
 
     // does the message have channels defined?
@@ -107,8 +107,10 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         channels,
         channelsToRender: receive.data.channels,
         source: receive,
+        channelToTargetLabel: getReceivesMessageByMessageType(receive?.collection),
         target: service,
         mode,
+        currentNodes: nodes,
       });
 
       nodes.push(...channelNodes);
@@ -132,7 +134,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     id: generateIdForNode(service),
     sourcePosition: 'right',
     targetPosition: 'left',
-    data: { mode, service: service, showSource: sends.length > 0, showTarget: receives.length > 0 },
+    data: { mode, service: service },
     type: service.collection,
   });
 
@@ -142,7 +144,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
       id: generateIdForNode(send),
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: { mode, message: send, showSource: renderAllEdges },
+      data: { mode, message: send },
       type: send?.collection,
     });
 
@@ -155,6 +157,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         mode,
         sourceToChannelLabel: `${getSendsMessageByMessageType(send?.collection)}`,
         channelToTargetLabel: getSendsMessageByMessageType(send?.collection),
+        currentNodes: nodes,
       });
       nodes.push(...channelNodes);
       edges.push(...channelEdges);
@@ -179,7 +182,6 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         id: generatedIdForEdge(service, message) + '-both',
         source: generateIdForNode(service),
         target: generateIdForNode(message),
-        type: 'bezier',
         label: `${getSendsMessageByMessageType(message?.collection)} & ${getReceivesMessageByMessageType(message?.collection)}`,
         animated: false,
         data: { message },
@@ -208,6 +210,6 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
 
   return {
     nodes: calculatedNodes(flow, nodes),
-    edges: edges,
+    edges,
   };
 };

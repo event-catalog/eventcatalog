@@ -5,6 +5,10 @@ version: 0.0.1
 summary: Event is triggered when a user initiates a payment through the Payment Service
 owners:
     - dboyne
+channels:
+  - id: payments.{env}.events
+    parameters:
+      env: staging
 ---
 
 import Footer from '@catalog/components/footer.astro';

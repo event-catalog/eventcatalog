@@ -97,6 +97,7 @@ const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', col
         sourceToChannelLabel: getEdgeLabelForServiceAsTarget(message),
         channelToTargetLabel: getEdgeLabelForServiceAsTarget(message),
         mode,
+        currentNodes: nodes,
       });
       nodes.push(...channelNodes);
       edges.push(...channelEdges);
@@ -105,7 +106,6 @@ const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', col
         id: generatedIdForEdge(producer, message),
         source: generateIdForNode(producer),
         target: generateIdForNode(message),
-        type: 'bezier',
         label: getEdgeLabelForServiceAsTarget(message),
         data: { message },
         animated: false,
@@ -150,6 +150,7 @@ const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', col
         target: consumer,
         channelToTargetLabel: getEdgeLabelForMessageAsSource(message),
         mode,
+        currentNodes: nodes,
       });
 
       nodes.push(...channelNodes);
@@ -195,7 +196,7 @@ const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', col
 
   return {
     nodes: calculatedNodes(flow, nodes),
-    edges: edges,
+    edges,
   };
 };
 

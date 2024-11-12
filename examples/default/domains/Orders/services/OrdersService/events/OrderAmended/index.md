@@ -15,6 +15,10 @@ badges:
       backgroundColor: yellow
       textColor: yellow
 schemaPath: schema.avro
+channels:
+  - id: orders.{env}.events
+    parameters:
+      env: staging
 ---
 
 import Footer from '@catalog/components/footer.astro';
@@ -22,6 +26,8 @@ import Footer from '@catalog/components/footer.astro';
 ## Overview
 
 The OrderAmended event is triggered whenever an existing order is modified. This event ensures that all relevant services are notified of changes to an order, such as updates to order items, quantities, shipping information, or status. The event allows the system to maintain consistency and ensure that all dependent services can react appropriately to the amendments.
+
+<NodeGraph />
 
 ## Example payload
 

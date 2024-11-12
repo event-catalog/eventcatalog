@@ -190,7 +190,7 @@ const NodeGraphBuilder = ({
       eds.map((edge) => ({
         ...edge,
         animated: animateMessages,
-        type: animateMessages ? 'animated' : 'bezier',
+        type: animateMessages ? 'animated' : 'default',
         data: { ...edge.data, animateMessages },
       }))
     );

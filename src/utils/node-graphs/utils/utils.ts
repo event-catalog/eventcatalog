@@ -31,7 +31,6 @@ export const createDagreGraph = ({ ranksep = 180, nodesep = 50, ...rest }: any) 
 
 export const createEdge = (edgeOptions: Edge) => {
   return {
-    type: 'bezier',
     label: 'subscribed by',
     animated: false,
     markerEnd: {
@@ -62,6 +61,7 @@ export const getChannelNodesAndEdges = ({
   channelToTargetLabel = 'sends from channel',
   sourceToChannelLabel = 'sends to channel',
   mode = 'full',
+  currentNodes = [],
 }: {
   channels: CollectionEntry<'channels'>[];
   channelsToRender: { id: string; version: string }[];
@@ -70,6 +70,7 @@ export const getChannelNodesAndEdges = ({
   channelToTargetLabel?: string;
   sourceToChannelLabel?: string;
   mode?: 'simple' | 'full';
+  currentNodes?: Node[];
 }) => {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
@@ -80,15 +81,19 @@ export const getChannelNodesAndEdges = ({
     .filter((channel) => channel !== undefined);
 
   channels.forEach((channel) => {
-    const channelId = generateIdForNodes([source, channel]);
+    const channelId = generateIdForNodes([source, channel, target]);
+
+    // Need to check if the channel node is already in the graph
+    // if (!currentNodes.find((node) => node.id === channelId)) {
     nodes.push(
       createNode({
         id: channelId,
-        data: { title: channel?.data.id, mode, channel },
+        data: { title: channel?.data.id, mode, channel, source, target },
         position: { x: 0, y: 0 },
         type: channel?.collection,
       })
     );
+    // }
 
     // if the source (left node) is a service, use the target as the edge message
     const edgeMessage = source.collection === 'services' ? target : source;
@@ -96,10 +101,12 @@ export const getChannelNodesAndEdges = ({
     // Link from left to channel
     edges.push(
       createEdge({
-        id: generatedIdForEdge(source, channel),
+        // id: generatedIdForEdge(source, channel),
+        id: generateIdForNodes([source, channel, target]),
         source: generateIdForNode(source),
         target: channelId,
-        label: sourceToChannelLabel,
+        label: '',
+        // label: sourceToChannelLabel,
         data: { message: edgeMessage },
       })
     );
@@ -107,7 +114,8 @@ export const getChannelNodesAndEdges = ({
     // Link channel to service
     edges.push(
       createEdge({
-        id: generatedIdForEdge(channel, target),
+        // id: generatedIdForEdge(channel, target),
+        id: generateIdForNodes([channel, target, source]),
         source: channelId,
         target: generateIdForNode(target),
         label: channelToTargetLabel,

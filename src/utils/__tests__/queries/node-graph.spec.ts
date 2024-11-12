@@ -66,7 +66,6 @@ describe('Queries NodeGraph', () => {
           id: 'OrderService-0.0.1-GetLatestOrder-0.0.1',
           source: 'OrderService-0.0.1',
           target: 'GetLatestOrder-0.0.1',
-          type: 'bezier',
           label: 'requests',
           animated: false,
           markerEnd: {
@@ -83,7 +82,6 @@ describe('Queries NodeGraph', () => {
           id: 'GetLatestOrder-0.0.1-PaymentService-0.0.1',
           source: 'GetLatestOrder-0.0.1',
           target: 'PaymentService-0.0.1',
-          type: 'bezier',
           label: 'accepts',
           animated: false,
           markerEnd: {
@@ -154,7 +152,6 @@ describe('Queries NodeGraph', () => {
           id: 'LegacyOrderService-0.0.1-GetOrderLegacy-0.0.1',
           source: 'LegacyOrderService-0.0.1',
           target: 'GetOrderLegacy-0.0.1',
-          type: 'bezier',
           label: 'requests',
           animated: false,
           markerEnd: {
@@ -171,7 +168,6 @@ describe('Queries NodeGraph', () => {
           id: 'GetOrderLegacy-0.0.1-LegacyOrderService-0.0.1',
           source: 'GetOrderLegacy-0.0.1',
           target: 'LegacyOrderService-0.0.1',
-          type: 'bezier',
           label: 'accepts',
           animated: false,
           markerEnd: {
@@ -188,7 +184,6 @@ describe('Queries NodeGraph', () => {
           id: 'GetOrderLegacy-0.0.1-LegacyOrderService-0.0.1-both',
           source: 'GetOrderLegacy-0.0.1',
           target: 'LegacyOrderService-0.0.1',
-          type: 'bezier',
           label: 'publishes and subscribes',
           animated: false,
           markerEnd: {
@@ -262,7 +257,6 @@ describe('Queries NodeGraph', () => {
           id: 'InventoryService-0.0.1-GetInventoryItem-1.5.1',
           source: 'InventoryService-0.0.1',
           target: 'GetInventoryItem-1.5.1',
-          type: 'bezier',
           label: 'requests',
           animated: false,
           markerEnd: {
@@ -279,7 +273,6 @@ describe('Queries NodeGraph', () => {
           id: 'GetInventoryItem-1.5.1-CatalogService-0.0.1',
           source: 'GetInventoryItem-1.5.1',
           target: 'CatalogService-0.0.1',
-          type: 'bezier',
           label: 'accepts',
           animated: false,
           markerEnd: {

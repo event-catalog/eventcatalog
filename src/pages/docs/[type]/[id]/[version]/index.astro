@@ -10,6 +10,7 @@ import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewer.astro';
 import ServiceSideBar from '@components/SideBars/ServiceSideBar.astro';
 import MessageSideBar from '@components/SideBars/MessageSideBar.astro';
 import DomainSideBar from '@components/SideBars/DomainSideBar.astro';
+import ChannelSideBar from '@components/SideBars/ChannelSideBar.astro';
 
 import { QueueListIcon, RectangleGroupIcon, ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import type { PageTypes } from '@types';
@@ -126,7 +127,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
         <div class="border-b border-gray-200 flex justify-between items-start md:pb-2">
           <div>
-            <h2 class="text-2xl md:text-4xl font-bold text-black">
+            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-black">
               {props.data.name}
               <span class="">(v{props.data.version})</span>
             </h2>
@@ -219,6 +220,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
         }
         {props?.collection === 'services' && <ServiceSideBar service={props} />}
         {props?.collection === 'domains' && <DomainSideBar domain={props} />}
+        {props?.collection === 'channels' && <ChannelSideBar channel={props} />}
       </aside>
     </div>
     <ViewTransitions />

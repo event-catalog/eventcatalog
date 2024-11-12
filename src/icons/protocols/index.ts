@@ -1,0 +1,15 @@
+export { default as Kafka } from '@icons/protocols/kafka.svg?raw';
+export { default as Http } from '@icons/protocols/http.svg?raw';
+export { default as JMS } from '@icons/protocols/jms.svg?raw';
+export { default as MQTT } from '@icons/protocols/mqtt.svg?raw';
+export { default as AMQP } from '@icons/protocols/amqp.svg?raw';
+export { default as Solace } from '@icons/protocols/solace.svg?raw';
+export { default as Mercure } from '@icons/protocols/mercure.svg?raw';
+export { default as WebSocket } from '@icons/protocols/ws.svg?raw';
+export { default as Pulsar } from '@icons/protocols/pulsar.svg?raw';
+export { default as Nats } from '@icons/protocols/nats.svg?raw';
+export { default as SNS } from '@icons/protocols/sns.svg?raw';
+export { default as SQS } from '@icons/protocols/sqs.svg?raw';
+export { default as EventBridge } from '@icons/protocols/eventbridge.svg?raw';
+export { default as Redis } from '@icons/protocols/redis.svg?raw';
+export { default as GooglePubSub } from '@icons/protocols/googlepubsub.svg?raw';

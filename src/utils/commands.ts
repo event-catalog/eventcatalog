@@ -21,7 +21,9 @@ export const getCommands = async ({ getAllVersions = true }: Props = {}): Promis
   const commands = await getCollection('commands', (command) => {
     return (getAllVersions || !command.slug.includes('versioned')) && command.data.hidden !== true;
   });
+
   const services = await getCollection('services');
+  const allChannels = await getCollection('channels');
 
   return commands.map((command) => {
     const { latestVersion, versions } = getVersionForCollectionItem(command, commands);
@@ -42,10 +44,14 @@ export const getCommands = async ({ getAllVersions = true }: Props = {}): Promis
       });
     });
 
+    const messageChannels = command.data.channels || [];
+    const channelsForCommand = allChannels.filter((c) => messageChannels.some((channel) => c.data.id === channel.id));
+
     return {
       ...command,
       data: {
         ...command.data,
+        messageChannels: channelsForCommand,
         producers,
         consumers,
         versions,

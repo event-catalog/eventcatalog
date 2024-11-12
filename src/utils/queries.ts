@@ -23,6 +23,7 @@ export const getQueries = async ({ getAllVersions = true }: Props = {}): Promise
   });
 
   const services = await getCollection('services');
+  const allChannels = await getCollection('channels');
 
   return queries.map((query) => {
     const { latestVersion, versions } = getVersionForCollectionItem(query, queries);
@@ -43,10 +44,14 @@ export const getQueries = async ({ getAllVersions = true }: Props = {}): Promise
       })
     );
 
+    const messageChannels = query.data.channels || [];
+    const channelsForQuery = allChannels.filter((c) => messageChannels.some((channel) => c.data.id === channel.id));
+
     return {
       ...query,
       data: {
         ...query.data,
+        messageChannels: channelsForQuery,
         producers,
         consumers,
         versions,

@@ -1,7 +1,6 @@
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import { getIconForCollection as getIconForCollectionOriginal } from '@utils/collections/icons';
-import { useMemo } from 'react';
+import * as ProtocolIcons from '@icons/protocols';
 
 import './PillListFlat.styles.css';
 
@@ -22,8 +21,21 @@ interface Props {
   emptyMessage?: string;
 }
 
-const PillList = ({ title, pills, emptyMessage, color = 'gray', ...props }: Props) => {
-  const getIconForCollection = useMemo(() => getIconForCollectionOriginal, []);
+const protocolIcons = Object.keys(ProtocolIcons).reduce(
+  (icons, key) => {
+    const iconKey = key as keyof typeof ProtocolIcons;
+    icons[key.toLowerCase()] = ProtocolIcons[iconKey];
+    return icons;
+  },
+  {} as { [key: string]: string }
+);
+
+const getIconForProtocol = (icon: keyof typeof protocolIcons) => {
+  const Icon = protocolIcons[icon];
+  return Icon ? (props: any) => <span {...props} dangerouslySetInnerHTML={{ __html: Icon }} /> : null;
+};
+
+const ProtocolList = ({ title, pills, emptyMessage, color = 'gray', ...props }: Props) => {
   return (
     <div>
       <div className="mx-auto w-full max-w-lg divide-y divide-white/5 rounded-xl bg-white/5">
@@ -36,7 +48,7 @@ const PillList = ({ title, pills, emptyMessage, color = 'gray', ...props }: Prop
             <ul role="list" className="space-y-2">
               {pills.map((item) => {
                 const href = item.href ?? '#';
-                const Icon = item.collection ? getIconForCollection(item.collection) : null;
+                const Icon = item.icon ? getIconForProtocol(item.icon) : null;
 
                 return (
                   <li
@@ -73,4 +85,4 @@ const PillList = ({ title, pills, emptyMessage, color = 'gray', ...props }: Prop
   );
 };
 
-export default PillList;
+export default ProtocolList;

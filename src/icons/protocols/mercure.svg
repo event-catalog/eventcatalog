@@ -1,0 +1,20 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 106 105" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <linearGradient x1="-0.0211832061%" y1="50.0351145%" x2="99.9958015%" y2="50.0351145%" id="linearGradient-1">
+            <stop stop-color="currentColor" offset="0%"></stop>
+            <stop stop-color="currentColor" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="-0.0483596598%" y1="50.0496962%" x2="99.8944107%" y2="50.0496962%" id="linearGradient-2">
+            <stop stop-color="currentColor" offset="0%"></stop>
+            <stop stop-color="currentColor" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="mercure-hub" fill-rule="nonzero">
+            <path d="M53,104.9 C24.1,104.9 0.6,81.4 0.6,52.5 C0.6,23.6 24.1,0.1 53,0.1 C81.9,0.1 105.4,23.6 105.4,52.5 C105.4,81.4 81.9,104.9 53,104.9 Z M53,4.6 C26.6,4.6 5,26.1 5,52.6 C5,79.1 26.5,100.6 53,100.6 C79.5,100.6 101,79.1 101,52.6 C101,26.1 79.5,4.6 53,4.6 Z" id="Shape" fill="url(#linearGradient-1)"></path>
+            <path d="M53,10.8 C30.3,10.8 11.9,29.2 11.9,51.9 C11.9,59 13.7,65.7 16.8,71.5 C17.9,70.7 19.1,69.9 20.4,69.1 C42.9,55.7 62.9,44.6 76.1,24 C76.1,24 75.2,47.3 61.8,58.1 C58.8,60.5 56.3,62.4 53.9,63.9 C60.7,60.3 66.6,56.3 71.2,50.8 C71.2,50.8 70.8,66.4 59.3,73.4 C55,75.9 51.4,77.4 47.8,78.5 C54.4,77 58.6,75.2 62.1,72.9 C59.2,82.6 52.9,87.7 43,89.1 C39.4,89.5 36.4,88.7 33.2,88 C39.1,91.3 45.9,93.1 53.1,93.1 C75.8,93.1 94.2,74.7 94.2,52 C94.2,29.3 75.8,10.8 53,10.8 Z" id="Path" fill="url(#linearGradient-2)"></path>
+        </g>
+    </g>
+</svg>

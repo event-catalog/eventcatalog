@@ -61,7 +61,6 @@ describe('Commands NodeGraph', () => {
           id: 'OrderService-0.0.1-AdjustOrder-0.0.1',
           source: 'OrderService-0.0.1',
           target: 'AdjustOrder-0.0.1',
-          type: 'bezier',
           label: 'invokes',
           animated: false,
           markerEnd: {
@@ -78,7 +77,6 @@ describe('Commands NodeGraph', () => {
           id: 'AdjustOrder-0.0.1-PaymentService-0.0.1',
           source: 'AdjustOrder-0.0.1',
           target: 'PaymentService-0.0.1',
-          type: 'bezier',
           label: 'accepts',
           animated: false,
           markerEnd: {
@@ -149,7 +147,6 @@ describe('Commands NodeGraph', () => {
           id: 'LegacyOrderService-0.0.1-GetOrder-0.0.1',
           source: 'LegacyOrderService-0.0.1',
           target: 'GetOrder-0.0.1',
-          type: 'bezier',
           label: 'invokes',
           animated: false,
           markerEnd: {
@@ -166,7 +163,6 @@ describe('Commands NodeGraph', () => {
           id: 'GetOrder-0.0.1-LegacyOrderService-0.0.1',
           source: 'GetOrder-0.0.1',
           target: 'LegacyOrderService-0.0.1',
-          type: 'bezier',
           label: 'accepts',
           animated: false,
           markerEnd: {
@@ -183,7 +179,6 @@ describe('Commands NodeGraph', () => {
           id: 'GetOrder-0.0.1-LegacyOrderService-0.0.1-both',
           source: 'GetOrder-0.0.1',
           target: 'LegacyOrderService-0.0.1',
-          type: 'bezier',
           label: 'publishes and subscribes',
           animated: false,
           markerEnd: {
@@ -252,7 +247,6 @@ describe('Commands NodeGraph', () => {
           id: 'PlaceOrder-2.0.1-OrderService-0.0.1',
           source: 'PlaceOrder-2.0.1',
           target: 'OrderService-0.0.1',
-          type: 'bezier',
           label: 'accepts',
           animated: false,
           markerEnd: {

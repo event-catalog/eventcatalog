@@ -15,6 +15,8 @@ badges:
       backgroundColor: yellow
       textColor: yellow
 schemaPath: 'schema.json'
+channels:
+  - id: orders.{env}.events
 ---
 
 import Footer from '@catalog/components/footer.astro';
