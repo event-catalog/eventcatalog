@@ -16,8 +16,6 @@ export default {
   trailingSlash: false,
   docs: {
     sidebar: {
-      // Should the sub heading be rendered in the docs sidebar?
-      showPageHeadings: true,
       services: {
         visible: true,
       },

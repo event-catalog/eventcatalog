@@ -1,5 +1,17 @@
 # @eventcatalog/core
 
+## 2.12.3
+
+### Patch Changes
+
+- d0d13c9: chore(core): fixing z-index issue with the header nav and removing the max-width
+
+## 2.12.2
+
+### Patch Changes
+
+- 93e224c: fix(core): custom defined landing page for docs now render on docs tab
+
 ## 2.12.1
 
 ### Patch Changes
