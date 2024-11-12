@@ -1,72 +1,66 @@
-#!/usr/bin/env node
 import { Command } from 'commander';
-import { exec, execSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import fs from 'fs';
-import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import concurrently from 'concurrently';
-import pkgJson from '../package.json';
 import type { Logger } from 'pino';
 import { pino } from 'pino';
+import whichPm from 'which-pm';
 import pinoPretty from 'pino-pretty';
-import { catalogToAstro } from 'scripts/catalog-to-astro-content-directory';
-import logBuild from 'scripts/analytics/log-build';
-import { watch } from 'scripts/watcher';
-import { generate } from 'scripts/generate';
+import { catalogToAstro } from '@/catalog-to-astro-content-directory';
+import logBuild from '@/analytics/log-build';
+import { watch } from '@/watcher';
+import { generate } from '@/generate';
+import { VERSION } from '@/constants';
+
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+// The project itself
+const EVENTCATALOG_DIR = join(currentDir, '../astro');
 
 const program = new Command();
 
-program.name('eventcatalog').description('Documentation tool for event-driven architectures').version(pkgJson.version);
-
-const getPackageVersion = async (directory: string): Promise<string | undefined> => {
-  try {
-    const filePath = path.join(directory, 'package.json');
-    const packageJson = JSON.parse(await readFile(filePath, 'utf-8'));
-    return packageJson.version;
-  } catch (_) {
-    return undefined;
-  }
-};
+program.name('eventcatalog').description('Documentation tool for event-driven architectures').version(VERSION);
 
 const copyAstroTo = async (coreDir: string, opts?: { logger: Logger }) => {
   const logger = opts?.logger;
 
-  logger?.debug('Copying core...');
-
-  if (fs.existsSync(coreDir)) {
-    logger?.debug("Checking user's .eventcatalog-core version...");
-    // Get verion of user's .evetcatalog-core
-    const usersECCoreVersion = await getPackageVersion(coreDir);
-
-    logger?.debug(`User's .eventcatalog-core: ${usersECCoreVersion}`);
-
-    // Check user's .eventcatalog-core version is same as the current version
-    if (usersECCoreVersion === pkgJson.version) {
-      logger?.debug("User's .eventcatalog-core has the same version as the current version.");
-      logger?.debug('Skipping copying files...');
-      // Do nothing
-      return;
-    } else {
-      logger?.debug("User's .eventcatalog-core has different version than the current version.");
-      logger?.debug("Cleaning up user's .eventcatalog-core...");
-      // Remove user's .eventcatalog-core
-      fs.rmSync(coreDir, { recursive: true });
-    }
+  if (coreDir === EVENTCATALOG_DIR) {
+    // This is needed for development purposes as we can't copy the dir to itself.
+    return;
   }
 
-  logger?.debug("Creating user's .eventcatalog-core...");
-  fs.mkdirSync(coreDir); // TODO: mkdir -p
+  logger?.debug('Copying core...');
+
+  if (!fs.existsSync(coreDir)) {
+    logger?.debug("Creating user's .eventcatalog-core...");
+    fs.mkdirSync(coreDir); // TODO: mkdir -p
+  }
 
   logger?.debug("Copying required files to user's .eventcatalog-core...");
 
-  const currentDir = path.dirname(fileURLToPath(import.meta.url));
-  // The project itself
-  const eventCatalogDir = join(currentDir, '../../'); // TODO: group astro files and change this
-
   // Copy required eventcatlog files into users directory
-  fs.cpSync(eventCatalogDir, coreDir, { recursive: true });
+  fs.cpSync(EVENTCATALOG_DIR, coreDir, { recursive: true });
+};
+
+const installDeps = async (coreDir: string, ctx?: { logger?: Logger }) => {
+  if (coreDir === EVENTCATALOG_DIR) {
+    // On package development we don't need install the deps as we are working with workspace.
+    return;
+  }
+
+  const hasNodeModules = fs.existsSync(path.resolve(coreDir, 'node_modules'));
+  if (hasNodeModules) return;
+
+  const logger = ctx.logger;
+
+  logger?.debug('Installing dependencies...');
+  const pkgManger = (await whichPm(coreDir))?.name || 'npm';
+  execSync(`${pkgManger} install`, {
+    cwd: coreDir,
+    stdio: 'inherit',
+  });
 };
 
 const clearDir = (dir: string) => {
@@ -99,6 +93,8 @@ program
 
     if (options.forceRecreate) clearDir(ecCoreDir);
     await copyAstroTo(ecCoreDir, { logger });
+
+    await installDeps(ecCoreDir, { logger });
 
     logger.info('Hydrating...');
     await catalogToAstro(projectDir, ecCoreDir);
@@ -145,25 +141,34 @@ program
     if (options.forceRecreate) clearDir(ecCoreDir);
     await copyAstroTo(ecCoreDir, { logger });
 
+    await installDeps(ecCoreDir, { logger });
+
     logger.info('Hydrating...');
     await catalogToAstro(projectDir, ecCoreDir);
 
     await logBuild(projectDir);
 
-    execSync(`cross-env PROJECT_DIR='${projectDir}' CATALOG_DIR='${ecCoreDir}' npm run build`, {
+    execSync(`npm run build`, {
       cwd: ecCoreDir,
       stdio: 'inherit',
+      env: {
+        ...process.env,
+        PROJECT_DIR: projectDir,
+        CATALOG_DIR: ecCoreDir,
+      },
     });
   });
 
 const previewCatalog = async ({ projectDir, ecCoreDir }: { projectDir: string; ecCoreDir: string }) => {
-  execSync(
-    `cross-env PROJECT_DIR='${projectDir}' CATALOG_DIR='${ecCoreDir}' npm run preview -- --root ${projectDir} --port 3000`,
-    {
-      cwd: ecCoreDir,
-      stdio: 'inherit',
-    }
-  );
+  execSync(`npm run preview -- --root ${projectDir} --port 3000`, {
+    cwd: ecCoreDir,
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      PROJECT_DIR: projectDir,
+      CATALOG_DIR: ecCoreDir,
+    },
+  });
 };
 
 program
@@ -212,4 +217,10 @@ program
     await generate(projectDir, { logger });
   });
 
-program.parseAsync();
+program
+  .parseAsync()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });

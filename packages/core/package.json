@@ -1,0 +1,59 @@
+{
+  "name": "@eventcatalog/core",
+  "homepage": "https://github.com/event-catalog/eventcatalog",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/event-catalog/eventcatalog.git",
+    "directory": "packages/core"
+  },
+  "type": "module",
+  "version": "2.12.3",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "eventcatalog": "eventcatalog.js"
+  },
+  "exports": {
+    "./astro/tsconfig.json": "./astro/tsconfig.json",
+    "./config": {
+      "types": "./config.d.ts"
+    }
+  },
+  "files": [
+    "astro/",
+    "!astro/**/__tests__/",
+    "!astro/vitest.config.ts",
+    "default-files-for-collections/",
+    "dist/",
+    "config.d.ts",
+    "eventcatalog.js"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "generate": "npm run build && npx . generate --project-dir ../../examples/default/",
+    "preview": "npx . preview --project-dir ../../examples/default/ --ec-core-dir astro/",
+    "start:catalog": "npm run build && npx . dev --project-dir ../../examples/default/ --ec-core-dir astro/ --debug",
+    "verify-build:catalog": "rimraf dist && npm run build && npx . build --project-dir ../../examples/default --ec-core-dir astro/",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@parcel/watcher": "^2.4.1",
+    "axios": "^1.7.7",
+    "commander": "^12.1.0",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "glob": "^10.4.1",
+    "gray-matter": "^4.0.3",
+    "pino": "^9.5.0",
+    "pino-pretty": "^11.3.0",
+    "rimraf": "^5.0.7",
+    "semver": "7.6.3",
+    "uuid": "^10.0.0",
+    "which-pm": "^3.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.1.0",
+    "typescript": "^5.4.5"
+  }
+}

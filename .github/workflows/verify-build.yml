@@ -11,8 +11,42 @@ jobs:
   build:
     name: Verify Build
     timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Installation
+        run: npm ci
+
+      - name: Test
+        run: npm run test:ci
+
+      - name: Build
+        working-directory: packages/core/
+        run: npm run build
+
+      - name: Pack
+        working-directory: packages/core/
+        run: npm pack
+
+      - name: Rename package artifact
+        working-directory: packages/core/
+        run: mv *.tgz package.tgz # Rename to a consistent name
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-artifact
+          path: packages/core/package.tgz
+
+  test-bin:
+    needs: build
     strategy:
       matrix:
+        package-manager: [pnpm, npm]
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
@@ -20,9 +54,30 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-      - name: Installation
-        run: npm i
-      - name: Test
-        run: npm run test:ci
-      - name: Build
-        run: npm run verify-build:catalog
+
+      - name: Setup pnpm
+        if: matrix.package-manager == 'pnpm'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Download package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: package-artifact
+
+      - name: Install package in ./examples/default/
+        working-directory: ./examples/default/
+        shell: bash
+        run: |
+          if [ "${{ matrix.package-manager }}" == "npm" ]; then
+            npm install ../../package.tgz
+          else
+            ${{ matrix.package-manager }} add -D ../../package.tgz
+          fi
+
+      - name: Build event catalog in ./examples/default/
+        working-directory: ./examples/default/
+        env:
+          NODE_ENV: CI # Prevent raise event to analytics
+        run: ${{ matrix.package-manager }} run build

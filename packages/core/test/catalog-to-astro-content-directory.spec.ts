@@ -1,4 +1,4 @@
-import { catalogToAstro } from '../catalog-to-astro-content-directory';
+import { catalogToAstro } from '@/catalog-to-astro-content-directory';
 import * as path from 'path';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';

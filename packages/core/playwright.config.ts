@@ -32,7 +32,7 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'npm run preview -- --root examples/default --port 3000',
+    command: 'npm run preview',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
   },
