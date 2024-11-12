@@ -8,6 +8,7 @@ const CatalogResourcesSideBar = ({ resources, currentPath }: any) => {
   const [data, setData] = useState(resources);
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState<{ [key: string]: boolean }>({});
+  const decodedCurrentPath = decodeURIComponent(currentPath);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -65,6 +66,7 @@ const CatalogResourcesSideBar = ({ resources, currentPath }: any) => {
             const collection = filteredData[key];
             if (collection[0] && collection[0].visible === false) return null;
             const isCollapsed = collapsedGroups[key];
+
             return (
               <ul className="w-full space-y-1.5 pb-2 pl-1 text-black" key={key}>
                 <li
@@ -81,7 +83,7 @@ const CatalogResourcesSideBar = ({ resources, currentPath }: any) => {
                     const Icon = getIconForCollection(item.collection);
                     return (
                       <li
-                        className={`w-full has-tooltip text-md xl:text-sm space-y-2 scroll-m-20 rounded-md text-black hover:bg-gradient-to-l hover:from-purple-500 hover:to-purple-700 hover:text-white    ${currentPath.includes(item.href) ? ' bg-gradient-to-l from-purple-500 to-purple-700  font-normal text-white ' : 'font-thin'}`}
+                        className={`w-full has-tooltip text-md xl:text-sm space-y-2 scroll-m-20 rounded-md text-black hover:bg-gradient-to-l hover:from-purple-500 hover:to-purple-700 hover:text-white    ${decodedCurrentPath.includes(item.href) ? ' bg-gradient-to-l from-purple-500 to-purple-700  font-normal text-white ' : 'font-thin'}`}
                         id={item.href}
                         key={item.href}
                       >

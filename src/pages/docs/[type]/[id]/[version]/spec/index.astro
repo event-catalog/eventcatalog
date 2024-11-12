@@ -9,7 +9,7 @@ import { DocumentMinusIcon } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import './styles.css';
+import './_styles.css';
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];

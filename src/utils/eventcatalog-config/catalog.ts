@@ -24,7 +24,7 @@ const getConfigValue = (obj: any, key: string, defaultValue: any) => {
 
 export const isCollectionVisibleInCatalog = (collection: string) => {
   const sidebarConfig = config?.default?.docs?.sidebar || {};
-  const collections = ['events', 'commands', 'queries', 'domains', 'flows', 'services', 'teams', 'users'];
+  const collections = ['events', 'commands', 'queries', 'domains', 'channels', 'flows', 'services', 'teams', 'users'];
 
   if (!collections.includes(collection)) return false;
 
