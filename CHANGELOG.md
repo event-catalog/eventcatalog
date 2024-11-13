@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.13.1
+
+### Patch Changes
+
+- 240a9d3: fix(core): fixed channel information component
+
 ## 2.13.0
 
 ### Minor Changes
