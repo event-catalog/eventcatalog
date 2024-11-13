@@ -54,8 +54,8 @@ const ChannelParameters = (data: CollectionEntry<'channels'>['data']) => {
             <thead>
               <tr className="bg-purple-500 text-white">
                 <th className="py-2 px-4 border-b text-left">Parameter</th>
-                <th className="py-2 px-4 border-b text-left">Options</th>
                 <th className="py-2 px-4 border-b text-left">Description</th>
+                <th className="py-2 px-4 border-b text-left">Options</th>
                 <th className="py-2 px-4 border-b text-left">Default</th>
               </tr>
             </thead>
@@ -63,9 +63,9 @@ const ChannelParameters = (data: CollectionEntry<'channels'>['data']) => {
               {Object.entries(data.parameters).map(([param, details]) => (
                 <tr className="hover:bg-gray-50" key={param}>
                   <td className="py-2 px-4 border-b">{param}</td>
-                  <td className="py-2 px-4 border-b">{details.default || 'N/A'}</td>
-                  <td className="py-2 px-4 border-b">{details.enum ? details.enum.join(', ') : 'N/A'}</td>
                   <td className="py-2 px-4 border-b">{details.description}</td>
+                  <td className="py-2 px-4 border-b">{details.enum ? details.enum.join(', ') : 'N/A'}</td>
+                  <td className="py-2 px-4 border-b">{details.default || 'N/A'}</td>
                 </tr>
               ))}
             </tbody>
