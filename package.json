@@ -36,7 +36,6 @@
     "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json,astro}\""
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.4",
     "@astrojs/markdown-remark": "^5.3.0",
     "@astrojs/mdx": "^3.1.8",
     "@astrojs/react": "^3.6.2",
@@ -49,12 +48,6 @@
     "@stoplight/mosaic": "^1.53.2",
     "@tailwindcss/typography": "^0.5.13",
     "@tanstack/react-table": "^8.17.3",
-    "@types/dagre": "^0.7.52",
-    "@types/diff": "^5.2.2",
-    "@types/lodash.debounce": "^4.0.9",
-    "@types/lodash.merge": "4.6.9",
-    "@types/node": "^20.14.2",
-    "@types/semver": "^7.5.8",
     "astro": "^4.16.5",
     "astro-expressive-code": "^0.36.1",
     "astro-pagefind": "^1.6.0",
@@ -87,10 +80,17 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.4",
     "@changesets/cli": "^2.27.5",
     "@playwright/test": "^1.48.1",
+    "@types/dagre": "^0.7.52",
+    "@types/diff": "^5.2.2",
+    "@types/lodash.debounce": "^4.0.9",
+    "@types/lodash.merge": "4.6.9",
+    "@types/node": "^20.14.2",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@types/semver": "^7.5.8",
     "prettier": "^3.3.3",
     "prettier-plugin-astro": "^0.14.1",
     "tsup": "^8.1.0",
