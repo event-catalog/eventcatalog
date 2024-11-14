@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { generate } from 'scripts/generate';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -122,13 +123,8 @@ program
 program
   .command('generate [siteDir]')
   .description('Start the generator scripts.')
-  .action(() => {
-    copyCore();
-
-    execSync(`cross-env PROJECT_DIR='${dir}' npm run generate`, {
-      cwd: core,
-      stdio: 'inherit',
-    });
+  .action(async () => {
+    await generate(dir);
   });
 
-program.parse();
+program.parseAsync();

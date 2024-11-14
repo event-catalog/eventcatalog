@@ -17,8 +17,7 @@ function getDefaultExport(importedModule) {
   return importedModule;
 }
 
-const generate = async () => {
-  const PROJECT_DIRECTORY = process.env.PROJECT_DIR;
+export const generate = async (PROJECT_DIRECTORY) => {
   try {
     const config = await getEventCatalogConfigFile(PROJECT_DIRECTORY);
 
@@ -64,5 +63,3 @@ const generate = async () => {
     await cleanup(PROJECT_DIRECTORY);
   }
 };
-
-generate();

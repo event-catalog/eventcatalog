@@ -30,7 +30,7 @@
     "start:catalog": "node scripts/start-catalog-locally.js",
     "verify-build:catalog": "rimraf dist && npm run build:cd",
     "changeset": "changeset",
-    "generate": "node scripts/generate.js",
+    "generate": "npm run build:bin && npx . generate",
     "release": "changeset publish",
     "format": "prettier --config .prettierrc --write \"**/*.{js,jsx,ts,tsx,json,astro}\"",
     "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json,astro}\""
