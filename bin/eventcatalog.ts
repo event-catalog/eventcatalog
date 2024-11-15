@@ -10,6 +10,7 @@ import { generate } from 'scripts/generate';
 import logBuild from 'scripts/analytics/log-build';
 import { VERSION } from 'scripts/constants';
 import { watch } from 'scripts/watcher';
+import { catalogToAstro } from 'scripts/catalog-to-astro-content-directory';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -44,6 +45,7 @@ const copyCore = () => {
 
   if (eventCatalogDir === core) {
     // This is used for development purposes as it's not possible cp a dir to itself.
+    // Into development usually core is the root equals to eventCatalogDir.
     return;
   }
 
@@ -83,6 +85,8 @@ program
 
     console.log('EventCatalog is starting at http://localhost:3000/docs');
 
+    await catalogToAstro(dir, core);
+
     let watchUnsub;
     try {
       watchUnsub = await watch(dir, core);
@@ -116,6 +120,8 @@ program
     copyCore();
 
     await logBuild(dir);
+
+    await catalogToAstro(dir, core);
 
     execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run build`, {
       cwd: core,
