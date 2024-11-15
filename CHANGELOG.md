@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.13.2
+
+### Patch Changes
+
+- 1c79a5f: chore(core): moved types deps to dev deps
+
 ## 2.13.1
 
 ### Patch Changes
