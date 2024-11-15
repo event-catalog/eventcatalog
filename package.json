@@ -22,7 +22,7 @@
     "test:ci": "node scripts/ci/test.js",
     "test:e2e": "playwright test",
     "start": "astro dev",
-    "build": "npm run scripts:hydrate-content && node scripts/analytics/log-build.js && astro build",
+    "build": "npm run scripts:hydrate-content && astro build",
     "build:cd": "node scripts/build-ci.js",
     "preview": "astro preview",
     "astro": "astro",

@@ -6,10 +6,12 @@ import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generate } from 'scripts/generate';
+import logBuild from 'scripts/analytics/log-build';
+import { VERSION } from 'scripts/constants';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
-const program = new Command();
+const program = new Command().version(VERSION);
 
 // The users dierctory
 const dir = process.cwd();
@@ -84,10 +86,12 @@ program
 program
   .command('build')
   .description('Run build of EventCatalog')
-  .action((options) => {
+  .action(async (options) => {
     console.log('Building EventCatalog...');
 
     copyCore();
+
+    await logBuild(dir);
 
     execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run build`, {
       cwd: core,
