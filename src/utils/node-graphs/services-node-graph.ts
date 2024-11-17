@@ -11,6 +11,10 @@ import {
 import { findMatchingNodes, getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 import { MarkerType } from 'reactflow';
 import type { CollectionMessageTypes } from '@types';
+import { getCommands } from '@utils/commands';
+import { getEvents } from '@utils/events';
+import { getQueries } from '@utils/queries';
+import { getChannels } from '@utils/channels';
 
 type DagreGraph = any;
 
@@ -67,10 +71,10 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   const receivesRaw = service?.data.receives || [];
   const sendsRaw = service?.data.sends || [];
 
-  const events = await getCollection('events');
-  const commands = await getCollection('commands');
-  const queries = await getCollection('queries');
-  const channels = await getCollection('channels');
+  const events = await getEvents();
+  const commands = await getCommands();
+  const queries = await getQueries();
+  const channels = await getChannels();
 
   const messages = [...events, ...commands, ...queries];
 
