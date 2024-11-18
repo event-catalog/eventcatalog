@@ -1,0 +1,32 @@
+---
+import fs from 'fs';
+import path from 'path';
+import { Code } from 'astro-expressive-code/components';
+
+interface Props {
+  file?: string;
+  catalog: {
+    filePath: string;
+  };
+  title?: string;
+}
+
+const { file = 'schema.json', catalog, title } = Astro.props;
+
+let code: string | null = null;
+
+const exists = fs.existsSync(path.join(catalog.filePath, file));
+if (exists) {
+  code = fs.readFileSync(path.join(catalog.filePath, file), 'utf-8');
+}
+---
+
+{
+  code ? (
+    <div class="not-prose max-w-4xl overflow-x-auto">
+      <Code code={code} title={title || file} lang="json" />
+    </div>
+  ) : (
+    <div class="italic">Tried to load schema from {path.join(catalog.filePath, file)}, but no schema can be found</div>
+  )
+}

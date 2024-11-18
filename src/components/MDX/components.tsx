@@ -1,5 +1,5 @@
 // React components
-import Schema from '@components/MDX/Schema';
+import Schema from '@components/MDX/Schema.astro';
 import File from '@components/MDX/File';
 import Accordion from '@components/MDX/Accordion/Accordion.astro';
 import AccordionGroup from '@components/MDX/Accordion/AccordionGroup.astro';
@@ -16,6 +16,7 @@ import ChannelInformation from '@components/MDX/ChannelInformation/ChannelInform
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
+import { jsx } from 'astro/jsx-runtime';
 
 const components = (props: any) => {
   return {
@@ -33,7 +34,7 @@ const components = (props: any) => {
     NodeGraph: (mdxProp: any) => NodeGraphPortal({ ...props.data, ...mdxProp }),
     ChannelInformation: (mdxProp: any) => ChannelInformation({ ...props.data, ...mdxProp }),
     SchemaViewer: (mdxProp: any) => SchemaViewerPortal({ ...props.data, ...mdxProp }),
-    Schema: (mdxProp: any) => Schema({ ...props, ...mdxProp }),
+    Schema: (mdxProp: any) => jsx(Schema, { ...props, ...mdxProp }),
   };
 };
 
