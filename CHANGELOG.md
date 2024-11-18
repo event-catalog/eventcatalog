@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.13.3
+
+### Patch Changes
+
+- b893559: fix(core): fixed issue with styling of schema files
+
 ## 2.13.2
 
 ### Patch Changes
