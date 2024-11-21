@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.13.4
+
+### Patch Changes
+
+- 2ad9561: fix(core): fixed issues with node graphs for services and metadata in the nodes
+
 ## 2.13.3
 
 ### Patch Changes
