@@ -7,6 +7,7 @@ import {
   getNodesAndEdgesForQueries,
 } from '@utils/node-graphs/message-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/node-graphs/domains-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForDomainContextMap } from '@utils/node-graphs/domain-context-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs/flows-node-graph';
 
 interface Props {
@@ -32,20 +33,31 @@ const getNodesAndEdgesFunctions = {
   commands: getNodesAndEdgesForCommands,
   queries: getNodesAndEdgesForQueries,
   domains: getNodesAndEdgesForDomain,
+  "domain-context-map": getNodesAndEdgesForDomainContextMap,
   flows: getNodesAndEdgesForFlows,
 };
 
 if (collection in getNodesAndEdgesFunctions) {
-  const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesFunctions[
+
+  if(collection === "domain-context-map")  {
+    const { edges: fetchedEdges, nodes: fetchedNodes } = await getNodesAndEdgesForDomainContextMap({ id: "Orders", version: "x"});
+    nodes = fetchedNodes;
+    edges = fetchedEdges;
+  } else {
+    const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesFunctions[
     collection as keyof typeof getNodesAndEdgesFunctions
   ]({
-    id,
+    id: "Orders",
     version,
     mode,
   });
 
+  
+
   nodes = fetchedNodes;
   edges = fetchedEdges;
+  }
+
 }
 ---
 
@@ -67,4 +79,11 @@ if (collection in getNodesAndEdgesFunctions) {
   .react-flow__attribution {
     display: none;
   }
+
+  .react-flow__node-group {
+    border-radius: 10px !important;
+  }
+
+
+
 </style>
