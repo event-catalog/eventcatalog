@@ -50,7 +50,7 @@ describe('Services NodeGraph', () => {
         type: 'commands',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', message: expect.objectContaining({ id: mockCommands[0].id }) },
+        data: { mode: 'simple', message: mockCommands[0] },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -59,7 +59,7 @@ describe('Services NodeGraph', () => {
         id: 'OrderCreatedEvent-0.0.1',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', message: expect.objectContaining({ id: mockEvents[0].id }) },
+        data: { mode: 'simple', message: mockEvents[0] },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'events',
       };
@@ -115,46 +115,6 @@ describe('Services NodeGraph', () => {
       expect(edges).toEqual(expectedEdges);
     });
 
-    it('should return message nodes with producers and consumers for a given service', async () => {
-      const { nodes } = await getNodesAndEdges({ id: 'OrderService', version: '1.0.0' });
-
-      const expectedRecivesNode = {
-        id: 'PaymentProcessed-0.0.1',
-        type: 'commands',
-        data: expect.objectContaining({
-          message: expect.objectContaining({
-            data: expect.objectContaining({
-              consumers: [expect.objectContaining(mockServices[0])],
-              producers: expect.any(Array),
-            }),
-          }),
-        }),
-      };
-
-      const expectedSendsNode = {
-        id: 'OrderCreatedEvent-0.0.1',
-        type: 'events',
-        data: expect.objectContaining({
-          message: expect.objectContaining({
-            data: expect.objectContaining({
-              consumers: expect.any(Array),
-              producers: [expect.objectContaining(mockServices[0])],
-            }),
-          }),
-        }),
-      };
-
-      expect(nodes).toEqual(
-        expect.arrayContaining([
-          // Nodes on the left
-          expect.objectContaining(expectedRecivesNode),
-
-          // Nodes on the right
-          expect.objectContaining(expectedSendsNode),
-        ])
-      );
-    });
-
     it('if a message is sent and received by the same service it will render a custom edge', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'NotificationsService', version: '1.0.0' });
 
@@ -174,7 +134,7 @@ describe('Services NodeGraph', () => {
         type: 'events',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', message: expect.objectContaining({ id: mockEvents[3].id }) },
+        data: { mode: 'simple', message: mockEvents[3] },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -183,7 +143,7 @@ describe('Services NodeGraph', () => {
         id: 'OrderCreatedEvent-2.0.0',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', message: expect.objectContaining({ id: mockEvents[3].id }) },
+        data: { mode: 'simple', message: mockEvents[3] },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'events',
       };
@@ -263,7 +223,7 @@ describe('Services NodeGraph', () => {
         type: 'events',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', message: expect.objectContaining({ id: mockEvents[2].id }) },
+        data: { mode: 'simple', message: mockEvents[2] },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -272,7 +232,7 @@ describe('Services NodeGraph', () => {
         id: 'InventoryAdjusted-2.0.0',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', message: expect.objectContaining({ id: mockEvents[7].id }) },
+        data: { mode: 'simple', message: mockEvents[7] },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'events',
       };

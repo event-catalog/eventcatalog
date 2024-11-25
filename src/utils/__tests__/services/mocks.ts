@@ -93,7 +93,6 @@ export const mockServices = [
 
 export const mockEvents = [
   {
-    id: 'events/OrderCreatedEvent/versioned/0.0.1/index.mdx',
     slug: 'OrderCreatedEvent',
     collection: 'events',
     data: {
@@ -102,7 +101,6 @@ export const mockEvents = [
     },
   },
   {
-    id: 'events/OrderCreatedEvent/versioned/1.0.0/index.mdx',
     slug: 'OrderCreatedEvent',
     collection: 'events',
     data: {
@@ -111,7 +109,6 @@ export const mockEvents = [
     },
   },
   {
-    id: 'events/OrderCreatedEvent/versioned/1.3.9/index.mdx',
     slug: 'OrderCreatedEvent',
     collection: 'events',
     data: {
@@ -120,7 +117,6 @@ export const mockEvents = [
     },
   },
   {
-    id: 'events/OrderCreatedEvent/index.mdx',
     slug: 'OrderCreatedEvent',
     collection: 'events',
     data: {
@@ -129,7 +125,6 @@ export const mockEvents = [
     },
   },
   {
-    id: 'events/OrderDeletedEvent/index.mdx',
     slug: 'OrderDeletedEvent',
     collection: 'events',
     data: {
@@ -144,7 +139,6 @@ export const mockEvents = [
     },
   },
   {
-    id: 'events/InventoryAdjusted/versioned/0.0.1/index.mdx',
     slug: 'InventoryAdjusted',
     collection: 'events',
     data: {
@@ -153,7 +147,6 @@ export const mockEvents = [
     },
   },
   {
-    id: 'events/InventoryAdjusted/versioned/1.0.0/index.mdx',
     slug: 'InventoryAdjusted',
     collection: 'events',
     data: {
@@ -162,7 +155,6 @@ export const mockEvents = [
     },
   },
   {
-    id: 'events/InventoryAdjusted/index.mdx',
     slug: 'InventoryAdjusted',
     collection: 'events',
     data: {
@@ -172,7 +164,6 @@ export const mockEvents = [
   },
   // 7
   {
-    id: 'events/PaymentPaid/versioned/1.0.0/index.mdx',
     slug: 'PaymentPaid',
     collection: 'events',
     data: {
@@ -182,7 +173,6 @@ export const mockEvents = [
   },
   // 9
   {
-    id: 'events/PaymentPaid/index.mdx',
     slug: 'PaymentPaid',
     collection: 'events',
     data: {
@@ -192,7 +182,6 @@ export const mockEvents = [
   },
   // 10
   {
-    id: 'events/PaymentFailed/versioned/1.0.0/index.mdx',
     slug: 'PaymentFailed',
     collection: 'events',
     data: {
@@ -202,7 +191,6 @@ export const mockEvents = [
   },
   // 11
   {
-    id: 'events/PaymentFailed/1.2.3/index.mdx',
     slug: 'PaymentFailed',
     collection: 'events',
     data: {
@@ -230,7 +218,6 @@ export const mockEvents = [
 
 export const mockCommands = [
   {
-    id: 'commands/PaymentProcessed/index.mdx',
     slug: 'PaymentProcessed',
     collection: 'commands',
     data: {
@@ -241,7 +228,6 @@ export const mockCommands = [
 ];
 export const mockQueries = [
   {
-    id: 'queries/GetOrder/index.mdx',
     slug: 'GetOrder',
     collection: 'queries',
     data: {
