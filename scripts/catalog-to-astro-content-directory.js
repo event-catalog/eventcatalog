@@ -7,7 +7,18 @@ import { verifyRequiredFieldsAreInCatalogConfigFile, addPropertyToFrontMatter } 
 import { mapCatalogToAstro } from './map-catalog-to-astro.js';
 
 const __filename = fileURLToPath(import.meta.url);
-const scriptsDir = path.dirname(__filename);
+const rootPkg = path.resolve(
+  path.dirname(__filename),
+  /**
+   * TODO: fix me =0
+   *
+   * The following is a workaround until organize the structure to have the correct path
+   * for any value of NODE_ENV
+   *
+   * @author carlosallexandre
+   */
+  process.env.NODE_ENV === 'test' ? '../' : '../../'
+);
 
 const copyFiles = async (source, target) => {
   const files = await glob(path.join(source, '**'), {
@@ -67,7 +78,7 @@ const ensureAstroCollectionNotEmpty = async (astroDir) => {
   }
 
   // Hydrate empty collections
-  const defaultCollectionFilesDir = path.join(scriptsDir, 'default-files-for-collections');
+  const defaultCollectionFilesDir = path.join(rootPkg, 'default-files-for-collections');
   for (const collection of emptyCollections) {
     const defaultFile = path.join(defaultCollectionFilesDir, `${collection}.md`);
     const targetDir = path.join(astroDir, 'src/content/', collection);
@@ -102,11 +113,3 @@ export const catalogToAstro = async (source, astroDir) => {
   // insert empty one that is filtered out
   await ensureAstroCollectionNotEmpty(astroDir);
 };
-
-if (process.env.NODE_ENV !== 'test') {
-  // // Get the project directory of the source
-  const source = process.env.PROJECT_DIR;
-  const astroDir = process.env.CATALOG_DIR;
-
-  catalogToAstro(source, astroDir);
-}

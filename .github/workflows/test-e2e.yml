@@ -1,29 +1,27 @@
 name: Tests e2e
 on:
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: lts/*
-    - name: Install dependencies
-      run: npm ci
-    - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
-    - name: Build catalog
-      shell: bash
-      run: |
-        cp $PROJECT_DIR/eventcatalog.config.js $CATALOG_DIR/eventcatalog.config.js
-        cp $PROJECT_DIR/eventcatalog.styles.css $CATALOG_DIR/eventcatalog.styles.css
-        npm run build
-      env:
-        PROJECT_DIR: ./examples/default/
-        CATALOG_DIR: ./
-        NODE_ENV: CI # Skip analytics
-    - name: Run tests
-      run: npm run test:e2e
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Build cli
+        run: npm run build:bin
+      - name: Build catalog
+        run: npx . build
+        env:
+          PROJECT_DIR: ./examples/default/
+          CATALOG_DIR: ./
+          NODE_ENV: CI # Skip analytics
+      - name: Run tests
+        run: npm run test:e2e

@@ -11,10 +11,17 @@ const catalog = args[0] || 'default';
 const catalogDir = join(__dirname, '../');
 const projectDIR = join(__dirname, `../examples/${catalog}`);
 
-execSync(
-  `cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npm run build && astro check --minimumSeverity error`,
-  {
-    cwd: catalogDir,
-    stdio: 'inherit',
-  }
-);
+// Build cli
+execSync('npm run build:bin', { stdio: 'inherit' });
+
+// Build catalog
+execSync(`cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npx . build`, {
+  cwd: catalogDir,
+  stdio: 'inherit',
+});
+
+// Type check
+execSync('npx astro check --minimumSeverity error', {
+  cwd: catalogDir,
+  stdio: 'inherit',
+});

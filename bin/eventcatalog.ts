@@ -5,19 +5,25 @@ import { join } from 'node:path';
 import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import concurrently from 'concurrently';
+import { generate } from 'scripts/generate';
+import logBuild from 'scripts/analytics/log-build';
+import { VERSION } from 'scripts/constants';
+import { watch } from 'scripts/watcher';
+import { catalogToAstro } from 'scripts/catalog-to-astro-content-directory';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
-const program = new Command();
+const program = new Command().version(VERSION);
 
 // The users dierctory
-const dir = process.cwd();
+const dir = path.resolve(process.env.PROJECT_DIR || process.cwd());
 
 // The tmp core directory
-const core = join(dir, '.eventcatalog-core');
+const core = path.resolve(process.env.CATALOG_DIR || join(dir, '.eventcatalog-core'));
 
 // The project itself
-const eventCatalogDir = join(currentDir, '../../');
+const eventCatalogDir = path.resolve(join(currentDir, '../../'));
 
 program.name('eventcatalog').description('Documentation tool for event-driven architectures');
 
@@ -36,6 +42,12 @@ const ensureDir = (dir: string) => {
 const copyCore = () => {
   // make sure the core folder exists
   ensureDir(core);
+
+  if (eventCatalogDir === core) {
+    // This is used for development purposes as it's not possible cp a dir to itself.
+    // Into development usually core is the root equals to eventCatalogDir.
+    return;
+  }
 
   // Copy required eventcatlog files into users directory
   fs.cpSync(eventCatalogDir, core, {
@@ -58,7 +70,7 @@ program
   .description('Run development server of EventCatalog')
   .option('-d, --debug', 'Output EventCatalog application information into your terminal')
   .option('--force-recreate', 'Recreate the eventcatalog-core directory', false)
-  .action((options) => {
+  .action(async (options) => {
     // // Copy EventCatalog core over
     console.log('Setting up EventCatalog....');
 
@@ -73,20 +85,43 @@ program
 
     console.log('EventCatalog is starting at http://localhost:3000/docs');
 
-    execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run dev`, {
-      cwd: core,
-      // @ts-ignore
-      stdio: 'inherit',
-    });
+    await catalogToAstro(dir, core);
+
+    let watchUnsub;
+    try {
+      watchUnsub = await watch(dir, core);
+
+      const { result } = concurrently([
+        {
+          name: 'astro',
+          command: 'npm run dev',
+          cwd: core,
+          env: {
+            PROJECT_DIR: dir,
+            CATALOG_DIR: core,
+          },
+        },
+      ]);
+
+      await result;
+    } catch (err) {
+      console.error(err);
+    } finally {
+      await watchUnsub?.();
+    }
   });
 
 program
   .command('build')
   .description('Run build of EventCatalog')
-  .action((options) => {
+  .action(async (options) => {
     console.log('Building EventCatalog...');
 
     copyCore();
+
+    await logBuild(dir);
+
+    await catalogToAstro(dir, core);
 
     execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run build`, {
       cwd: core,
@@ -122,13 +157,8 @@ program
 program
   .command('generate [siteDir]')
   .description('Start the generator scripts.')
-  .action(() => {
-    copyCore();
-
-    execSync(`cross-env PROJECT_DIR='${dir}' npm run generate`, {
-      cwd: core,
-      stdio: 'inherit',
-    });
+  .action(async () => {
+    await generate(dir);
   });
 
-program.parse();
+program.parseAsync();
