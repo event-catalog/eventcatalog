@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.14.0
+
+### Minor Changes
+
+- 536511e: chore(core): refactor core logic to simplify the code
+
 ## 2.13.4
 
 ### Patch Changes
