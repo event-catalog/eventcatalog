@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.14.1
+
+### Patch Changes
+
+- a904248: Revert "fix/service-node-graph-metadata (#964)"
+
 ## 2.14.0
 
 ### Minor Changes
