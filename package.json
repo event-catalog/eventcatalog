@@ -13,6 +13,12 @@
   "bin": {
     "eventcatalog": "bin/dist/eventcatalog.cjs"
   },
+  "files": [
+    "astro/",
+    "!astro/**/__tests__/",
+    "bin/dist/",
+    "default-files-for-collections/"
+  ],
   "scripts": {
     "dev": "astro dev",
     "build:bin": "tsup",
