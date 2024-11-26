@@ -24,11 +24,11 @@ pnpm-debug.log*
 .idea/
 
 # EventCatalog files
-/src/content/*
-!/src/content/config.ts
-/public/generated/*
-/src/catalog-files/*
-/src/custom-defined-components/*
+/astro/src/content/*
+!/astro/src/content/config.ts
+/astro/public/generated/*
+/astro/src/catalog-files/*
+/astro/src/custom-defined-components/*
 /.eventcatalog-core/*
 /examples/large-catalog/*
 

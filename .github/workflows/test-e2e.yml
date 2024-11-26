@@ -21,7 +21,7 @@ jobs:
         run: npx . build
         env:
           PROJECT_DIR: ./examples/default/
-          CATALOG_DIR: ./
+          CATALOG_DIR: ./astro/
           NODE_ENV: CI # Skip analytics
       - name: Run tests
         run: npm run test:e2e

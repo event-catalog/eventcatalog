@@ -12,13 +12,12 @@ import { execSync } from 'node:child_process';
 const args = process.argv.slice(2);
 const catalog = args[0] || 'default';
 
-const catalogDir = join(process.cwd());
+const catalogDir = join(process.cwd(), 'astro/');
 const projectDIR = join(process.cwd(), `/examples/${catalog}`);
 
 fs.copyFileSync(join(projectDIR, 'eventcatalog.config.js'), join(catalogDir, 'eventcatalog.config.js'));
 fs.copyFileSync(join(projectDIR, 'eventcatalog.styles.css'), join(catalogDir, 'eventcatalog.styles.css'));
 
-execSync(`cross-env NODE_ENV=test PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npm run test`, {
-  cwd: catalogDir,
+execSync(`cross-env NODE_ENV=test PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npm run test run`, {
   stdio: 'inherit',
 });

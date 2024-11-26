@@ -3,18 +3,6 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
-    "paths": {
-      "@config": ["./eventcatalog.config.js"],
-      "@eventcatalog": ["src/utils/eventcatalog-config/catalog.ts"],
-      "@icons/*": ["src/icons/*"],
-      "@components/*": ["src/components/*"],
-      "@catalog/components/*": ["src/custom-defined-components/*"],
-      "@types": ["src/types/index.ts"],
-      "@utils/*": ["src/utils/*"],
-      "@layouts/*": ["src/layouts/*"]
-    },
-    "jsx": "react-jsx",
-    "jsxImportSource": "react",
     "types": ["vitest/globals"]
   }
 }

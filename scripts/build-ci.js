@@ -8,7 +8,7 @@ const __dirname = import.meta.dirname;
 const args = process.argv.slice(2);
 const catalog = args[0] || 'default';
 
-const catalogDir = join(__dirname, '../');
+const catalogDir = join(__dirname, '../astro/');
 const projectDIR = join(__dirname, `../examples/${catalog}`);
 
 // Build cli
@@ -16,7 +16,6 @@ execSync('npm run build:bin', { stdio: 'inherit' });
 
 // Build catalog
 execSync(`cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npx . build`, {
-  cwd: catalogDir,
   stdio: 'inherit',
 });
 

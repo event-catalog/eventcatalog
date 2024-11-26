@@ -23,7 +23,7 @@ const dir = path.resolve(process.env.PROJECT_DIR || process.cwd());
 const core = path.resolve(process.env.CATALOG_DIR || join(dir, '.eventcatalog-core'));
 
 // The project itself
-const eventCatalogDir = path.resolve(join(currentDir, '../../'));
+const eventCatalogDir = path.resolve(join(currentDir, '../../astro/'));
 
 program.name('eventcatalog').description('Documentation tool for event-driven architectures');
 
@@ -94,7 +94,7 @@ program
       const { result } = concurrently([
         {
           name: 'astro',
-          command: 'npm run dev',
+          command: 'npx astro dev',
           cwd: core,
           env: {
             PROJECT_DIR: dir,
@@ -123,7 +123,7 @@ program
 
     await catalogToAstro(dir, core);
 
-    execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run build`, {
+    execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro build`, {
       cwd: core,
       stdio: 'inherit',
     });
@@ -132,7 +132,7 @@ program
 const previewCatalog = () => {
   copyCore();
 
-  execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npm run preview -- --root ${dir} --port 3000`, {
+  execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro preview --root ${dir} --port 3000`, {
     cwd: core,
     stdio: 'inherit',
   });
