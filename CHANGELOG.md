@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.14.2
+
+### Patch Changes
+
+- bb4d278: fix(core): fixed styles for links in the step component
+
 ## 2.14.1
 
 ### Patch Changes
