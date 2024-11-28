@@ -117,11 +117,11 @@ Thank you to our project  sponsors.
 
 ## Gold sponsors
 
-<div align="center">
+<!-- <div align="center">
   <img alt="hookdeck" src="./images/sponsors/hookdeck.svg" />
   <p style="margin: 0; padding: 0;">Serverless infrastructure for event-driven architecture. </p>
   <a href="https://hookdeck.com/?ref=eventcatalog-sponsor" target="_blank" >Learn more</a>
-</div>
+</div> -->
 
 <hr />
 
