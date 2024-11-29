@@ -8,7 +8,7 @@ export default defineWorkspace([
     test: {
       name: '@eventcatalog/core',
       globals: true,
-      exclude: [...defaultExclude, 'e2e/**', 'astro/**'],
+      exclude: [...defaultExclude, 'e2e/**', 'eventcatalog/**'],
     },
   },
   getViteConfig({
@@ -16,10 +16,10 @@ export default defineWorkspace([
     test: {
       name: '@eventcatalog/astro',
       globals: true,
-      root: 'astro/',
+      root: 'eventcatalog/',
       env: {
         PROJECT_DIR: 'examples/default/',
-        CATALOG_DIR: 'astro/',
+        CATALOG_DIR: 'eventcatalog/',
       },
     },
   }),

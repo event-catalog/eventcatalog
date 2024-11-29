@@ -12,7 +12,7 @@ import { execSync } from 'node:child_process';
 const args = process.argv.slice(2);
 const catalog = args[0] || 'default';
 
-const catalogDir = join(process.cwd(), 'astro/');
+const catalogDir = join(process.cwd(), 'eventcatalog/');
 const projectDIR = join(process.cwd(), `/examples/${catalog}`);
 
 fs.copyFileSync(join(projectDIR, 'eventcatalog.config.js'), join(catalogDir, 'eventcatalog.config.js'));

@@ -23,7 +23,7 @@ const dir = path.resolve(process.env.PROJECT_DIR || process.cwd());
 const core = path.resolve(process.env.CATALOG_DIR || join(dir, '.eventcatalog-core'));
 
 // The project itself
-const eventCatalogDir = path.resolve(join(currentDir, '../../astro/'));
+const eventCatalogDir = path.resolve(join(currentDir, '../../eventcatalog/'));
 
 program.name('eventcatalog').description('Documentation tool for event-driven architectures');
 

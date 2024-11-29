@@ -14,8 +14,8 @@
     "eventcatalog": "bin/dist/eventcatalog.cjs"
   },
   "files": [
-    "astro/",
-    "!astro/**/__tests__/",
+    "eventcatalog/",
+    "!eventcatalog/**/__tests__/",
     "bin/dist/",
     "default-files-for-collections/"
   ],
