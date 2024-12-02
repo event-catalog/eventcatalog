@@ -8,7 +8,7 @@ async function main() {
   const args = process.argv.slice(2);
   const catalog = args[0] || 'default';
 
-  const catalogDir = join(__dirname, '../');
+  const catalogDir = join(__dirname, '../eventcatalog/');
   const projectDIR = join(__dirname, `../examples/${catalog}`);
 
   execSync('npm run build:bin', { stdio: 'inherit' });

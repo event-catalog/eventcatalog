@@ -13,11 +13,17 @@
   "bin": {
     "eventcatalog": "bin/dist/eventcatalog.cjs"
   },
+  "files": [
+    "eventcatalog/",
+    "!eventcatalog/**/__tests__/",
+    "bin/dist/",
+    "default-files-for-collections/"
+  ],
   "scripts": {
     "dev": "astro dev",
     "build:bin": "tsup",
     "prepublishOnly": "npm run build:bin",
-    "test": "vitest --config vitest.config.ts",
+    "test": "vitest",
     "test:ci": "node scripts/ci/test.js",
     "test:e2e": "playwright test",
     "start": "astro dev",
