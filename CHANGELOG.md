@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.14.3
+
+### Patch Changes
+
+- eb2c620: feat(core): added support to teams chat url in users and teams pages
+- 95ed136: feat(core): added support for rendering avro schema formats in AsyncApi page
+
 ## 2.14.2
 
 ### Patch Changes
