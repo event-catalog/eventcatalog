@@ -16,6 +16,7 @@ import ReactFlow, {
   SmoothStepEdge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { memo } from 'react';
 
 // Nodes and edges
 import ServiceNode from './Nodes/Service';
@@ -51,6 +52,19 @@ const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<Collectio
   return buildUrl(`/visualiser/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}`);
 };
 
+
+ 
+function AnnotationNode({ data }: any) {
+  return (
+    <>
+      <div className='annotation-content'>
+        <div>{data.label}</div>
+      </div>
+      
+    </>
+  );
+}
+ 
 const NodeGraphBuilder = ({
   nodes: initialNodes,
   edges: initialEdges,
@@ -63,6 +77,10 @@ const NodeGraphBuilder = ({
   const nodeTypes = useMemo(
     () => ({
       services: ServiceNode,
+      customGroupNode: () => {
+        return null;
+      },
+      annotation: memo(AnnotationNode),
       events: EventNode,
       channels: ChannelNode,
       queries: QueryNode,
