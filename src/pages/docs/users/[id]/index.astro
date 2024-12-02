@@ -99,8 +99,8 @@ const associatedTeams = teams.map((o) => ({
                 {
                   props.data.msTeamsDirectMessageUrl && (
                     <div class="flex space-x-1 items-center text-xs text-gray-500 font-bold hover:underline hover:text-primary">
-                      <img src="/ms-teams.svg" class="w-4 h-3" />
-                      <a href={`${props.data.msTeamsDirectMessageUrl}`}>Send DM on Teams</a>
+                      <img src="/icons/ms-teams.svg" class="w-4 h-4" />
+                      <a href={`${props.data.msTeamsDirectMessageUrl}`} target="_blank" rel="noopener noreferrer">Send DM on Teams</a>
                     </div>
                   )
                 }
