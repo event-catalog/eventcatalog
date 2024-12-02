@@ -44,6 +44,7 @@
     "@astrojs/mdx": "^3.1.8",
     "@astrojs/react": "^3.6.2",
     "@astrojs/tailwind": "^5.1.2",
+    "@asyncapi/avro-schema-parser": "^3.0.24",
     "@asyncapi/react-component": "^2.4.3",
     "@headlessui/react": "^2.0.3",
     "@heroicons/react": "^2.1.3",

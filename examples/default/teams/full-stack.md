@@ -8,6 +8,7 @@ members:
     - msmith
 email: test@test.com
 slackDirectMessageUrl: https://yourteam.slack.com/channels/boyney123
+msTeamsDirectMessageUrl: https://teams.microsoft.com/l/channel/<Your Channel Id>/<Your team chat name>?groupId=<Your group Id>&tenantId=<Your tenant Id>
 ---
 
 ## Overview

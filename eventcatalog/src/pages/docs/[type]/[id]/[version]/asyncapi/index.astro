@@ -4,6 +4,7 @@ import { readFileSync } from 'fs';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { Parser } from '@asyncapi/parser';
+import { AvroSchemaParser } from '@asyncapi/avro-schema-parser';
 
 import type { CollectionTypes, PageTypes } from '@types';
 
@@ -46,7 +47,7 @@ const fileContent = readFileSync(pathOnDisk, 'utf-8');
 
 // AsyncAPI parser will parser schemas for users, they can turn this off.
 const parseSchemas = Config?.asyncAPI?.renderParsedSchemas ?? true;
-const parsed = await new Parser().parse(fileContent, { parseSchemas });
+const parsed = await new Parser({ schemaParsers: [AvroSchemaParser()] }).parse(fileContent, { parseSchemas });
 const stringified = parsed.document?.json();
 const config: ConfigInterface = { show: { sidebar: true, errors: true } };
 

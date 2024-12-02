@@ -5,6 +5,7 @@ avatarUrl: "https://pbs.twimg.com/profile_images/1262283153563140096/DYRDqKg6_40
 role: Lead developer
 email: test@test.com
 slackDirectMessageUrl: https://yourteam.slack.com/channels/boyney123
+msTeamsDirectMessageUrl: https://teams.microsoft.com/l/chat/0/0?users=test@test.com
 ---
 
 Hello! I'm David Boyne, the Tech Lead of an amazing team called Full Stackers. With a passion for building robust and scalable systems, I specialize in designing and implementing event-driven architectures that power modern, responsive applications.
