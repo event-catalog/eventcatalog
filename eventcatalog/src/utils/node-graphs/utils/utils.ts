@@ -156,8 +156,15 @@ export const getChannelNodesAndEdges = ({
 
 type DagreGraph = any;
 
-export const getNodesAndEdgesFromDagre = ({ nodes, edges, defaultFlow }: { nodes: Node[]; edges: Edge[]; defaultFlow?: DagreGraph }) => {
-
+export const getNodesAndEdgesFromDagre = ({
+  nodes,
+  edges,
+  defaultFlow,
+}: {
+  nodes: Node[];
+  edges: Edge[];
+  defaultFlow?: DagreGraph;
+}) => {
   const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
 
   nodes.forEach((node: any) => {
@@ -175,5 +182,4 @@ export const getNodesAndEdgesFromDagre = ({ nodes, edges, defaultFlow }: { nodes
     nodes: calculatedNodes(flow, nodes),
     edges,
   };
-
 };

@@ -85,7 +85,6 @@ const NodeGraphBuilder = ({
   const { hideChannels, toggleChannelsVisibility } = useEventCatalogVisualiser({ nodes, edges, setNodes, setEdges });
   const { fitView } = useReactFlow();
 
-
   const resetNodesAndEdges = useCallback(() => {
     setNodes((nds) =>
       nds.map((node) => {
@@ -298,12 +297,14 @@ const NodeGraphBuilder = ({
                 <button
                   id="message-animation-toggle"
                   onClick={toggleAnimateMessages}
-                  className={`${animateMessages ? 'bg-purple-600' : 'bg-gray-200'
-                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
+                  className={`${
+                    animateMessages ? 'bg-purple-600' : 'bg-gray-200'
+                  } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
                 >
                   <span
-                    className={`${animateMessages ? 'translate-x-6' : 'translate-x-1'
-                      } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                    className={`${
+                      animateMessages ? 'translate-x-6' : 'translate-x-1'
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                   />
                 </button>
               </div>
@@ -317,19 +318,20 @@ const NodeGraphBuilder = ({
                 <button
                   id="message-animation-toggle"
                   onClick={toggleChannelsVisibility}
-                  className={`${hideChannels ? 'bg-purple-600' : 'bg-gray-200'
-                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
+                  className={`${
+                    hideChannels ? 'bg-purple-600' : 'bg-gray-200'
+                  } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
                 >
                   <span
-                    className={`${hideChannels ? 'translate-x-6' : 'translate-x-1'
-                      } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                    className={`${
+                      hideChannels ? 'translate-x-6' : 'translate-x-1'
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                   />
                 </button>
               </div>
               <p className="text-[10px] text-gray-500">Show or hide channels in the visualizer.</p>
             </div>
           </div>
-
         </div>
       )}
       {includeBackground && <Background color="#bbb" gap={16} />}
