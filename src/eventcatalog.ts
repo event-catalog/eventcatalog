@@ -122,7 +122,7 @@ program
       const { result } = concurrently([
         {
           name: 'astro',
-          command: 'npx astro dev',
+          command: `${packageManager} run dev`,
           cwd: core,
           env: {
             PROJECT_DIR: dir,
@@ -154,17 +154,19 @@ program
 
     await catalogToAstro(dir, core);
 
-    execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro build`, {
+    execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ${packageManager} run build`, {
       cwd: core,
       stdio: 'inherit',
     });
   });
 
 const previewCatalog = () => {
+  const packageManager = getPackageManager();
+
   /**
    * TODO: get the port and outDir from the eventcatalog.config.js.
    */
-  execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro preview --root ${dir} --port 3000`, {
+  execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ${packageManager} run preview -- --root ${dir} --port 3000`, {
     cwd: core,
     stdio: 'inherit',
   });
