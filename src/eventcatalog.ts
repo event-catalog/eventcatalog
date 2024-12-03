@@ -1,9 +1,10 @@
 import { Command } from 'commander';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
+import { createRequire } from 'node:module';
 import fs from 'fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import concurrently from 'concurrently';
 import { generate } from './generate';
 import logBuild from './analytics/log-build';
@@ -58,6 +59,34 @@ const clearCore = () => {
   if (fs.existsSync(core)) fs.rmSync(core, { recursive: true });
 };
 
+const isDepInstalled = (moduleName: string) => {
+  try {
+    /**
+     * `createRequire` expects a filename to be used to construct the require function.
+     * For this reason, we resolve to the `package.json` file and use `pathToFileURL`
+     * to ensure we get an absolute path.
+     */
+    const require = createRequire(pathToFileURL(path.resolve(core, 'package.json')));
+    const resolvedPath = require.resolve(moduleName);
+    console.debug(`Module '${moduleName}' resolved to: ${resolvedPath}`);
+    return true;
+  } catch (e) {
+    console.debug(`Module '${moduleName}' not found!`);
+    return false;
+  }
+};
+
+const installDeps = () => {
+  if (isDepInstalled('astro')) {
+    console.debug('Skipping dependencies installation...');
+    return;
+  }
+
+  // TODO: get the pm with which-pm-runs
+  // TODO: exec the install command with the which-pm-runs
+  execSync('npm install', { cwd: core, stdio: 'inherit' });
+};
+
 program
   .command('dev')
   .description('Run development server of EventCatalog')
@@ -75,6 +104,8 @@ program
 
     if (options.forceRecreate) clearCore();
     copyCore();
+
+    installDeps();
 
     console.log('EventCatalog is starting at http://localhost:3000/docs');
 
@@ -111,6 +142,8 @@ program
     console.log('Building EventCatalog...');
 
     copyCore();
+
+    installDeps();
 
     await logBuild(dir);
 
