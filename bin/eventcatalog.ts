@@ -6,11 +6,11 @@ import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import concurrently from 'concurrently';
-import { generate } from 'scripts/generate';
-import logBuild from 'scripts/analytics/log-build';
-import { VERSION } from 'scripts/constants';
-import { watch } from 'scripts/watcher';
-import { catalogToAstro } from 'scripts/catalog-to-astro-content-directory';
+import { generate } from 'src/generate';
+import logBuild from 'src/analytics/log-build';
+import { VERSION } from 'src/constants';
+import { watch } from 'src/watcher';
+import { catalogToAstro } from 'src/catalog-to-astro-content-directory';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
