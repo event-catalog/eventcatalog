@@ -1,16 +1,15 @@
-#!/usr/bin/env node
 import { Command } from 'commander';
-import { exec, execSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import concurrently from 'concurrently';
-import { generate } from 'scripts/generate';
-import logBuild from 'scripts/analytics/log-build';
-import { VERSION } from 'scripts/constants';
-import { watch } from 'scripts/watcher';
-import { catalogToAstro } from 'scripts/catalog-to-astro-content-directory';
+import { generate } from './generate';
+import logBuild from './analytics/log-build';
+import { VERSION } from './constants';
+import { watch } from './watcher';
+import { catalogToAstro } from './catalog-to-astro-content-directory';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -23,15 +22,9 @@ const dir = path.resolve(process.env.PROJECT_DIR || process.cwd());
 const core = path.resolve(process.env.CATALOG_DIR || join(dir, '.eventcatalog-core'));
 
 // The project itself
-const eventCatalogDir = path.resolve(join(currentDir, '../../eventcatalog/'));
+const eventCatalogDir = path.resolve(join(currentDir, '../eventcatalog/'));
 
 program.name('eventcatalog').description('Documentation tool for event-driven architectures');
-
-const copyFolder = (from: string, to: string) => {
-  if (fs.existsSync(from)) {
-    fs.cpSync(from, to, { recursive: true });
-  }
-};
 
 const ensureDir = (dir: string) => {
   if (!fs.existsSync(dir)) {
@@ -130,8 +123,9 @@ program
   });
 
 const previewCatalog = () => {
-  copyCore();
-
+  /**
+   * TODO: get the port and outDir from the eventcatalog.config.js.
+   */
   execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro preview --root ${dir} --port 3000`, {
     cwd: core,
     stdio: 'inherit',
@@ -161,4 +155,10 @@ program
     await generate(dir);
   });
 
-program.parseAsync();
+program
+  .parseAsync()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
