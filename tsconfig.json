@@ -3,6 +3,7 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
+    "outDir": "dist/",
     "types": ["vitest/globals"]
   }
 }
