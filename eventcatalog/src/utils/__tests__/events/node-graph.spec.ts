@@ -279,7 +279,7 @@ describe('Events NodeGraph', () => {
           id: 'NotificationsService-0.0.1-EmailChannel-1.0.0-EmailVerified-1.0.0',
           source: 'NotificationsService-0.0.1',
           target: 'NotificationsService-0.0.1-EmailChannel-1.0.0-EmailVerified-1.0.0',
-          data: { message: expect.anything() },
+          data: { message: expect.anything(), source: expect.anything(), target: expect.anything(), channel: expect.anything() },
         },
         {
           label: 'publishes event',
@@ -289,7 +289,7 @@ describe('Events NodeGraph', () => {
           id: 'EmailChannel-1.0.0-EmailVerified-1.0.0-NotificationsService-0.0.1',
           source: 'NotificationsService-0.0.1-EmailChannel-1.0.0-EmailVerified-1.0.0',
           target: 'EmailVerified-1.0.0',
-          data: { message: expect.anything() },
+          data: { message: expect.anything(), source: expect.anything(), target: expect.anything(), channel: expect.anything() },
         },
       ]);
     });
