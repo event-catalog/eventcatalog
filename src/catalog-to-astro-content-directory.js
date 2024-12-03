@@ -7,18 +7,7 @@ import { verifyRequiredFieldsAreInCatalogConfigFile, addPropertyToFrontMatter } 
 import { mapCatalogToAstro } from './map-catalog-to-astro.js';
 
 const __filename = fileURLToPath(import.meta.url);
-const rootPkg = path.resolve(
-  path.dirname(__filename),
-  /**
-   * TODO: fix me =0
-   *
-   * The following is a workaround until organize the structure to have the correct path
-   * for any value of NODE_ENV
-   *
-   * @author carlosallexandre
-   */
-  process.env.NODE_ENV === 'test' ? '../' : '../../'
-);
+const rootPkg = path.resolve(path.dirname(__filename), '../');
 
 const copyFiles = async (source, target) => {
   const files = await glob(path.join(source, '**'), {
