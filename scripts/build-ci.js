@@ -15,8 +15,14 @@ const projectDIR = join(__dirname, `../examples/${catalog}`);
 execSync('npm run build:bin', { stdio: 'inherit' });
 
 // Build catalog
-execSync(`cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npx . build`, {
+execSync(`npx . build`, {
   stdio: 'inherit',
+  env: {
+    ...process.env,
+    NODE_EVN: 'CI',
+    PROJECT_DIR: projectDIR,
+    CATALOG_DIR: catalogDir,
+  },
 });
 
 // Type check

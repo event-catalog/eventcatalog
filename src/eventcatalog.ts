@@ -154,9 +154,14 @@ program
 
     await catalogToAstro(dir, core);
 
-    execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ${packageManager} run build`, {
+    execSync(`${packageManager} run build`, {
       cwd: core,
       stdio: 'inherit',
+      env: {
+        ...process.env,
+        PROJECT_DIR: dir,
+        CATALOG_DIR: core,
+      },
     });
   });
 
@@ -166,9 +171,14 @@ const previewCatalog = () => {
   /**
    * TODO: get the port and outDir from the eventcatalog.config.js.
    */
-  execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ${packageManager} run preview -- --root ${dir} --port 3000`, {
+  execSync(`${packageManager} run preview -- --root ${dir} --port 3000`, {
     cwd: core,
     stdio: 'inherit',
+    env: {
+      ...process.env,
+      PROJECT_DIR: dir,
+      CATALOG_DIR: core,
+    },
   });
 };
 
