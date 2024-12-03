@@ -2,7 +2,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import { MarkerType, Position, type Edge, type Node } from 'reactflow';
 import dagre from 'dagre';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
-import type { CollectionTypes } from '@types';
+import type { CollectionMessageTypes, CollectionTypes } from '@types';
 
 export const generateIdForNode = (node: CollectionEntry<CollectionTypes>) => {
   return `${node.data.id}-${node.data.version}`;
@@ -12,6 +12,33 @@ export const generateIdForNodes = (nodes: any) => {
 };
 export const generatedIdForEdge = (source: CollectionEntry<CollectionTypes>, target: CollectionEntry<CollectionTypes>) => {
   return `${source.data.id}-${source.data.version}-${target.data.id}-${target.data.version}`;
+};
+
+export const getEdgeLabelForServiceAsTarget = (data: CollectionEntry<CollectionMessageTypes>) => {
+  const type = data.collection;
+  switch (type) {
+    case 'commands':
+      return 'invokes';
+    case 'events':
+      return 'publishes event';
+    case 'queries':
+      return 'requests';
+    default:
+      return 'sends to';
+  }
+};
+export const getEdgeLabelForMessageAsSource = (data: CollectionEntry<CollectionMessageTypes>) => {
+  const type = data.collection;
+  switch (type) {
+    case 'commands':
+      return 'accepts';
+    case 'events':
+      return 'subscribed by';
+    case 'queries':
+      return 'accepts';
+    default:
+      return 'sends to';
+  }
 };
 
 export const calculatedNodes = (flow: dagre.graphlib.Graph, nodes: Node[]) => {
@@ -107,7 +134,7 @@ export const getChannelNodesAndEdges = ({
         target: channelId,
         label: '',
         // label: sourceToChannelLabel,
-        data: { message: edgeMessage },
+        data: { message: edgeMessage, source: edgeMessage, channel, target },
       })
     );
 
@@ -119,10 +146,40 @@ export const getChannelNodesAndEdges = ({
         source: channelId,
         target: generateIdForNode(target),
         label: channelToTargetLabel,
-        data: { message: edgeMessage },
+        data: { message: edgeMessage, source, channel, target },
       })
     );
   });
 
   return { nodes, edges };
+};
+
+type DagreGraph = any;
+
+export const getNodesAndEdgesFromDagre = ({
+  nodes,
+  edges,
+  defaultFlow,
+}: {
+  nodes: Node[];
+  edges: Edge[];
+  defaultFlow?: DagreGraph;
+}) => {
+  const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
+
+  nodes.forEach((node: any) => {
+    flow.setNode(node.id, { width: 150, height: 100 });
+  });
+
+  edges.forEach((edge: any) => {
+    flow.setEdge(edge.source, edge.target);
+  });
+
+  // Render the diagram in memory getting hte X and Y
+  dagre.layout(flow);
+
+  return {
+    nodes: calculatedNodes(flow, nodes),
+    edges,
+  };
 };

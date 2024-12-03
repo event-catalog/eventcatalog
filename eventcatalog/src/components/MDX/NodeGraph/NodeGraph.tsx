@@ -11,9 +11,6 @@ import ReactFlow, {
   type Edge,
   type Node,
   useReactFlow,
-  getBezierPath,
-  BaseEdge,
-  SmoothStepEdge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -34,7 +31,7 @@ import DownloadButton from './DownloadButton';
 import { buildUrl } from '@utils/url-builder';
 import ChannelNode from './Nodes/Channel';
 import { CogIcon } from '@heroicons/react/20/solid';
-
+import { useEventCatalogVisualiser } from 'src/hooks/eventcatalog-visualizer';
 interface Props {
   nodes: any;
   edges: any;
@@ -85,7 +82,7 @@ const NodeGraphBuilder = ({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAnimated, setIsAnimated] = useState(false);
   const [animateMessages, setAnimateMessages] = useState(false);
-
+  const { hideChannels, toggleChannelsVisibility } = useEventCatalogVisualiser({ nodes, edges, setNodes, setEdges });
   const { fitView } = useReactFlow();
 
   const resetNodesAndEdges = useCallback(() => {
@@ -162,16 +159,6 @@ const NodeGraphBuilder = ({
     [nodes, edges, setNodes, setEdges, resetNodesAndEdges, fitView]
   );
 
-  const toggleAnimation = () => {
-    setIsAnimated(!isAnimated);
-    setEdges((eds) =>
-      eds.map((edge) => ({
-        ...edge,
-        animated: !isAnimated,
-      }))
-    );
-  };
-
   const toggleAnimateMessages = () => {
     setAnimateMessages(!animateMessages);
     localStorage.setItem('EventCatalog:animateMessages', JSON.stringify(!animateMessages));
@@ -195,6 +182,10 @@ const NodeGraphBuilder = ({
       }))
     );
   }, [animateMessages]);
+
+  useEffect(() => {
+    fitView({ duration: 800 });
+  }, [nodes, edges]);
 
   const handlePaneClick = useCallback(() => {
     setIsSettingsOpen(false);
@@ -319,6 +310,27 @@ const NodeGraphBuilder = ({
               </div>
               <p className="text-[10px] text-gray-500">Animate events, queries and commands.</p>
             </div>
+            <div>
+              <div className="flex items-center justify-between">
+                <label htmlFor="message-animation-toggle" className="text-sm font-medium text-gray-700">
+                  Hide Channels
+                </label>
+                <button
+                  id="message-animation-toggle"
+                  onClick={toggleChannelsVisibility}
+                  className={`${
+                    hideChannels ? 'bg-purple-600' : 'bg-gray-200'
+                  } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
+                >
+                  <span
+                    className={`${
+                      hideChannels ? 'translate-x-6' : 'translate-x-1'
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                  />
+                </button>
+              </div>
+              <p className="text-[10px] text-gray-500">Show or hide channels in the visualizer.</p>
+            </div>
           </div>
         </div>
       )}
@@ -341,29 +353,6 @@ const NodeGraphBuilder = ({
                 </li>
               ))}
             </ul>
-            {/* <span className="font-bold">Key</span> */}
-            {/* <ul className="m-0 p-0">
-              <li className="flex space-x-2 items-center text-[10px]">
-                <span className="w-2 h-2 bg-orange-500 block" />
-                <span className="block">Events</span>
-              </li>
-              <li className="flex space-x-2 items-center text-[10px]">
-                <span className="w-2 h-2 bg-pink-500 block" />
-                <span className="block">Service</span>
-              </li>
-              <li className="flex space-x-2 items-center text-[10px]">
-                <span className="w-2 h-2 bg-blue-500 block" />
-                <span className="block">Command</span>
-              </li>
-              <li className="flex space-x-2 items-center text-[10px]">
-                <span className="w-2 h-2 bg-green-500 block" />
-                <span className="block">Query</span>
-              </li>
-              <li className="flex space-x-2 items-center text-[10px]">
-                <span className="w-2 h-2 bg-gray-500 block" />
-                <span className="block">Channel</span>
-              </li>
-            </ul> */}
           </div>
         </Panel>
       )}

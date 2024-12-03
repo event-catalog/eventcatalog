@@ -378,7 +378,7 @@ describe('Services NodeGraph', () => {
           id: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0-PaymentService-1.0.0',
           source: 'OrderDeletedEvent-2.0.0',
           target: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0-PaymentService-1.0.0',
-          data: { message: expect.anything() },
+          data: { message: expect.anything(), source: expect.anything(), target: expect.anything(), channel: expect.anything() },
         },
         {
           label: 'receives event',
@@ -388,7 +388,7 @@ describe('Services NodeGraph', () => {
           id: 'OrderChannel-1.0.0-PaymentService-1.0.0-OrderDeletedEvent-2.0.0',
           source: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0-PaymentService-1.0.0',
           target: 'PaymentService-1.0.0',
-          data: { message: expect.anything() },
+          data: { message: expect.anything(), source: expect.anything(), target: expect.anything(), channel: expect.anything() },
         },
         {
           label: 'publishes event',
@@ -418,7 +418,7 @@ describe('Services NodeGraph', () => {
           id: 'PaymentService-1.0.0-EmailChannel-1.0.0-EmailVerified-1.0.0',
           source: 'PaymentService-1.0.0',
           target: 'PaymentService-1.0.0-EmailChannel-1.0.0-EmailVerified-1.0.0',
-          data: { message: expect.anything() },
+          data: { message: expect.anything(), source: expect.anything(), target: expect.anything(), channel: expect.anything() },
         },
         {
           label: 'publishes event',
@@ -428,7 +428,7 @@ describe('Services NodeGraph', () => {
           id: 'EmailChannel-1.0.0-EmailVerified-1.0.0-PaymentService-1.0.0',
           source: 'PaymentService-1.0.0-EmailChannel-1.0.0-EmailVerified-1.0.0',
           target: 'EmailVerified-1.0.0',
-          data: { message: expect.anything() },
+          data: { message: expect.anything(), source: expect.anything(), target: expect.anything(), channel: expect.anything() },
         },
       ]);
     });

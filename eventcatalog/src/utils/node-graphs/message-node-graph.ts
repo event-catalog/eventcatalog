@@ -9,6 +9,8 @@ import {
   generatedIdForEdge,
   generateIdForNode,
   getChannelNodesAndEdges,
+  getEdgeLabelForMessageAsSource,
+  getEdgeLabelForServiceAsTarget,
 } from './utils/utils';
 import { MarkerType } from 'reactflow';
 import { findMatchingNodes } from '@utils/collections/util';
@@ -25,33 +27,6 @@ interface Props {
   mode?: 'simple' | 'full';
   collection?: CollectionEntry<CollectionMessageTypes>[];
 }
-
-const getEdgeLabelForServiceAsTarget = (data: CollectionEntry<CollectionMessageTypes>) => {
-  const type = data.collection;
-  switch (type) {
-    case 'commands':
-      return 'invokes';
-    case 'events':
-      return 'publishes event';
-    case 'queries':
-      return 'requests';
-    default:
-      return 'sends to';
-  }
-};
-const getEdgeLabelForMessageAsSource = (data: CollectionEntry<CollectionMessageTypes>) => {
-  const type = data.collection;
-  switch (type) {
-    case 'commands':
-      return 'accepts';
-    case 'events':
-      return 'subscribed by';
-    case 'queries':
-      return 'accepts';
-    default:
-      return 'sends to';
-  }
-};
 
 const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', collection = [] }: Props) => {
   const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
