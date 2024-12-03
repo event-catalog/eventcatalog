@@ -44,12 +44,14 @@
     "glob": "^10.4.1",
     "gray-matter": "^4.0.3",
     "rimraf": "^5.0.7",
-    "uuid": "^10.0.0"
+    "uuid": "^10.0.0",
+    "which-pm-runs": "^1.1.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
     "@changesets/cli": "^2.27.5",
     "@playwright/test": "^1.48.1",
+    "@types/which-pm-runs": "^1.0.2",
     "prettier": "^3.3.3",
     "prettier-plugin-astro": "^0.14.1",
     "tsup": "^8.1.0",

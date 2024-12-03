@@ -6,6 +6,7 @@ import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import concurrently from 'concurrently';
+import whichPmRuns from 'which-pm-runs';
 import { generate } from './generate';
 import logBuild from './analytics/log-build';
 import { VERSION } from './constants';
@@ -76,15 +77,17 @@ const isDepInstalled = (moduleName: string) => {
   }
 };
 
-const installDeps = () => {
+const installDeps = ({ packageManager }: { packageManager: string }) => {
   if (isDepInstalled('astro')) {
     console.debug('Skipping dependencies installation...');
     return;
   }
 
-  // TODO: get the pm with which-pm-runs
-  // TODO: exec the install command with the which-pm-runs
-  execSync('npm install', { cwd: core, stdio: 'inherit' });
+  execSync(`${packageManager} install`, { cwd: core, stdio: 'inherit' });
+};
+
+const getPackageManager = () => {
+  return whichPmRuns()?.name || 'npm';
 };
 
 program
@@ -105,7 +108,8 @@ program
     if (options.forceRecreate) clearCore();
     copyCore();
 
-    installDeps();
+    const packageManager = getPackageManager();
+    installDeps({ packageManager });
 
     console.log('EventCatalog is starting at http://localhost:3000/docs');
 
@@ -143,7 +147,8 @@ program
 
     copyCore();
 
-    installDeps();
+    const packageManager = getPackageManager();
+    installDeps({ packageManager });
 
     await logBuild(dir);
 
