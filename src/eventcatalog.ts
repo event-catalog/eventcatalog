@@ -123,8 +123,9 @@ program
   });
 
 const previewCatalog = () => {
-  copyCore();
-
+  /**
+   * TODO: get the port and outDir from the eventcatalog.config.js.
+   */
   execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro preview --root ${dir} --port 3000`, {
     cwd: core,
     stdio: 'inherit',
