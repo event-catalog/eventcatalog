@@ -11,7 +11,7 @@
     "access": "public"
   },
   "bin": {
-    "eventcatalog": "bin/dist/eventcatalog.cjs"
+    "eventcatalog": "bin/eventcatalog.js"
   },
   "files": [
     "eventcatalog/",

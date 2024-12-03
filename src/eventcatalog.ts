@@ -1,16 +1,15 @@
-#!/usr/bin/env node
 import { Command } from 'commander';
-import { exec, execSync } from 'node:child_process';
+import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import concurrently from 'concurrently';
-import { generate } from 'src/generate';
-import logBuild from 'src/analytics/log-build';
-import { VERSION } from 'src/constants';
-import { watch } from 'src/watcher';
-import { catalogToAstro } from 'src/catalog-to-astro-content-directory';
+import { generate } from './generate';
+import logBuild from './analytics/log-build';
+import { VERSION } from './constants';
+import { watch } from './watcher';
+import { catalogToAstro } from './catalog-to-astro-content-directory';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -26,12 +25,6 @@ const core = path.resolve(process.env.CATALOG_DIR || join(dir, '.eventcatalog-co
 const eventCatalogDir = path.resolve(join(currentDir, '../../eventcatalog/'));
 
 program.name('eventcatalog').description('Documentation tool for event-driven architectures');
-
-const copyFolder = (from: string, to: string) => {
-  if (fs.existsSync(from)) {
-    fs.cpSync(from, to, { recursive: true });
-  }
-};
 
 const ensureDir = (dir: string) => {
   if (!fs.existsSync(dir)) {
@@ -161,4 +154,10 @@ program
     await generate(dir);
   });
 
-program.parseAsync();
+program
+  .parseAsync()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
