@@ -1,5 +1,16 @@
 # @eventcatalog/core
 
+## 2.15.0
+
+### Minor Changes
+
+- 8e95677: chore(core): refactor to code base moving files to new src directory
+- e260995: chore(core): refactor project files and folders
+
+### Patch Changes
+
+- 920be57: feat(core): added ability to turn channels on/off
+
 ## 2.14.3
 
 ### Patch Changes
