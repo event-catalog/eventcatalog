@@ -9,9 +9,12 @@ RUN npm pack
 
 
 FROM node:20.17 AS runner
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 WORKDIR /usr/example/
 COPY examples/default/ .
 COPY --from=builder /usr/eventcatalog/*.tgz /usr/eventcatalog/
-RUN npm init -y && \
-    npm install /usr/eventcatalog/*.tgz
-CMD ["npx", "eventcatalog", "build"]
+RUN pnpm init && \
+    pnpm add /usr/eventcatalog/*.tgz
+CMD ["pnpm", "exec", "eventcatalog", "build"]
