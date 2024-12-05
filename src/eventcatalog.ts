@@ -1,10 +1,9 @@
 import { Command } from 'commander';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
-import { createRequire } from 'node:module';
 import fs from 'fs';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import concurrently from 'concurrently';
 import whichPmRuns from 'which-pm-runs';
 import { generate } from './generate';
@@ -60,21 +59,8 @@ const clearCore = () => {
   if (fs.existsSync(core)) fs.rmSync(core, { recursive: true });
 };
 
-const isDepInstalled = (moduleName: string) => {
-  try {
-    /**
-     * `createRequire` expects a filename to be used to construct the require function.
-     * For this reason, we resolve to the `package.json` file and use `pathToFileURL`
-     * to ensure we get an absolute path.
-     */
-    const require = createRequire(pathToFileURL(path.resolve(core, 'package.json')));
-    const resolvedPath = require.resolve(moduleName);
-    console.debug(`Module '${moduleName}' resolved to: ${resolvedPath}`);
-    return true;
-  } catch (e) {
-    console.debug(`Module '${moduleName}' not found!`);
-    return false;
-  }
+const isDepsInstalled = () => {
+  return fs.existsSync(path.resolve(core, 'node_modules'));
 };
 
 const getInstallCommand = (packageManager: string) => {
@@ -93,7 +79,7 @@ const getInstallCommand = (packageManager: string) => {
 };
 
 const installDeps = ({ packageManager }: { packageManager: string }) => {
-  if (isDepInstalled('astro')) {
+  if (isDepsInstalled()) {
     console.debug('Skipping dependencies installation...');
     return;
   }
