@@ -69,28 +69,26 @@ export const columns = () => [
       const isExpandable = receives?.length > 10;
       const isOpen = isExpandable ? receives?.length < 10 : true;
       const [isExpanded, setIsExpanded] = useState(isOpen);
-      
-      const receiversWithIcons = useMemo(() => 
-        receives?.map((consumer: any) => {
-          const type = consumer.collection.slice(0, -1);
-          return {
-            ...consumer,
-            ...getColorAndIconForMessageType(type)
-          };
-        }) || [],
+
+      const receiversWithIcons = useMemo(
+        () =>
+          receives?.map((consumer: any) => {
+            const type = consumer.collection.slice(0, -1);
+            return {
+              ...consumer,
+              ...getColorAndIconForMessageType(type),
+            };
+          }) || [],
         [receives]
       );
-      
+
       if (receives?.length === 0 || !receives)
         return <div className="text-sm text-gray-400/80 text-left italic">Service receives no messages.</div>;
 
       return (
         <div>
           {isExpandable && (
-            <button 
-              onClick={() => setIsExpanded(!isExpanded)}
-            className="mb-2 text-sm text-gray-600 hover:text-gray-900"
-          >
+            <button onClick={() => setIsExpanded(!isExpanded)} className="mb-2 text-sm text-gray-600 hover:text-gray-900">
               {isExpanded ? '▼' : '▶'} {receives.length} message{receives.length !== 1 ? 's' : ''}
             </button>
           )}
@@ -140,10 +138,7 @@ export const columns = () => [
       return (
         <div>
           {isExpandable && (
-            <button 
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="mb-2 text-sm text-gray-600 hover:text-gray-900"
-            >
+            <button onClick={() => setIsExpanded(!isExpanded)} className="mb-2 text-sm text-gray-600 hover:text-gray-900">
               {isExpanded ? '▼' : '▶'} {sends.length} message{sends.length !== 1 ? 's' : ''}
             </button>
           )}
