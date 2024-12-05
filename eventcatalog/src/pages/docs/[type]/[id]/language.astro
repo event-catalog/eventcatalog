@@ -8,7 +8,7 @@ import * as LucideIcons from 'lucide-react';
 
 export async function getStaticPaths() {
   const domains = await getDomains();
-  
+
   const buildPages = (collection: CollectionEntry<'domains'>[]) => {
     return collection.map((item) => ({
       params: {
@@ -31,7 +31,6 @@ const ubiquitousLanguages = await getUbiquitousLanguage(props);
 
 const ubiquitousLanguage = ubiquitousLanguages[0];
 ---
-
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
   <main class="flex sm:px-8 docs-layout h-full">
@@ -68,72 +67,80 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
           </div>
         </div>
 
-        {!ubiquitousLanguage && (
-          <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 my-4">
-            <p class="text-yellow-700">
-              This domain does not have any defined ubiquitous language terms yet. Consider adding some terms to help establish a common vocabulary for your domain.
-            </p>
-          </div>
-        )}
+        {
+          !ubiquitousLanguage && (
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 my-4">
+              <p class="text-yellow-700">
+                This domain does not have any defined ubiquitous language terms yet. Consider adding some terms to help establish
+                a common vocabulary for your domain.
+              </p>
+            </div>
+          )
+        }
 
         <div class="py-4 w-full min-h-[calc(100vh-10em)]">
-          {ubiquitousLanguage && (
-            <>
-              <div class="mb-6">
-                <input
-                  type="text"
-                  id="searchInput"
-                  placeholder="Search terms..."
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              {!ubiquitousLanguage ? (
-                <div class="text-center py-12 bg-gray-50 rounded-lg">
-                  <h3 class="text-lg font-medium text-gray-900">No domain language terms</h3>
-                  <p class="mt-2 text-sm text-gray-500">There are no language terms defined for this domain yet.</p>
+          {
+            ubiquitousLanguage && (
+              <>
+                <div class="mb-6">
+                  <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Search terms..."
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
                 </div>
-              ) : (
-                <div id="termsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {ubiquitousLanguage?.data?.dictionary?.map((term) => (
-                    <div class="term-card block bg-white border border-gray-200 rounded-lg p-6 transition-all duration-300 ease-in-out hover:shadow-md hover:border-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-white min-h-[12em] cursor-pointer">
-                      <div class="flex flex-col h-full space-y-8">
-                        {term.icon && (
-                          <>
-                            {/* @ts-ignore */}
-                            {LucideIcons[term.icon] && <LucideIcons[term.icon] className="w-6 h-6 text-primary" />}
-                          </>
-                        )}
-                        <div>
-                          <h3 class="text-gray-800 text-lg font-semibold transition-colors duration-300 ease-in-out group-hover:text-gray-300">
-                            {term.name}
-                          </h3>
-                          <div class="term-content">
-                            <p class="summary-text text-gray-600 transition-colors duration-300 ease-in-out group-hover:text-gray-200 m-0 font-light text-sm mb-4">
-                              {term.summary}
-                            </p>
-                            {term.description && (
-                              <>
-                                <p class="description-text hidden text-gray-600 transition-colors duration-300 ease-in-out group-hover:text-gray-200 m-0 font-light text-sm whitespace-pre-line">
-                                  {term.description}
-                                </p>
-                                <span class="show-more-text text-sm text-primary font-medium">Show more</span>
-                              </>
-                            )}
+
+                {!ubiquitousLanguage ? (
+                  <div class="text-center py-12 bg-gray-50 rounded-lg">
+                    <h3 class="text-lg font-medium text-gray-900">No domain language terms</h3>
+                    <p class="mt-2 text-sm text-gray-500">There are no language terms defined for this domain yet.</p>
+                  </div>
+                ) : (
+                  <div id="termsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {ubiquitousLanguage?.data?.dictionary?.map((term) => (
+                      <div class="term-card block bg-white border border-gray-200 rounded-lg p-6 transition-all duration-300 ease-in-out hover:shadow-md hover:border-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-white min-h-[12em] cursor-pointer">
+                        <div class="flex flex-col h-full space-y-8">
+                          {term.icon && (
+                            <>
+                              {(() => {
+                                const Icon = LucideIcons[term.icon as keyof typeof LucideIcons];
+                                //@ts-ignore
+                                return Icon ? <Icon className="w-6 h-6 text-primary" /> : null;
+                              })()}
+                            </>
+                          )}
+                          <div>
+                            <h3 class="text-gray-800 text-lg font-semibold transition-colors duration-300 ease-in-out group-hover:text-gray-300">
+                              {term.name}
+                            </h3>
+                            <div class="term-content">
+                              <p class="summary-text text-gray-600 transition-colors duration-300 ease-in-out group-hover:text-gray-200 m-0 font-light text-sm mb-4">
+                                {term.summary}
+                              </p>
+                              {term.description && (
+                                <>
+                                  <p class="description-text hidden text-gray-600 transition-colors duration-300 ease-in-out group-hover:text-gray-200 m-0 font-light text-sm whitespace-pre-line">
+                                    {term.description}
+                                  </p>
+                                  <span class="show-more-text text-sm text-primary font-medium">Show more</span>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
 
-              <div id="noSearchResults" class="hidden text-center py-12 bg-gray-50 rounded-lg">
-                <h3 class="text-lg font-medium text-gray-900">No matching terms</h3>
-                <p class="mt-2 text-sm text-gray-500">Try adjusting your search terms.</p>
-              </div>
-            </>
-          )}
+                <div id="noSearchResults" class="hidden text-center py-12 bg-gray-50 rounded-lg">
+                  <h3 class="text-lg font-medium text-gray-900">No matching terms</h3>
+                  <p class="mt-2 text-sm text-gray-500">Try adjusting your search terms.</p>
+                </div>
+              </>
+            )
+          }
         </div>
 
         <Footer />
@@ -197,7 +204,7 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
     function highlightMatchingTerm() {
       const urlParams = new URLSearchParams(window.location.search);
       const termId = urlParams.get('id');
-      
+
       if (termId) {
         const cards = document.querySelectorAll('.term-card');
         cards.forEach((card) => {
@@ -211,8 +218,6 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
               // Scroll into view
               card.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 300);
-
-           
           }
         });
       }
@@ -282,7 +287,8 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
     }
 
     @keyframes pulse {
-      0%, 100% {
+      0%,
+      100% {
         transform: scale(1);
         box-shadow: 0 0 0 2px var(--color-primary);
       }
