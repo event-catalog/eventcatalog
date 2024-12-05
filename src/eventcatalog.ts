@@ -77,13 +77,28 @@ const isDepInstalled = (moduleName: string) => {
   }
 };
 
+const getInstallCommand = (packageManager: string) => {
+  switch (packageManager) {
+    case 'pnpm':
+      /**
+       * @see https://github.com/orgs/pnpm/discussions/4735
+       */
+      return 'pnpm --ignore-workspace install';
+    case 'yarn':
+      return 'yarn install';
+    case 'npm':
+    default:
+      return 'npm install';
+  }
+};
+
 const installDeps = ({ packageManager }: { packageManager: string }) => {
   if (isDepInstalled('astro')) {
     console.debug('Skipping dependencies installation...');
     return;
   }
 
-  execSync(`${packageManager} install`, { cwd: core, stdio: 'inherit' });
+  execSync(getInstallCommand(packageManager), { cwd: core, stdio: 'inherit' });
 };
 
 const getPackageManager = () => {
