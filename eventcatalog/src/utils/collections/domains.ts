@@ -56,9 +56,6 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
 export const getUbiquitousLanguage = async (domain: Domain): Promise<UbiquitousLanguage[]> => {
   const { collection, data, slug } = domain;
 
-  const allUbiquitousLanguages = await getCollection('ubiquitousLanguages');
-  console.log('allUbiquitousLanguages', allUbiquitousLanguages, collection, slug, data.name);
-
   const ubiquitousLanguages = await getCollection('ubiquitousLanguages', (ubiquitousLanguage) => {
     return ubiquitousLanguage.id.includes(`${collection}/${data.name}`);
   });
