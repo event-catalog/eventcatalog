@@ -1,7 +1,7 @@
 import { ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/solid';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { CollectionEntry } from 'astro:content';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { filterByName, filterCollectionByName } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';
 import { getColorAndIconForMessageType } from './MessageTableColumns';
@@ -65,39 +65,61 @@ export const columns = () => [
       collectionFilterKey: 'receives',
     },
     cell: (info) => {
-      const receives = info.getValue();
+      const receives = info.getValue() || [];
+      const isExpandable = receives?.length > 10;
+      const isOpen = isExpandable ? receives?.length < 10 : true;
+      const [isExpanded, setIsExpanded] = useState(isOpen);
+      
+      const receiversWithIcons = useMemo(() => 
+        receives?.map((consumer: any) => {
+          const type = consumer.collection.slice(0, -1);
+          return {
+            ...consumer,
+            ...getColorAndIconForMessageType(type)
+          };
+        }) || [],
+        [receives]
+      );
+      
       if (receives?.length === 0 || !receives)
         return <div className="text-sm text-gray-400/80 text-left italic">Service receives no messages.</div>;
 
       return (
-        <ul>
-          {receives.map((consumer: any, index: number) => {
-            const type = consumer.collection.slice(0, -1);
-            const { color, Icon } = useMemo(() => getColorAndIconForMessageType(type), [type]);
-            return (
-              <li key={`${consumer.data.id}-${index}`} className="py-1 group font-light ">
-                <a
-                  href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
-                  className="group-hover:text-primary flex space-x-1 items-center "
-                >
-                  <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
-                    <span className="flex items-center">
-                      <span className={`bg-${color}-500 h-full rounded-tl rounded-bl p-1`}>
-                        <Icon className="h-4 w-4 text-white" />
+        <div>
+          {isExpandable && (
+            <button 
+              onClick={() => setIsExpanded(!isExpanded)}
+            className="mb-2 text-sm text-gray-600 hover:text-gray-900"
+          >
+              {isExpanded ? '▼' : '▶'} {receives.length} message{receives.length !== 1 ? 's' : ''}
+            </button>
+          )}
+          {isExpanded && (
+            <ul>
+              {receiversWithIcons.map((consumer: any, index: number) => (
+                <li key={`${consumer.data.id}-${index}`} className="py-1 group font-light ">
+                  <a
+                    href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
+                    className="group-hover:text-primary flex space-x-1 items-center "
+                  >
+                    <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
+                      <span className="flex items-center">
+                        <span className={`bg-${consumer.color}-500 h-full rounded-tl rounded-bl p-1`}>
+                          <consumer.Icon className="h-4 w-4 text-white" />
+                        </span>
+                        <span className="leading-none px-2 group-hover:underline ">
+                          {consumer.data.name} (v{consumer.data.version})
+                        </span>
                       </span>
-                      <span className="leading-none px-2 group-hover:underline ">
-                        {consumer.data.name} (v{consumer.data.version})
-                      </span>
-                    </span>
-                  </div>
-                </a>
-              </li>
-            );
-          })}
-        </ul>
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       );
     },
-    // footer: (info) => info.column.id,
     filterFn: filterCollectionByName('receives'),
   }),
   columnHelper.accessor('data.sends', {
@@ -107,40 +129,55 @@ export const columns = () => [
       collectionFilterKey: 'sends',
     },
     cell: (info) => {
-      const sends = info.getValue();
+      const sends = info.getValue() || [];
+      const isExpandable = sends?.length > 10;
+      const isOpen = isExpandable ? sends?.length < 10 : true;
+      const [isExpanded, setIsExpanded] = useState(isOpen);
+
       if (sends?.length === 0 || !sends)
         return <div className="text-sm text-gray-400/80 text-left italic">Service sends no messages.</div>;
 
       return (
-        <ul>
-          {sends.map((consumer: any, index: number) => {
-            const type = consumer.collection.slice(0, -1);
-            const color = type === 'event' ? 'orange' : 'blue';
-            const Icon = type === 'event' ? BoltIcon : ChatBubbleLeftIcon;
-            return (
-              <li key={`${consumer.data.id}-${index}`} className="py-1 group font-light">
-                <a
-                  href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
-                  className="group-hover:text-primary flex space-x-1 items-center "
-                >
-                  <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
-                    <span className="flex items-center">
-                      <span className={`bg-${color}-500 h-full rounded-tl rounded-bl p-1`}>
-                        <Icon className="h-4 w-4 text-white" />
-                      </span>
-                      <span className="leading-none px-2 group-hover:underline ">
-                        {consumer.data.name} (v{consumer.data.version})
-                      </span>
-                    </span>
-                  </div>
-                </a>
-              </li>
-            );
-          })}
-        </ul>
+        <div>
+          {isExpandable && (
+            <button 
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="mb-2 text-sm text-gray-600 hover:text-gray-900"
+            >
+              {isExpanded ? '▼' : '▶'} {sends.length} message{sends.length !== 1 ? 's' : ''}
+            </button>
+          )}
+          {isExpanded && (
+            <ul>
+              {sends.map((consumer: any, index: number) => {
+                const type = consumer.collection.slice(0, -1);
+                const color = type === 'event' ? 'orange' : 'blue';
+                const Icon = type === 'event' ? BoltIcon : ChatBubbleLeftIcon;
+                return (
+                  <li key={`${consumer.data.id}-${index}`} className="py-1 group font-light">
+                    <a
+                      href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
+                      className="group-hover:text-primary flex space-x-1 items-center "
+                    >
+                      <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
+                        <span className="flex items-center">
+                          <span className={`bg-${color}-500 h-full rounded-tl rounded-bl p-1`}>
+                            <Icon className="h-4 w-4 text-white" />
+                          </span>
+                          <span className="leading-none px-2 group-hover:underline ">
+                            {consumer.data.name} (v{consumer.data.version})
+                          </span>
+                        </span>
+                      </div>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       );
     },
-    // footer: (info) => info.column.id,
     filterFn: filterCollectionByName('sends'),
   }),
   columnHelper.accessor('data.name', {
