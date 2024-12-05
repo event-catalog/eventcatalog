@@ -53,6 +53,7 @@ const ensureAstroCollectionNotEmpty = async (astroDir) => {
     'changelogs',
     'queries',
     'channels',
+    'ubiquitousLanguages',
   ];
 
   // Check empty collections

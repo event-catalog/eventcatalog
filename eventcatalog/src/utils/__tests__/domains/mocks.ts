@@ -192,3 +192,15 @@ export const mockEvents = [
     },
   },
 ];
+
+export const mockUbiquitousLanguages = [
+  {
+    id: 'domains/Shipping/ubiquitous-language.mdx',
+    slug: 'domains/Shipping/ubiquitous-language',
+    collection: 'ubiquitousLanguages',
+    data: {
+      id: 'Shipping',
+      dictionary: [{ id: 'Payment', name: 'Payment' }],
+    },
+  },
+];

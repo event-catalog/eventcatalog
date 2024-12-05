@@ -10,6 +10,7 @@ import {
   ArrowsRightLeftIcon,
   VariableIcon,
 } from '@heroicons/react/24/outline';
+import { BookText } from 'lucide-react';
 
 export const getIconForCollection = (collection: string) => {
   switch (collection) {
@@ -33,6 +34,8 @@ export const getIconForCollection = (collection: string) => {
       return ArrowsRightLeftIcon;
     case 'channels-parameter':
       return VariableIcon;
+    case 'ubiquitousLanguages':
+      return BookText;
     default:
       return ServerIcon;
   }

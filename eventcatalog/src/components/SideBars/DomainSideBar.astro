@@ -3,6 +3,7 @@ import OwnersList from '@components/Lists/OwnersList';
 import PillListFlat from '@components/Lists/PillListFlat';
 import RepositoryList from '@components/Lists/RepositoryList.astro';
 import VersionList from '@components/Lists/VersionList.astro';
+import { getUbiquitousLanguage } from '@utils/collections/domains';
 import { buildUrl } from '@utils/url-builder';
 import { getEntry, type CollectionEntry } from 'astro:content';
 import { ScrollText, Workflow } from 'lucide-react';
@@ -14,6 +15,9 @@ const { domain } = Astro.props;
 
 // @ts-ignore
 const services = (domain.data.services as CollectionEntry<'services'>[]) || [];
+const ubiquitousLanguage = await getUbiquitousLanguage(domain);
+const hasUbiquitousLanguage = ubiquitousLanguage.length > 0;
+const ubiquitousLanguageDictionary = hasUbiquitousLanguage ? ubiquitousLanguage[0].data.dictionary : [];
 
 const ownersRaw = domain.data?.owners || [];
 const owners = await Promise.all(ownersRaw.map((o) => getEntry(o)));
@@ -24,6 +28,13 @@ const serviceList = services.map((p) => ({
   tag: `v${p.data.version}`,
   collection: p.collection,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+}));
+
+const ubiquitousLanguageList = ubiquitousLanguageDictionary?.map((l) => ({
+  label: l.name,
+  badge: 'Ubiquitous Language',
+  collection: 'ubiquitousLanguages',
+  href: buildUrl(`/docs/${domain.collection}/${domain.data.id}/language?id=${l.id}`),
 }));
 
 const ownersList = owners.map((o) => ({
@@ -45,6 +56,17 @@ const ownersList = owners.map((o) => ({
       icon="ServerIcon"
       client:load
     />
+    {
+      ubiquitousLanguageList && hasUbiquitousLanguage && (
+        <PillListFlat
+          title={`Ubiquitous Language Dictionary (${ubiquitousLanguageDictionary?.length})`}
+          pills={ubiquitousLanguageList}
+          color="pink"
+          emptyMessage={`This domain does not have any documented ubiquitous language.`}
+          client:load
+        />
+      )
+    }
     {domain.data.versions && <VersionList versions={domain.data.versions} collectionItem={domain} />}
     {
       domain.data.repository && (
@@ -57,6 +79,7 @@ const ownersList = owners.map((o) => ({
       emptyMessage={`This domain does not have any documented owners.`}
       client:load
     />
+
     <div class="space-y-2">
       <a
         href={buildUrl(`/visualiser/${domain.collection}/${domain.data.id}/${domain.data.version}`)}

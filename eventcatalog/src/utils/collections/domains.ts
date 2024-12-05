@@ -6,7 +6,7 @@ import path from 'path';
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
 export type Domain = CollectionEntry<'domains'>;
-
+export type UbiquitousLanguage = CollectionEntry<'ubiquitousLanguages'>;
 interface Props {
   getAllVersions?: boolean;
 }
@@ -28,7 +28,7 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
     const servicesInDomain = domain.data.services || [];
 
     const services = servicesInDomain
-      .map((_service) => getItemsFromCollectionByIdAndSemverOrLatest(servicesCollection, _service.id, _service.version))
+      .map((_service: { id: string; version: string | undefined; }) => getItemsFromCollectionByIdAndSemverOrLatest(servicesCollection, _service.id, _service.version))
       .flat();
 
     return {
@@ -49,4 +49,17 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
       },
     };
   });
+};
+
+export const getUbiquitousLanguage = async (domain: Domain): Promise<UbiquitousLanguage[]> => {
+  const { collection, data, slug } = domain;
+
+  const allUbiquitousLanguages = await getCollection('ubiquitousLanguages');
+  console.log('allUbiquitousLanguages', allUbiquitousLanguages, collection, slug, data.name);
+
+  const ubiquitousLanguages = await getCollection('ubiquitousLanguages', (ubiquitousLanguage) => {
+    return ubiquitousLanguage.id.includes(`${collection}/${data.name}`);
+  });
+
+  return ubiquitousLanguages;
 };
