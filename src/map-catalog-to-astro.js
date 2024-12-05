@@ -12,6 +12,7 @@ const COLLECTION_KEYS = [
   'changelogs',
   'queries',
   'channels',
+  'ubiquitousLanguages',
 ];
 
 /**
@@ -37,7 +38,14 @@ export function mapCatalogToAstro({ filePath, astroDir, projectDir }) {
   const relativeTargetPath = getRelativeTargetPath(relativeFilePath);
 
   return baseTargetPaths.map((base) =>
-    path.join(astroDir, base, relativeTargetPath.replace('index.md', 'index.mdx').replace('changelog.md', 'changelog.mdx'))
+    path.join(
+      astroDir,
+      base,
+      relativeTargetPath
+        .replace('index.md', 'index.mdx')
+        .replace('changelog.md', 'changelog.mdx')
+        .replace('ubiquitous-language.md', 'ubiquitous-language.mdx')
+    )
   );
 }
 
@@ -97,6 +105,11 @@ function getBaseTargetPaths(filePath) {
     // Changelogs files
     if (filePathArr[filePathArr.length - 1] == 'changelog.md') {
       return [path.join('src', 'content', 'changelogs')];
+    }
+
+    // Ubiquitous Languages files
+    if (filePathArr[filePathArr.length - 1] == 'ubiquitous-language.md') {
+      return [path.join('src', 'content', 'ubiquitousLanguages')];
     }
 
     // Markdown files

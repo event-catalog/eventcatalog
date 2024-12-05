@@ -221,6 +221,23 @@ const domains = defineCollection({
     .merge(baseSchema),
 });
 
+const ubiquitousLanguages = defineCollection({
+  type: 'content',
+  schema: z.object({
+    dictionary: z
+      .array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          summary: z.string().optional(),
+          description: z.string().optional(),
+          icon: z.string().optional(),
+        })
+      )
+      .optional(),
+  }),
+});
+
 const users = defineCollection({
   type: 'content',
   schema: z.object({
@@ -270,4 +287,5 @@ export const collections = {
   flows,
   pages,
   changelogs,
+  ubiquitousLanguages,
 };
