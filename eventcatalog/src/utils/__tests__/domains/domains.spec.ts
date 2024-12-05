@@ -1,7 +1,7 @@
 import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
-import { mockDomains, mockServices, mockEvents, mockCommands } from './mocks';
-import { getDomains } from '../../collections/domains';
+import { mockDomains, mockServices, mockEvents, mockCommands, mockUbiquitousLanguages } from './mocks';
+import { getDomains, getUbiquitousLanguage } from '../../collections/domains';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
@@ -17,6 +17,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockEvents);
         case 'commands':
           return Promise.resolve(mockCommands);
+        case 'ubiquitousLanguages':
+          return Promise.resolve(mockUbiquitousLanguages);
         default:
           return Promise.resolve([]);
       }
@@ -48,6 +50,29 @@ describe('Domains', () => {
       ];
 
       expect(domains).toEqual(expect.arrayContaining(expectedDomains.map((d) => expect.objectContaining(d))));
+    });
+  });
+
+  describe('ubiquitous-language', () => {
+    it('should return the ubiquitous-language for a domain', async () => {
+      const domains = await getDomains();
+      const ubiquitousLanguages = await getUbiquitousLanguage(domains[0]);
+      expect(ubiquitousLanguages).toEqual([
+        {
+          id: 'domains/Shipping/ubiquitous-language.mdx',
+          slug: 'domains/Shipping/ubiquitous-language',
+          collection: 'ubiquitousLanguages',
+          data: {
+            id: 'Shipping',
+            dictionary: [
+              {
+                id: 'Payment',
+                name: 'Payment',
+              },
+            ],
+          },
+        },
+      ]);
     });
   });
 });

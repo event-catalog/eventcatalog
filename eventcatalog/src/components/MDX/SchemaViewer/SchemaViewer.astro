@@ -2,6 +2,7 @@
 const { catalog, id } = Astro.props;
 import fs from 'node:fs/promises';
 import { existsSync } from 'fs';
+import yaml from 'js-yaml';
 import path from 'path';
 import SchemaViewerClient from './SchemaViewer';
 import Admonition from '../Admonition';
@@ -48,7 +49,11 @@ try {
     if (exists) {
       // Load the schema for the component
       schema = await fs.readFile(schemaPath, 'utf-8');
-      schema = JSON.parse(schema);
+      if (schemaPath.endsWith('.yml') || schemaPath.endsWith('.yaml')) {
+        schema = yaml.load(schema);
+      } else {
+        schema = JSON.parse(schema);
+      }
     }
 
     return {

@@ -252,6 +252,7 @@ const NodeGraphBuilder = ({
     <ReactFlow
       nodeTypes={nodeTypes}
       edgeTypes={edgeTypes}
+      minZoom={0.07}
       nodes={nodes}
       edges={edges}
       fitView

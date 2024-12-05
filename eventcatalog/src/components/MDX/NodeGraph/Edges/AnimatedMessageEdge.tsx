@@ -10,7 +10,7 @@ const AnimatedMessageEdge = ({
   sourcePosition,
   targetPosition,
   data,
-  label,
+  label = '',
   markerEnd,
 }: any) => {
   const [edgePath, labelX, labelY] = getBezierPath({

@@ -167,6 +167,14 @@ describe('catalog-to-astro-content-directory', () => {
         expect(existsSync(path.join(CATALOG_FILES_DIR, 'domains', 'Payment', 'asyncapi.yml'))).toBe(true);
       });
     });
+
+    describe('ubiquitous-language', () => {
+      it('takes ubiquitous-language from the users catalog (within domains) and puts it into the expected directory structure', async () => {
+        expect(
+          existsSync(path.join(ASTRO_CONTENT_DIRECTORY, 'ubiquitousLanguages', 'domains', 'Payment', 'ubiquitous-language.mdx'))
+        ).toBe(true);
+      });
+    });
   });
 
   describe('flows', () => {

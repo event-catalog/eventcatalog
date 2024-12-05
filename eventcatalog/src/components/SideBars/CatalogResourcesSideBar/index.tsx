@@ -4,11 +4,27 @@ import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 import './styles.css';
 import { getIconForCollection as getIconForCollectionOriginal } from '@utils/collections/icons';
 
+const STORAGE_KEY = 'EventCatalog:catalogSidebarCollapsedGroups';
+
 const CatalogResourcesSideBar = ({ resources, currentPath }: any) => {
   const [data, setData] = useState(resources);
   const [searchQuery, setSearchQuery] = useState('');
-  const [collapsedGroups, setCollapsedGroups] = useState<{ [key: string]: boolean }>({});
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<{ [key: string]: boolean }>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = window.localStorage.getItem(STORAGE_KEY);
+      setIsInitialized(true);
+      return saved ? JSON.parse(saved) : {};
+    }
+    return {};
+  });
   const decodedCurrentPath = decodeURIComponent(currentPath);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(collapsedGroups));
+    }
+  }, [collapsedGroups]);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -46,6 +62,8 @@ const CatalogResourcesSideBar = ({ resources, currentPath }: any) => {
   }, [searchQuery, data]);
 
   const getIconForCollection = useMemo(() => getIconForCollectionOriginal, []);
+
+  if (!isInitialized) return null;
 
   return (
     <nav className="space-y-6 text-black ">

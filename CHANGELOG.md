@@ -1,5 +1,19 @@
 # @eventcatalog/core
 
+## 2.16.0
+
+### Minor Changes
+
+- ccd3a5a: feat(core): added ubiquitous language support
+
+### Patch Changes
+
+- 18b6478: feat(core): added ability to zoom out even further in visualizer
+- ec7c16c: fix(core): fixed issue rendering animated nodes with flow diagrams
+- dea456a: feat(core): services in the discover table now shows expandable sections
+- e87bb9b: feat(core): sidebar collapsed states now persisted between page loads
+- 38e6165: feat(core): schema viewer now renders yaml files
+
 ## 2.15.0
 
 ### Minor Changes
