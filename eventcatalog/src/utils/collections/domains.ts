@@ -28,7 +28,9 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
     const servicesInDomain = domain.data.services || [];
 
     const services = servicesInDomain
-      .map((_service: { id: string; version: string | undefined; }) => getItemsFromCollectionByIdAndSemverOrLatest(servicesCollection, _service.id, _service.version))
+      .map((_service: { id: string; version: string | undefined }) =>
+        getItemsFromCollectionByIdAndSemverOrLatest(servicesCollection, _service.id, _service.version)
+      )
       .flat();
 
     return {
