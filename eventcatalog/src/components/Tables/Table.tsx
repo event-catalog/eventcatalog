@@ -21,7 +21,7 @@ import type { CollectionTypes } from '@types';
 declare module '@tanstack/react-table' {
   // @ts-ignore
   interface ColumnMeta<TData extends RowData, TValue> {
-    filterVariant?: 'collection' | 'name';
+    filterVariant?: 'collection' | 'name' | 'badges';
     collectionFilterKey?: string;
     showFilter?: boolean;
     className?: string;
@@ -210,6 +210,16 @@ function Filter({ column }: { column: Column<any, unknown> }) {
       const uniqueItemsInList = Array.from(new Set(allItems));
 
       return uniqueItemsInList.sort().slice(0, 2000);
+    }
+    if (filterVariant === 'badges') {
+      const allBadges = column.getFacetedUniqueValues().keys();
+      // join all badges into a single array
+      const allBadgesArray = Array.from(allBadges)
+        .flat()
+        .filter((b) => !!b);
+      const allBadgesString = allBadgesArray.map((badge) => badge.content);
+      const uniqueBadges = Array.from(new Set(allBadgesString));
+      return uniqueBadges.sort().slice(0, 2000);
     }
     return Array.from(column.getFacetedUniqueValues().keys()).sort().slice(0, 2000);
   }, [column.getFacetedUniqueValues(), filterVariant]);

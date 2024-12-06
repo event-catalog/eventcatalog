@@ -6,7 +6,16 @@ import { getIconForCollection as getIconForCollectionOriginal } from '@utils/col
 
 const STORAGE_KEY = 'EventCatalog:catalogSidebarCollapsedGroups';
 
-const CatalogResourcesSideBar = ({ resources, currentPath }: any) => {
+interface CatalogResourcesSideBarProps {
+  resources: any;
+  currentPath: string;
+}
+
+const CatalogResourcesSideBar: React.FC<CatalogResourcesSideBarProps> = ({ resources, currentPath }) => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
   const [data, setData] = useState(resources);
   const [searchQuery, setSearchQuery] = useState('');
   const [isInitialized, setIsInitialized] = useState(false);

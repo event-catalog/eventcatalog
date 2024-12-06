@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.16.1
+
+### Patch Changes
+
+- a907d96: feat(core): added ubiquitous language support
+- ff449d7: feat(core): added ability to filter by badges
+
 ## 2.16.0
 
 ### Minor Changes

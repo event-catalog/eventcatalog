@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { filterByName, filterCollectionByName } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';
 import { getColorAndIconForMessageType } from './MessageTableColumns';
+import { createBadgesColumn } from './SharedColumns';
 
 const columnHelper = createColumnHelper<CollectionEntry<'services'>>();
 
@@ -40,14 +41,6 @@ export const columns = () => [
     },
     filterFn: filterByName,
   }),
-  // columnHelper.accessor('data.version', {
-  //   header: () => <span>Version</span>,
-  //   cell: (info) => {
-  //     const service = info.row.original;
-  //     return <div className="text-left">{`v${info.getValue()} ${service.data.latestVersion === service.data.version ? '(latest)': ''}`}</div>
-  //   },
-  //   footer: (info) => info.column.id,
-  // }),
   columnHelper.accessor('data.summary', {
     id: 'summary',
     header: () => 'Summary',
@@ -175,6 +168,7 @@ export const columns = () => [
     },
     filterFn: filterCollectionByName('sends'),
   }),
+  createBadgesColumn(columnHelper),
   columnHelper.accessor('data.name', {
     header: () => <span />,
     cell: (info) => {
