@@ -1,10 +1,9 @@
-import { ServerIcon } from '@heroicons/react/20/solid';
-import { RectangleGroupIcon } from '@heroicons/react/20/solid';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { CollectionEntry } from 'astro:content';
-import { filterByName, filterCollectionByName } from '../filters/custom-filters';
+import { filterByName } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';
 import { QueueListIcon } from '@heroicons/react/24/solid';
+import { createBadgesColumn } from './SharedColumns';
 
 const columnHelper = createColumnHelper<CollectionEntry<'flows'>>();
 
@@ -61,6 +60,7 @@ export const columns = () => [
       className: 'max-w-md',
     },
   }),
+  createBadgesColumn(columnHelper),
   columnHelper.accessor('data.name', {
     header: () => <span />,
     cell: (info) => {

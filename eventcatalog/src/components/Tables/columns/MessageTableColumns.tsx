@@ -3,8 +3,9 @@ import { createColumnHelper } from '@tanstack/react-table';
 import type { CollectionMessageTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
 import { useMemo } from 'react';
-import { filterByName, filterCollectionByName } from '../filters/custom-filters';
+import { filterByName, filterCollectionByName, filterByBadge } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';
+import { createBadgesColumn } from './SharedColumns';
 
 const columnHelper = createColumnHelper<CollectionEntry<CollectionMessageTypes>>();
 
@@ -55,6 +56,7 @@ export const columns = () => [
     },
     filterFn: filterByName,
   }),
+
   columnHelper.accessor('data.summary', {
     id: 'summary',
     header: () => 'Summary',
@@ -62,7 +64,7 @@ export const columns = () => [
     footer: (info) => info.column.id,
     meta: {
       showFilter: false,
-      className: 'max-w-md',
+      className: 'max-w-[200px]',
     },
   }),
 
@@ -145,6 +147,7 @@ export const columns = () => [
     footer: (info) => info.column.id,
     filterFn: filterCollectionByName('consumers'),
   }),
+  createBadgesColumn(columnHelper),
   columnHelper.accessor('data.name', {
     header: () => <span />,
     cell: (info) => {

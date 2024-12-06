@@ -12,3 +12,8 @@ export const filterByName = (row: any, key: string, searchValue: string) => {
   const label = `${row?.original?.data.name} (v${row?.original?.data.version})` || '';
   return label.toLowerCase().includes(searchValue.toLowerCase());
 };
+
+export const filterByBadge = (row: any, key: string, searchValue: string) => {
+  const badges = row?.original?.data?.badges || [];
+  return badges.some((badge: any) => badge.content.toLowerCase().includes(searchValue.toLowerCase()));
+};
