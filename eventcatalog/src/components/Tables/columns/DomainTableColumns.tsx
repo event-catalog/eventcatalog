@@ -2,8 +2,10 @@ import { ServerIcon } from '@heroicons/react/20/solid';
 import { RectangleGroupIcon } from '@heroicons/react/20/solid';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { CollectionEntry } from 'astro:content';
-import { filterByName, filterCollectionByName } from '../filters/custom-filters';
+import { filterByBadge, filterByName, filterCollectionByName } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';
+import { Tag } from 'lucide-react';
+import { createBadgesColumn } from './SharedColumns';
 
 const columnHelper = createColumnHelper<CollectionEntry<'domains'>>();
 
@@ -40,14 +42,6 @@ export const columns = () => [
     },
     filterFn: filterByName,
   }),
-  // columnHelper.accessor('data.version', {
-  //   header: () => <span>Version</span>,
-  //   cell: (info) => {
-  //     const service = info.row.original;
-  //     return <div className="text-left font-light">{`v${info.getValue()} ${service.data.latestVersion === service.data.version ? '(latest)': ''}`}</div>
-  //   },
-  //   footer: (info) => info.column.id,
-  // }),
   columnHelper.accessor('data.summary', {
     id: 'summary',
     header: () => 'Summary',
@@ -96,9 +90,9 @@ export const columns = () => [
         </ul>
       );
     },
-    // footer: (info) => info.column.id,
     filterFn: filterCollectionByName('services'),
   }),
+  createBadgesColumn(columnHelper),
   columnHelper.accessor('data.name', {
     header: () => <span />,
     cell: (info) => {
