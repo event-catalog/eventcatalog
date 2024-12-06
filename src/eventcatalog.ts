@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import concurrently from 'concurrently';
+import whichPmRuns from 'which-pm-runs';
 import { generate } from './generate';
 import logBuild from './analytics/log-build';
 import { VERSION } from './constants';
@@ -58,6 +59,38 @@ const clearCore = () => {
   if (fs.existsSync(core)) fs.rmSync(core, { recursive: true });
 };
 
+const isDepsInstalled = () => {
+  return fs.existsSync(path.resolve(core, 'node_modules'));
+};
+
+const getInstallCommand = (packageManager: string) => {
+  switch (packageManager) {
+    case 'pnpm':
+      /**
+       * @see https://github.com/orgs/pnpm/discussions/4735
+       */
+      return 'pnpm --ignore-workspace install';
+    case 'yarn':
+      return 'yarn install';
+    case 'npm':
+    default:
+      return 'npm install';
+  }
+};
+
+const installDeps = ({ packageManager }: { packageManager: string }) => {
+  if (isDepsInstalled()) {
+    console.debug('Skipping dependencies installation...');
+    return;
+  }
+
+  execSync(getInstallCommand(packageManager), { cwd: core, stdio: 'inherit' });
+};
+
+const getPackageManager = () => {
+  return whichPmRuns()?.name || 'npm';
+};
+
 program
   .command('dev')
   .description('Run development server of EventCatalog')
@@ -76,6 +109,9 @@ program
     if (options.forceRecreate) clearCore();
     copyCore();
 
+    const packageManager = getPackageManager();
+    installDeps({ packageManager });
+
     console.log('EventCatalog is starting at http://localhost:3000/docs');
 
     await catalogToAstro(dir, core);
@@ -87,7 +123,7 @@ program
       const { result } = concurrently([
         {
           name: 'astro',
-          command: 'npx astro dev',
+          command: `${packageManager} run dev`,
           cwd: core,
           env: {
             PROJECT_DIR: dir,
@@ -112,23 +148,38 @@ program
 
     copyCore();
 
+    const packageManager = getPackageManager();
+    installDeps({ packageManager });
+
     await logBuild(dir);
 
     await catalogToAstro(dir, core);
 
-    execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro build`, {
+    execSync(`${packageManager} run build`, {
       cwd: core,
       stdio: 'inherit',
+      env: {
+        ...process.env,
+        PROJECT_DIR: dir,
+        CATALOG_DIR: core,
+      },
     });
   });
 
 const previewCatalog = () => {
+  const packageManager = getPackageManager();
+
   /**
    * TODO: get the port and outDir from the eventcatalog.config.js.
    */
-  execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro preview --root ${dir} --port 3000`, {
+  execSync(`${packageManager} run preview -- --root ${dir} --port 3000`, {
     cwd: core,
     stdio: 'inherit',
+    env: {
+      ...process.env,
+      PROJECT_DIR: dir,
+      CATALOG_DIR: core,
+    },
   });
 };
 
