@@ -57,7 +57,7 @@ export const useEventCatalogVisualiser = ({ nodes, edges, setNodes, setEdges }: 
 
       if (sourceIsChannel) {
         const edgeLabel =
-        dataTarget?.collection === 'services'
+          dataTarget?.collection === 'services'
             ? getEdgeLabelForMessageAsSource(dataSource as CollectionEntry<CollectionMessageTypes>)
             : getEdgeLabelForServiceAsTarget(dataTarget as CollectionEntry<CollectionMessageTypes>);
 

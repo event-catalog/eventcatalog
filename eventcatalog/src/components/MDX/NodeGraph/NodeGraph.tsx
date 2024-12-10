@@ -109,7 +109,7 @@ const NodeGraphBuilder = ({
           navigate(getVisualiserUrlForCollection(node.data.message as CollectionEntry<CollectionTypes>));
         }
         if (node.type === 'services') {
-          navigate(getVisualiserUrlForCollection(node.data.service as CollectionEntry<"services">));
+          navigate(getVisualiserUrlForCollection(node.data.service as CollectionEntry<'services'>));
         }
         return;
       }

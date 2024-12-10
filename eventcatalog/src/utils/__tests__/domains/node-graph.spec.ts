@@ -90,7 +90,6 @@ describe('Domains NodeGraph', () => {
     });
 
     it('should return nodes and edges for a given domain with services using semver range or latest version (version undefind)', async () => {
-
       // @ts-ignore
       const { nodes, edges } = await getNodesAndEdges({ id: 'Checkout', version: '0.0.1' });
 

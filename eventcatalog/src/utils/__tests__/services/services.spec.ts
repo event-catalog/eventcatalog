@@ -114,7 +114,6 @@ describe('Services', () => {
   });
 
   describe('getProducersOfMessage', () => {
-
     it('should return an array of services that publish a message', async () => {
       const services = await getServices();
       const message = mockEvents[12];
@@ -124,7 +123,6 @@ describe('Services', () => {
 
       expect(servicesThatPublishMessage).toHaveLength(1);
       expect(servicesThatPublishMessage[0].data.id).toEqual('PaymentService');
-
     });
 
     it('should return an array of services that publish a message with a specific version', async () => {
@@ -255,7 +253,6 @@ describe('Services', () => {
   });
 
   describe('getConsumersOfMessage', () => {
-
     it('should return an array of services that consume a message with a specific version', async () => {
       const message = {
         slug: 'SomeTestEvent',
@@ -382,7 +379,4 @@ describe('Services', () => {
       expect(servicesThatConsumeMessage).toHaveLength(0);
     });
   });
-
 });
-
-

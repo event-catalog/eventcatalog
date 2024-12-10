@@ -6,7 +6,12 @@ import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 
 <VerticalSideBarLayout title={`Visualiser | Bounded context map`}>
   <div class="bg-gray-100/50 m-4">
-    <div class="h-[calc(100vh-110px)] w-full relative border border-gray-200" id={`domain-context-map-portal`} transition:animate="fade"></div>
+    <div
+      class="h-[calc(100vh-110px)] w-full relative border border-gray-200"
+      id={`domain-context-map-portal`}
+      transition:animate="fade"
+    >
+    </div>
     <NodeGraph
       id="domain-context-map"
       collection="domain-context-map"
@@ -17,7 +22,7 @@ import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
       linksToVisualiser={false}
       href={{
         label: ``,
-        url: "/",
+        url: '/',
       }}
     />
   </div>

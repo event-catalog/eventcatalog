@@ -1,5 +1,13 @@
 import { getCollection } from 'astro:content';
-import { createDagreGraph, calculatedNodes, generateIdForNode, createNode, getEdgeLabelForServiceAsTarget, generatedIdForEdge, createEdge } from '@utils/node-graphs/utils/utils';
+import {
+  createDagreGraph,
+  calculatedNodes,
+  generateIdForNode,
+  createNode,
+  getEdgeLabelForServiceAsTarget,
+  generatedIdForEdge,
+  createEdge,
+} from '@utils/node-graphs/utils/utils';
 import { getNodesAndEdges as getServicesNodeAndEdges } from './services-node-graph';
 import merge from 'lodash.merge';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
@@ -25,10 +33,7 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
   const commands = await getCollection('commands');
   const queries = await getCollection('queries');
 
-
   const messages = [...events, ...commands, ...queries];
-
-
 
   domains.forEach((domain, index) => {
     const nodeId = generateIdForNode(domain);
@@ -37,7 +42,6 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
       .map((service) => getItemsFromCollectionByIdAndSemverOrLatest(services, service.id, service.version))
       .flat()
       .filter((e) => e !== undefined);
-
 
     // Calculate domain node size based on services
     const servicesCount = domainServices.length;
@@ -48,8 +52,8 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
     const TITLE_HEIGHT = 20;
 
     const rows = Math.ceil(servicesCount / SERVICES_PER_ROW);
-    const domainWidth = (SERVICE_WIDTH * SERVICES_PER_ROW);
-    const domainHeight = (SERVICE_HEIGHT * rows) + (PADDING * 4);
+    const domainWidth = SERVICE_WIDTH * SERVICES_PER_ROW;
+    const domainHeight = SERVICE_HEIGHT * rows + PADDING * 4;
 
     // Position domains in a grid layout
     const DOMAINS_PER_ROW = 2;
@@ -63,7 +67,7 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
       type: 'group',
       position: {
         x: colIndex * (domainWidth + 400), // Increased from 100 to 400px gap between domains
-        y: rowIndex * (domainHeight + 300)  // Increased from 100 to 300px gap between rows
+        y: rowIndex * (domainHeight + 300), // Increased from 100 to 300px gap between rows
       },
       style: {
         width: domainWidth,
@@ -71,12 +75,12 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
         backgroundColor: 'transparent',
         borderRadius: '8px',
         border: '1px solid #ddd',
-        "box-shadow": '0 0 10px 0 rgba(0, 0, 0, 0.1)'
+        'box-shadow': '0 0 10px 0 rgba(0, 0, 0, 0.1)',
       },
       data: {
         label: domain.data.name,
-        domain
-      }
+        domain,
+      },
     });
 
     nodes.push({
@@ -96,21 +100,19 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
       sourcePosition: 'left',
       targetPosition: 'right',
       draggable: false,
-
     } as Node);
 
     // Position services in a grid within the domain
     if (domainServices) {
       domainServices.forEach((service, serviceIndex) => {
-
         const row = Math.floor(serviceIndex / SERVICES_PER_ROW);
         const col = serviceIndex % SERVICES_PER_ROW;
         const serviceNodeId = `service-${domain.id}-${service.id}`;
 
         // Add spacing between services
         const SERVICE_MARGIN = 25;
-        const xPosition = PADDING + (col * (SERVICE_WIDTH + SERVICE_MARGIN)) + 20;
-        const yPosition = PADDING + (row * (SERVICE_HEIGHT + SERVICE_MARGIN)) + TITLE_HEIGHT;
+        const xPosition = PADDING + col * (SERVICE_WIDTH + SERVICE_MARGIN) + 20;
+        const yPosition = PADDING + row * (SERVICE_HEIGHT + SERVICE_MARGIN) + TITLE_HEIGHT;
 
         nodes.push({
           id: generateIdForNode(service),
@@ -119,7 +121,7 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
           type: 'services',
           position: {
             x: xPosition,
-            y: yPosition
+            y: yPosition,
           },
           parentId: nodeId,
           extent: 'parent',
@@ -127,45 +129,45 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
           data: {
             mode: 'full',
             service,
-          }
+          },
         });
 
         // Edges
         const rawReceives = service.data.receives ?? [];
         const rawSends = service.data.sends ?? [];
 
-        const receives = rawReceives.map((receive) => getItemsFromCollectionByIdAndSemverOrLatest(messages, receive.id, receive.version)).flat();
+        const receives = rawReceives
+          .map((receive) => getItemsFromCollectionByIdAndSemverOrLatest(messages, receive.id, receive.version))
+          .flat();
         const sends = rawSends.map((send) => getItemsFromCollectionByIdAndSemverOrLatest(messages, send.id, send.version)).flat();
 
         for (const receive of receives) {
-
           const producers = getProducersOfMessage(services, receive);
 
           for (const producer of producers) {
-            const isSameDomain = domainServices.some((domainService) =>
-              domainService.data.id === producer.data.id
-            );
+            const isSameDomain = domainServices.some((domainService) => domainService.data.id === producer.data.id);
 
             if (!isSameDomain) {
-
               // WIP... adding messages?
 
               // Find the producer and consumer nodes to get their positions
               // const producerNode = nodes.find(n => n.id === generateIdForNode(producer));
               // const consumerNode = nodes.find(n => n.id === generateIdForNode(service));
 
-              edges.push(createEdge({
-                id: generatedIdForEdge(producer, service),
-                source: generateIdForNode(producer),
-                target: generateIdForNode(service),
-                label: getEdgeLabelForServiceAsTarget(receive),
-                zIndex: 1000,
-              }));
+              edges.push(
+                createEdge({
+                  id: generatedIdForEdge(producer, service),
+                  source: generateIdForNode(producer),
+                  target: generateIdForNode(service),
+                  label: getEdgeLabelForServiceAsTarget(receive),
+                  zIndex: 1000,
+                })
+              );
 
               // // Calculate middle position between producer and consumer
-              // const messageX = (producerNode?.position?.x ?? 0) + 
+              // const messageX = (producerNode?.position?.x ?? 0) +
               //   ((consumerNode?.position?.x ?? 0) - (producerNode?.position?.x ?? 0)) / 2;
-              // const messageY = (producerNode?.position?.y ?? 0) + 
+              // const messageY = (producerNode?.position?.y ?? 0) +
               //   ((consumerNode?.position?.y ?? 0) - (producerNode?.position?.y ?? 0)) / 2;
 
               // nodes.push({
@@ -195,7 +197,6 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
               //   label: getEdgeLabelForServiceAsTarget(receive),
               //   zIndex: 1000,
               // }));
-
             }
           }
         }

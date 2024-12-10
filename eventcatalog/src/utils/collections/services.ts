@@ -71,13 +71,13 @@ export const getProducersOfMessage = (services: Service[], message: CollectionEn
   return services.filter((service) => {
     return service.data.sends?.some((send) => {
       const idMatch = send.id === message.data.id;
-      
+
       // If no version specified in send, treat as 'latest'
       if (!send.version) return idMatch;
-      
+
       // If version is 'latest', match any version
       if (send.version === 'latest') return idMatch;
-      
+
       // Use semver to compare versions
       return idMatch && semver.satisfies(message.data.version, send.version);
     });
@@ -88,13 +88,13 @@ export const getConsumersOfMessage = (services: Service[], message: CollectionEn
   return services.filter((service) => {
     return service.data.receives?.some((receive) => {
       const idMatch = receive.id === message.data.id;
-      
+
       // If no version specified in send, treat as 'latest'
       if (!receive.version) return idMatch;
-      
+
       // If version is 'latest', match any version
       if (receive.version === 'latest') return idMatch;
-      
+
       // Use semver to compare versions
       return idMatch && semver.satisfies(message.data.version, receive.version);
     });
