@@ -28,6 +28,7 @@ vi.mock('astro:content', async (importOriginal) => {
 describe('Domains NodeGraph', () => {
   describe('getNodesAndEdges', () => {
     it('returns an empty array if no domains are found', async () => {
+      // @ts-ignore
       const { nodes, edges } = await getNodesAndEdges({ id: 'UnknownDomain', version: '1.0.0' });
 
       expect(nodes).toEqual([]);
@@ -35,6 +36,7 @@ describe('Domains NodeGraph', () => {
     });
 
     it('should return nodes and edges for a given domain', async () => {
+      // @ts-ignore
       const { nodes, edges } = await getNodesAndEdges({ id: 'Shipping', version: '0.0.1' });
 
       const expectedServiceNode = {
@@ -88,6 +90,8 @@ describe('Domains NodeGraph', () => {
     });
 
     it('should return nodes and edges for a given domain with services using semver range or latest version (version undefind)', async () => {
+
+      // @ts-ignore
       const { nodes, edges } = await getNodesAndEdges({ id: 'Checkout', version: '0.0.1' });
 
       const expectedNodes = [

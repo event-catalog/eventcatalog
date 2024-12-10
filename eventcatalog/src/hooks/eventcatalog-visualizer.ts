@@ -8,6 +8,8 @@ import {
   getEdgeLabelForServiceAsTarget,
   getNodesAndEdgesFromDagre,
 } from '@utils/node-graphs/utils/utils';
+import type { CollectionEntry } from 'astro:content';
+import type { CollectionMessageTypes, CollectionTypes } from '@types';
 
 interface EventCatalogVisualizerProps {
   nodes: Node[];
@@ -50,18 +52,21 @@ export const useEventCatalogVisualiser = ({ nodes, edges, setNodes, setEdges }: 
         return [...acc, edge];
       }
 
+      const dataTarget = data?.target as CollectionEntry<CollectionTypes>;
+      const dataSource = data?.source as CollectionEntry<CollectionTypes>;
+
       if (sourceIsChannel) {
         const edgeLabel =
-          data.target.collection === 'services'
-            ? getEdgeLabelForMessageAsSource(data.source)
-            : getEdgeLabelForServiceAsTarget(data.target);
+        dataTarget?.collection === 'services'
+            ? getEdgeLabelForMessageAsSource(dataSource as CollectionEntry<CollectionMessageTypes>)
+            : getEdgeLabelForServiceAsTarget(dataTarget as CollectionEntry<CollectionMessageTypes>);
 
         return [
           ...acc,
           createEdge({
-            id: generatedIdForEdge(data.source, data.target),
-            source: generateIdForNode(data.source),
-            target: generateIdForNode(data.target),
+            id: generatedIdForEdge(dataSource, dataTarget),
+            source: generateIdForNode(dataSource),
+            target: generateIdForNode(dataTarget),
             label: edgeLabel,
           }),
         ];
