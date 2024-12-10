@@ -149,6 +149,13 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
 
             if (!isSameDomain) {
               // WIP... adding messages?
+              // edges.push(createEdge({
+              //   id: generatedIdForEdge(receive, service),
+              //   source: generateIdForNode(receive),
+              //   target: generateIdForNode(service),
+              //   label: getEdgeLabelForServiceAsTarget(receive),
+              //   zIndex: 1000,
+              // }));
 
               // Find the producer and consumer nodes to get their positions
               // const producerNode = nodes.find(n => n.id === generateIdForNode(producer));
@@ -186,14 +193,6 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
               //   id: generatedIdForEdge(producer, receive),
               //   source: generateIdForNode(producer),
               //   target: generateIdForNode(receive),
-              //   label: getEdgeLabelForServiceAsTarget(receive),
-              //   zIndex: 1000,
-              // }));
-
-              // edges.push(createEdge({
-              //   id: generatedIdForEdge(receive, service),
-              //   source: generateIdForNode(receive),
-              //   target: generateIdForNode(service),
               //   label: getEdgeLabelForServiceAsTarget(receive),
               //   zIndex: 1000,
               // }));
