@@ -66,6 +66,7 @@ export const mockServices = [
         },
         {
           id: 'EmailVerified',
+          version: '1.0.0',
         },
       ],
     },

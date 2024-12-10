@@ -6,7 +6,10 @@ import {
   getNodesAndEdgesForEvents,
   getNodesAndEdgesForQueries,
 } from '@utils/node-graphs/message-node-graph';
-import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/node-graphs/domains-node-graph';
+import {
+  getNodesAndEdges as getNodesAndEdgesForDomain,
+  getNodesAndEdgesForDomainContextMap,
+} from '@utils/node-graphs/domains-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs/flows-node-graph';
 
 interface Props {
@@ -24,8 +27,10 @@ interface Props {
 }
 
 const { id, collection, title, mode = 'simple', linkTo = 'docs', version, href, linksToVisualiser } = Astro.props;
+
 let nodes = [],
   edges = [];
+
 const getNodesAndEdgesFunctions = {
   services: getNodesAndEdgesForService,
   events: getNodesAndEdgesForEvents,
@@ -44,6 +49,12 @@ if (collection in getNodesAndEdgesFunctions) {
     mode,
   });
 
+  nodes = fetchedNodes;
+  edges = fetchedEdges;
+}
+
+if (collection === 'domain-context-map') {
+  const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesForDomainContextMap({});
   nodes = fetchedNodes;
   edges = fetchedEdges;
 }

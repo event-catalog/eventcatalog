@@ -1,4 +1,4 @@
-import { Handle } from 'reactflow';
+import { Handle } from '@xyflow/react';
 
 interface Data {
   title: string;
@@ -45,7 +45,7 @@ export default function StepNode({ data, sourcePosition, targetPosition }: any) 
         )}
 
         {summary && (
-          <>
+          <div>
             <div className={classNames(mode === 'full' ? `border-b border-gray-200` : '')}>
               <span className="text-xs font-bold block pb-0.5">{title}</span>
             </div>
@@ -56,7 +56,7 @@ export default function StepNode({ data, sourcePosition, targetPosition }: any) 
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>

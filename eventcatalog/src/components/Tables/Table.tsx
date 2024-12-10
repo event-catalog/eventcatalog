@@ -67,7 +67,7 @@ export const Table = ({
   });
 
   return (
-    <>
+    <div>
       {/* <div className='text-right text-gray-400'>{table.getPrePaginationRowModel().rows.length} results</div> */}
       <div className=" bg-gray-100/20 rounded-md border-2 border-gray-200 shadow-sm ">
         <table className="min-w-full divide-y divide-gray-200 rounded-md ">
@@ -171,7 +171,7 @@ export const Table = ({
           </select>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
@@ -225,7 +225,7 @@ function Filter({ column }: { column: Column<any, unknown> }) {
   }, [column.getFacetedUniqueValues(), filterVariant]);
 
   return (
-    <>
+    <div>
       {/* Autocomplete suggestions from faceted values feature */}
       <datalist id={column.id + 'list'}>
         {sortedUniqueValues.map((value: any, index) => (
@@ -241,6 +241,6 @@ function Filter({ column }: { column: Column<any, unknown> }) {
         list={column.id + 'list'}
       />
       <div className="h-1" />
-    </>
+    </div>
   );
 }

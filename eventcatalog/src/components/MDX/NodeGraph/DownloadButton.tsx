@@ -1,4 +1,4 @@
-import { Panel, useReactFlow, getNodesBounds, getViewportForBounds } from 'reactflow';
+import { Panel, useReactFlow, getNodesBounds, getViewportForBounds } from '@xyflow/react';
 import { toPng } from 'html-to-image';
 import { DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 
@@ -19,7 +19,7 @@ function DownloadButton({ filename, addPadding = true }: { filename?: string; ad
     const nodesBounds = getNodesBounds(getNodes());
     const width = imageWidth > nodesBounds.width ? imageWidth : nodesBounds.width;
     const height = imageHeight > nodesBounds.height ? imageHeight : nodesBounds.height;
-    const viewport = getViewportForBounds(nodesBounds, width, height, 0.5, 2);
+    const viewport = getViewportForBounds(nodesBounds, width, height, 0.5, 2, 0);
 
     // Hide the button
     // @ts-ignore

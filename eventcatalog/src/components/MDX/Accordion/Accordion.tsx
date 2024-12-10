@@ -7,7 +7,7 @@ export default function Example({ title, children }: any) {
     <div className="border border-gray-200 rounded-md px-4 shadow-sm py-2 accordion">
       <Disclosure as="div" key={title} className="">
         {({ open }) => (
-          <>
+          <div>
             <DisclosureButton className="flex w-full items-start justify-between text-left text-gray-900">
               <span className="text-base font-semibold leading-7">{title}</span>
               <span className="ml-6 flex h-7 items-center">
@@ -21,7 +21,7 @@ export default function Example({ title, children }: any) {
             <DisclosurePanel as="dd" className="pr-12 not-prose py-4">
               <p className="text-base leading-7 text-gray-600">{children}</p>
             </DisclosurePanel>
-          </>
+          </div>
         )}
       </Disclosure>
     </div>

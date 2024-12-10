@@ -1,7 +1,7 @@
 import { ServerIcon } from '@heroicons/react/16/solid';
 import { GlobeAmericasIcon } from '@heroicons/react/20/solid';
 import type { CollectionEntry } from 'astro:content';
-import { Handle } from 'reactflow';
+import { Handle } from '@xyflow/react';
 
 interface Data {
   label: string;

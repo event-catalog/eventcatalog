@@ -1,7 +1,7 @@
 import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { mockCommands, mockEvents, mockQueries, mockServices } from './mocks';
-import { getServices } from '@utils/collections/services';
+import { getProducersOfMessage, getServices, getConsumersOfMessage } from '@utils/collections/services';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
@@ -110,6 +110,273 @@ describe('Services', () => {
           }),
         ])
       );
+    });
+  });
+
+  describe('getProducersOfMessage', () => {
+    it('should return an array of services that publish a message', async () => {
+      const services = await getServices();
+      const message = mockEvents[12];
+
+      // @ts-ignore
+      const servicesThatPublishMessage = getProducersOfMessage(services, message);
+
+      expect(servicesThatPublishMessage).toHaveLength(1);
+      expect(servicesThatPublishMessage[0].data.id).toEqual('PaymentService');
+    });
+
+    it('should return an array of services that publish a message with a specific version', async () => {
+      const message = {
+        slug: 'SomeTestEvent',
+        collection: 'events',
+        data: {
+          id: 'SomeTestEvent',
+          version: '0.0.1',
+        },
+      };
+
+      const service = {
+        ...mockServices[0],
+        data: {
+          ...mockServices[0].data,
+          id: 'SomeTestService',
+          sends: [
+            {
+              id: 'SomeTestEvent',
+              version: '0.0.1',
+            },
+          ],
+          receives: [],
+        },
+      };
+
+      // @ts-ignore
+      const servicesThatPublishMessage = getProducersOfMessage([service], message);
+
+      expect(servicesThatPublishMessage).toHaveLength(1);
+      expect(servicesThatPublishMessage[0].data.id).toEqual('SomeTestService');
+    });
+
+    it('if the service uses latest, it should return all services that publish the message', async () => {
+      const message = {
+        slug: 'SomeTestEvent',
+        collection: 'events',
+        data: {
+          id: 'SomeTestEvent',
+          version: '0.0.1',
+        },
+      };
+
+      const service = {
+        ...mockServices[0],
+        data: {
+          ...mockServices[0].data,
+          id: 'SomeTestService',
+          sends: [
+            {
+              id: 'SomeTestEvent',
+              version: 'latest',
+            },
+          ],
+          receives: [],
+        },
+      };
+
+      // @ts-ignore
+      const servicesThatPublishMessage = getProducersOfMessage([service], message);
+
+      expect(servicesThatPublishMessage).toHaveLength(1);
+      expect(servicesThatPublishMessage[0].data.id).toEqual('SomeTestService');
+    });
+
+    it('if the service does not have a version, it should return all services that publish the message', async () => {
+      const message = {
+        slug: 'SomeTestEvent',
+        collection: 'events',
+        data: {
+          id: 'SomeTestEvent',
+          version: '0.0.1',
+        },
+      };
+
+      const service = {
+        ...mockServices[0],
+        data: {
+          ...mockServices[0].data,
+          id: 'SomeTestService',
+          sends: [
+            {
+              id: 'SomeTestEvent',
+            },
+          ],
+          receives: [],
+        },
+      };
+
+      // @ts-ignore
+      const servicesThatPublishMessage = getProducersOfMessage([service], message);
+
+      expect(servicesThatPublishMessage).toHaveLength(1);
+      expect(servicesThatPublishMessage[0].data.id).toEqual('SomeTestService');
+    });
+
+    it('if the service has a version for the message, but they do not match, it should not return any services', async () => {
+      const message = {
+        slug: 'SomeTestEvent',
+        collection: 'events',
+        data: {
+          id: 'SomeTestEvent',
+          version: '0.0.1',
+        },
+      };
+
+      const service = {
+        ...mockServices[0],
+        data: {
+          ...mockServices[0].data,
+          id: 'SomeTestService',
+          sends: [
+            {
+              id: 'SomeTestEvent',
+              version: '1.0.0',
+            },
+          ],
+          receives: [],
+        },
+      };
+
+      // @ts-ignore
+      const servicesThatPublishMessage = getProducersOfMessage([service], message);
+
+      expect(servicesThatPublishMessage).toHaveLength(0);
+    });
+  });
+
+  describe('getConsumersOfMessage', () => {
+    it('should return an array of services that consume a message with a specific version', async () => {
+      const message = {
+        slug: 'SomeTestEvent',
+        collection: 'events',
+        data: {
+          id: 'SomeTestEvent',
+          version: '0.0.1',
+        },
+      };
+
+      const service = {
+        ...mockServices[0],
+        data: {
+          ...mockServices[0].data,
+          id: 'SomeTestService',
+          receives: [
+            {
+              id: 'SomeTestEvent',
+              version: '0.0.1',
+            },
+          ],
+          sends: [],
+        },
+      };
+
+      // @ts-ignore
+      const servicesThatConsumeMessage = getConsumersOfMessage([service], message);
+
+      expect(servicesThatConsumeMessage).toHaveLength(1);
+      expect(servicesThatConsumeMessage[0].data.id).toEqual('SomeTestService');
+    });
+
+    it('if the service uses latest, it should return all services that consume the message', async () => {
+      const message = {
+        slug: 'SomeTestEvent',
+        collection: 'events',
+        data: {
+          id: 'SomeTestEvent',
+          version: '0.0.1',
+        },
+      };
+
+      const service = {
+        ...mockServices[0],
+        data: {
+          ...mockServices[0].data,
+          id: 'SomeTestService',
+          receives: [
+            {
+              id: 'SomeTestEvent',
+              version: 'latest',
+            },
+          ],
+          sends: [],
+        },
+      };
+
+      // @ts-ignore
+      const servicesThatConsumeMessage = getConsumersOfMessage([service], message);
+
+      expect(servicesThatConsumeMessage).toHaveLength(1);
+      expect(servicesThatConsumeMessage[0].data.id).toEqual('SomeTestService');
+    });
+
+    it('if the service does not have a version, it should return all services that consume the message', async () => {
+      const message = {
+        slug: 'SomeTestEvent',
+        collection: 'events',
+        data: {
+          id: 'SomeTestEvent',
+          version: '0.0.1',
+        },
+      };
+
+      const service = {
+        ...mockServices[0],
+        data: {
+          ...mockServices[0].data,
+          id: 'SomeTestService',
+          receives: [
+            {
+              id: 'SomeTestEvent',
+            },
+          ],
+          sends: [],
+        },
+      };
+
+      // @ts-ignore
+      const servicesThatConsumeMessage = getConsumersOfMessage([service], message);
+
+      expect(servicesThatConsumeMessage).toHaveLength(1);
+      expect(servicesThatConsumeMessage[0].data.id).toEqual('SomeTestService');
+    });
+
+    it('if the service has a version for the message, but they do not match, it should not return any services', async () => {
+      const message = {
+        slug: 'SomeTestEvent',
+        collection: 'events',
+        data: {
+          id: 'SomeTestEvent',
+          version: '0.0.1',
+        },
+      };
+
+      const service = {
+        ...mockServices[0],
+        data: {
+          ...mockServices[0].data,
+          id: 'SomeTestService',
+          receives: [
+            {
+              id: 'SomeTestEvent',
+              version: '1.0.0',
+            },
+          ],
+          sends: [],
+        },
+      };
+
+      // @ts-ignore
+      const servicesThatConsumeMessage = getConsumersOfMessage([service], message);
+
+      expect(servicesThatConsumeMessage).toHaveLength(0);
     });
   });
 });

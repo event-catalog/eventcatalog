@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { BaseEdge, getBezierPath } from 'reactflow';
+import { BaseEdge, getBezierPath } from '@xyflow/react';
 
 const AnimatedMessageEdge = ({
   id,
@@ -44,6 +44,7 @@ const AnimatedMessageEdge = ({
   const randomDelay = useMemo(() => Math.random() * 1, []);
 
   return (
+    // @ts-ignore
     <>
       <BaseEdge id={id} path={edgePath} markerEnd={markerEnd} />
       {/* Circle Icon */}

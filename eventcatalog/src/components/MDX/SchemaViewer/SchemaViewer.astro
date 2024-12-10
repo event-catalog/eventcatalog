@@ -82,10 +82,10 @@ try {
           {/* User has tried to load the schema, but it was not found on file system */}
           {!schema.exists && (
             <Admonition type="warning">
-              <>
+              <div>
                 <span class="block font-bold">{`<SchemaViewer/>`} failed to load</span>
                 <span class="block">Tried to load schema from {schema.schemaPath}, but no schema can be found</span>
-              </>
+              </div>
             </Admonition>
           )}
         </div>
