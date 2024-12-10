@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.16.2
+
+### Patch Changes
+
+- fb2b5c3: chore(core): removed changelog
+- 7559d42: chore(core): revert commit for workspaces
+
 ## 2.16.1
 
 ### Patch Changes
