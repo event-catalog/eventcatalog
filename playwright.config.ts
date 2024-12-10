@@ -32,9 +32,7 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    // TODO: get the absolute path to outDir from eventcatalog.config.js
-    // The root path below is relative to `eventcatalog/` dir
-    command: 'npm run preview -w=eventcatalog -- --root ../examples/default/ --port 3000',
+    command: 'npm run preview -- --root examples/default --port 3000',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
   },

@@ -13,14 +13,8 @@ async function main() {
 
   execSync('npm run build:bin', { stdio: 'inherit' });
 
-  execSync(`npx . dev`, {
+  execSync(`cross-env NODE_ENV=development PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npx . dev`, {
     stdio: 'inherit',
-    env: {
-      ...process.env,
-      NODE_ENV: 'development',
-      PROJECT_DIR: projectDIR,
-      CATALOG_DIR: catalogDir,
-    },
   });
 }
 
