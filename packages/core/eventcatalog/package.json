@@ -4,10 +4,10 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/event-catalog/eventcatalog.git",
-    "directory": "eventcatalog/"
+    "directory": "packages/core/eventcatalog/"
   },
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
     "astro": "astro",

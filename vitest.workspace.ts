@@ -8,6 +8,7 @@ export default defineWorkspace([
     test: {
       name: '@eventcatalog/core',
       globals: true,
+      root: 'packages/core/',
       exclude: [...defaultExclude, 'e2e/**', 'eventcatalog/**'],
     },
   },
@@ -16,10 +17,10 @@ export default defineWorkspace([
     test: {
       name: '@eventcatalog/astro',
       globals: true,
-      root: 'eventcatalog/',
+      root: 'packages/core/eventcatalog/',
       env: {
         PROJECT_DIR: 'examples/default/',
-        CATALOG_DIR: 'eventcatalog/',
+        CATALOG_DIR: 'packages/core/eventcatalog/',
       },
     },
   }),

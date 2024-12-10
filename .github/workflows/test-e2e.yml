@@ -15,12 +15,14 @@ jobs:
         run: npm ci
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
+        working-directory: packages/core/
       - name: Build cli
         run: npm run build:bin
       - name: Build catalog
+        working-directory: packages/core/
         run: npx . build
         env:
-          PROJECT_DIR: ./examples/default/
+          PROJECT_DIR: ../../examples/default/
           CATALOG_DIR: ./eventcatalog/
           NODE_ENV: CI # Skip analytics
       - name: Run tests
