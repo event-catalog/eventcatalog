@@ -1,5 +1,5 @@
 import { UserIcon } from '@heroicons/react/20/solid';
-import { Handle } from 'reactflow';
+import { Handle } from '@xyflow/react';
 
 interface Data {
   title: string;
@@ -57,7 +57,7 @@ export default function UserNode({ data, sourcePosition, targetPosition }: any) 
         )}
 
         {summary && mode === 'full' && (
-          <>
+          <div>
             <div className={classNames(mode === 'full' ? `border-b border-gray-200` : '')}>
               <span className="text-xs font-bold block pb-0.5">{name}</span>
             </div>
@@ -68,7 +68,7 @@ export default function UserNode({ data, sourcePosition, targetPosition }: any) 
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>

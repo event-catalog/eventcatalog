@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import ReactFlow, {
+import {
+  ReactFlow,
   Background,
   ConnectionLineType,
   Controls,
@@ -11,8 +12,8 @@ import ReactFlow, {
   type Edge,
   type Node,
   useReactFlow,
-} from 'reactflow';
-import 'reactflow/dist/style.css';
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 
 // Nodes and edges
 import ServiceNode from './Nodes/Service';
@@ -105,10 +106,10 @@ const NodeGraphBuilder = ({
     (_: any, node: Node) => {
       if (linksToVisualiser) {
         if (node.type === 'events' || node.type === 'commands') {
-          navigate(getVisualiserUrlForCollection(node.data.message));
+          navigate(getVisualiserUrlForCollection(node.data.message as CollectionEntry<CollectionTypes>));
         }
         if (node.type === 'services') {
-          navigate(getVisualiserUrlForCollection(node.data.service));
+          navigate(getVisualiserUrlForCollection(node.data.service as CollectionEntry<"services">));
         }
         return;
       }

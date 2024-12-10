@@ -95,7 +95,7 @@ const navigationItems = [
   },
 ];
 
-const sideNav = allData.reduce((acc, item) => {
+const allDataAsSideNav = allData.reduce((acc, item) => {
   const title = item.collection;
   const group = acc[title] || [];
   const currentPath = Astro.url.pathname;
@@ -128,6 +128,14 @@ const sideNav = allData.reduce((acc, item) => {
     [title]: group,
   };
 }, {} as any);
+
+const sideNav = {
+  ...(currentPath.includes('visualiser') ? {
+      'bounded context map': [{ label: 'Domain map', href: '/visualiser/context-map', collection: 'bounded-context-map' }]
+    }
+    : {}),
+  ...allDataAsSideNav,
+};
 
 const currentNavigationItem = navigationItems.find((item) => item.current);
 const { title, description, sidebar: showSideBarOverride } = Astro.props;

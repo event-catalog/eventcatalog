@@ -9,7 +9,7 @@ import {
   getChannelNodesAndEdges,
 } from '@utils/node-graphs/utils/utils';
 import { findMatchingNodes, getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
-import { MarkerType } from 'reactflow';
+import { MarkerType } from '@xyflow/react';
 import type { CollectionMessageTypes } from '@types';
 
 type DagreGraph = any;

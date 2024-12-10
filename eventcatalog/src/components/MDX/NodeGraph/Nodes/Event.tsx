@@ -1,6 +1,6 @@
 import { BoltIcon } from '@heroicons/react/16/solid';
 import type { CollectionEntry } from 'astro:content';
-import { Handle } from 'reactflow';
+import { Handle } from '@xyflow/react';
 
 interface Data {
   title: string;

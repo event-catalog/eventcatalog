@@ -2,7 +2,7 @@ import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { mockDomains, mockServices, mockEvents, mockCommands } from './mocks';
 import { getNodesAndEdges } from '@utils/node-graphs/domains-node-graph';
-import { MarkerType } from 'reactflow';
+import { MarkerType } from '@xyflow/react';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {

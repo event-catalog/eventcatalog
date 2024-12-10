@@ -12,7 +12,7 @@ import {
   getEdgeLabelForMessageAsSource,
   getEdgeLabelForServiceAsTarget,
 } from './utils/utils';
-import { MarkerType } from 'reactflow';
+import { MarkerType } from '@xyflow/react';
 import { findMatchingNodes } from '@utils/collections/util';
 import type { CollectionMessageTypes } from '@types';
 import { getCommands } from '@utils/commands';

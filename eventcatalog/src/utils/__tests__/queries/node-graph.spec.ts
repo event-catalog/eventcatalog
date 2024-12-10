@@ -1,4 +1,4 @@
-import { MarkerType } from 'reactflow';
+import { MarkerType } from '@xyflow/react';
 import { getNodesAndEdgesForQueries as getNodesAndEdges } from '../../node-graphs/message-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 import { mockQueries, mockServices } from './mocks';

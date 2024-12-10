@@ -10,6 +10,8 @@ receives:
   - id: PaymentInitiated
     version: 0.0.1
   - id: GetPaymentStatus
+  - id: UserSubscriptionStarted
+  - id: InventoryAdjusted
 sends:
   - id: PaymentProcessed
     version: 0.0.1

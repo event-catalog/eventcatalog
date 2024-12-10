@@ -2,7 +2,7 @@ import { BoltIcon } from '@heroicons/react/16/solid';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
 import type { CollectionMessageTypes, CollectionTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
-import { Handle } from 'reactflow';
+import { Handle } from '@xyflow/react';
 
 interface Data {
   title: string;

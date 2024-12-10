@@ -81,7 +81,7 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
         <div class="py-4 w-full min-h-[calc(100vh-10em)]">
           {
             ubiquitousLanguage && (
-              <>
+              <div>
                 <div class="mb-6">
                   <input
                     type="text"
@@ -102,13 +102,13 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
                       <div class="term-card block bg-white border border-gray-200 rounded-lg p-6 transition-all duration-300 ease-in-out hover:shadow-md hover:border-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-white min-h-[12em] cursor-pointer">
                         <div class="flex flex-col h-full space-y-8">
                           {term.icon && (
-                            <>
+                            <div>
                               {(() => {
                                 const Icon = LucideIcons[term.icon as keyof typeof LucideIcons];
                                 //@ts-ignore
                                 return Icon ? <Icon className="w-6 h-6 text-primary" /> : null;
                               })()}
-                            </>
+                            </div>
                           )}
                           <div>
                             <h3 class="text-gray-800 text-lg font-semibold transition-colors duration-300 ease-in-out group-hover:text-gray-300">
@@ -119,12 +119,12 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
                                 {term.summary}
                               </p>
                               {term.description && (
-                                <>
+                                <div>
                                   <p class="description-text hidden text-gray-600 transition-colors duration-300 ease-in-out group-hover:text-gray-200 m-0 font-light text-sm whitespace-pre-line">
                                     {term.description}
                                   </p>
                                   <span class="show-more-text text-sm text-primary font-medium">Show more</span>
-                                </>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -138,7 +138,7 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
                   <h3 class="text-lg font-medium text-gray-900">No matching terms</h3>
                   <p class="mt-2 text-sm text-gray-500">Try adjusting your search terms.</p>
                 </div>
-              </>
+              </div>
             )
           }
         </div>

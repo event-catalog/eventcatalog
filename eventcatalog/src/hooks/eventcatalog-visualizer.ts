@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, useEffect } from 'react';
-import { type Edge, type Node } from 'reactflow';
+import { type Edge, type Node } from '@xyflow/react';
 import {
   createEdge,
   generatedIdForEdge,

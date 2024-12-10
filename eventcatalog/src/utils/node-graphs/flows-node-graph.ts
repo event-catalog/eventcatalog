@@ -1,8 +1,8 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
 import { createDagreGraph, calculatedNodes } from '@utils/node-graphs/utils/utils';
-import { MarkerType } from 'reactflow';
-import type { Node as NodeType } from 'reactflow';
+import { MarkerType } from '@xyflow/react';
+import type { Node as NodeType } from '@xyflow/react';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 
 type DagreGraph = any;

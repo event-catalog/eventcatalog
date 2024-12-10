@@ -23,12 +23,12 @@ const { nodes, edges } = await getNodesAndEdges({
 {
   !flow && (
     <Admonition type="warning">
-      <>
+      <div>
         <span class="block font-bold">{`<Flow/>`} failed to load</span>
         <span class="block">
           Tried to load flow id: {id} with version {version}. Make sure you have this flow defined in your project.
         </span>
-      </>
+      </div>
     </Admonition>
   )
 }
