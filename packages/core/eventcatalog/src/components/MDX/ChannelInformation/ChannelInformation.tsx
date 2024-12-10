@@ -25,9 +25,9 @@ const ChannelParameters = (data: CollectionEntry<'channels'>['data']) => {
       <div>
         <p className="text-md">
           {data.address && (
-            <>
+            <div>
               <span className="font-semibold">Address:</span> <code className="bg-gray-100 p-1 rounded">{data.address}</code>
-            </>
+            </div>
           )}
           {data.protocols && data.protocols.length > 0 && (
             <div className="mt-2 flex items-center space-x-1">

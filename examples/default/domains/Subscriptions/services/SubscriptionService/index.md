@@ -12,6 +12,8 @@ receives:
   - id: CancelSubscription
     version: 0.0.1
   - id: GetSubscriptionStatus  
+  - id: PaymentProcessed
+    version: 0.0.1
 sends:
   - id: UserSubscriptionStarted
     version: 0.0.1

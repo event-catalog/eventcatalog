@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.16.3
+
+### Patch Changes
+
+- 9c84f9c: feat(core): added inital version of the domain map to visualizer
+
 ## 2.16.2
 
 ### Patch Changes

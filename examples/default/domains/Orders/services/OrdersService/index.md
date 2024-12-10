@@ -10,6 +10,7 @@ receives:
   - id: InventoryAdjusted
     version: 0.0.3
   - id: GetOrder
+  - id: UserSubscriptionCancelled
 sends:
   - id: OrderAmended
   - id: OrderCancelled

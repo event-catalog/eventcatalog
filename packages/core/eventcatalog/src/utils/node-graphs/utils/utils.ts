@@ -1,5 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { MarkerType, Position, type Edge, type Node } from 'reactflow';
+import { MarkerType, Position, type Edge, type Node } from '@xyflow/react';
 import dagre from 'dagre';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 import type { CollectionMessageTypes, CollectionTypes } from '@types';

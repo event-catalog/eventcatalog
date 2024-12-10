@@ -9,6 +9,7 @@ import {
   UserIcon,
   ArrowsRightLeftIcon,
   VariableIcon,
+  MapIcon,
 } from '@heroicons/react/24/outline';
 import { BookText } from 'lucide-react';
 
@@ -36,6 +37,8 @@ export const getIconForCollection = (collection: string) => {
       return VariableIcon;
     case 'ubiquitousLanguages':
       return BookText;
+    case 'bounded-context-map':
+      return MapIcon;
     default:
       return ServerIcon;
   }
