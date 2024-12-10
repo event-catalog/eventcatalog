@@ -1,2 +1,3 @@
 packages:
-  - 'eventcatalog'
+  - 'packages/core/'
+  - 'packages/core/eventcatalog/'

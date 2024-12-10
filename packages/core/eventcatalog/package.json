@@ -4,7 +4,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/event-catalog/eventcatalog.git",
-    "directory": "eventcatalog/"
+    "directory": "packages/core/eventcatalog/"
   },
   "type": "module",
   "version": "0.0.0",
@@ -38,6 +38,7 @@
     "diff": "^7.0.0",
     "diff2html": "^3.4.48",
     "html-to-image": "^1.11.11",
+    "js-yaml": "^4.1.0",
     "lodash.debounce": "^4.0.8",
     "lodash.merge": "4.6.2",
     "lucide-react": "^0.453.0",
@@ -56,6 +57,7 @@
   "devDependencies": {
     "@types/dagre": "^0.7.52",
     "@types/diff": "^5.2.2",
+    "@types/js-yaml": "^4.0.9",
     "@types/lodash.debounce": "^4.0.9",
     "@types/lodash.merge": "4.6.9",
     "@types/node": "^20.14.2",

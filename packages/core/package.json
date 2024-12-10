@@ -1,0 +1,54 @@
+{
+  "name": "@eventcatalog/core",
+  "homepage": "https://github.com/event-catalog/eventcatalog",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/event-catalog/eventcatalog.git",
+    "directory": "packages/core/"
+  },
+  "type": "module",
+  "version": "2.16.2",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "eventcatalog": "bin/eventcatalog.js"
+  },
+  "files": [
+    "eventcatalog/",
+    "!eventcatalog/**/__tests__/",
+    "bin/",
+    "dist/",
+    "default-files-for-collections/"
+  ],
+  "scripts": {
+    "build:bin": "tsup",
+    "prepublishOnly": "npm run build:bin",
+    "test:ci": "node scripts/test-ci.js",
+    "test:e2e": "playwright test",
+    "build:cd": "node scripts/build-ci.js",
+    "start:catalog": "node scripts/start-catalog-locally.js",
+    "verify-build:catalog": "rimraf dist && npm run build:cd",
+    "generate": "npm run build:bin && npx . generate"
+  },
+  "dependencies": {
+    "@parcel/watcher": "^2.4.1",
+    "axios": "^1.7.7",
+    "commander": "^12.1.0",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "glob": "^10.4.1",
+    "gray-matter": "^4.0.3",
+    "rimraf": "^5.0.7",
+    "uuid": "^10.0.0",
+    "which-pm-runs": "^1.1.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@playwright/test": "^1.48.1",
+    "@types/which-pm-runs": "^1.0.2",
+    "tsup": "^8.1.0",
+    "typescript": "^5.4.5"
+  }
+}

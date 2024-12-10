@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: '20.x'
       - name: Installation
-        run: npm i
+        run: npm ci
       - name: Test
         run: npm run test:ci
       - name: Build

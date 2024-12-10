@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 
 // This is used for CI on vercel. Must copy files before building.
-import { join } from 'node:path';
+import { resolve } from 'node:path';
 import { execSync } from 'node:child_process';
-const __dirname = import.meta.dirname;
 
 const args = process.argv.slice(2);
 const catalog = args[0] || 'default';
+const __dirname = import.meta.dirname;
 
-const catalogDir = join(__dirname, '../eventcatalog/');
-const projectDIR = join(__dirname, `../examples/${catalog}`);
+const coreDir = resolve(__dirname, '../');
+const catalogDir = resolve(coreDir, 'eventcatalog/');
+const projectDIR = resolve(coreDir, `../../examples/${catalog}`);
 
 // Build cli
 execSync('npm run build:bin', { stdio: 'inherit' });
@@ -26,7 +27,6 @@ execSync(`npx . build`, {
 });
 
 // Type check
-execSync('npx astro check --minimumSeverity error', {
-  cwd: catalogDir,
+execSync(`npx astro check --minimumSeverity error --root ${catalogDir}`, {
   stdio: 'inherit',
 });
