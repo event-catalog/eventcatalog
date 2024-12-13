@@ -10,6 +10,7 @@ import logBuild from './analytics/log-build';
 import { VERSION } from './constants';
 import { watch } from './watcher';
 import { catalogToAstro } from './catalog-to-astro-content-directory';
+import { getEventCatalogConfigFile } from './eventcatalog-config-file-utils';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -122,17 +123,18 @@ program
     });
   });
 
-const previewCatalog = ({ command }: { command: Command }) => {
+const previewCatalog = async ({ command }: { command: Command }) => {
+  const eventCatalogConfig = await getEventCatalogConfigFile(dir);
+  let hasPortArg = command.args.some((arg) => arg.startsWith('--port'));
+  const args = command.args.concat(hasPortArg ? [] : ['--port', eventCatalogConfig.port || '3000']).concat(['--root', dir]);
+
   /**
-   * TODO: get the port and outDir from the eventcatalog.config.js.
+   * TODO: get outDir from the eventcatalog.config.js.
    */
-  execSync(
-    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro preview --root ${dir} --port 3000 ${command.args.join(' ').trim()}`,
-    {
-      cwd: core,
-      stdio: 'inherit',
-    }
-  );
+  execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro preview ${args.join(' ').trim()}`, {
+    cwd: core,
+    stdio: 'inherit',
+  });
 };
 
 program
@@ -140,7 +142,7 @@ program
   .description('Serves the contents of your eventcatalog build directory')
   .action((options, command: Command) => {
     console.log('Starting preview of your build...');
-    previewCatalog({ command });
+    return previewCatalog({ command });
   });
 
 program
@@ -148,7 +150,7 @@ program
   .description('Serves the contents of your eventcatalog build directory')
   .action((options, command: Command) => {
     console.log('Starting preview of your build...');
-    previewCatalog({ command });
+    return previewCatalog({ command });
   });
 
 program

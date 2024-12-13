@@ -13,6 +13,11 @@ export async function cleanup(projectDirectory) {
   }
 }
 
+/**
+ *
+ * @param {string} projectDirectory
+ * @returns {Promise<import("./eventcatalog.config.ts").Config>}
+ */
 export const getEventCatalogConfigFile = async (projectDirectory) => {
   try {
     let configFilePath = path.join(projectDirectory, 'eventcatalog.config.js');
