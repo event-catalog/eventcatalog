@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.16.5
+
+### Patch Changes
+
+- 45da645: feat(core): forward extra args to astro cli via `--`
+- 46545ee: feat(core): added new <Tabs> component
+
 ## 2.16.4
 
 ### Patch Changes
