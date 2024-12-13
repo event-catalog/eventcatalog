@@ -1,12 +1,21 @@
 ---
-const { title } = Astro.props;
-const items = await Astro.slots.render('default');
+interface TabItem {
+  title: string;
+  content: string;
+  id: number;
+}
 
-const tabItems = await Promise.all(
+interface Props {
+  title?: string;
+}
+
+const { title } = Astro.props;
+
+const tabItems: TabItem[] = await Promise.all(
   (await Astro.slots.render('default'))
     .split('</li>')
-    .filter((item) => item.trim())
-    .map(async (item, index) => {
+    .filter((item: string) => item.trim())
+    .map(async (item: string, index: number) => {
       const titleMatch = item.match(/button>([^<]+)</);
       const title = titleMatch ? titleMatch[1].trim() : `Tab ${index + 1}`;
       const content = item.replace(/<button>[^<]+<\/button>/, '');
@@ -55,23 +64,23 @@ const tabsId = Math.random().toString(36).substring(2, 9);
 </div>
 
 <script>
-  function initTabs(container) {
-    const tabs = container.querySelectorAll('[data-tab]');
-    const panels = container.querySelectorAll('[data-tab-content]');
+  function initTabs(container: HTMLElement): void {
+    const tabs: NodeListOf<HTMLButtonElement> = container.querySelectorAll('[data-tab]');
+    const panels: NodeListOf<HTMLElement> = container.querySelectorAll('[data-tab-content]');
 
     // Show first tab by default
     tabs[0]?.classList.add('text-purple-600', 'border-purple-600');
     tabs[0]?.classList.remove('text-gray-500', 'border-transparent');
     panels[0]?.classList.remove('hidden');
 
-    tabs.forEach((tab) => {
+    tabs.forEach((tab: HTMLButtonElement) => {
       tab.addEventListener('click', () => {
         // Remove active states
-        tabs.forEach((t) => {
+        tabs.forEach((t: HTMLButtonElement) => {
           t.classList.remove('text-purple-600', 'border-purple-600');
           t.classList.add('text-gray-500', 'border-transparent');
         });
-        panels.forEach((p) => p.classList.add('hidden'));
+        panels.forEach((p: HTMLElement) => p.classList.add('hidden'));
 
         // Set active states
         tab.classList.remove('text-gray-500', 'border-transparent');
@@ -85,7 +94,7 @@ const tabsId = Math.random().toString(36).substring(2, 9);
   }
 
   // Initialize all tab containers
-  document.querySelectorAll('[data-tabs-container]').forEach((container) => {
-    initTabs(container);
+  document.querySelectorAll('[data-tabs-container]').forEach((container: Element) => {
+    initTabs(container as HTMLElement);
   });
 </script>
