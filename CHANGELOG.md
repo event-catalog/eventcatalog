@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.16.4
+
+### Patch Changes
+
+- 44ad73d: fix(core): fixed small fontsizes for mermaid diagrams
+
 ## 2.16.3
 
 ### Patch Changes
