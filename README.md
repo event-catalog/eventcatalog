@@ -24,7 +24,10 @@
 
 <!-- <hr /> -->
 
-<img alt="header" src="./images/example.png" />
+<img width="745" alt="Screenshot 2024-12-13 at 09 56 05" src="https://github.com/user-attachments/assets/f537ec1f-54ee-4de1-996c-c6b72191be39" />
+
+
+
 
 <h4>Features: Documentation generator for Event Driven Architectures, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
 
