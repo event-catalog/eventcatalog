@@ -1,0 +1,7 @@
+# build output
+dist/
+
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
