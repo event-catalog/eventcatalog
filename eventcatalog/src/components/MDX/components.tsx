@@ -12,6 +12,8 @@ import Admonition from '@components/MDX/Admonition';
 import OpenAPI from '@components/MDX/OpenAPI/OpenAPI.astro';
 import AsyncAPI from '@components/MDX/AsyncAPI/AsyncAPI.astro';
 import ChannelInformation from '@components/MDX/ChannelInformation/ChannelInformation';
+import Tabs from '@components/MDX/Tabs/Tabs.astro';
+import TabItem from '@components/MDX/Tabs/TabItem.astro';
 
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
@@ -29,6 +31,8 @@ const components = (props: any) => {
     Tiles,
     Step,
     Steps,
+    Tabs,
+    TabItem,
     Admonition: (mdxProp: any) => <Admonition {...mdxProp} {...props} />,
     File: (mdxProp: any) => File({ ...props, ...mdxProp }),
     NodeGraph: (mdxProp: any) => NodeGraphPortal({ ...props.data, ...mdxProp }),

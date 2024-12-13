@@ -37,6 +37,7 @@ The `Inventory Adjusted` event is triggered whenever there is a change in the in
 
 <NodeGraph />
 
+
 <SchemaViewer file="schema.yml" title="JSON Schema" maxHeight="500" />
 
 ## Payload example
@@ -60,34 +61,137 @@ Event example you my see being published.
 
 ## Producing the Event
 
-To produce an Inventory Adjusted event, use the following example Kafka producer configuration in Python:
+Select the language you want to produce the event in to see an example.
 
-```python title="Produce event in Python" frame="terminal"
-from kafka import KafkaProducer
-import json
-from datetime import datetime
+<Tabs>
+  <TabItem title="Python">
 
-# Kafka configuration
-producer = KafkaProducer(
-    bootstrap_servers=['localhost:9092'],
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
-)
+    ```python title="Produce event in Python" frame="terminal"
+    from kafka import KafkaProducer
+    import json
+    from datetime import datetime
 
-# Event data
-event_data = {
-  "event_id": "abc123",
-  "timestamp": datetime.utcnow().isoformat() + 'Z',
-  "product_id": "prod987",
-  "adjusted_quantity": 10,
-  "new_quantity": 150,
-  "adjustment_reason": "restock",
-  "adjusted_by": "user123"
-}
+    # Kafka configuration
+    producer = KafkaProducer(
+        bootstrap_servers=['localhost:9092'],
+        value_serializer=lambda v: json.dumps(v).encode('utf-8')
+    )
 
-# Send event to Kafka topic
-producer.send('inventory.adjusted', event_data)
-producer.flush()
-```
+    # Event data
+    event_data = {
+      "event_id": "abc123",
+      "timestamp": datetime.utcnow().isoformat() + 'Z',
+      "product_id": "prod987",
+      "adjusted_quantity": 10,
+      "new_quantity": 150,
+      "adjustment_reason": "restock",
+      "adjusted_by": "user123"
+    }
+
+    # Send event to Kafka topic
+    producer.send('inventory.adjusted', event_data)
+    producer.flush()
+    ```
+  </TabItem>
+  <TabItem title="TypeScript">
+
+    ```typescript title="Produce event in TypeScript" frame="terminal"
+    import { Kafka } from 'kafkajs';
+
+    // Kafka configuration
+    const kafka = new Kafka({
+      clientId: 'inventory-producer',
+      brokers: ['localhost:9092']
+    });
+
+    const producer = kafka.producer();
+
+    // Event data
+    const eventData = {
+      event_id: "abc123",
+      timestamp: new Date().toISOString(),
+      product_id: "prod987", 
+      adjusted_quantity: 10,
+      new_quantity: 150,
+      adjustment_reason: "restock",
+      adjusted_by: "user123"
+    };
+
+    // Send event to Kafka topic
+    async function produceEvent() {
+      await producer.connect();
+      await producer.send({
+        topic: 'inventory.adjusted',
+        messages: [
+          { value: JSON.stringify(eventData) }
+        ],
+      });
+      await producer.disconnect();
+    }
+
+    produceEvent().catch(console.error);
+    ```
+  </TabItem>
+  <TabItem title="Java">
+
+    ```java title="Produce event in Java" frame="terminal"
+    import org.apache.kafka.clients.producer.*;
+    import org.apache.kafka.common.serialization.StringSerializer;
+    import com.fasterxml.jackson.databind.ObjectMapper;
+    import java.util.Properties;
+    import java.util.HashMap;
+    import java.util.Map;
+    import java.time.Instant;
+
+    public class InventoryProducer {
+        public static void main(String[] args) {
+            // Kafka configuration
+            Properties props = new Properties();
+            props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+            props.put(ProducerConfig.CLIENT_ID_CONFIG, "inventory-producer");
+            props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+            props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+
+            Producer<String, String> producer = new KafkaProducer<>(props);
+            ObjectMapper mapper = new ObjectMapper();
+
+            try {
+                // Event data
+                Map<String, Object> eventData = new HashMap<>();
+                eventData.put("event_id", "abc123");
+                eventData.put("timestamp", Instant.now().toString());
+                eventData.put("product_id", "prod987");
+                eventData.put("adjusted_quantity", 10);
+                eventData.put("new_quantity", 150);
+                eventData.put("adjustment_reason", "restock");
+                eventData.put("adjusted_by", "user123");
+
+                // Create producer record
+                ProducerRecord<String, String> record = new ProducerRecord<>(
+                    "inventory.adjusted",
+                    mapper.writeValueAsString(eventData)
+                );
+
+                // Send event to Kafka topic
+                producer.send(record, (metadata, exception) -> {
+                    if (exception != null) {
+                        System.err.println("Error producing message: " + exception);
+                    }
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                producer.flush();
+                producer.close();
+            }
+        }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+
 
 ### Consuming the Event
 

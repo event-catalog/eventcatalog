@@ -1,0 +1,10 @@
+---
+const { title } = Astro.props;
+---
+
+<li class="list-none">
+  <button>{title}</button>
+  <div class="tab-panel">
+    <slot />
+  </div>
+</li>
