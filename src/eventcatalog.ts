@@ -63,7 +63,7 @@ program
   .description('Run development server of EventCatalog')
   .option('-d, --debug', 'Output EventCatalog application information into your terminal')
   .option('--force-recreate', 'Recreate the eventcatalog-core directory', false)
-  .action(async (options) => {
+  .action(async (options, command: Command) => {
     // // Copy EventCatalog core over
     console.log('Setting up EventCatalog....');
 
@@ -87,7 +87,7 @@ program
       const { result } = concurrently([
         {
           name: 'astro',
-          command: 'npx astro dev',
+          command: `npx astro dev ${command.args.join(' ').trim()}`,
           cwd: core,
           env: {
             PROJECT_DIR: dir,
@@ -107,7 +107,7 @@ program
 program
   .command('build')
   .description('Run build of EventCatalog')
-  .action(async (options) => {
+  .action(async (options, command: Command) => {
     console.log('Building EventCatalog...');
 
     copyCore();
@@ -116,36 +116,39 @@ program
 
     await catalogToAstro(dir, core);
 
-    execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro build`, {
+    execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro build ${command.args.join(' ').trim()}`, {
       cwd: core,
       stdio: 'inherit',
     });
   });
 
-const previewCatalog = () => {
+const previewCatalog = ({ command }: { command: Command }) => {
   /**
    * TODO: get the port and outDir from the eventcatalog.config.js.
    */
-  execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro preview --root ${dir} --port 3000`, {
-    cwd: core,
-    stdio: 'inherit',
-  });
+  execSync(
+    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro preview --root ${dir} --port 3000 ${command.args.join(' ').trim()}`,
+    {
+      cwd: core,
+      stdio: 'inherit',
+    }
+  );
 };
 
 program
   .command('preview')
   .description('Serves the contents of your eventcatalog build directory')
-  .action((options) => {
+  .action((options, command: Command) => {
     console.log('Starting preview of your build...');
-    previewCatalog();
+    previewCatalog({ command });
   });
 
 program
   .command('start')
   .description('Serves the contents of your eventcatalog build directory')
-  .action((options) => {
+  .action((options, command: Command) => {
     console.log('Starting preview of your build...');
-    previewCatalog();
+    previewCatalog({ command });
   });
 
 program
@@ -154,6 +157,15 @@ program
   .action(async () => {
     await generate(dir);
   });
+
+program.addHelpText(
+  'after',
+  `
+  Passing Extra Arguments:
+    Use the -- delimiter to forward arguments to the underlying process.
+    Example: npx eventcatalog dev --debug -- --env=production --port=3000
+  `
+);
 
 program
   .parseAsync()
