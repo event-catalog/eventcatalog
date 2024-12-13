@@ -236,10 +236,6 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
     .mermaid svg {
       margin: 1em auto 2em;
     }
-
-    .mermaid tspan {
-      font-size: 8em;
-    }
   </style>
 
   <script define:vars={{ props }}>
@@ -251,13 +247,21 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
   </script>
 
   <script>
+    // Listen for Astro transititions
+    document.addEventListener('astro:page-load', () => {
+      const graphs = document.getElementsByClassName('mermaid');
+      if (document.getElementsByClassName('mermaid').length > 0) {
+        renderDiagrams(graphs);
+      }
+    });
+
     /**
      * @params {HTMLCollectionOf<HTMLElement>} graphs
      */
     async function renderDiagrams(graphs: any) {
       const { default: mermaid } = await import('mermaid');
       mermaid.initialize({
-        fontSize: 2,
+        // fontSize: 2,
         flowchart: {
           curve: 'linear',
           rankSpacing: 0,
@@ -266,7 +270,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
         startOnLoad: false,
         fontFamily: 'var(--sans-font)',
         // @ts-ignore This works, but TS expects a enum for some reason
-        theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default',
+        theme: 'light',
       });
 
       for (const graph of graphs) {
