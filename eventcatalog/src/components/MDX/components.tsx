@@ -33,7 +33,7 @@ const components = (props: any) => {
     Steps,
     Tabs,
     TabItem,
-    Admonition: (mdxProp: any) => <Admonition {...mdxProp} {...props} />,
+    Admonition,
     File: (mdxProp: any) => File({ ...props, ...mdxProp }),
     NodeGraph: (mdxProp: any) => NodeGraphPortal({ ...props.data, ...mdxProp }),
     ChannelInformation: (mdxProp: any) => ChannelInformation({ ...props.data, ...mdxProp }),
