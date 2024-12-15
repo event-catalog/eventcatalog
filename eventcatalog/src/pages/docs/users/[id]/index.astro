@@ -43,7 +43,7 @@ const ownedDomainsList = domains.map((p) => ({
 }));
 
 const ownedServicesList = services.map((p) => ({
-  label: `${p.data.name} (service)`,
+  label: `${p.data.name}`,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
   collection: p.collection,
   tag: `v${p.data.version}`,

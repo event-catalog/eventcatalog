@@ -19,7 +19,7 @@ interface Props {
 
 export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<Event[]> => {
   const events = await getCollection('events', (event) => {
-    return (getAllVersions || !event.slug.includes('versioned')) && event.data.hidden !== true;
+    return (getAllVersions || !event.data?.pathToFile?.includes('versioned')) && event.data.hidden !== true;
   });
 
   const services = await getCollection('services');

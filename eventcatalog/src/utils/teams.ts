@@ -19,19 +19,19 @@ export const getTeams = async (): Promise<Team[]> => {
 
   return teams.map((team) => {
     const ownedDomains = domains.filter((domain) => {
-      return domain.data.owners?.find((owner) => owner.slug === team.data.id);
+      return domain.data.owners?.find((owner) => owner.id === team.data.id);
     });
 
     const ownedServices = services.filter((service) => {
-      return service.data.owners?.find((owner) => owner.slug === team.data.id);
+      return service.data.owners?.find((owner) => owner.id === team.data.id);
     });
 
     const ownedEvents = events.filter((event) => {
-      return event.data.owners?.find((owner) => owner.slug === team.data.id);
+      return event.data.owners?.find((owner) => owner.id === team.data.id);
     });
 
     const ownedCommands = commands.filter((command) => {
-      return command.data.owners?.find((owner) => owner.slug === team.data.id);
+      return command.data.owners?.find((owner) => owner.id === team.data.id);
     });
 
     return {

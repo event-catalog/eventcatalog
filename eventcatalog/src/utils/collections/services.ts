@@ -15,7 +15,7 @@ interface Props {
 export const getServices = async ({ getAllVersions = true }: Props = {}): Promise<Service[]> => {
   // Get services that are not versioned
   const services = await getCollection('services', (service) => {
-    return (getAllVersions || !service.slug.includes('versioned')) && service.data.hidden !== true;
+    return (getAllVersions || !service.data?.pathToFile?.includes('versioned')) && service.data.hidden !== true;
   });
   const events = await getCollection('events');
   const commands = await getCollection('commands');
