@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.16.6
+
+### Patch Changes
+
+- f73eb3d: feat(core): added admonitions using markdown
+
 ## 2.16.5
 
 ### Patch Changes
