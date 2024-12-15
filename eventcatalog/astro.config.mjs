@@ -8,6 +8,8 @@ import { join } from 'node:path';
 import remarkDirective from 'remark-directive';
 import { remarkDirectives } from "./src/remark-plugins/directives"
 
+import remarkComment from 'remark-comment'
+
 /** @type {import('bin/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
@@ -44,7 +46,7 @@ export default defineConfig({
     mdx({
       // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
       optimize: config.mdxOptimize || false,
-      remarkPlugins: [remarkDirective, remarkDirectives, mermaid],
+      remarkPlugins: [remarkDirective, remarkDirectives, remarkComment, mermaid],
       gfm: false,
     }),
     pagefind(),
