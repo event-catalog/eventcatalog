@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.17.0
+
+### Minor Changes
+
+- 8746d32: chore(core): update to astro 5
+
 ## 2.16.6
 
 ### Patch Changes
