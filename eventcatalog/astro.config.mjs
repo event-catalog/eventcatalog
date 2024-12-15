@@ -5,6 +5,8 @@ import react from '@astrojs/react';
 import pagefind from "astro-pagefind";
 import { mermaid } from "./src/remark-plugins/mermaid"
 import { join } from 'node:path';
+import remarkDirective from 'remark-directive';
+import { remarkDirectives } from "./src/remark-plugins/directives"
 
 /** @type {import('bin/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
@@ -42,7 +44,7 @@ export default defineConfig({
     mdx({
       // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
       optimize: config.mdxOptimize || false,
-      remarkPlugins: [mermaid],
+      remarkPlugins: [remarkDirective, remarkDirectives, mermaid],
       gfm: false,
     }),
     pagefind(),
