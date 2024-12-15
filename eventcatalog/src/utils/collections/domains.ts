@@ -14,7 +14,7 @@ interface Props {
 export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise<Domain[]> => {
   // Get all the domains that are not versioned
   const domains = await getCollection('domains', (domain) => {
-    return (getAllVersions || !domain.slug.includes('versioned')) && domain.data.hidden !== true;
+    return (getAllVersions || !domain.data?.pathToFile?.includes('versioned')) && domain.data.hidden !== true;
   });
 
   // Get all the services that are not versioned

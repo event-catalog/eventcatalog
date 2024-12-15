@@ -21,6 +21,7 @@ const ubiquitousLanguageDictionary = hasUbiquitousLanguage ? ubiquitousLanguage[
 
 const ownersRaw = domain.data?.owners || [];
 const owners = await Promise.all(ownersRaw.map((o) => getEntry(o)));
+const filteredOwners = owners.filter((o) => o !== undefined);
 
 const serviceList = services.map((p) => ({
   label: p.data.name,
@@ -37,7 +38,7 @@ const ubiquitousLanguageList = ubiquitousLanguageDictionary?.map((l) => ({
   href: buildUrl(`/docs/${domain.collection}/${domain.data.id}/language?id=${l.id}`),
 }));
 
-const ownersList = owners.map((o) => ({
+const ownersList = filteredOwners.map((o) => ({
   label: o.data.name,
   type: o.collection,
   badge: o.collection === 'users' ? o.data.role : 'Team',

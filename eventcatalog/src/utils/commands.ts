@@ -19,7 +19,7 @@ interface Props {
 
 export const getCommands = async ({ getAllVersions = true }: Props = {}): Promise<Command[]> => {
   const commands = await getCollection('commands', (command) => {
-    return (getAllVersions || !command.slug.includes('versioned')) && command.data.hidden !== true;
+    return (getAllVersions || !command.data?.pathToFile?.includes('versioned')) && command.data.hidden !== true;
   });
 
   const services = await getCollection('services');

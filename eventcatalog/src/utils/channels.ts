@@ -21,7 +21,7 @@ interface Props {
 
 export const getChannels = async ({ getAllVersions = true }: Props = {}): Promise<Channel[]> => {
   const channels = await getCollection('channels', (query) => {
-    return (getAllVersions || !query.slug.includes('versioned')) && query.data.hidden !== true;
+    return (getAllVersions || !query.data?.pathToFile?.includes('versioned')) && query.data.hidden !== true;
   });
 
   const { commands, events, queries } = await getMessages();

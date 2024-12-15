@@ -21,6 +21,7 @@ const receives = (service.data.receives as CollectionEntry<'events'>[]) || [];
 
 const ownersRaw = service.data?.owners || [];
 const owners = await Promise.all(ownersRaw.map((o) => getEntry(o)));
+const filteredOwners = owners.filter((o) => o !== undefined);
 
 const sendsList = sends.map((p) => ({
   label: p.data.name,
@@ -39,7 +40,7 @@ const receivesList = receives.map((p) => ({
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
 }));
 
-const ownersList = owners.map((o) => ({
+const ownersList = filteredOwners.map((o) => ({
   label: o.data.name,
   type: o.collection,
   badge: o.collection === 'users' ? o.data.role : 'Team',

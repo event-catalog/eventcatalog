@@ -14,7 +14,7 @@ interface Props {
 export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<Flow[]> => {
   // Get flows that are not versioned
   const flows = await getCollection('flows', (flow) => {
-    return (getAllVersions || !flow.slug.includes('versioned')) && flow.data.hidden !== true;
+    return (getAllVersions || !flow.data.pathToFile?.includes('versioned')) && flow.data.hidden !== true;
   });
 
   const events = await getCollection('events');

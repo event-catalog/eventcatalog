@@ -20,6 +20,7 @@ const channels = (message.data.messageChannels as CollectionEntry<'channels'>[])
 
 const ownersRaw = message.data?.owners || [];
 const owners = await Promise.all(ownersRaw.map((o) => getEntry(o)));
+const filteredOwners = owners.filter((o) => o !== undefined);
 
 const producerList = producers.map((p) => ({
   label: `${p.data.name}`,
@@ -35,7 +36,7 @@ const consumerList = consumers.map((p) => ({
   href: buildUrl(`/docs/services/${p.data.id}/${p.data.version}`),
 }));
 
-const ownersList = owners.map((o) => ({
+const ownersList = filteredOwners.map((o) => ({
   label: o.data.name,
   type: o.collection,
   badge: o.collection === 'users' ? o.data.role : 'Team',

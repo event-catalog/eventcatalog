@@ -16,6 +16,7 @@ const { channel } = Astro.props;
 
 const ownersRaw = channel.data?.owners || [];
 const owners = await Promise.all(ownersRaw.map((o) => getEntry(o)));
+const filteredOwners = owners.filter((o) => o !== undefined);
 
 const channelParameters: Record<string, { enum?: string[]; description?: string }> = channel.data.parameters || {};
 const parameters = Object.keys(channelParameters).map((key) => ({
@@ -37,7 +38,7 @@ const protocolList = protocols.map((p) => ({
   icon: p,
 }));
 
-const ownersList = owners.map((o) => ({
+const ownersList = filteredOwners.map((o) => ({
   label: o.data.name,
   type: o.collection,
   badge: o.collection === 'users' ? o.data.role : 'Team',
@@ -86,7 +87,7 @@ const messageList = (channel.data.messages ?? []).map((p) => ({
     }
 
     <OwnersList
-      title={`Channel owners (${ownersList.length})`}
+      title={`Channel owners (${filteredOwners.length})`}
       owners={ownersList}
       emptyMessage={`This channel does not have any documented owners.`}
       client:load

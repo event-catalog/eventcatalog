@@ -28,26 +28,26 @@ export const getUsers = async (): Promise<User[]> => {
 
   return users.map((user) => {
     const associatedTeams = teams.filter((team) => {
-      return team.data.members?.some((member) => member.slug === user.data.id);
+      return team.data.members?.some((member) => member.id === user.data.id);
     });
 
     const ownedDomains = domains.filter((domain) => {
-      return domain.data.owners?.find((owner) => owner.slug === user.data.id);
+      return domain.data.owners?.find((owner) => owner.id === user.data.id);
     });
 
     const isOwnedByUserOrAssociatedTeam = () => {
-      const associatedTeamsSlug: string[] = associatedTeams.map((team) => team.slug);
+      const associatedTeamsSlug: string[] = associatedTeams.map((team) => team.id);
 
       return ({ data }: { data: { owners?: Array<{ slug: string }> } }) => {
         return data.owners?.some((owner) => owner.slug === user.data.id || associatedTeamsSlug.includes(owner.slug));
       };
     };
 
-    const ownedServices = services.filter(isOwnedByUserOrAssociatedTeam());
+    const ownedServices = services.filter(() => isOwnedByUserOrAssociatedTeam());
 
-    const ownedEvents = events.filter(isOwnedByUserOrAssociatedTeam());
+    const ownedEvents = events.filter(() => isOwnedByUserOrAssociatedTeam());
 
-    const ownedCommands = commands.filter(isOwnedByUserOrAssociatedTeam());
+    const ownedCommands = commands.filter(() => isOwnedByUserOrAssociatedTeam());
 
     return {
       ...user,

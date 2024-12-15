@@ -19,7 +19,7 @@ interface Props {
 
 export const getQueries = async ({ getAllVersions = true }: Props = {}): Promise<Query[]> => {
   const queries = await getCollection('queries', (query) => {
-    return (getAllVersions || !query.slug.includes('versioned')) && query.data.hidden !== true;
+    return (getAllVersions || !query.data?.pathToFile?.includes('versioned')) && query.data.hidden !== true;
   });
 
   const services = await getCollection('services');

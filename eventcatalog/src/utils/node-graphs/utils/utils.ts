@@ -1,20 +1,33 @@
-import { getCollection, type CollectionEntry } from 'astro:content';
+// Can't use the CollectionEntry type from astro:content  because a client component is using this util
+// import { type CollectionEntry } from 'astro:content';
 import { MarkerType, Position, type Edge, type Node } from '@xyflow/react';
 import dagre from 'dagre';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
-import type { CollectionMessageTypes, CollectionTypes } from '@types';
+interface BaseCollectionData {
+  id: string;
+  version: string;
+}
 
-export const generateIdForNode = (node: CollectionEntry<CollectionTypes>) => {
+interface CollectionItem {
+  collection: string;
+  data: BaseCollectionData;
+}
+
+interface MessageCollectionItem extends CollectionItem {
+  collection: 'commands' | 'events' | 'queries';
+}
+
+export const generateIdForNode = (node: CollectionItem) => {
   return `${node.data.id}-${node.data.version}`;
 };
 export const generateIdForNodes = (nodes: any) => {
   return nodes.map((node: any) => `${node.data.id}-${node.data.version}`).join('-');
 };
-export const generatedIdForEdge = (source: CollectionEntry<CollectionTypes>, target: CollectionEntry<CollectionTypes>) => {
+export const generatedIdForEdge = (source: CollectionItem, target: CollectionItem) => {
   return `${source.data.id}-${source.data.version}-${target.data.id}-${target.data.version}`;
 };
 
-export const getEdgeLabelForServiceAsTarget = (data: CollectionEntry<CollectionMessageTypes>) => {
+export const getEdgeLabelForServiceAsTarget = (data: MessageCollectionItem) => {
   const type = data.collection;
   switch (type) {
     case 'commands':
@@ -27,7 +40,7 @@ export const getEdgeLabelForServiceAsTarget = (data: CollectionEntry<CollectionM
       return 'sends to';
   }
 };
-export const getEdgeLabelForMessageAsSource = (data: CollectionEntry<CollectionMessageTypes>) => {
+export const getEdgeLabelForMessageAsSource = (data: MessageCollectionItem) => {
   const type = data.collection;
   switch (type) {
     case 'commands':
@@ -90,10 +103,10 @@ export const getChannelNodesAndEdges = ({
   mode = 'full',
   currentNodes = [],
 }: {
-  channels: CollectionEntry<'channels'>[];
+  channels: CollectionItem[];
   channelsToRender: { id: string; version: string }[];
-  source: CollectionEntry<CollectionTypes>;
-  target: CollectionEntry<CollectionTypes>;
+  source: CollectionItem;
+  target: CollectionItem;
   channelToTargetLabel?: string;
   sourceToChannelLabel?: string;
   mode?: 'simple' | 'full';
