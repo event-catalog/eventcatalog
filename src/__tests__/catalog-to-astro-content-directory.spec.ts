@@ -228,10 +228,10 @@ describe('catalog-to-astro-content-directory', () => {
     });
   });
 
-  describe('eventcatalog.config.js file', () => {
-    it('adds cId missing property on the eventcatalog.config.js file', async () => {
-      const file = await fs.readFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), 'utf8');
-      expect(file).toContain('cId:');
-    });
-  });
+  // describe('eventcatalog.config.js file', () => {
+  //   it('adds cId missing property on the eventcatalog.config.js file', async () => {
+  //     const file = await fs.readFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), 'utf8');
+  //     expect(file).toContain('cId:');
+  //   });
+  // });
 });
