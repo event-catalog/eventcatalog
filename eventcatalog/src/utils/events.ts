@@ -19,7 +19,7 @@ interface Props {
 
 export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<Event[]> => {
   const events = await getCollection('events', (event) => {
-    return (getAllVersions || !event.data?.pathToFile?.includes('versioned')) && event.data.hidden !== true;
+    return (getAllVersions || !event.filePath?.includes('versioned')) && event.data.hidden !== true;
   });
 
   const services = await getCollection('services');
@@ -47,6 +47,8 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
     const messageChannels = event.data.channels || [];
     const channelsForEvent = allChannels.filter((c) => messageChannels.some((channel) => c.data.id === channel.id));
 
+    // console.log('event/id', event.filePath)
+
     return {
       ...event,
       data: {
@@ -58,9 +60,11 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
         latestVersion,
       },
       catalog: {
-        path: path.join(event.collection, event.id.replace('/index.mdx', '')),
-        absoluteFilePath: path.join(PROJECT_DIR, event.collection, event.id.replace('/index.mdx', '/index.md')),
-        astroContentFilePath: path.join(process.cwd(), 'src', 'content', event.collection, event.id),
+        path: path.join(event.id.replace('/index.mdx', '')),
+        absoluteFilePath: path.join(PROJECT_DIR, event.id.replace('/index.mdx', '/index.md')),
+        // astroContentFilePath: path.join(process.cwd(), 'src', 'content', event.collection, event.id),
+        astroContentFilePath: path.join(PROJECT_DIR, event.filePath),
+        astroFilePath: event.filePath,
         filePath: path.join(process.cwd(), 'src', 'catalog-files', event.collection, event.id.replace('/index.mdx', '')),
         publicPath: path.join('/generated', event.collection, event.id.replace('/index.mdx', '')),
         type: 'event',

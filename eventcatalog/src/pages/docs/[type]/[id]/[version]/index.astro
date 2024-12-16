@@ -1,4 +1,5 @@
 ---
+import { getEntry, render } from 'astro:content';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import Footer from '@layouts/Footer.astro';
 
@@ -49,7 +50,7 @@ export async function getStaticPaths() {
 
 const props = Astro.props;
 
-const { Content } = await props.render();
+const { Content } = props.render ? await props.render() : await render(props)
 
 // Capitalize the first letter of a string
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());

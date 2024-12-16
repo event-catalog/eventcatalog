@@ -1,3 +1,4 @@
+import { glob } from 'astro/loaders';
 import { z, defineCollection, reference } from 'astro:content';
 
 const badge = z.object({
@@ -142,8 +143,16 @@ const flows = defineCollection({
     .merge(baseSchema),
 });
 
+
+console.log('I AM HERE WOOO!', process.env.PROJECT_DIR, process.env.CATALOG_DIR)
+
 const events = defineCollection({
-  type: 'content',
+  // type: 'content',
+  // loader: glob({ pattern: "events/*.md", base: process.env.PROJECT_DIR }),
+  loader: glob({ 
+    pattern: "**/events/*/index.md",
+    base: process.env.PROJECT_DIR 
+  }),
   schema: z
     .object({
       producers: z.array(reference('services')).optional(),
