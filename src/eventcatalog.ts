@@ -123,16 +123,10 @@ program
   });
 
 const previewCatalog = ({ command }: { command: Command }) => {
-  /**
-   * TODO: get the port and outDir from the eventcatalog.config.js.
-   */
-  execSync(
-    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro preview --root ${dir} --port 3000 ${command.args.join(' ').trim()}`,
-    {
-      cwd: core,
-      stdio: 'inherit',
-    }
-  );
+  execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro preview ${command.args.join(' ').trim()}`, {
+    cwd: core,
+    stdio: 'inherit',
+  });
 };
 
 program
