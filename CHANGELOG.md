@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.17.1
+
+### Patch Changes
+
+- 0c2f681: chore(core): removed --root and --port flags from astro preview command
+- fb6c0f2: feat(core): markdown files now support comments
+
 ## 2.17.0
 
 ### Minor Changes
