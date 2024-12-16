@@ -1,6 +1,5 @@
 import watcher from '@parcel/watcher';
 import fs from 'node:fs';
-import path from 'node:path';
 import { mapCatalogToAstro } from './map-catalog-to-astro.js';
 import { rimrafSync } from 'rimraf';
 import { addPropertyToFrontMatter } from './eventcatalog-config-file-utils.js';
