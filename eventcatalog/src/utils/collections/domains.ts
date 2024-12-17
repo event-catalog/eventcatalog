@@ -11,12 +11,18 @@ interface Props {
   getAllVersions?: boolean;
 }
 
-// Cache for build time
-let cachedDomains: Domain[] = [];
+// Update cache to store both versions
+let cachedDomains: Record<string, Domain[]> = {
+  allVersions: [],
+  currentVersions: [],
+};
 
 export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise<Domain[]> => {
-  if (cachedDomains.length > 0) {
-    return cachedDomains;
+  const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
+
+  // Check if we have cached domains for this specific getAllVersions value
+  if (cachedDomains[cacheKey].length > 0) {
+    return cachedDomains[cacheKey];
   }
 
   // Get all the domains that are not versioned
@@ -28,7 +34,7 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
   const servicesCollection = await getCollection('services');
 
   // @ts-ignore // TODO: Fix this type
-  cachedDomains = domains.map((domain) => {
+  cachedDomains[cacheKey] = domains.map((domain) => {
     const { latestVersion, versions } = getVersionForCollectionItem(domain, domains);
 
     // const receives = service.data.receives || [];
@@ -59,7 +65,7 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
     };
   });
 
-  return cachedDomains;
+  return cachedDomains[cacheKey];
 };
 
 export const getUbiquitousLanguage = async (domain: Domain): Promise<UbiquitousLanguage[]> => {
