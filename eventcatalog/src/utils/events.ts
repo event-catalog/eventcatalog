@@ -17,7 +17,14 @@ interface Props {
   getAllVersions?: boolean;
 }
 
+// cache for build time
+export let cachedEvents: Event[] = [];
+
 export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<Event[]> => {
+  if (cachedEvents.length > 0) {
+    return cachedEvents;
+  }
+
   const events = await getCollection('events', (event) => {
     return (getAllVersions || !event.data?.pathToFile?.includes('versioned')) && event.data.hidden !== true;
   });
@@ -25,7 +32,7 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
   const services = await getCollection('services');
   const allChannels = await getCollection('channels');
 
-  return events.map((event) => {
+  cachedEvents = events.map((event) => {
     const { latestVersion, versions } = getVersionForCollectionItem(event, events);
 
     const producers = services.filter((service) =>
@@ -67,4 +74,6 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
       },
     };
   });
+
+  return cachedEvents;
 };

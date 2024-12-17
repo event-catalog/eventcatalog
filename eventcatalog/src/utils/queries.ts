@@ -17,7 +17,14 @@ interface Props {
   getAllVersions?: boolean;
 }
 
+// Cache for build time
+let cachedQueries: Query[] = [];
+
 export const getQueries = async ({ getAllVersions = true }: Props = {}): Promise<Query[]> => {
+  if (cachedQueries.length > 0) {
+    return cachedQueries;
+  }
+
   const queries = await getCollection('queries', (query) => {
     return (getAllVersions || !query.data?.pathToFile?.includes('versioned')) && query.data.hidden !== true;
   });
@@ -25,7 +32,7 @@ export const getQueries = async ({ getAllVersions = true }: Props = {}): Promise
   const services = await getCollection('services');
   const allChannels = await getCollection('channels');
 
-  return queries.map((query) => {
+  cachedQueries = queries.map((query) => {
     const { latestVersion, versions } = getVersionForCollectionItem(query, queries);
 
     const producers = services.filter((service) =>
@@ -67,4 +74,6 @@ export const getQueries = async ({ getAllVersions = true }: Props = {}): Promise
       },
     };
   });
+
+  return cachedQueries;
 };
