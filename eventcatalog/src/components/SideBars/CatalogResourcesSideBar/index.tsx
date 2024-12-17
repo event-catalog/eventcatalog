@@ -90,7 +90,7 @@ const CatalogResourcesSideBar: React.FC<CatalogResourcesSideBarProps> = ({ resou
           <div className="px-2 text-gray-400 dark:text-gray-200 text-sm">No results found</div>
         ) : (
           Object.keys(filteredData).map((key) => {
-            const collection = filteredData[key];
+            const collection = filteredData[key].toSorted((a: any, b: any) => a.label.toLowerCase().localeCompare(b.label.toLowerCase()));
             if (collection[0] && collection[0].visible === false) return null;
             const isCollapsed = collapsedGroups[key];
 
