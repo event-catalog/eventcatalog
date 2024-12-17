@@ -43,7 +43,7 @@
     "lodash.debounce": "^4.0.8",
     "lodash.merge": "4.6.2",
     "lucide-react": "^0.453.0",
-    "mermaid": "^10.9.1",
+    "mermaid": "^11.4.1",
     "prismjs": "^1.29.0",
     "rapidoc": "^9.3.4",
     "react": "^18.3.1",
