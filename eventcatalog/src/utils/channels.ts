@@ -19,7 +19,14 @@ interface Props {
   getAllVersions?: boolean;
 }
 
+// cache for build time
+export let cachedChannels: Channel[] = [];
+
 export const getChannels = async ({ getAllVersions = true }: Props = {}): Promise<Channel[]> => {
+  if (cachedChannels.length > 0) {
+    return cachedChannels;
+  }
+
   const channels = await getCollection('channels', (query) => {
     return (getAllVersions || !query.data?.pathToFile?.includes('versioned')) && query.data.hidden !== true;
   });
@@ -27,7 +34,7 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
   const { commands, events, queries } = await getMessages();
   const allMessages = [...commands, ...events, ...queries];
 
-  return channels.map((channel) => {
+  cachedChannels = channels.map((channel) => {
     const { latestVersion, versions } = getVersionForCollectionItem(channel, channels);
 
     const messagesForChannel = allMessages.filter((message) => {
@@ -61,4 +68,6 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
       },
     };
   });
+
+  return cachedChannels;
 };

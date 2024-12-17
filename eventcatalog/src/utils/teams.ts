@@ -4,7 +4,14 @@ import path from 'path';
 
 export type Team = CollectionEntry<'teams'>;
 
+// Cache for build time
+let cachedTeams: Team[] = [];
+
 export const getTeams = async (): Promise<Team[]> => {
+  if (cachedTeams.length > 0) {
+    return cachedTeams;
+  }
+
   // Get services that are not versioned
   const teams = await getCollection('teams', (team) => {
     return team.data.hidden !== true;
@@ -17,7 +24,7 @@ export const getTeams = async (): Promise<Team[]> => {
   const events = await getCollection('events');
   const commands = await getCollection('commands');
 
-  return teams.map((team) => {
+  cachedTeams = teams.map((team) => {
     const ownedDomains = domains.filter((domain) => {
       return domain.data.owners?.find((owner) => owner.id === team.data.id);
     });
@@ -50,4 +57,6 @@ export const getTeams = async (): Promise<Team[]> => {
       },
     };
   });
+
+  return cachedTeams;
 };

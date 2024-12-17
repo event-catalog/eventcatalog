@@ -11,7 +11,14 @@ interface Props {
   getAllVersions?: boolean;
 }
 
+// Cache for build time
+let cachedFlows: Flow[] = [];
+
 export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<Flow[]> => {
+  if (cachedFlows.length > 0) {
+    return cachedFlows;
+  }
+
   // Get flows that are not versioned
   const flows = await getCollection('flows', (flow) => {
     return (getAllVersions || !flow.data.pathToFile?.includes('versioned')) && flow.data.hidden !== true;
@@ -23,7 +30,7 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
   const allMessages = [...events, ...commands];
 
   // @ts-ignore // TODO: Fix this type
-  return flows.map((flow) => {
+  cachedFlows = flows.map((flow) => {
     // @ts-ignore
     const { latestVersion, versions } = getVersionForCollectionItem(flow, flows);
     const steps = flow.data.steps || [];
@@ -56,4 +63,6 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
       },
     };
   });
+
+  return cachedFlows;
 };

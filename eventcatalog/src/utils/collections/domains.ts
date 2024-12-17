@@ -11,7 +11,14 @@ interface Props {
   getAllVersions?: boolean;
 }
 
+// Cache for build time
+let cachedDomains: Domain[] = [];
+
 export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise<Domain[]> => {
+  if (cachedDomains.length > 0) {
+    return cachedDomains;
+  }
+
   // Get all the domains that are not versioned
   const domains = await getCollection('domains', (domain) => {
     return (getAllVersions || !domain.data?.pathToFile?.includes('versioned')) && domain.data.hidden !== true;
@@ -21,7 +28,7 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
   const servicesCollection = await getCollection('services');
 
   // @ts-ignore // TODO: Fix this type
-  return domains.map((domain) => {
+  cachedDomains = domains.map((domain) => {
     const { latestVersion, versions } = getVersionForCollectionItem(domain, domains);
 
     // const receives = service.data.receives || [];
@@ -51,6 +58,8 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
       },
     };
   });
+
+  return cachedDomains;
 };
 
 export const getUbiquitousLanguage = async (domain: Domain): Promise<UbiquitousLanguage[]> => {
