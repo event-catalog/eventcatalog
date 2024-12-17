@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.17.3
+
+### Patch Changes
+
+- f0d68f4: chore(core): updated mermaid to v11
+
 ## 2.17.2
 
 ### Patch Changes
