@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.17.2
+
+### Patch Changes
+
+- 9f960c8: chore(core): cache data between build generation and added script to generate large catalogs
+- 9a61833: fix(core): fixed broken context map link in sidebar
+
 ## 2.17.1
 
 ### Patch Changes
