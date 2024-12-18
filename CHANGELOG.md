@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.18.0
+
+### Minor Changes
+
+- 972478d: feat(core): added ability to specify dependencies for catalogs
+
 ## 2.17.3
 
 ### Patch Changes
