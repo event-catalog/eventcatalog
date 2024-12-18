@@ -13,6 +13,7 @@ const COLLECTION_KEYS = [
   'queries',
   'channels',
   'ubiquitousLanguages',
+  'dependencies',
 ];
 
 /**

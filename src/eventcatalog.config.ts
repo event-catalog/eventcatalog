@@ -2,6 +2,11 @@ type SideBarConfig = {
   visible: boolean;
 };
 
+type ResourceDependency = {
+  id: string;
+  version?: string;
+};
+
 export interface Config {
   title: string;
   tagline: false;
@@ -30,5 +35,11 @@ export interface Config {
       teams?: SideBarConfig;
       users?: SideBarConfig;
     };
+  };
+  dependencies?: {
+    commands?: ResourceDependency[];
+    events?: ResourceDependency[];
+    services?: ResourceDependency[];
+    domains?: ResourceDependency[];
   };
 }

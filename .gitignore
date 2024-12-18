@@ -32,3 +32,5 @@ git-push.sh
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+src/__tests__/example-catalog-dependencies/dependencies
