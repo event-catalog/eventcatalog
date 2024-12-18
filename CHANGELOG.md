@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.18.1
+
+### Patch Changes
+
+- 2a0592e: feat(core): added icons packs for mermaid diagrams
+
 ## 2.18.0
 
 ### Minor Changes
