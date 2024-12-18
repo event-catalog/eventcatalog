@@ -15,15 +15,29 @@ type Messages = {
   events: CollectionEntry<'events'>[];
   queries: CollectionEntry<'queries'>[];
 };
+
+// Cache for build time
+let cachedMessages: Messages = {
+  commands: [],
+  events: [],
+  queries: [],
+};
+
 // Main function that uses the imported functions
 export const getMessages = async ({ getAllVersions = true }: Props = {}): Promise<Messages> => {
+  if (cachedMessages.commands.length > 0) {
+    return cachedMessages;
+  }
+
   const commands = await getCommands({ getAllVersions });
   const events = await getEvents({ getAllVersions });
   const queries = await getQueries({ getAllVersions });
 
-  return {
+  cachedMessages = {
     commands: commands as CollectionEntry<'commands'>[],
     events: events as CollectionEntry<'events'>[],
     queries: queries as CollectionEntry<'queries'>[],
-  } satisfies Messages;
+  };
+
+  return cachedMessages;
 };

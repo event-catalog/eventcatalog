@@ -132,7 +132,9 @@ const allDataAsSideNav = allData.reduce((acc, item) => {
 const sideNav = {
   ...(currentPath.includes('visualiser')
     ? {
-        'bounded context map': [{ label: 'Domain map', href: '/visualiser/context-map', collection: 'bounded-context-map' }],
+        'bounded context map': [
+          { label: 'Domain map', href: buildUrl('/visualiser/context-map'), collection: 'bounded-context-map' },
+        ],
       }
     : {}),
   ...allDataAsSideNav,

@@ -17,7 +17,14 @@ interface Props {
   getAllVersions?: boolean;
 }
 
+// cache for build time
+export let cachedCommands: Command[] = [];
+
 export const getCommands = async ({ getAllVersions = true }: Props = {}): Promise<Command[]> => {
+  if (cachedCommands.length > 0) {
+    return cachedCommands;
+  }
+
   const commands = await getCollection('commands', (command) => {
     return (getAllVersions || !command.data?.pathToFile?.includes('versioned')) && command.data.hidden !== true;
   });
@@ -25,7 +32,7 @@ export const getCommands = async ({ getAllVersions = true }: Props = {}): Promis
   const services = await getCollection('services');
   const allChannels = await getCollection('channels');
 
-  return commands.map((command) => {
+  cachedCommands = commands.map((command) => {
     const { latestVersion, versions } = getVersionForCollectionItem(command, commands);
 
     const producers = services.filter((service) => {
@@ -67,4 +74,6 @@ export const getCommands = async ({ getAllVersions = true }: Props = {}): Promis
       },
     };
   });
+
+  return cachedCommands;
 };
