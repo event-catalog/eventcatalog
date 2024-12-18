@@ -21,6 +21,8 @@ import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { ViewTransitions } from 'astro:transitions';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
 
+import config from '@config';
+
 type PageTypesWithFlows = PageTypes | 'flows';
 
 export async function getStaticPaths() {
@@ -229,21 +231,29 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
   <style is:global>
     .docs-layout .prose {
       max-width: none;
-      /* max-height: 80vh; */
       overflow: auto;
     }
 
     .mermaid svg {
       margin: 1em auto 2em;
     }
+
+    /* Fix for architecture diagrams */
+    .mermaid[data-content*='architecture'] svg {
+      max-width: 350px !important;
+      margin: 0;
+      /* width: 100px !important; */
+    }
   </style>
 
-  <script define:vars={{ props }}>
+  <script define:vars={{ props, config }}>
     // Fix to pass information to componets that are client side only
     // and require catalog information
     window.eventcatalog = {};
     // @ts-ignore
     window.eventcatalog[`${props.collection}-${props.data.id}`] = props.catalog;
+
+    window.eventcatalog.mermaid = config.mermaid;
   </script>
 
   <script>
@@ -260,6 +270,23 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
      */
     async function renderDiagrams(graphs: any) {
       const { default: mermaid } = await import('mermaid');
+
+      if (window.eventcatalog.mermaid) {
+        const { icons } = await import('@iconify-json/logos');
+        const { iconPacks = [] } = window.eventcatalog.mermaid ?? {};
+
+        if (iconPacks.length > 0) {
+          const iconPacksToRegister = iconPacks.map((name: string) => {
+            return {
+              name,
+              icons,
+            };
+          });
+
+          mermaid.registerIconPacks(iconPacksToRegister);
+        }
+      }
+
       mermaid.initialize({
         // fontSize: 2,
         flowchart: {
@@ -271,6 +298,9 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
         fontFamily: 'var(--sans-font)',
         // @ts-ignore This works, but TS expects a enum for some reason
         theme: 'light',
+        architecture: {
+          useMaxWidth: true,
+        },
       });
 
       for (const graph of graphs) {

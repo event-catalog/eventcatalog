@@ -32,5 +32,8 @@ export default {
         visible: true,
       },
     },
-  }
+  },
+  mermaid: {
+    iconPacks: ['logos'],
+  },
 };
