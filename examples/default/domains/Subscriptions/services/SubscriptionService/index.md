@@ -41,4 +41,24 @@ The subscription Service is responsible for handling customer subscriptions in o
 
 <NodeGraph />
 
+## Infrastructure
+
+The Subscription Service is hosted on AWS.
+
+The diagram below shows the infrastructure of the Subscription Service. The service is hosted on AWS and uses AWS Lambda to handle the subscription requests. The subscription is stored in an AWS Aurora database and the subscription metadata is stored in an AWS S3 bucket.
+
+```mermaid
+architecture-beta
+    group api(logos:aws)
+
+    service db(logos:aws-aurora)[Subscription DB] in api
+    service disk1(logos:aws-s3)[Subscription Metadata] in api
+    service server(logos:aws-lambda)[Subscription Handler] in api
+
+    db:L -- R:server
+    disk1:T -- B:server
+```
+
+You can find more information about the Subscription Service infrastructure in the [Subscription Service documentation](https://github.com/event-catalog/pretend-subscription-service/blob/main/README.md).
+
 <Footer />

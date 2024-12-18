@@ -50,6 +50,27 @@ The Inventory Service is a critical component of the system responsible for mana
 
 <NodeGraph title="Hello world" />
 
+## Infrastructure
+
+The Inventory Service is hosted on AWS.
+
+The diagram below shows the infrastructure of the Inventory Service. The service is hosted on AWS and uses AWS Lambda to handle the inventory requests. The inventory is stored in an AWS Aurora database and the inventory metadata is stored in an AWS S3 bucket.
+
+```mermaid
+architecture-beta
+    group api(logos:aws)
+
+    service db(logos:aws-aurora)[Inventory DB] in api
+    service disk1(logos:aws-s3)[Inventory Metadata] in api
+    service server(logos:aws-lambda)[Inventory Handler] in api
+
+    db:L -- R:server
+    disk1:T -- B:server
+```
+
+You can find more information about the Inventory Service infrastructure in the [Inventory Service documentation](https://github.com/event-catalog/pretend-shipping-service/blob/main/README.md).
+
+
 
 <Steps title="How to connect to Inventory Service">
   <Step title="Obtain API credentials">

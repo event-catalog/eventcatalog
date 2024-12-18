@@ -42,4 +42,7 @@ export interface Config {
     services?: ResourceDependency[];
     domains?: ResourceDependency[];
   };
+  mermaid?: {
+    iconPacks?: string[];
+  };
 }
