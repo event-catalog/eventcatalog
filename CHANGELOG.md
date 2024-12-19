@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.18.4
+
+### Patch Changes
+
+- eb01981: fix(core): fixed issue with version ordering now uses semver
+
 ## 2.18.3
 
 ### Patch Changes
