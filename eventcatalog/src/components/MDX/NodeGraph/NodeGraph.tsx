@@ -422,7 +422,7 @@ const NodeGraph = ({
             <div className="flex justify-between" id="visualiser-footer">
               {footerLabel && (
                 <div className="py-2 w-full text-left ">
-                  <span className=" text-sm no-underline py-2 text-gray-300">{footerLabel}</span>
+                  <span className=" text-sm no-underline py-2 text-gray-500">{footerLabel}</span>
                 </div>
               )}
 
