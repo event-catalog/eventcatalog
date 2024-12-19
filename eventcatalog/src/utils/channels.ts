@@ -74,5 +74,10 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
     };
   });
 
+  // order them by the name of the channel
+  cachedChannels[cacheKey].sort((a, b) => {
+    return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
+  });
+
   return cachedChannels[cacheKey];
 };

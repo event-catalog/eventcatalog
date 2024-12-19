@@ -26,7 +26,7 @@ export const getUsers = async (): Promise<User[]> => {
     return team.data.hidden !== true;
   });
 
-  return users.map((user) => {
+  const mappedUsers = users.map((user) => {
     const associatedTeams = teams.filter((team) => {
       return team.data.members?.some((member) => member.id === user.data.id);
     });
@@ -66,4 +66,11 @@ export const getUsers = async (): Promise<User[]> => {
       },
     };
   });
+
+  // order them by the name of the user
+  mappedUsers.sort((a, b) => {
+    return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
+  });
+
+  return mappedUsers;
 };
