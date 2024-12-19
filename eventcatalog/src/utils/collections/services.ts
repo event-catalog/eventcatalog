@@ -13,11 +13,17 @@ interface Props {
 }
 
 // Cache for build time
-let cachedServices: Service[] = [];
+let cachedServices: Record<string, Service[]> = {
+  allVersions: [],
+  currentVersions: [],
+};
 
 export const getServices = async ({ getAllVersions = true }: Props = {}): Promise<Service[]> => {
-  if (cachedServices.length > 0) {
-    return cachedServices;
+  const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
+
+  // Check if we have cached domains for this specific getAllVersions value
+  if (cachedServices[cacheKey].length > 0) {
+    return cachedServices[cacheKey];
   }
 
   // Get services that are not versioned
@@ -31,7 +37,7 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
   const allMessages = [...events, ...commands, ...queries];
 
   // @ts-ignore // TODO: Fix this type
-  cachedServices = services.map((service) => {
+  cachedServices[cacheKey] = services.map((service) => {
     const { latestVersion, versions } = getVersionForCollectionItem(service, services);
 
     const sendsMessages = service.data.sends || [];
@@ -73,7 +79,7 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
     };
   });
 
-  return cachedServices;
+  return cachedServices[cacheKey];
 };
 
 export const getProducersOfMessage = (services: Service[], message: CollectionEntry<'events' | 'commands' | 'queries'>) => {
