@@ -21,6 +21,9 @@ const base = config.base || '/';
 export default defineConfig({
   base,
   server: { port: config.port || 3000 },
+  legacy: {
+    collections: true
+  },
 
   outDir: config.outDir ? join(projectDirectory, config.outDir) : join(projectDirectory, 'dist'),
 

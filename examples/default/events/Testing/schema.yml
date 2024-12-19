@@ -1,0 +1,32 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: Employee
+type: object
+description: A record representing an employee
+properties:
+  Name:
+    type: string
+    description: The name of the employee
+  Age:
+    type: integer
+    description: The age of the employee
+  Department:
+    type: string
+    description: The department where the employee works
+  Position:
+    type: string
+    description: The position or title of the employee within the department
+  Salary:
+    type: number
+    format: double
+    description: The salary of the employee
+  JoinDate:
+    type: string
+    format: date
+    description: The date when the employee joined the company
+required:
+- Name
+- Age
+- Department
+- Position
+- Salary
+- JoinDate

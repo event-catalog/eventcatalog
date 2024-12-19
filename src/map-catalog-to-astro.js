@@ -1,7 +1,7 @@
 import path from 'node:path';
 
 const COLLECTION_KEYS = [
-  'events',
+  // 'events',
   'commands',
   'services',
   'users',
