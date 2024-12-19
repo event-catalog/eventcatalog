@@ -79,6 +79,11 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
     };
   });
 
+  // order them by the name of the service
+  cachedServices[cacheKey].sort((a, b) => {
+    return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
+  });
+
   return cachedServices[cacheKey];
 };
 

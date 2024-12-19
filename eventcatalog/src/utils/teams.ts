@@ -58,5 +58,10 @@ export const getTeams = async (): Promise<Team[]> => {
     };
   });
 
+  // order them by the name of the team
+  cachedTeams.sort((a, b) => {
+    return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
+  });
+
   return cachedTeams;
 };

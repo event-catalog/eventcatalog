@@ -65,6 +65,11 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
     };
   });
 
+  // order them by the name of the domain
+  cachedDomains[cacheKey].sort((a, b) => {
+    return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
+  });
+
   return cachedDomains[cacheKey];
 };
 

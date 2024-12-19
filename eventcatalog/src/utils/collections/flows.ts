@@ -69,5 +69,10 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
     };
   });
 
+  // order them by the name of the flow
+  cachedFlows[cacheKey].sort((a, b) => {
+    return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
+  });
+
   return cachedFlows[cacheKey];
 };

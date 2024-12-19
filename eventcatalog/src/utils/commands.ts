@@ -80,5 +80,10 @@ export const getCommands = async ({ getAllVersions = true }: Props = {}): Promis
     };
   });
 
+  // order them by the name of the command
+  cachedCommands[cacheKey].sort((a, b) => {
+    return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
+  });
+
   return cachedCommands[cacheKey];
 };

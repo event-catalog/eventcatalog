@@ -80,5 +80,10 @@ export const getQueries = async ({ getAllVersions = true }: Props = {}): Promise
     };
   });
 
+  // order them by the name of the query
+  cachedQueries[cacheKey].sort((a, b) => {
+    return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
+  });
+
   return cachedQueries[cacheKey];
 };

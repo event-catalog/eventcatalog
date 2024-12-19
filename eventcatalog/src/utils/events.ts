@@ -80,5 +80,10 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
     };
   });
 
+  // order them by the name of the event
+  cachedEvents[cacheKey].sort((a, b) => {
+    return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
+  });
+
   return cachedEvents[cacheKey];
 };
