@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.18.2
+
+### Patch Changes
+
+- 6f5746b: fix(core): ubiquitous lang now renders on domains
+
 ## 2.18.1
 
 ### Patch Changes
