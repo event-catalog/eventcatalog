@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.18.3
+
+### Patch Changes
+
+- c8f1847: fix(core): fixing cache issues on build
+
 ## 2.18.2
 
 ### Patch Changes
