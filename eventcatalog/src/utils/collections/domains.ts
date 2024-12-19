@@ -20,10 +20,10 @@ let cachedDomains: Record<string, Domain[]> = {
 export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise<Domain[]> => {
   const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
 
-  // Check if we have cached domains for this specific getAllVersions value
-  if (cachedDomains[cacheKey].length > 0) {
-    return cachedDomains[cacheKey];
-  }
+  // // Check if we have cached domains for this specific getAllVersions value
+  // if (cachedDomains[cacheKey].length > 0) {
+  //   return cachedDomains[cacheKey];
+  // }
 
   // Get all the domains that are not versioned
   const domains = await getCollection('domains', (domain) => {
@@ -69,10 +69,10 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
 };
 
 export const getUbiquitousLanguage = async (domain: Domain): Promise<UbiquitousLanguage[]> => {
-  const { collection, data, slug } = domain;
+  const { collection, data } = domain;
 
   const ubiquitousLanguages = await getCollection('ubiquitousLanguages', (ubiquitousLanguage) => {
-    return ubiquitousLanguage.id.includes(`${collection}/${data.name}`);
+    return ubiquitousLanguage.id.toLowerCase().includes(`${collection}/${data.name}`.toLowerCase());
   });
 
   return ubiquitousLanguages;
