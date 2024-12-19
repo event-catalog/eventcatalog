@@ -18,11 +18,16 @@ interface Props {
 }
 
 // Cache for build time
-let cachedQueries: Query[] = [];
+let cachedQueries: Record<string, Query[]> = {
+  allVersions: [],
+  currentVersions: [],
+};
 
 export const getQueries = async ({ getAllVersions = true }: Props = {}): Promise<Query[]> => {
-  if (cachedQueries.length > 0) {
-    return cachedQueries;
+  const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
+
+  if (cachedQueries[cacheKey].length > 0) {
+    return cachedQueries[cacheKey];
   }
 
   const queries = await getCollection('queries', (query) => {
@@ -32,7 +37,7 @@ export const getQueries = async ({ getAllVersions = true }: Props = {}): Promise
   const services = await getCollection('services');
   const allChannels = await getCollection('channels');
 
-  cachedQueries = queries.map((query) => {
+  cachedQueries[cacheKey] = queries.map((query) => {
     const { latestVersion, versions } = getVersionForCollectionItem(query, queries);
 
     const producers = services.filter((service) =>
@@ -75,5 +80,5 @@ export const getQueries = async ({ getAllVersions = true }: Props = {}): Promise
     };
   });
 
-  return cachedQueries;
+  return cachedQueries[cacheKey];
 };

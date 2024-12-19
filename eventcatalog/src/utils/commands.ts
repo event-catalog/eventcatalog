@@ -18,11 +18,16 @@ interface Props {
 }
 
 // cache for build time
-export let cachedCommands: Command[] = [];
+let cachedCommands: Record<string, Command[]> = {
+  allVersions: [],
+  currentVersions: [],
+};
 
 export const getCommands = async ({ getAllVersions = true }: Props = {}): Promise<Command[]> => {
-  if (cachedCommands.length > 0) {
-    return cachedCommands;
+  const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
+
+  if (cachedCommands[cacheKey].length > 0) {
+    return cachedCommands[cacheKey];
   }
 
   const commands = await getCollection('commands', (command) => {
@@ -32,7 +37,7 @@ export const getCommands = async ({ getAllVersions = true }: Props = {}): Promis
   const services = await getCollection('services');
   const allChannels = await getCollection('channels');
 
-  cachedCommands = commands.map((command) => {
+  cachedCommands[cacheKey] = commands.map((command) => {
     const { latestVersion, versions } = getVersionForCollectionItem(command, commands);
 
     const producers = services.filter((service) => {
@@ -75,5 +80,5 @@ export const getCommands = async ({ getAllVersions = true }: Props = {}): Promis
     };
   });
 
-  return cachedCommands;
+  return cachedCommands[cacheKey];
 };

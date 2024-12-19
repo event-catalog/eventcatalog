@@ -20,11 +20,16 @@ interface Props {
 }
 
 // cache for build time
-export let cachedChannels: Channel[] = [];
+let cachedChannels: Record<string, Channel[]> = {
+  allVersions: [],
+  currentVersions: [],
+};
 
 export const getChannels = async ({ getAllVersions = true }: Props = {}): Promise<Channel[]> => {
-  if (cachedChannels.length > 0) {
-    return cachedChannels;
+  const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
+
+  if (cachedChannels[cacheKey].length > 0) {
+    return cachedChannels[cacheKey];
   }
 
   const channels = await getCollection('channels', (query) => {
@@ -34,7 +39,7 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
   const { commands, events, queries } = await getMessages();
   const allMessages = [...commands, ...events, ...queries];
 
-  cachedChannels = channels.map((channel) => {
+  cachedChannels[cacheKey] = channels.map((channel) => {
     const { latestVersion, versions } = getVersionForCollectionItem(channel, channels);
 
     const messagesForChannel = allMessages.filter((message) => {
@@ -69,5 +74,5 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
     };
   });
 
-  return cachedChannels;
+  return cachedChannels[cacheKey];
 };

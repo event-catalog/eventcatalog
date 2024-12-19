@@ -20,10 +20,10 @@ let cachedDomains: Record<string, Domain[]> = {
 export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise<Domain[]> => {
   const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
 
-  // // Check if we have cached domains for this specific getAllVersions value
-  // if (cachedDomains[cacheKey].length > 0) {
-  //   return cachedDomains[cacheKey];
-  // }
+  // Check if we have cached domains for this specific getAllVersions value
+  if (cachedDomains[cacheKey].length > 0) {
+    return cachedDomains[cacheKey];
+  }
 
   // Get all the domains that are not versioned
   const domains = await getCollection('domains', (domain) => {

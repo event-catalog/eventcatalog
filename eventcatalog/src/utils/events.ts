@@ -18,11 +18,16 @@ interface Props {
 }
 
 // cache for build time
-export let cachedEvents: Event[] = [];
+let cachedEvents: Record<string, Event[]> = {
+  allVersions: [],
+  currentVersions: [],
+};
 
 export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<Event[]> => {
-  if (cachedEvents.length > 0) {
-    return cachedEvents;
+  const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
+
+  if (cachedEvents[cacheKey].length > 0) {
+    return cachedEvents[cacheKey];
   }
 
   const events = await getCollection('events', (event) => {
@@ -32,7 +37,7 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
   const services = await getCollection('services');
   const allChannels = await getCollection('channels');
 
-  cachedEvents = events.map((event) => {
+  cachedEvents[cacheKey] = events.map((event) => {
     const { latestVersion, versions } = getVersionForCollectionItem(event, events);
 
     const producers = services.filter((service) =>
@@ -75,5 +80,5 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
     };
   });
 
-  return cachedEvents;
+  return cachedEvents[cacheKey];
 };
