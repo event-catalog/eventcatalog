@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.18.5
+
+### Patch Changes
+
+- a60e94f: feat(core): resources across eventcatalog are now ordered by name
+- 12bbcaa: feat(core) enabled remark-gfm enabling tables in markdown
+
 ## 2.18.4
 
 ### Patch Changes
