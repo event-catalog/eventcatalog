@@ -1,6 +1,6 @@
 import type { CollectionTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
-import { coerce, satisfies as satisfiesRange } from 'semver';
+import { coerce, satisfies as satisfiesRange, compare } from 'semver';
 
 export const getPreviousVersion = (version: string, versions: string[]) => {
   const index = versions.indexOf(version);
@@ -22,8 +22,17 @@ export const getVersionForCollectionItem = (
     .filter((i) => i.data.id === item.data.id)
     .map((i) => i.data.version)
     .sort();
-  const versions = [...new Set(allVersionsForItem)].reverse();
-  const latestVersion = versions[0];
+
+  // unique versions
+  const versions = [...new Set(allVersionsForItem)];
+
+  // Use semver to order the versions
+  const orderedVersions = versions.sort((a, b) => {
+    return compare(b, a);
+  });
+
+  const latestVersion = orderedVersions[0];
+
   return { versions, latestVersion };
 };
 
