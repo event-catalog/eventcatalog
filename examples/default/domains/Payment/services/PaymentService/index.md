@@ -23,6 +23,14 @@ repository:
 
 The Payment Service is a crucial component of our system that handles all payment-related operations. It processes payments, manages transactions, and communicates with other services through events. Using an event-driven architecture, it ensures that all actions are asynchronous, decoupled, and scalable.
 
+### Core features
+
+| Feature | Description |
+|---------|-------------|
+| Payment Processing | Processes payments and manages transactions |
+| Event-Driven Architecture | Ensures asynchronous, decoupled, and scalable operations |
+| Integration with Payment Gateways | Interfaces with external payment providers |
+
 <NodeGraph />
 
 ## Infrastructure

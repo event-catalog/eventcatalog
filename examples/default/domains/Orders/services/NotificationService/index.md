@@ -38,6 +38,20 @@ The Notification Service is responsible for managing and delivering notification
     <Tile icon="BoltIcon"  href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} messages`} description="This service receives messages from other services" />
 </Tiles>
 
+### Core features
+
+| Feature | Description |
+|---------|-------------|
+| Multi-Channel Delivery | Supports notifications via email, SMS, push notifications, and in-app messages |
+| Template Management | Customizable notification templates with dynamic content placeholders |
+| Delivery Status Tracking | Real-time tracking and monitoring of notification delivery status |
+| Rate Limiting | Prevents notification flooding through configurable rate limits |
+| Priority Queue | Handles urgent notifications with priority delivery mechanisms |
+| Batch Processing | Efficiently processes and sends bulk notifications |
+| Retry Mechanism | Automatic retry logic for failed notification deliveries |
+| Event-Driven Notifications | Triggers notifications based on system events and user actions |
+
+
 
 ## Architecture diagram
 

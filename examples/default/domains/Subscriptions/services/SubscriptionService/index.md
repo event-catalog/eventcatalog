@@ -37,6 +37,15 @@ The subscription Service is responsible for handling customer subscriptions in o
     <Tile icon="BoltIcon"  href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Receives ${frontmatter.receives.length} messages`} description="This service receives messages from other services" />
 </Tiles>
 
+### Core features
+
+| Feature | Description |
+|---------|-------------|
+| Subscription Management | Handles subscription creation, updates, and status tracking |
+| Payment Processing | Integrates with payment gateways to handle payment transactions |
+| Notification Integration | Sends notifications to users and other services |
+| Multi-Channel Fulfillment | Supports multiple fulfillment channels (e.g., shipping, in-store pickup) |
+
 ## Architecture diagram 
 
 <NodeGraph />

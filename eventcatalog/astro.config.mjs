@@ -47,7 +47,7 @@ export default defineConfig({
       // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
       optimize: config.mdxOptimize || false,
       remarkPlugins: [remarkDirective, remarkDirectives, remarkComment, mermaid],
-      gfm: false,
+      gfm: true,
     }),
     pagefind(),
   ],
