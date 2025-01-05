@@ -74,10 +74,9 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
 };
 
 export const getUbiquitousLanguage = async (domain: Domain): Promise<UbiquitousLanguage[]> => {
-  const { collection, data } = domain;
-
-  const ubiquitousLanguages = await getCollection('ubiquitousLanguages', (ubiquitousLanguage) => {
-    return ubiquitousLanguage.id.toLowerCase().includes(`${collection}/${data.name}`.toLowerCase());
+  const ubiquitousLanguages = await getCollection('ubiquitousLanguages', (ubiquitousLanguage: UbiquitousLanguage) => {
+    const folderPath = ubiquitousLanguage.id.replace('ubiquitous-language', '');
+    return domain.filePath?.toLowerCase().includes(folderPath.toLowerCase());
   });
 
   return ubiquitousLanguages;
