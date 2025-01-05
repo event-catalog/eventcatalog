@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.18.6
+
+### Patch Changes
+
+- 1a9b102: fix(core): fixed matching for ubiquitous lang
+- efad265: feat(core): added kinesis protocol to channels
+
 ## 2.18.5
 
 ### Patch Changes
