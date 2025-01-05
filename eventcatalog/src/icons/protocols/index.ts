@@ -13,3 +13,4 @@ export { default as SQS } from '@icons/protocols/sqs.svg?raw';
 export { default as EventBridge } from '@icons/protocols/eventbridge.svg?raw';
 export { default as Redis } from '@icons/protocols/redis.svg?raw';
 export { default as GooglePubSub } from '@icons/protocols/googlepubsub.svg?raw';
+export { default as Kinesis } from '@icons/protocols/kinesis.svg?raw';
