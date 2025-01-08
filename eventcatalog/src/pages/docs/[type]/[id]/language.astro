@@ -7,7 +7,7 @@ import { ViewTransitions } from 'astro:transitions';
 import * as LucideIcons from 'lucide-react';
 
 export async function getStaticPaths() {
-  const domains = await getDomains();
+  const domains = await getDomains({ getAllVersions: false });
 
   const buildPages = (collection: CollectionEntry<'domains'>[]) => {
     return collection.map((item) => ({
