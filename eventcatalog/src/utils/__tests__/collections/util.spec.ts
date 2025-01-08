@@ -1,4 +1,4 @@
-import { satisfies } from '@utils/collections/util';
+import { findLatestVersion, satisfies } from '@utils/collections/util';
 import { describe, it, expect } from 'vitest';
 
 describe('Collections - utils', () => {
@@ -24,5 +24,14 @@ describe('Collections - utils', () => {
     ])('should returns $expected to version as $version and range as $range', ({ expected, version, range }) => {
       expect(satisfies(version, range)).toBe(expected);
     });
+  });
+
+  describe('findLatestVersion', () => {
+    it.each([[{ versions: ['1', '3', '2'], latest: '3' }], [{ versions: ['1.0.1', '1.1.0', '1.0.2'], latest: '1.1.0' }]])(
+      'should returns $latest as latest version of $versions',
+      ({ versions, latest }) => {
+        expect(findLatestVersion(versions)).toBe(latest);
+      }
+    );
   });
 });

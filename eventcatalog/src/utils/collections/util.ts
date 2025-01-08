@@ -14,24 +14,29 @@ export const getVersions = (data: CollectionEntry<CollectionTypes>[]) => {
   return { versions, latestVersion };
 };
 
+export function findLatestVersion(versions: string[]) {
+  // try to coerce semver versions from string input
+  const semverVersions = versions.map((v) => ({ original: v, semver: coerce(v) }));
+
+  // if all versions are semver'ish, use semver to order the versions
+  if (semverVersions.every((v) => v.semver != null)) {
+    return semverVersions.sort((a, b) => compare(b.semver!, a.semver!))[0].original;
+  } else {
+    // fallback to default sort
+    return versions.sort()[0];
+  }
+}
+
 export const getVersionForCollectionItem = (
   item: CollectionEntry<CollectionTypes>,
   collection: CollectionEntry<CollectionTypes>[]
 ) => {
-  const allVersionsForItem = collection
-    .filter((i) => i.data.id === item.data.id)
-    .map((i) => i.data.version)
-    .sort();
+  const allVersionsForItem = collection.filter((i) => i.data.id === item.data.id).map((i) => i.data.version);
 
   // unique versions
   const versions = [...new Set(allVersionsForItem)];
 
-  // Use semver to order the versions
-  const orderedVersions = versions.sort((a, b) => {
-    return compare(b, a);
-  });
-
-  const latestVersion = orderedVersions[0];
+  let latestVersion = findLatestVersion(versions);
 
   return { versions, latestVersion };
 };
