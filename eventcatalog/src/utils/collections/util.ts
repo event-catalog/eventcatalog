@@ -23,7 +23,7 @@ export function findLatestVersion(versions: string[]) {
     return semverVersions.sort((a, b) => compare(b.semver!, a.semver!))[0].original;
   } else {
     // fallback to default sort
-    return versions.sort()[0];
+    return versions.sort().reverse()[0];
   }
 }
 

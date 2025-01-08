@@ -27,11 +27,12 @@ describe('Collections - utils', () => {
   });
 
   describe('findLatestVersion', () => {
-    it.each([[{ versions: ['1', '3', '2'], latest: '3' }], [{ versions: ['1.0.1', '1.1.0', '1.0.2'], latest: '1.1.0' }]])(
-      'should returns $latest as latest version of $versions',
-      ({ versions, latest }) => {
-        expect(findLatestVersion(versions)).toBe(latest);
-      }
-    );
+    it.each([
+      [{ versions: ['1', '3', '2'], latest: '3' }],
+      [{ versions: ['1.0.1', '1.1.0', '1.0.2'], latest: '1.1.0' }],
+      [{ versions: ['a', 'c', 'b'], latest: 'c' }],
+    ])('should returns $latest as latest version of $versions', ({ versions, latest }) => {
+      expect(findLatestVersion(versions)).toBe(latest);
+    });
   });
 });
