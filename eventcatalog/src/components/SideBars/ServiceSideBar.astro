@@ -5,9 +5,11 @@ import RepositoryList from '@components/Lists/RepositoryList.astro';
 import SpecificationsList from '@components/Lists/SpecificationsList.astro';
 import VersionList from '@components/Lists/VersionList.astro';
 import { buildUrl } from '@utils/url-builder';
-import { getEntry, type CollectionEntry } from 'astro:content';
+import { getOwner } from '@utils/collections/owners';
+import type { CollectionEntry } from 'astro:content';
 import { ScrollText, Workflow, FileDownIcon, Code, Link } from 'lucide-react';
 import { join } from 'node:path';
+
 interface Props {
   service: CollectionEntry<'services'>;
 }
@@ -20,7 +22,7 @@ const sends = (service.data.sends as CollectionEntry<'events'>[]) || [];
 const receives = (service.data.receives as CollectionEntry<'events'>[]) || [];
 
 const ownersRaw = service.data?.owners || [];
-const owners = await Promise.all(ownersRaw.map((o) => getEntry(o)));
+const owners = await Promise.all<ReturnType<typeof getOwner>>(ownersRaw.map(getOwner));
 const filteredOwners = owners.filter((o) => o !== undefined);
 
 const sendsList = sends.map((p) => ({

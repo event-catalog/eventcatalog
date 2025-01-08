@@ -47,7 +47,21 @@ const changelogs = defineCollection({
 });
 
 // Create a union type for owners
-const ownerReference = z.union([reference('users'), reference('teams')]);
+const ownerReference = z
+  .union([
+    // The ID of the user or team
+    z.string(),
+    // The full object with the ID and collection (keep compatibility with `reference`)
+    z.object({
+      id: z.string(),
+      collection: z.enum(['users', 'teams']),
+    }),
+  ])
+  .transform(
+    // This transformation is needed to keep compatibility with `reference`.
+    // The utilities `getTeams` and `getUsers` rely on this transformation.
+    (lookup) => ({ id: typeof lookup === 'string' ? lookup : lookup.id })
+  );
 
 const baseSchema = z.object({
   id: z.string(),
