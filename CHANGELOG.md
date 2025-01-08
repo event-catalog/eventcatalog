@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.18.7
+
+### Patch Changes
+
+- f4e8985: fix(core): visualizer now defaults to correct messages
+- 73b80ae: fix(core): ubiquitous-language matching by domains, also astro upgrade to 5.1.x
+
 ## 2.18.6
 
 ### Patch Changes
