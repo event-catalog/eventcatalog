@@ -1,4 +1,4 @@
-import { findLatestVersion, satisfies } from '@utils/collections/util';
+import { sortVersions, satisfies } from '@utils/collections/util';
 import { describe, it, expect } from 'vitest';
 
 describe('Collections - utils', () => {
@@ -26,13 +26,13 @@ describe('Collections - utils', () => {
     });
   });
 
-  describe('findLatestVersion', () => {
+  describe('sortVersions', () => {
     it.each([
-      [{ versions: ['1', '3', '2'], latest: '3' }],
-      [{ versions: ['1.0.1', '1.1.0', '1.0.2'], latest: '1.1.0' }],
-      [{ versions: ['a', 'c', 'b'], latest: 'c' }],
-    ])('should returns $latest as latest version of $versions', ({ versions, latest }) => {
-      expect(findLatestVersion(versions)).toBe(latest);
+      [{ versions: ['1', '3', '2'], result: ['3', '2', '1'], latest: '3' }],
+      [{ versions: ['1.0.1', '1.1.0', '1.0.2'], result: ['1.1.0', '1.0.2', '1.0.1'], latest: '1.1.0' }],
+      [{ versions: ['a', 'c', 'b'], result: ['c', 'b', 'a'], latest: 'c' }],
+    ])('should returns $latest as latest version of $versions', ({ versions, result, latest }) => {
+      expect(sortVersions(versions)).toEqual({ versions: result, latestVersion: latest });
     });
   });
 });
