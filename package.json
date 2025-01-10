@@ -74,6 +74,7 @@
     "lodash.debounce": "^4.0.8",
     "lodash.merge": "4.6.2",
     "lucide-react": "^0.453.0",
+    "marked": "^15.0.6",
     "mermaid": "^11.4.1",
     "rapidoc": "^9.3.4",
     "react": "^18.3.1",
