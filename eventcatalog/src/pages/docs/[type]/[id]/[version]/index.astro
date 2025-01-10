@@ -18,7 +18,7 @@ import type { PageTypes } from '@types';
 import { buildUrl } from '@utils/url-builder';
 import { getFlows } from '@utils/collections/flows';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
-import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
 
 import config from '@config';
@@ -225,7 +225,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
         {props?.collection === 'channels' && <ChannelSideBar channel={props} />}
       </aside>
     </div>
-    <ViewTransitions />
+    <ClientRouter />
   </main>
 
   <style is:global>

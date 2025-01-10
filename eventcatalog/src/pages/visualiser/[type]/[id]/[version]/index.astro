@@ -6,7 +6,7 @@ import { getFlows } from '@utils/collections/flows';
 import { buildUrl } from '@utils/url-builder';
 
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
-import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
 type PageTypesWithFlows = PageTypes | 'flows';
 
 export async function getStaticPaths() {
@@ -58,7 +58,7 @@ const {
       }}
     />
   </div>
-  <ViewTransitions />
+  <ClientRouter />
 </VisualiserLayout>
 
 <script define:vars={{ id }}>
