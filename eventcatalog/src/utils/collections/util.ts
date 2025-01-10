@@ -22,25 +22,28 @@ export const getVersionForCollectionItem = (
   return getVersions(allVersionsForItem);
 };
 
-export function sortVersioned<T extends { version: string }>(versioned: T[]): T[] {
+/**
+ * Sorts versioned items. Latest version first.
+ */
+export function sortVersioned<T>(versioned: T[], versionExtractor: (e: T) => string): T[] {
   // try to coerce semver versions from string input
-  const semverVersions = versioned.map((v) => ({ original: v, semver: coerce(v.version) }));
+  const semverVersions = versioned.map((v) => ({ original: v, semver: coerce(versionExtractor(v)) }));
 
-  // if all versions are semver'ish, use semver to order the versions
+  // if all versions are semver'ish, use semver to sort them
   if (semverVersions.every((v) => v.semver != null)) {
     const sorted = semverVersions.sort((a, b) => compare(b.semver!, a.semver!));
 
     return sorted.map((v) => v.original);
   } else {
     // fallback to default sort
-    return versioned.sort((a, b) => a.version.localeCompare(b.version)).reverse();
+    return versioned.sort((a, b) => versionExtractor(b).localeCompare(versionExtractor(a)));
   }
 }
 
 export function sortStringVersions(versions: string[]) {
-  const sorted = sortVersioned(versions.map((version) => ({ version })));
+  const sorted = sortVersioned(versions, (v) => v);
 
-  return { latestVersion: sorted[0]?.version, versions: sorted.map((v) => v.version) };
+  return { latestVersion: sorted[0], versions: sorted };
 }
 
 /**
@@ -66,10 +69,10 @@ export const getItemsFromCollectionByIdAndSemverOrLatest = <T extends { data: { 
   }
 
   // Order by version
-  const sorted = sortVersioned(filteredCollection.map((x) => ({ version: x.data.version, original: x })));
+  const sorted = sortVersioned(filteredCollection, (item) => item.data.version);
 
   // latest version
-  return sorted[0] != null ? [sorted[0].original] : [];
+  return sorted[0] != null ? [sorted[0]] : [];
 };
 
 export const findMatchingNodes = (
