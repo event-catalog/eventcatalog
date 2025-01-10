@@ -29,6 +29,7 @@ describe('Collections - utils', () => {
   describe('sortStringVersions', () => {
     it.each([
       [{ versions: ['1', '3', '2'], result: ['3', '2', '1'], latest: '3' }],
+      [{ versions: ['10', '1', '2', '3'], result: ['10', '3', '2', '1'], latest: '10' }],
       [{ versions: ['1.0.1', '1.1.0', '1.0.2'], result: ['1.1.0', '1.0.2', '1.0.1'], latest: '1.1.0' }],
       [{ versions: ['a', 'c', 'b'], result: ['c', 'b', 'a'], latest: 'c' }],
       [{ versions: [], result: [], latest: undefined }],
