@@ -117,19 +117,22 @@ const badges = [
                 </div>
               )
             }
-            
           </div>
         </div>
 
-        {ubiquitousLanguage.description && (
-          <div class="prose prose-md py-4 max-w-none" set:html={marked.parse(ubiquitousLanguage.description)} />
-        )}
+        {
+          ubiquitousLanguage.description && (
+            <div class="prose prose-md py-4 max-w-none" set:html={marked.parse(ubiquitousLanguage.description)} />
+          )
+        }
 
-        {!ubiquitousLanguage.description && (
-          <div class="prose prose-md py-4 max-w-none">
-            <p>No description for {ubiquitousLanguage.name} available.</p>
-          </div>
-        )}
+        {
+          !ubiquitousLanguage.description && (
+            <div class="prose prose-md py-4 max-w-none">
+              <p>No description for {ubiquitousLanguage.name} available.</p>
+            </div>
+          )
+        }
 
         <Footer />
       </div>
@@ -221,69 +224,4 @@ const badges = [
     initializeSearch();
     highlightMatchingTerm();
   </script>
-
-  <style is:global>
-    .term-card {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      min-height: 12em;
-    }
-
-    .term-card.expanded {
-      min-height: 24em;
-      background-color: rgb(249 250 251);
-      z-index: 10;
-      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-    }
-
-    .summary-text,
-    .description-text {
-      transition:
-        opacity 0.3s ease-in-out,
-        max-height 0.3s ease-in-out;
-      opacity: 0;
-      max-height: 0;
-      overflow: hidden;
-      display: none;
-    }
-
-    .summary-text.visible,
-    .description-text.visible {
-      opacity: 1;
-      max-height: 500px;
-      margin-bottom: 1rem;
-      display: block;
-    }
-
-    .description-text {
-      white-space: pre-line;
-      line-height: 1.5;
-    }
-
-    .show-more-text {
-      display: block;
-      margin-top: 0.5rem;
-    }
-
-    .term-card.expanded .show-more-text {
-      display: none;
-    }
-
-    .term-card.highlighted {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 2px var(--color-primary);
-      animation: pulse 1s;
-    }
-
-    @keyframes pulse {
-      0%,
-      100% {
-        transform: scale(1);
-        box-shadow: 0 0 0 2px var(--color-primary);
-      }
-      50% {
-        transform: scale(1.01);
-        box-shadow: 0 0 0 4px var(--color-primary);
-      }
-    }
-  </style>
 </VerticalSideBarLayout>

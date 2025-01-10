@@ -31,7 +31,6 @@ const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) 
 const ubiquitousLanguages = await getUbiquitousLanguage(props);
 
 const ubiquitousLanguage = ubiquitousLanguages[0];
-
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
@@ -122,8 +121,8 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
                               </p>
                               {term.description && (
                                 <div class="prose prose-sm prose-p:my-3">
-                                  <a 
-                                    href={buildUrl(`/docs/${props.type}/${props.data.id}/language/${term.id}`)} 
+                                  <a
+                                    href={buildUrl(`/docs/${props.type}/${props.data.id}/language/${term.id}`)}
                                     class="show-more-text text-sm text-primary font-medium hover:underline"
                                   >
                                     Read more
@@ -247,7 +246,8 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
     }
 
     @keyframes pulse {
-      0%, 100% {
+      0%,
+      100% {
         transform: scale(1);
         box-shadow: 0 0 0 2px var(--color-primary);
       }
@@ -256,7 +256,5 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
         box-shadow: 0 0 0 4px var(--color-primary);
       }
     }
-
-   
   </style>
 </VerticalSideBarLayout>
