@@ -22,7 +22,7 @@ export const getVersionForCollectionItem = (
   return getVersions(allVersionsForItem);
 };
 
-export function sortVersions<T extends { version: string }>(versioned: T[]): T[] {
+export function sortVersioned<T extends { version: string }>(versioned: T[]): T[] {
   // try to coerce semver versions from string input
   const semverVersions = versioned.map((v) => ({ original: v, semver: coerce(v.version) }));
 
@@ -38,7 +38,7 @@ export function sortVersions<T extends { version: string }>(versioned: T[]): T[]
 }
 
 export function sortStringVersions(versions: string[]) {
-  const sorted = sortVersions(versions.map((version) => ({ version })));
+  const sorted = sortVersioned(versions.map((version) => ({ version })));
 
   return { latestVersion: sorted[0]?.version, versions: sorted.map((v) => v.version) };
 }
@@ -66,7 +66,7 @@ export const getItemsFromCollectionByIdAndSemverOrLatest = <T extends { data: { 
   }
 
   // Order by version
-  const sorted = sortVersions(filteredCollection.map((x) => ({ version: x.data.version, original: x })));
+  const sorted = sortVersioned(filteredCollection.map((x) => ({ version: x.data.version, original: x })));
 
   // latest version
   return sorted[0] != null ? [sorted[0].original] : [];

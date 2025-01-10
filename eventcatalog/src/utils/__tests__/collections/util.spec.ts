@@ -1,4 +1,4 @@
-import { sortVersions, satisfies, sortStringVersions } from '@utils/collections/util';
+import { satisfies, sortStringVersions } from '@utils/collections/util';
 import { describe, it, expect } from 'vitest';
 
 describe('Collections - utils', () => {
