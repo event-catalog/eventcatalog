@@ -1,6 +1,6 @@
 import type { CollectionTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
-import { coerce, satisfies as satisfiesRange, compare } from 'semver';
+import { coerce, compare, satisfies as satisfiesRange } from 'semver';
 
 export const getPreviousVersion = (version: string, versions: string[]) => {
   const index = versions.indexOf(version);
@@ -22,7 +22,7 @@ export const getVersionForCollectionItem = (
   return getVersions(allVersionsForItem);
 };
 
-export function sortVersions<T extends { version: string }>(versioned: T[]): { versions: T[]; latestVersion: T | undefined } {
+export function sortVersions<T extends { version: string }>(versioned: T[]): T[] {
   // try to coerce semver versions from string input
   const semverVersions = versioned.map((v) => ({ original: v, semver: coerce(v.version) }));
 
@@ -30,18 +30,17 @@ export function sortVersions<T extends { version: string }>(versioned: T[]): { v
   if (semverVersions.every((v) => v.semver != null)) {
     const sorted = semverVersions.sort((a, b) => compare(b.semver!, a.semver!));
 
-    return { versions: sorted.map((v) => v.original), latestVersion: sorted[0]?.original };
+    return sorted.map((v) => v.original);
   } else {
     // fallback to default sort
-    const sorted = versioned.sort((a, b) => a.version.localeCompare(b.version)).reverse();
-    return { versions: sorted, latestVersion: sorted[0] };
+    return versioned.sort((a, b) => a.version.localeCompare(b.version)).reverse();
   }
 }
 
 export function sortStringVersions(versions: string[]) {
   const sorted = sortVersions(versions.map((version) => ({ version })));
 
-  return { latestVersion: sorted.latestVersion?.version, versions: sorted.versions.map((v) => v.version) };
+  return { latestVersion: sorted[0]?.version, versions: sorted.map((v) => v.version) };
 }
 
 /**
@@ -70,7 +69,7 @@ export const getItemsFromCollectionByIdAndSemverOrLatest = <T extends { data: { 
   const sorted = sortVersions(filteredCollection.map((x) => ({ version: x.data.version, original: x })));
 
   // latest version
-  return sorted.latestVersion != null ? [sorted.latestVersion.original] : [];
+  return sorted[0] != null ? [sorted[0].original] : [];
 };
 
 export const findMatchingNodes = (
