@@ -1,5 +1,17 @@
 # @eventcatalog/core
 
+## 2.19.0
+
+### Minor Changes
+
+- 5f8dbfe: feat(core): updated astro and also added ubiquitous lang page support
+
+### Patch Changes
+
+- 00f9c2c: fix(core): added ability to sort by semver and numbers
+- 4a710a5: fix(core): fixed the tab component rendering issues on load of page
+- 04ab91d: fix(core): fixed issue with teams/owners not showing in the UI
+
 ## 2.18.7
 
 ### Patch Changes
