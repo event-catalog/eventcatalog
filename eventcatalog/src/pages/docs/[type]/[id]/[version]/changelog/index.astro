@@ -11,7 +11,7 @@ import { buildUrl } from '@utils/url-builder';
 import { getVersions, getPreviousVersion } from '@utils/collections/util';
 import { getDiffsForCurrentAndPreviousVersion } from '@utils/collections/file-diffs';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];
@@ -222,5 +222,5 @@ const pages = [
     </div>
     <Footer />
   </main>
-  <ViewTransitions />
+  <ClientRouter />
 </VerticalSideBarLayout>

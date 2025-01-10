@@ -16,7 +16,6 @@ dictionary:
       - Delivery requirements and timelines
       - Terms and conditions of the purchase
 
-      POs are essential for budget control, audit trails, and inventory management. They help prevent unauthorized purchases and provide a clear record for accounting and reconciliation purposes.
     icon: FileText
   - id: Order Line
     name: Order Line

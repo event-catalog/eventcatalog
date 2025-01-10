@@ -2,8 +2,9 @@
 import Footer from '@layouts/Footer.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { getDomains, type Domain, getUbiquitousLanguage } from '@utils/collections/domains';
+import { buildUrl } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
-import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
 import * as LucideIcons from 'lucide-react';
 
 export async function getStaticPaths() {
@@ -40,7 +41,7 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
           <ol class="inline-flex items-center space-x-1 md:space-x-3">
             <li class="inline-flex items-center">
               <a
-                href={`/docs/${props.type}/${props.data.id}/${props.data.latestVersion}`}
+                href={buildUrl(`/docs/${props.type}/${props.data.id}/${props.data.latestVersion}`)}
                 class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-primary"
               >
                 <svg
@@ -99,7 +100,7 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
                 ) : (
                   <div id="termsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {ubiquitousLanguage?.data?.dictionary?.map((term) => (
-                      <div class="term-card block bg-white border border-gray-200 rounded-lg p-6 transition-all duration-300 ease-in-out hover:shadow-md hover:border-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-white min-h-[12em] cursor-pointer">
+                      <div class="term-card block bg-white border border-gray-200 rounded-lg p-6 transition-all duration-300 ease-in-out hover:shadow-md hover:border-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-white min-h-[12em]">
                         <div class="flex flex-col h-full space-y-8">
                           {term.icon && (
                             <div>
@@ -119,11 +120,13 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
                                 {term.summary}
                               </p>
                               {term.description && (
-                                <div>
-                                  <p class="description-text hidden text-gray-600 transition-colors duration-300 ease-in-out group-hover:text-gray-200 m-0 font-light text-sm whitespace-pre-line">
-                                    {term.description}
-                                  </p>
-                                  <span class="show-more-text text-sm text-primary font-medium">Show more</span>
+                                <div class="prose prose-sm prose-p:my-3">
+                                  <a
+                                    href={buildUrl(`/docs/${props.type}/${props.data.id}/language/${term.id}`)}
+                                    class="show-more-text text-sm text-primary font-medium hover:underline"
+                                  >
+                                    Read more
+                                  </a>
                                 </div>
                               )}
                             </div>
@@ -146,7 +149,7 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
         <Footer />
       </div>
     </div>
-    <ViewTransitions />
+    <ClientRouter />
   </main>
 
   <script>
@@ -177,27 +180,11 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
 
     function initializeShowMore() {
       const cards = document.querySelectorAll('.term-card');
-
       cards.forEach((card) => {
-        const newCard = card.cloneNode(true);
-        if (card.parentNode) {
-          card.parentNode.replaceChild(newCard, card);
-          // Initially show summary
-          const summary = (newCard as Element).querySelector('.summary-text');
-          summary?.classList.add('visible');
+        const summary = card.querySelector('.summary-text');
+        if (summary) {
+          summary.classList.add('visible');
         }
-        newCard.addEventListener('click', () => {
-          const description = (newCard as Element).querySelector('.description-text');
-          const summary = (newCard as Element).querySelector('.summary-text');
-          const showMoreText = (newCard as Element).querySelector('.show-more-text');
-
-          if (description && summary && showMoreText) {
-            (newCard as Element).classList.toggle('expanded');
-            description.classList.toggle('visible');
-            summary.classList.toggle('visible');
-            showMoreText.textContent = description.classList.contains('visible') ? 'Show less' : 'Show more';
-          }
-        });
       });
     }
 
@@ -240,42 +227,14 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
       min-height: 12em;
     }
 
-    .term-card.expanded {
-      min-height: 24em;
-      background-color: rgb(249 250 251);
-      z-index: 10;
-      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-    }
-
-    .summary-text,
-    .description-text {
-      transition:
-        opacity 0.3s ease-in-out,
-        max-height 0.3s ease-in-out;
-      opacity: 0;
-      max-height: 0;
-      overflow: hidden;
-      display: none;
-    }
-
-    .summary-text.visible,
-    .description-text.visible {
+    .summary-text {
       opacity: 1;
-      max-height: 500px;
-      margin-bottom: 1rem;
+      max-height: unset;
       display: block;
     }
 
-    .description-text {
-      white-space: pre-line;
-      line-height: 1.5;
-    }
-
-    .show-more-text {
-      display: block;
-      margin-top: 0.5rem;
-    }
-
+    .description-text,
+    .term-card.expanded,
     .term-card.expanded .show-more-text {
       display: none;
     }
