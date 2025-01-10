@@ -35,6 +35,10 @@ export default {
     services: [
       { id: 'TestingServiceOrder', version: '5.0.0' }
     ],
+    channels: [
+      { id: 'TestingChannelOrder', version: '5.0.0'},
+      { id: '{env}.testing.channel.order', version: '5.0.0'}
+    ],
     domains: [
       { id: 'TestingDomainOrder', version: '5.0.0' }
     ],
