@@ -93,8 +93,12 @@ const tabsId = Math.random().toString(36).substring(2, 9);
     });
   }
 
-  // Initialize all tab containers
-  document.querySelectorAll('[data-tabs-container]').forEach((container: Element) => {
-    initTabs(container as HTMLElement);
+  // We use `ViewTransitions`
+  // Whenever happens a navigation, from view transitions or native to the browser, init the tabs.
+  document.addEventListener('astro:page-load', () => {
+    // Initialize all tab containers
+    document.querySelectorAll('[data-tabs-container]').forEach((container: Element) => {
+      initTabs(container as HTMLElement);
+    });
   });
 </script>
