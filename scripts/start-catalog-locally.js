@@ -11,7 +11,7 @@ async function main() {
   const catalogDir = join(__dirname, '../eventcatalog/');
   const projectDIR = join(__dirname, `../examples/${catalog}`);
 
-  execSync('npm run build:bin', { stdio: 'inherit' });
+  execSync('pnpm run build:bin', { stdio: 'inherit' });
 
   execSync(`cross-env NODE_ENV=development PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npx . dev`, {
     stdio: 'inherit',
