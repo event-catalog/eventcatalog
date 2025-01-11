@@ -2,7 +2,7 @@
 import RectangleGroupIcon from '@heroicons/react/24/outline/RectangleGroupIcon';
 import Footer from '@layouts/Footer.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { getDomains, type Domain, getUbiquitousLanguage } from '@utils/collections/domains';
+import { getDomains, getUbiquitousLanguage } from '@utils/collections/domains';
 import { buildUrl } from '@utils/url-builder';
 import { ClientRouter } from 'astro:transitions';
 import { marked } from 'marked';
@@ -13,6 +13,11 @@ export async function getStaticPaths() {
   const pages = await domains.reduce<Promise<any[]>>(async (acc, domain) => {
     const accumulator = await acc;
     const ubiquitousLanguages = await getUbiquitousLanguage(domain);
+
+    if (ubiquitousLanguages.length === 0) {
+      return accumulator;
+    }
+
     const dictionary = ubiquitousLanguages[0].data.dictionary;
 
     if (!dictionary) {
