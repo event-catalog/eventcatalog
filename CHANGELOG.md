@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 2.19.1
+
+### Patch Changes
+
+- 166b0ed: fix(core): ubiquitous language pages now render without any data
+- 475f2b0: fix(core): use slug for changelog matching
+- 1915b3e: fix(core): refactored how versions are sorted across the catalog
+
 ## 2.19.0
 
 ### Minor Changes
