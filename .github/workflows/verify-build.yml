@@ -24,6 +24,8 @@ jobs:
         run: pnpm i
       - name: Test
         run: pnpm run test:ci
+      - name: Build cli
+        run: pnpm run build:bin
       - name: Package
         run: pnpm pack
       - name: Rename package artifact
