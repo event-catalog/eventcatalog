@@ -13,6 +13,7 @@ export default defineWorkspace([
     },
   },
   getViteConfig({
+    root: 'eventcatalog/',
     plugins: [tsConfigPaths()],
     test: {
       name: '@eventcatalog/astro',
@@ -21,12 +22,6 @@ export default defineWorkspace([
       env: {
         PROJECT_DIR: 'examples/default/',
         CATALOG_DIR: 'eventcatalog/',
-      },
-    },
-    resolve: {
-      alias: {
-        '@utils': path.resolve(__dirname, './eventcatalog/src/utils'),
-        // Add other aliases as needed
       },
     },
   }),
