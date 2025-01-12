@@ -170,8 +170,8 @@ You can find the [contributing guidelines here](https://eventcatalog.dev/docs/co
 ## Running the project locally
 
 1. Clone the repo
-1. Install required dependencies `npm run i`
-1. Run the command `npm run start:catalog`
+1. Install required dependencies `pnpm install`
+1. Run the command `pnpm run start:catalog`
     - This will start the catalog found in `/examples` repo, locally on your machine
 
 [license-badge]: https://img.shields.io/github/license/event-catalog/eventcatalog.svg?color=yellow
