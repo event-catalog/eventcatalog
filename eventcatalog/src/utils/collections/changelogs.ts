@@ -8,7 +8,7 @@ export const getChangeLogs = async (item: CollectionEntry<CollectionTypes>): Pro
 
   // Get all logs for collection type and filter by given collection
   const logs = await getCollection('changelogs', (log) => {
-    return log.id.includes(`${collection}/`) && log.slug.includes(slug);
+    return log.id.includes(`${collection}/`) && log.slug.includes('/' + slug + '/');
   });
 
   const hydratedLogs = logs.map((log) => {
