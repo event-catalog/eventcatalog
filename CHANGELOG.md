@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.19.2
+
+### Patch Changes
+
+- 0dda8b3: fix(core): removed cache from `getMessages` function as child functions already cache
+- be3a5c1: fix(core): fixed issue where changelog page would show the wrong information
+
 ## 2.19.1
 
 ### Patch Changes
