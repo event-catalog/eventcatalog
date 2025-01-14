@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.19.3
+
+### Patch Changes
+
+- 7ffbf6f: chore(core): setup pnpm on the project
+
 ## 2.19.2
 
 ### Patch Changes
