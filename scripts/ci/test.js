@@ -18,6 +18,6 @@ const projectDIR = join(process.cwd(), `/examples/${catalog}`);
 fs.copyFileSync(join(projectDIR, 'eventcatalog.config.js'), join(catalogDir, 'eventcatalog.config.js'));
 fs.copyFileSync(join(projectDIR, 'eventcatalog.styles.css'), join(catalogDir, 'eventcatalog.styles.css'));
 
-execSync(`cross-env NODE_ENV=test PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npm run test run`, {
+execSync(`cross-env NODE_ENV=test PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} pnpm run test run`, {
   stdio: 'inherit',
 });

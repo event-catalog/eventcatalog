@@ -12,7 +12,7 @@ const catalogDir = join(__dirname, '../eventcatalog/');
 const projectDIR = join(__dirname, `../examples/${catalog}`);
 
 // Build cli
-execSync('npm run build:bin', { stdio: 'inherit' });
+execSync('pnpm run build:bin', { stdio: 'inherit' });
 
 // Build catalog
 execSync(`cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npx . build`, {
@@ -20,7 +20,7 @@ execSync(`cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogD
 });
 
 // Type check
-execSync('npx astro check --minimumSeverity error', {
+execSync('pnpm exec astro check --minimumSeverity error', {
   cwd: catalogDir,
   stdio: 'inherit',
 });

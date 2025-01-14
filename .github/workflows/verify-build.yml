@@ -8,21 +8,55 @@ on:
       - main
 
 jobs:
-  build:
-    name: Verify Build
-    timeout-minutes: 30
+  build-cli:
+    name: Build cli
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+      - name: Installation
+        run: pnpm i
+      - name: Test
+        run: pnpm run test:ci
+      - name: Build cli
+        run: pnpm run build:bin
+      - name: Package
+        run: pnpm pack
+      - name: Rename package artifact
+        run: mv *.tgz package.tgz # Rename to a consistent name
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eventcatalog-core-package-artifact
+          path: package.tgz
+
+  build-eventcatalog:
+    name: Build EventCatalog
+    timeout-minutes: 10
+    needs: build-cli
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-      - name: Installation
-        run: npm i
-      - name: Test
-        run: npm run test:ci
-      - name: Build
-        run: npm run verify-build:catalog
+          node-version: 20.x
+      - name: Download package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: eventcatalog-core-package-artifact
+      - name: Install @eventcatalog-core
+        working-directory: examples/default/
+        run: npm install ../../package.tgz
+      - name: Build EventCatalog
+        working-directory: examples/default/
+        run: npx eventcatalog build
