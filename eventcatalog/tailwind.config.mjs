@@ -1,10 +1,20 @@
-/** @type {import('tailwindcss').Config} */
 import config from './eventcatalog.config.js';
+
+/** @type {import('tailwindcss').Config} */
 const theme = config.theme || {};
+
+const HEADER_HEIGHT = '4rem';
+
 export default {
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
   theme: {
     extend: {
+      height: {
+        header: HEADER_HEIGHT,
+      },
+      spacing: {
+        header: HEADER_HEIGHT,
+      },
       screens: {
         xxl: '1990px',
       },
@@ -17,7 +27,7 @@ export default {
           DEFAULT: '#ff6633',
           dark: '#cc3300',
         },
-        ...theme
+        ...theme,
       },
     },
   },
