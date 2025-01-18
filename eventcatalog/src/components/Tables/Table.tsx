@@ -15,8 +15,9 @@ import type { CollectionEntry } from 'astro:content';
 import DebouncedInput from './DebouncedInput';
 
 import { getColumnsByCollection } from './columns';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type EventHandler } from 'react';
 import type { CollectionTypes } from '@types';
+import { isSameVersion } from '@utils/collections/util';
 
 declare module '@tanstack/react-table' {
   // @ts-ignore
@@ -32,10 +33,12 @@ export const Table = ({
   data: initialData,
   collection,
   mode = 'simple',
+  checkboxLatestId,
 }: {
   data: CollectionEntry<'events'>[];
   collection: string;
-  mode: 'simple' | 'full';
+  checkboxLatestId: string;
+  mode?: 'simple' | 'full';
 }) => {
   const [data, _setData] = useState(initialData);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -47,6 +50,20 @@ export const Table = ({
       setColumnFilters([{ id: 'name', value: id }]);
     }
   }, []);
+
+  const [showOnlyLatest, setShowOnlyLatest] = useState(true);
+
+  useEffect(() => {
+    const checkbox = document.getElementById(checkboxLatestId);
+
+    function handleChange(evt: Event) {
+      setShowOnlyLatest((evt.target as HTMLInputElement).checked);
+    }
+
+    checkbox?.addEventListener('change', handleChange);
+
+    return () => checkbox?.removeEventListener('change', handleChange);
+  }, [checkboxLatestId]);
 
   const columns = useMemo(() => getColumnsByCollection(collection), [collection]);
 
@@ -63,6 +80,15 @@ export const Table = ({
     getPaginationRowModel: getPaginationRowModel(),
     state: {
       columnFilters,
+      globalFilter: showOnlyLatest,
+    },
+    onGlobalFilterChange: setShowOnlyLatest,
+    globalFilterFn: (row, _columnId, showOnlyLatest: boolean) => {
+      if (showOnlyLatest) {
+        return isSameVersion(row.original.data.version, row.original.data.latestVersion);
+      }
+
+      return true;
     },
   });
 

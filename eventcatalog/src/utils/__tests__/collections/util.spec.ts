@@ -1,4 +1,4 @@
-import { satisfies, sortStringVersions } from '@utils/collections/util';
+import { isSameVersion, satisfies, sortStringVersions } from '@utils/collections/util';
 import { describe, it, expect } from 'vitest';
 
 describe('Collections - utils', () => {
@@ -35,6 +35,20 @@ describe('Collections - utils', () => {
       [{ versions: [], result: [], latest: undefined }],
     ])('should returns $latest as latest version of $versions', ({ versions, result, latest }) => {
       expect(sortStringVersions(versions)).toEqual({ versions: result, latestVersion: latest });
+    });
+  });
+
+  describe('isSameVersion', () => {
+    it.each([
+      [{ versions: ['1', '2'], result: false }],
+      [{ versions: ['1', '1'], result: true }],
+      [{ versions: ['2.0.0', '1.1.0'], result: false }],
+      [{ versions: ['2.0.0', '2.0.0'], result: true }],
+      [{ versions: ['a', 'b'], result: false }],
+      [{ versions: ['a', 'a'], result: true }],
+      [{ versions: ['1.0.0', undefined], result: false }],
+    ])('should returns $result when versions is $versions', ({ versions, result }) => {
+      expect(isSameVersion(versions[0], versions[1])).toBe(result);
     });
   });
 });
