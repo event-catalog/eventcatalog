@@ -1,4 +1,5 @@
 import { ServerIcon, BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
+import { RectangleGroupIcon } from '@heroicons/react/20/solid';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { CollectionMessageTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
@@ -7,7 +8,9 @@ import { filterByName, filterCollectionByName, filterByBadge } from '../filters/
 import { buildUrl } from '@utils/url-builder';
 import { createBadgesColumn } from './SharedColumns';
 
-const columnHelper = createColumnHelper<CollectionEntry<CollectionMessageTypes>>();
+const columnHelper = createColumnHelper<
+  CollectionEntry<CollectionMessageTypes> & { data: { domain: { id: string; name: string; version: string } | null } }
+>();
 
 export const getColorAndIconForMessageType = (type: string) => {
   switch (type) {
@@ -65,6 +68,35 @@ export const columns = () => [
     meta: {
       showFilter: false,
       className: 'max-w-[200px]',
+    },
+  }),
+
+  columnHelper.accessor((originalRow) => originalRow.data.domain?.name, {
+    id: 'domain',
+    header: () => <span>Domain</span>,
+    cell: (info) => {
+      const color = 'yellow';
+      const domain = info.row.original.data.domain;
+
+      return domain ? (
+        <div className="group">
+          <a
+            href={buildUrl(`/docs/domains/${domain.id}/${domain.version}`)}
+            className={`group-hover:text-${color}-500 flex space-x-1 items-center`}
+          >
+            <div className={`flex items-center border border-gray-300 shadow-sm rounded-md group-hover:border-${color}-400`}>
+              <span className="flex items-center">
+                <span className={`bg-${color}-500 group-hover:bg-${color}-600 h-full rounded-tl rounded-bl p-1`}>
+                  <RectangleGroupIcon className="h-4 w-4 text-white" />
+                </span>
+                <span className="leading-none px-2 group-hover:underline group-hover:text-primary font-light">
+                  {domain.name} (v{domain.version})
+                </span>
+              </span>
+            </div>
+          </a>
+        </div>
+      ) : null;
     },
   }),
 

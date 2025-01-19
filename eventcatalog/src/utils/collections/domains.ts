@@ -1,7 +1,8 @@
 import { getItemsFromCollectionByIdAndSemverOrLatest, getVersionForCollectionItem } from '@utils/collections/util';
+import { posixifyPath, removeBase, removeLeadingForwardSlash } from '@utils/path';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import path from 'path';
+import path from 'node:path';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
@@ -80,3 +81,46 @@ export const getUbiquitousLanguage = async (domain: Domain): Promise<UbiquitousL
 
   return ubiquitousLanguages;
 };
+
+/**
+ * Extracts the domain reference ID from a given file path.
+ *
+ * This function processes a file path to identify the domain and versioning structure
+ * of the file within the project directory. It generates a reference ID for the domain,
+ * which points to the corresponding `index.mdx` file.
+ *
+ * ### Examples:
+ * - Input: `/domains/Orders/services/InventoryService/events/PaymentProcessed/index.md`
+ *   Output: `Orders/index.mdx`
+ *
+ * - Input: `/domains/Orders/versioned/0.1.0/services/InventoryService/events/PaymentProcessed/index.md`
+ *   Output: `Orders/versioned/0.1.0/index.mdx`
+ *
+ * @param pathToFile - The file path to process. This can be absolute or relative.
+ * @returns A string representing the domain reference ID (`<domain>/index.mdx`
+ *          or `<domain>/versioned/<version>/index.mdx`), or `null` if the path
+ *          does not belong to a valid domain structure.
+ */
+export function getDomainRefIdFromPathToFile(pathToFile: string) {
+  const projectDir = path.resolve(PROJECT_DIR);
+  const absolutePathToFile = path.isAbsolute(pathToFile) ? pathToFile : path.resolve(pathToFile);
+
+  const filePath = removeBase(posixifyPath(absolutePathToFile), posixifyPath(projectDir));
+
+  const parts = removeLeadingForwardSlash(filePath).split('/');
+
+  if (parts[0] !== 'domains') {
+    // Not in nested folders; Unable to identify the domain
+    return null;
+  }
+
+  const domain = parts[1]; // The domain is always the second part.
+  const isDomainVersioned = parts[2] === 'versioned';
+
+  if (isDomainVersioned) {
+    const version = parts[3];
+    return `${domain}/versioned/${version}/index.mdx`;
+  }
+
+  return `${domain}/index.mdx`;
+}
