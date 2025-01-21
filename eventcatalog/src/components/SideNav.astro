@@ -1,8 +1,6 @@
 ---
-import type { CollectionKey } from 'astro:content';
 import { House, BookOpenText, Workflow, TableProperties } from 'lucide-react';
 import { isCollectionVisibleInCatalog } from '@eventcatalog';
-import { getChannels } from '@utils/channels';
 import { getDomains } from '@utils/collections/domains';
 import { getFlows } from '@utils/collections/flows';
 import { getServices } from '@utils/collections/services';
@@ -10,27 +8,16 @@ import { getCommands } from '@utils/commands';
 import { getEvents } from '@utils/events';
 import { hasLandingPageForDocs } from '@utils/pages';
 import { getQueries } from '@utils/queries';
-import { getTeams } from '@utils/teams';
 import { buildUrl } from '@utils/url-builder';
-import { getUsers } from '@utils/users';
-import CatalogResourcesSideBar from './SideBars/CatalogResourcesSideBar';
 
-const [events, commands, queries, services, domains, channels, flows, teams, users] = await Promise.all([
+const [events, commands, queries, services, domains, flows] = await Promise.all([
   getEvents({ getAllVersions: false }),
   getCommands({ getAllVersions: false }),
   getQueries({ getAllVersions: false }),
   getServices({ getAllVersions: false }),
   getDomains({ getAllVersions: false }),
-  getChannels({ getAllVersions: false }),
   getFlows({ getAllVersions: false }),
-  getTeams(),
-  getUsers(),
 ]);
-
-const messages = [...events, ...commands, ...queries];
-
-// @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
-const allData = [...domains, ...services, ...messages, ...channels, ...flows, ...teams, ...users];
 
 const currentPath = Astro.url.pathname;
 
@@ -90,111 +77,38 @@ const navigationItems = [
     sidebar: false,
   },
 ];
-
-const allDataAsSideNav = allData.reduce(
-  (acc, item) => {
-    const title = item.collection;
-    const group = acc[title] || [];
-    const currentPath = Astro.url.pathname;
-    const route = currentPath.includes('visualiser') ? 'visualiser' : 'docs';
-
-    if (
-      currentPath.includes('visualiser') &&
-      (item.collection === 'teams' || item.collection === 'users' || item.collection === 'channels')
-    ) {
-      return acc;
-    }
-
-    const navigationItem = {
-      label: item.data.name,
-      version: item.collection === 'teams' || item.collection === 'users' ? null : item.data.version,
-      // items: item.collection === 'users' ? [] : item.headings,
-      visible: isCollectionVisibleInCatalog(item.collection),
-      // @ts-ignore
-      href: item.data.version
-        ? // @ts-ignore
-          buildUrl(`/${route}/${item.collection}/${item.data.id}/${item.data.version}`)
-        : buildUrl(`/${route}/${item.collection}/${item.data.id}`),
-      collection: item.collection,
-    };
-
-    group.push(navigationItem);
-
-    return {
-      ...acc,
-      [title]: group,
-    };
-  },
-  {} as Record<CollectionKey, Array<{ label: string; version: string | null; href: string; collection: string }>>
-);
-
-const sideNav = {
-  ...(currentPath.includes('visualiser')
-    ? {
-        'bounded context map': [
-          { label: 'Domain map', href: buildUrl('/visualiser/context-map'), collection: 'bounded-context-map' },
-        ],
-      }
-    : {}),
-  ...allDataAsSideNav,
-};
-
-const currentNavigationItem = navigationItems.find((item) => item.current);
-const showSideBarOnLoad = currentNavigationItem?.sidebar && !(currentPath.includes('asyncapi') || currentPath.includes('/spec'));
 ---
 
-<Fragment>
-  <div
-    id="eventcatalog-vertical-nav"
-    class="sticky top-header shrink-0 flex flex-col items-center w-16 h-[calc(100vh-theme(spacing.header))] py-4 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 z-20 shadow-md justify-between"
-  >
-    <nav class="flex flex-col h-full justify-between">
-      <div class="flex flex-col items-center flex-1 space-y-8">
-        {
-          navigationItems.map((item) => {
-            return (
-              <a
-                id={item.id}
-                data-role="nav-item"
-                href={item.href}
-                data-active={item.current}
-                data-sidebar={item.sidebar}
-                class="p-1.5 inline-block transition-colors duration-200 rounded-lg data-[active=true]:text-white data-[active=true]:bg-gradient-to-b data-[active=true]:from-purple-500 data-[active=true]:to-purple-700 hover:data-[active=false]:bg-gradient-to-r hover:data-[active=false]:from-purple-500 hover:data-[active=false]:to-purple-700 hover:data-[active=false]:text-white data-[active=false]:text-gray-700"
-              >
-                <div class="has-tooltip">
-                  <span class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10">
-                    {item.label}
-                  </span>
-                  <item.icon className="h-6 w-6  " />
-                </div>
-              </a>
-            );
-          })
-        }
-      </div>
-    </nav>
-  </div>
-
-  {
-    showSideBarOnLoad && (
-      <div
-        id="sidebar"
-        data-state={showSideBarOnLoad ? 'open' : 'closed'}
-        class="sidebar-transition sticky top-header h-[calc(100vh-theme(spacing.header))] px-5 py-4 overflow-y-auto shrink-0 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 w-60 shadow-lg"
-      >
-        <CatalogResourcesSideBar resources={sideNav} currentPath={currentPath} client:load transition:persist />
-      </div>
-    )
-  }
-</Fragment>
-
-<style>
-  .sidebar-transition {
-    transition-property: margin-left;
-    transition-duration: 300ms;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  }
-</style>
+<div
+  id="eventcatalog-vertical-nav"
+  class="sticky top-header shrink-0 flex flex-col items-center w-16 h-[calc(100vh-theme(spacing.header))] py-4 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 z-20 shadow-md justify-between"
+>
+  <nav class="flex flex-col h-full justify-between">
+    <div class="flex flex-col items-center flex-1 space-y-8">
+      {
+        navigationItems.map((item) => {
+          return (
+            <a
+              id={item.id}
+              data-role="nav-item"
+              href={item.href}
+              data-active={item.current}
+              data-sidebar={item.sidebar}
+              class="p-1.5 inline-block transition-colors duration-200 rounded-lg data-[active=true]:text-white data-[active=true]:bg-gradient-to-b data-[active=true]:from-purple-500 data-[active=true]:to-purple-700 hover:data-[active=false]:bg-gradient-to-r hover:data-[active=false]:from-purple-500 hover:data-[active=false]:to-purple-700 hover:data-[active=false]:text-white data-[active=false]:text-gray-700"
+            >
+              <div class="has-tooltip">
+                <span class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10">
+                  {item.label}
+                </span>
+                <item.icon className="h-6 w-6  " />
+              </div>
+            </a>
+          );
+        })
+      }
+    </div>
+  </nav>
+</div>
 
 <script>
   /**
@@ -220,63 +134,15 @@ const showSideBarOnLoad = currentNavigationItem?.sidebar && !(currentPath.includ
   function handleNavItemClick(e: Event) {
     const item = e.currentTarget as HTMLElement;
     const isActive = item.getAttribute('data-active') === 'true';
-    const hasSidebar = item.getAttribute('data-sidebar') === 'true';
-
-    if (isActive && hasSidebar) {
-      e.preventDefault();
-      toggleSidebar();
-    }
-  }
-
-  function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const isSidebarOpen = sidebar?.dataset.state === 'open';
-
-    if (isSidebarOpen) hideSidebar();
-    else showSidebar();
-  }
-
-  function showSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) {
-      sidebar.setAttribute('data-state', 'open');
-      sidebar.style.marginLeft = '0';
-    }
-  }
-
-  function hideSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) {
-      sidebar.setAttribute('data-state', 'closed');
-      sidebar.style.marginLeft = sidebar.getBoundingClientRect().width * -1 + 'px';
-    }
-  }
-
-  /**
-   * Set the sidebar state based on the current path and the current active navigation item.
-   */
-  function setSidebarState() {
-    const currentPath = window.location.href;
-    const currentNavItem = document.querySelector('[data-role="nav-item"][data-active="true"]');
-    const hasSidebarCurrentNavItem = currentNavItem?.getAttribute('data-sidebar') === 'true';
-
-    if (!hasSidebarCurrentNavItem || currentPath.includes('asyncapi') || currentPath.includes('/spec')) {
-      hideSidebar();
-    } else {
-      showSidebar();
-    }
+    if (isActive) e.preventDefault();
   }
 
   // Listen to the CustomEvent emitted by `VerticalSideBarLayout.astro`
   document.addEventListener('contentLoaded', () => {
     setActiveNavItem();
-    setSidebarState();
 
     const navItems = document.querySelectorAll('[data-role="nav-item"]');
     navItems.forEach((item) => {
-      // On the first page load the `contentLoaded` event is emitted twice.
-      // To prevent the event listener from being added twice, we remove it first.
-      item.removeEventListener('click', handleNavItemClick);
       item.addEventListener('click', handleNavItemClick);
     });
   });

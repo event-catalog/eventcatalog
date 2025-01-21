@@ -1,0 +1,168 @@
+---
+import { isCollectionVisibleInCatalog } from '@eventcatalog';
+import { getChannels } from '@utils/channels';
+import { getDomains } from '@utils/collections/domains';
+import { getFlows } from '@utils/collections/flows';
+import { getServices } from '@utils/collections/services';
+import { getCommands } from '@utils/commands';
+import { getEvents } from '@utils/events';
+import { getQueries } from '@utils/queries';
+import { getTeams } from '@utils/teams';
+import { buildUrl } from '@utils/url-builder';
+import { getUsers } from '@utils/users';
+import type { CollectionKey } from 'astro:content';
+import CatalogResourcesSideBar from './SideBars/CatalogResourcesSideBar';
+
+const currentPath = Astro.url.pathname;
+
+const [events, commands, queries, services, domains, channels, flows, teams, users] = await Promise.all([
+  getEvents({ getAllVersions: false }),
+  getCommands({ getAllVersions: false }),
+  getQueries({ getAllVersions: false }),
+  getServices({ getAllVersions: false }),
+  getDomains({ getAllVersions: false }),
+  getChannels({ getAllVersions: false }),
+  getFlows({ getAllVersions: false }),
+  getTeams(),
+  getUsers(),
+]);
+
+const messages = [...events, ...commands, ...queries];
+
+// @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
+const allData = [...domains, ...services, ...messages, ...channels, ...flows, ...teams, ...users];
+
+const allDataAsSideNav = allData.reduce(
+  (acc, item) => {
+    const title = item.collection;
+    const group = acc[title] || [];
+    const currentPath = Astro.url.pathname;
+    const route = currentPath.includes('visualiser') ? 'visualiser' : 'docs';
+
+    if (
+      currentPath.includes('visualiser') &&
+      (item.collection === 'teams' || item.collection === 'users' || item.collection === 'channels')
+    ) {
+      return acc;
+    }
+
+    const navigationItem = {
+      label: item.data.name,
+      version: item.collection === 'teams' || item.collection === 'users' ? null : item.data.version,
+      // items: item.collection === 'users' ? [] : item.headings,
+      visible: isCollectionVisibleInCatalog(item.collection),
+      // @ts-ignore
+      href: item.data.version
+        ? buildUrl(`/${route}/${item.collection}/${item.data.id}/${item.data.version}`)
+        : buildUrl(`/${route}/${item.collection}/${item.data.id}`),
+      collection: item.collection,
+    };
+
+    group.push(navigationItem);
+
+    return {
+      ...acc,
+      [title]: group,
+    };
+  },
+  {} as Record<CollectionKey, Array<{ label: string; version: string | null; href: string; collection: string }>>
+);
+
+const sideNav = {
+  ...(currentPath.includes('visualiser')
+    ? {
+        'bounded context map': [
+          { label: 'Domain map', href: buildUrl('/visualiser/context-map'), collection: 'bounded-context-map' },
+        ],
+      }
+    : {}),
+  ...allDataAsSideNav,
+};
+---
+
+<div
+  id="sidebar"
+  data-state="open"
+  class="sidebar-transition sticky top-header h-[calc(100vh-theme(spacing.header))] px-5 py-4 overflow-y-auto shrink-0 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 w-60 shadow-lg"
+>
+  <CatalogResourcesSideBar resources={sideNav} currentPath={currentPath} client:load transition:persist />
+</div>
+
+<style>
+  .sidebar-transition {
+    transition-property: margin-left;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+</style>
+
+<script>
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const isSidebarOpen = sidebar?.dataset.state === 'open';
+
+    if (isSidebarOpen) hideSidebar();
+    else showSidebar();
+  }
+
+  function showSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+      sidebar.setAttribute('data-state', 'open');
+      sidebar.style.marginLeft = '0';
+    }
+  }
+
+  function hideSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+      sidebar.setAttribute('data-state', 'closed');
+      sidebar.style.marginLeft = sidebar.getBoundingClientRect().width * -1 + 'px';
+    }
+  }
+
+  // TODO: add a button within this component to toggle the sidebar instead of
+  // rely on nav-item.
+  function handleNavItemClick(e: Event) {
+    const item = e.currentTarget as HTMLLinkElement;
+    const isActive = item.getAttribute('data-active') === 'true';
+    if (isActive) toggleSidebar();
+  }
+
+  // Listen to the CustomEvent emitted by `VerticalSideBarLayout.astro`
+  document.addEventListener('contentLoaded', () => {
+    const navItems = document.querySelectorAll('[data-role=nav-item]');
+    navItems.forEach((navItem) => navItem.addEventListener('click', handleNavItemClick));
+  });
+</script>
+
+<!-- <script>
+  /**
+   * Set the sidebar state based on the current path and the current active navigation item.
+   */
+  function setSidebarState() {
+    const currentPath = window.location.href;
+    const currentNavItem = document.querySelector('[data-role="nav-item"][data-active="true"]');
+    const hasSidebarCurrentNavItem = currentNavItem?.getAttribute('data-sidebar') === 'true';
+
+    if (!hasSidebarCurrentNavItem || currentPath.includes('asyncapi') || currentPath.includes('/spec')) {
+      hideSidebar();
+    } else {
+      showSidebar();
+    }
+  }
+
+  // Listen to the CustomEvent emitted by `VerticalSideBarLayout.astro`
+  document.addEventListener('contentLoaded', () => {
+    setActiveNavItem();
+    setSidebarState();
+
+    const navItems = document.querySelectorAll('[data-role="nav-item"]');
+    navItems.forEach((item) => {
+      // On the first page load the `contentLoaded` event is emitted twice.
+      // To prevent the event listener from being added twice, we remove it first.
+      item.removeEventListener('click', handleNavItemClick);
+      item.addEventListener('click', handleNavItemClick);
+    });
+  });
+</script> -->
