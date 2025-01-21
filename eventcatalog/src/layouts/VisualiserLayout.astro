@@ -1,153 +1,22 @@
 ---
-import { getCommands } from '@utils/commands';
-import { getDomains } from '@utils/collections/domains';
-import { getEvents } from '@utils/events';
-import { getFlows } from '@utils/collections/flows';
-import { getQueries } from '@utils/queries';
-import { getServices } from '@utils/collections/services';
 import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
+import SubSideNav, { getVisualizerSubSideNavProps } from '@components/SubSideNav.astro';
 
-const [services, events, commands, queries, domains, flows] = await Promise.all([
-  getServices(),
-  getEvents(),
-  getCommands(),
-  getQueries(),
-  getDomains(),
-  getFlows(),
-]);
-
-// @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
-const navItems = [...domains, ...services, ...events, ...commands, ...queries, ...flows];
-
-const navigation = navItems
-  .filter((item) => item.data.version === item.data.latestVersion)
-  .reduce((acc, item) => {
-    //  @ts-ignore
-    const group = acc[item.collection] || [];
-
-    return {
-      ...acc,
-      [item.collection]: [...group, item],
-    };
-  }, {}) as any;
-
-const currentPath = Astro.url.pathname;
 const { title, description } = Astro.props;
 
-const getColor = (collection: string) => {
-  switch (collection) {
-    case 'services':
-      return 'green';
-    case 'events':
-      return 'red';
-    case 'queries':
-      return 'green';
-    case 'commands':
-      return 'yellow';
-    case 'domains':
-      return 'blue';
-    default:
-      return 'gray';
-  }
-};
+const subSideNavProps = await getVisualizerSubSideNavProps();
 ---
 
 <VerticalSideBarLayout title={title} description={description}>
+  <SubSideNav slot="sub-side-nav" {...subSideNavProps} />
   <div class="">
     <div class="">
-      <!-- <div class="hidden md:block">
-        <aside class="sm:fixed grow w-56 xl:w-[19em] overflow-y-auto h-full z-10 pb-20" id="visualiser-navigation">
-          <div class="w-full">
-            <div class="sticky top-0 z-10 h-8 pointer-events-none -mt-7">
-              <div class="h-full bg-gradient-to-b from-white to-transparent"></div>
-            </div>
-            {
-              Object.keys(navigation).map((key: any) => {
-                const items = navigation[key]
-                  .map((item: any) => {
-                    const isCurrent = currentPath.includes(`${item.collection}/${item.data.id}/${item.data.version}`);
-                    const isLatest = item.data.version === item.data.latestVersion;
-                    if (!isLatest) return null;
-                    return {
-                      label: item.data.name,
-                      version: item.data.version,
-                      color: getColor(item.collection),
-                      href: buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`),
-                      active: isCurrent,
-                    };
-                  })
-                  .filter((n: any) => n !== null);
-                return (
-                  <BasicList
-                    title={`${key} (${navigation[key].length})`}
-                    items={items}
-                    emptyMessage="Nothing to show"
-                    color="gray"
-                    client:load
-                  />
-                );
-              })
-            }
-          </div>
-        </aside>
-      </div> -->
-
       <main class="flex-1 h-full w-full relative">
-        <!-- <button
-          id="fullscreen-toggle"
-          class="absolute top-[1em] z-40 left-5 bg-white hover:bg-gray-100/50 border border-gray-200 hover:text-primary text-gray-800 font-semibold py-2 px-4 rounded-lg transition duration-300 ease-in-out flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
-          </svg>
-          <span>Toggle Fullscreen</span>
-        </button> -->
         <slot />
       </main>
     </div>
   </div>
 </VerticalSideBarLayout>
-
-<script>
-  function setupSidebarToggle() {
-    const sidebar = document.getElementById('visualiser-navigation');
-    const toggleButton = document.getElementById('fullscreen-toggle');
-    const eventCatalogHeader = document.getElementById('eventcatalog-header');
-    const eventCatalogHeaderSpacer = document.getElementById('eventcatalog-header-spacer');
-    let isSidebarVisible = true;
-
-    if (!sidebar || !toggleButton) return;
-
-    function toggleSidebar() {
-      isSidebarVisible = !isSidebarVisible;
-      if (sidebar) sidebar.style.display = isSidebarVisible ? 'block' : 'none';
-      if (eventCatalogHeader) eventCatalogHeader.style.display = isSidebarVisible ? 'block' : 'none';
-      if (eventCatalogHeaderSpacer) eventCatalogHeaderSpacer.style.display = isSidebarVisible ? 'block' : 'none';
-    }
-
-    // Remove existing event listener if it exists
-    toggleButton.removeEventListener('click', toggleSidebar);
-
-    // Add the event listener
-    toggleButton.addEventListener('click', toggleSidebar);
-  }
-
-  // Run the setup immediately
-  setupSidebarToggle();
-
-  // Re-run the setup after each navigation
-  document.addEventListener('astro:page-load', setupSidebarToggle);
-</script>
-
-<style>
-  #visualiser-navigation {
-    transform: translateX(0);
-  }
-</style>
 
 <style>
   #visualiser-navigation {

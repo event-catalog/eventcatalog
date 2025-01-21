@@ -10,7 +10,7 @@ import 'diff2html/bundles/css/diff2html.min.css';
 import { buildUrl } from '@utils/url-builder';
 import { getVersions, getPreviousVersion } from '@utils/collections/util';
 import { getDiffsForCurrentAndPreviousVersion } from '@utils/collections/file-diffs';
-import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import DocsLayout from '@layouts/DocsLayout.astro';
 import { ClientRouter } from 'astro:transitions';
 
 export async function getStaticPaths() {
@@ -101,15 +101,9 @@ const getBadge = () => {
 };
 
 const badges = [getBadge()];
-import { HomeIcon } from '@heroicons/react/20/solid';
-
-const pages = [
-  { name: 'Projects', href: '#', current: false },
-  { name: 'Project Nero', href: '#', current: true },
-];
 ---
 
-<VerticalSideBarLayout title="ChangeLog">
+<DocsLayout title="ChangeLog">
   <main class="w-full md:pt-4 px-8 overflow-y-auto h-full max-w-[95%]">
     <nav aria-label="Breadcrumb" class="flex">
       <ol role="list" class="flex items-center space-x-2">
@@ -223,4 +217,4 @@ const pages = [
     <Footer />
   </main>
   <ClientRouter />
-</VerticalSideBarLayout>
+</DocsLayout>

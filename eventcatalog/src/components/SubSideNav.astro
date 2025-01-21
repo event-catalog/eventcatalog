@@ -10,74 +10,121 @@ import { getQueries } from '@utils/queries';
 import { getTeams } from '@utils/teams';
 import { buildUrl } from '@utils/url-builder';
 import { getUsers } from '@utils/users';
-import type { CollectionKey } from 'astro:content';
 import CatalogResourcesSideBar from './SideBars/CatalogResourcesSideBar';
 
-const currentPath = Astro.url.pathname;
-
-const [events, commands, queries, services, domains, channels, flows, teams, users] = await Promise.all([
-  getEvents({ getAllVersions: false }),
-  getCommands({ getAllVersions: false }),
-  getQueries({ getAllVersions: false }),
-  getServices({ getAllVersions: false }),
-  getDomains({ getAllVersions: false }),
-  getChannels({ getAllVersions: false }),
-  getFlows({ getAllVersions: false }),
-  getTeams(),
-  getUsers(),
-]);
-
-const messages = [...events, ...commands, ...queries];
-
-// @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
-const allData = [...domains, ...services, ...messages, ...channels, ...flows, ...teams, ...users];
-
-const allDataAsSideNav = allData.reduce(
-  (acc, item) => {
-    const title = item.collection;
-    const group = acc[title] || [];
-    const currentPath = Astro.url.pathname;
-    const route = currentPath.includes('visualiser') ? 'visualiser' : 'docs';
-
-    if (
-      currentPath.includes('visualiser') &&
-      (item.collection === 'teams' || item.collection === 'users' || item.collection === 'channels')
-    ) {
-      return acc;
-    }
-
-    const navigationItem = {
-      label: item.data.name,
-      version: item.collection === 'teams' || item.collection === 'users' ? null : item.data.version,
-      // items: item.collection === 'users' ? [] : item.headings,
-      visible: isCollectionVisibleInCatalog(item.collection),
-      // @ts-ignore
-      href: item.data.version
-        ? buildUrl(`/${route}/${item.collection}/${item.data.id}/${item.data.version}`)
-        : buildUrl(`/${route}/${item.collection}/${item.data.id}`),
-      collection: item.collection,
-    };
-
-    group.push(navigationItem);
-
-    return {
-      ...acc,
-      [title]: group,
-    };
-  },
-  {} as Record<CollectionKey, Array<{ label: string; version: string | null; href: string; collection: string }>>
-);
-
-const sideNav = {
-  ...(currentPath.includes('visualiser')
-    ? {
-        'bounded context map': [
-          { label: 'Domain map', href: buildUrl('/visualiser/context-map'), collection: 'bounded-context-map' },
-        ],
-      }
-    : {}),
-  ...allDataAsSideNav,
+type Resource = {
+  label: string;
+  version?: string | null;
+  href: string;
+  collection: string;
+  // TODO: remove this. If a collection is not supposed to be render we could
+  // omit from the resource. It reduces `conditional rendering` on downstream
+  // component.
+  visible?: boolean;
 };
+
+interface Props {
+  resources: Record<string, Array<Resource>>;
+}
+
+export type SubSideNavProps = Props;
+
+export async function getDocsSubSideNavProps(): Promise<SubSideNavProps> {
+  const allData = await Promise.all([
+    getDomains({ getAllVersions: false }),
+    getServices({ getAllVersions: false }),
+    getEvents({ getAllVersions: false }),
+    getCommands({ getAllVersions: false }),
+    getQueries({ getAllVersions: false }),
+    getChannels({ getAllVersions: false }),
+    getFlows({ getAllVersions: false }),
+    getTeams(),
+    getUsers(),
+  ]);
+
+  const sideNav = allData.flat().reduce(
+    (acc, item) => {
+      const title = item.collection;
+      const group = acc[title] || [];
+      const route = 'docs';
+
+      const navigationItem = {
+        label: item.data.name,
+        version: item.collection === 'teams' || item.collection === 'users' ? null : item.data.version,
+        visible: isCollectionVisibleInCatalog(item.collection),
+        // @ts-ignore
+        href: item.data.version
+          ? // @ts-ignore
+            buildUrl(`/${route}/${item.collection}/${item.data.id}/${item.data.version}`)
+          : buildUrl(`/${route}/${item.collection}/${item.data.id}`),
+        collection: item.collection,
+      };
+
+      group.push(navigationItem);
+
+      return {
+        ...acc,
+        [title]: group,
+      };
+    },
+    {} as Record<string, Resource[]>
+  );
+
+  return {
+    resources: sideNav,
+  };
+}
+
+export async function getVisualizerSubSideNavProps(): Promise<SubSideNavProps> {
+  const allData = await Promise.all([
+    getDomains({ getAllVersions: false }),
+    getServices({ getAllVersions: false }),
+    getEvents({ getAllVersions: false }),
+    getCommands({ getAllVersions: false }),
+    getQueries({ getAllVersions: false }),
+    getFlows({ getAllVersions: false }),
+  ]);
+
+  const sideNav = allData.flat().reduce(
+    (acc, item) => {
+      const title = item.collection;
+      const group = acc[title] || [];
+      const route = 'visualiser';
+
+      const navigationItem = {
+        label: item.data.name,
+        version: item.data.version,
+        visible: isCollectionVisibleInCatalog(item.collection),
+        href: item.data.version
+          ? buildUrl(`/${route}/${item.collection}/${item.data.id}/${item.data.version}`)
+          : buildUrl(`/${route}/${item.collection}/${item.data.id}`),
+        collection: item.collection,
+      };
+
+      group.push(navigationItem);
+
+      return {
+        ...acc,
+        [title]: group,
+      };
+    },
+    {
+      'bounded context map': [
+        {
+          label: 'Domain map',
+          href: buildUrl('/visualiser/context-map'),
+          collection: 'bounded-context-map',
+        },
+      ],
+    } as Record<string, Resource[]>
+  );
+
+  return {
+    resources: sideNav,
+  };
+}
+
+const props = Astro.props;
 ---
 
 <div
@@ -85,7 +132,7 @@ const sideNav = {
   data-state="open"
   class="sidebar-transition sticky top-header h-[calc(100vh-theme(spacing.header))] px-5 py-4 overflow-y-auto shrink-0 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 w-60 shadow-lg"
 >
-  <CatalogResourcesSideBar resources={sideNav} currentPath={currentPath} client:load transition:persist />
+  <CatalogResourcesSideBar {...props} currentPath={Astro.url.pathname} client:load transition:persist />
 </div>
 
 <style>

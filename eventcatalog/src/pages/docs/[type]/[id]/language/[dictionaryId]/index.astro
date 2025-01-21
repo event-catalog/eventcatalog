@@ -1,7 +1,7 @@
 ---
 import RectangleGroupIcon from '@heroicons/react/24/outline/RectangleGroupIcon';
 import Footer from '@layouts/Footer.astro';
-import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import DocsLayout from '@layouts/DocsLayout.astro';
 import { getDomains, getUbiquitousLanguage } from '@utils/collections/domains';
 import { buildUrl } from '@utils/url-builder';
 import { ClientRouter } from 'astro:transitions';
@@ -67,7 +67,7 @@ const badges = [
 ];
 ---
 
-<VerticalSideBarLayout title={pageTitle} description={ubiquitousLanguage.summary}>
+<DocsLayout title={pageTitle} description={ubiquitousLanguage.summary}>
   <main class="flex sm:px-8 docs-layout h-full max-w-7xl">
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8 min-h-[50em]">
@@ -229,4 +229,4 @@ const badges = [
     initializeSearch();
     highlightMatchingTerm();
   </script>
-</VerticalSideBarLayout>
+</DocsLayout>

@@ -1,5 +1,5 @@
 ---
-import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import DocsLayout from '@layouts/DocsLayout.astro';
 import Footer from '@layouts/Footer.astro';
 
 import components from '@components/MDX/components';
@@ -123,7 +123,7 @@ const getSpecificationBadges = () => {
 const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
 ---
 
-<VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
+<DocsLayout title={pageTitle} description={props.data.summary}>
   <main class="flex sm:px-8 docs-layout h-full">
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
@@ -320,4 +320,4 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
       renderDiagrams(graphs);
     }
   </script>
-</VerticalSideBarLayout>
+</DocsLayout>

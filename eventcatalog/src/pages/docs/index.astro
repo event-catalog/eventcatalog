@@ -3,7 +3,7 @@ import Footer from '@layouts/Footer.astro';
 import DefaultDocsLandingPage from '@layouts/CustomDocsPageLayout.astro';
 import components from '@components/MDX/page-components';
 import { getIndexPage } from '@utils/pages';
-import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import DocsLayout from '@layouts/DocsLayout.astro';
 
 const page = await getIndexPage();
 let CustomContent = null;
@@ -16,7 +16,7 @@ if (page) {
 
 {
   CustomContent && (
-    <VerticalSideBarLayout title="EventCatalog">
+    <DocsLayout title="EventCatalog">
       <main class="flex sm:px-8 docs-layout h-full">
         <div class="flex docs-layout w-full">
           <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
@@ -27,7 +27,7 @@ if (page) {
           </div>
         </div>
       </main>
-    </VerticalSideBarLayout>
+    </DocsLayout>
   )
 }
 

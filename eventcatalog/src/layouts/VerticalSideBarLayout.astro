@@ -5,7 +5,6 @@ interface Props {
   description?: string;
 }
 
-import SubSideNav from '@components/SubSideNav.astro';
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 import SideNav from '../components/SideNav.astro';
@@ -32,7 +31,7 @@ const { title, description } = Astro.props;
     <Header />
     <div class="flex">
       <SideNav />
-      <SubSideNav />
+      <slot name="sub-side-nav" />
       <main class="w-full h-[calc(100vh-theme(spacing.header))] overflow-auto" id="content">
         <slot />
       </main>

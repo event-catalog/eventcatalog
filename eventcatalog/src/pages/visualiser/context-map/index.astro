@@ -1,10 +1,10 @@
 ---
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import { ClientRouter } from 'astro:transitions';
-import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import VisualizerLayout from '@layouts/VisualiserLayout.astro';
 ---
 
-<VerticalSideBarLayout title={`Visualiser | Bounded context map`}>
+<VisualizerLayout title={`Visualiser | Bounded context map`}>
   <div class="bg-gray-100/50 m-4">
     <div
       class="h-[calc(100vh-110px)] w-full relative border border-gray-200"
@@ -27,4 +27,4 @@ import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
     />
   </div>
   <ClientRouter />
-</VerticalSideBarLayout>
+</VisualizerLayout>

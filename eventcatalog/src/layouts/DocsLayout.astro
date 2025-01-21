@@ -1,0 +1,13 @@
+---
+import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
+import SubSideNav, { getDocsSubSideNavProps } from '@components/SubSideNav.astro';
+
+const { title, description } = Astro.props;
+
+const subSideNavProps = await getDocsSubSideNavProps();
+---
+
+<VerticalSideBarLayout title={title} description={description}>
+  <SubSideNav slot="sub-side-nav" {...subSideNavProps} />
+  <slot />
+</VerticalSideBarLayout>

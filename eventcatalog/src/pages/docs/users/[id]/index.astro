@@ -8,7 +8,7 @@ import PillListFlat from '@components/Lists/PillListFlat';
 import { getUsers } from '@utils/users';
 import EnvelopeIcon from '@heroicons/react/16/solid/EnvelopeIcon';
 import { buildUrl } from '@utils/url-builder';
-import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import DocsLayout from '@layouts/DocsLayout.astro';
 
 export async function getStaticPaths() {
   const teams = await getUsers();
@@ -66,7 +66,7 @@ const associatedTeams = teams.map((o) => ({
 }));
 ---
 
-<VerticalSideBarLayout title={`User | ${props.data.name}`}>
+<DocsLayout title={`User | ${props.data.name}`}>
   <main class="flex sm:px-8 docs-layout h-full">
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-6 pr-8 overflow-y-auto py-4">
@@ -193,7 +193,7 @@ const associatedTeams = teams.map((o) => ({
       </aside>
     </div>
   </main>
-</VerticalSideBarLayout>
+</DocsLayout>
 
 <style>
   .docs-layout .prose {
