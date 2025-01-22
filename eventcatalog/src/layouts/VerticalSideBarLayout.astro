@@ -1,13 +1,14 @@
 ---
+import Header from '../components/Header.astro';
+import SEO from '../components/Seo.astro';
+import SideNav from '../components/SideNav.astro';
+import Resizable from '../components/Resizable.tsx';
+
 interface Props {
   title: string;
   sidebar?: boolean;
   description?: string;
 }
-
-import Header from '../components/Header.astro';
-import SEO from '../components/Seo.astro';
-import SideNav from '../components/SideNav.astro';
 
 const { title, description } = Astro.props;
 ---
@@ -29,13 +30,13 @@ const { title, description } = Astro.props;
   </head>
   <body>
     <Header />
-    <div class="flex">
-      <SideNav />
-      <slot name="sub-side-nav" />
+    <Resizable client:load showSubSideNav={Astro.slots.has('sub-side-nav')}>
+      <SideNav slot="sideNav" />
+      <slot name="sub-side-nav" slot="subSideNav" />
       <main class="w-full h-[calc(100vh-theme(spacing.header))] overflow-auto" id="content">
         <slot />
       </main>
-    </div>
+    </Resizable>
   </body>
 </html>
 <script>

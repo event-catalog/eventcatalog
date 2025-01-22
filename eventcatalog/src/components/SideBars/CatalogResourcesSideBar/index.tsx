@@ -12,10 +12,6 @@ interface CatalogResourcesSideBarProps {
 }
 
 const CatalogResourcesSideBar: React.FC<CatalogResourcesSideBarProps> = ({ resources, currentPath }) => {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
   const [data, setData] = useState(resources);
   const [searchQuery, setSearchQuery] = useState('');
   const [isInitialized, setIsInitialized] = useState(false);
@@ -71,8 +67,6 @@ const CatalogResourcesSideBar: React.FC<CatalogResourcesSideBarProps> = ({ resou
   }, [searchQuery, data]);
 
   const getIconForCollection = useMemo(() => getIconForCollectionOriginal, []);
-
-  if (!isInitialized) return null;
 
   return (
     <nav className="space-y-6 text-black ">
