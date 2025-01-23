@@ -1,6 +1,6 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { diffLines, type Change } from 'diff';
+import { formatPatch, structuredPatch } from 'diff';
 import { html, parse } from 'diff2html';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from './util';
 import type { CollectionEntry } from 'astro:content';
@@ -16,29 +16,8 @@ const FILE_EXTENSIONS_TO_INCLUDE = ['.json', '.avro', '.yaml', '.yml', '.proto',
  * @returns A string representing the diff in unified format
  */
 function generateDiffString(fileName: string, oldStr: string, newStr: string): string {
-  const diff = diffLines(oldStr, newStr);
-
-  // Check if there are any changes
-  const hasChanges = diff.some((part) => part.added || part.removed);
-
-  if (!hasChanges) return '';
-
-  let diffString = `diff --git a/${fileName} b/${fileName}\n`;
-  diffString += `--- a/${fileName}\n`;
-  diffString += `+++ b/${fileName}\n`;
-
-  diff.forEach((part: Change) => {
-    const prefix = part.added ? '+' : part.removed ? '-' : ' ';
-    const lines = part.value.split('\n');
-    // Remove the last element if it's an empty string (which happens if the last line ends with a newline)
-    if (lines[lines.length - 1] === '') lines.pop();
-
-    lines.forEach((line: string) => {
-      diffString += `${prefix}${line}\n`;
-    });
-  });
-
-  return diffString;
+  const jsonPatch = structuredPatch(fileName, fileName, oldStr, newStr);
+  return jsonPatch.hunks.length == 0 ? '' : formatPatch(jsonPatch);
 }
 
 /**

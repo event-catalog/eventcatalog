@@ -23,6 +23,7 @@ pnpm-debug.log*
 # EventCatalog files
 **/.eventcatalog-core/
 /examples/large-catalog/*
+eventcatalog/pnpm-lock.yaml
 
 .vscode/*
 

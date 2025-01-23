@@ -11,6 +11,7 @@ import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/queries';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
+import Checkbox from '@components/Checkbox.astro';
 
 const events = await getEvents();
 const queries = await getQueries();
@@ -21,6 +22,8 @@ const flows = await getFlows();
 
 const { title, subtitle, data, type } = Astro.props;
 const currentPath = Astro.url.pathname;
+
+const checkboxLatestId = 'latest-only';
 
 const tabs = [
   {
@@ -102,17 +105,19 @@ const tabs = [
     <!-- Table -->
     <div class="pb-20 ml-6 md:pr-10">
       <div>
-        <div class="sm:flex sm:items-center py-4 pb-4" id="discover-title">
+        <div class="sm:flex sm:items-end py-4 pb-4" id="discover-title">
           <div class="sm:flex-auto space-y-2">
             <h1 class="text-4xl font-semibold text-gray-900 capitalize">{title}</h1>
             <p class="text-md text-gray-700">{subtitle}</p>
+          </div>
+          <div class="p-4 border border-gray-200 rounded-md">
+            <Checkbox id={checkboxLatestId} name={checkboxLatestId} label="Show latest version only" checked />
           </div>
         </div>
         <div class="mt-4 flow-root">
           <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div class="inline-block min-w-full align-middle sm:px-6 lg:px-8">
-              <!-- @ts-ignore -->
-              <Table data={data} collection={type} client:load />
+              <Table checkboxLatestId={checkboxLatestId} data={data} collection={type} client:load />
             </div>
           </div>
         </div>

@@ -1,5 +1,20 @@
 # @eventcatalog/core
 
+## 2.19.5
+
+### Patch Changes
+
+- 3872726: chore(core): removed css dependency on spotlight
+
+## 2.19.4
+
+### Patch Changes
+
+- 0d035f5: feat(core): users can now filter by latest version of resources on the discover page
+- c8f86b7: fix(core): fixed dependencies frontmatter quoting when values would be interpreted as non-scalar
+- 8955521: chore(core): updated expressive code plugin for astro
+- 63b4bec: feat(core): changelog collapsed lines simplified
+
 ## 2.19.3
 
 ### Patch Changes

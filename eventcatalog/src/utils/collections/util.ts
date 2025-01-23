@@ -1,6 +1,6 @@
 import type { CollectionTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
-import { coerce, compare, satisfies as satisfiesRange } from 'semver';
+import { coerce, compare, eq, satisfies as satisfiesRange } from 'semver';
 
 export const getPreviousVersion = (version: string, versions: string[]) => {
   const index = versions.indexOf(version);
@@ -12,6 +12,17 @@ export const getVersions = (data: CollectionEntry<CollectionTypes>[]) => {
   const versions = [...new Set(allVersions)];
   return sortStringVersions(versions);
 };
+
+export function isSameVersion(v1: string | undefined, v2: string | undefined) {
+  const semverV1 = coerce(v1);
+  const semverV2 = coerce(v2);
+
+  if (semverV1 != null && semverV2 != null) {
+    return eq(semverV1, semverV2);
+  }
+
+  return v1 === v2;
+}
 
 /**
  * Sorts versioned items. Latest version first.

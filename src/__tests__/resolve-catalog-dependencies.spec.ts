@@ -90,5 +90,27 @@ describe('resolve-catalog-dependencies', () => {
         expect(content).toContain('version: 5.0.0');
       });
     });
+
+    describe('channels', () => {
+      it('creates a dependency file for each channel', async () => {
+        const content = await fs.readFile(
+          path.join(CATALOG_DIR, 'dependencies', 'channels', 'TestingChannelOrder', 'index.md'),
+          'utf8'
+        );
+        expect(content).toContain('id: TestingChannelOrder');
+        expect(content).toContain('name: TestingChannelOrder');
+        expect(content).toContain('version: 5.0.0');
+      });
+
+      it('creates a dependency file for parameterized channels', async () => {
+        const content = await fs.readFile(
+          path.join(CATALOG_DIR, 'dependencies', 'channels', '{env}.testing.channel.order', 'index.md'),
+          'utf8'
+        );
+        expect(content).toContain(`id: '{env}.testing.channel.order'`);
+        expect(content).toContain(`name: '{env}.testing.channel.order'`);
+        expect(content).toContain('version: 5.0.0');
+      });
+    });
   });
 });
