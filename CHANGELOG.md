@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.19.5
+
+### Patch Changes
+
+- 3872726: chore(core): removed css dependency on spotlight
+
 ## 2.19.4
 
 ### Patch Changes
