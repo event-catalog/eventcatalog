@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import 'prismjs';
 // @ts-ignore
 import { JsonSchemaViewer } from '@stoplight/json-schema-viewer';
-import '@stoplight/mosaic/themes/default.css';
-import '@stoplight/mosaic/styles.css';
+import "./css/stoplight-mosaic-styles.css"
+import './css/stoplight-mosaic-theme-default.css';
 
 import { createPortal } from 'react-dom';
 
