@@ -1,9 +1,12 @@
 ---
+import * as path from 'node:path';
 import DiscoverLayout from '@layouts/DiscoverLayout.astro';
 import type { PageTypes } from '@types';
 import { getFlows } from '@utils/collections/flows';
 
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
+import { getEntry } from 'astro:content';
+import { getDomainRefIdFromPathToFile, getDomains } from '@utils/collections/domains';
 type PageTypesWithFlows = PageTypes | 'flows';
 
 export async function getStaticPaths() {
@@ -27,11 +30,35 @@ export async function getStaticPaths() {
 }
 
 const { type, data } = Astro.props;
+
+let dataWithDomain;
+
+if (['commands', 'events', 'queries'].includes(type)) {
+  const domains = await getDomains();
+
+  dataWithDomain = data.map((item) => {
+    const domainRefId = item.data.pathToFile ? getDomainRefIdFromPathToFile(item.data.pathToFile) : null;
+    const domain = domainRefId ? domains.find((d) => d.id === domainRefId) : null;
+    return {
+      ...item,
+      data: {
+        ...item.data,
+        domain: domain
+          ? {
+              id: domain.data.id,
+              name: domain.data.name,
+              version: domain.data.version,
+            }
+          : null,
+      },
+    };
+  });
+}
 ---
 
 <DiscoverLayout
   title={`${type} (${data.length})`}
   subtitle={`Find, filter and search for any ${type} in your system.`}
-  data={data}
+  data={dataWithDomain ?? data}
   type={type}
 />
