@@ -7,6 +7,7 @@ import Footer from '@layouts/Footer.astro';
 import Header from '@components/Header.astro';
 import SideBar from '@components/DocsNavigation.astro';
 import { buildUrl } from '@utils/url-builder';
+import { ClientRouter } from 'astro:transitions';
 ---
 
 <!doctype html>
@@ -18,6 +19,7 @@ import { buildUrl } from '@utils/url-builder';
     <link rel="icon" type="image/svg+xml" href={buildUrl('/favicon.ico', true)} />
     <meta name="generator" content={Astro.generator} />
     <title>EventCatalog</title>
+    <ClientRouter />
   </head>
   <body>
     <div class="px-10 max-w-[120em] mx-auto">

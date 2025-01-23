@@ -129,7 +129,7 @@ const props = Astro.props;
 
 <div
   id="sidebar"
-  class="sticky top-header h-[calc(100vh-theme(spacing.header))] px-5 py-4 overflow-y-auto shrink-0 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 w-full shadow-lg"
+  class="sticky top-header h-[calc(100vh-theme(spacing.header))] px-5 py-4 overflow-y-auto shrink-0 bg-white bg-gradient-to-b from-white to-gray-100 w-full"
 >
-  <CatalogResourcesSideBar {...props} currentPath={Astro.url.pathname} client:load />
+  <CatalogResourcesSideBar {...props} currentPath={Astro.url.pathname} client:load transition:persist />
 </div>

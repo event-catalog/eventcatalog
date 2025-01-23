@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
 import SubSideNav, { getDocsSubSideNavProps } from '@components/SubSideNav.astro';
 
@@ -10,4 +11,5 @@ const subSideNavProps = await getDocsSubSideNavProps();
 <VerticalSideBarLayout title={title} description={description}>
   <SubSideNav slot="sub-side-nav" {...subSideNavProps} />
   <slot />
+  <ClientRouter />
 </VerticalSideBarLayout>

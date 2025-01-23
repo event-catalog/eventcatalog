@@ -2,7 +2,7 @@
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 import SideNav from '../components/SideNav.astro';
-import Resizable from '../components/Resizable.tsx';
+import Resizable from '../components/Resizable.astro';
 
 interface Props {
   title: string;
@@ -30,13 +30,23 @@ const { title, description } = Astro.props;
   </head>
   <body>
     <Header />
-    <Resizable client:load showSubSideNav={Astro.slots.has('sub-side-nav')}>
-      <SideNav slot="sideNav" />
-      <slot name="sub-side-nav" slot="subSideNav" />
-      <main class="w-full h-[calc(100vh-theme(spacing.header))] overflow-auto" id="content">
-        <slot />
-      </main>
-    </Resizable>
+    <div class="flex h-[calc(100vh-theme(spacing.header))]">
+      <SideNav />
+      {
+        Astro.slots.has('sub-side-nav') ? (
+          <Resizable transition:persist>
+            <slot name="sub-side-nav" slot="subSideNav" />
+            <main class="w-full h-full overflow-auto" id="content">
+              <slot />
+            </main>
+          </Resizable>
+        ) : (
+          <main class="w-full h-full overflow-auto" id="content">
+            <slot />
+          </main>
+        )
+      }
+    </div>
   </body>
 </html>
 <script>

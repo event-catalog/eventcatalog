@@ -1,0 +1,147 @@
+---
+
+---
+
+<div class="flex h-full flex-1" id="resizableContainer">
+  <div class="flex-1 overflow-auto" style="flex-basis: 20%;" id="leftPanel">
+    <slot name="subSideNav" />
+  </div>
+  <div class="group bg-gray-200 cursor-col-resize relative w-[1px]" id="divider" data-state="inactive">
+    <div
+      class="absolute inset-y-0 -inset-x-[2px] bg-transparent group-hover:bg-gray-200/60 group-data-[state=dragging]:bg-primary"
+    >
+    </div>
+  </div>
+  <div class="flex-1 overflow-auto" style="flex-basis: 80%" id="rightPanel">
+    <slot />
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'resizableSizes';
+  // In-memory state for flexBasis
+  let flexBasisState = { left: 25, right: 75 };
+
+  /**********************
+   *
+   ***********************/
+  function rehydrateSizes(document: Document) {
+    const leftPanel = document.getElementById('leftPanel')!;
+    const rightPanel = document.getElementById('rightPanel')!;
+
+    // Retrieve saved sizes from localStorage
+    const savedSizes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    if (savedSizes.left && savedSizes.right) {
+      flexBasisState = savedSizes; // Update in-memory state
+    }
+
+    // Apply the sizes to the panels
+    leftPanel.style.flexBasis = `${flexBasisState.left}%`;
+    rightPanel.style.flexBasis = `${flexBasisState.right}%`;
+  }
+
+  // Rehydrate sizes before the new page is fully loaded
+  document.addEventListener('astro:before-swap', (e) => {
+    rehydrateSizes(e.newDocument);
+  });
+
+  // Hydrate sizes on initial page load
+  rehydrateSizes(document);
+
+  /**********************
+   * Resizable
+   ***********************/
+  function initResizable() {
+    const divider = document.getElementById('divider')!;
+    const container = document.getElementById('resizableContainer')!;
+    const leftPanel = document.getElementById('leftPanel')!;
+    const rightPanel = document.getElementById('rightPanel')!;
+
+    let isResizing = false;
+
+    divider.addEventListener('mousedown', () => {
+      isResizing = true;
+      divider.setAttribute('data-state', 'dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none'; // Disable text selection globally
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+
+      const rect = container.getBoundingClientRect();
+      const offsetX = e.clientX - rect.left;
+
+      // Calculate the widths as percentages
+      const leftPercentage = Math.max(10, (offsetX / rect.width) * 100); // Minimum 10%
+      const rightPercentage = Math.max(10, 100 - leftPercentage); // Minimum 10%
+
+      leftPanel.style.flexBasis = `${leftPercentage}%`;
+      rightPanel.style.flexBasis = `${rightPercentage}%`;
+
+      // Update in-memory state and debounce save to localStorage
+      flexBasisState = { left: leftPercentage, right: rightPercentage };
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isResizing) {
+        isResizing = false;
+        divider.setAttribute('data-state', 'inactive');
+        document.body.style.cursor = 'default';
+        document.body.style.userSelect = ''; // Restore text selection
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(flexBasisState));
+      }
+    });
+  }
+
+  // Initialize resizable behavior on full page load
+  document.addEventListener('astro:page-load', initResizable);
+
+  // Initialize for the initial page load
+  initResizable();
+
+  /**********************
+   * Toggle leftPanel
+   ***********************/
+  function toggleLeftPanel() {
+    const leftPanel = document.getElementById('leftPanel')!;
+    const rightPanel = document.getElementById('rightPanel')!;
+
+    const isLeftPanelExpanded = leftPanel.style.flexBasis !== '0%';
+
+    leftPanel.style.transition = 'flex 300ms ease-in-out';
+
+    if (isLeftPanelExpanded) {
+      leftPanel.style.flexBasis = '0%';
+      rightPanel.style.flexBasis = '100%';
+    } else {
+      leftPanel.style.flexBasis = `${flexBasisState.left}%`;
+      rightPanel.style.flexBasis = `${flexBasisState.right}%`;
+    }
+
+    function onTransitionEnd(evt: Event) {
+      const item = evt.currentTarget as HTMLElement;
+      item.style.transition = '';
+      item.removeEventListener('transitionend', onTransitionEnd);
+    }
+
+    leftPanel.addEventListener('transitionend', onTransitionEnd);
+  }
+
+  function onNavItemClick(e: Event) {
+    const item = e.currentTarget as HTMLElement;
+    const isActive = item.getAttribute('data-active') === 'true';
+    if (isActive) toggleLeftPanel();
+  }
+
+  function initToggleLeftPanel() {
+    // prettier-ignore
+    document
+      .querySelectorAll('[data-role=nav-item]')
+      .forEach((navItem) => navItem.addEventListener('click', onNavItemClick));
+  }
+
+  document.addEventListener('astro:page-load', initToggleLeftPanel);
+
+  initToggleLeftPanel();
+</script>
