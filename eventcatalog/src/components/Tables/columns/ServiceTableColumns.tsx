@@ -1,13 +1,13 @@
 import { ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/solid';
 import { createColumnHelper } from '@tanstack/react-table';
-import type { CollectionEntry } from 'astro:content';
 import { useMemo, useState } from 'react';
 import { filterByName, filterCollectionByName } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';
 import { getColorAndIconForMessageType } from './MessageTableColumns';
 import { createBadgesColumn } from './SharedColumns';
+import type { TData } from '../Table';
 
-const columnHelper = createColumnHelper<CollectionEntry<'services'>>();
+const columnHelper = createColumnHelper<TData<'services'>>();
 
 export const columns = () => [
   columnHelper.accessor('data.name', {
@@ -65,7 +65,7 @@ export const columns = () => [
 
       const receiversWithIcons = useMemo(
         () =>
-          receives?.map((consumer: any) => {
+          receives?.map((consumer) => {
             const type = consumer.collection.slice(0, -1);
             return {
               ...consumer,
@@ -87,7 +87,7 @@ export const columns = () => [
           )}
           {isExpanded && (
             <ul>
-              {receiversWithIcons.map((consumer: any, index: number) => (
+              {receiversWithIcons.map((consumer, index: number) => (
                 <li key={`${consumer.data.id}-${index}`} className="py-1 group font-light ">
                   <a
                     href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
@@ -137,7 +137,7 @@ export const columns = () => [
           )}
           {isExpanded && (
             <ul>
-              {sends.map((consumer: any, index: number) => {
+              {sends.map((consumer, index) => {
                 const type = consumer.collection.slice(0, -1);
                 const color = type === 'event' ? 'orange' : 'blue';
                 const Icon = type === 'event' ? BoltIcon : ChatBubbleLeftIcon;

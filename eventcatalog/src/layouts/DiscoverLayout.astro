@@ -1,5 +1,5 @@
 ---
-import { Table } from '@components/Tables/Table';
+import { Table, type TData, type TCollectionTypes } from '@components/Tables/Table';
 import { QueueListIcon, RectangleGroupIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import ServerIcon from '@heroicons/react/24/outline/ServerIcon';
 import { getCommands } from '@utils/commands';
@@ -19,6 +19,13 @@ const commands = await getCommands();
 const services = await getServices();
 const domains = await getDomains();
 const flows = await getFlows();
+
+export interface Props<T extends TCollectionTypes> {
+  title: string;
+  subtitle: string;
+  data: TData<T>[];
+  type: T;
+}
 
 const { title, subtitle, data, type } = Astro.props;
 const currentPath = Astro.url.pathname;

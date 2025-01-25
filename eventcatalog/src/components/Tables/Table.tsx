@@ -9,34 +9,100 @@ import {
   useReactTable,
   type Column,
   type ColumnFiltersState,
-  type Row,
 } from '@tanstack/react-table';
-import type { CollectionEntry } from 'astro:content';
 import DebouncedInput from './DebouncedInput';
 
 import { getColumnsByCollection } from './columns';
-import { useEffect, useMemo, useState, type EventHandler } from 'react';
-import type { CollectionTypes } from '@types';
+import { useEffect, useMemo, useState } from 'react';
+import type { CollectionMessageTypes } from '@types';
 import { isSameVersion } from '@utils/collections/util';
 
 declare module '@tanstack/react-table' {
   // @ts-ignore
   interface ColumnMeta<TData extends RowData, TValue> {
     filterVariant?: 'collection' | 'name' | 'badges';
-    collectionFilterKey?: string;
+    collectionFilterKey?: 'producers' | 'consumers' | 'sends' | 'receives' | 'services';
     showFilter?: boolean;
     className?: string;
   }
 }
 
-export const Table = ({
+export type TCollectionTypes = 'domains' | 'services' | CollectionMessageTypes | 'flows';
+
+export type TData<T extends TCollectionTypes> = {
+  collection: T;
+  data: {
+    id: string;
+    name: string;
+    summary: string;
+    version: string;
+    latestVersion?: string; // Defined on getter collection utility
+    badges?: Array<{
+      id: string; // Where is it defined?
+      content: string;
+      backgroundColor: string;
+      textColor: string;
+      icon: any; // Where is it defined?
+    }>;
+    // ---------------------------------------------------------------------------
+    // Domains
+    services?: Array<{
+      collection: string; // Be more specific;
+      data: {
+        id: string;
+        name: string;
+        version: string;
+      };
+    }>;
+    // ---------------------------------------------------------------------------
+    // Services
+    receives?: Array<{
+      collection: string; // Be more specific;
+      data: {
+        id: string;
+        name: string;
+        version: string;
+      };
+    }>;
+    sends?: Array<{
+      collection: string; // Be more specific;
+      data: {
+        id: string;
+        name: string;
+        version: string;
+      };
+    }>;
+    // ---------------------------------------------------------------------------
+    // Messages
+    producers?: Array<{
+      collection: string; // Specify only 'services'?
+      data: {
+        id: string;
+        name: string;
+        version: string;
+      };
+    }>;
+    // Only for messages
+    consumers?: Array<{
+      collection: string; // Specify only 'services'?
+      data: {
+        id: string;
+        name: string;
+        version: string;
+      };
+    }>;
+    // ---------------------------------------------------------------------------
+  };
+};
+
+export const Table = <T extends TCollectionTypes>({
   data: initialData,
   collection,
   mode = 'simple',
   checkboxLatestId,
 }: {
-  data: CollectionEntry<'events'>[];
-  collection: string;
+  data: TData<T>[];
+  collection: T;
   checkboxLatestId: string;
   mode?: 'simple' | 'full';
 }) => {
@@ -68,7 +134,6 @@ export const Table = ({
   const columns = useMemo(() => getColumnsByCollection(collection), [collection]);
 
   const table = useReactTable({
-    // @ts-ignore
     data,
     columns,
     onColumnFiltersChange: setColumnFilters,
@@ -106,7 +171,6 @@ export const Table = ({
                       <div className="text-md">
                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                       </div>
-                      {/* @ts-ignore */}
                       <div className="">
                         {header.column.columnDef.meta?.showFilter !== false && <Filter column={header.column} />}
                         {header.column.columnDef.meta?.showFilter == false && <div className="h-10" />}
@@ -201,23 +265,17 @@ export const Table = ({
   );
 };
 
-function Filter({ column }: { column: Column<any, unknown> }) {
-  const { filterVariant, collectionFilterKey = '' } = column.columnDef.meta ?? {};
+function Filter<T extends TCollectionTypes>({ column }: { column: Column<TData<T>, unknown> }) {
+  const { filterVariant, collectionFilterKey } = column.columnDef.meta ?? {};
 
   const columnFilterValue = column.getFilterValue();
 
   const sortedUniqueValues = useMemo(() => {
-    if (filterVariant === 'collection') {
+    if (filterVariant === 'collection' && collectionFilterKey) {
       const rows = column.getFacetedRowModel().rows;
-      const data = rows
-        .map((row: Row<CollectionEntry<CollectionTypes>>) => {
-          // @ts-ignore
-          const items = row.original.data[collectionFilterKey];
-          return items as CollectionEntry<CollectionTypes>[];
-        })
-        .flat();
+      const data = rows.map((row) => row.original.data?.[collectionFilterKey] ?? []).flat();
 
-      const allItems = data.map((item) => `${item.data.name} (v${item.data.version})`);
+      const allItems = data.map((item) => `${item?.data.name} (v${item?.data.version})`);
       const uniqueItemsInList = Array.from(new Set(allItems));
 
       return uniqueItemsInList.sort().slice(0, 2000);
@@ -225,10 +283,9 @@ function Filter({ column }: { column: Column<any, unknown> }) {
     if (filterVariant === 'name') {
       const rows = column.getFacetedRowModel().rows;
       const data = rows
-        .map((row: Row<CollectionEntry<CollectionTypes>>) => {
-          // @ts-ignore
+        .map((row) => {
           const data = row.original;
-          return data as CollectionEntry<CollectionTypes>;
+          return data;
         })
         .flat();
 

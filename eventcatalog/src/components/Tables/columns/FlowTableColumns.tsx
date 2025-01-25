@@ -1,11 +1,11 @@
 import { createColumnHelper } from '@tanstack/react-table';
-import type { CollectionEntry } from 'astro:content';
 import { filterByName } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';
 import { QueueListIcon } from '@heroicons/react/24/solid';
 import { createBadgesColumn } from './SharedColumns';
+import type { TData } from '../Table';
 
-const columnHelper = createColumnHelper<CollectionEntry<'flows'>>();
+const columnHelper = createColumnHelper<TData<'flows'>>();
 
 export const columns = () => [
   columnHelper.accessor('data.name', {
