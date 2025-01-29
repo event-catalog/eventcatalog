@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.19.6
+
+### Patch Changes
+
+- 3211cad: refactor(core): reduced amount of data the discover table needs
+
 ## 2.19.5
 
 ### Patch Changes
