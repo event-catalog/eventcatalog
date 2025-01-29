@@ -1,7 +1,9 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import { Tag } from 'lucide-react';
 import { filterByBadge } from '../filters/custom-filters';
-export const createBadgesColumn = <T extends { data: { badges?: any[] } }>(
+import type { TCollectionTypes, TData } from '../Table';
+
+export const createBadgesColumn = <T extends { data: Pick<TData<U>['data'], 'badges'> }, U extends TCollectionTypes>(
   columnHelper: ReturnType<typeof createColumnHelper<T>>
 ) => {
   return columnHelper.accessor((row) => row.data.badges, {
@@ -16,7 +18,7 @@ export const createBadgesColumn = <T extends { data: { badges?: any[] } }>(
 
       return (
         <ul>
-          {badges.map((badge: any, index: number) => {
+          {badges.map((badge, index) => {
             return (
               <li key={`${badge.id}-${index}`} className="py-1 group font-light ">
                 <div className="group-hover:text-primary flex space-x-1 items-center ">

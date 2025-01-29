@@ -1,13 +1,13 @@
 import { ServerIcon, BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import { createColumnHelper } from '@tanstack/react-table';
-import type { CollectionMessageTypes } from '@types';
-import type { CollectionEntry } from 'astro:content';
 import { useMemo } from 'react';
-import { filterByName, filterCollectionByName, filterByBadge } from '../filters/custom-filters';
+import { filterByName, filterCollectionByName } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';
 import { createBadgesColumn } from './SharedColumns';
+import type { TData } from '../Table';
+import type { CollectionMessageTypes } from '@types';
 
-const columnHelper = createColumnHelper<CollectionEntry<CollectionMessageTypes>>();
+const columnHelper = createColumnHelper<TData<CollectionMessageTypes>>();
 
 export const getColorAndIconForMessageType = (type: string) => {
   switch (type) {
@@ -80,7 +80,7 @@ export const columns = () => [
         return <div className="font-light text-sm text-gray-400/60 text-left italic">No producers documented</div>;
       return (
         <ul className="">
-          {producers.map((producer: any, index: number) => {
+          {producers.map((producer, index) => {
             return (
               <li className="py-2 group flex items-center space-x-2" key={`${producer.data.id}-${index}`}>
                 <a
@@ -120,7 +120,7 @@ export const columns = () => [
 
       return (
         <ul>
-          {consumers.map((consumer: any, index: number) => {
+          {consumers.map((consumer, index) => {
             return (
               <li key={`${consumer.data.id}-${index}`} className="py-1 group font-light ">
                 <a

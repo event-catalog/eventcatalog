@@ -1,13 +1,12 @@
 import { ServerIcon } from '@heroicons/react/20/solid';
 import { RectangleGroupIcon } from '@heroicons/react/20/solid';
 import { createColumnHelper } from '@tanstack/react-table';
-import type { CollectionEntry } from 'astro:content';
-import { filterByBadge, filterByName, filterCollectionByName } from '../filters/custom-filters';
+import { filterByName, filterCollectionByName } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';
-import { Tag } from 'lucide-react';
 import { createBadgesColumn } from './SharedColumns';
+import type { TData } from '../Table';
 
-const columnHelper = createColumnHelper<CollectionEntry<'domains'>>();
+const columnHelper = createColumnHelper<TData<'domains'>>();
 
 export const columns = () => [
   columnHelper.accessor('data.name', {
@@ -65,7 +64,7 @@ export const columns = () => [
 
       return (
         <ul>
-          {services.map((consumer: any) => {
+          {services.map((consumer) => {
             const color = 'pink';
             return (
               <li key={consumer.data.id} className="py-1 group ">

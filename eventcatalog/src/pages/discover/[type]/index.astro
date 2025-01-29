@@ -1,10 +1,8 @@
 ---
-import DiscoverLayout from '@layouts/DiscoverLayout.astro';
-import type { PageTypes } from '@types';
+import DiscoverLayout, { type Props as DiscoverLayoutProps } from '@layouts/DiscoverLayout.astro';
 import { getFlows } from '@utils/collections/flows';
 
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
-type PageTypesWithFlows = PageTypes | 'flows';
 
 export async function getStaticPaths() {
   const loaders = {
@@ -12,7 +10,7 @@ export async function getStaticPaths() {
     flows: getFlows,
   };
 
-  const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows', 'channels'];
+  const itemTypes = ['events', 'commands', 'queries', 'services', 'domains', 'flows'] as const;
   const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
 
   return allItems.flatMap((items, index) => ({
@@ -27,11 +25,45 @@ export async function getStaticPaths() {
 }
 
 const { type, data } = Astro.props;
+
+function mapToItem(i: any) {
+  return {
+    collection: i.collection,
+    data: {
+      id: i.data.id,
+      name: i.data.name,
+      version: i.data.version,
+    },
+  };
+}
 ---
 
 <DiscoverLayout
   title={`${type} (${data.length})`}
   subtitle={`Find, filter and search for any ${type} in your system.`}
-  data={data}
+  data={data.map(
+    (d) =>
+      ({
+        collection: d.collection,
+        data: {
+          id: d.data.id,
+          name: d.data.name,
+          summary: d.data?.summary,
+          version: d.data.version,
+          latestVersion: d.data?.latestVersion,
+          badges: d.data?.badges,
+          // @ts-ignore
+          consumers: d.data?.consumers?.map(mapToItem) ?? [],
+          // @ts-ignore
+          producers: d.data?.producers?.map(mapToItem) ?? [],
+          // @ts-ignore
+          receives: d.data?.receives?.map(mapToItem) ?? [],
+          // @ts-ignore
+          sends: d.data?.sends?.map(mapToItem) ?? [],
+          // @ts-ignore
+          services: d.data?.services?.map(mapToItem) ?? [],
+        },
+      }) as DiscoverLayoutProps<typeof type>['data'][0]
+  )}
   type={type}
 />
