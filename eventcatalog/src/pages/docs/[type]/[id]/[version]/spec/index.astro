@@ -42,7 +42,7 @@ const pathOnDisk = path.join(process.cwd(), 'public', pathToSpec);
 const fileExists = fs.existsSync(pathOnDisk);
 ---
 
-<VerticalSideBarLayout title="OpenAPI Spec" }>
+<VerticalSideBarLayout title="OpenAPI Spec">
   {
     !fileExists ? (
       <div class="text-center h-screen  flex flex-col justify-center ">
@@ -65,7 +65,7 @@ const fileExists = fs.existsSync(pathOnDisk);
         theme="light"
         schema-style="table"
         class="relative top-0"
-        style={{ height: '100vh', width: '100%', zIndex: 100 }}
+        style={{ height: '100%', width: '100%', zIndex: 100 }}
         regular-font="ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji"
         bg-color="#ffffff"
         primary-color="#6b21a8"
