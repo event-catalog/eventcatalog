@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.19.7
+
+### Patch Changes
+
+- e7a1cf9: fix(core): fixed issue with double scroll bars on spec pages
+
 ## 2.19.6
 
 ### Patch Changes
