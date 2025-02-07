@@ -6,6 +6,7 @@ import yaml from 'js-yaml';
 import path from 'path';
 import SchemaViewerClient from './SchemaViewer';
 import Admonition from '../Admonition';
+import { undefined } from 'astro:schema';
 let schemas = [];
 
 function findSchemaViewers(document: string) {
@@ -55,7 +56,7 @@ try {
       } else {
         schema = JSON.parse(schema);
         // Lets JSON schema control if the component should be rendered or not
-        if (schema['x-eventcatalog-render-schema-viewer']) {
+        if (schema['x-eventcatalog-render-schema-viewer'] !== undefined) {
           render = schema['x-eventcatalog-render-schema-viewer'];
         }
       }
