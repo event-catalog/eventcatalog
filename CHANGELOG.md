@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.19.9
+
+### Patch Changes
+
+- 577c781: feat(plugin): if apigateway schemas are empty the render-schema-viewe…
+
 ## 2.19.8
 
 ### Patch Changes
