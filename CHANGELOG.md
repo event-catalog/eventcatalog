@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.19.8
+
+### Patch Changes
+
+- 21524b3: feat(core): <SchemaViewer/> visibility can be controlled by schema it…
+
 ## 2.19.7
 
 ### Patch Changes
