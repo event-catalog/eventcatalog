@@ -54,7 +54,10 @@ try {
         schema = yaml.load(schema);
       } else {
         schema = JSON.parse(schema);
-        render = schema.render || true;
+        // Lets JSON schema control if the component should be rendered or not
+        if (schema['x-eventcatalog-render-schema-viewer']) {
+          render = schema['x-eventcatalog-render-schema-viewer'];
+        }
       }
     }
 
