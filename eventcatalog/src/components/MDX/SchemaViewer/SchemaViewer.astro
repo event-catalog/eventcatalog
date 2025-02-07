@@ -45,6 +45,7 @@ try {
     const schemaPath = path.join(catalog.filePath, schemaViewerProps.file);
     const exists = existsSync(schemaPath);
     let schema;
+    let render = true;
 
     if (exists) {
       // Load the schema for the component
@@ -53,6 +54,7 @@ try {
         schema = yaml.load(schema);
       } else {
         schema = JSON.parse(schema);
+        render = schema.render || true;
       }
     }
 
@@ -62,6 +64,7 @@ try {
       schema,
       schemaPath,
       ...schemaViewerProps,
+      render,
     };
   });
 
@@ -75,20 +78,23 @@ try {
 <section class="space-y-4">
   {
     schemas.length > 0 &&
-      schemas.map((schema) => (
-        <div>
-          {schema.exists && <SchemaViewerClient {...schema} client:only="react" />}
+      schemas.map((schema) => {
+        if (!schema.render) return null;
+        return (
+          <div>
+            {schema.exists && <SchemaViewerClient {...schema} client:only="react" />}
 
-          {/* User has tried to load the schema, but it was not found on file system */}
-          {!schema.exists && (
-            <Admonition type="warning">
-              <div>
-                <span class="block font-bold">{`<SchemaViewer/>`} failed to load</span>
-                <span class="block">Tried to load schema from {schema.schemaPath}, but no schema can be found</span>
-              </div>
-            </Admonition>
-          )}
-        </div>
-      ))
+            {/* User has tried to load the schema, but it was not found on file system */}
+            {!schema.exists && (
+              <Admonition type="warning">
+                <div>
+                  <span class="block font-bold">{`<SchemaViewer/>`} failed to load</span>
+                  <span class="block">Tried to load schema from {schema.schemaPath}, but no schema can be found</span>
+                </div>
+              </Admonition>
+            )}
+          </div>
+        );
+      })
   }
 </section>
