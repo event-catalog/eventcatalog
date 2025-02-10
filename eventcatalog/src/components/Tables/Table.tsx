@@ -20,8 +20,18 @@ import { isSameVersion } from '@utils/collections/util';
 declare module '@tanstack/react-table' {
   // @ts-ignore
   interface ColumnMeta<TData extends RowData, TValue> {
-    filterVariant?: 'collection' | 'name' | 'badges';
-    collectionFilterKey?: 'producers' | 'consumers' | 'sends' | 'receives' | 'services' | 'ownedCommands' | 'ownedEvents' | 'ownedServices' | 'associatedTeams';
+    filterVariant?: 'collection' | 'name' | 'badges' | 'text';
+    collectionFilterKey?:
+      | 'producers'
+      | 'consumers'
+      | 'sends'
+      | 'receives'
+      | 'services'
+      | 'ownedCommands'
+      | 'ownedEvents'
+      | 'ownedServices'
+      | 'associatedTeams';
+    filteredItemHasVersion?: boolean;
     showFilter?: boolean;
     className?: string;
   }
@@ -98,10 +108,13 @@ export type TData<T extends TCollectionTypes> = {
     slackDirectMessageUrl?: string;
     msTeamsDirectMessageUrl?: string;
     role?: string;
-    ownedCommands: any
-    ownedEvents: any
-    ownedServices: any
-    associatedTeams: any
+    ownedCommands: any;
+    ownedEvents: any;
+    ownedServices: any;
+    associatedTeams: any;
+
+    // Teams
+    members: any;
   };
 };
 
@@ -132,6 +145,8 @@ export const Table = <T extends TCollectionTypes>({
   useEffect(() => {
     const checkbox = document.getElementById(checkboxLatestId);
 
+    console.log('HELLO WORLD');
+
     function handleChange(evt: Event) {
       setShowOnlyLatest((evt.target as HTMLInputElement).checked);
     }
@@ -160,6 +175,7 @@ export const Table = <T extends TCollectionTypes>({
     onGlobalFilterChange: setShowOnlyLatest,
     globalFilterFn: (row, _columnId, showOnlyLatest: boolean) => {
       if (showOnlyLatest) {
+        console.log(row.original.data.version, row.original.data.latestVersion);
         return isSameVersion(row.original.data.version, row.original.data.latestVersion);
       }
 
@@ -276,7 +292,7 @@ export const Table = <T extends TCollectionTypes>({
 };
 
 function Filter<T extends TCollectionTypes>({ column }: { column: Column<TData<T>, unknown> }) {
-  const { filterVariant, collectionFilterKey } = column.columnDef.meta ?? {};
+  const { filterVariant, collectionFilterKey, filteredItemHasVersion = true } = column.columnDef.meta ?? {};
 
   const columnFilterValue = column.getFilterValue();
 
@@ -285,7 +301,9 @@ function Filter<T extends TCollectionTypes>({ column }: { column: Column<TData<T
       const rows = column.getFacetedRowModel().rows;
       const data = rows.map((row) => row.original.data?.[collectionFilterKey] ?? []).flat();
 
-      const allItems = data.map((item) => `${item?.data.name} (v${item?.data.version})`);
+      const allItems = data.map((item) =>
+        filteredItemHasVersion ? `${item?.data.name} (v${item?.data.version})` : `${item?.data.name}`
+      );
       const uniqueItemsInList = Array.from(new Set(allItems));
 
       return uniqueItemsInList.sort().slice(0, 2000);
@@ -299,7 +317,9 @@ function Filter<T extends TCollectionTypes>({ column }: { column: Column<TData<T
         })
         .flat();
 
-      const allItems = data.map((item) => `${item.data.name} (v${item.data.version})`);
+      const allItems = data.map((item) =>
+        filteredItemHasVersion ? `${item.data.name} (v${item.data.version})` : `${item.data.name}`
+      );
       const uniqueItemsInList = Array.from(new Set(allItems));
 
       return uniqueItemsInList.sort().slice(0, 2000);

@@ -34,20 +34,20 @@ const checkboxLatestId = 'latest-only';
 const tabs = [
   {
     label: `Users (${users.length})`,
-    href: buildUrl('/users/users'),
-    isActive: currentPath === '/users/users',
-    icon: User  ,
+    href: buildUrl('/directory/users'),
+    isActive: currentPath === '/directory/users',
+    icon: User,
     activeColor: 'orange',
     enabled: users.length > 0,
   },
   {
     label: `Teams (${teams.length})`,
-    href: buildUrl('/users/teams'),
-    isActive: currentPath === '/users/teams',
+    href: buildUrl('/directory/teams'),
+    isActive: currentPath === '/directory/teams',
     icon: Users,
     activeColor: 'blue',
     enabled: teams.length > 0,
-  }
+  },
 ];
 ---
 
@@ -83,9 +83,6 @@ const tabs = [
           <div class="sm:flex-auto space-y-2">
             <h1 class="text-4xl font-semibold text-gray-900 capitalize">{title}</h1>
             <p class="text-md text-gray-700">{subtitle}</p>
-          </div>
-          <div class="p-4 border border-gray-200 rounded-md">
-            <Checkbox id={checkboxLatestId} name={checkboxLatestId} label="Show latest version only" checked />
           </div>
         </div>
         <div class="mt-4 flow-root">

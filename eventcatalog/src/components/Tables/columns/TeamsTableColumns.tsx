@@ -41,12 +41,8 @@ export const columns = () => [
           >
             <div className={`flex items-center border border-gray-300 shadow-sm rounded-md group-hover:border-${color}-400`}>
               <span className="flex items-center">
-                <span className={`bg-gray-100 group-hover:bg-${color}-600 h-full rounded-tl rounded-bl p-1`}>
-                  {messageRaw.data.avatarUrl && (
-                    <img src={messageRaw.data.avatarUrl} alt={messageRaw.data.name} className="h-4 w-4 rounded-full" />
-                  )}
-
-                  {!messageRaw.data.avatarUrl && <User className="h-4 w-4 text-white" />}
+                <span className={`bg-pink-500 group-hover:bg-${color}-600 h-full rounded-tl rounded-bl p-1`}>
+                  {!messageRaw.data.avatarUrl && <Users className="h-4 w-4 text-white" />}
                 </span>
                 <span className="leading-none px-2 group-hover:underline group-hover:text-primary font-light">
                   {messageRaw.data.name}
@@ -64,16 +60,29 @@ export const columns = () => [
     filterFn: filterByName,
   }),
 
-  columnHelper.accessor('data.role', {
-    id: 'role',
-    header: () => 'Role',
-    cell: (info) => <span className="font-light ">{info.renderValue()}</span>,
-    footer: (info) => info.column.id,
+  columnHelper.accessor('data.members', {
+    header: () => <span>Team members</span>,
     meta: {
+      // filterVariant: 'collection',
       showFilter: false,
-      className: 'max-w-[200px]',
     },
-    filterFn: filterCollectionByName('role'),
+    cell: (info) => {
+      const members = info.getValue();
+      if (members?.length === 0 || !members)
+        return <div className="font-light text-sm text-gray-400/60 text-left italic">Team has no members</div>;
+
+      const isExpandable = members?.length > 10;
+      const isOpen = isExpandable ? members?.length < 10 : true;
+      const [isExpanded, setIsExpanded] = useState(isOpen);
+
+      console.log(members);
+
+      return <div>{members.length}</div>;
+
+      // return commands.length;
+    },
+    footer: (info) => info.column.id,
+    filterFn: filterByName,
   }),
 
   columnHelper.accessor('data.ownedCommands', {
@@ -231,57 +240,7 @@ export const columns = () => [
     footer: (info) => info.column.id,
     filterFn: filterCollectionByName('ownedServices'),
   }),
-  columnHelper.accessor('data.associatedTeams', {
-    header: () => <span>Teams</span>,
-    meta: {
-      filterVariant: 'collection',
-      collectionFilterKey: 'associatedTeams',
-      filteredItemHasVersion: false,
-    },
-    cell: (info) => {
-      const teams = info.getValue();
 
-      const isExpandable = teams?.length > 10;
-      const isOpen = isExpandable ? teams?.length < 10 : true;
-      const [isExpanded, setIsExpanded] = useState(isOpen);
-
-      if (teams?.length === 0 || !teams)
-        return <div className="font-light text-sm text-gray-400/80 text-left italic">User is not associated with any teams</div>;
-
-      return (
-        <div>
-          {isExpandable && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="mb-2 text-sm text-gray-600 hover:text-gray-900">
-              {isExpanded ? '▼' : '▶'} {teams.length} team{teams.length !== 1 ? 's' : ''}
-            </button>
-          )}
-          {isExpanded && (
-            <ul>
-              {teams.map((team: CollectionEntry<'teams'>, index: number) => (
-                <li key={`${team.data.id}-${index}`} className="py-1 group font-light ">
-                  <a
-                    href={buildUrl(`/docs/teams/${team.data.id}`)}
-                    className="group-hover:text-primary flex space-x-1 items-center "
-                  >
-                    <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
-                      <span className="flex items-center">
-                        <span className={`bg-pink-500 h-full rounded-tl rounded-bl p-1`}>
-                          <Users className="h-4 w-4 text-white" />
-                        </span>
-                        <span className="leading-none px-2 group-hover:underline ">{team.data.name}</span>
-                      </span>
-                    </div>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      );
-    },
-    footer: (info) => info.column.id,
-    filterFn: filterCollectionByName('associatedTeams'),
-  }),
   columnHelper.accessor('data.name', {
     header: () => <span />,
     cell: (info) => {
