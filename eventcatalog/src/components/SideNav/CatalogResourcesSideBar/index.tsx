@@ -75,7 +75,7 @@ const CatalogResourcesSideBar: React.FC<CatalogResourcesSideBarProps> = ({ resou
   if (!isInitialized) return null;
 
   return (
-    <nav className="space-y-6 text-black ">
+    <nav className="space-y-6 text-black px-5 py-4 ">
       <div className="space-y-2">
         <div className="mb-4 px-1">
           <input
