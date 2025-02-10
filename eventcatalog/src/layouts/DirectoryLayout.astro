@@ -1,0 +1,110 @@
+---
+import { Table, type TData, type TCollectionTypes } from '@components/Tables/Table';
+import { QueueListIcon, RectangleGroupIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import ServerIcon from '@heroicons/react/24/outline/ServerIcon';
+import { getCommands } from '@utils/commands';
+import { getDomains } from '@utils/collections/domains';
+import { getFlows } from '@utils/collections/flows';
+import { getEvents } from '@utils/events';
+import { getServices } from '@utils/collections/services';
+import { buildUrl } from '@utils/url-builder';
+import { getQueries } from '@utils/queries';
+import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
+import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
+import Checkbox from '@components/Checkbox.astro';
+import { User, Users } from 'lucide-react';
+import { getUsers } from '@utils/users';
+import { getTeams } from '@utils/teams';
+
+const users = await getUsers();
+const teams = await getTeams();
+
+export interface Props<T extends TCollectionTypes> {
+  title: string;
+  subtitle: string;
+  data: TData<T>[];
+  type: T;
+}
+
+const { title, subtitle, data, type } = Astro.props;
+const currentPath = Astro.url.pathname;
+
+const checkboxLatestId = 'latest-only';
+
+const tabs = [
+  {
+    label: `Users (${users.length})`,
+    href: buildUrl('/directory/users'),
+    isActive: currentPath === '/directory/users',
+    icon: User,
+    activeColor: 'orange',
+    enabled: users.length > 0,
+  },
+  {
+    label: `Teams (${teams.length})`,
+    href: buildUrl('/directory/teams'),
+    isActive: currentPath === '/directory/teams',
+    icon: Users,
+    activeColor: 'blue',
+    enabled: teams.length > 0,
+  },
+];
+---
+
+<VerticalSideBarLayout title={`Explore | ${title}`}>
+  <main class="ml-0">
+    <div id="discover-collection-tabs">
+      <div class="hidden sm:block">
+        <div class="border-b border-gray-200">
+          <nav class="flex space-x-8 -mb-0.5 pl-6" aria-label="Tabs">
+            {
+              tabs.map((tab) => (
+                <a
+                  href={tab.href}
+                  class={` text-black  group inline-flex items-center py-4 px-1 text-sm font-light ${tab.isActive ? `border-${tab.activeColor}-500 border-b-[2px] text-${tab.activeColor}-500` : 'opacity-80'} ${!tab.enabled ? 'disabled' : ''}`}
+                  aria-current="page"
+                >
+                  <tab.icon
+                    className={`w-6 h-6 -ml-0.5 mr-2  ${tab.isActive ? `text-${tab.activeColor}-500` : 'text-gray-500'}`}
+                  />
+                  <span>{tab.label}</span>
+                </a>
+              ))
+            }
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="pb-20 ml-6 md:pr-10">
+      <div>
+        <div class="sm:flex sm:items-end py-4 pb-4" id="discover-title">
+          <div class="sm:flex-auto space-y-2">
+            <h1 class="text-4xl font-semibold text-gray-900 capitalize">{title}</h1>
+            <p class="text-md text-gray-700">{subtitle}</p>
+          </div>
+        </div>
+        <div class="mt-4 flow-root">
+          <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="inline-block min-w-full align-middle sm:px-6 lg:px-8">
+              <Table checkboxLatestId={checkboxLatestId} data={data} collection={type} client:load />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</VerticalSideBarLayout>
+
+<style>
+  .ec-align-top {
+    vertical-align: top !important;
+  }
+
+  a.disabled {
+    pointer-events: none;
+    cursor: default;
+    opacity: 0.25;
+  }
+</style>
