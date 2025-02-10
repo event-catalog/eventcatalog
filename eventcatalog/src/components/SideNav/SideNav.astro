@@ -1,15 +1,21 @@
 ---
 import type { HTMLAttributes } from 'astro/types';
+// FlatView
 import CatalogResourcesSideBar from './CatalogResourcesSideBar';
 import { getCatalogResources } from './CatalogResourcesSideBar/getCatalogResources';
+// TreeView
+import { SideNavTreeView } from './TreeView';
+import { getTreeView } from './TreeView/getTreeView';
 
 interface Props extends Omit<HTMLAttributes<'div'>, 'children'> {}
 
 const currentPath = Astro.url.pathname;
 
-const sideNav = await getCatalogResources({ currentPath });
+// const sideNav = await getCatalogResources({ currentPath });
+const tree = getTreeView({ projectDir: process.env.PROJECT_DIR!, currentPath });
 ---
 
 <div {...Astro.props}>
-  <CatalogResourcesSideBar resources={sideNav} currentPath={currentPath} client:load />
+  <!-- <CatalogResourcesSideBar resources={sideNav} currentPath={currentPath} client:load /> -->
+  <SideNavTreeView client:only transition:persist tree={{ id: '/', name: 'root', type: null, version: '', children: tree }} />
 </div>
