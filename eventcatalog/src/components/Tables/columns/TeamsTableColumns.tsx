@@ -38,13 +38,10 @@ export const columns = () => [
             href={buildUrl(`/docs/${messageRaw.collection}/${messageRaw.data.id}`)}
             className={`group-hover:text-pink-500 flex space-x-1 items-center`}
           >
-            <div className={`flex items-center border border-gray-300 shadow-sm rounded-md group-hover:border-pink-400`}>
+            <div className={`flex items-center  rounded-md group-hover:border-pink-400`}>
               <span className="flex items-center">
-                <span className={`bg-pink-500 group-hover:bg-pink-600 h-full rounded-tl rounded-bl p-1`}>
-                  {!messageRaw.data.avatarUrl && <Users className="h-4 w-4 text-white" />}
-                </span>
-                <span className="leading-none px-2 group-hover:underline group-hover:text-primary font-light">
-                  {messageRaw.data.name}
+                <span className="flex flex-col leading-none px-2 group-hover:underline group-hover:text-primary font-light">
+                  <span className="font-semibold">{messageRaw.data.name}</span>
                 </span>
               </span>
             </div>
@@ -59,21 +56,56 @@ export const columns = () => [
     filterFn: filterByName,
   }),
 
-  columnHelper.accessor('data.members', {
-    header: () => <span>Team members</span>,
+  columnHelper.accessor('data.ownedEvents', {
+    header: () => <span>Owned events</span>,
     meta: {
-      // filterVariant: 'collection',
-      showFilter: false,
+      filterVariant: 'collection',
+      collectionFilterKey: 'ownedEvents',
     },
     cell: (info) => {
-      const members = info.getValue();
-      if (members?.length === 0 || !members)
-        return <div className="font-light text-sm text-gray-400/60 text-left italic">Team has no members</div>;
+      const events = info.getValue();
+      if (events?.length === 0 || !events)
+        return <div className="font-light text-sm text-gray-400/80 text-left italic">Team owns no events</div>;
 
-      return <div>{members.length}</div>;
+      const isExpandable = events?.length > 10;
+      const isOpen = isExpandable ? events?.length < 10 : true;
+      const [isExpanded, setIsExpanded] = useState(isOpen);
+
+      return (
+        <div>
+          {isExpandable && (
+            <button onClick={() => setIsExpanded(!isExpanded)} className="mb-2 text-sm text-gray-600 hover:text-gray-900">
+              {isExpanded ? '▼' : '▶'} {events.length} event{events.length !== 1 ? 's' : ''}
+            </button>
+          )}
+          {isExpanded && (
+            <ul>
+              {events.map((event: CollectionEntry<'events'>, index: number) => (
+                <li key={`${event.data.id}-${index}`} className="py-1 group font-light ">
+                  <a
+                    href={buildUrl(`/docs/${event.collection}/${event.data.id}/${event.data.version}`)}
+                    className="group-hover:text-primary flex space-x-1 items-center "
+                  >
+                    <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
+                      <span className="flex items-center">
+                        <span className={`bg-orange-500 h-full rounded-tl rounded-bl p-1`}>
+                          <BoltIcon className="h-4 w-4 text-white" />
+                        </span>
+                        <span className="leading-none px-2 group-hover:underline ">
+                          {event.data.name} (v{event.data.version})
+                        </span>
+                      </span>
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
     },
     footer: (info) => info.column.id,
-    filterFn: filterByName,
+    filterFn: filterCollectionByName('ownedEvents'),
   }),
 
   columnHelper.accessor('data.ownedCommands', {
@@ -85,7 +117,7 @@ export const columns = () => [
     cell: (info) => {
       const commands = info.getValue();
       if (commands?.length === 0 || !commands)
-        return <div className="font-light text-sm text-gray-400/60 text-left italic">User owns no commands</div>;
+        return <div className="font-light text-sm text-gray-400/60 text-left italic">Team owns no commands</div>;
 
       const isExpandable = commands?.length > 10;
       const isOpen = isExpandable ? commands?.length < 10 : true;
@@ -129,43 +161,44 @@ export const columns = () => [
     footer: (info) => info.column.id,
     filterFn: filterCollectionByName('ownedCommands'),
   }),
-  columnHelper.accessor('data.ownedEvents', {
-    header: () => <span>Owned Events</span>,
+
+  columnHelper.accessor('data.ownedQueries', {
+    header: () => <span>Owned queries</span>,
     meta: {
       filterVariant: 'collection',
-      collectionFilterKey: 'ownedEvents',
+      collectionFilterKey: 'ownedQueries',
     },
     cell: (info) => {
-      const events = info.getValue();
-      if (events?.length === 0 || !events)
-        return <div className="font-light text-sm text-gray-400/80 text-left italic">User owns no events</div>;
+      const queries = info.getValue();
+      if (queries?.length === 0 || !queries)
+        return <div className="font-light text-sm text-gray-400/60 text-left italic">Team owns no queries</div>;
 
-      const isExpandable = events?.length > 10;
-      const isOpen = isExpandable ? events?.length < 10 : true;
+      const isExpandable = queries?.length > 10;
+      const isOpen = isExpandable ? queries?.length < 10 : true;
       const [isExpanded, setIsExpanded] = useState(isOpen);
 
       return (
         <div>
           {isExpandable && (
             <button onClick={() => setIsExpanded(!isExpanded)} className="mb-2 text-sm text-gray-600 hover:text-gray-900">
-              {isExpanded ? '▼' : '▶'} {events.length} event{events.length !== 1 ? 's' : ''}
+              {isExpanded ? '▼' : '▶'} {queries.length} query{queries.length !== 1 ? 's' : ''}
             </button>
           )}
           {isExpanded && (
             <ul>
-              {events.map((event: CollectionEntry<'events'>, index: number) => (
-                <li key={`${event.data.id}-${index}`} className="py-1 group font-light ">
+              {queries.map((query: CollectionEntry<'queries'>, index: number) => (
+                <li key={`${query.data.id}-${index}`} className="py-1 group font-light ">
                   <a
-                    href={buildUrl(`/docs/${event.collection}/${event.data.id}/${event.data.version}`)}
+                    href={buildUrl(`/docs/${query.collection}/${query.data.id}/${query.data.version}`)}
                     className="group-hover:text-primary flex space-x-1 items-center "
                   >
                     <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
                       <span className="flex items-center">
-                        <span className={`bg-orange-500 h-full rounded-tl rounded-bl p-1`}>
-                          <BoltIcon className="h-4 w-4 text-white" />
+                        <span className={`bg-blue-500 h-full rounded-tl rounded-bl p-1`}>
+                          <ChatBubbleLeftIcon className="h-4 w-4 text-white" />
                         </span>
                         <span className="leading-none px-2 group-hover:underline ">
-                          {event.data.name} (v{event.data.version})
+                          {query.data.name} (v{query.data.version})
                         </span>
                       </span>
                     </div>
@@ -176,10 +209,13 @@ export const columns = () => [
           )}
         </div>
       );
+
+      // return commands.length;
     },
     footer: (info) => info.column.id,
-    filterFn: filterCollectionByName('ownedEvents'),
+    filterFn: filterCollectionByName('ownedCommands'),
   }),
+
   columnHelper.accessor('data.ownedServices', {
     header: () => <span>Owned Services</span>,
     meta: {
@@ -189,7 +225,7 @@ export const columns = () => [
     cell: (info) => {
       const services = info.getValue();
       if (services?.length === 0 || !services)
-        return <div className="font-light text-sm text-gray-400/80 text-left italic">User owns no services</div>;
+        return <div className="font-light text-sm text-gray-400/80 text-left italic">Team owns no services</div>;
 
       const isExpandable = services?.length > 10;
       const isOpen = isExpandable ? services?.length < 10 : true;

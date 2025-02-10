@@ -5,7 +5,7 @@ version: 0.0.1
 summary: |
   An event that is triggered when a new user subscription has started
 owners:
-    - dboyne
+    - subscriptions-management
 badges:
     - content: New!
       backgroundColor: green

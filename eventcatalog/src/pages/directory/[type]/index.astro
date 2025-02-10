@@ -46,6 +46,7 @@ function mapToItem(i: any) {
       ({
         collection: d.collection,
         data: {
+          // @ts-ignore
           id: d.data.id,
           name: d.data.name,
           // @ts-ignore
@@ -56,6 +57,8 @@ function mapToItem(i: any) {
           associatedTeams: d.data?.associatedTeams?.map(mapToItem) ?? [],
           // @ts-ignore
           ownedCommands: d.data?.ownedCommands?.map(mapToItem) ?? [],
+          // @ts-ignore
+          ownedQueries: d.data?.ownedQueries?.map(mapToItem) ?? [],
           // @ts-ignore
           ownedEvents: d.data?.ownedEvents?.map(mapToItem) ?? [],
           // @ts-ignore

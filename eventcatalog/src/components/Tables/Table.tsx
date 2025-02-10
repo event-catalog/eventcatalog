@@ -28,6 +28,7 @@ declare module '@tanstack/react-table' {
       | 'receives'
       | 'services'
       | 'ownedCommands'
+      | 'ownedQueries'
       | 'ownedEvents'
       | 'ownedServices'
       | 'associatedTeams';
@@ -112,7 +113,7 @@ export type TData<T extends TCollectionTypes> = {
     ownedEvents: any;
     ownedServices: any;
     associatedTeams: any;
-
+    ownedQueries: any;
     // Teams
     members: any;
   };
