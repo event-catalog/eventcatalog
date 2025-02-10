@@ -37,7 +37,7 @@ declare module '@tanstack/react-table' {
   }
 }
 
-export type TCollectionTypes = 'domains' | 'services' | CollectionMessageTypes | 'flows';
+export type TCollectionTypes = 'domains' | 'services' | CollectionMessageTypes | 'flows' | 'users' | 'teams';
 
 export type TData<T extends TCollectionTypes> = {
   collection: T;

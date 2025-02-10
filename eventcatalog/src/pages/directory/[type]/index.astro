@@ -2,7 +2,7 @@
 import { getUsers } from '@utils/users';
 import { getTeams } from '@utils/teams';
 
-import DirectoryLayout from '@layouts/DirectoryLayout.astro';
+import DirectoryLayout, { type Props as DirectoryLayoutProps } from '@layouts/DirectoryLayout.astro';
 
 export async function getStaticPaths() {
   const loaders = {
@@ -41,13 +41,6 @@ function mapToItem(i: any) {
 <DirectoryLayout
   title={`${type} (${data.length})`}
   subtitle={`Find, filter and search for any ${type} in your system.`}
-  data={data}
-  type={type}
-/>
-
-<!-- <DiscoverLayout
-  title={`${type} (${data.length})`}
-  subtitle={`Find, filter and search for any ${type} in your system.`}
   data={data.map(
     (d) =>
       ({
@@ -55,22 +48,20 @@ function mapToItem(i: any) {
         data: {
           id: d.data.id,
           name: d.data.name,
-          summary: d.data?.summary,
-          version: d.data.version,
-          latestVersion: d.data?.latestVersion,
-          badges: d.data?.badges,
           // @ts-ignore
-          consumers: d.data?.consumers?.map(mapToItem) ?? [],
+          role: d.data?.role,
           // @ts-ignore
-          producers: d.data?.producers?.map(mapToItem) ?? [],
+          avatarUrl: d.data?.avatarUrl,
           // @ts-ignore
-          receives: d.data?.receives?.map(mapToItem) ?? [],
+          associatedTeams: d.data?.associatedTeams?.map(mapToItem) ?? [],
           // @ts-ignore
-          sends: d.data?.sends?.map(mapToItem) ?? [],
+          ownedCommands: d.data?.ownedCommands?.map(mapToItem) ?? [],
           // @ts-ignore
-          services: d.data?.services?.map(mapToItem) ?? [],
+          ownedEvents: d.data?.ownedEvents?.map(mapToItem) ?? [],
+          // @ts-ignore
+          ownedServices: d.data?.ownedServices?.map(mapToItem) ?? [],
         },
-      }) as DiscoverLayoutProps<typeof type>['data'][0]
+      }) as DirectoryLayoutProps<typeof type>['data'][0]
   )}
   type={type}
-/> -->
+/>

@@ -41,13 +41,15 @@ export const columns = () => [
           >
             <div className={`flex items-center border border-gray-300 shadow-sm rounded-md group-hover:border-${color}-400`}>
               <span className="flex items-center">
-                <span className={`bg-gray-100 group-hover:bg-${color}-600 h-full rounded-tl rounded-bl p-1`}>
-                  {messageRaw.data.avatarUrl && (
-                    <img src={messageRaw.data.avatarUrl} alt={messageRaw.data.name} className="h-4 w-4 rounded-full" />
-                  )}
+                {!messageRaw.data.avatarUrl && (
+                  <span className={`bg-gray-300 group-hover:bg-${color}-600 h-full rounded-tl rounded-bl p-1`}>
+                    <User className="h-4 w-4 text-white" />
+                  </span>
+                )}
+                {messageRaw.data.avatarUrl && (
+                  <img src={messageRaw.data.avatarUrl} alt={messageRaw.data.name} className="h-12 w-12 rounded-md p-0.5" />
+                )}
 
-                  {!messageRaw.data.avatarUrl && <User className="h-4 w-4 text-white" />}
-                </span>
                 <span className="leading-none px-2 group-hover:underline group-hover:text-primary font-light">
                   {messageRaw.data.name}
                 </span>
