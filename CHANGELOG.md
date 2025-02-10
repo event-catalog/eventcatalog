@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.20.1
+
+### Patch Changes
+
+- b2fa2ef: fix(core): removed hard coded static page for users
+
 ## 2.20.0
 
 ### Minor Changes
