@@ -5,7 +5,7 @@ name: Orders Service
 summary: |
   Service that handles orders
 owners:
-    - dboyne
+    - order-management
 receives:
   - id: InventoryAdjusted
     version: 0.0.3

@@ -267,6 +267,7 @@ const users = defineCollection({
     ownedServices: z.array(reference('services')).optional(),
     ownedEvents: z.array(reference('events')).optional(),
     ownedCommands: z.array(reference('commands')).optional(),
+    ownedQueries: z.array(reference('queries')).optional(),
     associatedTeams: z.array(reference('teams')).optional(),
   }),
 });
@@ -283,6 +284,7 @@ const teams = defineCollection({
     msTeamsDirectMessageUrl: z.string().optional(),
     members: z.array(reference('users')).optional(),
     ownedCommands: z.array(reference('commands')).optional(),
+    ownedQueries: z.array(reference('queries')).optional(),
     ownedDomains: z.array(reference('domains')).optional(),
     ownedServices: z.array(reference('services')).optional(),
     ownedEvents: z.array(reference('events')).optional(),

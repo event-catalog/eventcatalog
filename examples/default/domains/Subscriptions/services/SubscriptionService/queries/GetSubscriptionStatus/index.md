@@ -5,7 +5,7 @@ version: 0.0.2
 summary: |
   GET request that will return the current subscription status for a specific user, identified by their userId.
 owners:
-    - dboyne
+    - subscriptions-management
 badges:
     - content: Recently updated!
       backgroundColor: green

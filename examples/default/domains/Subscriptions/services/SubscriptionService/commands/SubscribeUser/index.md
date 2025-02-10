@@ -5,7 +5,7 @@ version: 0.0.1
 summary: |
   Command that will try and subscribe a given user
 owners:
-    - dboyne
+    - subscriptions-management
 badges:
     - content: New!
       backgroundColor: green

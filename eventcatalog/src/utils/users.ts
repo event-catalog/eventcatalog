@@ -1,3 +1,4 @@
+import type { CollectionTypes } from '@types';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
@@ -12,15 +13,10 @@ export const getUsers = async (): Promise<User[]> => {
 
   // What do they own?
   const domains = await getCollection('domains');
-
-  // What do they own?
   const services = await getCollection('services');
-
-  // What do they own?
   const events = await getCollection('events');
-
-  // What do they own?
   const commands = await getCollection('commands');
+  const queries = await getCollection('queries');
 
   const teams = await getCollection('teams', (team) => {
     return team.data.hidden !== true;
@@ -35,19 +31,18 @@ export const getUsers = async (): Promise<User[]> => {
       return domain.data.owners?.find((owner) => owner.id === user.data.id);
     });
 
-    const isOwnedByUserOrAssociatedTeam = () => {
-      const associatedTeamsSlug: string[] = associatedTeams.map((team) => team.id);
-
-      return ({ data }: { data: { owners?: Array<{ slug: string }> } }) => {
-        return data.owners?.some((owner) => owner.slug === user.data.id || associatedTeamsSlug.includes(owner.slug));
-      };
+    const isOwnedByUserOrAssociatedTeam = (item: CollectionEntry<CollectionTypes>) => {
+      const associatedTeamsSlug: string[] = associatedTeams.map((team) => team.slug);
+      return item.data.owners?.some((owner) => owner.id === user.data.id || associatedTeamsSlug.includes(owner.id));
     };
 
-    const ownedServices = services.filter(() => isOwnedByUserOrAssociatedTeam());
+    const ownedServices = services.filter(isOwnedByUserOrAssociatedTeam);
 
-    const ownedEvents = events.filter(() => isOwnedByUserOrAssociatedTeam());
+    const ownedEvents = events.filter(isOwnedByUserOrAssociatedTeam);
 
-    const ownedCommands = commands.filter(() => isOwnedByUserOrAssociatedTeam());
+    const ownedCommands = commands.filter(isOwnedByUserOrAssociatedTeam);
+
+    const ownedQueries = queries.filter(isOwnedByUserOrAssociatedTeam);
 
     return {
       ...user,
@@ -57,6 +52,7 @@ export const getUsers = async (): Promise<User[]> => {
         ownedServices,
         ownedEvents,
         ownedCommands,
+        ownedQueries,
         associatedTeams,
       },
       catalog: {

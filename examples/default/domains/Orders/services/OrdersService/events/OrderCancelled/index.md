@@ -5,8 +5,7 @@ version: 0.0.1
 summary: |
   Indicates an order has been canceled
 owners:
-    - dboyne
-    - msmith
+    - order-management
 badges:
     - content: Recently updated!
       backgroundColor: green
