@@ -16,6 +16,7 @@ export default {
   trailingSlash: false,
   docs: {
     sidebar: {
+      type: 'TREE_VIEW',
       services: {
         visible: true,
       },

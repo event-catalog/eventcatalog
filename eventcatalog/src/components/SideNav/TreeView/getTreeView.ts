@@ -121,7 +121,7 @@ function groupByType(parentNode: TreeNode) {
   });
 }
 
-export function getTreeView({ projectDir, currentPath }: { projectDir: string; currentPath: string }): TreeNode[] {
+export function getTreeView({ projectDir, currentPath }: { projectDir: string; currentPath: string }): TreeNode {
   const basePathname = currentPath.split('/')[1] as 'docs' | 'visualiser';
   const rootNode: TreeNode = {
     id: '/',
@@ -135,5 +135,5 @@ export function getTreeView({ projectDir, currentPath }: { projectDir: string; c
     ignore: basePathname === 'visualiser' ? ['teams', 'users', 'channels'] : undefined,
   });
   groupByType(rootNode);
-  return rootNode.children;
+  return rootNode;
 }
