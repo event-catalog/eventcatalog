@@ -1,0 +1,185 @@
+---
+import VerticalSideBarLayout from '../../layouts/VerticalSideBarLayout.astro';
+import { getUsers } from '@utils/users';
+import { getTeams } from '@utils/teams';
+
+const users = await getUsers();
+const teams = await getTeams();
+
+
+---
+
+<VerticalSideBarLayout title="EventCatalog">
+  <body class="min-h-screen bg-gray-50">
+    <main>
+      <div class="container mx-auto px-6 py-20 max-w-[90em]">
+        <div class="mb-12">
+          <h1 class="text-3xl font-bold text-gray-900 mb-8">Users</h1>
+          <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {users.map((user: any) => (
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <a href={`/docs/users/${user.data.id}`} class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                          <div class="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center overflow-hidden">
+                            {user.data.avatarUrl ? (
+                              <img src={user.data.avatarUrl} alt={user.data.name} class="h-10 w-10 object-cover" />
+                            ) : (
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                        <div class="ml-4">
+                          <div class="text-sm font-medium text-gray-900">{user.data.name}</div>
+                        </div>
+                      </a>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="text-sm text-gray-900">{user.data.role}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      {user.data.email && (
+                        <div class="text-sm text-gray-900">{user.data.email}</div>
+                      )}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center space-x-2">
+                        {user.data.slackDirectMessageUrl && (
+                          <a href={user.data.slackDirectMessageUrl} target="_blank" rel="noopener" class="text-gray-500 hover:text-gray-700">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
+                          </a>
+                        )}
+                        {user.data.msTeamsDirectMessageUrl && (
+                          <a href={user.data.msTeamsDirectMessageUrl} target="_blank" rel="noopener" class="text-gray-500 hover:text-gray-700">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="mb-12">
+          <h1 class="text-3xl font-bold text-gray-900 mb-8">Teams</h1>
+          <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Summary</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Members</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {teams.map((team: any) => (
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <a href={`/docs/teams/${team.data.id}`} class="flex items-center">
+                        <div class="flex-shrink-0 h-10 w-10">
+                          <div class="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center overflow-hidden">
+                            {team.data.avatarUrl ? (
+                              <img src={team.data.avatarUrl} alt={team.data.name} class="h-10 w-10 object-cover" />
+                            ) : (
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+                        <div class="ml-4">
+                          <div class="text-sm font-medium text-gray-900">{team.data.name}</div>
+                        </div>
+                      </a>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="text-sm text-gray-900">{team.data.summary}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      {team.data.members && (
+                        <div class="text-sm text-gray-900">{team.data.members.length} members</div>
+                      )}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center space-x-2">
+                        {team.data.slackDirectMessageUrl && (
+                          <a href={team.data.slackDirectMessageUrl} target="_blank" rel="noopener" class="text-gray-500 hover:text-gray-700">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>
+                          </a>
+                        )}
+                        {team.data.msTeamsDirectMessageUrl && (
+                          <a href={team.data.msTeamsDirectMessageUrl} target="_blank" rel="noopener" class="text-gray-500 hover:text-gray-700">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</VerticalSideBarLayout>
+
+<style>
+  .filter-btn.active {
+    background-color: #f3f4f6;
+    color: #111827;
+  }
+  
+  .filter-btn {
+    color: #6b7280;
+  }
+  
+  .filter-btn:hover {
+    color: #111827;
+  }
+</style>
+
+<script>
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  const rows = document.querySelectorAll('tr[data-type]');
+
+  filterButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      filterButtons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+
+      const filter = button.getAttribute('data-filter');
+      
+      rows.forEach(row => {
+        if (filter === 'all') {
+          row.style.display = 'table-row';
+        } else {
+          const rowType = row.getAttribute('data-type');
+          row.style.display = rowType === filter ? 'table-row' : 'none';
+        }
+      });
+    });
+  });
+
+  const defaultButton = document.querySelector('[data-filter="all"]');
+  if (defaultButton) {
+    defaultButton.classList.add('active');
+  }
+</script>

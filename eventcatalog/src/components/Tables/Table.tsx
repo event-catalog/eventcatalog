@@ -21,7 +21,7 @@ declare module '@tanstack/react-table' {
   // @ts-ignore
   interface ColumnMeta<TData extends RowData, TValue> {
     filterVariant?: 'collection' | 'name' | 'badges';
-    collectionFilterKey?: 'producers' | 'consumers' | 'sends' | 'receives' | 'services';
+    collectionFilterKey?: 'producers' | 'consumers' | 'sends' | 'receives' | 'services' | 'ownedCommands' | 'ownedEvents' | 'ownedServices' | 'associatedTeams';
     showFilter?: boolean;
     className?: string;
   }
@@ -92,6 +92,16 @@ export type TData<T extends TCollectionTypes> = {
       };
     }>;
     // ---------------------------------------------------------------------------
+    // Users
+    avatarUrl?: string;
+    email?: string;
+    slackDirectMessageUrl?: string;
+    msTeamsDirectMessageUrl?: string;
+    role?: string;
+    ownedCommands: any
+    ownedEvents: any
+    ownedServices: any
+    associatedTeams: any
   };
 };
 
