@@ -1,4 +1,3 @@
-import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { filterByName, filterCollectionByName } from '../filters/custom-filters';
@@ -11,20 +10,6 @@ import { ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/so
 
 const columnHelper = createColumnHelper<TData<CollectionUserTypes>>();
 
-export const getColorAndIconForMessageType = (type: string) => {
-  switch (type) {
-    case 'event':
-      return { color: 'orange', Icon: BoltIcon };
-    case 'command':
-      return { color: 'blue', Icon: ChatBubbleLeftIcon };
-    case 'querie':
-    case 'query':
-      return { color: 'green', Icon: MagnifyingGlassIcon };
-    default:
-      return { color: 'gray', Icon: ChatBubbleLeftIcon };
-  }
-};
-
 export const columns = () => [
   columnHelper.accessor('data.name', {
     id: 'name',
@@ -32,17 +17,16 @@ export const columns = () => [
     cell: (info) => {
       const messageRaw = info.row.original;
       const type = useMemo(() => messageRaw.collection.slice(0, -1), [messageRaw.collection]);
-      const { color, Icon } = getColorAndIconForMessageType(type);
       return (
         <div className=" group ">
           <a
             href={buildUrl(`/docs/${messageRaw.collection}/${messageRaw.data.id}`)}
-            className={`group-hover:text-${color}-500 flex space-x-1 items-center`}
+            className={`group-hover:text-gray-500 flex space-x-1 items-center`}
           >
-            <div className={`flex items-center border border-gray-300 shadow-sm rounded-md group-hover:border-${color}-400`}>
+            <div className={`flex items-center border border-gray-300 shadow-sm rounded-md group-hover:border-gray-400`}>
               <span className="flex items-center">
                 {!messageRaw.data.avatarUrl && (
-                  <span className={`bg-gray-300 group-hover:bg-${color}-600 h-full rounded-tl rounded-bl p-1`}>
+                  <span className={`bg-gray-300 group-hover:bg-gray-600 h-full rounded-tl rounded-bl p-1`}>
                     <User className="h-4 w-4 text-white" />
                   </span>
                 )}

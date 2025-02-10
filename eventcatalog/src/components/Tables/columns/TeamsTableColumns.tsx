@@ -32,16 +32,15 @@ export const columns = () => [
     cell: (info) => {
       const messageRaw = info.row.original;
       const type = useMemo(() => messageRaw.collection.slice(0, -1), [messageRaw.collection]);
-      const { color, Icon } = getColorAndIconForMessageType(type);
       return (
         <div className=" group ">
           <a
             href={buildUrl(`/docs/${messageRaw.collection}/${messageRaw.data.id}`)}
-            className={`group-hover:text-${color}-500 flex space-x-1 items-center`}
+            className={`group-hover:text-pink-500 flex space-x-1 items-center`}
           >
-            <div className={`flex items-center border border-gray-300 shadow-sm rounded-md group-hover:border-${color}-400`}>
+            <div className={`flex items-center border border-gray-300 shadow-sm rounded-md group-hover:border-pink-400`}>
               <span className="flex items-center">
-                <span className={`bg-pink-500 group-hover:bg-${color}-600 h-full rounded-tl rounded-bl p-1`}>
+                <span className={`bg-pink-500 group-hover:bg-pink-600 h-full rounded-tl rounded-bl p-1`}>
                   {!messageRaw.data.avatarUrl && <Users className="h-4 w-4 text-white" />}
                 </span>
                 <span className="leading-none px-2 group-hover:underline group-hover:text-primary font-light">

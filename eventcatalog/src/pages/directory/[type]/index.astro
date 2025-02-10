@@ -60,6 +60,8 @@ function mapToItem(i: any) {
           ownedEvents: d.data?.ownedEvents?.map(mapToItem) ?? [],
           // @ts-ignore
           ownedServices: d.data?.ownedServices?.map(mapToItem) ?? [],
+          // @ts-ignore
+          members: d.data?.members,
         },
       }) as DirectoryLayoutProps<typeof type>['data'][0]
   )}
