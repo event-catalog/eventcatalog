@@ -1,10 +1,8 @@
 ---
-import DiscoverLayout, { type Props as DiscoverLayoutProps } from '@layouts/DiscoverLayout.astro';
 import { getUsers } from '@utils/users';
 import { getTeams } from '@utils/teams';
 
-import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
-import AddressBookLayout from '@layouts/AddressBookLayout.astro';
+import DirectoryLayout from '@layouts/DirectoryLayout.astro';
 
 export async function getStaticPaths() {
   const loaders = {
@@ -40,7 +38,7 @@ function mapToItem(i: any) {
 }
 ---
 
-<AddressBookLayout
+<DirectoryLayout
   title={`${type} (${data.length})`}
   subtitle={`Find, filter and search for any ${type} in your system.`}
   data={data}
