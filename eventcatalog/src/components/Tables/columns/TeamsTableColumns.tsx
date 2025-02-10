@@ -70,15 +70,7 @@ export const columns = () => [
       if (members?.length === 0 || !members)
         return <div className="font-light text-sm text-gray-400/60 text-left italic">Team has no members</div>;
 
-      const isExpandable = members?.length > 10;
-      const isOpen = isExpandable ? members?.length < 10 : true;
-      const [isExpanded, setIsExpanded] = useState(isOpen);
-
-      console.log(members);
-
       return <div>{members.length}</div>;
-
-      // return commands.length;
     },
     footer: (info) => info.column.id,
     filterFn: filterByName,
