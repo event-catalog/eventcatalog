@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.20.0
+
+### Minor Changes
+
+- 2e0a37e: feat(core): moved users away from docs into directory
+
 ## 2.19.9
 
 ### Patch Changes
