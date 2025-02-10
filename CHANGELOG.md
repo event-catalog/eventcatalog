@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.20.2
+
+### Patch Changes
+
+- 3891571: fix(core): fixed map of users and teams to owned resources
+
 ## 2.20.1
 
 ### Patch Changes
