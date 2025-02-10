@@ -144,9 +144,6 @@ export const Table = <T extends TCollectionTypes>({
 
   useEffect(() => {
     const checkbox = document.getElementById(checkboxLatestId);
-
-    console.log('HELLO WORLD');
-
     function handleChange(evt: Event) {
       setShowOnlyLatest((evt.target as HTMLInputElement).checked);
     }
@@ -175,7 +172,6 @@ export const Table = <T extends TCollectionTypes>({
     onGlobalFilterChange: setShowOnlyLatest,
     globalFilterFn: (row, _columnId, showOnlyLatest: boolean) => {
       if (showOnlyLatest) {
-        console.log(row.original.data.version, row.original.data.latestVersion);
         return isSameVersion(row.original.data.version, row.original.data.latestVersion);
       }
 
