@@ -17,7 +17,8 @@ export type TreeNode = {
 /**
  * Resource types that should be in the sidenav
  */
-const RESOURCE_TYPES = ['domains', 'services', 'events', 'commands', 'queries', 'flows', 'channels', 'teams', 'users'];
+const RESOURCE_TYPES = ['domains', 'services', 'events', 'commands', 'queries', 'flows', 'teams', 'users', 'channels'];
+// const RESOURCE_TYPES = ['domains', 'services', 'events', 'commands', 'queries', 'flows', 'channels'];
 
 /**
  * Check if the path has a RESOURCE_TYPE on path
@@ -51,8 +52,10 @@ function traverse(
   let node: TreeNode | null = null;
 
   const resourceType = getResourceType(directory);
+
   const markdownFiles = globSync(path.join(directory, '/*.md'));
   const isResourceIgnored = options?.ignore && resourceType && options.ignore.includes(resourceType);
+
   if (markdownFiles.length > 0 && !isResourceIgnored) {
     const resourceFilePath = markdownFiles.find((md) => md.endsWith('index.md'));
 
@@ -135,5 +138,11 @@ export function getTreeView({ projectDir, currentPath }: { projectDir: string; c
     ignore: basePathname === 'visualiser' ? ['teams', 'users', 'channels'] : undefined,
   });
   groupByType(rootNode);
+
+  // order the children by domains, services, events, commands, queries, flows, teams, users, channels
+  rootNode.children.sort((a, b) => {
+    return RESOURCE_TYPES.indexOf(a.type || '') - RESOURCE_TYPES.indexOf(b.type || '');
+  });
+
   return rootNode;
 }

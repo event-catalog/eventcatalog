@@ -3,11 +3,9 @@ import { TreeView } from '@primer/react';
 import { FeatureFlags } from '@primer/react/experimental';
 import { navigate } from 'astro:transitions/client';
 import type { TreeNode as RawTreeNode } from './getTreeView';
-import { buildUrl } from '@utils/url-builder';
 import { getIconForCollection } from '@utils/collections/icons';
 import { useEffect, useState } from 'react';
-import type { CollectionKey } from 'astro:content';
-
+import './styles.css';
 type TreeNode = RawTreeNode & { isLabel?: true; isDefaultExpanded?: boolean };
 
 function isCurrentNode(node: TreeNode, currentPathname: string) {
@@ -39,10 +37,12 @@ function TreeNode({ node }: { node: TreeNode }) {
     >
       {!node?.isLabel && (
         <TreeView.LeadingVisual>
-          <Icon className="w-4" />
+          <Icon className="w-3 -ml-1" />
         </TreeView.LeadingVisual>
       )}
-      <span className={node?.isLabel ? 'uppercase font-semibold text-xs' : undefined}>{node.name}</span>
+      <span className={node?.isLabel ? ' capitalize text-gray-700 text-[14px]' : 'font-thin text-[14px] -ml-0.5'}>
+        {node.name} {node.isLabel ? `(${node.children.length})` : ''}
+      </span>
       {(node.children || []).length > 0 && (
         <TreeView.SubTree>
           {node.children!.map((childNode) => (
@@ -54,9 +54,14 @@ function TreeNode({ node }: { node: TreeNode }) {
   );
 }
 
+const DEFAULT_EXPANDED_TYPES = ['domains', 'services', 'channels'];
+
 export function SideNavTreeView({ tree }: { tree: TreeNode }) {
   function bubbleUpExpanded(parentNode: TreeNode) {
     if (isCurrentNode(parentNode, document.location.pathname)) return true;
+    // if (DEFAULT_EXPANDED_TYPES.includes(parentNode.type || '')) {
+    //   return parentNode.isDefaultExpanded = true;
+    // };
     return (parentNode.isDefaultExpanded = parentNode.children.some(bubbleUpExpanded));
   }
   bubbleUpExpanded(tree);
@@ -65,7 +70,7 @@ export function SideNavTreeView({ tree }: { tree: TreeNode }) {
     // NOTE: Enable the `primer_react_css_modules_ga` was needed to keep the
     // styles between astro page transitions. Otherwise `TreeView` lose the styles.
     <FeatureFlags flags={{ primer_react_css_modules_ga: true }}>
-      <nav id="resources-tree">
+      <nav id="resources-tree" className="px-2 py-2">
         <TreeView
           truncate={false}
           style={{
@@ -73,14 +78,14 @@ export function SideNavTreeView({ tree }: { tree: TreeNode }) {
             // NOTE: CSS vars extracted from https://github.com/primer/react/blob/%40primer/react%4037.11.2/packages/react/src/TreeView/TreeView.module.css
             '--base-size-8': '0.5rem',
             '--base-size-12': '0.75rem',
-            '--borderColor-muted': gray[300],
+            '--borderColor-muted': '#fff',
             '--borderRadius-medium': '0.375rem',
             '--borderWidth-thick': '0.125rem',
             '--borderWidth-thin': '0.0625rem',
             '--boxShadow-thick': 'inset 0 0 0 var(--borderWidth-thick)',
             '--control-transparent-bgColor-hover': '#656c7626',
             '--control-transparent-bgColor-selected': '#656c761a',
-            '--fgColor-accent': purple[700],
+            // '--fgColor-accent': purple[700],
             '--fgColor-default': gray[600],
             '--fgColor-muted': gray[600],
             '--text-body-size-medium': '0.875rem',
