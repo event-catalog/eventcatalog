@@ -57,8 +57,6 @@ function traverse(
   const isResourceIgnored = options?.ignore && resourceType && options.ignore.includes(resourceType);
 
   if (markdownFiles.length > 0 && !isResourceIgnored) {
-    const resourceFilePath = markdownFiles.find((md) => md.endsWith('index.md'));
-
     if (resourceType === 'teams' || resourceType === 'users') {
       // Teams and Users aren't nested. Just append to the parentNode.
       markdownFiles.forEach((md) => {
@@ -72,7 +70,12 @@ function traverse(
           href: encodeURI(buildUrl(`/${options.basePathname}/${resourceType}/${resourceDef.data.id}`)),
         });
       });
-    } else if (resourceFilePath) {
+      // Teams and Users are leaf nodes so we can return here.
+      return;
+    }
+
+    const resourceFilePath = markdownFiles.find((md) => md.endsWith('index.md'));
+    if (resourceFilePath) {
       const resourceDef = gm.read(resourceFilePath);
       node = {
         id: resourceDef.data.id,
