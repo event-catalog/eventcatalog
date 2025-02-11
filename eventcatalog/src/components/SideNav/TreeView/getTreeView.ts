@@ -97,25 +97,22 @@ function traverse(
 
 function groupByType(parentNode: TreeNode) {
   const next = parentNode.children;
-  const siblingTypes = new Set(parentNode.children.map((n) => n.type));
-  const shouldGroup = parentNode.type === 'services' || siblingTypes.size > 1;
+  const acc: Record<string, TreeNode[]> = {};
 
-  if (shouldGroup) {
-    const acc: Record<string, TreeNode[]> = {};
-    parentNode.children.forEach((n) => {
-      if (n.type === null) return; // TODO: Just ignore or remove the type null???
-      if (!(n.type in acc)) acc[n.type] = [];
-      acc[n.type].push(n);
-    });
-    parentNode.children = Object.entries(acc).map(([type, nodes]) => ({
-      id: `${parentNode.id}/${type}`,
-      name: type,
-      type: type as CollectionKey,
-      version: '0',
-      children: nodes,
-      isLabel: true,
-    }));
-  }
+  parentNode.children.forEach((n) => {
+    if (n.type === null) return; // TODO: Just ignore or remove the type null???
+    if (!(n.type in acc)) acc[n.type] = [];
+    acc[n.type].push(n);
+  });
+
+  parentNode.children = Object.entries(acc).map(([type, nodes]) => ({
+    id: `${parentNode.id}/${type}`,
+    name: type,
+    type: type as CollectionKey,
+    version: '0',
+    children: nodes,
+    isLabel: true,
+  }));
 
   // Go to next level
   next.forEach((n) => {
