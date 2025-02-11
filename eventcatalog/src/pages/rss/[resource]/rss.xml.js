@@ -3,11 +3,12 @@ import { getCollection } from 'astro:content';
 import { statSync } from 'fs';
 import { buildUrl } from '@utils/url-builder';
 import config from '@config';
+import { getGitHistory } from '@utils/git';
 
 const isRSSEnabled = config.rss?.enabled;
 const rssLimit = config.rss?.limit || 15;
 
-const collections = ['events', 'services', 'domains', 'commands', 'flows', 'all'];
+const collections = ['events', 'services', 'domains', 'commands', 'queries', 'flows', 'all'];
 
 export function getStaticPaths() {
   return collections.map((collection) => ({
@@ -34,17 +35,32 @@ export async function GET(context) {
     items = await getCollection(collection);
   }
 
-  // console.log(events);
-
   const rssItems = items
     .map((event) => {
       const pathToFile = event.data.pathToFile;
 
-      // Get file stats to access modified date
-      const stats = statSync(pathToFile);
+      let modifiedDate;
+      let modifiedAuthor;
+
+      try {
+        const gitHistory = getGitHistory(pathToFile, {
+          includeAuthor: true,
+          age: 'newest',
+        });
+
+        modifiedDate = gitHistory.date;
+        modifiedAuthor = gitHistory.author;
+      } catch (error) {
+        // Failed to get git history, use the file stats
+        const stats = statSync(pathToFile);
+        modifiedDate = stats.mtime;
+        modifiedAuthor = undefined;
+      }
+
       return {
         ...event,
-        modifiedDate: stats.mtime,
+        modifiedDate: modifiedDate,
+        modifiedAuthor: modifiedAuthor,
       };
     })
     .sort((a, b) => b.modifiedDate - a.modifiedDate) // Sort in descending order (newest first)
@@ -71,6 +87,7 @@ export async function GET(context) {
       description: event.data.summary,
       // Optional: Include modified date in the RSS feed
       lastBuildDate: items.find((item) => item.id === event.id)?.modifiedDate,
+      author: event.modifiedAuthor,
       // categories: event.data.badges,
     })),
     // (optional) inject custom xml
