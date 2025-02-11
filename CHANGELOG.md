@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 2.21.0
+
+### Minor Changes
+
+- 67ad29f: feat(core): added rss feed for all resources
+
+### Patch Changes
+
+- 85ed55a: chore(core): updated astro versions
+
 ## 2.20.3
 
 ### Patch Changes
