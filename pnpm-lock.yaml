@@ -71,6 +71,9 @@ importers:
       axios:
         specifier: ^1.7.7
         version: 1.7.9
+      boxen:
+        specifier: ^8.0.1
+        version: 8.0.1
       commander:
         specifier: ^12.1.0
         version: 12.1.0

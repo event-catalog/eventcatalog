@@ -62,6 +62,7 @@
     "astro-pagefind": "^1.6.0",
     "astro-seo": "^0.8.4",
     "axios": "^1.7.7",
+    "boxen": "^8.0.1",
     "commander": "^12.1.0",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
