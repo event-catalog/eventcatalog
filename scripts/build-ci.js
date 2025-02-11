@@ -20,7 +20,6 @@ execSync(`cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogD
 });
 
 // Type check
-execSync(`pnpm exec astro check --minimumSeverity error`, {
-  cwd: catalogDir,
+execSync(`pnpm exec astro check --minimumSeverity error --root ${catalogDir}`, {
   stdio: 'inherit',
 });
