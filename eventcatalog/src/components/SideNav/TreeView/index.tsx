@@ -31,7 +31,7 @@ function TreeNode({ node }: { node: TreeNode }) {
       key={node.id}
       id={node.id}
       current={isCurrent}
-      defaultExpanded={node?.isDefaultExpanded}
+      defaultExpanded={node?.isDefaultExpanded || node?.isLabel}
       onSelect={node?.isLabel || !node?.href ? undefined : () => navigate(node.href!)}
     >
       {!node?.isLabel && (
@@ -53,14 +53,9 @@ function TreeNode({ node }: { node: TreeNode }) {
   );
 }
 
-const DEFAULT_EXPANDED_TYPES = ['domains', 'services', 'channels'];
-
 export function SideNavTreeView({ tree }: { tree: TreeNode }) {
   function bubbleUpExpanded(parentNode: TreeNode) {
     if (isCurrentNode(parentNode, document.location.pathname)) return true;
-    // if (DEFAULT_EXPANDED_TYPES.includes(parentNode.type || '')) {
-    //   return parentNode.isDefaultExpanded = true;
-    // };
     return (parentNode.isDefaultExpanded = parentNode.children.some(bubbleUpExpanded));
   }
   bubbleUpExpanded(tree);

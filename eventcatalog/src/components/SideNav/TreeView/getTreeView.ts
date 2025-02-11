@@ -103,7 +103,7 @@ function groupByType(parentNode: TreeNode) {
   if (shouldGroup) {
     const acc: Record<string, TreeNode[]> = {};
     parentNode.children.forEach((n) => {
-      if (!n.type) return; // TODO: Just ignore or remove the type null???
+      if (n.type === null) return; // TODO: Just ignore or remove the type null???
       if (!(n.type in acc)) acc[n.type] = [];
       acc[n.type].push(n);
     });
