@@ -11,6 +11,24 @@ import { VERSION } from './constants';
 import { watch } from './watcher';
 import { catalogToAstro } from './catalog-to-astro-content-directory';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
+import semver from 'semver';
+import boxen from 'boxen';
+const boxenOptions = {
+  padding: 1,
+  margin: 1,
+  align: 'center',
+  borderColor: 'yellow',
+  borderStyle: {
+    topLeft: ' ',
+    topRight: ' ',
+    bottomLeft: ' ',
+    bottomRight: ' ',
+    right: ' ',
+    top: '-',
+    bottom: '-',
+    left: ' ',
+  },
+};
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -59,6 +77,32 @@ const clearCore = () => {
   if (fs.existsSync(core)) fs.rmSync(core, { recursive: true });
 };
 
+const checkForUpdate = () => {
+  try {
+    const packageJson = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf-8'));
+    const userEventCatalogVersion = packageJson.dependencies['@eventcatalog/core'];
+
+    const corePackageJson = JSON.parse(fs.readFileSync(path.join(core, 'package.json'), 'utf-8'));
+    const coreVersion = corePackageJson.version;
+
+    const userVersion = userEventCatalogVersion.replace(/[\^~]/, ''); // Remove ^ or ~ from version
+
+    if (semver.lt(userVersion, coreVersion)) {
+      const docusaurusUpdateMessage = boxen(
+        `Update available for EventCatalog
+        @eventcatalog/core ${userVersion} → ${coreVersion}
+        
+        Run \`npm i @eventcatalog/core@${coreVersion}\` to update your EventCatalog
+        `,
+        boxenOptions as any
+      );
+      console.log(docusaurusUpdateMessage);
+    }
+  } catch (error) {
+    // Cant read versions, ignore message...
+  }
+};
+
 program
   .command('dev')
   .description('Run development server of EventCatalog')
@@ -67,6 +111,8 @@ program
   .action(async (options, command: Command) => {
     // // Copy EventCatalog core over
     console.log('Setting up EventCatalog....');
+
+    checkForUpdate();
 
     if (options.debug) {
       console.log('Debug mode enabled');
@@ -111,6 +157,8 @@ program
   .description('Run build of EventCatalog')
   .action(async (options, command: Command) => {
     console.log('Building EventCatalog...');
+
+    checkForUpdate();
 
     copyCore();
 
