@@ -17,6 +17,10 @@ export interface Config {
   base?: string;
   port?: string;
   trailingSlash?: boolean;
+  rss?: {
+    enabled: boolean;
+    limit: number;
+  };
   logo?: {
     alt: string;
     src: string;

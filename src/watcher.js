@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import { mapCatalogToAstro } from './map-catalog-to-astro.js';
 import { rimrafSync } from 'rimraf';
 import { addPropertyToFrontMatter } from './eventcatalog-config-file-utils.js';
+import path from 'node:path';
 
 /**
  * @typedef {Object} Event
@@ -45,8 +46,15 @@ export async function watch(projectDirectory, catalogDirectory, callback = undef
             switch (type) {
               case 'create':
               case 'update':
+                // First copy the file
+                if (fs.statSync(filePath).isDirectory()) {
+                  fs.mkdirSync(astroPath, { recursive: true });
+                } else {
+                  retryEPERM(fs.cpSync)(filePath, astroPath);
+                }
+
+                // Then modify the frontmatter after the file is copied
                 try {
-                  // EventCatalog requires the original path to be in the frontmatter for Schemas and Changelogs
                   if (astroPath.endsWith('.mdx')) {
                     const content = fs.readFileSync(astroPath, 'utf-8');
                     const frontmatter = addPropertyToFrontMatter(content, 'pathToFile', filePath);
@@ -55,10 +63,6 @@ export async function watch(projectDirectory, catalogDirectory, callback = undef
                 } catch (error) {
                   // silent fail
                 }
-
-                if (fs.statSync(filePath).isDirectory()) fs.mkdirSync(astroPath, { recursive: true });
-                else retryEPERM(fs.cpSync)(filePath, astroPath);
-
                 break;
               case 'delete':
                 retryEPERM(rimrafSync)(astroPath);

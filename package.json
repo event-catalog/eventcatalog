@@ -44,6 +44,7 @@
     "@astrojs/markdown-remark": "^6.1.0",
     "@astrojs/mdx": "^4.0.8",
     "@astrojs/react": "^4.2.0",
+    "@astrojs/rss": "^4.0.11",
     "@astrojs/tailwind": "^6.0.0",
     "@asyncapi/avro-schema-parser": "^3.0.24",
     "@asyncapi/parser": "^3.4.0",

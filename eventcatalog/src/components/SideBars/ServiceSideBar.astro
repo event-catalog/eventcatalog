@@ -7,8 +7,9 @@ import VersionList from '@components/Lists/VersionList.astro';
 import { buildUrl } from '@utils/url-builder';
 import { getOwner } from '@utils/collections/owners';
 import type { CollectionEntry } from 'astro:content';
-import { ScrollText, Workflow, FileDownIcon, Code, Link } from 'lucide-react';
+import { ScrollText, Workflow, FileDownIcon, Code, Link, RssIcon } from 'lucide-react';
 import { join } from 'node:path';
+import config from '@config';
 
 interface Props {
   service: CollectionEntry<'services'>;
@@ -50,6 +51,8 @@ const ownersList = filteredOwners.map((o) => ({
   href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
 }));
 
+const isRSSEnabled = config.rss?.enabled;
+
 // @ts-ignore
 const publicPath = service?.catalog?.publicPath;
 const schemaFilePath = service?.data?.schemaPath;
@@ -86,6 +89,22 @@ const schemaURL = join(publicPath, schemaFilePath || '');
     {
       service.data.repository && (
         <RepositoryList repository={service.data.repository?.url} language={service.data.repository?.language} />
+      )
+    }
+
+    {
+      isRSSEnabled && (
+        <div class="mx-auto pb-8 w-full max-w-lg divide-y divide-white/5 rounded-xl bg-white/5">
+          <span class="text-sm text-black group-data-[hover]:text-black/80 capitalize">Services RSS Feed</span>
+          <ul role="list" class="space-y-2 mt-2">
+            <li class="has-tooltip rounded-md text-gray-600 group px-1 w-full hover:bg-gradient-to-l hover:from-purple-500 hover:to-purple-700 hover:text-white hover:font-normal  ">
+              <a class={`flex items-center space-x-2`} target="_blank" href={buildUrl(`/rss/services/rss.xml`)}>
+                <RssIcon className="h-4 w-4 text-gray-800 group-hover:text-white" strokeWidth={1} />
+                <span class="font-light text-sm truncate">RSS</span>
+              </a>
+            </li>
+          </ul>
+        </div>
       )
     }
 

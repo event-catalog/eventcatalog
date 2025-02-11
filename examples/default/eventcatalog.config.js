@@ -4,7 +4,7 @@ export default {
   title: 'EventCatalog',
   tagline: 'Discover, Explore and Document your Event Driven Architectures',
   organizationName: 'Awesome Fake Company',
-  homepageLink: 'https://eventcatalog.dev/',
+  homepageLink: 'https://demo.eventcatalog.dev',
   editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
   port: 3000,
   logo: {
@@ -35,5 +35,9 @@ export default {
   },
   mermaid: {
     iconPacks: ['logos'],
+  },
+  rss: {
+    enabled: true,
+    limit: 15,
   },
 };
