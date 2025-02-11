@@ -39,8 +39,7 @@ The payload of the `Inventory Adjusted` event includes the following fields:
   "product_id": "string",
   "adjusted_quantity": "integer",
   "new_quantity": "integer",
-  "adjustment_reason": "string",
-  "adjusted_by": "string"
+  "adjustment_reason": "string"
 }
 ```
 
