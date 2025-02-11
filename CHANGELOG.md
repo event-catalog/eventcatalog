@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.21.2
+
+### Patch Changes
+
+- eec1f5a: chore(core): added catalog update version check
+
 ## 2.21.1
 
 ### Patch Changes
