@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.21.1
+
+### Patch Changes
+
+- e10da45: fix(core): rss feed now gets file dates from git
+
 ## 2.21.0
 
 ### Minor Changes
