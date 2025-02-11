@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.20.3
+
+### Patch Changes
+
+- 22cf545: chore(core): removed redundant/duplicated package.json files for EventCatalog
+
 ## 2.20.2
 
 ### Patch Changes
