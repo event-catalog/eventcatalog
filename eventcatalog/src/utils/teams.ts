@@ -23,7 +23,7 @@ export const getTeams = async (): Promise<Team[]> => {
   // What do they own?
   const events = await getCollection('events');
   const commands = await getCollection('commands');
-
+  const queries = await getCollection('queries');
   cachedTeams = teams.map((team) => {
     const ownedDomains = domains.filter((domain) => {
       return domain.data.owners?.find((owner) => owner.id === team.data.id);
@@ -41,6 +41,10 @@ export const getTeams = async (): Promise<Team[]> => {
       return command.data.owners?.find((owner) => owner.id === team.data.id);
     });
 
+    const ownedQueries = queries.filter((query) => {
+      return query.data.owners?.find((owner) => owner.id === team.data.id);
+    });
+
     return {
       ...team,
       data: {
@@ -48,6 +52,7 @@ export const getTeams = async (): Promise<Team[]> => {
         ownedDomains,
         ownedServices,
         ownedCommands,
+        ownedQueries,
         ownedEvents,
       },
       catalog: {

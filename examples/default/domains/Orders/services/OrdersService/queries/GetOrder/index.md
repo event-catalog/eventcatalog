@@ -5,7 +5,7 @@ version: 0.0.1
 summary: |
   GET request that will return detailed information about a specific order, identified by its orderId.
 owners:
-    - dboyne
+    - order-management
 badges:
     - content: Recently updated!
       backgroundColor: green

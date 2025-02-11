@@ -1,5 +1,47 @@
 # @eventcatalog/core
 
+## 2.20.2
+
+### Patch Changes
+
+- 3891571: fix(core): fixed map of users and teams to owned resources
+
+## 2.20.1
+
+### Patch Changes
+
+- b2fa2ef: fix(core): removed hard coded static page for users
+
+## 2.20.0
+
+### Minor Changes
+
+- 2e0a37e: feat(core): moved users away from docs into directory
+
+## 2.19.9
+
+### Patch Changes
+
+- 577c781: feat(plugin): if apigateway schemas are empty the render-schema-viewe…
+
+## 2.19.8
+
+### Patch Changes
+
+- 21524b3: feat(core): <SchemaViewer/> visibility can be controlled by schema it…
+
+## 2.19.7
+
+### Patch Changes
+
+- e7a1cf9: fix(core): fixed issue with double scroll bars on spec pages
+
+## 2.19.6
+
+### Patch Changes
+
+- 3211cad: refactor(core): reduced amount of data the discover table needs
+
 ## 2.19.5
 
 ### Patch Changes

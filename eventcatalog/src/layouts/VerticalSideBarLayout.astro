@@ -5,7 +5,7 @@ interface Props {
   description?: string;
 }
 
-import { BookOpenText, Workflow, TableProperties, House } from 'lucide-react';
+import { BookOpenText, Workflow, TableProperties, House, BookUser } from 'lucide-react';
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 
@@ -14,8 +14,6 @@ import { getDomains } from '@utils/collections/domains';
 import { getEvents } from '@utils/events';
 import { getServices } from '@utils/collections/services';
 import { getFlows } from '@utils/collections/flows';
-import { getTeams } from '@utils/teams';
-import { getUsers } from '@utils/users';
 import { isCollectionVisibleInCatalog } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/queries';
@@ -30,13 +28,11 @@ const services = await getServices({ getAllVersions: false });
 const domains = await getDomains({ getAllVersions: false });
 const channels = await getChannels({ getAllVersions: false });
 const flows = await getFlows({ getAllVersions: false });
-const teams = await getTeams();
-const users = await getUsers();
 
 const messages = [...events, ...commands, ...queries];
 
 // @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
-const allData = [...domains, ...services, ...messages, ...channels, ...flows, ...teams, ...users];
+const allData = [...domains, ...services, ...messages, ...channels, ...flows];
 
 const currentPath = Astro.url.pathname;
 
@@ -95,6 +91,14 @@ const navigationItems = [
     current: currentPath.includes('/discover/'),
     sidebar: false,
   },
+  {
+    id: '/directory',
+    label: 'Directory',
+    icon: BookUser,
+    href: buildUrl('/directory/users'),
+    current: currentPath.includes('/directory'),
+    sidebar: false,
+  },
 ];
 
 const allDataAsSideNav = allData.reduce((acc, item) => {
@@ -103,17 +107,9 @@ const allDataAsSideNav = allData.reduce((acc, item) => {
   const currentPath = Astro.url.pathname;
   const route = currentPath.includes('visualiser') ? 'visualiser' : 'docs';
 
-  if (
-    currentPath.includes('visualiser') &&
-    (item.collection === 'teams' || item.collection === 'users' || item.collection === 'channels')
-  ) {
-    return acc;
-  }
-
   const navigationItem = {
     label: item.data.name,
-    version: item.collection === 'teams' || item.collection === 'users' ? null : item.data.version,
-    // items: item.collection === 'users' ? [] : item.headings,
+    version: item.data.version,
     visible: isCollectionVisibleInCatalog(item.collection),
     // @ts-ignore
     href: item.data.version
@@ -202,12 +198,15 @@ const showSideBarOnLoad = currentNavigationItem?.sidebar;
 
         <div
           id="sidebar"
-          class={`sidebar-transition h-[100vh]  max-h-screen px-5 py-4 overflow-y-auto bg-white bg-gradient-to-b from-white  to-gray-100 border-r border-gray-200 w-60 shadow-lg ml-16 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
+          class={`sidebar-transition h-content px-5 py-4 overflow-y-auto bg-white bg-gradient-to-b from-white  to-gray-100 border-r border-gray-200 w-60 shadow-lg ml-16 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
         >
           <CatalogResourcesSideBar resources={sideNav} currentPath={currentPath} client:load />
         </div>
       </aside>
-      <main class={`sidebar-transition w-full max-h-screen ${showSideBarOnLoad ? 'ml-0' : 'ml-16'}`} id="content">
+      <main
+        class={`sidebar-transition w-full max-h-content overflow-y-auto ${showSideBarOnLoad ? 'ml-0' : 'ml-16'}`}
+        id="content"
+      >
         <slot />
       </main>
     </div>

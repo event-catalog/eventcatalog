@@ -2,7 +2,11 @@
 id: mobile-devs
 name: The mobile devs
 members:
-    - dboyne
+    - msmith
+    - rsingh
+    - jbrown
+    - mwang
+    - jchen
 ---
 
 The Mobile Devs team is responsible for the development and maintenance of the mobile applications for our company. This includes the iOS and Android apps that customers use to interact with our services, make purchases, and manage their accounts. The team ensures that the mobile apps are user-friendly, secure, and performant.

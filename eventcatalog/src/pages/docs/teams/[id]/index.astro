@@ -37,6 +37,7 @@ const domains = props.data.ownedDomains as CollectionEntry<'domains'>[];
 const services = props.data.ownedServices as CollectionEntry<'services'>[];
 const events = props.data.ownedEvents as CollectionEntry<'events'>[];
 const commands = props.data.ownedCommands as CollectionEntry<'commands'>[];
+const queries = props.data.ownedQueries as CollectionEntry<'queries'>[];
 
 const membersList = members.map((o) => ({
   label: o.data.name,
@@ -65,6 +66,13 @@ const ownedEventsList = [...events, ...commands].map((p) => ({
   label: `${p.data.name}`,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
   color: p.collection === 'events' ? 'orange' : 'blue',
+  collection: p.collection,
+  tag: `v${p.data.version}`,
+}));
+
+const ownedQueriesList = queries.map((p) => ({
+  label: `${p.data.name}`,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
   collection: p.collection,
   tag: `v${p.data.version}`,
 }));
@@ -151,6 +159,13 @@ const ownedEventsList = [...events, ...commands].map((p) => ({
           title={`Owned messages (${ownedEventsList.length})`}
           pills={ownedEventsList}
           emptyMessage={`This team does not own any messages .`}
+          client:load
+        />
+        <PillListFlat
+          color="purple"
+          title={`Owned queries (${ownedQueriesList.length})`}
+          pills={ownedQueriesList}
+          emptyMessage={`This team does not own any queries .`}
           client:load
         />
         <OwnersList

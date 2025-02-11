@@ -5,7 +5,7 @@ name: Notifications
 summary: |
   Service that handles orders
 owners:
-    - dboyne
+    - order-management
 receives:
   - id: InventoryAdjusted
     version: ">1.0.0"

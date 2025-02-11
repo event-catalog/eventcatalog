@@ -29,7 +29,7 @@
 
 
 
-<h4>Features: Documentation generator for Event Driven Architectures, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
+<h4>Features: Documentation generator for Event Driven Architectures, Integration with any broker, Docs and Code, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-47-orange.svg?style=flat-square)](#contributors-)
@@ -52,6 +52,7 @@
 - ⭐ Discoverability feature (search, filter and more) ([demo](https://demo.eventcatalog.dev/discover/events))
 - ⭐ Document teams and users ([demo](https://demo.eventcatalog.dev/docs/teams/full-stack))
 - 🤖 Automate your catalogs with [generators](https://www.eventcatalog.dev/docs/development/plugins/plugin-overview) (e.g generate your catalogs from your [AsyncAPI](https://www.eventcatalog.dev/docs/ascynapi)/[OpenAPI](https://www.eventcatalog.dev/docs/openapi) documents)
+- 👨🏼‍💻 Follows [Docs as code](https://www.writethedocs.org/guide/docs-as-code/) principles
 - ⭐ And much more...
 
 
@@ -90,9 +91,9 @@ EventCatalog is focused on discovery and documentation and allows you to:
 
 EventCatalog is technology agnostic, which means you can integrate your Catalog with any EDA technology of your choice and any schema formats.
 
-EventCatalog supports a [Plugin Architecture](https://eventcatalog-website-v2.vercel.app/docs/development/plugins/plugin-overview) which will let you generate documentation from your systems.
+EventCatalog supports a [Plugin Architecture](https://github.com/event-catalog/generators) which lets you generate documentation from your systems including OpenAPI, AsyncAPI, Event Brokers and more.
 
-You can read more on [how it works on the website](https://eventcatalog.dev)
+You can read more on [how it works on GitHub](https://github.com/event-catalog/eventcatalog)
 
 # Getting Started
 
@@ -125,8 +126,6 @@ Thank you to our project  sponsors.
   <p style="margin: 0; padding: 0;">Serverless infrastructure for event-driven architecture. </p>
   <a href="https://hookdeck.com/?ref=eventcatalog-sponsor" target="_blank" >Learn more</a>
 </div> -->
-
-<hr />
 
 <div align="center">
   <img alt="hookdeck" src="./images/sponsors/gravitee-logo-black.svg" width="50%" />
