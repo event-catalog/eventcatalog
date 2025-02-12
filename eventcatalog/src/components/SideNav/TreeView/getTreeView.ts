@@ -142,8 +142,14 @@ function groupChildrenByType(parentNode: TreeNode) {
     }));
 }
 
+const treeViewCache = new Map<string, TreeNode>();
+
 export function getTreeView({ projectDir, currentPath }: { projectDir: string; currentPath: string }): TreeNode {
   const basePathname = currentPath.split('/')[1] as 'docs' | 'visualiser';
+
+  const cacheKey = `${projectDir}:${basePathname}`;
+  if (treeViewCache.has(cacheKey)) return treeViewCache.get(cacheKey)!;
+
   const rootNode: TreeNode = {
     id: '/',
     name: 'root',
@@ -183,6 +189,9 @@ export function getTreeView({ projectDir, currentPath }: { projectDir: string; c
       ],
     } as TreeNode);
   }
+
+  // Store in cache before returning
+  treeViewCache.set(cacheKey, rootNode);
 
   return rootNode;
 }
