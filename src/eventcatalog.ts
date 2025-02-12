@@ -184,10 +184,7 @@ program
     );
   });
 
-const previewCatalog = async ({ command }: { command: Command }) => {
-  // Check if backstage is enabled
-  const canEmbedPages = await isBackstagePluginEnabled();
-
+const previewCatalog = ({ command, canEmbedPages }: { command: Command; canEmbedPages: boolean }) => {
   execSync(
     `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} npx astro preview ${command.args.join(' ').trim()}`,
     {
@@ -200,17 +197,19 @@ const previewCatalog = async ({ command }: { command: Command }) => {
 program
   .command('preview')
   .description('Serves the contents of your eventcatalog build directory')
-  .action((options, command: Command) => {
+  .action(async (options, command: Command) => {
     console.log('Starting preview of your build...');
-    previewCatalog({ command });
+    const canEmbedPages = await isBackstagePluginEnabled();
+    previewCatalog({ command, canEmbedPages });
   });
 
 program
   .command('start')
   .description('Serves the contents of your eventcatalog build directory')
-  .action((options, command: Command) => {
+  .action(async (options, command: Command) => {
     console.log('Starting preview of your build...');
-    previewCatalog({ command });
+    const canEmbedPages = await isBackstagePluginEnabled();
+    previewCatalog({ command, canEmbedPages });
   });
 
 program
