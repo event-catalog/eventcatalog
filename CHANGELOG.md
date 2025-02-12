@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.21.3
+
+### Patch Changes
+
+- 49ede5c: chore(core): added backstage license checks to embed eventcatalog
+
 ## 2.21.2
 
 ### Patch Changes
