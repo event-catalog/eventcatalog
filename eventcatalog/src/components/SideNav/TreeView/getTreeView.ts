@@ -164,5 +164,25 @@ export function getTreeView({ projectDir, currentPath }: { projectDir: string; c
     groupChildrenByType, 
   );
 
+  if (basePathname === 'visualiser') {
+    rootNode.children.unshift({
+      id: '/bounded-context-map',
+      name: 'bounded context map',
+      type: 'bounded-context-map' as any,
+      version: '0',
+      isLabel: true,
+      children: [
+        {
+          id: '/domain-map',
+          name: 'Domain map',
+          href: buildUrl('/visualiser/context-map'),
+          type: 'bounded-context-map' as any,
+          version: '',
+          children: [],
+        },
+      ],
+    } as TreeNode);
+  }
+
   return rootNode;
 }
