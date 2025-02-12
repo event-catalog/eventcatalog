@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.21.4
+
+### Patch Changes
+
+- ee884df: chore(core): added backstage license checks to embed eventcatalog
+
 ## 2.21.3
 
 ### Patch Changes
