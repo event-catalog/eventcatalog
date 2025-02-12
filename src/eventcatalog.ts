@@ -184,7 +184,7 @@ program
     );
   });
 
-const previewCatalog = ({ command, canEmbedPages }: { command: Command; canEmbedPages: boolean }) => {
+const previewCatalog = ({ command, canEmbedPages = false }: { command: Command; canEmbedPages: boolean }) => {
   execSync(
     `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} npx astro preview ${command.args.join(' ').trim()}`,
     {
