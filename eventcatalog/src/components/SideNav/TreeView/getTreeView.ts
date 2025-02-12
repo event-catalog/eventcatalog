@@ -44,11 +44,7 @@ function getResourceType(filePath: string): CollectionKey | null {
   return null;
 }
 
-function traverse(
-  directory: string,
-  parentNode: TreeNode,
-  options: { ignore?: CollectionKey[]; basePathname: 'docs' | 'visualiser' }
-) {
+function buildTreeOfDir(directory: string, parentNode: TreeNode, options: { ignore?: CollectionKey[] }) {
   let node: TreeNode | null = null;
 
   const resourceType = getResourceType(directory);
@@ -67,7 +63,6 @@ function traverse(
           type: resourceType,
           version: resourceDef.data.version,
           children: [],
-          href: encodeURI(buildUrl(`/${options.basePathname}/${resourceType}/${resourceDef.data.id}`)),
         });
       });
       // Teams and Users are leaf nodes so we can return here.
@@ -82,7 +77,6 @@ function traverse(
         name: resourceDef.data.name,
         type: resourceType,
         version: resourceDef.data.version,
-        href: encodeURI(buildUrl(`/${options.basePathname}/${resourceType}/${resourceDef.data.id}/${resourceDef.data.version}`)),
         children: [],
       };
       parentNode.children.push(node);
@@ -94,12 +88,38 @@ function traverse(
     return fs.statSync(dirPath).isDirectory() && isNotVersioned(dirPath) && canBeResource(dirPath);
   });
   for (const dir of directories) {
-    traverse(path.join(directory, dir), node || parentNode, options);
+    buildTreeOfDir(path.join(directory, dir), node || parentNode, options);
   }
 }
 
-function groupByType(parentNode: TreeNode) {
-  const next = parentNode.children;
+function forEachTreeNodeOf(node: TreeNode, ...callbacks: Array<(node: TreeNode) => void>) {
+  const next = node.children;
+
+  callbacks.forEach((cb) => cb(node));
+
+  // Go to next level
+  next.forEach((n) => {
+    forEachTreeNodeOf(n, ...callbacks);
+  });
+}
+
+function addHrefToNode(basePathname: 'docs' | 'visualiser') {
+  return (node: TreeNode) => {
+    node.href = encodeURI(
+      buildUrl(
+        `/${basePathname}/${node.type}/${node.id}${node.type === 'teams' || node.type === 'users' ? '' : `/${node.version}`}`
+      )
+    );
+  };
+}
+
+function orderChildrenByName(parentNode: TreeNode) {
+  parentNode.children.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function groupChildrenByType(parentNode: TreeNode) {
+  if (parentNode.children.length === 0) return; // Only group if there are children
+
   const acc: Record<string, TreeNode[]> = {};
 
   parentNode.children.forEach((n) => {
@@ -108,20 +128,18 @@ function groupByType(parentNode: TreeNode) {
     acc[n.type].push(n);
   });
 
-  parentNode.children = Object.entries(acc).map(([type, nodes]) => ({
-    id: `${parentNode.id}/${type}`,
-    name: type,
-    type: type as CollectionKey,
-    version: '0',
-    children: nodes,
-    isLabel: true,
-  }));
-
-  // Go to next level
-  next.forEach((n) => {
-    if (n?.children.length === 0) return; // Leaf node
-    groupByType(n);
-  });
+  parentNode.children = Object.entries(acc)
+    // Order label nodes by RESOURCE_TYPES
+    .sort(([aType], [bType]) => RESOURCE_TYPES.indexOf(aType) - RESOURCE_TYPES.indexOf(bType))
+    // Construct the label nodes
+    .map(([type, nodes]) => ({
+      id: `${parentNode.id}/${type}`,
+      name: type,
+      type: type as CollectionKey,
+      version: '0',
+      children: nodes,
+      isLabel: true,
+    }));
 }
 
 export function getTreeView({ projectDir, currentPath }: { projectDir: string; currentPath: string }): TreeNode {
@@ -133,16 +151,18 @@ export function getTreeView({ projectDir, currentPath }: { projectDir: string; c
     version: '0',
     children: [],
   };
-  traverse(projectDir, rootNode, {
-    basePathname,
+
+  buildTreeOfDir(projectDir, rootNode, {
     ignore: basePathname === 'visualiser' ? ['teams', 'users', 'channels'] : undefined,
   });
-  groupByType(rootNode);
 
-  // order the children by domains, services, events, commands, queries, flows, teams, users, channels
-  rootNode.children.sort((a, b) => {
-    return RESOURCE_TYPES.indexOf(a.type || '') - RESOURCE_TYPES.indexOf(b.type || '');
-  });
+  // prettier-ignore
+  forEachTreeNodeOf(
+    rootNode, 
+    addHrefToNode(basePathname),
+    orderChildrenByName,
+    groupChildrenByType, 
+  );
 
   return rootNode;
 }
