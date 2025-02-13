@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.22.0
+
+### Minor Changes
+
+- 6d967ee: feat(core): added support for llms.txt
+
 ## 2.21.5
 
 ### Patch Changes
