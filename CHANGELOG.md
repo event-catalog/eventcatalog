@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.21.5
+
+### Patch Changes
+
+- 5a7801c: chore(core): small ui improvements
+
 ## 2.21.4
 
 ### Patch Changes
