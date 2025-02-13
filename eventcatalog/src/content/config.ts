@@ -269,6 +269,7 @@ const users = defineCollection({
     ownedCommands: z.array(reference('commands')).optional(),
     ownedQueries: z.array(reference('queries')).optional(),
     associatedTeams: z.array(reference('teams')).optional(),
+    pathToFile: z.string().optional(),
   }),
 });
 
@@ -288,6 +289,7 @@ const teams = defineCollection({
     ownedDomains: z.array(reference('domains')).optional(),
     ownedServices: z.array(reference('services')).optional(),
     ownedEvents: z.array(reference('events')).optional(),
+    pathToFile: z.string().optional(),
   }),
 });
 
