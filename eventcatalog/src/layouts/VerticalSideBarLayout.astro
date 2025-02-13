@@ -200,7 +200,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
 
         <div
           id="sidebar"
-          class={`sidebar-transition h-content px-5 py-4 overflow-y-auto bg-white bg-gradient-to-b from-white  to-gray-100 border-r border-gray-200 w-60 shadow-lg ml-16 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
+          class={`sidebar-transition h-content px-5 py-4 overflow-y-auto bg-white bg-gradient-to-b  border-r border-gray-100 w-60 ml-16 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
         >
           <CatalogResourcesSideBar resources={sideNav} currentPath={currentPath} client:load />
         </div>
