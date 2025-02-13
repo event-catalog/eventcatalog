@@ -50,5 +50,5 @@ export default {
     'border-l-blue-500',
   ],
 
-  plugins: [require('@tailwindcss/typography'), require('tailwind-scrollbar')],
+  plugins: [require('@tailwindcss/typography'), require('tailwind-scrollbar', { nocompatible: true, preferredStrategy: 'pseudoelements', })],
 };
