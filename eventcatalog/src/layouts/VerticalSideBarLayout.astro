@@ -98,6 +98,8 @@ const currentNavigationItem = navigationItems.find((item) => item.current);
 const { title, description } = Astro.props;
 
 const showSideBarOnLoad = currentNavigationItem?.sidebar;
+
+const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
 ---
 
 <!doctype html>
@@ -163,10 +165,26 @@ const showSideBarOnLoad = currentNavigationItem?.sidebar;
       >
         <slot />
       </main>
+
+      <!-- Creae a overlay that tells people to purchase backstage plugin if they want to embed the page -->
+      <div class="absolute inset-0 bg-black items-center justify-center z-50 hidden" id="embed-overlay">
+        <div class="text-white text-center space-y-4">
+          <div>
+            <h1 class="text-2xl font-bold">EventCatalog Backstage Integration</h1>
+            <p class="text-md text-red-500">Missing license key for backstage integration.</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Please configure the backstage plugin to embed this page into Backstage.</p>
+            <a href="https://www.eventcatalog.dev/integrations/backstage" class="text-blue-500 text-xs"
+              >Configure backstage plugin &rarr;</a
+            >
+          </div>
+        </div>
+      </div>
     </div>
   </body>
 </html>
-<script define:vars={{ navigationItems, currentNavigationItem, showSideBarOnLoad }}>
+<script define:vars={{ navigationItems, currentNavigationItem, showSideBarOnLoad, canPageBeEmbedded }}>
   // Listen for Astro transititions
   document.addEventListener('astro:page-load', () => {
     document.dispatchEvent(new CustomEvent('contentLoaded'));
@@ -183,6 +201,12 @@ const showSideBarOnLoad = currentNavigationItem?.sidebar;
     const params = Object.fromEntries(urlSearchParams.entries());
     const embeded = params.embed === 'true' ? true : false;
     const content = document.getElementById('content');
+
+    if (embeded && !canPageBeEmbedded) {
+      const overlay = document.getElementById('embed-overlay');
+      overlay.style.display = 'flex';
+      return;
+    }
 
     if (embeded) {
       const elementsToHide = [

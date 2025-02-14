@@ -1,5 +1,29 @@
 # @eventcatalog/core
 
+## 2.22.0
+
+### Minor Changes
+
+- 6d967ee: feat(core): added support for llms.txt
+
+## 2.21.5
+
+### Patch Changes
+
+- 5a7801c: chore(core): small ui improvements
+
+## 2.21.4
+
+### Patch Changes
+
+- ee884df: chore(core): added backstage license checks to embed eventcatalog
+
+## 2.21.3
+
+### Patch Changes
+
+- 49ede5c: chore(core): added backstage license checks to embed eventcatalog
+
 ## 2.21.2
 
 ### Patch Changes

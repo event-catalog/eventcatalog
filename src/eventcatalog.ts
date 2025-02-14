@@ -13,6 +13,7 @@ import { catalogToAstro } from './catalog-to-astro-content-directory';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
 import semver from 'semver';
 import boxen from 'boxen';
+import { isBackstagePluginEnabled } from './features';
 const boxenOptions = {
   padding: 1,
   margin: 1,
@@ -128,6 +129,9 @@ program
     await resolveCatalogDependencies(dir, core);
     await catalogToAstro(dir, core);
 
+    // Check if backstage is enabled
+    const canEmbedPages = await isBackstagePluginEnabled();
+
     let watchUnsub;
     try {
       watchUnsub = await watch(dir, core);
@@ -140,6 +144,7 @@ program
           env: {
             PROJECT_DIR: dir,
             CATALOG_DIR: core,
+            ENABLE_EMBED: canEmbedPages,
           },
         },
       ]);
@@ -167,33 +172,44 @@ program
     await resolveCatalogDependencies(dir, core);
     await catalogToAstro(dir, core);
 
-    execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro build ${command.args.join(' ').trim()}`, {
-      cwd: core,
-      stdio: 'inherit',
-    });
+    // Check if backstage is enabled
+    const canEmbedPages = await isBackstagePluginEnabled();
+
+    execSync(
+      `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} npx astro build ${command.args.join(' ').trim()}`,
+      {
+        cwd: core,
+        stdio: 'inherit',
+      }
+    );
   });
 
-const previewCatalog = ({ command }: { command: Command }) => {
-  execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' npx astro preview ${command.args.join(' ').trim()}`, {
-    cwd: core,
-    stdio: 'inherit',
-  });
+const previewCatalog = ({ command, canEmbedPages = false }: { command: Command; canEmbedPages: boolean }) => {
+  execSync(
+    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} npx astro preview ${command.args.join(' ').trim()}`,
+    {
+      cwd: core,
+      stdio: 'inherit',
+    }
+  );
 };
 
 program
   .command('preview')
   .description('Serves the contents of your eventcatalog build directory')
-  .action((options, command: Command) => {
+  .action(async (options, command: Command) => {
     console.log('Starting preview of your build...');
-    previewCatalog({ command });
+    const canEmbedPages = await isBackstagePluginEnabled();
+    previewCatalog({ command, canEmbedPages });
   });
 
 program
   .command('start')
   .description('Serves the contents of your eventcatalog build directory')
-  .action((options, command: Command) => {
+  .action(async (options, command: Command) => {
     console.log('Starting preview of your build...');
-    previewCatalog({ command });
+    const canEmbedPages = await isBackstagePluginEnabled();
+    previewCatalog({ command, canEmbedPages });
   });
 
 program

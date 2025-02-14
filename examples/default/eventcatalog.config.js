@@ -41,4 +41,7 @@ export default {
     enabled: true,
     limit: 15,
   },
+  llmsTxt: {
+    enabled: true,
+  }
 };

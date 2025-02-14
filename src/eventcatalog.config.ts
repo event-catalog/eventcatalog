@@ -21,6 +21,9 @@ export interface Config {
     enabled: boolean;
     limit: number;
   };
+  llmsTxt?: {
+    enabled: boolean;
+  };
   logo?: {
     alt: string;
     src: string;
