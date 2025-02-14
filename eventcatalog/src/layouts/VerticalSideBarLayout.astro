@@ -8,6 +8,7 @@ interface Props {
 import { BookOpenText, Workflow, TableProperties, House, BookUser } from 'lucide-react';
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
+import SideNav from '../components/SideNav/SideNav.astro';
 
 import { getCommands } from '@utils/commands';
 import { getDomains } from '@utils/collections/domains';
@@ -17,8 +18,6 @@ import { getFlows } from '@utils/collections/flows';
 import { isCollectionVisibleInCatalog } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/queries';
-import { getChannels } from '@utils/channels';
-import CatalogResourcesSideBar from '@components/SideBars/CatalogResourcesSideBar';
 import { hasLandingPageForDocs } from '@utils/pages';
 
 const events = await getEvents({ getAllVersions: false });
@@ -26,13 +25,7 @@ const commands = await getCommands({ getAllVersions: false });
 const queries = await getQueries({ getAllVersions: false });
 const services = await getServices({ getAllVersions: false });
 const domains = await getDomains({ getAllVersions: false });
-const channels = await getChannels({ getAllVersions: false });
 const flows = await getFlows({ getAllVersions: false });
-
-const messages = [...events, ...commands, ...queries];
-
-// @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
-const allData = [...domains, ...services, ...messages, ...channels, ...flows];
 
 const currentPath = Astro.url.pathname;
 
@@ -101,45 +94,8 @@ const navigationItems = [
   },
 ];
 
-const allDataAsSideNav = allData.reduce((acc, item) => {
-  const title = item.collection;
-  const group = acc[title] || [];
-  const currentPath = Astro.url.pathname;
-  const route = currentPath.includes('visualiser') ? 'visualiser' : 'docs';
-
-  const navigationItem = {
-    label: item.data.name,
-    version: item.data.version,
-    visible: isCollectionVisibleInCatalog(item.collection),
-    // @ts-ignore
-    href: item.data.version
-      ? // @ts-ignore
-        buildUrl(`/${route}/${item.collection}/${item.data.id}/${item.data.version}`)
-      : buildUrl(`/${route}/${item.collection}/${item.data.id}`),
-    collection: item.collection,
-  };
-
-  group.push(navigationItem);
-
-  return {
-    ...acc,
-    [title]: group,
-  };
-}, {} as any);
-
-const sideNav = {
-  ...(currentPath.includes('visualiser')
-    ? {
-        'bounded context map': [
-          { label: 'Domain map', href: buildUrl('/visualiser/context-map'), collection: 'bounded-context-map' },
-        ],
-      }
-    : {}),
-  ...allDataAsSideNav,
-};
-
 const currentNavigationItem = navigationItems.find((item) => item.current);
-const { title, description, sidebar: showSideBarOverride } = Astro.props;
+const { title, description } = Astro.props;
 
 const showSideBarOnLoad = currentNavigationItem?.sidebar;
 
@@ -198,12 +154,10 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
           </nav>
         </div>
 
-        <div
+        <SideNav
           id="sidebar"
-          class={`sidebar-transition h-content px-5 py-4 overflow-y-auto bg-white bg-gradient-to-b  border-r border-gray-100 w-60 ml-16 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
-        >
-          <CatalogResourcesSideBar resources={sideNav} currentPath={currentPath} client:load />
-        </div>
+          class={`sidebar-transition h-content  overflow-y-auto bg-white  border-r border-gray-100 w-60 ml-16 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
+        />
       </aside>
       <main
         class={`sidebar-transition w-full max-h-content overflow-y-auto ${showSideBarOnLoad ? 'ml-0' : 'ml-16'}`}

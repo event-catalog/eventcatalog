@@ -16,21 +16,7 @@ export default {
   trailingSlash: false,
   docs: {
     sidebar: {
-      services: {
-        visible: true,
-      },
-      messages: {
-        visible: true,
-      },
-      domains: {
-        visible: true,
-      },
-      teams: {
-        visible: true,
-      },
-      users: {
-        visible: true,
-      },
+      type: 'TREE_VIEW'
     },
   },
   mermaid: {
