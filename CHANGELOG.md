@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.23.0
+
+### Minor Changes
+
+- dc707bc: feat(core): added new sidebar type "tree_view". A new sidebar nav that matches your file system
+
 ## 2.22.0
 
 ### Minor Changes
