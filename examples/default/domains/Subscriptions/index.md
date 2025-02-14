@@ -5,7 +5,7 @@ version: 0.0.1
 summary: |
   Domain that contains subscription related services and messages.
 owners:
-    - dboyne
+    - subscriptions-management
 services:
     - id: SubscriptionService
       version: 0.0.1

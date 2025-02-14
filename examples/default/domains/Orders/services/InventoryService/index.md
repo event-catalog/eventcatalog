@@ -5,9 +5,7 @@ name: Inventory Service
 summary: |
   Service that handles the inventory
 owners:
-    - dboyne
-    - full-stack
-    - mobile-devs
+    - order-management
 receives:
   - id: OrderConfirmed
     version: 0.0.1

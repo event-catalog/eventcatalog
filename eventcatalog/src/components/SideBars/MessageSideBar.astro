@@ -6,9 +6,10 @@ import type { CollectionMessageTypes } from '@types';
 import * as path from 'path';
 import VersionList from '@components/Lists/VersionList.astro';
 import { buildUrl } from '@utils/url-builder';
-import { FileDownIcon, ScrollText, Workflow } from 'lucide-react';
+import { FileDownIcon, ScrollText, Workflow, RssIcon } from 'lucide-react';
 import RepositoryList from '@components/Lists/RepositoryList.astro';
 import { getOwner } from '@utils/collections/owners';
+import config from '@config';
 
 interface Props {
   message: CollectionEntry<CollectionMessageTypes>;
@@ -86,6 +87,8 @@ const getConsumerEmptyMessage = (type: string) => {
 
 const type = getType(message.collection);
 
+const isRSSEnabled = config.rss?.enabled;
+
 // @ts-ignore
 const publicPath = message?.catalog?.publicPath;
 const schemaFilePath = message?.data?.schemaPath;
@@ -142,6 +145,22 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
     {
       message.data.repository && (
         <RepositoryList repository={message.data.repository?.url} language={message.data.repository?.language} />
+      )
+    }
+
+    {
+      isRSSEnabled && (
+        <div class="mx-auto pb-8 w-full max-w-lg divide-y divide-white/5 rounded-xl bg-white/5">
+          <span class="text-sm text-black group-data-[hover]:text-black/80 capitalize">{type} RSS Feed</span>
+          <ul role="list" class="space-y-2 mt-2">
+            <li class="has-tooltip rounded-md text-gray-600 group px-1 w-full hover:bg-gradient-to-l hover:from-purple-500 hover:to-purple-700 hover:text-white hover:font-normal  ">
+              <a class={`flex items-center space-x-2`} target="_blank" href={buildUrl(`/rss/${message.collection}/rss.xml`)}>
+                <RssIcon className="h-4 w-4 text-gray-800 group-hover:text-white" strokeWidth={1} />
+                <span class="font-light text-sm truncate">RSS Feed</span>
+              </a>
+            </li>
+          </ul>
+        </div>
       )
     }
 

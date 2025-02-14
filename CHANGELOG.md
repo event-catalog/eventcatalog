@@ -1,5 +1,51 @@
 # @eventcatalog/core
 
+## 2.21.2
+
+### Patch Changes
+
+- eec1f5a: chore(core): added catalog update version check
+
+## 2.21.1
+
+### Patch Changes
+
+- e10da45: fix(core): rss feed now gets file dates from git
+
+## 2.21.0
+
+### Minor Changes
+
+- 67ad29f: feat(core): added rss feed for all resources
+
+### Patch Changes
+
+- 85ed55a: chore(core): updated astro versions
+
+## 2.20.3
+
+### Patch Changes
+
+- 22cf545: chore(core): removed redundant/duplicated package.json files for EventCatalog
+
+## 2.20.2
+
+### Patch Changes
+
+- 3891571: fix(core): fixed map of users and teams to owned resources
+
+## 2.20.1
+
+### Patch Changes
+
+- b2fa2ef: fix(core): removed hard coded static page for users
+
+## 2.20.0
+
+### Minor Changes
+
+- 2e0a37e: feat(core): moved users away from docs into directory
+
 ## 2.19.9
 
 ### Patch Changes

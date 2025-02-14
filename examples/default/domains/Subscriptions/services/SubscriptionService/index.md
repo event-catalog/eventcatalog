@@ -5,7 +5,7 @@ name: Subscription Service
 summary: |
   Service that handles subscriptions
 owners:
-    - dboyne
+    - subscriptions-management
 receives:
   - id: SubscribeUser
     version: 0.0.1

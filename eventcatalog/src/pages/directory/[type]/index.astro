@@ -1,0 +1,72 @@
+---
+import { getUsers } from '@utils/users';
+import { getTeams } from '@utils/teams';
+
+import DirectoryLayout, { type Props as DirectoryLayoutProps } from '@layouts/DirectoryLayout.astro';
+
+export async function getStaticPaths() {
+  const loaders = {
+    users: getUsers,
+    teams: getTeams,
+  };
+
+  const itemTypes = ['users', 'teams'] as const;
+  const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
+
+  return allItems.flatMap((items, index) => ({
+    params: {
+      type: itemTypes[index],
+    },
+    props: {
+      data: items,
+      type: itemTypes[index],
+    },
+  }));
+}
+
+const { type, data } = Astro.props;
+
+function mapToItem(i: any) {
+  return {
+    collection: i.collection,
+    data: {
+      id: i.data.id,
+      name: i.data.name,
+      version: i.data.version,
+    },
+  };
+}
+---
+
+<DirectoryLayout
+  title={`${type} (${data.length})`}
+  subtitle={`Find, filter and search for any ${type} in your system.`}
+  data={data.map(
+    (d) =>
+      ({
+        collection: d.collection,
+        data: {
+          // @ts-ignore
+          id: d.data.id,
+          name: d.data.name,
+          // @ts-ignore
+          role: d.data?.role,
+          // @ts-ignore
+          avatarUrl: d.data?.avatarUrl,
+          // @ts-ignore
+          associatedTeams: d.data?.associatedTeams?.map(mapToItem) ?? [],
+          // @ts-ignore
+          ownedCommands: d.data?.ownedCommands?.map(mapToItem) ?? [],
+          // @ts-ignore
+          ownedQueries: d.data?.ownedQueries?.map(mapToItem) ?? [],
+          // @ts-ignore
+          ownedEvents: d.data?.ownedEvents?.map(mapToItem) ?? [],
+          // @ts-ignore
+          ownedServices: d.data?.ownedServices?.map(mapToItem) ?? [],
+          // @ts-ignore
+          members: d.data?.members,
+        },
+      }) as DirectoryLayoutProps<typeof type>['data'][0]
+  )}
+  type={type}
+/>

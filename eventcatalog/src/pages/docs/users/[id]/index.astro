@@ -33,6 +33,7 @@ const domains = props.data.ownedDomains as CollectionEntry<'domains'>[];
 const services = props.data.ownedServices as CollectionEntry<'services'>[];
 const events = props.data.ownedEvents as CollectionEntry<'events'>[];
 const commands = props.data.ownedCommands as CollectionEntry<'commands'>[];
+const queries = props.data.ownedQueries as CollectionEntry<'queries'>[];
 const teams = props.data.associatedTeams as CollectionEntry<'teams'>[];
 
 const ownedDomainsList = domains.map((p) => ({
@@ -49,7 +50,7 @@ const ownedServicesList = services.map((p) => ({
   tag: `v${p.data.version}`,
 }));
 
-const ownedMessageList = [...events, ...commands].map((p) => ({
+const ownedMessageList = [...events, ...commands, ...queries].map((p) => ({
   label: `${p.data.name}`,
   badge: p.collection,
   color: p.collection === 'events' ? 'orange' : 'blue',
