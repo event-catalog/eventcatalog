@@ -1,11 +1,11 @@
-import { purple, gray } from 'tailwindcss/colors';
+import { gray } from 'tailwindcss/colors';
 import { TreeView } from '@components/TreeView';
 import { navigate } from 'astro:transitions/client';
 import type { TreeNode as RawTreeNode } from './getTreeView';
 import { getIconForCollection } from '@utils/collections/icons';
 import { useEffect, useState } from 'react';
 
-type TreeNode = RawTreeNode & { isLabel?: true; isDefaultExpanded?: boolean };
+type TreeNode = RawTreeNode & { isLabel?: true; isDefaultExpanded?: boolean; isExpanded?: boolean };
 
 function isCurrentNode(node: TreeNode, currentPathname: string) {
   return currentPathname === node.href;
@@ -31,7 +31,7 @@ function TreeNode({ node }: { node: TreeNode }) {
       key={node.id}
       id={node.id}
       current={isCurrent}
-      defaultExpanded={node?.isDefaultExpanded || node?.isLabel}
+      defaultExpanded={node?.isExpanded || node?.isDefaultExpanded}
       onSelect={node?.isLabel || !node?.href ? undefined : () => navigate(node.href!)}
     >
       {!node?.isLabel && (
@@ -39,7 +39,9 @@ function TreeNode({ node }: { node: TreeNode }) {
           <Icon className="w-3 -ml-1" />
         </TreeView.LeadingVisual>
       )}
-      <span className={node?.isLabel ? ' capitalize text-gray-700 text-[14px]' : 'font-thin text-[14px] -ml-0.5'}>
+      <span
+        className={node?.isLabel ? ' capitalize  text-[13px]  text-purple-900 font-extrabold' : 'font-light text-[14px] -ml-0.5'}
+      >
         {node.name} {node.isLabel ? `(${node.children.length})` : ''}
       </span>
       {(node.children || []).length > 0 && (

@@ -41,9 +41,6 @@ importers:
       '@parcel/watcher':
         specifier: ^2.4.1
         version: 2.5.0
-      '@primer/behaviors':
-        specifier: 1.8.0
-        version: 1.8.0
       '@stoplight/json-schema-viewer':
         specifier: ^4.16.4
         version: 4.16.4(@babel/core@7.26.0)(@babel/template@7.25.9)(@stoplight/markdown-viewer@5.7.1(@stoplight/mosaic-code-viewer@1.53.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@stoplight/mosaic@1.53.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@stoplight/mosaic-code-viewer@1.53.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@stoplight/mosaic@1.53.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1197,9 +1194,6 @@ packages:
 
   '@polka/url@1.0.0-next.28':
     resolution: {integrity: sha512-8LduaNlMZGwdZ6qWrKlfa+2M4gahzFkprZiAt2TF8uS0qQgBizKXpXURqvTJ4WtmupWxaLqjRb2UCTe72mu+Aw==}
-
-  '@primer/behaviors@1.8.0':
-    resolution: {integrity: sha512-ZUfhWVY4ZBKc2Fh3fIa2Qwwa3SnOi914lY5wcmN+UNtsBxeXsjWNwpohJbwRwWZm+nJ3C1n9qJFWpHuBlDVU1A==}
 
   '@protobufjs/aspromise@1.1.2':
     resolution: {integrity: sha512-j+gKExEuLmKwvz3OgROXtrJ2UG2x8Ch2YZUxahh+s1F2HZ+wAceUNLkvy6zKCPVRkU++ZWQrdxsUeQXmcg4uoQ==}
@@ -7074,8 +7068,6 @@ snapshots:
       playwright: 1.49.1
 
   '@polka/url@1.0.0-next.28': {}
-
-  '@primer/behaviors@1.8.0': {}
 
   '@protobufjs/aspromise@1.1.2': {}
 

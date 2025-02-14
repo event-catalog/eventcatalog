@@ -2,7 +2,6 @@ import React, { useCallback, useEffect } from 'react';
 import classes from './styles.module.css';
 import { useSlots } from './useSlots';
 import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
-import { useRovingTabIndex } from './useRovingTabIndex';
 
 // ----------------------------------------------------------------------------
 // Context
@@ -63,16 +62,6 @@ const Root: React.FC<TreeViewProps> = ({
       document.removeEventListener('mouseup', onMouseUp);
     };
   }, []);
-
-  useRovingTabIndex({ containerRef, mouseDownRef });
-  // useTypeahead({
-  //   containerRef,
-  //   onFocusChange: (element) => {
-  //     if (element instanceof HTMLElement) {
-  //       element.focus();
-  //     }
-  //   },
-  // });
 
   const expandedStateCache = React.useRef<Map<string, boolean> | null>(null);
 
@@ -211,6 +200,10 @@ const Item = React.forwardRef<HTMLElement, TreeViewItemProps>(
           onClick={(event) => {
             if (onSelect) {
               onSelect(event);
+              // if has children open them too
+              if (hasSubTree) {
+                toggle(event);
+              }
             } else {
               toggle(event);
             }
@@ -231,6 +224,11 @@ const Item = React.forwardRef<HTMLElement, TreeViewItemProps>(
             }}
           >
             <div style={{ gridArea: 'spacer', display: 'flex' }}>{/* <LevelIndicatorLines level={level} /> */}</div>
+
+            <div className={classes.TreeViewItemContent}>
+              {slots.leadingVisual}
+              <span className={classes.TreeViewItemContentText}>{childrenWithoutSubTree}</span>
+            </div>
             {hasSubTree ? (
               <div
                 className={[classes.TreeViewItemToggle, classes.TreeViewItemToggleHover, classes.TreeViewItemToggleEnd].join(' ')}
@@ -243,10 +241,6 @@ const Item = React.forwardRef<HTMLElement, TreeViewItemProps>(
                 {isExpanded ? <ChevronDownIcon size={TOGGLE_ICON_SIZE} /> : <ChevronRightIcon size={TOGGLE_ICON_SIZE} />}
               </div>
             ) : null}
-            <div className={classes.TreeViewItemContent}>
-              {slots.leadingVisual}
-              <span className={classes.TreeViewItemContentText}>{childrenWithoutSubTree}</span>
-            </div>
           </div>
           {subTree}
         </li>
@@ -254,17 +248,6 @@ const Item = React.forwardRef<HTMLElement, TreeViewItemProps>(
     );
   }
 );
-
-/** Lines to indicate the depth of an item in a TreeView */
-const LevelIndicatorLines: React.FC<{ level: number }> = ({ level }) => {
-  return (
-    <div style={{ width: '100%', display: 'flex' }}>
-      {Array.from({ length: level - 1 }).map((_, index) => (
-        <div key={index} className={classes.TreeViewItemLevelLine} />
-      ))}
-    </div>
-  );
-};
 
 Item.displayName = 'TreeView.Item';
 

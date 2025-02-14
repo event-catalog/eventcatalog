@@ -46,8 +46,8 @@
     color: var(--fgColor-default);
     cursor: pointer;
     border-radius: var(--borderRadius-medium);
-    grid-template-columns: var(--spacer-width) var(--leading-action-width) var(--toggle-width) 1fr;
-    grid-template-areas: 'spacer leadingAction toggle content';
+    grid-template-columns: var(--spacer-width) var(--leading-action-width) 1fr var(--toggle-width);
+    grid-template-areas: 'spacer leadingAction content toggle';
 
     --leading-action-width: calc(var(--has-leading-action, 0) * 1.5rem);
     --spacer-width: calc(calc(var(--level) - 1) * (var(--toggle-width) / 2));
@@ -77,7 +77,7 @@
   }
 
   &:where([data-omit-spacer='true']) .TreeViewItemContainer {
-    grid-template-columns: 0 0 0 1fr;
+    grid-template-columns: 0 0 1fr 0;
   }
 
   .TreeViewItem[aria-current='true'] > .TreeViewItemContainer {

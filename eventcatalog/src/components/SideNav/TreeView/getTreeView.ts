@@ -17,7 +17,7 @@ export type TreeNode = {
 /**
  * Resource types that should be in the sidenav
  */
-const RESOURCE_TYPES = ['domains', 'services', 'events', 'commands', 'queries', 'flows', 'teams', 'users', 'channels'];
+const RESOURCE_TYPES = ['domains', 'services', 'events', 'commands', 'queries', 'flows', 'channels'];
 // const RESOURCE_TYPES = ['domains', 'services', 'events', 'commands', 'queries', 'flows', 'channels'];
 
 /**
@@ -53,22 +53,6 @@ function buildTreeOfDir(directory: string, parentNode: TreeNode, options: { igno
   const isResourceIgnored = options?.ignore && resourceType && options.ignore.includes(resourceType);
 
   if (markdownFiles.length > 0 && !isResourceIgnored) {
-    if (resourceType === 'teams' || resourceType === 'users') {
-      // Teams and Users aren't nested. Just append to the parentNode.
-      markdownFiles.forEach((md) => {
-        const resourceDef = gm.read(md);
-        parentNode.children.push({
-          id: resourceDef.data.id,
-          name: resourceDef.data.name,
-          type: resourceType,
-          version: resourceDef.data.version,
-          children: [],
-        });
-      });
-      // Teams and Users are leaf nodes so we can return here.
-      return;
-    }
-
     const resourceFilePath = markdownFiles.find((md) => md.endsWith('index.md'));
     if (resourceFilePath) {
       const resourceDef = gm.read(resourceFilePath);
@@ -122,24 +106,32 @@ function groupChildrenByType(parentNode: TreeNode) {
 
   const acc: Record<string, TreeNode[]> = {};
 
+  // Flows and messages are collapsed by default
+
   parentNode.children.forEach((n) => {
     if (n.type === null) return; // TODO: Just ignore or remove the type null???
     if (!(n.type in acc)) acc[n.type] = [];
     acc[n.type].push(n);
   });
 
+  // Collapse all messages
+  const AUTO_EXPANDED_TYPES = ['domains', 'services', 'channels'];
+
   parentNode.children = Object.entries(acc)
     // Order label nodes by RESOURCE_TYPES
     .sort(([aType], [bType]) => RESOURCE_TYPES.indexOf(aType) - RESOURCE_TYPES.indexOf(bType))
     // Construct the label nodes
-    .map(([type, nodes]) => ({
-      id: `${parentNode.id}/${type}`,
-      name: type,
-      type: type as CollectionKey,
-      version: '0',
-      children: nodes,
-      isLabel: true,
-    }));
+    .map(([type, nodes]) => {
+      return {
+        id: `${parentNode.id}/${type}`,
+        name: type,
+        type: type as CollectionKey,
+        version: '0',
+        children: nodes,
+        isExpanded: AUTO_EXPANDED_TYPES.includes(type),
+        isLabel: true,
+      };
+    });
 }
 
 const treeViewCache = new Map<string, TreeNode>();
@@ -164,10 +156,10 @@ export function getTreeView({ projectDir, currentPath }: { projectDir: string; c
 
   // prettier-ignore
   forEachTreeNodeOf(
-    rootNode, 
+    rootNode,
     addHrefToNode(basePathname),
     orderChildrenByName,
-    groupChildrenByType, 
+    groupChildrenByType,
   );
 
   if (basePathname === 'visualiser') {
