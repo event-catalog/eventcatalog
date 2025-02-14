@@ -18,29 +18,20 @@ export async function getCatalogResources({ currentPath }: { currentPath: string
   const domains = await getDomains({ getAllVersions: false });
   const channels = await getChannels({ getAllVersions: false });
   const flows = await getFlows({ getAllVersions: false });
-  const teams = await getTeams();
-  const users = await getUsers();
 
   const messages = [...events, ...commands, ...queries];
 
   // @ts-ignore for large catalogs https://github.com/event-catalog/eventcatalog/issues/552
-  const allData = [...domains, ...services, ...messages, ...channels, ...flows, ...teams, ...users];
+  const allData = [...domains, ...services, ...messages, ...channels, ...flows];
 
   const allDataAsSideNav = allData.reduce((acc, item) => {
     const title = item.collection;
     const group = acc[title] || [];
     const route = currentPath.includes('visualiser') ? 'visualiser' : 'docs';
 
-    if (
-      currentPath.includes('visualiser') &&
-      (item.collection === 'teams' || item.collection === 'users' || item.collection === 'channels')
-    ) {
-      return acc;
-    }
-
     const navigationItem = {
       label: item.data.name,
-      version: item.collection === 'teams' || item.collection === 'users' ? null : item.data.version,
+      version: item.data.version,
       // items: item.collection === 'users' ? [] : item.headings,
       visible: isCollectionVisibleInCatalog(item.collection),
       // @ts-ignore
