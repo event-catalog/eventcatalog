@@ -72,7 +72,7 @@ const clearCore = () => {
 };
 
 const checkForUpdate = () => {
-  const installedVersion = getInstalledEventCatalogVersion() || '0.0.1';
+  const installedVersion = getInstalledEventCatalogVersion();
 
   if (!installedVersion) return;
 
