@@ -161,8 +161,6 @@ program
   .action(async (options, command: Command) => {
     console.log('Building EventCatalog...');
 
-    // checkForUpdate();
-
     copyCore();
 
     await logBuild(dir);
