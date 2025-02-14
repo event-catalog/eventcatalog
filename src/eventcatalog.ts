@@ -11,28 +11,11 @@ import { VERSION } from './constants';
 import { watch } from './watcher';
 import { catalogToAstro } from './catalog-to-astro-content-directory';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
-import semver from 'semver';
 import boxen from 'boxen';
 import { isBackstagePluginEnabled } from './features';
-const boxenOptions = {
-  padding: 1,
-  margin: 1,
-  align: 'center',
-  borderColor: 'yellow',
-  borderStyle: {
-    topLeft: ' ',
-    topRight: ' ',
-    bottomLeft: ' ',
-    bottomRight: ' ',
-    right: ' ',
-    top: '-',
-    bottom: '-',
-    left: ' ',
-  },
-};
+import updateNotifier from 'update-notifier';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
-
 const program = new Command().version(VERSION);
 
 // The users dierctory
@@ -43,6 +26,16 @@ const core = path.resolve(process.env.CATALOG_DIR || join(dir, '.eventcatalog-co
 
 // The project itself
 const eventCatalogDir = path.resolve(join(currentDir, '../eventcatalog/'));
+
+const getInstalledEventCatalogVersion = () => {
+  try {
+    const pkg = fs.readFileSync(join(dir, 'package.json'), 'utf8');
+    const json = JSON.parse(pkg);
+    return json.dependencies['@eventcatalog/core'];
+  } catch (error) {
+    return null;
+  }
+};
 
 program.name('eventcatalog').description('Documentation tool for event-driven architectures');
 
@@ -79,28 +72,35 @@ const clearCore = () => {
 };
 
 const checkForUpdate = () => {
-  try {
-    const packageJson = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf-8'));
-    const userEventCatalogVersion = packageJson.dependencies['@eventcatalog/core'];
+  const installedVersion = getInstalledEventCatalogVersion() || '0.0.1';
 
-    const corePackageJson = JSON.parse(fs.readFileSync(path.join(core, 'package.json'), 'utf-8'));
-    const coreVersion = corePackageJson.version;
+  if (!installedVersion) return;
 
-    const userVersion = userEventCatalogVersion.replace(/[\^~]/, ''); // Remove ^ or ~ from version
+  const pkg = { name: '@eventcatalog/core', version: installedVersion };
+  const notifier = updateNotifier({ pkg, updateCheckInterval: 0 });
 
-    if (semver.lt(userVersion, coreVersion)) {
-      const docusaurusUpdateMessage = boxen(
-        `Update available for EventCatalog
-        @eventcatalog/core ${userVersion} → ${coreVersion}
-        
-        Run \`npm i @eventcatalog/core@${coreVersion}\` to update your EventCatalog
-        `,
-        boxenOptions as any
-      );
-      console.log(docusaurusUpdateMessage);
-    }
-  } catch (error) {
-    // Cant read versions, ignore message...
+  if (notifier.update) {
+    const message = `EventCatalog update available ${notifier.update.current} → ${notifier.update.latest}
+Run npm i @eventcatalog/core to update`;
+
+    console.log(
+      boxen(message, {
+        padding: 1,
+        margin: 1,
+        align: 'center',
+        borderColor: 'yellow',
+        borderStyle: {
+          topLeft: ' ',
+          topRight: ' ',
+          bottomLeft: ' ',
+          bottomRight: ' ',
+          right: ' ',
+          top: '-',
+          bottom: '-',
+          left: ' ',
+        },
+      })
+    );
   }
 };
 
@@ -113,8 +113,6 @@ program
     // // Copy EventCatalog core over
     console.log('Setting up EventCatalog....');
 
-    checkForUpdate();
-
     if (options.debug) {
       console.log('Debug mode enabled');
       console.log('PROJECT_DIR', dir);
@@ -124,13 +122,13 @@ program
     if (options.forceRecreate) clearCore();
     copyCore();
 
-    console.log('EventCatalog is starting at http://localhost:3000/docs');
-
     await resolveCatalogDependencies(dir, core);
     await catalogToAstro(dir, core);
 
     // Check if backstage is enabled
     const canEmbedPages = await isBackstagePluginEnabled();
+
+    checkForUpdate();
 
     let watchUnsub;
     try {
@@ -163,7 +161,7 @@ program
   .action(async (options, command: Command) => {
     console.log('Building EventCatalog...');
 
-    checkForUpdate();
+    // checkForUpdate();
 
     copyCore();
 
@@ -174,6 +172,8 @@ program
 
     // Check if backstage is enabled
     const canEmbedPages = await isBackstagePluginEnabled();
+
+    checkForUpdate();
 
     execSync(
       `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} npx astro build ${command.args.join(' ').trim()}`,
