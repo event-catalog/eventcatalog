@@ -1,9 +1,11 @@
 ---
 import type { HTMLAttributes } from 'astro/types';
-import EcConfig from '@config';
+import config from '@config';
+
 // FlatView
 import CatalogResourcesSideBar from './CatalogResourcesSideBar';
 import { getCatalogResources } from './CatalogResourcesSideBar/getCatalogResources';
+
 // TreeView
 import { SideNavTreeView } from './TreeView';
 import { getTreeView } from './TreeView/getTreeView';
@@ -13,9 +15,14 @@ interface Props extends Omit<HTMLAttributes<'div'>, 'children'> {}
 const currentPath = Astro.url.pathname;
 
 let props;
-const SIDENAV_TYPE = EcConfig?.docs?.sidebar?.type ?? 'FLAT_VIEW';
-if (SIDENAV_TYPE === 'FLAT_VIEW') props = await getCatalogResources({ currentPath });
-else if (SIDENAV_TYPE === 'TREE_VIEW') props = getTreeView({ projectDir: process.env.PROJECT_DIR!, currentPath });
+
+const SIDENAV_TYPE = config?.docs?.sidebar?.type ?? 'FLAT_VIEW';
+
+if (SIDENAV_TYPE === 'FLAT_VIEW') {
+  props = await getCatalogResources({ currentPath });
+} else if (SIDENAV_TYPE === 'TREE_VIEW') {
+  props = getTreeView({ projectDir: process.env.PROJECT_DIR!, currentPath });
+}
 ---
 
 <div {...Astro.props}>
