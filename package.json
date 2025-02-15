@@ -57,7 +57,7 @@
     "@tailwindcss/typography": "^0.5.13",
     "@tanstack/react-table": "^8.17.3",
     "@xyflow/react": "^12.3.6",
-    "astro": "^5.2.5",
+    "astro": "^5.3.0",
     "astro-expressive-code": "^0.40.1",
     "astro-pagefind": "^1.6.0",
     "astro-seo": "^0.8.4",
