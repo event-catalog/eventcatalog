@@ -13,7 +13,7 @@ importers:
         version: 6.1.0
       '@astrojs/mdx':
         specifier: ^4.0.8
-        version: 4.0.8(astro@5.2.5(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0))
+        version: 4.0.8(astro@5.3.0(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0))
       '@astrojs/react':
         specifier: ^4.2.0
         version: 4.2.0(@types/node@20.17.17)(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(jiti@1.21.7)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(yaml@2.7.0)
@@ -22,7 +22,7 @@ importers:
         version: 4.0.11
       '@astrojs/tailwind':
         specifier: ^6.0.0
-        version: 6.0.0(astro@5.2.5(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0))(tailwindcss@3.4.17)
+        version: 6.0.0(astro@5.3.0(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0))(tailwindcss@3.4.17)
       '@asyncapi/avro-schema-parser':
         specifier: ^3.0.24
         version: 3.0.24
@@ -57,14 +57,14 @@ importers:
         specifier: ^12.3.6
         version: 12.4.2(@types/react@18.3.18)(immer@9.0.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       astro:
-        specifier: ^5.2.5
-        version: 5.2.5(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0)
+        specifier: ^5.3.0
+        version: 5.3.0(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0)
       astro-expressive-code:
         specifier: ^0.40.1
-        version: 0.40.1(astro@5.2.5(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0))
+        version: 0.40.1(astro@5.3.0(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0))
       astro-pagefind:
         specifier: ^1.6.0
-        version: 1.8.0(astro@5.2.5(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0))
+        version: 1.8.0(astro@5.3.0(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0))
       astro-seo:
         specifier: ^0.8.4
         version: 0.8.4(prettier-plugin-astro@0.14.1)(prettier@3.5.0)(typescript@5.7.3)
@@ -2095,8 +2095,8 @@ packages:
   astro-seo@0.8.4:
     resolution: {integrity: sha512-Ou1vzQSXAxa0K8rtNtXNvSpYqOGEgMhh0immMxJeXmbVZac3UKCNWAoXWyOQDFYsZvBugCRSg0N1phBqPMVgCw==}
 
-  astro@5.2.5:
-    resolution: {integrity: sha512-AYXyYkc+c5xbKTm48FyQA91y81nXyNPAaoyafR0LUugE4lAwuvIUcXDBfMzmbuP1lGRvsE33G2oypv6gbGaPFg==}
+  astro@5.3.0:
+    resolution: {integrity: sha512-e88l/Yk/6enR/ZDddLbqtM+oblBFk5mneNSmNesyVYGL/6Dj4UA67GPAZOk79VxT5dbLlclZSyyw/wlxN1aj3A==}
     engines: {node: ^18.17.1 || ^20.3.0 || >=22.0.0, npm: '>=9.6.5', pnpm: '>=7.1.0'}
     hasBin: true
 
@@ -6166,12 +6166,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/mdx@4.0.8(astro@5.2.5(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0))':
+  '@astrojs/mdx@4.0.8(astro@5.3.0(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0))':
     dependencies:
       '@astrojs/markdown-remark': 6.1.0
       '@mdx-js/mdx': 3.1.0(acorn@8.14.0)
       acorn: 8.14.0
-      astro: 5.2.5(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0)
+      astro: 5.3.0(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0)
       es-module-lexer: 1.6.0
       estree-util-visit: 2.0.0
       hast-util-to-html: 9.0.4
@@ -6217,9 +6217,9 @@ snapshots:
       fast-xml-parser: 4.5.1
       kleur: 4.1.5
 
-  '@astrojs/tailwind@6.0.0(astro@5.2.5(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0))(tailwindcss@3.4.17)':
+  '@astrojs/tailwind@6.0.0(astro@5.3.0(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0))(tailwindcss@3.4.17)':
     dependencies:
-      astro: 5.2.5(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0)
+      astro: 5.3.0(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0)
       autoprefixer: 10.4.20(postcss@8.5.1)
       postcss: 8.5.1
       postcss-load-config: 4.0.2(postcss@8.5.1)
@@ -8594,15 +8594,15 @@ snapshots:
 
   astring@1.9.0: {}
 
-  astro-expressive-code@0.40.1(astro@5.2.5(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0)):
+  astro-expressive-code@0.40.1(astro@5.3.0(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0)):
     dependencies:
-      astro: 5.2.5(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0)
+      astro: 5.3.0(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0)
       rehype-expressive-code: 0.40.1
 
-  astro-pagefind@1.8.0(astro@5.2.5(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0)):
+  astro-pagefind@1.8.0(astro@5.3.0(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0)):
     dependencies:
       '@pagefind/default-ui': 1.3.0
-      astro: 5.2.5(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0)
+      astro: 5.3.0(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0)
       pagefind: 1.3.0
       sirv: 3.0.0
 
@@ -8614,7 +8614,7 @@ snapshots:
       - prettier-plugin-astro
       - typescript
 
-  astro@5.2.5(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0):
+  astro@5.3.0(@types/node@20.17.17)(jiti@1.21.7)(rollup@4.34.6)(typescript@5.7.3)(yaml@2.7.0):
     dependencies:
       '@astrojs/compiler': 2.10.4
       '@astrojs/internal-helpers': 0.5.1
