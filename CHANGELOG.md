@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.23.1
+
+### Patch Changes
+
+- ec3039e: feat(core): added cli logs to let users know about updates
+- 6501081: chore(core): updated astro version
+
 ## 2.23.0
 
 ### Minor Changes
