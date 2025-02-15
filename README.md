@@ -44,7 +44,7 @@
 # Core Features
 
 - 📃 Document domains, services and messages ([demo](https://demo.eventcatalog.dev/docs))
-- 📊 Visualise your architecture ([demo](https://demo.eventcatalog.dev/visualiser))
+- 📊 Visualise your architecture ([demo](https://demo.eventcatalog.dev/visualiser/domains/Orders))
 - ⭐ Supports any Schema format (e.g Avro, JSON) ([demo](https://demo.eventcatalog.dev/docs/events/InventoryAdjusted/0.0.4))
 - 🗂️ Document any code examples (Any code snippet)
 - 💅 Custom MDX components ([read more](https://eventcatalog.dev/docs/development/components/using-components))
