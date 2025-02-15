@@ -51,7 +51,7 @@
 - 🗄️ Version domains, services and messages
 - ⭐ Discoverability feature (search, filter and more) ([demo](https://demo.eventcatalog.dev/discover/events))
 - ⭐ Document teams and users ([demo](https://demo.eventcatalog.dev/docs/teams/full-stack))
-- 🤖 Automate your catalogs with [generators](https://www.eventcatalog.dev/docs/development/plugins/plugin-overview) (e.g generate your catalogs from your [AsyncAPI](https://www.eventcatalog.dev/docs/ascynapi)/[OpenAPI](https://www.eventcatalog.dev/docs/openapi) documents)
+- 🤖 Automate your catalogs with [generators](https://www.eventcatalog.dev/docs/development/plugins/plugin-overview) (e.g generate your catalogs from your [AsyncAPI](https://www.eventcatalog.dev/docs/asyncapi)/[OpenAPI](https://www.eventcatalog.dev/docs/openapi) documents)
 - 👨🏼‍💻 Follows [Docs as code](https://www.writethedocs.org/guide/docs-as-code/) principles
 - ⭐ And much more...
 
