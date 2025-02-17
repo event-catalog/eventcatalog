@@ -10,7 +10,7 @@ export const buildUrl = (url: string, ignoreTrailingSlash = false) => {
   let newUrl = url;
 
   // If the base URL is not the root, we need to append it
-  if (import.meta.env.BASE_URL !== '/') {
+  if (import.meta.env.BASE_URL !== '/' && !url.startsWith(import.meta.env.BASE_URL)) {
     newUrl = `${import.meta.env.BASE_URL}${url}`;
   }
 
