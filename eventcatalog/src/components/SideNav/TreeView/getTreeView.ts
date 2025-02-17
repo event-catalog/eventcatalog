@@ -90,9 +90,7 @@ function forEachTreeNodeOf(node: TreeNode, ...callbacks: Array<(node: TreeNode) 
 function addHrefToNode(basePathname: 'docs' | 'visualiser') {
   return (node: TreeNode) => {
     node.href = encodeURI(
-      buildUrl(
-        `/${basePathname}/${node.type}/${node.id}${node.type === 'teams' || node.type === 'users' ? '' : `/${node.version}`}`
-      )
+      buildUrl(`/${node.type}/${node.id}${node.type === 'teams' || node.type === 'users' ? '' : `/${node.version}`}`)
     );
   };
 }
