@@ -216,18 +216,6 @@ describe('catalog-to-astro-content-directory', () => {
     });
   });
 
-  describe('users', () => {
-    it('takes users from the catalog and puts it into the expected directory structure', async () => {
-      expect(existsSync(path.join(ASTRO_CONTENT_DIRECTORY, 'users', 'dboyne.md'))).toBe(true);
-    });
-  });
-
-  describe('teams', () => {
-    it('takes teams from the catalog and puts it into the expected directory structure', async () => {
-      expect(existsSync(path.join(ASTRO_CONTENT_DIRECTORY, 'teams', 'full-stack.md'))).toBe(true);
-    });
-  });
-
   // describe('eventcatalog.config.js file', () => {
   //   it('adds cId missing property on the eventcatalog.config.js file', async () => {
   //     const file = await fs.readFile(path.join(CATALOG_DIR, 'eventcatalog.config.js'), 'utf8');

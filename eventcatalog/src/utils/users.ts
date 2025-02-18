@@ -32,8 +32,8 @@ export const getUsers = async (): Promise<User[]> => {
     });
 
     const isOwnedByUserOrAssociatedTeam = (item: CollectionEntry<CollectionTypes>) => {
-      const associatedTeamsSlug: string[] = associatedTeams.map((team) => team.slug);
-      return item.data.owners?.some((owner) => owner.id === user.data.id || associatedTeamsSlug.includes(owner.id));
+      const associatedTeamsId: string[] = associatedTeams.map((team) => team.data.id);
+      return item.data.owners?.some((owner) => owner.id === user.data.id || associatedTeamsId.includes(owner.id));
     };
 
     const ownedServices = services.filter(isOwnedByUserOrAssociatedTeam);
