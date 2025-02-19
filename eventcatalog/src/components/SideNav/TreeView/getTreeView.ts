@@ -137,7 +137,7 @@ function groupChildrenByType(parentNode: TreeNode) {
 const treeViewCache = new Map<string, TreeNode>();
 
 export function getTreeView({ projectDir, currentPath }: { projectDir: string; currentPath: string }): TreeNode {
-  const basePathname = currentPath.split('/')[1] as 'docs' | 'visualiser';
+  const basePathname = currentPath.split('/').find((p) => p === 'docs' || p === 'visualiser') || 'docs';
 
   const cacheKey = `${projectDir}:${basePathname}`;
   if (treeViewCache.has(cacheKey)) return treeViewCache.get(cacheKey)!;
