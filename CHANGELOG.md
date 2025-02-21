@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.23.2
+
+### Patch Changes
+
+- a2db8df: fix(core): messages now rendered correctly on service table
+
 ## 2.23.1
 
 ### Patch Changes
