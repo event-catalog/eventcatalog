@@ -446,6 +446,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "Vertygo",
+      "name": "Ivan Milosavljevic",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1658326?v=4",
+      "profile": "https://github.com/Vertygo",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
