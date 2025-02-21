@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.23.3
+
+### Patch Changes
+
+- bf92c1d: fix(core): fixed issue for new sidebar for windows
+
 ## 2.23.2
 
 ### Patch Changes
