@@ -35,7 +35,7 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-47-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-[Read the Docs](https://eventcatalog.dev/) | [Edit the Docs](https://github.com/event-catalog/docs) | [View Demo](https://demo.eventcatalog.dev/docs)
+[Read the Docs](https://www.eventcatalog.dev/product/documentation) | [View Demo](https://demo.eventcatalog.dev/docs)
 
 </div>
 
@@ -44,14 +44,14 @@
 # Core Features
 
 - 📃 Document domains, services and messages ([demo](https://demo.eventcatalog.dev/docs))
-- 📊 Visualise your architecture ([demo](https://demo.eventcatalog.dev/visualiser))
+- 📊 Visualise your architecture ([demo](https://demo.eventcatalog.dev/visualiser/domains/Orders))
 - ⭐ Supports any Schema format (e.g Avro, JSON) ([demo](https://demo.eventcatalog.dev/docs/events/InventoryAdjusted/0.0.4))
 - 🗂️ Document any code examples (Any code snippet)
 - 💅 Custom MDX components ([read more](https://eventcatalog.dev/docs/development/components/using-components))
 - 🗄️ Version domains, services and messages
 - ⭐ Discoverability feature (search, filter and more) ([demo](https://demo.eventcatalog.dev/discover/events))
 - ⭐ Document teams and users ([demo](https://demo.eventcatalog.dev/docs/teams/full-stack))
-- 🤖 Automate your catalogs with [generators](https://www.eventcatalog.dev/docs/development/plugins/plugin-overview) (e.g generate your catalogs from your [AsyncAPI](https://www.eventcatalog.dev/docs/ascynapi)/[OpenAPI](https://www.eventcatalog.dev/docs/openapi) documents)
+- 🤖 Automate your catalogs with [generators](https://www.eventcatalog.dev/docs/development/plugins/plugin-overview) (e.g generate your catalogs from your [AsyncAPI](https://www.eventcatalog.dev/docs/asyncapi)/[OpenAPI](https://www.eventcatalog.dev/docs/openapi) documents)
 - 👨🏼‍💻 Follows [Docs as code](https://www.writethedocs.org/guide/docs-as-code/) principles
 - ⭐ And much more...
 
