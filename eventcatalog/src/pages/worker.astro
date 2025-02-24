@@ -1,0 +1,107 @@
+---
+
+---
+
+<div>Worker example</div>
+
+<div id="output"></div>
+<button id="sendBtn">Send</button>
+
+<script>
+  // console.log('HELLO WORLD');
+  import { CreateWebWorkerMLCEngine } from '@mlc-ai/web-llm';
+
+  // // // Use the correct path relative to the public directory
+  // const worker = new Worker(new URL('../workers/engine.ts', import.meta.url), {
+  //   type: 'module'
+  // });
+
+  let engineCreator: typeof CreateWebWorkerMLCEngine | null = null;
+  engineCreator = CreateWebWorkerMLCEngine;
+
+  const initProgressCallback = (initProgress: any) => {
+    console.log(initProgress);
+  };
+
+  const vectorSearchWorker = new Worker(new URL('../workers/vector-search.ts', import.meta.url), { type: 'module' });
+  vectorSearchWorker.postMessage({
+    type: 'initialize',
+  });
+
+  // const engine = await engineCreator(
+  //   new Worker(new URL('../workers/engine.ts', import.meta.url), { type: 'module' }),
+  //   'Llama-3.1-8B-Instruct-q4f32_1-MLC',
+  //   { initProgressCallback } // engineConfig
+  // );
+
+  // Listen for messages from the worker
+  vectorSearchWorker.onmessage = (event: MessageEvent) => {
+    const { type, results, error } = event.data;
+    if (error) {
+      console.error('Worker error:', error);
+      return;
+    }
+
+    switch (type) {
+      case 'initialized':
+        console.log('Vector store initialized');
+        break;
+      case 'searchResults':
+        console.log('Search results:', results);
+        break;
+    }
+  };
+
+  // on load
+  document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOMContentLoaded');
+    // const completion = await engine.chat.completions.create({
+    //   stream: true,
+    //   messages: [{ role: "user", content: "Hello" }],
+    // });
+    console.log('HELLO WORLD');
+  });
+
+  const systemPrompt = `
+    You are a documentation assistant. You are given a question and you need to answer it based on the provided documentation and context.
+  `;
+
+  const context = `
+    OrderEvent is an event that is emitted when an order is created.
+    CreateEvent is an event that is emitted when a create is created.
+    ProcessEvent is an event that is emitted when a process is created.
+    InventoryEvent is an event that is emitted when an inventory is created.
+    PaymentEvent is an event that is emitted when a payment is created.
+  `;
+
+  
+
+  document.getElementById('sendBtn')?.addEventListener('click', async () => {
+    vectorSearchWorker.postMessage({
+      type: 'search',
+      payload: {
+        query: 'How many events do we have?',
+        k: 5, // number of results to return
+      },
+    });
+
+    // const completion = await engine.chat.completions.create({
+    //   stream: false,
+    //   messages: [
+    //     { role: 'system', content: systemPrompt },
+    //     { role: 'user', content: context },
+    //     { role: 'assistant', content: "I understand. I'll use the provided documentation to answer questions." },
+    //     { role: 'user', content: 'How many events are there?' },
+    //   ],
+    //   temperature: 0.6,
+    //   max_tokens: 6000,
+    // });
+    // console.log(completion);
+    // document.getElementById("output")?.innerHTML = completion.choices[0].message.content;
+    // worker.postMessage("Hello");
+  });
+
+  // worker.addEventListener("message", (event) => {
+  //   console.log("worker said:", event.data);
+  // });
+</script>

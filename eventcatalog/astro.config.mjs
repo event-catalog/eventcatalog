@@ -22,6 +22,8 @@ export default defineConfig({
   base,
   server: { port: config.port || 3000 },
 
+
+
   outDir: config.outDir ? join(projectDirectory, config.outDir) : join(projectDirectory, 'dist'),
 
   // https://docs.astro.build/en/reference/configuration-reference/#site
@@ -60,6 +62,10 @@ export default defineConfig({
        * such as `node:path`.
        */
       '__EC_TRAILING_SLASH__': config.trailingSlash || false,
+    },
+    worker: {
+      format: 'es', // Use ES modules format
+      plugins: [], // Add any worker-specific plugins if needed
     },
     build: {
       commonjsOptions: {

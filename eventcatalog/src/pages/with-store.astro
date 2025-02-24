@@ -1,0 +1,531 @@
+---
+import path from 'path';
+import { BookOpen } from 'lucide-react';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+// import { HuggingFaceTransformersEmbeddings } from '@langchain/community/embeddings/huggingface_transformers';
+// import { FaissStore } from '@langchain/community/vectorstores/faiss';
+
+// const embeddingsInstance = new HuggingFaceTransformersEmbeddings({
+//   model: 'Xenova/all-MiniLM-L6-v2',
+// });
+
+// const vectorStore = await FaissStore.load('/Users/dboyne/Dev/eventcatalog/eventcatalog/eventcatalog/src/ai/store', embeddingsInstance);
+
+// Take the page context as context from the results and pass it into the LLM?
+
+// console.log(x);
+---
+
+<VerticalSideBarLayout title="EventCatalog">
+  <div class="flex h-[calc(100vh-60px)] bg-white">
+    <!-- Sidebar -->
+    <div class="w-64 bg-gray-50 border-r border-gray-200">
+      <!-- New Chat Button -->
+      <div class="p-4 border-b border-gray-200">
+        <button
+          class="w-full flex items-center justify-between px-3 py-2 text-sm bg-white hover:bg-gray-100 rounded-lg border border-gray-200 text-gray-700"
+        >
+          <span>New chat</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+              clip-rule="evenodd"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Chat History -->
+      <!-- <div class="p-2 space-y-2">
+        <div class="text-xs text-gray-500 px-2 py-1">Your chats</div>
+        <div class="space-y-1">
+          <a href="#" class="block px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">Tell me a joke</a>
+          <a href="#" class="block px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">Hello world</a>
+          <a href="#" class="block px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">hi</a>
+        </div>
+      </div> -->
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="flex-1 flex flex-col">
+      <!-- Chat Messages -->
+      <div id="output" class="flex-1 overflow-y-auto p-4 space-y-4 max-w-[900px] mx-auto w-full scroll-smooth">
+        <!-- Initial message -->
+        <div id="welcomeMessage" class="flex justify-center items-center h-full">
+          <div class="text-center space-y-6 max-w-2xl px-4">
+            <div class="flex justify-center">
+              <BookOpen size={48} strokeWidth={1.5} className="text-gray-400" />
+            </div>
+            <div class="space-y-4">
+              <h1 class="text-3xl font-semibold text-gray-800">Ask questions about your architecture</h1>
+              <p class="text-sm text-gray-500">AI Models are local and do not leave your device.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading Status -->
+      <div class="max-w-[900px] mx-auto w-full px-4">
+        <div id="loadingStatus" class="mb-2 py-2 px-4 bg-gray-100 text-gray-700 rounded-lg text-center">
+          Initializing AI model...
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="border-t border-gray-200 p-4 bg-white">
+        <div class="max-w-[900px] mx-auto relative">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Enter your prompt here"
+            class="w-full px-4 py-3 bg-white text-gray-800 rounded-lg border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 disabled:bg-gray-50 disabled:cursor-not-allowed pr-24"
+            disabled
+          />
+          <div class="absolute right-2 top-1/2 -translate-y-1/2 flex space-x-2">
+            <button
+              id="searchBtn"
+              class="px-4 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-200 disabled:cursor-not-allowed text-sm font-medium"
+              disabled
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</VerticalSideBarLayout>
+
+<style>
+  .loading-status.ready {
+    background-color: rgb(240 253 244); /* light green bg */
+    color: rgb(22 163 74); /* green text */
+  }
+
+  .loading-status.hidden {
+    display: none;
+  }
+
+  /* Add smooth scrolling behavior */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+</style>
+
+<script>
+  import { Document } from 'langchain/document';
+  import { MemoryVectorStore } from 'langchain/vectorstores/memory';
+  import { HuggingFaceTransformersEmbeddings } from '@langchain/community/embeddings/huggingface_transformers';
+  import { CreateWebWorkerMLCEngine } from '@mlc-ai/web-llm';
+
+  let engineCreator: typeof CreateWebWorkerMLCEngine | null = null;
+  engineCreator = CreateWebWorkerMLCEngine;
+
+  const initProgressCallback = (initProgress: any) => {
+    const loadingStatus = document.getElementById('loadingStatus');
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    const searchBtn = document.getElementById('searchBtn') as HTMLButtonElement;
+
+    if (!loadingStatus || !searchInput || !searchBtn) return;
+
+    if (initProgress.progress === 1) {
+      loadingStatus.textContent = 'AI Model Ready!';
+      loadingStatus.classList.add('ready');
+      // Enable input and button
+      searchInput.disabled = false;
+      searchBtn.disabled = false;
+      // Hide the message after 3 seconds
+      setTimeout(() => {
+        loadingStatus.classList.add('hidden');
+      }, 3000);
+    } else {
+      loadingStatus.textContent = `Initializing AI model... ${Math.round(initProgress.progress * 100)}%`;
+    }
+    console.log(initProgress);
+  };
+
+  // Embeddings
+
+  const embeddingsInstance = new HuggingFaceTransformersEmbeddings({
+    model: 'Xenova/all-MiniLM-L6-v2',
+  });
+
+  const vectorStore = new MemoryVectorStore(embeddingsInstance);
+
+  // Add sample events from e-commerce domain
+  vectorStore.addDocuments([
+    new Document({
+      pageContent:
+        'MessageType: Event, Markdown: OrderCreated: A new order #1234 was created for customer with items: 2x Widget Pro, 1x Smart Device. Total value: $156.99',
+      metadata: { source: 'orders', eventType: 'OrderCreated', resourceType: 'event' },
+    }),
+    new Document({
+      pageContent:
+        'MessageType: Event, Markdown: PaymentProcessed: Payment of $156.99 was successfully processed for order #1234 using credit card (ending 5678)',
+      metadata: { source: 'payments', eventType: 'PaymentProcessed', resourceType: 'event' },
+    }),
+    new Document({
+      pageContent:
+        'MessageType: Event, Markdown: InventoryUpdated: Stock levels adjusted after order #1234. Widget Pro: 48 remaining, Smart Device: 15 remaining',
+      metadata: { source: 'inventory', eventType: 'InventoryUpdated', resourceType: 'event' },
+    }),
+    new Document({
+      pageContent:
+        'MessageType: Event, Markdown: ShipmentScheduled: Order #1234 has been scheduled for shipment. Carrier: FastShip, Expected delivery: 3-5 business days',
+      metadata: { source: 'fulfillment', eventType: 'ShipmentScheduled', resourceType: 'event' },
+    }),
+    new Document({
+      pageContent:
+        'MessageType: Event, Markdown: CustomerNotified: Confirmation email sent to customer regarding order #1234 with tracking details',
+      metadata: { source: 'notifications', eventType: 'CustomerNotified', resourceType: 'event' },
+    }),
+    new Document({
+      pageContent: 'MessageType: Command, Markdown: NotifyCustomer: Notify the customer that the order has been shipped',
+      metadata: { source: 'notifications', eventType: 'NotifyCustomer', resourceType: 'command' },
+    }),
+    new Document({
+      pageContent: 'The NotificationsService is responsible for sending notifications to customers.',
+      metadata: {
+        id: 'NotificationsService',
+        sends: [{ id: 'NotifyCustomer', resourceType: 'command' }],
+        receives: [{ id: 'CustomerNotified', resourceType: 'event' }],
+        summary: 'This service is responsible for sending notifications to customers',
+        resourceType: 'service',
+      },
+    }),
+    new Document({
+      pageContent: 'The OrderService is responsible for creating and updating orders.',
+      metadata: {
+        id: 'OrderService',
+        sends: [{ id: 'OrderCreated', resourceType: 'event' }],
+        receives: [{ id: 'PaymentProcessed', resourceType: 'event' }],
+        summary: 'This service is responsible for creating and updating orders',
+        resourceType: 'service',
+      },
+    }),
+    new Document({
+      pageContent: 'The InventoryService is responsible for updating the inventory levels.',
+      metadata: {
+        id: 'InventoryService',
+        sends: [{ id: 'InventoryUpdated', resourceType: 'event' }],
+        receives: [{ id: 'ShipmentScheduled', resourceType: 'event' }],
+        summary: 'This service is responsible for updating the inventory levels',
+        resourceType: 'service',
+      },
+    }),
+    new Document({
+      pageContent: 'The FulfillmentService is responsible for scheduling shipments.',
+      metadata: {
+        id: 'FulfillmentService',
+        sends: [{ id: 'ShipmentScheduled', resourceType: 'event' }],
+        receives: [{ id: 'OrderCreated', resourceType: 'event' }],
+        summary: 'This service is responsible for scheduling shipments',
+        resourceType: 'service',
+      },
+    }),
+    new Document({
+      pageContent: 'The PaymentService is responsible for processing payments.',
+      metadata: {
+        id: 'PaymentService',
+        sends: [{ id: 'PaymentProcessed', resourceType: 'event' }],
+        receives: [{ id: 'OrderCreated', resourceType: 'event' }],
+        summary: 'This service is responsible for processing payments',
+        resourceType: 'service',
+      },
+    }),
+    new Document({
+      pageContent: 'The CustomerService is responsible for managing customer information.',
+      metadata: {
+        id: 'CustomerService',
+        owners: ['dboyne'],
+        sends: [{ id: 'CustomerNotified', resourceType: 'event' }],
+        receives: [{ id: 'NotifyCustomer', resourceType: 'command' }],
+        summary: 'This service is responsible for managing customer information',
+        resourceType: 'service',
+      },
+    }),
+    new Document({
+      pageContent: 'David is a software engineer at EventCatalog',
+      metadata: { id: 'dboyne', name: 'David', resourceType: 'user' },
+    }),
+  ]);
+
+  // Load in the vector store from disk
+  //   const vectorStore = await MemoryVectorStore.fromDocuments(
+  //     [
+  //       new Document({
+  //         id: '1',
+  //         pageContent: 'Hello, world!',
+  //         metadata: {
+  //           source: 'test',
+  //         },
+  //       }),
+  //     ],
+  //     embeddingsInstance
+  //   );
+
+  const host = window.location.host;
+
+  const systemPrompt = `
+    You are a helpful assistant. Assist the user with their questions.
+    The context you are given is from a project called EventCatalog, these resources have different types which are events, commands, and querie, services and domains.
+    You can use the metadata to help you answer the question.
+    Be short and concise, give them a url /{resourceType}s/{resourceId} but if they want to know more do you best to answer their question
+    If you are unsure of the answer, say so.
+    The URL you return should be in a <a> tag the href should be the url and the text should be the name of the resource.
+
+    The host for the application is ${host}
+  `;
+
+  // Helper function to format message content
+  function formatMessageContent(content: string): string {
+    // First handle code blocks (```) - use a non-greedy match
+    let formattedContent = content.replace(/```([\s\S]*?)```/g, (match, codeContent) => {
+      const escapedCode = codeContent.trim().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `<pre class="bg-gray-100 border border-gray-200 p-4 my-3 rounded-lg overflow-x-auto"><code class="text-sm font-mono text-gray-800">${escapedCode}</code></pre>`;
+    });
+
+    // Then handle inline code (`) - use a look-behind/ahead to avoid matching inside code blocks
+    formattedContent = formattedContent.replace(/(?<!`)`([^`]+)`(?!`)/g, (match, code) => {
+      const escapedCode = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `<code class="bg-gray-100 border border-gray-200 px-2 py-0.5 rounded text-sm font-mono text-gray-800">${escapedCode}</code>`;
+    });
+
+    // Handle links - make sure they open in new tab and have proper styling
+    formattedContent = formattedContent.replace(
+      /<a\s+href="([^"]+)">/g,
+      '<a href="$1" class="text-purple-600 hover:underline" target="_blank" rel="noopener noreferrer">'
+    );
+
+    // Convert newlines to <br> tags (but not inside code blocks)
+    formattedContent = formattedContent.replace(/\n(?!<\/code>)/g, '<br>');
+
+    return formattedContent;
+  }
+
+  function createMessageElement(content: string, isUser: boolean) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`;
+
+    const bubble = document.createElement('div');
+    bubble.className = `max-w-[80%] rounded-lg p-3 ${
+      isUser 
+        ? 'bg-purple-600 text-white rounded-br-none' 
+        : 'bg-gray-100 text-gray-800 rounded-bl-none'
+    }`;
+
+    bubble.innerHTML = formatMessageContent(content);
+    messageDiv.appendChild(bubble);
+    return messageDiv;
+  }
+
+  // Custom type for thinking message element
+  type ThinkingMessageElement = HTMLDivElement & {
+    intervalId?: ReturnType<typeof setInterval>;
+  };
+
+  function createThinkingElement() {
+    const messageDiv = document.createElement('div') as ThinkingMessageElement;
+    messageDiv.className = 'flex justify-start mb-4';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'flex items-center space-x-1 max-w-[80%] rounded-lg p-3 bg-gray-100 text-gray-800 rounded-bl-none';
+
+    const text = document.createElement('span');
+    text.textContent = 'Thinking';
+
+    const dots = document.createElement('span');
+    dots.className = 'dots inline-block w-8';
+    dots.textContent = '...';
+
+    bubble.appendChild(text);
+    bubble.appendChild(dots);
+    messageDiv.appendChild(bubble);
+
+    // Start the dot animation
+    let count = 0;
+    const animate = () => {
+      count = (count + 1) % 4;
+      dots.textContent = '.'.repeat(count || 1);
+    };
+
+    const interval = setInterval(animate, 500);
+    messageDiv.intervalId = interval;
+
+    return messageDiv;
+  }
+
+  // Helper function to scroll to bottom smoothly
+  function scrollToBottom(element: HTMLElement) {
+    const scrollHeight = element.scrollHeight;
+    const duration = 300; // ms
+    const start = element.scrollTop;
+    const change = scrollHeight - start;
+    const startTime = performance.now();
+
+    function easeInOutQuad(t: number) {
+      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    }
+
+    function animateScroll(currentTime: number) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+
+      element.scrollTop = start + change * easeInOutQuad(progress);
+
+      if (progress < 1) {
+        requestAnimationFrame(animateScroll);
+      }
+    }
+
+    requestAnimationFrame(animateScroll);
+  }
+
+  async function handleSubmit() {
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    const outputDiv = document.getElementById('output');
+    const welcomeMessage = document.getElementById('welcomeMessage');
+    const searchQuery = searchInput.value.trim();
+
+    if (!searchQuery || !outputDiv) return;
+
+    // Remove welcome message if it exists and this is the first message
+    if (welcomeMessage && welcomeMessage.parentNode) {
+      welcomeMessage.remove();
+    }
+
+    // Add user message
+    outputDiv.appendChild(createMessageElement(searchQuery, true));
+
+    // Create and add thinking message
+    const thinkingMessage = createThinkingElement();
+    outputDiv.appendChild(thinkingMessage);
+
+    // Scroll to bottom smoothly
+    scrollToBottom(outputDiv);
+
+    // Clear input
+    searchInput.value = '';
+
+    try {
+      const results = await vectorStore.similaritySearchWithScore(searchQuery, 1000);
+
+      // Filter out low-confidence matches
+      const filteredResults = results.filter(([doc, score]) => score > 0.1);
+
+      console.log('FILTERED RESULTS', results);
+
+      const context = filteredResults
+        .map((result) => {
+          const doc = result[0];
+          return `${doc.pageContent}\nMetadata: ${JSON.stringify(doc.metadata)}`;
+        })
+        .join('\n');
+
+      const completion = await engine.chat.completions.create({
+        stream: true,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: context },
+          { role: 'assistant', content: "I understand. I'll use the provided documentation to answer questions." },
+          { role: 'user', content: searchQuery },
+        ],
+        temperature: 0.2,
+        max_tokens: 6000,
+      });
+
+      // Clear thinking animation
+      if (thinkingMessage.intervalId) {
+        clearInterval(thinkingMessage.intervalId);
+      }
+      outputDiv.removeChild(thinkingMessage);
+
+      // Create assistant message container
+      const assistantMessage = createMessageElement('', false);
+      outputDiv.appendChild(assistantMessage);
+      const messageBubble = assistantMessage.querySelector('div')!;
+
+      // Stream the response
+      let responseText = '';
+      let pendingText = '';
+      let lastScrollTime = 0;
+      const scrollThrottle = 100; // ms
+
+      for await (const chunk of completion) {
+        const content = chunk.choices[0]?.delta?.content || '';
+        if (content) {
+          responseText += content;
+          pendingText += content;
+
+          // Check for complete code blocks or inline code
+          const hasCompleteBlock = pendingText.includes('```') || (pendingText.includes('`') && !pendingText.includes('```'));
+
+          // Format and update if we have complete blocks or every few characters
+          if (hasCompleteBlock || pendingText.length > 10) {
+            messageBubble.innerHTML = formatMessageContent(responseText);
+            pendingText = '';
+
+            // Throttle scrolling to avoid jank
+            const currentTime = performance.now();
+            if (currentTime - lastScrollTime > scrollThrottle) {
+              scrollToBottom(outputDiv);
+              lastScrollTime = currentTime;
+            }
+          }
+        }
+      }
+
+      // Final format and scroll
+      messageBubble.innerHTML = formatMessageContent(responseText);
+      scrollToBottom(outputDiv);
+    } catch (error) {
+      // Clear thinking animation
+      if (thinkingMessage.intervalId) {
+        clearInterval(thinkingMessage.intervalId);
+      }
+      outputDiv.removeChild(thinkingMessage);
+
+      // Show error message
+      const errorMessage = createMessageElement('Sorry, there was an error processing your request.', false);
+      outputDiv.appendChild(errorMessage);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOMContentLoaded');
+    console.log('VECTOR STORE', vectorStore);
+
+    // Add click event listener
+    document.getElementById('searchBtn')?.addEventListener('click', handleSubmit);
+
+    // Add enter key event listener
+    const searchInput = document.getElementById('searchInput');
+    searchInput?.addEventListener('keypress', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault(); // Prevent default to avoid newline
+        handleSubmit();
+      }
+    });
+  });
+
+  const engine = await engineCreator(
+    new Worker(new URL('../workers/engine.ts', import.meta.url), { type: 'module' }),
+    'Llama-3.1-8B-Instruct-q4f32_1-MLC',
+    // 'DeepSeek-R1-Distill-Qwen-7B-q4f16_1-MLC',
+    { initProgressCallback } // engineConfig
+  );
+
+  // Query the vector store
+  //   const results = await vectorStore.similaritySearch('Hello, world!', 1, (doc) => doc.metadata.source === 'event');
+
+  //   console.log('HELLO')
+
+  /**
+   * TODO:
+   *
+   *  1. The "How many events do we have? is returning all information, I think its the vector search that is returning the wrong results for context...."
+   * 2. We might need to add the resource type into the vector store I'm not sure...
+   *
+   *
+   */
+</script>

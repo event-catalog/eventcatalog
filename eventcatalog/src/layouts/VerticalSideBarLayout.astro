@@ -5,7 +5,7 @@ interface Props {
   description?: string;
 }
 
-import { BookOpenText, Workflow, TableProperties, House, BookUser } from 'lucide-react';
+import { BookOpenText, Workflow, TableProperties, House, BookUser, MessageSquare } from 'lucide-react';
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
@@ -91,6 +91,13 @@ const navigationItems = [
     href: buildUrl('/directory/users'),
     current: currentPath.includes('/directory'),
     sidebar: false,
+  },
+  {
+    id: '/chat',
+    label: 'Chat',
+    icon: MessageSquare,
+    href: buildUrl('/chat'),
+    current: currentPath.includes('/chat'),
   },
 ];
 

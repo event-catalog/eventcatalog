@@ -1,0 +1,29 @@
+---
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import Chat from '@components/Chat/Chat';
+
+---
+
+<VerticalSideBarLayout title="AI Chat">
+  <div class="flex h-[calc(100vh-60px)] bg-white">
+    <!-- <Sidebar client:load /> -->
+      <Chat client:load />
+  </div>
+</VerticalSideBarLayout>
+
+<style>
+  .loading-status.ready {
+    background-color: rgb(240 253 244); /* light green bg */
+    color: rgb(22 163 74); /* green text */
+  }
+
+  .loading-status.hidden {
+    display: none;
+  }
+
+  /* Add smooth scrolling behavior */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+</style>
+
