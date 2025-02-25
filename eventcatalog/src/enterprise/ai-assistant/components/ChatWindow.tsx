@@ -52,6 +52,9 @@ const ChatWindow = ({ catalogPath }: { catalogPath: string }) => {
   const handleSubmit = async () => {
     if (!inputValue.trim() || !engine) return;
 
+    // Add to messages
+    setMessages((prev) => [...prev, { content: inputValue, isUser: true }]);
+
     // Add message to session store only
     if (currentSession) {
       addMessageToSession(currentSession.id, inputValue, true);

@@ -32,4 +32,11 @@ export default {
   chat: {
     enabled: true,
   },
+  generators: [
+    [
+      "@eventcatalog/generator-ai", {
+        splitMarkdownFiles: false
+      }
+    ],
+  ],
 };
