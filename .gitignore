@@ -35,3 +35,5 @@ git-push.sh
 /playwright/.cache/
 
 src/__tests__/example-catalog-dependencies/dependencies
+
+examples/default/generated-ai/

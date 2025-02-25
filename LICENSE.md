@@ -1,6 +1,15 @@
+Source code in this repository is split into two parts:
+
+* Outside the `/src/enterprise` directory, source code in a given file is licensed under MIT (see below).
+* Inside the `/src/enterprise` directory, source code in a given file is licensed under the EventCatalog Plugin/Commercial License, unless otherwise noted.
+
+---
+
+All code outside of the `/src/enterprise` directory is licensed under the MIT license which is below.
+
 MIT License
 
-Copyright (c) 2022-2024 boyney123
+Copyright (c) 2022-2025 boyney123
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

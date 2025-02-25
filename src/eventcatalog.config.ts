@@ -56,4 +56,9 @@ export interface Config {
   mermaid?: {
     iconPacks?: string[];
   };
+  chat?: {
+    enabled: boolean;
+    model?: string;
+    max_tokens?: number;
+  };
 }
