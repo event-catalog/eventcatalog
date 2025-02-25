@@ -129,10 +129,6 @@ const ChatWindow = ({ catalogPath }: { catalogPath: string }) => {
                 role: msg.isUser ? 'user' : 'assistant',
                 content: msg.content,
               })),
-              // {
-              //     role: "system",
-              //     content: cachedLLMsText
-              // },
               {
                 role: 'user',
                 content: inputValue,

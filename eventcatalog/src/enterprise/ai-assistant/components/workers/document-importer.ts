@@ -1,19 +1,10 @@
 import { HuggingFaceTransformersEmbeddings } from '@langchain/community/embeddings/huggingface_transformers';
 import { MemoryVectorStore } from 'langchain/vectorstores/memory';
 
-// import documents from '@ai/documents.json';
-// import embeddings from '@ai/embeddings.json';
-
-// import documents from '/Users/dboyne/Dev/eventcatalog/eventcatalog/examples/default/generated-ai/documents.json';
-
-// const documents = [];
-// const embeddings = [];
-
 const embeddingsInstance = new HuggingFaceTransformersEmbeddings({ model: 'Xenova/all-MiniLM-L6-v2' });
 
 // Create the vector store
 const vectorStore = new MemoryVectorStore(embeddingsInstance);
-// Hydrate the vector store
 
 let documents: any;
 let embeddings: any;
