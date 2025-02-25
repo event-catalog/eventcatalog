@@ -16,3 +16,5 @@ src/custom-defined-components/*
 
 eventcatalog.config.js
 eventcatalog.styles.css
+
+src/generated-ai/*

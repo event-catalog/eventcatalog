@@ -28,5 +28,8 @@ export default {
   },
   llmsTxt: {
     enabled: true,
-  }
+  },
+  chat: {
+    enabled: true,
+  },
 };

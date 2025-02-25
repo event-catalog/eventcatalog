@@ -11,7 +11,9 @@
       "@catalog/components/*": ["src/custom-defined-components/*"],
       "@types": ["src/types/index.ts"],
       "@utils/*": ["src/utils/*"],
-      "@layouts/*": ["src/layouts/*"]
+      "@layouts/*": ["src/layouts/*"],
+      "@enterprise/*": ["src/enterprise/*"],
+      "@ai/*": ["src/generated-ai/*"]
     },
     "jsx": "react-jsx",
     "jsxImportSource": "react",

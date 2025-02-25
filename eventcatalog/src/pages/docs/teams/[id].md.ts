@@ -15,8 +15,6 @@ export async function getStaticPaths() {
     return [];
   }
 
-  console.log(teams);
-
   return teams.map((team) => ({
     params: { type: 'teams', id: team.data.id },
     props: { content: team },
@@ -28,8 +26,6 @@ export const GET: APIRoute = async ({ params, props }) => {
   if (!config.llmsTxt?.enabled) {
     return new Response('llms.txt is not enabled for this Catalog.', { status: 404 });
   }
-
-  console.log(props.context);
 
   if (props?.content?.data?.pathToFile) {
     const file = fs.readFileSync(props.content.data.pathToFile, 'utf8');
