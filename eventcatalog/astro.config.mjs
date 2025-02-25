@@ -22,6 +22,7 @@ export default defineConfig({
   base,
   server: { port: config.port || 3000 },
 
+  
 
 
   outDir: config.outDir ? join(projectDirectory, config.outDir) : join(projectDirectory, 'dist'),
@@ -62,6 +63,9 @@ export default defineConfig({
        * such as `node:path`.
        */
       '__EC_TRAILING_SLASH__': config.trailingSlash || false,
+    },
+    worker: {
+      format: 'es',
     },
     build: {
       commonjsOptions: {
