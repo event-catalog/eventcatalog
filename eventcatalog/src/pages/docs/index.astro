@@ -1,6 +1,5 @@
 ---
 import Footer from '@layouts/Footer.astro';
-import DefaultDocsLandingPage from '@layouts/CustomDocsPageLayout.astro';
 import components from '@components/MDX/page-components';
 import { getIndexPage } from '@utils/pages';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
@@ -11,24 +10,20 @@ let CustomContent = null;
 if (page) {
   const { Content } = await page.render();
   CustomContent = Content;
+} else {
+  CustomContent = await import('./_default-docs.mdx').then((mod) => mod.default);
 }
 ---
 
-{
-  CustomContent && (
-    <VerticalSideBarLayout title="EventCatalog">
-      <main class="flex sm:px-8 docs-layout h-full">
-        <div class="flex docs-layout w-full">
-          <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
-            <div class="prose prose-md w-full !max-w-none">
-              <CustomContent components={components} />
-            </div>
-            <Footer />
-          </div>
+<VerticalSideBarLayout title="EventCatalog">
+  <main class="flex sm:px-8 docs-layout h-full">
+    <div class="flex docs-layout w-full">
+      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
+        <div class="prose prose-md w-full !max-w-none">
+          <CustomContent components={components} />
         </div>
-      </main>
-    </VerticalSideBarLayout>
-  )
-}
-
-{!CustomContent && <DefaultDocsLandingPage title="EventCatalog" />}
+        <Footer />
+      </div>
+    </div>
+  </main>
+</VerticalSideBarLayout>
