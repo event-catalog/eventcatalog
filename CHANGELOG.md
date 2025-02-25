@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.24.1
+
+### Patch Changes
+
+- d8fdb7a: fix(plugin): moved the generated ai file location to public dir
+
 ## 2.24.0
 
 ### Minor Changes
