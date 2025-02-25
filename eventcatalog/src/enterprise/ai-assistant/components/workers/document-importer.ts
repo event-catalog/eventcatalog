@@ -13,8 +13,8 @@ self.onmessage = async (event) => {
   try {
     // Initialize the vector store
     if (event?.data?.init && !documents && !embeddings) {
-      const documentsImport = await fetch(`/generated/ai/documents.json`);
-      const embeddingsImport = await fetch(`/generated/ai/embeddings.json`);
+      const documentsImport = await fetch(`/ai/documents.json`);
+      const embeddingsImport = await fetch(`/ai/embeddings.json`);
 
       documents = await documentsImport.json();
       embeddings = await embeddingsImport.json();
