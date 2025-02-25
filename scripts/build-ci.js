@@ -14,6 +14,11 @@ const projectDIR = join(__dirname, `../examples/${catalog}`);
 // Build cli
 execSync('pnpm run build:bin', { stdio: 'inherit' });
 
+// Run the generator
+execSync(`cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npx . generate`, {
+  stdio: 'inherit',
+});
+
 // Build catalog
 execSync(`cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npx . build`, {
   stdio: 'inherit',
