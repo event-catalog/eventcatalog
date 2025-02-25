@@ -78,6 +78,8 @@ const ChatWindow = ({ catalogPath }: { catalogPath: string }) => {
     // @ts-ignore
     vectorWorker.onmessage = async (event) => {
       if (event.data.action === 'search-results') {
+        console.log('Results', event?.data?.results);
+
         const qaPrompt = `\n".
 
                 You are an expert in the domain of software architecture.

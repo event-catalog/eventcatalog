@@ -15,6 +15,11 @@ self.onmessage = async (event) => {
     if (event?.data?.init && !documents && !embeddings) {
       const documentsImport = await import(/* @vite-ignore */ `${event.data.catalogPath}/generated-ai/documents.json`);
       const embeddingsImport = await import(/* @vite-ignore */ `${event.data.catalogPath}/generated-ai/embeddings.json`);
+
+      console.log('Loading documents and embeddings');
+      console.log(documentsImport);
+      console.log(embeddingsImport);
+
       documents = documentsImport.default;
       embeddings = embeddingsImport.default;
       await vectorStore.addVectors(embeddings, documents);
