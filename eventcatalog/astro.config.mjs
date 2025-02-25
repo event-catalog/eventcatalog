@@ -63,10 +63,6 @@ export default defineConfig({
        */
       '__EC_TRAILING_SLASH__': config.trailingSlash || false,
     },
-    worker: {
-      format: 'es', // Use ES modules format
-      plugins: [], // Add any worker-specific plugins if needed
-    },
     build: {
       commonjsOptions: {
         transformMixedEsModules: true,
