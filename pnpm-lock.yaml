@@ -33,8 +33,8 @@ importers:
         specifier: ^2.4.3
         version: 2.5.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@eventcatalog/generator-ai':
-        specifier: ^0.1.1
-        version: 0.1.1(@langchain/core@0.3.40(openai@4.85.4(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(openai@4.85.4(ws@8.18.0)(zod@3.24.1))(ws@8.18.0)
+        specifier: ^0.1.2
+        version: 0.1.2(@langchain/core@0.3.40(openai@4.85.4(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(openai@4.85.4(ws@8.18.0)(zod@3.24.1))(ws@8.18.0)
       '@headlessui/react':
         specifier: ^2.0.3
         version: 2.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -743,8 +743,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@eventcatalog/generator-ai@0.1.1':
-    resolution: {integrity: sha512-9hgUfXffIwC0RvDaTM/vGWT0YyH2v65Hek6u7f5r+qrSzvEL6zXBPmW5H90VgEkTotxpPvXRc7u7QL/Mp7E9WA==}
+  '@eventcatalog/generator-ai@0.1.2':
+    resolution: {integrity: sha512-Sf1kiyT21neN+c9CCo+/f20iR2zvtpkRcL84VYvzgb53RAt6Zm155FYAUdE/Euc8Apj8OcTpS6AGJ1G79q8SbQ==}
 
   '@eventcatalog/sdk@1.4.8':
     resolution: {integrity: sha512-cFDuYX6FNh5uooaUmyYbAwo7eZj+NDDp5VwRUwMfuSVF4EL7YmqSmVxG1wP2Qok3ciO7yPnhXTo/7SiU5RuZUg==}
@@ -7873,7 +7873,7 @@ snapshots:
   '@esbuild/win32-x64@0.24.2':
     optional: true
 
-  '@eventcatalog/generator-ai@0.1.1(@langchain/core@0.3.40(openai@4.85.4(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(openai@4.85.4(ws@8.18.0)(zod@3.24.1))(ws@8.18.0)':
+  '@eventcatalog/generator-ai@0.1.2(@langchain/core@0.3.40(openai@4.85.4(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(openai@4.85.4(ws@8.18.0)(zod@3.24.1))(ws@8.18.0)':
     dependencies:
       '@eventcatalog/sdk': 1.4.8
       '@huggingface/transformers': 3.3.3
