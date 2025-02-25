@@ -9,6 +9,7 @@ import { getUsers } from '@utils/users';
 import config, { type CatalogConfig } from '@utils/eventcatalog-config/catalog';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/queries';
+import { render } from 'astro:content';
 
 const events = await getEvents({ getAllVersions: false });
 const commands = await getCommands({ getAllVersions: false });
@@ -51,10 +52,13 @@ const visibleCollections: { [key: string]: boolean } = {
 
 const fetchHeadings = allData.map(async (item) => {
   const renderHeadings = showPageHeadings;
-  const headings = renderHeadings ? await item.render() : { headings: [] };
+  let headings = null;
+  if (renderHeadings) {
+    ({ headings } = 'render' in item ? await item.render() : await render(item));
+  }
   return {
     ...item,
-    headings: headings.headings,
+    headings: headings || [],
   };
 });
 
