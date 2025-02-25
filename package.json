@@ -33,6 +33,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "start:catalog": "node scripts/start-catalog-locally.js",
+    "preview:catalog": "node scripts/preview-catalog-locally.js",
     "generate:catalog": "node scripts/generate-catalog-locally.js",
     "verify-build:catalog": "rimraf dist && pnpm run build:cd",
     "changeset": "changeset",

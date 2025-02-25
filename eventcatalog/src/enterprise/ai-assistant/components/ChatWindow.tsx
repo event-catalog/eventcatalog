@@ -5,7 +5,7 @@ import { CreateWebWorkerMLCEngine, type InitProgressReport } from '@mlc-ai/web-l
 import { useChat } from './hooks/ChatProvider';
 import config from '@config';
 
-const ChatWindow = ({ catalogPath }: { catalogPath: string }) => {
+const ChatWindow = () => {
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [engine, setEngine] = useState<any>(null);
@@ -236,7 +236,7 @@ const ChatWindow = ({ catalogPath }: { catalogPath: string }) => {
 
     const importDocuments = async () => {
       const worker = new Worker(new URL('./workers/document-importer.ts', import.meta.url), { type: 'module' });
-      worker.postMessage({ init: true, catalogPath });
+      worker.postMessage({ init: true });
       setVectorWorker(worker);
     };
 

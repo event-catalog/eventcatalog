@@ -2,12 +2,12 @@ import Sidebar from './ChatSidebar';
 import { ChatProvider } from './hooks/ChatProvider';
 import ChatWindow from './ChatWindow';
 
-const Chat = ({ catalogPath }: { catalogPath: string }) => {
+const Chat = () => {
   return (
     <ChatProvider>
       <div className="flex overflow-hidden w-full">
         <Sidebar />
-        <ChatWindow catalogPath={catalogPath} />
+        <ChatWindow />
       </div>
     </ChatProvider>
   );

@@ -13,15 +13,12 @@ self.onmessage = async (event) => {
   try {
     // Initialize the vector store
     if (event?.data?.init && !documents && !embeddings) {
-      const documentsImport = await import(/* @vite-ignore */ `${event.data.catalogPath}/generated-ai/documents.json`);
-      const embeddingsImport = await import(/* @vite-ignore */ `${event.data.catalogPath}/generated-ai/embeddings.json`);
+      const documentsImport = await fetch(`/generated/ai/documents.json`);
+      const embeddingsImport = await fetch(`/generated/ai/embeddings.json`);
 
-      console.log('Loading documents and embeddings');
-      console.log(documentsImport);
-      console.log(embeddingsImport);
+      documents = await documentsImport.json();
+      embeddings = await embeddingsImport.json();
 
-      documents = documentsImport.default;
-      embeddings = embeddingsImport.default;
       await vectorStore.addVectors(embeddings, documents);
     }
 
@@ -33,6 +30,7 @@ self.onmessage = async (event) => {
     const results = await vectorStore.similaritySearchWithScore(event.data.input, 10);
     postMessage({ results: results, action: 'search-results' });
   } catch (error) {
+    console.log(error);
     self.postMessage({ error: (error as Error).message });
   }
 };
