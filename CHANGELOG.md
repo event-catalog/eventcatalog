@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.24.0
+
+### Minor Changes
+
+- 5cc528e: feat(core): added new EventCatalog AI assistant
+
 ## 2.23.3
 
 ### Patch Changes
