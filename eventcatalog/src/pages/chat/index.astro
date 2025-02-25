@@ -10,7 +10,7 @@ import { Code } from 'astro-expressive-code/components';
 const isEnabled = config.chat?.enabled || false;
 
 const PROJECT_DIR = path.resolve(process.env.PROJECT_DIR || process.cwd());
-const GENERATED_AI_DIR = path.resolve(PROJECT_DIR, 'generated-ai');
+const GENERATED_AI_DIR = path.resolve(PROJECT_DIR, 'public/ai');
 
 const directoryExists = fs.existsSync(GENERATED_AI_DIR);
 
@@ -31,7 +31,7 @@ const generatorConfig = `
     {
       isEnabled ? (
         directoryExists ? (
-          <Chat client:only="react" catalogPath={PROJECT_DIR} />
+          <Chat client:only="react" />
         ) : (
           <div class="flex items-center justify-center w-full p-4 sm:p-8">
             <div class="max-w-2xl text-center">
