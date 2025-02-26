@@ -60,5 +60,6 @@ export interface Config {
     enabled: boolean;
     model?: string;
     max_tokens?: number;
+    similarityResults?: number;
   };
 }

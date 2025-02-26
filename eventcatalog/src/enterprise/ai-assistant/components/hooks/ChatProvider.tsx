@@ -1,10 +1,16 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
-interface Message {
+export interface Message {
   content: string;
   isUser: boolean;
   timestamp: number;
+  resources?: Array<{
+    id: string;
+    type: string;
+    url: string;
+    title?: string;
+  }>;
 }
 
 export interface ChatSession {
@@ -21,10 +27,10 @@ interface ChatContextType {
   createSession: () => void;
   updateSession: (session: ChatSession) => void;
   deleteSession: (id: string) => void;
-  addMessageToSession: (sessionId: string, content: string, isUser: boolean) => void;
   setCurrentSession: (session: ChatSession | null) => void;
   isStreaming: boolean;
   setIsStreaming: (isStreaming: boolean) => void;
+  storeMessagesToSession: (sessionId: string, messages: Message[]) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -85,21 +91,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const addMessageToSession = (sessionId: string, content: string, isUser: boolean) => {
+  // Set all messages to the session
+  const storeMessagesToSession = (sessionId: string, messages: Message[]) => {
     setSessions((prev) => {
       const index = prev.findIndex((s) => s.id === sessionId);
       if (index === -1) return prev;
 
       const updated = [...prev];
-      const session = { ...updated[index] };
-      session.messages.push({
-        content,
-        isUser,
-        timestamp: Date.now(),
-      });
-      session.lastUpdated = Date.now();
-      updated[index] = session;
-
+      updated[index].messages = messages;
+      updated[index].lastUpdated = Date.now();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       return updated;
     });
@@ -121,10 +121,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         createSession,
         updateSession,
         deleteSession,
-        addMessageToSession,
         setCurrentSession,
         isStreaming,
         setIsStreaming,
+        storeMessagesToSession,
       }}
     >
       {children}
