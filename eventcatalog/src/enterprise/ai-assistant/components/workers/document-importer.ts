@@ -27,7 +27,7 @@ self.onmessage = async (event) => {
     }
 
     // Get the results
-    const results = await vectorStore.similaritySearchWithScore(event.data.input, 10);
+    const results = await vectorStore.similaritySearchWithScore(event.data.input, event?.data?.similarityResults || 10);
     postMessage({ results: results, action: 'search-results' });
   } catch (error) {
     console.log(error);

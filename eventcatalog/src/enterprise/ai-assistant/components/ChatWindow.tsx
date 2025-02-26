@@ -1,15 +1,78 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { BookOpen, Send } from 'lucide-react';
-import { Document } from 'langchain/document';
 import { CreateWebWorkerMLCEngine, type InitProgressReport } from '@mlc-ai/web-llm';
-import { useChat } from './hooks/ChatProvider';
+import { useChat, type Message } from './hooks/ChatProvider';
 import config from '@config';
+import React from 'react';
+
+// Update Message type to include resources
+interface Resource {
+  id: string;
+  type: string;
+  url: string;
+  title?: string;
+}
+
+// Move formatMessageContent outside component since it doesn't use any component state or props
+const formatMessageContent = (content: string): string => {
+  // First handle code blocks
+  let formattedContent = content.replace(/```([\s\S]*?)```/g, (match, codeContent) => {
+    const escapedCode = codeContent.trim().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<pre class="bg-gray-800 border border-gray-700 p-4 my-3 rounded-lg overflow-x-auto"><code class="text-sm font-mono text-gray-200">${escapedCode}</code></pre>`;
+  });
+
+  // Handle inline code
+  formattedContent = formattedContent.replace(/(?<!`)`([^`]+)`(?!`)/g, (match, code) => {
+    const escapedCode = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<code class="bg-gray-500 border border-gray-700 px-2 py-0.5 rounded text-sm font-mono text-gray-200">${escapedCode}</code>`;
+  });
+
+  // Convert newlines to <br>
+  formattedContent = formattedContent.replace(/\n(?!<\/code>)/g, '<br>');
+
+  return formattedContent;
+};
+
+// Create a memoized Message component
+const ChatMessage = React.memo(({ message }: { message: Message }) => (
+  <div className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-4`}>
+    <div
+      className={`max-w-[80%] rounded-lg p-3 ${
+        message.isUser ? 'bg-purple-600 text-white rounded-br-none' : 'bg-gray-100 text-gray-800 rounded-bl-none'
+      }`}
+    >
+      <div dangerouslySetInnerHTML={{ __html: formatMessageContent(message.content) }} />
+      {!message.isUser && message.resources && message.resources.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-gray-200">
+          <p className="text-xs text-gray-500 mb-1">Referenced Resources:</p>
+          <div className="text-[10px]">
+            {message.resources.map((resource, idx) => (
+              <span key={resource.id}>
+                <a
+                  href={resource.url}
+                  className="text-purple-600 hover:text-purple-800"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {resource.title || resource.id} ({resource.type})
+                </a>
+                {idx < (message.resources?.length || 0) - 1 ? ', ' : ''}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+));
+
+ChatMessage.displayName = 'ChatMessage';
 
 const ChatWindow = () => {
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [engine, setEngine] = useState<any>(null);
-  const [messages, setMessages] = useState<Array<{ content: string; isUser: boolean }>>([]);
+  const [messages, setMessages] = useState<Array<Message>>([]);
   const [inputValue, setInputValue] = useState('');
   const [showWelcome, setShowWelcome] = useState(true);
   const [vectorWorker, setVectorWorker] = useState<Worker | null>(null);
@@ -20,8 +83,9 @@ const ChatWindow = () => {
   // LLM configuration from eventcatalog.config.js file
   const model = config.chat?.model || 'Llama-2-7b-chat-hf-q4f16_1-MLC';
   const max_tokens = config.chat?.max_tokens || 8192;
+  const similarityResults = config.chat?.similarityResults || 10;
 
-  const { currentSession, addMessageToSession, updateSession, isStreaming, setIsStreaming } = useChat();
+  const { currentSession, storeMessagesToSession, updateSession, isStreaming, setIsStreaming } = useChat();
 
   // Load messages when session changes
   useEffect(() => {
@@ -35,8 +99,15 @@ const ChatWindow = () => {
     }
   }, [currentSession]);
 
+  // If the messages change add them to the session
+  useEffect(() => {
+    if (currentSession) {
+      storeMessagesToSession(currentSession.id, messages);
+    }
+  }, [messages]);
+
   // Helper function to stop the current completion
-  const handleStop = async () => {
+  const handleStop = useCallback(async () => {
     if (completionRef.current) {
       try {
         await engine.interruptGenerate();
@@ -47,18 +118,13 @@ const ChatWindow = () => {
         console.error('Error stopping completion:', error);
       }
     }
-  };
+  }, [engine]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!inputValue.trim() || !engine) return;
 
     // Add to messages
-    setMessages((prev) => [...prev, { content: inputValue, isUser: true }]);
-
-    // Add message to session store only
-    if (currentSession) {
-      addMessageToSession(currentSession.id, inputValue, true);
-    }
+    setMessages((prev) => [...prev, { content: inputValue, isUser: true, timestamp: Date.now() }]);
 
     setIsThinking(true);
     setIsStreaming(true);
@@ -73,12 +139,28 @@ const ChatWindow = () => {
     }
 
     // Add input to vector store
-    vectorWorker?.postMessage({ input: inputValue });
+    vectorWorker?.postMessage({ input: inputValue, similarityResults });
 
     // @ts-ignore
     vectorWorker.onmessage = async (event) => {
       if (event.data.action === 'search-results') {
         console.log('Results', event?.data?.results);
+
+        // Extract resources from results and ensure uniqueness by ID
+        const resources = Array.from(
+          new Map(
+            event.data.results.map((result: any) => {
+              const metadata = result[0].metadata;
+              const resource: Resource = {
+                id: metadata.id,
+                type: metadata.type,
+                url: `/docs/${metadata.type}s/${metadata.id}`,
+                title: metadata.title || metadata.id,
+              };
+              return [metadata.id, resource]; // Use ID as key for Map
+            })
+          ).values()
+        );
 
         const qaPrompt = `\n".
 
@@ -94,22 +176,17 @@ const ChatWindow = () => {
 
                 This resources are all the resources that are relevant to the question.
 
-                Use the resource url value to link to the resources.
-
                 If any fields are undefined or missing just say you don't know as they are missing in the documentation.
 
-                When you give the name of resources back to the user, you can also provide them with a link directly to the resource, use the url field for this.
-
                 ==========
-                ${event.data.results
-                  .map((result: any) => {
-                    const metadata = result[0].metadata;
-                    return `<resource ${Object.entries(metadata)
+                ${(resources as Resource[])
+                  .map((resource: Resource) => {
+                    return `<resource ${Object.entries(resource)
                       .filter(([key, value]) => key !== 'markdown' && key !== 'loc')
                       .map(([key, value]) => {
                         // Special handling for resourceType to construct url
                         if (key === 'type') {
-                          return `url="/docs/${value}s/${metadata.id}" ${key}="${value}"`;
+                          return `url="${value}" ${key}="${resource.id}"`;
                         }
                         return `${key}="${value}"`;
                       })
@@ -162,7 +239,14 @@ const ChatWindow = () => {
 
                 if (isFirstChunk) {
                   setIsThinking(false);
-                  setMessages((prev) => [...prev, { content: responseText, isUser: false }]);
+                  setMessages((prev) => [
+                    ...prev,
+                    {
+                      content: responseText,
+                      isUser: false,
+                      timestamp: Date.now(),
+                    },
+                  ]);
                   isFirstChunk = false;
                 } else {
                   setMessages((prev) => {
@@ -174,16 +258,20 @@ const ChatWindow = () => {
                     return newMessages;
                   });
                 }
-                // Add scroll after each chunk
                 scrollToBottom();
               }
             }
 
-            // Only add to session store after complete response
-            if (currentSession) {
-              console.log('currentSession', currentSession);
-              addMessageToSession(currentSession.id, responseText, false);
-            }
+            // Add resources after streaming is complete
+            setMessages((prev) => {
+              const newMessages = [...prev];
+              newMessages[newMessages.length - 1] = {
+                ...newMessages[newMessages.length - 1],
+                content: responseText,
+                resources: resources as { id: string; type: string; url: string; title?: string }[],
+              };
+              return newMessages;
+            });
           } catch (error: any) {
             if (error.message?.includes('cancelled')) {
               console.log('Completion was stopped by the user');
@@ -197,18 +285,19 @@ const ChatWindow = () => {
           completionRef.current = null;
         } catch (error: any) {
           console.error('Error:', error);
-          const errorMessage = { content: 'Sorry, there was an error processing your request.', isUser: false };
+          const errorMessage = {
+            content: 'Sorry, there was an error processing your request.',
+            isUser: false,
+            timestamp: Date.now(),
+          };
           setMessages((prev) => [...prev, errorMessage]);
-          if (currentSession) {
-            addMessageToSession(currentSession.id, errorMessage.content, false);
-          }
           setIsThinking(false);
           setIsStreaming(false);
           completionRef.current = null;
         }
       }
     };
-  };
+  }, [inputValue, engine, messages, currentSession, vectorWorker]);
 
   const initProgressCallback = (report: InitProgressReport) => {
     console.log('Loading LLM locally', report);
@@ -244,88 +333,72 @@ const ChatWindow = () => {
     initEngine();
   }, []);
 
-  // Helper function to format message content
-  const formatMessageContent = (content: string): string => {
-    // First handle code blocks
-    let formattedContent = content.replace(/```([\s\S]*?)```/g, (match, codeContent) => {
-      const escapedCode = codeContent.trim().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      return `<pre class="bg-gray-800 border border-gray-700 p-4 my-3 rounded-lg overflow-x-auto"><code class="text-sm font-mono text-gray-200">${escapedCode}</code></pre>`;
-    });
-
-    // Handle inline code
-    formattedContent = formattedContent.replace(/(?<!`)`([^`]+)`(?!`)/g, (match, code) => {
-      const escapedCode = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      return `<code class="bg-gray-500 border border-gray-700 px-2 py-0.5 rounded text-sm font-mono text-gray-200">${escapedCode}</code>`;
-    });
-
-    // Handle links
-    formattedContent = formattedContent.replace(
-      /<a\s+href="([^"]+)">/g,
-      '<a href="$1" class="text-purple-600 hover:underline" target="_blank" rel="noopener noreferrer">'
-    );
-
-    // Convert newlines to <br>
-    formattedContent = formattedContent.replace(/\n(?!<\/code>)/g, '<br>');
-
-    return formattedContent;
-  };
-
   // Add new function to handle smooth scrolling
-  const scrollToBottom = (smooth = true) => {
+  const scrollToBottom = useCallback((smooth = true) => {
     if (outputRef.current) {
       outputRef.current.scrollTo({
         top: outputRef.current.scrollHeight,
         behavior: smooth ? 'smooth' : 'auto',
       });
     }
-  };
+  }, []);
 
   // Add effect to scroll when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
+  // Memoize static JSX elements
+  const welcomeMessage = useMemo(
+    () => (
+      <div id="welcomeMessage" className="flex justify-center items-center h-full">
+        <div className="text-center space-y-6 max-w-2xl px-4">
+          <div className="flex justify-center">
+            <BookOpen size={48} strokeWidth={1.5} className="text-gray-400" />
+          </div>
+          <div className="space-y-4">
+            <h1 className="text-3xl font-semibold text-gray-800">Ask questions about your architecture</h1>
+            <p className="text-sm text-gray-500">AI Models are local and do not leave your device.</p>
+          </div>
+        </div>
+      </div>
+    ),
+    []
+  );
+
+  // Memoize the messages list with the new ChatMessage component
+  const messagesList = useMemo(
+    () => (
+      <div className="space-y-4 max-w-[900px] mx-auto">
+        {messages.map((message, index) => (
+          <ChatMessage key={index} message={message} />
+        ))}
+        {isThinking && (
+          <div className="flex justify-start mb-4">
+            <div className="flex items-center space-x-2 max-w-[80%] rounded-lg p-3 bg-gray-100 text-gray-800 rounded-bl-none">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    ),
+    [messages, isThinking]
+  );
+
+  // Memoize the input change handler
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  }, []);
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden h-[calc(100vh-60px)] w-full">
       {/* Chat Messages */}
       <div id="output" ref={outputRef} className="flex-1 overflow-y-auto p-4 space-y-4 w-full mx-auto">
-        {showWelcome || messages.length === 0 ? (
-          <div id="welcomeMessage" className="flex justify-center items-center h-full">
-            <div className="text-center space-y-6 max-w-2xl px-4">
-              <div className="flex justify-center">
-                <BookOpen size={48} strokeWidth={1.5} className="text-gray-400" />
-              </div>
-              <div className="space-y-4">
-                <h1 className="text-3xl font-semibold text-gray-800">Ask questions about your architecture</h1>
-                <p className="text-sm text-gray-500">AI Models are local and do not leave your device.</p>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4 max-w-[900px] mx-auto">
-            {messages.map((message, index) => (
-              <div key={index} className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} mb-4`}>
-                <div
-                  className={`max-w-[80%] rounded-lg p-3 ${
-                    message.isUser ? 'bg-purple-600 text-white rounded-br-none' : 'bg-gray-100 text-gray-800 rounded-bl-none'
-                  }`}
-                  dangerouslySetInnerHTML={{ __html: formatMessageContent(message.content) }}
-                />
-              </div>
-            ))}
-            {isThinking && (
-              <div className="flex justify-start mb-4">
-                <div className="flex items-center space-x-2 max-w-[80%] rounded-lg p-3 bg-gray-100 text-gray-800 rounded-bl-none">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+        {showWelcome || messages.length === 0 ? welcomeMessage : messagesList}
       </div>
 
       {/* Loading Status */}
@@ -350,7 +423,7 @@ const ChatWindow = () => {
           <input
             type="text"
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={handleInputChange}
             onKeyPress={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();

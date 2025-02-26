@@ -4,15 +4,7 @@ import { useChat } from './hooks/ChatProvider';
 import * as Dialog from '@radix-ui/react-dialog';
 
 const Sidebar: React.FC<{}> = () => {
-  const {
-    sessions = [],
-    currentSession,
-    createSession,
-    deleteSession,
-    addMessageToSession,
-    setCurrentSession,
-    isStreaming,
-  } = useChat();
+  const { sessions = [], currentSession, createSession, deleteSession, setCurrentSession, isStreaming } = useChat();
   const [showHelp, setShowHelp] = React.useState(false);
 
   useEffect(() => {

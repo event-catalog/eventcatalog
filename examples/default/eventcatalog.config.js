@@ -31,11 +31,12 @@ export default {
   },
   chat: {
     enabled: true,
+    similarityResults: 10,
   },
   generators: [
     [
       "@eventcatalog/generator-ai", {
-        splitMarkdownFiles: false
+        splitMarkdownFiles: false,
       }
     ],
   ],
