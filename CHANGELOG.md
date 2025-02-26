@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.24.2
+
+### Patch Changes
+
+- b45488f: fix(core): added browser checks for AI features
+- 0d924f8: fix(plugin): moved the generated ai file location to public dir
+
 ## 2.24.1
 
 ### Patch Changes
