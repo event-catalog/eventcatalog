@@ -28,7 +28,9 @@ self.onmessage = async (event) => {
 
     // Get the results
     const results = await vectorStore.similaritySearchWithScore(event.data.input, event?.data?.similarityResults || 10);
-    postMessage({ results: results, action: 'search-results' });
+    // Filter out results that don't have a score less than 0.5
+    const filteredResults = results.filter((result) => result[1] > 0.1);
+    postMessage({ results: filteredResults, action: 'search-results' });
   } catch (error) {
     console.log(error);
     self.postMessage({ error: (error as Error).message });

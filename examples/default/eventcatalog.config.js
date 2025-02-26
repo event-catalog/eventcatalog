@@ -31,7 +31,10 @@ export default {
   },
   chat: {
     enabled: true,
-    similarityResults: 10,
+    similarityResults: 50,
+    max_tokens: 4096,
+    // 'Llama-3.2-3B-Instruct-q4f16_1-MLC is also good
+    model: 'Hermes-3-Llama-3.2-3B-q4f16_1-MLC'
   },
   generators: [
     [
