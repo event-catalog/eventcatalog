@@ -36,4 +36,5 @@ git-push.sh
 
 src/__tests__/example-catalog-dependencies/dependencies
 
-examples/default/public/ai/
+eventcatalog/public/ai
+examples/default/public/ai
