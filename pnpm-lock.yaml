@@ -33,8 +33,8 @@ importers:
         specifier: ^2.4.3
         version: 2.5.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@eventcatalog/generator-ai':
-        specifier: ^0.1.2
-        version: 0.1.2(@langchain/core@0.3.40(openai@4.85.4(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(openai@4.85.4(ws@8.18.0)(zod@3.24.1))(ws@8.18.0)
+        specifier: 0.1.5
+        version: 0.1.5(@langchain/core@0.3.40(openai@4.85.4(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(openai@4.85.4(ws@8.18.0)(zod@3.24.1))(ws@8.18.0)
       '@headlessui/react':
         specifier: ^2.0.3
         version: 2.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -743,11 +743,11 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@eventcatalog/generator-ai@0.1.2':
-    resolution: {integrity: sha512-Sf1kiyT21neN+c9CCo+/f20iR2zvtpkRcL84VYvzgb53RAt6Zm155FYAUdE/Euc8Apj8OcTpS6AGJ1G79q8SbQ==}
+  '@eventcatalog/generator-ai@0.1.5':
+    resolution: {integrity: sha512-gSeocKC2IDP/mNKm+zgWEDWVO6ljXyOQXNgI9JUgpv33KaG6Y7a1P64eSrV41kavUI1l+gvuGwo1RIDNuPyX1A==}
 
-  '@eventcatalog/sdk@1.4.8':
-    resolution: {integrity: sha512-cFDuYX6FNh5uooaUmyYbAwo7eZj+NDDp5VwRUwMfuSVF4EL7YmqSmVxG1wP2Qok3ciO7yPnhXTo/7SiU5RuZUg==}
+  '@eventcatalog/sdk@1.4.9':
+    resolution: {integrity: sha512-K89VH2f8tx/Z/RpUX1WaRlvLztO5eHw9ZdMPvpQGz6fKDWgOYlVE2iJRXmpOVcSfULr9+eb+Ck4Juv/QUcxrmA==}
 
   '@expressive-code/core@0.40.1':
     resolution: {integrity: sha512-j71gxBepyzBgOtZomxzl8M90AjILf6hZarWFePDis7sTjqCwxWrtZEtTCafto8IOURG/ECZN0g7Ys4zExkNU7Q==}
@@ -7873,9 +7873,9 @@ snapshots:
   '@esbuild/win32-x64@0.24.2':
     optional: true
 
-  '@eventcatalog/generator-ai@0.1.2(@langchain/core@0.3.40(openai@4.85.4(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(openai@4.85.4(ws@8.18.0)(zod@3.24.1))(ws@8.18.0)':
+  '@eventcatalog/generator-ai@0.1.5(@langchain/core@0.3.40(openai@4.85.4(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(openai@4.85.4(ws@8.18.0)(zod@3.24.1))(ws@8.18.0)':
     dependencies:
-      '@eventcatalog/sdk': 1.4.8
+      '@eventcatalog/sdk': 1.4.9
       '@huggingface/transformers': 3.3.3
       chalk: 4.1.2
       fs-extra: 11.3.0
@@ -7904,7 +7904,7 @@ snapshots:
       - typeorm
       - ws
 
-  '@eventcatalog/sdk@1.4.8':
+  '@eventcatalog/sdk@1.4.9':
     dependencies:
       '@changesets/cli': 2.27.12
       fs-extra: 11.3.0

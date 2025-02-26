@@ -14,9 +14,40 @@ interface Resource {
 }
 
 // Move formatMessageContent outside component since it doesn't use any component state or props
-const formatMessageContent = (content: string): string => {
-  // First handle code blocks
-  let formattedContent = content.replace(/```([\s\S]*?)```/g, (match, codeContent) => {
+const formatMessageContent = (content: string, resources?: Resource[]): string => {
+  // First handle any full resource tags by replacing them with just their ID/title
+  content = content.replace(/<resource[^>]*?id="([^"]*)"[^>]*?>/g, '$1');
+
+  // First escape <resource> tags
+  let formattedContent = content.replace(/<resource[^>]*>/g, (match) => {
+    return match.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  });
+
+  // If we have resources, convert matching IDs to links
+  if (resources?.length) {
+    // Create a regex pattern that matches any resource ID/title
+    const resourceMatches = resources.map((r) => ({
+      pattern: r.title || r.id,
+      url: r.url,
+      type: r.type,
+    }));
+
+    // Sort by length (longest first) to prevent partial matches
+    resourceMatches.sort((a, b) => b.pattern.length - a.pattern.length);
+
+    // Replace matches with links, but skip if already inside an HTML tag
+    for (const { pattern, url, type } of resourceMatches) {
+      // Updated regex to match whole words only using word boundaries \b
+      const regex = new RegExp(`(?<!<[^>]*)\\b(${pattern})\\b(?![^<]*>)`, 'g');
+      formattedContent = formattedContent.replace(
+        regex,
+        `<a href="${url}" class="text-purple-600 hover:text-purple-800" target="_blank" rel="noopener noreferrer">$1 (${type})</a>`
+      );
+    }
+  }
+
+  // Handle code blocks
+  formattedContent = formattedContent.replace(/```([\s\S]*?)```/g, (match, codeContent) => {
     const escapedCode = codeContent.trim().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return `<pre class="bg-gray-800 border border-gray-700 p-4 my-3 rounded-lg overflow-x-auto"><code class="text-sm font-mono text-gray-200">${escapedCode}</code></pre>`;
   });
@@ -26,6 +57,9 @@ const formatMessageContent = (content: string): string => {
     const escapedCode = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return `<code class="bg-gray-500 border border-gray-700 px-2 py-0.5 rounded text-sm font-mono text-gray-200">${escapedCode}</code>`;
   });
+
+  // Handle bold text with double asterisks
+  formattedContent = formattedContent.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
   // Convert newlines to <br>
   formattedContent = formattedContent.replace(/\n(?!<\/code>)/g, '<br>');
@@ -41,7 +75,7 @@ const ChatMessage = React.memo(({ message }: { message: Message }) => (
         message.isUser ? 'bg-purple-600 text-white rounded-br-none' : 'bg-gray-100 text-gray-800 rounded-bl-none'
       }`}
     >
-      <div dangerouslySetInnerHTML={{ __html: formatMessageContent(message.content) }} />
+      <div dangerouslySetInnerHTML={{ __html: formatMessageContent(message.content, message.resources) }} />
       {!message.isUser && message.resources && message.resources.length > 0 && (
         <div className="mt-3 pt-3 border-t border-gray-200">
           <p className="text-xs text-gray-500 mb-1">Referenced Resources:</p>
@@ -81,9 +115,9 @@ const ChatWindow = () => {
   const outputRef = useRef<HTMLDivElement>(null);
 
   // LLM configuration from eventcatalog.config.js file
-  const model = config.chat?.model || 'Llama-2-7b-chat-hf-q4f16_1-MLC';
-  const max_tokens = config.chat?.max_tokens || 8192;
-  const similarityResults = config.chat?.similarityResults || 10;
+  const model = config.chat?.model || 'Hermes-3-Llama-3.2-3B-q4f16_1-MLC';
+  const max_tokens = config.chat?.max_tokens || 4096;
+  const similarityResults = config.chat?.similarityResults || 50;
 
   const { currentSession, storeMessagesToSession, updateSession, isStreaming, setIsStreaming } = useChat();
 
@@ -131,7 +165,7 @@ const ChatWindow = () => {
     setInputValue('');
 
     // if the first message, update the session title
-    if (messages.length === 1 && currentSession) {
+    if (currentSession) {
       updateSession({
         ...currentSession,
         title: inputValue.length > 25 ? `${inputValue.substring(0, 22)}...` : inputValue,
@@ -162,21 +196,39 @@ const ChatWindow = () => {
           ).values()
         );
 
+        console.log('resources', resources);
+
         const qaPrompt = `\n".
 
-                You are an expert in the domain of software architecture.
-                
-                You are given a question and a list of resources.
+          You are an expert in event-driven architecture and domain-driven design, specializing in documentation for EventCatalog.
 
-                Resource types include events, commands, queries, services and domains, users and teams.
+          You assist developers, architects, and business stakeholders who need information about their event-driven system catalog. You help with questions about:
+          - Events (asynchronous messages that notify about something that has happened)
+          - Commands (requests to perform an action)
+          - Queries (requests for information)
+          - Services (bounded contexts or applications that produce/consume events)
+          - Domains (business capabilities or functional areas)
 
-                Never make up information, only use the information provided in the resources.
+          IMPORTANT RULES:
+          1. Resources will be provided to you in <resource> tags. ONLY use these resources to answer questions.
+          2. NEVER include ANY <resource> tags in your responses. This is a strict requirement.
+          3. ALWAYS refer to resources by their name/ID/title attributes only.
+          4. If asked about specific resource types (e.g., "What domains do we have?"), simply list their names without elaboration.
+          5. NEVER invent or make up resources that aren't provided to you.
 
-                Your job is to answer the question based on the resources.
+          RESPONSE FORMAT EXAMPLES:
+          ✓ CORRECT: "The SubscriptionService produces the UserSubscribed event."
+          ✗ INCORRECT: "<resource id="SubscriptionService">...</resource> produces events."
 
-                This resources are all the resources that are relevant to the question.
+          When responding:
+          1. Use only information from the provided resources
+          2. Explain connections between resources when relevant
+          3. Use appropriate technical terminology
+          4. Use clear formatting with headings and bullet points when helpful
+          5. State clearly when information is missing rather than making assumptions
+          6. Don't provide code examples unless specifically requested
 
-                If any fields are undefined or missing just say you don't know as they are missing in the documentation.
+          Your primary goal is to help users understand their event-driven system through accurate documentation interpretation.
 
                 ==========
                 ${(resources as Resource[])
@@ -184,10 +236,6 @@ const ChatWindow = () => {
                     return `<resource ${Object.entries(resource)
                       .filter(([key, value]) => key !== 'markdown' && key !== 'loc')
                       .map(([key, value]) => {
-                        // Special handling for resourceType to construct url
-                        if (key === 'type') {
-                          return `url="${value}" ${key}="${resource.id}"`;
-                        }
                         return `${key}="${value}"`;
                       })
                       .join(' ')} />`;
@@ -198,6 +246,7 @@ const ChatWindow = () => {
                 ""
                 `;
 
+        console.log('qaPrompt', qaPrompt);
         try {
           // Get completion
           const completion = await engine.chat.completions.create({
@@ -219,9 +268,9 @@ const ChatWindow = () => {
             stream: true,
             temperature: 0.1,
             max_tokens,
-            top_p: 0.2,
-            top_k: 5,
-            frequency_penalty: 0,
+            top_p: 0.9,
+            top_k: 40,
+            frequency_penalty: 0.1,
             presence_penalty: 0,
           });
 
