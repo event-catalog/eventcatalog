@@ -1,4 +1,6 @@
 import { z, defineCollection, reference } from 'astro:content';
+import { glob } from 'astro/loaders';
+import { join } from 'node:path';
 
 const badge = z.object({
   content: z.string(),
@@ -252,8 +254,16 @@ const ubiquitousLanguages = defineCollection({
   }),
 });
 
+const projectDirBase = (() => {
+  if (process.platform === 'win32') {
+    const projectDirPath = process.env.PROJECT_DIR!.replace(/\\/g, '/');
+    return projectDirPath.startsWith('/') ? projectDirPath : `/${projectDirPath}`;
+  }
+  return process.env.PROJECT_DIR;
+})();
+
 const users = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: 'users/*.md', base: projectDirBase, generateId: ({ data }) => data.id as string }),
   schema: z.object({
     id: z.string(),
     name: z.string(),
@@ -274,7 +284,7 @@ const users = defineCollection({
 });
 
 const teams = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: 'teams/*.md', base: projectDirBase, generateId: ({ data }) => data.id as string }),
   schema: z.object({
     id: z.string(),
     name: z.string(),
