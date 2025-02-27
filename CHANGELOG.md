@@ -1,5 +1,16 @@
 # @eventcatalog/core
 
+## 2.25.0
+
+### Minor Changes
+
+- 278b440: feat(core): added context menus to all nodes in visualizer
+
+### Patch Changes
+
+- 375b924: fix(core): remove empty index page to prevent blank docs page
+- 470d62f: fix(core): improved `basePathname` selection in `getTreeView` for the sidebar
+
 ## 2.24.3
 
 ### Patch Changes
