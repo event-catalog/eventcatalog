@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.24.3
+
+### Patch Changes
+
+- a9aec83: feat(core): resources added to ai results
+- 2ff4d7e: fix(core): changed default model for AI chat
+
 ## 2.24.2
 
 ### Patch Changes
