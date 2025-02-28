@@ -14,10 +14,16 @@ interface Props {
 const { href, icon, title, description, openWindow } = Astro.props;
 
 const IconComponent: ComponentType<{ className?: string }> | undefined = Icons[icon];
+
+function startsWithProtocol(str: string) {
+  // Regular expression to match common protocols (http, https, ftp, ws, etc.)
+  const regex = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//;
+  return regex.test(str);
+}
 ---
 
 <a
-  href={buildUrl(href)}
+  href={startsWithProtocol(href) ? href : buildUrl(href)}
   target={openWindow ? '_blank' : '_self'}
   class="block bg-white border border-gray-200 rounded-lg p-6 transition-all duration-300 ease-in-out hover:shadow-md hover:border-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-white"
 >
