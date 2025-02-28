@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.25.1
+
+### Patch Changes
+
+- c7fac97: fix(core): fixed broken link on ai page
+
 ## 2.25.0
 
 ### Minor Changes
