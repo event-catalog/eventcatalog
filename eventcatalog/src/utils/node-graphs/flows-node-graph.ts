@@ -118,18 +118,18 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         id: `step-${step.id}-step-${path.id}`,
         source: `step-${step.id}`,
         target: `step-${path.id}`,
-        type: 'bezier',
+        type: 'flow-edge',
         label: path.label,
         animated: true,
         markerEnd: {
           type: MarkerType.ArrowClosed,
           width: 20,
           height: 20,
-          color: '#acacac',
+          color: '#666',
         },
         style: {
           strokeWidth: 2,
-          stroke: '#acacac',
+          stroke: '#ccc',
         },
       });
     });

@@ -24,6 +24,7 @@ import StepNode from './Nodes/Step';
 import CommandNode from './Nodes/Command';
 import ExternalSystemNode from './Nodes/ExternalSystem';
 import AnimatedMessageEdge from './Edges/AnimatedMessageEdge';
+import FlowEdge from './Edges/FlowEdge';
 
 import type { CollectionEntry } from 'astro:content';
 import { navigate } from 'astro:transitions/client';
@@ -75,6 +76,7 @@ const NodeGraphBuilder = ({
   const edgeTypes = useMemo(
     () => ({
       animated: AnimatedMessageEdge,
+      'flow-edge': FlowEdge,
     }),
     []
   );
@@ -97,7 +99,7 @@ const NodeGraphBuilder = ({
       eds.map((edge) => {
         edge.style = { ...edge.style, opacity: 1 };
         edge.labelStyle = { ...edge.labelStyle, opacity: 1 };
-        return { ...edge, data: { ...edge.data, opacity: 1 }, animated: animateMessages };
+        return { ...edge, data: { ...edge.data, opacity: 1, animated: animateMessages }, animated: animateMessages };
       })
     );
   }, [setNodes, setEdges, animateMessages]);
@@ -125,7 +127,7 @@ const NodeGraphBuilder = ({
           connectedNodeIds.add(edge.target);
           return {
             ...edge,
-            data: { ...edge.data, opacity: 1 },
+            data: { ...edge.data, opacity: 1, animated: animateMessages },
             style: { ...edge.style, opacity: 1 },
             labelStyle: { ...edge.labelStyle, opacity: 1 },
             animated: true,
@@ -133,7 +135,7 @@ const NodeGraphBuilder = ({
         }
         return {
           ...edge,
-          data: { ...edge.data, opacity: 0.1 },
+          data: { ...edge.data, opacity: 0.1, animated: animateMessages },
           style: { ...edge.style, opacity: 0.1 },
           labelStyle: { ...edge.labelStyle, opacity: 0.1 },
           animated: animateMessages,
@@ -178,8 +180,8 @@ const NodeGraphBuilder = ({
       eds.map((edge) => ({
         ...edge,
         animated: animateMessages,
-        type: animateMessages ? 'animated' : 'default',
-        data: { ...edge.data, animateMessages },
+        type: edge.type === 'flow-edge' ? 'flow-edge' : animateMessages ? 'animated' : 'default',
+        data: { ...edge.data, animateMessages, animated: animateMessages },
       }))
     );
   }, [animateMessages]);
