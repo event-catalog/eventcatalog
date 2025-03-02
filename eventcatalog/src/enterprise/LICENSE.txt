@@ -1,0 +1,4 @@
+Usage of files in this directory and its subdirectories, and of EventCatalog Plugin / Enterprise features, is subject to
+the EventCatalog Plugin Licenses (https://www.eventcatalog.dev), and conditional on having a
+valid plugin license from EventCatalog. Access to files in this directory and its subdirectories does not constitute
+permission to use this code or EventCatalog Plugin / Enterprise features.

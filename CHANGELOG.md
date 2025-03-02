@@ -1,5 +1,54 @@
 # @eventcatalog/core
 
+## 2.25.0
+
+### Minor Changes
+
+- 278b440: feat(core): added context menus to all nodes in visualizer
+
+### Patch Changes
+
+- 375b924: fix(core): remove empty index page to prevent blank docs page
+- 470d62f: fix(core): improved `basePathname` selection in `getTreeView` for the sidebar
+
+## 2.24.3
+
+### Patch Changes
+
+- a9aec83: feat(core): resources added to ai results
+- 2ff4d7e: fix(core): changed default model for AI chat
+
+## 2.24.2
+
+### Patch Changes
+
+- b45488f: fix(core): added browser checks for AI features
+- 0d924f8: fix(plugin): moved the generated ai file location to public dir
+
+## 2.24.1
+
+### Patch Changes
+
+- d8fdb7a: fix(plugin): moved the generated ai file location to public dir
+
+## 2.24.0
+
+### Minor Changes
+
+- 5cc528e: feat(core): added new EventCatalog AI assistant
+
+## 2.23.3
+
+### Patch Changes
+
+- bf92c1d: fix(core): fixed issue for new sidebar for windows
+
+## 2.23.2
+
+### Patch Changes
+
+- a2db8df: fix(core): messages now rendered correctly on service table
+
 ## 2.23.1
 
 ### Patch Changes

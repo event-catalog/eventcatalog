@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'node:os';
 import gm from 'gray-matter';
 import { globSync } from 'glob';
 import type { CollectionKey } from 'astro:content';
@@ -49,7 +50,7 @@ function buildTreeOfDir(directory: string, parentNode: TreeNode, options: { igno
 
   const resourceType = getResourceType(directory);
 
-  const markdownFiles = globSync(path.join(directory, '/*.md'));
+  const markdownFiles = globSync(path.join(directory, '/*.md'), { windowsPathsNoEscape: os.platform() === 'win32' });
   const isResourceIgnored = options?.ignore && resourceType && options.ignore.includes(resourceType);
 
   if (markdownFiles.length > 0 && !isResourceIgnored) {
@@ -137,7 +138,7 @@ function groupChildrenByType(parentNode: TreeNode) {
 const treeViewCache = new Map<string, TreeNode>();
 
 export function getTreeView({ projectDir, currentPath }: { projectDir: string; currentPath: string }): TreeNode {
-  const basePathname = currentPath.split('/')[1] as 'docs' | 'visualiser';
+  const basePathname = currentPath.split('/').find((p) => p === 'docs' || p === 'visualiser') || 'docs';
 
   const cacheKey = `${projectDir}:${basePathname}`;
   if (treeViewCache.has(cacheKey)) return treeViewCache.get(cacheKey)!;

@@ -32,10 +32,10 @@
 <h4>Features: Documentation generator for Event Driven Architectures, Integration with any broker, Docs and Code, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-47-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-48-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-[Read the Docs](https://eventcatalog.dev/) | [Edit the Docs](https://github.com/event-catalog/docs) | [View Demo](https://demo.eventcatalog.dev/docs)
+[Read the Docs](https://www.eventcatalog.dev/product/documentation) | [View Demo](https://demo.eventcatalog.dev/docs)
 
 </div>
 
@@ -44,14 +44,14 @@
 # Core Features
 
 - 📃 Document domains, services and messages ([demo](https://demo.eventcatalog.dev/docs))
-- 📊 Visualise your architecture ([demo](https://demo.eventcatalog.dev/visualiser))
+- 📊 Visualise your architecture ([demo](https://demo.eventcatalog.dev/visualiser/domains/Orders))
 - ⭐ Supports any Schema format (e.g Avro, JSON) ([demo](https://demo.eventcatalog.dev/docs/events/InventoryAdjusted/0.0.4))
 - 🗂️ Document any code examples (Any code snippet)
 - 💅 Custom MDX components ([read more](https://eventcatalog.dev/docs/development/components/using-components))
 - 🗄️ Version domains, services and messages
 - ⭐ Discoverability feature (search, filter and more) ([demo](https://demo.eventcatalog.dev/discover/events))
 - ⭐ Document teams and users ([demo](https://demo.eventcatalog.dev/docs/teams/full-stack))
-- 🤖 Automate your catalogs with [generators](https://www.eventcatalog.dev/docs/development/plugins/plugin-overview) (e.g generate your catalogs from your [AsyncAPI](https://www.eventcatalog.dev/docs/ascynapi)/[OpenAPI](https://www.eventcatalog.dev/docs/openapi) documents)
+- 🤖 Automate your catalogs with [generators](https://www.eventcatalog.dev/docs/development/plugins/plugin-overview) (e.g generate your catalogs from your [AsyncAPI](https://www.eventcatalog.dev/docs/asyncapi)/[OpenAPI](https://www.eventcatalog.dev/docs/openapi) documents)
 - 👨🏼‍💻 Follows [Docs as code](https://www.writethedocs.org/guide/docs-as-code/) principles
 - ⭐ And much more...
 
@@ -251,6 +251,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://pallares.io"><img src="https://avatars.githubusercontent.com/u/1077520?v=4?s=100" width="100px;" alt="Cristian Pallarés"/><br /><sub><b>Cristian Pallarés</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=skyrpex" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/SebasRendon12"><img src="https://avatars.githubusercontent.com/u/69688183?v=4?s=100" width="100px;" alt="Sebastian Rendon"/><br /><sub><b>Sebastian Rendon</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=SebasRendon12" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://craig0990.co.uk"><img src="https://avatars.githubusercontent.com/u/461897?v=4?s=100" width="100px;" alt="Craig Roberts"/><br /><sub><b>Craig Roberts</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=craig0990" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Vertygo"><img src="https://avatars.githubusercontent.com/u/1658326?v=4?s=100" width="100px;" alt="Ivan Milosavljevic"/><br /><sub><b>Ivan Milosavljevic</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=Vertygo" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
@@ -264,4 +265,4 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 # License
 
-MIT
+MIT.

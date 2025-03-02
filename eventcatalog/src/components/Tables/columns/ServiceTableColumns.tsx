@@ -128,6 +128,18 @@ export const columns = () => [
       if (sends?.length === 0 || !sends)
         return <div className="text-sm text-gray-400/80 text-left italic">Service sends no messages.</div>;
 
+      const sendersWithIcons = useMemo(
+        () =>
+          sends?.map((sender) => {
+            const type = sender.collection.slice(0, -1);
+            return {
+              ...sender,
+              ...getColorAndIconForMessageType(type),
+            };
+          }) || [],
+        [sends]
+      );
+
       return (
         <div>
           {isExpandable && (
@@ -137,30 +149,25 @@ export const columns = () => [
           )}
           {isExpanded && (
             <ul>
-              {sends.map((consumer, index) => {
-                const type = consumer.collection.slice(0, -1);
-                const color = type === 'event' ? 'orange' : 'blue';
-                const Icon = type === 'event' ? BoltIcon : ChatBubbleLeftIcon;
-                return (
-                  <li key={`${consumer.data.id}-${index}`} className="py-1 group font-light">
-                    <a
-                      href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
-                      className="group-hover:text-primary flex space-x-1 items-center "
-                    >
-                      <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
-                        <span className="flex items-center">
-                          <span className={`bg-${color}-500 h-full rounded-tl rounded-bl p-1`}>
-                            <Icon className="h-4 w-4 text-white" />
-                          </span>
-                          <span className="leading-none px-2 group-hover:underline ">
-                            {consumer.data.name} (v{consumer.data.version})
-                          </span>
+              {sendersWithIcons.map((sender, index) => (
+                <li key={`${sender.data.id}-${index}`} className="py-1 group font-light">
+                  <a
+                    href={buildUrl(`/docs/${sender.collection}/${sender.data.id}/${sender.data.version}`)}
+                    className="group-hover:text-primary flex space-x-1 items-center "
+                  >
+                    <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
+                      <span className="flex items-center">
+                        <span className={`bg-${sender.color}-500 h-full rounded-tl rounded-bl p-1`}>
+                          <sender.Icon className="h-4 w-4 text-white" />
                         </span>
-                      </div>
-                    </a>
-                  </li>
-                );
-              })}
+                        <span className="leading-none px-2 group-hover:underline ">
+                          {sender.data.name} (v{sender.data.version})
+                        </span>
+                      </span>
+                    </div>
+                  </a>
+                </li>
+              ))}
             </ul>
           )}
         </div>

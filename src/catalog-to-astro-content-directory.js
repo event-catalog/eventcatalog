@@ -47,7 +47,6 @@ const ensureAstroCollectionNotEmpty = async (astroDir) => {
     'services',
     'domains',
     'flows',
-    'pages',
     'changelogs',
     'queries',
     'channels',

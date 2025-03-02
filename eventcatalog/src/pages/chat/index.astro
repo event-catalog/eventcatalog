@@ -1,0 +1,166 @@
+---
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import Chat from '@enterprise/ai-assistant/components/Chat';
+import config from '@config';
+import path from 'node:path';
+import fs from 'node:fs';
+
+import { Code } from 'astro-expressive-code/components';
+
+const isEnabled = config.chat?.enabled || false;
+
+const PROJECT_DIR = path.resolve(process.env.PROJECT_DIR || process.cwd());
+const GENERATED_AI_DIR = path.resolve(PROJECT_DIR, 'public/ai');
+
+const directoryExists = fs.existsSync(GENERATED_AI_DIR);
+
+const generatorConfig = `
+ generators: [
+    [
+      "@eventcatalog/generator-ai", {
+        // If you want to chunk files into smaller chunks, set this to true
+        splitMarkdownFiles: true
+      }
+    ],
+  ],
+`;
+---
+
+<VerticalSideBarLayout title="AI Chat">
+  <div class="flex h-[calc(100vh-60px)] bg-white">
+    {
+      isEnabled ? (
+        directoryExists ? (
+          <>
+            <div id="browserWarning" class="flex items-center justify-center w-full p-4 sm:p-8" style="display: none;">
+              <div class="max-w-2xl text-center bg-yellow-100 text-yellow-800 px-8 py-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold mb-4">Unsupported Browser</h2>
+                <p>
+                  EventCatalog AI Assistant uses LLM models in the browser which is{' '}
+                  <a href="https://developer.mozilla.org/en-US/docs/Web/API/GPU" class="text-blue-500 hover:underline">
+                    only supported in Chrome and Edge browsers
+                  </a>
+                  . <br />
+                  Please switch to a supported browser for the best experience.
+                </p>
+              </div>
+            </div>
+            <div id="chatContainer" class="w-full">
+              <Chat client:only="react" />
+            </div>
+          </>
+        ) : (
+          <div class="flex items-center justify-center w-full p-4 sm:p-8">
+            <div class="max-w-2xl text-center">
+              <h2 class="text-2xl font-bold text-gray-900 mb-4">EventCatalog AI Assistant Setup Required</h2>
+              <p class="text-gray-600 mb-6">
+                To use the AI Assistant, you need to generate the AI data first.
+                <br />
+                Please install the plugin and run the generator command to generate the AI data.
+              </p>
+
+              <div class="text-left space-y-4">
+                <div class="space-y-2">
+                  <h2 class="text-lg font-semibold  text-left">1. Install the generator</h2>
+                  <Code code={`npm i @eventcatalog/generator-ai`} lang="bash" frame="terminal" />
+                </div>
+
+                <div class="space-y-2">
+                  <h2 class="text-lg font-semibold text-left">2. Configure the generator</h2>
+                  <Code code={generatorConfig} lang="javascript" frame="terminal" title="eventcatalog.config.js" />
+                </div>
+
+                <div class="space-y-2">
+                  <h2 class="text-lg font-semibold  text-left">3. Generate the AI data</h2>
+                  <Code code={`npm run generate`} lang="bash" frame="none" />
+                </div>
+                <p class="text-gray-600 text-sm mt-2">
+                  After running the generator, a new folder called <code class="bg-gray-100 p-1 rounded-md">generated-ai</code>{' '}
+                  will be created in your project.
+                </p>
+
+                <p class="text-gray-600 text-sm mt-2">Once done, refresh this page.</p>
+              </div>
+            </div>
+          </div>
+        )
+      ) : (
+        <div class="flex items-center justify-center w-full p-4 sm:p-8">
+          <div class="max-w-6xl flex flex-col md:flex-row gap-8 md:gap-12 items-center">
+            {/* Left side - Illustration */}
+            <div class="flex-1">
+              <img
+                src="/images/ai-placeholder.png"
+                alt="AI Assistant Illustration"
+                class="w-full max-w-sm md:max-w-md mx-auto  rounded-lg shadow-lg"
+              />
+            </div>
+
+            {/* Right side - Content */}
+            <div class="flex-1">
+              <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">EventCatalog AI Assistant</h2>
+              <p class="text-gray-600 mb-6 text-base md:text-lg">
+                Chat with your catalog to quickly find information, understand relationships, and get instant answers about your
+                architecture. Our AI-powered assistant makes exploring your event catalog faster and more intuitive than ever.
+              </p>
+
+              <div class="bg-gray-700 rounded-lg p-4 md:p-6 mb-4">
+                <h3 class="text-lg text-white font-semibold mb-3">Quick Setup</h3>
+                <Code code={`npm install @eventcatalog/generator-ai`} lang="bash" frame="none" />
+                <a
+                  href="https://www.eventcatalog.dev/feature/ai-assistant"
+                  class="inline-flex items-center text-sm text-white mt-4"
+                >
+                  Learn more about setup →
+                </a>
+              </div>
+              <p class="text-gray-600 mb-6 text-sm">
+                Your data stays private and secure - all processing happens locally on your machine.
+              </p>
+            </div>
+          </div>
+        </div>
+      )
+    }
+  </div>
+</VerticalSideBarLayout>
+
+<script>
+  function checkBrowser() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isChrome = /chrome/.test(userAgent) && !/edg/.test(userAgent);
+    const isEdge = /edg/.test(userAgent);
+
+    const warningElement = document.getElementById('browserWarning') as HTMLElement;
+    const chatContainer = document.getElementById('chatContainer') as HTMLElement;
+
+    if (warningElement && chatContainer) {
+      if (!isChrome && !isEdge) {
+        warningElement.style.display = 'flex';
+        chatContainer.style.display = 'none';
+      } else {
+        warningElement.style.display = 'none';
+        chatContainer.style.display = 'block';
+      }
+    }
+  }
+
+  // Run check when DOM is loaded
+  document.addEventListener('DOMContentLoaded', checkBrowser);
+</script>
+
+<style>
+  .loading-status.ready {
+    background-color: rgb(240 253 244); /* light green bg */
+    color: rgb(22 163 74); /* green text */
+  }
+
+  .loading-status.hidden {
+    display: none;
+  }
+
+  /* Add smooth scrolling behavior */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+</style>
