@@ -1,5 +1,14 @@
 # @eventcatalog/core
 
+## 2.25.1
+
+### Patch Changes
+
+- d84fa26: feat: add protocol check to tile component's href handling
+- 11eac24: fix(core): fixed long edge labels for flows
+- c7fac97: fix(core): fixed broken link on ai page
+- a1ee7da: chore(core): updated astro versions
+
 ## 2.25.0
 
 ### Minor Changes
