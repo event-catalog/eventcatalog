@@ -50,6 +50,8 @@ The subscription Service is responsible for handling customer subscriptions in o
 
 <NodeGraph />
 
+<MessageTable format="all" limit={4} />
+
 ## Infrastructure
 
 The Subscription Service is hosted on AWS.

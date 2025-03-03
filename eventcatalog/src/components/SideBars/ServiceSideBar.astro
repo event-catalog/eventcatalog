@@ -26,22 +26,27 @@ const ownersRaw = service.data?.owners || [];
 const owners = await Promise.all<ReturnType<typeof getOwner>>(ownersRaw.map(getOwner));
 const filteredOwners = owners.filter((o) => o !== undefined);
 
-const sendsList = sends.map((p) => ({
-  label: p.data.name,
-  badge: p.collection,
-  color: p.collection === 'events' ? 'orange' : 'blue',
-  collection: p.collection,
-  tag: `v${p.data.version}`,
-  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
-}));
-const receivesList = receives.map((p) => ({
-  label: p.data.name,
-  badge: p.collection,
-  color: p.collection === 'events' ? 'orange' : 'blue',
-  tag: `v${p.data.version}`,
-  collection: p.collection,
-  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
-}));
+const sendsList = sends
+  .sort((a, b) => a.collection.localeCompare(b.collection))
+  .map((p) => ({
+    label: p.data.name,
+    badge: p.collection,
+    color: p.collection === 'events' ? 'orange' : 'blue',
+    collection: p.collection,
+    tag: `v${p.data.version}`,
+    href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+  }));
+
+const receivesList = receives
+  .sort((a, b) => a.collection.localeCompare(b.collection))
+  .map((p) => ({
+    label: p.data.name,
+    badge: p.collection,
+    color: p.collection === 'events' ? 'orange' : 'blue',
+    tag: `v${p.data.version}`,
+    collection: p.collection,
+    href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+  }));
 
 const ownersList = filteredOwners.map((o) => ({
   label: o.data.name,
@@ -94,7 +99,7 @@ const schemaURL = join(publicPath, schemaFilePath || '');
 
     {
       isRSSEnabled && (
-        <div class="mx-auto pb-8 w-full max-w-lg divide-y divide-white/5 rounded-xl bg-white/5">
+        <div class="mx-auto pb-4 w-full max-w-lg divide-y divide-white/5 rounded-xl bg-white/5 border-b border-gray-100 mb-4">
           <span class="text-sm text-black group-data-[hover]:text-black/80 capitalize">Services RSS Feed</span>
           <ul role="list" class="space-y-2 mt-2">
             <li class="has-tooltip rounded-md text-gray-600 group px-1 w-full hover:bg-gradient-to-l hover:from-purple-500 hover:to-purple-700 hover:text-white hover:font-normal  ">

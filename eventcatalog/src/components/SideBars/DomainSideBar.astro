@@ -3,7 +3,7 @@ import OwnersList from '@components/Lists/OwnersList';
 import PillListFlat from '@components/Lists/PillListFlat';
 import RepositoryList from '@components/Lists/RepositoryList.astro';
 import VersionList from '@components/Lists/VersionList.astro';
-import { getUbiquitousLanguage } from '@utils/collections/domains';
+import { getUbiquitousLanguage, getMessagesForDomain } from '@utils/collections/domains';
 import { getOwner } from '@utils/collections/owners';
 import { buildUrl } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
@@ -25,6 +25,8 @@ const ownersRaw = domain.data?.owners || [];
 const owners = await Promise.all<ReturnType<typeof getOwner>>(ownersRaw.map(getOwner));
 const filteredOwners = owners.filter((o) => o !== undefined);
 
+const messagesForDomain = await getMessagesForDomain(domain);
+
 const serviceList = services.map((p) => ({
   label: p.data.name,
   badge: p.collection,
@@ -32,6 +34,26 @@ const serviceList = services.map((p) => ({
   collection: p.collection,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
 }));
+
+const sendsList = messagesForDomain.sends
+  .sort((a, b) => a.collection.localeCompare(b.collection))
+  .map((p) => ({
+    label: p.data.name,
+    badge: p.collection,
+    tag: `v${p.data.version}`,
+    collection: p.collection,
+    href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+  }));
+
+const receivesList = messagesForDomain.receives
+  .sort((a, b) => a.collection.localeCompare(b.collection))
+  .map((p) => ({
+    label: p.data.name,
+    badge: p.collection,
+    tag: `v${p.data.version}`,
+    collection: p.collection,
+    href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+  }));
 
 const ubiquitousLanguageList = ubiquitousLanguageDictionary?.map((l) => ({
   label: l.name,
@@ -59,12 +81,27 @@ const ownersList = filteredOwners.map((o) => ({
       icon="ServerIcon"
       client:load
     />
+    <PillListFlat
+      title={`Sends messages (${sendsList.length})`}
+      pills={sendsList}
+      emptyMessage={`This domain does not send any messages.`}
+      color="orange"
+      client:load
+    />
+    <PillListFlat
+      title={`Receives messages (${receivesList.length})`}
+      pills={receivesList}
+      emptyMessage={`This domain does not receive any messages.`}
+      color="orange"
+      client:load
+    />
     {
       ubiquitousLanguageList && hasUbiquitousLanguage && (
         <PillListFlat
           title={`Ubiquitous Language Dictionary (${ubiquitousLanguageDictionary?.length})`}
           pills={ubiquitousLanguageList}
           color="pink"
+          limit={4}
           emptyMessage={`This domain does not have any documented ubiquitous language.`}
           client:load
         />

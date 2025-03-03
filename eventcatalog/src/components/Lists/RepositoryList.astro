@@ -9,8 +9,8 @@ interface Props {
 const { repository, language } = Astro.props;
 ---
 
-<div class="mx-auto pb-8 w-full max-w-lg divide-y divide-white/5 rounded-xl bg-white/5">
-  <span class="text-sm text-black group-data-[hover]:text-black/80 capitalize">Repository </span>
+<div class="mx-auto pb-4 w-full max-w-lg divide-y divide-white/5 rounded-xl bg-white/5 border-b border-gray-100 mb-4">
+  <span class="text-sm text-black font-semibold group-data-[hover]:text-black/80 capitalize">Repository </span>
   <ul role="list" class="space-y-2 mt-2">
     {
       repository && (
@@ -33,4 +33,5 @@ const { repository, language } = Astro.props;
       )
     }
   </ul>
+  <!-- <div class='border-b border-gray-100'></div> -->
 </div>

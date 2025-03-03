@@ -33,6 +33,8 @@ The Payment Service is a crucial component of our system that handles all paymen
 
 <NodeGraph />
 
+<MessageTable format="all" limit={4} />
+
 ## Infrastructure
 
 The Payment Service is hosted on AWS.

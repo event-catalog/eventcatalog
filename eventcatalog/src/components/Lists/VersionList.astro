@@ -14,8 +14,8 @@ const { versions, collectionItem, title } = Astro.props;
 const currentPath = Astro.url.pathname;
 ---
 
-<div class="space-y-2 pb-8">
-  <span class="text-sm text-black group-data-[hover]:text-black/80 capitalize">
+<div class="space-y-2 pb-4">
+  <span class="text-sm text-black font-semibold group-data-[hover]:text-black/80 capitalize">
     {title || `Versions (${collectionItem.data.versions?.length})`}
   </span>
   <ul role="list" class="space-y-2">
@@ -39,26 +39,7 @@ const currentPath = Astro.url.pathname;
       })
     }
   </ul>
-  <!-- <select id="version" class="block bg-gray-50 rounded-md border border-gray-200 px-1 py-0.5 text-xs">
-    {
-      versions.map((version) => {
-        const isCurrent = currentPath.includes(version);
-        return (
-          <option
-            selected={isCurrent}
-            value={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${version}`)}
-            class={`inline-flex items-center rounded-md  px-2 py-1 text-xs text-indigo-700 ring-1 ring-inset ring-indigo-700/10 hover:bg-purple-100 hover:underline ${isCurrent ? 'bg-purple-100 text-primary underline ' : 'bg-white'}`}
-          >
-            {version === collectionItem.data.latestVersion ? `v${version} (latest)` : `v${version}`}
-          </option>
-        );
-      })
-    }
-  </select> -->
-  <!-- <a
-    href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.latestVersion}/changelog`)}
-    class="text-[10px] text-gray-500">View changelogs</a
-  > -->
+  <div class="border-b border-gray-100 pt-2"></div>
 </div>
 
 <script>
