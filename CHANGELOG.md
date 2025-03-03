@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.26.0
+
+### Minor Changes
+
+- c787162: feat(core): added new message table component
+
 ## 2.25.1
 
 ### Patch Changes
