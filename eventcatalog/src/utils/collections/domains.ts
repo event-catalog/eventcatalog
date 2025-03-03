@@ -2,6 +2,7 @@ import { getItemsFromCollectionByIdAndSemverOrLatest, getVersionForCollectionIte
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
+import type { CollectionMessageTypes } from '@types';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
@@ -71,6 +72,32 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
   });
 
   return cachedDomains[cacheKey];
+};
+
+export const getMessagesForDomain = async (
+  domain: Domain
+): Promise<{ sends: CollectionEntry<CollectionMessageTypes>[]; receives: CollectionEntry<CollectionMessageTypes>[] }> => {
+  // We already have the services from the domain
+  const services = domain.data.services as unknown as CollectionEntry<'services'>[];
+
+  const events = await getCollection('events');
+  const commands = await getCollection('commands');
+  const queries = await getCollection('queries');
+
+  const allMessages = [...events, ...commands, ...queries];
+
+  const sends = services.flatMap((service) => service.data.sends || []);
+  const receives = services.flatMap((service) => service.data.receives || []);
+
+  const sendsMessages = sends.map((send) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, send.id, send.version));
+  const receivesMessages = receives.map((receive) =>
+    getItemsFromCollectionByIdAndSemverOrLatest(allMessages, receive.id, receive.version)
+  );
+
+  return {
+    sends: sendsMessages.flat(),
+    receives: receivesMessages.flat(),
+  };
 };
 
 export const getUbiquitousLanguage = async (domain: Domain): Promise<UbiquitousLanguage[]> => {

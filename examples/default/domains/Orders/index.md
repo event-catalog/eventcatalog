@@ -20,6 +20,8 @@ badges:
 
 import Footer from '@catalog/components/footer.astro';
 
+
+
 ## Overview
 
 :::warning
@@ -33,9 +35,13 @@ The Orders domain handles all operations related to customer orders, from creati
     <Tile icon="RectangleGroupIcon" href={`/visualiser/domains/${frontmatter.id}/${frontmatter.version}`} title={`${frontmatter.services.length} services are in this domain`} description="This service sends messages to downstream consumers" />
 </Tiles>
 
+
+
 ## Bounded context
 
 <NodeGraph />
+
+<MessageTable format="all" limit={4} showChannels={true} title="Messages in/out of the domain" />
 
 ### Order example (sequence diagram)
 

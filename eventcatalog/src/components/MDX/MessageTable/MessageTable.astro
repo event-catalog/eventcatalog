@@ -1,0 +1,87 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import MessageTableClient from './MessageTable.client';
+import Admonition from '../Admonition';
+import { getMessagesForDomain } from '@utils/collections/domains';
+import type { Domain } from '@utils/collections/domains';
+import type { CollectionMessageTypes } from '@types';
+export interface Props extends CollectionEntry<'services'> {
+  format: 'receives' | 'sends' | 'all';
+  limit?: number;
+  showChannels?: boolean;
+}
+
+const { format, limit, showChannels } = Astro.props;
+
+const collection = Astro.props.collection as 'services' | 'domains';
+
+// UI does not need everything, just return what is needed for the table
+const getEssentialPropsForMessage = (message: CollectionEntry<CollectionMessageTypes>) => {
+  return {
+    id: message.data.id,
+    name: message.data.name,
+    version: message.data.version,
+    collection: message.collection,
+    type: message.collection === 'events' ? 'event' : message.collection === 'commands' ? 'command' : 'query',
+    summary: message.data.summary,
+    channels: message.data.channels,
+  };
+};
+
+// only enable for services and domains
+const isComponentEnabled = collection === 'services' || collection === 'domains';
+
+let data = {
+  sends: [],
+  receives: [],
+};
+
+if (collection === 'domains') {
+  const { sends, receives } = await getMessagesForDomain(Astro.props as unknown as Domain);
+  data = {
+    sends: sends.map(getEssentialPropsForMessage) as typeof data.sends,
+    receives: receives.map(getEssentialPropsForMessage) as typeof data.receives,
+  };
+} else {
+  // Try and set the sends and receives from the services collection
+  data = {
+    sends: Astro.props.data.sends
+      ? (Astro.props.data.sends.map((message) =>
+          getEssentialPropsForMessage(message as unknown as CollectionEntry<CollectionMessageTypes>)
+        ) as typeof data.sends)
+      : [],
+    receives: Astro.props.data.receives
+      ? (Astro.props.data.receives.map((message) =>
+          getEssentialPropsForMessage(message as unknown as CollectionEntry<CollectionMessageTypes>)
+        ) as typeof data.receives)
+      : [],
+  };
+}
+---
+
+{
+  isComponentEnabled && (
+    <MessageTableClient
+      client:load
+      sends={data.sends}
+      receives={data.receives}
+      collection={collection}
+      limit={limit}
+      showChannels={showChannels}
+      format={format}
+    />
+  )
+}
+
+{
+  !isComponentEnabled && (
+    <Admonition type="warning">
+      <div>
+        <span class="font-bold">
+          {`<MessageTable/>`} component is not supported for resources of type {collection}.
+        </span>
+        <span class="block">This component is only supported for services and domains.</span>
+      </div>
+    </Admonition>
+  )
+}

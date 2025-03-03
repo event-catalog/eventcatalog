@@ -11,7 +11,6 @@ const Sidebar: React.FC<{}> = () => {
     // Check if this is the first visit after component mounts
     const hasVisited = localStorage.getItem('eventCatalogAIVisited');
     if (!hasVisited || hasVisited === 'false') {
-      console.log('setting showHelp to true');
       localStorage.setItem('eventCatalogAIVisited', 'true');
       setShowHelp(true);
     }

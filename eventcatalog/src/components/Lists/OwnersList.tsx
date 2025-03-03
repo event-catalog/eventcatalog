@@ -18,9 +18,9 @@ const OwnersList = ({ title, owners, emptyMessage }: Props) => {
   return (
     <div>
       <div className="mx-auto w-full max-w-lg divide-y divide-white/5 rounded-xl bg-white/5">
-        <Disclosure as="div" className="pb-8" defaultOpen={owners.length <= 5}>
+        <Disclosure as="div" className="" defaultOpen={owners.length <= 5}>
           <DisclosureButton className="group flex w-full items-center justify-start space-x-4">
-            <span className="text-sm text-black group-data-[hover]:text-black/80 capitalize"> {title} </span>
+            <span className="text-sm text-black font-semibold group-data-[hover]:text-black/80 capitalize"> {title} </span>
             <ChevronDownIcon className="size-5 fill-black/60 group-data-[hover]:fill-black/50 group-data-[open]:rotate-180" />
           </DisclosureButton>
           <DisclosurePanel className="mt-2 text-sm/5 text-black/50">
@@ -57,6 +57,7 @@ const OwnersList = ({ title, owners, emptyMessage }: Props) => {
           </DisclosurePanel>
         </Disclosure>
       </div>
+      <div className="border-b border-gray-100 my-4"></div>
     </div>
   );
 };

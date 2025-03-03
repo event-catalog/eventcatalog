@@ -52,6 +52,8 @@ The Orders Service is responsible for managing customer orders within the system
 
 <NodeGraph />
 
+<MessageTable format="all" limit={4} />
+
 ## Infrastructure
 
 The Orders Service is hosted on AWS.

@@ -22,3 +22,5 @@ The Payment Domain encompasses all services and components related to handling f
 ## Bounded context
 
 <NodeGraph />
+
+<MessageTable format="all" limit={4} />

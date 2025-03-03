@@ -57,6 +57,8 @@ The Notification Service is responsible for managing and delivering notification
 
 <NodeGraph />
 
+<MessageTable format="all" limit={4} />
+
 ## Core Concepts
 
 <AccordionGroup>
