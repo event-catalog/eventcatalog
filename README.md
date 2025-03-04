@@ -133,6 +133,15 @@ Thank you to our project  sponsors.
   <a href="https://gravitee.io?utm_source=eventcatalog&utm_medium=web&utm_campaign=sponsorship" target="_blank" >Learn more</a>
 </div>
 
+<div align="center">
+  <picture>
+    <source srcset="./images/sponsors/gravitee-logo-white.webp" media="(prefers-color-scheme: dark)" />
+    <img alt="hookdeck" src="./images/sponsors/gravitee-logo-black.svg" width="50%" />
+  </picture>
+  <p style="margin: 0; padding: 0;">Manage, secure, and govern every API in your organization</p>
+  <a href="https://gravitee.io?utm_source=eventcatalog&utm_medium=web&utm_campaign=sponsorship" target="_blank">Learn more</a>
+</div>
+
 <hr />
 
 <div align="center">
