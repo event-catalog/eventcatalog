@@ -39,6 +39,9 @@ const {
   data: { id },
   collection,
 } = props;
+
+console.log('id', id, collection);
+
 ---
 
 <VisualiserLayout title={`Visualiser | ${props.data.name} (${props.collection})`} description={props.data.summary}>

@@ -1,0 +1,306 @@
+---
+import { buildUrl } from '@utils/url-builder';
+import config from '@config';
+import {
+  Clock,
+  CheckCircle,
+  BarChart3,
+  Calendar,
+  Link,
+  FileText,
+  Bug,
+  Sparkles,
+  TrendingUp,
+  Pencil,
+  BotMessageSquare,
+} from 'lucide-react';
+
+import {
+  BoltIcon,
+  ChatBubbleLeftIcon,
+  QueueListIcon,
+  RectangleGroupIcon,
+  ServerIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
+
+import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
+
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+
+const projectData = {
+  name: 'SwiftBoard',
+  description:
+    'This is a micro SaaS project built for indie developers to manage atomic / granular tasks and get an overview of the projects from a single page',
+  launchDate: '2025-02-05',
+  status: 'Launched',
+  metrics: {
+    launched: '16 days ago',
+    timeRequired: '1 days',
+    timeSpent: '3 hours',
+    taskProgress: '82%',
+    milestones: '0%',
+  },
+  tasks: {
+    active: 7,
+    completed: 32,
+  },
+};
+
+import { getMessages } from '@utils/messages';
+import { getDomains } from '@utils/collections/domains';
+import { getServices } from '@utils/collections/services';
+import { getFlows } from '@utils/collections/flows';
+
+const { commands = [], events = [], queries = [] } = await getMessages({ getAllVersions: false });
+const domains = await getDomains({ getAllVersions: false });
+const services = await getServices({ getAllVersions: false });
+const flows = await getFlows({ getAllVersions: false });
+
+const title = config.title || 'EventCatalog';
+const tagline = config.tagline || 'Discover, Explore and Document your Event Driven Architectures';
+const editUrl = config.editUrl;
+
+const getDefaultValueForVisualizer = () => {
+  if (domains.length > 0) return domains[1];
+  if (services.length > 0) return services[0];
+  if (flows.length > 0) return flows[0];
+  if (events.length > 0) return events[0];
+  if (commands.length > 0) return commands[0];
+  if (queries.length > 0) return queries[0];
+  return null;
+};
+
+const visualizerDefault = getDefaultValueForVisualizer();
+
+console.log('visualizerDefault', visualizerDefault)
+
+---
+
+<VerticalSideBarLayout title="SwiftBoard">
+  <div class="min-h-screen bg-gray-50">
+    <main class="container mx-auto px-4 py-8 max-w-7xl">
+      <!-- Project Header -->
+      <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-6">
+            <div>
+              <h1 class="text-2xl font-bold text-gray-900">{title}</h1>
+              <p class="text-gray-600 mt-1 max-w-2xl">{tagline}</p>
+            </div>
+          </div>
+          {
+            editUrl && (
+              <button class="border border-gray-300 rounded-md px-2 py-1 flex items-center whitespace-nowrap">
+                <BotMessageSquare className="h-5 w-5 mr-1" />
+                EventCatalog Chat
+              </button>
+            )
+          }
+        </div>
+      </div>
+
+      <!-- Metrics Grid -->
+      <div class="flex flex-nowrap overflow-x-auto gap-4 mb-8 pb-2">
+        {
+          domains.length > 0 && (
+            <div class="bg-white rounded-lg shadow p-4 min-w-[200px] flex-1">
+              <div class="flex items-center">
+                <RectangleGroupIcon className="h-8 w-8 text-yellow-600 shrink-0" />
+                <div class="ml-3">
+                  <p class="text-sm text-gray-500">Domains</p>
+                  <p class="text-lg font-semibold">{domains.length} domains</p>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        {
+          services.length > 0 && (
+            <div class="bg-white rounded-lg shadow p-4 min-w-[200px] flex-1">
+              <div class="flex items-center">
+                <ServerIcon className="h-8 w-8 text-pink-400 shrink-0" />
+                <div class="ml-3">
+                  <p class="text-sm text-gray-500">Services</p>
+                  <p class="text-lg font-semibold">{services.length} services</p>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        {
+          events.length > 0 && (
+            <div class="bg-white rounded-lg shadow p-4 min-w-[200px] flex-1">
+              <div class="flex items-center">
+                <BoltIcon className="h-8 w-8 text-orange-400 shrink-0" />
+                <div class="ml-3">
+                  <p class="text-sm text-gray-500">Events</p>
+                  <p class="text-lg font-semibold">{events.length} events</p>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        {
+          commands.length > 0 && (
+            <div class="bg-white rounded-lg shadow p-4 min-w-[200px] flex-1">
+              <div class="flex items-center">
+                <ChatBubbleLeftIcon className="h-8 w-8 text-blue-400 shrink-0" />
+                <div class="ml-3">
+                  <p class="text-sm text-gray-500">Commands</p>
+                  <p class="text-lg font-semibold">{commands.length} commands</p>
+                </div>
+              </div>
+            </div>
+          )
+        }
+
+        {
+          queries.length > 0 && (
+            <div class="bg-white rounded-lg shadow p-4 min-w-[200px] flex-1">
+              <div class="flex items-center">
+                <MagnifyingGlassIcon className="h-8 w-8 text-green-500 shrink-0" />
+                <div class="ml-3">
+                  <p class="text-sm text-gray-500">Queries</p>
+                  <p class="text-lg font-semibold">{queries.length} queries</p>
+                </div>
+              </div>
+            </div>
+          )
+        }
+        {
+          flows.length > 0 && (
+            <div class="bg-white rounded-lg shadow p-4 min-w-[200px] flex-1">
+              <div class="flex items-center">
+                <QueueListIcon className="h-8 w-8 text-green-800 shrink-0" />
+                <div class="ml-3">
+                  <p class="text-sm text-gray-500">Flows</p>
+                  <p class="text-lg font-semibold">{flows.length} flows</p>
+                </div>
+              </div>
+            </div>
+          )
+        }
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="grid grid-cols-12 gap-8">
+        <!-- Tasks Section -->
+        <div class="col-span-4 lg:col-span-8">
+          <div class="bg-white rounded-lg shadow h-full pb-4">
+            <div class="p-6 flex flex-col h-full">
+              <div class="flex items-center justify-between mb-6">
+                <h2 class="text-lg font-semibold">Orders Domain</h2>
+                <div class="text-sm text-gray-500">10 services • 100 messages</div>
+              </div>
+
+              <!-- <div class="space-y-2 mb-4">
+                <div class="flex flex-wrap gap-2">
+                  <button class="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                    All Tasks ({projectData.tasks.active})
+                  </button>
+                  <button class="px-4 py-2 hover:bg-gray-100 text-gray-700 rounded-full text-sm font-medium flex items-center">
+                    <Bug className="h-4 w-4 mr-1" />
+                    Bugs (1)
+                  </button>
+                  <button class="px-4 py-2 hover:bg-gray-100 text-gray-700 rounded-full text-sm font-medium flex items-center">
+                    <Sparkles className="h-4 w-4 mr-1" />
+                    Features (4)
+                  </button>
+                  <button class="px-4 py-2 hover:bg-gray-100 text-gray-700 rounded-full text-sm font-medium flex items-center">
+                    <TrendingUp className="h-4 w-4 mr-1" />
+                    Improvements (2)
+                  </button>
+                </div>
+              </div> -->
+
+              <div class="h-full w-full relative border border-gray-200" id={`Orders-portal`} transition:animate="fade"></div>
+
+              <NodeGraph
+                id={visualizerDefault.data.id}
+                collection={visualizerDefault.collection}
+                mode="full"
+                linkTo="visualiser"
+                version={visualizerDefault.data.version}
+                linksToVisualiser={false}
+                href={{
+                  label: `Open documentation for ${visualizerDefault.data.name}`,
+                  url: buildUrl(`/docs/${visualizerDefault.collection}/${visualizerDefault.data.id}/${visualizerDefault.data.version}`),
+                }}
+              />
+
+              <!-- <div class="space-y-3 flex-grow overflow-y-auto">
+                <div class="flex items-center p-4 hover:bg-gray-50 rounded-lg">
+                  <input type="checkbox" class="h-4 w-4 text-purple-600 rounded border-gray-300" />
+                  <div class="ml-3 flex-1">
+                    <p class="text-sm font-medium text-gray-900">
+                      Send an invitation email after adding new members to the project
+                    </p>
+                    <div class="flex items-center mt-1">
+                      <span class="px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-full">feature</span>
+                      <span class="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full ml-2">low</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center p-4 hover:bg-gray-50 rounded-lg">
+                  <input type="checkbox" class="h-4 w-4 text-purple-600 rounded border-gray-300" />
+                  <div class="ml-3 flex-1">
+                    <p class="text-sm font-medium text-gray-900">Add export functionality as markdown & JSON</p>
+                    <div class="flex items-center mt-1">
+                      <span class="px-2 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full">improvement</span>
+                      <span class="flex items-center text-xs text-gray-500 ml-2">
+                        <Clock className="h-4 w-4 mr-1" />
+                        1 day
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div> -->
+              <!-- 
+              <button class="mt-4 text-sm text-gray-500 hover:text-gray-700">+ Add task...</button> -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="col-span-12 lg:col-span-4 space-y-8">
+          <!-- Project Links -->
+
+          <!-- Notes -->
+          <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold mb-4">Favorites</h2>
+            <div class="text-center py-8">
+              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+              <p class="text-gray-500 text-sm">No favorites yet</p>
+              <p class="text-gray-400 text-sm mt-1">Star your favorite domains, services, events, commands, queries and flows</p>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-semibold">Useful Links</h2>
+              <button class="text-gray-400 hover:text-gray-500">
+                <Link className="h-5 w-5" />
+              </button>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <h3 class="text-sm font-medium text-gray-500">Web URL</h3>
+                <a href="#" class="text-purple-600 hover:text-purple-700 text-sm">https://eventcatalog.dev</a>
+              </div>
+              <div>
+                <h3 class="text-sm font-medium text-gray-500">Repository Links</h3>
+                <a href="#" class="text-purple-600 hover:text-purple-700 text-sm">https://github.com/event-catalog/eventcatalog</a
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</VerticalSideBarLayout>
