@@ -1,28 +1,16 @@
 ---
 id: InventoryService
 version: 0.0.2
-name: Inventory Service
+name: Inventory Service 2
 summary: |
   Service that handles the inventory
 owners:
     - order-management
 receives:
-  - id: OrderConfirmed
-    version: 0.0.1
   - id: GetInventoryList
     version: 0.0.1
-  - id: OrderAmended
-  - id: UpdateInventory
-    version: 0.0.3
-  - id: AddInventory
-  - id: GetInventoryStatus
 sends:
   - id: InventoryAdjusted
-    version: 0.0.4
-  - id: OutOfStock
-    version: 0.0.3
-  - id: GetOrder
-    version: 0.0.1
 repository:
   language: JavaScript
   url: https://github.com/event-catalog/pretend-shipping-service

@@ -1,0 +1,56 @@
+---
+import { getDomain, getMessagesForDomain } from '@utils/collections/domains';
+import { buildUrl } from '@utils/url-builder';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import ServiceGrid from '@components/Grids/ServiceGrid/ServiceGrid';
+import { RectangleGroupIcon } from '@heroicons/react/24/outline';
+
+const { domainId, version } = Astro.params;
+
+// Get domain and its services
+const domain = await getDomain(domainId, version);
+const messages = await getMessagesForDomain(domain);
+
+// Get messages for each service
+const servicesWithMessages = await Promise.all((domain.data.services || []).map(async (service) => {
+  const messages = await getMessagesForService(service);
+  return { ...service, sends: messages.sends, receives: messages.receives };
+}));
+
+---
+
+<VerticalSideBarLayout title={`${domain.data.name} - Services`}>
+  <div class="bg-white min-h-screen">
+    <div class="max-w-[90em] mx-auto">
+      <div class="border-b border-gray-200 bg-white/95 sticky top-0 z-10 backdrop-blur">
+        <div class="px-6 py-5">
+          <div class="flex items-center gap-2 mb-1">
+            <RectangleGroupIcon className="h-6 w-6 text-yellow-500" />
+            <h1 class="text-2xl font-semibold text-gray-900">{domain.data.name}</h1>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700">
+              v{domain.data.version}
+            </span>
+          </div>
+          <div class="flex items-center gap-2 mt-4">
+            <h2 class="text-lg font-medium text-gray-700">Services</h2>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-pink-50 text-pink-700">
+              {servicesWithMessages.length} Total
+            </span>
+          </div>
+          <p class="mt-1 text-sm text-gray-500">
+            Browse and discover services in the {domain.data.name} domain
+          </p>
+        </div>
+      </div>
+
+      <div class="px-6 py-6">
+        <ServiceGrid 
+          services={servicesWithMessages} 
+          domainId={domain.data.id} 
+          domainVersion={domain.data.version}
+          client:load 
+        />
+      </div>
+    </div>
+  </div>
+</VerticalSideBarLayout> 

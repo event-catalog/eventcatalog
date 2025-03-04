@@ -1,0 +1,74 @@
+---
+import { getDomains, getMessagesForDomain } from '@utils/collections/domains';
+import { getServices } from '@utils/collections/services';
+import { getMessages } from '@utils/messages';
+
+import { buildUrl } from '@utils/url-builder';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import DomainGrid from '@components/Grids/DomainGrid/DomainGrid';
+import ServiceGrid from '@components/Grids/ServiceGrid/ServiceGrid';
+import MessageGrid from '@components/Grids/MessageGrid/MessageGrid';
+import type { CollectionEntry } from 'astro:content';
+import type { CollectionMessageTypes } from '@types';
+import { ClientRouter } from 'astro:transitions';
+// Define valid types and their corresponding data fetchers
+const VALID_TYPES = ['domains', 'services', 'messages'] as const;
+type ValidType = (typeof VALID_TYPES)[number];
+
+interface Domain extends CollectionEntry<'domains'> {
+  sends: CollectionEntry<'events' | 'commands' | 'queries'>[];
+  receives: CollectionEntry<'events' | 'commands' | 'queries'>[];
+}
+
+interface Service extends CollectionEntry<'services'> {
+  sends: CollectionEntry<'events' | 'commands' | 'queries'>[];
+  receives: CollectionEntry<'events' | 'commands' | 'queries'>[];
+}
+
+export async function getStaticPaths() {
+  const VALID_TYPES = ['domains', 'services', 'messages'] as const;
+  return VALID_TYPES.map((type) => ({
+    params: { type },
+  }));
+}
+
+const { type } = Astro.params as { type: ValidType };
+const { searchParams } = Astro.url;
+const domainId = searchParams.get('domainId');
+const version = searchParams.get('version');
+
+// Get data based on type
+let items: Domain[] | Service[] | CollectionEntry<'commands'>[] | CollectionEntry<CollectionMessageTypes>[] = [];
+
+if (type === 'domains') {
+  const domains = await getDomains({ getAllVersions: false });
+  // Get messages for each domain
+  items = await Promise.all(
+    domains.map(async (domain) => {
+      const messages = await getMessagesForDomain(domain);
+      return { ...domain, sends: messages.sends, receives: messages.receives } as Domain;
+    })
+  );
+} else if (type === 'services') {
+  const services = await getServices({ getAllVersions: false });
+  items  = services as unknown as Service[];
+} else if (type === 'messages') {
+  const { events, commands, queries } = await getMessages({ getAllVersions: false });
+  items = [...events, ...commands, ...queries];
+}
+
+
+---
+
+<VerticalSideBarLayout title={"EventCatalog"}>
+  <div class="bg-white min-h-screen">
+    <div class="max-w-[90em] mx-auto" >
+      <div class="px-6 py-6" transition:animate="fade">
+        {type === 'domains' && <DomainGrid domains={items as Domain[]} client:load />}
+        {type === 'services' && <ServiceGrid services={items as unknown as Service[]} client:load />}
+        {type === 'messages' && <MessageGrid messages={items as CollectionEntry<CollectionMessageTypes>[]} client:load />}
+      </div>
+    </div>
+    <ClientRouter  />
+  </div>
+</VerticalSideBarLayout>
