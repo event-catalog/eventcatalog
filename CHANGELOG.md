@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.26.1
+
+### Patch Changes
+
+- b5404ef: refactor(core): migrate `users`/`teams` to Astro new content layer API
+- db9633f: fix(core): fixed broken link in AI instructions
+
 ## 2.26.0
 
 ### Minor Changes
