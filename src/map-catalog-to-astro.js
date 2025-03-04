@@ -4,8 +4,6 @@ const COLLECTION_KEYS = [
   'events',
   'commands',
   'services',
-  'users',
-  'teams',
   'domains',
   'flows',
   'pages',

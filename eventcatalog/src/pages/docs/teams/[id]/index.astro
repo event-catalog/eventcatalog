@@ -3,7 +3,7 @@ import components from '@components/MDX/components';
 
 // SideBars
 import { getTeams } from '@utils/teams';
-import { getEntry } from 'astro:content';
+import { getEntry, render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import OwnersList from '@components/Lists/OwnersList';
 import PillListFlat from '@components/Lists/PillListFlat';
@@ -15,23 +15,16 @@ export async function getStaticPaths() {
   const teams = await getTeams();
 
   return teams.map((team) => ({
-    params: {
-      type: 'teams',
-      id: team.data.id,
-    },
-    props: {
-      type: 'team',
-      ...team,
-    },
+    params: { id: team.data.id },
+    props: team,
   }));
 }
 
-const { render, ...props } = Astro.props;
-
-const { Content } = await render();
+const props = Astro.props;
+const { Content } = await render(props);
 
 const membersRaw = props.data.members || [];
-const members = await Promise.all(membersRaw.map((m) => getEntry(m)));
+const members = (await Promise.all(membersRaw.map((m) => getEntry(m)))).filter(Boolean);
 
 const domains = props.data.ownedDomains as CollectionEntry<'domains'>[];
 const services = props.data.ownedServices as CollectionEntry<'services'>[];

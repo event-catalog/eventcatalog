@@ -45,8 +45,6 @@ const ensureAstroCollectionNotEmpty = async (astroDir) => {
     'events',
     'commands',
     'services',
-    'users',
-    'teams',
     'domains',
     'flows',
     'changelogs',
@@ -81,17 +79,11 @@ const ensureAstroCollectionNotEmpty = async (astroDir) => {
 export const catalogToAstro = async (source, astroDir) => {
   const astroContentDir = path.join(astroDir, 'src/content/');
 
-  // Config file
-  const astroConfigFile = fs.readFileSync(path.join(astroContentDir, 'config.ts'));
-
   // Clear the astro directory before we copy files over
-  fs.rmSync(astroContentDir, { recursive: true });
+  if (fs.existsSync(astroContentDir)) fs.rmSync(astroContentDir, { recursive: true });
 
   // Create the folder again
   fs.mkdirSync(astroContentDir);
-
-  // Write config file back
-  fs.writeFileSync(path.join(astroContentDir, 'config.ts'), astroConfigFile);
 
   // Verify required fields are in the catalog config file
   await verifyRequiredFieldsAreInCatalogConfigFile(source);
