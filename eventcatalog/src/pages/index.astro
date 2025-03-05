@@ -101,24 +101,24 @@ const topTiles = [
     description: 'Business domains defined',
     href: buildUrl('/architecture/domains'),
     icon: RectangleGroupIcon,
-    bgColor: 'bg-purple-100',
-    textColor: 'text-purple-600',
-    arrowColor: 'text-purple-600'
+    bgColor: 'bg-yellow-100',
+    textColor: 'text-yellow-600',
+    arrowColor: 'text-yellow-600'
   },
   {
     title: 'Services',
     count: services.length,
-    description: 'Services in the ecosystem',
+    description: 'Services documented in the catalog',
     href: buildUrl('/architecture/services'),
     icon: ServerIcon,
-    bgColor: 'bg-green-100',
-    textColor: 'text-green-600',
-    arrowColor: 'text-green-600'
+    bgColor: 'bg-pink-100',
+    textColor: 'text-pink-600',
+    arrowColor: 'text-pink-600'
   },
   {
     title: 'Messages',
     count: messages.length,
-    description: 'Total events documented in the catalog',
+    description: 'Messages documented in the catalog',
     href: buildUrl('/architecture/messages'),
     icon: ChatBubbleLeftIcon,
     bgColor: 'bg-blue-100',
@@ -140,6 +140,7 @@ const topTiles = [
         </p>
       </div>
 
+      <h2 class="text-2xl font-semibold mb-8 text-gray-900">Architecture overview</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
         {topTiles.map((tile) => (
           <a
@@ -161,7 +162,7 @@ const topTiles = [
       </div>
 
       <div class="mb-12">
-        <h2 class="text-2xl font-semibold mb-8 text-gray-900">Explore your architecture</h2>
+        <h2 class="text-2xl font-semibold mb-8 text-gray-900">Explore EventCatalog</h2>
         <div class="grid grid-cols-12 gap-4">
           <a
             href={getDefaultUrl('docs', 'domains')}

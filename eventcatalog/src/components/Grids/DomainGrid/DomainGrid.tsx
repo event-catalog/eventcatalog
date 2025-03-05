@@ -17,16 +17,16 @@ interface DomainGridProps {
 
 
 const getCollectionStyles = (collection: CollectionMessageTypes) => {
-    switch (collection) {
-        case 'events':
-            return { color: 'orange', Icon: BoltIcon };
-        case 'commands':
-            return { color: 'blue', Icon: ChatBubbleLeftIcon };
-        case 'queries':
-            return { color: 'green', Icon: MagnifyingGlassIcon };
-        default:
-            return { color: 'gray', Icon: EnvelopeIcon };
-    }
+  switch (collection) {
+    case 'events':
+      return { color: 'orange', Icon: BoltIcon };
+    case 'commands':
+      return { color: 'blue', Icon: ChatBubbleLeftIcon };
+    case 'queries':
+      return { color: 'green', Icon: MagnifyingGlassIcon };
+    default:
+      return { color: 'gray', Icon: EnvelopeIcon };
+  }
 };
 
 
@@ -124,31 +124,44 @@ export default function DomainGrid({ domains }: DomainGridProps) {
               domainId: domain.data.id,
               domainName: domain.data.name
             })}
-            className="group  border-2 border-yellow-500 bg-yellow-50 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
+            className="group hover:bg-orange-100  border-2 border-orange-400/50 bg-yellow-50 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
           >
-            {/* <div className="h-2 bg-yellow-500 group-hover:bg-yellow-600 transition-colors duration-200"></div> */}
+            {/* <div className="h-2 bg-orange-500 group-hover:bg-orange-600 transition-colors duration-200"></div> */}
             <div className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <RectangleGroupIcon className="h-5 w-5 text-yellow-500" />
-                  <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-yellow-500 transition-colors duration-200">
+                  <RectangleGroupIcon className="h-5 w-5 text-orange-500" />
+                  <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:underline transition-colors duration-200">
                     {domain.data.name || domain.data.id}
                   </h3>
                 </div>
-                <span className="ml-2 shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700">
+                <span className="ml-2 shrink-0 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-700">
                   v{domain.data.version}
                 </span>
               </div>
 
-              {domain.data.summary && (
-                <p className="text-gray-600 text-sm line-clamp-2 min-h-[2.5rem] mb-4">
-                  {domain.data.summary}
-                </p>
-              )}
+              <p className="text-gray-600 text-sm line-clamp-2 min-h-[2.5rem]">
+                {domain.data.summary || <span className="italic">No summary available</span>}
+              </p>
+
+              <div className="flex gap-4 mb-4">
+                <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-pink-200">
+                  <ServerIcon className="h-4 w-4 text-pink-500" />
+                  <div className="flex">
+                    <p className="text-sm font-medium text-gray-900">{domain.data.services?.length || 0} Services</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-gray-200 ">
+                  <EnvelopeIcon className="h-4 w-4 text-blue-500" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{(domain.sends?.length || 0) + (domain.receives?.length || 0)} Messages</p>
+                  </div>
+                </div>
+              </div>
 
               <div className="space-y-6">
                 {/* Services and their messages */}
-                {domain.data.services?.map((service) => (
+                {domain.data.services?.slice(0, 2).map((service) => (
                   <div
                     key={service.data.id}
                     className="block space-y-2 bg-white border-2 border-dashed border-pink-400 p-4 rounded-lg transition-colors duration-200"
@@ -162,7 +175,7 @@ export default function DomainGrid({ domains }: DomainGridProps) {
                     </div>
 
                     <div className="flex items-center gap-4">
-                      <div className="flex-1 h-full flex flex-col bg-blue-50  border border-blue-100 rounded-lg p-3">
+                      <div className="flex-1 h-full flex flex-col bg-blue-50  border border-blue-300 rounded-lg p-3">
                         <div className="space-y-1.5 flex-1">
                           {service.data.receives?.slice(0, 3).map((message) => {
                             const { Icon, color } = getCollectionStyles(message.collection);
@@ -195,7 +208,7 @@ export default function DomainGrid({ domains }: DomainGridProps) {
 
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-[2px] bg-blue-200"></div>
-                        <div className="bg-white border-2 border-pink-100 rounded-lg p-2 shadow-sm">
+                        <div className="bg-white border-2 border-gray-300 rounded-lg p-2 shadow-sm">
                           <div className="flex flex-col items-center gap-2">
                             <ServerIcon className="h-6 w-6 text-pink-500" />
                             <div className="text-center">
@@ -240,9 +253,16 @@ export default function DomainGrid({ domains }: DomainGridProps) {
                     </div>
                   </div>
                 ))}
-
-                {/* Domain Stats */}
-             
+                {domain.data.services && domain.data.services.length > 2 && (
+                  <div className="block space-y-2 bg-white border-2 border-dashed border-pink-400 p-4 rounded-lg transition-colors duration-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ServerIcon className="h-4 w-4 text-pink-500/70" />
+                        <h4 className="text-sm font-medium text-gray-600">+{domain.data.services.length - 2} more services</h4>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </a>

@@ -180,7 +180,7 @@ export default function MessageGrid({ messages }: MessageGridProps) {
                     <a
                         key={message.data.name}
                         href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`)}
-                        className={`group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden border-${color}-500 bg-${color}-50`}
+                        className={`group bg-white border hover:bg-${color}-100  rounded-lg shadow-sm  hover:shadow-lg transition-all duration-200 overflow-hidden border-${color}-500 `}
                     >
                         <div className="p-4 flex-1">
                             <div className="flex items-center justify-between mb-3">
@@ -304,30 +304,44 @@ export default function MessageGrid({ messages }: MessageGridProps) {
     return (
         <div>
             {/* Breadcrumb */}
-            {(urlParams?.domainId || urlParams?.serviceName) && (
-                <nav className="mb-4 flex items-center space-x-2 text-sm text-gray-500">
-                    <a href={buildUrl('/architecture/domains')} className="hover:text-gray-700 hover:underline flex items-center gap-2">
-                        <RectangleGroupIcon className="h-4 w-4" />
-                        Domains
-                    </a>
-                    {urlParams?.domainId && (
-                        <>
-                            <ChevronRightIcon className="h-4 w-4" />
-                            <a
-                                href={buildUrlWithParams(`/architecture/services`, {
-                                    domainName: urlParams.domainName,
-                                    domainId: urlParams.domainId,
-                                    serviceName: urlParams.serviceName,
-                                    serviceId: urlParams.serviceId
-                                })}
-                                className="hover:text-gray-700 hover:underline"
-                            >
-                                {urlParams.domainId}
-                            </a>
-                        </>
-                    )}
-                </nav>
-            )}
+            <nav className="mb-4 flex items-center space-x-2 text-sm text-gray-500">
+                <a href={buildUrl('/architecture/domains')} className="hover:text-gray-700 hover:underline flex items-center gap-2">
+                    <RectangleGroupIcon className="h-4 w-4" />
+                    Domains
+                </a>
+                <ChevronRightIcon className="h-4 w-4" />
+                <a href={buildUrl('/architecture/services')} className="hover:text-gray-700 hover:underline flex items-center gap-2">
+                    <ServerIcon className="h-4 w-4" />
+                    Services
+                </a>
+                <ChevronRightIcon className="h-4 w-4" />
+                <a href={buildUrl('/architecture/messages')} className="hover:text-gray-700 hover:underline flex items-center gap-2">
+                    <EnvelopeIcon className="h-4 w-4" />
+                    Messages
+                </a>
+                {urlParams?.domainId && (
+                    <>
+                        <ChevronRightIcon className="h-4 w-4" />
+                        <a
+                            href={buildUrlWithParams(`/architecture/services`, {
+                                domainName: urlParams.domainName,
+                                domainId: urlParams.domainId,
+                                serviceName: urlParams.serviceName,
+                                serviceId: urlParams.serviceId
+                            })}
+                            className="hover:text-gray-700 hover:underline"
+                        >
+                            {urlParams.domainId}
+                        </a>
+                    </>
+                )}
+                {urlParams?.serviceName && (
+                    <>
+                        <ChevronRightIcon className="h-4 w-4" />
+                        <span className="text-gray-900">{urlParams.serviceName}</span>
+                    </>
+                )}
+            </nav>
 
             {/* Title Section */}
             <div className="relative border-b border-gray-200 mb-4 pb-4">

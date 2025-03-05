@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { ServerIcon, MagnifyingGlassIcon, FunnelIcon, EnvelopeIcon, ChevronRightIcon, ArrowLeftIcon, ArrowRightIcon, ChatBubbleLeftIcon, BoltIcon } from '@heroicons/react/24/outline';
 import { RectangleGroupIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from '@heroicons/react/24/outline';
 import { buildUrl, buildUrlWithParams } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
 import type { CollectionMessageTypes } from '@types';
@@ -24,6 +25,9 @@ interface ServiceGridProps {
 
 export default function ServiceGrid({ services }: ServiceGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTypes, setSelectedTypes] = useState<CollectionMessageTypes[]>([]);
+  const ITEMS_PER_PAGE = 16;
   const [urlParams, setUrlParams] = useState<{ 
     serviceIds?: string[]; 
     domainId?: string; 
@@ -68,25 +72,188 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
       );
     }
 
+    // Filter by selected message types
+    if (selectedTypes.length > 0) {
+      result = result.filter(service => {
+        const hasMatchingSends = service.data.sends?.some((message: any) => selectedTypes.includes(message.collection));
+        const hasMatchingReceives = service.data.receives?.some((message: any) => selectedTypes.includes(message.collection));
+        return hasMatchingSends || hasMatchingReceives;
+      });
+    }
+
     // Sort by name by default
     result.sort((a, b) => (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id));
 
     return result;
-  }, [services, searchQuery, urlParams]);
+  }, [services, searchQuery, urlParams, selectedTypes]);
+
+  // Add pagination calculation
+  const paginatedServices = useMemo(() => {
+    if (urlParams?.domainId || urlParams?.serviceIds?.length) {
+      return filteredAndSortedServices;
+    }
+
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredAndSortedServices.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredAndSortedServices, currentPage, urlParams]);
+
+  const totalPages = useMemo(() => {
+    if (urlParams?.domainId || urlParams?.serviceIds?.length) return 1;
+    return Math.ceil(filteredAndSortedServices.length / ITEMS_PER_PAGE);
+  }, [filteredAndSortedServices.length, urlParams]);
+
+  // Reset pagination when search query or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedTypes]);
+
+  const renderPaginationControls = () => {
+    if (totalPages <= 1 || urlParams?.domainId || urlParams?.serviceIds?.length) return null;
+
+    return (
+      <div className="flex items-center justify-between border-gray-200 bg-white px-4 py-3 sm:px-6">
+        <div className="flex flex-1 justify-between sm:hidden">
+          <button
+            onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+            disabled={currentPage === 1}
+            className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
+            disabled={currentPage === totalPages}
+            className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div className="pr-4">
+            <p className="text-sm text-gray-700">
+              Showing <span className="font-medium">{((currentPage - 1) * ITEMS_PER_PAGE) + 1}</span> to{' '}
+              <span className="font-medium">
+                {Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedServices.length)}
+              </span> of{' '}
+              <span className="font-medium">{filteredAndSortedServices.length}</span> results
+            </p>
+          </div>
+          <div>
+            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <button
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+              >
+                <span className="sr-only">First</span>
+                <ChevronDoubleLeftIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
+              <button
+                onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+              >
+                <span className="sr-only">Previous</span>
+                <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
+              <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
+                disabled={currentPage === totalPages}
+                className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+              >
+                <span className="sr-only">Next</span>
+                <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
+              <button
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+              >
+                <span className="sr-only">Last</span>
+                <ChevronDoubleRightIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderTypeFilters = () => {
+    const types: CollectionMessageTypes[] = ['events', 'commands', 'queries'];
+
+    return (
+      <div className="flex items-center gap-2">
+        {types.map(type => {
+          const { color, Icon } = getCollectionStyles(type);
+          const isSelected = selectedTypes.includes(type);
+          return (
+            <button
+              key={type}
+              onClick={() => {
+                setSelectedTypes(prev =>
+                  prev.includes(type)
+                    ? prev.filter(t => t !== type)
+                    : [...prev, type]
+                );
+              }}
+              className={`
+                inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium
+                transition-colors duration-200
+                ${isSelected
+                  ? `bg-${color}-100 text-${color}-700 ring-2 ring-${color}-500`
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }
+              `}
+            >
+              <Icon className={`h-4 w-4 ${isSelected ? `text-${color}-500` : 'text-gray-400'}`} />
+              <span className="capitalize">{type}</span>
+              {isSelected && (
+                <span className={`inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium bg-${color}-50 text-${color}-700 rounded-full`}>
+                  {filteredAndSortedServices.filter(service => 
+                    service.data.sends?.some((m: any) => m.collection === type) || 
+                    service.data.receives?.some((m: any) => m.collection === type)
+                  ).length}
+                </span>
+              )}
+            </button>
+          );
+        })}
+        {selectedTypes.length > 0 && (
+          <button
+            onClick={() => setSelectedTypes([])}
+            className="text-xs text-gray-500 hover:text-gray-700 hover:underline"
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div>
       {/* Breadcrumb */}
-      {urlParams?.domainId && (
-        <nav className="mb-4 flex items-center space-x-2 text-sm text-gray-500">
-          <a href={buildUrl('/architecture/domains')} className="hover:text-gray-700 hover:underline flex items-center gap-2">
-            <RectangleGroupIcon className="h-4 w-4" />
-            Domains
-          </a>
-          <ChevronRightIcon className="h-4 w-4" />
-          <span className="text-gray-900">{urlParams.domainId}</span>
-        </nav>
-      )}
+      <nav className="mb-4 flex items-center space-x-2 text-sm text-gray-500">
+        <a href={buildUrl('/architecture/domains')} className="hover:text-gray-700 hover:underline flex items-center gap-2">
+          <RectangleGroupIcon className="h-4 w-4" />
+          Domains
+        </a>
+        <ChevronRightIcon className="h-4 w-4" />
+        <a href={buildUrl('/architecture/services')} className="hover:text-gray-700 hover:underline flex items-center gap-2">
+          <ServerIcon className="h-4 w-4" />
+          Services
+        </a>
+        {urlParams?.domainId && (
+          <>
+            <ChevronRightIcon className="h-4 w-4" />
+            <span className="text-gray-900">{urlParams.domainId}</span>
+          </>
+        )}
+      </nav>
 
       {/* Title Section */}
       <div className="relative border-b border-gray-200 mb-4 pb-4">
@@ -145,13 +312,17 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
       </div>
 
       <div className="mb-8">
-        {/* Results count */}
-        <div className="text-sm text-gray-500">
-          {urlParams?.domainId ? (
-            <span>Showing {filteredAndSortedServices.length} services in the {urlParams.domainId} domain</span>
-          ) : (
-            <span>Showing {filteredAndSortedServices.length} of {services.length} services</span>
-          )}
+        {/* Results count and pagination */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {renderTypeFilters()}
+          <div className="text-sm text-gray-500">
+            {urlParams?.domainId || urlParams?.serviceIds?.length ? (
+              <span>Showing {filteredAndSortedServices.length} services in the {urlParams.domainId} domain</span>
+            ) : (
+              <span>Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedServices.length)} of {filteredAndSortedServices.length} services</span>
+            )}
+          </div>
+          {!(urlParams?.domainId || urlParams?.serviceIds?.length) && renderPaginationControls()}
         </div>
       </div>
 
@@ -159,7 +330,6 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
         <div className={`rounded-xl overflow-hidden ${urlParams?.domainId ? 'bg-yellow-50 p-8 border-2 border-yellow-400' : ''}`}>
           {urlParams?.domainName && (
             <>
-              {/* <div className="h-2 bg-yellow-500 -mx-8 -mt-8 mb-8"></div> */}
               <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <RectangleGroupIcon className="h-5 w-5 text-yellow-500" />
@@ -184,7 +354,7 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-6">
-            {filteredAndSortedServices.map((service) => {
+            {paginatedServices.map((service) => {
               return <a
                 key={service.data.id}
                 href={buildUrlWithParams('/architecture/messages', {
@@ -193,14 +363,13 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
                   domainId: urlParams?.domainId,
                   domainName: urlParams?.domainName
                 })}
-                className="group bg-white border-2 border-dashed border-pink-400 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
+                className="group hover:bg-pink-50  bg-white border-2 border-dashed border-pink-400 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
               >
-                {/* <div className="h-2 bg-pink-500 group-hover:bg-pink-600 transition-colors duration-200"></div> */}
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <ServerIcon className="h-5 w-5 text-pink-500" />
-                      <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-pink-500 transition-colors duration-200">
+                      <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:underline transition-colors duration-200">
                         {service.data.name || service.data.id} (v{service.data.version})
                       </h3>
                     </div>
@@ -213,34 +382,14 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
                   )}
 
                   <div className="space-y-4">
-                    {/* Stats Overview */}
-                    {/* <div className="grid grid-cols-2 gap-2 p-3 bg-gray-50 rounded-lg">
-                      <div className="text-center">
-                        <div className="flex items-center justify-center mb-1 gap-1">
-                          <EnvelopeIcon className="h-5 w-5 text-blue-500" />
-                          <ArrowRightIcon className="h-4 w-4 text-blue-500" />
-                          <ServerIcon className="h-5 w-5 text-blue-500" />
-                        </div>
-                        <div className="text-sm font-medium text-gray-900">{service.data.receives?.length || 0}</div>
-                        <div className="text-xs text-gray-500">Receives</div>
-                      </div>
-                      <div className="text-center border-l border-gray-200">
-                        <div className="flex items-center justify-center mb-1 gap-1">
-                          <ServerIcon className="h-5 w-5 text-emerald-500" />
-                          <ArrowRightIcon className="h-4 w-4 text-emerald-500" />
-                          <EnvelopeIcon className="h-5 w-5 text-emerald-500" />
-                        </div>
-                        <div className="text-sm font-medium text-gray-900">{service.data.sends?.length || 0}</div>
-                        <div className="text-xs text-gray-500">Sends</div>
-                      </div>
-                    </div> */}
-
                     {/* Messages Section */}
                     {!urlParams?.serviceName && (
                         <div className="flex items-center gap-4">
                             <div className="flex-1 h-full flex flex-col bg-blue-100 border border-blue-300 rounded-lg p-4">
                                 <div className="space-y-2 flex-1">
-                                    {service.data.receives?.map((message: any) => {
+                                    {service.data.receives?.filter((message: any) => 
+                                        selectedTypes.length === 0 || selectedTypes.includes(message.collection)
+                                    )?.map((message: any) => {
                                         const { Icon, color } = getCollectionStyles(message.collection);
                                         return (
                                             <a
@@ -257,9 +406,9 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
                                             </a>
                                         );
                                     })}
-                                    {!service.data.receives?.length && (
-                                        <div className="text-center py-12">
-                                            <p className="text-gray-500">No messages received</p>
+                                    {(!service.data.receives?.length || (selectedTypes.length > 0 && !service.data.receives?.some((message: any) => selectedTypes.includes(message.collection)))) && (
+                                        <div className="text-center py-4">
+                                            <p className="text-gray-500 text-[10px]">No messages received</p>
                                         </div>
                                     )}
                                 </div>
@@ -279,9 +428,11 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
                                 <div className="w-4 h-[2px] bg-emerald-200"></div>
                             </div>
 
-                            <div className="flex-1 h-full flex flex-col bg-green-100   border border-green-300  rounded-lg p-4">
+                            <div className="flex-1 h-full flex flex-col bg-green-100 border border-green-300 rounded-lg p-4">
                                 <div className="space-y-2 flex-1">
-                                    {service.data.sends?.map((message: any) => {
+                                    {service.data.sends?.filter((message: any) => 
+                                        selectedTypes.length === 0 || selectedTypes.includes(message.collection)
+                                    )?.map((message: any) => {
                                         const { Icon, color } = getCollectionStyles(message.collection);
                                         return (
                                             <a
@@ -298,9 +449,9 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
                                             </a>
                                         );
                                     })}
-                                    {!service.data.sends?.length && (
-                                        <div className="text-center py-12">
-                                            <p className="text-gray-500">No messages sent</p>
+                                    {(!service.data.sends?.length || (selectedTypes.length > 0 && !service.data.sends?.some((message: any) => selectedTypes.includes(message.collection)))) && (
+                                        <div className="text-center py-4  ">
+                                            <p className="text-gray-500 text-[10px]">No messages sent</p>
                                         </div>
                                     )}
                                 </div>
@@ -317,8 +468,19 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
       )}
 
       {filteredAndSortedServices.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No services found matching your criteria</p>
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <p className="text-gray-500 text-lg">
+            {selectedTypes.length > 0 
+              ? `No services found that ${selectedTypes.length > 1 ? 'handle' : 'handles'} ${selectedTypes.join(' or ')} messages`
+              : 'No services found matching your criteria'}
+          </p>
+        </div>
+      )}
+
+      {/* Bottom pagination */}
+      {!(urlParams?.domainId || urlParams?.serviceIds?.length) && (
+        <div className="mt-8 border-t border-gray-200">
+          {renderPaginationControls()}
         </div>
       )}
     </div>
