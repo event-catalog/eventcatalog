@@ -8,6 +8,9 @@ export default {
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+      },
       height: {
         header: HEADER_HEIGHT,
         content: `calc(100vh - ${HEADER_HEIGHT})`,
@@ -44,10 +47,18 @@ export default {
     'bg-orange-600',
     'bg-red-50',
     'bg-yellow-50',
+    'bg-pink-50',
+    'bg-green-50',
+    'bg-blue-50',
     'bg-indigo-50',
     'border-l-red-500',
     'border-l-yellow-500',
     'border-l-blue-500',
+    'bg-yellow-100',
+    'bg-pink-100',
+    'bg-green-100',
+    'bg-blue-100',
+    'bg-indigo-100',
   ],
 
   plugins: [require('@tailwindcss/typography')],

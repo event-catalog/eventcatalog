@@ -22,9 +22,6 @@ export default defineConfig({
   base,
   server: { port: config.port || 3000 },
 
-  
-
-
   outDir: config.outDir ? join(projectDirectory, config.outDir) : join(projectDirectory, 'dist'),
 
   // https://docs.astro.build/en/reference/configuration-reference/#site
