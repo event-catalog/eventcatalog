@@ -6,10 +6,10 @@ import { type CollectionMessageTypes } from '@types';
 import { getCollectionStyles } from './utils';
 import { SearchBar } from './components';
 
-export interface ExtendedDomain extends CollectionEntry<"domains"> {
+export interface ExtendedDomain extends CollectionEntry<'domains'> {
   sends: CollectionEntry<CollectionMessageTypes>[];
   receives: CollectionEntry<CollectionMessageTypes>[];
-  services: CollectionEntry<"services">[];
+  services: CollectionEntry<'services'>[];
 }
 
 interface DomainGridProps {
@@ -25,12 +25,13 @@ export default function DomainGrid({ domains }: DomainGridProps) {
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      result = result.filter(domain =>
-        domain.data.name?.toLowerCase().includes(query) ||
-        domain.data.summary?.toLowerCase().includes(query) ||
-        domain.data.services?.some((service: any) => service.data.name.toLowerCase().includes(query)) ||
-        domain.sends?.some((message: any) => message.data.name.toLowerCase().includes(query)) ||
-        domain.receives?.some((message: any) => message.data.name.toLowerCase().includes(query))
+      result = result.filter(
+        (domain) =>
+          domain.data.name?.toLowerCase().includes(query) ||
+          domain.data.summary?.toLowerCase().includes(query) ||
+          domain.data.services?.some((service: any) => service.data.name.toLowerCase().includes(query)) ||
+          domain.sends?.some((message: any) => message.data.name.toLowerCase().includes(query)) ||
+          domain.receives?.some((message: any) => message.data.name.toLowerCase().includes(query))
       );
     }
 
@@ -41,7 +42,7 @@ export default function DomainGrid({ domains }: DomainGridProps) {
   }, [domains, searchQuery]);
 
   return (
-    <div >
+    <div>
       {/* Breadcrumb */}
       <nav className="mb-4 flex items-center space-x-2 text-sm text-gray-500">
         <div className="flex items-center gap-2">
@@ -56,9 +57,7 @@ export default function DomainGrid({ domains }: DomainGridProps) {
             <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
               Domains ({filteredDomains.length})
             </h1>
-            <p className="mt-2 text-sm text-gray-500">
-              Browse and manage domains in your event-driven architecture
-            </p>
+            <p className="mt-2 text-sm text-gray-500">Browse and manage domains in your event-driven architecture</p>
           </div>
 
           <div className="mt-6 md:mt-0 md:ml-4 flex-shrink-0">
@@ -80,7 +79,7 @@ export default function DomainGrid({ domains }: DomainGridProps) {
             href={buildUrlWithParams('/architecture/services', {
               serviceIds: domain.data.services?.map((s: any) => s.data.id).join(','),
               domainId: domain.data.id,
-              domainName: domain.data.name
+              domainName: domain.data.name,
             })}
             className="group hover:bg-orange-100  border-2 border-orange-400/50 bg-yellow-50 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
           >
@@ -111,7 +110,9 @@ export default function DomainGrid({ domains }: DomainGridProps) {
                 <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-gray-200 ">
                   <EnvelopeIcon className="h-4 w-4 text-blue-500" />
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{(domain.sends?.length || 0) + (domain.receives?.length || 0)} Messages</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {(domain.sends?.length || 0) + (domain.receives?.length || 0)} Messages
+                    </p>
                   </div>
                 </div>
               </div>
@@ -144,9 +145,7 @@ export default function DomainGrid({ domains }: DomainGridProps) {
                                 <div className="bg-white border-r border-gray-200 px-2 py-1.5 rounded-l-md">
                                   <Icon className={`h-3 w-3 text-${color}-500`} />
                                 </div>
-                                <span className="px-1 py-1">
-                                  {message.id}
-                                </span>
+                                <span className="px-1 py-1">{message.id}</span>
                               </div>
                             );
                           })}
@@ -189,9 +188,7 @@ export default function DomainGrid({ domains }: DomainGridProps) {
                                 <div className="bg-white border-r border-gray-200 px-2 py-1.5 rounded-l-md">
                                   <Icon className={`h-3 w-3 text-${color}-500`} />
                                 </div>
-                                <span className="px-1 py-1">
-                                  {message.id}
-                                </span>
+                                <span className="px-1 py-1">{message.id}</span>
                               </div>
                             );
                           })}
@@ -233,4 +230,4 @@ export default function DomainGrid({ domains }: DomainGridProps) {
       )}
     </div>
   );
-} 
+}

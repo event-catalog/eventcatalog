@@ -8,434 +8,450 @@ import { getCollectionStyles } from './utils';
 import { SearchBar, TypeFilters, Pagination } from './components';
 
 interface MessageGridProps {
-    messages: CollectionEntry<CollectionMessageTypes>[];
+  messages: CollectionEntry<CollectionMessageTypes>[];
 }
 
 interface GroupedMessages {
-    all?: CollectionEntry<CollectionMessageTypes>[];
-    sends?: CollectionEntry<CollectionMessageTypes>[];
-    receives?: CollectionEntry<CollectionMessageTypes>[];
+  all?: CollectionEntry<CollectionMessageTypes>[];
+  sends?: CollectionEntry<CollectionMessageTypes>[];
+  receives?: CollectionEntry<CollectionMessageTypes>[];
 }
 
 export default function MessageGrid({ messages }: MessageGridProps) {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [urlParams, setUrlParams] = useState<{ serviceId?: string; serviceName?: string; domainId?: string; domainName?: string } | null>(null);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [selectedTypes, setSelectedTypes] = useState<CollectionMessageTypes[]>([]);
-    const [producerConsumerFilter, setProducerConsumerFilter] = useState<'all' | 'no-producers' | 'no-consumers'>('all');
-    const ITEMS_PER_PAGE = 15;
+  const [searchQuery, setSearchQuery] = useState('');
+  const [urlParams, setUrlParams] = useState<{
+    serviceId?: string;
+    serviceName?: string;
+    domainId?: string;
+    domainName?: string;
+  } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTypes, setSelectedTypes] = useState<CollectionMessageTypes[]>([]);
+  const [producerConsumerFilter, setProducerConsumerFilter] = useState<'all' | 'no-producers' | 'no-consumers'>('all');
+  const ITEMS_PER_PAGE = 15;
 
-    // Effect to sync URL params with state
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const serviceId = params.get('serviceId') || undefined;
-        const serviceName = params.get('serviceName') ? decodeURIComponent(params.get('serviceName')!) : undefined;
-        const domainId = params.get('domainId') || undefined;
-        const domainName = params.get('domainName') || undefined;
-        setUrlParams({
-            serviceId,
-            serviceName,
-            domainId,
-            domainName
-        });
-    }, []);
+  // Effect to sync URL params with state
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const serviceId = params.get('serviceId') || undefined;
+    const serviceName = params.get('serviceName') ? decodeURIComponent(params.get('serviceName')!) : undefined;
+    const domainId = params.get('domainId') || undefined;
+    const domainName = params.get('domainName') || undefined;
+    setUrlParams({
+      serviceId,
+      serviceName,
+      domainId,
+      domainName,
+    });
+  }, []);
 
-    const filteredAndSortedMessages = useMemo(() => {
-        if (urlParams === null) return [];
+  const filteredAndSortedMessages = useMemo(() => {
+    if (urlParams === null) return [];
 
-        let result = [...messages];
+    let result = [...messages];
 
-        // Filter by message type
-        if (selectedTypes.length > 0) {
-            result = result.filter(message => selectedTypes.includes(message.collection));
-        }
+    // Filter by message type
+    if (selectedTypes.length > 0) {
+      result = result.filter((message) => selectedTypes.includes(message.collection));
+    }
 
-        // Apply producer/consumer filters
-        if (producerConsumerFilter === 'no-producers') {
-            result = result.filter(message => !message.data.producers || message.data.producers.length === 0);
-        } else if (producerConsumerFilter === 'no-consumers') {
-            result = result.filter(message => !message.data.consumers || message.data.consumers.length === 0);
-        }
+    // Apply producer/consumer filters
+    if (producerConsumerFilter === 'no-producers') {
+      result = result.filter((message) => !message.data.producers || message.data.producers.length === 0);
+    } else if (producerConsumerFilter === 'no-consumers') {
+      result = result.filter((message) => !message.data.consumers || message.data.consumers.length === 0);
+    }
 
-        // Filter by service ID or name if present
-        if (urlParams.serviceId) {
-            result = result.filter(message =>
-                message.data.producers?.some((producer: any) => producer.data.id === urlParams.serviceId && !producer.id.includes('/versioned/')) ||
-                message.data.consumers?.some((consumer: any) => consumer.data.id === urlParams.serviceId && !consumer.id.includes('/versioned/'))
-            );
-        }
+    // Filter by service ID or name if present
+    if (urlParams.serviceId) {
+      result = result.filter(
+        (message) =>
+          message.data.producers?.some(
+            (producer: any) => producer.data.id === urlParams.serviceId && !producer.id.includes('/versioned/')
+          ) ||
+          message.data.consumers?.some(
+            (consumer: any) => consumer.data.id === urlParams.serviceId && !consumer.id.includes('/versioned/')
+          )
+      );
+    }
 
-        // Filter by search query
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            result = result.filter(message =>
-                message.data.name?.toLowerCase().includes(query) ||
-                message.data.summary?.toLowerCase().includes(query) ||
-                message.data.producers?.some((producer: any) => producer.data.id?.toLowerCase().includes(query)) ||
-                message.data.consumers?.some((consumer: any) => consumer.data.id?.toLowerCase().includes(query))
-            );
-        }
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (message) =>
+          message.data.name?.toLowerCase().includes(query) ||
+          message.data.summary?.toLowerCase().includes(query) ||
+          message.data.producers?.some((producer: any) => producer.data.id?.toLowerCase().includes(query)) ||
+          message.data.consumers?.some((consumer: any) => consumer.data.id?.toLowerCase().includes(query))
+      );
+    }
 
-        // Sort by name by default
-        result.sort((a, b) => a.data.name.localeCompare(b.data.name));
+    // Sort by name by default
+    result.sort((a, b) => a.data.name.localeCompare(b.data.name));
 
-        return result;
-    }, [messages, searchQuery, urlParams, selectedTypes, producerConsumerFilter]);
+    return result;
+  }, [messages, searchQuery, urlParams, selectedTypes, producerConsumerFilter]);
 
-    // Add totalPages calculation
-    const totalPages = useMemo(() => {
-        if (urlParams?.serviceId || urlParams?.domainId) return 1;
-        return Math.ceil(filteredAndSortedMessages.length / ITEMS_PER_PAGE);
-    }, [filteredAndSortedMessages.length, urlParams]);
+  // Add totalPages calculation
+  const totalPages = useMemo(() => {
+    if (urlParams?.serviceId || urlParams?.domainId) return 1;
+    return Math.ceil(filteredAndSortedMessages.length / ITEMS_PER_PAGE);
+  }, [filteredAndSortedMessages.length, urlParams]);
 
-    // Add paginatedMessages calculation
-    const paginatedMessages = useMemo(() => {
-        if (urlParams?.serviceId || urlParams?.domainId) {
-            return filteredAndSortedMessages;
-        }
+  // Add paginatedMessages calculation
+  const paginatedMessages = useMemo(() => {
+    if (urlParams?.serviceId || urlParams?.domainId) {
+      return filteredAndSortedMessages;
+    }
 
-        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        return filteredAndSortedMessages.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-    }, [filteredAndSortedMessages, currentPage, urlParams]);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredAndSortedMessages.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredAndSortedMessages, currentPage, urlParams]);
 
-    // Reset pagination when search query or filters change
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchQuery, selectedTypes]);
+  // Reset pagination when search query or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedTypes]);
 
-    // Group messages by sends/receives when a service is selected
-    const groupedMessages = useMemo<GroupedMessages>(() => {
-        if (!urlParams?.serviceId) return { all: filteredAndSortedMessages };
+  // Group messages by sends/receives when a service is selected
+  const groupedMessages = useMemo<GroupedMessages>(() => {
+    if (!urlParams?.serviceId) return { all: filteredAndSortedMessages };
 
-        const serviceIdentifier = urlParams.serviceId;
-        const sends = filteredAndSortedMessages.filter(message =>
-            message.data.producers?.some((producer: any) => producer.data.id === serviceIdentifier)
-        );
-        const receives = filteredAndSortedMessages.filter(message =>
-            message.data.consumers?.some((consumer: any) => consumer.data.id === serviceIdentifier)
-        );
-
-        return { sends, receives };
-    }, [filteredAndSortedMessages, urlParams]);
-
-    const renderTypeFilters = () => {
-        return (
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                <div className="flex items-center gap-2">
-                    <TypeFilters 
-                        selectedTypes={selectedTypes}
-                        onTypeChange={setSelectedTypes}
-                        filteredCount={filteredAndSortedMessages.filter(m => selectedTypes.includes(m.collection)).length}
-                    />
-                </div>
-
-                <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
-                    <div className="flex items-center gap-2">
-                        <select
-                            value={producerConsumerFilter}
-                            onChange={(e) => setProducerConsumerFilter(e.target.value as typeof producerConsumerFilter)}
-                            className="block rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary sm:text-sm sm:leading-6"
-                        >
-                            <option value="all">All Messages</option>
-                            <option value="no-producers">Without Producers</option>
-                            <option value="no-consumers">Without Consumers</option>
-                        </select>
-                        {producerConsumerFilter !== 'all' && (
-                            <button
-                                onClick={() => setProducerConsumerFilter('all')}
-                                className="text-xs text-gray-500 hover:text-gray-700 hover:underline"
-                            >
-                                Clear
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    const renderMessageGrid = (messages: CollectionEntry<CollectionMessageTypes>[]) => (
-        <div className={`grid ${urlParams?.serviceName ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'} gap-6`}>
-            {messages.map((message) => {
-                const { color, Icon } = getCollectionStyles(message.collection);
-                const hasProducers = message.data.producers && message.data.producers.length > 0;
-                const hasConsumers = message.data.consumers && message.data.consumers.length > 0;
-                return (
-                    <a
-                        key={message.data.name}
-                        href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`)}
-                        className={`group bg-white border hover:bg-${color}-100  rounded-lg shadow-sm  hover:shadow-lg transition-all duration-200 overflow-hidden border-${color}-500 `}
-                    >
-                        <div className="p-4 flex-1">
-                            <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                    <Icon className={`h-5 w-5 text-${color}-500`} />
-                                    <h3 className={`text-md font-semibold text-gray-900 truncate group-hover:text-${color}-500 transition-colors duration-200`}>
-                                        {message.data.name} (v{message.data.version})
-                                    </h3>
-                                </div>
-                            </div>
-
-                            {message.data.summary && (
-                                <p className="text-gray-600 text-xs line-clamp-2 mb-4">
-                                    {message.data.summary}
-                                </p>
-                            )}
-
-                            {/* Only show stats in non-service view */}
-                            {!urlParams?.serviceName && (
-                                <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-2 p-3 bg-gray-50 rounded-lg">
-                                        <div className="text-center">
-                                            <div className="flex items-center justify-center mb-1">
-                                                <ServerIcon className={`h-5 w-5 text-pink-500`} />
-                                            </div>
-                                            <div className="text-sm font-medium text-gray-900">{message.data.producers?.length ?? 0}</div>
-                                            <div className="text-xs text-gray-500">Producers</div>
-                                        </div>
-                                        <div className="text-center border-l border-gray-200">
-                                            <div className="flex items-center justify-center mb-1">
-                                                <ServerIcon className={`h-5 w-5 text-pink-500`} />
-                                            </div>
-                                            <div className="text-sm font-medium text-gray-900">{message.data.consumers?.length ?? 0}</div>
-                                            <div className="text-xs text-gray-500">Consumers</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </a>
-                );
-            })}
-        </div>
+    const serviceIdentifier = urlParams.serviceId;
+    const sends = filteredAndSortedMessages.filter((message) =>
+      message.data.producers?.some((producer: any) => producer.data.id === serviceIdentifier)
+    );
+    const receives = filteredAndSortedMessages.filter((message) =>
+      message.data.consumers?.some((consumer: any) => consumer.data.id === serviceIdentifier)
     );
 
-    const renderPaginationControls = () => {
-        if (totalPages <= 1 || urlParams?.serviceName || urlParams?.domainId) return null;
+    return { sends, receives };
+  }, [filteredAndSortedMessages, urlParams]);
 
+  const renderTypeFilters = () => {
+    return (
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-2">
+          <TypeFilters
+            selectedTypes={selectedTypes}
+            onTypeChange={setSelectedTypes}
+            filteredCount={filteredAndSortedMessages.filter((m) => selectedTypes.includes(m.collection)).length}
+          />
+        </div>
+
+        <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
+          <div className="flex items-center gap-2">
+            <select
+              value={producerConsumerFilter}
+              onChange={(e) => setProducerConsumerFilter(e.target.value as typeof producerConsumerFilter)}
+              className="block rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary sm:text-sm sm:leading-6"
+            >
+              <option value="all">All Messages</option>
+              <option value="no-producers">Without Producers</option>
+              <option value="no-consumers">Without Consumers</option>
+            </select>
+            {producerConsumerFilter !== 'all' && (
+              <button
+                onClick={() => setProducerConsumerFilter('all')}
+                className="text-xs text-gray-500 hover:text-gray-700 hover:underline"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderMessageGrid = (messages: CollectionEntry<CollectionMessageTypes>[]) => (
+    <div
+      className={`grid ${urlParams?.serviceName ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3'} gap-6`}
+    >
+      {messages.map((message) => {
+        const { color, Icon } = getCollectionStyles(message.collection);
+        const hasProducers = message.data.producers && message.data.producers.length > 0;
+        const hasConsumers = message.data.consumers && message.data.consumers.length > 0;
         return (
-            <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={filteredAndSortedMessages.length}
-                itemsPerPage={ITEMS_PER_PAGE}
-                onPageChange={setCurrentPage}
-            />
+          <a
+            key={message.data.name}
+            href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`)}
+            className={`group bg-white border hover:bg-${color}-100  rounded-lg shadow-sm  hover:shadow-lg transition-all duration-200 overflow-hidden border-${color}-500 `}
+          >
+            <div className="p-4 flex-1">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Icon className={`h-5 w-5 text-${color}-500`} />
+                  <h3
+                    className={`text-md font-semibold text-gray-900 truncate group-hover:text-${color}-500 transition-colors duration-200`}
+                  >
+                    {message.data.name} (v{message.data.version})
+                  </h3>
+                </div>
+              </div>
+
+              {message.data.summary && <p className="text-gray-600 text-xs line-clamp-2 mb-4">{message.data.summary}</p>}
+
+              {/* Only show stats in non-service view */}
+              {!urlParams?.serviceName && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-2 p-3 bg-gray-50 rounded-lg">
+                    <div className="text-center">
+                      <div className="flex items-center justify-center mb-1">
+                        <ServerIcon className={`h-5 w-5 text-pink-500`} />
+                      </div>
+                      <div className="text-sm font-medium text-gray-900">{message.data.producers?.length ?? 0}</div>
+                      <div className="text-xs text-gray-500">Producers</div>
+                    </div>
+                    <div className="text-center border-l border-gray-200">
+                      <div className="flex items-center justify-center mb-1">
+                        <ServerIcon className={`h-5 w-5 text-pink-500`} />
+                      </div>
+                      <div className="text-sm font-medium text-gray-900">{message.data.consumers?.length ?? 0}</div>
+                      <div className="text-xs text-gray-500">Consumers</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </a>
         );
-    };
+      })}
+    </div>
+  );
+
+  const renderPaginationControls = () => {
+    if (totalPages <= 1 || urlParams?.serviceName || urlParams?.domainId) return null;
 
     return (
-        <div>
-            {/* Breadcrumb */}
-            <nav className="mb-4 flex items-center space-x-2 text-sm text-gray-500">
-                <a href={buildUrl('/architecture/domains')} className="hover:text-gray-700 hover:underline flex items-center gap-2">
-                    <RectangleGroupIcon className="h-4 w-4" />
-                    Domains
-                </a>
-                <ChevronRightIcon className="h-4 w-4" />
-                <a href={buildUrl('/architecture/services')} className="hover:text-gray-700 hover:underline flex items-center gap-2">
-                    <ServerIcon className="h-4 w-4" />
-                    Services
-                </a>
-                <ChevronRightIcon className="h-4 w-4" />
-                <a href={buildUrl('/architecture/messages')} className="hover:text-gray-700 hover:underline flex items-center gap-2">
-                    <EnvelopeIcon className="h-4 w-4" />
-                    Messages
-                </a>
-                {urlParams?.domainId && (
-                    <>
-                        <ChevronRightIcon className="h-4 w-4" />
-                        <a
-                            href={buildUrlWithParams(`/architecture/services`, {
-                                domainName: urlParams.domainName,
-                                domainId: urlParams.domainId,
-                                serviceName: urlParams.serviceName,
-                                serviceId: urlParams.serviceId
-                            })}
-                            className="hover:text-gray-700 hover:underline"
-                        >
-                            {urlParams.domainId}
-                        </a>
-                    </>
-                )}
-                {urlParams?.serviceName && (
-                    <>
-                        <ChevronRightIcon className="h-4 w-4" />
-                        <span className="text-gray-900">{urlParams.serviceName}</span>
-                    </>
-                )}
-            </nav>
-
-            {/* Title Section */}
-            <div className="relative border-b border-gray-200 mb-4 pb-4">
-                <div className="md:flex md:items-start md:justify-between">
-                    <div className="min-w-0 flex-1 max-w-lg">
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-                                {urlParams?.domainName ? `Messages in ${urlParams.serviceName}` : 'All Messages'}
-                            </h1>
-                        </div>
-                        <p className="mt-2 text-sm text-gray-500">
-                            {urlParams?.domainName
-                                ? `Browse messages in the ${urlParams.serviceName} service`
-                                : 'Browse and discover messages in your event-driven architecture'}
-                        </p>
-                    </div>
-
-                    <div className="mt-6 md:mt-0 md:ml-4 flex-shrink-0">
-                        <SearchBar
-                            searchQuery={searchQuery}
-                            onSearchChange={setSearchQuery}
-                            placeholder="Search messages by name, summary, or services..."
-                            totalResults={filteredAndSortedMessages.length}
-                            totalItems={messages.length}
-                        />
-                    </div>
-                </div>
-            </div>
-
-            <div className="mb-8">
-                {/* Results count and top pagination */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    {renderTypeFilters()}
-                    {renderPaginationControls()}
-                </div>
-            </div>
-
-            {filteredAndSortedMessages.length > 0 && (
-                <div className={`rounded-xl overflow-hidden ${urlParams?.domainId ? 'bg-yellow-50 p-8 border-2 border-yellow-300' : ''}`}>
-                    {urlParams?.domainName && (
-                        <>
-                            <div className="mb-6 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <RectangleGroupIcon className="h-5 w-5 text-yellow-500" />
-                                    <a href={buildUrlWithParams(`/architecture/services`, {
-                                        domainName: urlParams.domainName,
-                                        domainId: urlParams.domainId,
-                                    })} className="text-2xl font-semibold text-gray-900 hover:underline">{urlParams.domainName}</a>
-                                </div>
-                                <div className="flex gap-2">
-                                    <a
-                                        href={buildUrl(`/visualiser/domains/${urlParams.domainId}`)}
-                                        className="inline-flex items-center px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md transition-colors duration-200"
-                                    >
-                                        View in visualizer
-                                    </a>
-                                    <a
-                                        href={buildUrl(`/docs/domains/${urlParams.domainId}`)}
-                                        className="inline-flex items-center px-3 py-2 text-sm font-medium text-black border border-gray-300 bg-white  rounded-md transition-colors duration-200"
-                                    >
-                                        Read documentation
-                                    </a>
-                                </div>
-                            </div>
-                        </>
-                    )}
-
-                    <div className={`rounded-xl overflow-hidden ${urlParams?.serviceName ? 'bg-pink-50 p-8 border-2 border-dashed border-pink-300' : ''}`}>
-                        {urlParams?.serviceName ? (
-                            <>
-                                {/* <div className="h-2 bg-pink-500 -mx-8 -mt-8 mb-8"></div> */}
-                                {/* Service Title */}
-                                <div className="flex items-center gap-2 mb-8">
-                                    <ServerIcon className="h-6 w-6 text-pink-500" />
-                                    <h2 className="text-2xl font-semibold text-gray-900">{urlParams.serviceName}</h2>
-                                    <div className="flex gap-2 ml-auto">
-                                        <a
-                                            href={buildUrl(`/visualiser/services/${urlParams.serviceId}`)}
-                                            className="inline-flex items-center px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md transition-colors duration-200 hover:bg-gray-50"
-                                        >
-                                            View in visualizer
-                                        </a>
-                                        <a
-                                            href={buildUrl(`/docs/services/${urlParams.serviceId}`)}
-                                            className="inline-flex items-center px-3 py-2 text-sm font-medium text-black border border-gray-300 bg-white rounded-md transition-colors duration-200 hover:bg-gray-50"
-                                        >
-                                            Read documentation
-                                        </a>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-3 gap-8 relative">
-                                    {/* Receives Section */}
-                                    <div className="bg-blue-50 bg-opacity-50 border border-blue-300 border-dashed rounded-lg p-4">
-                                        <div className="mb-6">
-                                            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                                                <ServerIcon className="h-5 w-5 text-blue-500" />
-                                                Receives messages ({groupedMessages.receives?.length || 0})
-                                            </h2>
-                                        </div>
-                                        {groupedMessages.receives && groupedMessages.receives.length > 0 ? (
-                                            renderMessageGrid(groupedMessages.receives)
-                                        ) : (
-                                            <div className="text-center py-12">
-                                                <p className="text-gray-500">
-                                                    {selectedTypes.length > 0 
-                                                        ? `Service does not receive ${selectedTypes.join(' or ')}`
-                                                        : 'Service does not receive any messages'}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Arrow from Receives to Service */}
-                                    <div className="absolute left-[30%] top-1/2 -translate-y-1/2 flex items-center justify-center w-16">
-                                        <div className="w-full h-[3px] bg-blue-200 shadow-[0_0_0_1px_rgba(0,0,0,0.1)]"></div>
-                                        <div className="absolute right-0 w-4 h-4 border-t-[3px] border-r-[3px] border-blue-200 transform rotate-45 translate-x-1 translate-y-[-1px] shadow-[1px_-1px_0_1px_rgba(0,0,0,0.1)]"></div>
-                                    </div>
-
-                                    {/* Service Information */}
-                                    <div className="bg-white border-2 border-pink-100 rounded-lg p-3 flex items-center justify-center min-h-[80px]">
-                                        <div className="flex flex-col items-center gap-2">
-                                            <ServerIcon className="h-10 w-10 text-pink-500" />
-                                            <p className="text-lg font-medium text-gray-900">{urlParams.serviceName}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Arrow from Service to Sends */}
-                                    <div className="absolute right-[30%] top-1/2 -translate-y-1/2 flex items-center justify-center w-16">
-                                        <div className="w-full h-[3px] bg-green-200 shadow-[0_0_0_1px_rgba(0,0,0,0.1)]"></div>
-                                        <div className="absolute right-0 w-4 h-4 border-t-[3px] border-r-[3px] border-green-200 transform rotate-45 translate-x-1 translate-y-[-1px] shadow-[1px_-1px_0_1px_rgba(0,0,0,0.1)]"></div>
-                                    </div>
-
-                                    {/* Sends Section */}
-                                    <div className="bg-green-50  border border-green-300 border-dashed rounded-lg p-4">
-                                        <div className="mb-6">
-                                            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                                                <ServerIcon className="h-5 w-5 text-emerald-500" />
-                                                Sends messages ({groupedMessages.sends?.length || 0})
-                                            </h2>
-                                        </div>
-                                        {groupedMessages.sends && groupedMessages.sends.length > 0 ? (
-                                            renderMessageGrid(groupedMessages.sends)
-                                        ) : (
-                                            <div className="text-center py-8">
-                                                <p className="text-gray-500">
-                                                    {selectedTypes.length > 0 
-                                                        ? `Service does not send ${selectedTypes.join(' or ')}`
-                                                        : 'Service does not send any messages'}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                {renderMessageGrid(paginatedMessages)}
-                                <div className="mt-8 border-t border-gray-200">
-                                    {renderPaginationControls()}
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {filteredAndSortedMessages.length === 0 && (
-                <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg">No messages found matching your criteria</p>
-                </div>
-            )}
-        </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={filteredAndSortedMessages.length}
+        itemsPerPage={ITEMS_PER_PAGE}
+        onPageChange={setCurrentPage}
+      />
     );
+  };
+
+  return (
+    <div>
+      {/* Breadcrumb */}
+      <nav className="mb-4 flex items-center space-x-2 text-sm text-gray-500">
+        <a href={buildUrl('/architecture/domains')} className="hover:text-gray-700 hover:underline flex items-center gap-2">
+          <RectangleGroupIcon className="h-4 w-4" />
+          Domains
+        </a>
+        <ChevronRightIcon className="h-4 w-4" />
+        <a href={buildUrl('/architecture/services')} className="hover:text-gray-700 hover:underline flex items-center gap-2">
+          <ServerIcon className="h-4 w-4" />
+          Services
+        </a>
+        <ChevronRightIcon className="h-4 w-4" />
+        <a href={buildUrl('/architecture/messages')} className="hover:text-gray-700 hover:underline flex items-center gap-2">
+          <EnvelopeIcon className="h-4 w-4" />
+          Messages
+        </a>
+        {urlParams?.domainId && (
+          <>
+            <ChevronRightIcon className="h-4 w-4" />
+            <a
+              href={buildUrlWithParams(`/architecture/services`, {
+                domainName: urlParams.domainName,
+                domainId: urlParams.domainId,
+                serviceName: urlParams.serviceName,
+                serviceId: urlParams.serviceId,
+              })}
+              className="hover:text-gray-700 hover:underline"
+            >
+              {urlParams.domainId}
+            </a>
+          </>
+        )}
+        {urlParams?.serviceName && (
+          <>
+            <ChevronRightIcon className="h-4 w-4" />
+            <span className="text-gray-900">{urlParams.serviceName}</span>
+          </>
+        )}
+      </nav>
+
+      {/* Title Section */}
+      <div className="relative border-b border-gray-200 mb-4 pb-4">
+        <div className="md:flex md:items-start md:justify-between">
+          <div className="min-w-0 flex-1 max-w-lg">
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                {urlParams?.domainName ? `Messages in ${urlParams.serviceName}` : 'All Messages'}
+              </h1>
+            </div>
+            <p className="mt-2 text-sm text-gray-500">
+              {urlParams?.domainName
+                ? `Browse messages in the ${urlParams.serviceName} service`
+                : 'Browse and discover messages in your event-driven architecture'}
+            </p>
+          </div>
+
+          <div className="mt-6 md:mt-0 md:ml-4 flex-shrink-0">
+            <SearchBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              placeholder="Search messages by name, summary, or services..."
+              totalResults={filteredAndSortedMessages.length}
+              totalItems={messages.length}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-8">
+        {/* Results count and top pagination */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          {renderTypeFilters()}
+          {renderPaginationControls()}
+        </div>
+      </div>
+
+      {filteredAndSortedMessages.length > 0 && (
+        <div className={`rounded-xl overflow-hidden ${urlParams?.domainId ? 'bg-yellow-50 p-8 border-2 border-yellow-300' : ''}`}>
+          {urlParams?.domainName && (
+            <>
+              <div className="mb-6 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <RectangleGroupIcon className="h-5 w-5 text-yellow-500" />
+                  <a
+                    href={buildUrlWithParams(`/architecture/services`, {
+                      domainName: urlParams.domainName,
+                      domainId: urlParams.domainId,
+                    })}
+                    className="text-2xl font-semibold text-gray-900 hover:underline"
+                  >
+                    {urlParams.domainName}
+                  </a>
+                </div>
+                <div className="flex gap-2">
+                  <a
+                    href={buildUrl(`/visualiser/domains/${urlParams.domainId}`)}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md transition-colors duration-200"
+                  >
+                    View in visualizer
+                  </a>
+                  <a
+                    href={buildUrl(`/docs/domains/${urlParams.domainId}`)}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-black border border-gray-300 bg-white  rounded-md transition-colors duration-200"
+                  >
+                    Read documentation
+                  </a>
+                </div>
+              </div>
+            </>
+          )}
+
+          <div
+            className={`rounded-xl overflow-hidden ${urlParams?.serviceName ? 'bg-pink-50 p-8 border-2 border-dashed border-pink-300' : ''}`}
+          >
+            {urlParams?.serviceName ? (
+              <>
+                {/* <div className="h-2 bg-pink-500 -mx-8 -mt-8 mb-8"></div> */}
+                {/* Service Title */}
+                <div className="flex items-center gap-2 mb-8">
+                  <ServerIcon className="h-6 w-6 text-pink-500" />
+                  <h2 className="text-2xl font-semibold text-gray-900">{urlParams.serviceName}</h2>
+                  <div className="flex gap-2 ml-auto">
+                    <a
+                      href={buildUrl(`/visualiser/services/${urlParams.serviceId}`)}
+                      className="inline-flex items-center px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md transition-colors duration-200 hover:bg-gray-50"
+                    >
+                      View in visualizer
+                    </a>
+                    <a
+                      href={buildUrl(`/docs/services/${urlParams.serviceId}`)}
+                      className="inline-flex items-center px-3 py-2 text-sm font-medium text-black border border-gray-300 bg-white rounded-md transition-colors duration-200 hover:bg-gray-50"
+                    >
+                      Read documentation
+                    </a>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-8 relative">
+                  {/* Receives Section */}
+                  <div className="bg-blue-50 bg-opacity-50 border border-blue-300 border-dashed rounded-lg p-4">
+                    <div className="mb-6">
+                      <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                        <ServerIcon className="h-5 w-5 text-blue-500" />
+                        Receives messages ({groupedMessages.receives?.length || 0})
+                      </h2>
+                    </div>
+                    {groupedMessages.receives && groupedMessages.receives.length > 0 ? (
+                      renderMessageGrid(groupedMessages.receives)
+                    ) : (
+                      <div className="text-center py-12">
+                        <p className="text-gray-500">
+                          {selectedTypes.length > 0
+                            ? `Service does not receive ${selectedTypes.join(' or ')}`
+                            : 'Service does not receive any messages'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Arrow from Receives to Service */}
+                  <div className="absolute left-[30%] top-1/2 -translate-y-1/2 flex items-center justify-center w-16">
+                    <div className="w-full h-[3px] bg-blue-200 shadow-[0_0_0_1px_rgba(0,0,0,0.1)]"></div>
+                    <div className="absolute right-0 w-4 h-4 border-t-[3px] border-r-[3px] border-blue-200 transform rotate-45 translate-x-1 translate-y-[-1px] shadow-[1px_-1px_0_1px_rgba(0,0,0,0.1)]"></div>
+                  </div>
+
+                  {/* Service Information */}
+                  <div className="bg-white border-2 border-pink-100 rounded-lg p-3 flex items-center justify-center min-h-[80px]">
+                    <div className="flex flex-col items-center gap-2">
+                      <ServerIcon className="h-10 w-10 text-pink-500" />
+                      <p className="text-lg font-medium text-gray-900">{urlParams.serviceName}</p>
+                    </div>
+                  </div>
+
+                  {/* Arrow from Service to Sends */}
+                  <div className="absolute right-[30%] top-1/2 -translate-y-1/2 flex items-center justify-center w-16">
+                    <div className="w-full h-[3px] bg-green-200 shadow-[0_0_0_1px_rgba(0,0,0,0.1)]"></div>
+                    <div className="absolute right-0 w-4 h-4 border-t-[3px] border-r-[3px] border-green-200 transform rotate-45 translate-x-1 translate-y-[-1px] shadow-[1px_-1px_0_1px_rgba(0,0,0,0.1)]"></div>
+                  </div>
+
+                  {/* Sends Section */}
+                  <div className="bg-green-50  border border-green-300 border-dashed rounded-lg p-4">
+                    <div className="mb-6">
+                      <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                        <ServerIcon className="h-5 w-5 text-emerald-500" />
+                        Sends messages ({groupedMessages.sends?.length || 0})
+                      </h2>
+                    </div>
+                    {groupedMessages.sends && groupedMessages.sends.length > 0 ? (
+                      renderMessageGrid(groupedMessages.sends)
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-gray-500">
+                          {selectedTypes.length > 0
+                            ? `Service does not send ${selectedTypes.join(' or ')}`
+                            : 'Service does not send any messages'}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {renderMessageGrid(paginatedMessages)}
+                <div className="mt-8 border-t border-gray-200">{renderPaginationControls()}</div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {filteredAndSortedMessages.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">No messages found matching your criteria</p>
+        </div>
+      )}
+    </div>
+  );
 }

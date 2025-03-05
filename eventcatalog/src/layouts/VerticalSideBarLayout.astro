@@ -100,7 +100,7 @@ const navigationItems = [
     href: buildUrl('/architecture/domains'),
     current: currentPath.includes('/architecture'),
     sidebar: false,
-    hidden: true
+    hidden: true,
   },
   {
     id: '/chat',
@@ -149,23 +149,25 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
           <nav class="flex flex-col h-[84vh] justify-between">
             <div class="flex flex-col items-center flex-1 space-y-8">
               {
-                navigationItems.filter((item) => !item.hidden).map((item) => {
-                  return (
-                    <a
-                      id={item.id}
-                      data-role="nav-item"
-                      href={item.href}
-                      class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${item.current ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700' : 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-700 hover:text-white text-gray-700'}`}
-                    >
-                      <div class="has-tooltip">
-                        <span class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10">
-                          {item.label}
-                        </span>
-                        <item.icon className="h-6 w-6  " />
-                      </div>
-                    </a>
-                  );
-                })
+                navigationItems
+                  .filter((item) => !item.hidden)
+                  .map((item) => {
+                    return (
+                      <a
+                        id={item.id}
+                        data-role="nav-item"
+                        href={item.href}
+                        class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${item.current ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700' : 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-700 hover:text-white text-gray-700'}`}
+                      >
+                        <div class="has-tooltip">
+                          <span class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10">
+                            {item.label}
+                          </span>
+                          <item.icon className="h-6 w-6  " />
+                        </div>
+                      </a>
+                    );
+                  })
               }
             </div>
           </nav>

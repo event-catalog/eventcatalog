@@ -43,30 +43,34 @@ if (type === 'domains') {
       // @ts-ignore we have to remove markdown information, as it's all send to the astro components. This reduced the page size.
       return {
         ...domain,
-        sends: messages.sends.map(s => ({...s, body: undefined, catalog: undefined})),
-        receives: messages.receives.map(r => ({...r, body: undefined, catalog: undefined})),
+        sends: messages.sends.map((s) => ({ ...s, body: undefined, catalog: undefined })),
+        receives: messages.receives.map((r) => ({ ...r, body: undefined, catalog: undefined })),
         catalog: undefined,
-        body: undefined
+        body: undefined,
       } as ExtendedDomain;
     })
   );
 } else if (type === 'services') {
   const services = await getServices({ getAllVersions: false });
-  let filteredServices = services.map(s => {
+  let filteredServices = services.map((s) => {
     // @ts-ignore we have to remove markdown information, as it's all send to the astro components. This reduced the page size.
     return {
       ...s,
-      sends: (s.data.sends || []).map(s => ({...s, body: undefined, catalog: undefined})),
-      receives: (s.data.receives || []).map(r => ({...r, body: undefined, catalog: undefined})),
+      sends: (s.data.sends || []).map((s) => ({ ...s, body: undefined, catalog: undefined })),
+      receives: (s.data.receives || []).map((r) => ({ ...r, body: undefined, catalog: undefined })),
       catalog: undefined,
-      body: undefined
+      body: undefined,
     } as Service;
   }) as unknown as Service[];
   items = filteredServices;
 } else if (type === 'messages') {
   const { events, commands, queries } = await getMessages({ getAllVersions: false });
   const messages = [...events, ...commands, ...queries];
-  items = messages.map(m => ({...m, body: undefined, catalog: undefined})) as unknown as CollectionEntry<CollectionMessageTypes>[];
+  items = messages.map((m) => ({
+    ...m,
+    body: undefined,
+    catalog: undefined,
+  })) as unknown as CollectionEntry<CollectionMessageTypes>[];
 }
 ---
 

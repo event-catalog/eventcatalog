@@ -16,9 +16,9 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTypes, setSelectedTypes] = useState<CollectionMessageTypes[]>([]);
   const ITEMS_PER_PAGE = 16;
-  const [urlParams, setUrlParams] = useState<{ 
-    serviceIds?: string[]; 
-    domainId?: string; 
+  const [urlParams, setUrlParams] = useState<{
+    serviceIds?: string[];
+    domainId?: string;
     domainName?: string;
     serviceName?: string;
   } | null>(null);
@@ -34,7 +34,7 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
       serviceIds,
       domainId,
       domainName,
-      serviceName
+      serviceName,
     });
   }, []);
 
@@ -46,23 +46,26 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
 
     // Filter by service IDs if present
     if (urlParams.serviceIds?.length) {
-      result = result.filter(service => urlParams.serviceIds?.includes(service.data.id) && !service.data.id.includes('/versioned/'));
+      result = result.filter(
+        (service) => urlParams.serviceIds?.includes(service.data.id) && !service.data.id.includes('/versioned/')
+      );
     }
 
     // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      result = result.filter(service =>
-        service.data.name?.toLowerCase().includes(query) ||
-        service.data.summary?.toLowerCase().includes(query) ||
-        service.data.sends?.some((message: any) => message.data.name.toLowerCase().includes(query)) ||
-        service.data.receives?.some((message: any) => message.data.name.toLowerCase().includes(query))
+      result = result.filter(
+        (service) =>
+          service.data.name?.toLowerCase().includes(query) ||
+          service.data.summary?.toLowerCase().includes(query) ||
+          service.data.sends?.some((message: any) => message.data.name.toLowerCase().includes(query)) ||
+          service.data.receives?.some((message: any) => message.data.name.toLowerCase().includes(query))
       );
     }
 
     // Filter by selected message types
     if (selectedTypes.length > 0) {
-      result = result.filter(service => {
+      result = result.filter((service) => {
         const hasMatchingSends = service.data.sends?.some((message: any) => selectedTypes.includes(message.collection));
         const hasMatchingReceives = service.data.receives?.some((message: any) => selectedTypes.includes(message.collection));
         return hasMatchingSends || hasMatchingReceives;
@@ -122,7 +125,9 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
           <div className="min-w-0 flex-1 max-w-lg">
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-                {urlParams?.domainId ? `Services in the ${urlParams.domainName} domain (${filteredAndSortedServices.length})` : 'All Services'}
+                {urlParams?.domainId
+                  ? `Services in the ${urlParams.domainName} domain (${filteredAndSortedServices.length})`
+                  : 'All Services'}
               </h1>
             </div>
             <p className="mt-2 text-sm text-gray-500">
@@ -133,7 +138,7 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
           </div>
 
           <div className="mt-6 md:mt-0 md:ml-4 flex-shrink-0">
-            <SearchBar 
+            <SearchBar
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               placeholder="Search services by name, summary, or messages..."
@@ -147,7 +152,7 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
       <div className="mb-8">
         {/* Results count and pagination */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <TypeFilters 
+          <TypeFilters
             selectedTypes={selectedTypes}
             onTypeChange={setSelectedTypes}
             filteredCount={filteredAndSortedServices.length}
@@ -155,13 +160,19 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
           />
           <div className="text-sm text-gray-500">
             {urlParams?.domainId || urlParams?.serviceIds?.length ? (
-              <span>Showing {filteredAndSortedServices.length} services in the {urlParams.domainId} domain</span>
+              <span>
+                Showing {filteredAndSortedServices.length} services in the {urlParams.domainId} domain
+              </span>
             ) : (
-              <span>Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedServices.length)} of {filteredAndSortedServices.length} services</span>
+              <span>
+                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{' '}
+                {Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedServices.length)} of {filteredAndSortedServices.length}{' '}
+                services
+              </span>
             )}
           </div>
           {!(urlParams?.domainId || urlParams?.serviceIds?.length) && (
-            <Pagination 
+            <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
               totalItems={filteredAndSortedServices.length}
@@ -201,121 +212,126 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-6">
             {paginatedServices.map((service) => {
-              return <a
-                key={service.data.id}
-                href={buildUrlWithParams('/architecture/messages', {
-                  serviceName: service.data.name,
-                  serviceId: service.data.id,
-                  domainId: urlParams?.domainId,
-                  domainName: urlParams?.domainName
-                })}
-                className="group hover:bg-pink-50  bg-white border-2 border-dashed border-pink-400 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
-              >
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <ServerIcon className="h-5 w-5 text-pink-500" />
-                      <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:underline transition-colors duration-200">
-                        {service.data.name || service.data.id} (v{service.data.version})
-                      </h3>
+              return (
+                <a
+                  key={service.data.id}
+                  href={buildUrlWithParams('/architecture/messages', {
+                    serviceName: service.data.name,
+                    serviceId: service.data.id,
+                    domainId: urlParams?.domainId,
+                    domainName: urlParams?.domainName,
+                  })}
+                  className="group hover:bg-pink-50  bg-white border-2 border-dashed border-pink-400 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
+                >
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <ServerIcon className="h-5 w-5 text-pink-500" />
+                        <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:underline transition-colors duration-200">
+                          {service.data.name || service.data.id} (v{service.data.version})
+                        </h3>
+                      </div>
+                    </div>
+
+                    {service.data.summary && (
+                      <p className="text-gray-600 text-sm line-clamp-2 min-h-[2.5rem]">{service.data.summary}</p>
+                    )}
+
+                    <div className="space-y-4">
+                      {/* Messages Section */}
+                      {!urlParams?.serviceName && (
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1 h-full flex flex-col bg-blue-100 border border-blue-300 rounded-lg p-4">
+                            <div className="space-y-2 flex-1">
+                              {service.data.receives
+                                ?.filter(
+                                  (message: any) => selectedTypes.length === 0 || selectedTypes.includes(message.collection)
+                                )
+                                ?.map((message: any) => {
+                                  const { Icon, color } = getCollectionStyles(message.collection);
+                                  return (
+                                    <a
+                                      key={message.data.name}
+                                      href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`)}
+                                      className="group flex border border-gray-200 items-center gap-1 rounded-md text-[11px] font-medium hover:bg-gray-50 transition-colors duration-200 bg-white"
+                                    >
+                                      <div className="bg-white border-r border-gray-200 px-2 py-1.5 rounded-l-md">
+                                        <Icon className={`h-3 w-3 text-${color}-500`} />
+                                      </div>
+                                      <span className="px-1 py-1">{message.data.name}</span>
+                                    </a>
+                                  );
+                                })}
+                              {(!service.data.receives?.length ||
+                                (selectedTypes.length > 0 &&
+                                  !service.data.receives?.some((message: any) =>
+                                    selectedTypes.includes(message.collection)
+                                  ))) && (
+                                <div className="text-center py-4">
+                                  <p className="text-gray-500 text-[10px]">
+                                    {selectedTypes.length > 0
+                                      ? `Service does not receive ${selectedTypes.join(' or ')}`
+                                      : 'Service does not receive any messages'}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-[2px] bg-blue-200"></div>
+                            <div className="bg-white border-2 border-pink-100 rounded-lg p-4 shadow-sm">
+                              <div className="flex flex-col items-center gap-3">
+                                <ServerIcon className="h-8 w-8 text-pink-500" />
+                                <div className="text-center">
+                                  <p className="text-sm font-medium text-gray-900">{service.data.name || service.data.id}</p>
+                                  <p className="text-xs text-gray-500">v{service.data.version}</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="w-4 h-[2px] bg-emerald-200"></div>
+                          </div>
+
+                          <div className="flex-1 h-full flex flex-col bg-green-100 border border-green-300 rounded-lg p-4">
+                            <div className="space-y-2 flex-1">
+                              {service.data.sends
+                                ?.filter(
+                                  (message: any) => selectedTypes.length === 0 || selectedTypes.includes(message.collection)
+                                )
+                                ?.map((message: any) => {
+                                  const { Icon, color } = getCollectionStyles(message.collection);
+                                  return (
+                                    <a
+                                      key={message.data.name}
+                                      href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`)}
+                                      className="group flex border border-gray-200 items-center gap-1 rounded-md text-[11px] font-medium hover:bg-gray-50 transition-colors duration-200 bg-white"
+                                    >
+                                      <div className="bg-white border-r border-gray-200 px-2 py-1.5 rounded-l-md">
+                                        <Icon className={`h-3 w-3 text-${color}-500`} />
+                                      </div>
+                                      <span className="px-1 py-1">{message.data.name}</span>
+                                    </a>
+                                  );
+                                })}
+                              {(!service.data.sends?.length ||
+                                (selectedTypes.length > 0 &&
+                                  !service.data.sends?.some((message: any) => selectedTypes.includes(message.collection)))) && (
+                                <div className="text-center py-4  ">
+                                  <p className="text-gray-500 text-[10px]">
+                                    {selectedTypes.length > 0
+                                      ? `Service does not send ${selectedTypes.join(' or ')}`
+                                      : 'Service does not send any messages'}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-
-                  {service.data.summary && (
-                    <p className="text-gray-600 text-sm line-clamp-2 min-h-[2.5rem]">
-                      {service.data.summary}
-                    </p>
-                  )}
-
-                  <div className="space-y-4">
-                    {/* Messages Section */}
-                    {!urlParams?.serviceName && (
-                        <div className="flex items-center gap-4">
-                            <div className="flex-1 h-full flex flex-col bg-blue-100 border border-blue-300 rounded-lg p-4">
-                                <div className="space-y-2 flex-1">
-                                    {service.data.receives?.filter((message: any) => 
-                                        selectedTypes.length === 0 || selectedTypes.includes(message.collection)
-                                    )?.map((message: any) => {
-                                        const { Icon, color } = getCollectionStyles(message.collection);
-                                        return (
-                                            <a
-                                                key={message.data.name}
-                                                href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`)}
-                                                className="group flex border border-gray-200 items-center gap-1 rounded-md text-[11px] font-medium hover:bg-gray-50 transition-colors duration-200 bg-white"
-                                            >
-                                                <div className="bg-white border-r border-gray-200 px-2 py-1.5 rounded-l-md">
-                                                    <Icon className={`h-3 w-3 text-${color}-500`} />
-                                                </div>
-                                                <span className="px-1 py-1">
-                                                    {message.data.name}
-                                                </span>
-                                            </a>
-                                        );
-                                    })}
-                                    {(!service.data.receives?.length || (selectedTypes.length > 0 && !service.data.receives?.some((message: any) => selectedTypes.includes(message.collection)))) && (
-                                        <div className="text-center py-4">
-                                            <p className="text-gray-500 text-[10px]">
-                                                {selectedTypes.length > 0 
-                                                    ? `Service does not receive ${selectedTypes.join(' or ')}`
-                                                    : 'Service does not receive any messages'}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <div className="w-4 h-[2px] bg-blue-200"></div>
-                                <div className="bg-white border-2 border-pink-100 rounded-lg p-4 shadow-sm">
-                                    <div className="flex flex-col items-center gap-3">
-                                        <ServerIcon className="h-8 w-8 text-pink-500" />
-                                        <div className="text-center">
-                                            <p className="text-sm font-medium text-gray-900">{service.data.name || service.data.id}</p>
-                                            <p className="text-xs text-gray-500">v{service.data.version}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="w-4 h-[2px] bg-emerald-200"></div>
-                            </div>
-
-                            <div className="flex-1 h-full flex flex-col bg-green-100 border border-green-300 rounded-lg p-4">
-                                <div className="space-y-2 flex-1">
-                                    {service.data.sends?.filter((message: any) => 
-                                        selectedTypes.length === 0 || selectedTypes.includes(message.collection)
-                                    )?.map((message: any) => {
-                                        const { Icon, color } = getCollectionStyles(message.collection);
-                                        return (
-                                            <a
-                                                key={message.data.name}
-                                                href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`)}
-                                                className="group flex border border-gray-200 items-center gap-1 rounded-md text-[11px] font-medium hover:bg-gray-50 transition-colors duration-200 bg-white"
-                                            >
-                                                <div className="bg-white border-r border-gray-200 px-2 py-1.5 rounded-l-md">
-                                                    <Icon className={`h-3 w-3 text-${color}-500`} />
-                                                </div>
-                                                <span className="px-1 py-1">
-                                                    {message.data.name}
-                                                </span>
-                                            </a>
-                                        );
-                                    })}
-                                    {(!service.data.sends?.length || (selectedTypes.length > 0 && !service.data.sends?.some((message: any) => selectedTypes.includes(message.collection)))) && (
-                                        <div className="text-center py-4  ">
-                                            <p className="text-gray-500 text-[10px]">
-                                                {selectedTypes.length > 0 
-                                                    ? `Service does not send ${selectedTypes.join(' or ')}`
-                                                    : 'Service does not send any messages'}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                   
-                  </div>
-                </div>
-              </a>
+                </a>
+              );
             })}
           </div>
         </div>
@@ -324,7 +340,7 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
       {filteredAndSortedServices.length === 0 && (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <p className="text-gray-500 text-lg">
-            {selectedTypes.length > 0 
+            {selectedTypes.length > 0
               ? `No services found that ${selectedTypes.length > 1 ? 'handle' : 'handles'} ${selectedTypes.join(' or ')} messages`
               : 'No services found matching your criteria'}
           </p>
@@ -334,7 +350,7 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
       {/* Bottom pagination */}
       {!(urlParams?.domainId || urlParams?.serviceIds?.length) && (
         <div className="mt-8 border-t border-gray-200">
-          <Pagination 
+          <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
             totalItems={filteredAndSortedServices.length}
@@ -345,4 +361,4 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
       )}
     </div>
   );
-} 
+}

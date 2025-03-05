@@ -23,7 +23,6 @@ export const buildUrl = (url: string, ignoreTrailingSlash = false) => {
   return cleanUrl(newUrl);
 };
 
-
 // Helper function to build URLs with query parameters
 export const buildUrlWithParams = (baseUrl: string, params: Record<string, string | undefined>) => {
   // Filter out undefined values and empty strings

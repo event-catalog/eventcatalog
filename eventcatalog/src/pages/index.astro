@@ -33,17 +33,17 @@ const gettingStartedItems = [
     links: [
       {
         text: 'How to add a message',
-        href: 'https://www.eventcatalog.dev/docs/messages'
+        href: 'https://www.eventcatalog.dev/docs/messages',
       },
       {
         text: 'Versioning guide',
-        href: 'https://www.eventcatalog.dev/docs/development/guides/messages/events/versioning'
+        href: 'https://www.eventcatalog.dev/docs/development/guides/messages/events/versioning',
       },
       {
         text: 'Adding schemas',
-        href: 'https://www.eventcatalog.dev/docs/development/guides/messages/events/adding-schemas'
-      }
-    ]
+        href: 'https://www.eventcatalog.dev/docs/development/guides/messages/events/adding-schemas',
+      },
+    ],
   },
   {
     title: 'Document a Service',
@@ -53,17 +53,17 @@ const gettingStartedItems = [
     links: [
       {
         text: 'How to add a service',
-        href: 'https://www.eventcatalog.dev/docs/services'
+        href: 'https://www.eventcatalog.dev/docs/services',
       },
       {
         text: 'Service ownership',
-        href: 'https://www.eventcatalog.dev/docs/development/guides/services/owners'
+        href: 'https://www.eventcatalog.dev/docs/development/guides/services/owners',
       },
       {
         text: 'Assign specifications to services',
-        href: 'https://www.eventcatalog.dev/docs/development/guides/services/adding-spec-files-to-services'
-      }
-    ]
+        href: 'https://www.eventcatalog.dev/docs/development/guides/services/adding-spec-files-to-services',
+      },
+    ],
   },
   {
     title: 'Create a Domain',
@@ -73,18 +73,18 @@ const gettingStartedItems = [
     links: [
       {
         text: 'How to add a domain',
-        href: 'https://www.eventcatalog.dev/docs/domains'
+        href: 'https://www.eventcatalog.dev/docs/domains',
       },
       {
         text: 'Adding services to domains',
-        href: 'https://www.eventcatalog.dev/docs/development/guides/domains/adding-services-to-domains'
+        href: 'https://www.eventcatalog.dev/docs/development/guides/domains/adding-services-to-domains',
       },
       {
         text: 'Creating a ubiquitous language',
-        href: 'https://www.eventcatalog.dev/docs/development/guides/domains/adding-ubiquitous-language'
+        href: 'https://www.eventcatalog.dev/docs/development/guides/domains/adding-ubiquitous-language',
       },
-    ]
-  }
+    ],
+  },
 ];
 
 const getDefaultUrl = (route: string, defaultValue: string) => {
@@ -103,7 +103,7 @@ const topTiles = [
     icon: RectangleGroupIcon,
     bgColor: 'bg-yellow-100',
     textColor: 'text-yellow-600',
-    arrowColor: 'text-yellow-600'
+    arrowColor: 'text-yellow-600',
   },
   {
     title: 'Services',
@@ -113,7 +113,7 @@ const topTiles = [
     icon: ServerIcon,
     bgColor: 'bg-pink-100',
     textColor: 'text-pink-600',
-    arrowColor: 'text-pink-600'
+    arrowColor: 'text-pink-600',
   },
   {
     title: 'Messages',
@@ -123,8 +123,8 @@ const topTiles = [
     icon: ChatBubbleLeftIcon,
     bgColor: 'bg-blue-100',
     textColor: 'text-blue-600',
-    arrowColor: 'text-blue-600'
-  }
+    arrowColor: 'text-blue-600',
+  },
 ];
 ---
 
@@ -142,23 +142,27 @@ const topTiles = [
 
       <h2 class="text-2xl font-semibold mb-8 text-gray-900">Architecture overview</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
-        {topTiles.map((tile) => (
-          <a
-            href={tile.href}
-            class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200"
-          >
-            <div class="flex items-center justify-between mb-2">
-              <div class="flex items-center gap-3">
-                <div class={`p-1.5 ${tile.bgColor} rounded-lg`}>
-                  <tile.icon className={`w-4 h-4 ${tile.textColor}`} />
+        {
+          topTiles.map((tile) => (
+            <a
+              href={tile.href}
+              class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200"
+            >
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-3">
+                  <div class={`p-1.5 ${tile.bgColor} rounded-lg`}>
+                    <tile.icon className={`w-4 h-4 ${tile.textColor}`} />
+                  </div>
+                  <h3 class="text-lg font-semibold text-gray-900">
+                    {tile.count} {tile.title}
+                  </h3>
                 </div>
-                <h3 class="text-lg font-semibold text-gray-900">{tile.count} {tile.title}</h3>
+                <span class={`text-sm font-medium ${tile.arrowColor}`}>View all →</span>
               </div>
-              <span class={`text-sm font-medium ${tile.arrowColor}`}>View all →</span>
-            </div>
-            <p class="text-sm text-gray-600">{tile.description}</p>
-          </a>
-        ))}
+              <p class="text-sm text-gray-600">{tile.description}</p>
+            </a>
+          ))
+        }
       </div>
 
       <div class="mb-12">
@@ -251,30 +255,30 @@ const topTiles = [
       <section class="mb-12">
         <h2 class="text-2xl font-semibold mb-8 text-gray-900">Getting Started</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {gettingStartedItems.map((item) => (
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div class="flex items-center gap-3 mb-4">
-                <div class={`p-2 bg-${item.iconBg}-100 rounded-lg`}>
-                  <item.icon className={`w-6 h-6 text-${item.iconBg}-600`} />
+          {
+            gettingStartedItems.map((item) => (
+              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class={`p-2 bg-${item.iconBg}-100 rounded-lg`}>
+                    <item.icon className={`w-6 h-6 text-${item.iconBg}-600`} />
+                  </div>
+                  <h3 class="text-lg font-semibold text-gray-900">{item.title}</h3>
                 </div>
-                <h3 class="text-lg font-semibold text-gray-900">{item.title}</h3>
+                <p class="text-gray-600 text-sm mb-4">{item.description}</p>
+                <div class="space-y-2">
+                  {item.links.map((link) => (
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      class={`block text-sm text-${item.iconBg}-600 hover:text-${item.iconBg}-700`}
+                    >
+                      → {link.text}
+                    </a>
+                  ))}
+                </div>
               </div>
-              <p class="text-gray-600 text-sm mb-4">
-                {item.description}
-              </p>
-              <div class="space-y-2">
-                {item.links.map((link) => (
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    class={`block text-sm text-${item.iconBg}-600 hover:text-${item.iconBg}-700`}
-                  >
-                    → {link.text}
-                  </a>
-                ))}
-              </div>
-            </div>
-          ))}
+            ))
+          }
         </div>
       </section>
     </main>
