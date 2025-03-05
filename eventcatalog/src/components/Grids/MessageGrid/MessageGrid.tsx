@@ -34,6 +34,7 @@ export default function MessageGrid({ messages }: MessageGridProps) {
     const [urlParams, setUrlParams] = useState<{ serviceId?: string; serviceName?: string; domainId?: string; domainName?: string } | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedTypes, setSelectedTypes] = useState<CollectionMessageTypes[]>([]);
+    const [producerConsumerFilter, setProducerConsumerFilter] = useState<'all' | 'no-producers' | 'no-consumers'>('all');
     const ITEMS_PER_PAGE = 15;
 
     // Effect to sync URL params with state
@@ -61,6 +62,13 @@ export default function MessageGrid({ messages }: MessageGridProps) {
             result = result.filter(message => selectedTypes.includes(message.collection));
         }
 
+        // Apply producer/consumer filters
+        if (producerConsumerFilter === 'no-producers') {
+            result = result.filter(message => !message.data.producers || message.data.producers.length === 0);
+        } else if (producerConsumerFilter === 'no-consumers') {
+            result = result.filter(message => !message.data.consumers || message.data.consumers.length === 0);
+        }
+
         // Filter by service ID or name if present
         if (urlParams.serviceId) {
             result = result.filter(message => {
@@ -84,7 +92,7 @@ export default function MessageGrid({ messages }: MessageGridProps) {
         result.sort((a, b) => a.data.name.localeCompare(b.data.name));
 
         return result;
-    }, [messages, searchQuery, urlParams, selectedTypes]);
+    }, [messages, searchQuery, urlParams, selectedTypes, producerConsumerFilter]);
 
     // Add pagination calculation
     const paginatedMessages = useMemo(() => {
@@ -125,47 +133,71 @@ export default function MessageGrid({ messages }: MessageGridProps) {
         const types: CollectionMessageTypes[] = ['events', 'commands', 'queries'];
 
         return (
-            <div className="flex items-center gap-2">
-                {types.map(type => {
-                    const { color, Icon } = getCollectionStyles(type);
-                    const isSelected = selectedTypes.includes(type);
-                    return (
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="flex items-center gap-2">
+                    {types.map(type => {
+                        const { color, Icon } = getCollectionStyles(type);
+                        const isSelected = selectedTypes.includes(type);
+                        return (
+                            <button
+                                key={type}
+                                onClick={() => {
+                                    setSelectedTypes(prev =>
+                                        prev.includes(type)
+                                            ? prev.filter(t => t !== type)
+                                            : [...prev, type]
+                                    );
+                                }}
+                                className={`
+                                    inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium
+                                    transition-colors duration-200
+                                    ${isSelected
+                                        ? `bg-${color}-100 text-${color}-700 ring-2 ring-${color}-500`
+                                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                                    }
+                                `}
+                            >
+                                <Icon className={`h-4 w-4 ${isSelected ? `text-${color}-500` : 'text-gray-400'}`} />
+                                <span className="capitalize">{type}</span>
+                                {isSelected && (
+                                    <span className={`inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium bg-${color}-50 text-${color}-700 rounded-full`}>
+                                        {filteredAndSortedMessages.filter(m => m.collection === type).length}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                    {selectedTypes.length > 0 && (
                         <button
-                            key={type}
-                            onClick={() => {
-                                setSelectedTypes(prev =>
-                                    prev.includes(type)
-                                        ? prev.filter(t => t !== type)
-                                        : [...prev, type]
-                                );
-                            }}
-                            className={`
-                                inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium
-                                transition-colors duration-200
-                                ${isSelected
-                                    ? `bg-${color}-100 text-${color}-700 ring-2 ring-${color}-500`
-                                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                                }
-                            `}
+                            onClick={() => setSelectedTypes([])}
+                            className="text-xs text-gray-500 hover:text-gray-700 hover:underline"
                         >
-                            <Icon className={`h-4 w-4 ${isSelected ? `text-${color}-500` : 'text-gray-400'}`} />
-                            <span className="capitalize">{type}</span>
-                            {isSelected && (
-                                <span className={`inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium bg-${color}-50 text-${color}-700 rounded-full`}>
-                                    {filteredAndSortedMessages.filter(m => m.collection === type).length}
-                                </span>
-                            )}
+                            Clear filters
                         </button>
-                    );
-                })}
-                {selectedTypes.length > 0 && (
-                    <button
-                        onClick={() => setSelectedTypes([])}
-                        className="text-xs text-gray-500 hover:text-gray-700 hover:underline"
-                    >
-                        Clear filters
-                    </button>
-                )}
+                    )}
+                </div>
+
+                <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
+                    <div className="flex items-center gap-2">
+                        <select
+                            value={producerConsumerFilter}
+                            onChange={(e) => setProducerConsumerFilter(e.target.value as typeof producerConsumerFilter)}
+                            className="block rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-primary sm:text-sm sm:leading-6"
+                        >
+                            <option value="all">All Messages</option>
+                            <option value="no-producers">Without Producers</option>
+                            <option value="no-consumers">Without Consumers</option>
+                        </select>
+                        {producerConsumerFilter !== 'all' && (
+                            <button
+                                onClick={() => setProducerConsumerFilter('all')}
+                                className="text-xs text-gray-500 hover:text-gray-700 hover:underline"
+                            >
+                                Clear
+                            </button>
+                        )}
+                    </div>
+                </div>
             </div>
         );
     };
