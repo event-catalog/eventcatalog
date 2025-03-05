@@ -9,6 +9,7 @@ import { BookOpenText, Workflow, TableProperties, House, BookUser, MessageSquare
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
+import '@fontsource/inter';
 
 import { getCommands } from '@utils/commands';
 import { getDomains } from '@utils/collections/domains';
@@ -90,6 +91,14 @@ const navigationItems = [
     icon: BookUser,
     href: buildUrl('/directory/users'),
     current: currentPath.includes('/directory'),
+    sidebar: false,
+  },
+  {
+    id: '/architecture',
+    label: 'Architecture',
+    icon: BookUser,
+    href: buildUrl('/architecture/domains'),
+    current: currentPath.includes('/architecture'),
     sidebar: false,
   },
   {

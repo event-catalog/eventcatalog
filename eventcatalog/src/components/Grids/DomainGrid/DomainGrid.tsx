@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
-import { MagnifyingGlassIcon, ServerIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, ServerIcon, EnvelopeIcon, ArrowRightIcon, ArrowLeftIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { RectangleGroupIcon } from '@heroicons/react/24/outline';
-import { buildUrlWithParams } from '@utils/url-builder';
+import { buildUrlWithParams, buildUrl } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
 import { type CollectionMessageTypes } from '@types';
 
@@ -15,6 +15,21 @@ interface DomainGridProps {
   domains: ExtendedDomain[];
 }
 
+
+const getCollectionStyles = (collection: CollectionMessageTypes) => {
+    switch (collection) {
+        case 'events':
+            return { color: 'orange', Icon: BoltIcon };
+        case 'commands':
+            return { color: 'blue', Icon: ChatBubbleLeftIcon };
+        case 'queries':
+            return { color: 'green', Icon: MagnifyingGlassIcon };
+        default:
+            return { color: 'gray', Icon: EnvelopeIcon };
+    }
+};
+
+
 export default function DomainGrid({ domains }: DomainGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -27,7 +42,7 @@ export default function DomainGrid({ domains }: DomainGridProps) {
       result = result.filter(domain =>
         domain.data.name?.toLowerCase().includes(query) ||
         domain.data.summary?.toLowerCase().includes(query) ||
-        domain.data.services?.some(service => service.id.toLowerCase().includes(query)) ||
+        domain.data.services?.some(service => service.data.name.toLowerCase().includes(query)) ||
         domain.sends?.some(message => message.data.name.toLowerCase().includes(query)) ||
         domain.receives?.some(message => message.data.name.toLowerCase().includes(query))
       );
@@ -100,18 +115,18 @@ export default function DomainGrid({ domains }: DomainGridProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
         {filteredDomains.map((domain) => (
           <a
             key={domain.data.id}
-            href={buildUrlWithParams('/resources/services', {
+            href={buildUrlWithParams('/architecture/services', {
               serviceIds: domain.data.services?.map((s: any) => s.data.id).join(','),
               domainId: domain.data.id,
               domainName: domain.data.name
             })}
-            className="group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
+            className="group  border-2 border-yellow-500 bg-yellow-50 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
           >
-            <div className="h-2 bg-yellow-500 group-hover:bg-yellow-600 transition-colors duration-200"></div>
+            {/* <div className="h-2 bg-yellow-500 group-hover:bg-yellow-600 transition-colors duration-200"></div> */}
             <div className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -131,91 +146,103 @@ export default function DomainGrid({ domains }: DomainGridProps) {
                 </p>
               )}
 
-              <div className="space-y-4">
-                {/* Stats Overview */}
-                <div className="grid grid-cols-3 gap-2 p-3 bg-gray-50 rounded-lg">
-                  <div className="text-center">
-                    <div className="flex items-center justify-center mb-1">
-                      <ServerIcon className="h-5 w-5 text-pink-500" />
+              <div className="space-y-6">
+                {/* Services and their messages */}
+                {domain.data.services?.map((service) => (
+                  <div
+                    key={service.data.id}
+                    className="block space-y-2 bg-white border-2 border-dashed border-pink-400 p-4 rounded-lg transition-colors duration-200"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ServerIcon className="h-4 w-4 text-pink-500" />
+                        <h4 className="text-sm font-medium text-gray-900">{service.data.name || service.data.id}</h4>
+                      </div>
+                      <span className="text-xs text-gray-500">v{service.data.version}</span>
                     </div>
-                    <div className="text-sm font-medium text-gray-900">{domain.data.services?.length || 0}</div>
-                    <div className="text-xs text-gray-500">Services</div>
-                  </div>
-                  <div className="text-center border-l border-gray-200">
-                    <div className="flex items-center justify-center mb-1">
-                      <EnvelopeIcon className="h-5 w-5 text-emerald-500" />
-                    </div>
-                    <div className="text-sm font-medium text-gray-900">{domain.sends?.length || 0}</div>
-                    <div className="text-xs text-gray-500">Sends</div>
-                  </div>
-                  <div className="text-center border-l border-gray-200">
-                    <div className="flex items-center justify-center mb-1">
-                      <EnvelopeIcon className="h-5 w-5 text-blue-500" />
-                    </div>
-                    <div className="text-sm font-medium text-gray-900">{domain.receives?.length || 0}</div>
-                    <div className="text-xs text-gray-500">Receives</div>
-                  </div>
-                </div>
 
-                {/* Services Section */}
-                {domain.data.services && domain.data.services.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <ServerIcon className="h-4 w-4 text-pink-500" />
-                      <h4 className="text-sm font-medium text-gray-700">Services</h4>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {domain.data.services.slice(0, 3).map((service: any) => (
-                        <span
-                          key={service.id}
-                          className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-pink-50 text-pink-700 hover:bg-pink-100 transition-colors duration-200"
-                        >
-                          {service.data.id}
-                        </span>
-                      ))}
-                      {domain.data.services.length > 3 && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-pink-50 text-pink-700 hover:bg-pink-100 transition-colors duration-200">
-                          +{domain.data.services.length - 3}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1 h-full flex flex-col bg-blue-50  border border-blue-100 rounded-lg p-3">
+                        <div className="space-y-1.5 flex-1">
+                          {service.data.receives?.slice(0, 3).map((message) => {
+                            const { Icon, color } = getCollectionStyles(message.collection);
+                            return (
+                              <div
+                                key={`${message.id}-${message.version}`}
+                                className="group flex border border-gray-200 items-center gap-1 rounded-md text-[11px] font-medium bg-white"
+                              >
+                                <div className="bg-white border-r border-gray-200 px-2 py-1.5 rounded-l-md">
+                                  <Icon className={`h-3 w-3 text-${color}-500`} />
+                                </div>
+                                <span className="px-1 py-1">
+                                  {message.id}
+                                </span>
+                              </div>
+                            );
+                          })}
+                          {service.data.receives && service.data.receives.length > 3 && (
+                            <div className="text-center py-1">
+                              <p className="text-gray-500 text-[10px]">+ {service.data.receives.length - 3} more</p>
+                            </div>
+                          )}
+                          {!service.data.receives?.length && (
+                            <div className="text-center py-6">
+                              <p className="text-gray-500 text-xs">No messages received</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
 
-                {/* Messages Section */}
-                {(domain.sends?.length > 0 || domain.receives?.length > 0) && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <EnvelopeIcon className="h-4 w-4 text-gray-500" />
-                      <h4 className="text-sm font-medium text-gray-700">Messages</h4>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {domain.sends?.slice(0, 1).map((message) => (
-                        <span
-                          key={message.data.name}
-                          className="group inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors duration-200"
-                        >
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                          {message.data.name}
-                        </span>
-                      ))}
-                      {domain.receives?.slice(0, 1).map((message) => (
-                        <span
-                          key={message.data.name}
-                          className="group inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors duration-200"
-                        >
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                          {message.data.name}
-                        </span>
-                      ))}
-                      {(domain.sends?.length || 0) + (domain.receives?.length || 0) > 2 && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors duration-200">
-                          +{(domain.sends?.length || 0) + (domain.receives?.length || 0) - 2} more
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-[2px] bg-blue-200"></div>
+                        <div className="bg-white border-2 border-pink-100 rounded-lg p-2 shadow-sm">
+                          <div className="flex flex-col items-center gap-2">
+                            <ServerIcon className="h-6 w-6 text-pink-500" />
+                            <div className="text-center">
+                              <p className="text-xs font-medium text-gray-900">{service.data.name || service.data.id}</p>
+                              <p className="text-[10px] text-gray-500">v{service.data.version}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="w-4 h-[2px] bg-emerald-200"></div>
+                      </div>
+
+                      <div className="flex-1 h-full flex flex-col bg-green-100  border border-green-300 rounded-lg p-3">
+                        <div className="space-y-1.5 flex-1">
+                          {service.data.sends?.slice(0, 3).map((message) => {
+                            const { Icon, color } = getCollectionStyles(message.collection);
+                            return (
+                              <div
+                                key={`${message.id}-${message.version}`}
+                                className="group flex border border-gray-200 items-center gap-1 rounded-md text-[11px] font-medium bg-white"
+                              >
+                                <div className="bg-white border-r border-gray-200 px-2 py-1.5 rounded-l-md">
+                                  <Icon className={`h-3 w-3 text-${color}-500`} />
+                                </div>
+                                <span className="px-1 py-1">
+                                  {message.id}
+                                </span>
+                              </div>
+                            );
+                          })}
+                          {service.data.sends && service.data.sends.length > 3 && (
+                            <div className="text-center py-1">
+                              <p className="text-gray-500 text-xs">+ {service.data.sends.length - 3} more</p>
+                            </div>
+                          )}
+                          {!service.data.sends?.length && (
+                            <div className="text-center py-6">
+                              <p className="text-gray-500 text-xs">No messages sent</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                )}
+                ))}
+
+                {/* Domain Stats */}
+             
               </div>
             </div>
           </a>
