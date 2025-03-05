@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
-import { MagnifyingGlassIcon, ServerIcon, EnvelopeIcon, ArrowRightIcon, ArrowLeftIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
-import { RectangleGroupIcon } from '@heroicons/react/24/outline';
-import { buildUrlWithParams, buildUrl } from '@utils/url-builder';
+import { ServerIcon, EnvelopeIcon, RectangleGroupIcon } from '@heroicons/react/24/outline';
+import { buildUrlWithParams } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
 import { type CollectionMessageTypes } from '@types';
+import { getCollectionStyles } from './utils';
+import { SearchBar } from './components';
 
-type ExtendedDomain = CollectionEntry<"domains"> & {
+export interface ExtendedDomain extends CollectionEntry<"domains"> {
   sends: CollectionEntry<CollectionMessageTypes>[];
   receives: CollectionEntry<CollectionMessageTypes>[];
   services: CollectionEntry<"services">[];
@@ -14,21 +15,6 @@ type ExtendedDomain = CollectionEntry<"domains"> & {
 interface DomainGridProps {
   domains: ExtendedDomain[];
 }
-
-
-const getCollectionStyles = (collection: CollectionMessageTypes) => {
-  switch (collection) {
-    case 'events':
-      return { color: 'orange', Icon: BoltIcon };
-    case 'commands':
-      return { color: 'blue', Icon: ChatBubbleLeftIcon };
-    case 'queries':
-      return { color: 'green', Icon: MagnifyingGlassIcon };
-    default:
-      return { color: 'gray', Icon: EnvelopeIcon };
-  }
-};
-
 
 export default function DomainGrid({ domains }: DomainGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,9 +28,9 @@ export default function DomainGrid({ domains }: DomainGridProps) {
       result = result.filter(domain =>
         domain.data.name?.toLowerCase().includes(query) ||
         domain.data.summary?.toLowerCase().includes(query) ||
-        domain.data.services?.some(service => service.data.name.toLowerCase().includes(query)) ||
-        domain.sends?.some(message => message.data.name.toLowerCase().includes(query)) ||
-        domain.receives?.some(message => message.data.name.toLowerCase().includes(query))
+        domain.data.services?.some((service: any) => service.data.name.toLowerCase().includes(query)) ||
+        domain.sends?.some((message: any) => message.data.name.toLowerCase().includes(query)) ||
+        domain.receives?.some((message: any) => message.data.name.toLowerCase().includes(query))
       );
     }
 
@@ -55,7 +41,7 @@ export default function DomainGrid({ domains }: DomainGridProps) {
   }, [domains, searchQuery]);
 
   return (
-    <div>
+    <div >
       {/* Breadcrumb */}
       <nav className="mb-4 flex items-center space-x-2 text-sm text-gray-500">
         <div className="flex items-center gap-2">
@@ -75,42 +61,14 @@ export default function DomainGrid({ domains }: DomainGridProps) {
             </p>
           </div>
 
-          <div className="mt-6 md:mt-0 md:ml-4 flex-shrink-0 w-full md:w-96">
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search domains..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full rounded-lg border-0 py-2.5 pl-10 pr-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
-              />
-              {searchQuery && (
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="text-gray-400 hover:text-gray-500 focus:outline-none"
-                  >
-                    <span className="sr-only">Clear search</span>
-                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-              )}
-            </div>
-            {searchQuery && (
-              <div className="mt-2 text-sm text-gray-500 flex items-center justify-between">
-                <span>
-                  Found <span className="font-medium text-gray-900">{filteredDomains.length}</span> of <span className="font-medium text-gray-900">{domains.length}</span>
-                </span>
-                <span className="text-gray-400 text-xs">
-                  ESC to clear
-                </span>
-              </div>
-            )}
+          <div className="mt-6 md:mt-0 md:ml-4 flex-shrink-0">
+            <SearchBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              placeholder="Search domains..."
+              totalResults={filteredDomains.length}
+              totalItems={domains.length}
+            />
           </div>
         </div>
       </div>
@@ -126,7 +84,6 @@ export default function DomainGrid({ domains }: DomainGridProps) {
             })}
             className="group hover:bg-orange-100  border-2 border-orange-400/50 bg-yellow-50 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
           >
-            {/* <div className="h-2 bg-orange-500 group-hover:bg-orange-600 transition-colors duration-200"></div> */}
             <div className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -161,7 +118,7 @@ export default function DomainGrid({ domains }: DomainGridProps) {
 
               <div className="space-y-6">
                 {/* Services and their messages */}
-                {domain.data.services?.slice(0, 2).map((service) => (
+                {domain.data.services?.slice(0, 2).map((service: any) => (
                   <div
                     key={service.data.id}
                     className="block space-y-2 bg-white border-2 border-dashed border-pink-400 p-4 rounded-lg transition-colors duration-200"
@@ -177,7 +134,7 @@ export default function DomainGrid({ domains }: DomainGridProps) {
                     <div className="flex items-center gap-4">
                       <div className="flex-1 h-full flex flex-col bg-blue-50  border border-blue-300 rounded-lg p-3">
                         <div className="space-y-1.5 flex-1">
-                          {service.data.receives?.slice(0, 3).map((message) => {
+                          {service.data.receives?.slice(0, 3).map((message: any) => {
                             const { Icon, color } = getCollectionStyles(message.collection);
                             return (
                               <div
@@ -222,7 +179,7 @@ export default function DomainGrid({ domains }: DomainGridProps) {
 
                       <div className="flex-1 h-full flex flex-col bg-green-100  border border-green-300 rounded-lg p-3">
                         <div className="space-y-1.5 flex-1">
-                          {service.data.sends?.slice(0, 3).map((message) => {
+                          {service.data.sends?.slice(0, 3).map((message: any) => {
                             const { Icon, color } = getCollectionStyles(message.collection);
                             return (
                               <div
