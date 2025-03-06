@@ -125,14 +125,12 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
           <div className="min-w-0 flex-1 max-w-lg">
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-                {urlParams?.domainId
-                  ? `Services in the ${urlParams.domainName} domain (${filteredAndSortedServices.length})`
-                  : 'All Services'}
+                {urlParams?.domainId ? `${urlParams.domainName} Architecture` : 'All Services'}
               </h1>
             </div>
             <p className="mt-2 text-sm text-gray-500">
               {urlParams?.domainId
-                ? `Browse services in the ${urlParams.domainId} domain`
+                ? `Browse services and messages in the ${urlParams.domainId} domain`
                 : 'Browse and discover services in your event-driven architecture'}
             </p>
           </div>
