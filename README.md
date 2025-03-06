@@ -1,6 +1,7 @@
 <div align="center">
 
 <h1>📖 EventCatalog</h1>
+<h3>The open source tool to help you discover and document your event-driven architectures</h3>
 
 [![MIT License][license-badge]][license]
 [![PRs Welcome][prs-badge]][prs]
@@ -30,7 +31,7 @@
 
 
 
-<h4>Features: Documentation generator for Event Driven Architectures, Integration with any broker, Docs and Code, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
+<h4>Features: Documentation for Event Driven Architectures, Integration with any broker, Generator from your OpenAPI and AsyncAPI documents, Docs and Code, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-49-orange.svg?style=flat-square)](#contributors-)
