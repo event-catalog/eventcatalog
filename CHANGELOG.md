@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.28.2
+
+### Patch Changes
+
+- 6bfab57: fix(core): fixed ui issues with architecture in docs
+
 ## 2.28.1
 
 ### Patch Changes
