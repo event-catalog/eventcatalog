@@ -22,3 +22,23 @@ export const buildUrl = (url: string, ignoreTrailingSlash = false) => {
 
   return cleanUrl(newUrl);
 };
+
+// Helper function to build URLs with query parameters
+export const buildUrlWithParams = (baseUrl: string, params: Record<string, string | undefined>) => {
+  // Filter out undefined values and empty strings
+  const validParams = Object.entries(params)
+    .filter(([_, value]) => value !== undefined && value !== '')
+    .reduce<Record<string, string>>((acc, [key, value]) => ({ ...acc, [key]: value as string }), {});
+
+  // If no valid params, just return the base URL
+  if (Object.keys(validParams).length === 0) {
+    return buildUrl(baseUrl);
+  }
+
+  // Build query string with encoded values
+  const queryString = Object.entries(validParams)
+    .map(([key, value]) => `${key}=${value}`)
+    .join('&');
+
+  return buildUrl(`${baseUrl}?${queryString}`);
+};

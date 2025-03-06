@@ -1,0 +1,88 @@
+---
+import { getDomains, getMessagesForDomain } from '@utils/collections/domains';
+import { getServices } from '@utils/collections/services';
+import { getMessages } from '@utils/messages';
+import type { ExtendedDomain } from '@components/Grids/DomainGrid';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import DomainGrid from '@components/Grids/DomainGrid';
+import ServiceGrid from '@components/Grids/ServiceGrid';
+import MessageGrid from '@components/Grids/MessageGrid';
+
+import type { CollectionEntry } from 'astro:content';
+import type { CollectionMessageTypes } from '@types';
+
+import { ClientRouter, fade } from 'astro:transitions';
+// Define valid types and their corresponding data fetchers
+const VALID_TYPES = ['domains', 'services', 'messages'] as const;
+type ValidType = (typeof VALID_TYPES)[number];
+
+interface Service extends CollectionEntry<'services'> {
+  sends: CollectionEntry<'events' | 'commands' | 'queries'>[];
+  receives: CollectionEntry<'events' | 'commands' | 'queries'>[];
+}
+
+export async function getStaticPaths() {
+  const VALID_TYPES = ['domains', 'services', 'messages'] as const;
+  return VALID_TYPES.map((type) => ({
+    params: { type },
+  }));
+}
+
+const { type } = Astro.params as { type: ValidType };
+
+// Get data based on type
+let items: ExtendedDomain[] | Service[] | CollectionEntry<'commands'>[] | CollectionEntry<CollectionMessageTypes>[] = [];
+
+if (type === 'domains') {
+  const domains = await getDomains({ getAllVersions: false });
+
+  // Get messages for each domain
+  items = await Promise.all(
+    domains.map(async (domain) => {
+      const messages = await getMessagesForDomain(domain);
+      // @ts-ignore we have to remove markdown information, as it's all send to the astro components. This reduced the page size.
+      return {
+        ...domain,
+        sends: messages.sends.map((s) => ({ ...s, body: undefined, catalog: undefined })),
+        receives: messages.receives.map((r) => ({ ...r, body: undefined, catalog: undefined })),
+        catalog: undefined,
+        body: undefined,
+      } as ExtendedDomain;
+    })
+  );
+} else if (type === 'services') {
+  const services = await getServices({ getAllVersions: false });
+  let filteredServices = services.map((s) => {
+    // @ts-ignore we have to remove markdown information, as it's all send to the astro components. This reduced the page size.
+    return {
+      ...s,
+      sends: (s.data.sends || []).map((s) => ({ ...s, body: undefined, catalog: undefined })),
+      receives: (s.data.receives || []).map((r) => ({ ...r, body: undefined, catalog: undefined })),
+      catalog: undefined,
+      body: undefined,
+    } as Service;
+  }) as unknown as Service[];
+  items = filteredServices;
+} else if (type === 'messages') {
+  const { events, commands, queries } = await getMessages({ getAllVersions: false });
+  const messages = [...events, ...commands, ...queries];
+  items = messages.map((m) => ({
+    ...m,
+    body: undefined,
+    catalog: undefined,
+  })) as unknown as CollectionEntry<CollectionMessageTypes>[];
+}
+---
+
+<VerticalSideBarLayout title={'EventCatalog'}>
+  <div class="bg-white min-h-screen">
+    <div class="max-w-[90em] mx-auto">
+      <div class="px-6 py-6" transition:animate={fade({ duration: '0.4s' })}>
+        {type === 'domains' && <DomainGrid domains={items as ExtendedDomain[]} client:load />}
+        {type === 'services' && <ServiceGrid services={items as unknown as Service[]} client:load />}
+        {type === 'messages' && <MessageGrid messages={items as CollectionEntry<CollectionMessageTypes>[]} client:load />}
+      </div>
+    </div>
+    <ClientRouter />
+  </div>
+</VerticalSideBarLayout>

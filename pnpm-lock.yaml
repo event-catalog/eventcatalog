@@ -35,6 +35,9 @@ importers:
       '@eventcatalog/generator-ai':
         specifier: ^0.1.5
         version: 0.1.5(@langchain/core@0.3.40(openai@4.85.4(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(openai@4.85.4(ws@8.18.0)(zod@3.24.1))(ws@8.18.0)
+      '@fontsource/inter':
+        specifier: ^5.2.5
+        version: 5.2.5
       '@headlessui/react':
         specifier: ^2.0.3
         version: 2.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -245,7 +248,7 @@ importers:
         version: 8.3.6(jiti@1.21.7)(postcss@8.5.1)(typescript@5.7.3)(yaml@2.7.0)
       vite-tsconfig-paths:
         specifier: ^4.3.2
-        version: 4.3.2(typescript@5.7.3)(vite@6.1.0(@types/node@20.17.17)(jiti@1.21.7)(yaml@2.7.0))
+        version: 4.3.2(typescript@5.7.3)(vite@6.2.0(@types/node@20.17.17)(jiti@1.21.7)(yaml@2.7.0))
       vitest:
         specifier: 2.1.6
         version: 2.1.6(@types/node@20.17.17)(jiti@1.21.7)(jsdom@26.0.0)(yaml@2.7.0)
@@ -934,6 +937,9 @@ packages:
 
   '@floating-ui/utils@0.2.9':
     resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
+
+  '@fontsource/inter@5.2.5':
+    resolution: {integrity: sha512-kbsPKj0S4p44JdYRFiW78Td8Ge2sBVxi/PIBwmih+RpSXUdvS9nbs1HIiuUSPtRMi14CqLEZ/fbk7dj7vni1Sg==}
 
   '@fortawesome/fontawesome-common-types@6.7.2':
     resolution: {integrity: sha512-Zs+YeHUC5fkt7Mg1l6XTniei3k4bwG/yo3iFUtZWd/pMx9g3fdvkSK9E0FOC+++phXOka78uJcYb8JaFkW52Xg==}
@@ -8353,6 +8359,8 @@ snapshots:
 
   '@floating-ui/utils@0.2.9': {}
 
+  '@fontsource/inter@5.2.5': {}
+
   '@fortawesome/fontawesome-common-types@6.7.2': {}
 
   '@fortawesome/fontawesome-svg-core@6.7.2':
@@ -15646,13 +15654,13 @@ snapshots:
       - tsx
       - yaml
 
-  vite-tsconfig-paths@4.3.2(typescript@5.7.3)(vite@6.1.0(@types/node@20.17.17)(jiti@1.21.7)(yaml@2.7.0)):
+  vite-tsconfig-paths@4.3.2(typescript@5.7.3)(vite@6.2.0(@types/node@20.17.17)(jiti@1.21.7)(yaml@2.7.0)):
     dependencies:
       debug: 4.4.0
       globrex: 0.1.2
       tsconfck: 3.1.5(typescript@5.7.3)
     optionalDependencies:
-      vite: 6.1.0(@types/node@20.17.17)(jiti@1.21.7)(yaml@2.7.0)
+      vite: 6.2.0(@types/node@20.17.17)(jiti@1.21.7)(yaml@2.7.0)
     transitivePeerDependencies:
       - supports-color
       - typescript
