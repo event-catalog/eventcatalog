@@ -21,13 +21,6 @@ interface Service extends CollectionEntry<'services'> {
   receives: CollectionEntry<'events' | 'commands' | 'queries'>[];
 }
 
-// export async function getStaticPaths() {
-//   const VALID_TYPES = ['domains', 'services', 'messages'] as const;
-//   return VALID_TYPES.map((type) => ({
-//     params: { type },
-//   }));
-// }
-
 const { type } = Astro.props as { type: ValidType };
 
 // Get data based on type

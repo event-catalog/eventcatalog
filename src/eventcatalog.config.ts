@@ -35,9 +35,6 @@ export interface Config {
   mdxOptimize?: boolean;
   docs: {
     sidebar: {
-      /**
-       * @default 'FLAT_VIEW'
-       */
       type?: 'FLAT_VIEW' | 'TREE_VIEW' | 'LIST_VIEW';
       showPageHeadings: true;
       services?: SideBarConfig;
