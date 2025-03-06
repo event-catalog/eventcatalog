@@ -9,6 +9,7 @@ import { SearchBar, TypeFilters, Pagination } from './components';
 
 interface MessageGridProps {
   messages: CollectionEntry<CollectionMessageTypes>[];
+  embeded: boolean;
 }
 
 interface GroupedMessages {
@@ -17,7 +18,7 @@ interface GroupedMessages {
   receives?: CollectionEntry<CollectionMessageTypes>[];
 }
 
-export default function MessageGrid({ messages }: MessageGridProps) {
+export default function MessageGrid({ messages, embeded }: MessageGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [urlParams, setUrlParams] = useState<{
     serviceId?: string;
@@ -171,20 +172,18 @@ export default function MessageGrid({ messages }: MessageGridProps) {
     >
       {messages.map((message) => {
         const { color, Icon } = getCollectionStyles(message.collection);
-        const hasProducers = message.data.producers && message.data.producers.length > 0;
-        const hasConsumers = message.data.consumers && message.data.consumers.length > 0;
         return (
           <a
             key={message.data.name}
             href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`)}
             className={`group bg-white border hover:bg-${color}-100  rounded-lg shadow-sm  hover:shadow-lg transition-all duration-200 overflow-hidden border-${color}-500 `}
           >
-            <div className="p-4 flex-1">
+            <div className="p-4 py-2 flex-1">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Icon className={`h-5 w-5 text-${color}-500`} />
+                  {!embeded && <Icon className={`h-5 w-5 text-${color}-500`} />}
                   <h3
-                    className={`text-md font-semibold text-gray-900 truncate group-hover:text-${color}-500 transition-colors duration-200`}
+                    className={`font-semibold text-gray-900 truncate group-hover:text-${color}-500 transition-colors duration-200 ${embeded ? 'text-sm' : 'text-md'}`}
                   >
                     {message.data.name} (v{message.data.version})
                   </h3>
@@ -377,7 +376,7 @@ export default function MessageGrid({ messages }: MessageGridProps) {
                   {/* Receives Section */}
                   <div className="bg-blue-50 bg-opacity-50 border border-blue-300 border-dashed rounded-lg p-4">
                     <div className="mb-6">
-                      <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                      <h2 className={`font-semibold text-gray-900 flex items-center gap-2 ${embeded ? 'text-sm' : 'text-xl'}`}>
                         <ServerIcon className="h-5 w-5 text-blue-500" />
                         Receives messages ({groupedMessages.receives?.length || 0})
                       </h2>
@@ -418,7 +417,7 @@ export default function MessageGrid({ messages }: MessageGridProps) {
                   {/* Sends Section */}
                   <div className="bg-green-50  border border-green-300 border-dashed rounded-lg p-4">
                     <div className="mb-6">
-                      <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                      <h2 className={`font-semibold text-gray-900 flex items-center gap-2 ${embeded ? 'text-sm' : 'text-xl'}`}>
                         <ServerIcon className="h-5 w-5 text-emerald-500" />
                         Sends messages ({groupedMessages.sends?.length || 0})
                       </h2>
