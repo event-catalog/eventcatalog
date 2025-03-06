@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 2.28.0
+
+### Minor Changes
+
+- 5bb6579: feat(core): new nav type and new ui features for docs
+
+### Patch Changes
+
+- dcd6274: chore(core): updated landing page
+
 ## 2.27.0
 
 ### Minor Changes
