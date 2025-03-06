@@ -32,7 +32,7 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'pnpm run preview -- --root examples/default --port 3000',
+    command: 'pnpm run preview --root examples/default --port 3000',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
   },
