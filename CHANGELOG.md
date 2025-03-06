@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 2.27.0
+
+### Minor Changes
+
+- e408977: feat: new architecture pages and initial landing page for EventCatalog
+
+### Patch Changes
+
+- 661eee9: chore(core): added missing tests for url builder
+
 ## 2.26.1
 
 ### Patch Changes
