@@ -21,7 +21,7 @@ interface Service extends CollectionEntry<'services'> {
   receives: CollectionEntry<'events' | 'commands' | 'queries'>[];
 }
 
-const { type } = Astro.props as { type: ValidType };
+const { type, embeded = false } = Astro.props as { type: ValidType; embeded: boolean };
 
 // Get data based on type
 let items: ExtendedDomain[] | Service[] | CollectionEntry<'commands'>[] | CollectionEntry<CollectionMessageTypes>[] = [];
@@ -71,9 +71,13 @@ if (type === 'domains') {
   <div class="bg-white min-h-screen">
     <div class="max-w-[90em] mx-auto">
       <div class="px-6 py-6" transition:animate={fade({ duration: '0.4s' })}>
-        {type === 'domains' && <DomainGrid domains={items as ExtendedDomain[]} client:load />}
-        {type === 'services' && <ServiceGrid services={items as unknown as Service[]} client:load />}
-        {type === 'messages' && <MessageGrid messages={items as CollectionEntry<CollectionMessageTypes>[]} client:load />}
+        {type === 'domains' && <DomainGrid domains={items as ExtendedDomain[]} embeded={embeded} client:load />}
+        {type === 'services' && <ServiceGrid services={items as unknown as Service[]} embeded={embeded} client:load />}
+        {
+          type === 'messages' && (
+            <MessageGrid messages={items as CollectionEntry<CollectionMessageTypes>[]} embeded={embeded} client:load />
+          )
+        }
       </div>
     </div>
     <ClientRouter />

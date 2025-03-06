@@ -9,9 +9,10 @@ import { SearchBar, TypeFilters, Pagination } from './components';
 
 interface ServiceGridProps {
   services: CollectionEntry<'services'>[];
+  embeded: boolean;
 }
 
-export default function ServiceGrid({ services }: ServiceGridProps) {
+export default function ServiceGrid({ services, embeded }: ServiceGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTypes, setSelectedTypes] = useState<CollectionMessageTypes[]>([]);
@@ -208,7 +209,7 @@ export default function ServiceGrid({ services }: ServiceGridProps) {
             </>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-6">
+          <div className={`grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-${embeded ? 1 : 2} gap-6`}>
             {paginatedServices.map((service) => {
               return (
                 <a

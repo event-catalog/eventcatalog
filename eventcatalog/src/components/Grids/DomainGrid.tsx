@@ -14,9 +14,10 @@ export interface ExtendedDomain extends CollectionEntry<'domains'> {
 
 interface DomainGridProps {
   domains: ExtendedDomain[];
+  embeded: boolean;
 }
 
-export default function DomainGrid({ domains }: DomainGridProps) {
+export default function DomainGrid({ domains, embeded }: DomainGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredDomains = useMemo(() => {
