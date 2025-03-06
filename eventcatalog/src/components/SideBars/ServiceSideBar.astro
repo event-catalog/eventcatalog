@@ -8,8 +8,10 @@ import { buildUrl } from '@utils/url-builder';
 import { getOwner } from '@utils/collections/owners';
 import type { CollectionEntry } from 'astro:content';
 import { ScrollText, Workflow, FileDownIcon, Code, Link, RssIcon } from 'lucide-react';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import config from '@config';
+import { existsSync } from 'node:fs';
+import { getAsset } from 'src/integrations/assets/get-asset';
 
 interface Props {
   service: CollectionEntry<'services'>;
@@ -58,10 +60,9 @@ const ownersList = filteredOwners.map((o) => ({
 
 const isRSSEnabled = config.rss?.enabled;
 
-// @ts-ignore
-const publicPath = service?.catalog?.publicPath;
 const schemaFilePath = service?.data?.schemaPath;
-const schemaURL = join(publicPath, schemaFilePath || '');
+const schema = schemaFilePath && getAsset(join(dirname(service.data.pathToFile!), schemaFilePath));
+const schemaURL = schema ? schema.getURL() : undefined;
 ---
 
 <aside class="sticky top-28 left-0 h-full overflow-y-auto pr-6 py-4">
@@ -115,7 +116,7 @@ const schemaURL = join(publicPath, schemaFilePath || '');
 
     <div class="space-y-2">
       {
-        service?.data?.schemaPath && (
+        schemaURL && (
           <a
             href={buildUrl(schemaURL, true)}
             download={`${service.data.name}(${service.data.version})-${schemaFilePath}`}

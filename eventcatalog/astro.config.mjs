@@ -7,6 +7,7 @@ import { mermaid } from "./src/remark-plugins/mermaid"
 import { join } from 'node:path';
 import remarkDirective from 'remark-directive';
 import { remarkDirectives } from "./src/remark-plugins/directives"
+import ecAssets from './src/integrations/assets/astro-integration-assets';
 
 import remarkComment from 'remark-comment'
 
@@ -53,6 +54,7 @@ export default defineConfig({
       gfm: true,
     }),
     pagefind(),
+    ecAssets(),
   ],
   vite: {
     define: {

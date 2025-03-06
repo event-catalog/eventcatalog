@@ -99,6 +99,7 @@
     "rimraf": "^5.0.7",
     "semver": "7.6.3",
     "shelljs": "^0.8.5",
+    "sirv": "^3.0.1",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.4.5",
     "unist-util-visit": "^5.0.0",

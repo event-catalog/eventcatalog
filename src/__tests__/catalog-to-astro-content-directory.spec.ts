@@ -56,16 +56,6 @@ describe('catalog-to-astro-content-directory', () => {
           true
         );
       });
-
-      it('when an event has a schema file along side it, that is copied to the correct location', async () => {
-        expect(existsSync(path.join(CATALOG_FILES_DIR, 'events', 'Order/OrderAmended', 'schema.json'))).toBe(true);
-      });
-
-      it('when an event has been versioned and that version has a schema file along side it, that is copied to the correct location', async () => {
-        expect(
-          existsSync(path.join(CATALOG_FILES_DIR, 'events', 'Inventory/InventoryAdjusted', 'versioned', '0.0.1', 'schema.avro'))
-        ).toBe(true);
-      });
     });
 
     describe('events within the /services directory', () => {
@@ -78,19 +68,11 @@ describe('catalog-to-astro-content-directory', () => {
           existsSync(path.join(ASTRO_CONTENT_DIRECTORY, 'events', 'PaymentAccepted', 'versioned', '0.0.1', 'index.mdx'))
         ).toBe(true);
       });
-
-      it('when an event has a schema file along side it, that is copied to the correct location', async () => {
-        expect(existsSync(path.join(CATALOG_FILES_DIR, 'events', 'PaymentAccepted', 'schema.json'))).toBe(true);
-      });
     });
 
     describe('events within the /domain directory', () => {
       it('when an event is inside a domain folder it copies the event into the correct location', async () => {
         expect(existsSync(path.join(ASTRO_CONTENT_DIRECTORY, 'events', 'PaymentDomainTestEvent1', 'index.mdx'))).toBe(true);
-      });
-
-      it('when an event has a schema file along side it, that is copied to the correct location', async () => {
-        expect(existsSync(path.join(CATALOG_FILES_DIR, 'events', 'PaymentDomainTestEvent1', 'schema.json'))).toBe(true);
       });
     });
   });
@@ -104,16 +86,6 @@ describe('catalog-to-astro-content-directory', () => {
         expect(
           existsSync(path.join(ASTRO_CONTENT_DIRECTORY, 'commands', 'AddInventory', 'versioned', '0.0.1', 'index.mdx'))
         ).toBe(true);
-      });
-
-      it('when an command has a schema file along side it, that is copied to the correct location', async () => {
-        expect(existsSync(path.join(CATALOG_FILES_DIR, 'commands', 'AddInventory', 'schema.json'))).toBe(true);
-      });
-
-      it('when an command has been versioned and that version has a schema file along side it, that is copied to the correct location', async () => {
-        expect(existsSync(path.join(CATALOG_FILES_DIR, 'commands', 'AddInventory', 'versioned', '0.0.1', 'schema.json'))).toBe(
-          true
-        );
       });
     });
   });
@@ -129,10 +101,6 @@ describe('catalog-to-astro-content-directory', () => {
           existsSync(path.join(ASTRO_CONTENT_DIRECTORY, 'services', 'PaymentService', 'versioned', '0.0.1', 'index.mdx'))
         ).toBe(true);
       });
-
-      it('when a service has a file within its directory (not markdown file, e.g AsyncAPI), it copies this version into the correct location', async () => {
-        expect(existsSync(path.join(CATALOG_FILES_DIR, 'services', 'PaymentService', 'asyncapi.yml'))).toBe(true);
-      });
     });
     describe('services within the /domains directory', () => {
       it('takes services from the users catalog (which are in a domains folder) and puts it into the expected directory structure', async () => {
@@ -143,10 +111,6 @@ describe('catalog-to-astro-content-directory', () => {
         expect(
           existsSync(path.join(ASTRO_CONTENT_DIRECTORY, 'services', 'ExternalPaymentService', 'versioned', '0.0.1', 'index.mdx'))
         ).toBe(true);
-      });
-
-      it('when a service has a file within its directory (not markdown file, e.g AsyncAPI), it copies this version into the correct location', async () => {
-        expect(existsSync(path.join(CATALOG_FILES_DIR, 'services', 'ExternalPaymentService', 'asyncapi.yml'))).toBe(true);
       });
     });
   });
@@ -161,10 +125,6 @@ describe('catalog-to-astro-content-directory', () => {
         expect(existsSync(path.join(ASTRO_CONTENT_DIRECTORY, 'domains', 'Payment', 'versioned', '0.0.1', 'index.mdx'))).toBe(
           true
         );
-      });
-
-      it('when a domain has a file within its directory (not markdown file, e.g AsyncAPI), it copies this version into the correct location', async () => {
-        expect(existsSync(path.join(CATALOG_FILES_DIR, 'domains', 'Payment', 'asyncapi.yml'))).toBe(true);
       });
     });
 

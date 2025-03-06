@@ -15,6 +15,7 @@ import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import type { CollectionEntry } from 'astro:content';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import Config from '@utils/eventcatalog-config/catalog';
+import { getAsset } from 'src/integrations/assets/get-asset';
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];
@@ -38,16 +39,15 @@ export async function getStaticPaths() {
   );
 }
 
-// @ts-ignore
-const { catalog, data } = Astro.props;
+const { data } = Astro.props;
 const fileName = data.specifications?.asyncapiPath || 'asyncapi.yaml';
-const pathToSpec = path.join(catalog.publicPath, fileName);
-const pathOnDisk = path.join(process.cwd(), 'public', pathToSpec);
-const fileContent = readFileSync(pathOnDisk, 'utf-8');
+const pathOnDisk = path.join(path.dirname(data.pathToFile!), fileName);
+const spec = getAsset(pathOnDisk);
+const fileContent = spec ? await spec.getContents() : undefined;
 
 // AsyncAPI parser will parser schemas for users, they can turn this off.
 const parseSchemas = Config?.asyncAPI?.renderParsedSchemas ?? true;
-const parsed = await new Parser({ schemaParsers: [AvroSchemaParser()] }).parse(fileContent, { parseSchemas });
+const parsed = await new Parser({ schemaParsers: [AvroSchemaParser()] }).parse(fileContent!, { parseSchemas });
 const stringified = parsed.document?.json();
 const config: ConfigInterface = { show: { sidebar: true, errors: true } };
 
