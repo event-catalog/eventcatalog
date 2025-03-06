@@ -7,11 +7,9 @@ owners:
   - full-stack
 services:
   - id: InventoryService
-    version: 0.0.2
   - id: NotificationService
-    version: 0.0.2
   - id: OrdersService
-    version: 0.0.3
+  - id: ShippingService
 badges:
   - content: New domain
     backgroundColor: blue

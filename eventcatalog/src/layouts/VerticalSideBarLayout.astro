@@ -5,7 +5,7 @@ interface Props {
   description?: string;
 }
 
-import { BookOpenText, Workflow, TableProperties, House, BookUser, MessageSquare, BotMessageSquare } from 'lucide-react';
+import { BookOpenText, Workflow, TableProperties, House, BookUser, MessageSquare, BotMessageSquare, Users } from 'lucide-react';
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
@@ -87,8 +87,8 @@ const navigationItems = [
   },
   {
     id: '/directory',
-    label: 'Directory',
-    icon: BookUser,
+    label: 'Users & Teams',
+    icon: Users,
     href: buildUrl('/directory/users'),
     current: currentPath.includes('/directory'),
     sidebar: false,
