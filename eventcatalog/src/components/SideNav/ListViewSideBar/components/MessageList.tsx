@@ -1,13 +1,12 @@
 import React from 'react';
 import { getMessageColorByCollection, getMessageCollectionName } from '../index';
-
 interface MessageListProps {
   messages: any[];
   decodedCurrentPath: string;
 }
 
 const MessageList: React.FC<MessageListProps> = ({ messages, decodedCurrentPath }) => (
-  <ul className="space-y-0 border-l border-gray-200/80 ml-[9px] pl-4">
+  <ul className="space-y-0.5 border-l border-gray-200/80 ml-[9px] pl-4">
     {messages.map((message: any) => (
       <li key={message.id} data-active={decodedCurrentPath === message.href}>
         <a
@@ -18,7 +17,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, decodedCurrentPath 
         >
           <span className="truncate">{message.data.name}</span>
           <span
-            className={`ml-2 text-[10px] font-medium px-2 uppercase py-0.5 rounded ${getMessageColorByCollection(message.collection)}`}
+            className={`ml-2 text-[10px] flex items-center gap-1 font-medium px-2 uppercase py-0.5 rounded ${getMessageColorByCollection(message.collection)}`}
           >
             {getMessageCollectionName(message.collection)}
           </span>

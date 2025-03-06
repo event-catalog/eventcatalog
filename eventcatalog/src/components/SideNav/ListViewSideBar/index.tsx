@@ -63,7 +63,7 @@ const ServiceItem = React.memo(
         </button>
       }
     >
-      <div className="space-y-0 border-gray-200/80 border-l pl-3 ml-[9px] mt-1">
+      <div className="space-y-0.5 border-gray-200/80 border-l pl-3 ml-[9px] mt-1">
         <a
           href={`${item.href}`}
           className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
@@ -139,9 +139,8 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
     return {};
   });
 
-  const decodedCurrentPath = decodeURIComponent(currentPath);
+  const decodedCurrentPath = window.location.pathname;
 
-  // Debounce search term updates
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm.toLowerCase());
@@ -282,7 +281,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                           collapsedGroups[item.href] ? 'h-0' : 'h-auto'
                         }`}
                       >
-                        <div className="space-y-0 border-gray-200/80 border-l pl-4 ml-[9px] mt-1">
+                        <div className="space-y-0.5 border-gray-200/80 border-l pl-4 ml-[9px] mt-1">
                           <a
                             href={`${item.href}`}
                             className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
