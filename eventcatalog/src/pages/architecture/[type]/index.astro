@@ -8,7 +8,7 @@ export async function getStaticPaths() {
   }));
 }
 
-const { type } = Astro.params as { type: ValidType };
+const { type } = Astro.params;
 ---
 
 <Architecture type={type} />

@@ -4,8 +4,8 @@ import config from '@config';
 
 // FlatView
 import CatalogResourcesSideBar from './CatalogResourcesSideBar';
-import { getCatalogResources } from './CatalogResourcesSideBar/getCatalogResources';
-import { getCatalogResources as getListViewResources } from './ListViewSideBar/get-resources';
+import { getResourcesForNavigation as getCatalogResources } from './CatalogResourcesSideBar/utils';
+import { getResourcesForNavigation as getListViewResources } from './ListViewSideBar/utils';
 
 // TreeView
 import { SideNavTreeView } from './TreeView';
@@ -31,7 +31,7 @@ if (SIDENAV_TYPE === 'FLAT_VIEW') {
 ---
 
 <div {...Astro.props}>
-  {SIDENAV_TYPE === 'LIST_VIEW' && <ListViewSideBar resources={props} currentPath={currentPath} client:load />}
+  {SIDENAV_TYPE === 'LIST_VIEW' && <ListViewSideBar resources={props} currentPath={currentPath} client:only />}
   {SIDENAV_TYPE === 'FLAT_VIEW' && <CatalogResourcesSideBar resources={props} currentPath={currentPath} client:load />}
   {SIDENAV_TYPE === 'TREE_VIEW' && <SideNavTreeView client:only transition:persist tree={props} />}
 </div>
