@@ -24,7 +24,8 @@
 
 <!-- <hr /> -->
 
-<img width="745" alt="Screenshot 2024-12-13 at 09 56 05" src="https://github.com/user-attachments/assets/f537ec1f-54ee-4de1-996c-c6b72191be39" />
+<!-- <img width="745" alt="Screenshot 2024-12-13 at 09 56 05" src="https://github.com/user-attachments/assets/f537ec1f-54ee-4de1-996c-c6b72191be39" /> -->
+<img width="745" alt="EventCatalog" src="./images/example.png" />
 
 
 
@@ -35,7 +36,7 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-49-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-[Read the Docs](https://www.eventcatalog.dev/product/documentation) | [View Demo](https://demo.eventcatalog.dev/docs)
+[Read the Docs](https://www.eventcatalog.dev/docs/development/getting-started/introduction) | [View Demo](https://demo.eventcatalog.dev)
 
 </div>
 
@@ -45,7 +46,7 @@
 
 - 📃 Document domains, services and messages ([demo](https://demo.eventcatalog.dev/docs))
 - 📊 Visualise your architecture ([demo](https://demo.eventcatalog.dev/visualiser/domains/Orders))
-- ⭐ Supports any Schema format (e.g Avro, JSON) ([demo](https://demo.eventcatalog.dev/docs/events/InventoryAdjusted/0.0.4))
+- ⭐ Supports any Schema format (e.g Avro, JSON) ([demo](https://demo.eventcatalog.dev/docs/events/OrderConfirmed/0.0.1))
 - 🗂️ Document any code examples (Any code snippet)
 - 💅 Custom MDX components ([read more](https://eventcatalog.dev/docs/development/components/using-components))
 - 🗄️ Version domains, services and messages
