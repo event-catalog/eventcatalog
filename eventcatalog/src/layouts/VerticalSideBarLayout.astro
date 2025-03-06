@@ -9,7 +9,7 @@ import { BookOpenText, Workflow, TableProperties, House, BookUser, MessageSquare
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
-import '@fontsource/inter';
+// import '@fontsource/inter';
 
 import { getCommands } from '@utils/commands';
 import { getDomains } from '@utils/collections/domains';
@@ -52,6 +52,8 @@ const getDefaultUrl = (route: string, defaultValue: string) => {
   return buildUrl(defaultValue);
 };
 
+console.log('currentPath', currentPath);
+
 const navigationItems = [
   {
     id: '/',
@@ -66,7 +68,7 @@ const navigationItems = [
     label: 'Documentation',
     icon: BookOpenText,
     href: catalogHasDefaultLandingPageForDocs ? buildUrl('/docs') : getDefaultUrl('docs', '/docs'),
-    current: currentPath.includes('/docs'),
+    current: currentPath.includes('/docs') || currentPath.includes('/architecture/docs/'),
     sidebar: true,
   },
   {
@@ -98,7 +100,7 @@ const navigationItems = [
     label: 'Architecture',
     icon: BookUser,
     href: buildUrl('/architecture/domains'),
-    current: currentPath.includes('/architecture'),
+    current: currentPath.includes('/architecture/'),
     sidebar: false,
     hidden: true,
   },
@@ -175,7 +177,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
 
         <SideNav
           id="sidebar"
-          class={`sidebar-transition h-content  overflow-y-auto bg-white  border-r border-gray-100 w-60 ml-16 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
+          class={`sidebar-transition h-content  overflow-y-auto bg-white  border-r border-gray-100 w-80 ml-16 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
         />
       </aside>
       <main

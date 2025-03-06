@@ -38,7 +38,7 @@ export interface Config {
       /**
        * @default 'FLAT_VIEW'
        */
-      type?: 'FLAT_VIEW' | 'TREE_VIEW';
+      type?: 'FLAT_VIEW' | 'TREE_VIEW' | 'LIST_VIEW';
       showPageHeadings: true;
       services?: SideBarConfig;
       messages?: SideBarConfig;

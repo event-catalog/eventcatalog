@@ -14,11 +14,6 @@ export default {
   },
   base: '/',
   trailingSlash: false,
-  docs: {
-    sidebar: {
-      type: 'TREE_VIEW'
-    },
-  },
   mermaid: {
     iconPacks: ['logos'],
   },

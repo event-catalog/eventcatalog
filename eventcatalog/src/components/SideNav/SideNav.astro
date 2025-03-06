@@ -5,10 +5,13 @@ import config from '@config';
 // FlatView
 import CatalogResourcesSideBar from './CatalogResourcesSideBar';
 import { getCatalogResources } from './CatalogResourcesSideBar/getCatalogResources';
+import { getCatalogResources as getListViewResources } from './ListViewSideBar/get-resources';
 
 // TreeView
 import { SideNavTreeView } from './TreeView';
 import { getTreeView } from './TreeView/getTreeView';
+
+import ListViewSideBar from './ListViewSideBar';
 
 interface Props extends Omit<HTMLAttributes<'div'>, 'children'> {}
 
@@ -16,16 +19,19 @@ const currentPath = Astro.url.pathname;
 
 let props;
 
-const SIDENAV_TYPE = config?.docs?.sidebar?.type ?? 'FLAT_VIEW';
+const SIDENAV_TYPE = config?.docs?.sidebar?.type ?? 'LIST_VIEW';
 
 if (SIDENAV_TYPE === 'FLAT_VIEW') {
   props = await getCatalogResources({ currentPath });
 } else if (SIDENAV_TYPE === 'TREE_VIEW') {
   props = getTreeView({ projectDir: process.env.PROJECT_DIR!, currentPath });
+} else if (SIDENAV_TYPE === 'LIST_VIEW') {
+  props = await getListViewResources({ currentPath });
 }
 ---
 
 <div {...Astro.props}>
+  {SIDENAV_TYPE === 'LIST_VIEW' && <ListViewSideBar resources={props} currentPath={currentPath} client:load />}
   {SIDENAV_TYPE === 'FLAT_VIEW' && <CatalogResourcesSideBar resources={props} currentPath={currentPath} client:load />}
   {SIDENAV_TYPE === 'TREE_VIEW' && <SideNavTreeView client:only transition:persist tree={props} />}
 </div>
