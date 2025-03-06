@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "ShipmentCreated",
+  "description": "Schema for shipment created event",
+  "properties": {
+    "shipmentId": {
+      "type": "string",
+      "description": "Unique identifier for the shipment"
+    },
+    "orderId": {
+      "type": "string",
+      "description": "Identifier for the associated order"
+    },
+    "address": {
+      "type": "object",
+      "properties": {
+        "street": {
+          "type": "string",
+          "description": "Street address for the shipment"
+        },
+        "city": {
+          "type": "string",
+          "description": "City for the shipment"
+        },
+        "state": {
+          "type": "string",
+          "description": "State for the shipment"
+        },
+        "postalCode": {
+          "type": "string",
+          "description": "Postal code for the shipment"
+        },
+        "country": {
+          "type": "string",
+          "description": "Country for the shipment"
+        }
+      },
+      "required": ["street", "city", "state", "postalCode", "country"]
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "description": "Identifier for the item"
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "Quantity of the item"
+          }
+        },
+        "required": ["itemId", "quantity"]
+      }
+    },
+    "shippingMethod": {
+      "type": "string",
+      "description": "Method of shipping (e.g., standard, express)"
+    }
+  },
+  "required": ["shipmentId", "orderId", "address", "items", "shippingMethod"]
+}
+

@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "title": "CreateReturnLabel",
+    "description": "Schema for creating a return shipping label",
+    "properties": {
+        "CreateReturnLabel": {
+            "type": "object",
+            "properties": {
+                "shipmentId": {
+                    "type": "string",
+                    "description": "Unique identifier for the shipment"
+                }
+            },
+            "required": ["shipmentId"]
+        }
+    },
+    "required": ["CreateReturnLabel"]
+}
