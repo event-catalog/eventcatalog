@@ -78,6 +78,13 @@ describe('url-builder', () => {
       expect(url).toBe('example.com?key=value');
     });
 
+    it('should handle trailing slash when enabled', () => {
+      // @ts-ignore
+      global.__EC_TRAILING_SLASH__ = true;
+      const url = buildUrlWithParams('example.com', { key: 'value' });
+      expect(url).toBe('example.com/?key=value');
+    });
+
     it('should build url with multiple query parameters', () => {
       const url = buildUrlWithParams('example.com', {
         key1: 'value1',
