@@ -15,8 +15,13 @@ export interface ServiceItem {
   label: string;
   name: string;
   id: string;
+  version: string;
   sends: MessageItem[];
   receives: MessageItem[];
+  specifications?: {
+    asyncapiPath: string;
+    openapiPath: string;
+  };
 }
 
 interface DomainItem {

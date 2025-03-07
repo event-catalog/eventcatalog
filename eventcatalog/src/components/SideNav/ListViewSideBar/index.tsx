@@ -81,9 +81,38 @@ const ServiceItem = React.memo(
             window.location.href.includes(`serviceId=${item.id}`) ? 'bg-purple-100' : 'hover:bg-purple-100'
           }`}
         >
-          <span className="truncate">Architecture</span>
+          <span className="truncate flex items-center gap-1">Architecture</span>
         </a>
-
+        {item.specifications && item.specifications.asyncapiPath && (
+          <a
+            href={buildUrl(`/docs/services/${item.id}/${item.version}/asyncapi`)}
+            className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md flex justify-between ${
+              window.location.href.includes(`docs/services/${item.id}/${item.version}/asyncapi`)
+                ? 'bg-purple-100'
+                : 'hover:bg-purple-100'
+            }`}
+          >
+            <span className="truncate flex items-center gap-1">AsyncAPI specification</span>
+            <span className="text-purple-600 ml-2 text-[10px] uppercase font-medium bg-gray-50 px-4 py-0.5 rounded">
+              <img src="/icons/asyncapi.svg" className="w-4 h-4" />
+            </span>
+          </a>
+        )}
+        {item.specifications && item.specifications.openapiPath && (
+          <a
+            href={buildUrl(`/docs/services/${item.id}/${item.version}/spec`)}
+            className={`items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md flex justify-between ${
+              window.location.href.includes(`docs/services/${item.id}/${item.version}/spec`)
+                ? 'bg-purple-100'
+                : 'hover:bg-purple-100'
+            }`}
+          >
+            <span className="truncate flex items-center gap-1">OpenAPI specification</span>
+            <span className="text-green-600 ml-2 text-[10px] uppercase font-medium bg-gray-50 px-4 py-0.5 rounded">
+              <img src="/icons/openapi.svg" className="w-4 h-4" />
+            </span>
+          </a>
+        )}
         <CollapsibleGroup
           isCollapsed={collapsedGroups[`${item.href}-receives`]}
           onToggle={() => toggleGroupCollapse(`${item.href}-receives`)}

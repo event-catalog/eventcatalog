@@ -67,6 +67,7 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
       services: item.collection === 'domains' ? item.data.services : null,
       sends: sendsWithHref,
       receives: receivesWithHref,
+      specifications: item.collection === 'services' ? item.data.specifications : null,
     };
 
     group.push(navigationItem);

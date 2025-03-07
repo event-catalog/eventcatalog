@@ -1,3 +1,7 @@
-#nav-bar-search{
+#nav-bar-search {
     margin: 0 10px;
+}
+
+.scalar-card-header[data-v-838dc259] {
+    display: none !important;
 }
