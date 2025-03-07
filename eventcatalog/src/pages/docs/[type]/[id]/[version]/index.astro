@@ -197,8 +197,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
           <Content components={components(props)} />
         </div>
         <div>
-          <!-- @ts-ignore -->
-          <SchemaViewer id={props.data.id} catalog={props.catalog} />
+          <SchemaViewer id={props.data.id} filePath={props.data.pathToFile!} />
           <NodeGraph
             id={props.data.id}
             collection={props.collection}

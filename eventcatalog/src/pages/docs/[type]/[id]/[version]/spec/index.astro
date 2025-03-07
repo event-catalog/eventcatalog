@@ -9,6 +9,7 @@ import { buildUrl } from '@utils/url-builder';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import './_styles.css';
+import { getAsset } from 'src/integrations/assets/get-asset';
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];
@@ -33,27 +34,25 @@ export async function getStaticPaths() {
   );
 }
 
-// @ts-ignore
-const { data, catalog } = Astro.props;
+const { data } = Astro.props;
 const fileName = data.specifications?.openapiPath || 'openapi.yml';
-const pathToSpec = path.join(catalog.publicPath, fileName);
-const pathOnDisk = path.join(process.cwd(), 'public', pathToSpec);
-const fileExists = fs.existsSync(pathOnDisk);
+const pathOnDisk = path.join(path.dirname(data.pathToFile!), fileName);
+const spec = getAsset(pathOnDisk);
 ---
 
 <VerticalSideBarLayout title="OpenAPI Spec">
   {
-    !fileExists ? (
+    !spec ? (
       <div class="text-center h-screen  flex flex-col justify-center ">
         <DocumentMinusIcon className="mx-auto h-12 w-12 text-gray-400" />
         <h3 class="mt-2 text-sm font-semibold text-gray-900">No OpenAPI spec file found</h3>
         <p class="mt-1 text-xs text-gray-400">
-          Could not find OpenAPI file for {data.name} in {`/${catalog.path}`}
+          Could not find OpenAPI file for {data.name} in {path.dirname(pathOnDisk)}
         </p>
       </div>
     ) : (
       <rapi-doc
-        spec-url={buildUrl(pathToSpec, true)}
+        spec-url={buildUrl(spec.getURL(), true)}
         render-style="read"
         show-header="false"
         allow-authentication="true"

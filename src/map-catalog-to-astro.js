@@ -116,34 +116,8 @@ function getBaseTargetPaths(filePath) {
       return [path.join('src', 'content')];
     }
 
-    // This is a workaround to differentiate between a file and a directory.
-    // Of course this is not the best solution. But how differentiate? `fs.stats`
-    // could be used, but sometimes the filePath references a deleted file/directory
-    // which causes an error when using `fs.stats`.
-    const hasExtension = (str) => /\.[a-zA-Z0-9]{2,}$/.test(str);
-
-    // Assets files
-    if (hasExtension(filePath)) {
-      return [path.join('public', 'generated'), path.join('src', 'catalog-files')];
-    }
-
-    /**
-     * @parcel/watcher throttle and coalesce events for performance reasons.
-     *
-     * Consider the following:
-     *    The user deletes a large `services/` dir from eventcatalog.
-     *    The @parcel/watcher could emit only one delete event of the
-     *    `services/` directory.
-     *
-     * In this situation we need delete all files from
-     * - `public/generated/services/`
-     * - `src/catalog-files/services/`
-     * - `src/content/services/`
-     *
-     * TODO: What happens if services contains commands/events inside of it??? How handle this?
-     */
-    // Directories
-    return [path.join('public', 'generated'), path.join('src', 'catalog-files'), path.join('src', 'content')];
+    // It should not be mapped to an astro file. Just return an empty array.
+    return [];
   }
 
   // Custom components
