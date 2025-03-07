@@ -9,7 +9,9 @@ import { BookOpenText, Workflow, TableProperties, House, BookUser, MessageSquare
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
-// import '@fontsource/inter';
+import '@fontsource/inter';
+import '@fontsource/inter/400.css'; // Specify weight
+import '@fontsource/inter/700.css'; // Specify weight
 
 import { getCommands } from '@utils/commands';
 import { getDomains } from '@utils/collections/domains';
@@ -251,7 +253,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
     const currentPath = window.location.href;
 
     // Hide the sidebar if the current navigation item is not a sidebar item
-    if (!currentNavigationItem.sidebar || currentPath.includes('asyncapi') || currentPath.includes('/spec')) {
+    if (!currentNavigationItem.sidebar) {
       sidebar.style.display = 'none';
       content.style.width = '100%';
       content.classList.add('ml-16');

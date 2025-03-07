@@ -2,6 +2,7 @@
 import type { CollectionEntry } from 'astro:content';
 import * as path from 'path';
 import fs from 'node:fs';
+import OpenAPISpec from './OpenAPI.tsx';
 
 import type { CollectionTypes, PageTypes } from '@types';
 import { DocumentMinusIcon } from '@heroicons/react/24/outline';
@@ -52,86 +53,9 @@ const fileExists = fs.existsSync(pathOnDisk);
         </p>
       </div>
     ) : (
-      <rapi-doc
-        spec-url={buildUrl(pathToSpec, true)}
-        render-style="read"
-        show-header="false"
-        allow-authentication="true"
-        allow-try="true"
-        default-schema-tab="schema"
-        use-path-in-nav-bar="true"
-        show-method-in-nav-bar="as-colored-block"
-        theme="light"
-        schema-style="table"
-        class="relative top-0"
-        style={{ height: '100%', width: '100%', zIndex: 100 }}
-        regular-font="ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji"
-        bg-color="#ffffff"
-        primary-color="#6b21a8"
-        nav-bg-color="#fff"
-        nav-text-color=""
-        nav-hover-bg-color="#fff"
-        nav-hover-text-color="#6b21a8"
-        nav-accent-color=""
-      />
+      <div>
+        <OpenAPISpec client:only="react" spec={buildUrl(pathToSpec, true)} />
+      </div>
     )
   }
 </VerticalSideBarLayout>
-
-<script>
-  // @ts-ignore
-  await import('rapidoc');
-</script>
-
-<style>
-  rapi-doc::part(section-servers) {
-    /* <<< targets the server div */
-    /* background: #6b5b95; */
-    border: 2px solid #f1edff;
-    color: black;
-    margin: 0 24px 0 24px;
-    border-radius: 5px;
-  }
-  rapi-doc::part(label-selected-server) {
-    /* <<< targets selected server label */
-    color: black;
-  }
-
-  rapi-doc::part(section-navbar-search) {
-    margin: 0 10px;
-    padding: 0;
-    margin-bottom: 1em;
-  }
-  rapi-doc::part(section-navbar) {
-    margin: 0;
-    padding: 10px important;
-    margin-bottom: 1em;
-    background-image: linear-gradient(to bottom, rgb(255, 255, 255), rgb(243, 244, 246));
-    border-right-width: 1px;
-    border-right-color: rgb(229, 231, 235);
-  }
-  rapi-doc::part(section-overview) {
-    margin: 0 2em 0 2em;
-    padding: 1em 0 1em;
-  }
-  rapi-doc::part(section-auth) {
-    margin: 2em 2em;
-    padding: 0;
-  }
-  rapi-doc::part(section-tag) {
-    margin: 2em 2em;
-    padding: 0;
-  }
-  rapi-doc::part(section-tag-title) {
-    margin: 0.5em 0 0;
-    padding: 0;
-  }
-  rapi-doc::part(section-operations-in-tag) {
-    margin: 1em 2em;
-    padding: 0;
-  }
-  rapi-doc::part(section-navbar) {
-    border-right: 1px solid #f1edff;
-    padding: 1em 1em 0 0;
-  }
-</style>
