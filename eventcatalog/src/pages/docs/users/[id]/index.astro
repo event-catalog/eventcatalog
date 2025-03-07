@@ -86,7 +86,7 @@ const associatedTeams = teams.map((o) => ({
                 {
                   props.data.slackDirectMessageUrl && (
                     <div class="flex space-x-1 items-center text-xs text-gray-500 font-bold hover:underline hover:text-primary">
-                      <img src="/slack-icon.svg" class="w-4 h-3" />
+                      <img src={buildUrl("/slack-icon.svg", true)} class="w-4 h-3" />
                       <a href={`${props.data.slackDirectMessageUrl}`}>Send DM on Slack</a>
                     </div>
                   )
@@ -94,7 +94,7 @@ const associatedTeams = teams.map((o) => ({
                 {
                   props.data.msTeamsDirectMessageUrl && (
                     <div class="flex space-x-1 items-center text-xs text-gray-500 font-bold hover:underline hover:text-primary">
-                      <img src="/icons/ms-teams.svg" class="w-4 h-4" />
+                      <img src={buildUrl("/icons/ms-teams.svg", true)} class="w-4 h-4" />
                       <a href={`${props.data.msTeamsDirectMessageUrl}`} target="_blank" rel="noopener noreferrer">
                         Send DM on Teams
                       </a>
