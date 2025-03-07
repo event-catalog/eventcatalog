@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.28.3
+
+### Patch Changes
+
+- 14c748c: fix(core): fixed broken architecture pages when the trailing slash feature was enabled
+
 ## 2.28.2
 
 ### Patch Changes
