@@ -40,5 +40,5 @@ export const buildUrlWithParams = (baseUrl: string, params: Record<string, strin
     .map(([key, value]) => `${key}=${value}`)
     .join('&');
 
-  return buildUrl(`${baseUrl}?${queryString}`);
+  return `${buildUrl(baseUrl)}?${queryString}`;
 };
