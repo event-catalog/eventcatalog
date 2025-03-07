@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.29.0
+
+### Minor Changes
+
+- 238db19: feat(core): replaced openapi renderer with new UI
+
 ## 2.28.3
 
 ### Patch Changes
