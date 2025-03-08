@@ -94,7 +94,7 @@ const ServiceItem = React.memo(
           >
             <span className="truncate flex items-center gap-1">AsyncAPI specification</span>
             <span className="text-purple-600 ml-2 text-[10px] uppercase font-medium bg-gray-50 px-4 py-0.5 rounded">
-              <img src="/icons/asyncapi.svg" className="w-4 h-4" />
+              <img src={buildUrl('/icons/asyncapi.svg', true)} className="w-4 h-4" />
             </span>
           </a>
         )}
@@ -109,7 +109,7 @@ const ServiceItem = React.memo(
           >
             <span className="truncate flex items-center gap-1">OpenAPI specification</span>
             <span className="text-green-600 ml-2 text-[10px] uppercase font-medium bg-gray-50 px-4 py-0.5 rounded">
-              <img src="/icons/openapi.svg" className="w-4 h-4" />
+              <img src={buildUrl('/icons/openapi.svg', true)} className="w-4 h-4" />
             </span>
           </a>
         )}
