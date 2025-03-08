@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.29.1
+
+### Patch Changes
+
+- 9c94fdf: fix(core): fixed icon images which were broken when a base path was used
+
 ## 2.29.0
 
 ### Minor Changes
