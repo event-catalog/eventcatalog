@@ -3,14 +3,14 @@ const cleanUrl = (url: string) => {
 };
 
 // Custom URL builder as Astro does not support this stuff out the box
-export const buildUrl = (url: string, ignoreTrailingSlash = false) => {
+export const buildUrl = (url: string, ignoreTrailingSlash = false, urlAlreadyIncludesBaseUrl = false) => {
   // Should a trailingSlash be added to urls?
   const trailingSlash = __EC_TRAILING_SLASH__;
 
   let newUrl = url;
 
   // If the base URL is not the root, we need to append it
-  if (import.meta.env.BASE_URL !== '/') {
+  if (import.meta.env.BASE_URL !== '/' && !urlAlreadyIncludesBaseUrl) {
     newUrl = `${import.meta.env.BASE_URL}${url}`;
   }
 
