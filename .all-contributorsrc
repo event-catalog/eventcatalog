@@ -464,6 +464,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "WellingR",
+      "name": "Ruud Welling",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4014179?v=4",
+      "profile": "https://www.linkedin.com/in/ruudwelling/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
