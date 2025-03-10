@@ -2,7 +2,6 @@ import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { BookOpen, Send } from 'lucide-react';
 import { CreateWebWorkerMLCEngine, type InitProgressReport } from '@mlc-ai/web-llm';
 import { useChat, type Message } from './hooks/ChatProvider';
-import config from '@config';
 import React from 'react';
 
 // Update Message type to include resources
@@ -102,7 +101,17 @@ const ChatMessage = React.memo(({ message }: { message: Message }) => (
 
 ChatMessage.displayName = 'ChatMessage';
 
-const ChatWindow = () => {
+interface ChatWindowProps {
+  model?: string;
+  max_tokens?: number;
+  similarityResults?: number;
+}
+
+const ChatWindow = ({
+  model = 'Hermes-3-Llama-3.2-3B-q4f16_1-MLC',
+  max_tokens = 4096,
+  similarityResults = 50,
+}: ChatWindowProps) => {
   const [loading, setLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [engine, setEngine] = useState<any>(null);
@@ -114,10 +123,7 @@ const ChatWindow = () => {
   const completionRef = useRef<any>(null);
   const outputRef = useRef<HTMLDivElement>(null);
 
-  // LLM configuration from eventcatalog.config.js file
-  const model = config.chat?.model || 'Hermes-3-Llama-3.2-3B-q4f16_1-MLC';
-  const max_tokens = config.chat?.max_tokens || 4096;
-  const similarityResults = config.chat?.similarityResults || 50;
+  console.log('model', model);
 
   const { currentSession, storeMessagesToSession, updateSession, isStreaming, setIsStreaming } = useChat();
 

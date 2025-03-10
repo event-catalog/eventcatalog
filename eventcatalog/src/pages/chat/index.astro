@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import { Code } from 'astro-expressive-code/components';
 
 const isEnabled = config.chat?.enabled || false;
+const chatConfig = config.chat || {};
 
 const PROJECT_DIR = path.resolve(process.env.PROJECT_DIR || process.cwd());
 const GENERATED_AI_DIR = path.resolve(PROJECT_DIR, 'public/ai');
@@ -46,7 +47,7 @@ const generatorConfig = `
               </div>
             </div>
             <div id="chatContainer" class="w-full">
-              <Chat client:only="react" />
+              <Chat client:only="react" chatConfig={chatConfig} />
             </div>
           </>
         ) : (
