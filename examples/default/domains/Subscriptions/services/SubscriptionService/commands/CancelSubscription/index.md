@@ -10,6 +10,8 @@ badges:
     - content: New!
       backgroundColor: green
       textColor: green
+sidebar:
+  badge: 'POST'
 ---
 
 import Footer from '@catalog/components/footer.astro';

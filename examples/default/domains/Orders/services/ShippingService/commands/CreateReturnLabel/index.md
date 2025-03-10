@@ -7,6 +7,8 @@ summary: |
 owners:
     - dboyne
 schemaPath: schema.json
+sidebar:
+  badge: 'POST'
 ---
 
 import Footer from '@catalog/components/footer.astro';
