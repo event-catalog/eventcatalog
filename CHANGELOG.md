@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.29.3
+
+### Patch Changes
+
+- d63ce45: feat(core): customize sidebar labels and badge for messages
+
 ## 2.29.2
 
 ### Patch Changes
