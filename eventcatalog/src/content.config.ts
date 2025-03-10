@@ -73,10 +73,12 @@ const baseSchema = z.object({
   badges: z.array(badge).optional(),
   owners: z.array(ownerReference).optional(),
   schemaPath: z.string().optional(),
-  sidebar: z.object({
-    label: z.string().optional(),
-    badge: z.string().optional(),
-  }).optional(),
+  sidebar: z
+    .object({
+      label: z.string().optional(),
+      badge: z.string().optional(),
+    })
+    .optional(),
   repository: z
     .object({
       language: z.string().optional(),
