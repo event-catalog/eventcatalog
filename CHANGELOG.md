@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.29.2
+
+### Patch Changes
+
+- 9696f82: fix(core): Redirects to latest version now work correctly when basePath is used
+- ba09ab6: fix(core): fixed issue with chat not working when config has path or url in it
+
 ## 2.29.1
 
 ### Patch Changes
