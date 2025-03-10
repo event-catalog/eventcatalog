@@ -19,6 +19,8 @@ channels:
     parameters:
       env: staging
 schemaPath: 'schema.json'
+sidebar:
+  badge: 'POST'
 ---
 
 import Footer from '@catalog/components/footer.astro';

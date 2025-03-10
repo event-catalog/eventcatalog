@@ -15,6 +15,8 @@ badges:
       backgroundColor: green
       textColor: green
 schemaPath: 'schema.json'
+sidebar:
+  badge: 'POST'
 ---
 
 import Footer from '@catalog/components/footer.astro';

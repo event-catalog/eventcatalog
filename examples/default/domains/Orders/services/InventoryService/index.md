@@ -16,6 +16,7 @@ receives:
     version: 0.0.3
   - id: AddInventory
   - id: GetInventoryStatus
+  - id: DeleteInventory
 sends:
   - id: InventoryAdjusted
     version: 0.0.4
