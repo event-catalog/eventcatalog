@@ -34,7 +34,7 @@
 <h4>Features: Documentation for Event Driven Architectures, Integration with any broker, Generator from your OpenAPI and AsyncAPI documents, Docs and Code, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-49-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-50-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [Read the Docs](https://www.eventcatalog.dev/docs/development/getting-started/introduction) | [View Demo](https://demo.eventcatalog.dev)
@@ -258,6 +258,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="http://craig0990.co.uk"><img src="https://avatars.githubusercontent.com/u/461897?v=4?s=100" width="100px;" alt="Craig Roberts"/><br /><sub><b>Craig Roberts</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=craig0990" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Vertygo"><img src="https://avatars.githubusercontent.com/u/1658326?v=4?s=100" width="100px;" alt="Ivan Milosavljevic"/><br /><sub><b>Ivan Milosavljevic</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=Vertygo" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Mezzle"><img src="https://avatars.githubusercontent.com/u/570639?v=4?s=100" width="100px;" alt="Martin Meredith"/><br /><sub><b>Martin Meredith</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=Mezzle" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/ruudwelling/"><img src="https://avatars.githubusercontent.com/u/4014179?v=4?s=100" width="100px;" alt="Ruud Welling"/><br /><sub><b>Ruud Welling</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=WellingR" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
