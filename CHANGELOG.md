@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.29.4
+
+### Patch Changes
+
+- 6aec3b7: fix(core): rss pages now render OK with empty catalog
+
 ## 2.29.3
 
 ### Patch Changes
