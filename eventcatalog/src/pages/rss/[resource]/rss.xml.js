@@ -36,6 +36,8 @@ export async function GET(context) {
   }
 
   const rssItems = items
+    // Make sure the item is valid before we try and get the git history
+    .filter((item) => item?.data?.pathToFile)
     .map((event) => {
       const pathToFile = event.data.pathToFile;
 
