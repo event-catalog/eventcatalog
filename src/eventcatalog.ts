@@ -163,7 +163,6 @@ program
           outputStream: new stream.Writable({
             write(chunk, encoding, callback) {
               const text = chunk.toString();
-              console.log('MEOW', text);
               if (!(text.includes('The collection') && text.includes('does not exist'))) {
                 process.stdout.write(chunk);
               }
@@ -186,8 +185,6 @@ program
   .description('Run build of EventCatalog')
   .action(async (options, command: Command) => {
     console.log('Building EventCatalog...');
-
-    console.log('BUILDING *********');
 
     copyCore();
 
