@@ -10,9 +10,10 @@ interface Props {
   };
   title?: string;
   filePath: string;
+  lang?: string;
 }
 
-const { file = 'schema.json', catalog, title, filePath } = Astro.props;
+const { file = 'schema.json', catalog, title, filePath, lang = 'json' } = Astro.props;
 
 let code: string | null = null;
 
@@ -25,7 +26,7 @@ if (exists) {
 {
   code ? (
     <div class="not-prose max-w-4xl overflow-x-auto">
-      <Code code={code} title={title || file} lang="json" />
+      <Code code={code} title={title || file} lang={lang} />
     </div>
   ) : (
     <div class="italic">Tried to load schema from {path.join(catalog.filePath, file)}, but no schema can be found</div>
