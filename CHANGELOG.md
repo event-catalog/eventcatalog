@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.30.0
+
+### Minor Changes
+
+- 34e3cce: feat(core): moving to astro glob loaders
+
 ## 2.29.4
 
 ### Patch Changes
