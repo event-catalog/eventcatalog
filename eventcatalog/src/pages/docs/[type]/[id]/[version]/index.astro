@@ -19,6 +19,7 @@ import { buildUrl } from '@utils/url-builder';
 import { getFlows } from '@utils/collections/flows';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { ClientRouter } from 'astro:transitions';
+import { render } from 'astro:content';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
 
 import config from '@config';
@@ -51,7 +52,8 @@ export async function getStaticPaths() {
 
 const props = Astro.props;
 
-const { Content } = await props.render();
+const { Content } = await render(props);
+// const { Content } = await props.render();
 
 // Capitalize the first letter of a string
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
@@ -198,7 +200,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
         </div>
         <div>
           <!-- @ts-ignore -->
-          <SchemaViewer id={props.data.id} catalog={props.catalog} />
+          <SchemaViewer id={props.data.id} catalog={props.catalog} filePath={props.filePath} />
           <NodeGraph
             id={props.data.id}
             collection={props.collection}

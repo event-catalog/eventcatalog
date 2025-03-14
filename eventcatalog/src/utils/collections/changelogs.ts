@@ -1,14 +1,18 @@
 import type { CollectionTypes } from '@types';
 import { getCollection, type CollectionEntry } from 'astro:content';
+import path from 'node:path';
 
 export type ChangeLog = CollectionEntry<'changelogs'>;
 
 export const getChangeLogs = async (item: CollectionEntry<CollectionTypes>): Promise<ChangeLog[]> => {
-  const { collection, data, slug } = item;
+  const { collection, data, filePath } = item;
 
   // Get all logs for collection type and filter by given collection
   const logs = await getCollection('changelogs', (log) => {
-    return log.id.includes(`${collection}/`) && log.slug.includes('/' + slug + '/');
+    const collectionDirectory = path.dirname(item?.filePath || '');
+    const isRootChangeLog = path.join(collectionDirectory, 'changelog.md') === log.filePath;
+    const isVersionedChangeLog = log.filePath?.includes(path.join(collectionDirectory, 'versioned'));
+    return log.id.includes(`${collection}/`) && (isRootChangeLog || isVersionedChangeLog);
   });
 
   const hydratedLogs = logs.map((log) => {

@@ -9,11 +9,12 @@ import { generate } from './generate';
 import logBuild from './analytics/log-build';
 import { VERSION } from './constants';
 import { watch } from './watcher';
-import { catalogToAstro } from './catalog-to-astro-content-directory';
+import { catalogToAstro, checkAndConvertMdToMdx } from './catalog-to-astro-content-directory';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
 import boxen from 'boxen';
 import { isBackstagePluginEnabled } from './features';
 import updateNotifier from 'update-notifier';
+import stream from 'stream';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
@@ -123,29 +124,54 @@ program
     copyCore();
 
     await resolveCatalogDependencies(dir, core);
+
+    // We need to convert all the md files to mdx to use Astro Glob Loaders
+    await checkAndConvertMdToMdx(dir, core);
+
+    // Move files like public directory to the root of the eventcatalog-core directory
     await catalogToAstro(dir, core);
 
     // Check if backstage is enabled
     const canEmbedPages = await isBackstagePluginEnabled();
 
+    // is there an eventcatalog update to install?
     checkForUpdate();
 
     let watchUnsub;
     try {
       watchUnsub = await watch(dir, core);
 
-      const { result } = concurrently([
-        {
-          name: 'astro',
-          command: `npx astro dev ${command.args.join(' ').trim()}`,
-          cwd: core,
-          env: {
-            PROJECT_DIR: dir,
-            CATALOG_DIR: core,
-            ENABLE_EMBED: canEmbedPages,
+      const { result } = concurrently(
+        [
+          {
+            name: 'astro',
+            // Ignore any "Empty collection" messages
+            command:
+              process.platform === 'win32'
+                ? `npx astro dev ${command.args.join(' ').trim()} | findstr /V "The collection"`
+                : `npx astro dev ${command.args.join(' ').trim()} 2>&1 | grep -v "The collection.*does not exist"`,
+            cwd: core,
+            env: {
+              PROJECT_DIR: dir,
+              CATALOG_DIR: core,
+              ENABLE_EMBED: canEmbedPages,
+            },
           },
-        },
-      ]);
+        ],
+        {
+          raw: true,
+          outputStream: new stream.Writable({
+            write(chunk, encoding, callback) {
+              const text = chunk.toString();
+              console.log('MEOW', text);
+              if (!(text.includes('The collection') && text.includes('does not exist'))) {
+                process.stdout.write(chunk);
+              }
+              callback();
+            },
+          }),
+        }
+      );
 
       await result;
     } catch (err) {
@@ -161,11 +187,17 @@ program
   .action(async (options, command: Command) => {
     console.log('Building EventCatalog...');
 
+    console.log('BUILDING *********');
+
     copyCore();
 
     await logBuild(dir);
 
     await resolveCatalogDependencies(dir, core);
+
+    // We need to convert all the md files to mdx to use Astro Glob Loaders
+    await checkAndConvertMdToMdx(dir, core);
+
     await catalogToAstro(dir, core);
 
     // Check if backstage is enabled
@@ -173,13 +205,16 @@ program
 
     checkForUpdate();
 
-    execSync(
-      `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} npx astro build ${command.args.join(' ').trim()}`,
-      {
-        cwd: core,
-        stdio: 'inherit',
-      }
-    );
+    // Ignore any "Empty collection" messages, it's OK to have them
+    const windowsCommand = `npx astro build ${command.args.join(' ').trim()} | findstr /V "The collection"`;
+    const unixCommand = `npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v "The collection.*does not exist"`;
+
+    const buildCommand = process.platform === 'win32' ? windowsCommand : unixCommand;
+
+    execSync(`cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} ${buildCommand}`, {
+      cwd: core,
+      stdio: 'inherit',
+    });
   });
 
 const previewCatalog = ({ command, canEmbedPages = false }: { command: Command; canEmbedPages: boolean }) => {

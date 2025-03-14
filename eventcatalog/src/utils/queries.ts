@@ -31,7 +31,7 @@ export const getQueries = async ({ getAllVersions = true }: Props = {}): Promise
   }
 
   const queries = await getCollection('queries', (query) => {
-    return (getAllVersions || !query.data?.pathToFile?.includes('versioned')) && query.data.hidden !== true;
+    return (getAllVersions || !query.filePath?.includes('versioned')) && query.data.hidden !== true;
   });
 
   const services = await getCollection('services');
@@ -74,7 +74,7 @@ export const getQueries = async ({ getAllVersions = true }: Props = {}): Promise
         absoluteFilePath: path.join(PROJECT_DIR, query.collection, query.id.replace('/index.mdx', '/index.md')),
         astroContentFilePath: path.join(process.cwd(), 'src', 'content', query.collection, query.id),
         filePath: path.join(process.cwd(), 'src', 'catalog-files', query.collection, query.id.replace('/index.mdx', '')),
-        publicPath: path.join('/generated', query.collection, query.id.replace('/index.mdx', '')),
+        publicPath: path.join('/generated', query.collection, query.id.replace(`-${query.data.version}`, '')),
         type: 'event',
       },
     };

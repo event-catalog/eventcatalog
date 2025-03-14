@@ -5,6 +5,7 @@ import type { PageTypes } from '@types';
 import { getChangeLogs } from '@utils/collections/changelogs';
 import { RectangleGroupIcon, ServerIcon, BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
+import { render, getEntry } from 'astro:content';
 import 'diff2html/bundles/css/diff2html.min.css';
 
 import { buildUrl } from '@utils/url-builder';
@@ -38,11 +39,14 @@ const props = Astro.props;
 let collectionItem = props;
 const logs = await getChangeLogs(props);
 
+// console.log('logs', logs)
+
 const { data } = props;
 const latestVersion = data.latestVersion;
 
 const renderedLogs = await logs.map(async (log) => {
-  const { Content } = await log.render();
+  const logEntry = await getEntry('changelogs', log.id);
+  const { Content } = await render(logEntry as any);
   return {
     Content,
     ...log,
@@ -50,6 +54,8 @@ const renderedLogs = await logs.map(async (log) => {
 });
 
 const logsToRender = await Promise.all(renderedLogs);
+
+// console.log('LOGS TO RENDER', logsToRender);
 
 const logListPromise = logsToRender.map(async (log, index) => {
   const currentLogVersion = log.data.version;

@@ -31,7 +31,7 @@ export const getCommands = async ({ getAllVersions = true }: Props = {}): Promis
   }
 
   const commands = await getCollection('commands', (command) => {
-    return (getAllVersions || !command.data?.pathToFile?.includes('versioned')) && command.data.hidden !== true;
+    return (getAllVersions || !command.filePath?.includes('versioned')) && command.data.hidden !== true;
   });
 
   const services = await getCollection('services');
@@ -74,7 +74,7 @@ export const getCommands = async ({ getAllVersions = true }: Props = {}): Promis
         absoluteFilePath: path.join(PROJECT_DIR, command.collection, command.id.replace('/index.mdx', '/index.md')),
         astroContentFilePath: path.join(process.cwd(), 'src', 'content', command.collection, command.id),
         filePath: path.join(process.cwd(), 'src', 'catalog-files', command.collection, command.id.replace('/index.mdx', '')),
-        publicPath: path.join('/generated', command.collection, command.id.replace('/index.mdx', '')),
+        publicPath: path.join('/generated', command.collection, command.id.replace(`-${command.data.version}`, '')),
         type: 'command',
       },
     };

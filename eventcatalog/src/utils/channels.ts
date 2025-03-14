@@ -33,7 +33,7 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
   }
 
   const channels = await getCollection('channels', (query) => {
-    return (getAllVersions || !query.data?.pathToFile?.includes('versioned')) && query.data.hidden !== true;
+    return (getAllVersions || !query.filePath?.includes('versioned')) && query.data.hidden !== true;
   });
 
   const { commands, events, queries } = await getMessages();
@@ -68,7 +68,7 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
         absoluteFilePath: path.join(PROJECT_DIR, channel.collection, channel.id.replace('/index.mdx', '/index.md')),
         astroContentFilePath: path.join(process.cwd(), 'src', 'content', channel.collection, channel.id),
         filePath: path.join(process.cwd(), 'src', 'catalog-files', channel.collection, channel.id.replace('/index.mdx', '')),
-        publicPath: path.join('/generated', channel.collection, channel.id.replace('/index.mdx', '')),
+        publicPath: path.join('/generated', channel.collection, channel.id.replace(`-${channel.data.version}`, '')),
         type: 'event',
       },
     };

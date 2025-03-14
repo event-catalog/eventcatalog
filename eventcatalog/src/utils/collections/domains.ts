@@ -28,7 +28,7 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
 
   // Get all the domains that are not versioned
   const domains = await getCollection('domains', (domain) => {
-    return (getAllVersions || !domain.data?.pathToFile?.includes('versioned')) && domain.data.hidden !== true;
+    return (getAllVersions || !domain.filePath?.includes('versioned')) && domain.data.hidden !== true;
   });
 
   // Get all the services that are not versioned
@@ -60,7 +60,7 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
         absoluteFilePath: path.join(PROJECT_DIR, domain.collection, domain.id.replace('/index.mdx', '/index.md')),
         astroContentFilePath: path.join(process.cwd(), 'src', 'content', domain.collection, domain.id),
         filePath: path.join(process.cwd(), 'src', 'catalog-files', domain.collection, domain.id.replace('/index.mdx', '')),
-        publicPath: path.join('/generated', domain.collection, domain.id.replace('/index.mdx', '')),
+        publicPath: path.join('/generated', domain.collection, domain.id.replace(`-${domain.data.version}`, '')),
         type: 'service',
       },
     };
@@ -102,7 +102,9 @@ export const getMessagesForDomain = async (
 
 export const getUbiquitousLanguage = async (domain: Domain): Promise<UbiquitousLanguage[]> => {
   const ubiquitousLanguages = await getCollection('ubiquitousLanguages', (ubiquitousLanguage: UbiquitousLanguage) => {
-    return ubiquitousLanguage.slug.startsWith(`${domain.collection}/${domain.slug}`);
+    const domainFolder = path.dirname(domain.filePath || '');
+    const ubiquitousLanguageFolder = path.dirname(ubiquitousLanguage.filePath || '');
+    return domainFolder === ubiquitousLanguageFolder;
   });
 
   return ubiquitousLanguages;

@@ -21,15 +21,16 @@ let cachedServices: Record<string, Service[]> = {
 export const getServices = async ({ getAllVersions = true }: Props = {}): Promise<Service[]> => {
   const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
 
-  // Check if we have cached domains for this specific getAllVersions value
-  if (cachedServices[cacheKey].length > 0) {
-    return cachedServices[cacheKey];
-  }
+  // // Check if we have cached domains for this specific getAllVersions value
+  // if (cachedServices[cacheKey].length > 0) {
+  //   return cachedServices[cacheKey];
+  // }
 
   // Get services that are not versioned
   const services = await getCollection('services', (service) => {
-    return (getAllVersions || !service.data?.pathToFile?.includes('versioned')) && service.data.hidden !== true;
+    return (getAllVersions || !service.filePath?.includes('versioned')) && service.data.hidden !== true;
   });
+
   const events = await getCollection('events');
   const commands = await getCollection('commands');
   const queries = await getCollection('queries');
@@ -73,7 +74,8 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
         absoluteFilePath: path.join(PROJECT_DIR, service.collection, service.id.replace('/index.mdx', '/index.md')),
         astroContentFilePath: path.join(process.cwd(), 'src', 'content', service.collection, service.id),
         filePath: path.join(process.cwd(), 'src', 'catalog-files', service.collection, service.id.replace('/index.mdx', '')),
-        publicPath: path.join('/generated', service.collection, service.id.replace('/index.mdx', '')),
+        // service will be MySerive-0.0.1 remove the version
+        publicPath: path.join('/generated', service.collection, service.id.replace(`-${service.data.version}`, '')),
         type: 'service',
       },
     };

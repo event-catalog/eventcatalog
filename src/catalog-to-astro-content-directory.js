@@ -13,6 +13,7 @@ const copyFiles = async (source, target) => {
   const files = await glob(path.join(source, '**'), {
     nodir: true,
     windowsPathsNoEscape: os.platform() == 'win32',
+    ignore: ['node_modules/**', '**/dist/**', '**/teams', '**/users', '**/*.mdx', '**/*.md', '**/package.json', '**/Dockerfile'],
   });
 
   for (const file of files) {
@@ -20,59 +21,10 @@ const copyFiles = async (source, target) => {
       filePath: file,
       astroDir: target,
       projectDir: source,
-    })
-      .map((astroPath) => {
-        fs.cpSync(file, astroPath);
-        return { oldPath: file, newPath: astroPath };
-      })
-      .map(({ oldPath, newPath }) => {
-        if (!oldPath.endsWith('.md') && !oldPath.endsWith('.mdx')) return;
-        try {
-          // EventCatalog requires the original path to be in the frontmatter for Schemas and Changelogs
-          const content = fs.readFileSync(newPath, 'utf-8');
-          const frontmatter = addPropertyToFrontMatter(content, 'pathToFile', oldPath);
-          fs.writeFileSync(newPath, frontmatter);
-        } catch (error) {
-          // silent fail
-        }
-      });
-  }
-};
-
-const ensureAstroCollectionNotEmpty = async (astroDir) => {
-  // TODO: maybe import collections from `src/content/config.ts`...
-  const COLLECTIONS = [
-    'events',
-    'commands',
-    'services',
-    'domains',
-    'flows',
-    'changelogs',
-    'queries',
-    'channels',
-    'ubiquitousLanguages',
-  ];
-
-  // Check empty collections
-  const emptyCollections = [];
-  for (const collection of COLLECTIONS) {
-    const markdownFiles = await glob(path.join(astroDir, 'src/content/', collection, '**'), {
-      nodir: true,
-      windowsPathsNoEscape: os.platform() == 'win32',
+    }).map((astroPath) => {
+      fs.cpSync(file, astroPath);
+      return { oldPath: file, newPath: astroPath };
     });
-
-    if (markdownFiles.length === 0) emptyCollections.push(collection);
-  }
-
-  // Hydrate empty collections
-  const defaultCollectionFilesDir = path.join(rootPkg, 'default-files-for-collections');
-  for (const collection of emptyCollections) {
-    const defaultFile = path.join(defaultCollectionFilesDir, `${collection}.md`);
-    const targetDir = path.join(astroDir, 'src/content/', collection);
-    if (!fs.existsSync(targetDir)) {
-      fs.mkdirSync(targetDir, { recursive: true });
-    }
-    fs.cpSync(defaultFile, path.join(targetDir, `${collection}.md`));
   }
 };
 
@@ -89,8 +41,24 @@ export const catalogToAstro = async (source, astroDir) => {
   await verifyRequiredFieldsAreInCatalogConfigFile(source);
 
   await copyFiles(source, astroDir);
+};
 
-  // Check if the directory is empty. EC (astro collections) requires at least 1 item in the collection
-  // insert empty one that is filtered out
-  await ensureAstroCollectionNotEmpty(astroDir);
+export const checkAndConvertMdToMdx = async (source, astroDir) => {
+  const files = await glob(path.join(source, '**'), {
+    nodir: true,
+    windowsPathsNoEscape: os.platform() == 'win32',
+    ignore: ['node_modules/**', '**/dist/**'],
+  });
+
+  // If we have any md files, log to the user
+  if (files.some((file) => file.endsWith('.md'))) {
+    console.log(`EventCatalog now requires all markdown files to be .mdx files. Converting all .md files to .mdx...`);
+  }
+
+  for (const file of files) {
+    if (file.endsWith('.md')) {
+      // Rename the file to .mdx
+      fs.renameSync(file, file.replace('.md', '.mdx'));
+    }
+  }
 };

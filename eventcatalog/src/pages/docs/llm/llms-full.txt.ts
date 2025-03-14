@@ -20,8 +20,8 @@ export const GET: APIRoute = async ({ params, request }) => {
 
   const content = resources
     .map((item) => {
-      if (!item.data.pathToFile) return '';
-      return fs.readFileSync(item.data.pathToFile, 'utf8');
+      if (!item.filePath) return '';
+      return fs.readFileSync(item.filePath, 'utf8');
     })
     .join('\n');
 

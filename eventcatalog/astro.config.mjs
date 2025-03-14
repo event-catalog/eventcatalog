@@ -30,6 +30,11 @@ export default defineConfig({
   // https://docs.astro.build/en/reference/configuration-reference/#trailingslash
   trailingSlash: config.trailingSlash === true ? "always" : "ignore",
 
+  experimental: {
+    contentIntellisense: true,
+  },
+
+
   // just turn this off for all users (for now...)
   devToolbar: { enabled: false },
   integrations: [

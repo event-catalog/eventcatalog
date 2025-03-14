@@ -10,7 +10,7 @@ const OpenAPISpec = ({ spec }: { spec: string }) => {
       <ApiReferenceReact
         configuration={{
           spec: {
-            url: spec,
+            content: spec,
           },
           theme: 'fastify',
           hideClientButton: true,

@@ -26,7 +26,7 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
 
   // Get flows that are not versioned
   const flows = await getCollection('flows', (flow) => {
-    return (getAllVersions || !flow.data.pathToFile?.includes('versioned')) && flow.data.hidden !== true;
+    return (getAllVersions || !flow.filePath?.includes('versioned')) && flow.data.hidden !== true;
   });
 
   const events = await getCollection('events');
@@ -63,7 +63,7 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
         absoluteFilePath: path.join(PROJECT_DIR, flow.collection, flow.id.replace('/index.mdx', '/index.md')),
         astroContentFilePath: path.join(process.cwd(), 'src', 'content', flow.collection, flow.id),
         filePath: path.join(process.cwd(), 'src', 'catalog-files', flow.collection, flow.id.replace('/index.mdx', '')),
-        publicPath: path.join('/generated', flow.collection, flow.id.replace('/index.mdx', '')),
+        publicPath: path.join('/generated', flow.collection),
         type: 'flow',
       },
     };
