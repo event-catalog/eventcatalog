@@ -91,6 +91,7 @@ const isRSSEnabled = config.rss?.enabled;
 
 // @ts-ignore
 const publicPath = message?.catalog?.publicPath;
+
 const schemaFilePath = message?.data?.schemaPath;
 const schemaURL = path.join(publicPath, schemaFilePath || '');
 ---

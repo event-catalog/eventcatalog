@@ -1,6 +1,14 @@
 import { z, defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
-import { join } from 'node:path';
+import { v4 as uuidv4 } from 'uuid';
+
+const projectDirBase = (() => {
+  if (process.platform === 'win32') {
+    const projectDirPath = process.env.PROJECT_DIR!.replace(/\\/g, '/');
+    return projectDirPath.startsWith('/') ? projectDirPath : `/${projectDirPath}`;
+  }
+  return process.env.PROJECT_DIR;
+})();
 
 const badge = z.object({
   content: z.string(),
@@ -10,9 +18,11 @@ const badge = z.object({
 
 const pages = defineCollection({
   type: 'content',
-  schema: z.object({
-    id: z.string(),
-  }),
+  schema: z
+    .object({
+      id: z.string(),
+    })
+    .optional(),
 });
 
 const pointer = z.object({
@@ -27,7 +37,10 @@ const channelPointer = z
   .merge(pointer);
 
 const changelogs = defineCollection({
-  type: 'content',
+  loader: glob({
+    pattern: ['**/changelog.(md|mdx)'],
+    base: projectDirBase,
+  }),
   schema: z.object({
     createdAt: z.date().optional(),
     badges: z.array(badge).optional(),
@@ -95,7 +108,6 @@ const baseSchema = z.object({
   // Used by eventcatalog
   versions: z.array(z.string()).optional(),
   latestVersion: z.string().optional(),
-  pathToFile: z.string().optional(),
   catalog: z
     .object({
       path: z.string(),
@@ -121,7 +133,13 @@ const flowStep = z
   .optional();
 
 const flows = defineCollection({
-  type: 'content',
+  loader: glob({
+    pattern: ['**/flows/*/index.(md|mdx)', '**/flows/*/versioned/*/index.(md|mdx)'],
+    base: projectDirBase,
+    generateId: ({ data }) => {
+      return `${data.id}-${data.version}`;
+    },
+  }),
   schema: z
     .object({
       steps: z.array(
@@ -165,7 +183,13 @@ const flows = defineCollection({
 });
 
 const events = defineCollection({
-  type: 'content',
+  loader: glob({
+    pattern: ['**/events/*/index.(md|mdx)', '**/events/*/versioned/*/index.(md|mdx)'],
+    base: projectDirBase,
+    generateId: ({ data, ...rest }) => {
+      return `${data.id}-${data.version}`;
+    },
+  }),
   schema: z
     .object({
       producers: z.array(reference('services')).optional(),
@@ -178,7 +202,13 @@ const events = defineCollection({
 });
 
 const commands = defineCollection({
-  type: 'content',
+  loader: glob({
+    pattern: ['**/commands/*/index.(md|mdx)', '**/commands/*/versioned/*/index.(md|mdx)'],
+    base: projectDirBase,
+    generateId: ({ data }) => {
+      return `${data.id}-${data.version}`;
+    },
+  }),
   schema: z
     .object({
       producers: z.array(reference('services')).optional(),
@@ -191,7 +221,13 @@ const commands = defineCollection({
 });
 
 const queries = defineCollection({
-  type: 'content',
+  loader: glob({
+    pattern: ['**/queries/*/index.(md|mdx)', '**/queries/*/versioned/*/index.(md|mdx)'],
+    base: projectDirBase,
+    generateId: ({ data }) => {
+      return `${data.id}-${data.version}`;
+    },
+  }),
   schema: z
     .object({
       producers: z.array(reference('services')).optional(),
@@ -204,7 +240,18 @@ const queries = defineCollection({
 });
 
 const services = defineCollection({
-  type: 'content',
+  loader: glob({
+    pattern: [
+      'domains/*/services/*/index.(md|mdx)',
+      'domains/*/services/*/versioned/*/index.(md|mdx)',
+      'services/*/index.(md|mdx)', // ✅ Capture only services markdown files
+      'services/*/versioned/*/index.(md|mdx)', // ✅ Capture versioned files inside services
+    ],
+    base: projectDirBase,
+    generateId: ({ data, ...rest }) => {
+      return `${data.id}-${data.version}`;
+    },
+  }),
   schema: z
     .object({
       sends: z.array(pointer).optional(),
@@ -213,8 +260,33 @@ const services = defineCollection({
     .merge(baseSchema),
 });
 
+const domains = defineCollection({
+  loader: glob({
+    pattern: [
+      // ✅ Strictly include only index.md at the expected levels
+      'domains/*/index.(md|mdx)',
+      'domains/*/versioned/*/index.(md|mdx)',
+    ],
+    base: projectDirBase,
+    generateId: ({ data, ...rest }) => {
+      return `${data.id}-${data.version}`;
+    },
+  }),
+  schema: z
+    .object({
+      services: z.array(pointer).optional(),
+    })
+    .merge(baseSchema),
+});
+
 const channels = defineCollection({
-  type: 'content',
+  loader: glob({
+    pattern: ['**/channels/*/index.(md|mdx)', '**/channels/*/versioned/*/index.(md|mdx)'],
+    base: projectDirBase,
+    generateId: ({ data }) => {
+      return `${data.id}-${data.version}`;
+    },
+  }),
   schema: z
     .object({
       address: z.string().optional(),
@@ -234,17 +306,15 @@ const channels = defineCollection({
     .merge(baseSchema),
 });
 
-const domains = defineCollection({
-  type: 'content',
-  schema: z
-    .object({
-      services: z.array(pointer).optional(),
-    })
-    .merge(baseSchema),
-});
-
 const ubiquitousLanguages = defineCollection({
-  type: 'content',
+  loader: glob({
+    pattern: ['domains/*/ubiquitous-language.(md|mdx)'],
+    base: projectDirBase,
+    generateId: ({ data }) => {
+      // File has no id, so we need to generate one
+      return uuidv4();
+    },
+  }),
   schema: z.object({
     dictionary: z
       .array(
@@ -260,16 +330,8 @@ const ubiquitousLanguages = defineCollection({
   }),
 });
 
-const projectDirBase = (() => {
-  if (process.platform === 'win32') {
-    const projectDirPath = process.env.PROJECT_DIR!.replace(/\\/g, '/');
-    return projectDirPath.startsWith('/') ? projectDirPath : `/${projectDirPath}`;
-  }
-  return process.env.PROJECT_DIR;
-})();
-
 const users = defineCollection({
-  loader: glob({ pattern: 'users/*.md', base: projectDirBase, generateId: ({ data }) => data.id as string }),
+  loader: glob({ pattern: 'users/*.(md|mdx)', base: projectDirBase, generateId: ({ data }) => data.id as string }),
   schema: z.object({
     id: z.string(),
     name: z.string(),
@@ -285,12 +347,11 @@ const users = defineCollection({
     ownedCommands: z.array(reference('commands')).optional(),
     ownedQueries: z.array(reference('queries')).optional(),
     associatedTeams: z.array(reference('teams')).optional(),
-    pathToFile: z.string().optional(),
   }),
 });
 
 const teams = defineCollection({
-  loader: glob({ pattern: 'teams/*.md', base: projectDirBase, generateId: ({ data }) => data.id as string }),
+  loader: glob({ pattern: 'teams/*.(md|mdx)', base: projectDirBase, generateId: ({ data }) => data.id as string }),
   schema: z.object({
     id: z.string(),
     name: z.string(),
@@ -305,7 +366,6 @@ const teams = defineCollection({
     ownedDomains: z.array(reference('domains')).optional(),
     ownedServices: z.array(reference('services')).optional(),
     ownedEvents: z.array(reference('events')).optional(),
-    pathToFile: z.string().optional(),
   }),
 });
 

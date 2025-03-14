@@ -29,7 +29,7 @@ export async function getFilesForDiffInCollection(
   collection: CollectionEntry<CollectionTypes>
 ): Promise<Array<{ file: string; dir: string }>> {
   // @ts-ignore
-  const pathToFolder = collection.data.pathToFile;
+  const pathToFolder = collection.filePath;
   if (!pathToFolder) return [];
 
   const dir = dirname(pathToFolder);

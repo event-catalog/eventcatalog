@@ -36,6 +36,11 @@ export async function watch(projectDirectory, catalogDirectory, callback = undef
         for (let event of events) {
           const { path: filePath, type } = event;
 
+          // Ignore any file ending with .mdx or .md, as Astro supports this with the new content collections
+          if (filePath.endsWith('.mdx') || filePath.endsWith('.md')) {
+            continue;
+          }
+
           const astroPaths = mapCatalogToAstro({
             filePath,
             astroDir: catalogDirectory,
@@ -51,17 +56,6 @@ export async function watch(projectDirectory, catalogDirectory, callback = undef
                   fs.mkdirSync(astroPath, { recursive: true });
                 } else {
                   retryEPERM(fs.cpSync)(filePath, astroPath);
-                }
-
-                // Then modify the frontmatter after the file is copied
-                try {
-                  if (astroPath.endsWith('.mdx')) {
-                    const content = fs.readFileSync(astroPath, 'utf-8');
-                    const frontmatter = addPropertyToFrontMatter(content, 'pathToFile', filePath);
-                    fs.writeFileSync(astroPath, frontmatter);
-                  }
-                } catch (error) {
-                  // silent fail
                 }
                 break;
               case 'delete':

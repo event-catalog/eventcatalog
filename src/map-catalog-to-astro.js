@@ -36,16 +36,7 @@ export function mapCatalogToAstro({ filePath, astroDir, projectDir }) {
   const baseTargetPaths = getBaseTargetPaths(relativeFilePath);
   const relativeTargetPath = getRelativeTargetPath(relativeFilePath);
 
-  return baseTargetPaths.map((base) =>
-    path.join(
-      astroDir,
-      base,
-      relativeTargetPath
-        .replace('index.md', 'index.mdx')
-        .replace('changelog.md', 'changelog.mdx')
-        .replace('ubiquitous-language.md', 'ubiquitous-language.mdx')
-    )
-  );
+  return baseTargetPaths.map((base) => path.join(astroDir, base, relativeTargetPath));
 }
 
 /**
@@ -101,21 +92,6 @@ function getBaseTargetPaths(filePath) {
 
   // Collection
   if (isCollectionKey(filePathArr[0])) {
-    // Changelogs files
-    if (filePathArr[filePathArr.length - 1] == 'changelog.md') {
-      return [path.join('src', 'content', 'changelogs')];
-    }
-
-    // Ubiquitous Languages files
-    if (filePathArr[filePathArr.length - 1] == 'ubiquitous-language.md') {
-      return [path.join('src', 'content', 'ubiquitousLanguages')];
-    }
-
-    // Markdown files
-    if (filePathArr[filePathArr.length - 1].match(/\.md$/)) {
-      return [path.join('src', 'content')];
-    }
-
     // This is a workaround to differentiate between a file and a directory.
     // Of course this is not the best solution. But how differentiate? `fs.stats`
     // could be used, but sometimes the filePath references a deleted file/directory
@@ -124,7 +100,7 @@ function getBaseTargetPaths(filePath) {
 
     // Assets files
     if (hasExtension(filePath)) {
-      return [path.join('public', 'generated'), path.join('src', 'catalog-files')];
+      return [path.join('public', 'generated')];
     }
 
     /**
@@ -143,7 +119,7 @@ function getBaseTargetPaths(filePath) {
      * TODO: What happens if services contains commands/events inside of it??? How handle this?
      */
     // Directories
-    return [path.join('public', 'generated'), path.join('src', 'catalog-files'), path.join('src', 'content')];
+    return [path.join('public', 'generated')];
   }
 
   // Custom components

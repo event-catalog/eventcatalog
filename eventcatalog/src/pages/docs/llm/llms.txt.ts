@@ -17,10 +17,10 @@ export const GET: APIRoute = async ({ params, request }) => {
   const baseUrl = `${url.protocol}//${url.host}`;
 
   const formatVersionedItem = (item: any, type: string) =>
-    `- [${item.data.name} - ${item.data.id} - ${item.data.version}](${baseUrl}/docs/${type}/${item.data.id}/${item.data.version}.md) - ${item.data.summary}`;
+    `- [${item.data.name} - ${item.data.id} - ${item.data.version}](${baseUrl}/docs/${type}/${item.data.id}/${item.data.version}.mdx) - ${item.data.summary}`;
 
   const formatSimpleItem = (item: any, type: string) =>
-    `- [${item.id.replace('.md', '')}](${baseUrl}/docs/${type}/${item.data.id}.md) - ${item.data.name}`;
+    `- [${item.id.replace('.mdx', '')}](${baseUrl}/docs/${type}/${item.data.id}.mdx) - ${item.data.name}`;
 
   const content = [
     `# ${config.organizationName} EventCatalog Documentation\n`,

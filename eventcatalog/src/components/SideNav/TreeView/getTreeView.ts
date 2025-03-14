@@ -50,11 +50,11 @@ function buildTreeOfDir(directory: string, parentNode: TreeNode, options: { igno
 
   const resourceType = getResourceType(directory);
 
-  const markdownFiles = globSync(path.join(directory, '/*.md'), { windowsPathsNoEscape: os.platform() === 'win32' });
+  const markdownFiles = globSync(path.join(directory, '/*.mdx'), { windowsPathsNoEscape: os.platform() === 'win32' });
   const isResourceIgnored = options?.ignore && resourceType && options.ignore.includes(resourceType);
 
   if (markdownFiles.length > 0 && !isResourceIgnored) {
-    const resourceFilePath = markdownFiles.find((md) => md.endsWith('index.md'));
+    const resourceFilePath = markdownFiles.find((md) => md.endsWith('index.mdx'));
     if (resourceFilePath) {
       const resourceDef = gm.read(resourceFilePath);
       node = {

@@ -27,8 +27,8 @@ export const GET: APIRoute = async ({ params, props }) => {
     return new Response('llms.txt is not enabled for this Catalog.', { status: 404 });
   }
 
-  if (props?.content?.data?.pathToFile) {
-    const file = fs.readFileSync(props.content.data.pathToFile, 'utf8');
+  if (props?.content?.filePath) {
+    const file = fs.readFileSync(props.content.filePath, 'utf8');
     return new Response(file, { status: 200 });
   }
 

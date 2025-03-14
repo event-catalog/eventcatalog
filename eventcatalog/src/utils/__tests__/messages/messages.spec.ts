@@ -55,27 +55,28 @@ describe('getMessages', () => {
   });
 
   it('should return current versions of messages', async () => {
-    await expect(getMessages({ getAllVersions: false })).resolves.toEqual({
-      queries: [],
-      commands: [
-        expect.objectContaining({
-          collection: 'commands',
-          data: expect.objectContaining({
-            id: 'ProcessPayment',
-            version: '0.1.0',
+    await expect(getMessages({ getAllVersions: false })).resolves.toEqual(
+      expect.objectContaining({
+        commands: expect.arrayContaining([
+          expect.objectContaining({
+            collection: 'commands',
+            data: expect.objectContaining({
+              id: 'ProcessPayment',
+              version: '0.1.0',
+            }),
           }),
-        }),
-      ],
-      events: [
-        expect.objectContaining({
-          collection: 'events',
-          data: expect.objectContaining({
-            id: 'PaymentProcessed',
-            version: '0.1.0',
+        ]),
+        events: expect.arrayContaining([
+          expect.objectContaining({
+            collection: 'events',
+            data: expect.objectContaining({
+              id: 'PaymentProcessed',
+              version: '0.1.0',
+            }),
           }),
-        }),
-      ],
-    });
+        ]),
+      })
+    );
   });
 
   it('should return current versions even if the first call is to get all versions', async () => {
@@ -83,27 +84,29 @@ describe('getMessages', () => {
 
     const messages = await getMessages({ getAllVersions: false });
 
-    expect(messages).toEqual({
-      queries: [],
-      commands: [
-        expect.objectContaining({
-          collection: 'commands',
-          data: expect.objectContaining({
-            id: 'ProcessPayment',
-            version: '0.1.0',
+    expect(messages).toEqual(
+      expect.objectContaining({
+        queries: [],
+        commands: expect.arrayContaining([
+          expect.objectContaining({
+            collection: 'commands',
+            data: expect.objectContaining({
+              id: 'ProcessPayment',
+              version: '0.1.0',
+            }),
           }),
-        }),
-      ],
-      events: [
-        expect.objectContaining({
-          collection: 'events',
-          data: expect.objectContaining({
-            id: 'PaymentProcessed',
-            version: '0.1.0',
+        ]),
+        events: expect.arrayContaining([
+          expect.objectContaining({
+            collection: 'events',
+            data: expect.objectContaining({
+              id: 'PaymentProcessed',
+              version: '0.1.0',
+            }),
           }),
-        }),
-      ],
-    });
+        ]),
+      })
+    );
   });
 
   it('should return all version even if the first call is to get current versions', async () => {

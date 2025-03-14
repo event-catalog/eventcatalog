@@ -1,0 +1,148 @@
+openapi: 3.0.0
+info:
+  title: Payment Service API
+  description: API for processing payments and managing payment methods
+  version: 1.0.0
+  contact:
+    name: Payment Team
+    email: payment-team@example.com
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+  - url: https://staging-api.example.com/v1
+    description: Staging server
+
+paths:
+  /payments:
+    post:
+      summary: Create a new payment
+      description: Process a new payment transaction
+      operationId: createPayment
+      tags:
+        - Payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '201':
+          description: Payment successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          description: Invalid request
+        '402':
+          description: Payment failed
+    get:
+      summary: List all payments
+      description: Retrieve a list of payments with optional filtering
+      operationId: listPayments
+      tags:
+        - Payments
+      parameters:
+        - name: status
+          in: query
+          description: Filter payments by status
+          schema:
+            type: string
+            enum: [pending, completed, failed]
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Payment'
+
+  /payments/{paymentId}:
+    get:
+      summary: Get payment details
+      description: Retrieve details of a specific payment
+      operationId: getPayment
+      tags:
+        - Payments
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          description: ID of the payment to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '404':
+          description: Payment not found
+
+components:
+  schemas:
+    PaymentRequest:
+      type: object
+      required:
+        - amount
+        - currency
+        - paymentMethod
+      properties:
+        amount:
+          type: number
+          format: float
+          description: Amount to charge
+          example: 99.99
+        currency:
+          type: string
+          description: Three-letter ISO currency code
+          example: USD
+        paymentMethod:
+          type: string
+          description: Payment method ID
+          example: pm_123456789
+        description:
+          type: string
+          description: Payment description
+          example: Order #123
+
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique payment identifier
+          example: pay_123456789
+        amount:
+          type: number
+          format: float
+          description: Payment amount
+          example: 99.99
+        currency:
+          type: string
+          description: Three-letter ISO currency code
+          example: USD
+        status:
+          type: string
+          enum: [pending, completed, failed]
+          description: Current status of the payment
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the payment was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the payment was last updated

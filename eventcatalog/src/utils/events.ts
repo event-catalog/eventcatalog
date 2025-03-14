@@ -31,7 +31,7 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
   }
 
   const events = await getCollection('events', (event) => {
-    return (getAllVersions || !event.data?.pathToFile?.includes('versioned')) && event.data.hidden !== true;
+    return (getAllVersions || !event.filePath?.includes('versioned')) && event.data.hidden !== true;
   });
 
   const services = await getCollection('services');
@@ -74,7 +74,7 @@ export const getEvents = async ({ getAllVersions = true }: Props = {}): Promise<
         absoluteFilePath: path.join(PROJECT_DIR, event.collection, event.id.replace('/index.mdx', '/index.md')),
         astroContentFilePath: path.join(process.cwd(), 'src', 'content', event.collection, event.id),
         filePath: path.join(process.cwd(), 'src', 'catalog-files', event.collection, event.id.replace('/index.mdx', '')),
-        publicPath: path.join('/generated', event.collection, event.id.replace('/index.mdx', '')),
+        publicPath: path.join('/generated', event.collection, event.id.replace(`-${event.data.version}`, '')),
         type: 'event',
       },
     };

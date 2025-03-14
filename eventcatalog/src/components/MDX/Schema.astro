@@ -9,15 +9,16 @@ interface Props {
     filePath: string;
   };
   title?: string;
+  filePath: string;
 }
 
-const { file = 'schema.json', catalog, title } = Astro.props;
+const { file = 'schema.json', catalog, title, filePath } = Astro.props;
 
 let code: string | null = null;
 
-const exists = fs.existsSync(path.join(catalog.filePath, file));
+const exists = fs.existsSync(path.join(path.dirname(filePath), file));
 if (exists) {
-  code = fs.readFileSync(path.join(catalog.filePath, file), 'utf-8');
+  code = fs.readFileSync(path.join(path.dirname(filePath), file), 'utf-8');
 }
 ---
 
