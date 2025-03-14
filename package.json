@@ -43,8 +43,8 @@
     "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json,astro}\""
   },
   "dependencies": {
-    "@astrojs/markdown-remark": "^6.2.0",
-    "@astrojs/mdx": "^4.1.0",
+    "@astrojs/markdown-remark": "^6.3.0",
+    "@astrojs/mdx": "^4.2.0",
     "@astrojs/react": "^4.2.1",
     "@astrojs/rss": "^4.0.11",
     "@astrojs/tailwind": "^6.0.0",
@@ -67,7 +67,7 @@
     "@tailwindcss/typography": "^0.5.13",
     "@tanstack/react-table": "^8.17.3",
     "@xyflow/react": "^12.3.6",
-    "astro": "^5.4.1",
+    "astro": "^5.5.2",
     "astro-expressive-code": "^0.40.1",
     "astro-pagefind": "^1.6.0",
     "astro-seo": "^0.8.4",
