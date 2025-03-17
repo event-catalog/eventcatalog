@@ -9,6 +9,8 @@ import { BookOpenText, Workflow, TableProperties, House, BookUser, MessageSquare
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
+import config from '@config';
+
 import '@fontsource/inter';
 import '@fontsource/inter/400.css'; // Specify weight
 import '@fontsource/inter/700.css'; // Specify weight
@@ -54,6 +56,7 @@ const getDefaultUrl = (route: string, defaultValue: string) => {
   return buildUrl(defaultValue);
 };
 
+const userSideBarConfiguration = config.sidebar || [];
 const navigationItems = [
   {
     id: '/',
@@ -111,7 +114,10 @@ const navigationItems = [
     href: buildUrl('/chat'),
     current: currentPath.includes('/chat'),
   },
-];
+].filter((item) => {
+  const userSideBarOption = userSideBarConfiguration.find((config: { id: string; visible: boolean }) => config.id === item.id);
+  return userSideBarOption ? userSideBarOption.visible : true;
+});
 
 const currentNavigationItem = navigationItems.find((item) => item.current);
 const { title, description } = Astro.props;
