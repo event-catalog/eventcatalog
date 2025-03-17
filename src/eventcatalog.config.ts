@@ -1,4 +1,5 @@
-type SideBarConfig = {
+export type SideBarConfig = {
+  id: string;
   visible: boolean;
 };
 
@@ -33,15 +34,10 @@ export interface Config {
     renderParsedSchemas?: boolean;
   };
   mdxOptimize?: boolean;
+  sidebar?: SideBarConfig[];
   docs: {
     sidebar: {
       type?: 'TREE_VIEW' | 'LIST_VIEW';
-      showPageHeadings: true;
-      services?: SideBarConfig;
-      messages?: SideBarConfig;
-      domains?: SideBarConfig;
-      teams?: SideBarConfig;
-      users?: SideBarConfig;
     };
   };
   dependencies?: {

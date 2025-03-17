@@ -47,7 +47,7 @@ export const checkAndConvertMdToMdx = async (source, astroDir) => {
   const files = await glob(path.join(source, '**'), {
     nodir: true,
     windowsPathsNoEscape: os.platform() == 'win32',
-    ignore: ['node_modules/**', '**/dist/**'],
+    ignore: ['node_modules/**', '**/dist/**', '**/README.md'],
   });
 
   // If we have any md files, log to the user
