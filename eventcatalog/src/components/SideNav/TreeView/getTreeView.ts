@@ -115,8 +115,8 @@ function groupChildrenByType(parentNode: TreeNode) {
     acc[n.type].push(n);
   });
 
-  // Collapse all messages
-  const AUTO_EXPANDED_TYPES = ['domains', 'services', 'channels'];
+  // Collapse everything except domains
+  const AUTO_EXPANDED_TYPES = ['domains'];
 
   parentNode.children = Object.entries(acc)
     // Order label nodes by RESOURCE_TYPES
