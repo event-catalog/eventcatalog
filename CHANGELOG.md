@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 2.30.1
+
+### Patch Changes
+
+- 86a1ca3: feat(core): sidebar items can now be hidden
+- cc9ba67: feat(core): added optional language prop for Schema component
+- cc9ba67: feat(Schema): add optional language prop for code highlighting
+
 ## 2.30.0
 
 ### Minor Changes
