@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.30.4
+
+### Patch Changes
+
+- ab46611: chore(core): updated astro versions
+
 ## 2.30.3
 
 ### Patch Changes
