@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.30.3
+
+### Patch Changes
+
+- 53a363a: fix(core): fixed render issue with large message names on architecture view
+
 ## 2.30.2
 
 ### Patch Changes
