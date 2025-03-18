@@ -6,12 +6,13 @@ import { buildUrl } from '@utils/url-builder';
 interface Props {
   href: string;
   icon: keyof typeof Icons;
+  iconColor?: string;
   title: string;
   openWindow?: boolean;
   description: string;
 }
 
-const { href, icon, title, description, openWindow } = Astro.props;
+const { href, icon, title, description, openWindow, iconColor = 'text-primary' } = Astro.props;
 
 const IconComponent: ComponentType<{ className?: string }> | undefined = Icons[icon];
 
@@ -28,7 +29,7 @@ function startsWithProtocol(str: string) {
   class="block bg-white border border-gray-200 rounded-lg p-6 transition-all duration-300 ease-in-out hover:shadow-md hover:border-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-white"
 >
   <div class="flex flex-col h-full space-y-8">
-    {IconComponent && <IconComponent className="w-6 h-6 text-primary" />}
+    {IconComponent && <IconComponent className={`w-6 h-6 ${iconColor}`} />}
     <div>
       <h2 class="text-gray-800 text-lg font-semibold transition-colors duration-300 ease-in-out group-hover:text-gray-300">
         {title}

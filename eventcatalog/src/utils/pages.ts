@@ -11,10 +11,10 @@ export const getPages = async (): Promise<Page[]> => {
 
 export const getIndexPage = async (): Promise<Page> => {
   const pages = await getCollection('pages');
-  return pages.find((page) => page.slug === 'index')!;
+  return pages.find((page) => page.data?.id === 'index')!;
 };
 
 export const hasLandingPageForDocs = async (): Promise<boolean> => {
   const pages = await getCollection('pages');
-  return pages.some((page) => page.slug === 'index')!;
+  return pages.some((page) => page.data?.id === 'index')!;
 };
