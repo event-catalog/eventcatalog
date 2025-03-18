@@ -17,7 +17,10 @@ const badge = z.object({
 });
 
 const pages = defineCollection({
-  type: 'content',
+  loader: glob({
+    pattern: ['**/pages/*.(md|mdx)'],
+    base: projectDirBase,
+  }),
   schema: z
     .object({
       id: z.string(),
