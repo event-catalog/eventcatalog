@@ -10,8 +10,10 @@ export const getChangeLogs = async (item: CollectionEntry<CollectionTypes>): Pro
   // Get all logs for collection type and filter by given collection
   const logs = await getCollection('changelogs', (log) => {
     const collectionDirectory = path.dirname(item?.filePath || '');
-    const isRootChangeLog = path.join(collectionDirectory, 'changelog.md') === log.filePath;
-    const isVersionedChangeLog = log.filePath?.includes(path.join(collectionDirectory, 'versioned'));
+    const isRootChangeLog = path.join(collectionDirectory, 'changelog.mdx') === log.filePath;
+    // Ensure the path follows <collectionDirectory>/versioned/<version>/changelog.mdx
+    const versionedPathPattern = new RegExp(`${collectionDirectory}/versioned/[^/]+/changelog\\.mdx$`);
+    const isVersionedChangeLog = versionedPathPattern.test(log.filePath!);
     return log.id.includes(`${collection}/`) && (isRootChangeLog || isVersionedChangeLog);
   });
 
@@ -19,7 +21,7 @@ export const getChangeLogs = async (item: CollectionEntry<CollectionTypes>): Pro
     // Check if there is a version in the url
     const isVersioned = log.id.includes('versioned');
 
-    const parts = log.id.split('/');
+    const parts = log.filePath!.split('/');
     // hack to get the version of the id (url)
     const version = parts[parts.length - 2];
     return {
