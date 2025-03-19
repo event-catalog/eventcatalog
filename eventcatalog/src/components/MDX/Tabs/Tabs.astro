@@ -17,7 +17,8 @@ const tabItems: TabItem[] = await Promise.all(
     .filter((item: string) => item.trim())
     .map(async (item: string, index: number) => {
       const titleMatch = item.match(/button>([^<]+)</);
-      const title = titleMatch ? titleMatch[1].trim() : `Tab ${index + 1}`;
+      let title = titleMatch ? titleMatch[1].trim() : ``;
+      title = title || `Tab ${index + 1}`;
       const content = item.replace(/<button>[^<]+<\/button>/, '');
       return {
         title,
