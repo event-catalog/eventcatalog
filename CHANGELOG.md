@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.30.5
+
+### Patch Changes
+
+- b59706f: fix(core): tabs now support optional title param
+
 ## 2.30.4
 
 ### Patch Changes
