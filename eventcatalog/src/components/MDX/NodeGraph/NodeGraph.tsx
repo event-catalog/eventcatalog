@@ -25,6 +25,7 @@ import CommandNode from './Nodes/Command';
 import ExternalSystemNode from './Nodes/ExternalSystem';
 import AnimatedMessageEdge from './Edges/AnimatedMessageEdge';
 import FlowEdge from './Edges/FlowEdge';
+import CustomNode from './Nodes/Custom';
 
 import type { CollectionEntry } from 'astro:content';
 import { navigate } from 'astro:transitions/client';
@@ -69,6 +70,7 @@ const NodeGraphBuilder = ({
       step: StepNode,
       user: UserNode,
       actor: UserNode,
+      custom: CustomNode,
       externalSystem: ExternalSystemNode,
     }),
     []

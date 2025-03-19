@@ -62,6 +62,7 @@
     "@parcel/watcher": "^2.4.1",
     "@radix-ui/react-context-menu": "^2.2.6",
     "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-tooltip": "^1.1.8",
     "@scalar/api-reference-react": "^0.4.37",
     "@stoplight/json-schema-viewer": "^4.16.4",
     "@tailwindcss/typography": "^0.5.13",

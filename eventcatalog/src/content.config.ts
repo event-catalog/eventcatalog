@@ -159,6 +159,26 @@ const flows = defineCollection({
                 name: z.string(),
               })
               .optional(),
+            custom: z
+              .object({
+                title: z.string(),
+                icon: z.string().optional(),
+                type: z.string().optional(),
+                summary: z.string().optional(),
+                url: z.string().url().optional(),
+                color: z.string().optional(),
+                properties: z.record(z.union([z.string(), z.number()])).optional(),
+                height: z.number().optional(),
+                menu: z
+                  .array(
+                    z.object({
+                      label: z.string(),
+                      url: z.string().url().optional(),
+                    })
+                  )
+                  .optional(),
+              })
+              .optional(),
             externalSystem: z
               .object({
                 name: z.string(),
