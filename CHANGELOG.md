@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.30.6
+
+### Patch Changes
+
+- f9fe7a5: feat(core): added ability to add custom nodes in flows
+
 ## 2.30.5
 
 ### Patch Changes
