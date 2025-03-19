@@ -1,0 +1,301 @@
+---
+id: "SubscriptionRenewed"
+name: "Subscription Renewal Flow"
+version: "1.0.0"
+summary: "Business flow for automatic subscription renewals and related processes"
+steps:
+  - id: "renewal_timer_triggered"
+    title: "Renewal Period Reached"
+    custom:
+      title: "Renewal Timer"
+      color: "orange"
+      icon: "ClockIcon"
+      type: "Scheduler"
+      summary: "Automated timer triggers the subscription renewal process"
+      height: 8
+      properties:
+        subscription_id: "sub_12345678"
+        renewal_type: "Automatic"
+        billing_cycle: "Monthly"
+        next_billing_date: "2024-08-01"
+      menu:
+        - label: "View scheduler configuration"
+          url: "https://docs.example.com/scheduler"
+        - label: "Subscription timing documentation"
+          url: "https://docs.example.com/subscription-timing"
+    next_step:
+      id: "check_subscription_status"
+      label: "Verify subscription status"
+
+  - id: "check_subscription_status"
+    title: "Check Subscription Status"
+    service:
+      id: "SubscriptionService"
+      version: "0.0.1"
+    next_steps:
+      - id: "payment_approval_check"
+        label: "Subscription active, proceed to payment"
+      - id: "subscription_expired"
+        label: "Subscription has expired"
+      - id: "subscription_canceled"
+        label: "Subscription was canceled"
+
+  - id: "subscription_expired"
+    title: "Subscription Expired"
+    type: "node"
+    next_step:
+      id: "send_renewal_notification"
+      label: "Notify customer to renew"
+
+  - id: "subscription_canceled"
+    title: "Subscription Canceled"
+    type: "node"
+    next_step:
+      id: "send_reactivation_offer"
+      label: "Send special reactivation offer"
+
+  - id: "send_renewal_notification"
+    title: "Send Renewal Notification"
+    service:
+      id: "NotificationService"
+      version: "0.0.2"
+    next_step:
+      id: "await_customer_action"
+      label: "Wait for customer response"
+
+  - id: "send_reactivation_offer"
+    title: "Send Reactivation Offer"
+    service:
+      id: "NotificationService"
+      version: "0.0.2"
+    next_step:
+      id: "await_customer_action"
+      label: "Wait for customer response"
+
+  - id: "await_customer_action"
+    title: "Await Customer Action"
+    custom:
+      title: "Customer Decision Point"
+      color: "purple"
+      icon: "UserIcon"
+      type: "Decision"
+      height: 8
+      summary: "Waiting period for customer to take action on notification"
+      properties:
+        timeout_period: "7 days"
+        options: "Renew, Upgrade, Cancel, Ignore"
+    next_steps:
+      - id: "manual_renewal_flow"
+        label: "Customer manually renews"
+      - id: "flow_ends"
+        label: "No action taken"
+
+  - id: "manual_renewal_flow"
+    title: "Manual Renewal Flow"
+    type: "node"
+    next_step:
+      id: "payment_initiated"
+      label: "Process payment"
+
+  - id: "payment_approval_check"
+    title: "Check Payment Approval"
+    message:
+      id: "GetPaymentStatus"
+      version: "0.0.1"
+    next_steps:
+      - id: "payment_initiated"
+        label: "Payment approved, proceed with billing"
+      - id: "payment_method_invalid"
+        label: "Invalid payment method"
+
+  - id: "payment_method_invalid"
+    title: "Invalid Payment Method"
+    type: "node"
+    next_step:
+      id: "request_payment_update"
+      label: "Request updated payment method"
+
+  - id: "request_payment_update"
+    title: "Request Payment Update"
+    service:
+      id: "NotificationService"
+      version: "0.0.2"
+    next_step:
+      id: "await_updated_payment"
+      label: "Wait for payment update"
+
+  - id: "await_updated_payment"
+    title: "Await Updated Payment Method"
+    actor:
+      name: "Customer"
+    next_steps:
+      - id: "payment_initiated"
+        label: "Payment method updated"
+      - id: "subscription_grace_period"
+        label: "No update received"
+
+  - id: "subscription_grace_period"
+    title: "Grace Period"
+    custom:
+      title: "Subscription Grace Period"
+      color: "yellow"
+      icon: "ShieldExclamationIcon"
+      type: "Timer"
+      summary: "Limited period where subscription remains active despite payment failure"
+      properties:
+        duration: "7 days"
+        status: "At risk"
+    next_steps:
+      - id: "payment_initiated"
+        label: "Payment updated during grace period"
+      - id: "subscription_suspended"
+        label: "Grace period expired"
+
+  - id: "subscription_suspended"
+    title: "Subscription Suspended"
+    message:
+      id: "UserSubscriptionCancelled"
+      version: "0.0.1"
+    next_step:
+      id: "send_suspension_notification"
+      label: "Notify customer of suspension"
+
+  - id: "send_suspension_notification"
+    title: "Send Suspension Notification"
+    service:
+      id: "NotificationService"
+      version: "0.0.2"
+    next_step:
+      id: "flow_ends"
+      label: "Flow ends"
+
+  - id: "payment_initiated"
+    title: "Process Payment"
+    message:
+      id: "PaymentInitiated"
+      version: "0.0.1"
+    next_step:
+      id: "payment_gateway"
+      label: "Send to payment gateway"
+
+  - id: "payment_gateway"
+    title: "Payment Gateway"
+    externalSystem:
+      name: "Stripe"
+      summary: "3rd party payment processor"
+      url: "https://stripe.com/"
+    next_steps:
+      - id: "payment_processed"
+        label: "Payment successful"
+      - id: "payment_failed"
+        label: "Payment failed"
+
+  - id: "payment_failed"
+    title: "Payment Failed"
+    type: "node"
+    next_step:
+      id: "retry_payment"
+      label: "Retry payment"
+
+  - id: "retry_payment"
+    title: "Retry Payment"
+    custom:
+      title: "Payment Retry Logic"
+      color: "red"
+      icon: "ArrowPathIcon"
+      type: "Processor"
+      summary: "Automated retry logic for failed payments"
+      properties:
+        max_attempts: 3
+        backoff_interval: "24 hours"
+        current_attempt: 1
+    next_steps:
+      - id: "payment_initiated" 
+        label: "Retry payment"
+      - id: "subscription_grace_period"
+        label: "Max retries exceeded"
+
+  - id: "payment_processed"
+    title: "Payment Processed"
+    message:
+      id: "PaymentProcessed"
+      version: "1.0.0"
+    next_step:
+      id: "update_subscription_status"
+      label: "Update subscription"
+
+  - id: "update_subscription_status"
+    title: "Update Subscription"
+    service:
+      id: "SubscriptionService"
+      version: "0.0.1"
+    next_step:
+      id: "send_renewal_confirmation"
+      label: "Confirm renewal to customer"
+
+  - id: "send_renewal_confirmation"
+    title: "Send Renewal Confirmation"
+    service:
+      id: "NotificationService"
+      version: "0.0.2"
+    next_step:
+      id: "analyze_customer_usage"
+      label: "Analyze customer usage patterns"
+
+  - id: "analyze_customer_usage"
+    title: "Analyze Usage Patterns"
+    custom:
+      title: "Usage Analytics"
+      color: "blue"
+      icon: "ChartBarIcon"
+      type: "Analytics"
+      summary: "Analyze customer usage patterns to identify upsell opportunities"
+      properties:
+        metrics_analyzed: "Feature usage, Resource consumption, Access patterns"
+        lookback_period: "90 days"
+      menu:
+        - label: "View analytics dashboard"
+          url: "https://analytics.example.com/subscriptions"
+        - label: "Documentation"
+          url: "https://docs.example.com/analytics"
+    next_steps:
+      - id: "send_upgrade_recommendation"
+        label: "Usage suggests upgrade opportunity"
+      - id: "flow_ends"
+        label: "No upgrade opportunity identified"
+
+  - id: "send_upgrade_recommendation"
+    title: "Send Upgrade Recommendation"
+    service:
+      id: "NotificationService"
+      version: "0.0.2"
+    next_step:
+      id: "flow_ends"
+      label: "Flow completed"
+
+  - id: "flow_ends"
+    title: "Flow Completed"
+    type: "node"
+
+---
+
+## Subscription Renewal Flow
+
+This flow documents the process of automatic subscription renewals, including handling various edge cases such as payment failures, expired subscriptions, and customer interactions.
+
+<NodeGraph />
+
+### Key Components
+
+* **Automatic Renewal Process**: Triggered by a scheduled timer when the subscription renewal period is reached
+* **Payment Processing**: Integration with payment gateway and handling of payment failures
+* **Customer Notifications**: Various notifications sent throughout the process
+* **Grace Period Handling**: Special handling when payments fail with a grace period before subscription suspension
+* **Usage Analytics**: Analysis of customer usage patterns to identify upgrade opportunities
+
+### Business Rules
+
+1. Subscriptions are renewed automatically unless explicitly canceled
+2. Failed payments trigger a retry process (up to 3 attempts)
+3. Customers receive a 7-day grace period before subscription suspension
+4. Usage patterns are analyzed to provide personalized upgrade recommendations
