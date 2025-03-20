@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.30.7
+
+### Patch Changes
+
+- 548580d: core(fix): update getCollection filter function to match `changelog.mdx`
+
 ## 2.30.6
 
 ### Patch Changes
