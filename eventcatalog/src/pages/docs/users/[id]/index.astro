@@ -60,11 +60,11 @@ const associatedTeams = teams.map((o) => ({
   href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
 }));
 
-const title = `User | ${props.data.name}`;
+const pageTitle = `User | ${props.data.name}`;
 ---
 
-<VerticalSideBarLayout title={title}>
-  <main class="flex sm:px-8 docs-layout h-full" data-pagefind-body data-pagefind-meta={`title:${title}`}>
+<VerticalSideBarLayout title={pageTitle}>
+  <main class="flex sm:px-8 docs-layout h-full" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-6 pr-8 overflow-y-auto py-4">
         <!-- <span class="text-purple-500 bg-purple-100 px-2 py-1 rounded-md">v{props.data.version}</span> -->
