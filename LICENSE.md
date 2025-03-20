@@ -5,7 +5,7 @@ Source code in this repository is split into two parts:
 
 ---
 
-All code outside of the `/src/enterprise` directory is licensed under the MIT license which is below.
+All code outside of the `eventcatalog/src/enterprise` directory is licensed under the MIT license which is below.
 
 MIT License
 

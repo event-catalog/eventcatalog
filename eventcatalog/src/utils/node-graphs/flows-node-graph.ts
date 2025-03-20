@@ -65,6 +65,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     if (step.service) return getServiceNode(step, services);
     if (step.message) return getMessageNode(step, messages);
     if (step.actor) return { ...step, type: 'actor', actor: step.actor };
+    if (step.custom) return { ...step, type: 'custom', custom: step.custom };
     if (step.externalSystem) return { ...step, type: 'externalSystem', externalSystem: step.externalSystem };
     return { ...step, type: 'step' };
   });
@@ -89,7 +90,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     if (step.message) node.data.message = step.message;
     if (step.actor) node.data.actor = step.actor;
     if (step.externalSystem) node.data.externalSystem = step.externalSystem;
-
+    if (step.custom) node.data.custom = step.custom;
     nodes.push(node);
   });
 

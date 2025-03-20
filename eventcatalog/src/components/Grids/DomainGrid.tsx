@@ -146,7 +146,9 @@ export default function DomainGrid({ domains, embeded }: DomainGridProps) {
                                 <div className="bg-white border-r border-gray-200 px-2 py-1.5 rounded-l-md">
                                   <Icon className={`h-3 w-3 text-${color}-500`} />
                                 </div>
-                                <span className="px-1 py-1">{message.id}</span>
+                                <span className="px-1 py-1 truncate max-w-[140px]">
+                                  {message.id} really long name that might break something
+                                </span>
                               </div>
                             );
                           })}
@@ -189,7 +191,8 @@ export default function DomainGrid({ domains, embeded }: DomainGridProps) {
                                 <div className="bg-white border-r border-gray-200 px-2 py-1.5 rounded-l-md">
                                   <Icon className={`h-3 w-3 text-${color}-500`} />
                                 </div>
-                                <span className="px-1 py-1">{message.id}</span>
+
+                                <span className="px-1 py-1 truncate max-w-[140px]">{message.id}</span>
                               </div>
                             );
                           })}

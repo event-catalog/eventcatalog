@@ -1,5 +1,35 @@
 # @eventcatalog/core
 
+## 2.30.6
+
+### Patch Changes
+
+- f9fe7a5: feat(core): added ability to add custom nodes in flows
+
+## 2.30.5
+
+### Patch Changes
+
+- b59706f: fix(core): tabs now support optional title param
+
+## 2.30.4
+
+### Patch Changes
+
+- ab46611: chore(core): updated astro versions
+
+## 2.30.3
+
+### Patch Changes
+
+- 53a363a: fix(core): fixed render issue with large message names on architecture view
+
+## 2.30.2
+
+### Patch Changes
+
+- 96e3403: fix(core): fixed custom pages/index.mdx not showing in eventcatalog
+
 ## 2.30.1
 
 ### Patch Changes

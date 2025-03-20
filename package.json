@@ -6,7 +6,7 @@
     "url": "https://github.com/event-catalog/eventcatalog.git"
   },
   "type": "module",
-  "version": "2.30.1",
+  "version": "2.30.6",
   "publishConfig": {
     "access": "public"
   },
@@ -43,8 +43,8 @@
     "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json,astro}\""
   },
   "dependencies": {
-    "@astrojs/markdown-remark": "^6.3.0",
-    "@astrojs/mdx": "^4.2.0",
+    "@astrojs/markdown-remark": "^6.3.1",
+    "@astrojs/mdx": "^4.2.1",
     "@astrojs/react": "^4.2.1",
     "@astrojs/rss": "^4.0.11",
     "@astrojs/tailwind": "^6.0.0",
@@ -62,12 +62,13 @@
     "@parcel/watcher": "^2.4.1",
     "@radix-ui/react-context-menu": "^2.2.6",
     "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-tooltip": "^1.1.8",
     "@scalar/api-reference-react": "^0.4.37",
     "@stoplight/json-schema-viewer": "^4.16.4",
     "@tailwindcss/typography": "^0.5.13",
     "@tanstack/react-table": "^8.17.3",
     "@xyflow/react": "^12.3.6",
-    "astro": "^5.5.2",
+    "astro": "^5.5.3",
     "astro-expressive-code": "^0.40.1",
     "astro-pagefind": "^1.6.0",
     "astro-seo": "^0.8.4",

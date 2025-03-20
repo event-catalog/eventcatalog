@@ -224,9 +224,9 @@ export default function ServiceGrid({ services, embeded }: ServiceGridProps) {
                 >
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 w-full">
                         <ServerIcon className="h-5 w-5 text-pink-500" />
-                        <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:underline transition-colors duration-200">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:underline transition-colors duration-200 w-full max-w-[90%]">
                           {service.data.name || service.data.id} (v{service.data.version})
                         </h3>
                       </div>
@@ -257,7 +257,7 @@ export default function ServiceGrid({ services, embeded }: ServiceGridProps) {
                                       <div className="bg-white border-r border-gray-200 px-2 py-1.5 rounded-l-md">
                                         <Icon className={`h-3 w-3 text-${color}-500`} />
                                       </div>
-                                      <span className="px-1 py-1">{message.data.name}</span>
+                                      <span className="px-1 py-1 truncate max-w-[140px]">{message.data.name}</span>
                                     </a>
                                   );
                                 })}
@@ -277,7 +277,7 @@ export default function ServiceGrid({ services, embeded }: ServiceGridProps) {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 max-w-[200px]">
                             <div className="w-4 h-[2px] bg-blue-200"></div>
                             <div className="bg-white border-2 border-pink-100 rounded-lg p-4 shadow-sm">
                               <div className="flex flex-col items-center gap-3">
@@ -308,7 +308,7 @@ export default function ServiceGrid({ services, embeded }: ServiceGridProps) {
                                       <div className="bg-white border-r border-gray-200 px-2 py-1.5 rounded-l-md">
                                         <Icon className={`h-3 w-3 text-${color}-500`} />
                                       </div>
-                                      <span className="px-1 py-1">{message.data.name}</span>
+                                      <span className="px-1 py-1 truncate max-w-[140px]">{message.data.name}</span>
                                     </a>
                                   );
                                 })}
