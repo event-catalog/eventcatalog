@@ -35,7 +35,7 @@ export async function getStaticPaths() {
 }
 
 // @ts-ignore
-const { data, catalog, filePath } = Astro.props;
+const { collection, data, catalog, filePath } = Astro.props;
 const fileName = data.specifications?.openapiPath || 'openapi.yml';
 
 const directory = path.dirname(filePath || '');
@@ -44,12 +44,15 @@ const fileExists = fs.existsSync(pathToSpec);
 
 let content = '';
 
+// Capitalize the first letter of a string
+const pageTitle = `${collection} | ${data.name} | OpenAPI Spec`.replace(/^\w/, (c) => c.toUpperCase());
+
 if (fileExists) {
   content = fs.readFileSync(pathToSpec, 'utf8');
 }
 ---
 
-<VerticalSideBarLayout title="OpenAPI Spec">
+<VerticalSideBarLayout title={pageTitle}>
   {
     !fileExists ? (
       <div class="text-center h-screen  flex flex-col justify-center ">
@@ -60,7 +63,11 @@ if (fileExists) {
         </p>
       </div>
     ) : (
-      <div>
+      <div data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
+        <!-- Currently, Pagefind does not index metadata (such as the title),
+             so we need to ensure it is included as text on the page.
+             https://github.com/CloudCannon/pagefind/issues/437 -->
+        <h2 class="hidden">{pageTitle}</h2>
         <OpenAPISpec client:only="react" spec={content} />
       </div>
     )
