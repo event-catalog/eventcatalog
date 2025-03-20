@@ -123,10 +123,19 @@ const getSpecificationBadges = () => {
 };
 
 const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
+
+// Index only the latest version
+const pagefindAttributes =
+  props.data.version === props.data.latestVersion
+    ? {
+        'data-pagefind-body': '',
+        'data-pagefind-meta': `title:${pageTitle}`,
+      }
+    : {};
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
-  <main class="flex sm:px-8 docs-layout h-full" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
+  <main class="flex sm:px-8 docs-layout h-full" {...pagefindAttributes}>
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
         <div class="border-b border-gray-200 flex justify-between items-start md:pb-2">

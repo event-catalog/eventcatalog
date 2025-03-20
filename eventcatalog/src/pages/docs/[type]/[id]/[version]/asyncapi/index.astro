@@ -61,10 +61,19 @@ const renderedComponent = renderToString(component);
 
 // Capitalize the first letter of a string
 const pageTitle = `${collection} | ${data.name} | AsyncApi Spec`.replace(/^\w/, (c) => c.toUpperCase());
+
+// Index only the latest version
+const pagefindAttributes =
+  data.version === data.latestVersion
+    ? {
+        'data-pagefind-body': '',
+        'data-pagefind-meta': `title:${pageTitle}`,
+      }
+    : {};
 ---
 
 <VerticalSideBarLayout title={pageTitle}>
-  <div data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
+  <div {...pagefindAttributes}>
     <!-- Currently, Pagefind does not index metadata (such as the title),
          so we need to ensure it is included as text on the page.
          https://github.com/CloudCannon/pagefind/issues/437 -->
