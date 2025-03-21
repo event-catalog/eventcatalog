@@ -69,11 +69,13 @@ const ownedQueriesList = queries.map((p) => ({
   collection: p.collection,
   tag: `v${p.data.version}`,
 }));
+
+const pageTitle = `Team | ${props.data.name}`;
 ---
 
-<VerticalSideBarLayout title={`Team | ${props.data.name}`} description={props.data.summary}>
+<VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
   <div class="flex min-h-screen docs-layout sm:px-8">
-    <main class="flex-1 w-full pr-10 pt-4">
+    <main class="flex-1 w-full pr-10 pt-4" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
       <!-- <span class="text-purple-500 bg-purple-100 px-2 py-1 rounded-md">v{props.data.version}</span> -->
 
       <div class="border-b border-gray-200 py-4 pb-2">
@@ -131,7 +133,7 @@ const ownedQueriesList = queries.map((p) => ({
         <NodeGraph id={props.data.id} type={props?.catalog?.type} nodes={props.nodes} masterNode={{ name: props.data.name, id: props.data.id }} client:load />
       </div> -->
     </main>
-    <aside class="sticky top-20 h-[calc(100vh-theme(spacing.16))] w-72 overflow-y-auto">
+    <aside class="sticky top-20 h-[calc(100vh-theme(spacing.16))] w-72 overflow-y-auto" data-pagefind-ignore>
       <div class="divide-y-2 divide-gray-100">
         <PillListFlat
           color="pink"

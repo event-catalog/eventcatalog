@@ -34,7 +34,7 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
-  <main class="flex sm:px-8 docs-layout h-full">
+  <main class="flex sm:px-8 docs-layout h-full" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8 min-h-[50em]">
         <nav class="flex mb-4" aria-label="Breadcrumb">

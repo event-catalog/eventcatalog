@@ -59,10 +59,12 @@ const associatedTeams = teams.map((o) => ({
   badge: 'Team',
   href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
 }));
+
+const pageTitle = `User | ${props.data.name}`;
 ---
 
-<VerticalSideBarLayout title={`User | ${props.data.name}`}>
-  <main class="flex sm:px-8 docs-layout h-full">
+<VerticalSideBarLayout title={pageTitle}>
+  <main class="flex sm:px-8 docs-layout h-full" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-6 pr-8 overflow-y-auto py-4">
         <!-- <span class="text-purple-500 bg-purple-100 px-2 py-1 rounded-md">v{props.data.version}</span> -->
@@ -105,7 +107,7 @@ const associatedTeams = teams.map((o) => ({
             </div>
           </div>
         </div>
-        <div class="border-b border-gray-200">
+        <div class="border-b border-gray-200" data-pagefind-ignore>
           <div class="mx-auto max-w-7xl px-6 lg:px-8">
             <div class="mx-auto max-w-2xl lg:max-w-none">
               <dl
@@ -139,7 +141,10 @@ const associatedTeams = teams.map((o) => ({
           <Content components={components(props)} />
         </div>
       </div>
-      <aside class="hidden lg:block sticky top-0 h-[calc(100vh-theme(spacing.16))] w-72 overflow-y-auto py-2">
+      <aside
+        class="hidden lg:block sticky top-0 h-[calc(100vh-theme(spacing.16))] w-72 overflow-y-auto py-2"
+        data-pagefind-ignore
+      >
         <div class="divide-y-2 divide-gray-100 pr-6">
           {
             ownedDomainsList.length > 0 && (

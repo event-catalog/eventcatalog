@@ -39,7 +39,7 @@ export async function getStaticPaths() {
 }
 
 // @ts-ignore
-const { catalog, data, filePath } = Astro.props;
+const { collection, catalog, data, filePath } = Astro.props;
 const fileName = data.specifications?.asyncapiPath || 'asyncapi.yaml';
 const directory = path.dirname(filePath || '');
 const pathToSpec = path.join(directory, fileName);
@@ -58,10 +58,30 @@ const config: ConfigInterface = { show: { sidebar: true, errors: true } };
 
 const component = createElement(AsyncApiComponentWP, { schema: { stringified }, config });
 const renderedComponent = renderToString(component);
+
+// Capitalize the first letter of a string
+const pageTitle = `${collection} | ${data.name} | AsyncApi Spec`.replace(/^\w/, (c) => c.toUpperCase());
+
+// Index only the latest version
+const pagefindAttributes =
+  data.version === data.latestVersion
+    ? {
+        'data-pagefind-body': '',
+        'data-pagefind-meta': `title:${pageTitle}`,
+      }
+    : {};
 ---
 
-<VerticalSideBarLayout title="AsyncApi Spec">
-  <div id="asyncapi" class="md:pr-14" set:html={renderedComponent} />
+<VerticalSideBarLayout title={pageTitle}>
+  <div {...pagefindAttributes}>
+    {
+      // Currently, Pagefind does not index metadata (such as the title),
+      // so we need to ensure it is included as text on the page.
+      // https://github.com/CloudCannon/pagefind/issues/437
+    }
+    <h2 class="hidden">{pageTitle}</h2>
+    <div id="asyncapi" class="md:pr-14" set:html={renderedComponent} />
+  </div>
 </VerticalSideBarLayout>
 
 <script is:inline src={js}></script>
