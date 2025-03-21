@@ -4,7 +4,7 @@ import { getDomains } from '@utils/collections/domains';
 import { getCommands, getEvents } from '@utils/messages';
 import { getQueries } from '@utils/queries';
 import { getServices } from '@utils/collections/services';
-import { getFlows } from '@utils/collections/flows.ts';
+import { getFlows } from '@utils/collections/flows';
 import type { CollectionEntry } from 'astro:content';
 
 export const pageDataLoader: Record<PageTypes, () => Promise<CollectionEntry<CollectionTypes>[]>> = {
