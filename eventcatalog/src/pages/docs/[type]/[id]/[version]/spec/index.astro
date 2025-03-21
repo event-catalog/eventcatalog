@@ -73,9 +73,11 @@ if (fileExists) {
       </div>
     ) : (
       <div {...pagefindAttributes}>
-        <!-- Currently, Pagefind does not index metadata (such as the title),
-             so we need to ensure it is included as text on the page.
-             https://github.com/CloudCannon/pagefind/issues/437 -->
+        {
+          // Currently, Pagefind does not index metadata (such as the title),
+          // so we need to ensure it is included as text on the page.
+          // https://github.com/CloudCannon/pagefind/issues/437
+        }
         <h2 class="hidden">{pageTitle}</h2>
         <OpenAPISpec client:only="react" spec={content} />
       </div>
