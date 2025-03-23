@@ -1,0 +1,175 @@
+---
+title: Infrastructure as Code (IaC) Overview
+description: An overview of the infrastructure-as-code approach used in the FlowMart e-commerce platform
+sidebar:
+    label: 01 - IaC Overview
+    order: 1
+---
+
+# Infrastructure as Code (IaC) Overview
+
+This document provides an overview of the Infrastructure as Code (IaC) approach used to manage and provision the infrastructure for the FlowMart e-commerce platform.
+
+## What is Infrastructure as Code?
+
+Infrastructure as Code (IaC) is an approach to infrastructure management where infrastructure resources are defined and provisioned through machine-readable definition files, rather than through manual processes or interactive configuration tools. This approach allows us to:
+
+- **Version control** our infrastructure definitions alongside our application code
+- **Automate** the provisioning and management of infrastructure
+- **Standardize** configurations across different environments
+- **Document** our infrastructure setup as living code rather than static documentation
+- **Test** infrastructure changes before deploying to production
+
+## Our IaC Tech Stack
+
+For the FlowMart e-commerce platform, we use the following technologies for our infrastructure management:
+
+### Primary Tools
+
+| Tool | Purpose |
+|------|---------|
+| **Terraform** | Infrastructure provisioning across cloud providers (primary tool) |
+| **Kubernetes (K8s)** | Container orchestration |
+| **Helm Charts** | Kubernetes application deployment packaging |
+| **GitHub Actions** | CI/CD pipeline automation |
+| **AWS CloudFormation** | Specific AWS infrastructure components |
+
+### Additional Supporting Tools
+
+| Tool | Purpose |
+|------|---------|
+| **Terragrunt** | Terraform code organization and management |
+| **Packer** | Virtual machine image building |
+| **Ansible** | Configuration management |
+| **Prometheus & Grafana** | Monitoring and alerting |
+| **ELK Stack** | Logging |
+
+## Infrastructure Architecture
+
+Our infrastructure is organized into the following logical components:
+
+```mermaid
+flowchart TD
+    classDef networkInfra fill:#e1d5e7,stroke:#9673a6,stroke-width:2px
+    classDef computeInfra fill:#d5e8d4,stroke:#82b366,stroke-width:2px
+    classDef datastoreInfra fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px
+    classDef securityInfra fill:#f8cecc,stroke:#b85450,stroke-width:2px
+    classDef monitoringInfra fill:#fff2cc,stroke:#d6b656,stroke-width:2px
+
+    subgraph "Networking Infrastructure"
+        VPC[VPC & Subnets]
+        IGW[Internet Gateway]
+        NLB[Network Load Balancer]
+        Route53[DNS - Route53]
+    end
+    
+    subgraph "Compute Infrastructure"
+        EKS[EKS Cluster]
+        EC2[EC2 Instances]
+        Lambda[Lambda Functions]
+    end
+    
+    subgraph "Data Storage"
+        RDS[RDS Databases]
+        DynamoDB[DynamoDB Tables]
+        S3[S3 Buckets]
+        ElastiCache[ElastiCache Redis]
+    end
+    
+    subgraph "Security"
+        IAM[IAM Roles & Policies]
+        SG[Security Groups]
+        WAF[WAF & Shield]
+        Secrets[Secrets Manager]
+    end
+    
+    subgraph "Monitoring & Logging"
+        CloudWatch[CloudWatch]
+        Prometheus[Prometheus]
+        Grafana[Grafana Dashboards]
+        ELK[ELK Stack]
+    end
+    
+    %% Connections
+    VPC --> IGW
+    IGW --> NLB
+    NLB --> EKS
+    Route53 --> NLB
+    
+    EKS --> SG
+    EC2 --> SG
+    Lambda --> SG
+    
+    EKS --> RDS
+    EKS --> DynamoDB
+    EKS --> S3
+    EKS --> ElastiCache
+    
+    IAM --> EKS
+    IAM --> Lambda
+    IAM --> RDS
+    
+    CloudWatch --> EKS
+    CloudWatch --> RDS
+    CloudWatch --> Lambda
+    Prometheus --> EKS
+    Grafana --> Prometheus
+    ELK --> EKS
+    
+    %% Apply styles
+    class VPC,IGW,NLB,Route53 networkInfra
+    class EKS,EC2,Lambda computeInfra
+    class RDS,DynamoDB,S3,ElastiCache datastoreInfra
+    class IAM,SG,WAF,Secrets securityInfra
+    class CloudWatch,Prometheus,Grafana,ELK monitoringInfra
+```
+
+## Repository Structure
+
+Our infrastructure code is organized as follows:
+
+```
+infrastructure/
+│
+├── terraform/                  # Terraform configuration
+│   ├── environments/           # Environment-specific configurations
+│   │   ├── dev/
+│   │   ├── staging/
+│   │   └── production/
+│   ├── modules/                # Reusable Terraform modules
+│   │   ├── networking/
+│   │   ├── compute/
+│   │   ├── database/
+│   │   └── monitoring/
+│   └── global/                 # Global resources (e.g., Route53)
+│
+├── kubernetes/                 # Kubernetes manifests
+│   ├── base/                   # Base configurations
+│   └── overlays/               # Environment-specific overlays (Kustomize)
+│
+├── helm-charts/                # Helm charts for application deployment
+│
+├── scripts/                    # Utility scripts
+│
+└── packer/                     # Packer templates for image building
+```
+
+## Deployment Principles
+
+1. **Infrastructure Changes via Pull Requests**: All infrastructure changes must go through a pull request process, with automated testing and reviews.
+
+2. **Environment Promotion**: Changes are first deployed to development, then staging, and finally production, with appropriate testing at each stage.
+
+3. **Immutable Infrastructure**: We prefer to replace rather than modify infrastructure components.
+
+4. **Least Privilege**: We follow the principle of least privilege for all IAM roles and security groups.
+
+5. **Automated Rollbacks**: Our CI/CD pipelines include automated rollback capabilities if deployments fail.
+
+## Next Steps
+
+For more detailed information about our infrastructure as code setup, please refer to the following documents:
+
+- [Terraform Implementation](./02-terraform-implementation.mdx)
+- [Environment Setups](./03-environment-setups.mdx)
+- [CI/CD Pipelines](./04-cicd-pipelines.mdx) 

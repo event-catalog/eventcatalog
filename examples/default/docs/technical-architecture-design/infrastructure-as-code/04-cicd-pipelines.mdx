@@ -1,0 +1,364 @@
+---
+title: CI/CD Pipelines
+description: Detailed overview of the CI/CD pipelines used to deploy and maintain the FlowMart e-commerce platform
+sidebar:
+    label: 04 - CI/CD Pipelines
+    order: 4
+---
+
+# CI/CD Pipelines
+
+This document provides an overview of the Continuous Integration (CI) and Continuous Deployment (CD) pipelines used to build, test, and deploy the FlowMart e-commerce platform.
+
+## CI/CD Philosophy
+
+Our CI/CD approach follows these key principles:
+
+1. **Automation First**: Automate everything that can be automated
+2. **Fast Feedback**: Provide developers with quick feedback on their changes
+3. **Consistency**: Ensure consistent builds and deployments across all environments
+4. **Security**: Integrate security testing throughout the pipeline
+5. **Observability**: Monitor and track all deployments and their impacts
+6. **Self-service**: Enable teams to deploy independently, but safely
+
+## CI/CD Technology Stack
+
+Our CI/CD pipeline utilizes the following key technologies:
+
+| Technology | Purpose |
+|------------|---------|
+| GitHub Actions | Main CI/CD orchestration platform |
+| ArgoCD | Kubernetes GitOps deployment tool |
+| Helm | Kubernetes package management |
+| Docker | Container building and registry |
+| Terraform | Infrastructure as Code deployment |
+| SonarQube | Code quality and security analysis |
+| Jest, JUnit, pytest | Unit testing frameworks |
+| Playwright | End-to-end testing |
+| K6 | Performance testing |
+| OWASP ZAP | Security scanning |
+| Snyk | Dependency vulnerability scanning |
+| AWS ECR | Container registry |
+
+## CI/CD Pipeline Overview
+
+Our CI/CD pipeline consists of multiple stages with specific responsibilities:
+
+```mermaid
+flowchart TD
+    classDef build fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px
+    classDef test fill:#d5e8d4,stroke:#82b366,stroke-width:2px
+    classDef deploy fill:#ffe6cc,stroke:#d79b00,stroke-width:2px
+    classDef release fill:#f8cecc,stroke:#b85450,stroke-width:2px
+
+    CodePush[Code Push] --> Build[Build & Package]
+    Build --> UnitTest[Unit Tests]
+    UnitTest --> CodeQuality[Code Quality Analysis]
+    CodeQuality --> SecurityScan[Security Scanning]
+    SecurityScan --> DockerBuild[Docker Build]
+    DockerBuild --> PushRegistry[Push to Registry]
+    PushRegistry --> DeployDev[Deploy to Dev]
+    DeployDev --> IntegrationTest[Integration Tests]
+    IntegrationTest --> DeployStaging[Deploy to Staging]
+    DeployStaging --> PerformanceTest[Performance Tests]
+    DeployStaging --> E2ETest[End-to-End Tests]
+    PerformanceTest --> Approval{Approval}
+    E2ETest --> Approval
+    Approval -->|Approved| DeployProd[Deploy to Production]
+    Approval -->|Rejected| Feedback[Feedback Loop]
+    DeployProd --> SmokeTest[Smoke Tests]
+    SmokeTest --> Monitoring[Monitoring & Observability]
+    
+    class Build,DockerBuild build
+    class UnitTest,CodeQuality,SecurityScan,IntegrationTest,PerformanceTest,E2ETest,SmokeTest test
+    class DeployDev,DeployStaging,DeployProd deploy
+    class Approval,Monitoring release
+```
+
+## Pipeline Stages in Detail
+
+### 1. Build & Package
+
+- Triggered by code push or pull request
+- Compiles application code
+- Installs dependencies using package managers (npm, Maven, pip)
+- Generates build artifacts
+- Built in isolated environments with cached dependencies
+
+```yaml
+# Example GitHub Actions code snippet
+build:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v3
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+        cache: 'npm'
+    - name: Install dependencies
+      run: npm ci
+    - name: Build
+      run: npm run build
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifacts
+        path: build/
+```
+
+### 2. Test
+
+Multiple types of tests run in parallel to provide rapid feedback:
+
+- **Unit Tests**: Test individual components in isolation
+- **Integration Tests**: Test component interactions
+- **End-to-End Tests**: Test complete user flows
+- **Performance Tests**: Test application performance under load
+- **Security Tests**: Scan for vulnerabilities in code and dependencies
+
+```mermaid
+flowchart LR
+    subgraph "Test Phase"
+        direction TB
+        Unit[Unit Tests]
+        Integration[Integration Tests]
+        E2E[End-to-End Tests]
+        Performance[Performance Tests]
+        Security[Security Tests]
+    end
+    
+    CodeBase[Code Base] --> Unit
+    CodeBase --> Integration
+    CodeBase --> E2E
+    CodeBase --> Performance
+    CodeBase --> Security
+    
+    Unit --> Results[Test Results]
+    Integration --> Results
+    E2E --> Results
+    Performance --> Results
+    Security --> Results
+```
+
+### 3. Docker Build & Registry Push
+
+- Builds Docker images for all services
+- Tags images with git commit SHA and environment
+- Pushes images to AWS ECR
+- Scans images for vulnerabilities before pushing
+
+```yaml
+# Example GitHub Actions code snippet
+docker-build:
+  runs-on: ubuntu-latest
+  needs: [build, test]
+  steps:
+    - uses: actions/checkout@v3
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-2
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.login-ecr.outputs.registry }}/flowmart-orders-service:${{ github.sha }}
+```
+
+### 4. Deployment
+
+We use GitOps with ArgoCD for managing deployments:
+
+- **Development**: Automatic deployment on successful build
+- **Staging**: Automatic deployment after integration tests pass
+- **Production**: Manual approval required, then automated deployment
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant GH as GitHub Actions
+    participant Reg as Container Registry
+    participant Git as Git Repo (Manifests)
+    participant Argo as ArgoCD
+    participant K8s as Kubernetes Cluster
+    
+    Dev->>GH: Push Code
+    GH->>GH: Build & Test
+    GH->>Reg: Push Container Image
+    GH->>Git: Update Image Tag in Manifests
+    Git->>Argo: Sync (Automatic or Manual)
+    Argo->>K8s: Apply Manifests
+    K8s->>K8s: Deploy Application
+    K8s->>Argo: Report Status
+    Argo->>Git: Update Deployment Status
+```
+
+### 5. Post-Deployment Verification
+
+- **Smoke Tests**: Quick tests to verify basic functionality
+- **Canary Deployment**: Rolling deployment with traffic shifting
+- **Monitoring**: Performance and error tracking during and after deployment
+
+## Infrastructure Pipeline
+
+For infrastructure changes, we have a separate pipeline:
+
+```mermaid
+flowchart TD
+    InfraChange[Infrastructure Change] --> TerraformPlan[Terraform Plan]
+    TerraformPlan --> AutoReview[Automated Review]
+    AutoReview --> HumanReview[Human Review]
+    HumanReview --> Approval{Approved?}
+    Approval -->|Yes| TerraformApply[Terraform Apply]
+    Approval -->|No| Feedback[Feedback Loop]
+    TerraformApply --> Verification[Infrastructure Verification]
+    Verification --> Documentation[Update Documentation]
+```
+
+## Feature Branch Workflow
+
+We follow a feature branch workflow for development:
+
+```mermaid
+gitGraph
+    commit
+    commit
+    branch feature/order-tracking
+    checkout feature/order-tracking
+    commit
+    commit
+    commit
+    checkout main
+    merge feature/order-tracking
+    branch feature/payment-gateway
+    checkout feature/payment-gateway
+    commit
+    commit
+    checkout main
+    merge feature/payment-gateway
+    commit
+```
+
+## Deployment to Multiple Environments
+
+Our pipeline handles deployments to multiple environments:
+
+```mermaid
+flowchart TD
+    Build[Build & Test] --> DevDeploy[Deploy to Dev]
+    
+    DevDeploy --> IntegrationTest[Run Integration Tests]
+    IntegrationTest -->|Pass| StagingDeploy[Deploy to Staging]
+    IntegrationTest -->|Fail| FixIssues[Fix Issues]
+    FixIssues --> Build
+    
+    StagingDeploy --> StagingTests[Run E2E & Performance Tests]
+    StagingTests -->|Pass| ApprovalGate{Approval Gate}
+    StagingTests -->|Fail| FixIssues
+    
+    ApprovalGate -->|Approved| ProdDeploy[Deploy to Production]
+    ApprovalGate -->|Rejected| FixIssues
+    
+    ProdDeploy --> CanaryDeploy[Canary Deployment]
+    CanaryDeploy --> Monitor[Monitor]
+    Monitor -->|Healthy| FullRollout[Full Rollout]
+    Monitor -->|Issues| Rollback[Rollback]
+```
+
+## Rollback Strategy
+
+In case of deployment issues, we have an automated rollback strategy:
+
+1. **Immediate Automated Rollback**: Triggered by health checks or error rate spikes
+2. **One-Click Manual Rollback**: Available through the deployment dashboard
+3. **Previous Version Restoration**: Reverts to the last known good state
+
+```mermaid
+sequenceDiagram
+    participant Metrics as Metrics System
+    participant CD as CD Pipeline
+    participant Git as Git Repository
+    participant K8s as Kubernetes
+    
+    Note over Metrics,K8s: New deployment shows issues
+    Metrics->>CD: Alert on error threshold exceeded
+    CD->>CD: Trigger rollback process
+    CD->>Git: Revert to previous manifest version
+    Git->>K8s: Apply previous manifests
+    K8s->>K8s: Restore previous deployment
+    K8s->>CD: Report successful rollback
+    CD->>Metrics: Verify metrics returning to normal
+```
+
+## Pipeline Security
+
+Security is integrated throughout our pipeline:
+
+- **Secrets Management**: Secrets stored in AWS Secrets Manager and injected at runtime
+- **SAST**: Static Application Security Testing integrated in build phase
+- **DAST**: Dynamic Application Security Testing during staging deployment
+- **Dependency Scanning**: Checks for vulnerable dependencies
+- **Container Scanning**: Scans container images for vulnerabilities
+- **Infrastructure Scanning**: Checks IaC for security misconfigurations
+
+## Observability
+
+Our pipeline provides comprehensive observability:
+
+- **Deployment Tracking**: Each deployment is traced from commit to production
+- **Metrics Collection**: Performance metrics before and after deployment
+- **Log Aggregation**: Centralized logging for all pipeline stages
+- **Alerting**: Automated alerts for pipeline failures or anomalies
+- **Dashboards**: Visual representation of pipeline health and history
+
+Example deployment dashboard:
+
+```mermaid
+gantt
+    title Recent Deployments Timeline
+    dateFormat  YYYY-MM-DD HH:mm
+    axisFormat %H:%M
+    
+    section Orders Service
+    Build #452           :a1, 2023-05-10 09:00, 5m
+    Deploy to Dev        :a2, after a1, 10m
+    Integration Tests    :a3, after a2, 15m
+    Deploy to Staging    :a4, after a3, 10m
+    E2E Tests            :a5, after a4, 30m
+    Deploy to Prod       :a6, after a5, 15m
+    
+    section Inventory Service
+    Build #389           :b1, 2023-05-10 10:00, 5m
+    Deploy to Dev        :b2, after b1, 10m
+    Integration Tests    :b3, after b2, 15m
+    Deploy to Staging    :b4, after b3, 10m
+    E2E Tests            :b5, after b4, 30m
+    
+    section Payment Service
+    Build #421           :c1, 2023-05-10 08:30, 5m
+    Deploy to Dev        :c2, after c1, 10m
+    Integration Tests    :c3, after c2, 15m
+    Deploy to Staging    :c4, after c3, 10m
+    E2E Tests            :c5, after c4, 30m
+    Deploy to Prod       :c6, after c5, 15m
+```
+
+## Continuous Improvement
+
+We continuously improve our pipeline through:
+
+1. **Pipeline Metrics**: Track build times, success rates, and deployment frequency
+2. **Postmortems**: Document and learn from deployment failures
+3. **Automation Improvements**: Regularly identify manual steps for automation
+4. **Cross-team Learning**: Share best practices across development teams
+
+## Conclusion
+
+Our CI/CD pipeline provides a robust, secure, and efficient process for deploying changes to the FlowMart platform. By automating the build, test, and deployment processes, we can deliver new features and bug fixes to users quickly and reliably while maintaining high quality standards. 

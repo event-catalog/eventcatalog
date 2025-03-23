@@ -298,6 +298,8 @@ const customPages = defineCollection({
       label: z.string(),
       order: z.number(),
     }).optional(),
+    owners: z.array(ownerReference).optional(),
+    badges: z.array(badge).optional(),
   }),
 });
 

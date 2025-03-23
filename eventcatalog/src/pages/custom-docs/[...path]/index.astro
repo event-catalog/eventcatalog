@@ -4,10 +4,13 @@ import type { GetStaticPaths } from 'astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { render } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
-import Nav from './nav.astro';
 import config from '@config';
-import { AlignLeftIcon } from 'lucide-react';
+import { AlignLeftIcon, FileIcon } from 'lucide-react';
 import mdxComponents from '@components/MDX/components';
+import OwnersList from '@components/Lists/OwnersList';
+import { getOwner } from '@utils/collections/owners';
+
+import CustomDocsNav from '@components/SideNav/CustomDocsNav.astro';
 
 export const getStaticPaths = (async () => {
   const docs = await getCollection('customPages');
@@ -15,7 +18,10 @@ export const getStaticPaths = (async () => {
     params: { path: doc.id.replace('docs/', '') },
     props: doc,
   }));
-  console.log('paths', paths.map((path) => path.params.path));
+  console.log(
+    'paths',
+    paths.map((path) => path.params.path)
+  );
   return paths;
 }) satisfies GetStaticPaths;
 
@@ -70,13 +76,27 @@ const currentIndex = flattenedItems.findIndex((item) => currentSlug === item.slu
 // Get previous and next items
 const prevItem = currentIndex > 0 ? flattenedItems[currentIndex - 1] : null;
 const nextItem = currentIndex < flattenedItems.length - 1 ? flattenedItems[currentIndex + 1] : null;
+
+const ownersRaw = doc?.owners || [];
+const owners = await Promise.all<ReturnType<typeof getOwner>>(ownersRaw.map(getOwner));
+const filteredOwners = owners.filter((o) => o !== undefined);
+
+const ownersList = filteredOwners.map((o) => ({
+  label: o.data.name,
+  type: o.collection,
+  badge: o.collection === 'users' ? o.data.role : 'Team',
+  avatarUrl: o.collection === 'users' ? o.data.avatarUrl : '',
+  href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
+}));
+
+const badges = doc?.badges || [];
 ---
 
 <VerticalSideBarLayout title={doc.title || 'Documentation'}>
   <div class="flex w-full">
     <!-- Left Sidebar Navigation -->
     <aside class="sidebar-transition overflow-y-auto bg-white border-r border-gray-100 w-80 fixed top-16 bottom-0 z-10">
-      <Nav />
+      <CustomDocsNav />
     </aside>
 
     <!-- Main Content Area - Independent scrolling -->
@@ -85,6 +105,26 @@ const nextItem = currentIndex < flattenedItems.length - 1 ? flattenedItems[curre
         <div class="border-b border-gray-200 flex justify-between items-start md:pb-6">
           <div>
             <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-black">{doc.title}</h2>
+            {
+              badges && (
+                <div class="flex flex-wrap pt-4">
+                  {badges.map((badge: any) => {
+                    return (
+                      <a href={badge.url || '#'} class="pb-2">
+                        <span
+                          id={badge.id || ''}
+                          class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2  bg-gradient-to-b  from-${badge.backgroundColor}-100 to-${badge.backgroundColor}-200 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}
+                        >
+                          {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
+                          {badge.iconURL && <img src={badge.iconURL} class="w-5 h-5 inline-block " />}
+                          <span>{badge.content}</span>
+                        </span>
+                      </a>
+                    );
+                  })}
+                </div>
+              )
+            }
           </div>
         </div>
         <div class="flex-auto prose py-8 max-w-none">
@@ -129,6 +169,18 @@ const nextItem = currentIndex < flattenedItems.length - 1 ? flattenedItems[curre
       class="fixed right-0 top-16 bottom-0 w-96 overflow-y-auto border-l border-gray-100 bg-white p-6 flex-shrink-0 hidden lg:block z-10"
     >
       <div>
+        <div>
+          {
+            ownersList.length > 0 && (
+              <OwnersList
+                title={`Document Owners (${ownersList.length})`}
+                emptyMessage={`This page does not have any documented owners.`}
+                owners={ownersList}
+                client:load
+              />
+            )
+          }
+        </div>
         <h3 class="text-sm text-black font-semibold group-data-[hover]:text-black/80 capitalize flex items-center gap-2">
           <AlignLeftIcon className="w-4 h-4" />
           On this page
@@ -136,7 +188,7 @@ const nextItem = currentIndex < flattenedItems.length - 1 ? flattenedItems[curre
         <nav class="space-y-1 text-sm py-4">
           {
             headings.map((heading) => {
-              if(heading.depth > 3) {
+              if (heading.depth > 3) {
                 return null;
               }
               return (
@@ -144,10 +196,10 @@ const nextItem = currentIndex < flattenedItems.length - 1 ? flattenedItems[curre
                   href={`#${heading.slug}`}
                   class={`block text-[12px] py-0.5 ${heading.depth === 1 ? 'font-light' : ''} text-gray-400 hover:text-primary-600`}
                   style={`padding-left: ${(heading.depth - 1) * 8}px`}
-              >
-                {heading.text}
+                >
+                  {heading.text}
                 </a>
-              )
+              );
             })
           }
         </nav>
@@ -187,7 +239,6 @@ const nextItem = currentIndex < flattenedItems.length - 1 ? flattenedItems[curre
         threshold: 0.1,
       };
 
-
       // Flag to temporarily disable observer after click
       let observerPaused = false;
 
@@ -204,7 +255,7 @@ const nextItem = currentIndex < flattenedItems.length - 1 ? flattenedItems[curre
         if (tocLink) {
           tocLink.classList.add('active-toc-item', 'text-purple-600', 'font-light');
           tocLink.classList.remove('text-gray-400');
-          
+
           // Scroll the highlighted item into view with a small delay to ensure DOM updates first
           setTimeout(() => {
             tocLink.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });

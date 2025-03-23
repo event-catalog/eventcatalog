@@ -147,7 +147,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
 <html lang="en">
   <head>
     <SEO title={`EventCatalog | ${title}`} description={description} ogTitle={title} />
-    <style>
+    <style is:global>
       .sidebar-transition {
         transition-property: width, transform;
         transition-duration: 300ms;

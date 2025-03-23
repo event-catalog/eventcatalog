@@ -1,0 +1,460 @@
+---
+title: FlowMart Data Flow Architecture
+description: A detailed view of key data flows and business processes within the FlowMart e-commerce platform
+sidebar:
+    label: 04 - Data Flow Architecture
+    order: 4
+---
+
+# FlowMart Data Flow Architecture
+
+This document illustrates the key data flows within the FlowMart e-commerce platform, focusing on the most important business processes and how data moves through the system.
+
+## Key Business Process Flows
+
+### Order Placement and Fulfillment Flow
+
+This diagram shows the complete flow from order placement to order fulfillment:
+
+```mermaid
+flowchart TD
+    classDef customerAction fill:#ffcccc,stroke:#ff0000
+    classDef systemProcess fill:#ccffcc,stroke:#00aa00
+    classDef decisionPoint fill:#ffffcc,stroke:#ffcc00
+    classDef externalSystem fill:#ccccff,stroke:#0000ff
+    classDef dataStore fill:#f5f5f5,stroke:#333333
+
+    Start([Customer starts checkout]) --> ValidateCart[Validate Shopping Cart]
+    class Start customerAction
+    
+    ValidateCart --> CartValid{Is cart valid?}
+    class ValidateCart systemProcess
+    class CartValid decisionPoint
+    
+    CartValid -->|No| UpdateCart[Customer updates cart]
+    class UpdateCart customerAction
+    
+    UpdateCart --> ValidateCart
+    
+    CartValid -->|Yes| CheckInventory[Check Inventory Availability]
+    class CheckInventory systemProcess
+    
+    CheckInventory --> InventoryAvailable{Inventory available?}
+    class InventoryAvailable decisionPoint
+    
+    InventoryAvailable -->|No| NotifyCustomer[Notify Customer of Unavailability]
+    class NotifyCustomer systemProcess
+    
+    NotifyCustomer --> UpdateCart
+    
+    InventoryAvailable -->|Yes| ProcessPayment[Process Payment]
+    class ProcessPayment systemProcess
+    
+    ProcessPayment --> PaymentGateway[Payment Gateway]
+    class PaymentGateway externalSystem
+    
+    PaymentGateway --> PaymentSuccessful{Payment successful?}
+    class PaymentSuccessful decisionPoint
+    
+    PaymentSuccessful -->|No| NotifyPaymentFailure[Notify Payment Failure]
+    class NotifyPaymentFailure systemProcess
+    
+    NotifyPaymentFailure --> UpdatePayment[Customer updates payment]
+    class UpdatePayment customerAction
+    
+    UpdatePayment --> ProcessPayment
+    
+    PaymentSuccessful -->|Yes| CreateOrder[Create Order]
+    class CreateOrder systemProcess
+    
+    CreateOrder --> OrderDB[(Orders Database)]
+    class OrderDB dataStore
+    
+    CreateOrder --> ReserveInventory[Reserve Inventory]
+    class ReserveInventory systemProcess
+    
+    ReserveInventory --> InventoryDB[(Inventory Database)]
+    class InventoryDB dataStore
+    
+    ReserveInventory --> CreateShipment[Create Shipment]
+    class CreateShipment systemProcess
+    
+    CreateShipment --> ShipmentDB[(Shipment Database)]
+    class ShipmentDB dataStore
+    
+    CreateShipment --> NotifyCustomerOrder[Send Order Confirmation]
+    class NotifyCustomerOrder systemProcess
+    
+    NotifyCustomerOrder --> End([Order Placement Complete])
+    class End customerAction
+```
+
+### Payment Processing Flow
+
+This diagram details the payment processing flow:
+
+```mermaid
+sequenceDiagram
+    participant Customer
+    participant OrdersService
+    participant PaymentService
+    participant PaymentGateway
+    participant PaymentDB
+    participant EventBus
+    participant NotificationService
+
+    Customer->>OrdersService: Place Order
+    OrdersService->>PaymentService: Request Payment
+    PaymentService->>PaymentGateway: Process Payment
+    
+    alt Payment Successful
+        PaymentGateway->>PaymentService: Confirm Payment
+        PaymentService->>PaymentDB: Store Payment Information
+        PaymentService->>EventBus: Publish PaymentProcessed Event
+        EventBus->>OrdersService: PaymentProcessed Event
+        EventBus->>NotificationService: PaymentProcessed Event
+        NotificationService->>Customer: Send Payment Confirmation
+        OrdersService->>Customer: Complete Order
+    else Payment Failed
+        PaymentGateway->>PaymentService: Payment Failure
+        PaymentService->>PaymentDB: Log Failed Transaction
+        PaymentService->>OrdersService: Payment Failed Response
+        OrdersService->>Customer: Request Different Payment Method
+    end
+```
+
+### Inventory Management Flow
+
+This diagram shows how inventory is managed across the system:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Available: Initial Stock
+    
+    Available --> Reserved: Customer Places Order
+    Reserved --> Allocated: Order Confirmed
+    Reserved --> Available: Order Cancelled
+    
+    Allocated --> Shipped: Order Shipped
+    Shipped --> Delivered: Order Delivered
+    Delivered --> [*]
+    
+    Available --> Replenished: Inventory Low
+    Replenished --> Available: Stock Received
+    
+    Available --> OutOfStock: All Units Reserved
+    OutOfStock --> Available: Replenishment
+```
+
+### Subscription Processing Flow
+
+This diagram illustrates the subscription management flow:
+
+```mermaid
+flowchart TD
+    classDef process fill:#d5e8d4,stroke:#82b366
+    classDef event fill:#dae8fc,stroke:#6c8ebf
+    classDef externalSystem fill:#f5f5f5,stroke:#666666,stroke-width:1px
+    classDef decision fill:#fff2cc,stroke:#d6b656
+
+    Start([Start Subscription Process]) --> NewSubscription[Create Subscription]
+    class NewSubscription process
+
+    NewSubscription --> InitialPayment[Process Initial Payment]
+    class InitialPayment process
+    
+    InitialPayment --> PaymentSystem[Payment Gateway]
+    class PaymentSystem externalSystem
+    
+    PaymentSystem --> PaymentSuccessful{Payment Successful?}
+    class PaymentSuccessful decision
+    
+    PaymentSuccessful -->|Yes| ActivateSubscription[Activate Subscription]
+    class ActivateSubscription process
+    
+    PaymentSuccessful -->|No| FailedSubscription[Failed Subscription]
+    class FailedSubscription process
+    
+    FailedSubscription --> NotifyFailure[Notify Customer of Failure]
+    class NotifyFailure process
+    
+    ActivateSubscription --> UserSubscriptionStarted[Publish UserSubscriptionStarted Event]
+    class UserSubscriptionStarted event
+    
+    UserSubscriptionStarted --> ScheduleRenewal[Schedule Next Renewal]
+    class ScheduleRenewal process
+    
+    ScheduleRenewal --> TimeForRenewal{Time for Renewal?}
+    class TimeForRenewal decision
+    
+    TimeForRenewal -->|Yes| ProcessRenewalPayment[Process Renewal Payment]
+    class ProcessRenewalPayment process
+    
+    TimeForRenewal -->|No| Wait[Wait for Renewal Date]
+    class Wait process
+    
+    Wait --> TimeForRenewal
+    
+    ProcessRenewalPayment --> PaymentSystem
+    
+    PaymentSystem --> RenewalSuccessful{Renewal Successful?}
+    class RenewalSuccessful decision
+    
+    RenewalSuccessful -->|Yes| ExtendSubscription[Extend Subscription]
+    class ExtendSubscription process
+    
+    RenewalSuccessful -->|No, after retries| CancelSubscription[Cancel Subscription]
+    class CancelSubscription process
+    
+    ExtendSubscription --> ScheduleRenewal
+    
+    CancelSubscription --> UserSubscriptionCancelled[Publish UserSubscriptionCancelled Event]
+    class UserSubscriptionCancelled event
+    
+    UserSubscriptionCancelled --> End([End Subscription Process])
+```
+
+## Detailed Data Flow Examples
+
+### Customer Order Flow
+
+The following diagram shows the data flow when a customer places an order:
+
+```mermaid
+sequenceDiagram
+    participant Customer
+    participant Web/Mobile App
+    participant API Gateway
+    participant OrdersService
+    participant InventoryService
+    participant PaymentService
+    participant ShippingService
+    participant NotificationService
+    participant EventBus
+
+    Customer->>Web/Mobile App: Add items to cart
+    Customer->>Web/Mobile App: Proceed to checkout
+    Web/Mobile App->>API Gateway: POST /orders
+    API Gateway->>OrdersService: Create order request
+    
+    OrdersService->>InventoryService: Check inventory availability
+    InventoryService-->>OrdersService: Inventory status
+    
+    OrdersService->>PaymentService: Process payment
+    PaymentService-->>OrdersService: Payment result
+    
+    alt Order Successful
+        OrdersService->>EventBus: Publish OrderConfirmed
+        EventBus->>InventoryService: OrderConfirmed
+        InventoryService->>EventBus: Publish InventoryAdjusted
+        EventBus->>ShippingService: OrderConfirmed
+        ShippingService->>EventBus: Publish ShipmentCreated
+        EventBus->>NotificationService: OrderConfirmed
+        NotificationService->>Customer: Send order confirmation
+    else Order Failed
+        OrdersService->>EventBus: Publish OrderFailed
+        EventBus->>NotificationService: OrderFailed
+        NotificationService->>Customer: Send failure notification
+    end
+```
+
+### Product Return Flow
+
+The following diagram shows the data flow when a customer returns a product:
+
+```mermaid
+sequenceDiagram
+    participant Customer
+    participant Web/Mobile App
+    participant API Gateway
+    participant OrdersService
+    participant ShippingService
+    participant InventoryService
+    participant PaymentService
+    participant NotificationService
+    participant EventBus
+
+    Customer->>Web/Mobile App: Request return
+    Web/Mobile App->>API Gateway: POST /returns
+    API Gateway->>OrdersService: Create return request
+    OrdersService->>ShippingService: Generate return label
+    
+    ShippingService->>EventBus: Publish ReturnInitiated
+    EventBus->>NotificationService: ReturnInitiated
+    NotificationService->>Customer: Send return instructions
+    
+    Note over Customer,ShippingService: Customer ships the item back
+    
+    ShippingService->>EventBus: Publish ReturnReceived
+    EventBus->>InventoryService: ReturnReceived
+    InventoryService->>EventBus: Publish InventoryAdjusted
+    
+    EventBus->>PaymentService: ReturnReceived
+    PaymentService->>EventBus: Publish RefundIssued
+    
+    EventBus->>NotificationService: RefundIssued
+    NotificationService->>Customer: Send refund confirmation
+```
+
+## Data Storage Overview
+
+The following diagram provides a high-level overview of the data storage architecture:
+
+```mermaid
+erDiagram
+    CUSTOMER ||--o{ ORDER : places
+    CUSTOMER ||--o{ SUBSCRIPTION : subscribes
+    ORDER ||--|{ ORDER_ITEM : contains
+    ORDER ||--|| SHIPMENT : fulfilled-by
+    ORDER ||--|| PAYMENT : paid-by
+    PRODUCT ||--o{ ORDER_ITEM : included-in
+    PRODUCT ||--o{ INVENTORY : stocked-as
+    WAREHOUSE ||--o{ INVENTORY : holds
+    SUBSCRIPTION ||--o{ SUBSCRIPTION_PAYMENT : generates
+    
+    CUSTOMER {
+        string id PK
+        string firstName
+        string lastName
+        string email
+        string phone
+        datetime createdAt
+    }
+    
+    ORDER {
+        string id PK
+        string customerId FK
+        string status
+        decimal totalAmount
+        datetime orderDate
+    }
+    
+    ORDER_ITEM {
+        string id PK
+        string orderId FK
+        string productId FK
+        int quantity
+        decimal unitPrice
+    }
+    
+    PRODUCT {
+        string id PK
+        string name
+        string description
+        decimal price
+        string category
+    }
+    
+    INVENTORY {
+        string id PK
+        string productId FK
+        string warehouseId FK
+        int quantity
+        int reserved
+    }
+    
+    WAREHOUSE {
+        string id PK
+        string name
+        string location
+    }
+    
+    SHIPMENT {
+        string id PK
+        string orderId FK
+        string status
+        string trackingNumber
+        datetime shippedDate
+    }
+    
+    PAYMENT {
+        string id PK
+        string orderId FK
+        decimal amount
+        string paymentMethod
+        string status
+        datetime paymentDate
+    }
+    
+    SUBSCRIPTION {
+        string id PK
+        string customerId FK
+        string status
+        string plan
+        date startDate
+        date endDate
+        string billingCycle
+    }
+    
+    SUBSCRIPTION_PAYMENT {
+        string id PK
+        string subscriptionId FK
+        decimal amount
+        datetime paymentDate
+        string status
+    }
+```
+
+## Event Flow and Message Schema
+
+The following diagram shows a sample of our event structure and flow:
+
+```mermaid
+graph TD
+    classDef publisher fill:#d1e0f0,stroke:#6c8ebf
+    classDef event fill:#f8cecc,stroke:#b85450
+    classDef consumer fill:#d5e8d4,stroke:#82b366
+
+    OrdersService[Orders Service]:::publisher --> OrderConfirmed[OrderConfirmed Event]:::event
+    
+    subgraph OrderConfirmedSchema[ ]
+        direction TB
+        OrderConfirmedMessage["OrderConfirmed Schema
+        {
+          orderId: string,
+          userId: string,
+          orderItems: [
+            {
+              productId: string,
+              quantity: number,
+              unitPrice: number
+            }
+          ],
+          totalAmount: number,
+          timestamp: datetime
+        }"]
+    end
+    
+    OrderConfirmed --- OrderConfirmedSchema
+    
+    OrderConfirmed --> InventoryService[Inventory Service]:::consumer
+    OrderConfirmed --> ShippingService[Shipping Service]:::consumer
+    
+    InventoryService --> InventoryAdjusted[InventoryAdjusted Event]:::event
+    
+    subgraph InventoryAdjustedSchema[ ]
+        direction TB
+        InventoryAdjustedMessage["InventoryAdjusted Schema
+        {
+          productId: string,
+          warehouseId: string,
+          quantityChanged: number,
+          newQuantity: number,
+          timestamp: datetime
+        }"]
+    end
+    
+    InventoryAdjusted --- InventoryAdjustedSchema
+    
+    InventoryAdjusted --> OrdersService:::consumer
+    InventoryAdjusted --> NotificationService[Notification Service]:::consumer
+```
+
+## Conclusion
+
+This document has provided an in-depth view of the data flows within the FlowMart e-commerce platform. By understanding these flows, developers and stakeholders can better comprehend how data moves through the system and how different components interact with each other.
+
+For more details on specific architecture components, refer to:
+- [High-Level System Overview](./01-high-level-system-overview.mdx)
+- [Domain-Level Architecture](./02-domain-level-architecture.mdx)
+- [Service-Level Architecture](./03-service-level-architecture.mdx) 
