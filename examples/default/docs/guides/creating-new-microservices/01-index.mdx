@@ -1,0 +1,79 @@
+---
+title: Creating new microservices
+description: A comprehensive guide to creating new microservices at FlowMart following our best practices and standards
+sidebar:
+    label: Introduction
+    order: 1
+---
+
+Welcome to the FlowMart microservices creation guide. This documentation will help you understand our microservices architecture and guide you through the process of creating, deploying, and maintaining new services that align with our architectural standards and best practices.
+
+## FlowMart's Microservices Architecture
+
+At FlowMart, we've adopted an [Event-Driven Architecture (EDA)](/docs/architecture-records/published/02-eda-adoption) for our e-commerce platform. Our architecture consists of domain-oriented microservices that communicate primarily through events, with Apache Kafka serving as our event backbone.
+
+Key architectural principles we follow:
+
+- **Domain-Driven Design**: Services are organized around business domains with clear bounded contexts
+- **Service Autonomy**: Each service owns its data and can be independently deployed
+- **Event-First Communication**: Services publish events when state changes and subscribe to events from other domains
+- **Eventual Consistency**: We prioritize availability and partition tolerance over immediate consistency
+- **API-First Development**: All services expose well-defined APIs using standardized patterns
+
+## Getting Started
+
+Before creating a new microservice, please familiarize yourself with our architectural decisions:
+
+1. [Event-Driven Architecture Adoption](/docs/architecture-records/published/02-eda-adoption)
+2. [API Gateway Pattern Adoption](/docs/architecture-records/published/01-api-gateway-pattern)
+3. [CI/CD and Deployment Strategy](/docs/architecture-records/drafts/02-cicd-deployment-strategy)
+4. [API Management and Governance](/docs/architecture-records/drafts/03-api-management-governance)
+
+## Service Creation Process
+
+The following steps outline our microservice creation process:
+
+1. **Domain Analysis**: Identify the business domain and define the bounded context
+2. **Service Definition**: Create service specification using our templating tools
+3. **Infrastructure Provisioning**: Use our Terraform modules to provision required infrastructure
+4. **Service Implementation**: Develop the service following our technological standards
+5. **CI/CD Pipeline Setup**: Configure the service pipeline for continuous integration and deployment
+6. **Testing**: Implement comprehensive testing (unit, integration, contract, end-to-end)
+7. **Documentation**: Document API contracts, event schemas, and service behaviors
+8. **Deployment**: Deploy to production using our GitOps workflow
+
+## Available Service Templates
+
+We provide several starter templates for new microservices:
+
+- [Node.js Service Template](/docs/guides/creating-new-microservices/node-service)
+- [TypeScript Service Template](/docs/guides/creating-new-microservices/typescript-service)
+- [Java Spring Boot Template](/docs/guides/creating-new-microservices/java-spring-boot)
+- [Python FastAPI Template](/docs/guides/creating-new-microservices/python-fastapi)
+
+## Infrastructure as Code
+
+All FlowMart infrastructure is managed using [Terraform](/docs/guides/creating-new-microservices/terraform-modules). We maintain a set of reusable modules for common infrastructure components, which you should leverage when creating new services.
+
+## Development Workflow
+
+1. **Engage with the Platform Team**: Discuss your new service requirements with the platform team
+2. **Create Service Repository**: Use our GitLab template to create a new service repository
+3. **Setup Local Environment**: Configure your local development environment
+4. **Implement Core Functionality**: Develop the service capabilities
+5. **Review and Testing**: Submit for architecture and code review
+6. **Deploy to Production**: Use our deployment pipeline for production rollout
+
+## Support
+
+If you need assistance creating a new microservice, please reach out to:
+
+- **Platform Engineering Team**: For infrastructure and deployment questions
+- **Architecture Team**: For design and architecture guidance
+- **DevOps Team**: For CI/CD and operational support
+
+## Next Steps
+
+- Continue to [Service Design Principles](/docs/guides/creating-new-microservices/service-design-principles)
+- Learn about [Node.js Service Creation](/docs/guides/creating-new-microservices/node-service)
+- Explore our [Terraform Modules](/docs/guides/creating-new-microservices/terraform-modules) 

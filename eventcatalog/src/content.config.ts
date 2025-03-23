@@ -1,8 +1,8 @@
 import { z, defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { v4 as uuidv4 } from 'uuid';
-
-const projectDirBase = (() => {
+// import { customPages } from './enterprise/collections/custom-pages';
+export const projectDirBase = (() => {
   if (process.platform === 'win32') {
     const projectDirPath = process.env.PROJECT_DIR!.replace(/\\/g, '/');
     return projectDirPath.startsWith('/') ? projectDirPath : `/${projectDirPath}`;
@@ -27,6 +27,7 @@ const pages = defineCollection({
     })
     .optional(),
 });
+
 
 const pointer = z.object({
   id: z.string(),
@@ -283,6 +284,23 @@ const services = defineCollection({
     .merge(baseSchema),
 });
 
+const customPages = defineCollection({
+  loader: glob({
+    // any number of child folders
+    pattern: ['docs/*.(md|mdx)', 'docs/**/*.@(md|mdx)'],
+    base: projectDirBase,
+  }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    slug: z.string().optional(),
+    sidebar: z.object({
+      label: z.string(),
+      order: z.number(),
+    }).optional(),
+  }),
+});
+
 const domains = defineCollection({
   loader: glob({
     pattern: [
@@ -405,4 +423,7 @@ export const collections = {
   pages,
   changelogs,
   ubiquitousLanguages,
+
+  // EventCatalog Pro Collections
+  customPages,
 };

@@ -38,8 +38,6 @@ function classNames(...classes: any) {
 export default function UserNode({ data, sourcePosition, targetPosition }: any) {
   const { mode, step, custom: customProps } = data as Data;
 
-  console.log('step', customProps);
-
   const {
     color = 'blue',
     title = 'Custom',

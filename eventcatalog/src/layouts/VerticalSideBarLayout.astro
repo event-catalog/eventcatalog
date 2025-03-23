@@ -5,12 +5,12 @@ interface Props {
   description?: string;
 }
 
-import { BookOpenText, Workflow, TableProperties, House, BookUser, MessageSquare, BotMessageSquare, Users } from 'lucide-react';
+import { BookOpenText, BookText, Workflow, TableProperties, House, BookUser, MessageSquare, BotMessageSquare, Users } from 'lucide-react';
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
 import config from '@config';
-
+import { getCollection } from 'astro:content';
 import '@fontsource/inter';
 import '@fontsource/inter/400.css'; // Specify weight
 import '@fontsource/inter/700.css'; // Specify weight
@@ -31,12 +31,19 @@ const queries = await getQueries({ getAllVersions: false });
 const services = await getServices({ getAllVersions: false });
 const domains = await getDomains({ getAllVersions: false });
 const flows = await getFlows({ getAllVersions: false });
+const customDocs = await getCollection('customPages');
 
 const currentPath = Astro.url.pathname;
 
 const catalogHasDefaultLandingPageForDocs = await hasLandingPageForDocs();
 
 const getDefaultUrl = (route: string, defaultValue: string) => {
+
+  if (route === 'custom-docs') {
+    const firstDoc = customDocs[0];
+    return buildUrl(`/${route}/${firstDoc.id.replace('docs', '')}`);
+  }
+
   const collections = [
     { data: domains, key: 'domains' },
     { data: services, key: 'services' },
@@ -44,6 +51,7 @@ const getDefaultUrl = (route: string, defaultValue: string) => {
     { data: commands, key: 'commands' },
     { data: queries, key: 'queries' },
     { data: flows, key: 'flows' },
+    { data: customDocs, key: 'customDocs' },
   ];
 
   for (const { data, key } of collections) {
@@ -68,11 +76,19 @@ const navigationItems = [
   },
   {
     id: '/docs',
-    label: 'Documentation',
+    label: 'Architecture Documentation',
     icon: BookOpenText,
     href: catalogHasDefaultLandingPageForDocs ? buildUrl('/docs') : getDefaultUrl('docs', '/docs'),
     current: currentPath.includes('/docs') || currentPath.includes('/architecture/docs/'),
     sidebar: true,
+  },
+  {
+    id: '/custom-docs',
+    label: 'Documentation',
+    icon: BookText,
+    href: getDefaultUrl('custom-docs', '/custom-docs'),
+    current: currentPath.includes('/custom-docs') || currentPath.includes('/architecture/docs/'),
+    sidebar: false,
   },
   {
     id: '/visualiser',
@@ -259,7 +275,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
     const currentPath = window.location.href;
 
     // Hide the sidebar if the current navigation item is not a sidebar item
-    if (!currentNavigationItem.sidebar) {
+    if (!currentNavigationItem?.sidebar) {
       sidebar.style.display = 'none';
       content.style.width = '100%';
       content.classList.add('ml-16');

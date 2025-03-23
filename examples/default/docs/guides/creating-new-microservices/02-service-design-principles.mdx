@@ -1,0 +1,143 @@
+---
+title: Microservice Design Principles
+description: Core design principles and best practices for creating well-structured microservices at FlowMart
+sidebar:
+    label: Design Principles
+    order: 2
+---
+
+At FlowMart, we follow a set of design principles that guide the creation of new microservices. These principles help ensure our services are maintainable, scalable, and aligned with our overall architectural vision.
+
+## 1. Domain-Driven Design
+
+Each microservice should be aligned with a specific business domain or subdomain. We follow Domain-Driven Design (DDD) principles to identify service boundaries:
+
+### Bounded Contexts
+
+- Define clear bounded contexts for each service
+- Maintain a separate ubiquitous language within each context
+- Document domain models and context maps
+
+### Example Domains at FlowMart
+
+| Domain | Description | Example Services |
+|--------|-------------|------------------|
+| Order | Order processing and management | order-service, order-history-service |
+| Inventory | Product inventory management | inventory-service, stock-management-service |
+| Customer | Customer accounts and profiles | customer-service, authentication-service |
+| Payment | Payment processing and refunds | payment-service, refund-service |
+| Shipping | Shipping and logistics | shipping-service, tracking-service |
+| Catalog | Product information management | product-service, search-service |
+
+## 2. Single Responsibility
+
+Each microservice should have a single responsibility and a clear purpose:
+
+- **Focus on one business capability**: Services should do one thing well
+- **Right-sized services**: Not too large (mini-monolith) or too small (nano-service)
+- **Cohesive functionality**: Related functions should be grouped together
+
+## 3. Data Ownership
+
+Microservices should own their data and maintain data autonomy:
+
+- Each service has its own database or data store
+- No direct data sharing between services
+- Data is exposed through well-defined APIs
+- Services should be the single source of truth for their domain data
+
+## 4. API Design
+
+All FlowMart microservices must follow our [API Management and Governance Strategy](/docs/architecture-records/drafts/03-api-management-governance):
+
+### RESTful APIs
+
+- Use consistent resource naming conventions
+- Follow standard HTTP methods and status codes
+- Implement proper error handling and validation
+- Design for backward compatibility
+
+### Event-Driven Interfaces
+
+- Define clear event schemas using AsyncAPI
+- Document event ownership and responsibilities
+- Follow event versioning standards
+- Implement idempotent event consumers
+
+## 5. Resilience and Fault Tolerance
+
+Microservices must be designed to handle failures gracefully:
+
+- Implement circuit breakers for downstream dependencies
+- Use timeouts and retries with exponential backoff
+- Design for graceful degradation of functionality
+- Implement health checks and readiness probes
+
+## 6. Observability
+
+All services must expose monitoring and observability data:
+
+- Structured logging (using our ELK stack)
+- Metrics exposure (Prometheus format)
+- Distributed tracing support (Jaeger)
+- Health check endpoints
+
+## 7. Security by Design
+
+Security must be integrated into every service:
+
+- Authentication using OAuth 2.0 / OpenID Connect
+- Authorization using role-based access control
+- TLS encryption for all communications
+- Input validation and output encoding
+- No sensitive data in logs or traces
+
+## 8. Testability
+
+Services should be designed with testing in mind:
+
+- High unit test coverage (minimum 80%)
+- Integration tests for all critical paths
+- Contract tests for API interfaces
+- Easy local testing setup
+- Simulated dependencies for development
+
+## 9. Configuration Management
+
+Services should follow our configuration management approach:
+
+- Environment-specific configuration via Kubernetes ConfigMaps
+- Secrets management via HashiCorp Vault
+- Feature flags for conditional functionality
+- No hardcoded configuration values
+
+## 10. Independence and Deployability
+
+Services should be independently deployable:
+
+- No deployment coupling with other services
+- Infrastructure as Code for all resources
+- Self-contained CI/CD pipelines
+- Blue/green or canary deployment capabilities
+
+## Microservice Checklist
+
+Use this checklist when designing a new service:
+
+- [ ] Service aligns with a specific business domain
+- [ ] Clear bounded context defined
+- [ ] Service owns its data
+- [ ] APIs follow company standards
+- [ ] Event schemas are documented
+- [ ] Resilience patterns implemented
+- [ ] Observability instrumentation added
+- [ ] Security controls integrated
+- [ ] Comprehensive test suite created
+- [ ] Configuration externalized
+- [ ] Independent deployment pipeline configured
+
+## Next Steps
+
+- Learn how to [create a Node.js microservice](/docs/guides/creating-new-microservices/node-service)
+- Explore [TypeScript service implementation](/docs/guides/creating-new-microservices/typescript-service)
+- Understand our [Terraform infrastructure modules](/docs/guides/creating-new-microservices/terraform-modules) 

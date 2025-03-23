@@ -265,12 +265,126 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
       if (document.getElementsByClassName('mermaid').length > 0) {
         renderDiagrams(graphs);
       }
+      
+      // Set up TOC highlighting and scrolling
+      setupTOCHighlighting();
     });
+    
+    /**
+     * Setup TOC highlighting and scrolling
+     */
+    function setupTOCHighlighting() {
+      // Check if there's a sidebar with navigation
+      const sidebarNav = document.querySelector('aside nav');
+      if (!sidebarNav) return;
+      
+      const observerOptions = {
+        rootMargin: '0px 0px -40% 0px',
+        threshold: 0.1,
+      };
+      
+      // Flag to temporarily disable observer after click
+      let observerPaused = false;
+      
+      /**
+       * Highlights a TOC item and scrolls it into view
+       * @param {string} id - The ID of the heading to highlight in the TOC
+       */
+      function highlightTocItem(id) {
+        // Remove active class from all links
+        document.querySelectorAll('.active-toc-item').forEach((link) => {
+          link.classList.remove('active-toc-item', 'text-primary-600', 'font-medium');
+          link.classList.add('text-gray-400');
+        });
+        
+        // Add active class to current link
+        const tocLink = document.querySelector(`aside nav a[href="#${id}"]`);
+        if (tocLink) {
+          tocLink.classList.add('active-toc-item', 'text-primary-600', 'font-medium');
+          tocLink.classList.remove('text-gray-400');
+          
+          // Scroll the highlighted item into view with a small delay to ensure DOM updates first
+          setTimeout(() => {
+            tocLink.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+          }, 10);
+        }
+      }
+      
+      // Set up the intersection observer for scrolling
+      const observer = new IntersectionObserver((entries) => {
+        // If observer is paused, don't process entries
+        if (observerPaused) return;
+        
+        entries.forEach((entry) => {
+          try {
+            const id = entry.target.getAttribute('id');
+            if (entry.isIntersecting && id) {
+              highlightTocItem(id);
+            }
+          } catch (entryError) {
+            console.error('Error processing intersection entry:', entryError);
+          }
+        });
+      }, observerOptions);
+      
+      // Find all headings in the content area
+      const prose = document.querySelector('.prose');
+      if (!prose) return;
+      
+      // First try to find headings with IDs
+      const headings = prose.querySelectorAll('h1[id], h2[id], h3[id]');
+      
+      if (headings.length > 0) {
+        headings.forEach((heading) => {
+          observer.observe(heading);
+        });
+      } else {
+        // Fallback: If no headings with IDs found, attach IDs to them
+        const allHeadings = prose.querySelectorAll('h1, h2, h3');
+        
+        allHeadings.forEach((heading) => {
+          // Only add ID if it doesn't exist
+          if (!heading.id) {
+            const text = heading.textContent || '';
+            const slug = text
+              .toLowerCase()
+              .replace(/[^\w\s-]/g, '')
+              .replace(/\s+/g, '-');
+            heading.id = slug;
+          }
+          observer.observe(heading);
+        });
+      }
+      
+      // Add click event listeners to all TOC links
+      const tocLinks = document.querySelectorAll('aside nav a[href^="#"]');
+      tocLinks.forEach((link) => {
+        link.addEventListener('click', (e) => {
+          // Get the ID from the href attribute
+          const hrefAttr = link.getAttribute('href');
+          if (!hrefAttr) return;
+          
+          const id = hrefAttr.substring(1);
+          
+          // Highlight the clicked item
+          highlightTocItem(id);
+          
+          // Temporarily pause the observer to prevent immediate highlighting changes
+          observerPaused = true;
+          
+          // Resume the observer after a delay
+          setTimeout(() => {
+            observerPaused = false;
+          }, 500);
+        });
+      });
+    }
 
     /**
-     * @params {HTMLCollectionOf<HTMLElement>} graphs
+     * Renders mermaid diagrams in the page
+     * @param {HTMLCollectionOf<HTMLElement>} graphs - The collection of mermaid graph elements
      */
-    async function renderDiagrams(graphs: any) {
+    async function renderDiagrams(graphs) {
       const { default: mermaid } = await import('mermaid');
 
       if (window.eventcatalog.mermaid) {
@@ -278,7 +392,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
         const { iconPacks = [] } = window.eventcatalog.mermaid ?? {};
 
         if (iconPacks.length > 0) {
-          const iconPacksToRegister = iconPacks.map((name: string) => {
+          const iconPacksToRegister = iconPacks.map((name) => {
             return {
               name,
               icons,
