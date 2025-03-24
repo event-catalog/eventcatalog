@@ -2,4 +2,4 @@
 '@eventcatalog/core': patch
 ---
 
-feat(core): add FlowSideBar; update changelogs to support flows
+feat(core): added sidebar to flow resource types and changelog support for flows
