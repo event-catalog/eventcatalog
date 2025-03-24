@@ -3,7 +3,14 @@ import Footer from '@layouts/Footer.astro';
 
 import type { PageTypes } from '@types';
 import { getChangeLogs } from '@utils/collections/changelogs';
-import { RectangleGroupIcon, ServerIcon, BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import {
+  RectangleGroupIcon,
+  ServerIcon,
+  BoltIcon,
+  ChatBubbleLeftIcon,
+  MagnifyingGlassIcon,
+  QueueListIcon,
+} from '@heroicons/react/24/outline';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { render, getEntry } from 'astro:content';
 import 'diff2html/bundles/css/diff2html.min.css';
@@ -15,7 +22,7 @@ import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { ClientRouter } from 'astro:transitions';
 
 export async function getStaticPaths() {
-  const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];
+  const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows'];
   const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
   return allItems.flatMap((items, index) =>
@@ -44,7 +51,7 @@ const logs = await getChangeLogs(props);
 const { data } = props;
 const latestVersion = data.latestVersion;
 
-const renderedLogs = await logs.map(async (log) => {
+const renderedLogs = logs.map(async (log) => {
   const logEntry = await getEntry('changelogs', log.id);
   const { Content } = await render(logEntry as any);
   return {
@@ -103,6 +110,9 @@ const getBadge = () => {
       icon: RectangleGroupIcon,
       class: 'text-yellow-400',
     };
+  }
+  if (props.collection === 'flows') {
+    return { backgroundColor: 'teal', textColor: 'teal', content: 'Flow', icon: QueueListIcon, class: 'text-teal-400' };
   }
 };
 

@@ -11,12 +11,12 @@ import ServiceSideBar from '@components/SideBars/ServiceSideBar.astro';
 import MessageSideBar from '@components/SideBars/MessageSideBar.astro';
 import DomainSideBar from '@components/SideBars/DomainSideBar.astro';
 import ChannelSideBar from '@components/SideBars/ChannelSideBar.astro';
+import FlowSideBar from '@components/SideBars/FlowSideBar.astro';
 
 import { QueueListIcon, RectangleGroupIcon, ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import type { PageTypes } from '@types';
 
 import { buildUrl } from '@utils/url-builder';
-import { getFlows } from '@utils/collections/flows';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { ClientRouter } from 'astro:transitions';
 import { render } from 'astro:content';
@@ -24,16 +24,9 @@ import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
 
 import config from '@config';
 
-type PageTypesWithFlows = PageTypes | 'flows';
-
 export async function getStaticPaths() {
-  const loaders = {
-    ...pageDataLoader,
-    flows: getFlows,
-  };
-
-  const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows', 'channels'];
-  const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
+  const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows', 'channels'];
+  const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
   return allItems.flatMap((items, index) =>
     items.map((item) => ({
@@ -225,6 +218,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
         {props?.collection === 'services' && <ServiceSideBar service={props} />}
         {props?.collection === 'domains' && <DomainSideBar domain={props} />}
         {props?.collection === 'channels' && <ChannelSideBar channel={props} />}
+        {props?.collection === 'flows' && <FlowSideBar flow={props} />}
       </aside>
     </div>
     <ClientRouter />

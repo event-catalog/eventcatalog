@@ -3,6 +3,8 @@ id: "SubscriptionRenewed"
 name: "Subscription Renewal Flow"
 version: "1.0.0"
 summary: "Business flow for automatic subscription renewals and related processes"
+owners:
+  - subscriptions-management
 steps:
   - id: "renewal_timer_triggered"
     title: "Renewal Period Reached"
@@ -210,7 +212,7 @@ steps:
         backoff_interval: "24 hours"
         current_attempt: 1
     next_steps:
-      - id: "payment_initiated" 
+      - id: "payment_initiated"
         label: "Retry payment"
       - id: "subscription_grace_period"
         label: "Max retries exceeded"

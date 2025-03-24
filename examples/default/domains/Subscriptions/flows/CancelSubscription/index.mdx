@@ -3,13 +3,15 @@ id: "CancelSubscription"
 name: "User Cancels Subscription"
 version: "1.0.0"
 summary: "Flow for when a user has cancelled a subscription"
+owners:
+  - subscriptions-management
 steps:
   - id: "cancel_subscription_initiated"
     title: "Cancels Subscription"
     summary: "User cancels their subscription"
     actor:
       name: "User"
-    next_step: 
+    next_step:
       id: "cancel_subscription_request"
       label: "Initiate subscription cancellation"
 
@@ -18,7 +20,7 @@ steps:
     message:
       id: "CancelSubscription"
       version: "0.0.1"
-    next_step: 
+    next_step:
       id: "subscription_service"
       label: "Proceed to subscription service"
 
@@ -28,7 +30,7 @@ steps:
       name: "Stripe"
       summary: "3rd party payment system"
       url: "https://stripe.com/"
-    next_step: 
+    next_step:
       id: "subscription_service"
       label: "Return to subscription service"
 
