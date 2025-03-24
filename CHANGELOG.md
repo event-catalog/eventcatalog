@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 2.30.8
+
+### Patch Changes
+
+- 33b2dc3: feat(core): collapse everything except domains in TreeView
+- 79f66a8: feat(core): improve search quality
+- cd99bd5: feat(core): added sidebar to flow resource types and changelog support for flows
+
 ## 2.30.7
 
 ### Patch Changes
