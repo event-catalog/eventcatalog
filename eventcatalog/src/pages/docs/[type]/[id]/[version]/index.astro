@@ -116,10 +116,19 @@ const getSpecificationBadges = () => {
 };
 
 const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
+
+// Index only the latest version
+const pagefindAttributes =
+  props.data.version === props.data.latestVersion
+    ? {
+        'data-pagefind-body': '',
+        'data-pagefind-meta': `title:${pageTitle}`,
+      }
+    : {};
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
-  <main class="flex sm:px-8 docs-layout h-full">
+  <main class="flex sm:px-8 docs-layout h-full" {...pagefindAttributes}>
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
         <div class="border-b border-gray-200 flex justify-between items-start md:pb-2">
@@ -152,7 +161,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
           </div>
         </div>
 
-        <div>
+        <div data-pagefind-ignore>
           {
             props.data.version !== props.data.latestVersion && (
               <div class="rounded-md bg-gradient-to-r from-purple-50 to-purple-100 p-4 not-prose my-4">
@@ -191,7 +200,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
         <div class="prose prose-md py-4 w-full">
           <Content components={components(props)} />
         </div>
-        <div>
+        <div data-pagefind-ignore>
           <!-- @ts-ignore -->
           <SchemaViewer id={props.data.id} catalog={props.catalog} filePath={props.filePath} />
           <NodeGraph
@@ -208,7 +217,7 @@ const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
         </div>
         <Footer />
       </div>
-      <aside class="hidden lg:block sticky top-0 pb-10 w-96 overflow-y-auto py-2">
+      <aside class="hidden lg:block sticky top-0 pb-10 w-96 overflow-y-auto py-2" data-pagefind-ignore>
         <!-- @ts-ignore -->
         {
           (props?.collection === 'events' || props.collection === 'commands' || props.collection === 'queries') && (
