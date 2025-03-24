@@ -1,34 +1,17 @@
 ---
-import { getCollection } from 'astro:content';
-import type { GetStaticPaths } from 'astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { render } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
 import config from '@config';
-import { AlignLeftIcon, FileIcon } from 'lucide-react';
+import { AlignLeftIcon } from 'lucide-react';
 import mdxComponents from '@components/MDX/components';
 import OwnersList from '@components/Lists/OwnersList';
 import { getOwner } from '@utils/collections/owners';
-
 import CustomDocsNav from '@components/SideNav/CustomDocsNav.astro';
-
-export const getStaticPaths = (async () => {
-  const docs = await getCollection('customPages');
-  const paths = docs.map((doc) => ({
-    params: { path: doc.id.replace('docs/', '') },
-    props: doc,
-  }));
-  console.log(
-    'paths',
-    paths.map((path) => path.params.path)
-  );
-  return paths;
-}) satisfies GetStaticPaths;
 
 const props = Astro.props;
 const doc = props.data;
-const { Content, headings } = await render(props);
-const currentPath = Astro.url.pathname;
+const { Content, headings } = await render(props as any);
 const currentSlug = props.id;
 
 // Get sidebar data
@@ -137,7 +120,7 @@ const badges = doc?.badges || [];
             {
               prevItem && (
                 <a
-                  href={buildUrl(`/custom-docs/${prevItem.slug}`)}
+                  href={buildUrl(`/docs/custom/${prevItem.slug}`)}
                   class="group flex flex-col border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:bg-gray-50 transition-colors w-full sm:w-1/2"
                 >
                   <span class="text-sm text-gray-500 mb-1">Previous</span>
@@ -151,7 +134,7 @@ const badges = doc?.badges || [];
             {
               nextItem && (
                 <a
-                  href={buildUrl(`/custom-docs/${nextItem.slug}`)}
+                  href={buildUrl(`/docs/custom/${nextItem.slug}`)}
                   class="group flex flex-col items-end text-right border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:bg-gray-50 transition-colors w-full sm:w-1/2"
                 >
                   <span class="text-sm text-gray-500 mb-1">Next</span>

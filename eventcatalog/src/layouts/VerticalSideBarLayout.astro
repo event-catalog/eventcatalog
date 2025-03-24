@@ -39,7 +39,7 @@ const catalogHasDefaultLandingPageForDocs = await hasLandingPageForDocs();
 
 const getDefaultUrl = (route: string, defaultValue: string) => {
 
-  if (route === 'custom-docs') {
+  if (route === 'docs/custom') {
     const firstDoc = customDocs[0];
     return buildUrl(`/${route}/${firstDoc.id.replace('docs', '')}`);
   }
@@ -79,15 +79,15 @@ const navigationItems = [
     label: 'Architecture Documentation',
     icon: BookOpenText,
     href: catalogHasDefaultLandingPageForDocs ? buildUrl('/docs') : getDefaultUrl('docs', '/docs'),
-    current: currentPath.includes('/docs') || currentPath.includes('/architecture/docs/'),
+    current: currentPath.includes('/docs/') && !currentPath.includes('/docs/custom') || currentPath.includes('/architecture/docs/'),
     sidebar: true,
   },
   {
-    id: '/custom-docs',
+    id: '/docs/custom',
     label: 'Documentation',
     icon: BookText,
-    href: getDefaultUrl('custom-docs', '/custom-docs'),
-    current: currentPath.includes('/custom-docs') || currentPath.includes('/architecture/docs/'),
+    href: getDefaultUrl('docs/custom', '/docs/custom'),
+    current: currentPath.includes('/docs/custom'),
     sidebar: false,
   },
   {

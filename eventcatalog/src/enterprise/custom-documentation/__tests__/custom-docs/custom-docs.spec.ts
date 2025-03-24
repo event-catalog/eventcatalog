@@ -1,8 +1,7 @@
 import { join } from 'node:path';
-import { getNavigationItems } from '../../custom-docs';
+import { getNavigationItems } from '../../utils/custom-docs';
 import { vi } from 'vitest';
 import type { ContentCollectionKey } from 'astro:content';
-import type { getEntry } from 'astro:content';
 import { mockDocs } from './mocks';
 
 vi.mock('@config', async (importOriginal) => {
@@ -68,6 +67,7 @@ vi.mock('astro:content', async (importOriginal) => {
 describe('Custom Docs', () => {
 
     beforeEach(() => {
+        process.env.PROJECT_DIR = pathToTestCatalog;
         vi.resetAllMocks();
     });
 

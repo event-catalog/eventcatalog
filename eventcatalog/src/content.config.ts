@@ -1,7 +1,9 @@
 import { z, defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { v4 as uuidv4 } from 'uuid';
-// import { customPages } from './enterprise/collections/custom-pages';
+import { badge, ownerReference } from './shared-collections';
+import { customPagesSchema } from './enterprise/custom-documentation/collection';
+
 export const projectDirBase = (() => {
   if (process.platform === 'win32') {
     const projectDirPath = process.env.PROJECT_DIR!.replace(/\\/g, '/');
@@ -9,12 +11,6 @@ export const projectDirBase = (() => {
   }
   return process.env.PROJECT_DIR;
 })();
-
-const badge = z.object({
-  content: z.string(),
-  backgroundColor: z.string(),
-  textColor: z.string(),
-});
 
 const pages = defineCollection({
   loader: glob({
@@ -64,23 +60,6 @@ const changelogs = defineCollection({
       .optional(),
   }),
 });
-
-// Create a union type for owners
-const ownerReference = z
-  .union([
-    // The ID of the user or team
-    z.string(),
-    // The full object with the ID and collection (keep compatibility with `reference`)
-    z.object({
-      id: z.string(),
-      collection: z.enum(['users', 'teams']),
-    }),
-  ])
-  .transform(
-    // This transformation is needed to keep compatibility with `reference`.
-    // The utilities `getTeams` and `getUsers` rely on this transformation.
-    (lookup) => ({ id: typeof lookup === 'string' ? lookup : lookup.id })
-  );
 
 const baseSchema = z.object({
   id: z.string(),
@@ -290,17 +269,7 @@ const customPages = defineCollection({
     pattern: ['docs/*.(md|mdx)', 'docs/**/*.@(md|mdx)'],
     base: projectDirBase,
   }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string(),
-    slug: z.string().optional(),
-    sidebar: z.object({
-      label: z.string(),
-      order: z.number(),
-    }).optional(),
-    owners: z.array(ownerReference).optional(),
-    badges: z.array(badge).optional(),
-  }),
+  schema: customPagesSchema
 });
 
 const domains = defineCollection({
