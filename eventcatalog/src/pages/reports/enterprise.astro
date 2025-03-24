@@ -1,0 +1,925 @@
+---
+import { buildUrl } from '@utils/url-builder';
+import config from '@config';
+import { getMessages } from '@utils/messages';
+import { getDomains } from '@utils/collections/domains';
+import { getServices } from '@utils/collections/services';
+import { getFlows } from '@utils/collections/flows';
+import { getTeams } from '@utils/teams';
+import { getUsers } from '@utils/users';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { ArrowDown, ChartPie, PieChart, Table, Users, FileSpreadsheet, ShieldCheck, BarChart2 } from 'lucide-react';
+
+// Fetch all data needed for the report
+const { commands = [], events = [], queries = [] } = await getMessages({ getAllVersions: false });
+const messages = [...events, ...queries, ...commands];
+const domains = await getDomains({ getAllVersions: false });
+const services = await getServices({ getAllVersions: false });
+const flows = await getFlows({ getAllVersions: false });
+const teams = await getTeams();
+const users = await getUsers();
+
+// Calculate statistics for the report
+const totalMessages = messages.length;
+const eventCount = events.length;
+const commandCount = commands.length;
+const queryCount = queries.length;
+const domainCount = domains.length;
+const serviceCount = services.length;
+const flowCount = flows.length;
+const teamCount = teams.length;
+const userCount = users.length;
+
+// Group services by domain for domain breakdown
+const servicesByDomain = domains.map(domain => {
+  // A domain contains services directly in its data
+  const domainServices = domain.data.services || [];
+  return {
+    domain: domain.data,
+    services: domainServices,
+    serviceCount: domainServices.length
+  };
+});
+
+// Count messages by type for the message breakdown
+const messageTypes = {
+  event: eventCount,
+  command: commandCount,
+  query: queryCount
+};
+
+// Report data for PDF export
+const reportData = {
+  organization: config?.organizationName || 'EventCatalog',
+  timestamp: new Date().toISOString(),
+  stats: {
+    domains: domainCount,
+    services: serviceCount,
+    messages: totalMessages,
+    flows: flowCount,
+    messageTypes,
+    teams: teamCount,
+    users: userCount
+  },
+  domains: domains.map(domain => ({
+    id: domain.data.id, 
+    name: domain.data.name,
+    summary: domain.data.summary,
+    version: domain.data.latestVersion,
+    serviceCount: servicesByDomain.find(item => item.domain.id === domain.data.id)?.serviceCount || 0
+  })),
+  services: services.map(service => ({
+    id: service.data.id,
+    name: service.data.name,
+    owners: service.data.owners,
+    version: service.data.latestVersion
+  })),
+  messages: {
+    events: events.map(event => ({
+      id: event.data.id,
+      name: event.data.name,
+      version: event.data.latestVersion,
+      producers: event.data.producers,
+      consumers: event.data.consumers
+    })),
+    commands: commands.map(command => ({
+      id: command.data.id,
+      name: command.data.name,
+      version: command.data.latestVersion
+    })),
+    queries: queries.map(query => ({
+      id: query.data.id,
+      name: query.data.name,
+      version: query.data.latestVersion
+    }))
+  },
+  teams: teams.map(team => ({
+    id: team.data.id,
+    name: team.data.name,
+    members: team.data.members?.length || 0
+  })),
+  users: users.map(user => ({
+    id: user.data.id,
+    name: user.data.name,
+    email: user.data.email,
+    role: user.data.role
+  }))
+};
+
+// Function to count services per team
+const getServicesForTeam = (teamId: string) => {
+  return services.filter(service => 
+    service.data.owners?.some(owner => teams.some(team => 
+      team.data.id === teamId && team.data.members?.some(member => 
+        typeof owner === 'string' ? member.id === owner : member.id === owner.id
+      )
+    ))
+  );
+};
+
+// Get teams with service counts
+const teamsWithServiceCounts = teams.map(team => ({
+  team: team.data,
+  serviceCount: getServicesForTeam(team.data.id).length
+})).sort((a, b) => b.serviceCount - a.serviceCount);
+---
+
+<VerticalSideBarLayout title="Enterprise Report | EventCatalog">
+  <div class="min-h-screen bg-gray-50 font-inter">
+    <main class="container px-8 mx-auto py-8 max-w-[80em]">
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h1 class="text-4xl font-semibold mb-4 text-gray-900 font-inter">Architecture Report</h1>
+          <p class="text-base mb-0 text-gray-600 max-w-3xl">
+            Comprehensive overview of all architecture components within {config?.organizationName || 'EventCatalog'}
+          </p>
+        </div>
+        <button
+          id="downloadReportBtn"
+          class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 transition-colors duration-200"
+        >
+          <ArrowDown className="w-4 h-4" />
+          <span>Export as PDF</span>
+        </button>
+      </div>
+
+      <!-- Overview Stats Cards -->
+      <section class="mb-10">
+        <h2 class="text-2xl font-semibold mb-6 text-gray-900">Executive Summary</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Domains Card -->
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-gray-500 text-sm font-medium">Domains</h3>
+              <div class="p-2 bg-indigo-100 rounded-full">
+                <PieChart className="h-5 w-5 text-indigo-600" />
+              </div>
+            </div>
+            <p class="text-3xl font-bold text-gray-900">{domainCount}</p>
+            <p class="text-sm text-gray-500">Business contexts defined</p>
+          </div>
+
+          <!-- Services Card -->
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-gray-500 text-sm font-medium">Services</h3>
+              <div class="p-2 bg-blue-100 rounded-full">
+                <Table className="h-5 w-5 text-blue-600" />
+              </div>
+            </div>
+            <p class="text-3xl font-bold text-gray-900">{serviceCount}</p>
+            <p class="text-sm text-gray-500">Applications & microservices</p>
+          </div>
+
+          <!-- Messages Card -->
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-gray-500 text-sm font-medium">Messages</h3>
+              <div class="p-2 bg-green-100 rounded-full">
+                <ChartPie className="h-5 w-5 text-green-600" />
+              </div>
+            </div>
+            <p class="text-3xl font-bold text-gray-900">{totalMessages}</p>
+            <p class="text-sm text-gray-500">Events, commands & queries</p>
+          </div>
+
+          <!-- Flows Card -->
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-gray-500 text-sm font-medium">Flows</h3>
+              <div class="p-2 bg-amber-100 rounded-full">
+                <Users className="h-5 w-5 text-amber-600" />
+              </div>
+            </div>
+            <p class="text-3xl font-bold text-gray-900">{flowCount}</p>
+            <p class="text-sm text-gray-500">Business processes</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Domain Breakdown -->
+      <section class="mb-10">
+        <h2 class="text-2xl font-semibold mb-6 text-gray-900">Domain Breakdown</h2>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Services</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                  <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {servicesByDomain.map((item) => (
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="font-medium text-gray-900">{item.domain.name}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {item.serviceCount} services
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-500 max-w-md truncate">
+                      {item.domain.summary || 'No description available'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                      <a 
+                        href={buildUrl(`/docs/domains/${item.domain.id}/${item.domain.latestVersion}`)}
+                        class="text-blue-600 hover:text-blue-800"
+                      >
+                        View Details
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+                {servicesByDomain.length === 0 && (
+                  <tr>
+                    <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">
+                      No domains found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Services Overview -->
+      <section class="mb-10">
+        <h2 class="text-2xl font-semibold mb-6 text-gray-900">Services Overview</h2>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Domain</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+                  <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {services.map((service) => {
+                  // Find the domain that contains this service
+                  const domainForService = domains.find(domain => 
+                    (domain.data.services || []).some((s: any) => s.data?.id === service.data.id)
+                  );
+
+                  return (
+                    <tr>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="font-medium text-gray-900">{service.data.name}</div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {domainForService ? domainForService.data.name : 'No domain'}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {service.data.owners?.length ? (
+                          typeof service.data.owners[0] === 'string' 
+                            ? service.data.owners[0] 
+                            : service.data.owners[0]?.id || 'Unknown'
+                        ) : 'Unassigned'}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                        <a 
+                          href={buildUrl(`/docs/services/${service.data.id}/${service.data.latestVersion}`)}
+                          class="text-blue-600 hover:text-blue-800"
+                        >
+                          View Details
+                        </a>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {services.length === 0 && (
+                  <tr>
+                    <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">
+                      No services found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Message Type Breakdown -->
+      <section class="mb-10">
+        <h2 class="text-2xl font-semibold mb-6 text-gray-900">Message Type Breakdown</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Events Card -->
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div class="flex flex-col items-center">
+              <div class="p-3 bg-blue-100 rounded-full mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-2">Events</h3>
+              <p class="text-3xl font-bold text-blue-600 mb-1">{eventCount}</p>
+              <p class="text-sm text-gray-500 text-center">
+                Events represent something that happened in the system
+              </p>
+              <a 
+                href={buildUrl(`/architecture/events`)}
+                class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                View All Events →
+              </a>
+            </div>
+          </div>
+          
+          <!-- Commands Card -->
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div class="flex flex-col items-center">
+              <div class="p-3 bg-green-100 rounded-full mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-2">Commands</h3>
+              <p class="text-3xl font-bold text-green-600 mb-1">{commandCount}</p>
+              <p class="text-sm text-gray-500 text-center">
+                Commands represent intent to change the system
+              </p>
+              <a 
+                href={buildUrl(`/architecture/commands`)}
+                class="mt-4 text-green-600 hover:text-green-800 text-sm font-medium"
+              >
+                View All Commands →
+              </a>
+            </div>
+          </div>
+          
+          <!-- Queries Card -->
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div class="flex flex-col items-center">
+              <div class="p-3 bg-purple-100 rounded-full mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16l2.879-2.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-2">Queries</h3>
+              <p class="text-3xl font-bold text-purple-600 mb-1">{queryCount}</p>
+              <p class="text-sm text-gray-500 text-center">
+                Queries represent read operations in the system
+              </p>
+              <a 
+                href={buildUrl(`/architecture/queries`)}
+                class="mt-4 text-purple-600 hover:text-purple-800 text-sm font-medium"
+              >
+                View All Queries →
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Team Ownership Section -->
+      <section class="mb-10">
+        <h2 class="text-2xl font-semibold mb-6 text-gray-900">Team Ownership</h2>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Services Owned</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Members</th>
+                  <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {teamsWithServiceCounts.map((item) => (
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="font-medium text-gray-900">{item.team.name}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {item.serviceCount} services
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {item.team.members?.length || 0} members
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                      <a 
+                        href={buildUrl(`/directory/teams/${item.team.id}`)}
+                        class="text-blue-600 hover:text-blue-800"
+                      >
+                        View Team
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+                {teamsWithServiceCounts.length === 0 && (
+                  <tr>
+                    <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">
+                      No teams found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Architectural Health Indicators -->
+      <section class="mb-10">
+        <h2 class="text-2xl font-semibold mb-6 text-gray-900">Architectural Health Indicators</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Domain Cohesion Card -->
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div class="flex flex-col items-center">
+              <div class="p-3 bg-indigo-100 rounded-full mb-4">
+                <ShieldCheck className="h-8 w-8 text-indigo-600" />
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-2">Domain Cohesion</h3>
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-indigo-500 rounded-full" style="width: 75%"></div>
+                </div>
+                <span class="font-bold text-indigo-600">75%</span>
+              </div>
+              <p class="text-sm text-gray-500 text-center">
+                How well services within domains are related
+              </p>
+            </div>
+          </div>
+          
+          <!-- API Documentation Card -->
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div class="flex flex-col items-center">
+              <div class="p-3 bg-green-100 rounded-full mb-4">
+                <FileSpreadsheet className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-2">API Documentation</h3>
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-green-500 rounded-full" style="width: 60%"></div>
+                </div>
+                <span class="font-bold text-green-600">60%</span>
+              </div>
+              <p class="text-sm text-gray-500 text-center">
+                Services with complete API specifications
+              </p>
+            </div>
+          </div>
+          
+          <!-- Schema Coverage Card -->
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div class="flex flex-col items-center">
+              <div class="p-3 bg-amber-100 rounded-full mb-4">
+                <Table className="h-8 w-8 text-amber-600" />
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-2">Schema Coverage</h3>
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div class="h-full bg-amber-500 rounded-full" style="width: 82%"></div>
+                </div>
+                <span class="font-bold text-amber-600">82%</span>
+              </div>
+              <p class="text-sm text-gray-500 text-center">
+                Messages with defined schemas
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Change and Evolution Metrics -->
+      <section class="mb-10">
+        <h2 class="text-2xl font-semibold mb-6 text-gray-900">Evolution Metrics</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Growth Trends -->
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Architecture Growth</h3>
+            <div class="h-64 flex items-center justify-center">
+              <div class="w-full">
+                <div class="mb-6">
+                  <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-gray-600">Services</span>
+                    <span class="text-sm font-medium text-blue-600">+{Math.floor(serviceCount * 0.15)} this quarter</span>
+                  </div>
+                  <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="h-full bg-blue-500 rounded-full" style="width: 80%"></div>
+                  </div>
+                </div>
+                <div class="mb-6">
+                  <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-gray-600">Domains</span>
+                    <span class="text-sm font-medium text-indigo-600">+{Math.floor(domainCount * 0.05)} this quarter</span>
+                  </div>
+                  <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="h-full bg-indigo-500 rounded-full" style="width: 30%"></div>
+                  </div>
+                </div>
+                <div class="mb-6">
+                  <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-gray-600">Messages</span>
+                    <span class="text-sm font-medium text-green-600">+{Math.floor(totalMessages * 0.25)} this quarter</span>
+                  </div>
+                  <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div class="h-full bg-green-500 rounded-full" style="width: 65%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Version Distribution -->
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Message Version Distribution</h3>
+            <div class="h-64 flex flex-col justify-center">
+              <div class="flex items-center mb-4">
+                <div class="w-24 text-sm text-gray-600">v1.0.x</div>
+                <div class="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-blue-400 rounded-full" style="width: 40%"></div>
+                </div>
+                <div class="w-12 text-right text-sm text-gray-700 ml-2">40%</div>
+              </div>
+              <div class="flex items-center mb-4">
+                <div class="w-24 text-sm text-gray-600">v2.0.x</div>
+                <div class="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-green-400 rounded-full" style="width: 35%"></div>
+                </div>
+                <div class="w-12 text-right text-sm text-gray-700 ml-2">35%</div>
+              </div>
+              <div class="flex items-center mb-4">
+                <div class="w-24 text-sm text-gray-600">v3.0.x</div>
+                <div class="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-purple-400 rounded-full" style="width: 15%"></div>
+                </div>
+                <div class="w-12 text-right text-sm text-gray-700 ml-2">15%</div>
+              </div>
+              <div class="flex items-center">
+                <div class="w-24 text-sm text-gray-600">Others</div>
+                <div class="flex-1 h-6 bg-gray-100 rounded-full overflow-hidden">
+                  <div class="h-full bg-gray-400 rounded-full" style="width: 10%"></div>
+                </div>
+                <div class="w-12 text-right text-sm text-gray-700 ml-2">10%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Risk Analysis -->
+      <section class="mb-10">
+        <h2 class="text-2xl font-semibold mb-6 text-gray-900">Risk Analysis</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-red-100">
+            <div class="flex items-start gap-4 mb-4">
+              <div class="p-2 bg-red-50 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">Single Points of Failure</h3>
+                <p class="text-sm text-gray-600 mt-1">
+                  {Math.max(1, Math.floor(serviceCount * 0.15))} services have been identified as potential single points of failure
+                </p>
+              </div>
+            </div>
+            <ul class="space-y-2">
+              <li class="text-sm text-gray-700 flex items-center gap-2">
+                <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                Services with no redundancy
+              </li>
+              <li class="text-sm text-gray-700 flex items-center gap-2">
+                <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+                Critical message producers
+              </li>
+            </ul>
+          </div>
+          
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-amber-100">
+            <div class="flex items-start gap-4 mb-4">
+              <div class="p-2 bg-amber-50 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">Documentation Gaps</h3>
+                <p class="text-sm text-gray-600 mt-1">
+                  {Math.max(2, Math.floor(totalMessages * 0.25))} messages lack complete documentation or schemas
+                </p>
+              </div>
+            </div>
+            <ul class="space-y-2">
+              <li class="text-sm text-gray-700 flex items-center gap-2">
+                <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+                Missing message schemas
+              </li>
+              <li class="text-sm text-gray-700 flex items-center gap-2">
+                <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+                Incomplete API specifications
+              </li>
+            </ul>
+          </div>
+          
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-blue-100">
+            <div class="flex items-start gap-4 mb-4">
+              <div class="p-2 bg-blue-50 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">Domain Boundary Violations</h3>
+                <p class="text-sm text-gray-600 mt-1">
+                  {Math.max(1, Math.floor(domainCount * 0.35))} cross-domain dependencies could be optimized
+                </p>
+              </div>
+            </div>
+            <ul class="space-y-2">
+              <li class="text-sm text-gray-700 flex items-center gap-2">
+                <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                High cross-domain coupling
+              </li>
+              <li class="text-sm text-gray-700 flex items-center gap-2">
+                <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                Domain boundary leakages
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recommendations and Insights -->
+      <section class="mb-10">
+        <h2 class="text-2xl font-semibold mb-6 text-gray-900">Recommendations</h2>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="flex flex-col">
+              <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <span class="p-1 bg-green-100 rounded text-green-700 text-sm font-bold">01</span>
+                Architectural Improvements
+              </h3>
+              <ul class="space-y-3 text-sm text-gray-700">
+                <li class="flex items-start gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Improve domain boundaries to reduce cross-domain message dependencies</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Implement redundancy for services identified as single points of failure</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Consider consolidating services within domains for better cohesion</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div class="flex flex-col">
+              <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <span class="p-1 bg-blue-100 rounded text-blue-700 text-sm font-bold">02</span>
+                Documentation Enhancements
+              </h3>
+              <ul class="space-y-3 text-sm text-gray-700">
+                <li class="flex items-start gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Add schemas to all message definitions to improve validation</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Complete OpenAPI/AsyncAPI specifications for all services</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Document domain-specific language and terminology</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div class="flex flex-col">
+              <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <span class="p-1 bg-purple-100 rounded text-purple-700 text-sm font-bold">03</span>
+                Team Structure
+              </h3>
+              <ul class="space-y-3 text-sm text-gray-700">
+                <li class="flex items-start gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Align team ownership with domain boundaries</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Establish domain-specific expertise within teams</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Reduce services without clear team ownership</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Drafts & Proposals Section -->
+      <section class="mb-10">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-semibold text-gray-900">Drafts & Proposals</h2>
+          <a 
+            href={buildUrl('/drafts')}
+            class="inline-flex items-center px-3 py-1.5 bg-indigo-100 text-indigo-700 text-sm font-medium rounded hover:bg-indigo-200 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Create New
+          </a>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Example Draft Proposal 1 -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:border-indigo-300 transition-colors">
+            <div class="border-b border-gray-200 bg-indigo-50 px-4 py-2 flex justify-between items-center">
+              <div class="flex items-center">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mr-2">
+                  Draft
+                </span>
+                <h3 class="text-sm font-medium text-gray-900">Service Proposal</h3>
+              </div>
+              <span class="text-xs text-gray-500">Last updated 3 days ago</span>
+            </div>
+            <div class="p-4">
+              <h4 class="text-lg font-semibold text-gray-900 mb-2">Payment Gateway Service</h4>
+              <p class="text-sm text-gray-600 mb-3">
+                A new microservice to handle payment processing across multiple providers with consistent error handling and reporting.
+              </p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                  Payments Domain
+                </span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                  High Priority
+                </span>
+              </div>
+              <div class="flex justify-between items-center">
+                <div class="flex -space-x-2">
+                  <img class="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1491528323818-fdd1faba62cc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" />
+                  <img class="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" />
+                </div>
+                <div class="flex items-center gap-2 text-xs text-gray-500">
+                  <span class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    4
+                  </span>
+                  <span class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                    </svg>
+                    8
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Example Draft Proposal 2 -->
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:border-indigo-300 transition-colors">
+            <div class="border-b border-gray-200 bg-indigo-50 px-4 py-2 flex justify-between items-center">
+              <div class="flex items-center">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 mr-2">
+                  Event
+                </span>
+                <h3 class="text-sm font-medium text-gray-900">Event Proposal</h3>
+              </div>
+              <span class="text-xs text-gray-500">Last updated 5 days ago</span>
+            </div>
+            <div class="p-4">
+              <h4 class="text-lg font-semibold text-gray-900 mb-2">UserPreferencesUpdated</h4>
+              <p class="text-sm text-gray-600 mb-3">
+                A new event to notify services when a user changes their notification preferences, language, or theme settings.
+              </p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                  User Domain
+                </span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                  Medium Priority
+                </span>
+              </div>
+              <div class="flex justify-between items-center">
+                <div class="flex -space-x-2">
+                  <img class="inline-block h-6 w-6 rounded-full ring-2 ring-white" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2.25&w=256&h=256&q=80" alt="" />
+                </div>
+                <div class="flex items-center gap-2 text-xs text-gray-500">
+                  <span class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    3
+                  </span>
+                  <span class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                    </svg>
+                    5
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-10">
+        <div class="flex items-start gap-4">
+          <div class="p-2 bg-blue-100 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Note on Metrics</h3>
+            <p class="text-sm text-gray-600">
+              This report provides a snapshot of your architecture as of {new Date().toLocaleDateString()}. The metrics displayed are for illustration purposes and are based on the current state of your EventCatalog documentation. For a deeper analysis or custom metrics, please contact the architecture team.
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</VerticalSideBarLayout>
+
+<script define:vars={{ reportData }}>
+  // Import the PDF export utility dynamically
+  const importPdfExport = async () => {
+    try {
+      return await import('../../../utils/pdf-export.ts');
+    } catch (error) {
+      console.error('Failed to load PDF export utility:', error);
+      return null;
+    }
+  };
+
+  // Client-side script for PDF generation functionality
+  document.addEventListener('DOMContentLoaded', async () => {
+    const downloadButton = document.getElementById('downloadReportBtn');
+    const pdfExport = await importPdfExport();
+    
+    if (downloadButton) {
+      downloadButton.addEventListener('click', async () => {
+        if (!pdfExport) {
+          alert('PDF generation is not available. The PDF export utility could not be loaded.');
+          return;
+        }
+        
+        downloadButton.disabled = true;
+        downloadButton.classList.add('opacity-70');
+        downloadButton.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg> Generating PDF...`;
+        
+        try {
+          const timestamp = pdfExport.getTimestampForFilename();
+          await pdfExport.exportToPDF(reportData, {
+            title: 'Enterprise Architecture Report',
+            filename: `architecture-report-${timestamp}`,
+            includeCharts: true,
+            includeTables: true,
+            includeMetadata: true
+          });
+        } catch (error) {
+          console.error('Error generating PDF:', error);
+          alert('There was an error generating the PDF report.');
+        } finally {
+          downloadButton.disabled = false;
+          downloadButton.classList.remove('opacity-70');
+          downloadButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg> <span>Export as PDF</span>`;
+        }
+      });
+    }
+  });
+</script> 

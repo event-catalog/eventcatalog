@@ -5,7 +5,7 @@ interface Props {
   description?: string;
 }
 
-import { BookOpenText, Workflow, TableProperties, House, BookUser, MessageSquare, BotMessageSquare, Users } from 'lucide-react';
+import { BookOpenText, Workflow, TableProperties, House, BookUser, MessageSquare, BotMessageSquare, Users, BarChart2, FileEdit } from 'lucide-react';
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
@@ -91,6 +91,14 @@ const navigationItems = [
     sidebar: false,
   },
   {
+    id: '/reports',
+    label: 'Reports',
+    icon: BarChart2,
+    href: buildUrl('/reports'),
+    current: currentPath.includes('/reports'),
+    sidebar: false,
+  },
+  {
     id: '/directory',
     label: 'Users & Teams',
     icon: Users,
@@ -113,6 +121,13 @@ const navigationItems = [
     icon: BotMessageSquare,
     href: buildUrl('/chat'),
     current: currentPath.includes('/chat'),
+  },
+  {
+    id: '/drafts',
+    label: 'Drafts & Proposals',
+    icon: FileEdit,
+    href: buildUrl('/drafts'),
+    current: currentPath.includes('/drafts'),
   },
 ].filter((item) => {
   const userSideBarOption = userSideBarConfiguration.find((config: { id: string; visible: boolean }) => config.id === item.id);

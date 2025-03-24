@@ -16,7 +16,7 @@ import { getServices } from '@utils/collections/services';
 import { getFlows } from '@utils/collections/flows';
 import DiscoverInsight from '@components/DiscoverInsight.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { BookOpenText, Workflow, TableProperties, House, BookUser, MessageSquare, BotMessageSquare, Users } from 'lucide-react';
+import { BookOpenText, Workflow, TableProperties, House, BookUser, MessageSquare, BotMessageSquare, Users, BarChart2 } from 'lucide-react';
 
 const { commands = [], events = [], queries = [] } = await getMessages({ getAllVersions: false });
 const messages = [...events, ...queries, ...commands];
@@ -247,6 +247,22 @@ const topTiles = [
                 <h3 class="text-base font-semibold text-gray-900 group-hover:text-orange-600">Users & Teams</h3>
               </div>
               <p class="text-sm text-gray-600">Discover service and message ownership</p>
+            </div>
+          </a>
+
+          <a
+            href={buildUrl('/reports')}
+            class="col-span-4 row-span-2 group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 overflow-hidden"
+          >
+            <div class="h-24 bg-gradient-to-br from-blue-50 to-blue-100 border-b border-gray-200"></div>
+            <div class="p-4">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="p-2 bg-blue-100 rounded-lg group-hover:scale-105 transition-transform">
+                  <BarChart2 className="w-5 h-5 text-blue-600" />
+                </div>
+                <h3 class="text-base font-semibold text-gray-900 group-hover:text-blue-600">Reports</h3>
+              </div>
+              <p class="text-sm text-gray-600">Enterprise architecture reporting and insights</p>
             </div>
           </a>
         </div>

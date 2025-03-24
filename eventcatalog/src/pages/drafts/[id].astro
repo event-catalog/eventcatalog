@@ -1,0 +1,456 @@
+---
+import { buildUrl } from '@utils/url-builder';
+import config from '@config';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { MessageSquare, ThumbsUp, AlertCircle, Tag, PlusCircle, Pencil, UserCircle, GitBranch, GitPullRequest, GitFork, CheckCircle, GitCommit } from 'lucide-react';
+
+export function getStaticPaths() {
+  return [
+    { params: { id: 'payment-gateway-service' } },
+    { params: { id: 'user-preferences-updated' } }
+  ];
+}
+
+const { id } = Astro.params;
+
+// Mock data based on id
+const isDraft = id === 'payment-gateway-service';
+const draftTitle = isDraft 
+  ? "Payment Gateway Service" 
+  : "UserPreferencesUpdated";
+const draftType = isDraft ? "Service Proposal" : "Event Proposal";
+const draftTag = isDraft 
+  ? { color: "yellow", text: "Draft" } 
+  : { color: "purple", text: "Event" };
+const prNumber = isDraft ? "42" : "39";
+const draftDescription = isDraft
+  ? "A new microservice to handle payment processing across multiple providers with consistent error handling and reporting."
+  : "A new event to notify services when a user changes their notification preferences, language, or theme settings.";
+const draftStatus = isDraft ? "Awaiting Feedback" : "Ready to Merge";
+const author = isDraft 
+  ? { name: "Sarah Davis", img: "https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" }
+  : { name: "Michael Chen", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2.25&w=256&h=256&q=80" };
+const createdDate = isDraft ? "3 days ago" : "5 days ago";
+const priority = isDraft 
+  ? { color: "green", text: "High Priority" }
+  : { color: "amber", text: "Medium Priority" };
+const approvalCount = isDraft ? 2 : 3;
+const commentCount = isDraft ? 4 : 6;
+const commitCount = isDraft ? 3 : 5;
+const branchName = isDraft ? "feature/payment-gateway-service" : "feature/user-preferences-event";
+---
+
+<VerticalSideBarLayout title={`${draftTitle} | Drafts & Proposals | EventCatalog`}>
+  <div class="min-h-screen bg-gray-50 font-inter">
+    <main class="container px-8 mx-auto py-8 max-w-[80em]">
+      <!-- Breadcrumb -->
+      <nav class="mb-8" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-2 text-sm text-gray-500">
+          <li>
+            <a href={buildUrl('/')} class="hover:text-gray-700">Home</a>
+          </li>
+          <li class="flex items-center">
+            <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+            <a href={buildUrl('/drafts')} class="hover:text-gray-700">Drafts & Proposals</a>
+          </li>
+          <li class="flex items-center">
+            <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-gray-700 font-medium">{draftTitle}</span>
+          </li>
+        </ol>
+      </nav>
+
+      <!-- Draft Header -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+        <div class="border-b border-gray-200 bg-indigo-50 px-6 py-4 flex justify-between items-center">
+          <div class="flex items-center">
+            <span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${draftTag.color}-100 text-${draftTag.color}-800 mr-2`}>
+              PR #{prNumber}
+            </span>
+            <h3 class="text-base font-medium text-gray-900">{draftType}</h3>
+          </div>
+          <div class="flex items-center space-x-4">
+            <span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${priority.color}-100 text-${priority.color}-800`}>
+              {priority.text}
+            </span>
+            <a 
+              href={`https://github.com/your-org/eventcatalog/pull/${prNumber}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="px-4 py-2 text-sm text-white bg-indigo-600 rounded-md hover:bg-indigo-700 flex items-center"
+            >
+              <GitPullRequest className="w-4 h-4 mr-1" />
+              View on GitHub
+            </a>
+          </div>
+        </div>
+        <div class="p-6">
+          <div class="flex justify-between items-start mb-6">
+            <div>
+              <h1 class="text-2xl font-semibold text-gray-900 mb-2">{draftTitle}</h1>
+              <p class="text-gray-600 max-w-3xl">
+                {draftDescription}
+              </p>
+            </div>
+            <div class="flex flex-col items-end text-sm text-gray-500">
+              <div class="flex items-center space-x-2">
+                <span>Created by</span>
+                <div class="flex items-center">
+                  <img class="w-6 h-6 rounded-full mr-2" src={author.img} alt="" />
+                  <span class="font-medium">{author.name}</span>
+                </div>
+              </div>
+              <span>{createdDate}</span>
+              <span class="mt-1 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {draftStatus}
+              </span>
+            </div>
+          </div>
+          
+          {isDraft ? (
+            <div class="mb-6">
+              <h3 class="text-lg font-medium text-gray-800 mb-3">Proposed Responsibilities:</h3>
+              <ul class="list-disc pl-5 text-gray-600 space-y-2">
+                <li>Process payments through multiple gateways (Stripe, PayPal, etc.)</li>
+                <li>Handle failed transactions with consistent error responses</li>
+                <li>Store payment method tokens securely</li>
+                <li>Generate reports on transaction volume and success rates</li>
+                <li>Emit events for successful and failed transactions</li>
+              </ul>
+            </div>
+          ) : (
+            <div class="mb-6">
+              <h3 class="text-lg font-medium text-gray-800 mb-3">Proposed Schema:</h3>
+              <div class="bg-gray-50 p-4 rounded-md overflow-x-auto">
+                <pre class="text-sm text-gray-800">
+{`
+{
+  "type": "object",
+  "properties": {
+    "userId": { "type": "string", "format": "uuid" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "preferences": {
+      "type": "object",
+      "properties": {
+        "notifications": {
+          "type": "object",
+          "properties": {
+            "email": { "type": "boolean" },
+            "push": { "type": "boolean" },
+            "sms": { "type": "boolean" }
+          }
+        },
+        "language": { "type": "string" },
+        "theme": { "type": "string", "enum": ["light", "dark", "system"] },
+        "timezone": { "type": "string" }
+      }
+    }
+  },
+  "required": ["userId", "timestamp", "preferences"]
+}
+`}
+                </pre>
+              </div>
+            </div>
+          )}
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <h3 class="text-base font-medium text-gray-800 mb-2">Domain:</h3>
+              <div class="flex flex-wrap gap-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                  {isDraft ? "Payments Domain" : "User Domain"}
+                </span>
+              </div>
+            </div>
+            
+            <div>
+              <h3 class="text-base font-medium text-gray-800 mb-2">Related {isDraft ? "Messages" : "Services"}:</h3>
+              <div class="flex flex-wrap gap-2">
+                {isDraft ? (
+                  <>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                      PaymentProcessed
+                    </span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                      PaymentFailed
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800">
+                      User Preference Service
+                    </span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800">
+                      Notification Service
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <!-- GitHub Info -->
+          <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+            <div class="flex items-center gap-2 mb-3">
+              <GitBranch className="w-5 h-5 text-gray-600" />
+              <span class="text-sm font-medium text-gray-700">Branch: <code class="bg-gray-200 px-1 py-0.5 rounded text-xs">{branchName}</code></span>
+            </div>
+            <div class="flex flex-wrap gap-4">
+              <div class="flex items-center gap-1">
+                <GitCommit className="w-4 h-4 text-gray-600" />
+                <span class="text-sm text-gray-600">{commitCount} commits</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <GitPullRequest className="w-4 h-4 text-gray-600" />
+                <span class="text-sm text-gray-600">{commentCount} comments on PR</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span class="text-sm text-gray-600">{approvalCount} approvals</span>
+              </div>
+              <div class="ml-auto">
+                <a
+                  href={`https://github.com/your-org/eventcatalog/pull/${prNumber}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-sm text-indigo-600 hover:text-indigo-800 font-medium"
+                >
+                  View pull request →
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Main Grid Section -->
+          <div class="grid grid-cols-3 gap-6">
+            <!-- File Changes Column -->
+            <div class="col-span-2">
+              <h2 class="text-xl font-semibold text-gray-900 mb-4">Proposed Changes</h2>
+              
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+                <div class="border-b border-gray-200 bg-gray-50 px-4 py-3 flex justify-between items-center">
+                  <h3 class="text-sm font-medium text-gray-700">Modified Files</h3>
+                  <span class="text-xs text-gray-500">{commitCount} commits</span>
+                </div>
+                <div class="p-4">
+                  <ul class="divide-y divide-gray-200">
+                    {isDraft ? (
+                      <>
+                        <li class="py-3 flex items-center justify-between">
+                          <div class="flex items-center">
+                            <span class="text-sm font-medium text-gray-900">services/payment-gateway/index.md</span>
+                            <span class="ml-2 text-xs text-green-600 bg-green-100 py-0.5 px-1.5 rounded-full">Added</span>
+                          </div>
+                          <a href="#" class="text-xs text-gray-500 hover:text-indigo-600">View changes</a>
+                        </li>
+                        <li class="py-3 flex items-center justify-between">
+                          <div class="flex items-center">
+                            <span class="text-sm font-medium text-gray-900">events/payment-processed/index.md</span>
+                            <span class="ml-2 text-xs text-green-600 bg-green-100 py-0.5 px-1.5 rounded-full">Added</span>
+                          </div>
+                          <a href="#" class="text-xs text-gray-500 hover:text-indigo-600">View changes</a>
+                        </li>
+                        <li class="py-3 flex items-center justify-between">
+                          <div class="flex items-center">
+                            <span class="text-sm font-medium text-gray-900">events/payment-failed/index.md</span>
+                            <span class="ml-2 text-xs text-green-600 bg-green-100 py-0.5 px-1.5 rounded-full">Added</span>
+                          </div>
+                          <a href="#" class="text-xs text-gray-500 hover:text-indigo-600">View changes</a>
+                        </li>
+                      </>
+                    ) : (
+                      <>
+                        <li class="py-3 flex items-center justify-between">
+                          <div class="flex items-center">
+                            <span class="text-sm font-medium text-gray-900">events/user-preferences-updated/index.md</span>
+                            <span class="ml-2 text-xs text-green-600 bg-green-100 py-0.5 px-1.5 rounded-full">Added</span>
+                          </div>
+                          <a href="#" class="text-xs text-gray-500 hover:text-indigo-600">View changes</a>
+                        </li>
+                        <li class="py-3 flex items-center justify-between">
+                          <div class="flex items-center">
+                            <span class="text-sm font-medium text-gray-900">events/user-preferences-updated/schema.json</span>
+                            <span class="ml-2 text-xs text-green-600 bg-green-100 py-0.5 px-1.5 rounded-full">Added</span>
+                          </div>
+                          <a href="#" class="text-xs text-gray-500 hover:text-indigo-600">View changes</a>
+                        </li>
+                        <li class="py-3 flex items-center justify-between">
+                          <div class="flex items-center">
+                            <span class="text-sm font-medium text-gray-900">services/user-preferences/index.md</span>
+                            <span class="ml-2 text-xs text-blue-600 bg-blue-100 py-0.5 px-1.5 rounded-full">Modified</span>
+                          </div>
+                          <a href="#" class="text-xs text-gray-500 hover:text-indigo-600">View changes</a>
+                        </li>
+                      </>
+                    )}
+                  </ul>
+                  <div class="mt-4 pt-4 border-t border-gray-200">
+                    <a
+                      href={`https://github.com/your-org/eventcatalog/pull/${prNumber}/files`}
+                      target="_blank"
+                      rel="noopener noreferrer" 
+                      class="text-sm text-indigo-600 hover:text-indigo-800 flex items-center"
+                    >
+                      <GitPullRequest className="w-4 h-4 mr-1" />
+                      View all file changes on GitHub
+                    </a>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Recent PR Comments Section -->
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div class="border-b border-gray-200 bg-gray-50 px-4 py-3 flex justify-between items-center">
+                  <h3 class="text-sm font-medium text-gray-700">Recent Comments</h3>
+                  <a
+                    href={`https://github.com/your-org/eventcatalog/pull/${prNumber}#discussion`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-xs text-indigo-600 hover:text-indigo-800"
+                  >
+                    View all on GitHub
+                  </a>
+                </div>
+                <div class="p-4">
+                  <div class="space-y-6">
+                    {isDraft ? (
+                      <>
+                        <div class="flex">
+                          <div class="mr-4 flex-shrink-0">
+                            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1491528323818-fdd1faba62cc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" />
+                          </div>
+                          <div>
+                            <h4 class="text-sm font-bold">Alex Johnson</h4>
+                            <div class="mt-1 text-sm text-gray-700">
+                              <p>I like this proposal. Having a centralized payment service makes a lot of sense. Have you considered how this would handle multi-currency transactions?</p>
+                            </div>
+                            <div class="mt-2 text-xs text-gray-500">
+                              2 days ago on <a href="#" class="text-indigo-600 hover:text-indigo-800">services/payment-gateway/index.md</a>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div class="flex">
+                          <div class="mr-4 flex-shrink-0">
+                            <img class="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2.25&w=256&h=256&q=80" alt="" />
+                          </div>
+                          <div>
+                            <h4 class="text-sm font-bold">Michael Chen</h4>
+                            <div class="mt-1 text-sm text-gray-700">
+                              <p>Thanks for the feedback! I've updated the schema to include timezone information as suggested.</p>
+                            </div>
+                            <div class="mt-2 text-xs text-gray-500">
+                              1 day ago on <a href="#" class="text-indigo-600 hover:text-indigo-800">events/user-preferences-updated/schema.json</a>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    
+                    <a
+                      href={`https://github.com/your-org/eventcatalog/pull/${prNumber}#new_comment_field`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="mt-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    >
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Add a comment on GitHub
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-span-1">
+              <!-- PR Status Box -->
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
+                <div class="border-b border-gray-200 bg-gray-50 px-4 py-3">
+                  <h3 class="text-sm font-medium text-gray-900">Pull Request Status</h3>
+                </div>
+                <div class="p-4">
+                  <ul class="space-y-4">
+                    <li class="flex items-center justify-between">
+                      <span class="text-sm text-gray-600">Branch</span>
+                      <span class="text-sm font-medium">{branchName}</span>
+                    </li>
+                    <li class="flex items-center justify-between">
+                      <span class="text-sm text-gray-600">Status</span>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                        {draftStatus}
+                      </span>
+                    </li>
+                    <li class="flex items-center justify-between">
+                      <span class="text-sm text-gray-600">Approvals</span>
+                      <span class="text-sm font-medium text-green-600">{approvalCount} of 3 required</span>
+                    </li>
+                    <li class="flex items-center justify-between">
+                      <span class="text-sm text-gray-600">CI Status</span>
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Passing
+                      </span>
+                    </li>
+                  </ul>
+                  
+                  <div class="mt-6 pt-4 border-t border-gray-200">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Reviewers</h4>
+                    <ul class="space-y-3">
+                      <li class="flex items-center justify-between">
+                        <div class="flex items-center">
+                          <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1491528323818-fdd1faba62cc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" />
+                          <span class="ml-2 text-sm font-medium text-gray-700">Alex Johnson</span>
+                        </div>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Approved
+                        </span>
+                      </li>
+                      <li class="flex items-center justify-between">
+                        <div class="flex items-center">
+                          <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" />
+                          <span class="ml-2 text-sm font-medium text-gray-700">Sarah Davis</span>
+                        </div>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          Pending
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Documentation Box -->
+              <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div class="border-b border-gray-200 bg-gray-50 px-4 py-3">
+                  <h3 class="text-sm font-medium text-gray-900">Documentation</h3>
+                </div>
+                <div class="p-4">
+                  <div class="space-y-4">
+                    <a href="https://github.com/your-org/eventcatalog/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" class="block">
+                      <div class="text-sm font-medium text-gray-700">Contributing Guidelines</div>
+                      <div class="text-xs text-gray-500">Learn how to contribute to EventCatalog</div>
+                    </a>
+                    <a href="https://github.com/your-org/eventcatalog/blob/main/ARCHITECTURE.md" target="_blank" rel="noopener noreferrer" class="block">
+                      <div class="text-sm font-medium text-gray-700">Architecture Standards</div>
+                      <div class="text-xs text-gray-500">Review architecture best practices</div>
+                    </a>
+                    <a href="https://github.com/your-org/eventcatalog/blob/main/docs/MESSAGE_SCHEMA.md" target="_blank" rel="noopener noreferrer" class="block">
+                      <div class="text-sm font-medium text-gray-700">Schema Guidelines</div>
+                      <div class="text-xs text-gray-500">Message schema best practices</div>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</VerticalSideBarLayout> 

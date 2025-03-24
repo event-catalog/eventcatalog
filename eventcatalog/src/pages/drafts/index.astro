@@ -1,0 +1,388 @@
+---
+import { buildUrl } from '@utils/url-builder';
+import config from '@config';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { Pencil, GitBranch, GitPullRequest, GitFork, CheckCircle, ListChecks, UserCircle } from 'lucide-react';
+---
+
+<VerticalSideBarLayout title="Drafts & Proposals | EventCatalog">
+  <div class="min-h-screen bg-gray-50 font-inter">
+    <main class="container px-8 mx-auto py-8 max-w-[80em]">
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h1 class="text-4xl font-semibold mb-4 text-gray-900 font-inter">Drafts & Proposals</h1>
+          <p class="text-base mb-0 text-gray-600 max-w-3xl">
+            Propose new services, events, and architecture changes via Git workflow for review and collaboration.
+          </p>
+        </div>
+        <a
+          href="https://github.com/new"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-sm hover:bg-indigo-700 transition-colors duration-200"
+        >
+          <GitFork className="w-4 h-4" />
+          <span>Create New Draft</span>
+        </a>
+      </div>
+
+      <!-- Git Integration Info Box -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+        <div class="flex items-start gap-3">
+          <div class="p-2 bg-blue-100 rounded-full">
+            <GitBranch className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <h3 class="text-sm font-medium text-gray-900 mb-1">Git-Based Workflow</h3>
+            <p class="text-sm text-gray-600">
+              Proposals are managed through Git pull requests. Clone the repository, create a feature branch with your proposed changes, 
+              and submit a PR. Each proposal is reviewed, discussed, and approved through standard Git workflows.
+              <a href="https://github.com/your-org/eventcatalog/blob/main/CONTRIBUTING.md" class="text-blue-600 hover:text-blue-800 ml-1">
+                View contribution guide →
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Draft Type Selection -->
+      <div class="flex mb-8 border-b border-gray-200">
+        <button class="px-4 py-2 text-indigo-600 border-b-2 border-indigo-600 font-medium">All Proposals</button>
+        <button class="px-4 py-2 text-gray-500 hover:text-indigo-600">Open PRs</button>
+        <button class="px-4 py-2 text-gray-500 hover:text-indigo-600">Merged</button>
+        <button class="px-4 py-2 text-gray-500 hover:text-indigo-600">Ready for Review</button>
+      </div>
+
+      <!-- Filter & Sort Options -->
+      <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <select class="pl-3 pr-10 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+              <option>All Types</option>
+              <option>Service Proposals</option>
+              <option>Event Proposals</option>
+              <option>Domain Proposals</option>
+              <option>Architecture Changes</option>
+            </select>
+          </div>
+          <div class="relative">
+            <select class="pl-3 pr-10 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+              <option>All Domains</option>
+              <option>Payments</option>
+              <option>User</option>
+              <option>Notifications</option>
+              <option>Order</option>
+            </select>
+          </div>
+        </div>
+        <div class="relative">
+          <select class="pl-3 pr-10 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+            <option>Recently Updated</option>
+            <option>Oldest First</option>
+            <option>Most Active</option>
+            <option>Most Approvals</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Draft List -->
+      <div class="space-y-4 mb-8">
+        <!-- Example Draft 1 - Service Proposal -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:border-indigo-300 transition-colors">
+          <div class="border-b border-gray-200 bg-indigo-50 px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mr-2">
+                PR #42
+              </span>
+              <h3 class="text-base font-medium text-gray-900">Service Proposal</h3>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="https://github.com/your-org/eventcatalog/pull/42" target="_blank" rel="noopener noreferrer" class="text-xs text-indigo-600 hover:text-indigo-800">
+                <GitPullRequest className="inline w-4 h-4 mr-1" />
+                View on GitHub
+              </a>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                High Priority
+              </span>
+            </div>
+          </div>
+          <div class="p-6">
+            <div class="flex justify-between">
+              <h2 class="text-xl font-semibold text-gray-900 mb-3">Payment Gateway Service</h2>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-500">Created by Sarah Davis • 3 days ago</span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                  Awaiting Review
+                </span>
+              </div>
+            </div>
+            
+            <p class="text-gray-600 mb-4">
+              A new microservice to handle payment processing across multiple providers with consistent error handling and reporting.
+              This service would abstract away the differences between payment providers and offer a unified API for the rest of the system.
+            </p>
+            
+            <div class="mb-6">
+              <h3 class="text-sm font-medium text-gray-700 mb-2">Proposed Responsibilities:</h3>
+              <ul class="list-disc pl-5 text-sm text-gray-600 space-y-1">
+                <li>Process payments through multiple gateways (Stripe, PayPal, etc.)</li>
+                <li>Handle failed transactions with consistent error responses</li>
+                <li>Store payment method tokens securely</li>
+                <li>Generate reports on transaction volume and success rates</li>
+                <li>Emit events for successful and failed transactions</li>
+              </ul>
+            </div>
+            
+            <div class="mb-6">
+              <h3 class="text-sm font-medium text-gray-700 mb-2">Domain:</h3>
+              <div class="flex flex-wrap gap-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                  Payments Domain
+                </span>
+              </div>
+            </div>
+            
+            <div class="mb-6">
+              <h3 class="text-sm font-medium text-gray-700 mb-2">Messages:</h3>
+              <div class="flex flex-wrap gap-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                  PaymentProcessed
+                </span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                  PaymentFailed
+                </span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                  RefundInitiated
+                </span>
+              </div>
+            </div>
+            
+            <div class="border-t border-gray-200 pt-4 flex justify-between items-center">
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-1 text-gray-500">
+                  <GitPullRequest className="w-4 h-4" />
+                  <span class="text-sm">4 comments on PR</span>
+                </div>
+                <div class="flex items-center gap-1 text-gray-500">
+                  <CheckCircle className="w-4 h-4" />
+                  <span class="text-sm">2 approvals</span>
+                </div>
+              </div>
+              <div>
+                <a href={buildUrl('/drafts/payment-gateway-service')} class="px-3 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-full hover:bg-indigo-100">
+                  View Details
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Example Draft 2 - Event Proposal -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:border-indigo-300 transition-colors">
+          <div class="border-b border-gray-200 bg-indigo-50 px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 mr-2">
+                PR #39
+              </span>
+              <h3 class="text-base font-medium text-gray-900">Event Proposal</h3>
+            </div>
+            <div class="flex items-center gap-2">
+              <a href="https://github.com/your-org/eventcatalog/pull/39" target="_blank" rel="noopener noreferrer" class="text-xs text-indigo-600 hover:text-indigo-800">
+                <GitPullRequest className="inline w-4 h-4 mr-1" />
+                View on GitHub
+              </a>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                Medium Priority
+              </span>
+            </div>
+          </div>
+          <div class="p-6">
+            <div class="flex justify-between">
+              <h2 class="text-xl font-semibold text-gray-900 mb-3">UserPreferencesUpdated</h2>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-500">Created by Michael Chen • 5 days ago</span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Ready to Merge
+                </span>
+              </div>
+            </div>
+            
+            <p class="text-gray-600 mb-4">
+              A new event to notify services when a user changes their notification preferences, language, or theme settings.
+              This would allow multiple services to react to user preference changes without direct coupling.
+            </p>
+            
+            <div class="mb-6">
+              <h3 class="text-sm font-medium text-gray-700 mb-2">Proposed Schema:</h3>
+              <div class="bg-gray-50 p-4 rounded-md overflow-x-auto">
+                <pre class="text-xs text-gray-800">
+{`
+{
+  "type": "object",
+  "properties": {
+    "userId": { "type": "string", "format": "uuid" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "preferences": {
+      "type": "object",
+      "properties": {
+        "notifications": {
+          "type": "object",
+          "properties": {
+            "email": { "type": "boolean" },
+            "push": { "type": "boolean" },
+            "sms": { "type": "boolean" }
+          }
+        },
+        "language": { "type": "string" },
+        "theme": { "type": "string", "enum": ["light", "dark", "system"] },
+        "timezone": { "type": "string" }
+      }
+    },
+    "previousValues": {
+      "type": "object"
+    }
+  },
+  "required": ["userId", "timestamp", "preferences"]
+}
+`}
+                </pre>
+              </div>
+            </div>
+            
+            <div class="mb-6">
+              <h3 class="text-sm font-medium text-gray-700 mb-2">Domain & Service:</h3>
+              <div class="flex flex-wrap gap-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                  User Domain
+                </span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800">
+                  User Preference Service
+                </span>
+              </div>
+            </div>
+            
+            <div class="mb-6">
+              <h3 class="text-sm font-medium text-gray-700 mb-2">Consumers:</h3>
+              <div class="flex flex-wrap gap-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                  Notification Service
+                </span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                  UI Service
+                </span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                  Content Service
+                </span>
+              </div>
+            </div>
+            
+            <div class="border-t border-gray-200 pt-4 flex justify-between items-center">
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-1 text-gray-500">
+                  <GitPullRequest className="w-4 h-4" />
+                  <span class="text-sm">6 comments on PR</span>
+                </div>
+                <div class="flex items-center gap-1 text-gray-500">
+                  <CheckCircle className="w-4 h-4" />
+                  <span class="text-sm">3 approvals</span>
+                </div>
+              </div>
+              <div>
+                <a href={buildUrl('/drafts/user-preferences-updated')} class="px-3 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-full hover:bg-indigo-100">
+                  View Details
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Pagination -->
+      <div class="flex items-center justify-between">
+        <div class="flex-1 flex justify-between sm:hidden">
+          <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            Previous
+          </a>
+          <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            Next
+          </a>
+        </div>
+        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm text-gray-700">
+              Showing <span class="font-medium">1</span> to <span class="font-medium">2</span> of <span class="font-medium">12</span> proposals
+            </p>
+          </div>
+          <div>
+            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Previous</span>
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+              </a>
+              <a href="#" aria-current="page" class="z-10 bg-indigo-50 border-indigo-500 text-indigo-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                1
+              </a>
+              <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                2
+              </a>
+              <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 hidden md:inline-flex relative items-center px-4 py-2 border text-sm font-medium">
+                3
+              </a>
+              <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                ...
+              </span>
+              <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                6
+              </a>
+              <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Next</span>
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                </svg>
+              </a>
+            </nav>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Contribution Guide Box -->
+      <div class="mt-12 bg-gray-50 border border-gray-200 rounded-lg p-6">
+        <div class="flex items-start gap-4">
+          <div class="p-3 bg-indigo-100 rounded-full">
+            <GitFork className="w-6 h-6 text-indigo-600" />
+          </div>
+          <div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">How to Contribute Proposals</h3>
+            <p class="text-gray-600 mb-4">
+              EventCatalog uses a GitHub-based workflow for managing architecture proposals. Follow these steps to submit your own:
+            </p>
+            <ol class="list-decimal pl-5 text-gray-600 space-y-2 mb-4">
+              <li>Fork the <a href="https://github.com/your-org/eventcatalog" class="text-indigo-600 hover:text-indigo-800">EventCatalog repository</a></li>
+              <li>Create a new branch for your proposal (e.g., <code class="text-xs bg-gray-200 p-1 rounded">feature/payment-gateway-service</code>)</li>
+              <li>Add your service, event, or domain files following the template structure</li>
+              <li>Submit a pull request with a detailed description of your proposal</li>
+              <li>Respond to feedback and make requested changes</li>
+            </ol>
+            <div class="flex flex-wrap gap-3">
+              <a href="https://github.com/your-org/eventcatalog/blob/main/CONTRIBUTING.md" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                Read contribution guide →
+              </a>
+              <a href="https://github.com/your-org/eventcatalog/blob/main/templates/" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                View templates →
+              </a>
+              <a href="https://github.com/your-org/eventcatalog/pulls" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                See open PRs →
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</VerticalSideBarLayout>
+
+<script>
+  // No dynamic scripts needed since all interactions happen on GitHub
+</script> 

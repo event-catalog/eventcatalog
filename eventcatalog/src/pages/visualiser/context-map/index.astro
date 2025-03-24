@@ -6,8 +6,35 @@ import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 
 <VerticalSideBarLayout title={`Visualiser | Bounded context map`}>
   <div class="bg-gray-100/50 m-4">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-xl font-bold text-gray-800">Bounded Context Map</h1>
+      <div class="flex gap-4">
+        <a 
+          href="/visualiser" 
+          class="px-3 py-1.5 text-sm bg-white hover:bg-gray-50 text-gray-700 rounded-md border border-gray-300 flex items-center gap-1"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+          Back to Visualizer
+        </a>
+        <button
+          id="toggleAnimations"
+          class="px-3 py-1.5 text-sm bg-white hover:bg-gray-50 text-gray-700 rounded-md border border-gray-300"
+        >
+          Toggle Animations
+        </button>
+        <button
+          id="focusInteractions"
+          class="px-3 py-1.5 text-sm bg-white hover:bg-gray-50 text-gray-700 rounded-md border border-gray-300"
+        >
+          Focus Interactions
+        </button>
+      </div>
+    </div>
+    
     <div
-      class="h-[calc(100vh-130px)] w-full relative border border-gray-200"
+      class="h-[calc(100vh-180px)] w-full relative border border-gray-200 rounded-lg shadow-sm bg-white"
       id={`domain-context-map-portal`}
       transition:animate="fade"
     >
@@ -25,6 +52,119 @@ import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
         url: '/',
       }}
     />
+    
+    <div class="mt-4 text-sm text-gray-500">
+      <p class="font-medium mb-1">Visualization Info:</p>
+      <ul class="list-disc pl-5 space-y-1">
+        <li>Domains are represented as boxes containing their services</li>
+        <li><span class="text-orange-500 font-medium">Orange lines</span> represent events flowing between services</li>
+        <li><span class="text-blue-500 font-medium">Blue lines</span> represent commands</li>
+        <li><span class="text-green-500 font-medium">Green lines</span> represent queries</li>
+        <li>Click on services or domain names to focus the visualization</li>
+        <li>Right-click nodes to see additional options</li>
+      </ul>
+    </div>
   </div>
   <ClientRouter />
+  
+  <script>
+    // Client-side JavaScript to control the visualization
+    document.addEventListener('DOMContentLoaded', () => {
+      // Toggle animations button
+      const toggleAnimationsBtn = document.getElementById('toggleAnimations');
+      let animationsEnabled = true;
+      
+      if (toggleAnimationsBtn) {
+        toggleAnimationsBtn.addEventListener('click', () => {
+          animationsEnabled = !animationsEnabled;
+          document.querySelectorAll('.react-flow__edge-path').forEach(edge => {
+            if (animationsEnabled) {
+              edge.classList.add('react-flow__edge-path-animated');
+            } else {
+              edge.classList.remove('react-flow__edge-path-animated');
+            }
+          });
+          toggleAnimationsBtn.innerText = animationsEnabled ? 'Disable Animations' : 'Enable Animations';
+        });
+      }
+      
+      // Focus on interactions button
+      const focusBtn = document.getElementById('focusInteractions');
+      let focusMode = false;
+      
+      if (focusBtn) {
+        focusBtn.addEventListener('click', () => {
+          focusMode = !focusMode;
+          
+          // Toggle visibility of domains with no external connections
+          document.querySelectorAll('.react-flow__node-group').forEach(domain => {
+            const hasConnections = domain.querySelectorAll('.react-flow__edge').length > 0;
+            if (focusMode && !hasConnections) {
+              domain.setAttribute('style', 'opacity: 0.3');
+            } else {
+              domain.setAttribute('style', 'opacity: 1');
+            }
+          });
+          
+          focusBtn.innerText = focusMode ? 'Show All Domains' : 'Focus Interactions';
+        });
+      }
+    });
+  </script>
+  
+  <style is:global>
+    .react-flow__edge-path-animated {
+      stroke-dasharray: 5;
+      animation: flowAnimation 1s linear infinite;
+    }
+    
+    @keyframes flowAnimation {
+      from {
+        stroke-dashoffset: 10;
+      }
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+    
+    /* Enhance domain boxes */
+    .react-flow__node-group {
+      background-color: rgba(248, 250, 252, 0.8);
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease-in-out;
+    }
+    
+    .react-flow__node-group:hover {
+      box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+      border-color: #cbd5e1;
+    }
+    
+    /* Make the handles more visible */
+    .react-flow__handle {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #4f46e5;
+    }
+    
+    /* Zoom controls styling */
+    .react-flow__controls {
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      background-color: white;
+      border-radius: 6px;
+    }
+    
+    .react-flow__controls-button {
+      border: none;
+      background-color: white;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    
+    /* Context menu styling */
+    .radix-context-menu {
+      z-index: 1000;
+    }
+  </style>
 </VerticalSideBarLayout>

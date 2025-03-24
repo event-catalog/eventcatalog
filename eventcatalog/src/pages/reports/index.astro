@@ -1,0 +1,120 @@
+---
+import { buildUrl } from '@utils/url-builder';
+import config from '@config';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { BookOpen, FileText, ChartBar, ClipboardList } from 'lucide-react';
+---
+
+<VerticalSideBarLayout title="Reports | EventCatalog">
+  <div class="min-h-screen bg-gray-50 font-inter">
+    <main class="container px-8 mx-auto py-8 max-w-[80em]">
+      <div class="mb-12">
+        <h1 class="text-4xl font-semibold mb-4 text-gray-900 font-inter">Architecture Reports</h1>
+        <p class="text-base mb-0 text-gray-600 max-w-3xl">
+          Comprehensive reports on the event-driven architecture of {config?.organizationName || 'EventCatalog'}
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Enterprise Report Card -->
+        <a 
+          href={buildUrl('/reports/enterprise')}
+          class="group bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200"
+        >
+          <div class="h-36 bg-gradient-to-br from-blue-50 to-blue-100 border-b border-gray-200 flex items-center justify-center">
+            <div class="p-4 bg-white rounded-full shadow-sm group-hover:scale-105 transition-transform">
+              <ChartBar className="w-8 h-8 text-blue-600" />
+            </div>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600">Enterprise Architecture Report</h3>
+            <p class="text-gray-600 mb-4">
+              Complete overview of domains, services, events, and their relationships for enterprise architecture planning.
+            </p>
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium text-blue-600">View Report</span>
+              <span class="text-xs text-gray-500">Updated daily</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Drafts & Proposals Card -->
+        <a 
+          href={buildUrl('/drafts')}
+          class="group bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200"
+        >
+          <div class="h-36 bg-gradient-to-br from-indigo-50 to-indigo-100 border-b border-gray-200 flex items-center justify-center">
+            <div class="p-4 bg-white rounded-full shadow-sm group-hover:scale-105 transition-transform">
+              <FileText className="w-8 h-8 text-indigo-600" />
+            </div>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-semibold text-gray-900 mb-2 group-hover:text-indigo-600">Drafts & Proposals</h3>
+            <p class="text-gray-600 mb-4">
+              Propose and collaborate on new services, events, and architecture changes before implementation.
+            </p>
+            <div class="flex justify-between items-center">
+              <span class="text-sm font-medium text-indigo-600">View Drafts</span>
+              <span class="text-xs text-gray-500">{new Date().toLocaleDateString()}</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- Architecture Compliance Report Card (placeholder) -->
+        <div 
+          class="group bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden opacity-70"
+        >
+          <div class="h-36 bg-gradient-to-br from-green-50 to-green-100 border-b border-gray-200 flex items-center justify-center">
+            <div class="p-4 bg-white rounded-full shadow-sm">
+              <ClipboardList className="w-8 h-8 text-green-600" />
+            </div>
+          </div>
+          <div class="p-6">
+            <div class="flex items-center gap-2 mb-2">
+              <h3 class="text-xl font-semibold text-gray-900">Architecture Compliance Report</h3>
+              <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">Coming soon</span>
+            </div>
+            <p class="text-gray-600 mb-4">
+              Assessment of compliance with architecture standards and patterns across the organization.
+            </p>
+          </div>
+        </div>
+
+        <!-- API Management Report Card (placeholder) -->
+        <div 
+          class="group bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden opacity-70"
+        >
+          <div class="h-36 bg-gradient-to-br from-purple-50 to-purple-100 border-b border-gray-200 flex items-center justify-center">
+            <div class="p-4 bg-white rounded-full shadow-sm">
+              <FileText className="w-8 h-8 text-purple-600" />
+            </div>
+          </div>
+          <div class="p-6">
+            <div class="flex items-center gap-2 mb-2">
+              <h3 class="text-xl font-semibold text-gray-900">API Management Report</h3>
+              <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">Coming soon</span>
+            </div>
+            <p class="text-gray-600 mb-4">
+              Comprehensive analysis of API usage, versioning, and dependencies across services.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-12 p-6 bg-blue-50 rounded-lg border border-blue-100">
+        <div class="flex items-start gap-4">
+          <div class="p-3 bg-blue-100 rounded-full">
+            <BookOpen className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Custom Reports</h3>
+            <p class="text-gray-600 mb-3">
+              Need a specific report for your organization? Custom reports can be generated based on your specific requirements.
+            </p>
+            <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">Contact for custom reports →</a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</VerticalSideBarLayout> 
