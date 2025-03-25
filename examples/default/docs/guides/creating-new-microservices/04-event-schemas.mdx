@@ -1,6 +1,6 @@
 ---
 title: Event Schema Design
-description: Best practices for designing and managing event schemas in FlowMart's event-driven architecture
+summary: Best practices for designing and managing event schemas in FlowMart's event-driven architecture
 sidebar:
     label: Event Schema Design
     order: 6
@@ -578,7 +578,7 @@ export class ProductEventService {
       data: {
         productId: product.id,
         name: product.name,
-        description: product.description || null,
+        summary: product.description || null,
         sku: product.sku,
         price: {
           amount: product.price,

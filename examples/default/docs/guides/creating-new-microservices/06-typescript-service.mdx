@@ -1,6 +1,6 @@
 ---
 title: New TypeScript service
-description: Guide to implementing microservices using TypeScript at FlowMart
+summary: Guide to implementing microservices using TypeScript at FlowMart
 sidebar:
     label: TypeScript Service
     order: 4
@@ -122,7 +122,7 @@ export class Product {
   constructor(
     public readonly id: string,
     public name: string,
-    public description: string,
+    public summary: string,
     public price: number,
     public category: ProductCategory,
     public sku: string,
@@ -238,7 +238,7 @@ export class MongoDBProductRepository implements ProductRepository {
     try {
       const productDoc = {
         name: product.name,
-        description: product.description,
+        summary: product.description,
         price: product.price,
         category: product.category,
         sku: product.sku,
@@ -267,7 +267,7 @@ export class MongoDBProductRepository implements ProductRepository {
         {
           $set: {
             name: product.name,
-            description: product.description,
+            summary: product.description,
             price: product.price,
             category: product.category,
             sku: product.sku,
@@ -332,7 +332,7 @@ import { Product, ProductCategory } from '../../domain/models/product';
 
 export interface CreateProductRequest {
   name: string;
-  description: string;
+  summary: string;
   price: number;
   category: ProductCategory;
   sku: string;
@@ -773,7 +773,7 @@ describe('ProductService', () => {
     it('should create and return a new product', async () => {
       const productData = {
         name: 'New Product',
-        description: 'New Description',
+        summary: 'New Description',
         price: 19.99,
         category: ProductCategory.CLOTHING,
         sku: 'NEW-123',
