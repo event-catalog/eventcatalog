@@ -324,9 +324,6 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
 
         const navItem = navigationItems.find((navItem) => navItem.id === id);
 
-        console.log('navItem', navItem);
-        console.log('currentPath', currentPath);
-
         if (!navItem.sidebar || !currentPath.includes(navItem.id) || currentPath.includes('/docs/custom')) {
           window.location.href = navItem.href;
           return;
