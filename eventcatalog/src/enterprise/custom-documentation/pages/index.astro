@@ -88,6 +88,7 @@ const badges = doc?.badges || [];
         <div class="border-b border-gray-200 flex justify-between items-start md:pb-6">
           <div>
             <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-black">{doc.title}</h2>
+            <p class="text-lg pt-2 text-gray-500 font-light">{doc.summary}</p>
             {
               badges && (
                 <div class="flex flex-wrap pt-4">
@@ -272,7 +273,6 @@ const badges = doc?.badges || [];
 
       // First try to find headings with IDs
       const headings = prose.querySelectorAll('h1[id], h2[id], h3[id]');
-      console.log('Headings with IDs found:', headings.length);
 
       if (headings.length > 0) {
         headings.forEach((heading) => {
@@ -281,7 +281,6 @@ const badges = doc?.badges || [];
       } else {
         // Fallback: If no headings with IDs found, attach IDs to them
         const allHeadings = prose.querySelectorAll('h1, h2, h3');
-        console.log('Total headings found:', allHeadings.length);
 
         allHeadings.forEach((heading) => {
           // Only add ID if it doesn't exist

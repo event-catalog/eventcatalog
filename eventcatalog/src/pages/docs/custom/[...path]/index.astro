@@ -16,10 +16,6 @@ export const getStaticPaths = (async () => {
     params: { path: doc.id.replace('docs/', '') },
     props: doc,
   }));
-  console.log(
-    'paths',
-    paths.map((path) => path.params.path)
-  );
   return paths;
 }) satisfies GetStaticPaths;
 
