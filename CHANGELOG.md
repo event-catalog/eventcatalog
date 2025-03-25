@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.31.1
+
+### Patch Changes
+
+- 43488cb: fix:(core): fixed issue with missing docs in catalogs
+
 ## 2.31.0
 
 ### Minor Changes
