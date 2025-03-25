@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.31.4
+
+### Patch Changes
+
+- 18b7d57: fix(core): fixed missing types and removed redundant scroll code for doc pages
+
 ## 2.31.3
 
 ### Patch Changes
