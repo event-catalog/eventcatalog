@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.31.0
+
+### Minor Changes
+
+- 145f3ba: feat(core): added custom documentation to eventcatalog
+
 ## 2.30.8
 
 ### Patch Changes
