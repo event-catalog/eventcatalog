@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.31.3
+
+### Patch Changes
+
+- 41798fb: feat(core): added next and previous to custom docs
+
 ## 2.31.2
 
 ### Patch Changes
