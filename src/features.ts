@@ -64,6 +64,8 @@ export const isBackstagePluginEnabled = async (licenseKey?: string) => {
 export const isEventCatalogProEnabled = async (licenseKey?: string) => {
   const LICENSE_KEY = process.env.EVENTCATALOG_PRO_LICENSE_KEY || null;
 
+  console.log('LICENSE_KEY', LICENSE_KEY);
+
   if (!LICENSE_KEY) {
     return false;
   }

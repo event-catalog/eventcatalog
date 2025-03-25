@@ -52,8 +52,7 @@ const catalogHasDefaultLandingPageForDocs = await hasLandingPageForDocs();
 
 const getDefaultUrl = (route: string, defaultValue: string) => {
   if (route === 'docs/custom') {
-    const firstDoc = customDocs[0];
-    return buildUrl(`/${route}/${firstDoc.id.replace('docs', '')}`);
+    return customDocs.length > 0 ? buildUrl(`/${route}/${customDocs[0].id.replace('docs', '')}`) : buildUrl(defaultValue);
   }
 
   const collections = [
@@ -63,7 +62,6 @@ const getDefaultUrl = (route: string, defaultValue: string) => {
     { data: commands, key: 'commands' },
     { data: queries, key: 'queries' },
     { data: flows, key: 'flows' },
-    { data: customDocs, key: 'customDocs' },
   ];
 
   for (const { data, key } of collections) {
@@ -326,7 +324,10 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
 
         const navItem = navigationItems.find((navItem) => navItem.id === id);
 
-        if (!navItem.sidebar || !currentPath.includes(navItem.id)) {
+        console.log('navItem', navItem);
+        console.log('currentPath', currentPath);
+
+        if (!navItem.sidebar || !currentPath.includes(navItem.id) || currentPath.includes('/docs/custom')) {
           window.location.href = navItem.href;
           return;
         }
