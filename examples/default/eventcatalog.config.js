@@ -7,6 +7,7 @@ export default {
   homepageLink: 'https://eventcatalog.dev',
   editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
   port: 3000,
+  outDir: 'dist',
   logo: {
     alt: 'FlowMart',
     src: '/logo.svg',
