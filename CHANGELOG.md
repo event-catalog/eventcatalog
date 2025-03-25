@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.31.2
+
+### Patch Changes
+
+- 8de6538: fix(core): custom-docs now show summaries
+
 ## 2.31.1
 
 ### Patch Changes
