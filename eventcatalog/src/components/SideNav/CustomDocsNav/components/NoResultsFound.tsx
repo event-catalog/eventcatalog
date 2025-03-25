@@ -18,4 +18,4 @@ const NoResultsFound: React.FC<NoResultsFoundProps> = ({ searchTerm }) => (
   </div>
 );
 
-export default React.memo(NoResultsFound); 
+export default React.memo(NoResultsFound);

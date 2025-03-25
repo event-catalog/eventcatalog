@@ -24,7 +24,6 @@ const pages = defineCollection({
     .optional(),
 });
 
-
 const pointer = z.object({
   id: z.string(),
   version: z.string().optional().default('latest'),
@@ -269,7 +268,7 @@ const customPages = defineCollection({
     pattern: ['docs/*.(md|mdx)', 'docs/**/*.@(md|mdx)'],
     base: projectDirBase,
   }),
-  schema: customPagesSchema
+  schema: customPagesSchema,
 });
 
 const domains = defineCollection({

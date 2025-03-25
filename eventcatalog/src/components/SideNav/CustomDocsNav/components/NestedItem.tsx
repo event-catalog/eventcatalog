@@ -12,21 +12,21 @@ interface NestedItemProps {
 }
 
 const NestedItem: React.FC<NestedItemProps> = ({
-  item, 
-  currentPath, 
-  parentId, 
-  itemIndex, 
-  collapsedGroups, 
-  toggleGroupCollapse
+  item,
+  currentPath,
+  parentId,
+  itemIndex,
+  collapsedGroups,
+  toggleGroupCollapse,
 }) => {
   const hasNestedItems = item.items && item.items.length > 0;
   const itemId = `${parentId}-${itemIndex}`;
-  
+
   if (hasNestedItems && item.items) {
     return (
       <div className="py-1">
         <div className="flex items-center">
-          <button 
+          <button
             className="p-1 hover:bg-gray-100 rounded-md"
             onClick={(e) => {
               e.stopPropagation();
@@ -61,7 +61,7 @@ const NestedItem: React.FC<NestedItemProps> = ({
           </button>
         </div>
 
-        <div 
+        <div
           className={`overflow-hidden transition-[height] duration-150 ease-out ${
             collapsedGroups[`nested-${itemId}`] ? 'h-0' : 'h-auto'
           }`}
@@ -74,14 +74,16 @@ const NestedItem: React.FC<NestedItemProps> = ({
                 return (
                   <div className="py-1" key={`nested-${nestedItemId}`}>
                     <div className="flex items-center">
-                      <button 
+                      <button
                         className="p-1 hover:bg-gray-100 rounded-md"
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleGroupCollapse(`nested-${nestedItemId}`);
                         }}
                       >
-                        <div className={`transition-transform duration-150 ${collapsedGroups[`nested-${nestedItemId}`] ? '' : 'rotate-180'}`}>
+                        <div
+                          className={`transition-transform duration-150 ${collapsedGroups[`nested-${nestedItemId}`] ? '' : 'rotate-180'}`}
+                        >
                           <svg
                             className="h-3 w-3 text-gray-500"
                             xmlns="http://www.w3.org/2000/svg"
@@ -116,12 +118,9 @@ const NestedItem: React.FC<NestedItemProps> = ({
                     >
                       <div className="space-y-0.5 border-gray-200/80 border-l pl-4 ml-[9px] mt-1">
                         {nestedItem.items.map((deepNestedItem: SidebarItem, deepIndex: number) => {
-                          const deepNestedItemPath = deepNestedItem.slug
-                            ? buildUrl(`/docs/custom/${deepNestedItem.slug}`)
-                            : '#';
+                          const deepNestedItemPath = deepNestedItem.slug ? buildUrl(`/docs/custom/${deepNestedItem.slug}`) : '#';
                           const isDeepActive =
-                            currentPath === deepNestedItemPath ||
-                            currentPath.endsWith(`/${deepNestedItem.slug}`);
+                            currentPath === deepNestedItemPath || currentPath.endsWith(`/${deepNestedItem.slug}`);
 
                           return (
                             <a
@@ -140,12 +139,8 @@ const NestedItem: React.FC<NestedItemProps> = ({
                 );
               }
 
-              const nestedItemPath = nestedItem.slug
-                ? buildUrl(`/docs/custom/${nestedItem.slug}`)
-                : '#';
-              const isActive =
-                currentPath === nestedItemPath ||
-                currentPath.endsWith(`/${nestedItem.slug}`);
+              const nestedItemPath = nestedItem.slug ? buildUrl(`/docs/custom/${nestedItem.slug}`) : '#';
+              const isActive = currentPath === nestedItemPath || currentPath.endsWith(`/${nestedItem.slug}`);
 
               return (
                 <a
@@ -164,12 +159,8 @@ const NestedItem: React.FC<NestedItemProps> = ({
     );
   }
 
-  const itemPath = item.slug
-    ? buildUrl(`/docs/custom/${item.slug}`)
-    : '#';
-  const isActive =
-    currentPath === itemPath ||
-    currentPath.endsWith(`/${item.slug}`);
+  const itemPath = item.slug ? buildUrl(`/docs/custom/${item.slug}`) : '#';
+  const isActive = currentPath === itemPath || currentPath.endsWith(`/${item.slug}`);
 
   return (
     <a
@@ -179,7 +170,9 @@ const NestedItem: React.FC<NestedItemProps> = ({
     >
       <span className="truncate">{item.label}</span>
       {item.badge && item?.badge?.text && (
-        <span className={`text-${item.badge.color || 'purple'}-600 ml-2 text-[10px] font-medium bg-${item.badge.color || 'purple'}-50 px-2 py-0.5 rounded uppercase`}>
+        <span
+          className={`text-${item.badge.color || 'purple'}-600 ml-2 text-[10px] font-medium bg-${item.badge.color || 'purple'}-50 px-2 py-0.5 rounded uppercase`}
+        >
           {item.badge.text}
         </span>
       )}
@@ -187,4 +180,4 @@ const NestedItem: React.FC<NestedItemProps> = ({
   );
 };
 
-export default React.memo(NestedItem); 
+export default React.memo(NestedItem);

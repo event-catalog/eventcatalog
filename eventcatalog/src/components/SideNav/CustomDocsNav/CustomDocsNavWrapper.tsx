@@ -8,4 +8,4 @@ interface CustomDocsNavWrapperProps {
 
 export default function CustomDocsNavWrapper(props: CustomDocsNavWrapperProps) {
   return <CustomDocsNav {...props} />;
-} 
+}

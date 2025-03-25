@@ -26,4 +26,4 @@ export interface SidebarSection {
 export interface CustomDocsNavProps {
   sidebarItems: SidebarSection[];
   currentPath: string;
-} 
+}

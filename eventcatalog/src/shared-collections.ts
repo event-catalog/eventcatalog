@@ -1,4 +1,4 @@
-import { z } from "astro:content";
+import { z } from 'astro:content';
 
 // Shared schemas used across multiple files
 export const badge = z.object({
@@ -22,4 +22,4 @@ export const ownerReference = z
     // This transformation is needed to keep compatibility with `reference`.
     // The utilities `getTeams` and `getUsers` rely on this transformation.
     (lookup) => ({ id: typeof lookup === 'string' ? lookup : lookup.id })
-  ); 
+  );

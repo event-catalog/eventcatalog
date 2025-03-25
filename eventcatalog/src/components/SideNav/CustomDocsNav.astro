@@ -6,4 +6,5 @@ const currentPath = Astro.url.pathname;
 const sidebarItems = await getNavigationItems();
 ---
 
-<CustomDocsNavWrapper client:load sidebarItems={sidebarItems} currentPath={currentPath} /> 
+<CustomDocsNavWrapper client:load sidebarItems={sidebarItems} currentPath={currentPath} />
+

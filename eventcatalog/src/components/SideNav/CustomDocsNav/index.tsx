@@ -39,29 +39,29 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems, currentPath
     // Helper function to check if an item or any of its nested items match the search term
     const itemContainsSearchTerm = (item: SidebarItem): boolean => {
       if (matchesSearchTerm(item.label)) return true;
-      
+
       if (item.items && item.items.length > 0) {
         return item.items.some(itemContainsSearchTerm);
       }
-      
+
       return false;
     };
 
     return sidebarItems
-      .map(section => {
+      .map((section) => {
         if (!section.items) {
           return matchesSearchTerm(section.label) ? section : null;
         }
 
         const filteredItems = section.items.filter(itemContainsSearchTerm);
-        
+
         if (filteredItems.length > 0 || matchesSearchTerm(section.label)) {
           return {
             ...section,
-            items: filteredItems
+            items: filteredItems,
           };
         }
-        
+
         return null;
       })
       .filter(Boolean) as SidebarSection[];
@@ -90,14 +90,14 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems, currentPath
   useEffect(() => {
     if (isInitialized && sidebarItems && sidebarItems.length > 0) {
       const initialState = { ...collapsedGroups };
-      
+
       sidebarItems.forEach((section, index) => {
         const sectionKey = `section-${index}`;
         if (section.collapsed !== undefined && initialState[sectionKey] === undefined) {
           initialState[sectionKey] = section.collapsed;
         }
       });
-      
+
       setCollapsedGroups(initialState);
     }
   }, [sidebarItems, isInitialized]);
@@ -131,12 +131,12 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems, currentPath
   return (
     <nav ref={navRef} className="h-full text-gray-800 pt-2">
       <div className="mb-2 px-4">
-        <input 
-          type="text" 
+        <input
+          type="text"
           value={searchTerm}
           onChange={handleSearchChange}
-          placeholder="Quick search..." 
-          className="w-full p-2 text-sm rounded-md border border-gray-200 h-[30px]" 
+          placeholder="Quick search..."
+          className="w-full p-2 text-sm rounded-md border border-gray-200 h-[30px]"
         />
       </div>
 
@@ -149,14 +149,16 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems, currentPath
               <div className="space-y-0" data-section={`section-${index}`}>
                 {section.items ? (
                   <div className="flex items-center">
-                    <button 
+                    <button
                       className="p-1 hover:bg-gray-100 rounded-md"
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleGroupCollapse(`section-${index}`);
                       }}
                     >
-                      <div className={`transition-transform duration-150 ${collapsedGroups[`section-${index}`] ? '' : 'rotate-180'}`}>
+                      <div
+                        className={`transition-transform duration-150 ${collapsedGroups[`section-${index}`] ? '' : 'rotate-180'}`}
+                      >
                         <svg
                           className="h-3 w-3 text-gray-500"
                           xmlns="http://www.w3.org/2000/svg"
@@ -182,7 +184,9 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems, currentPath
                     >
                       <span className="truncate">{section.label}</span>
                       {section.badge && section?.badge?.text && (
-                        <span className={`text-${section.badge.color || 'purple'}-600 ml-2 text-[10px] font-medium bg-${section.badge.color || 'purple'}-50 px-2 py-0.5 rounded uppercase`}>
+                        <span
+                          className={`text-${section.badge.color || 'purple'}-600 ml-2 text-[10px] font-medium bg-${section.badge.color || 'purple'}-50 px-2 py-0.5 rounded uppercase`}
+                        >
                           {section.badge.text}
                         </span>
                       )}
@@ -200,7 +204,7 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems, currentPath
                 )}
 
                 {section.items && (
-                  <div 
+                  <div
                     className={`overflow-hidden transition-[height] duration-150 ease-out ${
                       collapsedGroups[`section-${index}`] ? 'h-0' : 'h-auto'
                     }`}
@@ -225,8 +229,8 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems, currentPath
                   <a
                     href={buildUrl(`/docs/custom/${section.slug}`)}
                     className={`flex items-center px-2 py-1.5 text-xs ${
-                      currentPath.endsWith(`/${section.slug}`) 
-                        ? 'bg-purple-100 text-purple-900 font-medium' 
+                      currentPath.endsWith(`/${section.slug}`)
+                        ? 'bg-purple-100 text-purple-900 font-medium'
                         : 'text-gray-600 hover:bg-purple-100'
                     } rounded-md ml-6`}
                     data-active={currentPath.endsWith(`/${section.slug}`)}
@@ -243,4 +247,4 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems, currentPath
   );
 };
 
-export default React.memo(CustomDocsNav); 
+export default React.memo(CustomDocsNav);

@@ -5,13 +5,23 @@ import { raiseEvent } from './analytics.js';
  *
  * @param {string} projectDir
  */
-const main = async (projectDir) => {
+const main = async (projectDir, { isEventCatalogProEnabled, isBackstagePluginEnabled }) => {
   if (process.env.NODE_ENV === 'CI') return;
   try {
     await verifyRequiredFieldsAreInCatalogConfigFile(projectDir);
     const configFile = await getEventCatalogConfigFile(projectDir);
     const { cId, organizationName, generators = [] } = configFile;
-    const generatorNames = generators.length > 0 ? generators.map((generator) => generator[0]) : ['none'];
+    let generatorNames = generators.length > 0 ? generators.map((generator) => generator[0]) : ['none'];
+
+    // Check if EventCatalog Pro is enabled
+    if (isEventCatalogProEnabled) {
+      generatorNames.push('@eventcatalog/eventcatalog-pro');
+    }
+
+    if (isBackstagePluginEnabled) {
+      generatorNames.push('@eventcatalog/backstage-plugin-eventcatalog');
+    }
+
     await raiseEvent({
       command: 'build',
       org: organizationName,
