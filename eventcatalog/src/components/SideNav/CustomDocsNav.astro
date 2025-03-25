@@ -1,0 +1,9 @@
+---
+import { getNavigationItems } from '@enterprise/custom-documentation/utils/custom-docs';
+import CustomDocsNavWrapper from '@enterprise/custom-documentation/components/CustomDocsNav/CustomDocsNavWrapper';
+
+const currentPath = Astro.url.pathname;
+const sidebarItems = await getNavigationItems();
+---
+
+<CustomDocsNavWrapper client:load sidebarItems={sidebarItems} currentPath={currentPath} />

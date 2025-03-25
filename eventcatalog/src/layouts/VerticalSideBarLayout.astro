@@ -5,12 +5,25 @@ interface Props {
   description?: string;
 }
 
-import { BookOpenText, Workflow, TableProperties, House, BookUser, MessageSquare, BotMessageSquare, Users } from 'lucide-react';
+import {
+  BookOpenText,
+  BookText,
+  Workflow,
+  TableProperties,
+  House,
+  BookUser,
+  MessageSquare,
+  BotMessageSquare,
+  Users,
+  Star,
+  BadgeCheck,
+  Sparkles,
+} from 'lucide-react';
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
 import config from '@config';
-
+import { getCollection } from 'astro:content';
 import '@fontsource/inter';
 import '@fontsource/inter/400.css'; // Specify weight
 import '@fontsource/inter/700.css'; // Specify weight
@@ -24,19 +37,25 @@ import { isCollectionVisibleInCatalog } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/queries';
 import { hasLandingPageForDocs } from '@utils/pages';
-
+import { isEventCatalogProEnabled } from '@utils/feature';
 const events = await getEvents({ getAllVersions: false });
 const commands = await getCommands({ getAllVersions: false });
 const queries = await getQueries({ getAllVersions: false });
 const services = await getServices({ getAllVersions: false });
 const domains = await getDomains({ getAllVersions: false });
 const flows = await getFlows({ getAllVersions: false });
+const customDocs = await getCollection('customPages');
 
 const currentPath = Astro.url.pathname;
 
 const catalogHasDefaultLandingPageForDocs = await hasLandingPageForDocs();
 
 const getDefaultUrl = (route: string, defaultValue: string) => {
+  if (route === 'docs/custom') {
+    const firstDoc = customDocs[0];
+    return buildUrl(`/${route}/${firstDoc.id.replace('docs', '')}`);
+  }
+
   const collections = [
     { data: domains, key: 'domains' },
     { data: services, key: 'services' },
@@ -44,6 +63,7 @@ const getDefaultUrl = (route: string, defaultValue: string) => {
     { data: commands, key: 'commands' },
     { data: queries, key: 'queries' },
     { data: flows, key: 'flows' },
+    { data: customDocs, key: 'customDocs' },
   ];
 
   for (const { data, key } of collections) {
@@ -68,11 +88,21 @@ const navigationItems = [
   },
   {
     id: '/docs',
-    label: 'Documentation',
+    label: 'Architecture Documentation',
     icon: BookOpenText,
     href: catalogHasDefaultLandingPageForDocs ? buildUrl('/docs') : getDefaultUrl('docs', '/docs'),
-    current: currentPath.includes('/docs') || currentPath.includes('/architecture/docs/'),
+    current:
+      (currentPath.includes('/docs') && !currentPath.includes('/docs/custom')) || currentPath.includes('/architecture/docs/'),
     sidebar: true,
+  },
+  {
+    id: '/docs/custom',
+    label: 'Documentation',
+    icon: BookText,
+    href: getDefaultUrl('docs/custom', '/docs/custom'),
+    current: currentPath.includes('/docs/custom'),
+    sidebar: false,
+    hidden: !isEventCatalogProEnabled(),
   },
   {
     id: '/visualiser',
@@ -131,7 +161,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
 <html lang="en">
   <head>
     <SEO title={`EventCatalog | ${title}`} description={description} ogTitle={title} />
-    <style>
+    <style is:global>
       .sidebar-transition {
         transition-property: width, transform;
         transition-duration: 300ms;
@@ -154,7 +184,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
         <div
           class="fixed flex flex-col items-center w-16 h-screen py-4 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 z-20 shadow-md justify-between"
         >
-          <nav class="flex flex-col h-[84vh] justify-between">
+          <nav class="flex flex-col h-[calc(100vh-70px)] justify-between">
             <div class="flex flex-col items-center flex-1 space-y-8">
               {
                 navigationItems
@@ -178,6 +208,25 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
                   })
               }
             </div>
+
+            {/* Pro link at the bottom */}
+            <div class="mb-4">
+              <a
+                id="/pro"
+                data-role="nav-item"
+                href={buildUrl('/pro')}
+                class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${currentPath.includes('/pro') ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700' : 'bg-gradient-to-r from-purple-100 to-indigo-100 hover:from-purple-500 hover:to-purple-700 hover:text-white text-purple-700'}`}
+              >
+                <div class="has-tooltip">
+                  <span
+                    class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10"
+                  >
+                    EventCatalog Pro
+                  </span>
+                  <Sparkles className="h-6 w-6" />
+                </div>
+              </a>
+            </div>
           </nav>
         </div>
 
@@ -193,7 +242,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
         <slot />
       </main>
 
-      <!-- Creae a overlay that tells people to purchase backstage plugin if they want to embed the page -->
+      <!-- Create a overlay that tells people to purchase backstage plugin if they want to embed the page -->
       <div class="absolute inset-0 bg-black items-center justify-center z-50 hidden" id="embed-overlay">
         <div class="text-white text-center space-y-4">
           <div>
@@ -259,7 +308,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
     const currentPath = window.location.href;
 
     // Hide the sidebar if the current navigation item is not a sidebar item
-    if (!currentNavigationItem.sidebar) {
+    if (!currentNavigationItem?.sidebar) {
       sidebar.style.display = 'none';
       content.style.width = '100%';
       content.classList.add('ml-16');

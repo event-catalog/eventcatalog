@@ -1,0 +1,959 @@
+---
+title: New TypeScript service
+description: Guide to implementing microservices using TypeScript at FlowMart
+sidebar:
+    label: TypeScript Service
+    order: 4
+---
+
+This guide details the recommended patterns, practices, and tools for implementing TypeScript-based microservices at FlowMart.
+
+
+## Why TypeScript?
+
+At FlowMart, we recommend TypeScript for new microservices because it offers:
+
+- **Type Safety**: Catch errors during development instead of at runtime
+- **Better IDE Support**: Enhanced auto-completion, navigation, and refactoring
+- **Self-Documenting Code**: Types serve as documentation for your codebase
+- **Enterprise-Ready**: Better maintainability for large codebases and teams
+- **Ecosystem Compatibility**: Full access to the Node.js ecosystem
+
+## Prerequisites
+
+Before you begin:
+
+- Install Node.js (v18 or later)
+- Familiarize yourself with [our Node.js service guide](/docs/guides/creating-new-microservices/node-service)
+- Have basic TypeScript knowledge
+
+## Scaffolding a TypeScript Service
+
+Use our service generator to create a TypeScript service:
+
+```bash
+# Install the FlowMart service generator
+npm install -g @flowmart/service-generator
+
+# Create a new TypeScript service
+flowmart-create-service my-service --type typescript
+```
+
+## TypeScript Project Structure
+
+The generated service follows our standard TypeScript structure:
+
+```
+my-service/
+├── src/
+│   ├── api/                 # API definition and controllers
+│   ├── config/              # Configuration management
+│   ├── domain/              # Domain models and business logic
+│   │   ├── models/          # Domain entities and value objects
+│   │   └── services/        # Domain services
+│   ├── events/              # Event producers and consumers
+│   ├── infrastructure/      # External dependencies and adapters
+│   ├── repositories/        # Data access layer
+│   ├── types/               # TypeScript type definitions
+│   ├── utils/               # Utility functions
+│   └── app.ts               # Application entry point
+├── test/
+│   ├── unit/                # Unit tests
+│   ├── integration/         # Integration tests
+│   └── contract/            # Contract tests
+├── terraform/               # Infrastructure as code
+├── .github/                 # GitHub Actions workflows
+├── Dockerfile               # Container definition
+├── docker-compose.yml       # Local development setup
+├── tsconfig.json            # TypeScript configuration
+├── package.json             # Dependencies and scripts
+└── README.md                # Service documentation
+```
+
+## TypeScript Configuration
+
+Our template includes a pre-configured `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2020"],
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "declaration": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test"]
+}
+```
+
+## Domain Modeling with TypeScript
+
+TypeScript enables us to model our domain with strong types:
+
+### Example Domain Model
+
+```typescript
+// src/domain/models/product.ts
+export enum ProductCategory {
+  ELECTRONICS = 'electronics',
+  CLOTHING = 'clothing',
+  GROCERY = 'grocery',
+  HOME = 'home',
+  BEAUTY = 'beauty'
+}
+
+export interface ProductAttributes {
+  [key: string]: string | number | boolean;
+}
+
+export class Product {
+  constructor(
+    public readonly id: string,
+    public name: string,
+    public description: string,
+    public price: number,
+    public category: ProductCategory,
+    public sku: string,
+    public inventoryCount: number,
+    public attributes: ProductAttributes = {},
+    public isActive: boolean = true,
+    public createdAt: Date = new Date(),
+    public updatedAt: Date = new Date()
+  ) {}
+
+  updateInventory(count: number): void {
+    if (count < 0) {
+      throw new Error('Inventory count cannot be negative');
+    }
+    this.inventoryCount = count;
+    this.updatedAt = new Date();
+  }
+
+  updatePrice(price: number): void {
+    if (price < 0) {
+      throw new Error('Price cannot be negative');
+    }
+    this.price = price;
+    this.updatedAt = new Date();
+  }
+
+  deactivate(): void {
+    this.isActive = false;
+    this.updatedAt = new Date();
+  }
+
+  activate(): void {
+    this.isActive = true;
+    this.updatedAt = new Date();
+  }
+
+  isInStock(): boolean {
+    return this.inventoryCount > 0;
+  }
+}
+```
+
+## Repository Pattern with TypeScript
+
+Use interfaces to define repositories:
+
+```typescript
+// src/repositories/product-repository.ts
+import { Product } from '../domain/models/product';
+
+export interface ProductRepository {
+  findById(id: string): Promise<Product | null>;
+  findAll(limit?: number, offset?: number): Promise<Product[]>;
+  findByCategory(category: string, limit?: number, offset?: number): Promise<Product[]>;
+  save(product: Product): Promise<Product>;
+  update(product: Product): Promise<Product>;
+  delete(id: string): Promise<boolean>;
+}
+
+// src/repositories/mongodb-product-repository.ts
+import { Collection, MongoClient, ObjectId } from 'mongodb';
+import { Product, ProductCategory } from '../domain/models/product';
+import { ProductRepository } from './product-repository';
+import { logger } from '../infrastructure/observability';
+
+export class MongoDBProductRepository implements ProductRepository {
+  private collection: Collection;
+
+  constructor(client: MongoClient) {
+    this.collection = client.db('ecommerce').collection('products');
+  }
+
+  async findById(id: string): Promise<Product | null> {
+    try {
+      const result = await this.collection.findOne({ _id: new ObjectId(id) });
+      if (!result) return null;
+      return this.mapToProduct(result);
+    } catch (error) {
+      logger.error('Error finding product by id', { error, id });
+      throw error;
+    }
+  }
+
+  async findAll(limit = 100, offset = 0): Promise<Product[]> {
+    try {
+      const results = await this.collection
+        .find({})
+        .skip(offset)
+        .limit(limit)
+        .toArray();
+      return results.map(this.mapToProduct);
+    } catch (error) {
+      logger.error('Error finding all products', { error });
+      throw error;
+    }
+  }
+
+  async findByCategory(category: string, limit = 100, offset = 0): Promise<Product[]> {
+    try {
+      const results = await this.collection
+        .find({ category })
+        .skip(offset)
+        .limit(limit)
+        .toArray();
+      return results.map(this.mapToProduct);
+    } catch (error) {
+      logger.error('Error finding products by category', { error, category });
+      throw error;
+    }
+  }
+
+  async save(product: Product): Promise<Product> {
+    try {
+      const productDoc = {
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        category: product.category,
+        sku: product.sku,
+        inventoryCount: product.inventoryCount,
+        attributes: product.attributes,
+        isActive: product.isActive,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt
+      };
+      
+      const result = await this.collection.insertOne(productDoc);
+      return {
+        ...product,
+        id: result.insertedId.toString()
+      };
+    } catch (error) {
+      logger.error('Error saving product', { error, product });
+      throw error;
+    }
+  }
+
+  async update(product: Product): Promise<Product> {
+    try {
+      const result = await this.collection.updateOne(
+        { _id: new ObjectId(product.id) },
+        {
+          $set: {
+            name: product.name,
+            description: product.description,
+            price: product.price,
+            category: product.category,
+            sku: product.sku,
+            inventoryCount: product.inventoryCount,
+            attributes: product.attributes,
+            isActive: product.isActive,
+            updatedAt: product.updatedAt
+          }
+        }
+      );
+      
+      if (result.matchedCount === 0) {
+        throw new Error(`Product with id ${product.id} not found`);
+      }
+      
+      return product;
+    } catch (error) {
+      logger.error('Error updating product', { error, productId: product.id });
+      throw error;
+    }
+  }
+
+  async delete(id: string): Promise<boolean> {
+    try {
+      const result = await this.collection.deleteOne({ _id: new ObjectId(id) });
+      return result.deletedCount === 1;
+    } catch (error) {
+      logger.error('Error deleting product', { error, id });
+      throw error;
+    }
+  }
+
+  private mapToProduct(doc: any): Product {
+    return new Product(
+      doc._id.toString(),
+      doc.name,
+      doc.description,
+      doc.price,
+      doc.category as ProductCategory,
+      doc.sku,
+      doc.inventoryCount,
+      doc.attributes,
+      doc.isActive,
+      new Date(doc.createdAt),
+      new Date(doc.updatedAt)
+    );
+  }
+}
+```
+
+## Type-safe API Controllers
+
+TypeScript enables type-safe API controllers with Express:
+
+```typescript
+// src/api/controllers/product-controller.ts
+import { Router, Request, Response, NextFunction } from 'express';
+import { ProductService } from '../../domain/services/product-service';
+import { validateProduct } from '../middleware/product-validator';
+import { tracing } from '../../infrastructure/observability';
+import { Product, ProductCategory } from '../../domain/models/product';
+
+export interface CreateProductRequest {
+  name: string;
+  description: string;
+  price: number;
+  category: ProductCategory;
+  sku: string;
+  inventoryCount: number;
+  attributes?: { [key: string]: string | number | boolean };
+}
+
+export interface UpdateProductRequest {
+  name?: string;
+  description?: string;
+  price?: number;
+  category?: ProductCategory;
+  sku?: string;
+  inventoryCount?: number;
+  attributes?: { [key: string]: string | number | boolean };
+  isActive?: boolean;
+}
+
+export class ProductController {
+  private router: Router;
+  
+  constructor(private productService: ProductService) {
+    this.router = Router();
+    this.setupRoutes();
+  }
+  
+  private setupRoutes(): void {
+    this.router.get('/', tracing.middleware('get-all-products'), this.getAllProducts.bind(this));
+    this.router.get('/:id', tracing.middleware('get-product'), this.getProductById.bind(this));
+    this.router.post('/', tracing.middleware('create-product'), validateProduct, this.createProduct.bind(this));
+    this.router.put('/:id', tracing.middleware('update-product'), this.updateProduct.bind(this));
+    this.router.delete('/:id', tracing.middleware('delete-product'), this.deleteProduct.bind(this));
+  }
+  
+  getRouter(): Router {
+    return this.router;
+  }
+  
+  private async getAllProducts(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 100;
+      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+      const products = await this.productService.getAllProducts(limit, offset);
+      res.json(products);
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  private async getProductById(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const product = await this.productService.getProductById(req.params.id);
+      if (!product) {
+        res.status(404).json({ error: 'Product not found' });
+        return;
+      }
+      res.json(product);
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  private async createProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const productData = req.body as CreateProductRequest;
+      const product = await this.productService.createProduct(productData);
+      res.status(201).json(product);
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  private async updateProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const productData = req.body as UpdateProductRequest;
+      const product = await this.productService.updateProduct(req.params.id, productData);
+      if (!product) {
+        res.status(404).json({ error: 'Product not found' });
+        return;
+      }
+      res.json(product);
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  private async deleteProduct(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const success = await this.productService.deleteProduct(req.params.id);
+      if (!success) {
+        res.status(404).json({ error: 'Product not found' });
+        return;
+      }
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+```
+
+## Strongly Typed Event Handling
+
+Create strongly typed event producers and consumers:
+
+```typescript
+// src/events/types/event-types.ts
+export interface EventMetadata {
+  eventId: string;
+  timestamp: string;
+  service: string;
+  correlationId?: string;
+  causationId?: string;
+}
+
+export interface Event<T> {
+  type: string;
+  data: T;
+  metadata: EventMetadata;
+}
+
+export interface ProductCreatedEvent extends Event<{
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+  sku: string;
+  inventoryCount: number;
+}> {
+  type: 'PRODUCT_CREATED';
+}
+
+export interface ProductUpdatedEvent extends Event<{
+  id: string;
+  changes: {
+    name?: string;
+    price?: number;
+    category?: string;
+    inventoryCount?: number;
+  };
+}> {
+  type: 'PRODUCT_UPDATED';
+}
+
+export interface InventoryUpdatedEvent extends Event<{
+  productId: string;
+  quantity: number;
+  warehouseId: string;
+}> {
+  type: 'INVENTORY_UPDATED';
+}
+
+// src/events/producers/product-event-producer.ts
+import { v4 as uuidv4 } from 'uuid';
+import { KafkaClient } from '../../infrastructure/kafka';
+import { Product } from '../../domain/models/product';
+import { ProductCreatedEvent, ProductUpdatedEvent } from '../types/event-types';
+
+export class ProductEventProducer {
+  private readonly topic = 'product-events';
+  
+  constructor(private kafkaClient: KafkaClient) {}
+
+  async productCreated(product: Product): Promise<void> {
+    const event: ProductCreatedEvent = {
+      type: 'PRODUCT_CREATED',
+      data: {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        category: product.category,
+        sku: product.sku,
+        inventoryCount: product.inventoryCount
+      },
+      metadata: {
+        eventId: uuidv4(),
+        timestamp: new Date().toISOString(),
+        service: 'product-service'
+      }
+    };
+
+    await this.kafkaClient.produce({
+      topic: this.topic,
+      key: product.id,
+      value: JSON.stringify(event)
+    });
+  }
+
+  async productUpdated(product: Product, changes: Partial<Product>): Promise<void> {
+    const event: ProductUpdatedEvent = {
+      type: 'PRODUCT_UPDATED',
+      data: {
+        id: product.id,
+        changes: {
+          name: changes.name,
+          price: changes.price,
+          category: changes.category,
+          inventoryCount: changes.inventoryCount
+        }
+      },
+      metadata: {
+        eventId: uuidv4(),
+        timestamp: new Date().toISOString(),
+        service: 'product-service'
+      }
+    };
+
+    await this.kafkaClient.produce({
+      topic: this.topic,
+      key: product.id,
+      value: JSON.stringify(event)
+    });
+  }
+}
+```
+
+## Dependency Injection with TypeScript
+
+We use the `inversify` library for dependency injection:
+
+```typescript
+// src/infrastructure/ioc/container.ts
+import { Container } from 'inversify';
+import { MongoClient } from 'mongodb';
+import { KafkaClient } from '../kafka';
+import { ProductRepository } from '../../repositories/product-repository';
+import { MongoDBProductRepository } from '../../repositories/mongodb-product-repository';
+import { ProductService } from '../../domain/services/product-service';
+import { ProductEventProducer } from '../../events/producers/product-event-producer';
+import { ProductController } from '../../api/controllers/product-controller';
+import { AppConfig } from '../../config/app-config';
+import TYPES from './types';
+
+const container = new Container();
+
+// Config
+container.bind<AppConfig>(TYPES.AppConfig).to(AppConfig).inSingletonScope();
+
+// Infrastructure
+container.bind<MongoClient>(TYPES.MongoClient).toDynamicValue((context) => {
+  const config = context.container.get<AppConfig>(TYPES.AppConfig);
+  return new MongoClient(config.mongoDbUri);
+}).inSingletonScope();
+
+container.bind<KafkaClient>(TYPES.KafkaClient).toDynamicValue((context) => {
+  const config = context.container.get<AppConfig>(TYPES.AppConfig);
+  return new KafkaClient(config.kafkaBrokers);
+}).inSingletonScope();
+
+// Repositories
+container.bind<ProductRepository>(TYPES.ProductRepository).toDynamicValue((context) => {
+  const mongoClient = context.container.get<MongoClient>(TYPES.MongoClient);
+  return new MongoDBProductRepository(mongoClient);
+}).inSingletonScope();
+
+// Event Producers
+container.bind<ProductEventProducer>(TYPES.ProductEventProducer).toDynamicValue((context) => {
+  const kafkaClient = context.container.get<KafkaClient>(TYPES.KafkaClient);
+  return new ProductEventProducer(kafkaClient);
+}).inSingletonScope();
+
+// Services
+container.bind<ProductService>(TYPES.ProductService).toDynamicValue((context) => {
+  const repository = context.container.get<ProductRepository>(TYPES.ProductRepository);
+  const eventProducer = context.container.get<ProductEventProducer>(TYPES.ProductEventProducer);
+  return new ProductService(repository, eventProducer);
+}).inSingletonScope();
+
+// Controllers
+container.bind<ProductController>(TYPES.ProductController).toDynamicValue((context) => {
+  const service = context.container.get<ProductService>(TYPES.ProductService);
+  return new ProductController(service);
+}).inSingletonScope();
+
+export default container;
+
+// src/infrastructure/ioc/types.ts
+const TYPES = {
+  AppConfig: Symbol.for('AppConfig'),
+  MongoClient: Symbol.for('MongoClient'),
+  KafkaClient: Symbol.for('KafkaClient'),
+  ProductRepository: Symbol.for('ProductRepository'),
+  ProductEventProducer: Symbol.for('ProductEventProducer'),
+  ProductService: Symbol.for('ProductService'),
+  ProductController: Symbol.for('ProductController')
+};
+
+export default TYPES;
+```
+
+## Error Handling with TypeScript
+
+Use custom error classes:
+
+```typescript
+// src/utils/errors.ts
+export class AppError extends Error {
+  constructor(
+    public readonly message: string,
+    public readonly statusCode: number = 500,
+    public readonly code: string = 'INTERNAL_ERROR',
+    public readonly details?: any
+  ) {
+    super(message);
+    this.name = this.constructor.name;
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+export class NotFoundError extends AppError {
+  constructor(resource: string, id: string) {
+    super(`${resource} with id ${id} not found`, 404, 'NOT_FOUND');
+    this.name = this.constructor.name;
+  }
+}
+
+export class ValidationError extends AppError {
+  constructor(message: string, details?: any) {
+    super(message, 400, 'VALIDATION_ERROR', details);
+    this.name = this.constructor.name;
+  }
+}
+
+export class ConflictError extends AppError {
+  constructor(message: string) {
+    super(message, 409, 'CONFLICT_ERROR');
+    this.name = this.constructor.name;
+  }
+}
+
+export class AuthorizationError extends AppError {
+  constructor(message: string = 'Unauthorized') {
+    super(message, 401, 'UNAUTHORIZED');
+    this.name = this.constructor.name;
+  }
+}
+
+// src/api/middleware/error-handler.ts
+import { Request, Response, NextFunction } from 'express';
+import { AppError } from '../../utils/errors';
+import { logger } from '../../infrastructure/observability';
+
+export function errorHandler(
+  error: Error, 
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void {
+  logger.error('Request error', {
+    error: error.message,
+    stack: error.stack,
+    path: req.path,
+    method: req.method
+  });
+
+  if (error instanceof AppError) {
+    res.status(error.statusCode).json({
+      error: {
+        code: error.code,
+        message: error.message,
+        details: error.details
+      }
+    });
+    return;
+  }
+
+  res.status(500).json({
+    error: {
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'An unexpected error occurred'
+    }
+  });
+}
+```
+
+## Testing TypeScript Services
+
+We use Jest for testing TypeScript services:
+
+```typescript
+// test/unit/domain/services/product-service.test.ts
+import { ProductService } from '../../../../src/domain/services/product-service';
+import { Product, ProductCategory } from '../../../../src/domain/models/product';
+import { NotFoundError } from '../../../../src/utils/errors';
+
+describe('ProductService', () => {
+  const mockProduct = new Product(
+    '1',
+    'Test Product',
+    'Test Description',
+    9.99,
+    ProductCategory.ELECTRONICS,
+    'TEST-123',
+    100
+  );
+
+  const mockRepository = {
+    findById: jest.fn(),
+    findAll: jest.fn(),
+    findByCategory: jest.fn(),
+    save: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn()
+  };
+
+  const mockEventProducer = {
+    productCreated: jest.fn(),
+    productUpdated: jest.fn()
+  };
+
+  const productService = new ProductService(mockRepository, mockEventProducer);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('getProductById', () => {
+    it('should return a product when found', async () => {
+      mockRepository.findById.mockResolvedValue(mockProduct);
+      
+      const result = await productService.getProductById('1');
+      
+      expect(result).toEqual(mockProduct);
+      expect(mockRepository.findById).toHaveBeenCalledWith('1');
+    });
+
+    it('should return null when product not found', async () => {
+      mockRepository.findById.mockResolvedValue(null);
+      
+      const result = await productService.getProductById('999');
+      
+      expect(result).toBeNull();
+      expect(mockRepository.findById).toHaveBeenCalledWith('999');
+    });
+  });
+
+  describe('createProduct', () => {
+    it('should create and return a new product', async () => {
+      const productData = {
+        name: 'New Product',
+        description: 'New Description',
+        price: 19.99,
+        category: ProductCategory.CLOTHING,
+        sku: 'NEW-123',
+        inventoryCount: 50
+      };
+      
+      mockRepository.save.mockImplementation(product => Promise.resolve(product));
+      
+      const result = await productService.createProduct(productData);
+      
+      expect(result).toMatchObject(productData);
+      expect(mockRepository.save).toHaveBeenCalledTimes(1);
+      expect(mockEventProducer.productCreated).toHaveBeenCalledWith(expect.objectContaining(productData));
+    });
+  });
+
+  describe('updateProduct', () => {
+    it('should update and return the product', async () => {
+      const changes = { price: 29.99, inventoryCount: 75 };
+      const updatedProduct = { ...mockProduct, ...changes };
+      
+      mockRepository.findById.mockResolvedValue(mockProduct);
+      mockRepository.update.mockResolvedValue(updatedProduct);
+      
+      const result = await productService.updateProduct('1', changes);
+      
+      expect(result).toEqual(updatedProduct);
+      expect(mockRepository.findById).toHaveBeenCalledWith('1');
+      expect(mockRepository.update).toHaveBeenCalledWith(expect.objectContaining(changes));
+      expect(mockEventProducer.productUpdated).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining(changes)
+      );
+    });
+
+    it('should throw NotFoundError when product not found', async () => {
+      mockRepository.findById.mockResolvedValue(null);
+      
+      await expect(productService.updateProduct('999', { price: 29.99 }))
+        .rejects
+        .toThrow(NotFoundError);
+      
+      expect(mockRepository.update).not.toHaveBeenCalled();
+      expect(mockEventProducer.productUpdated).not.toHaveBeenCalled();
+    });
+  });
+});
+```
+
+## Building and Packaging TypeScript Services
+
+Our template includes optimized build scripts:
+
+```json
+// package.json (excerpt)
+{
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
+    "lint": "eslint src --ext .ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  }
+}
+```
+
+## Dockerizing TypeScript Services
+
+Our Docker setup uses multi-stage builds for optimal container size:
+
+```dockerfile
+# Dockerfile
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY tsconfig.json ./
+COPY src/ ./src/
+
+RUN npm run build
+
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --production
+
+COPY --from=builder /app/dist ./dist
+
+ENV NODE_ENV=production
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD wget -qO- http://localhost:3000/health || exit 1
+
+CMD ["node", "dist/app.js"]
+```
+
+## CI/CD for TypeScript Services
+
+Our CI/CD workflow ensures proper TypeScript builds:
+
+```yaml
+# .github/workflows/main.yml (excerpt)
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      
+  build:
+    name: Build and Push
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+      # Then Docker build and push steps...
+```
+
+## TypeScript Best Practices at FlowMart
+
+1. **Use Interfaces for Public APIs**: Define interfaces for repositories, services, and controllers.
+
+2. **Embrace Type Inference**: Let TypeScript infer types where it makes sense to reduce verbosity.
+
+3. **Use Discriminated Unions**: For handling different event types or command patterns.
+
+4. **Leverage Utility Types**: Use built-in utility types like `Partial<T>`, `Readonly<T>`, `Pick<T>`, etc.
+
+5. **Strict Null Checks**: Always enable `strictNullChecks` to prevent null/undefined errors.
+
+6. **Immutability**: Use `readonly` properties and `const` variables to enforce immutability.
+
+7. **Error Handling**: Use custom error classes with type information.
+
+8. **Asynchronous Code**: Use `async/await` consistently with proper error handling.
+
+9. **Use Enums for Constants**: Define related constants as TypeScript enums.
+
+10. **Module Structure**: Organize code into cohesive modules with clear interfaces.
+
+## Recommended Libraries
+
+- **Express.js**: Web framework
+- **inversify**: Dependency injection
+- **zod**: Runtime validation
+- **winston**: Logging
+- **prom-client**: Prometheus metrics
+- **jaeger-client**: Distributed tracing
+- **mongodb**: Database driver
+- **kafkajs**: Kafka client
+- **jest**: Testing framework
+- **supertest**: API testing
+- **ts-node-dev**: Development server
+
+## Next Steps
+
+- Learn about [Database patterns for microservices](/docs/guides/creating-new-microservices/database-patterns)
+- Understand [Event schema design](/docs/guides/creating-new-microservices/event-schemas)
+- Explore [API design best practices](/docs/guides/creating-new-microservices/api-design) 

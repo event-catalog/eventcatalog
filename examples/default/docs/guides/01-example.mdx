@@ -1,0 +1,80 @@
+---
+title: Quickstart
+description: Get started with the Protocol API
+slug: guides/quickstart
+sidebar:
+    label: Quickstart
+    order: 1
+---
+
+
+
+This guide will get you all set up and ready to use the Protocol API. We'll cover how to get started using one of our API clients and how to make your first API request. We'll also look at where to go next to find all the information you need to take full advantage of our powerful REST API.
+
+> **Tip:** Before you can make requests to the Protocol API, you will need to grab your API key from your dashboard. You find it under Settings » API.
+
+## Choose your client
+
+Before making your first API request, you need to pick which API client you will use. In addition to good ol' cURL HTTP requests, Protocol offers clients for JavaScript, Python, and PHP. In the following example, you can see how to install each client.
+
+### cURL
+
+```bash
+# cURL is most likely already installed on your machine
+curl --version
+```
+
+### JavaScript
+
+```js
+// JavaScript installation example would go here
+```
+
+### Python
+
+```python
+# Python installation example would go here
+```
+
+### PHP
+
+```php
+// PHP installation example would go here
+```
+
+[Check out our list of first-party SDKs →](#)
+
+## Making your first API request
+
+After picking your preferred client, you are ready to make your first call to the Protocol API. Below, you can see how to send a GET request to the Conversations endpoint to get a list of all your conversations. In the cURL example, results are limited to ten conversations, the default page length for each client.
+
+### cURL
+
+```bash
+GET /v1/conversations
+
+curl -G https://api.protocol.chat/v1/conversations \
+  -H "Authorization: Bearer {token}" \
+  -d limit=10
+```
+
+### JavaScript
+
+```js
+// JavaScript example would go here
+```
+
+### Python
+
+```python
+# Python example would go here
+```
+
+### PHP
+
+```php
+// PHP example would go here
+```
+
+[Read the docs for the Conversations endpoint →](#)
+

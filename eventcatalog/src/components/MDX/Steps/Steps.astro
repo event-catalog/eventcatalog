@@ -25,3 +25,18 @@ const data = splitByLi(html);
     {data.map((item: any) => <Fragment set:html={item} />)}
   </ol>
 </div>
+
+<script>
+  function applyStepNumbers() {
+    document.querySelectorAll('li[data-step]').forEach((li) => {
+      const stepNumber = li.getAttribute('data-step');
+      const stepSpan = li.querySelector('.step-number div');
+      if (stepSpan) {
+        stepSpan.textContent = stepNumber;
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', applyStepNumbers);
+  document.addEventListener('astro:page-load', applyStepNumbers);
+</script>

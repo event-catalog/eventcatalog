@@ -1,0 +1,389 @@
+---
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { render } from 'astro:content';
+import { buildUrl } from '@utils/url-builder';
+import config from '@config';
+import { AlignLeftIcon } from 'lucide-react';
+import mdxComponents from '@components/MDX/components';
+import OwnersList from '@components/Lists/OwnersList';
+import { getOwner } from '@utils/collections/owners';
+import CustomDocsNav from '@components/SideNav/CustomDocsNav.astro';
+
+const props = Astro.props;
+const doc = props.data;
+const { Content, headings } = await render(props as any);
+const currentSlug = props.id;
+
+// Get sidebar data
+const sidebar = config?.customDocs?.sidebar || [];
+
+// Flatten the sidebar to find previous and next pages
+type FlatItem = {
+  label: string;
+  slug: string;
+};
+
+// Define sidebar section type
+type SidebarSection = {
+  label: string;
+  slug?: string;
+  items?: Array<{
+    label: string;
+    slug: string;
+  }>;
+};
+
+const flattenedItems: FlatItem[] = [];
+
+// Process all sidebar sections to create a flattened array
+sidebar.forEach((section: SidebarSection) => {
+  if (section.slug && !section.items) {
+    flattenedItems.push({
+      label: section.label,
+      slug: section.slug,
+    });
+  }
+  if (section.items) {
+    section.items.forEach((item: { label: string; slug: string }) => {
+      flattenedItems.push({
+        label: item.label,
+        slug: item.slug,
+      });
+    });
+  }
+});
+
+// Find current page index in flattened items
+const currentIndex = flattenedItems.findIndex((item) => currentSlug === item.slug);
+
+// Get previous and next items
+const prevItem = currentIndex > 0 ? flattenedItems[currentIndex - 1] : null;
+const nextItem = currentIndex < flattenedItems.length - 1 ? flattenedItems[currentIndex + 1] : null;
+
+const ownersRaw = doc?.owners || [];
+const owners = await Promise.all<ReturnType<typeof getOwner>>(ownersRaw.map(getOwner));
+const filteredOwners = owners.filter((o) => o !== undefined);
+
+const ownersList = filteredOwners.map((o) => ({
+  label: o.data.name,
+  type: o.collection,
+  badge: o.collection === 'users' ? o.data.role : 'Team',
+  avatarUrl: o.collection === 'users' ? o.data.avatarUrl : '',
+  href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
+}));
+
+const badges = doc?.badges || [];
+---
+
+<VerticalSideBarLayout title={doc.title || 'Documentation'}>
+  <div class="flex w-full">
+    <!-- Left Sidebar Navigation -->
+    <aside class="sidebar-transition overflow-y-auto bg-white border-r border-gray-100 w-80 fixed top-16 bottom-0 z-10">
+      <CustomDocsNav />
+    </aside>
+
+    <!-- Main Content Area - Independent scrolling -->
+    <main class="sidebar-transition w-full max-h-content ml-[22em] 2xl:ml-[24em] mr-80 lg:mr-[26em] max-w-5xl mx-auto">
+      <div class="max-w-7xl mx-auto px-6 py-10">
+        <div class="border-b border-gray-200 flex justify-between items-start md:pb-6">
+          <div>
+            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-black">{doc.title}</h2>
+            {
+              badges && (
+                <div class="flex flex-wrap pt-4">
+                  {badges.map((badge: any) => {
+                    return (
+                      <a href={badge.url || '#'} class="pb-2">
+                        <span
+                          id={badge.id || ''}
+                          class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2  bg-gradient-to-b  from-${badge.backgroundColor}-100 to-${badge.backgroundColor}-200 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}
+                        >
+                          {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
+                          {badge.iconURL && <img src={badge.iconURL} class="w-5 h-5 inline-block " />}
+                          <span>{badge.content}</span>
+                        </span>
+                      </a>
+                    );
+                  })}
+                </div>
+              )
+            }
+          </div>
+        </div>
+        <div class="flex-auto prose py-8 max-w-none">
+          <Content components={{ ...mdxComponents(props) }} />
+        </div>
+
+        <!-- Previous / Next Navigation -->
+        <div class="py-8 border-t border-gray-200 mt-8">
+          <div class="flex flex-col sm:flex-row justify-between w-full gap-4">
+            {
+              prevItem && (
+                <a
+                  href={buildUrl(`/docs/custom/${prevItem.slug}`)}
+                  class="group flex flex-col border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:bg-gray-50 transition-colors w-full sm:w-1/2"
+                >
+                  <span class="text-sm text-gray-500 mb-1">Previous</span>
+                  <span class="font-medium group-hover:text-primary-600 transition-colors">{prevItem.label}</span>
+                </a>
+              )
+            }
+
+            {!prevItem && <div class="w-full sm:w-1/2" />}
+
+            {
+              nextItem && (
+                <a
+                  href={buildUrl(`/docs/custom/${nextItem.slug}`)}
+                  class="group flex flex-col items-end text-right border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:bg-gray-50 transition-colors w-full sm:w-1/2"
+                >
+                  <span class="text-sm text-gray-500 mb-1">Next</span>
+                  <span class="font-medium group-hover:text-primary-600 transition-colors">{nextItem.label}</span>
+                </a>
+              )
+            }
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Sidebar TOC -->
+    <aside
+      class="fixed right-0 top-16 bottom-0 w-96 overflow-y-auto border-l border-gray-100 bg-white p-6 flex-shrink-0 hidden lg:block z-10"
+    >
+      <div>
+        <div>
+          {
+            ownersList.length > 0 && (
+              <OwnersList
+                title={`Document Owners (${ownersList.length})`}
+                emptyMessage={`This page does not have any documented owners.`}
+                owners={ownersList}
+                client:load
+              />
+            )
+          }
+        </div>
+        <h3 class="text-sm text-black font-semibold group-data-[hover]:text-black/80 capitalize flex items-center gap-2">
+          <AlignLeftIcon className="w-4 h-4" />
+          On this page
+        </h3>
+        <nav class="space-y-1 text-sm py-4">
+          {
+            headings.map((heading) => {
+              if (heading.depth > 3) {
+                return null;
+              }
+              return (
+                <a
+                  href={`#${heading.slug}`}
+                  class={`block text-[12px] py-0.5 ${heading.depth === 1 ? 'font-light' : ''} text-gray-400 hover:text-primary-600`}
+                  style={`padding-left: ${(heading.depth - 1) * 8}px`}
+                >
+                  {heading.text}
+                </a>
+              );
+            })
+          }
+        </nav>
+      </div>
+    </aside>
+  </div>
+</VerticalSideBarLayout>
+
+<style is:global>
+  .mermaid svg {
+    margin: 1em auto 2em;
+  }
+
+  /* Fix for architecture diagrams */
+  .mermaid[data-content*='architecture'] svg {
+    max-width: 350px !important;
+    margin: 0;
+    /* width: 100px !important; */
+  }
+</style>
+
+<script define:vars={{ props, config }}>
+  // Fix to pass information to componets that are client side only
+  // and require catalog information
+  window.eventcatalog = {};
+  // @ts-ignore
+
+  window.eventcatalog.mermaid = config.mermaid;
+</script>
+
+<script>
+  // @ts-nocheck
+  function setupObserver() {
+    try {
+      const observerOptions = {
+        rootMargin: '0px 0px -40% 0px',
+        threshold: 0.1,
+      };
+
+      // Flag to temporarily disable observer after click
+      let observerPaused = false;
+
+      // Function to highlight a TOC item
+      function highlightTocItem(id) {
+        // Remove active class from all links
+        document.querySelectorAll('.active-toc-item').forEach((link) => {
+          link.classList.remove('active-toc-item', 'text-purple-600', 'font-light');
+          link.classList.add('text-gray-400');
+        });
+
+        // Add active class to current link
+        const tocLink = document.querySelector(`nav a[href="#${id}"]`);
+        if (tocLink) {
+          tocLink.classList.add('active-toc-item', 'text-purple-600', 'font-light');
+          tocLink.classList.remove('text-gray-400');
+
+          // Scroll the highlighted item into view with a small delay to ensure DOM updates first
+          setTimeout(() => {
+            tocLink.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+          }, 10);
+        }
+      }
+
+      // Set up the intersection observer for scrolling
+      const observer = new IntersectionObserver((entries) => {
+        // If observer is paused, don't process entries
+        if (observerPaused) return;
+
+        entries.forEach((entry) => {
+          try {
+            const id = entry.target.getAttribute('id');
+            if (entry.isIntersecting && id) {
+              highlightTocItem(id);
+            }
+          } catch (entryError) {
+            console.error('Error processing intersection entry:', entryError);
+          }
+        });
+      }, observerOptions);
+
+      // Find all headings in the content area within the .prose container to observe
+      const prose = document.querySelector('.prose');
+      if (!prose) {
+        console.warn('No .prose container found for TOC highlighting');
+        return;
+      }
+
+      // First try to find headings with IDs
+      const headings = prose.querySelectorAll('h1[id], h2[id], h3[id]');
+      console.log('Headings with IDs found:', headings.length);
+
+      if (headings.length > 0) {
+        headings.forEach((heading) => {
+          observer.observe(heading);
+        });
+      } else {
+        // Fallback: If no headings with IDs found, attach IDs to them
+        const allHeadings = prose.querySelectorAll('h1, h2, h3');
+        console.log('Total headings found:', allHeadings.length);
+
+        allHeadings.forEach((heading) => {
+          // Only add ID if it doesn't exist
+          if (!heading.id) {
+            const text = heading.textContent || '';
+            const slug = text
+              .toLowerCase()
+              .replace(/[^\w\s-]/g, '')
+              .replace(/\s+/g, '-');
+            heading.id = slug;
+          }
+          observer.observe(heading);
+        });
+      }
+
+      // Add click event listeners to all TOC links
+      const tocLinks = document.querySelectorAll('nav a[href^="#"]');
+      tocLinks.forEach((link) => {
+        link.addEventListener('click', (e) => {
+          // Get the ID from the href attribute
+          const hrefAttr = link.getAttribute('href');
+          if (!hrefAttr) return;
+
+          const id = hrefAttr.substring(1);
+
+          // Highlight the clicked item
+          highlightTocItem(id);
+
+          // Temporarily pause the observer to prevent immediate highlighting changes
+          observerPaused = true;
+
+          // Resume the observer after a delay (1.5 seconds)
+          setTimeout(() => {
+            observerPaused = false;
+          }, 500);
+        });
+      });
+    } catch (error) {
+      console.error('Error setting up TOC highlighting:', error);
+    }
+  }
+
+  setupObserver();
+
+  document.addEventListener('astro:page-load', () => {
+    const graphs = document.getElementsByClassName('mermaid');
+    if (document.getElementsByClassName('mermaid').length > 0) {
+      renderDiagrams(graphs);
+    }
+  });
+
+  async function renderDiagrams(graphs: any) {
+    const { default: mermaid } = await import('mermaid');
+
+    if (window.eventcatalog.mermaid) {
+      const { icons } = await import('@iconify-json/logos');
+      const { iconPacks = [] } = window.eventcatalog.mermaid ?? {};
+
+      if (iconPacks.length > 0) {
+        const iconPacksToRegister = iconPacks.map((name: string) => {
+          return {
+            name,
+            icons,
+          };
+        });
+
+        mermaid.registerIconPacks(iconPacksToRegister);
+      }
+    }
+
+    mermaid.initialize({
+      // fontSize: 2,
+      flowchart: {
+        curve: 'linear',
+        rankSpacing: 0,
+        nodeSpacing: 0,
+      },
+      startOnLoad: false,
+      fontFamily: 'var(--sans-font)',
+      // @ts-ignore This works, but TS expects a enum for some reason
+      theme: 'light',
+      architecture: {
+        useMaxWidth: true,
+      },
+    });
+
+    for (const graph of graphs) {
+      const content = graph.getAttribute('data-content');
+      if (!content) continue;
+      let svg = document.createElement('svg');
+      const id = (svg.id = 'mermaid-' + Math.round(Math.random() * 100000));
+      graph.appendChild(svg);
+      mermaid.render(id, content).then((result) => {
+        graph.innerHTML = result.svg;
+      });
+    }
+  }
+
+  const graphs = document.getElementsByClassName('mermaid');
+  if (document.getElementsByClassName('mermaid').length > 0) {
+    renderDiagrams(graphs);
+  }
+
+  document.addEventListener('astro:page-load', setupObserver);
+</script>
