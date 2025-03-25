@@ -29,6 +29,16 @@ type SideBarConfigurationItem = {
   collapsed?: boolean;
 };
 
+type AdjacentPage = {
+  label: string;
+  slug: string;
+};
+
+type AdjacentPages = {
+  prev: AdjacentPage | null;
+  next: AdjacentPage | null;
+};
+
 const DOCS_DIR = 'docs';
 
 /**
@@ -110,6 +120,72 @@ const processSidebarItems = async (items: SideBarConfigurationItem[]): Promise<S
   }
 
   return processedItems;
+};
+
+/**
+ * Flatten all navigation items into a single array of pages with slugs
+ * This is used to find previous and next pages for navigation
+ */
+const flattenNavigationItems = (items: SidebarItem[]): AdjacentPage[] => {
+  const flatPages: AdjacentPage[] = [];
+
+  const processItem = (item: SidebarItem) => {
+    // Add the current item if it has a slug
+    if (item.slug) {
+      flatPages.push({
+        label: item.label,
+        slug: item.slug,
+      });
+    }
+
+    // Process nested items if they exist
+    if (item.items && item.items.length > 0) {
+      item.items.forEach(processItem);
+    }
+  };
+
+  items.forEach(processItem);
+  return flatPages;
+};
+
+/**
+ * Get the previous and next pages for a given slug
+ * Returns null for prev if it's the first page, and null for next if it's the last page
+ */
+export const getAdjacentPages = async (slug: string): Promise<AdjacentPages> => {
+  const navigationItems = await getNavigationItems();
+  const flatPages = flattenNavigationItems(navigationItems);
+
+  // Normalize the slug by removing 'docs/' prefix if it exists
+  // and ensure consistent formatting with or without leading slash
+  let normalizedSlug = slug;
+  if (normalizedSlug.startsWith('docs/')) {
+    normalizedSlug = normalizedSlug.substring(5); // Remove 'docs/' prefix
+  }
+
+  // Find the current page by comparing normalized slugs
+  const currentIndex = flatPages.findIndex((page) => {
+    // Normalize page slug for comparison
+    let pageSlug = page.slug;
+    if (pageSlug.startsWith('/')) {
+      pageSlug = pageSlug.substring(1);
+    }
+
+    return pageSlug === normalizedSlug;
+  });
+
+  // If page not found, return null for both prev and next
+  if (currentIndex === -1) {
+    return { prev: null, next: null };
+  }
+
+  // Get previous page if it exists
+  const prev = currentIndex > 0 ? flatPages[currentIndex - 1] : null;
+
+  // Get next page if it exists
+  const next = currentIndex < flatPages.length - 1 ? flatPages[currentIndex + 1] : null;
+
+  return { prev, next };
 };
 
 export const getNavigationItems = async (): Promise<SidebarItem[]> => {
