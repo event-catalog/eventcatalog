@@ -223,7 +223,7 @@ const badges = doc?.badges || [];
       let observerPaused = false;
 
       // Function to highlight a TOC item
-      function highlightTocItem(id) {
+      function highlightTocItem(id: string) {
         // Remove active class from all links
         document.querySelectorAll('.active-toc-item').forEach((link) => {
           link.classList.remove('active-toc-item', 'text-purple-600', 'font-light');
