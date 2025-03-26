@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.31.5
+
+### Patch Changes
+
+- 36291f6: fix(core): fixed highlighting in custom docs and nested docs
+
 ## 2.31.4
 
 ### Patch Changes
