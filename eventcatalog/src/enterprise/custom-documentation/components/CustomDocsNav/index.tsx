@@ -7,7 +7,7 @@ import NoResultsFound from './components/NoResultsFound';
 const STORAGE_KEY = 'EventCatalog:customDocsSidebarCollapsedGroups';
 const DEBOUNCE_DELAY = 300; // 300ms debounce delay
 
-const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems, currentPath }) => {
+const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
   const navRef = useRef<HTMLElement>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -20,6 +20,8 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems, currentPath
     }
     return {};
   });
+
+  const currentPath = window.location.pathname;
 
   // Set up debounced search
   useEffect(() => {
@@ -128,29 +130,32 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems, currentPath
 
   const hasNoResults = debouncedSearchTerm && filteredSidebarItems.length === 0;
 
+  console.log('filteredSidebarItems', filteredSidebarItems);
+  console.log('currentPath', currentPath);
+
   return (
-    <nav ref={navRef} className="h-full text-gray-800 pt-2">
-      <div className="mb-2 px-4">
+    <nav ref={navRef} className="h-full text-gray-800 pt-4 overflow-y-auto">
+      <div className="mb-2 px-3 bg-white z-10">
         <input
           type="text"
           value={searchTerm}
           onChange={handleSearchChange}
           placeholder="Quick search..."
-          className="w-full p-2 text-sm rounded-md border border-gray-200 h-[30px]"
+          className="w-full p-2 px-2 text-sm rounded-md border border-gray-200 h-[30px]"
         />
       </div>
 
-      <div className="space-y-2 divide-y divide-gray-100/40">
+      <div className="space-y-2 divide-y divide-gray-100/40 pb-4">
         {hasNoResults ? (
           <NoResultsFound searchTerm={debouncedSearchTerm} />
         ) : (
           filteredSidebarItems.map((section: SidebarSection, index: number) => (
-            <div className="pt-2 pb-2 px-4" key={`section-${index}`}>
+            <div className="pt-2 pb-2 px-3" key={`section-${index}`}>
               <div className="space-y-0" data-section={`section-${index}`}>
                 {section.items ? (
                   <div className="flex items-center">
                     <button
-                      className="p-1 hover:bg-gray-100 rounded-md"
+                      className="p-1 hover:bg-gray-100 rounded-md flex-shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleGroupCollapse(`section-${index}`);
@@ -160,23 +165,21 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems, currentPath
                         className={`transition-transform duration-150 ${collapsedGroups[`section-${index}`] ? '' : 'rotate-180'}`}
                       >
                         <svg
-                          className="h-3 w-3 text-gray-500"
                           xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
                           fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="1.5"
                           stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                          aria-hidden="true"
+                          data-slot="icon"
+                          className="h-3 w-3 text-gray-500"
                         >
-                          <polyline points="6 9 12 15 18 9" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
                         </svg>
                       </div>
                     </button>
                     <button
-                      className="flex-grow flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md hover:bg-purple-50"
+                      className="flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md hover:bg-purple-50 min-w-0 flex-1"
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleGroupCollapse(`section-${index}`);

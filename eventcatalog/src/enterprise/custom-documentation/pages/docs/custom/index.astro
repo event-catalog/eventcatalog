@@ -1,14 +1,17 @@
 ---
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { render } from 'astro:content';
-import { buildUrl } from '@utils/url-builder';
 import config from '@config';
 import { AlignLeftIcon } from 'lucide-react';
+
 import mdxComponents from '@components/MDX/components';
 import OwnersList from '@components/Lists/OwnersList';
+
 import { getOwner } from '@utils/collections/owners';
-import CustomDocsNav from '@components/SideNav/CustomDocsNav.astro';
-import { getAdjacentPages } from '../utils/custom-docs';
+import { buildUrl } from '@utils/url-builder';
+
+import CustomDocsNav from '@enterprise/custom-documentation/components/CustomDocsNav/CustomDocsNav.astro';
+import { getAdjacentPages } from '@enterprise/custom-documentation/utils/custom-docs';
 
 const props = Astro.props;
 const doc = props.data;
@@ -72,14 +75,16 @@ const badges = doc?.badges || [];
 ---
 
 <VerticalSideBarLayout title={doc.title || 'Documentation'}>
-  <div class="flex w-full">
+  <div class="flex w-full" data-pagefind-body data-pagefind-meta={`title:${doc.title}`}>
     <!-- Left Sidebar Navigation -->
     <aside class="sidebar-transition overflow-y-auto bg-white border-r border-gray-100 w-80 fixed top-16 bottom-0 z-10">
       <CustomDocsNav />
     </aside>
 
     <!-- Main Content Area - Independent scrolling -->
-    <main class="sidebar-transition w-full max-h-content ml-[22em] 2xl:ml-[24em] mr-80 lg:mr-[20em] max-w-5xl mx-auto">
+    <main
+      class="sidebar-transition w-full max-h-content ml-[22em] md:ml-[21em] lg:mr-[21em] 2xl:mr-[26em] 2xl:ml-[22em] mr-80 max-w-5xl mx-auto"
+    >
       <div class="max-w-7xl mx-auto px-6 py-10">
         <div class="border-b border-gray-200 flex justify-between items-start md:pb-6">
           <div>

@@ -1,6 +1,7 @@
 ---
-import CustomDocumentationPage from '@enterprise/custom-documentation/pages/index.astro';
+import CustomDocumentationPage from '@enterprise/custom-documentation/pages/docs/custom/index.astro';
 import { getCollection } from 'astro:content';
+import { buildUrl } from '@utils/url-builder';
 import type { GetStaticPaths } from 'astro';
 import { isEventCatalogProEnabled } from '@utils/feature';
 import path from 'node:path';
@@ -21,9 +22,8 @@ export const getStaticPaths = (async () => {
 
 const props = Astro.props;
 
-// Redirect
-if (!directoryExists || !isEventCatalogProEnabled()) {
-  Astro.redirect('/docs/custom');
+if (!isEventCatalogProEnabled()) {
+  return Astro.redirect('/docs/custom');
 }
 ---
 
