@@ -20,7 +20,7 @@ type ResourceGroupTableProps = {
   showTags?: boolean;
   showOwners?: boolean;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   description: string;
 };
 
