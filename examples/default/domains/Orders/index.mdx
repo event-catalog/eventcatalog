@@ -14,11 +14,25 @@ badges:
   - content: New domain
     backgroundColor: blue
     textColor: blue
+resourceGroups:
+  - id: related-resources
+    title: Core resources
+    items:
+      - id: InventoryService
+        type: service
+      - id: OrdersService
+        type: service
+      - id: NotificationService
+        type: service
+      - id: ShippingService
+        type: service
 ---
 
 import Footer from '@catalog/components/footer.astro';
 
 ## Overview
+
+
 
 :::warning
 
@@ -69,5 +83,7 @@ Documented flow when a user cancels their subscription.
 Documented flow when a user makes a payment within the order domain
 
 <Flow id="PaymentFlow" version="latest" includeKey={false} />
+
+<ResourceGroupTable id="related-resources" limit={4} showOwners={true} title="Core resources for the Orders domain" description="Resources that are related to the Orders domain, you may find them useful" />
 
 <Footer />

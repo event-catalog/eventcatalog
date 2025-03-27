@@ -9,6 +9,7 @@ import { buildUrl } from '@utils/url-builder';
 import { FileDownIcon, ScrollText, Workflow, RssIcon } from 'lucide-react';
 import RepositoryList from '@components/Lists/RepositoryList.astro';
 import { getOwner } from '@utils/collections/owners';
+import CustomSideBarSectionList from '@components/Lists/CustomSideBarSectionList.astro';
 import config from '@config';
 
 interface Props {
@@ -24,6 +25,8 @@ const channels = (message.data.messageChannels as CollectionEntry<'channels'>[])
 const ownersRaw = message.data?.owners || [];
 const owners = await Promise.all<ReturnType<typeof getOwner>>(ownersRaw.map(getOwner));
 const filteredOwners = owners.filter((o) => o !== undefined);
+
+const resourceGroups = message.data?.resourceGroups || [];
 
 const producerList = producers.map((p) => ({
   label: `${p.data.name}`,
@@ -98,6 +101,11 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
 
 <aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto py-4">
   <div class="">
+    {
+      resourceGroups
+        .filter((section) => section.items.length > 0 && section.sidebar)
+        .map((section) => <CustomSideBarSectionList section={section} />)
+    }
     {
       producerList.length > 0 && (
         <PillListFlat

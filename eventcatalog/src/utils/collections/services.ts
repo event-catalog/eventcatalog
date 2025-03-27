@@ -21,10 +21,10 @@ let cachedServices: Record<string, Service[]> = {
 export const getServices = async ({ getAllVersions = true }: Props = {}): Promise<Service[]> => {
   const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
 
-  // // Check if we have cached domains for this specific getAllVersions value
-  // if (cachedServices[cacheKey].length > 0) {
-  //   return cachedServices[cacheKey];
-  // }
+  // Check if we have cached domains for this specific getAllVersions value
+  if (cachedServices[cacheKey].length > 0) {
+    return cachedServices[cacheKey];
+  }
 
   // Get services that are not versioned
   const services = await getCollection('services', (service) => {

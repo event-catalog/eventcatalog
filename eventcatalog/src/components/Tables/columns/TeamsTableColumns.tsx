@@ -5,25 +5,10 @@ import { filterByName, filterCollectionByName } from '../filters/custom-filters'
 import { buildUrl } from '@utils/url-builder';
 import type { TData } from '../Table';
 import type { CollectionUserTypes } from '@types';
-import { User, Users } from 'lucide-react';
 import type { CollectionEntry } from 'astro:content';
 import { ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/solid';
 
 const columnHelper = createColumnHelper<TData<CollectionUserTypes>>();
-
-export const getColorAndIconForMessageType = (type: string) => {
-  switch (type) {
-    case 'event':
-      return { color: 'orange', Icon: BoltIcon };
-    case 'command':
-      return { color: 'blue', Icon: ChatBubbleLeftIcon };
-    case 'querie':
-    case 'query':
-      return { color: 'green', Icon: MagnifyingGlassIcon };
-    default:
-      return { color: 'gray', Icon: ChatBubbleLeftIcon };
-  }
-};
 
 export const columns = () => [
   columnHelper.accessor('data.name', {

@@ -6,7 +6,7 @@ import { getOwner } from '@utils/collections/owners';
 import type { CollectionEntry } from 'astro:content';
 import { ScrollText, Workflow, RssIcon } from 'lucide-react';
 import config from '@config';
-
+import CustomSideBarSectionList from '@components/Lists/CustomSideBarSectionList.astro';
 interface Props {
   flow: CollectionEntry<'flows'>;
 }
@@ -16,6 +16,8 @@ const { flow } = Astro.props;
 const ownersRaw = flow.data?.owners || [];
 const owners = await Promise.all<ReturnType<typeof getOwner>>(ownersRaw.map(getOwner));
 const filteredOwners = owners.filter((o) => o !== undefined);
+
+const resourceGroups = flow.data?.resourceGroups || [];
 
 const ownersList = filteredOwners.map((o) => ({
   label: o.data.name,
@@ -30,6 +32,11 @@ const isRSSEnabled = config.rss?.enabled;
 
 <aside class="sticky top-28 left-0 h-full overflow-y-auto pr-6 py-4">
   <div id="sidebar-cta-portal" class="">
+    {
+      resourceGroups
+        .filter((section) => section.items.length > 0 && section.sidebar)
+        .map((section) => <CustomSideBarSectionList section={section} />)
+    }
     {flow.data.versions && <VersionList versions={flow.data.versions} collectionItem={flow} />}
 
     <OwnersList

@@ -1,0 +1,126 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
+import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+import ResourceGroupTableClient from './ResourceGroupTable.client';
+import Admonition from '../Admonition';
+
+export interface Props extends CollectionEntry<'services'> {
+  limit?: number;
+  id: string;
+  showTags?: boolean;
+  showOwners?: boolean;
+  title?: string;
+  subtitle?: string;
+  description?: string;
+}
+
+const {
+  id,
+  limit,
+  showTags = false,
+  showOwners = false,
+  title = 'Resources',
+  subtitle,
+  description = 'Browse resources in this group or search by name, type, or description.',
+  ...resource
+} = Astro.props;
+
+// Find the requested resource group section by ID
+const section = resource.data.resourceGroups?.find((section: any) => section.id === id);
+
+const collection = Astro.props.collection as 'services' | 'domains';
+
+// Type-safe mapping of resource types to collection names
+const resourceToCollectionMap = {
+  service: 'services',
+  event: 'events',
+  command: 'commands',
+  query: 'queries',
+  domain: 'domains',
+  flow: 'flows',
+  channel: 'channels',
+  user: 'users',
+  team: 'teams',
+} as const;
+
+// This will hold our processed resources for the client component
+const resolvedResources: any[] = [];
+
+// Process each resource item in the section
+if (section?.items) {
+  for (const item of section.items) {
+    // Get the collection name from the resource type
+    const collectionName = resourceToCollectionMap[item.type as keyof typeof resourceToCollectionMap];
+
+    if (!collectionName) continue;
+
+    try {
+      // Get all items in the collection
+      const allItemsInCollection = await getCollection(collectionName);
+
+      // Find the specific version of the resource
+      const matchedItems = getItemsFromCollectionByIdAndSemverOrLatest(allItemsInCollection as any, item.id, item.version);
+
+      if (matchedItems.length > 0) {
+        const entry = matchedItems[0] as any;
+
+        // Create a simplified resource object for the client component
+        resolvedResources.push({
+          id: entry.data?.id || entry.id || item.id,
+          name: entry.data?.name || item.id,
+          version: entry.data?.version || item.version || '1.0.0',
+          collection: entry.collection || collectionName,
+          type: item.type,
+          summary: entry.data?.summary || '',
+          description: entry.data?.description || '',
+          owners: entry.data?.owners || [],
+          tags: entry.data?.tags || [],
+        });
+      }
+    } catch (error) {
+      console.error(`Error processing resource ${item.id} of type ${item.type}:`, error);
+    }
+  }
+}
+---
+
+{
+  resolvedResources.length > 0 && (
+    <ResourceGroupTableClient
+      client:load
+      resources={resolvedResources}
+      limit={limit}
+      title={title}
+      subtitle={subtitle}
+      description={description}
+      showTags={showTags}
+      showOwners={showOwners}
+    />
+  )
+}
+
+{
+  !resolvedResources.length && (
+    <Admonition type="warning">
+      <div>
+        {`<ResourceGroupTable/>`} cannot find any resources in your catalog for the resource group with id {id}.
+      </div>
+    </Admonition>
+  )
+}
+
+{
+  !section && (
+    <Admonition type="warning">
+      <div>
+        <span class="font-bold">
+          {`<ResourceGroupTable/>`} cannot find the resource group with id {id}.
+        </span>
+        <span class="block">
+          Please make sure the id is correct and the resource group is defined in this {collection.slice(0, -1)}.
+        </span>
+      </div>
+    </Admonition>
+  )
+}
