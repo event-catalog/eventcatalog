@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.32.0
+
+### Minor Changes
+
+- aa2bda5: feat(core): added resource groups
+
 ## 2.31.5
 
 ### Patch Changes
