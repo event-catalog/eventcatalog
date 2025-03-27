@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.32.2
+
+### Patch Changes
+
+- fc29b52: feat(core): added new link components
+- a384781: chore(core): updated astro
+
 ## 2.32.1
 
 ### Patch Changes
