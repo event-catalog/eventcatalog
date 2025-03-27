@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.32.1
+
+### Patch Changes
+
+- edda4c3: fix(core): types for resource group
+
 ## 2.32.0
 
 ### Minor Changes
