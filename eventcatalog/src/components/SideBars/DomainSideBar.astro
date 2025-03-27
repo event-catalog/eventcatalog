@@ -4,6 +4,7 @@ import PillListFlat from '@components/Lists/PillListFlat';
 import RepositoryList from '@components/Lists/RepositoryList.astro';
 import VersionList from '@components/Lists/VersionList.astro';
 import { getUbiquitousLanguage, getMessagesForDomain } from '@utils/collections/domains';
+import CustomSideBarSectionList from '@components/Lists/CustomSideBarSectionList.astro';
 import { getOwner } from '@utils/collections/owners';
 import { buildUrl } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
@@ -26,6 +27,8 @@ const owners = await Promise.all<ReturnType<typeof getOwner>>(ownersRaw.map(getO
 const filteredOwners = owners.filter((o) => o !== undefined);
 
 const messagesForDomain = await getMessagesForDomain(domain);
+
+const resourceGroups = domain.data?.resourceGroups || [];
 
 const serviceList = services.map((p) => ({
   label: p.data.name,
@@ -73,6 +76,11 @@ const ownersList = filteredOwners.map((o) => ({
 
 <aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto py-4">
   <div>
+    {
+      resourceGroups
+        .filter((section) => section.items.length > 0 && section.sidebar)
+        .map((section) => <CustomSideBarSectionList section={section} />)
+    }
     <PillListFlat
       title={`Services (${services.length})`}
       pills={serviceList}

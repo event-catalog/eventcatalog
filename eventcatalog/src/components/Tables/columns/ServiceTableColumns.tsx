@@ -1,9 +1,9 @@
-import { ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/solid';
+import { ServerIcon } from '@heroicons/react/24/solid';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { filterByName, filterCollectionByName } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';
-import { getColorAndIconForMessageType } from './MessageTableColumns';
+import { getColorAndIconForCollection } from '@utils/collections/icons';
 import { createBadgesColumn } from './SharedColumns';
 import type { TData } from '../Table';
 
@@ -66,10 +66,9 @@ export const columns = () => [
       const receiversWithIcons = useMemo(
         () =>
           receives?.map((consumer) => {
-            const type = consumer.collection.slice(0, -1);
             return {
               ...consumer,
-              ...getColorAndIconForMessageType(type),
+              ...getColorAndIconForCollection(consumer.collection),
             };
           }) || [],
         [receives]
@@ -131,10 +130,9 @@ export const columns = () => [
       const sendersWithIcons = useMemo(
         () =>
           sends?.map((sender) => {
-            const type = sender.collection.slice(0, -1);
             return {
               ...sender,
-              ...getColorAndIconForMessageType(type),
+              ...getColorAndIconForCollection(sender.collection),
             };
           }) || [],
         [sends]

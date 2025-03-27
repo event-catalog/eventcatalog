@@ -13,6 +13,7 @@ import OpenAPI from '@components/MDX/OpenAPI/OpenAPI.astro';
 import AsyncAPI from '@components/MDX/AsyncAPI/AsyncAPI.astro';
 import ChannelInformation from '@components/MDX/ChannelInformation/ChannelInformation';
 import MessageTable from '@components/MDX/MessageTable/MessageTable.astro';
+import ResourceGroupTable from '@components/MDX/ResourceGroupTable/ResourceGroupTable.astro';
 import Tabs from '@components/MDX/Tabs/Tabs.astro';
 import TabItem from '@components/MDX/Tabs/TabItem.astro';
 
@@ -41,6 +42,7 @@ const components = (props: any) => {
     SchemaViewer: (mdxProp: any) => SchemaViewerPortal({ ...props.data, ...mdxProp }),
     Schema: (mdxProp: any) => jsx(Schema, { ...props, ...mdxProp }),
     MessageTable: (mdxProp: any) => jsx(MessageTable, { ...props, ...mdxProp }),
+    ResourceGroupTable: (mdxProp: any) => jsx(ResourceGroupTable, { ...props, ...mdxProp }),
   };
 };
 

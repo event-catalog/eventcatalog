@@ -2,48 +2,52 @@ import { getColorAndIconForCollection } from '@utils/collections/icons';
 import { buildUrl } from '@utils/url-builder';
 import { useState, useMemo, useCallback, memo } from 'react';
 
-type MessageTableMessage = {
+type Resource = {
   id: string;
   name: string;
   version: string;
   collection: string;
   type: string;
-  summary: string;
-  channels: any[];
+  summary?: string;
+  description?: string;
+  owners?: any[];
+  tags?: string[];
 };
 
-type MessageTableProps = {
-  format: 'receives' | 'sends' | 'all';
+type ResourceGroupTableProps = {
+  resources: Resource[];
   limit?: number;
-  showChannels?: boolean;
-  collection: string;
-  sends: MessageTableMessage[];
-  receives: MessageTableMessage[];
+  showTags?: boolean;
+  showOwners?: boolean;
+  title: string;
+  subtitle: string;
+  description: string;
 };
 
-type MessageType = 'event' | 'query' | 'command' | null;
+type ResourceType = 'service' | 'event' | 'query' | 'command' | 'domain' | 'flow' | 'channel' | 'user' | 'team' | null;
 
-const MessageRow = memo(
-  ({ message, showChannels, collection }: { message: MessageTableMessage; showChannels?: boolean; collection: string }) => {
-    const { color, Icon } = getColorAndIconForCollection(message.collection);
-    const url = buildUrl(`/docs/${collection}/${message.id}/${message.version}`);
-    let type = collection.slice(0, -1);
+const ResourceRow = memo(
+  ({ resource, showTags, showOwners }: { resource: Resource; showTags?: boolean; showOwners?: boolean }) => {
+    const { color, Icon } = getColorAndIconForCollection(resource.collection);
+    const url = buildUrl(`/docs/${resource.collection}/${resource.id}/${resource.version}`);
+    let type = resource.collection.slice(0, -1);
     type = type === 'querie' ? 'query' : type;
 
-    const channels = message.channels || [];
+    const tags = resource.tags || [];
+    const owners = resource.owners || [];
 
     return (
       <tr className="group hover:bg-gray-100">
         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 relative">
-          <a href={url} className="absolute inset-0 z-10" aria-label={`View details for ${message.name}`} />
+          <a href={url} className="absolute inset-0 z-10" aria-label={`View details for ${resource.name}`} />
           <div className="flex items-center gap-2 relative">
             <Icon className={`h-5 w-5 text-${color}-500`} />
-            <span className="group-hover:text-blue-600 break-all">{message.name}</span>
+            <span className="group-hover:text-blue-600 break-all">{resource.name}</span>
           </div>
         </td>
         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 relative">
           <a href={url} className="absolute inset-0 z-10" aria-hidden="true" />
-          <span>v{message.version}</span>
+          <span>v{resource.version}</span>
         </td>
         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 relative">
           <a href={url} className="absolute inset-0 z-10" aria-hidden="true" />
@@ -51,19 +55,36 @@ const MessageRow = memo(
         </td>
         <td className="px-3 py-4 text-sm text-gray-500 relative">
           <a href={url} className="absolute inset-0 z-10" aria-hidden="true" />
-          <span className="line-clamp-2 break-words">{message.summary || '-'}</span>
+          <span className="line-clamp-2 break-words">{resource.summary || resource.description || '-'}</span>
         </td>
-        {showChannels && (
+        {showTags && (
           <td className="px-3 py-4 text-sm text-gray-500 relative">
             <a href={url} className="absolute inset-0 z-10" aria-hidden="true" />
             <div className="flex flex-wrap gap-1">
-              {channels.length > 0
-                ? channels.map((channel, index) => (
+              {tags.length > 0
+                ? tags.map((tag, index) => (
                     <span
-                      key={`${channel.id}-${index}`}
+                      key={`${tag}-${index}`}
                       className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10"
                     >
-                      {channel.id}
+                      {tag}
+                    </span>
+                  ))
+                : '-'}
+            </div>
+          </td>
+        )}
+        {showOwners && (
+          <td className="px-3 py-4 text-sm text-gray-500 relative">
+            <a href={url} className="absolute inset-0 z-10" aria-hidden="true" />
+            <div className="flex flex-wrap gap-1">
+              {owners.length > 0
+                ? owners.map((owner, index) => (
+                    <span
+                      key={`${owner.id || owner.name}-${index}`}
+                      className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10"
+                    >
+                      {owner.name || owner.id}
                     </span>
                   ))
                 : '-'}
@@ -84,10 +105,10 @@ const FilterButton = memo(
     setCurrentPage,
     count,
   }: {
-    type: MessageType;
+    type: ResourceType;
     label: string;
-    typeFilter: MessageType;
-    setTypeFilter: (type: MessageType) => void;
+    typeFilter: ResourceType;
+    setTypeFilter: (type: ResourceType) => void;
     setCurrentPage: (page: number) => void;
     count: number;
   }) => (
@@ -107,25 +128,19 @@ const FilterButton = memo(
   )
 );
 
-const MessageTable = (props: MessageTableProps) => {
-  const { receives, sends, collection = 'services', limit, showChannels = false, format = 'all' } = props;
-  const [receivesSearchTerm, setReceivesSearchTerm] = useState('');
-  const [sendsSearchTerm, setSendsSearchTerm] = useState('');
-  const [receivesPage, setReceivesPage] = useState(1);
-  const [sendsPage, setSendsPage] = useState(1);
-  const [receivesTypeFilter, setReceivesTypeFilter] = useState<MessageType>(null);
-  const [sendsTypeFilter, setSendsTypeFilter] = useState<MessageType>(null);
-  const itemsPerPage = limit || 5;
+const ResourceGroupTable = (props: ResourceGroupTableProps) => {
+  const { resources = [], limit, showTags = false, showOwners = false, title, subtitle = 'Resources', description } = props;
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [typeFilter, setTypeFilter] = useState<ResourceType>(null);
+  const itemsPerPage = limit || 10;
 
-  const shouldRenderReceives = format === 'receives' || format === 'all';
-  const shouldRenderSends = format === 'sends' || format === 'all';
-
-  const filterMessages = useCallback((messages: MessageTableMessage[], searchTerm: string, typeFilter: MessageType) => {
-    let filtered = messages;
+  const filterResources = useCallback((resources: Resource[], searchTerm: string, typeFilter: ResourceType) => {
+    let filtered = resources;
 
     if (typeFilter) {
-      filtered = filtered.filter((message) => {
-        const collectionType = message.collection.slice(0, -1);
+      filtered = filtered.filter((resource) => {
+        const collectionType = resource.collection.slice(0, -1);
         const normalizedType = collectionType === 'querie' ? 'query' : collectionType;
         return normalizedType === typeFilter;
       });
@@ -133,14 +148,17 @@ const MessageTable = (props: MessageTableProps) => {
 
     if (searchTerm) {
       const lowerSearchTerm = searchTerm.toLowerCase();
-      filtered = filtered.filter((message) => {
-        const collectionType = message.collection.slice(0, -1);
+      filtered = filtered.filter((resource) => {
+        const collectionType = resource.collection.slice(0, -1);
         const normalizedType = collectionType === 'querie' ? 'query' : collectionType;
 
         return (
-          message.name.toLowerCase().includes(lowerSearchTerm) ||
-          message.summary?.toLowerCase().includes(lowerSearchTerm) ||
-          normalizedType.toLowerCase().includes(lowerSearchTerm)
+          resource.name.toLowerCase().includes(lowerSearchTerm) ||
+          resource.summary?.toLowerCase().includes(lowerSearchTerm) ||
+          resource.description?.toLowerCase().includes(lowerSearchTerm) ||
+          normalizedType.toLowerCase().includes(lowerSearchTerm) ||
+          resource.tags?.some((tag) => tag.toLowerCase().includes(lowerSearchTerm)) ||
+          false
         );
       });
     }
@@ -148,80 +166,68 @@ const MessageTable = (props: MessageTableProps) => {
     return filtered;
   }, []);
 
-  const renderTable = (
-    title: string,
-    messages: any[],
-    searchTerm: string,
-    setSearchTerm: (value: string) => void,
-    currentPage: number,
-    setCurrentPage: (page: number) => void,
-    typeFilter: MessageType,
-    setTypeFilter: (type: MessageType) => void
-  ) => {
-    const filteredMessages = useMemo(
-      () => filterMessages(messages, searchTerm, typeFilter),
-      [messages, searchTerm, typeFilter, filterMessages]
-    );
+  const filteredResources = useMemo(
+    () => filterResources(resources, searchTerm, typeFilter),
+    [resources, searchTerm, typeFilter, filterResources]
+  );
 
-    const totalPages = Math.ceil(filteredMessages.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedMessages = useMemo(
-      () => filteredMessages.slice(startIndex, startIndex + itemsPerPage),
-      [filteredMessages, startIndex, itemsPerPage]
-    );
+  const totalPages = Math.ceil(filteredResources.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedResources = useMemo(
+    () => filteredResources.slice(startIndex, startIndex + itemsPerPage),
+    [filteredResources, startIndex, itemsPerPage]
+  );
 
-    // Get unique message types and their counts
-    const messageTypeCounts = useMemo(() => {
-      const counts = new Map<MessageType, number>();
-      messages.forEach((message) => {
-        const collectionType = message.collection.slice(0, -1);
-        const normalizedType = (collectionType === 'querie' ? 'query' : collectionType) as MessageType;
-        counts.set(normalizedType, (counts.get(normalizedType) || 0) + 1);
-      });
-      return counts;
-    }, [messages]);
+  // Get unique resource types and their counts
+  const resourceTypeCounts = useMemo(() => {
+    const counts = new Map<ResourceType, number>();
+    resources.forEach((resource) => {
+      const collectionType = resource.collection.slice(0, -1);
+      const normalizedType = (collectionType === 'querie' ? 'query' : collectionType) as ResourceType;
+      counts.set(normalizedType, (counts.get(normalizedType) || 0) + 1);
+    });
+    return counts;
+  }, [resources]);
 
-    const availableTypes = useMemo(
-      () =>
-        Array.from(
-          new Set(
-            messages.map((message) => {
-              const collectionType = message.collection.slice(0, -1);
-              return collectionType === 'querie' ? 'query' : collectionType;
-            })
-          )
-        ) as MessageType[],
-      [messages]
-    );
+  const availableTypes = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          resources.map((resource) => {
+            const collectionType = resource.collection.slice(0, -1);
+            return collectionType === 'querie' ? 'query' : collectionType;
+          })
+        )
+      ) as ResourceType[],
+    [resources]
+  );
 
-    const filterButtons = useMemo(
-      () =>
-        [
-          { type: 'event' as MessageType, label: 'Events' },
-          { type: 'query' as MessageType, label: 'Queries' },
-          { type: 'command' as MessageType, label: 'Commands' },
-        ]
-          .filter((button) => availableTypes.includes(button.type))
-          .map((button) => ({
-            ...button,
-            count: messageTypeCounts.get(button.type) || 0,
-          })),
-      [availableTypes, messageTypeCounts]
-    );
+  const filterButtons = useMemo(
+    () =>
+      availableTypes
+        .filter((type): type is NonNullable<ResourceType> => type !== null)
+        .map((type) => ({
+          type,
+          // Format the label to be capitalized and pluralized if needed
+          label: type.charAt(0).toUpperCase() + type.slice(1) + (type.endsWith('s') ? '' : 's'),
+          count: resourceTypeCounts.get(type) || 0,
+        })),
+    [availableTypes, resourceTypeCounts]
+  );
 
-    return (
-      <div className="flow-root bg-white border-gray-200 border  p-4 pb-2 rounded-lg text-gray-900">
+  return (
+    <div className="mx-auto not-prose py-4 space-y-4 my-4">
+      {title && <h2 className="text-2xl font-semibold">{title}</h2>}
+      <div className="flow-root bg-white border-gray-200 border p-4 pb-2 rounded-lg text-gray-900">
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">
-            {title} ({searchTerm || typeFilter ? `${filteredMessages.length}/${messages.length}` : messages.length})
+            {subtitle} ({searchTerm || typeFilter ? `${filteredResources.length}/${resources.length}` : resources.length})
           </h2>
-          <span className="text-sm text-gray-700">
-            Quickly find the message you need by searching for the name, type, or summary.
-          </span>
+          <span className="text-sm text-gray-700">{description}</span>
 
           {/* Type filter buttons - only shown if there are filter options */}
           {filterButtons.length > 0 && (
-            <div className="flex gap-2 pb-2">
+            <div className="flex gap-2 pb-2 flex-wrap">
               {filterButtons.map((button) => (
                 <FilterButton
                   key={button.type}
@@ -253,7 +259,7 @@ const MessageTable = (props: MessageTableProps) => {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1); // Reset to first page when searching
               }}
-              placeholder={`Search by name, type, or summary...`}
+              placeholder="Search by name, type, description, or tags..."
               className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
             />
             {searchTerm && (
@@ -275,12 +281,12 @@ const MessageTable = (props: MessageTableProps) => {
         <div className="overflow-x-auto">
           <div className="inline-block min-w-full py-2 align-middle">
             <div className="max-w-full overflow-hidden">
-              <table className="min-w-full table-fixed divide-y divide-gray-300  rounded-sm bg-white ">
+              <table className="min-w-full table-fixed divide-y divide-gray-300 rounded-sm bg-white">
                 <thead>
                   <tr>
                     <th
                       scope="col"
-                      className={`${showChannels ? 'w-1/4' : 'w-1/3'} py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6`}
+                      className={`${showTags || showOwners ? 'w-1/5' : 'w-1/4'} py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6`}
                     >
                       Name
                     </th>
@@ -292,31 +298,39 @@ const MessageTable = (props: MessageTableProps) => {
                     </th>
                     <th
                       scope="col"
-                      className={`${showChannels ? 'w-1/3' : 'w-1/2'} px-3 py-3.5 text-left text-sm font-semibold text-gray-900`}
+                      className={`${showTags && showOwners ? 'w-1/4' : showTags || showOwners ? 'w-1/3' : 'w-1/2'} px-3 py-3.5 text-left text-sm font-semibold text-gray-900`}
                     >
-                      Summary
+                      Description
                     </th>
-                    {showChannels && (
-                      <th scope="col" className="w-1/4 px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Channels
+                    {showTags && (
+                      <th scope="col" className="w-1/6 px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Tags
+                      </th>
+                    )}
+                    {showOwners && (
+                      <th scope="col" className="w-1/6 px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Owners
                       </th>
                     )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {paginatedMessages.length > 0 ? (
-                    paginatedMessages.map((message) => (
-                      <MessageRow
-                        key={message.id}
-                        message={message}
-                        showChannels={showChannels}
-                        collection={message.collection}
+                  {paginatedResources.length > 0 ? (
+                    paginatedResources.map((resource) => (
+                      <ResourceRow
+                        key={`${resource.collection}-${resource.id}-${resource.version}`}
+                        resource={resource}
+                        showTags={showTags}
+                        showOwners={showOwners}
                       />
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={showChannels ? 5 : 4} className="text-center py-4 text-sm text-gray-500">
-                        No messages found
+                      <td
+                        colSpan={showTags && showOwners ? 6 : showTags || showOwners ? 5 : 4}
+                        className="text-center py-4 text-sm text-gray-500"
+                      >
+                        No resources found
                       </td>
                     </tr>
                   )}
@@ -347,8 +361,8 @@ const MessageTable = (props: MessageTableProps) => {
               <div>
                 <p className="text-sm text-gray-700">
                   Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
-                  <span className="font-medium">{Math.min(startIndex + itemsPerPage, filteredMessages.length)}</span> of{' '}
-                  <span className="font-medium">{filteredMessages.length}</span> results
+                  <span className="font-medium">{Math.min(startIndex + itemsPerPage, filteredResources.length)}</span> of{' '}
+                  <span className="font-medium">{filteredResources.length}</span> results
                 </p>
               </div>
               <div>
@@ -387,44 +401,8 @@ const MessageTable = (props: MessageTableProps) => {
           </div>
         )}
       </div>
-    );
-  };
-
-  return (
-    <div className={`mx-auto not-prose py-4  space-y-4  my-4`}>
-      <h2 className="text-2xl font-semibold">Messages for this {collection.slice(0, -1)}</h2>
-      <div>
-        {shouldRenderSends && (
-          <div>
-            {renderTable(
-              'Sends messages',
-              sends || [],
-              sendsSearchTerm,
-              setSendsSearchTerm,
-              sendsPage,
-              setSendsPage,
-              sendsTypeFilter,
-              setSendsTypeFilter
-            )}
-          </div>
-        )}
-        {shouldRenderReceives && (
-          <div className={format === 'all' ? 'pt-4' : ''}>
-            {renderTable(
-              'Receives messages',
-              receives || [],
-              receivesSearchTerm,
-              setReceivesSearchTerm,
-              receivesPage,
-              setReceivesPage,
-              receivesTypeFilter,
-              setReceivesTypeFilter
-            )}
-          </div>
-        )}
-      </div>
     </div>
   );
 };
 
-export default MessageTable;
+export default ResourceGroupTable;

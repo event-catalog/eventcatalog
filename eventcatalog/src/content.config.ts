@@ -35,6 +35,12 @@ const channelPointer = z
   })
   .merge(pointer);
 
+const resourcePointer = z.object({
+  id: z.string(),
+  version: z.string().optional().default('latest'),
+  type: z.enum(['service', 'event', 'command', 'query', 'flow', 'channel', 'domain', 'user', 'team']),
+});
+
 const changelogs = defineCollection({
   loader: glob({
     pattern: ['**/changelog.(md|mdx)'],
@@ -87,6 +93,17 @@ const baseSchema = z.object({
     })
     .optional(),
   hidden: z.boolean().optional(),
+  resourceGroups: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        title: z.string().optional(),
+        items: z.array(resourcePointer),
+        limit: z.number().optional().default(10),
+        sidebar: z.boolean().optional().default(true),
+      })
+    )
+    .optional(),
   // Used by eventcatalog
   versions: z.array(z.string()).optional(),
   latestVersion: z.string().optional(),
