@@ -1,0 +1,34 @@
+---
+import { buildUrl } from '@utils/url-builder';
+
+const resourceToCollectionMap = {
+  service: 'services',
+  event: 'events',
+  command: 'commands',
+  query: 'queries',
+  domain: 'domains',
+  flow: 'flows',
+  channel: 'channels',
+  user: 'users',
+  team: 'teams',
+} as const;
+
+const { id, version, type } = Astro.props;
+const collection = resourceToCollectionMap[type as keyof typeof resourceToCollectionMap];
+---
+
+{
+  version && (
+    <a href={buildUrl(`/docs/${collection}/${id}/${version}`)} class="text-purple-500 hover:text-purple-700">
+      <slot />
+    </a>
+  )
+}
+
+{
+  !version && (
+    <a href={buildUrl(`/docs/${collection}/${id}`)} class="text-purple-500 hover:text-purple-700">
+      <slot />
+    </a>
+  )
+}

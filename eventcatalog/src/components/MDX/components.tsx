@@ -16,7 +16,8 @@ import MessageTable from '@components/MDX/MessageTable/MessageTable.astro';
 import ResourceGroupTable from '@components/MDX/ResourceGroupTable/ResourceGroupTable.astro';
 import Tabs from '@components/MDX/Tabs/Tabs.astro';
 import TabItem from '@components/MDX/Tabs/TabItem.astro';
-
+import ResourceLink from '@components/MDX/ResourceLink/ResourceLink.astro';
+import Link from '@components/MDX/Link/Link.astro';
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
@@ -26,23 +27,25 @@ const components = (props: any) => {
   return {
     Accordion,
     AccordionGroup,
-    Flow,
-    OpenAPI,
+    Admonition,
     AsyncAPI,
-    Tile,
-    Tiles,
+    ChannelInformation: (mdxProp: any) => ChannelInformation({ ...props.data, ...mdxProp }),
+    File: (mdxProp: any) => File({ ...props, ...mdxProp }),
+    Flow,
+    Link: (mdxProp: any) => jsx(Link, { ...props, ...mdxProp }),
+    MessageTable: (mdxProp: any) => jsx(MessageTable, { ...props, ...mdxProp }),
+    NodeGraph: (mdxProp: any) => NodeGraphPortal({ ...props.data, ...mdxProp }),
+    OpenAPI,
+    ResourceGroupTable: (mdxProp: any) => jsx(ResourceGroupTable, { ...props, ...mdxProp }),
+    ResourceLink: (mdxProp: any) => jsx(ResourceLink, { ...props, ...mdxProp }),
+    Schema: (mdxProp: any) => jsx(Schema, { ...props, ...mdxProp }),
+    SchemaViewer: (mdxProp: any) => SchemaViewerPortal({ ...props.data, ...mdxProp }),
     Step,
     Steps,
-    Tabs,
     TabItem,
-    Admonition,
-    File: (mdxProp: any) => File({ ...props, ...mdxProp }),
-    NodeGraph: (mdxProp: any) => NodeGraphPortal({ ...props.data, ...mdxProp }),
-    ChannelInformation: (mdxProp: any) => ChannelInformation({ ...props.data, ...mdxProp }),
-    SchemaViewer: (mdxProp: any) => SchemaViewerPortal({ ...props.data, ...mdxProp }),
-    Schema: (mdxProp: any) => jsx(Schema, { ...props, ...mdxProp }),
-    MessageTable: (mdxProp: any) => jsx(MessageTable, { ...props, ...mdxProp }),
-    ResourceGroupTable: (mdxProp: any) => jsx(ResourceGroupTable, { ...props, ...mdxProp }),
+    Tabs,
+    Tile,
+    Tiles,
   };
 };
 
