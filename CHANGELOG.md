@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.33.0
+
+### Minor Changes
+
+- ca07ee5: feat(core): updated custom pages logic
+
 ## 2.32.2
 
 ### Patch Changes
