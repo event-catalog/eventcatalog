@@ -12,7 +12,7 @@ import { watch } from './watcher';
 import { catalogToAstro, checkAndConvertMdToMdx } from './catalog-to-astro-content-directory';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
 import boxen from 'boxen';
-import { isBackstagePluginEnabled, isEventCatalogProEnabled } from './features';
+import { isBackstagePluginEnabled, isEventCatalogStarterEnabled, isEventCatalogScaleEnabled } from './features';
 import updateNotifier from 'update-notifier';
 import stream from 'stream';
 
@@ -133,7 +133,8 @@ program
 
     // Check if backstage is enabled
     const canEmbedPages = await isBackstagePluginEnabled();
-    const isEventCatalogPro = await isEventCatalogProEnabled();
+    const isEventCatalogStarter = await isEventCatalogStarterEnabled();
+    const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
     // is there an eventcatalog update to install?
     checkForUpdate();
@@ -156,7 +157,8 @@ program
               PROJECT_DIR: dir,
               CATALOG_DIR: core,
               ENABLE_EMBED: canEmbedPages,
-              EVENTCATALOG_PRO: isEventCatalogPro,
+              EVENTCATALOG_STARTER: isEventCatalogStarter,
+              EVENTCATALOG_SCALE: isEventCatalogScale,
             },
           },
         ],
@@ -192,9 +194,14 @@ program
 
     // Check if backstage is enabled
     const canEmbedPages = await isBackstagePluginEnabled();
-    const isEventCatalogPro = await isEventCatalogProEnabled();
+    const isEventCatalogStarter = await isEventCatalogStarterEnabled();
+    const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
-    await logBuild(dir, { isEventCatalogProEnabled: isEventCatalogPro, isBackstagePluginEnabled: canEmbedPages });
+    await logBuild(dir, {
+      isEventCatalogStarterEnabled: isEventCatalogStarter,
+      isEventCatalogScaleEnabled: isEventCatalogScale,
+      isBackstagePluginEnabled: canEmbedPages,
+    });
 
     await resolveCatalogDependencies(dir, core);
 
@@ -212,7 +219,7 @@ program
     const buildCommand = process.platform === 'win32' ? windowsCommand : unixCommand;
 
     execSync(
-      `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_PRO=${isEventCatalogPro} ${buildCommand}`,
+      `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} ${buildCommand}`,
       {
         cwd: core,
         stdio: 'inherit',
@@ -223,14 +230,16 @@ program
 const previewCatalog = ({
   command,
   canEmbedPages = false,
-  isEventCatalogPro = false,
+  isEventCatalogStarter = false,
+  isEventCatalogScale = false,
 }: {
   command: Command;
   canEmbedPages: boolean;
-  isEventCatalogPro: boolean;
+  isEventCatalogStarter: boolean;
+  isEventCatalogScale: boolean;
 }) => {
   execSync(
-    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_PRO=${isEventCatalogPro} npx astro preview ${command.args.join(' ').trim()}`,
+    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} npx astro preview ${command.args.join(' ').trim()}`,
     {
       cwd: core,
       stdio: 'inherit',
@@ -244,8 +253,9 @@ program
   .action(async (options, command: Command) => {
     console.log('Starting preview of your build...');
     const canEmbedPages = await isBackstagePluginEnabled();
-    const isEventCatalogPro = await isEventCatalogProEnabled();
-    previewCatalog({ command, canEmbedPages, isEventCatalogPro });
+    const isEventCatalogStarter = await isEventCatalogStarterEnabled();
+    const isEventCatalogScale = await isEventCatalogScaleEnabled();
+    previewCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
   });
 
 program
@@ -254,8 +264,9 @@ program
   .action(async (options, command: Command) => {
     console.log('Starting preview of your build...');
     const canEmbedPages = await isBackstagePluginEnabled();
-    const isEventCatalogPro = await isEventCatalogProEnabled();
-    previewCatalog({ command, canEmbedPages, isEventCatalogPro });
+    const isEventCatalogStarter = await isEventCatalogStarterEnabled();
+    const isEventCatalogScale = await isEventCatalogScaleEnabled();
+    previewCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
   });
 
 program

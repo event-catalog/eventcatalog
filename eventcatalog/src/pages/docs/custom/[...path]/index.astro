@@ -3,13 +3,7 @@ import CustomDocumentationPage from '@enterprise/custom-documentation/pages/docs
 import { getCollection } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
 import type { GetStaticPaths } from 'astro';
-import { isEventCatalogProEnabled } from '@utils/feature';
-import path from 'node:path';
-import fs from 'node:fs';
-
-const PROJECT_DIR = path.resolve(process.env.PROJECT_DIR || process.cwd());
-const CUSTOM_DOCS_DIR = path.resolve(PROJECT_DIR, 'docs/');
-const directoryExists = fs.existsSync(CUSTOM_DOCS_DIR);
+import { isCustomDocsEnabled } from '@utils/feature';
 
 export const getStaticPaths = (async () => {
   const docs = await getCollection('customPages');
@@ -22,8 +16,8 @@ export const getStaticPaths = (async () => {
 
 const props = Astro.props;
 
-if (!isEventCatalogProEnabled()) {
-  return Astro.redirect('/docs/custom');
+if (!isCustomDocsEnabled()) {
+  return Astro.redirect(buildUrl('/docs/custom/feature'));
 }
 ---
 

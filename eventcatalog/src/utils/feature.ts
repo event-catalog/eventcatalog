@@ -1,5 +1,21 @@
-// manually setting this value to true is against the rules and licenses of the open source project
-// WARNING: Setting this value manually to true without a valid license is against the terms of use.
-// If you require EventCatalog Pro features, please visit https://www.eventcatalog.dev/pricing
-// to purchase a license. Unauthorized use may violate the project's license agreement.
-export const isEventCatalogProEnabled = () => process.env.EVENTCATALOG_PRO === 'true';
+/**
+ * ⚠️ WARNING: IMPORTANT LICENSE NOTICE ⚠️
+ *
+ * Manually setting environment variables (EVENTCATALOG_STARTER or EVENTCATALOG_SCALE) to 'true'
+ * or modifying these functions without a valid license is strictly prohibited and constitutes
+ * a violation of EventCatalog's terms of use and license agreement.
+ *
+ * To access premium features legally:
+ * 1. Visit https://www.eventcatalog.dev/pricing
+ * 2. Purchase an appropriate license
+ * 3. Follow the official activation instructions
+ */
+
+// These functions check for valid, legally obtained access to premium features
+export const isEventCatalogStarterEnabled = () => process.env.EVENTCATALOG_STARTER === 'true';
+export const isEventCatalogScaleEnabled = () => process.env.EVENTCATALOG_SCALE === 'true';
+
+export const isCustomDocsEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
+export const isEventCatalogChatEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
+
+export const isEventCatalogUpgradeEnabled = () => !isEventCatalogStarterEnabled() && !isEventCatalogScaleEnabled();

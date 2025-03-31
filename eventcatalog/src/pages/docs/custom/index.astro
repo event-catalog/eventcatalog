@@ -1,7 +1,7 @@
 ---
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { Code } from 'astro-expressive-code/components';
-import { isEventCatalogProEnabled } from '@utils/feature';
+import { isCustomDocsEnabled } from '@utils/feature';
 
 // Example for folder structure
 const folderStructureExample = `my-catalog/
@@ -92,6 +92,10 @@ module.exports = {
     ]
   }
 }`;
+
+if (!isCustomDocsEnabled()) {
+  return Astro.redirect('/docs/custom/feature');
+}
 ---
 
 <VerticalSideBarLayout title="Custom Documentation">
@@ -121,7 +125,7 @@ module.exports = {
               Read documentation &rarr;
             </a>
             {
-              !isEventCatalogProEnabled() && (
+              !isCustomDocsEnabled() && (
                 <a
                   href="https://www.eventcatalog.dev/pro/trial"
                   class="inline-flex items-center justify-center px-5 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800 shadow-sm"

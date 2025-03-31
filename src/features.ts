@@ -61,8 +61,8 @@ export const isBackstagePluginEnabled = async (licenseKey?: string) => {
   return true;
 };
 
-export const isEventCatalogProEnabled = async (licenseKey?: string) => {
-  const LICENSE_KEY = process.env.EVENTCATALOG_PRO_LICENSE_KEY || null;
+export const isEventCatalogScaleEnabled = async (licenseKey?: string) => {
+  const LICENSE_KEY = process.env.EVENTCATALOG_SCALE_LICENSE_KEY || null;
 
   if (!LICENSE_KEY) {
     return false;
@@ -79,7 +79,7 @@ export const isEventCatalogProEnabled = async (licenseKey?: string) => {
 
   if (response.status !== 200) {
     console.log(
-      '\nTried to verify your EventCatalog Pro license but it is not valid. Please check your license key or purchase a license at https://eventcatalog.cloud/\n'
+      '\nTried to verify your EventCatalog Scale plan, but your license key is not valid. Please check your license key or purchase a license at https://eventcatalog.cloud/\n'
     );
     return false;
   }
@@ -87,17 +87,17 @@ export const isEventCatalogProEnabled = async (licenseKey?: string) => {
   if (response.status === 200) {
     const data = (await response.json()) as LicenseResponse;
 
-    if ('@eventcatalog/eventcatalog-pro' !== data.plugin) {
+    if ('@eventcatalog/eventcatalog-scale' !== data.plugin) {
       console.log(
-        '\nInvalid license key for EventCatalog Pro, please check your license key or purchase a license at https://eventcatalog.cloud/\n'
+        '\nInvalid license key for EventCatalog Scale plan, please check your license key or purchase a license at https://eventcatalog.cloud/\n'
       );
       return false;
     }
 
-    let message = 'EventCatalog Pro is enabled for EventCatalog';
+    let message = 'EventCatalog Scale plan is enabled for EventCatalog';
 
     if (data.is_trial) {
-      message += '\nYou are using a trial license for EventCatalog Pro.';
+      message += '\nYou are using a trial license for EventCatalog Scale plan.';
     }
 
     console.log(
@@ -105,7 +105,59 @@ export const isEventCatalogProEnabled = async (licenseKey?: string) => {
         padding: 1,
         margin: 1,
         borderColor: 'green',
-        title: '@eventcatalog/eventcatalog-pro',
+        title: '@eventcatalog/eventcatalog-scale',
+        titleAlignment: 'center',
+      })
+    );
+  }
+
+  return true;
+};
+export const isEventCatalogStarterEnabled = async (licenseKey?: string) => {
+  const LICENSE_KEY = process.env.EVENTCATALOG_STARTER_LICENSE_KEY || null;
+
+  if (!LICENSE_KEY) {
+    return false;
+  }
+
+  // Verify the license key
+  const response = await fetch('https://api.eventcatalog.cloud/functions/v1/license', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${LICENSE_KEY}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (response.status !== 200) {
+    console.log(
+      '\nTried to verify your EventCatalog Starter plan, but your license key is not valid. Please check your license key or purchase a license at https://eventcatalog.cloud/\n'
+    );
+    return false;
+  }
+
+  if (response.status === 200) {
+    const data = (await response.json()) as LicenseResponse;
+
+    if ('@eventcatalog/eventcatalog-starter' !== data.plugin) {
+      console.log(
+        '\nInvalid license key for EventCatalog Starter plan, please check your license key or purchase a license at https://eventcatalog.cloud/\n'
+      );
+      return false;
+    }
+
+    let message = 'EventCatalog Starter plan is enabled for EventCatalog';
+
+    if (data.is_trial) {
+      message += '\nYou are using a trial license for EventCatalog Starter Plan.';
+    }
+
+    console.log(
+      boxen(message, {
+        padding: 1,
+        margin: 1,
+        borderColor: 'green',
+        title: '@eventcatalog/eventcatalog-starter',
         titleAlignment: 'center',
       })
     );
