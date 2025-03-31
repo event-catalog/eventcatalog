@@ -90,66 +90,6 @@ const Sidebar: React.FC<{}> = () => {
 
         {/* Beta Message */}
         <div className="p-4 text-xs text-gray-500 border-t border-gray-200">
-          <div className="flex items-center justify-between mb-2">
-            <p className="font-bold">This feature is currently in beta.</p>
-            <Dialog.Root open={showHelp} onOpenChange={setShowHelp}>
-              <Dialog.Trigger asChild>
-                <button title="Help" className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </button>
-              </Dialog.Trigger>
-              <Dialog.Portal>
-                <Dialog.Overlay className="fixed inset-0 bg-black/50 z-40" />
-                <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg z-50 p-6 w-[600px] max-h-[85vh] overflow-y-auto">
-                  <Dialog.Title className="text-lg font-semibold text-gray-900 mb-4">
-                    Welcome to the EventCatalog AI Assistant
-                  </Dialog.Title>
-                  <div className="text-sm text-gray-600 space-y-4">
-                    <p>
-                      This is your private AI assistant for EventCatalog. All conversations are stored locally and your data
-                      remains completely private.
-                    </p>
-                    <p>Key features:</p>
-                    <ul className="list-disc pl-4 space-y-2">
-                      <li>Local-first: All conversations are stored on your device only</li>
-                      <li>Privacy-focused: Your data is never shared with external servers</li>
-                      <li>Persistent chat history: Access your previous conversations anytime</li>
-                      <li>Multiple sessions: Organize different topics in separate chats</li>
-                    </ul>
-
-                    <div className="mt-6">
-                      <p className="font-medium mb-2">Example prompts you can try:</p>
-                      <ul className="list-disc pl-4 space-y-2 bg-gray-50 p-4 rounded-lg">
-                        <li>"I want to create a new feature, what events do we have related to Payments?"</li>
-                        <li>"What domains do we have and who owns them?"</li>
-                        <li>"What are the events for the X domain?"</li>
-                        <li>"Create me a code snippet for this event"</li>
-                      </ul>
-                    </div>
-
-                    <p className="mt-4">For additional support or feature requests, please join our Discord community.</p>
-                  </div>
-                  <Dialog.Close asChild>
-                    <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-600" aria-label="Close">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path
-                          fillRule="evenodd"
-                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                  </Dialog.Close>
-                </Dialog.Content>
-              </Dialog.Portal>
-            </Dialog.Root>
-          </div>
           <p>
             Have issues or ideas? Let us know on{' '}
             <a
@@ -160,7 +100,65 @@ const Sidebar: React.FC<{}> = () => {
             >
               Discord
             </a>
-            .
+            <div className="inline-block">
+              <Dialog.Root open={showHelp} onOpenChange={setShowHelp}>
+                <Dialog.Trigger asChild>
+                  <button title="Help" className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                </Dialog.Trigger>
+                <Dialog.Portal>
+                  <Dialog.Overlay className="fixed inset-0 bg-black/50 z-40" />
+                  <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg z-50 p-6 w-[600px] max-h-[85vh] overflow-y-auto">
+                    <Dialog.Title className="text-lg font-semibold text-gray-900 mb-4">
+                      Welcome to the EventCatalog AI Assistant
+                    </Dialog.Title>
+                    <div className="text-sm text-gray-600 space-y-4">
+                      <p>
+                        This is your private AI assistant for EventCatalog. All conversations are stored locally and your data
+                        remains completely private.
+                      </p>
+                      <p>Key features:</p>
+                      <ul className="list-disc pl-4 space-y-2">
+                        <li>Local-first: All conversations are stored on your device only</li>
+                        <li>Privacy-focused: Your data is never shared with external servers</li>
+                        <li>Persistent chat history: Access your previous conversations anytime</li>
+                        <li>Multiple sessions: Organize different topics in separate chats</li>
+                      </ul>
+
+                      <div className="mt-6">
+                        <p className="font-medium mb-2">Example prompts you can try:</p>
+                        <ul className="list-disc pl-4 space-y-2 bg-gray-50 p-4 rounded-lg">
+                          <li>"I want to create a new feature, what events do we have related to Payments?"</li>
+                          <li>"What domains do we have and who owns them?"</li>
+                          <li>"What are the events for the X domain?"</li>
+                          <li>"Create me a code snippet for this event"</li>
+                        </ul>
+                      </div>
+
+                      <p className="mt-4">For additional support or feature requests, please join our Discord community.</p>
+                    </div>
+                    <Dialog.Close asChild>
+                      <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-600" aria-label="Close">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path
+                            fillRule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    </Dialog.Close>
+                  </Dialog.Content>
+                </Dialog.Portal>
+              </Dialog.Root>
+            </div>
           </p>
         </div>
       </div>

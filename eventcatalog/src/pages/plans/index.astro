@@ -1,0 +1,292 @@
+---
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import {
+  Rocket,
+  Users,
+  Bot,
+  ScrollText,
+  Component,
+  Cpu,
+  Code,
+  LifeBuoy,
+  ExternalLink,
+  Network,
+  Github,
+  Flag,
+} from 'lucide-react';
+---
+
+<VerticalSideBarLayout title="EventCatalog Pro">
+  <div class="min-h-[calc(100vh-60px)] bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      {/* Hero Section */}
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
+        <div>
+          <div class="inline-flex items-center px-4 py-2 rounded-full bg-purple-100 text-purple-700 font-medium text-sm mb-6">
+            <Rocket className="w-4 h-4 mr-2" />
+            Upgrade your Catalog
+          </div>
+          <h1 class="text-4xl font-bold text-gray-900 tracking-tight mb-4">Supercharge your EventCatalog</h1>
+          <p class="text-xl text-gray-600 mb-8">
+            Unlock advanced features like automated docs (e.g OpenAPI, AsyncAPI), Custom documentation, AI assistant, and catalog
+            federation — all designed to help you scale without complexity.
+          </p>
+
+          {/* Integration Sources */}
+          <div class="mb-8">
+            <p class="text-sm font-medium text-gray-500 mb-4">Generate documentation from:</p>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <a
+                href="https://www.eventcatalog.dev/integrations/openapi"
+                class="flex items-center space-x-2 bg-gray-50 rounded-lg px-4 py-2 hover:bg-gray-100 transition-colors duration-150"
+              >
+                <img src="/icons/openapi.svg" alt="OpenAPI" class="w-6 h-6" />
+                <span class="text-sm font-medium">OpenAPI</span>
+              </a>
+              <a
+                href="https://www.eventcatalog.dev/integrations/asyncapi"
+                class="flex items-center space-x-2 bg-gray-50 rounded-lg px-4 py-2 hover:bg-gray-100 transition-colors duration-150"
+              >
+                <img src="/icons/asyncapi.svg" alt="AsyncAPI" class="w-6 h-6" />
+                <span class="text-sm font-medium">AsyncAPI</span>
+              </a>
+              <a
+                href="https://www.eventcatalog.dev/integrations"
+                class="flex items-center space-x-2 bg-gray-50 rounded-lg px-4 py-2 hover:bg-gray-100 transition-colors duration-150"
+              >
+                <Component className="w-6 h-6 text-purple-600" />
+                <span class="text-sm font-medium">And more...</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-4 mb-8">
+            <a
+              href="https://www.eventcatalog.cloud"
+              target="_blank"
+              class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-purple-600 hover:bg-purple-700 transition-colors duration-150"
+            >
+              Try for free
+              <svg class="ml-2 w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path
+                  fill-rule="evenodd"
+                  d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                  clip-rule="evenodd"></path>
+              </svg>
+            </a>
+            <a
+              href="https://www.eventcatalog.dev"
+              target="_blank"
+              class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-150"
+            >
+              View documentation
+            </a>
+          </div>
+          <p class="text-sm text-gray-500">Try free for 14 days, no credit card required</p>
+        </div>
+
+        <div class="relative">
+          <img
+            src="/images/eventcatalog-upgrade.png"
+            alt="EventCatalog Pro"
+            class="w-full rounded-xl shadow-lg border border-gray-200"
+          />
+        </div>
+      </div>
+
+      {/* Why upgrade section */}
+      <div class="mb-16">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-8">Why upgrade EventCatalog?</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+              <ScrollText className="w-6 h-6 text-purple-600" />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">A living source of truth</h3>
+            <p class="text-gray-600">Keep docs in sync with your systems, ensuring your team always has accurate information.</p>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+              <Users className="w-6 h-6 text-purple-600" />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Shared system understanding</h3>
+            <p class="text-gray-600">Align teams and reduce tribal knowledge with centralized architecture documentation.</p>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+              <Component className="w-6 h-6 text-purple-600" />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Architecture that scales</h3>
+            <p class="text-gray-600">Grow without losing context of complexity, making architectural decisions easy to find.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Documentation Journey Section */}
+      <div class="mb-16">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-4">Scales with your team and architecture</h2>
+        <p class="text-gray-600 mb-8 max-w-3xl">
+          From scattered documentation to a well-governed system, EventCatalog helps you control complexity with well governed
+          documentation for your teams. Choose the plan that fits your needs.
+        </p>
+
+        <div class="relative py-8">
+          {/* Journey Line */}
+          <div class="absolute top-1/2 left-0 w-full h-1 bg-purple-200 transform -translate-y-1/2 hidden md:block"></div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
+            {/* Stage 1 */}
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 relative">
+              <div
+                class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4 mx-auto md:absolute md:-top-6 md:left-1/2 md:transform md:-translate-x-1/2"
+              >
+                <Github className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 text-center">Community Edition</h3>
+              <p class="text-gray-600 text-sm text-center">You're just beginning to document services, domains, and events.</p>
+            </div>
+
+            {/* Stage 2 */}
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 relative">
+              <div
+                class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4 mx-auto md:absolute md:-top-6 md:left-1/2 md:transform md:-translate-x-1/2"
+              >
+                <Flag className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 text-center">Starter Plan</h3>
+              <p class="text-gray-600 text-sm text-center">For teams formalizing their architecture documentation</p>
+            </div>
+
+            {/* Stage 3 */}
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 relative">
+              <div
+                class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4 mx-auto md:absolute md:-top-6 md:left-1/2 md:transform md:-translate-x-1/2"
+              >
+                <Network className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 text-center">Scale Plan</h3>
+              <p class="text-gray-600 text-sm text-center">
+                Built for teams scaling across domains and integrating with external systems
+              </p>
+            </div>
+
+            {/* Stage 4 */}
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 relative">
+              <div
+                class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-4 mx-auto md:absolute md:-top-6 md:left-1/2 md:transform md:-translate-x-1/2"
+              >
+                <Rocket className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2 text-center">Enterprise Plan</h3>
+              <p class="text-gray-600 text-sm text-center">
+                Designed for organizations building and governing complex event platforms
+              </p>
+            </div>
+          </div>
+
+          {/* Mobile Progress Indicators */}
+          <div class="flex justify-center items-center space-x-2 mt-4 md:hidden">
+            <div class="w-2 h-2 rounded-full bg-purple-600"></div>
+            <div class="w-2 h-2 rounded-full bg-purple-400"></div>
+            <div class="w-2 h-2 rounded-full bg-purple-300"></div>
+            <div class="w-2 h-2 rounded-full bg-purple-200"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <div class="mb-16">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-8">Save time with EventCatalog</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+              <ScrollText className="w-6 h-6 text-blue-600" />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Custom Documentation</h3>
+            <p class="text-gray-600">Add ADRs, runbooks, and technical guidelines to create a centralized knowledge hub.</p>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+              <Bot className="w-6 h-6 text-green-600" />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">AI Assistant</h3>
+            <p class="text-gray-600">Chat with your catalog to quickly find information about your architecture.</p>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+              <Component className="w-6 h-6 text-purple-600" />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Federation</h3>
+            <p class="text-gray-600">Connect multiple catalogs into a unified view for centralized visibility across teams.</p>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+              <Code className="w-6 h-6 text-indigo-600" />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">IDE Integration</h3>
+            <p class="text-gray-600">Access EventCatalog directly from your IDE for seamless documentation while coding.</p>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
+              <Cpu className="w-6 h-6 text-yellow-600" />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Automated Documentation</h3>
+            <p class="text-gray-600">
+              Generate and maintain documentation automatically with integrations for AsyncAPI and OpenAPI.
+            </p>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+              <LifeBuoy className="w-6 h-6 text-red-600" />
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Priority Support</h3>
+            <p class="text-gray-600">Get priority email support and assistance from the EventCatalog team.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Questions Section */}
+      <div class="mt-16">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-8">Questions about EventCatalog?</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Request a Demo</h3>
+            <p class="text-gray-600 mb-4">See EventCatalog in action with a personalized demo from our team.</p>
+            <a
+              href="mailto:hello@eventcatalog.dev"
+              class="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center"
+            >
+              Schedule a demo
+              <ExternalLink className="w-4 h-4 ml-1.5" />
+            </a>
+          </div>
+
+          <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Join the community</h3>
+            <p class="text-gray-600 mb-4">Join our growing community on Discord. Over 1000+ members.</p>
+            <a
+              href="https://discord.gg/3rjaZMmrAm"
+              class="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center"
+            >
+              Join the community
+              <ExternalLink className="w-4 h-4 ml-1.5" />
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</VerticalSideBarLayout>
+
+<style>
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+</style>

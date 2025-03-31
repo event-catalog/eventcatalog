@@ -7,17 +7,15 @@ interface Props {
 
 import {
   BookOpenText,
-  BookText,
   Workflow,
   TableProperties,
   House,
   BookUser,
-  MessageSquare,
   BotMessageSquare,
   Users,
-  Star,
-  BadgeCheck,
   Sparkles,
+  Rocket,
+  FileText,
 } from 'lucide-react';
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
@@ -37,7 +35,6 @@ import { isCollectionVisibleInCatalog } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/queries';
 import { hasLandingPageForDocs } from '@utils/pages';
-import { isEventCatalogProEnabled } from '@utils/feature';
 const events = await getEvents({ getAllVersions: false });
 const commands = await getCommands({ getAllVersions: false });
 const queries = await getQueries({ getAllVersions: false });
@@ -45,6 +42,8 @@ const services = await getServices({ getAllVersions: false });
 const domains = await getDomains({ getAllVersions: false });
 const flows = await getFlows({ getAllVersions: false });
 const customDocs = await getCollection('customPages');
+
+import { isEventCatalogUpgradeEnabled } from '@utils/feature';
 
 const currentPath = Astro.url.pathname;
 
@@ -94,15 +93,6 @@ const navigationItems = [
     sidebar: true,
   },
   {
-    id: '/docs/custom',
-    label: 'Documentation',
-    icon: BookText,
-    href: getDefaultUrl('docs/custom', '/docs/custom'),
-    current: currentPath.includes('/docs/custom'),
-    sidebar: false,
-    hidden: !isEventCatalogProEnabled(),
-  },
-  {
     id: '/visualiser',
     label: 'Visualiser',
     icon: Workflow,
@@ -135,19 +125,35 @@ const navigationItems = [
     sidebar: false,
     hidden: true,
   },
+].filter((item) => {
+  const userSideBarOption = userSideBarConfiguration.find((config: { id: string; visible: boolean }) => config.id === item.id);
+  return userSideBarOption ? userSideBarOption.visible : true;
+});
+
+const premiumFeatures = [
+  {
+    id: '/docs/custom',
+    label: 'Custom Documentation',
+    icon: FileText,
+    href: getDefaultUrl('docs/custom', '/docs/custom'),
+    current: currentPath.includes('/docs/custom'),
+    sidebar: false,
+    isPremium: true,
+  },
   {
     id: '/chat',
-    label: 'AI Assistant',
+    label: 'EventCatalog Chat',
     icon: BotMessageSquare,
     href: buildUrl('/chat'),
     current: currentPath.includes('/chat'),
+    isPremium: true,
   },
 ].filter((item) => {
   const userSideBarOption = userSideBarConfiguration.find((config: { id: string; visible: boolean }) => config.id === item.id);
   return userSideBarOption ? userSideBarOption.visible : true;
 });
 
-const currentNavigationItem = navigationItems.find((item) => item.current);
+const currentNavigationItem = [...navigationItems, ...premiumFeatures].find((item) => item.current);
 const { title, description } = Astro.props;
 
 const showSideBarOnLoad = currentNavigationItem?.sidebar;
@@ -193,38 +199,70 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
                         id={item.id}
                         data-role="nav-item"
                         href={item.href}
-                        class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${item.current ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700' : 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-700 hover:text-white text-gray-700'}`}
+                        class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${
+                          item.current
+                            ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700'
+                            : 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-700 hover:text-white text-gray-700'
+                        }`}
                       >
                         <div class="has-tooltip">
                           <span class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10">
                             {item.label}
                           </span>
-                          <item.icon className="h-6 w-6  " />
+                          <item.icon className="h-6 w-6" />
                         </div>
                       </a>
                     );
                   })
               }
+
+              <hr class="w-8 border-t border-gray-200" />
+
+              {
+                premiumFeatures.map((item) => (
+                  <a
+                    id={item.id}
+                    data-role="nav-item"
+                    href={item.href}
+                    class={`p-1.5 inline-block transition-colors duration-200 rounded-lg mb-8 relative ${
+                      item.current
+                        ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700'
+                        : 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-700 hover:text-white text-gray-700'
+                    }`}
+                  >
+                    <div class="has-tooltip">
+                      <span class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-indigo-500 to-indigo-700 text-white ml-10 flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" /> {item.label}
+                      </span>
+                      <item.icon className="h-6 w-6" />
+                      <div class="absolute -top-1 -right-1 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full p-0.5 shadow-lg">
+                        <Sparkles className="h-2 w-2 text-white" />
+                      </div>
+                    </div>
+                  </a>
+                ))
+              }
             </div>
 
-            {/* Pro link at the bottom */}
-            <div class="mb-4">
-              <a
-                id="/pro"
-                data-role="nav-item"
-                href={buildUrl('/pro')}
-                class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${currentPath.includes('/pro') ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700' : 'bg-gradient-to-r from-purple-100 to-indigo-100 hover:from-purple-500 hover:to-purple-700 hover:text-white text-purple-700'}`}
-              >
-                <div class="has-tooltip">
-                  <span
-                    class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10"
+            {
+              isEventCatalogUpgradeEnabled() && (
+                <div class="mb-4">
+                  <a
+                    id="/pro"
+                    data-role="nav-item"
+                    href={buildUrl('/plans')}
+                    class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${currentPath.includes('/pro') ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700' : 'bg-gradient-to-r from-purple-100 to-indigo-100 hover:from-purple-500 hover:to-purple-700 hover:text-white text-purple-700'}`}
                   >
-                    EventCatalog Pro
-                  </span>
-                  <Sparkles className="h-6 w-6" />
+                    <div class="has-tooltip">
+                      <span class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10">
+                        Upgrade EventCatalog
+                      </span>
+                      <Rocket className="h-6 w-6" />
+                    </div>
+                  </a>
                 </div>
-              </a>
-            </div>
+              )
+            }
           </nav>
         </div>
 
