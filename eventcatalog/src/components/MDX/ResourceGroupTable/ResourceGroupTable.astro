@@ -4,6 +4,7 @@ import { getCollection } from 'astro:content';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 import ResourceGroupTableClient from './ResourceGroupTable.client';
 import Admonition from '../Admonition';
+import { resourceToCollectionMap } from '@utils/collections/util';
 
 export interface Props extends CollectionEntry<'services'> {
   limit?: number;
@@ -30,19 +31,6 @@ const {
 const section = resource.data.resourceGroups?.find((section: any) => section.id === id);
 
 const collection = Astro.props.collection as 'services' | 'domains';
-
-// Type-safe mapping of resource types to collection names
-const resourceToCollectionMap = {
-  service: 'services',
-  event: 'events',
-  command: 'commands',
-  query: 'queries',
-  domain: 'domains',
-  flow: 'flows',
-  channel: 'channels',
-  user: 'users',
-  team: 'teams',
-} as const;
 
 // This will hold our processed resources for the client component
 const resolvedResources: any[] = [];

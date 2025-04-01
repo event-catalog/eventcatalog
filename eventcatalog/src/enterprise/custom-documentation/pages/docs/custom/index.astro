@@ -9,15 +9,19 @@ import OwnersList from '@components/Lists/OwnersList';
 
 import { getOwner } from '@utils/collections/owners';
 import { buildUrl } from '@utils/url-builder';
+import { resourceToCollectionMap } from '@utils/collections/util';
+import { getMDXComponentsByName } from '@utils/markdown';
+import { getAdjacentPages } from '@enterprise/custom-documentation/utils/custom-docs';
 
 import CustomDocsNav from '@enterprise/custom-documentation/components/CustomDocsNav/CustomDocsNav.astro';
-import { getAdjacentPages } from '@enterprise/custom-documentation/utils/custom-docs';
+import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 
 const props = Astro.props;
 const doc = props.data;
 const { Content, headings } = await render(props as any);
 const currentSlug = props.id;
 
+const nodeGraphs = getMDXComponentsByName(props.body, 'NodeGraph') || [];
 // Get sidebar data
 const sidebar = config?.customDocs?.sidebar || [];
 
@@ -115,6 +119,27 @@ const badges = doc?.badges || [];
         <div class="flex-auto prose py-8 max-w-none">
           <Content components={{ ...mdxComponents(props) }} />
         </div>
+
+        {
+          nodeGraphs.length > 0 &&
+            nodeGraphs.map((nodeGraph: any) => {
+              const collection = resourceToCollectionMap[nodeGraph.type as keyof typeof resourceToCollectionMap];
+              return (
+                <NodeGraph
+                  id={nodeGraph.id}
+                  version={nodeGraph.version}
+                  collection={collection}
+                  title={nodeGraph.title}
+                  mode="simple"
+                  linksToVisualiser={true}
+                  href={{
+                    label: 'Open in Visualiser',
+                    url: buildUrl(`/visualiser/${collection}/${nodeGraph.id}/${nodeGraph.version}`),
+                  }}
+                />
+              );
+            })
+        }
 
         <!-- Previous / Next Navigation -->
         <div class="py-8 border-t border-gray-200 mt-8">

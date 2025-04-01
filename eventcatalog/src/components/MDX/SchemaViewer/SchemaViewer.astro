@@ -6,39 +6,13 @@ import yaml from 'js-yaml';
 import path from 'path';
 import SchemaViewerClient from './SchemaViewer';
 import Admonition from '../Admonition';
+import { getMDXComponentsByName } from '@utils/markdown';
+
 let schemas = [];
-
-function findSchemaViewers(document: string) {
-  // Define regex pattern to match <SchemaViewer ... />
-  const pattern = /<SchemaViewer\s+([^>]*)\/>/g;
-
-  // Find all matches of the pattern
-  const matches = [...document.matchAll(pattern)];
-
-  // Extract the properties of each SchemaViewer
-  const schemaViewers = matches.map((match) => {
-    const propsString = match[1];
-    const props = {};
-
-    // Use regex to extract key-value pairs from propsString
-    const propsPattern = /(\w+)=["']([^"']+)["']/g;
-    let propMatch;
-    while ((propMatch = propsPattern.exec(propsString)) !== null) {
-      const key = propMatch[1];
-      const value = propMatch[2];
-      // @ts-ignore
-      props[key] = value;
-    }
-
-    return props;
-  });
-
-  return schemaViewers;
-}
 
 try {
   const file = await fs.readFile(filePath, 'utf-8');
-  const schemaViewers = findSchemaViewers(file);
+  const schemaViewers = getMDXComponentsByName(file, 'SchemaViewer');
 
   // Loop around all the possible SchemaViewers in the file.
   const getAllComponents = schemaViewers.map(async (schemaViewerProps: any) => {

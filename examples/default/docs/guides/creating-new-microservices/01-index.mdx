@@ -16,15 +16,18 @@ Welcome to the FlowMart microservices creation guide. This documentation will he
 
 ## FlowMart's Microservices Architecture
 
-At FlowMart, we've adopted an [Event-Driven Architecture (EDA)](/docs/architecture-records/published/02-eda-adoption) for our e-commerce platform. Our architecture consists of domain-oriented microservices that communicate primarily through events, with Apache Kafka serving as our event backbone.
+At FlowMart, we've adopted an [Event-**Driven** Architecture (EDA)](/docs/architecture-records/published/02-eda-adoption) for our e-commerce platform. Our architecture consists of domain-oriented microservices that communicate primarily through events, with Apache Kafka serving as our event backbone.
 
 Key architectural principles we follow:
 
-- **Domain-Driven Design**: Services are organized around business domains with clear bounded contexts
+- **Domain-Driven Design**: **Services** are organized around business domains with clear bounded contexts
 - **Service Autonomy**: Each service owns its data and can be independently deployed
 - **Event-First Communication**: Services publish events when state changes and subscribe to events from other domains
 - **Eventual Consistency**: We prioritize availability and partition tolerance over immediate consistency
 - **API-First Development**: All services expose well-defined APIs using standardized patterns
+
+## Example service in our architecture (InventoryService)
+<NodeGraph id="InventoryService" version="0.0.2" type="service"  />
 
 ## Getting Started
 
