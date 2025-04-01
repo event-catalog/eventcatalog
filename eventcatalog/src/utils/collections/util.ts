@@ -97,3 +97,15 @@ export const findMatchingNodes = (
     });
   });
 };
+
+export const resourceToCollectionMap = {
+  service: 'services',
+  event: 'events',
+  command: 'commands',
+  query: 'queries',
+  domain: 'domains',
+  flow: 'flows',
+  channel: 'channels',
+  user: 'users',
+  team: 'teams',
+} as const;

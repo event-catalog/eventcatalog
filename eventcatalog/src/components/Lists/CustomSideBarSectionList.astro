@@ -3,6 +3,7 @@ import { buildUrl } from '@utils/url-builder';
 import { getCollection } from 'astro:content';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 import PillListFlat from './PillListFlat';
+import { resourceToCollectionMap } from '@utils/collections/util';
 interface Props {
   section?: {
     title?: string;
@@ -19,19 +20,6 @@ const { section } = Astro.props;
 const title = section?.title || 'Custom Section';
 const limit = section?.limit || 10;
 const sectionItems = section?.items || [];
-
-// Type-safe mapping of resource types to collection names
-const resourceToCollectionMap = {
-  service: 'services',
-  event: 'events',
-  command: 'commands',
-  query: 'queries',
-  domain: 'domains',
-  flow: 'flows',
-  channel: 'channels',
-  user: 'users',
-  team: 'teams',
-} as const; // Make this a const assertion
 
 // Array to store resolved related resources
 const resolvedResources = [];

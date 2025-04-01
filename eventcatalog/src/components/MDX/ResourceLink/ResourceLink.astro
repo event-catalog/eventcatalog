@@ -1,17 +1,6 @@
 ---
 import { buildUrl } from '@utils/url-builder';
-
-const resourceToCollectionMap = {
-  service: 'services',
-  event: 'events',
-  command: 'commands',
-  query: 'queries',
-  domain: 'domains',
-  flow: 'flows',
-  channel: 'channels',
-  user: 'users',
-  team: 'teams',
-} as const;
+import { resourceToCollectionMap } from '@utils/collections/util';
 
 const { id, version, type } = Astro.props;
 const collection = resourceToCollectionMap[type as keyof typeof resourceToCollectionMap];
