@@ -2,6 +2,8 @@ import { getCollection } from 'astro:content';
 import config from '@config';
 import type { APIRoute } from 'astro';
 
+import { isCustomDocsEnabled } from '@utils/feature';
+
 const events = await getCollection('events');
 const commands = await getCollection('commands');
 const queries = await getCollection('queries');
@@ -12,6 +14,8 @@ const domains = await getCollection('domains');
 const teams = await getCollection('teams');
 const users = await getCollection('users');
 
+const customDocs = await getCollection('customPages');
+
 export const GET: APIRoute = async ({ params, request }) => {
   const url = new URL(request.url);
   const baseUrl = `${url.protocol}//${url.host}`;
@@ -21,6 +25,9 @@ export const GET: APIRoute = async ({ params, request }) => {
 
   const formatSimpleItem = (item: any, type: string) =>
     `- [${item.id.replace('.mdx', '')}](${baseUrl}/docs/${type}/${item.data.id}.mdx) - ${item.data.name}`;
+
+  const formatCustomDoc = (item: any, route: string) =>
+    `- [${item.data.title}](${baseUrl}/${route}/${item.id.replace('docs\/', '')}.mdx) - ${item.data.summary || ''}`;
 
   const content = [
     `# ${config.organizationName} EventCatalog Documentation\n`,
@@ -39,6 +46,9 @@ export const GET: APIRoute = async ({ params, request }) => {
     teams.map((item) => formatSimpleItem(item, 'teams')).join('\n'),
     '\n## Users',
     users.map((item) => formatSimpleItem(item, 'users')).join('\n'),
+    ...(isCustomDocsEnabled()
+      ? ['\n## Custom Docs', customDocs.map((item) => formatCustomDoc(item, 'docs/custom')).join('\n')]
+      : []),
   ].join('\n');
 
   return new Response(content, {
