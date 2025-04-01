@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.33.1
+
+### Patch Changes
+
+- 23266b5: feat(core): added llms-txt support for custom docs
+- 5f5e81f: feat(core): embed visualizer into custom docs
+
 ## 2.33.0
 
 ### Minor Changes
