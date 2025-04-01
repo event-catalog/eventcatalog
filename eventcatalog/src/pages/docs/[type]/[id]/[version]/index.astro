@@ -23,6 +23,7 @@ import { render } from 'astro:content';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
 
 import config from '@config';
+import { getIcon } from '@utils/badges';
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows', 'channels'];
@@ -51,6 +52,12 @@ const { Content } = await render(props);
 // Capitalize the first letter of a string
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
 const contentBadges = props.data.badges || [];
+
+const getContentBadges = () =>
+  contentBadges.map((badge) => ({
+    ...badge,
+    icon: badge.icon ? getIcon(badge.icon) : null,
+  }));
 
 const getBadge = () => {
   if (props.collection === 'services') {
@@ -115,7 +122,7 @@ const getSpecificationBadges = () => {
   return badges;
 };
 
-const badges = [getBadge(), ...contentBadges, ...getSpecificationBadges()];
+const badges = [getBadge(), ...getContentBadges(), ...getSpecificationBadges()];
 
 // Index only the latest version
 const pagefindAttributes =
