@@ -1,77 +1,44 @@
 ---
-const { catalog, id, filePath } = Astro.props;
-import fs from 'node:fs/promises';
-import { existsSync } from 'fs';
-import yaml from 'js-yaml';
-import path from 'path';
-import SchemaViewerClient from './SchemaViewer';
-import Admonition from '../Admonition';
-import { getMDXComponentsByName } from '@utils/markdown';
+// src/components/SchemaViewer.astro
+import SchemaProperty from './SchemaProperty.astro';
 
-let schemas = [];
-
-try {
-  const file = await fs.readFile(filePath, 'utf-8');
-  const schemaViewers = getMDXComponentsByName(file, 'SchemaViewer');
-
-  // Loop around all the possible SchemaViewers in the file.
-  const getAllComponents = schemaViewers.map(async (schemaViewerProps: any) => {
-    const schemaPath = path.join(path.dirname(filePath), schemaViewerProps.file);
-    const exists = existsSync(schemaPath);
-    let schema;
-    let render = true;
-
-    if (exists) {
-      // Load the schema for the component
-      schema = await fs.readFile(schemaPath, 'utf-8');
-      if (schemaPath.endsWith('.yml') || schemaPath.endsWith('.yaml')) {
-        schema = yaml.load(schema);
-      } else {
-        schema = JSON.parse(schema);
-        // Lets JSON schema control if the component should be rendered or not
-        if (schema['x-eventcatalog-render-schema-viewer'] !== undefined) {
-          render = schema['x-eventcatalog-render-schema-viewer'];
-        }
-      }
-    }
-
-    return {
-      id: schemaViewerProps.id || id,
-      exists,
-      schema,
-      schemaPath,
-      ...schemaViewerProps,
-      render,
-    };
-  });
-
-  schemas = await Promise.all(getAllComponents);
-} catch (error) {
-  console.log('Failed to process schemas');
-  console.log(error);
+interface Props {
+  schema: Record<string, any>;
+  schemaPath: string;
+  title: string;
+  maxHeight: string;
+  file: string;
+  id: string;
 }
+
+const { id, file, title, maxHeight, schema } = Astro.props;
+const { description, properties, required = [] } = schema;
 ---
 
-<section class="space-y-4">
-  {
-    schemas.length > 0 &&
-      schemas.map((schema) => {
-        if (!schema.render) return null;
-        return (
-          <div>
-            {schema.exists && <SchemaViewerClient {...schema} client:only="react" />}
+<div id={`${id}-${file}-SchemaViewer-client`} class="not-prose my-4">
+  {title && <h2 class="text-3xl font-bold mb-2 !mt-0">{title}</h2>}
+  <div
+    class="schema-viewer p-4 bg-white overflow-y-auto rounded-lg border border-gray-100 shadow-sm font-sans"
+    style={{
+      maxHeight: maxHeight ? `${maxHeight}em` : `100em`,
+    }}
+  >
+    {description && <p class="text-gray-600 text-xs mb-5">{description}</p>}
+    {/* Reduced size, adjusted margin */}
 
-            {/* User has tried to load the schema, but it was not found on file system */}
-            {!schema.exists && (
-              <Admonition type="warning">
-                <div>
-                  <span class="block font-bold">{`<SchemaViewer/>`} failed to load</span>
-                  <span class="block">Tried to load schema from {schema.schemaPath}, but no schema can be found</span>
-                </div>
-              </Admonition>
-            )}
-          </div>
-        );
-      })
+    {
+      properties &&
+        Object.entries(properties).map(([name, details]) => (
+          <SchemaProperty name={name} details={details} isRequired={required.includes(name)} level={0} />
+        ))
+    }
+
+    {!properties && <p class="text-gray-500 text-sm">Schema does not contain any properties.</p>}
+  </div>
+</div>
+
+<style>
+  .schema-viewer code {
+    font-family: 'Courier New', Courier, monospace;
   }
-</section>
+</style>

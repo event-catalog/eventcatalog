@@ -4,7 +4,7 @@ import Footer from '@layouts/Footer.astro';
 
 import components from '@components/MDX/components';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
-import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewer.astro';
+import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewerRoot.astro';
 
 // SideBars
 import ServiceSideBar from '@components/SideBars/ServiceSideBar.astro';
@@ -202,7 +202,8 @@ const pagefindAttributes =
         </div>
         <div data-pagefind-ignore>
           <!-- @ts-ignore -->
-          <SchemaViewer id={props.data.id} catalog={props.catalog} filePath={props.filePath} />
+          <!-- <SchemaViewer id={props.data.id} catalog={props.catalog} filePath={props.filePath} /> -->
+          <SchemaViewer id={props.data.id} filePath={props.filePath} />
           <NodeGraph
             id={props.data.id}
             collection={props.collection}
