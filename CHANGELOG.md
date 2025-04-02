@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.33.2
+
+### Patch Changes
+
+- f1576ac: chore(core): replaced schema viewer with new one
+
 ## 2.33.1
 
 ### Patch Changes
