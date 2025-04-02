@@ -1,0 +1,161 @@
+---
+import SchemaProp from './SchemaProperty.astro';
+
+interface Props {
+  name: string;
+  details: any;
+  isRequired: boolean;
+  level: number;
+  isListItem?: boolean;
+}
+
+const { name, details, isRequired, level, isListItem = false } = Astro.props;
+
+const hasNestedProperties = details.type === 'object' && details.properties && Object.keys(details.properties).length > 0;
+const hasArrayItems = details.type === 'array' && details.items;
+const isCollapsible = hasNestedProperties || (hasArrayItems && details.items.type === 'object' && details.items.properties);
+
+// Using template literal for class calculation remains safe
+const indentationClass = `pl-${level * 3}`;
+
+const contentId = `prop-${name}-${level}-${Math.random().toString(36).substring(2, 7)}`;
+---
+
+{/* Using simpler border class */}
+<div class:list={['property-container mb-1.5 border-l border-gray-100 relative', indentationClass]}>
+  <div class="flex items-start space-x-1.5">
+    {
+      isCollapsible && (
+        <button
+          type="button"
+          aria-expanded="false"
+          aria-controls={contentId}
+          class="property-toggle text-gray-500 hover:text-gray-700 pt-0.5 focus:outline-none w-3 text-center flex-shrink-0"
+        >
+          <span class="icon-collapsed font-mono text-xs">&gt;</span>
+          <span class="icon-expanded font-mono text-xs hidden">v</span>
+        </button>
+      )
+    }
+    {!isCollapsible && <div class="w-3 h-4 flex-shrink-0" />}
+
+    <div class="flex-grow">
+      <div class="flex justify-between items-baseline">
+        <div>
+          <span class="font-semibold text-gray-800 text-sm">{name}</span>
+          <span class="ml-1.5 text-purple-600 font-mono text-xs">
+            {/* Expressions using ternary operators are generally safe */}
+            {details.type}
+            {details.type === 'array' && details.items?.type ? `[${details.items.type}]` : ''}
+            {details.format ? `<${details.format}>` : ''}
+          </span>
+        </div>
+        {isRequired && <span class="text-red-600 text-xs ml-3 flex-shrink-0">required</span>}
+      </div>
+
+      {details.description && <p class="text-gray-500 text-xs mt-0.5">{details.description}</p>}
+
+      {/* Reverted arbitrary text size to standard 'text-xs' */}
+      <div class="text-xs text-gray-500 mt-0.5 space-y-0">
+        {
+          details.pattern && (
+            <div>
+              Match pattern: <code class="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">{details.pattern}</code>
+            </div>
+          )
+        }
+        {
+          details.minimum !== undefined && (
+            <div>
+              Minimum: <code class="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">{details.minimum}</code>
+            </div>
+          )
+        }
+        {
+          details.maximum !== undefined && (
+            <div>
+              Maximum: <code class="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">{details.maximum}</code>
+            </div>
+          )
+        }
+        {
+          details.enum && (
+            <div>
+              <span class="text-xs inline-block">Allowed values:</span>
+
+              {/* Map function rendering standard elements */}
+              {details.enum.map((val: string) => (
+                <span class="text-xs">
+                  <code class="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">{val}</code>
+                </span>
+              ))}
+            </div>
+          )
+        }
+      </div>
+
+      {
+        (hasNestedProperties || hasArrayItems) && (
+          // class:list with conditional object is standard and should be safe
+          <div id={contentId} class:list={['nested-content mt-1', { hidden: isCollapsible }]}>
+            {/* Recursive component calls */}
+            {hasNestedProperties &&
+              details.properties &&
+              Object.entries(details.properties).map(([nestedName, nestedDetails]) => (
+                <SchemaProp
+                  name={nestedName}
+                  details={nestedDetails}
+                  isRequired={details.required?.includes(nestedName) ?? false}
+                  level={level + 1}
+                />
+              ))}
+
+            {hasArrayItems && details.items.type === 'object' && details.items.properties && (
+              <div class="mt-1 border-l border-dashed border-gray-400 pl-3 ml-1.5">
+                <span class="text-xs italic text-gray-500 block mb-1">Item Details:</span>
+                {Object.entries(details.items.properties).map(([itemPropName, itemPropDetails]) => (
+                  <SchemaProp
+                    name={itemPropName}
+                    details={itemPropDetails}
+                    isRequired={details.items.required?.includes(itemPropName) ?? false}
+                    level={level + 1}
+                    isListItem={true}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      }
+    </div>
+  </div>
+</div>
+
+{/* Script tag content remains the same */}
+<script is:inline>
+  function setupPropertyToggle() {
+    document.querySelectorAll('.property-toggle').forEach((button) => {
+      if (button.dataset.listenerAttached) return;
+      button.dataset.listenerAttached = 'true';
+
+      button.addEventListener('click', () => {
+        const contentId = button.getAttribute('aria-controls');
+        const content = document.getElementById(contentId);
+        const isExpanded = button.getAttribute('aria-expanded') === 'true';
+        const iconCollapsed = button.querySelector('.icon-collapsed');
+        const iconExpanded = button.querySelector('.icon-expanded');
+
+        if (content) {
+          button.setAttribute('aria-expanded', String(!isExpanded));
+          content.classList.toggle('hidden');
+          iconCollapsed?.classList.toggle('hidden', !isExpanded);
+          iconExpanded?.classList.toggle('hidden', isExpanded);
+        }
+      });
+    });
+  }
+
+  setupPropertyToggle();
+
+  document.addEventListener('astro:page-load', setupPropertyToggle);
+</script>
