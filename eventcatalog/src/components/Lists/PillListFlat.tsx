@@ -46,7 +46,7 @@ const PillList = ({ title, pills, emptyMessage, color = 'gray', limit = 10, ...p
                   >
                     <a className={`leading-3`} href={href}>
                       <span className="space-x-2 flex items-center">
-                        {Icon && <Icon className={`h-4 w-4`} />}
+                        {Icon && <Icon className="h-4 w-4 shrink-0" />}
                         <span className="font-light text-sm truncate">
                           {item.label} {item.tag && <>({item.tag})</>}
                         </span>
