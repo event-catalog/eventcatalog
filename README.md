@@ -34,7 +34,7 @@
 <h4>Features: Documentation for Event Driven Architectures, Integration with any broker, Generator from your OpenAPI and AsyncAPI documents, Docs and Code, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-52-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-53-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [Read the Docs](https://www.eventcatalog.dev/docs/development/getting-started/introduction) | [View Demo](https://demo.eventcatalog.dev)
@@ -263,6 +263,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/ruudwelling/"><img src="https://avatars.githubusercontent.com/u/4014179?v=4?s=100" width="100px;" alt="Ruud Welling"/><br /><sub><b>Ruud Welling</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=WellingR" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/vienin"><img src="https://avatars.githubusercontent.com/u/2124283?v=4?s=100" width="100px;" alt="Kevin Pouget"/><br /><sub><b>Kevin Pouget</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=vienin" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/VitaliiBalash"><img src="https://avatars.githubusercontent.com/u/4520809?v=4?s=100" width="100px;" alt="Vitalii Balash"/><br /><sub><b>Vitalii Balash</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=VitaliiBalash" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ababilone"><img src="https://avatars.githubusercontent.com/u/925013?v=4?s=100" width="100px;" alt="Arnaud Babilone"/><br /><sub><b>Arnaud Babilone</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=ababilone" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
