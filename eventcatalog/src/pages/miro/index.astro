@@ -1,0 +1,121 @@
+---
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { ClientRouter } from 'astro:transitions';
+---
+
+<VerticalSideBarLayout title="Miro">
+  <div class="h-[calc(100vh-80px)] bg-white p-3">
+    <div class="flex items-center justify-between mb-4">
+      <h1 id="boardTitle" class="text-2xl font-bold">Miro Board</h1>
+      <div class="flex items-center gap-3">
+        <button
+          id="backButton"
+          class="hidden items-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fill-rule="evenodd"
+              d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z"
+              clip-rule="evenodd"></path>
+          </svg>
+          <span>Back</span>
+        </button>
+        <button id="toggleEditButton" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors">
+          Enable Editing
+        </button>
+      </div>
+    </div>
+    <div class="w-full bg-gray-100 h-[calc(100%-4rem)]">
+      <iframe class="w-full h-full border border-gray-200 rounded-md"></iframe>
+    </div>
+  </div>
+</VerticalSideBarLayout>
+
+<ClientRouter />
+<script>
+  function configureMiro() {
+    // Get url from query params and then embed into the iframe
+    const url = new URL(window.location.href);
+    const boardId = url.searchParams.get('boardId');
+    const moveToViewport = url.searchParams.get('moveToViewport');
+    const moveToWidget = url.searchParams.get('moveToWidget');
+    const autoplay = url.searchParams.get('autoplay');
+    const edit = url.searchParams.get('edit');
+    const title = url.searchParams.get('title') || 'Miro Board';
+    const backUrl = url.searchParams.get('back');
+
+    // Configure back button if back URL is provided
+    const backButton = document.querySelector('#backButton');
+    if (backButton && backUrl) {
+      backButton.classList.remove('hidden');
+      backButton.classList.add('flex');
+      backButton.addEventListener('click', () => {
+        window.location.href = `${decodeURIComponent(backUrl)}#${title}-miro-title`;
+      });
+    }
+
+    // Update the board title
+    const boardTitleElement = document.querySelector('#boardTitle');
+    if (boardTitleElement) {
+      boardTitleElement.textContent = title;
+    }
+
+    // Create base Miro URL
+    const miroBaseUrl = `https://miro.com/app/live-embed/${boardId}`;
+    const miroUrlParams = new URLSearchParams({
+      autoplay: autoplay ? 'true' : 'false',
+    });
+
+    // Add optional parameters
+    if (!edit) {
+      miroUrlParams.set('embedMode', 'view_only_without_ui');
+    }
+
+    if (moveToViewport) {
+      miroUrlParams.set('moveToViewport', moveToViewport);
+    }
+
+    if (moveToWidget) {
+      miroUrlParams.set('moveToWidget', moveToWidget);
+    }
+
+    const miroUrl = `${miroBaseUrl}?${miroUrlParams.toString()}`;
+
+    const iframe = document.querySelector('iframe');
+    if (iframe) {
+      iframe.src = miroUrl;
+      iframe.width = '100%';
+      iframe.height = '100%';
+    }
+
+    // Configure toggle edit button
+    const toggleEditButton = document.querySelector('#toggleEditButton');
+    if (toggleEditButton) {
+      // Update button text and style based on current mode
+      if (edit === 'true') {
+        toggleEditButton.textContent = 'Switch to Read only';
+        toggleEditButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+        toggleEditButton.classList.add('bg-gray-500', 'hover:bg-gray-600');
+      } else {
+        toggleEditButton.textContent = 'Enable Editing';
+        toggleEditButton.classList.remove('bg-gray-500', 'hover:bg-gray-600');
+        toggleEditButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
+      }
+
+      // Add click handler
+      toggleEditButton.addEventListener('click', () => {
+        const currentUrl = new URL(window.location.href);
+        if (edit === 'true') {
+          currentUrl.searchParams.delete('edit');
+        } else {
+          currentUrl.searchParams.set('edit', 'true');
+        }
+        window.location.href = currentUrl.toString();
+      });
+    }
+  }
+
+  configureMiro();
+
+  document.addEventListener('astro:page-load', configureMiro);
+</script>

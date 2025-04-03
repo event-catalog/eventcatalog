@@ -1,0 +1,97 @@
+---
+title: Getting Started with Event Storming
+summary: Learn how to use Event Storming to discover and model your business domain effectively
+sidebar:
+    label: Introduction
+    order: 1
+owners: 
+  - dboyne
+badges:
+  - content: 'Guide'
+    backgroundColor: 'teal'
+    textColor: 'teal'
+---
+
+# Introduction to Event Storming
+
+Event Storming is a collaborative modeling technique that helps teams explore complex business domains. It was introduced by Alberto Brandolini and has become a valuable tool in Domain-Driven Design (DDD) and Event-Driven Architecture (EDA).
+
+## Why Event Storming?
+
+At FlowMart, we use Event Storming because it:
+
+- Brings together domain experts and technical teams
+- Helps identify domain events, commands, and aggregates
+- Aligns perfectly with our event-driven architecture
+- Facilitates better understanding of business processes
+- Helps in defining service boundaries and responsibilities
+
+## Example Event Storming Session
+
+Here is an example of an event storming session for the Orders domain.
+
+<Miro boardId="uXjVIHCImos=/" moveToWidget="3074457347671667709" edit={false} />
+
+## Key Concepts
+
+### Domain Events
+- Represent something significant that has happened in the business domain
+- Written in past tense (e.g., "Order Placed", "Payment Received")
+- Captured on orange sticky notes during the session
+
+### Commands
+- Triggers that cause domain events
+- Written in imperative form (e.g., "Place Order", "Process Payment")
+- Captured on blue sticky notes
+
+### Aggregates
+- Business entities that ensure consistency
+- Group related events and commands
+- Captured on yellow sticky notes
+
+### Policies
+- Business rules that react to events
+- Automated processes or human workflows
+- Captured on purple sticky notes
+
+## Event Storming Levels
+
+1. **Big Picture Event Storming**
+   - High-level view of the entire business domain
+   - Focuses on major events and workflows
+   - Helps identify bounded contexts
+
+2. **Process Level Event Storming**
+   - Detailed view of specific processes
+   - Includes commands, policies, and external systems
+   - Helps design individual services
+
+3. **Software Design Level Event Storming**
+   - Technical perspective of the domain
+   - Includes aggregates, entities, and value objects
+   - Leads to implementation decisions
+
+## Benefits for FlowMart
+
+Event Storming has helped us:
+- Design our microservices architecture
+- Identify service boundaries
+- Define event contracts between services
+- Improve collaboration between teams
+- Reduce misunderstandings and rework
+
+## Prerequisites for Event Storming
+
+To conduct an effective Event Storming session, you'll need:
+
+- A large modeling space (physical or virtual)
+- Sticky notes in different colors
+- Domain experts and technical team members
+- A skilled facilitator
+- 2-4 hours of uninterrupted time
+
+## Next Steps
+
+Continue reading to learn:
+- [How to Facilitate an Event Storming Session](/docs/guides/event-storming/02-facilitation)
+- [From Event Storming to Implementation](/docs/guides/event-storming/03-implementation) 

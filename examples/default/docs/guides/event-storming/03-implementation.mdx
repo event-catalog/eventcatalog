@@ -1,0 +1,207 @@
+---
+title: From Event Storming to Implementation
+summary: Learn how to transform Event Storming outcomes into concrete microservice implementations at FlowMart
+sidebar:
+    label: Implementation
+    order: 3
+owners: 
+  - dboyne
+badges:
+  - content: 'Guide'
+    backgroundColor: 'teal'
+    textColor: 'teal'
+---
+
+# From Event Storming to Implementation
+
+This guide will help you transform the insights gained from Event Storming sessions into concrete microservice implementations at FlowMart.
+
+## Translating Event Storming Artifacts
+
+### Domain Events to Event Schema
+Convert orange sticky notes (domain events) into event schemas:
+
+```typescript
+// Example Event Schema for "OrderPlaced"
+interface OrderPlacedEvent {
+  eventType: 'OrderPlaced';
+  orderId: string;
+  customerId: string;
+  orderItems: OrderItem[];
+  totalAmount: number;
+  timestamp: string;
+}
+```
+
+### Commands to API Endpoints
+Transform blue sticky notes (commands) into API endpoints:
+
+```typescript
+// Example API endpoint for "PlaceOrder"
+@POST
+@Path("/orders")
+async placeOrder(orderRequest: OrderRequest): Promise<OrderResponse> {
+  // Implementation
+}
+```
+
+### Aggregates to Service Boundaries
+Convert yellow sticky notes (aggregates) into service definitions:
+
+```typescript
+// Example Order Service
+@Service
+class OrderService {
+  private readonly orderRepository: OrderRepository;
+  private readonly eventPublisher: EventPublisher;
+  
+  async createOrder(order: Order): Promise<Order> {
+    // Implementation
+  }
+}
+```
+
+## Implementation Steps
+
+### 1. Define Service Boundaries
+- Use bounded contexts identified during Event Storming
+- Create new service repositories using our [templates](/docs/guides/creating-new-microservices)
+- Define service interfaces and contracts
+
+### 2. Design Event Schemas
+- Create event schemas for all domain events
+- Use our [schema registry](/docs/technical-architecture-design/schema-registry)
+- Version schemas appropriately
+- Document event ownership and consumers
+
+### 3. Implement Commands
+- Create API endpoints for commands
+- Implement command handlers
+- Add validation and error handling
+- Document API contracts using OpenAPI
+
+### 4. Set Up Event Publishing
+- Implement event publishers
+- Configure Kafka topics
+- Set up dead letter queues
+- Implement retry mechanisms
+
+### 5. Create Event Subscribers
+- Implement event handlers
+- Set up consumer groups
+- Handle failure scenarios
+- Implement idempotency
+
+## Example Implementation Flow
+
+Here's a typical flow from Event Storming to implementation:
+
+1. **Event Storming Identifies**:
+   - Domain Event: "OrderPlaced"
+   - Command: "PlaceOrder"
+   - Aggregate: "Order"
+
+2. **Create Service Structure**:
+```typescript
+// Service structure based on Event Storming
+src/
+  ├── domain/
+  │   ├── Order.ts
+  │   └── OrderItem.ts
+  ├── commands/
+  │   └── PlaceOrderCommand.ts
+  ├── events/
+  │   └── OrderPlacedEvent.ts
+  └── api/
+      └── OrderController.ts
+```
+
+3. **Implement Domain Model**:
+```typescript
+class Order {
+  private readonly items: OrderItem[];
+  private status: OrderStatus;
+
+  placeOrder(): OrderPlacedEvent {
+    // Implementation
+    return new OrderPlacedEvent(this);
+  }
+}
+```
+
+## Best Practices
+
+### Event Design
+- Use past tense for event names
+- Include all necessary context
+- Follow our [event naming conventions](/docs/technical-architecture-design/event-naming)
+- Version events appropriately
+
+### Service Design
+- Keep services focused on single bounded context
+- Implement proper error handling
+- Add comprehensive logging
+- Include monitoring and metrics
+
+### Testing Strategy
+- Unit test domain logic
+- Integration test event flows
+- Contract test event schemas
+- End-to-end test critical paths
+
+## Common Pitfalls
+
+1. **Too Many Events**
+   - Solution: Focus on meaningful state changes
+   - Combine related events when appropriate
+
+2. **Tight Coupling**
+   - Solution: Use event-driven communication
+   - Avoid direct service-to-service calls
+
+3. **Missing Context**
+   - Solution: Include necessary data in events
+   - Document event purpose and usage
+
+## Monitoring and Observability
+
+Implement proper monitoring for:
+- Event processing metrics
+- Command execution times
+- Error rates and types
+- Service health indicators
+
+## Example: Order Processing Flow
+
+Here's a complete example of implementing an order processing flow:
+
+1. **Event Storming Identified**:
+   - Command: "PlaceOrder"
+   - Event: "OrderPlaced"
+   - Event: "PaymentProcessed"
+   - Policy: "Send Order Confirmation"
+
+2. **Implementation**:
+```typescript
+// Command Handler
+async function handlePlaceOrder(command: PlaceOrderCommand) {
+  const order = new Order(command.orderDetails);
+  const event = order.placeOrder();
+  await eventPublisher.publish('order-events', event);
+  return order;
+}
+
+// Event Handler
+async function handleOrderPlaced(event: OrderPlacedEvent) {
+  await paymentService.processPayment(event.orderId);
+  await notificationService.sendConfirmation(event.orderId);
+}
+```
+
+## Next Steps
+
+1. Review our [service templates](/docs/guides/creating-new-microservices)
+2. Study our [event schema guidelines](/docs/technical-architecture-design/event-schemas)
+3. Explore our [monitoring setup](/docs/operations-and-support/monitoring)
+
+Remember: Event Storming is an iterative process. As you implement and learn more about the domain, you may need to revisit and refine your model. Keep the dialogue open between domain experts and developers throughout the implementation phase. 

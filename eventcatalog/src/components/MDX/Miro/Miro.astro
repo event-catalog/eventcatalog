@@ -1,0 +1,81 @@
+---
+import Admonition from '@components/MDX/Admonition';
+import { buildUrl, buildUrlWithParams } from '@utils/url-builder';
+import type { CollectionEntry } from 'astro:content';
+import { ExpandIcon } from 'lucide-react';
+
+interface Props {
+  title?: string;
+  height: string;
+  boardId: string;
+  autoplay: boolean;
+  moveToViewport: string;
+  moveToWidget: string;
+  edit: boolean;
+}
+
+const {
+  title,
+  height = '500',
+  boardId,
+  autoplay = true,
+  edit = false,
+  moveToViewport,
+  moveToWidget,
+  ...eventCatalogResource
+} = Astro.props;
+
+const resource = eventCatalogResource as CollectionEntry<'services'>;
+
+const baseUrl = 'https://miro.com/app/live-embed';
+const params = {
+  autoplay: autoplay ? 'true' : 'false',
+  embedMode: !edit ? 'view_only_without_ui' : undefined,
+  moveToViewport: moveToViewport || undefined,
+  moveToWidget: moveToWidget || undefined,
+};
+
+const backUrl = buildUrl(`/docs/${resource.collection}/${resource.data.id}/${resource.data.version}#${title}-miro-title`);
+
+const fullScreenParams = {
+  ...params,
+  boardId: boardId,
+  title: title,
+  back: backUrl,
+};
+
+const url = buildUrlWithParams(`${baseUrl}/${boardId}`, params);
+const openFullScreenUrl = buildUrlWithParams(`/miro`, fullScreenParams);
+---
+
+{
+  !boardId && (
+    <Admonition type="warning">
+      <div>
+        <span class="block font-bold">{`<Miro/>`} failed to load</span>
+        <span class="block">Please provide a boardId to use the Miro component.</span>
+      </div>
+    </Admonition>
+  )
+}
+
+{
+  boardId && (
+    <div>
+      {title && (
+        <h3 id={`${title}-miro-title`} class="text-3xl font-bold">
+          {title}
+        </h3>
+      )}
+      <div class="relative">
+        <iframe class="border border-gray-200 rounded-md" src={url} width="100%" height={height} />
+        <a
+          href={openFullScreenUrl}
+          class="absolute bottom-[15px] right-5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md transition-colors"
+        >
+          <ExpandIcon className="w-5 h-5" />
+        </a>
+      </div>
+    </div>
+  )
+}
