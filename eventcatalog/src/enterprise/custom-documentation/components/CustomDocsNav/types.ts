@@ -1,6 +1,8 @@
 export interface SidebarItem {
   label: string;
   slug?: string;
+  link?: string;
+  attrs?: Record<string, string>;
   items?: SidebarItem[];
   badge?: {
     text: string;
