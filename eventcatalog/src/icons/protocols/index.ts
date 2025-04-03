@@ -14,3 +14,5 @@ export { default as EventBridge } from '@icons/protocols/eventbridge.svg?raw';
 export { default as Redis } from '@icons/protocols/redis.svg?raw';
 export { default as GooglePubSub } from '@icons/protocols/googlepubsub.svg?raw';
 export { default as Kinesis } from '@icons/protocols/kinesis.svg?raw';
+export { default as GRPC } from '@icons/protocols/grpc.svg?raw';
+export { default as ZMQ } from '@icons/protocols/zmq.svg?raw';

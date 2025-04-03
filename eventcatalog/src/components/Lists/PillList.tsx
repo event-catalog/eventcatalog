@@ -26,9 +26,9 @@ const PillList = ({ title, pills, emptyMessage, color = 'gray' }: Props) => {
           </DisclosureButton>
           <DisclosurePanel className="mt-2 text-sm/5 text-black/50">
             <ul role="list" className=" py-2 ">
-              {pills.map((item) => {
+              {pills.map((item, index) => {
                 return (
-                  <li className="py-1 " key={item.href}>
+                  <li className="py-1 " key={`${item.href}-${index}`}>
                     <a
                       className={`flex items-start  group border border-pink-200 hover:border-pink-400  rounded-md`}
                       href={item.href}

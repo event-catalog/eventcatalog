@@ -46,14 +46,14 @@ const ProtocolList = ({ title, pills, emptyMessage, color = 'gray', ...props }: 
           </DisclosureButton>
           <DisclosurePanel className="mt-2 text-sm/5 text-black/50">
             <ul role="list" className="space-y-2">
-              {pills.map((item) => {
+              {pills.map((item, index) => {
                 const href = item.href ?? '#';
                 const Icon = item.icon ? getIconForProtocol(item.icon) : null;
 
                 return (
                   <li
                     className=" has-tooltip rounded-md text-gray-600 group px-1 w-full hover:bg-gradient-to-l hover:from-purple-500 hover:to-purple-700 hover:text-white hover:font-normal  "
-                    key={item.href}
+                    key={`${item.href}-${index}`}
                   >
                     <a className={`leading-3`} href={href}>
                       <span className="space-x-2 flex items-center">
