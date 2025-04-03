@@ -59,8 +59,10 @@ vi.mock('astro:content', async (importOriginal) => {
 });
 
 // Mock fs methods
-vi.mock('node:fs', async () => {
+vi.mock('node:fs', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:fs')>();
   return {
+    ...actual,
     default: {
       readdirSync: () => ['01-introduction.mdx', '02-hello-world.mdx'],
       readFileSync: () => `---
@@ -69,7 +71,20 @@ description: Mock Description
 ---
 Content
 `,
+      statSync: () => ({
+        isDirectory: () => false,
+      }),
     },
+    readdirSync: () => ['01-introduction.mdx', '02-hello-world.mdx'],
+    readFileSync: () => `---
+title: Mock Title
+description: Mock Description
+---
+Content
+`,
+    statSync: () => ({
+      isDirectory: () => false,
+    }),
   };
 });
 
