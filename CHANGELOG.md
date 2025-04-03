@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.33.4
+
+### Patch Changes
+
+- 57dc25c: feat(core): added supported for nested custom docs
+- 9c5893c: feat(core): added ability to add custom link in docs sidebar
+
 ## 2.33.3
 
 ### Patch Changes
