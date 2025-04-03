@@ -32,8 +32,6 @@ resourceGroups:
 
 import Footer from '@catalog/components/footer.astro';
 
-## Overview
-
 
 
 :::warning
@@ -48,8 +46,15 @@ The Orders domain handles all operations related to customer orders, from creati
     <Tile icon="RectangleGroupIcon" href={`/visualiser/domains/${frontmatter.id}/${frontmatter.version}`} title={`${frontmatter.services.length} services are in this domain`} description="This service sends messages to downstream consumers" />
 </Tiles>
 
+## Target architecture for the Orders domain (Event Storming Session)
 
-## Bounded context
+Result of the event storming session for the Orders domain. This is our target architecture for the domain.
+
+<Miro boardId="uXjVIHCImos=/" moveToWidget="3074457347671667709" edit={false} />
+
+## Current Architecture
+
+This is our current architecture for the Orders domain.
 
 <NodeGraph />
 
