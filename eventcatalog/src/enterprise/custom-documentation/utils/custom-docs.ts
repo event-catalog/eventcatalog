@@ -15,6 +15,8 @@ type SidebarItem = {
   items?: SidebarItem[];
   badge?: Badge;
   collapsed?: boolean;
+  link?: string;
+  attrs?: Record<string, string>;
 };
 
 type SideBarConfigurationItem = {
@@ -27,6 +29,8 @@ type SideBarConfigurationItem = {
   };
   badge?: Badge;
   collapsed?: boolean;
+  link?: string;
+  attrs?: Record<string, string>;
 };
 
 type AdjacentPage = {
@@ -123,7 +127,16 @@ const processSidebarItems = async (items: SideBarConfigurationItem[]): Promise<S
     }
     // Otherwise, it's a regular item
     else {
-      processedItems.push(item as SidebarItem);
+      // if its a link, add it to the processedItems
+      if (item.link) {
+        processedItems.push({
+          label: item.label,
+          slug: item.link,
+          attrs: item.attrs,
+        });
+      } else {
+        processedItems.push(item as SidebarItem);
+      }
     }
   }
 

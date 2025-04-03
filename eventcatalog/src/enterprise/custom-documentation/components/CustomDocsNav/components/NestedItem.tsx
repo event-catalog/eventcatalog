@@ -1,6 +1,7 @@
 import React from 'react';
 import { buildUrl } from '@utils/url-builder';
 import type { SidebarItem } from '../types';
+import { ExternalLinkIcon } from 'lucide-react';
 
 interface NestedItemProps {
   item: SidebarItem;
@@ -89,16 +90,45 @@ const NestedItem: React.FC<NestedItemProps> = ({
     );
   }
 
-  const itemPath = item.slug ? buildUrl(`/docs/custom/${item.slug}`) : '#';
+  let itemPath = item.slug ? buildUrl(`/docs/custom/${item.slug}`) : '#';
   const isActive = currentPath === itemPath || currentPath.endsWith(`/${item.slug}`);
+
+  // Convert string style to React CSSProperties if needed
+  const attrs = item.attrs
+    ? {
+        ...item.attrs,
+        style:
+          typeof item.attrs.style === 'string'
+            ? item.attrs.style
+                .split(';')
+                .filter((style) => style.trim())
+                .reduce((acc, style) => {
+                  const [key, value] = style.split(':').map((s) => s.trim());
+                  const camelKey = key.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+                  return { ...acc, [camelKey]: value };
+                }, {})
+            : item.attrs.style,
+      }
+    : null;
+
+  const isExternalLink = item.slug?.startsWith('http');
+
+  if (isExternalLink && item.slug) {
+    itemPath = item.slug;
+  }
 
   return (
     <a
       href={itemPath}
+      {...(attrs || {})}
       className={`flex items-center px-2 py-1.5 text-xs ${isActive ? 'bg-purple-100 text-purple-900 font-medium' : 'text-gray-600 hover:bg-purple-100'} rounded-md`}
       data-active={isActive}
+      target={isExternalLink ? '_blank' : undefined}
     >
-      <span className="truncate">{item.label}</span>
+      <span className="truncate flex items-center gap-1.5">
+        {item.label}
+        {isExternalLink && <ExternalLinkIcon className="w-3 -mt-0.5 h-3" />}
+      </span>
       {item.badge && item?.badge?.text && (
         <span
           className={`text-${item.badge.color || 'purple'}-600 ml-2 text-[10px] font-medium bg-${item.badge.color || 'purple'}-50 px-2 py-0.5 rounded uppercase`}
