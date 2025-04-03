@@ -8,7 +8,6 @@ describe('markdown', () => {
         <SchemaViewer id="test2" />
         `;
       const components = getMDXComponentsByName(markdown, 'SchemaViewer');
-      console.log('components', components);
       expect(components).toEqual([{ id: 'test' }, { id: 'test2' }]);
     });
   });
