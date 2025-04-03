@@ -8,6 +8,7 @@ const collection = resourceToCollectionMap[type as keyof typeof resourceToCollec
 
 let slotHTML = await Astro.slots.render('default');
 let href = '#';
+let linkHasError = false;
 
 try {
   if (collection === 'users' || collection === 'teams') {
@@ -18,6 +19,7 @@ try {
     href = buildUrl(`/docs/${collection}/${id}`);
   } else {
     const resourcesCollection = await getCollection(collection);
+
     const resources = getItemsFromCollectionByIdAndSemverOrLatest(resourcesCollection, id, version);
     const resource = resources[0];
 
@@ -26,7 +28,23 @@ try {
   }
 } catch (error) {
   console.error(`Failed to fetch related resource: ${id} of type ${type}`, error);
+  linkHasError = true;
+  slotHTML = id;
 }
 ---
 
-<a href={href} class="text-purple-500 hover:text-purple-700">{slotHTML}</a>
+{
+  linkHasError && (
+    <a href={href} class="text-red-500 hover:text-red-700">
+      ⚠️ {slotHTML} (broken link)
+    </a>
+  )
+}
+
+{
+  !linkHasError && (
+    <a href={href} class="text-purple-500 hover:text-purple-700">
+      {slotHTML}
+    </a>
+  )
+}
