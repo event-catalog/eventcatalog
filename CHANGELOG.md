@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 2.33.3
+
+### Patch Changes
+
+- 59fae38: feat(core): fixes and improvements for ResourceLink
+- d5270b6: fix(core): prevent icon shrinking in PillListFlat.tsx
+- 7dfc047: feat(badges): enhance badge functionality with dynamic icons
+- a6b5cb5: chore(core): updated astro
+- 646f085: feat(core): added GRPC & ZMQ protocol to channels
+
 ## 2.33.2
 
 ### Patch Changes
