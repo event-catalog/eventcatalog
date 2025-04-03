@@ -1,23 +1,50 @@
 ---
 import { buildUrl } from '@utils/url-builder';
-import { resourceToCollectionMap } from '@utils/collections/util';
+import { getItemsFromCollectionByIdAndSemverOrLatest, resourceToCollectionMap } from '@utils/collections/util';
+import { getCollection } from 'astro:content';
 
 const { id, version, type } = Astro.props;
 const collection = resourceToCollectionMap[type as keyof typeof resourceToCollectionMap];
+
+let slotHTML = await Astro.slots.render('default');
+let href = '#';
+let linkHasError = false;
+
+try {
+  if (collection === 'users' || collection === 'teams') {
+    const resources = await getCollection(collection, (resource) => resource.data.id === id);
+    const resource = resources[0];
+
+    slotHTML = slotHTML || resource.data.name;
+    href = buildUrl(`/docs/${collection}/${id}`);
+  } else {
+    const resourcesCollection = await getCollection(collection);
+
+    const resources = getItemsFromCollectionByIdAndSemverOrLatest(resourcesCollection, id, version);
+    const resource = resources[0];
+
+    slotHTML = slotHTML || resource.data.name;
+    href = buildUrl(`/docs/${collection}/${id}/${resource.data.version}`);
+  }
+} catch (error) {
+  console.error(`Failed to fetch related resource: ${id} of type ${type}`, error);
+  linkHasError = true;
+  slotHTML = id;
+}
 ---
 
 {
-  version && (
-    <a href={buildUrl(`/docs/${collection}/${id}/${version}`)} class="text-purple-500 hover:text-purple-700">
-      <slot />
+  linkHasError && (
+    <a href={href} class="text-red-500 hover:text-red-700">
+      ⚠️ {slotHTML} (broken link)
     </a>
   )
 }
 
 {
-  !version && (
-    <a href={buildUrl(`/docs/${collection}/${id}`)} class="text-purple-500 hover:text-purple-700">
-      <slot />
+  !linkHasError && (
+    <a href={href} class="text-purple-500 hover:text-purple-700">
+      {slotHTML}
     </a>
   )
 }
