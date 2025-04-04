@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 2.33.5
+
+### Patch Changes
+
+- ba769ab: fix(core): astro loaders no longer read node_modules
+- f8c762b: fix(core): visualizer no longer zoomes on moving nodes
+- 1f3ed45: feat(core): added miro components to eventcatalog
+- 8bca5dd: fix(core): changelogs now support EventCatalog components
+- a047db9: feat(core): added miro components to eventcatalog
+
 ## 2.33.4
 
 ### Patch Changes
