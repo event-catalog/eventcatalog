@@ -230,21 +230,24 @@ const NodeGraphBuilder = ({
   );
 
   const getNodesByCollectionWithColors = useCallback((nodes: Node[]) => {
-    const colors = {
-      events: 'orange',
-      services: 'pink',
-      commands: 'blue',
-      queries: 'green',
-      channels: 'gray',
+    const colorClasses = {
+      events: 'bg-orange-600',
+      services: 'bg-pink-600',
+      commands: 'bg-blue-600',
+      queries: 'bg-green-600',
+      channels: 'bg-gray-600',
+      externalSystem: 'bg-pink-600',
+      actor: 'bg-yellow-500',
+      step: 'bg-gray-700',
     };
 
-    return nodes.reduce((acc: { [key: string]: { count: number; color: string } }, node) => {
+    return nodes.reduce((acc: { [key: string]: { count: number; colorClass: string } }, node) => {
       const collection = node.type;
       if (collection) {
         if (acc[collection]) {
           acc[collection].count += 1;
         } else {
-          acc[collection] = { count: 1, color: colors[collection as keyof typeof colors] || 'black' };
+          acc[collection] = { count: 1, colorClass: colorClasses[collection as keyof typeof colorClasses] || 'bg-black' };
         }
       }
       return acc;
@@ -346,13 +349,13 @@ const NodeGraphBuilder = ({
         <Panel position="bottom-right">
           <div className=" bg-white font-light px-4 text-[12px] shadow-md py-1 rounded-md">
             <ul className="m-0 p-0 ">
-              {Object.entries(legend).map(([key, { count, color }]) => (
+              {Object.entries(legend).map(([key, { count, colorClass }]) => (
                 <li
                   key={key}
                   className="flex space-x-2 items-center text-[10px] cursor-pointer hover:text-purple-600 hover:underline"
                   onClick={() => handleLegendClick(key)}
                 >
-                  <span className={`w-2 h-2 block`} style={{ backgroundColor: color }} />
+                  <span className={`w-2 h-2 block ${colorClass}`} />
                   <span className="block capitalize">
                     {key} ({count})
                   </span>
