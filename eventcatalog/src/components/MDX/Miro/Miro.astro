@@ -44,7 +44,15 @@ const fullScreenParams = {
   back: backUrl,
 };
 
-const url = buildUrlWithParams(`${baseUrl}/${boardId}`, params);
+const url = new URL(`${baseUrl}/${boardId}`);
+Object.entries(params).forEach(([key, value]) => {
+  if (value !== undefined) {
+    url.searchParams.set(key, value);
+  }
+});
+
+console.log('url', url);
+
 const openFullScreenUrl = buildUrlWithParams(`/miro`, fullScreenParams);
 ---
 
@@ -68,7 +76,7 @@ const openFullScreenUrl = buildUrlWithParams(`/miro`, fullScreenParams);
         </h3>
       )}
       <div class="relative">
-        <iframe class="border border-gray-200 rounded-md" src={url} width="100%" height={height} />
+        <iframe class="border border-gray-200 rounded-md" src={url.href} width="100%" height={height} />
         <a
           href={openFullScreenUrl}
           class="absolute bottom-[15px] right-5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md transition-colors"
