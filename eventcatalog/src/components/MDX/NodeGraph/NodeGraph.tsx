@@ -189,8 +189,10 @@ const NodeGraphBuilder = ({
   }, [animateMessages]);
 
   useEffect(() => {
-    fitView({ duration: 800 });
-  }, [nodes, edges]);
+    setTimeout(() => {
+      fitView({ duration: 800 });
+    }, 150);
+  }, []);
 
   const handlePaneClick = useCallback(() => {
     setIsSettingsOpen(false);
