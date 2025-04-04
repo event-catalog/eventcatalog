@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.33.6
+
+### Patch Changes
+
+- 5dad823: fix(core): revert for 1340
+
 ## 2.33.5
 
 ### Patch Changes
