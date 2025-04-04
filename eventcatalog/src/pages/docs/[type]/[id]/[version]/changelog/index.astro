@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { render, getEntry } from 'astro:content';
+import mdxComponents from '@components/MDX/components';
 import 'diff2html/bundles/css/diff2html.min.css';
 
 import { buildUrl } from '@utils/url-builder';
@@ -226,7 +227,7 @@ const pages = [
                     </div>
                   )}
                   <div class="prose prose-md !max-w-none py-2">
-                    <log.Content />
+                    <log.Content components={mdxComponents(props)} />
                   </div>
                   {log.diffs && log.diffs.map((diff) => <div id="diff-container" set:html={diff} />)}
                 </div>
