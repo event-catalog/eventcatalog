@@ -40,6 +40,9 @@ export default {
       }
     ],
   ],
+  api: {
+    fullCatalogAPIEnabled: true,
+  },
   customDocs: {
     sidebar: [
       {
