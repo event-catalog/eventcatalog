@@ -5,8 +5,8 @@ import config from '@config';
 /**
  * Route the will dump the whole catalog as JSON (without markdown)
  * Experimental API
- * @param param0 
- * @returns 
+ * @param param0
+ * @returns
  */
 export const GET: APIRoute = async ({ params, request }) => {
   if (!config.api?.fullCatalogAPIEnabled) {
