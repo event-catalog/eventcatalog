@@ -35,6 +35,9 @@ importers:
       '@eventcatalog/generator-ai':
         specifier: ^1.0.0
         version: 1.0.0(@langchain/core@0.3.40(openai@4.85.4(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(openai@4.85.4(ws@8.18.0)(zod@3.24.1))(ws@8.18.0)
+      '@eventcatalog/sdk':
+        specifier: ^2.2.3
+        version: 2.2.3
       '@fontsource/inter':
         specifier: ^5.2.5
         version: 5.2.5
@@ -248,7 +251,7 @@ importers:
         version: 8.3.6(jiti@1.21.7)(postcss@8.5.1)(typescript@5.7.3)(yaml@2.7.0)
       vite-tsconfig-paths:
         specifier: ^4.3.2
-        version: 4.3.2(typescript@5.7.3)(vite@6.1.0(@types/node@20.17.17)(jiti@1.21.7)(yaml@2.7.0))
+        version: 4.3.2(typescript@5.7.3)(vite@6.2.4(@types/node@20.17.17)(jiti@1.21.7)(yaml@2.7.0))
       vitest:
         specifier: 2.1.6
         version: 2.1.6(@types/node@20.17.17)(jiti@1.21.7)(jsdom@26.0.0)(yaml@2.7.0)
@@ -937,8 +940,8 @@ packages:
   '@eventcatalog/generator-ai@1.0.0':
     resolution: {integrity: sha512-EMLqrry5hMxbT5bT4CRJd2g1j+PA7U9OeDApOPXuRq8YnnWnKtOjyTknSCCZR1yL5rzT6MaPn96oEbinpq7jKQ==}
 
-  '@eventcatalog/sdk@2.0.0':
-    resolution: {integrity: sha512-2qrYit3psOWWT29xDY+KuHOLkXw5fMpfU+/LgZSRZI6ZDB1pyxlqP/3ibJmL9RW7atgSzxHT7sIrHswjkbbuKg==}
+  '@eventcatalog/sdk@2.2.3':
+    resolution: {integrity: sha512-fRc/htQd8vyQvHnuwi5uKdYeQUh8czoWDHTLsyw1n9ODH6XYp2vSIyJEYPJQVges3Rhh2sVLB36rsvQ/mCEoHg==}
 
   '@expressive-code/core@0.40.1':
     resolution: {integrity: sha512-j71gxBepyzBgOtZomxzl8M90AjILf6hZarWFePDis7sTjqCwxWrtZEtTCafto8IOURG/ECZN0g7Ys4zExkNU7Q==}
@@ -6156,6 +6159,10 @@ packages:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
     engines: {node: '>=8'}
 
+  slugify@1.6.6:
+    resolution: {integrity: sha512-h+z7HKHYXj6wJU+AnS/+IH8Uh9fdcX1Lrhg1/VMdf9PwoBQXFcXiAdsy2tSK0P6gKwJLXp02r90ahUCqHk9rrw==}
+    engines: {node: '>=8.0.0'}
+
   smol-toml@1.3.1:
     resolution: {integrity: sha512-tEYNll18pPKHroYSmLLrksq233j021G0giwW7P3D24jC54pQ5W5BXMsQ/Mvw1OJCmEYDgY+lrzT+3nNUtoNfXQ==}
     engines: {node: '>= 18'}
@@ -7141,11 +7148,6 @@ packages:
     peerDependencies:
       zod: ^3.24.1
 
-  zod-to-json-schema@3.24.3:
-    resolution: {integrity: sha512-HIAfWdYIt1sssHfYZFCXp4rU1w2r8hVVXYIlmoa0r0gABLs5di3RCqPU5DDROogVz1pAdYBaz7HK5n9pSUNs3A==}
-    peerDependencies:
-      zod: ^3.24.1
-
   zod-to-json-schema@3.24.5:
     resolution: {integrity: sha512-/AuWwMP+YqiPbsJx5D6TfgRTc4kTLjsh5SOcd4bLsfUg2RcEXrFMJl1DGgdHy2aCfsIA/cr/1JM0xcB2GZji8g==}
     peerDependencies:
@@ -7589,7 +7591,7 @@ snapshots:
       openai: 4.85.4(ws@8.18.0)(zod@3.24.1)
       ws: 8.18.0
       zod: 3.24.1
-      zod-to-json-schema: 3.24.3(zod@3.24.1)
+      zod-to-json-schema: 3.24.5(zod@3.24.1)
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -8057,7 +8059,7 @@ snapshots:
 
   '@eventcatalog/generator-ai@1.0.0(@langchain/core@0.3.40(openai@4.85.4(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(openai@4.85.4(ws@8.18.0)(zod@3.24.1))(ws@8.18.0)':
     dependencies:
-      '@eventcatalog/sdk': 2.0.0
+      '@eventcatalog/sdk': 2.2.3
       '@huggingface/transformers': 3.3.3
       chalk: 4.1.2
       fs-extra: 11.3.0
@@ -8086,7 +8088,7 @@ snapshots:
       - typeorm
       - ws
 
-  '@eventcatalog/sdk@2.0.0':
+  '@eventcatalog/sdk@2.2.3':
     dependencies:
       '@changesets/cli': 2.27.12
       fs-extra: 11.3.0
@@ -8094,6 +8096,7 @@ snapshots:
       gray-matter: 4.0.3
       proper-lockfile: 4.1.2
       semver: 7.6.3
+      slugify: 1.6.6
 
   '@expressive-code/core@0.40.1':
     dependencies:
@@ -8431,7 +8434,7 @@ snapshots:
       p-retry: 4.6.2
       uuid: 10.0.0
       zod: 3.24.2
-      zod-to-json-schema: 3.24.3(zod@3.24.2)
+      zod-to-json-schema: 3.24.5(zod@3.24.2)
     transitivePeerDependencies:
       - openai
 
@@ -14272,6 +14275,8 @@ snapshots:
 
   slash@3.0.0: {}
 
+  slugify@1.6.6: {}
+
   smol-toml@1.3.1: {}
 
   source-map-js@1.2.1: {}
@@ -14868,13 +14873,13 @@ snapshots:
       - tsx
       - yaml
 
-  vite-tsconfig-paths@4.3.2(typescript@5.7.3)(vite@6.1.0(@types/node@20.17.17)(jiti@1.21.7)(yaml@2.7.0)):
+  vite-tsconfig-paths@4.3.2(typescript@5.7.3)(vite@6.2.4(@types/node@20.17.17)(jiti@1.21.7)(yaml@2.7.0)):
     dependencies:
       debug: 4.4.0
       globrex: 0.1.2
       tsconfck: 3.1.5(typescript@5.7.3)
     optionalDependencies:
-      vite: 6.1.0(@types/node@20.17.17)(jiti@1.21.7)(yaml@2.7.0)
+      vite: 6.2.4(@types/node@20.17.17)(jiti@1.21.7)(yaml@2.7.0)
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -15257,13 +15262,9 @@ snapshots:
     dependencies:
       zod: 3.24.1
 
-  zod-to-json-schema@3.24.3(zod@3.24.1):
+  zod-to-json-schema@3.24.5(zod@3.24.1):
     dependencies:
       zod: 3.24.1
-
-  zod-to-json-schema@3.24.3(zod@3.24.2):
-    dependencies:
-      zod: 3.24.2
 
   zod-to-json-schema@3.24.5(zod@3.24.2):
     dependencies:
