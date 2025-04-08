@@ -3,6 +3,7 @@ import type { CollectionEntry } from 'astro:content';
 import { Handle } from '@xyflow/react';
 import * as ContextMenu from '@radix-ui/react-context-menu';
 import { buildUrl } from '@utils/url-builder';
+import { getIcon } from '@utils/badges';
 
 interface Data {
   label: string;
@@ -19,9 +20,15 @@ function classNames(...classes: any) {
 }
 
 export default function ServiceNode({ data, sourcePosition, targetPosition }: any) {
-  const { label, bgColor = 'bg-blue-500', mode, service } = data as Data;
+  const { mode, service } = data as Data;
 
-  const { id, version, owners = [], sends = [], receives = [], name, specifications, repository } = service.data;
+  const { id, version, owners = [], sends = [], receives = [], name, specifications, repository, styles } = service.data;
+  const { node: { color = 'pink', icon = 'ServerIcon', label } = {} } = styles || {};
+
+  const Icon = getIcon(icon);
+  const nodeLabel = label || service?.data?.sidebar?.badge || 'Service';
+  const fontSize = nodeLabel.length > 10 ? '7px' : '9px';
+
   const asyncApiPath = specifications?.asyncapiPath;
   const openApiPath = specifications?.openapiPath;
   const repositoryUrl = repository?.url;
@@ -29,17 +36,19 @@ export default function ServiceNode({ data, sourcePosition, targetPosition }: an
   return (
     <ContextMenu.Root>
       <ContextMenu.Trigger>
-        <div className={classNames('w-full rounded-md border flex justify-start  bg-white text-black border-pink-500')}>
+        <div className={classNames(`w-full rounded-md border flex justify-start  bg-white text-black border-${color}-400`)}>
           <div
             className={classNames(
-              'bg-gradient-to-b from-pink-500 to-pink-700 relative flex items-center w-5 justify-center rounded-l-sm text-red-100-500',
-              `border-r-[1px] border-pink-500`
+              `bg-gradient-to-b from-${color}-500 to-${color}-700 relative flex items-center w-5 justify-center rounded-l-sm text-${color}-100`,
+              `border-r-[1px] border-${color}-500`
             )}
           >
-            <ServerIcon className="w-4 h-4 opacity-90 text-white absolute top-1 " />
+            {Icon && <Icon className="w-4 h-4 opacity-90 text-white absolute top-1 " />}
             {mode === 'full' && (
-              <span className="rotate -rotate-90 w-1/2 text-center absolute bottom-1 text-[9px] text-white font-bold uppercase tracking-[3px] ">
-                Service
+              <span
+                className={`rotate -rotate-90 w-1/2 text-center absolute bottom-1 text-[${fontSize}] text-white font-bold uppercase tracking-[3px] `}
+              >
+                {nodeLabel}
               </span>
             )}
           </div>
