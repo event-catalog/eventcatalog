@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.33.9
+
+### Patch Changes
+
+- 80ba8c5: feat(core): added ability to deprecate resources in eventcatalog
+
 ## 2.33.8
 
 ### Patch Changes
