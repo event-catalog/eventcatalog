@@ -23,7 +23,7 @@ export default function ServiceNode({ data, sourcePosition, targetPosition }: an
   const { mode, service } = data as Data;
 
   const { id, version, owners = [], sends = [], receives = [], name, specifications, repository, styles } = service.data;
-  const { node: { color = 'pink', icon = 'ServerIcon', label } = {} } = styles || {};
+  const { node: { color = 'pink', label } = {}, icon = 'ServerIcon' } = styles || {};
 
   const Icon = getIcon(icon);
   const nodeLabel = label || service?.data?.sidebar?.badge || 'Service';

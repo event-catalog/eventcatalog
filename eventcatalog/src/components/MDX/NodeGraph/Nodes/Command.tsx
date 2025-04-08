@@ -23,7 +23,7 @@ export default function CommandNode({ data, sourcePosition, targetPosition }: an
   const { mode, message } = data as Data;
 
   const { id, name, version, summary, owners = [], producers = [], consumers = [], schemaPath, styles } = message.data;
-  const { node: { color = 'blue', icon = 'ChatBubbleLeftIcon', label } = {} } = styles || {};
+  const { node: { color = 'blue', label } = {}, icon = 'ChatBubbleLeftIcon' } = styles || {};
 
   const Icon = getIcon(icon);
   const nodeLabel = label || message?.data?.sidebar?.badge || 'Command';

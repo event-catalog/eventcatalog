@@ -106,10 +106,10 @@ const baseSchema = z.object({
     .optional(),
   styles: z
     .object({
+      icon: z.string().optional(),
       node: z
         .object({
           color: z.string().optional(),
-          icon: z.string().optional(),
           label: z.string().optional(),
         })
         .optional(),

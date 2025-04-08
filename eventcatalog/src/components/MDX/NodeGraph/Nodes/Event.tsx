@@ -21,7 +21,7 @@ function classNames(...classes: any) {
 export default function EventNode({ data, sourcePosition, targetPosition }: any) {
   const { mode, message } = data as Data;
   const { name, version, summary, owners = [], producers = [], consumers = [], styles } = message.data;
-  const { node: { color = 'orange', icon = 'BoltIcon', label } = {} } = styles || {};
+  const { node: { color = 'orange', label } = {}, icon = 'BoltIcon' } = styles || {};
 
   const Icon = getIcon(icon);
   const nodeLabel = label || message?.data?.sidebar?.badge || 'Event';

@@ -44,7 +44,7 @@ export default function ChannelNode({ data, sourcePosition, targetPosition }: an
 
   const { id, name, version, summary, owners = [], address, protocols = [], styles } = channel.data;
   const protocol = protocols[0];
-  const { node: { color = 'gray', icon = 'ArrowsRightLeftIcon', label } = {} } = styles || {};
+  const { node: { color = 'gray', label } = {}, icon = 'ArrowsRightLeftIcon' } = styles || {};
 
   const Icon = getIconForProtocol(protocol);
 
