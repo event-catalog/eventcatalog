@@ -20,7 +20,7 @@ export default function QueryNode({ data, sourcePosition, targetPosition }: any)
   const { mode, message } = data as Data;
 
   const { name, version, summary, owners = [], producers = [], consumers = [], styles } = message.data;
-  const { node: { color = 'green', icon = 'MagnifyingGlassIcon', label } = {} } = styles || {};
+  const { node: { color = 'green', label } = {}, icon = 'MagnifyingGlassIcon' } = styles || {};
 
   const Icon = getIcon(icon);
   const nodeLabel = label || message?.data?.sidebar?.badge || 'Query';
