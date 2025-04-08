@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.33.8
+
+### Patch Changes
+
+- ce4948d: feat(core): added customization to nodes in visualizer
+
 ## 2.33.7
 
 ### Patch Changes
