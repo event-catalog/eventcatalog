@@ -115,6 +115,12 @@ const baseSchema = z.object({
         .optional(),
     })
     .optional(),
+  deprecated: z
+    .object({
+      message: z.string().optional(),
+      date: z.date().optional(),
+    })
+    .optional(),
   // Used by eventcatalog
   versions: z.array(z.string()).optional(),
   latestVersion: z.string().optional(),
