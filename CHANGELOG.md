@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 2.33.7
+
+### Patch Changes
+
+- 9a51be2: fix(core): add colors for missing types in NodeGraph legend
+- 8526a17: feat(core): added experimental api for catalog
+- 3a7ca75: feat(core): added customization to nodes in visualizer
+
 ## 2.33.6
 
 ### Patch Changes
