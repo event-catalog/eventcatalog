@@ -28,6 +28,7 @@ execSync(`cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogD
 execSync(`pnpm exec astro check --minimumSeverity error --root ${catalogDir}`, {
   stdio: 'inherit',
   env: {
+    PATH: process.env.PATH,
     CATALOG_DIR: catalogDir,
     PROJECT_DIR: projectDIR,
   },
