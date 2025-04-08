@@ -2,6 +2,7 @@ import { ChatBubbleLeftIcon } from '@heroicons/react/16/solid';
 import type { CollectionEntry } from 'astro:content';
 import { Handle } from '@xyflow/react';
 import MessageContextMenu from './MessageContextMenu';
+import { getIcon } from '@utils/badges';
 
 interface Data {
   title: string;
@@ -21,21 +22,28 @@ function classNames(...classes: any) {
 export default function CommandNode({ data, sourcePosition, targetPosition }: any) {
   const { mode, message } = data as Data;
 
-  const { id, name, version, summary, owners = [], producers = [], consumers = [], schemaPath } = message.data;
+  const { id, name, version, summary, owners = [], producers = [], consumers = [], schemaPath, styles } = message.data;
+  const { node: { color = 'blue', icon = 'ChatBubbleLeftIcon', label } = {} } = styles || {};
+
+  const Icon = getIcon(icon);
+  const nodeLabel = label || message?.data?.sidebar?.badge || 'Command';
+  const fontSize = nodeLabel.length > 10 ? '7px' : '9px';
 
   return (
     <MessageContextMenu message={message} messageType="commands">
-      <div className={classNames('w-full rounded-md border flex justify-start  bg-white text-black border-blue-400')}>
+      <div className={classNames(`w-full rounded-md border flex justify-start  bg-white text-black border-${color}-400`)}>
         <div
           className={classNames(
-            'bg-gradient-to-b from-blue-500 to-blue-700 relative flex items-center w-5 justify-center rounded-l-sm text-blue-100-500',
-            `border-r-[1px] border-blue-500`
+            `bg-gradient-to-b from-${color}-500 to-${color}-700 relative flex items-center w-5 justify-center rounded-l-sm text-${color}-100`,
+            `border-r-[1px] border-${color}-500`
           )}
         >
-          <ChatBubbleLeftIcon className="w-4 h-4 opacity-90 text-white absolute top-1 " />
+          {Icon && <Icon className="w-4 h-4 opacity-90 text-white absolute top-1 " />}
           {mode === 'full' && (
-            <span className="rotate -rotate-90 w-1/2 text-center absolute bottom-1 text-[9px] text-white font-bold uppercase tracking-[3px] ">
-              Command
+            <span
+              className={`rotate -rotate-90 w-1/2 text-center absolute bottom-1 text-[${fontSize}] text-white font-bold uppercase tracking-[3px] `}
+            >
+              {nodeLabel}
             </span>
           )}
         </div>

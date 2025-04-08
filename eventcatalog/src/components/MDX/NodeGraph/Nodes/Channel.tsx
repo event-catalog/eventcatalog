@@ -1,11 +1,10 @@
-import { BoltIcon } from '@heroicons/react/16/solid';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
-import type { CollectionMessageTypes, CollectionTypes } from '@types';
+import type { CollectionMessageTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
 import { Handle } from '@xyflow/react';
 import * as ContextMenu from '@radix-ui/react-context-menu';
 import { buildUrl } from '@utils/url-builder';
-
+import { getIcon } from '@utils/badges';
 interface Data {
   title: string;
   label: string;
@@ -43,10 +42,15 @@ const getIconForProtocol = (icon: keyof typeof protocolIcons) => {
 export default function ChannelNode({ data, sourcePosition, targetPosition }: any) {
   const { mode, channel, source, target } = data as Data;
 
-  const { id, name, version, summary, owners = [], address, protocols = [] } = channel.data;
+  const { id, name, version, summary, owners = [], address, protocols = [], styles } = channel.data;
   const protocol = protocols[0];
+  const { node: { color = 'gray', icon = 'ArrowsRightLeftIcon', label } = {} } = styles || {};
 
   const Icon = getIconForProtocol(protocol);
+
+  const SideBarIcon = getIcon(icon);
+  const nodeLabel = label || channel?.data?.sidebar?.badge || 'Channel';
+  const fontSize = nodeLabel.length > 10 ? '7px' : '9px';
 
   const getAddress = () => {
     const sourceChannel = source.data.channels?.find((channel) => channel.id === id);
@@ -74,19 +78,21 @@ export default function ChannelNode({ data, sourcePosition, targetPosition }: an
         <div
           className={classNames(
             mode === 'simple' ? 'min-h-[3em]' : 'min-h-[6.5em]',
-            'w-full rounded-md border flex justify-start  bg-white text-black border-gray-400 transform  '
+            `w-full rounded-md border flex justify-start  bg-white text-black border-${color}-400 transform  `
           )}
         >
           <div
             className={classNames(
-              'bg-gradient-to-b from-gray-500 to-gray-700 relative flex items-center w-5 justify-center rounded-l-sm text-gray-100-500',
-              `border-r-[1px] border-gray-500`
+              `bg-gradient-to-b from-${color}-500 to-${color}-700 relative flex items-center w-5 justify-center rounded-l-sm text-${color}-100`,
+              `border-r-[1px] border-${color}-500`
             )}
           >
-            <ArrowsRightLeftIcon className="w-4 h-4 opacity-90 text-white absolute top-1 " />
+            {SideBarIcon && <SideBarIcon className="w-4 h-4 opacity-90 text-white absolute top-1 " />}
             {mode === 'full' && (
-              <span className="rotate -rotate-90 w-1/2 text-center absolute bottom-1 text-[9px] text-white font-bold uppercase tracking-[3px] ">
-                Channel
+              <span
+                className={`rotate -rotate-90 w-1/2 text-center absolute bottom-1 text-[${fontSize}] text-white font-bold uppercase tracking-[3px] `}
+              >
+                {nodeLabel}
               </span>
             )}
           </div>

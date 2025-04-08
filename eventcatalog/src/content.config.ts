@@ -104,6 +104,17 @@ const baseSchema = z.object({
       })
     )
     .optional(),
+  styles: z
+    .object({
+      node: z
+        .object({
+          color: z.string().optional(),
+          icon: z.string().optional(),
+          label: z.string().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
   // Used by eventcatalog
   versions: z.array(z.string()).optional(),
   latestVersion: z.string().optional(),

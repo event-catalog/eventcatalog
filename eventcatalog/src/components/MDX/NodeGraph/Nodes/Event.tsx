@@ -2,7 +2,7 @@ import { BoltIcon } from '@heroicons/react/16/solid';
 import type { CollectionEntry } from 'astro:content';
 import { Handle } from '@xyflow/react';
 import MessageContextMenu from './MessageContextMenu';
-
+import { getIcon } from '@utils/badges';
 interface Data {
   title: string;
   label: string;
@@ -20,21 +20,28 @@ function classNames(...classes: any) {
 
 export default function EventNode({ data, sourcePosition, targetPosition }: any) {
   const { mode, message } = data as Data;
-  const { name, version, summary, owners = [], producers = [], consumers = [] } = message.data;
+  const { name, version, summary, owners = [], producers = [], consumers = [], styles } = message.data;
+  const { node: { color = 'orange', icon = 'BoltIcon', label } = {} } = styles || {};
+
+  const Icon = getIcon(icon);
+  const nodeLabel = label || message?.data?.sidebar?.badge || 'Event';
+  const fontSize = nodeLabel.length > 10 ? '7px' : '9px';
 
   return (
     <MessageContextMenu message={message} messageType="events">
-      <div className={classNames('w-full rounded-md border flex justify-start  bg-white text-black border-orange-400')}>
+      <div className={classNames(`w-full rounded-md border flex justify-start  bg-white text-black border-${color}-400`)}>
         <div
           className={classNames(
-            'bg-gradient-to-b from-orange-500 to-orange-700 relative flex items-center w-5 justify-center rounded-l-sm text-orange-100-500',
-            `border-r-[1px] border-orange-500`
+            `bg-gradient-to-b from-${color}-500 to-${color}-700 relative flex items-center w-5 justify-center rounded-l-sm text-${color}-100`,
+            `border-r-[1px] border-${color}-500`
           )}
         >
-          <BoltIcon className="w-4 h-4 opacity-90 text-white absolute top-1 " />
+          {Icon && <Icon className="w-4 h-4 opacity-90 text-white absolute top-1 " />}
           {mode === 'full' && (
-            <span className="rotate -rotate-90 w-1/2 text-center absolute bottom-1 text-[9px] text-white font-bold uppercase tracking-[3px] ">
-              Event
+            <span
+              className={`rotate -rotate-90 w-1/2 text-center absolute bottom-1 text-[${fontSize}] text-white font-bold uppercase tracking-[3px] `}
+            >
+              {nodeLabel}
             </span>
           )}
         </div>
