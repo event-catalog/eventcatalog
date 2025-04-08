@@ -1,10 +1,13 @@
 ---
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import Footer from '@layouts/Footer.astro';
+import { marked } from 'marked';
 
 import components from '@components/MDX/components';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewerRoot.astro';
+
+import Admonition from '@components/MDX/Admonition';
 
 // SideBars
 import ServiceSideBar from '@components/SideBars/ServiceSideBar.astro';
@@ -132,6 +135,14 @@ const pagefindAttributes =
         'data-pagefind-meta': `title:${pageTitle}`,
       }
     : {};
+
+const isMarkedAsDeprecated = props.data.deprecated;
+const hasDeprecated = props.data.deprecated?.date && new Date(props.data.deprecated?.date) < new Date();
+const formattedDate = props.data.deprecated?.date
+  ? new Date(props.data.deprecated?.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  : '';
+let friendlyCollectionName = props.collection.slice(0, props.collection.length - 1);
+friendlyCollectionName = friendlyCollectionName === 'querie' ? 'query' : friendlyCollectionName;
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
@@ -140,10 +151,46 @@ const pagefindAttributes =
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
         <div class="border-b border-gray-200 flex justify-between items-start md:pb-2">
           <div>
-            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-black">
+            <h2
+              id="doc-page-header"
+              class={`text-2xl md:text-4xl font-bold text-black ${props.data.deprecated && hasDeprecated ? 'text-red-500' : ''}`}
+            >
               {props.data.name}
               <span class="">(v{props.data.version})</span>
             </h2>
+            {
+              isMarkedAsDeprecated && hasDeprecated && (
+                <Admonition type="alert" title={`This ${friendlyCollectionName} was deprecated on ${formattedDate}`}>
+                  <div>
+                    {!props.data.deprecated?.message && (
+                      <p>
+                        The {friendlyCollectionName} has been deprecated ({props.data.deprecated?.date}).
+                      </p>
+                    )}
+                    {props.data.deprecated?.message && (
+                      <div class="prose prose-sm max-w-none" set:html={marked.parse(props.data.deprecated?.message)} />
+                    )}
+                  </div>
+                </Admonition>
+              )
+            }
+            {
+              isMarkedAsDeprecated && !hasDeprecated && (
+                <Admonition type="warning" title={`This ${friendlyCollectionName} will be deprecated on ${formattedDate}`}>
+                  <div>
+                    {!props.data.deprecated?.message && (
+                      <p>
+                        The {friendlyCollectionName} will be deprecated on {formattedDate}.
+                      </p>
+                    )}
+                    {props.data.deprecated?.message && (
+                      <div class="prose prose-sm max-w-none" set:html={marked.parse(props.data.deprecated?.message)} />
+                    )}
+                  </div>
+                </Admonition>
+              )
+            }
+
             <h2 class="text-lg pt-2 text-gray-500 font-light">{props.data.summary}</h2>
             {
               badges && (
