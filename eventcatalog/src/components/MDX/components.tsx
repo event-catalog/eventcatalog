@@ -19,6 +19,7 @@ import TabItem from '@components/MDX/Tabs/TabItem.astro';
 import ResourceLink from '@components/MDX/ResourceLink/ResourceLink.astro';
 import Link from '@components/MDX/Link/Link.astro';
 import Miro from '@components/MDX/Miro/Miro.astro';
+import Chromatic from './Chromatic/Chromatic.astro';
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
@@ -48,6 +49,7 @@ const components = (props: any) => {
     Tile,
     Tiles,
     Miro: (mdxProp: any) => jsx(Miro, { ...props, ...mdxProp }),
+    Chromatic: (mdxProp: any) => jsx(Chromatic, { ...props, ...mdxProp }),
   };
 };
 

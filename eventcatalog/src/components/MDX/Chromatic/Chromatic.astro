@@ -1,0 +1,58 @@
+---
+import Admonition from '@components/MDX/Admonition';
+
+interface Props {
+  title?: string;
+  height: string;
+  appId: string;
+  uploadHash: string;
+  id: string;
+  singleStory: boolean;
+  viewMode: 'story' | 'docs';
+}
+
+const { title, height = '500', appId, uploadHash, id, viewMode = 'story', singleStory = true } = Astro.props;
+
+if (viewMode !== 'story' && viewMode !== 'docs') {
+  throw new Error(`Invalid viewMode: ${viewMode}. Allowed values are "story" or "docs".`);
+}
+
+const params = {
+  id: id,
+  viewMode: viewMode,
+  singleStory: `${singleStory}`,
+};
+
+const url = new URL(`https://${appId}-${uploadHash}.chromatic.com/iframe.html`);
+Object.entries(params).forEach(([key, value]) => {
+  if (value !== undefined) {
+    url.searchParams.set(key, value);
+  }
+});
+---
+
+{
+  !appId && !uploadHash && id && (
+    <Admonition type="warning">
+      <div>
+        <span class="block font-bold">{`<Chromatic />`} failed to load</span>
+        <span class="block">Please provide appId, uploadHash and id to use the Chromatic component.</span>
+      </div>
+    </Admonition>
+  )
+}
+
+{
+  appId && uploadHash && id && (
+    <div>
+      {title && (
+        <h3 id={`${title}-chromatic-title`} class="text-3xl font-bold">
+          {title}
+        </h3>
+      )}
+      <div class="relative">
+        <iframe class="border border-gray-200 rounded-md" src={url.href} width="100%" height={height} />
+      </div>
+    </div>
+  )
+}
