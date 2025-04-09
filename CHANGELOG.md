@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.33.10
+
+### Patch Changes
+
+- cb0ce3b: feat(core): deprecation field now supports booleans
+
 ## 2.33.9
 
 ### Patch Changes
