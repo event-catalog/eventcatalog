@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.33.11
+
+### Patch Changes
+
+- 57a3879: fix(core): update to schema viewer to support more usecases
+
 ## 2.33.10
 
 ### Patch Changes
