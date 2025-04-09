@@ -12,7 +12,65 @@ interface Props {
 }
 
 const { id, file, title, maxHeight, schema } = Astro.props;
-const { description, properties, required = [] } = schema;
+
+// Function to merge allOf schemas
+function mergeAllOfSchemas(schema: any) {
+  if (!schema.allOf) return schema;
+
+  const mergedSchema: {
+    type: string;
+    properties: Record<string, any>;
+    required: string[];
+    description?: string;
+  } = {
+    type: 'object',
+    properties: {},
+    required: [],
+    description: schema.description,
+  };
+
+  schema.allOf.forEach((subSchema: any) => {
+    if (subSchema.properties) {
+      mergedSchema.properties = {
+        ...mergedSchema.properties,
+        ...subSchema.properties,
+      };
+    }
+    if (subSchema.required) {
+      mergedSchema.required = [...mergedSchema.required, ...subSchema.required];
+    }
+    if (subSchema.description && !mergedSchema.description) {
+      mergedSchema.description = subSchema.description;
+    }
+  });
+
+  return mergedSchema;
+}
+
+function processSchema(schema: any) {
+  if (schema.allOf) {
+    return mergeAllOfSchemas(schema);
+  }
+
+  if (schema.oneOf) {
+    // For oneOf, we'll keep the base properties and handle variants in the UI
+    return {
+      ...schema,
+      variants: schema.oneOf.map((variant: any) => ({
+        title: variant.title || 'Unnamed Variant',
+        required: variant.required || [],
+      })),
+    };
+  }
+
+  return schema;
+}
+
+const processedSchema = processSchema(schema);
+const { description, properties, required = [], variants } = processedSchema;
+
+// Generate a unique ID for this instance
+const instanceId = `${id}-${file}-${Math.random().toString(36).substring(2, 9)}`;
 ---
 
 <div id={`${id}-${file}-SchemaViewer-client`} class="not-prose my-4">
@@ -24,18 +82,73 @@ const { description, properties, required = [] } = schema;
     }}
   >
     {description && <p class="text-gray-600 text-xs mb-5">{description}</p>}
-    {/* Reduced size, adjusted margin */}
 
     {
-      properties &&
-        Object.entries(properties).map(([name, details]) => (
-          <SchemaProperty name={name} details={details} isRequired={required.includes(name)} level={0} />
-        ))
+      variants && (
+        <div class="mb-4">
+          <div class="flex items-center space-x-2">
+            <span class="text-sm text-gray-600">(one of)</span>
+            <select
+              id={`${instanceId}-variant-selector`}
+              class="form-select text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+            >
+              {variants.map((variant: any, index: number) => (
+                <option value={index}>{variant.title}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )
+    }
+
+    {
+      properties && (
+        <div id={`${instanceId}-properties`}>
+          {Object.entries(properties).map(([name, details]) => (
+            <SchemaProperty name={name} details={details} isRequired={variants ? false : required.includes(name)} level={0} />
+          ))}
+        </div>
+      )
     }
 
     {!properties && <p class="text-gray-500 text-sm">Schema does not contain any properties.</p>}
   </div>
 </div>
+
+<script define:vars={{ instanceId, variants }}>
+  if (variants) {
+    const selector = document.getElementById(`${instanceId}-variant-selector`);
+    const propertiesContainer = document.getElementById(`${instanceId}-properties`);
+
+    function updateRequiredFields() {
+      const selectedVariant = variants[selector.value];
+      const properties = propertiesContainer.querySelectorAll('.property-container');
+
+      properties.forEach((prop) => {
+        const nameEl = prop.querySelector('.font-semibold');
+        if (!nameEl) return;
+
+        const name = nameEl.textContent;
+        const requiredBadge = prop.querySelector('.text-red-600');
+
+        if (selectedVariant.required.includes(name)) {
+          if (!requiredBadge) {
+            const badge = document.createElement('span');
+            badge.className = 'text-red-600 text-xs ml-3 flex-shrink-0';
+            badge.textContent = 'required';
+            nameEl.parentElement.appendChild(badge);
+          }
+        } else {
+          requiredBadge?.remove();
+        }
+      });
+    }
+
+    selector.addEventListener('change', updateRequiredFields);
+    // Initialize with first variant
+    updateRequiredFields();
+  }
+</script>
 
 <style>
   .schema-viewer code {
