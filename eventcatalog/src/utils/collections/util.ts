@@ -109,3 +109,30 @@ export const resourceToCollectionMap = {
   user: 'users',
   team: 'teams',
 } as const;
+
+export const getDeprecatedDetails = (item: CollectionEntry<CollectionTypes>) => {
+  let options = {
+    isMarkedAsDeprecated: false,
+    hasDeprecated: false,
+    message: '',
+    deprecatedDate: '',
+  };
+
+  if (!item.data?.deprecated) return options;
+
+  if (typeof item.data.deprecated === 'boolean') {
+    options.hasDeprecated = item.data.deprecated;
+    options.isMarkedAsDeprecated = item.data.deprecated;
+  }
+
+  if (typeof item.data.deprecated === 'object') {
+    options.isMarkedAsDeprecated = true;
+    options.hasDeprecated = item.data.deprecated.date ? new Date(item.data.deprecated.date) < new Date() : false;
+    options.message = item.data.deprecated.message ?? '';
+    options.deprecatedDate = item.data.deprecated.date
+      ? new Date(item.data.deprecated.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      : '';
+  }
+
+  return options;
+};

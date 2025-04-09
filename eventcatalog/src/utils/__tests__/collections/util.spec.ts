@@ -1,4 +1,6 @@
-import { isSameVersion, satisfies, sortStringVersions } from '@utils/collections/util';
+import type { CollectionTypes } from '@types';
+import { getDeprecatedDetails, isSameVersion, satisfies, sortStringVersions } from '@utils/collections/util';
+import type { CollectionEntry } from 'astro:content';
 import { describe, it, expect } from 'vitest';
 
 describe('Collections - utils', () => {
@@ -49,6 +51,30 @@ describe('Collections - utils', () => {
       [{ versions: ['1.0.0', undefined], result: false }],
     ])('should returns $result when versions is $versions', ({ versions, result }) => {
       expect(isSameVersion(versions[0], versions[1])).toBe(result);
+    });
+  });
+
+  describe('getDeprecatedDetails', () => {
+    it('returns false when deprecated is false', () => {
+      const result = getDeprecatedDetails({ data: { deprecated: false } } as unknown as CollectionEntry<CollectionTypes>);
+      expect(result).toEqual({ hasDeprecated: false, isMarkedAsDeprecated: false, message: '', deprecatedDate: '' });
+    });
+
+    it('returns true when deprecated is true (boolean)', () => {
+      const result = getDeprecatedDetails({ data: { deprecated: true } } as unknown as CollectionEntry<CollectionTypes>);
+      expect(result).toEqual({ hasDeprecated: true, isMarkedAsDeprecated: true, message: '', deprecatedDate: '' });
+    });
+
+    it('returns true when deprecated is true (object)', () => {
+      const result = getDeprecatedDetails({
+        data: { deprecated: { date: '2021-01-01', message: 'This is a test message' } },
+      } as unknown as CollectionEntry<CollectionTypes>);
+      expect(result).toEqual({
+        hasDeprecated: true,
+        isMarkedAsDeprecated: true,
+        message: 'This is a test message',
+        deprecatedDate: 'January 1, 2021',
+      });
     });
   });
 });

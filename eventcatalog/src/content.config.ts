@@ -116,10 +116,13 @@ const baseSchema = z.object({
     })
     .optional(),
   deprecated: z
-    .object({
-      message: z.string().optional(),
-      date: z.date().optional(),
-    })
+    .union([
+      z.object({
+        message: z.string().optional(),
+        date: z.date().optional(),
+      }),
+      z.boolean().optional(),
+    ])
     .optional(),
   // Used by eventcatalog
   versions: z.array(z.string()).optional(),
