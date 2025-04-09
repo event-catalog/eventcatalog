@@ -6,7 +6,6 @@ import { marked } from 'marked';
 import components from '@components/MDX/components';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewerRoot.astro';
-
 import Admonition from '@components/MDX/Admonition';
 
 // SideBars
@@ -17,16 +16,20 @@ import ChannelSideBar from '@components/SideBars/ChannelSideBar.astro';
 import FlowSideBar from '@components/SideBars/FlowSideBar.astro';
 
 import { QueueListIcon, RectangleGroupIcon, ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
-import type { PageTypes } from '@types';
-
-import { buildUrl } from '@utils/url-builder';
-import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
-import { ClientRouter } from 'astro:transitions';
-import { render } from 'astro:content';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
 
-import config from '@config';
+import type { PageTypes } from '@types';
+import type { CollectionTypes } from '@types';
+
+import { ClientRouter } from 'astro:transitions';
+import { render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+
 import { getIcon } from '@utils/badges';
+import { getDeprecatedDetails } from '@utils/collections/util';
+import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
+import { buildUrl } from '@utils/url-builder';
+import config from '@config';
 
 export async function getStaticPaths() {
   const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows', 'channels'];
@@ -136,11 +139,13 @@ const pagefindAttributes =
       }
     : {};
 
-const isMarkedAsDeprecated = props.data.deprecated;
-const hasDeprecated = props.data.deprecated?.date && new Date(props.data.deprecated?.date) < new Date();
-const formattedDate = props.data.deprecated?.date
-  ? new Date(props.data.deprecated?.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-  : '';
+const {
+  hasDeprecated,
+  message: deprecatedMessage,
+  isMarkedAsDeprecated,
+  deprecatedDate: formattedDate,
+} = getDeprecatedDetails(props as unknown as CollectionEntry<CollectionTypes>);
+
 let friendlyCollectionName = props.collection.slice(0, props.collection.length - 1);
 friendlyCollectionName = friendlyCollectionName === 'querie' ? 'query' : friendlyCollectionName;
 ---
@@ -149,7 +154,7 @@ friendlyCollectionName = friendlyCollectionName === 'querie' ? 'query' : friendl
   <main class="flex sm:px-8 docs-layout h-full" {...pagefindAttributes}>
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
-        <div class="border-b border-gray-200 flex justify-between items-start md:pb-2">
+        <div class="border-b border-gray-200 md:pb-2">
           <div>
             <h2
               id="doc-page-header"
@@ -160,16 +165,19 @@ friendlyCollectionName = friendlyCollectionName === 'querie' ? 'query' : friendl
             </h2>
             {
               isMarkedAsDeprecated && hasDeprecated && (
-                <Admonition type="alert" title={`This ${friendlyCollectionName} was deprecated on ${formattedDate}`}>
+                <Admonition
+                  className="w-full"
+                  type="alert"
+                  title={formattedDate ? `This ${friendlyCollectionName} was deprecated on ${formattedDate}` : `Deprecated`}
+                >
                   <div>
-                    {!props.data.deprecated?.message && (
+                    {!deprecatedMessage && (
                       <p>
-                        The {friendlyCollectionName} has been deprecated ({props.data.deprecated?.date}).
+                        The {friendlyCollectionName} has been marked as deprecated
+                        {formattedDate && ` on ${formattedDate}`}.
                       </p>
                     )}
-                    {props.data.deprecated?.message && (
-                      <div class="prose prose-sm max-w-none" set:html={marked.parse(props.data.deprecated?.message)} />
-                    )}
+                    {deprecatedMessage && <div class="prose prose-sm max-w-none" set:html={marked.parse(deprecatedMessage)} />}
                   </div>
                 </Admonition>
               )
@@ -178,14 +186,12 @@ friendlyCollectionName = friendlyCollectionName === 'querie' ? 'query' : friendl
               isMarkedAsDeprecated && !hasDeprecated && (
                 <Admonition type="warning" title={`This ${friendlyCollectionName} will be deprecated on ${formattedDate}`}>
                   <div>
-                    {!props.data.deprecated?.message && (
+                    {!deprecatedMessage && (
                       <p>
                         The {friendlyCollectionName} will be deprecated on {formattedDate}.
                       </p>
                     )}
-                    {props.data.deprecated?.message && (
-                      <div class="prose prose-sm max-w-none" set:html={marked.parse(props.data.deprecated?.message)} />
-                    )}
+                    {deprecatedMessage && <div class="prose prose-sm max-w-none" set:html={marked.parse(deprecatedMessage)} />}
                   </div>
                 </Admonition>
               )
