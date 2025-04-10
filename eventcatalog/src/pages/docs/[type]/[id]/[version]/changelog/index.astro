@@ -17,7 +17,7 @@ import mdxComponents from '@components/MDX/components';
 import 'diff2html/bundles/css/diff2html.min.css';
 
 import { buildUrl } from '@utils/url-builder';
-import { getVersions, getPreviousVersion } from '@utils/collections/util';
+import { getPreviousVersion } from '@utils/collections/util';
 import { getDiffsForCurrentAndPreviousVersion } from '@utils/collections/file-diffs';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { ClientRouter } from 'astro:transitions';
@@ -35,7 +35,6 @@ export async function getStaticPaths() {
       },
       props: {
         type: itemTypes[index],
-        allVersionsForCollection: getVersions(items).versions,
         allCollectionItems: items,
         ...item,
       },
@@ -67,7 +66,7 @@ const logsToRender = await Promise.all(renderedLogs);
 
 const logListPromise = logsToRender.map(async (log, index) => {
   const currentLogVersion = log.data.version;
-  const previousLogVersion = log.data.version ? getPreviousVersion(log.data.version, props.allVersionsForCollection) : '';
+  const previousLogVersion = log.data.version ? getPreviousVersion(log.data.version, data.versions) : '';
   return {
     id: log.id,
     url: buildUrl(`/docs/${props.collection}/${props.data.id}`),
