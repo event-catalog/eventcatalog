@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.33.12
+
+### Patch Changes
+
+- 39d9f70: fix(core): fix versions list in changelog
+
 ## 2.33.11
 
 ### Patch Changes
