@@ -66,9 +66,8 @@ const pageTitle = `User | ${props.data.name}`;
 <VerticalSideBarLayout title={pageTitle}>
   <main class="flex sm:px-8 docs-layout h-full" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
     <div class="flex docs-layout w-full">
-      <div class="w-full lg:mr-6 pr-8 overflow-y-auto py-4">
-        <!-- <span class="text-purple-500 bg-purple-100 px-2 py-1 rounded-md">v{props.data.version}</span> -->
-        <div class="border-b border-gray-200 pb-4 py-4">
+      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
+        <div class="border-b border-gray-200 pb-4">
           <div class="flex justify-start space-x-8">
             <img src={props.data.avatarUrl} alt="Profile picture" class="shadow-md w-28 rounded-md" />
             <div class="flex flex-col justify-between">
@@ -125,10 +124,6 @@ const pageTitle = `User | ${props.data.name}`;
                   <dt class="text-sm font-semibold leading-6 text-gray-600"># owned messages</dt>
                   <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{ownedMessageList.length}</dd>
                 </div>
-                <!-- <div class="flex flex-col  p-8">
-                <dt class="text-sm font-semibold leading-6 text-gray-600"># owned domains</dt>
-                <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">2</dd>
-              </div> -->
                 <div class="flex flex-col p-8">
                   <dt class="text-sm font-semibold leading-6 text-gray-600"># teams joined</dt>
                   <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{associatedTeams.length}</dd>
@@ -141,11 +136,8 @@ const pageTitle = `User | ${props.data.name}`;
           <Content components={components(props)} />
         </div>
       </div>
-      <aside
-        class="hidden lg:block sticky top-0 h-[calc(100vh-theme(spacing.16))] w-72 overflow-y-auto py-2"
-        data-pagefind-ignore
-      >
-        <div class="divide-y-2 divide-gray-100 pr-6">
+      <aside class="hidden lg:block sticky top-0 pb-10 w-96 overflow-y-auto py-2" data-pagefind-ignore>
+        <div class="sticky top-28 left-0 h-full overflow-y-auto pr-6 py-4">
           {
             ownedDomainsList.length > 0 && (
               <PillListFlat
