@@ -16,11 +16,12 @@ import expressiveCode from 'astro-expressive-code';
 
 const projectDirectory = process.env.PROJECT_DIR || process.cwd();
 const base = config.base || '/';
+const port = config.port || 3000;
 
 // https://astro.build/config
 export default defineConfig({
   base,
-  server: { port: config.port || 3000 },
+  server: { port: port },
 
   outDir: config.outDir ? join(projectDirectory, config.outDir) : join(projectDirectory, 'dist'),
 
@@ -68,6 +69,12 @@ export default defineConfig({
     },
     worker: {
       format: 'es',
+    },
+    server:{
+      host: "0.0.0.0",
+      hmr: { clientPort: port },
+      port: port,
+      watch: { usePolling: true }
     },
     build: {
       commonjsOptions: {
