@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.34.5
+
+### Patch Changes
+
+- d77355c: feat(core): added support for drawio component
+
 ## 2.34.4
 
 ### Patch Changes
