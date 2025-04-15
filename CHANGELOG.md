@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.34.2
+
+### Patch Changes
+
+- d0cfa4d: feat(core): allow flows to reference other flows
+
 ## 2.34.1
 
 ### Patch Changes
