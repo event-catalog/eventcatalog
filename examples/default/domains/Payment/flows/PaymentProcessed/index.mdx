@@ -6,9 +6,13 @@ summary: Business flow for processing payments in an e-commerce platform
 owners:
     - dboyne
 steps:
-    - id: "customer_place_order"
-      title: Customer places order
-      next_step: "place_order_request"
+    - id: "flow_step"
+      title: "Flow Step"
+      flow:
+        id: SubscriptionRenewed
+      next_step: 
+        id: "place_order_request"  
+        label: "Subscription Renewed, New Order Placed"
     - id: "place_order_request"
       title: Place order
       message:
