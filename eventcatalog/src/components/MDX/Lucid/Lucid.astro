@@ -1,0 +1,45 @@
+---
+import Admonition from '@components/MDX/Admonition';
+
+interface Props {
+  title?: string;
+  height: string;
+  diagramId: string;
+  autoplay: boolean;
+  moveToViewport: string;
+  moveToWidget: string;
+  edit: boolean;
+}
+
+const { title, height = '500', diagramId } = Astro.props;
+
+const baseUrl = 'https://lucid.app/documents/embeddedchart';
+
+const url = new URL(`${baseUrl}/${diagramId}`);
+---
+
+{
+  !diagramId && (
+    <Admonition type="warning">
+      <div>
+        <span class="block font-bold">{`<Lucid/>`} failed to load</span>
+        <span class="block">Please provide a diagramId to use the Lucid component.</span>
+      </div>
+    </Admonition>
+  )
+}
+
+{
+  diagramId && (
+    <div class="py-2">
+      {title && (
+        <h3 id={`${title}-lucid-title`} class="text-3xl font-bold">
+          {title}
+        </h3>
+      )}
+      <div class="relative">
+        <iframe class="border border-gray-200 rounded-md" src={url.href} width="100%" height={height} />
+      </div>
+    </div>
+  )
+}
