@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.34.1
+
+### Patch Changes
+
+- 933bafd: feat(core): added support for subdomains
+
 ## 2.34.0
 
 ### Minor Changes
