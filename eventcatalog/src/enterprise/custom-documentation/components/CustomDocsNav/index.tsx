@@ -130,9 +130,6 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
 
   const hasNoResults = debouncedSearchTerm && filteredSidebarItems.length === 0;
 
-  console.log('filteredSidebarItems', filteredSidebarItems);
-  console.log('currentPath', currentPath);
-
   return (
     <nav ref={navRef} className="h-full text-gray-800 pt-4 overflow-y-auto">
       <div className="mb-2 px-3 bg-white z-10">

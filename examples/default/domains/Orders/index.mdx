@@ -11,10 +11,10 @@ services:
   - id: NotificationService
   - id: ShippingService
 badges:
-  - content: New domain
+  - content: Subdomain
     backgroundColor: blue
     textColor: blue
-    icon: MoonIcon
+    icon: RectangleGroupIcon
 
 resourceGroups:
   - id: related-resources
@@ -43,18 +43,10 @@ The Orders domain handles all operations related to customer orders, from creati
 
 <Tiles >
     <Tile icon="UserGroupIcon" href="/docs/teams/full-stack" title="Contact the team" description="Any questions? Feel free to contact the owners" />
-    <Tile icon="RectangleGroupIcon" href={`/visualiser/domains/${frontmatter.id}/${frontmatter.version}`} title={`${frontmatter.services.length} services are in this domain`} description="This service sends messages to downstream consumers" />
+    <Tile icon="RectangleGroupIcon" href={`/visualiser/domains/${frontmatter.id}/${frontmatter.version}`} title={`${frontmatter.services.length} services`} description="This domain contains the following services." />
 </Tiles>
 
-## Target architecture for the Orders domain (Event Storming Session)
-
-Result of the event storming session for the Orders domain. This is our target architecture for the domain.
-
-<Miro boardId="uXjVIHCImos=/" moveToWidget="3074457347671667709" edit={false} />
-
-## Current Architecture
-
-This is our current architecture for the Orders domain.
+### Architecture for the Orders domain
 
 <NodeGraph />
 

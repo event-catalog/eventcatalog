@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
 import type { CollectionMessageTypes } from '@types';
+import type { Service } from './services';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
@@ -40,8 +41,20 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
 
     // const receives = service.data.receives || [];
     const servicesInDomain = domain.data.services || [];
+    const subDomainsInDomain = domain.data.domains || [];
 
-    const services = servicesInDomain
+    const subDomains = subDomainsInDomain
+      .map((_subDomain: { id: string; version: string | undefined }) =>
+        getItemsFromCollectionByIdAndSemverOrLatest(domains, _subDomain.id, _subDomain.version)
+      )
+      .flat()
+      // Stop circular references
+      .filter((subDomain) => subDomain.data.id !== domain.data.id);
+
+    // Services in the sub domains
+    const subdomainServices = subDomains.flatMap((subDomain) => subDomain.data.services || []);
+
+    const services = [...servicesInDomain, ...subdomainServices]
       .map((_service: { id: string; version: string | undefined }) =>
         getItemsFromCollectionByIdAndSemverOrLatest(servicesCollection, _service.id, _service.version)
       )
@@ -51,7 +64,8 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
       ...domain,
       data: {
         ...domain.data,
-        services,
+        services: services,
+        domains: subDomains,
         latestVersion,
         versions,
       },
@@ -108,4 +122,20 @@ export const getUbiquitousLanguage = async (domain: Domain): Promise<UbiquitousL
   });
 
   return ubiquitousLanguages;
+};
+
+export const getParentDomains = async (domain: Domain): Promise<Domain[]> => {
+  const domains = await getDomains({ getAllVersions: false });
+  return domains.filter((d) => {
+    const subDomains = (d.data.domains as unknown as Domain[]) || [];
+    return subDomains.some((d) => d.data.id === domain.data.id);
+  });
+};
+
+export const getDomainsForService = async (service: Service): Promise<Domain[]> => {
+  const domains = await getDomains({ getAllVersions: false });
+  return domains.filter((d) => {
+    const services = d.data.services as unknown as Service[];
+    return services.some((s) => s.data.id === service.data.id);
+  });
 };

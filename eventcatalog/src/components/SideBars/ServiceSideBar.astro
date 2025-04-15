@@ -11,6 +11,7 @@ import type { CollectionEntry } from 'astro:content';
 import { ScrollText, Workflow, FileDownIcon, Code, Link, RssIcon } from 'lucide-react';
 import { join } from 'node:path';
 import config from '@config';
+import { getDomainsForService } from '@utils/collections/domains';
 interface Props {
   service: CollectionEntry<'services'>;
 }
@@ -27,6 +28,8 @@ const owners = await Promise.all<ReturnType<typeof getOwner>>(ownersRaw.map(getO
 const filteredOwners = owners.filter((o) => o !== undefined);
 
 const resourceGroups = service.data?.resourceGroups || [];
+
+const domainsServiceBelongsTo = await getDomainsForService(service);
 
 const sendsList = sends
   .sort((a, b) => a.collection.localeCompare(b.collection))
@@ -58,6 +61,14 @@ const ownersList = filteredOwners.map((o) => ({
   href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
 }));
 
+const domainList = domainsServiceBelongsTo.map((d) => ({
+  label: d.data.name,
+  badge: d.collection,
+  tag: `v${d.data.version}`,
+  collection: d.collection,
+  href: buildUrl(`/docs/${d.collection}/${d.data.id}/${d.data.version}`),
+}));
+
 const isRSSEnabled = config.rss?.enabled;
 
 // @ts-ignore
@@ -72,6 +83,17 @@ const schemaURL = join(publicPath, schemaFilePath || '');
       resourceGroups
         .filter((section) => section.items.length > 0 && section.sidebar)
         .map((section) => <CustomSideBarSectionList section={section} />)
+    }
+    {
+      domainList.length > 0 && (
+        <PillListFlat
+          title={`Domains (${domainList.length})`}
+          pills={domainList}
+          emptyMessage={`This service does not belong to any domains.`}
+          color="orange"
+          client:load
+        />
+      )
     }
     <PillListFlat
       title={`Receives Messages (${receivesList.length})`}

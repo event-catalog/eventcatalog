@@ -1,8 +1,9 @@
 import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { mockDomains, mockServices, mockEvents, mockCommands, mockUbiquitousLanguages } from './mocks';
-import { getDomains, getUbiquitousLanguage } from '../../collections/domains';
-
+import { getDomains, getDomainsForService, getParentDomains, getUbiquitousLanguage } from '../../collections/domains';
+import type { Service } from '@utils/collections/services';
+import type { Domain } from '@utils/collections/domains';
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
@@ -32,11 +33,6 @@ describe('Domains', () => {
       const domains = await getDomains();
 
       const expectedDomains = [
-        // Shipping
-        {
-          ...mockDomains[0],
-          data: expect.objectContaining({ services: [mockServices[0]] }),
-        },
         // Checkout
         {
           ...mockDomains[1],
@@ -73,6 +69,34 @@ describe('Domains', () => {
           },
         },
       ]);
+    });
+  });
+
+  describe('getDomainsForService', () => {
+    it('should return the domains for a service', async () => {
+      const domains = await getDomainsForService(mockServices[0] as unknown as Service);
+      const expectedDomain = mockDomains[0];
+      expect(domains[0].data.id).toEqual(expectedDomain.data.id);
+      expect(domains[0].data.services).toEqual(expect.arrayContaining([mockServices[0]]));
+    });
+
+    it('returns an empty array if the service is not found', async () => {
+      const domains = await getDomainsForService(mockServices[4] as unknown as Service);
+      expect(domains).toEqual([]);
+    });
+  });
+
+  describe('getParentDomains', () => {
+    it('should return the parent domains for a domain', async () => {
+      const domains = await getParentDomains(mockDomains[1] as unknown as Domain);
+      const expectedDomain = mockDomains[0];
+      expect(domains[0].data.id).toEqual(expectedDomain.data.id);
+      expect(domains[0].data.domains).toEqual(expect.arrayContaining([mockDomains[1]]));
+    });
+
+    it('returns an empty array if the domain is not found', async () => {
+      const domains = await getParentDomains(mockDomains[2] as unknown as Domain);
+      expect(domains).toEqual([]);
     });
   });
 });

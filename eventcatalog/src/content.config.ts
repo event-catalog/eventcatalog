@@ -323,6 +323,7 @@ const domains = defineCollection({
   schema: z
     .object({
       services: z.array(pointer).optional(),
+      domains: z.array(pointer).optional(),
     })
     .merge(baseSchema),
 });

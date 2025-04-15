@@ -30,6 +30,7 @@ interface DomainItem {
   id: string;
   name: string;
   services: any[];
+  domains: any[];
 }
 
 interface FlowItem {

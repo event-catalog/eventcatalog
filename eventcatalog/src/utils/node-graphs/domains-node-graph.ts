@@ -3,7 +3,6 @@ import {
   createDagreGraph,
   calculatedNodes,
   generateIdForNode,
-  createNode,
   getEdgeLabelForServiceAsTarget,
   generatedIdForEdge,
   createEdge,
@@ -214,9 +213,10 @@ interface NodesAndEdgesProps {
   version: string;
   defaultFlow?: DagreGraph;
   mode: 'simple' | 'full';
+  group?: boolean;
 }
 
-export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple' }: NodesAndEdgesProps) => {
+export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', group = false }: NodesAndEdgesProps) => {
   const flow = defaultFlow || createDagreGraph({ ranksep: 360, nodesep: 50, edgesep: 50 });
   let nodes = new Map(),
     edges = new Map();
@@ -234,11 +234,17 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
   }
 
   const rawServices = domain?.data.services || [];
+  const rawSubDomains = domain?.data.domains || [];
 
   const servicesCollection = await getCollection('services');
 
   const domainServicesWithVersion = rawServices
     .map((service) => getItemsFromCollectionByIdAndSemverOrLatest(servicesCollection, service.id, service.version))
+    .flat()
+    .map((svc) => ({ id: svc.data.id, version: svc.data.version }));
+
+  const domainSubDomainsWithVersion = rawSubDomains
+    .map((subDomain) => getItemsFromCollectionByIdAndSemverOrLatest(domains, subDomain.id, subDomain.version))
     .flat()
     .map((svc) => ({ id: svc.data.id, version: svc.data.version }));
 
@@ -265,6 +271,29 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
     });
     // @ts-ignore
     serviceEdges.forEach((e) => edges.set(e.id, e));
+  }
+
+  for (const subDomain of domainSubDomainsWithVersion) {
+    const { nodes: subDomainNodes, edges: subDomainEdges } = await getNodesAndEdges({
+      id: subDomain.id,
+      version: subDomain.version,
+      defaultFlow: flow,
+      mode,
+      group: true,
+    });
+    subDomainNodes.forEach((n) => {
+      nodes.set(n.id, nodes.has(n.id) ? merge(nodes.get(n.id), n) : n);
+    });
+
+    subDomainEdges.forEach((e) => edges.set(e.id, e));
+  }
+
+  // Add group node to the graph first before calculating positions
+  if (group) {
+    // Update the data of the node to add the group name and color
+    nodes.forEach((n) => {
+      nodes.set(n.id, { ...n, data: { ...n.data, group: { type: 'Domain', value: domain?.data.name, id: domain?.data.id } } });
+    });
   }
 
   return {

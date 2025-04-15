@@ -12,6 +12,10 @@ interface Data {
   message: CollectionEntry<'events'>;
   showTarget?: boolean;
   showSource?: boolean;
+  group?: {
+    type: string;
+    value: string;
+  };
 }
 
 function classNames(...classes: any) {
@@ -19,7 +23,7 @@ function classNames(...classes: any) {
 }
 
 export default function EventNode({ data, sourcePosition, targetPosition }: any) {
-  const { mode, message } = data as Data;
+  const { mode, message, group } = data as Data;
   const { name, version, summary, owners = [], producers = [], consumers = [], styles } = message.data;
   const { node: { color = 'orange', label } = {}, icon = 'BoltIcon' } = styles || {};
 
@@ -72,6 +76,11 @@ export default function EventNode({ data, sourcePosition, targetPosition }: any)
                 <span className="text-xs" style={{ fontSize: '0.2em' }}>
                   Owners: {owners.length}
                 </span>
+                {group && (
+                  <span className="text-xs" style={{ fontSize: '0.2em' }}>
+                    {group.type}: {group.value}
+                  </span>
+                )}
               </div>
             </div>
           )}
