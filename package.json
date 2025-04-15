@@ -52,7 +52,7 @@
     "@asyncapi/parser": "^3.4.0",
     "@asyncapi/react-component": "^2.4.3",
     "@eventcatalog/generator-ai": "^1.0.0",
-    "@eventcatalog/sdk": "^2.2.3",
+    "@eventcatalog/sdk": "^2.2.7",
     "@fontsource/inter": "^5.2.5",
     "@headlessui/react": "^2.0.3",
     "@heroicons/react": "^2.1.3",
