@@ -36,8 +36,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0(@langchain/core@0.3.40(openai@4.85.4(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(openai@4.85.4(ws@8.18.0)(zod@3.24.1))(ws@8.18.0)
       '@eventcatalog/sdk':
-        specifier: ^2.2.3
-        version: 2.2.3
+        specifier: ^2.2.7
+        version: 2.2.7
       '@fontsource/inter':
         specifier: ^5.2.5
         version: 5.2.5
@@ -940,8 +940,8 @@ packages:
   '@eventcatalog/generator-ai@1.0.0':
     resolution: {integrity: sha512-EMLqrry5hMxbT5bT4CRJd2g1j+PA7U9OeDApOPXuRq8YnnWnKtOjyTknSCCZR1yL5rzT6MaPn96oEbinpq7jKQ==}
 
-  '@eventcatalog/sdk@2.2.3':
-    resolution: {integrity: sha512-fRc/htQd8vyQvHnuwi5uKdYeQUh8czoWDHTLsyw1n9ODH6XYp2vSIyJEYPJQVges3Rhh2sVLB36rsvQ/mCEoHg==}
+  '@eventcatalog/sdk@2.2.7':
+    resolution: {integrity: sha512-MhonTgw3ltQmldBqCLVs8zSzWFMXapHZiSIrF8zi3lpRvAslv6wMQpAbUA51PDSfygwExXstuZCwPGp8JQiizw==}
 
   '@expressive-code/core@0.40.1':
     resolution: {integrity: sha512-j71gxBepyzBgOtZomxzl8M90AjILf6hZarWFePDis7sTjqCwxWrtZEtTCafto8IOURG/ECZN0g7Ys4zExkNU7Q==}
@@ -8059,7 +8059,7 @@ snapshots:
 
   '@eventcatalog/generator-ai@1.0.0(@langchain/core@0.3.40(openai@4.85.4(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(openai@4.85.4(ws@8.18.0)(zod@3.24.1))(ws@8.18.0)':
     dependencies:
-      '@eventcatalog/sdk': 2.2.3
+      '@eventcatalog/sdk': 2.2.7
       '@huggingface/transformers': 3.3.3
       chalk: 4.1.2
       fs-extra: 11.3.0
@@ -8088,7 +8088,7 @@ snapshots:
       - typeorm
       - ws
 
-  '@eventcatalog/sdk@2.2.3':
+  '@eventcatalog/sdk@2.2.7':
     dependencies:
       '@changesets/cli': 2.27.12
       fs-extra: 11.3.0
