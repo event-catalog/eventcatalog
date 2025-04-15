@@ -55,17 +55,10 @@ const ownedServicesList = services.map((p) => ({
   tag: `v${p.data.version}`,
 }));
 
-const ownedEventsList = [...events, ...commands].map((p) => ({
+const ownedMessagesList = [...events, ...commands, ...queries].map((p) => ({
   label: `${p.data.name}`,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
   color: p.collection === 'events' ? 'orange' : 'blue',
-  collection: p.collection,
-  tag: `v${p.data.version}`,
-}));
-
-const ownedQueriesList = queries.map((p) => ({
-  label: `${p.data.name}`,
-  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
   collection: p.collection,
   tag: `v${p.data.version}`,
 }));
@@ -74,105 +67,110 @@ const pageTitle = `Team | ${props.data.name}`;
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
-  <div class="flex min-h-screen docs-layout sm:px-8">
-    <main class="flex-1 w-full pr-10 pt-4" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
-      <!-- <span class="text-purple-500 bg-purple-100 px-2 py-1 rounded-md">v{props.data.version}</span> -->
-
-      <div class="border-b border-gray-200 py-4 pb-2">
-        <div class="flex justify-start">
-          <!-- <span class="shadow-md text-center flex items-center justify-center text-white text-4xl bg-red-500 h-28 w-28 rounded-full">{props.data.name.charAt(0)}</span> -->
-          <div class="flex flex-col justify-between space-y-2">
-            <div>
-              <h2 class="text-4xl font-bold">{props.data.name} <span class="text-gray-300">(Team)</span></h2>
+  <main class="flex sm:px-8 docs-layout h-full" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
+    <div class="flex docs-layout w-full">
+      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
+        <div class="border-b border-gray-200 pb-4">
+          <div class="flex justify-start">
+            <div class="flex flex-col justify-between space-y-2">
+              <div>
+                <h2 class="text-4xl font-bold">{props.data.name} <span class="text-gray-300">(Team)</span></h2>
+              </div>
+              <div class="space-y-2">
+                {
+                  props.data.email && (
+                    <div class="flex space-x-1 items-center text-xs text-gray-500 font-bold hover:underline hover:text-primary">
+                      <EnvelopeIcon className="w-4 h-4 text-purple-400" />
+                      <a href={`mailto:${props.data.email}`}>Email</a>
+                    </div>
+                  )
+                }
+                {
+                  props.data.slackDirectMessageUrl && (
+                    <div class="flex space-x-1 items-center text-xs text-gray-500 font-bold hover:underline hover:text-primary">
+                      <img src={buildUrl('/slack-icon.svg', true)} class="w-4 h-3" />
+                      <a href={`${props.data.slackDirectMessageUrl}`}>Send DM on Slack</a>
+                    </div>
+                  )
+                }
+                {
+                  props.data.msTeamsDirectMessageUrl && (
+                    <div class="flex space-x-1 items-center text-xs text-gray-500 font-bold hover:underline hover:text-primary">
+                      <img src={buildUrl('/icons/ms-teams.svg', true)} class="w-4 h-4" />
+                      <a href={`${props.data.msTeamsDirectMessageUrl}`} target="_blank" rel="noopener noreferrer">
+                        Send DM on Teams
+                      </a>
+                    </div>
+                  )
+                }
+              </div>
             </div>
-            <div class="space-y-2">
-              {
-                props.data.email && (
-                  <div class="flex space-x-1 items-center text-xs text-gray-500 font-bold hover:underline hover:text-primary">
-                    <EnvelopeIcon className="w-4 h-4 text-purple-400" />
-                    <a href={`mailto:${props.data.email}`}>Email</a>
-                  </div>
-                )
-              }
-              {
-                props.data.slackDirectMessageUrl && (
-                  <div class="flex space-x-1 items-center text-xs text-gray-500 font-bold hover:underline hover:text-primary">
-                    <img src={buildUrl('/slack-icon.svg', true)} class="w-4 h-3" />
-                    <a href={`${props.data.slackDirectMessageUrl}`}>Send DM on Slack</a>
-                  </div>
-                )
-              }
-              {
-                props.data.msTeamsDirectMessageUrl && (
-                  <div class="flex space-x-1 items-center text-xs text-gray-500 font-bold hover:underline hover:text-primary">
-                    <img src={buildUrl('/icons/ms-teams.svg', true)} class="w-4 h-4" />
-                    <a href={`${props.data.msTeamsDirectMessageUrl}`} target="_blank" rel="noopener noreferrer">
-                      Send DM on Teams
-                    </a>
-                  </div>
-                )
-              }
+          </div>
+          <h2 class="text-xl py-2 text-gray-500">{props.data.summary}</h2>
+        </div>
+        <div class="border-b border-gray-200" data-pagefind-ignore>
+          <div class="mx-auto max-w-7xl px-6 lg:px-8">
+            <div class="mx-auto max-w-2xl lg:max-w-none">
+              <dl
+                class="hidden lg:grid grid-cols-1 gap-0.5 overflow-hidden rounded-2xl text-center sm:grid-cols-4 lg:grid-cols-4"
+              >
+                <div class="flex flex-col p-8">
+                  <dt class="text-sm font-semibold leading-6 text-gray-600"># owned domains</dt>
+                  <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{ownedDomainsList.length}</dd>
+                </div>
+                <div class="flex flex-col p-8">
+                  <dt class="text-sm font-semibold leading-6 text-gray-600"># owned services</dt>
+                  <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{ownedServicesList.length}</dd>
+                </div>
+                <div class="flex flex-col p-8">
+                  <dt class="text-sm font-semibold leading-6 text-gray-600"># owned messages</dt>
+                  <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{ownedMessagesList.length}</dd>
+                </div>
+                <div class="flex flex-col p-8">
+                  <dt class="text-sm font-semibold leading-6 text-gray-600"># team members</dt>
+                  <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{membersList.length}</dd>
+                </div>
+              </dl>
             </div>
           </div>
         </div>
-        <!-- {
-          props.data.badges && (
-            <div class="flex flex-wrap py-2">
-              {props.data.badges.map((badge) => (
-                <span class={`text-sm  text-gray-500 px-2 py-1 rounded-md mr-2 bg-${badge.backgroundColor}-200 text-${badge.textColor}-800`}>{badge.content}</span>
-              ))}
-            </div>
-          )
-        } -->
-        <h2 class="text-xl py-2 text-gray-500">{props.data.summary}</h2>
+        <div class="prose prose-md py-4 w-full">
+          <Content components={components(props)} />
+        </div>
       </div>
-      <div class="prose prose-md py-4 w-full">
-        <Content components={components(props)} />
-      </div>
-      <!-- <div class="h-full w-full">
-        <NodeGraph id={props.data.id} type={props?.catalog?.type} nodes={props.nodes} masterNode={{ name: props.data.name, id: props.data.id }} client:load />
-      </div> -->
-    </main>
-    <aside class="sticky top-20 h-[calc(100vh-theme(spacing.16))] w-72 overflow-y-auto" data-pagefind-ignore>
-      <div class="divide-y-2 divide-gray-100">
-        <PillListFlat
-          color="pink"
-          title={`Owned domains (${ownedDomainsList.length})`}
-          pills={ownedDomainsList}
-          emptyMessage={`${props.data.name} does not own any domains.`}
-          client:load
-        />
-        <PillListFlat
-          color="blue"
-          title={`Owned services (${ownedServicesList.length})`}
-          pills={ownedServicesList}
-          emptyMessage={`This team does not own any services .`}
-          client:load
-        />
-        <PillListFlat
-          color="red"
-          title={`Owned messages (${ownedEventsList.length})`}
-          pills={ownedEventsList}
-          emptyMessage={`This team does not own any messages .`}
-          client:load
-        />
-        <PillListFlat
-          color="purple"
-          title={`Owned queries (${ownedQueriesList.length})`}
-          pills={ownedQueriesList}
-          emptyMessage={`This team does not own any queries .`}
-          client:load
-        />
-        <OwnersList
-          title={`Team members (${membersList.length})`}
-          owners={membersList}
-          emptyMessage={`This team does not have any members.`}
-          client:load
-        />
-      </div>
-      <!-- {props?.collection === 'events' && <MessageSideBar message={props} />} -->
-    </aside>
-  </div>
+      <aside class="hidden lg:block sticky top-0 pb-10 w-96 overflow-y-auto py-2" data-pagefind-ignore>
+        <div class="sticky top-28 left-0 h-full overflow-y-auto pr-6 py-4">
+          <PillListFlat
+            color="pink"
+            title={`Owned domains (${ownedDomainsList.length})`}
+            pills={ownedDomainsList}
+            emptyMessage={`${props.data.name} does not own any domains.`}
+            client:load
+          />
+          <PillListFlat
+            color="blue"
+            title={`Owned services (${ownedServicesList.length})`}
+            pills={ownedServicesList}
+            emptyMessage={`This team does not own any services .`}
+            client:load
+          />
+          <PillListFlat
+            color="red"
+            title={`Owned messages (${ownedMessagesList.length})`}
+            pills={ownedMessagesList}
+            emptyMessage={`This team does not own any messages .`}
+            client:load
+          />
+          <OwnersList
+            title={`Team members (${membersList.length})`}
+            owners={membersList}
+            emptyMessage={`This team does not have any members.`}
+            client:load
+          />
+        </div>
+      </aside>
+    </div>
+  </main>
 </VerticalSideBarLayout>
 
 <style>
