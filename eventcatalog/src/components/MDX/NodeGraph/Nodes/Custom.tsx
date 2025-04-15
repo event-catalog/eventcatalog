@@ -101,7 +101,7 @@ export default function UserNode({ data, sourcePosition, targetPosition }: any) 
 
             {(!summary || mode !== 'full') && (
               <div className="h-full ">
-                <span className="text-sm font-bold block pb-0.5 block w-full">{title}</span>
+                <span className="text-sm font-bold block pb-0.5 w-full">{title}</span>
               </div>
             )}
 

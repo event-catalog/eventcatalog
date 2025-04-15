@@ -47,7 +47,7 @@ export default function UserNode({ data, sourcePosition, targetPosition }: any) 
 
         {(!summary || mode !== 'full') && (
           <div className="h-full ">
-            <span className="text-sm font-bold block pb-0.5 block w-full">{name}</span>
+            <span className="text-sm font-bold block pb-0.5 w-full">{name}</span>
             {mode === 'simple' && (
               <div className="w-full text-right">
                 <span className=" w-full text-[10px] text-gray-500 font-light block pt-0.5 pb-0.5 ">Event</span>
