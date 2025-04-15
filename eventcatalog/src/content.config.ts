@@ -170,6 +170,7 @@ const flows = defineCollection({
             summary: z.string().optional(),
             message: pointer.optional(),
             service: pointer.optional(),
+            flow: pointer.optional(),
             actor: z
               .object({
                 name: z.string(),
@@ -206,15 +207,12 @@ const flows = defineCollection({
             next_steps: z.array(flowStep).optional(),
           })
           .refine((data) => {
-            if (!data.message && !data.service && !data.actor) return true;
             // Cant have both next_steps and next_steps
             if (data.next_step && data.next_steps) return false;
-            // Either message or service or actor must be present, but not all
-            return (
-              (data.message && !data.service && !data.actor) ||
-              (!data.message && data.service) ||
-              (data.actor && !data.message && !data.service)
-            );
+
+            // Either one or non types can be present
+            const typesUsed = [data.message, data.service, data.flow, data.actor, data.custom].filter((v) => v).length;
+            return typesUsed === 0 || typesUsed === 1;
           })
       ),
     })

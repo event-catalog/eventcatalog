@@ -25,6 +25,16 @@ const getServiceNode = (step: any, services: CollectionEntry<'services'>[]) => {
   };
 };
 
+const getFlowNode = (step: any, flows: CollectionEntry<'flows'>[]) => {
+  const flowsForVersion = getItemsFromCollectionByIdAndSemverOrLatest(flows, step.flow.id, step.flow.version);
+  const flow = flowsForVersion?.[0];
+  return {
+    ...step,
+    type: flow ? flow.collection : 'step',
+    flow,
+  };
+};
+
 const getMessageNode = (step: any, messages: CollectionEntry<'events' | 'commands' | 'queries'>[]) => {
   const messagesForVersion = getItemsFromCollectionByIdAndSemverOrLatest(messages, step.message.id, step.message.version);
   const message = messagesForVersion[0];
@@ -63,6 +73,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   //  Hydrate the steps with information they may need.
   const hydratedSteps = steps.map((step: any) => {
     if (step.service) return getServiceNode(step, services);
+    if (step.flow) return getFlowNode(step, flows);
     if (step.message) return getMessageNode(step, messages);
     if (step.actor) return { ...step, type: 'actor', actor: step.actor };
     if (step.custom) return { ...step, type: 'custom', custom: step.custom };
@@ -87,6 +98,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     } as NodeType;
 
     if (step.service) node.data.service = step.service;
+    if (step.flow) node.data.flow = step.flow;
     if (step.message) node.data.message = step.message;
     if (step.actor) node.data.actor = step.actor;
     if (step.externalSystem) node.data.externalSystem = step.externalSystem;

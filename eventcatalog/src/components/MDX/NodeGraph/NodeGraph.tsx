@@ -17,6 +17,7 @@ import '@xyflow/react/dist/style.css';
 
 // Nodes and edges
 import ServiceNode from './Nodes/Service';
+import FlowNode from './Nodes/Flow';
 import EventNode from './Nodes/Event';
 import QueryNode from './Nodes/Query';
 import UserNode from './Nodes/User';
@@ -63,6 +64,7 @@ const NodeGraphBuilder = ({
   const nodeTypes = useMemo(
     () => ({
       services: ServiceNode,
+      flows: FlowNode,
       events: EventNode,
       channels: ChannelNode,
       queries: QueryNode,
@@ -240,6 +242,7 @@ const NodeGraphBuilder = ({
     const colorClasses = {
       events: 'bg-orange-600',
       services: 'bg-pink-600',
+      flows: 'bg-teal-600',
       commands: 'bg-blue-600',
       queries: 'bg-green-600',
       channels: 'bg-gray-600',
