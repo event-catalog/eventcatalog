@@ -65,6 +65,7 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
       id: item.data.id,
       name: item.data.name,
       services: item.collection === 'domains' ? item.data.services : null,
+      domains: item.collection === 'domains' ? item.data.domains : null,
       sends: sendsWithHref,
       receives: receivesWithHref,
       specifications: item.collection === 'services' ? item.data.specifications : null,

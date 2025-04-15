@@ -24,13 +24,14 @@ interface Service extends CollectionEntry<'services'> {
 const { type, embeded = false } = Astro.props as { type: ValidType; embeded: boolean };
 
 // Get data based on type
-let items: ExtendedDomain[] | Service[] | CollectionEntry<'commands'>[] | CollectionEntry<CollectionMessageTypes>[] = [];
+let items: Service[] | CollectionEntry<'commands'>[] | CollectionEntry<CollectionMessageTypes>[] = [];
+let domains: ExtendedDomain[] = [];
 
-if (type === 'domains') {
+const getDomainsForArchitecturePages = async () => {
   const domains = await getDomains({ getAllVersions: false });
 
   // Get messages for each domain
-  items = await Promise.all(
+  return Promise.all(
     domains.map(async (domain) => {
       const messages = await getMessagesForDomain(domain);
       // @ts-ignore we have to remove markdown information, as it's all send to the astro components. This reduced the page size.
@@ -43,7 +44,13 @@ if (type === 'domains') {
       } as ExtendedDomain;
     })
   );
-} else if (type === 'services') {
+};
+
+if (type === 'domains' || type === 'services') {
+  domains = await getDomainsForArchitecturePages();
+}
+
+if (type === 'services') {
   const services = await getServices({ getAllVersions: false });
   let filteredServices = services.map((s) => {
     // @ts-ignore we have to remove markdown information, as it's all send to the astro components. This reduced the page size.
@@ -71,8 +78,12 @@ if (type === 'domains') {
   <div class="bg-white min-h-screen">
     <div class="max-w-[90em] mx-auto">
       <div class="px-6 py-6" transition:animate={fade({ duration: '0.4s' })}>
-        {type === 'domains' && <DomainGrid domains={items as ExtendedDomain[]} embeded={embeded} client:load />}
-        {type === 'services' && <ServiceGrid services={items as unknown as Service[]} embeded={embeded} client:load />}
+        {type === 'domains' && <DomainGrid domains={domains} embeded={embeded} client:load />}
+        {
+          type === 'services' && (
+            <ServiceGrid domains={domains} services={items as unknown as Service[]} embeded={embeded} client:load />
+          )
+        }
         {
           type === 'messages' && (
             <MessageGrid messages={items as CollectionEntry<CollectionMessageTypes>[]} embeded={embeded} client:load />

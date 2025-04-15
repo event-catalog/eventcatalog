@@ -3,7 +3,7 @@ import OwnersList from '@components/Lists/OwnersList';
 import PillListFlat from '@components/Lists/PillListFlat';
 import RepositoryList from '@components/Lists/RepositoryList.astro';
 import VersionList from '@components/Lists/VersionList.astro';
-import { getUbiquitousLanguage, getMessagesForDomain } from '@utils/collections/domains';
+import { getUbiquitousLanguage, getMessagesForDomain, getParentDomains } from '@utils/collections/domains';
 import CustomSideBarSectionList from '@components/Lists/CustomSideBarSectionList.astro';
 import { getOwner } from '@utils/collections/owners';
 import { buildUrl } from '@utils/url-builder';
@@ -18,6 +18,9 @@ const { domain } = Astro.props;
 
 // @ts-ignore
 const services = (domain.data.services as CollectionEntry<'services'>[]) || [];
+// @ts-ignore
+const subDomains = (domain.data.domains as CollectionEntry<'domains'>[]) || [];
+
 const ubiquitousLanguage = await getUbiquitousLanguage(domain);
 const hasUbiquitousLanguage = ubiquitousLanguage.length > 0;
 const ubiquitousLanguageDictionary = hasUbiquitousLanguage ? ubiquitousLanguage[0].data.dictionary : [];
@@ -30,7 +33,25 @@ const messagesForDomain = await getMessagesForDomain(domain);
 
 const resourceGroups = domain.data?.resourceGroups || [];
 
+const parentDomains = await getParentDomains(domain);
+
 const serviceList = services.map((p) => ({
+  label: p.data.name,
+  badge: p.collection,
+  tag: `v${p.data.version}`,
+  collection: p.collection,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+}));
+
+const subDomainList = subDomains.map((p) => ({
+  label: p.data.name,
+  badge: p.collection,
+  tag: `v${p.data.version}`,
+  collection: p.collection,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+}));
+
+const parentDomainList = parentDomains.map((p) => ({
   label: p.data.name,
   badge: p.collection,
   tag: `v${p.data.version}`,
@@ -77,6 +98,31 @@ const ownersList = filteredOwners.map((o) => ({
 <aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto py-4">
   <div>
     {
+      parentDomains.length > 0 && (
+        <PillListFlat
+          title={`Parent domains (${parentDomains.length})`}
+          pills={parentDomainList}
+          emptyMessage={`This domain does not have any parent domains.`}
+          color="pink"
+          icon="ServerIcon"
+          client:load
+        />
+      )
+    }
+
+    {
+      subDomains.length > 0 && (
+        <PillListFlat
+          title={`Subdomains (${subDomains.length})`}
+          pills={subDomainList}
+          emptyMessage={`This domain does not contain any subdomains.`}
+          color="pink"
+          icon="ServerIcon"
+          client:load
+        />
+      )
+    }
+    {
       resourceGroups
         .filter((section) => section.items.length > 0 && section.sidebar)
         .map((section) => <CustomSideBarSectionList section={section} />)
@@ -86,7 +132,6 @@ const ownersList = filteredOwners.map((o) => ({
       pills={serviceList}
       emptyMessage={`This domain does not contain any services.`}
       color="pink"
-      icon="ServerIcon"
       client:load
     />
     <PillListFlat

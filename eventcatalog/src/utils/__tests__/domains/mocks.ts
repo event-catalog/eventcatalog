@@ -8,6 +8,7 @@ export const mockDomains = [
       name: 'Shipping',
       version: '0.0.1',
       services: [{ id: 'LocationService', version: '0.0.1' }],
+      domains: [{ id: 'Checkout', version: '0.0.1' }],
     },
   },
   {
@@ -76,6 +77,15 @@ export const mockServices = [
       version: '0.0.1',
       receives: [{ id: 'OrderPlaced' }],
       sends: [{ id: 'PaymentPaid', version: 'x' }, { id: 'PaymentRefunded' }, { id: 'PaymentFailed', version: '^1.0.0' }],
+    },
+  },
+  {
+    id: 'services/ServiceWithoutDomains/index.mdx',
+    slug: 'services/ServiceWithoutDomains',
+    collection: 'services',
+    data: {
+      id: 'ServiceWithoutDomains',
+      version: '0.0.1',
     },
   },
 ];

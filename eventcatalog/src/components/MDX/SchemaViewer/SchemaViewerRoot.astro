@@ -83,13 +83,10 @@ try {
   function moveSchemaViewerToPortal(schema) {
     const portalId = `${schema.id}-${schema.file}-SchemaViewer-portal`;
     const schemaViewerContainer = document.getElementById(portalId);
-    console.log('schemaViewerContainer', schemaViewerContainer);
     if (schemaViewerContainer) {
       schemaViewerContainer.appendChild(document.getElementById(`${schema.id}-${schema.file}-SchemaViewer-client`));
     }
   }
-
-  console.log('schemas', schemas);
 
   // on DOM ready, move the SchemaViewerClient to the portal
   document.addEventListener('astro:page-load', () => {

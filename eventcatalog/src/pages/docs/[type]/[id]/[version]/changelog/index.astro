@@ -47,8 +47,6 @@ const props = Astro.props;
 let collectionItem = props;
 const logs = await getChangeLogs(props);
 
-// console.log('logs', logs)
-
 const { data } = props;
 const latestVersion = data.latestVersion;
 
@@ -62,8 +60,6 @@ const renderedLogs = logs.map(async (log) => {
 });
 
 const logsToRender = await Promise.all(renderedLogs);
-
-// console.log('LOGS TO RENDER', logsToRender);
 
 const logListPromise = logsToRender.map(async (log, index) => {
   const currentLogVersion = log.data.version;

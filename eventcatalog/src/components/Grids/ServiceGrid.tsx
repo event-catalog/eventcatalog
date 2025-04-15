@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, memo } from 'react';
 import { ServerIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { RectangleGroupIcon } from '@heroicons/react/24/outline';
 import { buildUrl, buildUrlWithParams } from '@utils/url-builder';
@@ -6,13 +6,187 @@ import type { CollectionEntry } from 'astro:content';
 import type { CollectionMessageTypes } from '@types';
 import { getCollectionStyles } from './utils';
 import { SearchBar, TypeFilters, Pagination } from './components';
+import type { ExtendedDomain } from './DomainGrid';
+
+// Message component for reuse
+const Message = memo(({ message, collection }: { message: any; collection: string }) => {
+  const { Icon, color } = getCollectionStyles(message.collection);
+  return (
+    <a
+      href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`)}
+      className="group flex border border-gray-200 items-center gap-1 rounded-md text-[11px] font-medium hover:bg-gray-50 transition-colors duration-200 bg-white"
+    >
+      <div className="bg-white border-r border-gray-200 px-2 py-1.5 rounded-l-md">
+        <Icon className={`h-3 w-3 text-${color}-500`} />
+      </div>
+      <span className="px-1 py-1 truncate max-w-[140px]">{message.data.name}</span>
+    </a>
+  );
+});
+
+// Messages Container component
+const MessagesContainer = memo(
+  ({ messages, type, selectedTypes }: { messages: any[]; type: 'receives' | 'sends'; selectedTypes: string[] }) => {
+    const bgColor = type === 'receives' ? 'blue' : 'green';
+    const filteredMessages = messages?.filter(
+      (message: any) => selectedTypes.length === 0 || selectedTypes.includes(message.collection)
+    );
+
+    return (
+      <div className={`flex-1 h-full flex flex-col bg-${bgColor}-100 border border-${bgColor}-300 rounded-lg p-4`}>
+        <div className="space-y-2 flex-1">
+          {filteredMessages?.map((message: any) => (
+            <Message key={message.data.name} message={message} collection={message.collection} />
+          ))}
+          {(!messages?.length ||
+            (selectedTypes.length > 0 && !messages?.some((message: any) => selectedTypes.includes(message.collection)))) && (
+            <div className="text-center py-4">
+              <p className="text-gray-500 text-[10px]">
+                {selectedTypes.length > 0
+                  ? `Service does not ${type} ${selectedTypes.join(' or ')}`
+                  : `Service does not ${type} any messages`}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+);
+
+// Service Card component
+const ServiceCard = memo(({ service, urlParams, selectedTypes }: { service: any; urlParams: any; selectedTypes: string[] }) => {
+  return (
+    <a
+      href={buildUrlWithParams('/architecture/messages', {
+        serviceName: service.data.name,
+        serviceId: service.data.id,
+        domainId: urlParams?.domainId,
+        domainName: urlParams?.domainName,
+      })}
+      className="group hover:bg-pink-50 bg-white border-2 border-dashed border-pink-400 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden "
+    >
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2 w-full">
+            <ServerIcon className="h-5 w-5 text-pink-500" />
+            <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:underline transition-colors duration-200 w-full max-w-[90%]">
+              {service.data.name || service.data.id} (v{service.data.version})
+            </h3>
+          </div>
+        </div>
+
+        {service.data.summary && <p className="text-gray-600 text-sm line-clamp-2 min-h-[2.5rem]">{service.data.summary}</p>}
+
+        {!urlParams?.serviceName && (
+          <div className="flex items-center gap-4 mt-4">
+            <MessagesContainer messages={service.data.receives} type="receives" selectedTypes={selectedTypes} />
+
+            <div className="flex items-center gap-2 max-w-[200px]">
+              <div className="w-4 h-[2px] bg-blue-200"></div>
+              <div className="bg-white border-2 border-pink-100 rounded-lg p-4 shadow-sm">
+                <div className="flex flex-col items-center gap-3">
+                  <ServerIcon className="h-8 w-8 text-pink-500" />
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-900">{service.data.name || service.data.id}</p>
+                    <p className="text-xs text-gray-500">v{service.data.version}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="w-4 h-[2px] bg-emerald-200"></div>
+            </div>
+
+            <MessagesContainer messages={service.data.sends} type="sends" selectedTypes={selectedTypes} />
+          </div>
+        )}
+      </div>
+    </a>
+  );
+});
+
+// Domain Section component
+const DomainSection = memo(
+  ({ domain, services, urlParams, selectedTypes }: { domain: any; services: any[]; urlParams: any; selectedTypes: string[] }) => {
+    const subdomains = domain.data.domains || [];
+    const allSubDomainServices = subdomains.map((subdomain: any) => subdomain.data.services || []).flat();
+
+    const servicesWithoutSubdomains = services.filter((service) => {
+      return !allSubDomainServices.some((s: any) => s.id === service.data.id);
+    });
+
+    return (
+      <div className="space-y-6">
+        {servicesWithoutSubdomains.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-2 gap-6">
+            {servicesWithoutSubdomains.map((service) => (
+              <ServiceCard key={service.data.id} service={service} urlParams={urlParams} selectedTypes={selectedTypes} />
+            ))}
+          </div>
+        )}
+
+        {subdomains.map((subdomainRef: any) => {
+          const subdomain = domain.data.domains?.find((d: any) => d.data.id === subdomainRef.data.id);
+          if (!subdomain) return null;
+
+          const subdomainServices = services.filter((service) =>
+            subdomain.data.services?.some((s: any) => s.id === service.data.id)
+          );
+
+          if (subdomainServices.length === 0) return null;
+
+          return (
+            <div key={subdomain.data.id} className="bg-orange-50 border-2 border-orange-400 rounded-lg p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <RectangleGroupIcon className="h-5 w-5 text-orange-500" />
+                  <h3 className="text-xl font-semibold text-gray-900">{subdomain.data.name} (Subdomain)</h3>
+                </div>
+                <div className="flex gap-2">
+                  <a
+                    href={buildUrl(`/visualiser/domains/${subdomain.data.id}`)}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md transition-colors duration-200"
+                  >
+                    View in visualizer
+                  </a>
+                  <a
+                    href={buildUrl(`/docs/domains/${subdomain.data.id}`)}
+                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-black border border-gray-300 bg-white rounded-md transition-colors duration-200"
+                  >
+                    Read documentation
+                  </a>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-2 gap-6">
+                {subdomainServices.map((service) => (
+                  <ServiceCard
+                    key={service.data.id}
+                    service={service}
+                    urlParams={{
+                      ...urlParams,
+                      domainId: subdomain.data.id,
+                      domainName: `${subdomain.data.name} (Subdomain)`,
+                    }}
+                    selectedTypes={selectedTypes}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+);
 
 interface ServiceGridProps {
   services: CollectionEntry<'services'>[];
+  domains: ExtendedDomain[];
   embeded: boolean;
 }
 
-export default function ServiceGrid({ services, embeded }: ServiceGridProps) {
+// Main ServiceGrid component
+export default function ServiceGrid({ services, domains, embeded }: ServiceGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTypes, setSelectedTypes] = useState<CollectionMessageTypes[]>([]);
@@ -24,35 +198,27 @@ export default function ServiceGrid({ services, embeded }: ServiceGridProps) {
     serviceName?: string;
   } | null>(null);
 
-  // Effect to sync URL params with state
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const serviceIds = params.get('serviceIds')?.split(',').filter(Boolean);
-    const domainId = params.get('domainId') || undefined;
-    const domainName = params.get('domainName') || undefined;
-    const serviceName = params.get('serviceName') || undefined;
     setUrlParams({
-      serviceIds,
-      domainId,
-      domainName,
-      serviceName,
+      serviceIds: params.get('serviceIds')?.split(',').filter(Boolean),
+      domainId: params.get('domainId') || undefined,
+      domainName: params.get('domainName') || undefined,
+      serviceName: params.get('serviceName') || undefined,
     });
   }, []);
 
   const filteredAndSortedServices = useMemo(() => {
-    // Don't filter until we have URL params
     if (urlParams === null) return [];
 
     let result = [...services];
 
-    // Filter by service IDs if present
     if (urlParams.serviceIds?.length) {
       result = result.filter(
         (service) => urlParams.serviceIds?.includes(service.data.id) && !service.data.id.includes('/versioned/')
       );
     }
 
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -64,7 +230,6 @@ export default function ServiceGrid({ services, embeded }: ServiceGridProps) {
       );
     }
 
-    // Filter by selected message types
     if (selectedTypes.length > 0) {
       result = result.filter((service) => {
         const hasMatchingSends = service.data.sends?.some((message: any) => selectedTypes.includes(message.collection));
@@ -73,18 +238,14 @@ export default function ServiceGrid({ services, embeded }: ServiceGridProps) {
       });
     }
 
-    // Sort by name by default
     result.sort((a, b) => (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id));
-
     return result;
   }, [services, searchQuery, urlParams, selectedTypes]);
 
-  // Add pagination calculation
   const paginatedServices = useMemo(() => {
     if (urlParams?.domainId || urlParams?.serviceIds?.length) {
       return filteredAndSortedServices;
     }
-
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredAndSortedServices.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredAndSortedServices, currentPage, urlParams]);
@@ -94,7 +255,6 @@ export default function ServiceGrid({ services, embeded }: ServiceGridProps) {
     return Math.ceil(filteredAndSortedServices.length / ITEMS_PER_PAGE);
   }, [filteredAndSortedServices.length, urlParams]);
 
-  // Reset pagination when search query or filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedTypes]);
@@ -184,155 +344,25 @@ export default function ServiceGrid({ services, embeded }: ServiceGridProps) {
 
       {filteredAndSortedServices.length > 0 && (
         <div className={`rounded-xl overflow-hidden ${urlParams?.domainId ? 'bg-yellow-50 p-8 border-2 border-yellow-400' : ''}`}>
-          {urlParams?.domainName && (
-            <>
-              <div className="mb-6 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <RectangleGroupIcon className="h-5 w-5 text-yellow-500" />
-                  <span className="text-2xl font-semibold text-gray-900">{urlParams.domainName}</span>
-                </div>
-                <div className="flex gap-2">
-                  <a
-                    href={buildUrl(`/visualiser/domains/${urlParams.domainId}`)}
-                    className="inline-flex items-center px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md transition-colors duration-200"
-                  >
-                    View in visualizer
-                  </a>
-                  <a
-                    href={buildUrl(`/docs/domains/${urlParams.domainId}`)}
-                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-black border border-gray-300 bg-white  rounded-md transition-colors duration-200"
-                  >
-                    Read documentation
-                  </a>
-                </div>
-              </div>
-            </>
+          {urlParams?.domainName ? (
+            domains
+              .filter((domain: ExtendedDomain) => domain.data.id === urlParams.domainId)
+              .map((domain: ExtendedDomain) => (
+                <DomainSection
+                  key={domain.data.id}
+                  domain={domain}
+                  services={paginatedServices}
+                  urlParams={urlParams}
+                  selectedTypes={selectedTypes}
+                />
+              ))
+          ) : (
+            <div className={`grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-${embeded ? 1 : 2} gap-6`}>
+              {paginatedServices.map((service) => (
+                <ServiceCard key={service.data.id} service={service} urlParams={urlParams} selectedTypes={selectedTypes} />
+              ))}
+            </div>
           )}
-
-          <div className={`grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-${embeded ? 1 : 2} gap-6`}>
-            {paginatedServices.map((service) => {
-              return (
-                <a
-                  key={service.data.id}
-                  href={buildUrlWithParams('/architecture/messages', {
-                    serviceName: service.data.name,
-                    serviceId: service.data.id,
-                    domainId: urlParams?.domainId,
-                    domainName: urlParams?.domainName,
-                  })}
-                  className="group hover:bg-pink-50  bg-white border-2 border-dashed border-pink-400 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden"
-                >
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2 w-full">
-                        <ServerIcon className="h-5 w-5 text-pink-500" />
-                        <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:underline transition-colors duration-200 w-full max-w-[90%]">
-                          {service.data.name || service.data.id} (v{service.data.version})
-                        </h3>
-                      </div>
-                    </div>
-
-                    {service.data.summary && (
-                      <p className="text-gray-600 text-sm line-clamp-2 min-h-[2.5rem]">{service.data.summary}</p>
-                    )}
-
-                    <div className="space-y-4">
-                      {/* Messages Section */}
-                      {!urlParams?.serviceName && (
-                        <div className="flex items-center gap-4">
-                          <div className="flex-1 h-full flex flex-col bg-blue-100 border border-blue-300 rounded-lg p-4">
-                            <div className="space-y-2 flex-1">
-                              {service.data.receives
-                                ?.filter(
-                                  (message: any) => selectedTypes.length === 0 || selectedTypes.includes(message.collection)
-                                )
-                                ?.map((message: any) => {
-                                  const { Icon, color } = getCollectionStyles(message.collection);
-                                  return (
-                                    <a
-                                      key={message.data.name}
-                                      href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`)}
-                                      className="group flex border border-gray-200 items-center gap-1 rounded-md text-[11px] font-medium hover:bg-gray-50 transition-colors duration-200 bg-white"
-                                    >
-                                      <div className="bg-white border-r border-gray-200 px-2 py-1.5 rounded-l-md">
-                                        <Icon className={`h-3 w-3 text-${color}-500`} />
-                                      </div>
-                                      <span className="px-1 py-1 truncate max-w-[140px]">{message.data.name}</span>
-                                    </a>
-                                  );
-                                })}
-                              {(!service.data.receives?.length ||
-                                (selectedTypes.length > 0 &&
-                                  !service.data.receives?.some((message: any) =>
-                                    selectedTypes.includes(message.collection)
-                                  ))) && (
-                                <div className="text-center py-4">
-                                  <p className="text-gray-500 text-[10px]">
-                                    {selectedTypes.length > 0
-                                      ? `Service does not receive ${selectedTypes.join(' or ')}`
-                                      : 'Service does not receive any messages'}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 max-w-[200px]">
-                            <div className="w-4 h-[2px] bg-blue-200"></div>
-                            <div className="bg-white border-2 border-pink-100 rounded-lg p-4 shadow-sm">
-                              <div className="flex flex-col items-center gap-3">
-                                <ServerIcon className="h-8 w-8 text-pink-500" />
-                                <div className="text-center">
-                                  <p className="text-sm font-medium text-gray-900">{service.data.name || service.data.id}</p>
-                                  <p className="text-xs text-gray-500">v{service.data.version}</p>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="w-4 h-[2px] bg-emerald-200"></div>
-                          </div>
-
-                          <div className="flex-1 h-full flex flex-col bg-green-100 border border-green-300 rounded-lg p-4">
-                            <div className="space-y-2 flex-1">
-                              {service.data.sends
-                                ?.filter(
-                                  (message: any) => selectedTypes.length === 0 || selectedTypes.includes(message.collection)
-                                )
-                                ?.map((message: any) => {
-                                  const { Icon, color } = getCollectionStyles(message.collection);
-                                  return (
-                                    <a
-                                      key={message.data.name}
-                                      href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`)}
-                                      className="group flex border border-gray-200 items-center gap-1 rounded-md text-[11px] font-medium hover:bg-gray-50 transition-colors duration-200 bg-white"
-                                    >
-                                      <div className="bg-white border-r border-gray-200 px-2 py-1.5 rounded-l-md">
-                                        <Icon className={`h-3 w-3 text-${color}-500`} />
-                                      </div>
-                                      <span className="px-1 py-1 truncate max-w-[140px]">{message.data.name}</span>
-                                    </a>
-                                  );
-                                })}
-                              {(!service.data.sends?.length ||
-                                (selectedTypes.length > 0 &&
-                                  !service.data.sends?.some((message: any) => selectedTypes.includes(message.collection)))) && (
-                                <div className="text-center py-4  ">
-                                  <p className="text-gray-500 text-[10px]">
-                                    {selectedTypes.length > 0
-                                      ? `Service does not send ${selectedTypes.join(' or ')}`
-                                      : 'Service does not send any messages'}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </a>
-              );
-            })}
-          </div>
         </div>
       )}
 

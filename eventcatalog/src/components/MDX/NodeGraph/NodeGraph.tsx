@@ -201,10 +201,15 @@ const NodeGraphBuilder = ({
   }, [resetNodesAndEdges, fitView]);
 
   const handleLegendClick = useCallback(
-    (collectionType: string) => {
-      const updatedNodes = nodes.map((node) => {
-        if (node.type === collectionType) {
+    (collectionType: string, groupId?: string) => {
+      const updatedNodes = nodes.map((node: Node<any>) => {
+        // Check if the groupId is set first
+        if (groupId && node.data.group && node.data.group?.id === groupId) {
           return { ...node, style: { ...node.style, opacity: 1 } };
+        } else {
+          if (node.type === collectionType) {
+            return { ...node, style: { ...node.style, opacity: 1 } };
+          }
         }
         return { ...node, style: { ...node.style, opacity: 0.1 } };
       });
@@ -231,7 +236,7 @@ const NodeGraphBuilder = ({
     [nodes, edges, setNodes, setEdges, fitView]
   );
 
-  const getNodesByCollectionWithColors = useCallback((nodes: Node[]) => {
+  const getNodesByCollectionWithColors = useCallback((nodes: Node<any>[]) => {
     const colorClasses = {
       events: 'bg-orange-600',
       services: 'bg-pink-600',
@@ -243,17 +248,36 @@ const NodeGraphBuilder = ({
       step: 'bg-gray-700',
     };
 
-    return nodes.reduce((acc: { [key: string]: { count: number; colorClass: string } }, node) => {
-      const collection = node.type;
-      if (collection) {
-        if (acc[collection]) {
-          acc[collection].count += 1;
-        } else {
-          acc[collection] = { count: 1, colorClass: colorClasses[collection as keyof typeof colorClasses] || 'bg-black' };
+    let legendForDomains: { [key: string]: { count: number; colorClass: string; groupId: string } } = {};
+
+    // Find any groups
+    const domainGroups = [
+      ...new Set(
+        nodes.filter((node) => node.data.group && node.data.group?.type === 'Domain').map((node) => node.data.group?.id)
+      ),
+    ];
+
+    domainGroups.forEach((groupId) => {
+      const group = nodes.filter((node) => node.data.group && node.data.group?.id === groupId);
+      legendForDomains[`${groupId} (Domain)`] = { count: group.length, colorClass: 'bg-yellow-600', groupId };
+    });
+
+    const legendForNodes = nodes.reduce(
+      (acc: { [key: string]: { count: number; colorClass: string; groupId?: string } }, node) => {
+        const collection = node.type;
+        if (collection) {
+          if (acc[collection]) {
+            acc[collection].count += 1;
+          } else {
+            acc[collection] = { count: 1, colorClass: colorClasses[collection as keyof typeof colorClasses] || 'bg-black' };
+          }
         }
-      }
-      return acc;
-    }, {});
+        return acc;
+      },
+      {}
+    );
+
+    return { ...legendForDomains, ...legendForNodes };
   }, []);
 
   const legend = getNodesByCollectionWithColors(nodes);
@@ -351,11 +375,11 @@ const NodeGraphBuilder = ({
         <Panel position="bottom-right">
           <div className=" bg-white font-light px-4 text-[12px] shadow-md py-1 rounded-md">
             <ul className="m-0 p-0 ">
-              {Object.entries(legend).map(([key, { count, colorClass }]) => (
+              {Object.entries(legend).map(([key, { count, colorClass, groupId }]) => (
                 <li
                   key={key}
                   className="flex space-x-2 items-center text-[10px] cursor-pointer hover:text-purple-600 hover:underline"
-                  onClick={() => handleLegendClick(key)}
+                  onClick={() => handleLegendClick(key, groupId)}
                 >
                   <span className={`w-2 h-2 block ${colorClass}`} />
                   <span className="block capitalize">

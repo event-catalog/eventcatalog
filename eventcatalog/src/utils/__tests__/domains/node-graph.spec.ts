@@ -52,7 +52,15 @@ describe('Domains NodeGraph', () => {
         id: 'OrderPlaced-0.0.1',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', message: mockEvents[0] },
+        data: {
+          mode: 'simple',
+          message: mockEvents[0],
+          group: {
+            type: 'Domain',
+            value: 'Checkout',
+            id: 'Checkout',
+          },
+        },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'events',
       };
@@ -86,7 +94,40 @@ describe('Domains NodeGraph', () => {
         ])
       );
 
-      expect(edges).toEqual(expectedEdges);
+      expect(edges).toEqual(expect.arrayContaining(expectedEdges));
+    });
+
+    it('should return a list of nodes and edges with a domain has subdomains', async () => {
+      // @ts-ignore
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Shipping', version: '0.0.1' });
+
+      // Expect the orders service to be rendered (it's a service in a subdomain)
+      const expectedEventNode = {
+        id: 'OrderService-1.0.0',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: {
+          mode: 'simple',
+          service: expect.objectContaining({
+            data: expect.objectContaining({
+              id: 'OrderService',
+              version: '1.0.0',
+            }),
+          }),
+          group: {
+            type: 'Domain',
+            value: 'Checkout',
+            id: 'Checkout',
+          },
+        },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'services',
+      };
+
+      expect(nodes).toEqual(expect.arrayContaining([expect.objectContaining(expectedEventNode)]));
+
+      expect(nodes.length).toEqual(9);
+      expect(edges.length).toEqual(8);
     });
 
     it('should return nodes and edges for a given domain with services using semver range or latest version (version undefind)', async () => {

@@ -10,6 +10,7 @@ export interface ExtendedDomain extends CollectionEntry<'domains'> {
   sends: CollectionEntry<CollectionMessageTypes>[];
   receives: CollectionEntry<CollectionMessageTypes>[];
   services: CollectionEntry<'services'>[];
+  domains: CollectionEntry<'domains'>[];
 }
 
 interface DomainGridProps {
@@ -102,6 +103,12 @@ export default function DomainGrid({ domains, embeded }: DomainGridProps) {
               </p>
 
               <div className="flex gap-4 mb-4">
+                <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-orange-200">
+                  <RectangleGroupIcon className="h-4 w-4 text-yellow-500" />
+                  <div className="flex">
+                    <p className="text-sm font-medium text-gray-900">{domain.data.domains?.length || 0} Subdomains</p>
+                  </div>
+                </div>
                 <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-pink-200">
                   <ServerIcon className="h-4 w-4 text-pink-500" />
                   <div className="flex">
@@ -119,6 +126,41 @@ export default function DomainGrid({ domains, embeded }: DomainGridProps) {
               </div>
 
               <div className="space-y-6">
+                {/* Subdomains and there services */}
+                {domain.data.domains?.slice(0, 2).map((subdomain: any) => (
+                  <div
+                    key={subdomain.data.id}
+                    className="block space-y-2 bg-white border-2 border-dashed border-orange-400 p-4 rounded-lg transition-colors duration-200"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <RectangleGroupIcon className="h-4 w-4 text-orange-500" />
+                        <h4 className="text-sm font-medium text-gray-900">
+                          {subdomain.data.name || subdomain.data.id} (Subdomain)
+                        </h4>
+                      </div>
+                      <span className="text-xs text-gray-500">v{subdomain.data.version}</span>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-pink-200">
+                        <ServerIcon className="h-4 w-4 text-pink-500" />
+                        <div className="flex">
+                          <p className="text-sm font-medium text-gray-900">{subdomain.data.services?.length || 0} Services</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-gray-200">
+                        <EnvelopeIcon className="h-4 w-4 text-blue-500" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {(subdomain.sends?.length || 0) + (subdomain.receives?.length || 0)} Messages
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
                 {/* Services and their messages */}
                 {domain.data.services?.slice(0, 2).map((service: any) => (
                   <div
@@ -211,6 +253,16 @@ export default function DomainGrid({ domains, embeded }: DomainGridProps) {
                     </div>
                   </div>
                 ))}
+                {domain.data.domains && domain.data.domains.length > 2 && (
+                  <div className="block space-y-2 bg-white border-2 border-dashed border-orange-400 p-4 rounded-lg transition-colors duration-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <RectangleGroupIcon className="h-4 w-4 text-orange-500/70" />
+                        <h4 className="text-sm font-medium text-gray-600">+{domain.data.domains.length - 2} more subdomains</h4>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {domain.data.services && domain.data.services.length > 2 && (
                   <div className="block space-y-2 bg-white border-2 border-dashed border-pink-400 p-4 rounded-lg transition-colors duration-200">
                     <div className="flex items-center justify-between">

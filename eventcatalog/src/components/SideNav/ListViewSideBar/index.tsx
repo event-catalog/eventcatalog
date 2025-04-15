@@ -249,6 +249,16 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
     setSearchTerm(e.target.value);
   }, []);
 
+  const isDomainSubDomain = useMemo(() => {
+    return (domain: any) => {
+      const domains = data.domains || [];
+      return domains.some((d: any) => {
+        const subdomains = d.domains || [];
+        return subdomains.some((subdomain: any) => subdomain.data.id === domain.id);
+      });
+    };
+  }, [data.domains]);
+
   if (!isInitialized) return null;
 
   const hasNoResults =
@@ -301,7 +311,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                         >
                           <span className="truncate">{item.label}</span>
                           <span className="text-yellow-600 ml-2 text-[10px] font-medium bg-yellow-50 px-2 py-0.5 rounded">
-                            DOMAIN
+                            {isDomainSubDomain(item) ? 'SUBDOMAIN' : 'DOMAIN'}
                           </span>
                         </button>
                       </div>
