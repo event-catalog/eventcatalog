@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.34.4
+
+### Patch Changes
+
+- e0765c4: feat(core): added support for lucid component
+
 ## 2.34.3
 
 ### Patch Changes
