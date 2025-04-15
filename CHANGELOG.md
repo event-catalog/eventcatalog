@@ -1,5 +1,16 @@
 # @eventcatalog/core
 
+## 2.34.0
+
+### Minor Changes
+
+- 7d80063: feat(core): added support for subdomains
+
+### Patch Changes
+
+- fdd24d4: fix(core): consistent layout on User and Team pages
+- a5bca18: fix(core): use the node label in `simple` mode too
+
 ## 2.33.12
 
 ### Patch Changes
