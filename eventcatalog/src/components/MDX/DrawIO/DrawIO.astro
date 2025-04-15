@@ -1,0 +1,43 @@
+---
+import Admonition from '@components/MDX/Admonition';
+
+interface Props {
+  title?: string;
+  height: string;
+  url: string;
+  autoplay: boolean;
+  moveToViewport: string;
+  moveToWidget: string;
+  edit: boolean;
+}
+
+const { title, height = '500', url: urlString } = Astro.props;
+
+const url = new URL(urlString.replace('dark=auto', 'light=auto'));
+---
+
+{
+  !urlString && (
+    <Admonition type="warning">
+      <div>
+        <span class="block font-bold">{`<DrawIO/>`} failed to load</span>
+        <span class="block">Please provide a url to use the DrawIO component.</span>
+      </div>
+    </Admonition>
+  )
+}
+
+{
+  urlString && (
+    <div class="py-2">
+      {title && (
+        <h3 id={`${title}-drawio-title`} class="text-3xl font-bold">
+          {title}
+        </h3>
+      )}
+      <div class="relative">
+        <iframe class="border border-gray-200 rounded-md" src={url.href} width="100%" height={height} />
+      </div>
+    </div>
+  )
+}

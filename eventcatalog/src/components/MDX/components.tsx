@@ -20,6 +20,7 @@ import ResourceLink from '@components/MDX/ResourceLink/ResourceLink.astro';
 import Link from '@components/MDX/Link/Link.astro';
 import Miro from '@components/MDX/Miro/Miro.astro';
 import Lucid from '@components/MDX/Lucid/Lucid.astro';
+import DrawIO from '@components/MDX/DrawIO/DrawIO.astro';
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
@@ -50,6 +51,7 @@ const components = (props: any) => {
     Tiles,
     Miro: (mdxProp: any) => jsx(Miro, { ...props, ...mdxProp }),
     Lucid: (mdxProp: any) => jsx(Lucid, { ...props, ...mdxProp }),
+    DrawIO: (mdxProp: any) => jsx(DrawIO, { ...props, ...mdxProp }),
   };
 };
 
