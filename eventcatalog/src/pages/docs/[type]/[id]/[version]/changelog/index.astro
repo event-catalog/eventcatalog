@@ -62,7 +62,7 @@ const logsToRender = await Promise.all(renderedLogs);
 
 const logListPromise = logsToRender.map(async (log, index) => {
   const currentLogVersion = log.data.version;
-  const previousLogVersion = log.data.version ? getPreviousVersion(log.data.version, data.versions) : '';
+  const previousLogVersion = log.data.version ? getPreviousVersion(log.data.version, data.versions || []) : '';
   return {
     id: log.id,
     url: buildUrl(`/docs/${props.collection}/${props.data.id}`),
