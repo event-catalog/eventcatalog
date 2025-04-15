@@ -54,7 +54,9 @@ export default function CommandNode({ data, sourcePosition, targetPosition }: an
             <span className="text-xs font-bold block pb-0.5">{name}</span>
             <div className="flex justify-between">
               <span className="text-[10px] font-light block pt-0.5 pb-0.5 ">v{version}</span>
-              {mode === 'simple' && <span className="text-[10px] text-gray-500 font-light block pt-0.5 pb-0.5 ">Command</span>}
+              {mode === 'simple' && (
+                <span className="text-[10px] text-gray-500 font-light block pt-0.5 pb-0.5 ">{nodeLabel}</span>
+              )}
             </div>
           </div>
           {mode === 'full' && (
