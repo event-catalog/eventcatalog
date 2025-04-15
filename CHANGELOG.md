@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.34.3
+
+### Patch Changes
+
+- 30ac1c7: chore(core): updated catalog sdk version
+- 2f445b2: chore(core): updated astro version
+
 ## 2.34.2
 
 ### Patch Changes
