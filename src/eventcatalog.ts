@@ -214,7 +214,7 @@ program
 
     // Ignore any "Empty collection" messages, it's OK to have them
     const windowsCommand = `npx astro build ${command.args.join(' ').trim()} | findstr /V "The collection"`;
-    const unixCommand = `npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v "The collection.*does not exist"`;
+    const unixCommand = `bash -c "set -o pipefail; npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v \\"The collection.*does not exist\\""`;
 
     const buildCommand = process.platform === 'win32' ? windowsCommand : unixCommand;
 
