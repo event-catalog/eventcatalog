@@ -80,7 +80,7 @@ const messageList = (channel.data.messages ?? []).map((p) => ({
     {
       channel.data.versions && (
         <VersionList
-          title={`Channel versions (${channel.data.versions?.length})`}
+          title={`Versions (${channel.data.versions?.length})`}
           versions={channel.data.versions}
           collectionItem={channel}
         />
@@ -88,7 +88,7 @@ const messageList = (channel.data.messages ?? []).map((p) => ({
     }
 
     <OwnersList
-      title={`Channel owners (${filteredOwners.length})`}
+      title={`Owners (${filteredOwners.length})`}
       owners={ownersList}
       emptyMessage={`This channel does not have any documented owners.`}
       client:load
@@ -102,7 +102,7 @@ const messageList = (channel.data.messages ?? []).map((p) => ({
 
     {
       paramsList.length > 0 && (
-        <PillListFlat color="pink" title={`Channel parameters (${paramsList.length})`} pills={paramsList} client:load />
+        <PillListFlat color="pink" title={`Parameters (${paramsList.length})`} pills={paramsList} client:load />
       )
     }
 
