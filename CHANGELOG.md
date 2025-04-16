@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.34.6
+
+### Patch Changes
+
+- 196e711: fix(core): add missing query badge
+- 196098e: feat(core): added figjam component
+
 ## 2.34.5
 
 ### Patch Changes
