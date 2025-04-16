@@ -15,7 +15,14 @@ import DomainSideBar from '@components/SideBars/DomainSideBar.astro';
 import ChannelSideBar from '@components/SideBars/ChannelSideBar.astro';
 import FlowSideBar from '@components/SideBars/FlowSideBar.astro';
 
-import { QueueListIcon, RectangleGroupIcon, ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import {
+  QueueListIcon,
+  RectangleGroupIcon,
+  ServerIcon,
+  BoltIcon,
+  ChatBubbleLeftIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
 
 import type { PageTypes } from '@types';
@@ -74,6 +81,9 @@ const getBadge = () => {
   }
   if (props.collection === 'commands') {
     return { backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: ChatBubbleLeftIcon, class: 'text-blue-400' };
+  }
+  if (props.collection === 'queries') {
+    return { backgroundColor: 'green', textColor: 'green', content: 'Query', icon: MagnifyingGlassIcon, class: 'text-green-400' };
   }
   if (props.collection === 'domains') {
     return {
