@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.34.7
+
+### Patch Changes
+
+- e76317c: fix(core): embedding now works with scale plan
+
 ## 2.34.6
 
 ### Patch Changes
