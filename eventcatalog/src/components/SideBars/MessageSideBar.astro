@@ -110,7 +110,7 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
       producerList.length > 0 && (
         <PillListFlat
           color="pink"
-          title={`${type} Producers (${producerList.length})`}
+          title={`Producers (${producerList.length})`}
           pills={producerList}
           emptyMessage={getProducerEmptyMessage(type)}
           client:load
@@ -121,7 +121,7 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
       consumerList.length > 0 && (
         <PillListFlat
           color="pink"
-          title={`${type} Consumers (${consumerList.length})`}
+          title={`Consumers (${consumerList.length})`}
           pills={consumerList}
           emptyMessage={getConsumerEmptyMessage(type)}
           client:load
@@ -137,7 +137,7 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
     {
       message.data.versions && (
         <VersionList
-          title={`${type} versions (${message.data.versions?.length})`}
+          title={`Versions (${message.data.versions?.length})`}
           versions={message.data.versions}
           collectionItem={message}
         />
@@ -145,7 +145,7 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
     }
 
     <OwnersList
-      title={`${type} owners (${ownersList.length})`}
+      title={`Owners (${ownersList.length})`}
       owners={ownersList}
       emptyMessage={`This ${type} does not have any documented owners.`}
       client:load
@@ -160,7 +160,7 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
     {
       isRSSEnabled && (
         <div class="mx-auto pb-8 w-full max-w-lg divide-y divide-white/5 rounded-xl bg-white/5">
-          <span class="text-sm text-black group-data-[hover]:text-black/80 capitalize">{type} RSS Feed</span>
+          <span class="text-sm text-black font-semibold group-data-[hover]:text-black/80 capitalize">{type} RSS Feed</span>
           <ul role="list" class="space-y-2 mt-2">
             <li class="has-tooltip rounded-md text-gray-600 group px-1 w-full hover:bg-gradient-to-l hover:from-purple-500 hover:to-purple-700 hover:text-white hover:font-normal  ">
               <a class={`flex items-center space-x-2`} target="_blank" href={buildUrl(`/rss/${message.collection}/rss.xml`)}>
