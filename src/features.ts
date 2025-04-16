@@ -8,7 +8,8 @@ type LicenseResponse = {
 
 // Checks to see if the backstage feature is enabled (or not)
 export const isBackstagePluginEnabled = async (licenseKey?: string) => {
-  const LICENSE_KEY = process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE || null;
+  const LICENSE_KEY = process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE || process.env.EVENTCATALOG_SCALE_LICENSE_KEY || null;
+  const acceptedPlugins = ['@eventcatalog/backstage-plugin-eventcatalog', '@eventcatalog/eventcatalog-scale'];
 
   // no license key, so it's not enabled
   if (!LICENSE_KEY) {
@@ -34,7 +35,7 @@ export const isBackstagePluginEnabled = async (licenseKey?: string) => {
   if (response.status === 200) {
     const data = (await response.json()) as LicenseResponse;
 
-    if ('@eventcatalog/backstage-plugin-eventcatalog' !== data.plugin) {
+    if (!acceptedPlugins.includes(data.plugin)) {
       console.log(
         '\nInvalid license key for backstage integration, please check your license key or purchase a license at https://eventcatalog.cloud/\n'
       );
@@ -52,7 +53,7 @@ export const isBackstagePluginEnabled = async (licenseKey?: string) => {
         padding: 1,
         margin: 1,
         borderColor: 'green',
-        title: '@eventcatalog/backstage-plugin-eventcatalog',
+        title: data.plugin,
         titleAlignment: 'center',
       })
     );
