@@ -18,3 +18,5 @@ eventcatalog.config.js
 eventcatalog.styles.css
 
 src/generated-ai/*
+
+src/pages/api/server/*

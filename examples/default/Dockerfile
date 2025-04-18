@@ -1,11 +1,23 @@
+## Stage 1: Build the app
 FROM node:lts AS build
+
 WORKDIR /app
+
+# Install dependencies
+COPY package.json package-lock.json ./
+RUN npm install
+
+# Copy source code
 COPY . .
-# Fix for astro in docker https://github.com/withastro/astro/issues/2596
+
+# Fix for Astro in Docker: https://github.com/withastro/astro/issues/2596
 ENV NODE_OPTIONS=--max_old_space_size=2048
-RUN npm i
+# Build the app
 RUN npm run build
 
-FROM httpd:2.4 AS runtime
-COPY --from=build /app/dist /usr/local/apache2/htdocs/
-EXPOSE 80
+
+## Stage 2: Serve app with httpd server
+FROM httpd:2.4
+
+# Copy built app to serve
+COPY --from=build /app/dist /usr/local/apache2/htdocs

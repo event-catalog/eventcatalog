@@ -8,6 +8,7 @@ export default {
   editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
   port: 3000,
   outDir: 'dist',
+  output: 'server',
   logo: {
     alt: 'FlowMart',
     src: '/logo.svg',
@@ -30,13 +31,16 @@ export default {
     similarityResults: 50,
     max_tokens: 4096,
     // 'Llama-3.2-3B-Instruct-q4f16_1-MLC is also good
-    model: 'Hermes-3-Llama-3.2-3B-q4f16_1-MLC'
+    // 'Hermes-3-Llama-3.2-3B-q4f16_1-MLC' for webllm
+    model: 'o4-mini'
+    // model: 'gpt-3.5-turbo'
   },
   generators: [
     [
       "@eventcatalog/generator-ai", {
         debug: true,
         splitMarkdownFiles: false,
+        includeUsersAndTeams: true
       }
     ],
   ],

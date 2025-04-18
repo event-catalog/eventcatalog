@@ -46,6 +46,7 @@ export interface Config {
   base?: string;
   port?: string;
   trailingSlash?: boolean;
+  output?: 'server' | 'static';
   rss?: {
     enabled: boolean;
     limit: number;

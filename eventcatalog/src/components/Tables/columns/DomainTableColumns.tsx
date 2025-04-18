@@ -1,5 +1,4 @@
-import { ServerIcon } from '@heroicons/react/20/solid';
-import { RectangleGroupIcon } from '@heroicons/react/20/solid';
+import { ServerIcon, RectangleGroupIcon } from '@heroicons/react/20/solid';
 import { createColumnHelper } from '@tanstack/react-table';
 import { filterByName, filterCollectionByName } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';

@@ -1,19 +1,16 @@
-import { glob } from 'astro/loaders';
-import { z, defineCollection } from 'astro:content';
-import { projectDirBase } from '../../content.config';
+import { z } from 'astro:content';
+import { badge, ownerReference } from '../../content.config-shared-collections';
 
-export const customPages = defineCollection({
-  loader: glob({
-    pattern: ['docs/hello-world.mdx'],
-    base: projectDirBase,
-  }),
-  schema: z.object({
-    id: z.string(),
-    title: z.string(),
-    description: z.string(),
-    sidebar: z.object({
+export const customPagesSchema = z.object({
+  title: z.string(),
+  summary: z.string(),
+  slug: z.string().optional(),
+  sidebar: z
+    .object({
       label: z.string(),
       order: z.number(),
-    }),
-  }),
+    })
+    .optional(),
+  owners: z.array(ownerReference).optional(),
+  badges: z.array(badge).optional(),
 });
