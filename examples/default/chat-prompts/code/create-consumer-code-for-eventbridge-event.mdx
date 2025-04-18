@@ -1,0 +1,38 @@
+---
+title: Create EventBridge Rule for an Event
+category:
+  id: CloudFormation
+  label: CloudFormation
+  icon: CloudFormation
+inputs:
+  - id: event-name
+    label: Select the event you want to create a rule for
+    type: resource-list-events
+  - id: rule-name
+    label: Enter a name for the EventBridge rule
+    type: text
+---
+
+Generate an AWS CloudFormation template snippet (YAML) to create an EventBridge rule. This rule should trigger based on the selected event `{{event-name}}` from the default EventBus and invoke the specified Lambda function `{{target-lambda-arn}}`.
+
+**Rule Details:**
+
+*   **Rule Name:** `{{rule-name}}` (e.g., `trigger-lambda-on-{{event-name}}`)
+*   **Event Bus:** Use the `default` event bus.
+*   **Event Pattern:** The rule should match events where the `detail-type` is exactly `{{event-name}}`.
+*   **Target:** The primary target is the Lambda function with ARN `{{target-lambda-arn}}`.
+*   **Permissions:** Ensure the necessary permissions are granted for EventBridge to invoke the target Lambda function.
+
+**Best Practices to Follow:**
+
+1.  **Clarity:** Use clear and descriptive names for resources.
+2.  **Specificity:** Define the event pattern precisely to avoid unintended triggers.
+3.  **Permissions:** Include the `AWS::Lambda::Permission` resource to grant invocation rights.
+4.  **Least Privilege:** Grant only the necessary permissions.
+
+**Task:**
+
+Provide the complete, runnable CloudFormation YAML snippet for the `{{rule-name}}` EventBridge rule, incorporating the details and best practices mentioned above. Include the `AWSTemplateFormatVersion` and `Resources` sections.
+
+
+
