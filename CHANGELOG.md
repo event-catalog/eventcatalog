@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.35.3
+
+### Patch Changes
+
+- d703b5f: feat(core): env file support and eventcatalog chat updates
+
 ## 2.35.2
 
 ### Patch Changes
