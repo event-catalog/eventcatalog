@@ -289,6 +289,26 @@ const previewCatalog = ({
   );
 };
 
+const startServerCatalog = ({
+  command,
+  canEmbedPages = false,
+  isEventCatalogStarter = false,
+  isEventCatalogScale = false,
+}: {
+  command: Command;
+  canEmbedPages: boolean;
+  isEventCatalogStarter: boolean;
+  isEventCatalogScale: boolean;
+}) => {
+  execSync(
+    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} node ./dist/server/entry.mjs`,
+    {
+      cwd: dir,
+      stdio: 'inherit',
+    }
+  );
+};
+
 program
   .command('preview')
   .description('Serves the contents of your eventcatalog build directory')
@@ -323,7 +343,14 @@ program
     const canEmbedPages = await isBackstagePluginEnabled();
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
-    previewCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
+
+    const isServerOutput = await isOutputServer();
+
+    if (isServerOutput) {
+      startServerCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
+    } else {
+      previewCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
+    }
   });
 
 program
