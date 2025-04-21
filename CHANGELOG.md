@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.35.0
+
+### Minor Changes
+
+- 2cb0534: feat(core): added chat v2 - bring your own keys and server rendered EventCatalog
+
 ## 2.34.7
 
 ### Patch Changes
