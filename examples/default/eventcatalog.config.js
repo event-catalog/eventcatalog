@@ -8,7 +8,7 @@ export default {
   editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
   port: 3000,
   outDir: 'dist',
-  output: 'server',
+  // output: 'server',
   logo: {
     alt: 'FlowMart',
     src: '/logo.svg',
@@ -30,10 +30,12 @@ export default {
     enabled: true,
     similarityResults: 50,
     max_tokens: 4096,
+    // For local (Static EventCatalog Chat)
     // 'Llama-3.2-3B-Instruct-q4f16_1-MLC is also good
-    // 'Hermes-3-Llama-3.2-3B-q4f16_1-MLC' for webllm
+    model: 'Hermes-3-Llama-3.2-3B-q4f16_1-MLC',
+
+    // For server (Dynamic EventCatalog)
     // model: 'o4-mini'
-    model: 'gpt-3.5-turbo'
   },
   generators: [
     [

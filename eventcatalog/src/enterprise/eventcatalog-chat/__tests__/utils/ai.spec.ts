@@ -58,9 +58,8 @@ vi.mock('@config', () => ({
 
 // Now import the module under test
 // Use alias/absolute path if relative path causes issues
-import { getResources, askQuestion } from '@enterprise/eventcatalog-chat/utils/ai';
+import { askQuestion } from '@enterprise/eventcatalog-chat/utils/ai';
 import { EventCatalogVectorStore } from '@enterprise/eventcatalog-chat/EventCatalogVectorStore';
-import fs from 'fs'; // Import fs after mock if needed, though maybe not needed directly in test now
 import { openai } from '@ai-sdk/openai';
 import { streamText } from 'ai';
 
