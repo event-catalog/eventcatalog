@@ -42,7 +42,7 @@ export default {
       "@eventcatalog/generator-ai", {
         debug: true,
         splitMarkdownFiles: false,
-        includeUsersAndTeams: true
+        includeUsersAndTeams: false
       }
     ],
   ],

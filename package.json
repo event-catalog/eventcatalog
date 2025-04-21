@@ -21,7 +21,7 @@
     "default-files-for-collections/"
   ],
   "scripts": {
-    "dev": "echo 'HELLO WORLD!'",
+    "dev": "astro dev",
     "build:bin": "tsup",
     "prepublishOnly": "pnpm run build:bin",
     "test": "vitest",
