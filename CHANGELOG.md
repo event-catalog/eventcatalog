@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.35.4
+
+### Patch Changes
+
+- 2e78817: fix(core): fixed start command for server catalogs
+
 ## 2.35.3
 
 ### Patch Changes
