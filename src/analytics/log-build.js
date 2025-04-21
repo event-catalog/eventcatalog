@@ -26,8 +26,6 @@ const main = async (projectDir, { isEventCatalogStarterEnabled, isEventCatalogSc
       generatorNames.push('@eventcatalog/backstage-plugin-eventcatalog');
     }
 
-    console.log('generatorNames', generatorNames);
-
     await raiseEvent({
       command: 'build',
       org: organizationName,
