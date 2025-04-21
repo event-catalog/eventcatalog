@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.35.2
+
+### Patch Changes
+
+- d52166b: fix(core): fixed redirect for the chat feature
+
 ## 2.35.1
 
 ### Patch Changes
