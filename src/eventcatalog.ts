@@ -15,7 +15,7 @@ import boxen from 'boxen';
 import { isBackstagePluginEnabled, isEventCatalogStarterEnabled, isEventCatalogScaleEnabled, isOutputServer } from './features';
 import updateNotifier from 'update-notifier';
 import stream from 'stream';
-
+import dotenv from 'dotenv';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -141,6 +141,11 @@ program
     // // Copy EventCatalog core over
     console.log('Setting up EventCatalog....');
 
+    // Load any .env file in the project directory
+    if (fs.existsSync(path.join(dir, '.env'))) {
+      dotenv.config({ path: path.join(dir, '.env') });
+    }
+
     if (options.debug) {
       console.log('Debug mode enabled');
       console.log('PROJECT_DIR', dir);
@@ -220,6 +225,11 @@ program
   .action(async (options, command: Command) => {
     console.log('Building EventCatalog...');
 
+    // Load any .env file in the project directory
+    if (fs.existsSync(path.join(dir, '.env'))) {
+      dotenv.config({ path: path.join(dir, '.env') });
+    }
+
     copyCore();
     // Copy the server files into the core directory if we have server output
     await copyServerFiles();
@@ -284,6 +294,12 @@ program
   .description('Serves the contents of your eventcatalog build directory')
   .action(async (options, command: Command) => {
     console.log('Starting preview of your build...');
+
+    // Load any .env file in the project directory
+    if (fs.existsSync(path.join(dir, '.env'))) {
+      dotenv.config({ path: path.join(dir, '.env') });
+    }
+
     const canEmbedPages = await isBackstagePluginEnabled();
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
@@ -298,6 +314,12 @@ program
   .description('Serves the contents of your eventcatalog build directory')
   .action(async (options, command: Command) => {
     console.log('Starting preview of your build...');
+
+    // Load any .env file in the project directory
+    if (fs.existsSync(path.join(dir, '.env'))) {
+      dotenv.config({ path: path.join(dir, '.env') });
+    }
+
     const canEmbedPages = await isBackstagePluginEnabled();
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();

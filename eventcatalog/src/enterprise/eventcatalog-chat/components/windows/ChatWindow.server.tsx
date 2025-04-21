@@ -211,7 +211,7 @@ const ChatWindow = ({
     async (question: string, additionalContext?: string) => {
       if (!question.trim() || isStreaming || isThinking) return;
 
-      const userMessage: Message = { content: question, isUser: true, timestamp: Date.now() };
+      const userMessage: Message = { content: question, isUser: true, timestamp: Date.now(), additionalContext };
       const isFirstMessage = messages.length === 0;
 
       setMessages((prev) => [...prev, userMessage]);
@@ -252,7 +252,6 @@ const ChatWindow = ({
   const handleSubmitWithInputs = useCallback(
     (prompt: ChatPrompt, inputValues: Record<string, string>) => {
       let finalBody = prompt.body || ''; // Start with the original body
-
       // Ensure prompt and prompt.data exist before accessing properties
       if (!prompt || !prompt.data) {
         console.error('handleSubmitWithInputs called without a valid prompt.');
@@ -264,10 +263,10 @@ const ChatWindow = ({
       for (const [key, value] of Object.entries(inputValues)) {
         const placeholder = `{{${key}}}`;
         // Replace all occurrences of the placeholder in the body
-        finalBody = finalBody.replaceAll(placeholder, value);
+        finalBody = finalBody.replaceAll(placeholder, `"${value}"`);
       }
 
-      // Submit the original title and the processed body as additional context
+      // Submit the processed title and the processed body as additional context
       submitQuestion(prompt.data.title, finalBody);
 
       setIsInputModalOpen(false); // Close modal

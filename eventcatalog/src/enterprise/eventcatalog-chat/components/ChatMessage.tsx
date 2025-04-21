@@ -34,6 +34,7 @@ const ChatMessage = React.memo(({ message }: ChatMessageProps) => {
   const [modalContent, setModalContent] = useState<{ language: string; code: string } | null>(null);
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({}); // State for copy feedback
   const [isResourcesCollapsed, setIsResourcesCollapsed] = useState(true); // State for resource section collapse
+  const [isContextCollapsed, setIsContextCollapsed] = useState(true); // State for additional context collapse
 
   // Helper to get display name for resource, ensuring a fallback
   const getResourceDisplayName = (resource: Resource): string => {
@@ -136,6 +137,30 @@ const ChatMessage = React.memo(({ message }: ChatMessageProps) => {
             {message.content || ''}
           </ReactMarkdown>
         </div>
+
+        {/* Additional Context section (for user messages) */}
+        {message.isUser && message.additionalContext && (
+          <div className="mt-3 pt-3 border-t border-purple-700/50">
+            {' '}
+            {/* Adjusted border color for subtlety */}
+            <button
+              className="flex items-center text-xs text-purple-300 mb-1 w-full text-left focus:outline-none" // Adjusted text color for subtlety
+              onClick={() => setIsContextCollapsed(!isContextCollapsed)}
+              aria-expanded={!isContextCollapsed}
+              aria-controls="additional-context-content"
+            >
+              {isContextCollapsed ? <ChevronRight size={14} className="mr-1" /> : <ChevronDown size={14} className="mr-1" />}
+              Prompt used:
+            </button>
+            {!isContextCollapsed && (
+              <div className="text-[10px] mt-1 pl-5 prose prose-sm prose-invert" id="additional-context-content">
+                {' '}
+                {/* Removed max-w-none */}
+                <pre className="whitespace-pre-wrap break-words">{message.additionalContext}</pre> {/* Use pre for formatting */}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Resource section */}
         {!message.isUser && message.resources && message.resources.length > 0 && (

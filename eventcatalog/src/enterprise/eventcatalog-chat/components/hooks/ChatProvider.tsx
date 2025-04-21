@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 export interface Message {
   content: string;
+  additionalContext?: string;
   isUser: boolean;
   timestamp: number;
   resources?: Array<{
