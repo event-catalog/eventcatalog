@@ -85,6 +85,7 @@
     "date-fns": "^4.1.0",
     "diff": "^7.0.0",
     "diff2html": "^3.4.48",
+    "dotenv": "^16.5.0",
     "glob": "^10.4.1",
     "gray-matter": "^4.0.3",
     "html-to-image": "^1.11.11",

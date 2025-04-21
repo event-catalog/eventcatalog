@@ -73,6 +73,7 @@ function isCatalogRelated(filePath) {
       'eventcatalog.styles.css', // custom styles file at root
       'components', // custom components
       'public', // public assets
+      '.env', // env file
       ...COLLECTION_KEYS,
     ].includes(filePathArr[0])
   ) {

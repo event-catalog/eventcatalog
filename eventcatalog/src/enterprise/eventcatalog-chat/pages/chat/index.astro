@@ -5,13 +5,11 @@ import { getChatPromptsGroupedByCategory } from '@enterprise/eventcatalog-chat/u
 import config from '@config';
 import path from 'node:path';
 import fs from 'node:fs';
-import { isEventCatalogChatEnabled } from '@utils/feature';
 import { Code } from 'astro-expressive-code/components';
 import { getDomains } from '@utils/collections/domains';
 import { getEvents } from '@utils/events';
 import { getCommands } from '@utils/commands';
 import { getServices } from '@utils/collections/services';
-import { buildUrl } from '@utils/url-builder';
 
 const isEnabled = config.chat?.enabled || false;
 const chatConfig = config.chat || {};
@@ -44,10 +42,6 @@ const generatorConfig = `
     ],
   ],
 `;
-
-if (!isEventCatalogChatEnabled()) {
-  return Astro.redirect(buildUrl('/chat/feature'));
-}
 ---
 
 <VerticalSideBarLayout title="AI Chat">

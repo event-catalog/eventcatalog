@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
+import { Wand2 } from 'lucide-react';
 // TODO: Import ChatPrompt and ChatPromptInput from a central types location
 import type { ChatPrompt } from '@enterprise/eventcatalog-chat/utils/chat-prompts';
 
@@ -111,9 +112,9 @@ const InputModal: React.FC<InputModalProps> = ({ isOpen, onClose, prompt, onSubm
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/50 data-[state=open]:animate-overlayShow z-50" />
-        <Dialog.Content className="fixed top-1/2 left-1/2 w-[90vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-6 shadow-lg focus:outline-none data-[state=open]:animate-contentShow z-[100]">
-          <Dialog.Title className="text-lg font-semibold text-gray-900">{prompt.data.title}</Dialog.Title>
-          <Dialog.Description className="mt-1 mb-5 text-sm text-gray-500">
+        <Dialog.Content className="fixed top-1/2 left-1/2 w-[90vw] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg bg-gray-50 p-8 shadow-xl focus:outline-none data-[state=open]:animate-contentShow z-[100]">
+          <Dialog.Title className="text-lg font-semibold text-gray-800 mb-3">{prompt.data.title}</Dialog.Title>
+          <Dialog.Description className="mt-1 mb-6 text-sm text-gray-600">
             Please provide the following details:
           </Dialog.Description>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -127,7 +128,7 @@ const InputModal: React.FC<InputModalProps> = ({ isOpen, onClose, prompt, onSubm
 
               return (
                 <div key={input.id}>
-                  <label htmlFor={input.id} className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor={input.id} className="block text-sm font-medium text-gray-700 mb-1.5">
                     {input.label}
                   </label>
                   {isResourceList ? (
@@ -137,7 +138,7 @@ const InputModal: React.FC<InputModalProps> = ({ isOpen, onClose, prompt, onSubm
                       value={inputValues[input.id] || ''}
                       onChange={(e) => handleInputChange(input.id, e.target.value)}
                       required
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 sm:text-sm"
+                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-1 sm:text-sm transition duration-150 ease-in-out"
                     >
                       <option value="" disabled>
                         Select a {resourceType}...
@@ -160,7 +161,7 @@ const InputModal: React.FC<InputModalProps> = ({ isOpen, onClose, prompt, onSubm
                       value={inputValues[input.id] || ''}
                       onChange={(e) => handleInputChange(input.id, e.target.value)}
                       required
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 sm:text-sm"
+                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-1 sm:text-sm transition duration-150 ease-in-out"
                     >
                       <option value="" disabled>
                         Select an option...
@@ -184,9 +185,18 @@ const InputModal: React.FC<InputModalProps> = ({ isOpen, onClose, prompt, onSubm
                           name={input.id}
                           value={inputValues[input.id] || ''}
                           onChange={(e) => handleInputChange(input.id, e.target.value)}
+                          onKeyDown={(e) => {
+                            // Prevent form submission on Enter key press unless Shift is held
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              // Optionally, you could trigger submission here if needed,
+                              // but the default behavior is just to prevent it.
+                              handleSubmit(e); // Example: trigger submit manually
+                            }
+                          }}
                           required
                           rows={isCode ? 6 : 3} // More rows for code input
-                          className={`w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 sm:text-sm ${isCode ? 'font-mono text-sm' : ''}`} // Basic monospaced font for code
+                          className={`w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-1 sm:text-sm transition duration-150 ease-in-out ${isCode ? 'font-mono text-sm' : ''}`}
                           placeholder={isCode ? 'Paste your code here...' : ''}
                         />
                       ) : (
@@ -197,7 +207,7 @@ const InputModal: React.FC<InputModalProps> = ({ isOpen, onClose, prompt, onSubm
                           value={inputValues[input.id] || ''}
                           onChange={(e) => handleInputChange(input.id, e.target.value)}
                           required
-                          className="w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 sm:text-sm"
+                          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-1 sm:text-sm transition duration-150 ease-in-out"
                         />
                       )}
                     </>
@@ -217,8 +227,9 @@ const InputModal: React.FC<InputModalProps> = ({ isOpen, onClose, prompt, onSubm
               </Dialog.Close>
               <button
                 type="submit"
-                className="inline-flex justify-center rounded-md border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                className="inline-flex items-center justify-center gap-1.5 rounded-md border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
               >
+                <Wand2 size={16} />
                 Submit
               </button>
             </div>

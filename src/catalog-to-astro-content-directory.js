@@ -16,6 +16,11 @@ const copyFiles = async (source, target) => {
     ignore: ['node_modules/**', '**/dist/**', '**/teams', '**/users', '**/*.mdx', '**/*.md', '**/package.json', '**/Dockerfile'],
   });
 
+  // If we have .env file, copy it to the target
+  if (fs.existsSync(path.join(source, '.env'))) {
+    files.push(path.join(source, '.env'));
+  }
+
   for (const file of files) {
     mapCatalogToAstro({
       filePath: file,
