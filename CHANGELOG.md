@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.35.1
+
+### Patch Changes
+
+- 51ac0a6: fix(core): style of sidebar labels
+- 8db9242: fix(core): propagate vite error in eventcatalog build correctly
+
 ## 2.35.0
 
 ### Minor Changes
