@@ -357,6 +357,10 @@ program
   .command('generate [siteDir]')
   .description('Start the generator scripts.')
   .action(async () => {
+    // Load any .env file in the project directory
+    if (fs.existsSync(path.join(dir, '.env'))) {
+      dotenv.config({ path: path.join(dir, '.env') });
+    }
     await generate(dir);
   });
 
