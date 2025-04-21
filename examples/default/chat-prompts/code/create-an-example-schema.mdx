@@ -1,0 +1,67 @@
+---
+title: Generate a JSON Schema Following FlowMart Standards
+category:
+  id: Code
+  label: Code
+  icon: Code
+inputs:
+  - id: event-name
+    label: What is the name of the event?
+    type: text
+---
+
+Generate a JSON schema for an event called `{{event-name}}`. This schema must follow FlowMart's payload standards.
+
+**FlowMart Payload Standards:**
+
+*   Every payload MUST include a top-level `metadata` field.
+*   The `metadata` field MUST contain:
+    *   `correlationId`: A string, preferably in UUID format.
+    *   `createdDate`: A string in ISO 8601 format (e.g., "2023-11-02T14:29:55Z").
+*   The main event details should be within a top-level `data` field.
+
+**Example `UserSignedUp` Event Payload:**
+
+```json
+{
+  "metadata": {
+     "correlationId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+     "createdDate": "2023-11-02T14:29:55Z"
+  },
+  "data": {
+    "userId": "user-789",
+    "email": "test@example.com",
+    "signUpMethod": "Google"
+  }
+}
+```
+
+**Invalid Example (Missing `metadata`):**
+```json
+{
+  "data": {
+    "userId": "user-123",
+    "email": "invalid@example.com"
+  }
+}
+```
+
+**Invalid Example (Missing `correlationId` in `metadata`):**
+```json
+{
+  "metadata": {
+     "createdDate": "2023-11-01T10:00:00Z"
+  },
+  "data": {
+     "userId": "user-456",
+     "email": "incomplete@example.com"
+  }
+}
+```
+
+**Task:**
+
+Create the JSON schema definition for the `UserSignedUp` event described above, ensuring it enforces the FlowMart payload standards.
+
+
+

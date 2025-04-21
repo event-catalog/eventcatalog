@@ -7,7 +7,7 @@ import { mermaid } from "./src/remark-plugins/mermaid"
 import { join } from 'node:path';
 import remarkDirective from 'remark-directive';
 import { remarkDirectives } from "./src/remark-plugins/directives"
-
+import node from '@astrojs/node';
 import remarkComment from 'remark-comment'
 
 /** @type {import('bin/eventcatalog.config').Config} */
@@ -21,6 +21,12 @@ const base = config.base || '/';
 export default defineConfig({
   base,
   server: { port: config.port || 3000 },
+
+  // output: config.output || 'static',
+
+  adapter: config.output === 'server' ? node({
+    mode: 'standalone'
+  }) : undefined,
 
   outDir: config.outDir ? join(projectDirectory, config.outDir) : join(projectDirectory, 'dist'),
 
@@ -47,7 +53,7 @@ export default defineConfig({
         wrap: true,
       },
     }),
-    
+
     mdx({
       // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
       optimize: config.mdxOptimize || false,

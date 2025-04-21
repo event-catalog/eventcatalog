@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { BookOpen, Send } from 'lucide-react';
 import { CreateWebWorkerMLCEngine, type InitProgressReport } from '@mlc-ai/web-llm';
-import { useChat, type Message } from './hooks/ChatProvider';
+import { useChat, type Message } from '../hooks/ChatProvider';
 import React from 'react';
 
 // Update Message type to include resources
@@ -122,8 +122,6 @@ const ChatWindow = ({
   const [isThinking, setIsThinking] = useState(false);
   const completionRef = useRef<any>(null);
   const outputRef = useRef<HTMLDivElement>(null);
-
-  console.log('model', model);
 
   const { currentSession, storeMessagesToSession, updateSession, isStreaming, setIsStreaming } = useChat();
 
@@ -368,7 +366,7 @@ const ChatWindow = ({
         // Cache the LLMs text file
         const engineCreator = CreateWebWorkerMLCEngine;
         const newEngine = await engineCreator(
-          new Worker(new URL('./workers/engine.ts', import.meta.url), { type: 'module' }),
+          new Worker(new URL('../workers/engine.ts', import.meta.url), { type: 'module' }),
           model,
           { initProgressCallback }
         );
@@ -379,7 +377,7 @@ const ChatWindow = ({
     };
 
     const importDocuments = async () => {
-      const worker = new Worker(new URL('./workers/document-importer.ts', import.meta.url), { type: 'module' });
+      const worker = new Worker(new URL('../workers/document-importer.ts', import.meta.url), { type: 'module' });
       worker.postMessage({ init: true });
       setVectorWorker(worker);
     };

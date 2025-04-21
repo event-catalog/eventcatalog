@@ -1,0 +1,58 @@
+---
+title: Create AWS Lambda Function to Consume EventBridge Event
+category:
+  id: Code
+  label: Code
+  icon: Code
+inputs:
+  - id: event-name
+    label: Select the EventBridge event the Lambda will consume
+    type: resource-list-events
+  - id: code-language
+    label: What is the programming language for the Lambda function?
+    type: select
+    options:
+      - Python
+      - Java
+      - TypeScript
+      - Go
+      - Ruby
+      # Add other languages supported by Powertools/Lambda as needed
+---
+
+Generate an AWS Lambda function handler in `{{code-language}}` that consumes the EventBridge event `{{event-name}}`.
+
+**Event Details:**
+
+*   **Event Source:** AWS EventBridge
+*   **Event Name:** `{{event-name}}`
+*   **Payload Location:** The actual event payload (`{{event-name}}`) is located within the `detail` field of the incoming EventBridge event object.
+*   **Payload Format:** Assume the event payload within `detail` is JSON and follows FlowMart's payload standards (containing `metadata` and `data` fields).
+
+**Best Practices to Follow:**
+
+1.  **Parsing & Validation:** Safely parse the incoming EventBridge event object. Extract and validate the `detail` field. Deserialize the JSON payload within `detail` into an appropriate data structure or class.
+2.  **AWS Lambda Powertools:** Utilize AWS Lambda Powertools for `{{code-language}}` to enhance observability and implement best practices:
+    *   **Logging:** Implement structured logging. Include key information like the EventBridge event ID and `metadata.correlationId` in logs.
+    *   **Tracing:** Enable AWS X-Ray tracing integration for request tracing across services.
+    *   **Metrics:** Emit custom business or operational metrics (e.g., successful processing count, processing latency).
+    *   **(Optional) Event Handler:** Consider using Powertools' Event Handler utility (if available for `{{code-language}}`) for simplified event parsing, validation, and routing based on event content.
+    *   **(Optional) Idempotency:** Implement idempotency using Powertools' Idempotency utility to safely handle potential duplicate event deliveries from EventBridge. Use the EventBridge event `id` or `detail.metadata.correlationId` as the idempotency key.
+3.  **Error Handling:** Implement robust error handling within the function code. For transient errors, allow the function to error out to leverage Lambda's built-in retry mechanism. Configure a Dead-Letter Queue (DLQ) on the Lambda function itself (via AWS console, CLI, or IaC) to capture events that fail permanently after retries. *Do not implement DLQ logic within the function code.*
+4.  **Configuration:** Use environment variables for any external configuration (e.g., API endpoints, table names). Do not hardcode configuration values.
+5.  **Permissions:** Note the essential IAM permissions required for the Lambda execution role (e.g., `logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents`, `xray:PutTraceSegments`, permissions for any AWS services the function interacts with, and potentially KMS permissions if using encryption).
+6.  **Dependencies:** Clearly list all external dependencies (like AWS Lambda Powertools) and provide instructions on how to install and package them with the Lambda function (e.g., using requirements.txt for Python, package.json for TypeScript, pom.xml/build.gradle for Java).
+
+**Task:**
+
+Provide the complete, runnable AWS Lambda function handler code snippet in `{{code-language}}` for the `{{event-name}}` event. The code should:
+*   Include necessary imports and initialization for AWS SDK and Powertools.
+*   Demonstrate parsing the EventBridge event and deserializing the `detail` payload.
+*   Incorporate Powertools for logging, tracing, and metrics as described.
+*   Include basic error handling.
+*   Be ready to be deployed as an AWS Lambda function.
+
+Also, provide the necessary dependency management file content (e.g., `requirements.txt`, `package.json`) and brief packaging instructions.
+
+
+

@@ -12,7 +12,7 @@ import { watch } from './watcher';
 import { catalogToAstro, checkAndConvertMdToMdx } from './catalog-to-astro-content-directory';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
 import boxen from 'boxen';
-import { isBackstagePluginEnabled, isEventCatalogStarterEnabled, isEventCatalogScaleEnabled } from './features';
+import { isBackstagePluginEnabled, isEventCatalogStarterEnabled, isEventCatalogScaleEnabled, isOutputServer } from './features';
 import updateNotifier from 'update-notifier';
 import stream from 'stream';
 
@@ -51,6 +51,7 @@ const copyCore = () => {
   ensureDir(core);
 
   if (eventCatalogDir === core) {
+    // Still need to copy the .env file
     // This is used for development purposes as it's not possible cp a dir to itself.
     // Into development usually core is the root equals to eventCatalogDir.
     return;
@@ -65,6 +66,32 @@ const copyCore = () => {
       // }
       return true;
     },
+  });
+};
+
+/**
+ * EventCatalog has static and server output.
+ *
+ * Server output is used for things like EventCatalog Chat and using your own LLM through an API
+ *
+ * If this is the case, we need to copy the server files into the core directory
+ * If static, no server files are needed or copied over
+ */
+const copyServerFiles = async () => {
+  const isServerOutput = await isOutputServer();
+
+  // remove any server API if we have any
+  if (fs.existsSync(join(core, 'src/pages/api/server'))) {
+    fs.rmSync(join(core, 'src/pages/api/server'), { recursive: true });
+  }
+
+  if (!isServerOutput) {
+    return;
+  }
+
+  // copy the server files into the core directory
+  fs.cpSync(join(eventCatalogDir, 'src/enterprise/eventcatalog-chat/pages/api'), join(core, 'src/pages/api/server'), {
+    recursive: true,
   });
 };
 
@@ -131,6 +158,9 @@ program
     // Move files like public directory to the root of the eventcatalog-core directory
     await catalogToAstro(dir, core);
 
+    // Copy the server files into the core directory if we have server output
+    await copyServerFiles();
+
     // Check if backstage is enabled
     const canEmbedPages = await isBackstagePluginEnabled();
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
@@ -191,6 +221,8 @@ program
     console.log('Building EventCatalog...');
 
     copyCore();
+    // Copy the server files into the core directory if we have server output
+    await copyServerFiles();
 
     // Check if backstage is enabled
     const canEmbedPages = await isBackstagePluginEnabled();
@@ -255,6 +287,9 @@ program
     const canEmbedPages = await isBackstagePluginEnabled();
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
+
+    await copyServerFiles();
+
     previewCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
   });
 

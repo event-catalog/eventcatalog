@@ -1,9 +1,15 @@
 import boxen from 'boxen';
+import { getEventCatalogConfigFile } from './eventcatalog-config-file-utils';
 
 type LicenseResponse = {
   is_trial: boolean;
   plugin: string;
   state: string;
+};
+
+export const isOutputServer = async () => {
+  const config = await getEventCatalogConfigFile(process.env.PROJECT_DIR || '');
+  return config?.output === 'server';
 };
 
 // Checks to see if the backstage feature is enabled (or not)

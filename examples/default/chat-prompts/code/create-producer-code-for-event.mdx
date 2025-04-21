@@ -1,0 +1,48 @@
+---
+title: Create Kafka Producer Code for Event
+category:
+  id: Code
+  label: Code
+  icon: Code
+inputs:
+  - id: event-name
+    label: Select the event you want to create a producer for
+    type: resource-list-events
+  - id: code-language
+    label: What is the programming language of the code?
+    type: select
+    options:
+      - Python
+      - Java
+      - TypeScript
+      - Go
+      - Ruby
+---
+
+Generate Kafka producer code in `{{code-language}}` that produces the event `{{event-name}}`.
+
+**Kafka Cluster Details:**
+
+*   **Bootstrap Servers:** `kafka-prod-1.flowmart.internal:9092,kafka-prod-2.flowmart.internal:9092,kafka-prod-3.flowmart.internal:9092`
+*   **Topic Name:** The topic name follows the pattern `fm.events.<event-name>` (e.g., `fm.events.UserSignedUp` for the `UserSignedUp` event).
+*   **Security Protocol:** SASL_SSL
+*   **SASL Mechanism:** PLAIN
+*   **Required Acknowledgements (acks):** `all` (Ensure highest durability).
+
+**Best Practices to Follow:**
+
+1.  **Serialization:** Assume the event payload needs to be serialized to JSON and follow FlowMart's payload standards (with `metadata` and `data` fields). The `metadata` should include a unique `eventId` (UUID) and `timestamp` (ISO 8601).
+2.  **Error Handling:** Implement robust error handling for connection issues, serialization failures, and send failures. Consider retry mechanisms with backoff for transient errors.
+3.  **Configuration:** Externalize Kafka connection details (don't hardcode them directly in the main logic).
+4.  **Logging:** Add basic logging for successful message production and any errors encountered.
+5.  **Asynchronous Sending:** Use asynchronous send calls for better performance, but ensure proper handling of send callbacks/futures for error checking and logging.
+6.  **Partitioning:** Briefly mention how to set a message key (e.g., using `metadata.correlationId` or a relevant business ID) if specific partitioning is desired for ordering guarantees within a partition.
+
+**Task:**
+
+Provide the complete, runnable Kafka producer code snippet in `{{code-language}}` for the `{{event-name}}` event, incorporating the cluster details and best practices mentioned above. Include necessary imports, basic setup, and an example of how to construct and send an event message.
+
+If you use any external libraries, please include the import statements and how to install them, step by step, make sure dependencies are listed first.
+
+
+

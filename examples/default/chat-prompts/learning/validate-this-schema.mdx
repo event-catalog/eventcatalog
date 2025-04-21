@@ -1,0 +1,55 @@
+---
+title: Validate schema against best practices
+category:
+  id: Learning
+  label: Learning
+  icon: GraduationCap
+inputs:
+  - id: schema
+    label: Schema
+    type: code
+---
+
+Please review the following event schema:
+
+```json
+{{schema}}
+```
+
+Validate this schema against the FlowMart EDA best practices listed below and provide feedback on any areas where the schema does not align or could be improved based on these guidelines.
+
+--- 
+
+## FlowMart EDA Best Practices for Reference:
+
+### Event Naming and Structure
+
+*   **Past Tense Naming:** All event names MUST be in the past tense (e.g., `OrderCreated`, `UserLoggedIn`, `PaymentProcessed`). This reflects that an event represents something that has already occurred.
+*   **Correlation IDs:** Every event MUST include a `correlationId`. This allows us to track related events across different services and flows, which is crucial for debugging and observability.
+*   **Clear Event Payloads:** Event payloads should be well-defined, documented, and contain only the necessary information relevant to the event itself. Avoid overly large or generic payloads.
+
+### Contract Management and Ownership
+
+*   **Producer Ownership:** The service that produces an event owns its contract (schema). Consumers should rely on this defined contract.
+*   **Public vs. Private Events:** Events MUST be explicitly marked as either `public` or `private`.
+    *   `Public` events have strong backward compatibility guarantees.
+    *   `Private` events are typically for internal service use and may have less stringent compatibility requirements, but changes should still be coordinated.
+*   **No Breaking Changes (Public Events):** We strive to avoid breaking changes in `public` event contracts. If a change is necessary, it must be additive or managed through versioning.
+*   **Semantic Versioning (SemVer):** Event schemas SHOULD follow Semantic Versioning (e.g., `1.0.0`, `1.1.0`, `2.0.0`).
+    *   MAJOR version bumps indicate breaking changes (avoided for public events).
+    *   MINOR version bumps indicate backward-compatible additions.
+    *   PATCH version bumps indicate backward-compatible fixes.
+
+### Design Principles
+
+*   **Idempotent Consumers:** Consumers should be designed to be idempotent, meaning they can safely process the same event multiple times without unintended side effects. This handles scenarios like message replays or network issues.
+*   **Asynchronous Communication:** Favor asynchronous communication patterns. Events decouple services, allowing them to operate independently.
+*   **Domain-Driven Design (DDD):** Align events with bounded contexts and domain concepts from DDD. This helps create meaningful, cohesive events.
+*   **Schema Registry:** Utilize a schema registry (like the one provided by EventCatalog!) to manage, validate, and evolve event schemas centrally.
+
+### Documentation and Discovery
+
+*   **EventCatalog:** All events, schemas, producers, and consumers MUST be documented in our EventCatalog. This serves as the single source of truth for our EDA landscape.
+*   **Clear Descriptions:** Provide clear, concise descriptions for each event, explaining its purpose and context.
+
+By following these practices, we aim to build a resilient and understandable event-driven ecosystem at FlowMart.

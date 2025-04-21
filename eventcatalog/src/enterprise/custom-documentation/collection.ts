@@ -1,5 +1,5 @@
 import { z } from 'astro:content';
-import { badge, ownerReference } from '../../shared-collections';
+import { badge, ownerReference } from '../../content.config-shared-collections';
 
 export const customPagesSchema = z.object({
   title: z.string(),
