@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.35.5
+
+### Patch Changes
+
+- 40336a4: chore(core): generate script now reads .env files
+- 5e480cd: chore(core): removed redundant log
+
 ## 2.35.4
 
 ### Patch Changes
