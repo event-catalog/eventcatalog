@@ -366,7 +366,7 @@ const ChatWindow = ({
         // Cache the LLMs text file
         const engineCreator = CreateWebWorkerMLCEngine;
         const newEngine = await engineCreator(
-          new Worker(new URL('./workers/engine.ts', import.meta.url), { type: 'module' }),
+          new Worker(new URL('../workers/engine.ts', import.meta.url), { type: 'module' }),
           model,
           { initProgressCallback }
         );
@@ -377,7 +377,7 @@ const ChatWindow = ({
     };
 
     const importDocuments = async () => {
-      const worker = new Worker(new URL('./workers/document-importer.ts', import.meta.url), { type: 'module' });
+      const worker = new Worker(new URL('../workers/document-importer.ts', import.meta.url), { type: 'module' });
       worker.postMessage({ init: true });
       setVectorWorker(worker);
     };

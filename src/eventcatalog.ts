@@ -141,8 +141,6 @@ program
     // // Copy EventCatalog core over
     console.log('Setting up EventCatalog....');
 
-    console.log('GIT HI');
-
     if (options.debug) {
       console.log('Debug mode enabled');
       console.log('PROJECT_DIR', dir);

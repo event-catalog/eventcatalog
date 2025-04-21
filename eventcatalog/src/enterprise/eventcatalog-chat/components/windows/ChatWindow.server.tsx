@@ -49,6 +49,13 @@ const ChatWindow = ({
 
   const { currentSession, storeMessagesToSession, updateSession, isStreaming, setIsStreaming } = useChat();
 
+  // If the messages change add them to the session
+  useEffect(() => {
+    if (currentSession) {
+      storeMessagesToSession(currentSession.id, messages);
+    }
+  }, [messages]);
+
   const mutation = useMutation({
     mutationFn: async (input: { question: string; additionalContext?: string }) => {
       const history = messages.map((message) => ({
@@ -415,7 +422,7 @@ const ChatWindow = ({
         {/* Outer container handles scroll OR centering */}
         {messages.length > 0 ? (
           // Render messages when they exist
-          <div id="output" className="p-4 space-y-4 w-full max-w-[900px] mx-auto h-full">
+          <div id="output" className="p-4 space-y-4 w-full max-w-[900px] mx-auto h-full pb-10">
             {messagesList}
           </div>
         ) : (

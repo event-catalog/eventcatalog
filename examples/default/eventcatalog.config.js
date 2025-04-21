@@ -32,8 +32,8 @@ export default {
     max_tokens: 4096,
     // 'Llama-3.2-3B-Instruct-q4f16_1-MLC is also good
     // 'Hermes-3-Llama-3.2-3B-q4f16_1-MLC' for webllm
-    model: 'o4-mini'
-    // model: 'gpt-3.5-turbo'
+    // model: 'o4-mini'
+    model: 'gpt-3.5-turbo'
   },
   generators: [
     [
