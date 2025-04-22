@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.35.7
+
+### Patch Changes
+
+- db73875: fix(core): added queries to mention box for chat
+
 ## 2.35.6
 
 ### Patch Changes
