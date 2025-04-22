@@ -4,8 +4,6 @@ import ChatWindowWebLLM from './windows/ChatWindow.client';
 import ChatWindowServer from './windows/ChatWindow.server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ChatPromptCategoryGroup } from '@enterprise/eventcatalog-chat/utils/chat-prompts';
-import config from '@config';
-const output = config.output || 'static';
 interface Resource {
   id: string;
   type: string;
@@ -24,10 +22,12 @@ const Chat = ({
   chatConfig,
   resources,
   chatPrompts,
+  output,
 }: {
   chatConfig: any;
   resources: Resource[];
   chatPrompts: ChatPromptCategoryGroup[];
+  output: 'static' | 'server';
 }) => {
   const queryClient = new QueryClient();
 
