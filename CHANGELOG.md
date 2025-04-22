@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.35.6
+
+### Patch Changes
+
+- e3c1b68: fix(core): fixed problem loading config in the chat feature
+
 ## 2.35.5
 
 ### Patch Changes
