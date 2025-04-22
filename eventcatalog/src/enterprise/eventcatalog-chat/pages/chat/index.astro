@@ -10,7 +10,7 @@ import { getDomains } from '@utils/collections/domains';
 import { getEvents } from '@utils/events';
 import { getCommands } from '@utils/commands';
 import { getServices } from '@utils/collections/services';
-
+import { getQueries } from '@utils/queries';
 const isEnabled = config.chat?.enabled || false;
 const chatConfig = config.chat || {};
 const output = config.output || 'static';
@@ -21,13 +21,14 @@ const GENERATED_AI_DIR = path.resolve(PROJECT_DIR, 'public/ai');
 const directoryExists = fs.existsSync(GENERATED_AI_DIR);
 
 // Get all information for the mention input
-const [events, commands, services, domains] = await Promise.all([
+const [events, commands, queries, services, domains] = await Promise.all([
   getEvents({ getAllVersions: false }),
   getCommands({ getAllVersions: false }),
+  getQueries({ getAllVersions: false }),
   getServices({ getAllVersions: false }),
   getDomains({ getAllVersions: false }),
 ]);
-const allItems = [...events, ...commands, ...services, ...domains];
+const allItems = [...events, ...commands, ...queries, ...services, ...domains];
 
 const chatPrompts = await getChatPromptsGroupedByCategory();
 
