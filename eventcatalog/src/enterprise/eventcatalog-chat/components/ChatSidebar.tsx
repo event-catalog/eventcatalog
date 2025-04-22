@@ -90,7 +90,7 @@ const Sidebar: React.FC<{}> = () => {
 
         {/* Beta Message */}
         <div className="p-4 text-xs text-gray-500 border-t border-gray-200">
-          <p>
+          <div>
             Have issues or ideas? Let us know on{' '}
             <a
               href="https://discord.com/channels/918092420338569216/1342473496957288581"
@@ -159,7 +159,7 @@ const Sidebar: React.FC<{}> = () => {
                 </Dialog.Portal>
               </Dialog.Root>
             </div>
-          </p>
+          </div>
         </div>
       </div>
     </div>

@@ -13,6 +13,7 @@ import { getServices } from '@utils/collections/services';
 
 const isEnabled = config.chat?.enabled || false;
 const chatConfig = config.chat || {};
+const output = config.output || 'static';
 
 const PROJECT_DIR = path.resolve(process.env.PROJECT_DIR || process.cwd());
 const GENERATED_AI_DIR = path.resolve(PROJECT_DIR, 'public/ai');
@@ -64,7 +65,13 @@ const generatorConfig = `
               </div>
             </div>
             <div id="chatContainer" class="w-full">
-              <Chat client:only="react" chatConfig={chatConfig} resources={resources} chatPrompts={chatPrompts} />
+              <Chat
+                client:only="react"
+                chatConfig={chatConfig}
+                resources={resources}
+                chatPrompts={chatPrompts}
+                output={output as 'static' | 'server'}
+              />
             </div>
           </>
         ) : (
