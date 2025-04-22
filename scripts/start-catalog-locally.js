@@ -8,14 +8,21 @@ async function main() {
   const args = process.argv.slice(2);
   const catalog = args[0] || 'default';
 
-  const catalogDir = join(__dirname, '../eventcatalog/');
+  const catalogDir = join(__dirname, '../packages/core/eventcatalog/');
   const projectDIR = join(__dirname, `../examples/${catalog}`);
 
-  execSync('pnpm run build:bin', { stdio: 'inherit' });
+  execSync('pnpm --filter=@eventcatalog/core run build', { stdio: 'inherit' });
 
-  execSync(`cross-env NODE_ENV=development PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npx . dev`, {
-    stdio: 'inherit',
-  });
+  execSync(
+    `cross-env NODE_ENV=development PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir}\
+    pnpm exec eventcatalog dev`,
+    {
+      stdio: 'inherit',
+      // Execute the eventcatalog binary from the examples/default/ directory
+      // NOTE: The eventcatalog binary is linked through pnpm workspaces.
+      cwd: projectDIR,
+    }
+  );
 }
 
 main()

@@ -1,0 +1,52 @@
+{
+  "name": "@eventcatalog/core",
+  "homepage": "https://github.com/event-catalog/eventcatalog",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/event-catalog/eventcatalog.git",
+    "directory": "packages/core"
+  },
+  "type": "module",
+  "version": "2.35.8",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "eventcatalog": "bin/eventcatalog.js"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "default-files-for-collections/",
+    "eventcatalog/",
+    "!eventcatalog/**/__tests__/",
+    "!eventcatalog/**/*.spec.ts",
+    "!eventcatalog/vitest.config.ts"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest",
+    "test:e2e": "playwright test",
+    "prepublishOnly": "pnpm run build"
+  },
+  "dependencies": {
+    "@parcel/watcher": "^2.4.1",
+    "axios": "^1.7.7",
+    "boxen": "^8.0.1",
+    "commander": "^12.1.0",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.5.0",
+    "glob": "^10.4.1",
+    "gray-matter": "^4.0.3",
+    "package-manager-detector": "^1.2.0",
+    "rimraf": "^5.0.7",
+    "update-notifier": "^7.3.1",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/update-notifier": "^6.0.8",
+    "@types/uuid": "^10.0.0",
+    "tsup": "^8.1.0"
+  }
+}

@@ -1,0 +1,9 @@
+dist/
+node_modules/
+
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+src/__tests__/example-catalog-dependencies/dependencies

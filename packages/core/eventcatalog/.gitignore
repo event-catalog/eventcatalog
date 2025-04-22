@@ -1,0 +1,23 @@
+# build output
+dist/
+
+# generated types
+.astro/
+
+# dependencies
+node_modules/
+
+# EventCatalog files
+src/content/*
+!src/content/config.ts
+public/generated/*
+public/ai/
+src/catalog-files/*
+src/custom-defined-components/*
+
+eventcatalog.config.js
+eventcatalog.styles.css
+
+src/generated-ai/*
+
+src/pages/api/server/*

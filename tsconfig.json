@@ -1,9 +1,1 @@
-{
-  "extends": "astro/tsconfigs/strict",
-  "compilerOptions": {
-    "strict": true,
-    "baseUrl": ".",
-    "outDir": "dist/",
-    "types": ["vitest/globals"]
-  }
-}
+{}

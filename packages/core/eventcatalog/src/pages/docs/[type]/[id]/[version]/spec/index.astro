@@ -1,0 +1,86 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import * as path from 'path';
+import fs from 'node:fs';
+import OpenAPISpec from './_OpenAPI.js';
+
+import type { CollectionTypes, PageTypes } from '@types';
+import { DocumentMinusIcon } from '@heroicons/react/24/outline';
+import { buildUrl } from '@utils/url-builder';
+import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import './_styles.css';
+
+export async function getStaticPaths() {
+  const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];
+
+  const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
+
+  const hasOpenAPISpec = (item: CollectionEntry<CollectionTypes>) => item.data.specifications?.openapiPath !== undefined;
+  const filteredItems = allItems.map((items) => items.filter(hasOpenAPISpec));
+
+  return filteredItems.flatMap((items, index) =>
+    items.map((item) => ({
+      params: {
+        type: itemTypes[index],
+        id: item.data.id,
+        version: item.data.version,
+      },
+      props: {
+        type: itemTypes[index],
+        ...item,
+      },
+    }))
+  );
+}
+
+// @ts-ignore
+const { collection, data, catalog, filePath } = Astro.props;
+const fileName = data.specifications?.openapiPath || 'openapi.yml';
+
+const directory = path.dirname(filePath || '');
+const pathToSpec = path.join(directory, fileName);
+const fileExists = fs.existsSync(pathToSpec);
+
+let content = '';
+
+// Capitalize the first letter of a string
+const pageTitle = `${collection} | ${data.name} | OpenAPI Spec`.replace(/^\w/, (c) => c.toUpperCase());
+
+// Index only the latest version
+const pagefindAttributes =
+  data.version === data.latestVersion
+    ? {
+        'data-pagefind-body': '',
+        'data-pagefind-meta': `title:${pageTitle}`,
+      }
+    : {};
+
+if (fileExists) {
+  content = fs.readFileSync(pathToSpec, 'utf8');
+}
+---
+
+<VerticalSideBarLayout title={pageTitle}>
+  {
+    !fileExists ? (
+      <div class="text-center h-screen  flex flex-col justify-center ">
+        <DocumentMinusIcon className="mx-auto h-12 w-12 text-gray-400" />
+        <h3 class="mt-2 text-sm font-semibold text-gray-900">No OpenAPI spec file found</h3>
+        <p class="mt-1 text-xs text-gray-400">
+          Could not find OpenAPI file for {data.name} in {`/${catalog.path}`}
+        </p>
+      </div>
+    ) : (
+      <div {...pagefindAttributes}>
+        {
+          // Currently, Pagefind does not index metadata (such as the title),
+          // so we need to ensure it is included as text on the page.
+          // https://github.com/CloudCannon/pagefind/issues/437
+        }
+        <h2 class="hidden">{pageTitle}</h2>
+        <OpenAPISpec client:only="react" spec={content} />
+      </div>
+    )
+  }
+</VerticalSideBarLayout>
