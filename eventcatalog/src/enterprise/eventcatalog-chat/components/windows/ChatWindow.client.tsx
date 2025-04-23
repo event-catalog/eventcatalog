@@ -511,7 +511,7 @@ const ChatWindow = ({
         <div className="max-w-[900px] mx-auto flex justify-between">
           {/* show what model is loaded */}
           <p className="text-xs text-gray-400 mt-2">Model: {model}</p>
-          <p className="text-xs text-gray-500 mt-2">EventCatalog AI can make mistakes. Check important info.</p>
+          <p className="text-xs text-gray-500 mt-2">EventCatalog Chat can make mistakes. Check important info.</p>
         </div>
       </div>
     </div>

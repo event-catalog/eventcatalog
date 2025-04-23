@@ -20,6 +20,7 @@ interface Resource {
 
 interface ChatWindowProps {
   model?: string;
+  embeddingModel?: string;
   max_tokens?: number;
   similarityResults?: number;
   resources: Resource[];
@@ -28,6 +29,7 @@ interface ChatWindowProps {
 
 const ChatWindow = ({
   model = 'o4-mini',
+  embeddingModel = 'text-embedding-3-large',
   max_tokens = 4096,
   similarityResults = 50,
   resources: mentionInputResources = [],
@@ -478,8 +480,10 @@ const ChatWindow = ({
         </div>
         <div className="max-w-[900px] mx-auto flex justify-between">
           {/* show what model is loaded */}
-          <p className="text-xs text-gray-400 mt-2">Model: {model}</p>
-          <p className="text-xs text-gray-500 mt-2">EventCatalog AI can make mistakes. Check important info.</p>
+          <p className="text-xs text-gray-400 mt-2">
+            Model: {model}, Embedding Model: {embeddingModel}
+          </p>
+          <p className="text-xs text-gray-500 mt-2">EventCatalog Chat can make mistakes. Check important info.</p>
         </div>
       </div>
 
