@@ -11,9 +11,18 @@ import { getEvents } from '@utils/events';
 import { getCommands } from '@utils/commands';
 import { getServices } from '@utils/collections/services';
 import { getQueries } from '@utils/queries';
+import { getConfigurationForGivenGenerator } from '@utils/generators';
+
 const isEnabled = config.chat?.enabled || false;
 const chatConfig = config.chat || {};
 const output = config.output || 'static';
+
+const aiGeneratorConfig = getConfigurationForGivenGenerator('@eventcatalog/generator-ai');
+let embeddingModel = aiGeneratorConfig?.embedding?.model || 'all-MiniLM-L6-v2';
+
+if (aiGeneratorConfig?.embedding?.provider === 'openai') {
+  embeddingModel = aiGeneratorConfig?.embedding?.model || 'text-embedding-3-large';
+}
 
 const PROJECT_DIR = path.resolve(process.env.PROJECT_DIR || process.cwd());
 const GENERATED_AI_DIR = path.resolve(PROJECT_DIR, 'public/ai');
@@ -68,7 +77,10 @@ const generatorConfig = `
             <div id="chatContainer" class="w-full">
               <Chat
                 client:only="react"
-                chatConfig={chatConfig}
+                chatConfig={{
+                  ...chatConfig,
+                  embeddingModel,
+                }}
                 resources={resources}
                 chatPrompts={chatPrompts}
                 output={output as 'static' | 'server'}

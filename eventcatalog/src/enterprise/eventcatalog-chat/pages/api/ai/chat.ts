@@ -1,7 +1,5 @@
 import type { APIContext } from 'astro';
 import { askQuestion } from '@enterprise/eventcatalog-chat/utils/ai';
-import config from '@config';
-const output = config.output || 'static';
 
 // Map the Keys to use in the SDK, astro exports as import.meta.env
 process.env.OPENAI_API_KEY = import.meta.env.OPENAI_API_KEY || '';

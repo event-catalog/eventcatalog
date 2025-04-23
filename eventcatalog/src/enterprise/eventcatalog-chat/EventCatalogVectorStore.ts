@@ -1,8 +1,12 @@
 import { HuggingFaceTransformersEmbeddings } from '@langchain/community/embeddings/huggingface_transformers';
 import { MemoryVectorStore } from 'langchain/vectorstores/memory';
 import { Document as LangChainDocument } from 'langchain/document';
+import { OpenAIEmbeddings } from '@langchain/openai';
 
-const embeddingsInstance = new HuggingFaceTransformersEmbeddings({ model: 'Xenova/all-MiniLM-L6-v2' });
+import { getConfigurationForGivenGenerator } from '@utils/generators';
+
+const aiGeneratorConfiguration = getConfigurationForGivenGenerator('@eventcatalog/generator-ai');
+const embedding = aiGeneratorConfiguration.embedding || {};
 
 export interface Resource {
   id: string;
@@ -21,6 +25,16 @@ export class EventCatalogVectorStore {
 
   // Static async factory method
   public static async create(documents: LangChainDocument[], embeddings: number[][]): Promise<EventCatalogVectorStore> {
+    let embeddingsInstance: any;
+
+    if (embedding.provider === 'openai') {
+      const model = embedding.model || 'text-embedding-3-large';
+      embeddingsInstance = new OpenAIEmbeddings({ model });
+    } else {
+      const model = embedding.model || 'all-MiniLM-L6-v2';
+      embeddingsInstance = new HuggingFaceTransformersEmbeddings({ model });
+    }
+
     const vectorStore = new MemoryVectorStore(embeddingsInstance);
     await vectorStore.addVectors(embeddings, documents);
     return new EventCatalogVectorStore(vectorStore);
