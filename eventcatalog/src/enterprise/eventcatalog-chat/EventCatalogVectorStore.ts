@@ -6,7 +6,7 @@ import { OpenAIEmbeddings } from '@langchain/openai';
 import { getConfigurationForGivenGenerator } from '@utils/generators';
 
 const aiGeneratorConfiguration = getConfigurationForGivenGenerator('@eventcatalog/generator-ai');
-const embedding = aiGeneratorConfiguration.embedding || {};
+const embedding = aiGeneratorConfiguration?.embedding || {};
 
 export interface Resource {
   id: string;
