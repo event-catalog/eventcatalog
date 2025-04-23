@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.35.8
+
+### Patch Changes
+
+- e4482cc: feat(core): added openai embeddings model option for chat
+
 ## 2.35.7
 
 ### Patch Changes
