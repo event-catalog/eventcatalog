@@ -101,8 +101,6 @@ importers:
         specifier: ^8.1.0
         version: 8.3.6(jiti@1.21.7)(postcss@8.5.3)(typescript@5.7.3)(yaml@2.7.0)
 
-  packages/core/e2e/fixtures/pnpm-project: {}
-
   packages/core/eventcatalog:
     dependencies:
       '@ai-sdk/openai':
