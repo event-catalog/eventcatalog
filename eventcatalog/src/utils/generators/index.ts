@@ -4,7 +4,7 @@
 import config from '@config';
 
 export const getConfigurationForGivenGenerator = (generator: string) => {
-  const generators = config.generators;
+  const generators = config.generators ?? [];
   const generatorConfig = generators.find((g: any) => g[0] === generator);
   return generatorConfig?.[1];
 };
