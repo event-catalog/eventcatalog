@@ -6,6 +6,7 @@
     "test": "vitest",
     "test:ci": "node scripts/ci/test.js",
     "test:e2e": "pnpm --filter @eventcatalog/core run test:e2e",
+    "test:core-runtime": "cd packages/core && pnpm run build && pnpm pack && mv *.tgz ../../package.tgz && cd ../.. && docker build -t eventcatalog-runtime-test -f Dockerfile.runtime . && docker run --rm eventcatalog-runtime-test && docker rmi eventcatalog-runtime-test && rm package.tgz",
     "build:cd": "node scripts/build-ci.js",
     "start:catalog": "node scripts/start-catalog-locally.js",
     "preview:catalog": "node scripts/preview-catalog-locally.js",
