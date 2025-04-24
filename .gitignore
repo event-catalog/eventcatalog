@@ -20,23 +20,13 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
+.vscode/*
+
 # EventCatalog files
 **/.eventcatalog-core/
-/examples/large-catalog/*
-eventcatalog/pnpm-lock.yaml
-
-.vscode/*
 
 git-push.sh
 
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-
-src/__tests__/example-catalog-dependencies/dependencies
-
-eventcatalog/public/ai
-examples/default/public/ai
+/examples/large-catalog/*
 
 dev-scripts/

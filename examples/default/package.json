@@ -1,5 +1,11 @@
 {
-    "name": "default-example-catalog",
+    "name": "@example/default",
     "version": "0.1.0",
-    "private": true
+    "private": true,
+    "devDependencies": {
+        "@eventcatalog/core": "workspace:*"
+    },
+    "dependencies": {
+        "@eventcatalog/generator-ai": "^1.0.0"
+    }
 }

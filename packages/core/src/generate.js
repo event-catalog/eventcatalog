@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { getEventCatalogConfigFile, cleanup } from './eventcatalog-config-file-utils.js';
+import { createRequire } from 'node:module';
 
 function getDefaultExport(importedModule) {
   if (importedModule === null || typeof importedModule !== 'object') {
@@ -41,7 +42,11 @@ export const generate = async (PROJECT_DIRECTORY) => {
       }
 
       try {
-        const importedGenerator = await import(plugin);
+        // NOTE: We use the createRequire function to ensure that the generator is loaded from user's project directory.
+        // Otherwise, the generator will be loaded from the core package directory (context) which won't work with pnpm
+        // because pnpm doesn't hoist packages to the root node_modules directory like npm does.
+        const require = createRequire(PROJECT_DIRECTORY);
+        const importedGenerator = require(plugin);
 
         // TODO: Fix this...
         const generator = getDefaultExport(importedGenerator);

@@ -1,4 +1,4 @@
-import CustomDocsNav from './';
+import CustomDocsNav from '.';
 import type { SidebarSection } from './types';
 
 interface CustomDocsNavWrapperProps {

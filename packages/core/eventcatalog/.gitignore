@@ -11,6 +11,7 @@ node_modules/
 src/content/*
 !src/content/config.ts
 public/generated/*
+public/ai/
 src/catalog-files/*
 src/custom-defined-components/*
 

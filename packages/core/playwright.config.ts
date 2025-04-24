@@ -1,12 +1,9 @@
-import { defineConfig, devices } from '@playwright/test';
+import { join } from 'node:path';
+import { defineConfig } from '@playwright/test';
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+// @ts-ignore
+const __dirname = import.meta.dirname;
+const defaultCatalog = join(__dirname, '../../../examples/default');
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -26,13 +23,15 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:3000', // TODO: get the port defined on eventcatalog.config.js
+    baseURL: 'http://localhost:3000',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'pnpm run preview --root examples/default --port 3000',
+    command: `pnpm --filter @eventcatalog/ui run preview\
+       --root ${defaultCatalog}\
+       --port 3000`,
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
   },

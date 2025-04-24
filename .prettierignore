@@ -5,3 +5,7 @@ dist
 eventcatalog.config.js
 examples/
 
+packages/core/test-results/
+packages/core/eventcatalog/public/ai/
+packages/core/eventcatalog/public/generated/
+packages/core/eventcatalog/src/custom-defined-components/

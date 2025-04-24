@@ -1,0 +1,30 @@
+# Use Node.js 20 as base image
+FROM node:20-slim AS base
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+
+RUN corepack enable
+
+# Set working directory
+WORKDIR /app
+
+# Copy only the example project files
+COPY examples/default/ ./
+
+# Copy the package.tgz that was built in the previous step
+COPY package.tgz ./
+
+# Configure package.json to use the local package.tgz
+RUN node -e " \
+    const fs = require('fs'); \
+    const pkg = JSON.parse(fs.readFileSync('package.json')); \
+    pkg.devDependencies['@eventcatalog/core'] = 'file:package.tgz'; \
+    fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2)); \
+    "
+
+# Install dependencies ignoring workspace
+RUN pnpm install --ignore-workspace
+
+# Build EventCatalog
+CMD ["pnpm", "exec", "eventcatalog", "build"] 

@@ -23,21 +23,6 @@ const mockResources: Resource[] = [
   }, // Use title?
 ] as any; // Use type assertion to bypass strict Resource type check for summary
 
-// Mock 'fs' *before* importing the module that uses it
-vi.doMock('fs', () => ({
-  default: {
-    readFileSync: vi.fn((path) => {
-      if (path.toString().endsWith('documents.json')) {
-        return JSON.stringify(mockRawDocuments); // Return the raw structure expected by JSON.parse
-      }
-      if (path.toString().endsWith('embeddings.json')) {
-        return JSON.stringify(mockEmbeddings);
-      }
-      throw new Error(`Mock fs.readFileSync: Unexpected path: ${path}`);
-    }),
-  },
-}));
-
 // Mock other dependencies
 vi.mock('@enterprise/eventcatalog-chat/EventCatalogVectorStore');
 vi.mock('@ai-sdk/openai');
@@ -58,10 +43,30 @@ vi.mock('@config', () => ({
 
 // Now import the module under test
 // Use alias/absolute path if relative path causes issues
-import { askQuestion } from '@enterprise/eventcatalog-chat/utils/ai';
 import { EventCatalogVectorStore } from '@enterprise/eventcatalog-chat/EventCatalogVectorStore';
 import { openai } from '@ai-sdk/openai';
 import { streamText } from 'ai';
+
+// Mock 'fs' *before* importing the module that uses it
+vi.doMock('fs', () => {
+  return {
+    default: {
+      readFileSync: vi.fn((path) => {
+        if (path.toString().endsWith('documents.json')) {
+          return JSON.stringify(mockRawDocuments); // Return the raw structure expected by JSON.parse
+        }
+        if (path.toString().endsWith('embeddings.json')) {
+          return JSON.stringify(mockEmbeddings);
+        }
+        throw new Error(`Mock fs.readFileSync: Unexpected path: ${path}`);
+      }),
+    },
+  };
+});
+
+// The vi.doMock affects dynamic imports.
+// This is why we import the module here dynamically.
+const { askQuestion } = await import('@enterprise/eventcatalog-chat/utils/ai');
 
 describe('AI Utilities', () => {
   beforeEach(() => {

@@ -16,6 +16,8 @@ import { isBackstagePluginEnabled, isEventCatalogStarterEnabled, isEventCatalogS
 import updateNotifier from 'update-notifier';
 import stream from 'stream';
 import dotenv from 'dotenv';
+import { detect, resolveCommand, type Agent } from 'package-manager-detector';
+
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -57,16 +59,15 @@ const copyCore = () => {
     return;
   }
 
-  // Copy required eventcatlog files into users directory
+  console.debug('Copying core...');
+  // Copy required eventcatalog files into users directory
   fs.cpSync(eventCatalogDir, core, {
     recursive: true,
     filter: (src) => {
-      // if(src.includes('node_modules')) {
-      //   return false;
-      // }
-      return true;
+      return !src.startsWith(join(__dirname, '../node_modules'));
     },
   });
+  console.debug('Core copied!');
 };
 
 /**
@@ -97,6 +98,52 @@ const copyServerFiles = async () => {
 
 const clearCore = () => {
   if (fs.existsSync(core)) fs.rmSync(core, { recursive: true });
+};
+
+const getPackageManager = async () => {
+  const packageManager = await detect();
+  const agent = packageManager?.agent ?? 'npm';
+  console.debug(`Using ${agent} as package manager`);
+  return agent;
+};
+
+/**
+ * Resolves a command for the given package manager and operation
+ * @param agent The package manager agent (npm, pnpm, yarn, etc.)
+ * @param operation The operation to perform (install, execute, etc.)
+ * @param args Additional arguments for the command
+ * @param options Additional options for command resolution
+ * @returns The resolved command string
+ */
+const resolveCommandString = (
+  agent: Agent,
+  operation: 'install' | 'execute-local',
+  args: string[] = [],
+  options: { ignoreWorkspace?: boolean } = {}
+): string => {
+  let resolvedCommand =
+    resolveCommand(agent, operation, args) ||
+    // Fallback to 'npm' if no specific command is resolved before
+    resolveCommand('npm', operation, args)!;
+
+  const commandArgs = [
+    ...resolvedCommand.args,
+    options.ignoreWorkspace && resolvedCommand.command === 'pnpm' ? '--ignore-workspace' : null,
+  ].filter(Boolean);
+
+  return `${resolvedCommand.command} ${commandArgs.join(' ')}`;
+};
+
+const installDepsOnCore = (agent: Agent) => {
+  // Skip this step if we are on the package development,
+  // In other words, if the core is the same as the eventcatalog package skip this step as we already have installed the dependencies with pnpm install.
+  if (eventCatalogDir === core) return;
+
+  const installCommand = resolveCommandString(agent, 'install', [], { ignoreWorkspace: true });
+
+  console.debug(`Installing dependencies on core...`);
+  execSync(installCommand, { cwd: core, stdio: 'inherit' });
+  console.debug('Dependencies installed!');
 };
 
 const checkForUpdate = () => {
@@ -152,6 +199,8 @@ program
       console.log('CATALOG_DIR', core);
     }
 
+    const agent = await getPackageManager();
+
     if (options.forceRecreate) clearCore();
     copyCore();
 
@@ -174,9 +223,14 @@ program
     // is there an eventcatalog update to install?
     checkForUpdate();
 
+    // Install dependencies on core
+    installDepsOnCore(agent);
+
     let watchUnsub;
     try {
       watchUnsub = await watch(dir, core);
+
+      const devCommand = resolveCommandString(agent, 'execute-local', ['astro', 'dev', ...command.args]);
 
       const { result } = concurrently(
         [
@@ -185,8 +239,8 @@ program
             // Ignore any "Empty collection" messages
             command:
               process.platform === 'win32'
-                ? `npx astro dev ${command.args.join(' ').trim()} | findstr /V "The collection"`
-                : `npx astro dev ${command.args.join(' ').trim()} 2>&1 | grep -v "The collection.*does not exist"`,
+                ? `${devCommand} | findstr /V "The collection"`
+                : `${devCommand} 2>&1 | grep -v "The collection.*does not exist"`,
             cwd: core,
             env: {
               PROJECT_DIR: dir,
@@ -222,6 +276,7 @@ program
 program
   .command('build')
   .description('Run build of EventCatalog')
+  .option('--force-recreate', 'Recreate the eventcatalog-core directory', false)
   .action(async (options, command: Command) => {
     console.log('Building EventCatalog...');
 
@@ -230,6 +285,9 @@ program
       dotenv.config({ path: path.join(dir, '.env') });
     }
 
+    const agent = await getPackageManager();
+
+    if (options.forceRecreate) clearCore();
     copyCore();
     // Copy the server files into the core directory if we have server output
     await copyServerFiles();
@@ -254,9 +312,14 @@ program
 
     checkForUpdate();
 
+    // Install dependencies on core
+    installDepsOnCore(agent);
+
+    let cliCommand = resolveCommandString(agent, 'execute-local', ['astro', 'build', ...command.args]);
+
     // Ignore any "Empty collection" messages, it's OK to have them
-    const windowsCommand = `npx astro build ${command.args.join(' ').trim()} | findstr /V "The collection"`;
-    const unixCommand = `bash -c "set -o pipefail; npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v \\"The collection.*does not exist\\""`;
+    const windowsCommand = `${cliCommand} | findstr /V "The collection"`;
+    const unixCommand = `bash -c "set -o pipefail; ${cliCommand} 2>&1 | grep -v \\"The collection.*does not exist\\""`;
 
     const buildCommand = process.platform === 'win32' ? windowsCommand : unixCommand;
 
@@ -269,7 +332,7 @@ program
     );
   });
 
-const previewCatalog = ({
+const previewCatalog = async ({
   command,
   canEmbedPages = false,
   isEventCatalogStarter = false,
@@ -280,8 +343,12 @@ const previewCatalog = ({
   isEventCatalogStarter: boolean;
   isEventCatalogScale: boolean;
 }) => {
+  const agent = await getPackageManager();
+
+  const previewCommand = resolveCommandString(agent, 'execute-local', ['astro', 'preview', ...command.args]);
+
   execSync(
-    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} npx astro preview ${command.args.join(' ').trim()}`,
+    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} ${previewCommand}`,
     {
       cwd: core,
       stdio: 'inherit',
@@ -326,7 +393,7 @@ program
 
     await copyServerFiles();
 
-    previewCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
+    await previewCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
   });
 
 program
@@ -349,7 +416,7 @@ program
     if (isServerOutput) {
       startServerCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
     } else {
-      previewCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
+      await previewCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
     }
   });
 

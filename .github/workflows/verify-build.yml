@@ -25,16 +25,19 @@ jobs:
       - name: Test
         run: pnpm run test:ci
       - name: Build cli
-        run: pnpm run build:bin
+        working-directory: packages/core/
+        run: pnpm run build
       - name: Package
+        working-directory: packages/core/
         run: pnpm pack
       - name: Rename package artifact
+        working-directory: packages/core/
         run: mv *.tgz package.tgz # Rename to a consistent name
       - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
           name: eventcatalog-core-package-artifact
-          path: package.tgz
+          path: packages/core/package.tgz
 
   build-eventcatalog:
     name: Build EventCatalog
@@ -46,17 +49,32 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
       - name: Setup NodeJS
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
+          cache: 'pnpm'
       - name: Download package artifact
         uses: actions/download-artifact@v4
         with:
           name: eventcatalog-core-package-artifact
-      - name: Install @eventcatalog-core
+          path: examples/default/
+      # Configure package.json to use the core package built on the previous job
+      - name: Configure package.json
         working-directory: examples/default/
-        run: npm install ../../package.tgz
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json'));
+            pkg.devDependencies['@eventcatalog/core'] = 'file:package.tgz';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
+      # Install deps on example project ignoring the pnpm workspace
+      - name: Install deps
+        working-directory: examples/default/
+        run: pnpm install --ignore-workspace
       - name: Build EventCatalog
         working-directory: examples/default/
-        run: npx eventcatalog build
+        run: pnpm exec eventcatalog build
