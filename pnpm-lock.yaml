@@ -329,6 +329,9 @@ importers:
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
+      cross-env:
+        specifier: ^7.0.3
+        version: 7.0.3
 
 packages:
 
