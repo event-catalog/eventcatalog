@@ -45,6 +45,11 @@ const customDocs = await getCollection('customPages');
 
 import { isEventCatalogUpgradeEnabled } from '@utils/feature';
 
+// Try and load any custom styles if they exist
+try {
+  await import('../../eventcatalog.styles.css');
+} catch (error) {}
+
 const currentPath = Astro.url.pathname;
 
 const catalogHasDefaultLandingPageForDocs = await hasLandingPageForDocs();

@@ -7,7 +7,7 @@
     "directory": "packages/core"
   },
   "type": "module",
-  "version": "2.35.8",
+  "version": "2.35.9",
   "publishConfig": {
     "access": "public"
   },
