@@ -39,9 +39,6 @@ export default {
   },
   generators: [
     [
-      "./custom-generator.js"
-    ],
-    [
       "@eventcatalog/generator-ai", {
         debug: true,
         splitMarkdownFiles: false,
