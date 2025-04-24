@@ -1,5 +1,4 @@
 # Make sure the EventCatalog can build OK
-# Both on Windows and Linux
 name: Verify Build
 
 on:
@@ -9,12 +8,9 @@ on:
       - main
 
 jobs:
-  verify-build:
-    name: Verify Build
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+  build-cli:
+    name: Build cli
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Setup pnpm
@@ -29,6 +25,56 @@ jobs:
       - name: Test
         run: pnpm run test:ci
       - name: Build cli
-        run: pnpm --filter @eventcatalog/core run build
+        working-directory: packages/core/
+        run: pnpm run build
+      - name: Package
+        working-directory: packages/core/
+        run: pnpm pack
+      - name: Rename package artifact
+        working-directory: packages/core/
+        run: mv *.tgz package.tgz # Rename to a consistent name
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eventcatalog-core-package-artifact
+          path: packages/core/package.tgz
+
+  build-eventcatalog:
+    name: Build EventCatalog
+    timeout-minutes: 10
+    needs: build-cli
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: Setup NodeJS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+      - name: Download package artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: eventcatalog-core-package-artifact
+          path: examples/default/
+      # Configure package.json to use the core package built on the previous job
+      - name: Configure package.json
+        working-directory: examples/default/
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json'));
+            pkg.devDependencies['@eventcatalog/core'] = 'file:package.tgz';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
+      # Install deps on example project ignoring the pnpm workspace
+      - name: Install deps
+        working-directory: examples/default/
+        run: pnpm install --ignore-workspace
       - name: Build EventCatalog
-        run: pnpm --filter @example/default exec eventcatalog build
+        working-directory: examples/default/
+        run: pnpm exec eventcatalog build
