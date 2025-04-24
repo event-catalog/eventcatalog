@@ -45,6 +45,11 @@ export const catalogToAstro = async (source, astroDir) => {
   // Verify required fields are in the catalog config file
   await verifyRequiredFieldsAreInCatalogConfigFile(source);
 
+  // If there is no eventcatalog.styles.css file, create one
+  if (!fs.existsSync(path.join(source, 'eventcatalog.styles.css'))) {
+    fs.writeFileSync(path.join(source, 'eventcatalog.styles.css'), '');
+  }
+
   await copyFiles(source, astroDir);
 };
 
