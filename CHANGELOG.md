@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.35.9
+
+### Patch Changes
+
+- bc5c9a3: fix(core): now loads the eventcatalog stylesheet
+
 ## 2.35.8
 
 ### Patch Changes
