@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.35.10
+
+### Patch Changes
+
+- b67bd66: feat(core): badges now accept protocol icons
+
 ## 2.35.9
 
 ### Patch Changes
