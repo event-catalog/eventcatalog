@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.36.0
+
+### Minor Changes
+
+- 1042621: feat(core): added entity support to eventcatalog
+
 ## 2.35.10
 
 ### Patch Changes
