@@ -1,0 +1,73 @@
+---
+id: SubscriptionPeriod
+name: SubscriptionPeriod
+version: 1.0.0
+identifier: subscriptionPeriodId
+summary: Represents a single billing cycle or interval within a subscription's lifetime.
+
+properties:
+  - name: subscriptionPeriodId
+    type: UUID
+    required: true
+    description: Unique identifier for this specific subscription period.
+  - name: subscriptionId
+    type: UUID
+    required: true
+    description: Identifier of the parent Subscription this period belongs to.
+  - name: planId # Denormalized for easier lookup?
+    type: UUID
+    required: true
+    description: Identifier of the Plan active during this period.
+  - name: startDate
+    type: Date
+    required: true
+    description: The start date of this billing period.
+  - name: endDate
+    type: Date
+    required: true
+    description: The end date of this billing period.
+  - name: invoiceId # Optional, links to the invoice generated for this period
+    type: UUID
+    required: false
+    description: Identifier of the invoice created for this period's charge.
+  - name: paymentId # Optional, links to the payment made for this period's invoice
+    type: UUID
+    required: false
+    description: Identifier of the payment that settled the invoice for this period.
+  - name: status
+    type: string # (e.g., Active, Billed, Paid, Unpaid, PastDue)
+    required: true
+    description: Status specific to this period (reflects invoicing/payment state).
+  - name: amountBilled
+    type: decimal
+    required: false # May only be set once invoiced
+    description: The actual amount billed for this period (could differ from plan due to promotions, usage, etc.).
+  - name: currency
+    type: string # ISO 4217 code
+    required: false
+    description: Currency of the billed amount.
+  - name: createdAt
+    type: DateTime
+    required: true
+    description: Timestamp when this period record was created (often at the start of the period).
+---
+
+## Overview
+
+The SubscriptionPeriod entity tracks the state and details of a specific billing cycle within a `Subscription`. It links the subscription to the relevant invoice and payment for that interval and records the exact dates and amount billed.
+
+### Entity Properties
+<EntityPropertiesTable />
+
+## Relationships
+
+*   **Subscription:** A subscription period belongs to one `Subscription`.
+*   **Plan:** Reflects the `Plan` active during this period.
+*   **Invoice:** May be associated with one `Invoice` generated for this period.
+*   **Payment:** May be associated with one `Payment` that settled the period's invoice.
+
+## Examples
+
+*   Period for Jane Doe's 'Pro Plan' from 2024-05-01 to 2024-05-31, invoiced via #INV-00123, status Paid.
+*   Period for Acme Corp's 'Enterprise Plan' from 2024-04-15 to 2024-05-14, status Billed, awaiting payment.
+*   The first period (trial) for a new subscription from 2024-05-20 to 2024-06-19, status Active, amountBilled $0.00. 

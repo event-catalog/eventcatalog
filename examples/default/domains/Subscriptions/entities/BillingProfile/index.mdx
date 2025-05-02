@@ -1,0 +1,65 @@
+---
+id: BillingProfile
+name: BillingProfile
+version: 1.0.0
+identifier: billingProfileId
+summary: Stores billing-related contact information and preferences for a customer, often used for invoices and communication.
+
+properties:
+  - name: billingProfileId
+    type: UUID
+    required: true
+    description: Unique identifier for the billing profile.
+  - name: customerId
+    type: UUID
+    required: true
+    description: Identifier of the customer this billing profile belongs to.
+  - name: billingEmail
+    type: string
+    required: false # May default to customer's primary email
+    description: Specific email address for sending invoices and billing notifications.
+  - name: companyName # Optional, for B2B
+    type: string
+    required: false
+    description: Company name for billing purposes.
+  - name: taxId # Optional, for B2B or specific regions
+    type: string
+    required: false
+    description: Tax identification number (e.g., VAT ID, EIN).
+  - name: billingAddressId
+    type: UUID
+    required: true
+    description: Identifier for the primary billing address associated with this profile.
+  - name: preferredPaymentMethodId # Optional default for invoices/subscriptions
+    type: UUID
+    required: false
+    description: Customer's preferred payment method for charges related to this profile.
+  - name: createdAt
+    type: DateTime
+    required: true
+    description: Timestamp when the billing profile was created.
+  - name: updatedAt
+    type: DateTime
+    required: true
+    description: Timestamp when the billing profile was last updated.
+---
+
+## Overview
+
+The BillingProfile entity consolidates billing-specific details for a customer, such as the billing address, contact email for invoices, tax information, and potentially preferred payment methods. This might be distinct from the customer's general contact information or shipping addresses.
+
+### Entity Properties
+<EntityPropertiesTable />
+
+## Relationships
+
+*   **Customer:** A billing profile belongs to one `Customer`. A customer might potentially have multiple profiles in complex scenarios, but often just one.
+*   **Address:** Linked to a primary billing `Address`.
+*   **PaymentMethod:** May specify a preferred `PaymentMethod`.
+*   **Invoice:** Invoices are typically generated using information from the BillingProfile.
+*   **Subscription:** Subscriptions may use the associated customer's BillingProfile for charging.
+
+## Examples
+
+*   Jane Doe's personal billing profile with her home address and primary email.
+*   Acme Corp's billing profile with their HQ address, VAT ID, and accounts payable email address. 
