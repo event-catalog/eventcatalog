@@ -34,7 +34,7 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
   const events = await getCollection('events');
   const commands = await getCollection('commands');
   const queries = await getCollection('queries');
-
+  const entities = await getCollection('entities');
   const allMessages = [...events, ...commands, ...queries];
 
   // @ts-ignore // TODO: Fix this type
@@ -43,6 +43,7 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
 
     const sendsMessages = service.data.sends || [];
     const receivesMessages = service.data.receives || [];
+    const serviceEntities = service.data.entities || [];
 
     const sends = sendsMessages
       .map((message: any) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
@@ -54,6 +55,11 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
       .flat()
       .filter((e: any) => e !== undefined);
 
+    const mappedEntities = serviceEntities
+      .map((entity: any) => getItemsFromCollectionByIdAndSemverOrLatest(entities, entity.id, entity.version))
+      .flat()
+      .filter((e: any) => e !== undefined);
+
     return {
       ...service,
       data: {
@@ -62,6 +68,7 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
         sends,
         versions,
         latestVersion,
+        entities: mappedEntities,
       },
       // TODO: verify if it could be deleted.
       nodes: {

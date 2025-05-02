@@ -10,6 +10,13 @@ export interface MessageItem {
   };
 }
 
+export interface EntityItem {
+  href: string;
+  label: string;
+  id: string;
+  name: string;
+}
+
 export interface ServiceItem {
   href: string;
   label: string;
@@ -18,6 +25,7 @@ export interface ServiceItem {
   version: string;
   sends: MessageItem[];
   receives: MessageItem[];
+  entities: EntityItem[];
   specifications?: {
     asyncapiPath: string;
     openapiPath: string;

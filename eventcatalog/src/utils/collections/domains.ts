@@ -34,6 +34,7 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
 
   // Get all the services that are not versioned
   const servicesCollection = await getCollection('services');
+  const entitiesCollection = await getCollection('entities');
 
   // @ts-ignore // TODO: Fix this type
   cachedDomains[cacheKey] = domains.map((domain) => {
@@ -42,7 +43,7 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
     // const receives = service.data.receives || [];
     const servicesInDomain = domain.data.services || [];
     const subDomainsInDomain = domain.data.domains || [];
-
+    const entitiesInDomain = domain.data.entities || [];
     const subDomains = subDomainsInDomain
       .map((_subDomain: { id: string; version: string | undefined }) =>
         getItemsFromCollectionByIdAndSemverOrLatest(domains, _subDomain.id, _subDomain.version)
@@ -60,12 +61,19 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
       )
       .flat();
 
+    const entities = [...entitiesInDomain]
+      .map((_entity: { id: string; version: string | undefined }) =>
+        getItemsFromCollectionByIdAndSemverOrLatest(entitiesCollection, _entity.id, _entity.version)
+      )
+      .flat();
+
     return {
       ...domain,
       data: {
         ...domain.data,
         services: services,
         domains: subDomains,
+        entities: entities,
         latestVersion,
         versions,
       },

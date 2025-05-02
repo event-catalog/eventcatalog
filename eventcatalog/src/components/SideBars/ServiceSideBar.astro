@@ -23,6 +23,9 @@ const sends = (service.data.sends as CollectionEntry<'events'>[]) || [];
 // @ts-ignore
 const receives = (service.data.receives as CollectionEntry<'events'>[]) || [];
 
+// @ts-ignore
+const entities = (service.data.entities as CollectionEntry<'entities'>[]) || [];
+
 const ownersRaw = service.data?.owners || [];
 const owners = await Promise.all<ReturnType<typeof getOwner>>(ownersRaw.map(getOwner));
 const filteredOwners = owners.filter((o) => o !== undefined);
@@ -69,6 +72,14 @@ const domainList = domainsServiceBelongsTo.map((d) => ({
   href: buildUrl(`/docs/${d.collection}/${d.data.id}/${d.data.version}`),
 }));
 
+const entityList = entities.map((p) => ({
+  label: p.data.name,
+  badge: p.collection,
+  tag: `v${p.data.version}`,
+  collection: p.collection,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+}));
+
 const isRSSEnabled = config.rss?.enabled;
 
 // @ts-ignore
@@ -112,6 +123,18 @@ const schemaURL = join(publicPath, schemaFilePath || '');
     {service.data.versions && <VersionList versions={service.data.versions} collectionItem={service} />}
 
     {service.data.specifications && <SpecificationsList collectionItem={service} />}
+
+    {
+      entities.length > 0 && (
+        <PillListFlat
+          title={`Entities (${entities.length})`}
+          pills={entityList}
+          emptyMessage={`This service does not contain any entities.`}
+          color="pink"
+          client:load
+        />
+      )
+    }
 
     <OwnersList
       title={`Owners (${ownersList.length})`}

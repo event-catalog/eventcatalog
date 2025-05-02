@@ -295,6 +295,7 @@ const services = defineCollection({
     .object({
       sends: z.array(pointer).optional(),
       receives: z.array(pointer).optional(),
+      entities: z.array(pointer).optional(),
     })
     .merge(baseSchema),
 });
@@ -332,6 +333,7 @@ const domains = defineCollection({
     .object({
       services: z.array(pointer).optional(),
       domains: z.array(pointer).optional(),
+      entities: z.array(pointer).optional(),
     })
     .merge(baseSchema),
 });
@@ -387,6 +389,35 @@ const ubiquitousLanguages = defineCollection({
   }),
 });
 
+const entities = defineCollection({
+  loader: glob({
+    pattern: ['**/entities/*/index.(md|mdx)', '**/entities/*/versioned/*/index.(md|mdx)'],
+    base: projectDirBase,
+    generateId: ({ data, ...rest }) => {
+      return `${data.id}-${data.version}`;
+    },
+  }),
+  schema: z
+    .object({
+      aggregateRoot: z.boolean().optional(),
+      identifier: z.string().optional(),
+      properties: z
+        .array(
+          z.object({
+            name: z.string(),
+            type: z.string(),
+            required: z.boolean().optional(),
+            description: z.string().optional(),
+          })
+        )
+        .optional(),
+      services: z.array(reference('services')).optional(),
+      domains: z.array(reference('domains')).optional(),
+    })
+
+    .merge(baseSchema),
+});
+
 const users = defineCollection({
   loader: glob({ pattern: 'users/*.(md|mdx)', base: projectDirBase, generateId: ({ data }) => data.id as string }),
   schema: z.object({
@@ -438,7 +469,10 @@ export const collections = {
   flows,
   pages,
   changelogs,
+
+  // DDD Collections
   ubiquitousLanguages,
+  entities,
 
   // EventCatalog Pro Collections
   customPages,

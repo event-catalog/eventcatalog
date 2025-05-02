@@ -1,0 +1,106 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Admonition from '../Admonition';
+
+// Define the shape for a single property used in this component
+type EntityProperty = {
+  name: string;
+  type: string;
+  required?: boolean;
+  description?: string;
+  enum?: string[];
+  items?: {
+    type: string;
+  };
+};
+
+// Expects a CollectionEntry for 'entities'.
+// The actual properties structure might differ slightly from the base type,
+// so we handle it below.
+export interface Props extends CollectionEntry<'entities'> {}
+
+const { data, collection } = Astro.props;
+// Cast the properties to our expected type for use in the template
+const properties = data?.properties as EntityProperty[] | undefined;
+const isComponentEnabled = collection === 'entities';
+---
+
+{
+  !isComponentEnabled && (
+    <Admonition type="warning">
+      <div>
+        <span class="font-bold">
+          {`<MessageTable/>`} component is not supported for resources of type {collection}.
+        </span>
+        <span class="block">This component is only supported for services and domains.</span>
+      </div>
+    </Admonition>
+  )
+}
+
+{
+  isComponentEnabled && properties && properties.length > 0 ? (
+    <div class="overflow-x-auto relative not-prose">
+      <table class="w-full text-sm text-left text-gray-500 border border-gray-200 rounded-lg shadow-sm">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+          <tr>
+            <th scope="col" class="py-3 px-6">
+              Name
+            </th>
+            <th scope="col" class="py-3 px-6">
+              Type
+            </th>
+            <th scope="col" class="py-3 px-6">
+              Required
+            </th>
+            <th scope="col" class="py-3 px-6 min-w-[250px]">
+              Description
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {properties.map((prop) => (
+            <tr class="bg-white border-b hover:bg-gray-50 align-top">
+              <td class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap">
+                <code class="text-sm bg-gray-100 rounded px-1 py-0.5">{prop.name}</code>
+              </td>
+              <td class="py-4 px-6">
+                {prop.type === 'array' && prop.items ? (
+                  <span>
+                    array&lt;<code class="text-sm bg-gray-100 rounded px-1 py-0.5">{prop.items.type}</code>&gt;
+                  </span>
+                ) : (
+                  <code class="text-sm bg-gray-100 rounded px-1 py-0.5">{prop.type}</code>
+                )}
+                {prop.enum && (
+                  <div class="text-xs text-gray-500 mt-2">
+                    <span class="font-semibold block mb-1">Enum:</span>
+                    <ul class="list-disc list-inside ml-2 space-y-1">
+                      {prop.enum.map((enumValue: string) => (
+                        <li>
+                          <code class="text-xs bg-gray-100 rounded px-1 py-0.5">{enumValue}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </td>
+              <td class="py-4 px-6">
+                {prop.required ? (
+                  <span class="bg-purple-100 text-purple-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">Required</span>
+                ) : (
+                  <span class="bg-gray-100 text-gray-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">Optional</span>
+                )}
+              </td>
+              <td class="py-4 px-6">{prop.description || <span class="text-gray-400 italic">No description provided.</span>}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  ) : (
+    <Admonition type="note" title="No Properties Defined">
+      <p>There are no properties defined for this entity.</p>
+    </Admonition>
+  )
+}

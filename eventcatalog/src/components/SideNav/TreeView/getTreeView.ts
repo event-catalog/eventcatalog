@@ -18,7 +18,7 @@ export type TreeNode = {
 /**
  * Resource types that should be in the sidenav
  */
-const RESOURCE_TYPES = ['domains', 'services', 'events', 'commands', 'queries', 'flows', 'channels'];
+const RESOURCE_TYPES = ['domains', 'entities', 'services', 'events', 'commands', 'queries', 'flows', 'channels'];
 // const RESOURCE_TYPES = ['domains', 'services', 'events', 'commands', 'queries', 'flows', 'channels'];
 
 /**

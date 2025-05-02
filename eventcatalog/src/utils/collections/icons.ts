@@ -11,7 +11,7 @@ import {
   VariableIcon,
   MapIcon,
 } from '@heroicons/react/24/outline';
-import { BookText } from 'lucide-react';
+import { BookText, Box } from 'lucide-react';
 
 export const getIconForCollection = (collection: string) => {
   switch (collection) {
@@ -39,6 +39,8 @@ export const getIconForCollection = (collection: string) => {
       return BookText;
     case 'bounded-context-map':
       return MapIcon;
+    case 'entities':
+      return Box;
     default:
       return ServerIcon;
   }
@@ -64,6 +66,8 @@ export const getColorAndIconForCollection = (collection: string) => {
       return { color: 'purple', Icon: icon };
     case 'ubiquitousLanguages':
       return { color: 'green', Icon: icon };
+    case 'entities':
+      return { color: 'purple', Icon: icon };
     case 'domains':
       return { color: 'yellow', Icon: icon };
     case 'services':

@@ -1,0 +1,57 @@
+---
+id: Customer
+name: Customer
+version: 1.0.0
+identifier: customerId
+summary: Represents an individual or organization that places orders.
+
+properties:
+  - name: customerId
+    type: UUID
+    required: true
+    description: Unique identifier for the customer
+  - name: firstName
+    type: string
+    required: true
+    description: Customer's first name
+  - name: lastName
+    type: string
+    required: true
+    description: Customer's last name
+  - name: email
+    type: string
+    required: true
+    description: Customer's primary email address (unique)
+  - name: phone
+    type: string
+    required: false
+    description: Customer's phone number
+  - name: addresses
+    type: array
+    items:
+      type: Address # Assuming an Address value object or entity exists
+    required: false
+    description: List of addresses associated with the customer (e.g., shipping, billing)
+  - name: dateRegistered
+    type: DateTime
+    required: true
+    description: Date and time when the customer registered
+---
+
+## Overview
+
+The Customer entity holds information about the individuals or organizations who interact with the system, primarily by placing orders. It stores contact details, addresses, and other relevant personal or business information.
+
+### Entity Properties
+<EntityPropertiesTable />
+
+## Relationships
+
+*   **Order:** A customer can have multiple `Order` entities. The `Order` entity holds a reference (`customerId`) back to the `Customer`.
+*   **Address:** A customer can have multiple associated `Address` value objects or entities.
+
+## Examples
+
+*   **Customer A:** Jane Doe, registered on 2023-01-15, with a primary shipping address and a billing address.
+*   **Customer B:** John Smith, a long-time customer with multiple past orders.
+

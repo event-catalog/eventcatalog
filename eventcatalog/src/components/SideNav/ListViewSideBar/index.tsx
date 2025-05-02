@@ -11,13 +11,16 @@ export const getMessageColorByCollection = (collection: string) => {
   if (collection === 'commands') return 'bg-blue-50 text-blue-600';
   if (collection === 'queries') return 'bg-green-50 text-green-600';
   if (collection === 'events') return 'bg-orange-50 text-orange-600';
+  if (collection === 'entities') return 'bg-purple-50 text-purple-600';
   return 'text-gray-600';
 };
 
-export const getMessageCollectionName = (collection: string) => {
+export const getMessageCollectionName = (collection: string, item: any) => {
   if (collection === 'commands') return 'Command';
   if (collection === 'queries') return 'Query';
   if (collection === 'events') return 'Event';
+  if (collection === 'entities' && item.data.aggregateRoot) return 'Entity (Root)';
+  if (collection === 'entities') return 'Entity';
   return collection.slice(0, collection.length - 1).toUpperCase();
 };
 
@@ -41,11 +44,13 @@ const ServiceItem = React.memo(
     decodedCurrentPath,
     collapsedGroups,
     toggleGroupCollapse,
+    isVisualizer,
   }: {
     item: ServiceItem;
     decodedCurrentPath: string;
     collapsedGroups: { [key: string]: boolean };
     toggleGroupCollapse: (group: string) => void;
+    isVisualizer: boolean;
   }) => (
     <CollapsibleGroup
       isCollapsed={collapsedGroups[item.href]}
@@ -148,6 +153,25 @@ const ServiceItem = React.memo(
         >
           <MessageList messages={item.sends} decodedCurrentPath={decodedCurrentPath} />
         </CollapsibleGroup>
+        {!isVisualizer && item.entities.length > 0 && (
+          <CollapsibleGroup
+            isCollapsed={collapsedGroups[`${item.href}-entities`]}
+            onToggle={() => toggleGroupCollapse(`${item.href}-entities`)}
+            title={
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleGroupCollapse(`${item.href}-entities`);
+                }}
+                className="truncate underline ml-2 text-xs mb-1 py-1"
+              >
+                Entities ({item.entities.length})
+              </button>
+            }
+          >
+            <MessageList messages={item.entities} decodedCurrentPath={decodedCurrentPath} />
+          </CollapsibleGroup>
+        )}
       </div>
     </CollapsibleGroup>
   )
@@ -169,6 +193,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
   });
 
   const decodedCurrentPath = window.location.pathname;
+  const isVisualizer = window.location.pathname.includes('/visualiser/');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -341,16 +366,37 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                           >
                             <span className="truncate">Architecture</span>
                           </a>
-                          <a
-                            href={buildUrl(`/docs/domains/${item.id}/language`)}
-                            className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
-                              decodedCurrentPath.includes(`/docs/domains/${item.id}/language`)
-                                ? 'bg-purple-100 '
-                                : 'hover:bg-purple-100'
-                            }`}
-                          >
-                            <span className="truncate">Ubiquitous Language</span>
-                          </a>
+                          {!isVisualizer && (
+                            <a
+                              href={buildUrl(`/docs/domains/${item.id}/language`)}
+                              className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
+                                decodedCurrentPath.includes(`/docs/domains/${item.id}/language`)
+                                  ? 'bg-purple-100 '
+                                  : 'hover:bg-purple-100'
+                              }`}
+                            >
+                              <span className="truncate">Ubiquitous Language</span>
+                            </a>
+                          )}
+                          {item.entities.length > 0 && !isVisualizer && (
+                            <CollapsibleGroup
+                              isCollapsed={collapsedGroups[`${item.href}-entities`]}
+                              onToggle={() => toggleGroupCollapse(`${item.href}-entities`)}
+                              title={
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleGroupCollapse(`${item.href}-entities`);
+                                  }}
+                                  className="truncate underline ml-2 text-xs mb-1 py-1"
+                                >
+                                  Entities ({item.entities.length})
+                                </button>
+                              }
+                            >
+                              <MessageList messages={item.entities} decodedCurrentPath={decodedCurrentPath} />
+                            </CollapsibleGroup>
+                          )}
                         </div>
                       </div>
                     </li>
@@ -369,6 +415,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                       decodedCurrentPath={decodedCurrentPath}
                       collapsedGroups={collapsedGroups}
                       toggleGroupCollapse={toggleGroupCollapse}
+                      isVisualizer={isVisualizer}
                     />
                   ))}
                 </ul>
@@ -390,7 +437,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                         <span
                           className={`ml-2 text-[10px] font-medium px-2 uppercase py-0.5 rounded ${getMessageColorByCollection(item.collection)}`}
                         >
-                          {getMessageCollectionName(item.collection)}
+                          {getMessageCollectionName(item.collection, item)}
                         </span>
                       </a>
                     </li>

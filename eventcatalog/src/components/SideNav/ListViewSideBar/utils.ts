@@ -36,10 +36,13 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
     const title = item.collection;
     const group = acc[title] || [];
 
-    const servicesCount = item.collection === 'domains' ? item.data.services?.length || 0 : 0;
-    const sends = item.collection === 'services' ? item.data.sends || null : null;
-    const receives = item.collection === 'services' ? item.data.receives || null : null;
+    const isCollectionDomain = item.collection === 'domains';
+    const isCollectionService = item.collection === 'services';
 
+    const servicesCount = isCollectionDomain ? item.data.services?.length || 0 : 0;
+    const sends = isCollectionService ? item.data.sends || null : null;
+    const receives = isCollectionService ? item.data.receives || null : null;
+    const entities = isCollectionDomain || isCollectionService ? item.data.entities || null : null;
     // Add href to the sends and receives
     const sendsWithHref = sends?.map((send: any) => ({
       ...send,
@@ -48,6 +51,10 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
     const receivesWithHref = receives?.map((receive: any) => ({
       ...receive,
       href: buildUrl(`/${route}/${receive.collection}/${receive.data.id}/${receive.data.version}`),
+    }));
+    const entitiesWithHref = entities?.map((entity: any) => ({
+      ...entity,
+      href: buildUrl(`/${route}/${entity.collection}/${entity.data.id}/${entity.data.version}`),
     }));
 
     const navigationItem = {
@@ -64,11 +71,12 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
       servicesCount,
       id: item.data.id,
       name: item.data.name,
-      services: item.collection === 'domains' ? item.data.services : null,
-      domains: item.collection === 'domains' ? item.data.domains : null,
+      services: isCollectionDomain ? item.data.services : null,
+      domains: isCollectionDomain ? item.data.domains : null,
       sends: sendsWithHref,
       receives: receivesWithHref,
-      specifications: item.collection === 'services' ? item.data.specifications : null,
+      entities: entitiesWithHref,
+      specifications: isCollectionService ? item.data.specifications : null,
       sidebar: item.data?.sidebar,
     };
 

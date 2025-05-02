@@ -21,6 +21,9 @@ const services = (domain.data.services as CollectionEntry<'services'>[]) || [];
 // @ts-ignore
 const subDomains = (domain.data.domains as CollectionEntry<'domains'>[]) || [];
 
+// @ts-ignore
+const entities = (domain.data.entities as CollectionEntry<'entities'>[]) || [];
+
 const ubiquitousLanguage = await getUbiquitousLanguage(domain);
 const hasUbiquitousLanguage = ubiquitousLanguage.length > 0;
 const ubiquitousLanguageDictionary = hasUbiquitousLanguage ? ubiquitousLanguage[0].data.dictionary : [];
@@ -84,6 +87,14 @@ const ubiquitousLanguageList = ubiquitousLanguageDictionary?.map((l) => ({
   badge: 'Ubiquitous Language',
   collection: 'ubiquitousLanguages',
   href: buildUrl(`/docs/${domain.collection}/${domain.data.id}/language?id=${l.id}`),
+}));
+
+const entityList = entities.map((p) => ({
+  label: p.data.name,
+  badge: p.collection,
+  tag: `v${p.data.version}`,
+  collection: p.collection,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
 }));
 
 const ownersList = filteredOwners.map((o) => ({
@@ -156,6 +167,17 @@ const ownersList = filteredOwners.map((o) => ({
           color="pink"
           limit={4}
           emptyMessage={`This domain does not have any documented ubiquitous language.`}
+          client:load
+        />
+      )
+    }
+    {
+      entities.length > 0 && (
+        <PillListFlat
+          title={`Entities (${entities.length})`}
+          pills={entityList}
+          emptyMessage={`This domain does not contain any entities.`}
+          color="pink"
           client:load
         />
       )
