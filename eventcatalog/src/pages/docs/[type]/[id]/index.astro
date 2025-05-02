@@ -2,6 +2,7 @@
 import Seo from '@components/Seo.astro';
 import { buildUrl } from '@utils/url-builder';
 import { getEvents } from '@utils/events';
+import { getEntities } from '@utils/entities';
 import { getCommands } from '@utils/commands';
 import { getServices } from '@utils/collections/services';
 import { getDomains } from '@utils/collections/domains';
@@ -10,12 +11,13 @@ import type { CollectionTypes } from '@types';
 import { getChannels } from '@utils/channels';
 
 export async function getStaticPaths() {
-  const [events, commands, services, domains, channels] = await Promise.all([
+  const [events, commands, services, domains, channels, entities] = await Promise.all([
     getEvents(),
     getCommands(),
     getServices(),
     getDomains(),
     getChannels(),
+    getEntities(),
   ]);
 
   const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
@@ -37,6 +39,7 @@ export async function getStaticPaths() {
     ...buildPages(services),
     ...buildPages(commands),
     ...buildPages(channels),
+    ...buildPages(entities),
   ];
 }
 

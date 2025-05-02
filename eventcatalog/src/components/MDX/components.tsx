@@ -14,6 +14,7 @@ import AsyncAPI from '@components/MDX/AsyncAPI/AsyncAPI.astro';
 import ChannelInformation from '@components/MDX/ChannelInformation/ChannelInformation';
 import MessageTable from '@components/MDX/MessageTable/MessageTable.astro';
 import ResourceGroupTable from '@components/MDX/ResourceGroupTable/ResourceGroupTable.astro';
+import EntityPropertiesTable from '@components/MDX/EntityPropertiesTable/EntityPropertiesTable.astro';
 import Tabs from '@components/MDX/Tabs/Tabs.astro';
 import TabItem from '@components/MDX/Tabs/TabItem.astro';
 import ResourceLink from '@components/MDX/ResourceLink/ResourceLink.astro';
@@ -38,6 +39,7 @@ const components = (props: any) => {
     Flow,
     Link: (mdxProp: any) => jsx(Link, { ...props, ...mdxProp }),
     MessageTable: (mdxProp: any) => jsx(MessageTable, { ...props, ...mdxProp }),
+    EntityPropertiesTable: (mdxProp: any) => jsx(EntityPropertiesTable, { ...props, ...mdxProp }),
     NodeGraph: (mdxProp: any) => jsx(NodeGraphPortal, { ...props.data, ...mdxProp, props, mdxProp }),
     OpenAPI,
     ResourceGroupTable: (mdxProp: any) => jsx(ResourceGroupTable, { ...props, ...mdxProp }),

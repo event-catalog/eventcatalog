@@ -7,6 +7,7 @@ import type { CollectionMessageTypes } from '@types';
 import { getCollectionStyles } from './utils';
 import { SearchBar, TypeFilters, Pagination } from './components';
 import type { ExtendedDomain } from './DomainGrid';
+import { BoxIcon } from 'lucide-react';
 
 // Message component for reuse
 const Message = memo(({ message, collection }: { message: any; collection: string }) => {
@@ -156,6 +157,24 @@ const DomainSection = memo(
                   </a>
                 </div>
               </div>
+
+              {/* Entities */}
+              {subdomain.data.entities && subdomain.data.entities.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-4 gap-6">
+                  {subdomain.data.entities.map((entity: any) => (
+                    <a
+                      key={entity.id}
+                      href={buildUrl(`/docs/entities/${entity.id}`)}
+                      className="bg-white border-2 border-dashed border-purple-400 rounded-lg p-4 space-y-4 hover:bg-purple-50 transition-colors duration-200"
+                    >
+                      <div className="flex items-center gap-2">
+                        <BoxIcon className="h-5 w-5 text-purple-500" />
+                        <h3 className="text-lg font-semibold text-gray-900">{entity.id} (Entity)</h3>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-2 gap-6">
                 {subdomainServices.map((service) => (

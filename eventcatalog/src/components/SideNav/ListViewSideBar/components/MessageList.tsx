@@ -39,7 +39,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, decodedCurrentPath 
           <span
             className={`ml-2 text-[10px]  flex items-center gap-1 font-medium px-2 uppercase py-0.5 rounded ${getMessageColorByLabelOrCollection(message.collection, message.data?.sidebar?.badge)}`}
           >
-            {message.data?.sidebar?.badge || getMessageCollectionName(message.collection)}
+            {message.data?.sidebar?.badge || getMessageCollectionName(message.collection, message)}
           </span>
         </a>
       </li>

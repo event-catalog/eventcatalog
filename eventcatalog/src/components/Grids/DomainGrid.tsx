@@ -5,6 +5,7 @@ import type { CollectionEntry } from 'astro:content';
 import { type CollectionMessageTypes } from '@types';
 import { getCollectionStyles } from './utils';
 import { SearchBar } from './components';
+import { BoxIcon } from 'lucide-react';
 
 export interface ExtendedDomain extends CollectionEntry<'domains'> {
   sends: CollectionEntry<CollectionMessageTypes>[];
@@ -123,6 +124,14 @@ export default function DomainGrid({ domains, embeded }: DomainGridProps) {
                     </p>
                   </div>
                 </div>
+                {domain.data.entities && domain.data.entities.length > 0 && (
+                  <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-gray-200 ">
+                    <BoxIcon className="h-4 w-4 text-purple-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{domain.data.entities?.length} Entities</p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-6">
