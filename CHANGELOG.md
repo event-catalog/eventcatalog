@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.36.1
+
+### Patch Changes
+
+- 0c0d378: feat(core): added new protocols for tibco
+
 ## 2.36.0
 
 ### Minor Changes
