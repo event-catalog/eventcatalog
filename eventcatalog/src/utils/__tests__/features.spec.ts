@@ -5,7 +5,21 @@ import {
   isEventCatalogChatEnabled,
   isEventCatalogUpgradeEnabled,
   isCustomLandingPageEnabled,
+  isMarkdownDownloadEnabled,
 } from '../feature';
+
+import config from '@config';
+
+vi.mock('@config', () => ({
+  default: {
+    llmsTxt: {
+      enabled: false,
+    },
+    chat: {
+      enabled: true,
+    },
+  },
+}));
 
 describe('features', () => {
   const originalEnv = process.env;
@@ -122,6 +136,17 @@ describe('features', () => {
       delete process.env.EVENTCATALOG_STARTER;
       delete process.env.EVENTCATALOG_SCALE;
       expect(isCustomLandingPageEnabled()).toBe(false);
+    });
+  });
+
+  describe('isMarkdownDownloadEnabled', () => {
+    it('returns false when eventcatalog.config.js (llmsTxt.enabled) is false', () => {
+      expect(isMarkdownDownloadEnabled()).toBe(false);
+    });
+
+    it('returns true when eventcatalog.config.js (llmsTxt.enabled) is true', () => {
+      config.llmsTxt.enabled = true;
+      expect(isMarkdownDownloadEnabled()).toBe(true);
     });
   });
 });

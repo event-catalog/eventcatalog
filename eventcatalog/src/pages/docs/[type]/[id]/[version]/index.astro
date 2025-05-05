@@ -15,6 +15,8 @@ import DomainSideBar from '@components/SideBars/DomainSideBar.astro';
 import ChannelSideBar from '@components/SideBars/ChannelSideBar.astro';
 import FlowSideBar from '@components/SideBars/FlowSideBar.astro';
 import EntitySideBar from '@components/SideBars/EntitySideBar.astro';
+import CopyAsMarkdown from '@components/CopyAsMarkdown';
+
 import {
   QueueListIcon,
   RectangleGroupIcon,
@@ -36,6 +38,9 @@ import { getIcon } from '@utils/badges';
 import { getDeprecatedDetails } from '@utils/collections/util';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { buildUrl } from '@utils/url-builder';
+import { getSchemasFromResource } from '@utils/collections/schemas';
+import { isEventCatalogChatEnabled, isMarkdownDownloadEnabled } from '@utils/feature';
+
 import config from '@config';
 
 export async function getStaticPaths() {
@@ -176,6 +181,14 @@ const {
 
 let friendlyCollectionName = props.collection.slice(0, props.collection.length - 1);
 friendlyCollectionName = friendlyCollectionName === 'querie' ? 'query' : friendlyCollectionName;
+
+const schemasForResource = getSchemasFromResource(props);
+
+const generatePromptForResource = (props: any) => {
+  return `
+    Please tell me more about the ${props.collection.slice(0, props.collection.length - 1)} -  ${props.data.name} v${props.data.version} in this catalog.
+  `;
+};
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
@@ -184,13 +197,27 @@ friendlyCollectionName = friendlyCollectionName === 'querie' ? 'query' : friendl
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
         <div class="border-b border-gray-200 md:pb-2">
           <div>
-            <h2
-              id="doc-page-header"
-              class={`text-2xl md:text-4xl font-bold text-black ${props.data.deprecated && hasDeprecated ? 'text-red-500' : ''}`}
-            >
-              {props.data.name}
-              <span class="">(v{props.data.version})</span>
-            </h2>
+            <div class="flex justify-between items-center">
+              <h2
+                id="doc-page-header"
+                class={`text-2xl md:text-4xl font-bold text-black ${props.data.deprecated && hasDeprecated ? 'text-red-500' : ''}`}
+              >
+                {props.data.name}
+                <span class="">(v{props.data.version})</span>
+              </h2>
+              {
+                isMarkdownDownloadEnabled() && (
+                  <div class="hidden lg:block">
+                    <CopyAsMarkdown
+                      client:only="react"
+                      schemas={schemasForResource}
+                      chatQuery={generatePromptForResource(props)}
+                      chatEnabled={isEventCatalogChatEnabled()}
+                    />
+                  </div>
+                )
+              }
+            </div>
             {
               isMarkedAsDeprecated && hasDeprecated && (
                 <Admonition

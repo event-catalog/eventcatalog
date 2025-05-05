@@ -11,6 +11,7 @@ import RepositoryList from '@components/Lists/RepositoryList.astro';
 import { getOwner } from '@utils/collections/owners';
 import CustomSideBarSectionList from '@components/Lists/CustomSideBarSectionList.astro';
 import config from '@config';
+import { getSchemaFormatFromURL } from '@utils/collections/schemas';
 
 interface Props {
   message: CollectionEntry<CollectionMessageTypes>;
@@ -182,7 +183,7 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
             class="flex items-center justify-center space-x-2 text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
           >
             <FileDownIcon strokeWidth={2} size={16} />
-            <span>Download schema</span>
+            <span>Download {getSchemaFormatFromURL(schemaURL)?.toUpperCase()} schema</span>
           </a>
         )
       }
