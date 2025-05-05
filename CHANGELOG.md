@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.37.0
+
+### Minor Changes
+
+- 76464b3: feat(core): added ability for custom landing page for EventCatalog
+
 ## 2.36.1
 
 ### Patch Changes
