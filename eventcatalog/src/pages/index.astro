@@ -19,10 +19,10 @@ import { existsSync, readFileSync } from 'fs';
 
 const props = Astro.props;
 
-const pathToUserDefinedLandingPage = path.join(process.env.PROJECT_DIR || '', 'pages/landing-page/index.astro');
+const pathToUserDefinedLandingPage = path.join(process.env.PROJECT_DIR || '', 'pages/homepage.astro');
 
 if (existsSync(pathToUserDefinedLandingPage) && isCustomLandingPageEnabled()) {
-  CustomContent = await import(pathToUserDefinedLandingPage).then((mod) => mod.default);
+  CustomContent = await import(/* @vite-ignore */ pathToUserDefinedLandingPage).then((mod) => mod.default);
   const rawContent = readFileSync(pathToUserDefinedLandingPage, 'utf-8');
   nodeGraphs = getMDXComponentsByName(rawContent, 'NodeGraph') || [];
 }
