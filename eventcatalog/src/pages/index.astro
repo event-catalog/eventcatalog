@@ -11,7 +11,6 @@ import { isCustomLandingPageEnabled } from '@utils/feature';
 import DefaultAstroLandingPage from './_index.astro';
 
 let nodeGraphs: any[] = [];
-
 let CustomContent = null;
 
 import path from 'path';
@@ -22,7 +21,10 @@ const props = Astro.props;
 const pathToUserDefinedLandingPage = path.join(process.env.PROJECT_DIR || '', 'pages/homepage.astro');
 
 if (existsSync(pathToUserDefinedLandingPage) && isCustomLandingPageEnabled()) {
-  CustomContent = await import(/* @vite-ignore */ pathToUserDefinedLandingPage).then((mod) => mod.default);
+  const customPages = import.meta.glob('/**/homepage.astro', { eager: true });
+  // @ts-ignore
+  CustomContent = Object.values(customPages)[0]?.default || null;
+
   const rawContent = readFileSync(pathToUserDefinedLandingPage, 'utf-8');
   nodeGraphs = getMDXComponentsByName(rawContent, 'NodeGraph') || [];
 }
