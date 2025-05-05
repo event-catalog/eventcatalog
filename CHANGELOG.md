@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.37.3
+
+### Patch Changes
+
+- c77bc89: feat(core): added ability to embed any nodegraph in your docs
+
 ## 2.37.2
 
 ### Patch Changes
