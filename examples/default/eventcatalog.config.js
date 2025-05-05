@@ -42,7 +42,11 @@ export default {
       "@eventcatalog/generator-ai", {
         debug: true,
         splitMarkdownFiles: false,
-        includeUsersAndTeams: false
+        includeUsersAndTeams: false,
+        embedding: {
+          provider: 'huggingface',
+          model: 'Xenova/all-MiniLM-L6-v2'
+        }
       }
     ],
   ],

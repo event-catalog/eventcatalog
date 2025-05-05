@@ -3,7 +3,6 @@ import { BookOpen, Send } from 'lucide-react';
 import { CreateWebWorkerMLCEngine, type InitProgressReport } from '@mlc-ai/web-llm';
 import { useChat, type Message } from '../hooks/ChatProvider';
 import React from 'react';
-
 // Update Message type to include resources
 interface Resource {
   id: string;
@@ -122,9 +121,11 @@ const ChatWindow = ({
   const [isThinking, setIsThinking] = useState(false);
   const completionRef = useRef<any>(null);
   const outputRef = useRef<HTMLDivElement>(null);
+  const [sendDefaultQuestionToLLM, setSendDefaultQuestionToLLM] = useState(false);
 
   const { currentSession, storeMessagesToSession, updateSession, isStreaming, setIsStreaming } = useChat();
 
+  // Load messages when session changes
   // Load messages when session changes
   useEffect(() => {
     if (currentSession) {
@@ -159,6 +160,7 @@ const ChatWindow = ({
   }, [engine]);
 
   const handleSubmit = useCallback(async () => {
+    console.log('handleSubmit', inputValue);
     if (!inputValue.trim() || !engine) return;
 
     // Add to messages
@@ -361,6 +363,13 @@ const ChatWindow = ({
   };
 
   useEffect(() => {
+    if (!loading && sendDefaultQuestionToLLM) {
+      handleSubmit();
+      setSendDefaultQuestionToLLM(false);
+    }
+  }, [sendDefaultQuestionToLLM, loading]);
+
+  useEffect(() => {
     const initEngine = async () => {
       try {
         // Cache the LLMs text file
@@ -445,6 +454,16 @@ const ChatWindow = ({
   // Memoize the input change handler
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
+  }, []);
+
+  // If we have an initial query, set the input value
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get('query');
+    if (query) {
+      setInputValue(query);
+      setSendDefaultQuestionToLLM(true);
+    }
   }, []);
 
   return (

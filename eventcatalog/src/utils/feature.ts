@@ -11,12 +11,19 @@
  * 3. Follow the official activation instructions
  */
 
+import config from '@config';
+
 // These functions check for valid, legally obtained access to premium features
 export const isEventCatalogStarterEnabled = () => process.env.EVENTCATALOG_STARTER === 'true';
 export const isEventCatalogScaleEnabled = () => process.env.EVENTCATALOG_SCALE === 'true';
 
 export const isCustomDocsEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
-export const isEventCatalogChatEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
+export const isEventCatalogChatEnabled = () => {
+  const isFeatureEnabledFromPlan = isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
+  return isFeatureEnabledFromPlan && config?.chat?.enabled;
+};
 
 export const isEventCatalogUpgradeEnabled = () => !isEventCatalogStarterEnabled() && !isEventCatalogScaleEnabled();
 export const isCustomLandingPageEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
+
+export const isMarkdownDownloadEnabled = () => config?.llmsTxt?.enabled ?? false;

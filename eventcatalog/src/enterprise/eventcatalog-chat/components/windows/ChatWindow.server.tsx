@@ -49,7 +49,7 @@ const ChatWindow = ({
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
   // --- End new state ---
 
-  const { currentSession, storeMessagesToSession, updateSession, isStreaming, setIsStreaming } = useChat();
+  const { currentSession, storeMessagesToSession, updateSession, isStreaming, setIsStreaming, createSession } = useChat();
 
   // If the messages change add them to the session
   useEffect(() => {
@@ -414,6 +414,18 @@ const ChatWindow = ({
       outputElement.removeEventListener('click', handleClick);
     };
   }, []); // Empty dependency array ensures this runs only once on mount
+
+  // Handle the query from the url
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get('query');
+    if (query) {
+      setTimeout(() => {
+        createSession();
+        setInputValue(query);
+      }, 250);
+    }
+  }, []);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden h-[calc(100vh-60px)] w-full bg-white">
