@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.37.2
+
+### Patch Changes
+
+- 394537f: feat(core): added ability to copy pages and schemas to clipboard
+
 ## 2.37.1
 
 ### Patch Changes
