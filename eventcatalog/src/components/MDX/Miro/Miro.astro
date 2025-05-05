@@ -35,7 +35,9 @@ const params = {
   moveToWidget: moveToWidget || undefined,
 };
 
-const backUrl = buildUrl(`/docs/${resource.collection}/${resource.data.id}/${resource.data.version}#${title}-miro-title`);
+const backUrl = resource.collection
+  ? buildUrl(`/docs/${resource.collection}/${resource.data.id}/${resource.data.version}#${title}-miro-title`)
+  : undefined;
 
 const fullScreenParams = {
   ...params,

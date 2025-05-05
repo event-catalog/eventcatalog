@@ -19,3 +19,4 @@ export const isCustomDocsEnabled = () => isEventCatalogStarterEnabled() || isEve
 export const isEventCatalogChatEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
 
 export const isEventCatalogUpgradeEnabled = () => !isEventCatalogStarterEnabled() && !isEventCatalogScaleEnabled();
+export const isCustomLandingPageEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();

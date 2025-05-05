@@ -4,6 +4,7 @@ import {
   isCustomDocsEnabled,
   isEventCatalogChatEnabled,
   isEventCatalogUpgradeEnabled,
+  isCustomLandingPageEnabled,
 } from '../feature';
 
 describe('features', () => {
@@ -103,6 +104,24 @@ describe('features', () => {
     it('should return false when EVENTCATALOG_SCALE is true', () => {
       process.env.EVENTCATALOG_SCALE = 'true';
       expect(isEventCatalogUpgradeEnabled()).toBe(false);
+    });
+  });
+
+  describe('isCustomLandingPageEnabled', () => {
+    it('should return true when EVENTCATALOG_STARTER is true', () => {
+      process.env.EVENTCATALOG_STARTER = 'true';
+      expect(isCustomLandingPageEnabled()).toBe(true);
+    });
+
+    it('should return true when EVENTCATALOG_SCALE is true', () => {
+      process.env.EVENTCATALOG_SCALE = 'true';
+      expect(isCustomLandingPageEnabled()).toBe(true);
+    });
+
+    it('should return false when neither feature is enabled', () => {
+      delete process.env.EVENTCATALOG_STARTER;
+      delete process.env.EVENTCATALOG_SCALE;
+      expect(isCustomLandingPageEnabled()).toBe(false);
     });
   });
 });

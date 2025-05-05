@@ -1,0 +1,278 @@
+---
+import { buildUrl } from '@utils/url-builder';
+import { ChatBubbleLeftIcon, RectangleGroupIcon, ServerIcon } from '@heroicons/react/24/outline';
+import config from '@config';
+
+import { getMessages } from '@utils/messages';
+import { getDomains } from '@utils/collections/domains';
+import { getServices } from '@utils/collections/services';
+import { getFlows } from '@utils/collections/flows';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { BookOpenText, Workflow, TableProperties, House, BookUser, MessageSquare, BotMessageSquare, Users } from 'lucide-react';
+
+const { commands = [], events = [], queries = [] } = await getMessages({ getAllVersions: false });
+const messages = [...events, ...queries, ...commands];
+const domains = await getDomains({ getAllVersions: false });
+const services = await getServices({ getAllVersions: false });
+const flows = await getFlows({ getAllVersions: false });
+
+const gettingStartedItems = [
+  {
+    title: 'Add a New Message',
+    icon: ChatBubbleLeftIcon,
+    iconBg: 'blue',
+    description: 'Document a new message in your system with schemas, examples, and relationships.',
+    links: [
+      {
+        text: 'How to add a message',
+        href: 'https://www.eventcatalog.dev/docs/messages',
+      },
+      {
+        text: 'Versioning guide',
+        href: 'https://www.eventcatalog.dev/docs/development/guides/messages/events/versioning',
+      },
+      {
+        text: 'Adding schemas',
+        href: 'https://www.eventcatalog.dev/docs/development/guides/messages/events/adding-schemas',
+      },
+    ],
+  },
+  {
+    title: 'Document a Service',
+    icon: ServerIcon,
+    iconBg: 'green',
+    description: 'Add details about a service, including its events, APIs, and dependencies.',
+    links: [
+      {
+        text: 'How to add a service',
+        href: 'https://www.eventcatalog.dev/docs/services',
+      },
+      {
+        text: 'Service ownership',
+        href: 'https://www.eventcatalog.dev/docs/development/guides/services/owners',
+      },
+      {
+        text: 'Assign specifications to services',
+        href: 'https://www.eventcatalog.dev/docs/development/guides/services/adding-spec-files-to-services',
+      },
+    ],
+  },
+  {
+    title: 'Create a Domain',
+    icon: RectangleGroupIcon,
+    iconBg: 'purple',
+    description: 'Organize your services and events into logical business domains.',
+    links: [
+      {
+        text: 'How to add a domain',
+        href: 'https://www.eventcatalog.dev/docs/domains',
+      },
+      {
+        text: 'Adding services to domains',
+        href: 'https://www.eventcatalog.dev/docs/development/guides/domains/adding-services-to-domains',
+      },
+      {
+        text: 'Creating a ubiquitous language',
+        href: 'https://www.eventcatalog.dev/docs/development/guides/domains/adding-ubiquitous-language',
+      },
+    ],
+  },
+];
+
+const getDefaultUrl = (route: string, defaultValue: string) => {
+  if (domains.length > 0) return buildUrl(`/${route}/domains/${domains[0].data.id}/${domains[0].data.latestVersion}`);
+  if (services.length > 0) return buildUrl(`/${route}/services/${services[0].data.id}/${services[0].data.latestVersion}`);
+  if (flows.length > 0) return buildUrl(`/${route}/flows/${flows[0].data.id}/${flows[0].data.latestVersion}`);
+  return buildUrl(defaultValue);
+};
+
+const topTiles = [
+  {
+    title: 'Domains',
+    count: domains.length,
+    description: 'Business domains defined',
+    href: buildUrl('/architecture/domains'),
+    icon: RectangleGroupIcon,
+    bgColor: 'bg-yellow-100',
+    textColor: 'text-yellow-600',
+    arrowColor: 'text-yellow-600',
+  },
+  {
+    title: 'Services',
+    count: services.length,
+    description: 'Services documented in the catalog',
+    href: buildUrl('/architecture/services'),
+    icon: ServerIcon,
+    bgColor: 'bg-pink-100',
+    textColor: 'text-pink-600',
+    arrowColor: 'text-pink-600',
+  },
+  {
+    title: 'Messages',
+    count: messages.length,
+    description: 'Messages documented in the catalog',
+    href: buildUrl('/architecture/messages'),
+    icon: ChatBubbleLeftIcon,
+    bgColor: 'bg-blue-100',
+    textColor: 'text-blue-600',
+    arrowColor: 'text-blue-600',
+  },
+];
+---
+
+<VerticalSideBarLayout title="EventCatalog">
+  <body class="min-h-screen bg-gray-50 font-inter">
+    <main class="container px-8 lg:px-8 mx-auto py-8 max-w-[80em]">
+      <div class="mb-12">
+        <h1 class="text-4xl font-semibold mb-4 text-gray-900 font-inter">
+          {config?.organizationName || 'EventCatalog'}
+        </h1>
+        <p class="text-base mb-0 text-gray-600 max-w-3xl">
+          {config.tagline || 'Comprehensive event-driven architecture documentation covering events, services, domains.'}
+        </p>
+      </div>
+
+      <h2 class="text-2xl font-semibold mb-8 text-gray-900">Architecture overview</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+        {
+          topTiles.map((tile) => (
+            <a
+              href={tile.href}
+              class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200"
+            >
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-3">
+                  <div class={`p-1.5 ${tile.bgColor} rounded-lg`}>
+                    <tile.icon className={`w-4 h-4 ${tile.textColor}`} />
+                  </div>
+                  <h3 class="text-lg font-semibold text-gray-900">
+                    {tile.count} {tile.title}
+                  </h3>
+                </div>
+                <span class={`text-sm font-medium ${tile.arrowColor}`}>View all →</span>
+              </div>
+              <p class="text-sm text-gray-600">{tile.description}</p>
+            </a>
+          ))
+        }
+      </div>
+
+      <div class="mb-12">
+        <h2 class="text-2xl font-semibold mb-8 text-gray-900">Explore EventCatalog</h2>
+        <div class="grid grid-cols-12 gap-4">
+          <a
+            href={getDefaultUrl('docs', 'domains')}
+            class="col-span-6 row-span-2 group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 overflow-hidden"
+          >
+            <div class="h-24 bg-gradient-to-br from-blue-50 to-blue-100 border-b border-gray-200"></div>
+            <div class="p-4">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="p-2 bg-blue-100 rounded-lg group-hover:scale-105 transition-transform">
+                  <BookOpenText className="w-5 h-5 text-blue-600" />
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 group-hover:text-blue-600">Documentation</h3>
+              </div>
+              <p class="text-sm text-gray-600">
+                Read documentation for {config.organizationName || 'EventCatalog'} messages, services and domains.
+              </p>
+            </div>
+          </a>
+
+          <a
+            href={getDefaultUrl('visualiser', 'domains')}
+            class="col-span-6 row-span-2 group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 overflow-hidden"
+          >
+            <div class="h-24 bg-gradient-to-br from-purple-50 to-purple-100 border-b border-gray-200"></div>
+            <div class="p-4">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="p-2 bg-purple-100 rounded-lg group-hover:scale-105 transition-transform">
+                  <Workflow className="w-5 h-5 text-purple-600" />
+                </div>
+                <h3 class="text-base font-semibold text-gray-900 group-hover:text-purple-600">Visualizer</h3>
+              </div>
+              <p class="text-sm text-gray-600">Explore interactive visualizations of your architecture.</p>
+            </div>
+          </a>
+
+          <a
+            href={buildUrl('/discover/events')}
+            class="col-span-4 row-span-2 group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 overflow-hidden"
+          >
+            <div class="h-24 bg-gradient-to-br from-teal-50 to-teal-100 border-b border-gray-200"></div>
+            <div class="p-4">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="p-2 bg-teal-100 rounded-lg group-hover:scale-105 transition-transform">
+                  <TableProperties className="w-5 h-5 text-teal-600" />
+                </div>
+                <h3 class="text-base font-semibold text-gray-900 group-hover:text-teal-600">Explore</h3>
+              </div>
+              <p class="text-sm text-gray-600">Navigate through your events and services</p>
+            </div>
+          </a>
+
+          <a
+            href={buildUrl('/chat')}
+            class="col-span-4 row-span-2 group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 overflow-hidden"
+          >
+            <div class="h-24 bg-gradient-to-br from-green-50 to-green-100 border-b border-gray-200"></div>
+            <div class="p-4">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="p-2 bg-green-100 rounded-lg group-hover:scale-105 transition-transform">
+                  <BotMessageSquare className="w-5 h-5 text-green-600" />
+                </div>
+                <h3 class="text-base font-semibold text-gray-900 group-hover:text-green-600">Chat</h3>
+              </div>
+              <p class="text-sm text-gray-600">Ask questions about your architecture</p>
+            </div>
+          </a>
+
+          <a
+            href={buildUrl('/directory/users')}
+            class="col-span-4 row-span-2 group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 overflow-hidden"
+          >
+            <div class="h-24 bg-gradient-to-br from-orange-50 to-orange-100 border-b border-gray-200"></div>
+            <div class="p-4">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="p-2 bg-orange-100 rounded-lg group-hover:scale-105 transition-transform">
+                  <BookUser className="w-5 h-5 text-orange-600" />
+                </div>
+                <h3 class="text-base font-semibold text-gray-900 group-hover:text-orange-600">Users & Teams</h3>
+              </div>
+              <p class="text-sm text-gray-600">Discover service and message ownership</p>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <section class="mb-12">
+        <h2 class="text-2xl font-semibold mb-8 text-gray-900">Getting Started</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {
+            gettingStartedItems.map((item) => (
+              <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class={`p-2 bg-${item.iconBg}-100 rounded-lg`}>
+                    <item.icon className={`w-6 h-6 text-${item.iconBg}-600`} />
+                  </div>
+                  <h3 class="text-lg font-semibold text-gray-900">{item.title}</h3>
+                </div>
+                <p class="text-gray-600 text-sm mb-4">{item.description}</p>
+                <div class="space-y-2">
+                  {item.links.map((link) => (
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      class={`block text-sm text-${item.iconBg}-600 hover:text-${item.iconBg}-700`}
+                    >
+                      → {link.text}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+    </main>
+  </body>
+</VerticalSideBarLayout>
