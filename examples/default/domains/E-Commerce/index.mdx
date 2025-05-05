@@ -59,6 +59,10 @@ The E-Commerce domain is the core business domain of FlowMart, our modern digita
 
 ## Domain Overview
 
+The E-Commerce domain encapsulates all the core business logic for the FlowMart e-commerce platform. It is built on event-driven microservices architecture.
+
+<NodeGraph  />
+
 FlowMart's E-Commerce domain is built on event-driven microservices architecture, enabling:
 - Real-time inventory management across multiple warehouses
 - Seamless payment processing with multiple providers
@@ -67,7 +71,16 @@ FlowMart's E-Commerce domain is built on event-driven microservices architecture
 - Subscription-based shopping experiences
 - Advanced fraud detection and prevention
 
-## Sub domains
+## Core Domains for E-Commerce
+
+The <ResourceLink id="Orders" type="domain">Orders</ResourceLink> and <ResourceLink id="Subscription" type="domain">Subscription</ResourceLink> domains are core domains for the E-Commerce domain.
+
+<span class="not-prose">They are used to manage the orders and subscriptions for the E-Commerce domain.</span>
+
+<div class="grid grid-cols-2 gap-4 not-prose">
+  <NodeGraph id="Orders" version="0.0.3" type="domain" />
+  <NodeGraph id="Subscription" version="0.0.1" type="domain" />
+</div>
 
 The E-Commerce domain is built on the following sub domains:
 
@@ -76,26 +89,12 @@ The E-Commerce domain is built on the following sub domains:
 - <ResourceLink id="Subscription" type="domain">Subscription</ResourceLink> - Generic subscription domain handling users subscriptions
 
 
-
 ## Target Architecture (Event Storming Results)
 
 Our target architecture was defined through collaborative event storming sessions with product, engineering, and business stakeholders. This represents our vision for FlowMart's commerce capabilities.
 
 <Miro boardId="uXjVIHCImos=/" moveToWidget="3074457347671667709" edit={false} />
 
-## Target Architecture (Lucid Chart)
-
-First we used Lucid to create a detailed target architecture diagram, but moved to use EventStorming results for the final target architecture.
-
-Here is a reference to the Lucid diagram for the target architecture:
-
-<Lucid diagramId="e29f42a0-67e2-4f80-b0d7-6922bb7dd9c5" />
-
-## Current Production Architecture
-
-Our current event-driven architecture powering FlowMart's shopping experience:
-
-<NodeGraph />
 
 ### Order Processing Flow
 

@@ -110,6 +110,18 @@ export const resourceToCollectionMap = {
   team: 'teams',
 } as const;
 
+export const collectionToResourceMap = {
+  services: 'service',
+  events: 'event',
+  commands: 'command',
+  queries: 'query',
+  domains: 'domain',
+  flows: 'flow',
+  channels: 'channel',
+  users: 'user',
+  teams: 'team',
+} as const;
+
 export const getDeprecatedDetails = (item: CollectionEntry<CollectionTypes>) => {
   let options = {
     isMarkedAsDeprecated: false,

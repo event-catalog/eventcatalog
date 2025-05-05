@@ -8,6 +8,8 @@ import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewerRoot.astro';
 import Admonition from '@components/MDX/Admonition';
 
+import { resourceToCollectionMap, collectionToResourceMap } from '@utils/collections/util';
+
 // SideBars
 import ServiceSideBar from '@components/SideBars/ServiceSideBar.astro';
 import MessageSideBar from '@components/SideBars/MessageSideBar.astro';
@@ -41,6 +43,8 @@ import { buildUrl } from '@utils/url-builder';
 import { getSchemasFromResource } from '@utils/collections/schemas';
 import { isEventCatalogChatEnabled, isMarkdownDownloadEnabled } from '@utils/feature';
 
+import { getMDXComponentsByName } from '@utils/markdown';
+
 import config from '@config';
 
 export async function getStaticPaths() {
@@ -65,6 +69,7 @@ export async function getStaticPaths() {
 const props = Astro.props;
 
 const { Content } = await render(props);
+
 // const { Content } = await props.render();
 
 // Capitalize the first letter of a string
@@ -189,6 +194,15 @@ const generatePromptForResource = (props: any) => {
     Please tell me more about the ${props.collection.slice(0, props.collection.length - 1)} -  ${props.data.name} v${props.data.version} in this catalog.
   `;
 };
+
+// Handle node graphs in the markdown
+let nodeGraphs = getMDXComponentsByName(props.body || '', 'NodeGraph') || [];
+
+nodeGraphs.push({
+  id: props.data.id,
+  version: props.data.version,
+  type: collectionToResourceMap[props.collection as keyof typeof collectionToResourceMap],
+});
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
@@ -319,17 +333,27 @@ const generatePromptForResource = (props: any) => {
           <!-- @ts-ignore -->
           <!-- <SchemaViewer id={props.data.id} catalog={props.catalog} filePath={props.filePath} /> -->
           <SchemaViewer id={props.data.id} filePath={props.filePath} />
-          <NodeGraph
-            id={props.data.id}
-            collection={props.collection}
-            version={props.data.version}
-            mode="simple"
-            linksToVisualiser={true}
-            href={{
-              label: 'Open in Visualiser',
-              url: buildUrl(`/visualiser/${props.collection}/${props.data.id}/${props.data.version}`),
-            }}
-          />
+
+          {
+            nodeGraphs.length > 0 &&
+              nodeGraphs.map((nodeGraph: any) => {
+                const collection = resourceToCollectionMap[nodeGraph.type as keyof typeof resourceToCollectionMap];
+                return (
+                  <NodeGraph
+                    id={nodeGraph.id}
+                    version={nodeGraph.version}
+                    collection={collection}
+                    title={nodeGraph.title}
+                    mode="simple"
+                    linksToVisualiser={true}
+                    href={{
+                      label: 'Open in Visualiser',
+                      url: buildUrl(`/visualiser/${collection}/${nodeGraph.id}/${nodeGraph.version}`),
+                    }}
+                  />
+                );
+              })
+          }
         </div>
         <Footer />
       </div>
