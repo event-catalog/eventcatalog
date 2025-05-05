@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.37.1
+
+### Patch Changes
+
+- 4c3cdd4: fix(core): fixed issue loading in custom landing pages
+
 ## 2.37.0
 
 ### Minor Changes
