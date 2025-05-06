@@ -1,3 +1,6 @@
+export { default as AzureEventGrid } from '@icons/protocols/azure-eventgrid.svg?raw';
+export { default as AzureEventHubs } from '@icons/protocols/azure-eventhubs.svg?raw';
+export { default as AzureServiceBus } from '@icons/protocols/azure-servicebus.svg?raw';
 export { default as Kafka } from '@icons/protocols/kafka.svg?raw';
 export { default as Http } from '@icons/protocols/http.svg?raw';
 export { default as JMS } from '@icons/protocols/jms.svg?raw';

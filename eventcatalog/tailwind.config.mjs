@@ -59,6 +59,8 @@ export default {
     'bg-green-100',
     'bg-blue-100',
     'bg-indigo-100',
+    'text-[5px]',
+    'text-[9px]',
   ],
 
   plugins: [require('@tailwindcss/typography')],

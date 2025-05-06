@@ -1,4 +1,3 @@
-import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
 import type { CollectionMessageTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
 import { Handle } from '@xyflow/react';
@@ -22,22 +21,8 @@ function classNames(...classes: any) {
   return classes.filter(Boolean).join(' ');
 }
 
-import * as ProtocolIcons from '@icons/protocols';
 import { LinkIcon } from '@heroicons/react/24/outline';
-
-const protocolIcons = Object.keys(ProtocolIcons).reduce(
-  (icons, key) => {
-    const iconKey = key as keyof typeof ProtocolIcons;
-    icons[key.toLowerCase()] = ProtocolIcons[iconKey];
-    return icons;
-  },
-  {} as { [key: string]: string }
-);
-
-const getIconForProtocol = (icon: keyof typeof protocolIcons) => {
-  const Icon = protocolIcons[icon];
-  return Icon ? (props: any) => <span {...props} dangerouslySetInnerHTML={{ __html: Icon }} /> : null;
-};
+import { getIconForProtocol } from '@utils/protocols';
 
 export default function ChannelNode({ data, sourcePosition, targetPosition }: any) {
   const { mode, channel, source, target } = data as Data;
@@ -50,7 +35,7 @@ export default function ChannelNode({ data, sourcePosition, targetPosition }: an
 
   const SideBarIcon = getIcon(icon);
   const nodeLabel = label || channel?.data?.sidebar?.badge || 'Channel';
-  const fontSize = nodeLabel.length > 10 ? '7px' : '9px';
+  const fontSize = nodeLabel.length > 10 ? '5px' : '9px';
 
   const getAddress = () => {
     const sourceChannel = source.data.channels?.find((channel) => channel.id === id);

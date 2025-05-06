@@ -1,19 +1,5 @@
 import type { CollectionEntry } from 'astro:content';
-import * as ProtocolIcons from '@icons/protocols';
-
-const protocolIcons = Object.keys(ProtocolIcons).reduce(
-  (icons, key) => {
-    const iconKey = key as keyof typeof ProtocolIcons;
-    icons[key.toLowerCase()] = ProtocolIcons[iconKey];
-    return icons;
-  },
-  {} as { [key: string]: string }
-);
-
-const getIconForProtocol = (icon: keyof typeof protocolIcons) => {
-  const Icon = protocolIcons[icon];
-  return Icon ? (props: any) => <span {...props} dangerouslySetInnerHTML={{ __html: Icon }} /> : null;
-};
+import { getIconForProtocol } from '@utils/protocols';
 
 const ChannelParameters = (data: CollectionEntry<'channels'>['data']) => {
   return (
@@ -34,7 +20,7 @@ const ChannelParameters = (data: CollectionEntry<'channels'>['data']) => {
               <span className="font-semibold">{data.protocols.length > 1 ? 'Protocols:' : 'Protocol:'}</span>
               <ul className="space-x-2 flex">
                 {data.protocols.map((protocol) => {
-                  const IconComponent = getIconForProtocol(protocol.toLowerCase() as keyof typeof protocolIcons);
+                  const IconComponent = getIconForProtocol(protocol.toLowerCase());
                   return (
                     <li key={protocol} className=" text-sm flex items-center space-x-1  bg-gray-100 rounded-md px-1">
                       {IconComponent && <IconComponent className="w-4 h-4" />}
