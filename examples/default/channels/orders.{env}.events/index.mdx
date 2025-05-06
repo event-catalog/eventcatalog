@@ -8,8 +8,9 @@ owners:
   - dboyne
 address: orders.{env}.events
 protocols: 
-  - kafka
-
+  - azure-servicebus
+sidebar:
+  badge: 'ServiceBus'
 parameters:
   env:
     enum:
@@ -24,29 +25,25 @@ The Orders Events channel is the central stream for all order-related events acr
 
 <ChannelInformation />
 
-### Publishing a message using Kafka
+### Publishing a message using Azure Service Bus
 
-Here is an example of how to publish an order event using Kafka:
+Here is an example of how to publish an order event using Azure Service Bus:
 
 ```python
-from kafka import KafkaProducer
 import json
 from datetime import datetime
+from azure.servicebus import ServiceBusClient, ServiceBusMessage
 
-# Kafka configuration
-bootstrap_servers = ['localhost:9092']
-topic = f'orders.{env}.events'
+# --- Azure Service Bus Configuration ---
+# Replace with your actual connection string and queue/topic name
+CONNECTION_STR = "YOUR_AZURE_SERVICE_BUS_CONNECTION_STRING"
+QUEUE_NAME = "orders"  # Or your specific queue/topic name e.g., f"orders.{env}.events"
 
-# Create a Kafka producer
-producer = KafkaProducer(
-    bootstrap_servers=bootstrap_servers,
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
-)
-
-# Example order created event
-order_event = {
+# --- Example Order Event Data ---
+# This is the same event structure as before
+order_event_data = {
     "eventType": "ORDER_CREATED",
-    "timestamp": datetime.utcnow().isoformat(),
+    "timestamp": datetime.utcnow().isoformat() + "Z", # ISO 8601 format with Z for UTC
     "version": "1.0",
     "payload": {
         "orderId": "12345",
@@ -68,15 +65,42 @@ order_event = {
     "metadata": {
         "source": "web_checkout",
         "correlationId": "abc-xyz-123"
+        # Potentially add a message ID if not automatically handled or for specific tracking
+        # "messageId": str(uuid.uuid4()) # Requires import uuid
     }
 }
 
-# Send the message - using orderId as key for partitioning
-producer.send(
-    topic, 
-    key=order_event['payload']['orderId'].encode('utf-8'),
-    value=order_event
-)
-producer.flush()
+def send_order_event_to_service_bus(connection_string, queue_name, event_data):
+    # Create a ServiceBusClient object
+    with ServiceBusClient.from_connection_string(conn_str=connection_string) as servicebus_client:
+        # Create a sender for the queue
+        # For a topic, use: servicebus_client.get_topic_sender(topic_name=queue_name)
+        sender = servicebus_client.get_queue_sender(queue_name=queue_name)
+        with sender:
+            # Serialize the event data to a JSON string
+            event_json = json.dumps(event_data)
+            # Create a ServiceBusMessage object
+            message = ServiceBusMessage(event_json)
+            
+            # Set properties if needed, e.g., message_id or correlation_id
+            # message.message_id = event_data["metadata"].get("messageId")
+            message.correlation_id = event_data["metadata"]["correlationId"]
+            
+            # Send the message
+            sender.send_messages(message)
+            print(f"Sent order event (ID: {event_data['payload']['orderId']}) to Azure Service Bus queue: {queue_name}")
 
-print(f"Order event sent to topic {topic}")
+if __name__ == "__main__":
+    # Example of how to call the function
+    # Ensure azure-servicebus package is installed: pip install azure-servicebus
+    
+    # Basic error handling for placeholders
+    if CONNECTION_STR == "YOUR_AZURE_SERVICE_BUS_CONNECTION_STRING" or QUEUE_NAME == "YOUR_QUEUE_NAME":
+        print("Please update CONNECTION_STR and QUEUE_NAME with your actual Azure Service Bus details.")
+    else:
+        try:
+            send_order_event_to_service_bus(CONNECTION_STR, QUEUE_NAME, order_event_data)
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            print("Ensure your Azure Service Bus connection string and queue name are correct,")
+            print("and the 'azure-servicebus' package is installed ('pip install azure-servicebus').")

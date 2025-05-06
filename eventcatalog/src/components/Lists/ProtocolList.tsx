@@ -1,6 +1,6 @@
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
-import * as ProtocolIcons from '@icons/protocols';
+import { getIconForProtocol } from '@utils/protocols';
 
 import './PillListFlat.styles.css';
 
@@ -20,20 +20,6 @@ interface Props {
   }[];
   emptyMessage?: string;
 }
-
-const protocolIcons = Object.keys(ProtocolIcons).reduce(
-  (icons, key) => {
-    const iconKey = key as keyof typeof ProtocolIcons;
-    icons[key.toLowerCase()] = ProtocolIcons[iconKey];
-    return icons;
-  },
-  {} as { [key: string]: string }
-);
-
-const getIconForProtocol = (icon: keyof typeof protocolIcons) => {
-  const Icon = protocolIcons[icon];
-  return Icon ? (props: any) => <span {...props} dangerouslySetInnerHTML={{ __html: Icon }} /> : null;
-};
 
 const ProtocolList = ({ title, pills, emptyMessage, color = 'gray', ...props }: Props) => {
   return (
