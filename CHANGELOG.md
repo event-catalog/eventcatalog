@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.37.4
+
+### Patch Changes
+
+- 186b308: feat(core) added azure messaging protocols
+
 ## 2.37.3
 
 ### Patch Changes
