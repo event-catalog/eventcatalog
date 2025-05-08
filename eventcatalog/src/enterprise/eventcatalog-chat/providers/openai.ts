@@ -48,7 +48,6 @@ const AVAILABLE_OPENAI_MODELS = [
   'chatgpt-4o-latest',
 ] as const;
 
-
 export class OpenAIProvider extends AIProvider {
   public models: string[] = [...AVAILABLE_OPENAI_MODELS];
 
