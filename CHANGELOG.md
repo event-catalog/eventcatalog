@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 2.38.0
+
+### Minor Changes
+
+- 7c6ad76: feat(core): added google and anthropic models to chat feature
+
+### Patch Changes
+
+- c23584e: fix(core): fix protocol icon nullability issue
+
 ## 2.37.4
 
 ### Patch Changes
