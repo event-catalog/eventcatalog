@@ -5,29 +5,29 @@ export interface AIProviderOptions {
   modelId: string;
   model?: LanguageModel;
   temperature?: number;
-  topP?: number;
-  topK?: number;
-  frequencyPenalty?: number;
-  presencePenalty?: number;
+  topP?: number | undefined;
+  topK?: number | undefined;
+  frequencyPenalty?: number | undefined;
+  presencePenalty?: number | undefined;
 }
 
 export class AIProvider {
   private model?: LanguageModel;
   private modelId: string;
   private temperature: number;
-  private topP: number;
-  private topK: number;
-  private frequencyPenalty: number;
-  private presencePenalty: number;
+  private topP: number | undefined;
+  private topK: number | undefined;
+  private frequencyPenalty: number | undefined;
+  private presencePenalty: number | undefined;
   public models: string[];
 
   constructor({ modelId, model, temperature, topP, topK, frequencyPenalty, presencePenalty }: AIProviderOptions) {
     this.modelId = modelId;
-    this.temperature = temperature ?? 0.7;
-    this.topP = topP ?? 1;
-    this.topK = topK ?? 1;
-    this.frequencyPenalty = frequencyPenalty ?? 0;
-    this.presencePenalty = presencePenalty ?? 0;
+    this.temperature = temperature ?? 0.2;
+    this.topP = topP;
+    this.topK = topK;
+    this.frequencyPenalty = frequencyPenalty;
+    this.presencePenalty = presencePenalty;
     this.models = [];
 
     if (model) {
@@ -49,10 +49,10 @@ export class AIProvider {
       model: this.model,
       messages: messages,
       temperature: this.temperature,
-      topP: this.topP,
-      topK: this.topK,
-      frequencyPenalty: this.frequencyPenalty,
-      presencePenalty: this.presencePenalty,
+      ...(this.topP && { topP: this.topP }),
+      ...(this.topK && { topK: this.topK }),
+      ...(this.frequencyPenalty && { frequencyPenalty: this.frequencyPenalty }),
+      ...(this.presencePenalty && { presencePenalty: this.presencePenalty }),
     });
   }
 }

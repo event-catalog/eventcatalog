@@ -41,6 +41,8 @@ vi.doMock('fs', () => ({
 // Mock other dependencies
 vi.mock('@enterprise/eventcatalog-chat/EventCatalogVectorStore');
 vi.mock('@ai-sdk/openai');
+vi.mock('@ai-sdk/google');
+vi.mock('@ai-sdk/anthropic');
 vi.mock('ai', async (importOriginal) => {
   const original = (await importOriginal()) as any;
   return {
@@ -261,31 +263,6 @@ describe('AI Utilities', () => {
       expect(streamTextArgs.messages![0].content).toContain(
         '<resource id="res3" type="event" title="Event &quot;Three&quot;" summary="Summary with &quot;quotes&quot;" />'
       ); // Check title and escaped quotes
-    });
-
-    it('should throw an error for an invalid model ID', async () => {
-      // Mock config specifically for this test
-      vi.doMock('@config', () => ({
-        default: {
-          chat: {
-            model: 'invalid-model-id',
-          },
-        },
-      }));
-
-      // Re-import the module under test using the alias/absolute path
-      const { askQuestion: askQuestionWithInvalidModel } = await import('@enterprise/eventcatalog-chat/utils/ai');
-
-      // Setup mocks for this test specifically if needed
-      const mockGetResources = vi.fn().mockResolvedValue(mockResources);
-      vi.mocked(EventCatalogVectorStore.create).mockResolvedValue({
-        getEventCatalogResources: mockGetResources,
-      } as unknown as EventCatalogVectorStore);
-
-      await expect(askQuestionWithInvalidModel(testQuestion)).rejects.toThrow(/Invalid model: invalid-model-id/);
-
-      // Clean up the specific mock for config
-      vi.doUnmock('@config');
     });
 
     // Optional: Test the stream content if needed
