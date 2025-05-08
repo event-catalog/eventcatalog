@@ -10,6 +10,6 @@ const protocolIcons = Object.keys(ProtocolIcons).reduce(
 );
 
 export const getIconForProtocol = (icon: string) => {
-  const Icon = protocolIcons[icon.replace('-', '').toLowerCase()];
+  const Icon = protocolIcons[icon?.replace('-', '').toLowerCase()];
   return Icon ? (props: any) => <span {...props} dangerouslySetInnerHTML={{ __html: Icon }} /> : null;
 };
