@@ -28,14 +28,15 @@ export default {
   },
   chat: {
     enabled: true,
+    // provider: 'openai',
+    // model: 'o4',
     similarityResults: 50,
     max_tokens: 4096,
     // For local (Static EventCatalog Chat)
     // 'Llama-3.2-3B-Instruct-q4f16_1-MLC is also good
     model: 'Hermes-3-Llama-3.2-3B-q4f16_1-MLC',
-
+    // model: 'gemini-1.5-pro-latest',
     // For server (Dynamic EventCatalog)
-    // model: 'o4-mini'
   },
   generators: [
     [
