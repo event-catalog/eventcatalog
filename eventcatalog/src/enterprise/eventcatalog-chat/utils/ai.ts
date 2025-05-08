@@ -1,61 +1,14 @@
-import { streamText, type CoreMessage, type Message } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { generateText, type CoreMessage, type Message } from 'ai';
 import { EventCatalogVectorStore, type Resource } from '@enterprise/eventcatalog-chat/EventCatalogVectorStore';
 import fs from 'fs';
 import path from 'path';
 import config from '@config';
+import { anthropic } from '@ai-sdk/anthropic';
+import { getProvider } from '@enterprise/eventcatalog-chat/providers';
 
 const AI_EMBEDDINGS_PATH = path.join(process.env.PROJECT_DIR || process.cwd(), 'public/ai');
-
 const documents = JSON.parse(fs.readFileSync(path.join(AI_EMBEDDINGS_PATH, 'documents.json'), 'utf8'));
 const embeddings = JSON.parse(fs.readFileSync(path.join(AI_EMBEDDINGS_PATH, 'embeddings.json'), 'utf8'));
-
-const OpenAIChatModelIds = [
-  'o1',
-  'o1-2024-12-17',
-  'o1-mini',
-  'o1-mini-2024-09-12',
-  'o1-preview',
-  'o1-preview-2024-09-12',
-  'o3-mini',
-  'o3-mini-2025-01-31',
-  'o3',
-  'o3-2025-04-16',
-  'o4-mini',
-  'o4-mini-2025-04-16',
-  'gpt-4.1',
-  'gpt-4.1-2025-04-14',
-  'gpt-4.1-mini',
-  'gpt-4.1-mini-2025-04-14',
-  'gpt-4.1-nano',
-  'gpt-4.1-nano-2025-04-14',
-  'gpt-4o',
-  'gpt-4o-2024-05-13',
-  'gpt-4o-2024-08-06',
-  'gpt-4o-2024-11-20',
-  'gpt-4o-audio-preview',
-  'gpt-4o-audio-preview-2024-10-01',
-  'gpt-4o-audio-preview-2024-12-17',
-  'gpt-4o-search-preview',
-  'gpt-4o-search-preview-2025-03-11',
-  'gpt-4o-mini-search-preview',
-  'gpt-4o-mini-search-preview-2025-03-11',
-  'gpt-4o-mini',
-  'gpt-4o-mini-2024-07-18',
-  'gpt-4-turbo',
-  'gpt-4-turbo-2024-04-09',
-  'gpt-4-turbo-preview',
-  'gpt-4-0125-preview',
-  'gpt-4-1106-preview',
-  'gpt-4',
-  'gpt-4-0613',
-  'gpt-4.5-preview',
-  'gpt-4.5-preview-2025-02-27',
-  'gpt-3.5-turbo-0125',
-  'gpt-3.5-turbo',
-  'gpt-3.5-turbo-1106',
-  'chatgpt-4o-latest',
-];
 
 export const getResources = async (question: string) => {
   const vectorStore = await EventCatalogVectorStore.create(documents, embeddings);
@@ -134,18 +87,30 @@ ${resourceStrings.join('\n')}
     },
   ] as CoreMessage[];
 
-  const model = config?.chat?.model || 'o4-mini';
+  const modelId = config?.chat?.model;
 
-  if (!OpenAIChatModelIds.includes(model)) {
-    throw new Error(`Invalid model: ${model}, please use one of the following models: ${OpenAIChatModelIds.join(', ')}`);
+  // setup the model and provider
+  const aiProvider = getProvider(config?.chat?.provider || 'openai', {
+    modelId,
+    temperature: config?.chat?.temperature,
+    topP: config?.chat?.topP,
+    topK: config?.chat?.topK,
+    frequencyPenalty: config?.chat?.frequencyPenalty,
+    presencePenalty: config?.chat?.presencePenalty,
+  });
+
+  const { text } = await generateText({
+    model: anthropic('claude-3-haiku-20240307'),
+    prompt: 'Write a vegetarian lasagna recipe for 4 people.',
+  });
+
+  console.log(text);
+
+  const { isValidModel, listOfModels } = await aiProvider.validateModel(modelId);
+
+  if (!isValidModel) {
+    throw new Error(`Invalid model: "${modelId}", please use a valid model from the following list: ${listOfModels.join(', ')}`);
   }
 
-  return await streamText({
-    model: openai(model),
-    messages: messages,
-    temperature: 0.2,
-    topP: 1,
-    frequencyPenalty: 0,
-    presencePenalty: 0,
-  });
+  return await aiProvider.streamText(messages);
 }

@@ -20,6 +20,7 @@ interface Resource {
 
 interface ChatWindowProps {
   model?: string;
+  provider?: string;
   embeddingModel?: string;
   max_tokens?: number;
   similarityResults?: number;
@@ -30,6 +31,7 @@ interface ChatWindowProps {
 const ChatWindow = ({
   model = 'o4-mini',
   embeddingModel = 'text-embedding-3-large',
+  provider = 'openai',
   max_tokens = 4096,
   similarityResults = 50,
   resources: mentionInputResources = [],
@@ -492,8 +494,9 @@ const ChatWindow = ({
         </div>
         <div className="max-w-[900px] mx-auto flex justify-between">
           {/* show what model is loaded */}
-          <p className="text-xs text-gray-400 mt-2">
-            Model: {model}, Embedding Model: {embeddingModel}
+          <p className="text-[10px] text-gray-400 mt-2">
+            Provider: {provider.charAt(0).toUpperCase() + provider.slice(1)} | Model: {model}
+            {/* Embedding Model: {embeddingModel} */}
           </p>
           <p className="text-xs text-gray-500 mt-2">EventCatalog Chat can make mistakes. Check important info.</p>
         </div>
