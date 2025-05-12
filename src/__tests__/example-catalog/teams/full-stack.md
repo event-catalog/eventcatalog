@@ -1,7 +1,7 @@
 ---
 id: full-stack
 name: Full stackers
-summmary: Full stack developers based in London, UK
+summary: Full stack developers based in London, UK
 members:
     - dboyne
     - asmith
