@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.38.1
+
+### Patch Changes
+
+- e3374f5: feat(core): version dropdown added to visualizer
+
 ## 2.38.0
 
 ### Minor Changes
