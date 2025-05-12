@@ -11,7 +11,9 @@ import {
   getNodesAndEdgesForDomainContextMap,
 } from '@utils/node-graphs/domains-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs/flows-node-graph';
-
+import { buildUrl } from '@utils/url-builder';
+import { getVersionFromCollection } from '@utils/collections/versions';
+import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 interface Props {
   id: string;
   collection: string;
@@ -40,6 +42,8 @@ const getNodesAndEdgesFunctions = {
   flows: getNodesAndEdgesForFlows,
 };
 
+let links: { label: string; url: string }[] = [];
+
 if (collection in getNodesAndEdgesFunctions) {
   const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesFunctions[
     collection as keyof typeof getNodesAndEdgesFunctions
@@ -51,6 +55,30 @@ if (collection in getNodesAndEdgesFunctions) {
 
   nodes = fetchedNodes;
   edges = fetchedEdges;
+
+  if (mode === 'full') {
+    // Try and get the list of versions for the rendered item
+    try {
+      const allItems = await pageDataLoader[collection as keyof typeof pageDataLoader]();
+      const versions = getVersionFromCollection(allItems, id, version);
+
+      const item = versions[0];
+      const listOfVersions = item.data.versions || [];
+
+      // Order by version
+      listOfVersions.sort((a, b) => b.localeCompare(a));
+
+      if (listOfVersions.length > 1) {
+        links = listOfVersions.map((version) => ({
+          label: `${item.data.name} v${version}`,
+          url: buildUrl(`/visualiser/${collection}/${id}/${version}`),
+          selected: version === version,
+        }));
+      }
+    } catch (error) {
+      links = [];
+    }
+  }
 }
 
 if (collection === 'domain-context-map') {
@@ -71,6 +99,7 @@ if (collection === 'domain-context-map') {
     linkTo={linkTo}
     client:only="react"
     linksToVisualiser={linksToVisualiser}
+    links={links}
   />
 </div>
 
