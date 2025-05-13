@@ -3,6 +3,7 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { buildUrl, buildUrlWithParams } from '@utils/url-builder';
 import CollapsibleGroup from './components/CollapsibleGroup';
 import MessageList from './components/MessageList';
+import SpecificationsList from './components/SpecificationList';
 import type { MessageItem, ServiceItem, ListViewSideBarProps } from './types';
 const STORAGE_KEY = 'EventCatalog:catalogSidebarCollapsedGroups';
 const DEBOUNCE_DELAY = 300; // 300ms debounce delay
@@ -51,130 +52,128 @@ const ServiceItem = React.memo(
     collapsedGroups: { [key: string]: boolean };
     toggleGroupCollapse: (group: string) => void;
     isVisualizer: boolean;
-  }) => (
-    <CollapsibleGroup
-      isCollapsed={collapsedGroups[item.href]}
-      onToggle={() => toggleGroupCollapse(item.href)}
-      title={
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleGroupCollapse(item.href);
-          }}
-          className="flex justify-between items-center pl-2 w-full text-xs"
-        >
-          <span className="truncate text-xs font-bold">{item.label}</span>
-          <span className="text-purple-600 ml-2 text-[10px] font-medium bg-purple-50 px-2 py-0.5 rounded">SERVICE</span>
-        </button>
-      }
-    >
-      <div className="space-y-0.5 border-gray-200/80 border-l pl-3 ml-[9px] mt-1">
-        <a
-          href={`${item.href}`}
-          className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
-            decodedCurrentPath === item.href ? 'bg-purple-100' : 'hover:bg-purple-100'
-          }`}
-        >
-          <span className="truncate">Overview</span>
-        </a>
-        <a
-          href={buildUrlWithParams('/architecture/docs/messages', {
-            serviceName: item.name,
-            serviceId: item.id,
-          })}
-          className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
-            window.location.href.includes(`serviceId=${item.id}`) ? 'bg-purple-100' : 'hover:bg-purple-100'
-          }`}
-        >
-          <span className="truncate flex items-center gap-1">Architecture</span>
-        </a>
-        {item.specifications && item.specifications.asyncapiPath && (
-          <a
-            href={buildUrl(`/docs/services/${item.id}/${item.version}/asyncapi`)}
-            className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md flex justify-between ${
-              window.location.href.includes(`docs/services/${item.id}/${item.version}/asyncapi`)
-                ? 'bg-purple-100'
-                : 'hover:bg-purple-100'
-            }`}
-          >
-            <span className="truncate flex items-center gap-1">AsyncAPI specification</span>
-            <span className="text-purple-600 ml-2 text-[10px] uppercase font-medium bg-gray-50 px-4 py-0.5 rounded">
-              <img src={buildUrl('/icons/asyncapi.svg', true)} className="w-4 h-4" />
-            </span>
-          </a>
-        )}
-        {item.specifications && item.specifications.openapiPath && (
-          <a
-            href={buildUrl(`/docs/services/${item.id}/${item.version}/spec`)}
-            className={`items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md flex justify-between ${
-              window.location.href.includes(`docs/services/${item.id}/${item.version}/spec`)
-                ? 'bg-purple-100'
-                : 'hover:bg-purple-100'
-            }`}
-          >
-            <span className="truncate flex items-center gap-1">OpenAPI specification</span>
-            <span className="text-green-600 ml-2 text-[10px] uppercase font-medium bg-gray-50 px-4 py-0.5 rounded">
-              <img src={buildUrl('/icons/openapi.svg', true)} className="w-4 h-4" />
-            </span>
-          </a>
-        )}
-        <CollapsibleGroup
-          isCollapsed={collapsedGroups[`${item.href}-receives`]}
-          onToggle={() => toggleGroupCollapse(`${item.href}-receives`)}
-          title={
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleGroupCollapse(`${item.href}-receives`);
-              }}
-              className="truncate underline ml-2 text-xs mb-1 py-1"
-            >
-              Receives messages ({item.receives.length})
-            </button>
-          }
-        >
-          <MessageList messages={item.receives} decodedCurrentPath={decodedCurrentPath} />
-        </CollapsibleGroup>
+  }) => {
+    const asyncAPISpecifications = item.specifications?.filter((spec) => spec.type === 'asyncapi');
+    const openAPISpecifications = item.specifications?.filter((spec) => spec.type === 'openapi');
 
-        <CollapsibleGroup
-          isCollapsed={collapsedGroups[`${item.href}-sends`]}
-          onToggle={() => toggleGroupCollapse(`${item.href}-sends`)}
-          title={
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleGroupCollapse(`${item.href}-sends`);
-              }}
-              className="truncate underline ml-2 text-xs mb-1 py-1"
+    return (
+      <CollapsibleGroup
+        isCollapsed={collapsedGroups[item.href]}
+        onToggle={() => toggleGroupCollapse(item.href)}
+        title={
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleGroupCollapse(item.href);
+            }}
+            className="flex justify-between items-center pl-2 w-full text-xs"
+          >
+            <span className="truncate text-xs font-bold">{item.label}</span>
+            <span className="text-purple-600 ml-2 text-[10px] font-medium bg-purple-50 px-2 py-0.5 rounded">SERVICE</span>
+          </button>
+        }
+      >
+        <div className="space-y-0.5 border-gray-200/80 border-l pl-3 ml-[9px] mt-1">
+          <a
+            href={`${item.href}`}
+            className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
+              decodedCurrentPath === item.href ? 'bg-purple-100' : 'hover:bg-purple-100'
+            }`}
+          >
+            <span className="truncate">Overview</span>
+          </a>
+          {!isVisualizer && (
+            <a
+              href={buildUrlWithParams('/architecture/docs/messages', {
+                serviceName: item.name,
+                serviceId: item.id,
+              })}
+              className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
+                window.location.href.includes(`serviceId=${item.id}`) ? 'bg-purple-100' : 'hover:bg-purple-100'
+              }`}
             >
-              Sends messages ({item.sends.length})
-            </button>
-          }
-        >
-          <MessageList messages={item.sends} decodedCurrentPath={decodedCurrentPath} />
-        </CollapsibleGroup>
-        {!isVisualizer && item.entities.length > 0 && (
+              <span className="truncate flex items-center gap-1">Architecture</span>
+            </a>
+          )}
+
+          {!isVisualizer && item.specifications && item.specifications.length > 0 && (
+            <CollapsibleGroup
+              isCollapsed={collapsedGroups[`${item.href}-specifications`]}
+              onToggle={() => toggleGroupCollapse(`${item.href}-specifications`)}
+              title={
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleGroupCollapse(`${item.href}-specifications`);
+                  }}
+                  className="truncate underline ml-2 text-xs mb-1 py-1"
+                >
+                  Specifications ({item.specifications?.length})
+                </button>
+              }
+            >
+              <SpecificationsList specifications={item.specifications} id={item.id} version={item.version} />
+            </CollapsibleGroup>
+          )}
+
           <CollapsibleGroup
-            isCollapsed={collapsedGroups[`${item.href}-entities`]}
-            onToggle={() => toggleGroupCollapse(`${item.href}-entities`)}
+            isCollapsed={collapsedGroups[`${item.href}-receives`]}
+            onToggle={() => toggleGroupCollapse(`${item.href}-receives`)}
             title={
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleGroupCollapse(`${item.href}-entities`);
+                  toggleGroupCollapse(`${item.href}-receives`);
                 }}
                 className="truncate underline ml-2 text-xs mb-1 py-1"
               >
-                Entities ({item.entities.length})
+                Receives messages ({item.receives.length})
               </button>
             }
           >
-            <MessageList messages={item.entities} decodedCurrentPath={decodedCurrentPath} />
+            <MessageList messages={item.receives} decodedCurrentPath={decodedCurrentPath} />
           </CollapsibleGroup>
-        )}
-      </div>
-    </CollapsibleGroup>
-  )
+
+          <CollapsibleGroup
+            isCollapsed={collapsedGroups[`${item.href}-sends`]}
+            onToggle={() => toggleGroupCollapse(`${item.href}-sends`)}
+            title={
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleGroupCollapse(`${item.href}-sends`);
+                }}
+                className="truncate underline ml-2 text-xs mb-1 py-1"
+              >
+                Sends messages ({item.sends.length})
+              </button>
+            }
+          >
+            <MessageList messages={item.sends} decodedCurrentPath={decodedCurrentPath} />
+          </CollapsibleGroup>
+          {!isVisualizer && item.entities.length > 0 && (
+            <CollapsibleGroup
+              isCollapsed={collapsedGroups[`${item.href}-entities`]}
+              onToggle={() => toggleGroupCollapse(`${item.href}-entities`)}
+              title={
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleGroupCollapse(`${item.href}-entities`);
+                  }}
+                  className="truncate underline ml-2 text-xs mb-1 py-1"
+                >
+                  Entities ({item.entities.length})
+                </button>
+              }
+            >
+              <MessageList messages={item.entities} decodedCurrentPath={decodedCurrentPath} />
+            </CollapsibleGroup>
+          )}
+        </div>
+      </CollapsibleGroup>
+    );
+  }
 );
 
 const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPath }) => {
@@ -354,18 +353,20 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                           >
                             <span className="truncate">Overview</span>
                           </a>
-                          <a
-                            href={buildUrlWithParams('/architecture/docs/services', {
-                              serviceIds: item.services.map((service: any) => service.data.id).join(','),
-                              domainId: item.id,
-                              domainName: item.name,
-                            })}
-                            className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
-                              window.location.href.includes(`domainId=${item.id}`) ? 'bg-purple-100 ' : 'hover:bg-purple-100'
-                            }`}
-                          >
-                            <span className="truncate">Architecture</span>
-                          </a>
+                          {!isVisualizer && (
+                            <a
+                              href={buildUrlWithParams('/architecture/docs/services', {
+                                serviceIds: item.services.map((service: any) => service.data.id).join(','),
+                                domainId: item.id,
+                                domainName: item.name,
+                              })}
+                              className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
+                                window.location.href.includes(`domainId=${item.id}`) ? 'bg-purple-100 ' : 'hover:bg-purple-100'
+                              }`}
+                            >
+                              <span className="truncate">Architecture</span>
+                            </a>
+                          )}
                           {!isVisualizer && (
                             <a
                               href={buildUrl(`/docs/domains/${item.id}/language`)}

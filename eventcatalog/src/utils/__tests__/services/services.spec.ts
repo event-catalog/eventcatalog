@@ -1,7 +1,12 @@
 import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { mockCommands, mockEvents, mockQueries, mockServices } from './mocks';
-import { getProducersOfMessage, getServices, getConsumersOfMessage } from '@utils/collections/services';
+import {
+  getProducersOfMessage,
+  getServices,
+  getConsumersOfMessage,
+  getSpecificationsForService,
+} from '@utils/collections/services';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
@@ -377,6 +382,52 @@ describe('Services', () => {
       const servicesThatConsumeMessage = getConsumersOfMessage([service], message);
 
       expect(servicesThatConsumeMessage).toHaveLength(0);
+    });
+  });
+
+  describe('getSpecificationsForService', () => {
+    it('when specifications are defined and an array in the service, it returns a list of specifications', async () => {
+      const service = mockServices[0];
+
+      // @ts-ignore
+      const specifications = getSpecificationsForService(service);
+
+      expect(specifications).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'asyncapi',
+            path: 'asyncapi.yml',
+            name: 'AsyncAPI Custom Name',
+          }),
+          expect.objectContaining({
+            type: 'openapi',
+            path: 'openapi.yml',
+            name: 'OpenAPI Custom Name',
+          }),
+        ])
+      );
+    });
+
+    it('when specifications are defined and not an array in the service, it returns a list of specifications with defaults for name and type', async () => {
+      const service = mockServices[1];
+
+      // @ts-ignore
+      const specifications = getSpecificationsForService(service);
+
+      expect(specifications).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'asyncapi',
+            path: 'asyncapi.yml',
+            name: 'AsyncAPI',
+          }),
+          expect.objectContaining({
+            type: 'openapi',
+            path: 'openapi.yml',
+            name: 'OpenAPI',
+          }),
+        ])
+      );
     });
   });
 });
