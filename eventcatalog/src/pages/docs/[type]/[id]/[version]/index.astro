@@ -8,6 +8,8 @@ import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewerRoot.astro';
 import Admonition from '@components/MDX/Admonition';
 
+import { getSpecificationsForService } from '@utils/collections/services';
+
 import { resourceToCollectionMap, collectionToResourceMap } from '@utils/collections/util';
 
 // SideBars
@@ -136,31 +138,40 @@ const getBadge = () => {
 
 const getSpecificationBadges = () => {
   const badges = [];
-  const hasOpenAPISpec = !!props.data.specifications?.openapiPath;
-  const hasAsyncAPISpec = !!props.data.specifications?.asyncapiPath;
 
-  if (hasOpenAPISpec) {
-    badges.push({
-      backgroundColor: 'white',
-      textColor: 'gray',
-      content: 'OpenAPI Spec',
-      iconURL: buildUrl('/icons/openapi.svg', true),
-      class: 'text-black hover:underline',
-      id: 'open-api-badge',
-      url: buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}/spec`),
-    });
+  const specifications = getSpecificationsForService(props);
+
+  const asyncapiSpecs = specifications.filter((spec) => spec.type === 'asyncapi');
+  const openapiSpecs = specifications.filter((spec) => spec.type === 'openapi');
+
+  if (openapiSpecs.length > 0) {
+    for (const spec of openapiSpecs) {
+      badges.push({
+        backgroundColor: 'white',
+        textColor: 'gray',
+        content: spec.name || 'OpenAPI Spec',
+        iconURL: buildUrl('/icons/openapi.svg', true),
+        class: 'text-black hover:underline',
+        id: 'open-api-badge',
+        url: buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}/spec/${spec.filenameWithoutExtension}`),
+      });
+    }
   }
 
-  if (hasAsyncAPISpec) {
-    badges.push({
-      backgroundColor: 'white',
-      textColor: 'gray',
-      content: 'AsyncAPI Spec',
-      iconURL: buildUrl('/icons/asyncapi.svg', true),
-      class: 'text-black hover:underline',
-      id: 'asyncapi-badge',
-      url: buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}/asyncapi`),
-    });
+  if (asyncapiSpecs.length > 0) {
+    for (const spec of asyncapiSpecs) {
+      badges.push({
+        backgroundColor: 'white',
+        textColor: 'gray',
+        content: spec.name || 'AsyncAPI Spec',
+        iconURL: buildUrl('/icons/asyncapi.svg', true),
+        class: 'text-black hover:underline',
+        id: 'asyncapi-badge',
+        url: buildUrl(
+          `/docs/${props.collection}/${props.data.id}/${props.data.version}/asyncapi/${spec.filenameWithoutExtension}`
+        ),
+      });
+    }
   }
 
   return badges;

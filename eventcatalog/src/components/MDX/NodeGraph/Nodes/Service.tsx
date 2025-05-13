@@ -29,8 +29,8 @@ export default function ServiceNode({ data, sourcePosition, targetPosition }: an
   const nodeLabel = label || service?.data?.sidebar?.badge || 'Service';
   const fontSize = nodeLabel.length > 10 ? '7px' : '9px';
 
-  let asyncApiFiles = Array.isArray(specifications) ? specifications?.filter((spec) => spec.type === 'asyncapi') : [];
-  let openApiFiles = Array.isArray(specifications) ? specifications?.filter((spec) => spec.type === 'openapi') : [];
+  let asyncApiFiles = Array.isArray(specifications) ? specifications?.filter((spec) => spec.type === 'asyncapi') : ([] as any);
+  let openApiFiles = Array.isArray(specifications) ? specifications?.filter((spec) => spec.type === 'openapi') : ([] as any);
 
   if (!Array.isArray(specifications) && specifications?.asyncapiPath) {
     asyncApiFiles.push({ path: specifications.asyncapiPath, type: 'asyncapi', name: 'AsyncAPI' });
@@ -41,13 +41,13 @@ export default function ServiceNode({ data, sourcePosition, targetPosition }: an
   }
 
   // Add filename on asyncApiFiles and openApiFiles
-  asyncApiFiles = asyncApiFiles.map((file) => {
+  asyncApiFiles = asyncApiFiles.map((file: any) => {
     return {
       ...file,
       filename: file.path.split('/').pop()?.split('.').shift(),
     };
   });
-  openApiFiles = openApiFiles.map((file) => {
+  openApiFiles = openApiFiles.map((file: any) => {
     return {
       ...file,
       filename: file.path.split('/').pop()?.split('.').shift(),
@@ -120,7 +120,7 @@ export default function ServiceNode({ data, sourcePosition, targetPosition }: an
           </ContextMenu.Item>
           <ContextMenu.Separator className="h-[1px] bg-gray-200 m-1" />
           {asyncApiFiles.length > 0 &&
-            asyncApiFiles.map((file) => (
+            asyncApiFiles.map((file: any) => (
               <ContextMenu.Item asChild key={file.path}>
                 <a
                   href={buildUrl(`/docs/services/${id}/${version}/asyncapi/${file.filename}`)}
@@ -133,7 +133,7 @@ export default function ServiceNode({ data, sourcePosition, targetPosition }: an
               </ContextMenu.Item>
             ))}
           {openApiFiles.length > 0 &&
-            openApiFiles.map((file) => (
+            openApiFiles.map((file: any) => (
               <ContextMenu.Item asChild key={file.path}>
                 <a
                   href={buildUrl(`/docs/services/${id}/${version}/spec/${file.filename}`)}
