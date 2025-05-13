@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.39.0
+
+### Minor Changes
+
+- e1578ae: feat(core): added support for multi spec files for services
+
 ## 2.38.1
 
 ### Patch Changes
