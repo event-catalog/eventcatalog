@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.39.2
+
+### Patch Changes
+
+- 0094562: feat(core): added ability to turn of visualizer per resource
+
 ## 2.39.1
 
 ### Patch Changes
