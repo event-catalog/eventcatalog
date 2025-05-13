@@ -89,10 +89,19 @@ const baseSchema = z.object({
     })
     .optional(),
   specifications: z
-    .object({
-      openapiPath: z.string().optional(),
-      asyncapiPath: z.string().optional(),
-    })
+    .union([
+      z.object({
+        openapiPath: z.string().optional(),
+        asyncapiPath: z.string().optional(),
+      }),
+      z.array(
+        z.object({
+          type: z.enum(['openapi', 'asyncapi']),
+          path: z.string(),
+          name: z.string().optional(),
+        })
+      ),
+    ])
     .optional(),
   hidden: z.boolean().optional(),
   resourceGroups: z

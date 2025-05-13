@@ -3,7 +3,7 @@ import { buildUrl } from '@utils/url-builder';
 import { getChannels } from '@utils/channels';
 import { getDomains } from '@utils/collections/domains';
 import { getFlows } from '@utils/collections/flows';
-import { getServices } from '@utils/collections/services';
+import { getServices, getSpecificationsForService } from '@utils/collections/services';
 import { getCommands } from '@utils/commands';
 import { getEvents } from '@utils/events';
 import { getQueries } from '@utils/queries';
@@ -76,7 +76,7 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
       sends: sendsWithHref,
       receives: receivesWithHref,
       entities: entitiesWithHref,
-      specifications: isCollectionService ? item.data.specifications : null,
+      specifications: isCollectionService ? getSpecificationsForService(item) : null,
       sidebar: item.data?.sidebar,
     };
 
