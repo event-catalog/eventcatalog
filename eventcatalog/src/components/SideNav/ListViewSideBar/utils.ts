@@ -57,6 +57,11 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
       href: buildUrl(`/${route}/${entity.collection}/${entity.data.id}/${entity.data.version}`),
     }));
 
+    // don't render items if we are in the visualiser and the item has visualiser set to false
+    if (currentPath.includes('visualiser') && item.data.visualiser === false) {
+      return acc;
+    }
+
     const navigationItem = {
       label: item.data.name,
       version: item.data.version,
@@ -78,6 +83,7 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
       entities: entitiesWithHref,
       specifications: isCollectionService ? getSpecificationsForService(item) : null,
       sidebar: item.data?.sidebar,
+      renderInVisualiser: item.data?.visualiser ?? true,
     };
 
     group.push(navigationItem);

@@ -19,17 +19,19 @@ export async function getStaticPaths() {
   const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
 
   return allItems.flatMap((items, index) =>
-    items.map((item) => ({
-      params: {
-        type: itemTypes[index],
-        id: item.data.id,
-        version: item.data.version,
-      },
-      props: {
-        type: itemTypes[index],
-        ...item,
-      },
-    }))
+    items
+      .filter((item) => item.data.visualiser !== false)
+      .map((item) => ({
+        params: {
+          type: itemTypes[index],
+          id: item.data.id,
+          version: item.data.version,
+        },
+        props: {
+          type: itemTypes[index],
+          ...item,
+        },
+      }))
   );
 }
 
