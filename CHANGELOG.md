@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.39.1
+
+### Patch Changes
+
+- 7dcd349: fix(core): fixing badges for specification files and types
+
 ## 2.39.0
 
 ### Minor Changes
