@@ -135,6 +135,7 @@ const baseSchema = z.object({
       z.boolean().optional(),
     ])
     .optional(),
+  visualiser: z.boolean().optional(),
   // Used by eventcatalog
   versions: z.array(z.string()).optional(),
   latestVersion: z.string().optional(),
