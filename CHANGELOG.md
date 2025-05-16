@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.40.1
+
+### Patch Changes
+
+- 3174cbd: fix(core): now hides glob loader warning in dev mode
+
 ## 2.40.0
 
 ### Minor Changes
