@@ -182,11 +182,10 @@ program
         [
           {
             name: 'astro',
-            // Ignore any "Empty collection" messages
             command:
               process.platform === 'win32'
-                ? `npx astro dev ${command.args.join(' ').trim()} | findstr /V "The collection"`
-                : `npx astro dev ${command.args.join(' ').trim()} 2>&1 | grep -v "The collection.*does not exist"`,
+                ? `npx astro dev ${command.args.join(' ').trim()} 2>&1 | findstr /V /C:"[glob-loader]" /C:"The collection"`
+                : `npx astro dev ${command.args.join(' ').trim()} 2>&1 | grep -v -e "\\[glob-loader\\]" -e "The collection.*does not exist"`,
             cwd: core,
             env: {
               PROJECT_DIR: dir,
@@ -194,20 +193,12 @@ program
               ENABLE_EMBED: canEmbedPages,
               EVENTCATALOG_STARTER: isEventCatalogStarter,
               EVENTCATALOG_SCALE: isEventCatalogScale,
+              NODE_NO_WARNINGS: '1',
             },
           },
         ],
         {
           raw: true,
-          outputStream: new stream.Writable({
-            write(chunk, encoding, callback) {
-              const text = chunk.toString();
-              if (!(text.includes('The collection') && text.includes('does not exist'))) {
-                process.stdout.write(chunk);
-              }
-              callback();
-            },
-          }),
         }
       );
 
