@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.40.0
+
+### Minor Changes
+
+- dc6a17c: feat(core): added subdomain folder support
+
 ## 2.39.2
 
 ### Patch Changes
