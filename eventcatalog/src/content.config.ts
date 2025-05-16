@@ -293,6 +293,12 @@ const services = defineCollection({
     pattern: [
       'domains/*/services/*/index.(md|mdx)',
       'domains/*/services/*/versioned/*/index.(md|mdx)',
+
+      // Capture subdomain folders
+      'domains/*/subdomains/*/services/*/index.(md|mdx)',
+      'domains/*/subdomains/*/services/*/versioned/*/index.(md|mdx)',
+
+      // Capture services in the root
       'services/*/index.(md|mdx)', // ✅ Capture only services markdown files
       'services/*/versioned/*/index.(md|mdx)', // ✅ Capture versioned files inside services
     ],
@@ -333,6 +339,10 @@ const domains = defineCollection({
       // ✅ Strictly include only index.md at the expected levels
       'domains/*/index.(md|mdx)',
       'domains/*/versioned/*/index.(md|mdx)',
+
+      // Capture subdomain folders
+      'domains/*/subdomains/*/index.(md|mdx)',
+      'domains/*/subdomains/*/versioned/*/index.(md|mdx)',
     ],
     base: projectDirBase,
     generateId: ({ data, ...rest }) => {
