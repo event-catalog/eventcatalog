@@ -1,5 +1,6 @@
 // Can't use the CollectionEntry type from astro:content  because a client component is using this util
 // import { type CollectionEntry } from 'astro:content';
+import catalog from '@utils/eventcatalog-config/catalog';
 import { MarkerType, Position, type Edge, type Node } from '@xyflow/react';
 import dagre from 'dagre';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
@@ -121,19 +122,20 @@ export const getChannelNodesAndEdges = ({
     .filter((channel) => channel !== undefined);
 
   channels.forEach((channel) => {
-    const channelId = generateIdForNodes([source, channel, target]);
+    const singleChannel = catalog.channels?.renderMode === 'single'; // Only one node per channel, other wise one node per channel connection
+    const channelId = singleChannel ? generateIdForNodes([channel]) : generateIdForNodes([source, channel, target]);
 
     // Need to check if the channel node is already in the graph
-    // if (!currentNodes.find((node) => node.id === channelId)) {
-    nodes.push(
-      createNode({
-        id: channelId,
-        data: { title: channel?.data.id, mode, channel, source, target },
-        position: { x: 0, y: 0 },
-        type: channel?.collection,
-      })
-    );
-    // }
+    if (!currentNodes.find((node) => node.id === channelId)) {
+      nodes.push(
+        createNode({
+          id: channelId,
+          data: { title: channel?.data.id, mode, channel, source, target },
+          position: { x: 0, y: 0 },
+          type: channel?.collection,
+        })
+      );
+    }
 
     // if the source (left node) is a service, use the target as the edge message
     const edgeMessage = source.collection === 'services' ? target : source;
