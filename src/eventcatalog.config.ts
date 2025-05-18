@@ -98,5 +98,5 @@ export interface Config {
   };
   channels?: {
     renderMode?: 'all' | 'single';
-  }
+  };
 }
