@@ -96,7 +96,9 @@ export interface Config {
   api?: {
     fullCatalogAPIEnabled?: boolean;
   };
-  channels?: {
-    renderMode?: 'all' | 'single';
+  visualiser?: {
+    channels?: {
+      renderMode?: 'flat' | 'single';
+    };
   };
 }

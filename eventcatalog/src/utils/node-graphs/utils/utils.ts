@@ -122,7 +122,7 @@ export const getChannelNodesAndEdges = ({
     .filter((channel) => channel !== undefined);
 
   channels.forEach((channel) => {
-    const singleChannel = catalog.channels?.renderMode === 'single'; // Only one node per channel, other wise one node per channel connection
+    const singleChannel = catalog.visualiser?.channels?.renderMode === 'single'; // Only one node per channel, other wise one node per channel connection
     const channelId = singleChannel ? generateIdForNodes([channel]) : generateIdForNodes([source, channel, target]);
 
     // Need to check if the channel node is already in the graph
