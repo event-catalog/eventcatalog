@@ -6,7 +6,8 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import config from '@config';
 import fs from 'fs';
-
+import { dirname, join } from 'path';
+import { addSchemaToMarkdown } from '@utils/llms';
 const events = await getCollection('events');
 const commands = await getCollection('commands');
 const queries = await getCollection('queries');
@@ -49,7 +50,14 @@ export const GET: APIRoute = async ({ params, props }) => {
   }
 
   if (props?.content?.filePath) {
-    const file = fs.readFileSync(props.content.filePath, 'utf8');
+    let file = fs.readFileSync(props.content.filePath, 'utf8');
+
+    try {
+      file = addSchemaToMarkdown(props.content, file);
+    } catch (error) {
+      console.log('Warning: Cant find the schema for', props.content.data.id, props.content.data.version);
+    }
+
     return new Response(file, { status: 200 });
   }
 

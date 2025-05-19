@@ -1,9 +1,8 @@
-import { generateText, type CoreMessage, type Message } from 'ai';
+import { type CoreMessage, type Message } from 'ai';
 import { EventCatalogVectorStore, type Resource } from '@enterprise/eventcatalog-chat/EventCatalogVectorStore';
 import fs from 'fs';
 import path from 'path';
 import config from '@config';
-import { anthropic } from '@ai-sdk/anthropic';
 import { getProvider } from '@enterprise/eventcatalog-chat/providers';
 
 const AI_EMBEDDINGS_PATH = path.join(process.env.PROJECT_DIR || process.cwd(), 'public/ai');
@@ -61,7 +60,11 @@ If you have additional context, use it to answer the question.`;
   const resourceStrings = resources.map((resource: Resource) => {
     const attributes = Object.entries(resource)
       .filter(([key, value]) => key !== 'markdown' && key !== 'loc' && value !== undefined && value !== null)
-      .map(([key, value]) => `${key}="${String(value).replace(/"/g, '&quot;')}"`) // Escape quotes in values
+      .map(([key, value]) => {
+        // value can be an object, so we need to convert it to a string
+        const valueString = typeof value === 'object' ? JSON.stringify(value) : String(value);
+        return `${key}="${valueString.replace(/"/g, '&quot;')}"`; // Escape quotes in values
+      })
       .join(' ');
     return `<resource ${attributes} />`;
   });

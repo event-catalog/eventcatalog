@@ -45,8 +45,8 @@ importers:
         specifier: ^2.4.3
         version: 2.5.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@eventcatalog/generator-ai':
-        specifier: ^1.0.2
-        version: 1.0.2(@langchain/core@0.3.40(openai@4.95.1(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(ws@8.18.0)(zod@3.24.1)
+        specifier: ^1.1.0
+        version: 1.1.0(@langchain/core@0.3.40(openai@4.95.1(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(ws@8.18.0)(zod@3.24.1)
       '@eventcatalog/sdk':
         specifier: ^2.2.7
         version: 2.2.7
@@ -1034,14 +1034,14 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@eventcatalog/generator-ai@1.0.2':
-    resolution: {integrity: sha512-S5oCiy3qhlZvbdO+/e7UbE80HJFTjzPZGDzlVZ5fH36NBP9heK2NewuxG9S6LJWzlUwU5NN2+JXNSD7I2+/PTg==}
+  '@eventcatalog/generator-ai@1.1.0':
+    resolution: {integrity: sha512-/prvaiTV/UWMWjja1yyhnAv499CshYCV6Jjx95elYp7+kbjgXyaTxy97JNqRKkyUfCyuX3I7RXrVGHj7tIZ03Q==}
 
   '@eventcatalog/sdk@2.2.7':
     resolution: {integrity: sha512-MhonTgw3ltQmldBqCLVs8zSzWFMXapHZiSIrF8zi3lpRvAslv6wMQpAbUA51PDSfygwExXstuZCwPGp8JQiizw==}
 
-  '@eventcatalog/sdk@2.3.2':
-    resolution: {integrity: sha512-POiX4Iu7NBA01uIbBqKYjxDkKPtTJa9dF2pH+YBwm7SFn+uKlw4QCi9lXpcJnpXshpjguOoyAMzt3dvQf6gCdw==}
+  '@eventcatalog/sdk@2.4.0':
+    resolution: {integrity: sha512-EVJwgh7UbT0UURopNNzvCQtkn5xppFLA+rH8iD0HsgDFxOdnPkFBtVW5sTHPBmt863o6VW2CDny8ABJENN3O8A==}
 
   '@expressive-code/core@0.40.1':
     resolution: {integrity: sha512-j71gxBepyzBgOtZomxzl8M90AjILf6hZarWFePDis7sTjqCwxWrtZEtTCafto8IOURG/ECZN0g7Ys4zExkNU7Q==}
@@ -8745,9 +8745,9 @@ snapshots:
   '@esbuild/win32-x64@0.25.0':
     optional: true
 
-  '@eventcatalog/generator-ai@1.0.2(@langchain/core@0.3.40(openai@4.95.1(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(ws@8.18.0)(zod@3.24.1)':
+  '@eventcatalog/generator-ai@1.1.0(@langchain/core@0.3.40(openai@4.95.1(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(ws@8.18.0)(zod@3.24.1)':
     dependencies:
-      '@eventcatalog/sdk': 2.3.2
+      '@eventcatalog/sdk': 2.4.0
       '@huggingface/transformers': 3.3.3
       chalk: 4.1.2
       fs-extra: 11.3.0
@@ -8787,7 +8787,7 @@ snapshots:
       semver: 7.6.3
       slugify: 1.6.6
 
-  '@eventcatalog/sdk@2.3.2':
+  '@eventcatalog/sdk@2.4.0':
     dependencies:
       '@changesets/cli': 2.27.12
       fs-extra: 11.3.0
