@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.42.0
+
+### Minor Changes
+
+- 1b95c70: Allow channels to be displayed as a single node (Fix #989)
+
 ## 2.41.1
 
 ### Patch Changes
