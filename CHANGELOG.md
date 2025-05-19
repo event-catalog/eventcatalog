@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.41.0
+
+### Minor Changes
+
+- ab7203c: feat(core): added schemas to AI features
+
 ## 2.40.1
 
 ### Patch Changes
