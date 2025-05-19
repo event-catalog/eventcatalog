@@ -157,3 +157,30 @@ export const getSpecificationsForService = (service: CollectionEntry<CollectionT
     filenameWithoutExtension: path.basename(spec.path, path.extname(spec.path)),
   }));
 };
+
+// Get services for channel
+export const getProducersAndConsumersForChannel = async (channel: CollectionEntry<'channels'>) => {
+  const messages = channel.data.messages ?? [];
+  const services = await getServices({ getAllVersions: false });
+
+  const producers = services.filter((service) => {
+    const sends = service.data.sends ?? [];
+    return sends.some((send) => {
+      // @ts-ignore
+      return messages.some((m) => m.id === send.data.id);
+    });
+  });
+
+  const consumers = services.filter((service) => {
+    const receives = service.data.receives ?? [];
+    return receives.some((receive) => {
+      // @ts-ignore
+      return messages.some((m) => m.id === receive.data.id);
+    });
+  });
+
+  return {
+    producers: producers ?? [],
+    consumers: consumers ?? [],
+  };
+};

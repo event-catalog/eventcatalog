@@ -8,7 +8,7 @@ import { buildUrl } from '@utils/url-builder';
 import { ScrollText } from 'lucide-react';
 import RepositoryList from '@components/Lists/RepositoryList.astro';
 import { getOwner } from '@utils/collections/owners';
-
+import { getProducersAndConsumersForChannel } from '@utils/collections/services';
 interface Props {
   channel: CollectionEntry<'channels'>;
 }
@@ -18,6 +18,7 @@ const { channel } = Astro.props;
 const ownersRaw = channel.data?.owners || [];
 const owners = await Promise.all<ReturnType<typeof getOwner>>(ownersRaw.map(getOwner));
 const filteredOwners = owners.filter((o) => o !== undefined);
+const { producers, consumers } = await getProducersAndConsumersForChannel(channel);
 
 const channelParameters: Record<string, { enum?: string[]; description?: string }> = channel.data.parameters || {};
 const parameters = Object.keys(channelParameters).map((key) => ({
@@ -55,10 +56,52 @@ const messageList = (channel.data.messages ?? []).map((p) => ({
   tag: `v${p.version}`,
   href: buildUrl(`/docs/${p.collection}/${p.id}/${p.version}`),
 }));
+
+const producersList = producers.map((p) => ({
+  label: p.data.name,
+  badge: p.collection,
+  color: 'pink',
+  collection: p.collection,
+  tag: `v${p.data.version}`,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+}));
+
+const consumersList = consumers.map((c) => ({
+  label: c.data.name,
+  badge: c.collection,
+  color: 'blue',
+  collection: c.collection,
+  tag: `v${c.data.version}`,
+  href: buildUrl(`/docs/${c.collection}/${c.data.id}/${c.data.version}`),
+}));
 ---
 
 <aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto py-4">
   <div class="">
+    {
+      producersList.length > 0 && (
+        <PillListFlat
+          title={`Producers (${producersList.length})`}
+          pills={producersList}
+          emptyMessage={`This channel does not have any producers.`}
+          color="pink"
+          client:load
+        />
+      )
+    }
+
+    {
+      consumersList.length > 0 && (
+        <PillListFlat
+          title={`Consumers (${consumersList.length})`}
+          pills={consumersList}
+          emptyMessage={`This channel does not have any consumers.`}
+          color="blue"
+          client:load
+        />
+      )
+    }
+
     {
       messageList.length > 0 && (
         <PillListFlat
