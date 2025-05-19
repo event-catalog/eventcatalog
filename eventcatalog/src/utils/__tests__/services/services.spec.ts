@@ -1,11 +1,12 @@
 import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
-import { mockCommands, mockEvents, mockQueries, mockServices } from './mocks';
+import { mockChannels, mockCommands, mockEvents, mockQueries, mockServices } from './mocks';
 import {
   getProducersOfMessage,
   getServices,
   getConsumersOfMessage,
   getSpecificationsForService,
+  getProducersAndConsumersForChannel,
 } from '@utils/collections/services';
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -428,6 +429,24 @@ describe('Services', () => {
           }),
         ])
       );
+    });
+  });
+
+  describe('getProducersAndConsumersForChannel', () => {
+    it.only('returns producers and consumers (services) for a given channel', async () => {
+      const channel = mockChannels[0];
+
+      // @ts-ignore
+      const { producers, consumers } = await getProducersAndConsumersForChannel(channel);
+
+      expect(producers).toHaveLength(2);
+      expect(producers[0].data.id).toEqual('NotificationsService');
+      expect(producers[1].data.id).toEqual('OrderService');
+
+      expect(consumers).toHaveLength(3);
+      expect(consumers[0].data.id).toEqual('InventoryService');
+      expect(consumers[1].data.id).toEqual('NotificationsService');
+      expect(consumers[2].data.id).toEqual('PaymentService');
     });
   });
 });

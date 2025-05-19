@@ -262,6 +262,12 @@ export const mockChannels = [
     data: {
       id: 'EmailChannel',
       version: '1.0.0',
+      messages: [
+        {
+          id: 'OrderCreatedEvent',
+          version: '0.0.1',
+        },
+      ],
     },
   },
   {
