@@ -433,7 +433,7 @@ describe('Services', () => {
   });
 
   describe('getProducersAndConsumersForChannel', () => {
-    it.only('returns producers and consumers (services) for a given channel', async () => {
+    it('returns producers and consumers (services) for a given channel', async () => {
       const channel = mockChannels[0];
 
       // @ts-ignore
