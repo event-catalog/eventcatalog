@@ -18,7 +18,7 @@ const customDocs = await getCollection('customPages');
 
 export const GET: APIRoute = async ({ params, request }) => {
   const url = new URL(request.url);
-  const baseUrl = `${url.protocol}//${url.host}`;
+  const baseUrl = `${url.origin}`;
 
   const formatVersionedItem = (item: any, type: string) =>
     `- [${item.data.name} - ${item.data.id} - ${item.data.version}](${baseUrl}/docs/${type}/${item.data.id}/${item.data.version}.mdx) - ${item.data.summary}`;
