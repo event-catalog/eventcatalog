@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.41.1
+
+### Patch Changes
+
+- 3d8df99: fix(core): fixed base url for llms txt endpoint
+
 ## 2.41.0
 
 ### Minor Changes
