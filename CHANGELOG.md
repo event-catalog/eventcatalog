@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.42.1
+
+### Patch Changes
+
+- ad4ece8: feat(core): added producers and consumers to channel docs
+
 ## 2.42.0
 
 ### Minor Changes
