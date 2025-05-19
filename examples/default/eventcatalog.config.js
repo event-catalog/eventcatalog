@@ -101,6 +101,11 @@ export default {
         ]
       }
     ]
+  },
+  visualiser: {
+    channels: {
+      renderMode: 'flat'
+    }
   }
 };
 
