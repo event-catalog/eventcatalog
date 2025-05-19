@@ -3,6 +3,7 @@ import config from '@config';
 import type { APIRoute } from 'astro';
 import fs from 'fs';
 import { isCustomDocsEnabled } from '@utils/feature';
+import { addSchemaToMarkdown } from '@utils/llms';
 
 type AllowedCollections = 'events' | 'commands' | 'queries' | 'services' | 'domains' | 'teams' | 'users' | 'customPages';
 
@@ -38,7 +39,18 @@ export const GET: APIRoute = async ({ params, request }) => {
   const content = resources
     .map((item) => {
       if (!item.filePath) return '';
-      return fs.readFileSync(item.filePath, 'utf8');
+
+      let file = fs.readFileSync(item.filePath, 'utf8');
+
+      try {
+        // Try and add the schemas to the resource
+        // @ts-ignore
+        file = addSchemaToMarkdown(item, file);
+      } catch (error) {
+        // just skip the resource if it has no schema
+      }
+
+      return file;
     })
     .join('\n');
 
