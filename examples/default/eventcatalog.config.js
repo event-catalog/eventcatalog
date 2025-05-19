@@ -104,7 +104,7 @@ export default {
   },
   visualiser: {
     channels: {
-      renderMode: 'single'
+      renderMode: 'flat'
     }
   }
 };
