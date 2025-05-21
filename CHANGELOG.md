@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.42.3
+
+### Patch Changes
+
+- c04abcd: feat(core): added ability to remove minor branding
+- 01d3db9: fix(core): deprecated dates can now be strings
+
 ## 2.42.2
 
 ### Patch Changes
