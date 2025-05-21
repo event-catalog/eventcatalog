@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.42.2
+
+### Patch Changes
+
+- 2e4b4f1: fix(core): fix for broken visualizer
+
 ## 2.42.1
 
 ### Patch Changes
