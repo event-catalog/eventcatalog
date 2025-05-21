@@ -130,7 +130,7 @@ const baseSchema = z.object({
     .union([
       z.object({
         message: z.string().optional(),
-        date: z.date().optional(),
+        date: z.union([z.string(), z.date()]).optional(),
       }),
       z.boolean().optional(),
     ])
