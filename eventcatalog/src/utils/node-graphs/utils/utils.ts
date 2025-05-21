@@ -1,6 +1,5 @@
 // Can't use the CollectionEntry type from astro:content  because a client component is using this util
-// import { type CollectionEntry } from 'astro:content';
-import catalog from '@utils/eventcatalog-config/catalog';
+
 import { MarkerType, Position, type Edge, type Node } from '@xyflow/react';
 import dagre from 'dagre';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
@@ -103,6 +102,7 @@ export const getChannelNodesAndEdges = ({
   sourceToChannelLabel = 'sends to channel',
   mode = 'full',
   currentNodes = [],
+  channelRenderMode = 'flat',
 }: {
   channels: CollectionItem[];
   channelsToRender: { id: string; version: string }[];
@@ -112,6 +112,7 @@ export const getChannelNodesAndEdges = ({
   sourceToChannelLabel?: string;
   mode?: 'simple' | 'full';
   currentNodes?: Node[];
+  channelRenderMode?: 'flat' | 'single';
 }) => {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
@@ -122,7 +123,7 @@ export const getChannelNodesAndEdges = ({
     .filter((channel) => channel !== undefined);
 
   channels.forEach((channel) => {
-    const singleChannel = catalog.visualiser?.channels?.renderMode === 'single'; // Only one node per channel, other wise one node per channel connection
+    const singleChannel = channelRenderMode === 'single'; // Only one node per channel, other wise one node per channel connection
     const channelId = singleChannel ? generateIdForNodes([channel]) : generateIdForNodes([source, channel, target]);
 
     // Need to check if the channel node is already in the graph

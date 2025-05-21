@@ -14,6 +14,8 @@ import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs
 import { buildUrl } from '@utils/url-builder';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
+import config from '@config';
+
 interface Props {
   id: string;
   collection: string;
@@ -51,6 +53,7 @@ if (collection in getNodesAndEdgesFunctions) {
     id,
     version,
     mode,
+    channelRenderMode: config.visualiser?.channels?.renderMode === 'single' ? 'single' : 'flat',
   });
 
   nodes = fetchedNodes;

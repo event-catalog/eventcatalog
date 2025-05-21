@@ -25,10 +25,18 @@ interface Props {
   version: string;
   defaultFlow?: DagreGraph;
   mode?: 'simple' | 'full';
+  channelRenderMode?: 'flat' | 'single';
   collection?: CollectionEntry<CollectionMessageTypes>[];
 }
 
-const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', collection = [] }: Props) => {
+const getNodesAndEdges = async ({
+  id,
+  version,
+  defaultFlow,
+  mode = 'simple',
+  channelRenderMode = 'flat',
+  collection = [],
+}: Props) => {
   const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
   const nodes = [] as any,
     edges = [] as any;
@@ -73,6 +81,7 @@ const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', col
         channelToTargetLabel: getEdgeLabelForServiceAsTarget(message),
         mode,
         currentNodes: nodes,
+        channelRenderMode,
       });
       nodes.push(...channelNodes);
       edges.push(...channelEdges);
@@ -126,6 +135,7 @@ const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', col
         channelToTargetLabel: getEdgeLabelForMessageAsSource(message),
         mode,
         currentNodes: nodes,
+        channelRenderMode,
       });
 
       nodes.push(...channelNodes);
@@ -175,17 +185,35 @@ const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', col
   };
 };
 
-export const getNodesAndEdgesForQueries = async ({ id, version, defaultFlow, mode = 'simple' }: Props) => {
+export const getNodesAndEdgesForQueries = async ({
+  id,
+  version,
+  defaultFlow,
+  mode = 'simple',
+  channelRenderMode = 'flat',
+}: Props) => {
   const queries = await getQueries();
-  return getNodesAndEdges({ id, version, defaultFlow, mode, collection: queries });
+  return getNodesAndEdges({ id, version, defaultFlow, mode, channelRenderMode, collection: queries });
 };
 
-export const getNodesAndEdgesForCommands = async ({ id, version, defaultFlow, mode = 'simple' }: Props) => {
+export const getNodesAndEdgesForCommands = async ({
+  id,
+  version,
+  defaultFlow,
+  mode = 'simple',
+  channelRenderMode = 'flat',
+}: Props) => {
   const commands = await getCommands();
-  return getNodesAndEdges({ id, version, defaultFlow, mode, collection: commands });
+  return getNodesAndEdges({ id, version, defaultFlow, mode, channelRenderMode, collection: commands });
 };
 
-export const getNodesAndEdgesForEvents = async ({ id, version, defaultFlow, mode = 'simple' }: Props) => {
+export const getNodesAndEdgesForEvents = async ({
+  id,
+  version,
+  defaultFlow,
+  mode = 'simple',
+  channelRenderMode = 'flat',
+}: Props) => {
   const events = await getEvents();
-  return getNodesAndEdges({ id, version, defaultFlow, mode, collection: events });
+  return getNodesAndEdges({ id, version, defaultFlow, mode, channelRenderMode, collection: events });
 };
