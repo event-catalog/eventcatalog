@@ -17,6 +17,19 @@ import config from '@config';
 export const isEventCatalogStarterEnabled = () => process.env.EVENTCATALOG_STARTER === 'true';
 export const isEventCatalogScaleEnabled = () => process.env.EVENTCATALOG_SCALE === 'true';
 
+export const showEventCatalogBranding = () => {
+  const override = process.env.EVENTCATALOG_SHOW_BRANDING;
+  // if any value we return true
+  if (override) {
+    return true;
+  }
+  return !isEventCatalogStarterEnabled() && !isEventCatalogScaleEnabled();
+};
+
+export const showCustomBranding = () => {
+  return isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
+};
+
 export const isCustomDocsEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
 export const isEventCatalogChatEnabled = () => {
   const isFeatureEnabledFromPlan = isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();

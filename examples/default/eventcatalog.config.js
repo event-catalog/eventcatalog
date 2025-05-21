@@ -6,6 +6,7 @@ export default {
   organizationName: 'FlowMart',
   homepageLink: 'https://eventcatalog.dev',
   editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
+  repositoryUrl: 'https://github.com/event-catalog/eventcatalog',
   port: 3000,
   outDir: 'dist',
   // output: 'server',

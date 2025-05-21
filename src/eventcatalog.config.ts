@@ -42,6 +42,7 @@ export interface Config {
   organizationName: string;
   homepageLink: string;
   editUrl: string;
+  repositoryUrl?: string;
   landingPage?: string;
   base?: string;
   port?: string;
