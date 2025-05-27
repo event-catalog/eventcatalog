@@ -1,6 +1,5 @@
 ---
 import Footer from '@layouts/Footer.astro';
-
 import type { PageTypes } from '@types';
 import { getChangeLogs } from '@utils/collections/changelogs';
 import {
@@ -22,7 +21,13 @@ import { getDiffsForCurrentAndPreviousVersion } from '@utils/collections/file-di
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { ClientRouter } from 'astro:transitions';
 
+import { isChangelogEnabled } from '@utils/feature';
+
 export async function getStaticPaths() {
+  if (!isChangelogEnabled()) {
+    return [];
+  }
+
   const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows'];
   const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
@@ -40,6 +45,10 @@ export async function getStaticPaths() {
       },
     }))
   );
+}
+
+if (!isChangelogEnabled()) {
+  return Astro.redirect('/docs');
 }
 
 const props = Astro.props;
