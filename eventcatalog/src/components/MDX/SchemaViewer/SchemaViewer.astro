@@ -48,6 +48,22 @@ function mergeAllOfSchemas(schema: any) {
 }
 
 function processSchema(schema: any) {
+  // Handle $ref
+  if (schema.$ref) {
+    // Only support local refs like "#/definitions/xyz"
+    const refPath = schema.$ref;
+    if (refPath.startsWith('#/definitions/')) {
+      const defName = refPath.replace('#/definitions/', '');
+      const definitions = schema.definitions;
+      if (definitions && definitions[defName]) {
+        // Recursively process the referenced schema
+        return processSchema(definitions[defName]);
+      }
+    }
+    // If not found, return as is
+    return schema;
+  }
+
   if (schema.allOf) {
     return mergeAllOfSchemas(schema);
   }
