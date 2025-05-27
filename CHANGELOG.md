@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.42.6
+
+### Patch Changes
+
+- 4c635fa: feat(core): added ability to turn off changelogs
+
 ## 2.42.5
 
 ### Patch Changes
