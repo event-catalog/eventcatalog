@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.42.5
+
+### Patch Changes
+
+- cb0c00a: fix(core): fixed issue with long list of messages on architecture page
+
 ## 2.42.4
 
 ### Patch Changes
