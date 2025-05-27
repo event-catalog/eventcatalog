@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.42.4
+
+### Patch Changes
+
+- b8e0725: fix(core): fixed broken zindex for search on asyncapi page
+- 2a5574b: fix(core): fixed a bug where schema viewer did not support ref definitions
+
 ## 2.42.3
 
 ### Patch Changes
