@@ -97,6 +97,9 @@ export interface Config {
   api?: {
     fullCatalogAPIEnabled?: boolean;
   };
+  changelog?: {
+    enabled: boolean;
+  };
   visualiser?: {
     channels?: {
       renderMode?: 'flat' | 'single';
