@@ -29,16 +29,26 @@ const Message = memo(({ message, collection }: { message: any; collection: strin
 const MessagesContainer = memo(
   ({ messages, type, selectedTypes }: { messages: any[]; type: 'receives' | 'sends'; selectedTypes: string[] }) => {
     const bgColor = type === 'receives' ? 'blue' : 'green';
+    const MAX_MESSAGES_DISPLAYED = 4;
+
     const filteredMessages = messages?.filter(
       (message: any) => selectedTypes.length === 0 || selectedTypes.includes(message.collection)
     );
 
+    const messagesToShow = filteredMessages?.slice(0, MAX_MESSAGES_DISPLAYED);
+    const remainingMessagesCount = filteredMessages ? filteredMessages.length - MAX_MESSAGES_DISPLAYED : 0;
+
     return (
       <div className={`flex-1 h-full flex flex-col bg-${bgColor}-100 border border-${bgColor}-300 rounded-lg p-4`}>
         <div className="space-y-2 flex-1">
-          {filteredMessages?.map((message: any) => (
+          {messagesToShow?.map((message: any) => (
             <Message key={message.data.name} message={message} collection={message.collection} />
           ))}
+          {remainingMessagesCount > 0 && (
+            <div className="text-center py-1">
+              <p className="text-gray-500 text-[10px]">+ {remainingMessagesCount} more</p>
+            </div>
+          )}
           {(!messages?.length ||
             (selectedTypes.length > 0 && !messages?.some((message: any) => selectedTypes.includes(message.collection)))) && (
             <div className="text-center py-4">
