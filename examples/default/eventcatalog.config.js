@@ -7,7 +7,10 @@ export default {
   homepageLink: 'https://eventcatalog.dev',
   editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
   repositoryUrl: 'https://github.com/event-catalog/eventcatalog',
-  port: 3000,
+  server: {
+    port: 3000,
+    base: '/'
+  },
   outDir: 'dist',
   // output: 'server',
   logo: {
