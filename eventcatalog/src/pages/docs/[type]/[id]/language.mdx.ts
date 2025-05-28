@@ -29,7 +29,7 @@ export const GET: APIRoute = async ({ params, props }) => {
     return new Response('llms.txt is not enabled for this Catalog.', { status: 404 });
   }
 
-  const ubiquitousLanguages = await getUbiquitousLanguage(props);
+  const ubiquitousLanguages = await getUbiquitousLanguage(props as CollectionEntry<'domains'>);
   const ubiquitousLanguage = ubiquitousLanguages[0];
 
   if (ubiquitousLanguage?.filePath) {

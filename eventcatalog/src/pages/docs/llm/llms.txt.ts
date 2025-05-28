@@ -45,7 +45,7 @@ const renderUbiquitousLanguages = (baseUrl: string) => {
           // @ts-ignore
           const propertiesList = Object.entries(item.properties)
             .map(
-              ([key, value]) =>
+              ([key, value]: any) =>
                 `    - [${value.name}: - ${value.summary}](${baseUrl}/docs/domains/${domainId.split('-')[0]}/language.mdx)`
             )
             .join('\n');
