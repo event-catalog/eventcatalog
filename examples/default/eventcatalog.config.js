@@ -18,7 +18,6 @@ export default {
     src: '/logo.png',
     text: 'FlowMart',
   },
-  base: '/',
   trailingSlash: false,
   mermaid: {
     iconPacks: ['logos'],
