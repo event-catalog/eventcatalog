@@ -3,7 +3,7 @@ import config from '@config';
 import type { APIRoute } from 'astro';
 
 import { isCustomDocsEnabled } from '@utils/feature';
-import { getUbiquitousLanguage, type UbiquitousLanguage } from '@utils/collections/domains';
+import { getUbiquitousLanguage } from '@utils/collections/domains';
 
 const events = await getCollection('events');
 const commands = await getCollection('commands');
@@ -78,7 +78,6 @@ const renderEntities = (baseUrl: string) => {
     .join('\n');
 };
 
-console.log('PROTOCOL', channels[0]);
 export const GET: APIRoute = async ({ params, request }) => {
   const url = new URL(request.url);
   const baseUrl = process.env.LLMS_TXT_BASE_URL || `${url.origin}`;
