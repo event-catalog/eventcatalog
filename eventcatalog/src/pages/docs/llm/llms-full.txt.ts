@@ -5,7 +5,18 @@ import fs from 'fs';
 import { isCustomDocsEnabled } from '@utils/feature';
 import { addSchemaToMarkdown } from '@utils/llms';
 
-type AllowedCollections = 'events' | 'commands' | 'queries' | 'services' | 'domains' | 'teams' | 'users' | 'customPages';
+type AllowedCollections =
+  | 'events'
+  | 'commands'
+  | 'queries'
+  | 'services'
+  | 'domains'
+  | 'teams'
+  | 'users'
+  | 'customPages'
+  | 'channels'
+  | 'entities'
+  | 'flows';
 
 const events = await getCollection('events');
 const commands = await getCollection('commands');
@@ -14,6 +25,9 @@ const services = await getCollection('services');
 const domains = await getCollection('domains');
 const teams = await getCollection('teams');
 const users = await getCollection('users');
+const entities = await getCollection('entities');
+const channels = await getCollection('channels');
+const flows = await getCollection('flows');
 
 const customDocs = await getCollection('customPages');
 
@@ -30,6 +44,9 @@ export const GET: APIRoute = async ({ params, request }) => {
     ...domains,
     ...teams,
     ...users,
+    ...entities,
+    ...channels,
+    ...flows,
   ];
 
   if (isCustomDocsEnabled()) {
