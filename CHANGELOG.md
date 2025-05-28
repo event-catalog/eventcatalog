@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.42.8
+
+### Patch Changes
+
+- 5f58157: feat(core): added new end point for producers and consumers
+- ea92c89: feat(core): Added entities and ubquitous lang, and channels to llms txt
+
 ## 2.42.7
 
 ### Patch Changes
