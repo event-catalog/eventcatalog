@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.42.7
+
+### Patch Changes
+
+- de85086: feat(core): Added entities and ubquitous lang, and channels to llms txt
+
 ## 2.42.6
 
 ### Patch Changes
