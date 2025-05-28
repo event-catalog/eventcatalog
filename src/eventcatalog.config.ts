@@ -44,8 +44,11 @@ export interface Config {
   editUrl: string;
   repositoryUrl?: string;
   landingPage?: string;
-  base?: string;
-  port?: string;
+  server?: {
+    base?: '/';
+    port?: 3000;
+    host?: '0.0.0.0';
+  };
   trailingSlash?: boolean;
   output?: 'server' | 'static';
   rss?: {

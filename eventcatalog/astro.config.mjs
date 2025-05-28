@@ -15,12 +15,11 @@ import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
 
 const projectDirectory = process.env.PROJECT_DIR || process.cwd();
-const base = config.base || '/';
 
 // https://astro.build/config
 export default defineConfig({
-  base,
-  server: { port: config.port || 3000 },
+  base: config.server.base,
+  server: { port: config.server.port || 3000, host: config.server.host || '0.0.0.0' },
 
   // output: config.output || 'static',
 
