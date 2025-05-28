@@ -387,7 +387,7 @@ const channels = defineCollection({
 
 const ubiquitousLanguages = defineCollection({
   loader: glob({
-    pattern: ['domains/*/ubiquitous-language.(md|mdx)'],
+    pattern: ['domains/*/ubiquitous-language.(md|mdx)', 'domains/*/subdomains/*/ubiquitous-language.(md|mdx)'],
     base: projectDirBase,
     generateId: ({ data }) => {
       // File has no id, so we need to generate one
