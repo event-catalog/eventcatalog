@@ -20,6 +20,7 @@ interface Props {
   defaultFlow?: DagreGraph;
   mode?: 'simple' | 'full';
   renderAllEdges?: boolean;
+  channelRenderMode?: 'single' | 'flat';
 }
 
 const getSendsMessageByMessageType = (messageType: string) => {
@@ -47,7 +48,14 @@ const getReceivesMessageByMessageType = (messageType: string) => {
   }
 };
 
-export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simple', renderAllEdges = false }: Props) => {
+export const getNodesAndEdges = async ({
+  id,
+  defaultFlow,
+  version,
+  mode = 'simple',
+  renderAllEdges = false,
+  channelRenderMode = 'flat',
+}: Props) => {
   const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
   const nodes = [] as any,
     edges = [] as any;
@@ -111,6 +119,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         target: service,
         mode,
         currentNodes: nodes,
+        channelRenderMode,
       });
 
       nodes.push(...channelNodes);
@@ -158,6 +167,7 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         sourceToChannelLabel: `${getSendsMessageByMessageType(send?.collection)}`,
         channelToTargetLabel: getSendsMessageByMessageType(send?.collection),
         currentNodes: nodes,
+        channelRenderMode,
       });
       nodes.push(...channelNodes);
       edges.push(...channelEdges);
