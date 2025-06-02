@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.42.10
+
+### Patch Changes
+
+- 3b5138c: fix(core): services and domains visualizers now read the channel type
+
 ## 2.42.9
 
 ### Patch Changes
