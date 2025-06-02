@@ -17,6 +17,7 @@ type DagreGraph = any;
 
 interface Props {
   defaultFlow?: DagreGraph;
+  channelRenderMode?: 'single' | 'flat';
 }
 
 export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }: Props) => {
@@ -214,9 +215,17 @@ interface NodesAndEdgesProps {
   defaultFlow?: DagreGraph;
   mode: 'simple' | 'full';
   group?: boolean;
+  channelRenderMode?: 'single' | 'flat';
 }
 
-export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', group = false }: NodesAndEdgesProps) => {
+export const getNodesAndEdges = async ({
+  id,
+  version,
+  defaultFlow,
+  mode = 'simple',
+  group = false,
+  channelRenderMode = 'flat',
+}: NodesAndEdgesProps) => {
   const flow = defaultFlow || createDagreGraph({ ranksep: 360, nodesep: 50, edgesep: 50 });
   let nodes = new Map(),
     edges = new Map();
@@ -257,6 +266,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
       defaultFlow: flow,
       mode,
       renderAllEdges: true,
+      channelRenderMode,
     });
     serviceNodes.forEach((n) => {
       /**
@@ -280,6 +290,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
       defaultFlow: flow,
       mode,
       group: true,
+      channelRenderMode,
     });
     subDomainNodes.forEach((n) => {
       nodes.set(n.id, nodes.has(n.id) ? merge(nodes.get(n.id), n) : n);
