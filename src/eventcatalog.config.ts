@@ -46,6 +46,7 @@ export interface Config {
   landingPage?: string;
   base?: string;
   port?: string;
+  host?: string;
   trailingSlash?: boolean;
   output?: 'server' | 'static';
   rss?: {
