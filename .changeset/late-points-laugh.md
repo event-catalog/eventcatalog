@@ -2,4 +2,4 @@
 "@eventcatalog/core": patch
 ---
 
-fix(core): fix protocol icon nullability issue
+fix(core): services and domains visualizers now read the channel type
