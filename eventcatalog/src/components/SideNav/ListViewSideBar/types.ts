@@ -27,9 +27,12 @@ export interface ServiceItem {
   receives: MessageItem[];
   entities: EntityItem[];
   specifications?: {
-    asyncapiPath: string;
-    openapiPath: string;
-  };
+    type: string;
+    path: string;
+    name?: string;
+    filename?: string;
+    filenameWithoutExtension?: string;
+  }[];
 }
 
 interface DomainItem {

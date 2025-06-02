@@ -14,7 +14,7 @@ import {
   useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-
+import { HistoryIcon } from 'lucide-react';
 // Nodes and edges
 import ServiceNode from './Nodes/Service';
 import FlowNode from './Nodes/Flow';
@@ -46,6 +46,7 @@ interface Props {
   linkTo: 'docs' | 'visualiser';
   includeKey?: boolean;
   linksToVisualiser?: boolean;
+  links?: { label: string; url: string }[];
 }
 
 const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
@@ -60,6 +61,7 @@ const NodeGraphBuilder = ({
   linkTo = 'docs',
   includeKey = true,
   linksToVisualiser = false,
+  links = [],
 }: Props) => {
   const nodeTypes = useMemo(
     () => ({
@@ -317,8 +319,33 @@ const NodeGraphBuilder = ({
               {title}
             </span>
           )}
-          <div className="flex justify-end ">
+          <div className="flex justify-end space-x-2">
             <DownloadButton filename={title} addPadding={false} />
+            {/* // Dropdown for links */}
+            {links.length > 0 && (
+              <div className="relative flex items-center -mt-1">
+                <span className="absolute left-2 pointer-events-none flex items-center h-full">
+                  <HistoryIcon className="h-4 w-4 text-gray-600" />
+                </span>
+                <select
+                  value={links.find((link) => window.location.href.includes(link.url))?.url || links[0].url}
+                  onChange={(e) => navigate(e.target.value)}
+                  className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-white rounded-md border border-gray-200 hover:bg-gray-100/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  style={{ minWidth: 120, height: '26px' }}
+                >
+                  {links.map((link) => (
+                    <option key={link.url} value={link.url}>
+                      {link.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="absolute right-2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </Panel>
@@ -409,6 +436,7 @@ interface NodeGraphProps {
   includeKey?: boolean;
   footerLabel?: string;
   linksToVisualiser?: boolean;
+  links?: { label: string; url: string }[];
 }
 
 const NodeGraph = ({
@@ -422,6 +450,7 @@ const NodeGraph = ({
   includeKey = true,
   footerLabel,
   linksToVisualiser = false,
+  links = [],
 }: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
   const [showFooter, setShowFooter] = useState(true);
@@ -452,6 +481,7 @@ const NodeGraph = ({
             linkTo={linkTo}
             includeKey={includeKey}
             linksToVisualiser={linksToVisualiser}
+            links={links}
           />
 
           {showFooter && (

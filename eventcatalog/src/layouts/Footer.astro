@@ -1,34 +1,43 @@
 ---
 import { buildUrl } from '@utils/url-builder';
+import { showEventCatalogBranding } from '@utils/feature';
 const { className } = Astro.props;
 ---
 
 <footer class={`relative py-4 space-y-8 border-t border-gray-300 ${className}`}>
-  <div class="flex justify-between items-center py-8 text-gray-500 text-sm font-light">
-    <div class="flex space-x-5">
-      <a href="https://github.com/event-catalog/eventcatalog" target="_blank"
-        ><svg
-          class="w-5 h-5 bg-gray-400 hover:bg-primary dark:hover:bg-gray-400"
-          style={`mask-image: url("${buildUrl('/icons/github.svg', true)}"); mask-repeat: no-repeat; mask-position: center center;`}
-        ></svg></a
-      >
-      <a href="https://x.com/event_catalog" target="_blank"
-        ><span class="sr-only">x</span><svg
-          class="w-5 h-5 bg-gray-400 hover:bg-primary dark:hover:bg-gray-400"
-          style={`mask-image: url("${buildUrl('/icons/x-twitter.svg', true)}"); mask-repeat: no-repeat; mask-position: center center;`}
-        ></svg></a
-      >
-      <a href="https://www.youtube.com/@event-catalog" target="_blank"
-        ><span class="sr-only">x</span><svg
-          class="w-5 h-5 bg-gray-400 hover:bg-primary dark:hover:bg-gray-400"
-          style={`mask-image: url("${buildUrl('/icons/youtube.svg', true)}"); mask-repeat: no-repeat; mask-position: center center;`}
-        ></svg></a
-      >
-    </div>
-    <a
-      target="_blank"
-      class="hover:text-primary hover:underline text-gray-400 font-light not-prose"
-      href="https://eventcatalog.dev">Powered by EventCatalog</a
-    >
-  </div>
+  {
+    showEventCatalogBranding() && (
+      <div class="flex justify-between items-center py-8 text-gray-500 text-sm font-light">
+        <div class="flex space-x-5">
+          <a href="https://github.com/event-catalog/eventcatalog" target="_blank">
+            <svg
+              class="w-5 h-5 bg-gray-400 hover:bg-primary dark:hover:bg-gray-400"
+              style={`mask-image: url("${buildUrl('/icons/github.svg', true)}"); mask-repeat: no-repeat; mask-position: center center;`}
+            />
+          </a>
+          <a href="https://x.com/event_catalog" target="_blank">
+            <span class="sr-only">x</span>
+            <svg
+              class="w-5 h-5 bg-gray-400 hover:bg-primary dark:hover:bg-gray-400"
+              style={`mask-image: url("${buildUrl('/icons/x-twitter.svg', true)}"); mask-repeat: no-repeat; mask-position: center center;`}
+            />
+          </a>
+          <a href="https://www.youtube.com/@event-catalog" target="_blank">
+            <span class="sr-only">x</span>
+            <svg
+              class="w-5 h-5 bg-gray-400 hover:bg-primary dark:hover:bg-gray-400"
+              style={`mask-image: url("${buildUrl('/icons/youtube.svg', true)}"); mask-repeat: no-repeat; mask-position: center center;`}
+            />
+          </a>
+        </div>
+        <a
+          target="_blank"
+          class="hover:text-primary hover:underline text-gray-400 font-light not-prose"
+          href="https://eventcatalog.dev"
+        >
+          Powered by EventCatalog
+        </a>
+      </div>
+    )
+  }
 </footer>

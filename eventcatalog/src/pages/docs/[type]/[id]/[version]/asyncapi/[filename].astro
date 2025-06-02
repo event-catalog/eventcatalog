@@ -1,0 +1,117 @@
+---
+import path from 'path';
+import { createElement } from 'react';
+import { renderToString } from 'react-dom/server';
+import { Parser } from '@asyncapi/parser';
+import { AvroSchemaParser } from '@asyncapi/avro-schema-parser';
+import fs from 'fs';
+import { getSpecificationsForService } from '@utils/collections/services';
+import type { CollectionTypes, PageTypes } from '@types';
+
+import '@asyncapi/react-component/styles/default.min.css';
+import js from '@asyncapi/react-component/browser/standalone/without-parser.js?url';
+import { AsyncApiComponentWP, type ConfigInterface } from '@asyncapi/react-component';
+import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
+import type { CollectionEntry } from 'astro:content';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import Config from '@utils/eventcatalog-config/catalog';
+
+export async function getStaticPaths() {
+  const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];
+  const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
+
+  const hasSpecifications = (item: CollectionEntry<CollectionTypes>) => {
+    const specifications = getSpecificationsForService(item);
+    // Ensure there is at least one 'asyncapi' specification
+    return specifications && specifications.some((spec) => spec.type === 'asyncapi');
+  };
+
+  const filteredItems = allItems.map((items) => items.filter(hasSpecifications));
+
+  return filteredItems.flatMap((items, index) =>
+    items.flatMap((item) => {
+      const asyncApiSpecifications = getSpecificationsForService(item).filter((spec) => spec.type === 'asyncapi');
+
+      return asyncApiSpecifications.map((spec) => ({
+        params: {
+          type: itemTypes[index],
+          id: item.data.id,
+          version: item.data.version,
+          filename: spec.filenameWithoutExtension || spec.type,
+        },
+        props: {
+          type: itemTypes[index],
+          filenameWithoutExtension: spec.filenameWithoutExtension || spec.type,
+          filename: spec.filename || spec.type,
+          ...item,
+        },
+      }));
+    })
+  );
+}
+
+// @ts-ignore
+const { collection, catalog, data, filePath, filename } = Astro.props;
+const fileName = filename || 'asyncapi.yaml';
+const directory = path.dirname(filePath || '');
+const pathToSpec = path.join(directory, fileName);
+const fileExists = fs.existsSync(pathToSpec);
+let content = '';
+
+if (fileExists) {
+  content = fs.readFileSync(pathToSpec, 'utf8');
+}
+
+// AsyncAPI parser will parser schemas for users, they can turn this off.
+const parseSchemas = Config?.asyncAPI?.renderParsedSchemas ?? true;
+const parsed = await new Parser({ schemaParsers: [AvroSchemaParser()] }).parse(content, { parseSchemas });
+const stringified = parsed.document?.json();
+const config: ConfigInterface = { show: { sidebar: true, errors: true } };
+
+const component = createElement(AsyncApiComponentWP, { schema: { stringified }, config });
+const renderedComponent = renderToString(component);
+
+// Capitalize the first letter of a string
+const pageTitle = `${collection} | ${data.name} | AsyncApi Spec`.replace(/^\w/, (c) => c.toUpperCase());
+
+// Index only the latest version
+const pagefindAttributes =
+  data.version === data.latestVersion
+    ? {
+        'data-pagefind-body': '',
+        'data-pagefind-meta': `title:${pageTitle}`,
+      }
+    : {};
+---
+
+<VerticalSideBarLayout title={pageTitle}>
+  <div {...pagefindAttributes}>
+    {
+      // Currently, Pagefind does not index metadata (such as the title),
+      // so we need to ensure it is included as text on the page.
+      // https://github.com/CloudCannon/pagefind/issues/437
+    }
+    <h2 class="hidden">{pageTitle}</h2>
+    <div id="asyncapi" class="md:pr-14" set:html={renderedComponent} />
+  </div>
+</VerticalSideBarLayout>
+
+<script is:inline src={js}></script>
+<script define:vars={{ schema: stringified, config }}>
+  const root = document.getElementById('asyncapi');
+  AsyncApiStandalone.hydrate({ schema, config }, root);
+</script>
+
+<style>
+  #asyncapi {
+    @media screen and (min-width: 1417px) {
+      .sidebar {
+        z-index: 1 !important;
+      }
+    }
+
+    .aui-root .z-10 {
+      z-index: 8;
+    }
+  }
+</style>

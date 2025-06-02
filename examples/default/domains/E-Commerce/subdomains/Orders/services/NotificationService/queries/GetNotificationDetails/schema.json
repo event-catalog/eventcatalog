@@ -1,0 +1,56 @@
+
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GetNotificationDetailsResponse",
+  "type": "object",
+  "properties": {
+    "notificationId": {
+      "type": "string",
+      "description": "The unique identifier for the notification."
+    },
+    "title": {
+      "type": "string",
+      "description": "The title or subject of the notification."
+    },
+    "message": {
+      "type": "string",
+      "description": "The content or message body of the notification."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["unread", "read"],
+      "description": "The read status of the notification."
+    },
+    "userId": {
+      "type": "string",
+      "description": "The unique identifier for the user who received the notification."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The date and time when the notification was created."
+    },
+    "type": {
+      "type": "string",
+      "description": "The type of the notification, such as order or system."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata related to the notification, such as order details.",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "description": "The associated order ID, if applicable."
+        },
+        "shippingProvider": {
+          "type": "string",
+          "description": "The shipping provider for the associated order, if applicable."
+        }
+      },
+      "required": ["orderId"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["notificationId", "title", "message", "status", "userId", "createdAt", "type"],
+  "additionalProperties": false
+}

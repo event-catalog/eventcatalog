@@ -16,11 +16,12 @@ import expressiveCode from 'astro-expressive-code';
 
 const projectDirectory = process.env.PROJECT_DIR || process.cwd();
 const base = config.base || '/';
+const host = config.host || false;
 
 // https://astro.build/config
 export default defineConfig({
   base,
-  server: { port: config.port || 3000 },
+  server: { port: config.port || 3000, host: host },
 
   // output: config.output || 'static',
 

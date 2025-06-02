@@ -6,6 +6,18 @@ export const mockServices = [
     data: {
       id: 'OrderService',
       version: '1.0.0',
+      specifications: [
+        {
+          type: 'asyncapi',
+          path: 'asyncapi.yml',
+          name: 'AsyncAPI Custom Name',
+        },
+        {
+          type: 'openapi',
+          path: 'openapi.yml',
+          name: 'OpenAPI Custom Name',
+        },
+      ],
       sends: [
         {
           id: 'OrderCreatedEvent',
@@ -27,6 +39,10 @@ export const mockServices = [
     data: {
       id: 'InventoryService',
       version: '1.0.0',
+      specifications: {
+        asyncapiPath: 'asyncapi.yml',
+        openapiPath: 'openapi.yml',
+      },
       receives: [
         {
           id: 'OrderCreatedEvent',
@@ -246,6 +262,12 @@ export const mockChannels = [
     data: {
       id: 'EmailChannel',
       version: '1.0.0',
+      messages: [
+        {
+          id: 'OrderCreatedEvent',
+          version: '0.0.1',
+        },
+      ],
     },
   },
   {

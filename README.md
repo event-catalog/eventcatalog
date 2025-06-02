@@ -101,7 +101,7 @@ You can read more on [how it works on GitHub](https://github.com/event-catalog/e
 
 You should be able to get setup within minutes if you head over to our documentation to get started 👇
 
-➡️ [Get Started](https://eventcatalog-website-v2.vercel.app/docs/development/getting-started/installation)
+➡️ [Get Started](https://www.eventcatalog.dev/docs/development/getting-started/installation)
 
 Or run this command to build a new catalog
 
@@ -278,4 +278,4 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 # License
 
-MIT.
+MIT

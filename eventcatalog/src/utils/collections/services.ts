@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
 import semver from 'semver';
-
+import type { CollectionTypes } from '@types';
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
 export type Service = CollectionEntry<'services'>;
@@ -128,4 +128,59 @@ export const getConsumersOfMessage = (services: Service[], message: CollectionEn
       return idMatch && semver.satisfies(message.data.version, receive.version);
     });
   });
+};
+
+export const getSpecificationsForService = (service: CollectionEntry<CollectionTypes>) => {
+  const specifications = Array.isArray(service.data.specifications) ? service.data.specifications : [];
+
+  if (service.data.specifications && !Array.isArray(service.data.specifications)) {
+    if (service.data.specifications.asyncapiPath) {
+      specifications.push({
+        type: 'asyncapi',
+        path: service.data.specifications.asyncapiPath,
+        name: 'AsyncAPI',
+      });
+    }
+    if (service.data.specifications.openapiPath) {
+      specifications.push({
+        type: 'openapi',
+        path: service.data.specifications.openapiPath,
+        name: 'OpenAPI',
+      });
+    }
+  }
+
+  return specifications.map((spec) => ({
+    ...spec,
+    name: spec.name || (spec.type === 'asyncapi' ? 'AsyncAPI' : 'OpenAPI'),
+    filename: path.basename(spec.path),
+    filenameWithoutExtension: path.basename(spec.path, path.extname(spec.path)),
+  }));
+};
+
+// Get services for channel
+export const getProducersAndConsumersForChannel = async (channel: CollectionEntry<'channels'>) => {
+  const messages = channel.data.messages ?? [];
+  const services = await getServices({ getAllVersions: false });
+
+  const producers = services.filter((service) => {
+    const sends = service.data.sends ?? [];
+    return sends.some((send) => {
+      // @ts-ignore
+      return messages.some((m) => m.id === send.data.id);
+    });
+  });
+
+  const consumers = services.filter((service) => {
+    const receives = service.data.receives ?? [];
+    return receives.some((receive) => {
+      // @ts-ignore
+      return messages.some((m) => m.id === receive.data.id);
+    });
+  });
+
+  return {
+    producers: producers ?? [],
+    consumers: consumers ?? [],
+  };
 };

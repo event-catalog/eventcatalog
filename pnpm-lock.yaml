@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@ai-sdk/anthropic':
+        specifier: ^1.2.11
+        version: 1.2.11(zod@3.24.1)
+      '@ai-sdk/google':
+        specifier: ^1.2.17
+        version: 1.2.17(zod@3.24.1)
       '@ai-sdk/openai':
         specifier: ^1.3.16
         version: 1.3.16(zod@3.24.1)
@@ -39,8 +45,8 @@ importers:
         specifier: ^2.4.3
         version: 2.5.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@eventcatalog/generator-ai':
-        specifier: ^1.0.2
-        version: 1.0.2(@langchain/core@0.3.40(openai@4.95.1(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(ws@8.18.0)(zod@3.24.1)
+        specifier: ^1.1.0
+        version: 1.1.0(@langchain/core@0.3.40(openai@4.95.1(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(ws@8.18.0)(zod@3.24.1)
       '@eventcatalog/sdk':
         specifier: ^2.2.7
         version: 2.2.7
@@ -288,6 +294,18 @@ importers:
 
 packages:
 
+  '@ai-sdk/anthropic@1.2.11':
+    resolution: {integrity: sha512-lZLcEMh8MXY4NVSrN/7DyI2rnid8k7cn/30nMmd3bwJrnIsOuIuuFvY8f0nj+pFcTi6AYK7ujLdqW5dQVz1YQw==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.0.0
+
+  '@ai-sdk/google@1.2.17':
+    resolution: {integrity: sha512-mLFLDMCJaDK+j1nvoqeNszazSZIyeSMPi5X+fs5Wh3xWZljGGE0WmFg32RNkFujRB+UnM63EnhPG70WdqOx/MA==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.0.0
+
   '@ai-sdk/openai@1.3.16':
     resolution: {integrity: sha512-pjtiBKt1GgaSKZryTbM3tqgoegJwgAUlp1+X5uN6T+VPnI4FLSymV65tyloWzDlyqZmi9HXnnSRPu76VoL5D5g==}
     engines: {node: '>=18'}
@@ -296,6 +314,12 @@ packages:
 
   '@ai-sdk/provider-utils@2.2.7':
     resolution: {integrity: sha512-kM0xS3GWg3aMChh9zfeM+80vEZfXzR3JEUBdycZLtbRZ2TRT8xOj3WodGHPb06sUK5yD7pAXC/P7ctsi2fvUGQ==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.23.8
+
+  '@ai-sdk/provider-utils@2.2.8':
+    resolution: {integrity: sha512-fqhG+4sCVv8x7nFzYnFo19ryhAa3w096Kmc3hWxMQfW/TubPOmt3A6tYZhl4mUfQWWQMsuSkLrtjlWuXBVSGQA==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.23.8
@@ -1010,14 +1034,14 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@eventcatalog/generator-ai@1.0.2':
-    resolution: {integrity: sha512-S5oCiy3qhlZvbdO+/e7UbE80HJFTjzPZGDzlVZ5fH36NBP9heK2NewuxG9S6LJWzlUwU5NN2+JXNSD7I2+/PTg==}
+  '@eventcatalog/generator-ai@1.1.0':
+    resolution: {integrity: sha512-/prvaiTV/UWMWjja1yyhnAv499CshYCV6Jjx95elYp7+kbjgXyaTxy97JNqRKkyUfCyuX3I7RXrVGHj7tIZ03Q==}
 
   '@eventcatalog/sdk@2.2.7':
     resolution: {integrity: sha512-MhonTgw3ltQmldBqCLVs8zSzWFMXapHZiSIrF8zi3lpRvAslv6wMQpAbUA51PDSfygwExXstuZCwPGp8JQiizw==}
 
-  '@eventcatalog/sdk@2.3.2':
-    resolution: {integrity: sha512-POiX4Iu7NBA01uIbBqKYjxDkKPtTJa9dF2pH+YBwm7SFn+uKlw4QCi9lXpcJnpXshpjguOoyAMzt3dvQf6gCdw==}
+  '@eventcatalog/sdk@2.4.0':
+    resolution: {integrity: sha512-EVJwgh7UbT0UURopNNzvCQtkn5xppFLA+rH8iD0HsgDFxOdnPkFBtVW5sTHPBmt863o6VW2CDny8ABJENN3O8A==}
 
   '@expressive-code/core@0.40.1':
     resolution: {integrity: sha512-j71gxBepyzBgOtZomxzl8M90AjILf6hZarWFePDis7sTjqCwxWrtZEtTCafto8IOURG/ECZN0g7Ys4zExkNU7Q==}
@@ -7777,6 +7801,18 @@ packages:
 
 snapshots:
 
+  '@ai-sdk/anthropic@1.2.11(zod@3.24.1)':
+    dependencies:
+      '@ai-sdk/provider': 1.1.3
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.24.1)
+      zod: 3.24.1
+
+  '@ai-sdk/google@1.2.17(zod@3.24.1)':
+    dependencies:
+      '@ai-sdk/provider': 1.1.3
+      '@ai-sdk/provider-utils': 2.2.8(zod@3.24.1)
+      zod: 3.24.1
+
   '@ai-sdk/openai@1.3.16(zod@3.24.1)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
@@ -7784,6 +7820,13 @@ snapshots:
       zod: 3.24.1
 
   '@ai-sdk/provider-utils@2.2.7(zod@3.24.1)':
+    dependencies:
+      '@ai-sdk/provider': 1.1.3
+      nanoid: 3.3.8
+      secure-json-parse: 2.7.0
+      zod: 3.24.1
+
+  '@ai-sdk/provider-utils@2.2.8(zod@3.24.1)':
     dependencies:
       '@ai-sdk/provider': 1.1.3
       nanoid: 3.3.8
@@ -8702,9 +8745,9 @@ snapshots:
   '@esbuild/win32-x64@0.25.0':
     optional: true
 
-  '@eventcatalog/generator-ai@1.0.2(@langchain/core@0.3.40(openai@4.95.1(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(ws@8.18.0)(zod@3.24.1)':
+  '@eventcatalog/generator-ai@1.1.0(@langchain/core@0.3.40(openai@4.95.1(ws@8.18.0)(zod@3.24.1)))(axios@1.7.9)(ws@8.18.0)(zod@3.24.1)':
     dependencies:
-      '@eventcatalog/sdk': 2.3.2
+      '@eventcatalog/sdk': 2.4.0
       '@huggingface/transformers': 3.3.3
       chalk: 4.1.2
       fs-extra: 11.3.0
@@ -8744,7 +8787,7 @@ snapshots:
       semver: 7.6.3
       slugify: 1.6.6
 
-  '@eventcatalog/sdk@2.3.2':
+  '@eventcatalog/sdk@2.4.0':
     dependencies:
       '@changesets/cli': 2.27.12
       fs-extra: 11.3.0

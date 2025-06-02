@@ -35,8 +35,13 @@ export const getSchemasFromResource = (resource: CollectionEntry<PageTypes>): Sc
   }
 
   if (resource.collection === 'services') {
-    const asyncapiPath = resource?.data?.specifications?.asyncapiPath;
-    const openapiPath = resource?.data?.specifications?.openapiPath;
+    const specifications = resource?.data?.specifications;
+    const asyncapiPath = Array.isArray(specifications)
+      ? specifications.find((spec) => spec.type === 'asyncapi')?.path
+      : specifications?.asyncapiPath;
+    const openapiPath = Array.isArray(specifications)
+      ? specifications.find((spec) => spec.type === 'openapi')?.path
+      : specifications?.openapiPath;
     // @ts-ignore
     const publicPath = resource?.catalog?.publicPath;
     const schemas = [];

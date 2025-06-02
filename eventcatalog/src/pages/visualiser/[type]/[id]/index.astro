@@ -11,6 +11,9 @@ import type { CollectionTypes } from '@types';
 export async function getStaticPaths() {
   const [events, commands, services, domains] = await Promise.all([getEvents(), getCommands(), getServices(), getDomains()]);
 
+  const resources = [...domains, ...events, ...services, ...commands];
+  const resourcesWithVisualiserEnabled = resources.filter((resource) => resource.data.visualiser !== false);
+
   const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {
     return collection.map((item) => ({
       params: {
@@ -24,7 +27,7 @@ export async function getStaticPaths() {
     }));
   };
 
-  return [...buildPages(domains), ...buildPages(events), ...buildPages(services), ...buildPages(commands)];
+  return [...buildPages(resourcesWithVisualiserEnabled)];
 }
 
 const props = Astro.props;

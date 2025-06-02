@@ -2,7 +2,8 @@
 import type { CollectionTypes } from '@types';
 import { buildUrl } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
-
+import { getSpecificationsForService } from '@utils/collections/services';
+import type { Service } from '@utils/collections/services';
 interface Props {
   collectionItem: CollectionEntry<CollectionTypes>;
 }
@@ -11,30 +12,41 @@ const { collectionItem } = Astro.props;
 
 const specVersions = collectionItem.data.specifications || {};
 const numberOfSpecifications = Object.keys(specVersions).length;
+
+const specs = getSpecificationsForService(collectionItem as Service);
+
+const openAPISpecifications = specs.filter((spec) => spec.type === 'openapi');
+const asyncAPISpecifications = specs.filter((spec) => spec.type === 'asyncapi');
 ---
 
 <div class="space-y-2 mb-8">
   <span class="text-sm text-black group-data-[hover]:text-black/80 capitalize">Specifications ({numberOfSpecifications})</span>
   {
-    collectionItem.data.specifications?.openapiPath && (
-      <a
-        href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}/spec`)}
-        class="px-1 text-sm font-light flex items-center space-x-1 hover:underline hover:text-primary rounded-md hover:bg-gradient-to-l  hover:from-purple-500 hover:to-purple-700 hover:text-white"
-      >
-        <img src={buildUrl('/icons/openapi.svg', true)} class="h-4 w-4" />
-        <span>OpenAPI spec</span>
-      </a>
-    )
+    openAPISpecifications.length > 0 &&
+      openAPISpecifications.map((spec) => (
+        <a
+          href={buildUrl(
+            `/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}/spec/${spec.filenameWithoutExtension}`
+          )}
+          class="px-1 text-sm font-light flex items-center space-x-1 hover:underline hover:text-primary rounded-md hover:bg-gradient-to-l  hover:from-purple-500 hover:to-purple-700 hover:text-white"
+        >
+          <img src={buildUrl('/icons/openapi.svg', true)} class="h-4 w-4" />
+          <span>{spec.name}</span>
+        </a>
+      ))
   }
   {
-    collectionItem.data.specifications?.asyncapiPath && (
-      <a
-        href={buildUrl(`/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}/asyncapi`)}
-        class="px-1 text-sm font-light flex items-center space-x-1 hover:underline rounded-md hover:bg-gradient-to-l  hover:from-purple-500 hover:to-purple-700 hover:text-white"
-      >
-        <img src={buildUrl('/icons/asyncapi.svg', true)} class="h-4 w-4" />
-        <span>AsyncAPI spec</span>
-      </a>
-    )
+    asyncAPISpecifications.length > 0 &&
+      asyncAPISpecifications.map((spec) => (
+        <a
+          href={buildUrl(
+            `/docs/${collectionItem.collection}/${collectionItem.data.id}/${collectionItem.data.version}/asyncapi/${spec.filenameWithoutExtension}`
+          )}
+          class="px-1 text-sm font-light flex items-center space-x-1 hover:underline rounded-md hover:bg-gradient-to-l  hover:from-purple-500 hover:to-purple-700 hover:text-white"
+        >
+          <img src={buildUrl('/icons/asyncapi.svg', true)} class="h-4 w-4" />
+          <span>{spec.name}</span>
+        </a>
+      ))
   }
 </div>

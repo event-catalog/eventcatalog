@@ -89,10 +89,19 @@ const baseSchema = z.object({
     })
     .optional(),
   specifications: z
-    .object({
-      openapiPath: z.string().optional(),
-      asyncapiPath: z.string().optional(),
-    })
+    .union([
+      z.object({
+        openapiPath: z.string().optional(),
+        asyncapiPath: z.string().optional(),
+      }),
+      z.array(
+        z.object({
+          type: z.enum(['openapi', 'asyncapi']),
+          path: z.string(),
+          name: z.string().optional(),
+        })
+      ),
+    ])
     .optional(),
   hidden: z.boolean().optional(),
   resourceGroups: z
@@ -121,11 +130,12 @@ const baseSchema = z.object({
     .union([
       z.object({
         message: z.string().optional(),
-        date: z.date().optional(),
+        date: z.union([z.string(), z.date()]).optional(),
       }),
       z.boolean().optional(),
     ])
     .optional(),
+  visualiser: z.boolean().optional(),
   // Used by eventcatalog
   versions: z.array(z.string()).optional(),
   latestVersion: z.string().optional(),
@@ -283,6 +293,12 @@ const services = defineCollection({
     pattern: [
       'domains/*/services/*/index.(md|mdx)',
       'domains/*/services/*/versioned/*/index.(md|mdx)',
+
+      // Capture subdomain folders
+      'domains/*/subdomains/*/services/*/index.(md|mdx)',
+      'domains/*/subdomains/*/services/*/versioned/*/index.(md|mdx)',
+
+      // Capture services in the root
       'services/*/index.(md|mdx)', // ✅ Capture only services markdown files
       'services/*/versioned/*/index.(md|mdx)', // ✅ Capture versioned files inside services
     ],
@@ -323,6 +339,10 @@ const domains = defineCollection({
       // ✅ Strictly include only index.md at the expected levels
       'domains/*/index.(md|mdx)',
       'domains/*/versioned/*/index.(md|mdx)',
+
+      // Capture subdomain folders
+      'domains/*/subdomains/*/index.(md|mdx)',
+      'domains/*/subdomains/*/versioned/*/index.(md|mdx)',
     ],
     base: projectDirBase,
     generateId: ({ data, ...rest }) => {
@@ -367,7 +387,7 @@ const channels = defineCollection({
 
 const ubiquitousLanguages = defineCollection({
   loader: glob({
-    pattern: ['domains/*/ubiquitous-language.(md|mdx)'],
+    pattern: ['domains/*/ubiquitous-language.(md|mdx)', 'domains/*/subdomains/*/ubiquitous-language.(md|mdx)'],
     base: projectDirBase,
     generateId: ({ data }) => {
       // File has no id, so we need to generate one

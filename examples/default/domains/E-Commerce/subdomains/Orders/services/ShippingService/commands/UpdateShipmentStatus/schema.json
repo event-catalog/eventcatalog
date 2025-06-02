@@ -1,0 +1,29 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "title": "UpdateShipmentStatus",
+    "description": "Schema for updating a shipment's status",
+    "properties": {
+        "UpdateShipmentStatus": {
+            "type": "object",
+            "properties": {
+                "shipmentId": {
+                    "type": "string",
+                    "description": "Unique identifier for the shipment"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": ["pending", "shipped", "delivered", "returned"],
+                    "description": "Current status of the shipment"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Timestamp when the status was last updated"
+                }
+            },
+            "required": ["shipmentId", "status"]
+        }
+    },
+    "required": ["UpdateShipmentStatus"]
+}

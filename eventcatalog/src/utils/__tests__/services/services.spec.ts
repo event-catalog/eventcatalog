@@ -1,7 +1,13 @@
 import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
-import { mockCommands, mockEvents, mockQueries, mockServices } from './mocks';
-import { getProducersOfMessage, getServices, getConsumersOfMessage } from '@utils/collections/services';
+import { mockChannels, mockCommands, mockEvents, mockQueries, mockServices } from './mocks';
+import {
+  getProducersOfMessage,
+  getServices,
+  getConsumersOfMessage,
+  getSpecificationsForService,
+  getProducersAndConsumersForChannel,
+} from '@utils/collections/services';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
@@ -377,6 +383,70 @@ describe('Services', () => {
       const servicesThatConsumeMessage = getConsumersOfMessage([service], message);
 
       expect(servicesThatConsumeMessage).toHaveLength(0);
+    });
+  });
+
+  describe('getSpecificationsForService', () => {
+    it('when specifications are defined and an array in the service, it returns a list of specifications', async () => {
+      const service = mockServices[0];
+
+      // @ts-ignore
+      const specifications = getSpecificationsForService(service);
+
+      expect(specifications).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'asyncapi',
+            path: 'asyncapi.yml',
+            name: 'AsyncAPI Custom Name',
+          }),
+          expect.objectContaining({
+            type: 'openapi',
+            path: 'openapi.yml',
+            name: 'OpenAPI Custom Name',
+          }),
+        ])
+      );
+    });
+
+    it('when specifications are defined and not an array in the service, it returns a list of specifications with defaults for name and type', async () => {
+      const service = mockServices[1];
+
+      // @ts-ignore
+      const specifications = getSpecificationsForService(service);
+
+      expect(specifications).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'asyncapi',
+            path: 'asyncapi.yml',
+            name: 'AsyncAPI',
+          }),
+          expect.objectContaining({
+            type: 'openapi',
+            path: 'openapi.yml',
+            name: 'OpenAPI',
+          }),
+        ])
+      );
+    });
+  });
+
+  describe('getProducersAndConsumersForChannel', () => {
+    it('returns producers and consumers (services) for a given channel', async () => {
+      const channel = mockChannels[0];
+
+      // @ts-ignore
+      const { producers, consumers } = await getProducersAndConsumersForChannel(channel);
+
+      expect(producers).toHaveLength(2);
+      expect(producers[0].data.id).toEqual('NotificationsService');
+      expect(producers[1].data.id).toEqual('OrderService');
+
+      expect(consumers).toHaveLength(3);
+      expect(consumers[0].data.id).toEqual('InventoryService');
+      expect(consumers[1].data.id).toEqual('NotificationsService');
+      expect(consumers[2].data.id).toEqual('PaymentService');
     });
   });
 });

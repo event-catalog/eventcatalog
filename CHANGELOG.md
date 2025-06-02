@@ -1,5 +1,127 @@
 # @eventcatalog/core
 
+## 2.42.9
+
+### Patch Changes
+
+- 6522f76: chore(core): added host configuration support for eventcatalog
+- 650cd38: fix(core): added headers and tabs into openapi render
+
+## 2.42.8
+
+### Patch Changes
+
+- 5f58157: feat(core): added new end point for producers and consumers
+- ea92c89: feat(core): Added entities and ubquitous lang, and channels to llms txt
+
+## 2.42.7
+
+### Patch Changes
+
+- de85086: feat(core): Added entities and ubquitous lang, and channels to llms txt
+
+## 2.42.6
+
+### Patch Changes
+
+- 4c635fa: feat(core): added ability to turn off changelogs
+
+## 2.42.5
+
+### Patch Changes
+
+- cb0c00a: fix(core): fixed issue with long list of messages on architecture page
+
+## 2.42.4
+
+### Patch Changes
+
+- b8e0725: fix(core): fixed broken zindex for search on asyncapi page
+- 2a5574b: fix(core): fixed a bug where schema viewer did not support ref definitions
+
+## 2.42.3
+
+### Patch Changes
+
+- c04abcd: feat(core): added ability to remove minor branding
+- 01d3db9: fix(core): deprecated dates can now be strings
+
+## 2.42.2
+
+### Patch Changes
+
+- 2e4b4f1: fix(core): fix for broken visualizer
+
+## 2.42.1
+
+### Patch Changes
+
+- ad4ece8: feat(core): added producers and consumers to channel docs
+
+## 2.42.0
+
+### Minor Changes
+
+- 1b95c70: Allow channels to be displayed as a single node (Fix #989)
+
+## 2.41.1
+
+### Patch Changes
+
+- 3d8df99: fix(core): fixed base url for llms txt endpoint
+
+## 2.41.0
+
+### Minor Changes
+
+- ab7203c: feat(core): added schemas to AI features
+
+## 2.40.1
+
+### Patch Changes
+
+- 3174cbd: fix(core): now hides glob loader warning in dev mode
+
+## 2.40.0
+
+### Minor Changes
+
+- dc6a17c: feat(core): added subdomain folder support
+
+## 2.39.2
+
+### Patch Changes
+
+- 0094562: feat(core): added ability to turn of visualizer per resource
+
+## 2.39.1
+
+### Patch Changes
+
+- 7dcd349: fix(core): fixing badges for specification files and types
+
+## 2.39.0
+
+### Minor Changes
+
+- e1578ae: feat(core): added support for multi spec files for services
+
+## 2.38.1
+
+### Patch Changes
+
+- e3374f5: feat(core): version dropdown added to visualizer
+
+## 2.38.0
+
+### Minor Changes
+
+- 7c6ad76: feat(core): added google and anthropic models to chat feature
+
+### Patch Changes
+
+- c23584e: fix(core): fix protocol icon nullability issue
+
 ## 2.37.4
 
 ### Patch Changes

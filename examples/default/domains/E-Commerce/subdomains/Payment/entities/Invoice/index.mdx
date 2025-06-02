@@ -1,0 +1,87 @@
+---
+id: Invoice
+name: Invoice
+version: 1.0.0
+identifier: invoiceId
+summary: Represents a bill issued to a customer, detailing charges for products or services.
+
+properties:
+  - name: invoiceId
+    type: UUID
+    required: true
+    description: Unique identifier for the invoice.
+  - name: customerId
+    type: UUID
+    required: true
+    description: Identifier of the customer being invoiced.
+  - name: orderId # Optional, if invoice is directly tied to a single order
+    type: UUID
+    required: false
+    description: Identifier of the associated order, if applicable.
+  - name: subscriptionId # Optional, if invoice is for a subscription period
+    type: UUID
+    required: false
+    description: Identifier of the associated subscription, if applicable.
+  - name: invoiceNumber
+    type: string
+    required: true
+    description: Human-readable, sequential identifier for the invoice (may have specific format).
+  - name: issueDate
+    type: Date
+    required: true
+    description: Date the invoice was generated and issued.
+  - name: dueDate
+    type: Date
+    required: true
+    description: Date by which the payment for the invoice is due.
+  - name: totalAmount
+    type: decimal
+    required: true
+    description: The total amount due on the invoice.
+  - name: currency
+    type: string # ISO 4217 code
+    required: true
+    description: Currency of the invoice amount.
+  - name: status
+    type: string # (e.g., Draft, Sent, Paid, Overdue, Void)
+    required: true
+    description: Current status of the invoice.
+  - name: billingAddressId # Address used for this specific invoice
+    type: UUID
+    required: true
+    description: Identifier for the billing address used on this invoice.
+  - name: lineItems
+    type: array
+    items:
+      type: InvoiceLineItem # Assuming a value object or separate entity for line items
+    required: true
+    description: List of individual items or services being charged on the invoice.
+  - name: createdAt
+    type: DateTime
+    required: true
+    description: Timestamp when the invoice record was created.
+  - name: paidAt # Timestamp when payment was confirmed
+    type: DateTime
+    required: false
+    description: Timestamp when the invoice was marked as paid.
+---
+
+## Overview
+
+The Invoice entity represents a formal request for payment issued by the business to a customer. It details the products, services, quantities, prices, taxes, and total amount due, along with payment terms.
+
+### Entity Properties
+<EntityPropertiesTable />
+
+## Relationships
+
+*   **Customer:** An invoice is issued to one `Customer`.
+*   **Order/Subscription:** An invoice may be related to one or more `Order`s or a specific `Subscription` period.
+*   **Payment:** An invoice is settled by one or more `Payment` transactions.
+*   **InvoiceLineItem:** An invoice contains multiple `InvoiceLineItem`s detailing the charges.
+*   **BillingProfile:** Invoice generation often uses details from the customer's `BillingProfile`.
+
+## Examples
+
+*   Invoice #INV-00123 issued to Jane Doe for her monthly subscription renewal, due in 15 days.
+*   Invoice #INV-00124 issued to Acme Corp for consulting services rendered in the previous month, status Paid. 

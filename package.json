@@ -6,7 +6,7 @@
     "url": "https://github.com/event-catalog/eventcatalog.git"
   },
   "type": "module",
-  "version": "2.37.4",
+  "version": "2.42.9",
   "publishConfig": {
     "access": "public"
   },
@@ -43,6 +43,8 @@
     "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json,astro}\""
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^1.2.11",
+    "@ai-sdk/google": "^1.2.17",
     "@ai-sdk/openai": "^1.3.16",
     "@astrojs/markdown-remark": "^6.3.1",
     "@astrojs/mdx": "^4.2.4",
@@ -53,7 +55,7 @@
     "@asyncapi/avro-schema-parser": "^3.0.24",
     "@asyncapi/parser": "^3.4.0",
     "@asyncapi/react-component": "^2.4.3",
-    "@eventcatalog/generator-ai": "^1.0.2",
+    "@eventcatalog/generator-ai": "^1.1.0",
     "@eventcatalog/sdk": "^2.2.7",
     "@fontsource/inter": "^5.2.5",
     "@headlessui/react": "^2.0.3",

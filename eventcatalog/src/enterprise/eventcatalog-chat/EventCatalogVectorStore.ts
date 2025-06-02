@@ -13,6 +13,7 @@ export interface Resource {
   type: string;
   url: string;
   title?: string;
+  schema?: string;
 }
 
 export class EventCatalogVectorStore {
@@ -55,6 +56,7 @@ export class EventCatalogVectorStore {
             type: metadata.type,
             url: `/docs/${metadata.type}s/${metadata.id}`,
             title: metadata.title || metadata.id,
+            ...(metadata.schema && { schema: metadata.schema }),
           };
           return [metadata.id, resource]; // Use ID as key for Map
         })

@@ -29,8 +29,32 @@ export default function ServiceNode({ data, sourcePosition, targetPosition }: an
   const nodeLabel = label || service?.data?.sidebar?.badge || 'Service';
   const fontSize = nodeLabel.length > 10 ? '7px' : '9px';
 
-  const asyncApiPath = specifications?.asyncapiPath;
-  const openApiPath = specifications?.openapiPath;
+  let asyncApiFiles = Array.isArray(specifications) ? specifications?.filter((spec) => spec.type === 'asyncapi') : ([] as any);
+  let openApiFiles = Array.isArray(specifications) ? specifications?.filter((spec) => spec.type === 'openapi') : ([] as any);
+
+  if (!Array.isArray(specifications) && specifications?.asyncapiPath) {
+    asyncApiFiles.push({ path: specifications.asyncapiPath, type: 'asyncapi', name: 'AsyncAPI' });
+  }
+
+  if (!Array.isArray(specifications) && specifications?.openapiPath) {
+    openApiFiles.push({ path: specifications.openapiPath, type: 'openapi', name: 'OpenAPI' });
+  }
+
+  // Add filename on asyncApiFiles and openApiFiles
+  asyncApiFiles = asyncApiFiles.map((file: any) => {
+    return {
+      ...file,
+      filename: file.path.split('/').pop()?.split('.').shift(),
+    };
+  });
+  openApiFiles = openApiFiles.map((file: any) => {
+    return {
+      ...file,
+      filename: file.path.split('/').pop()?.split('.').shift(),
+      name: file.name,
+    };
+  });
+
   const repositoryUrl = repository?.url;
 
   return (
@@ -95,31 +119,33 @@ export default function ServiceNode({ data, sourcePosition, targetPosition }: an
             <a href={buildUrl(`/docs/services/${id}/${version}`)}>Read documentation</a>
           </ContextMenu.Item>
           <ContextMenu.Separator className="h-[1px] bg-gray-200 m-1" />
-          {asyncApiPath && (
-            <ContextMenu.Item asChild>
-              <a
-                href={buildUrl(`/docs/services/${id}/${version}/asyncapi`)}
-                className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View AsyncAPI specification
-              </a>
-            </ContextMenu.Item>
-          )}
-          {openApiPath && (
-            <ContextMenu.Item asChild>
-              <a
-                href={buildUrl(`/docs/services/${id}/${version}/spec`)}
-                className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View OpenAPI specification
-              </a>
-            </ContextMenu.Item>
-          )}
-          {asyncApiPath && openApiPath && <ContextMenu.Separator className="h-[1px] bg-gray-200 m-1" />}
+          {asyncApiFiles.length > 0 &&
+            asyncApiFiles.map((file: any) => (
+              <ContextMenu.Item asChild key={file.path}>
+                <a
+                  href={buildUrl(`/docs/services/${id}/${version}/asyncapi/${file.filename}`)}
+                  className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View AsyncAPI specification {file.name ? `(${file.name})` : ''}
+                </a>
+              </ContextMenu.Item>
+            ))}
+          {openApiFiles.length > 0 &&
+            openApiFiles.map((file: any) => (
+              <ContextMenu.Item asChild key={file.path}>
+                <a
+                  href={buildUrl(`/docs/services/${id}/${version}/spec/${file.filename}`)}
+                  className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  View OpenAPI specification {file.name ? `(${file.name})` : ''}
+                </a>
+              </ContextMenu.Item>
+            ))}
+          {asyncApiFiles.length > 0 && openApiFiles.length > 0 && <ContextMenu.Separator className="h-[1px] bg-gray-200 m-1" />}
           {repositoryUrl && (
             <>
               <ContextMenu.Item asChild>

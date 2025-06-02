@@ -9,6 +9,7 @@ import { getOwner } from '@utils/collections/owners';
 import { buildUrl } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
 import { ScrollText, Workflow } from 'lucide-react';
+import { isChangelogEnabled } from '@utils/feature';
 
 interface Props {
   domain: CollectionEntry<'domains'>;
@@ -203,13 +204,17 @@ const ownersList = filteredOwners.map((o) => ({
         <Workflow strokeWidth={2} size={16} />
         <span class="block">View in visualiser</span>
       </a>
-      <a
-        href={buildUrl(`/docs/${domain.collection}/${domain.data.id}/${domain.data.latestVersion}/changelog`)}
-        class="flex items-center space-x-2 justify-center text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
-      >
-        <ScrollText strokeWidth={2} size={16} />
-        <span class="block">Read changelog</span>
-      </a>
+      {
+        isChangelogEnabled() && (
+          <a
+            href={buildUrl(`/docs/${domain.collection}/${domain.data.id}/${domain.data.latestVersion}/changelog`)}
+            class="flex items-center space-x-2 justify-center text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
+          >
+            <ScrollText strokeWidth={2} size={16} />
+            <span class="block">Read changelog</span>
+          </a>
+        )
+      }
     </div>
   </div>
 </aside>

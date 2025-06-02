@@ -2,12 +2,15 @@
 import catalog from '@utils/eventcatalog-config/catalog';
 import Search from '@components/Search.astro';
 import { buildUrl } from '@utils/url-builder';
+import { showEventCatalogBranding, showCustomBranding } from '@utils/feature';
 
 const logo = {
   src: ('/' + (catalog?.logo?.src || 'logo.png')).replace(/^\/+/, '/'),
   alt: catalog?.logo?.alt || 'Event Catalog',
   text: catalog?.logo?.text || 'EventCatalog',
 };
+
+const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalog/eventcatalog';
 ---
 
 <nav
@@ -28,18 +31,33 @@ const logo = {
       </div>
 
       <div class="hidden md:block w-3/12">
-        <ul class="flex space-x-8 justify-end pr-2">
-          <li>
-            <a href="https://discord.com/invite/3rjaZMmrAm">
-              <img src={buildUrl('/icons/discord.svg', true)} class="h-7 w-7" />
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/event-catalog/eventcatalog">
-              <img src={buildUrl('/icons/github.svg', true)} class="h-7 w-7" />
-            </a>
-          </li>
-        </ul>
+        {
+          showEventCatalogBranding() && (
+            <ul class="flex space-x-8 justify-end pr-2">
+              <li>
+                <a href="https://discord.com/invite/3rjaZMmrAm">
+                  <img src={buildUrl('/icons/discord.svg', true)} class="h-7 w-7" />
+                </a>
+              </li>
+              <li>
+                <a href="https://github.com/event-catalog/eventcatalog">
+                  <img src={buildUrl('/icons/github.svg', true)} class="h-7 w-7" />
+                </a>
+              </li>
+            </ul>
+          )
+        }
+        {
+          showCustomBranding() && !showEventCatalogBranding() && (
+            <ul class="flex space-x-8 justify-end pr-2">
+              <li>
+                <a href={repositoryUrl} class="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600">
+                  <img src={buildUrl('/icons/github.svg', true)} class="h-7 w-7" />
+                </a>
+              </li>
+            </ul>
+          )
+        }
       </div>
 
       <div class="md:hidden">

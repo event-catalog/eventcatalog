@@ -1,0 +1,15 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "GetOrderQuery",
+    "type": "object",
+    "properties": {
+      "orderId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "The unique identifier of the order being retrieved."
+      }
+    },
+    "required": ["orderId"],
+    "additionalProperties": false
+  }
+  

@@ -3,7 +3,7 @@ import { buildUrl } from '@utils/url-builder';
 import { getChannels } from '@utils/channels';
 import { getDomains } from '@utils/collections/domains';
 import { getFlows } from '@utils/collections/flows';
-import { getServices } from '@utils/collections/services';
+import { getServices, getSpecificationsForService } from '@utils/collections/services';
 import { getCommands } from '@utils/commands';
 import { getEvents } from '@utils/events';
 import { getQueries } from '@utils/queries';
@@ -57,6 +57,11 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
       href: buildUrl(`/${route}/${entity.collection}/${entity.data.id}/${entity.data.version}`),
     }));
 
+    // don't render items if we are in the visualiser and the item has visualiser set to false
+    if (currentPath.includes('visualiser') && item.data.visualiser === false) {
+      return acc;
+    }
+
     const navigationItem = {
       label: item.data.name,
       version: item.data.version,
@@ -76,8 +81,9 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
       sends: sendsWithHref,
       receives: receivesWithHref,
       entities: entitiesWithHref,
-      specifications: isCollectionService ? item.data.specifications : null,
+      specifications: isCollectionService ? getSpecificationsForService(item) : null,
       sidebar: item.data?.sidebar,
+      renderInVisualiser: item.data?.visualiser ?? true,
     };
 
     group.push(navigationItem);

@@ -6,12 +6,13 @@ export default {
   organizationName: 'FlowMart',
   homepageLink: 'https://eventcatalog.dev',
   editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
+  repositoryUrl: 'https://github.com/event-catalog/eventcatalog',
   port: 3000,
   outDir: 'dist',
   // output: 'server',
   logo: {
     alt: 'FlowMart',
-    src: '/logo.svg',
+    src: '/logo.png',
     text: 'FlowMart',
   },
   base: '/',
@@ -28,14 +29,15 @@ export default {
   },
   chat: {
     enabled: true,
+    // provider: 'openai',
+    // model: 'o4',
     similarityResults: 50,
     max_tokens: 4096,
     // For local (Static EventCatalog Chat)
     // 'Llama-3.2-3B-Instruct-q4f16_1-MLC is also good
     model: 'Hermes-3-Llama-3.2-3B-q4f16_1-MLC',
-
+    // model: 'gemini-1.5-pro-latest',
     // For server (Dynamic EventCatalog)
-    // model: 'o4-mini'
   },
   generators: [
     [
@@ -100,6 +102,11 @@ export default {
         ]
       }
     ]
+  },
+  visualiser: {
+    channels: {
+      renderMode: 'flat'
+    }
   }
 };
 

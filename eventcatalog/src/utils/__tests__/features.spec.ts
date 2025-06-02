@@ -6,6 +6,8 @@ import {
   isEventCatalogUpgradeEnabled,
   isCustomLandingPageEnabled,
   isMarkdownDownloadEnabled,
+  showEventCatalogBranding,
+  showCustomBranding,
 } from '../feature';
 
 import config from '@config';
@@ -147,6 +149,57 @@ describe('features', () => {
     it('returns true when eventcatalog.config.js (llmsTxt.enabled) is true', () => {
       config.llmsTxt.enabled = true;
       expect(isMarkdownDownloadEnabled()).toBe(true);
+    });
+  });
+
+  describe('showEventCatalogBranding', () => {
+    it('should return true when EVENTCATALOG_SHOW_BRANDING is true', () => {
+      process.env.EVENTCATALOG_SHOW_BRANDING = 'true';
+      expect(showEventCatalogBranding()).toBe(true);
+    });
+
+    it('should return true when EVENTCATALOG_SHOW_BRANDING is not set', () => {
+      delete process.env.EVENTCATALOG_SHOW_BRANDING;
+      expect(showEventCatalogBranding()).toBe(true);
+    });
+
+    it('should return false when EVENTCATALOG_STARTER is true', () => {
+      process.env.EVENTCATALOG_STARTER = 'true';
+      expect(showEventCatalogBranding()).toBe(false);
+    });
+
+    it('should return false when EVENTCATALOG_SCALE is true', () => {
+      process.env.EVENTCATALOG_SCALE = 'true';
+      expect(showEventCatalogBranding()).toBe(false);
+    });
+
+    it('should return false when EVENTCATALOG_STARTER and EVENTCATALOG_SCALE are true', () => {
+      process.env.EVENTCATALOG_STARTER = 'true';
+      process.env.EVENTCATALOG_SCALE = 'true';
+      expect(showEventCatalogBranding()).toBe(false);
+    });
+  });
+
+  describe('showCustomBranding', () => {
+    it('should return true when EVENTCATALOG_STARTER is true', () => {
+      process.env.EVENTCATALOG_STARTER = 'true';
+      expect(showCustomBranding()).toBe(true);
+    });
+
+    it('should return true when EVENTCATALOG_SCALE is true', () => {
+      process.env.EVENTCATALOG_SCALE = 'true';
+      expect(showCustomBranding()).toBe(true);
+    });
+
+    it('should return false when neither feature is enabled', () => {
+      delete process.env.EVENTCATALOG_STARTER;
+      delete process.env.EVENTCATALOG_SCALE;
+      expect(showCustomBranding()).toBe(false);
+    });
+
+    it('should return false when EVENTCATALOG_SHOW_BRANDING is true', () => {
+      process.env.EVENTCATALOG_SHOW_BRANDING = 'true';
+      expect(showCustomBranding()).toBe(false);
     });
   });
 });
