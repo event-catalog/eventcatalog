@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.42.9
+
+### Patch Changes
+
+- 6522f76: chore(core): added host configuration support for eventcatalog
+- 650cd38: fix(core): added headers and tabs into openapi render
+
 ## 2.42.8
 
 ### Patch Changes
