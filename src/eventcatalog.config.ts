@@ -106,4 +106,7 @@ export interface Config {
       renderMode?: 'flat' | 'single';
     };
   };
+  auth?: {
+    enabled: boolean;
+  };
 }

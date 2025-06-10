@@ -12,6 +12,11 @@ export const isOutputServer = async () => {
   return config?.output === 'server';
 };
 
+export const isAuthEnabled = async () => {
+  const config = await getEventCatalogConfigFile(process.env.PROJECT_DIR || '');
+  return config?.auth?.enabled;
+};
+
 // Checks to see if the backstage feature is enabled (or not)
 export const isBackstagePluginEnabled = async (licenseKey?: string) => {
   const LICENSE_KEY = process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE || process.env.EVENTCATALOG_SCALE_LICENSE_KEY || null;

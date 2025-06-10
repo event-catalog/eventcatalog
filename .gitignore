@@ -40,3 +40,5 @@ eventcatalog/public/ai
 examples/default/public/ai
 
 dev-scripts/
+
+eventcatalog/auth.config.ts

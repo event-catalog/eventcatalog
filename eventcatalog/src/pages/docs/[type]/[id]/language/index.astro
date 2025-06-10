@@ -1,35 +1,21 @@
 ---
 import Footer from '@layouts/Footer.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { getDomains, type Domain, getUbiquitousLanguage } from '@utils/collections/domains';
+import { getUbiquitousLanguage } from '@utils/collections/domains';
 import { buildUrl } from '@utils/url-builder';
-import type { CollectionEntry } from 'astro:content';
 import { ClientRouter } from 'astro:transitions';
 import * as LucideIcons from 'lucide-react';
 
-export async function getStaticPaths() {
-  const domains = await getDomains({ getAllVersions: false });
+import { Page } from './_index.data';
 
-  const buildPages = (collection: CollectionEntry<'domains'>[]) => {
-    return collection.map((item) => ({
-      params: {
-        type: item.collection,
-        id: item.data.id,
-      },
-      props: {
-        type: item.collection,
-        ...item,
-      },
-    }));
-  };
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
 
-  return [...buildPages(domains)];
-}
+// Get data
+const props = await Page.getData(Astro);
 
-const props = Astro.props;
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
 const ubiquitousLanguages = await getUbiquitousLanguage(props);
-
 const ubiquitousLanguage = ubiquitousLanguages[0];
 ---
 

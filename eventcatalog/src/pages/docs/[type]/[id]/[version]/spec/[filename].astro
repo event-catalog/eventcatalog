@@ -11,45 +11,16 @@ import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { getSpecificationsForService } from '@utils/collections/services';
 import './_styles.css';
+import { Page } from './_[filename].data.ts';
 
-export async function getStaticPaths() {
-  const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains'];
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
 
-  const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
-
-  const hasSpecifications = (item: CollectionEntry<CollectionTypes>) => {
-    const specifications = getSpecificationsForService(item);
-    // Ensure there is at least one 'openapi' specification
-    return specifications && specifications.some((spec) => spec.type === 'openapi');
-  };
-
-  const filteredItems = allItems.map((items) => items.filter(hasSpecifications));
-
-  return filteredItems.flatMap((items, index) =>
-    items.flatMap((item) => {
-      // Filter for openapi specifications only
-      const openApiSpecifications = getSpecificationsForService(item).filter((spec) => spec.type === 'openapi');
-
-      return openApiSpecifications.map((spec) => ({
-        params: {
-          type: itemTypes[index],
-          id: item.data.id,
-          version: item.data.version,
-          filename: spec.filenameWithoutExtension || spec.type,
-        },
-        props: {
-          type: itemTypes[index],
-          filenameWithoutExtension: spec.filenameWithoutExtension || spec.type,
-          filename: spec.filename || spec.type,
-          ...item,
-        },
-      }));
-    })
-  );
-}
+// Get data
+const props = await Page.getData(Astro);
 
 // @ts-ignore
-const { collection, data, catalog, filePath, filename } = Astro.props;
+const { collection, data, catalog, filePath, filename } = props;
 const fileName = filename || 'openapi.yml';
 
 const directory = path.dirname(filePath || '');

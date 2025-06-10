@@ -12,7 +12,13 @@ import { watch } from './watcher';
 import { catalogToAstro, checkAndConvertMdToMdx } from './catalog-to-astro-content-directory';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
 import boxen from 'boxen';
-import { isBackstagePluginEnabled, isEventCatalogStarterEnabled, isEventCatalogScaleEnabled, isOutputServer } from './features';
+import {
+  isBackstagePluginEnabled,
+  isEventCatalogStarterEnabled,
+  isEventCatalogScaleEnabled,
+  isOutputServer,
+  isAuthEnabled,
+} from './features';
 import updateNotifier from 'update-notifier';
 import stream from 'stream';
 import dotenv from 'dotenv';
@@ -95,6 +101,39 @@ const copyServerFiles = async () => {
   });
 };
 
+const createAuthFileIfNotExists = async () => {
+  // Check if the auth.config.ts file is there in the eventcatalog directory
+  if (!fs.existsSync(join(eventCatalogDir, 'auth.config.ts'))) {
+    fs.writeFileSync(
+      join(eventCatalogDir, 'auth.config.ts'),
+      `import { defineConfig } from 'auth-astro';
+
+// This is the default auth.config.ts file that is used for the EventCatalog.
+// You can override this file by creating a auth.config.ts file in your project directory.
+// This file is used to configure the authentication providers for the EventCatalog.
+export default defineConfig({
+  providers: [],
+});`
+    );
+  }
+
+  const authEnabled = await isAuthEnabled();
+
+  // If auth is not enabled, we need to add _ to the file name
+  // So Astro will ignore the file
+  try {
+    if (!authEnabled) {
+      // Rename the file to
+      fs.renameSync(join(core, 'src/pages/api/[...auth].ts'), join(core, 'src/pages/api/_[...auth].ts'));
+    } else {
+      // Rename the file to auth.config.ts
+      fs.renameSync(join(core, 'src/pages/api/_[...auth].ts'), join(eventCatalogDir, 'src/pages/api/[...auth].ts'));
+    }
+  } catch (error) {
+    // silent for now
+  }
+};
+
 const clearCore = () => {
   if (fs.existsSync(core)) fs.rmSync(core, { recursive: true });
 };
@@ -166,6 +205,9 @@ program
     // Copy the server files into the core directory if we have server output
     await copyServerFiles();
 
+    // Create the auth.config.ts file if it doesn't exist
+    await createAuthFileIfNotExists();
+
     // Check if backstage is enabled
     const canEmbedPages = await isBackstagePluginEnabled();
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
@@ -184,8 +226,8 @@ program
             name: 'astro',
             command:
               process.platform === 'win32'
-                ? `npx astro dev ${command.args.join(' ').trim()} 2>&1 | findstr /V /C:"[glob-loader]" /C:"The collection"`
-                : `npx astro dev ${command.args.join(' ').trim()} 2>&1 | grep -v -e "\\[glob-loader\\]" -e "The collection.*does not exist"`,
+                ? `npx astro dev ${command.args.join(' ').trim()} 2>&1 | findstr /V /C:"[glob-loader]" /C:"The collection" /C:"[router]"`
+                : `npx astro dev ${command.args.join(' ').trim()} 2>&1 | grep -v -e "\\[glob-loader\\]" -e "The collection.*does not exist" -e "\\[router\\]"`,
             cwd: core,
             env: {
               PROJECT_DIR: dir,
@@ -224,6 +266,9 @@ program
     copyCore();
     // Copy the server files into the core directory if we have server output
     await copyServerFiles();
+
+    // Create the auth.config.ts file if it doesn't exist
+    await createAuthFileIfNotExists();
 
     // Check if backstage is enabled
     const canEmbedPages = await isBackstagePluginEnabled();
@@ -316,6 +361,9 @@ program
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
     await copyServerFiles();
+
+    // Create the auth.config.ts file if it doesn't exist
+    await createAuthFileIfNotExists();
 
     previewCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
   });

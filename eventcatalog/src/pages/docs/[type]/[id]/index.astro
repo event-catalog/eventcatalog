@@ -44,6 +44,7 @@ export async function getStaticPaths() {
 }
 
 const props = Astro.props;
+
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
 
 const { pathname } = Astro.url;

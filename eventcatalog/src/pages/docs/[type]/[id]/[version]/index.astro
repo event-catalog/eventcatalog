@@ -31,7 +31,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
 import { Box, Boxes } from 'lucide-react';
-import type { PageTypes } from '@types';
 import type { CollectionTypes } from '@types';
 
 import { ClientRouter } from 'astro:transitions';
@@ -40,7 +39,6 @@ import type { CollectionEntry } from 'astro:content';
 
 import { getIcon } from '@utils/badges';
 import { getDeprecatedDetails } from '@utils/collections/util';
-import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { buildUrl } from '@utils/url-builder';
 import { getSchemasFromResource } from '@utils/collections/schemas';
 import { isEventCatalogChatEnabled, isMarkdownDownloadEnabled } from '@utils/feature';
@@ -48,38 +46,21 @@ import { isEventCatalogChatEnabled, isMarkdownDownloadEnabled } from '@utils/fea
 import { getMDXComponentsByName } from '@utils/markdown';
 
 import config from '@config';
+import { Page } from './_index.data';
 
-export async function getStaticPaths() {
-  const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows', 'channels', 'entities'];
-  const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
 
-  return allItems.flatMap((items, index) =>
-    items.map((item) => ({
-      params: {
-        type: itemTypes[index],
-        id: item.data.id,
-        version: item.data.version,
-      },
-      props: {
-        type: itemTypes[index],
-        ...item,
-      },
-    }))
-  );
-}
-
-const props = Astro.props;
+// Get data
+const props = await Page.getData(Astro);
 
 const { Content } = await render(props);
 
-// const { Content } = await props.render();
-
-// Capitalize the first letter of a string
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
 const contentBadges = props.data.badges || [];
 
 const getContentBadges = () =>
-  contentBadges.map((badge) => ({
+  contentBadges.map((badge: any) => ({
     ...badge,
     icon: badge.icon ? getIcon(badge.icon) : null,
   }));

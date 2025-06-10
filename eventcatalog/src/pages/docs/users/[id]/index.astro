@@ -6,21 +6,17 @@ import { render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import OwnersList from '@components/Lists/OwnersList';
 import PillListFlat from '@components/Lists/PillListFlat';
-import { getUsers } from '@utils/users';
 import EnvelopeIcon from '@heroicons/react/16/solid/EnvelopeIcon';
 import { buildUrl } from '@utils/url-builder';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { Page } from './_index.data';
 
-export async function getStaticPaths() {
-  const users = await getUsers();
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
 
-  return users.map((user) => ({
-    params: { id: user.data.id },
-    props: user,
-  }));
-}
+// Get data
+const props = await Page.getData(Astro);
 
-const props = Astro.props;
 const { Content } = await render(props);
 
 const domains = props.data.ownedDomains as CollectionEntry<'domains'>[];

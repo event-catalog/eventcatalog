@@ -42,3 +42,9 @@ export const isEventCatalogUpgradeEnabled = () => !isEventCatalogStarterEnabled(
 export const isCustomLandingPageEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
 
 export const isMarkdownDownloadEnabled = () => config?.llmsTxt?.enabled ?? false;
+
+export const isAuthEnabled = () => {
+  return (config?.auth?.enabled === true && isSSR()) || false;
+};
+
+export const isSSR = () => config?.output === 'server';
