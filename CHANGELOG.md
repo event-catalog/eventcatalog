@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.43.0
+
+### Minor Changes
+
+- 1b6c725: feat(core): added authentication and SSR options
+
 ## 2.42.10
 
 ### Patch Changes
