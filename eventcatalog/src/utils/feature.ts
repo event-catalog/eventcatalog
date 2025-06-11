@@ -12,6 +12,8 @@
  */
 
 import config from '@config';
+import fs from 'fs';
+import { join } from 'path';
 
 // These functions check for valid, legally obtained access to premium features
 export const isEventCatalogStarterEnabled = () => process.env.EVENTCATALOG_STARTER === 'true';
@@ -44,7 +46,9 @@ export const isCustomLandingPageEnabled = () => isEventCatalogStarterEnabled() |
 export const isMarkdownDownloadEnabled = () => config?.llmsTxt?.enabled ?? false;
 
 export const isAuthEnabled = () => {
-  return (config?.auth?.enabled === true && isSSR()) || false;
+  const directory = process.env.PROJECT_DIR || process.cwd();
+  const hasAuthConfig = fs.existsSync(join(directory, 'eventcatalog.auth.js'));
+  return (hasAuthConfig && isSSR() && isEventCatalogScaleEnabled()) || false;
 };
 
 export const isSSR = () => config?.output === 'server';

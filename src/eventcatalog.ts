@@ -101,33 +101,20 @@ const copyServerFiles = async () => {
   });
 };
 
-const createAuthFileIfNotExists = async () => {
-  // Check if the auth.config.ts file is there in the eventcatalog directory
-  if (!fs.existsSync(join(eventCatalogDir, 'auth.config.ts'))) {
-    fs.writeFileSync(
-      join(eventCatalogDir, 'auth.config.ts'),
-      `import { defineConfig } from 'auth-astro';
-
-// This is the default auth.config.ts file that is used for the EventCatalog.
-// You can override this file by creating a auth.config.ts file in your project directory.
-// This file is used to configure the authentication providers for the EventCatalog.
-export default defineConfig({
-  providers: [],
-});`
-    );
-  }
-
+const createAuthFileIfNotExists = async (hasRequiredLicense: boolean) => {
   const authEnabled = await isAuthEnabled();
+  const isSRR = await isOutputServer();
 
-  // If auth is not enabled, we need to add _ to the file name
-  // So Astro will ignore the file
+  // If auth is enabled, then we need to create the auth API file
   try {
-    if (!authEnabled) {
-      // Rename the file to
-      fs.renameSync(join(core, 'src/pages/api/[...auth].ts'), join(core, 'src/pages/api/_[...auth].ts'));
-    } else {
-      // Rename the file to auth.config.ts
-      fs.renameSync(join(core, 'src/pages/api/_[...auth].ts'), join(eventCatalogDir, 'src/pages/api/[...auth].ts'));
+    if (authEnabled && hasRequiredLicense && isSRR) {
+      fs.writeFileSync(
+        join(core, 'src/pages/api/[...auth].ts'),
+        `import { AstroAuth } from 'auth-astro/server';
+export const prerender = false;
+export const { GET, POST } = AstroAuth();
+`
+      );
     }
   } catch (error) {
     // silent for now
@@ -205,13 +192,13 @@ program
     // Copy the server files into the core directory if we have server output
     await copyServerFiles();
 
-    // Create the auth.config.ts file if it doesn't exist
-    await createAuthFileIfNotExists();
-
     // Check if backstage is enabled
     const canEmbedPages = await isBackstagePluginEnabled();
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
+
+    // Create the auth.config.ts file if it doesn't exist
+    await createAuthFileIfNotExists(isEventCatalogScale);
 
     // is there an eventcatalog update to install?
     checkForUpdate();
@@ -267,13 +254,13 @@ program
     // Copy the server files into the core directory if we have server output
     await copyServerFiles();
 
-    // Create the auth.config.ts file if it doesn't exist
-    await createAuthFileIfNotExists();
-
     // Check if backstage is enabled
     const canEmbedPages = await isBackstagePluginEnabled();
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
+
+    // Create the auth.config.ts file if it doesn't exist
+    await createAuthFileIfNotExists(isEventCatalogScale);
 
     await logBuild(dir, {
       isEventCatalogStarterEnabled: isEventCatalogStarter,
@@ -292,7 +279,8 @@ program
 
     // Ignore any "Empty collection" messages, it's OK to have them
     const windowsCommand = `npx astro build ${command.args.join(' ').trim()} | findstr /V "The collection"`;
-    const unixCommand = `bash -c "set -o pipefail; npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v \\"The collection.*does not exist\\""`;
+    // const unixCommand = `bash -c "set -o pipefail; npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v -e "\\[router\\]" -e "The collection.*does not exist"`;
+    const unixCommand = `bash -c "set -o pipefail; npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v -e \\"\\\\[router\\\\]\\" -e \\"The collection.*does not exist\\""`;
 
     const buildCommand = process.platform === 'win32' ? windowsCommand : unixCommand;
 
@@ -363,7 +351,7 @@ program
     await copyServerFiles();
 
     // Create the auth.config.ts file if it doesn't exist
-    await createAuthFileIfNotExists();
+    await createAuthFileIfNotExists(isEventCatalogScale);
 
     previewCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
   });

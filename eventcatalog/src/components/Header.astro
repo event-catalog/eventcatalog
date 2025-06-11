@@ -50,11 +50,24 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                   aria-expanded="false"
                   aria-haspopup="true"
                 >
-                  <img
-                    src={session.user?.image || '/icons/default-avatar.svg'}
-                    alt={session.user?.name || 'User'}
-                    class="h-8 w-8 rounded-full border-2 border-gray-200 hover:border-gray-300 transition-colors"
-                  />
+                  {session.user?.image ? (
+                    <img
+                      src={session.user.image}
+                      alt={session.user?.name || 'User'}
+                      class="h-8 w-8 rounded-full border-2 border-gray-200 hover:border-gray-300 transition-colors"
+                    />
+                  ) : (
+                    <div class="h-8 w-8 rounded-full border-2 border-gray-200 hover:border-gray-300 transition-colors bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-600">
+                      {session.user?.name
+                        ? session.user.name
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')
+                            .substring(0, 2)
+                            .toUpperCase()
+                        : 'U'}
+                    </div>
+                  )}
                 </button>
                 <div
                   id="profile-dropdown"
@@ -75,29 +88,39 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
             </div>
           ) : (
             <>
-              {showEventCatalogBranding() && (
-                <ul class="flex space-x-8 justify-end pr-2">
-                  <li>
-                    <a href="https://discord.com/invite/3rjaZMmrAm">
-                      <img src={buildUrl('/icons/discord.svg', true)} class="h-7 w-7" />
-                    </a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/event-catalog/eventcatalog">
-                      <img src={buildUrl('/icons/github.svg', true)} class="h-7 w-7" />
-                    </a>
-                  </li>
-                </ul>
-              )}
-              {showCustomBranding() && !showEventCatalogBranding() && (
-                <ul class="flex space-x-8 justify-end pr-2">
-                  <li>
-                    <a href={repositoryUrl} class="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600">
-                      <img src={buildUrl('/icons/github.svg', true)} class="h-7 w-7" />
-                    </a>
-                  </li>
-                </ul>
-              )}
+              <div class="flex items-center space-x-4 justify-end pr-2">
+                {isAuthEnabled() && (
+                  <button
+                    id="okta-signin-btn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Sign In
+                  </button>
+                )}
+                {showEventCatalogBranding() && (
+                  <ul class="flex space-x-8">
+                    <li>
+                      <a href="https://discord.com/invite/3rjaZMmrAm">
+                        <img src={buildUrl('/icons/discord.svg', true)} class="h-7 w-7" />
+                      </a>
+                    </li>
+                    <li>
+                      <a href="https://github.com/event-catalog/eventcatalog">
+                        <img src={buildUrl('/icons/github.svg', true)} class="h-7 w-7" />
+                      </a>
+                    </li>
+                  </ul>
+                )}
+                {showCustomBranding() && !showEventCatalogBranding() && (
+                  <ul class="flex space-x-8">
+                    <li>
+                      <a href={repositoryUrl} class="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600">
+                        <img src={buildUrl('/icons/github.svg', true)} class="h-7 w-7" />
+                      </a>
+                    </li>
+                  </ul>
+                )}
+              </div>
             </>
           )
         }

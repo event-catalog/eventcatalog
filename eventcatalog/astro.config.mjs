@@ -64,7 +64,6 @@ export default defineConfig({
     }),
     config.output !== 'server' && pagefind(),
     config.output === 'server' && config.auth?.enabled && auth({
-      configFile: join(projectDirectory, 'auth.config.ts'),
       injectEndpoints: false
     }),
   ].filter(Boolean),
@@ -86,5 +85,8 @@ export default defineConfig({
         transformMixedEsModules: true,
       }
     },
+    ssr: {
+      external: ['eventcatalog.auth.js'],
+    }
   }
 });
