@@ -63,9 +63,6 @@ export default defineConfig({
       gfm: true,
     }),
     config.output !== 'server' && pagefind(),
-    config.output === 'server' && config.auth?.enabled && auth({
-      injectEndpoints: false
-    }),
   ].filter(Boolean),
   vite: {
     define: {
