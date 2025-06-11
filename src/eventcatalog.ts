@@ -12,7 +12,13 @@ import { watch } from './watcher';
 import { catalogToAstro, checkAndConvertMdToMdx } from './catalog-to-astro-content-directory';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
 import boxen from 'boxen';
-import { isBackstagePluginEnabled, isEventCatalogStarterEnabled, isEventCatalogScaleEnabled, isOutputServer } from './features';
+import {
+  isBackstagePluginEnabled,
+  isEventCatalogStarterEnabled,
+  isEventCatalogScaleEnabled,
+  isOutputServer,
+  isAuthEnabled,
+} from './features';
 import updateNotifier from 'update-notifier';
 import stream from 'stream';
 import dotenv from 'dotenv';
@@ -95,6 +101,27 @@ const copyServerFiles = async () => {
   });
 };
 
+const createAuthFileIfNotExists = async (hasRequiredLicense: boolean) => {
+  const authEnabled = await isAuthEnabled();
+  const isSRR = await isOutputServer();
+
+  // If auth is enabled, then we need to create the auth API file
+  try {
+    if (authEnabled && hasRequiredLicense && isSRR) {
+      console.log('Creating auth file');
+      fs.writeFileSync(
+        join(core, 'src/pages/api/[...auth].ts'),
+        `import { AstroAuth } from 'auth-astro/server';
+export const prerender = false;
+export const { GET, POST } = AstroAuth();
+`
+      );
+    }
+  } catch (error) {
+    // silent for now
+  }
+};
+
 const clearCore = () => {
   if (fs.existsSync(core)) fs.rmSync(core, { recursive: true });
 };
@@ -171,6 +198,9 @@ program
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
+    // Create the auth.config.ts file if it doesn't exist
+    await createAuthFileIfNotExists(isEventCatalogScale);
+
     // is there an eventcatalog update to install?
     checkForUpdate();
 
@@ -184,8 +214,8 @@ program
             name: 'astro',
             command:
               process.platform === 'win32'
-                ? `npx astro dev ${command.args.join(' ').trim()} 2>&1 | findstr /V /C:"[glob-loader]" /C:"The collection"`
-                : `npx astro dev ${command.args.join(' ').trim()} 2>&1 | grep -v -e "\\[glob-loader\\]" -e "The collection.*does not exist"`,
+                ? `npx astro dev ${command.args.join(' ').trim()} 2>&1 | findstr /V /C:"[glob-loader]" /C:"The collection" /C:"[router]"`
+                : `npx astro dev ${command.args.join(' ').trim()} 2>&1 | grep -v -e "\\[glob-loader\\]" -e "The collection.*does not exist" -e "\\[router\\]"`,
             cwd: core,
             env: {
               PROJECT_DIR: dir,
@@ -230,6 +260,9 @@ program
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
+    // Create the auth.config.ts file if it doesn't exist
+    await createAuthFileIfNotExists(isEventCatalogScale);
+
     await logBuild(dir, {
       isEventCatalogStarterEnabled: isEventCatalogStarter,
       isEventCatalogScaleEnabled: isEventCatalogScale,
@@ -247,7 +280,8 @@ program
 
     // Ignore any "Empty collection" messages, it's OK to have them
     const windowsCommand = `npx astro build ${command.args.join(' ').trim()} | findstr /V "The collection"`;
-    const unixCommand = `bash -c "set -o pipefail; npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v \\"The collection.*does not exist\\""`;
+    // const unixCommand = `bash -c "set -o pipefail; npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v -e "\\[router\\]" -e "The collection.*does not exist"`;
+    const unixCommand = `bash -c "set -o pipefail; npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v -e \\"\\\\[router\\\\]\\" -e \\"The collection.*does not exist\\""`;
 
     const buildCommand = process.platform === 'win32' ? windowsCommand : unixCommand;
 
@@ -316,6 +350,9 @@ program
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
     await copyServerFiles();
+
+    // Create the auth.config.ts file if it doesn't exist
+    await createAuthFileIfNotExists(isEventCatalogScale);
 
     previewCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
   });

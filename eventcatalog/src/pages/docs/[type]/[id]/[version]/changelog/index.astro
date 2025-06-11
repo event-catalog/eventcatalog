@@ -1,6 +1,5 @@
 ---
 import Footer from '@layouts/Footer.astro';
-import type { PageTypes } from '@types';
 import { getChangeLogs } from '@utils/collections/changelogs';
 import {
   RectangleGroupIcon,
@@ -10,7 +9,6 @@ import {
   MagnifyingGlassIcon,
   QueueListIcon,
 } from '@heroicons/react/24/outline';
-import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { render, getEntry } from 'astro:content';
 import mdxComponents from '@components/MDX/components';
 import 'diff2html/bundles/css/diff2html.min.css';
@@ -20,38 +18,20 @@ import { getPreviousVersion } from '@utils/collections/util';
 import { getDiffsForCurrentAndPreviousVersion } from '@utils/collections/file-diffs';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { ClientRouter } from 'astro:transitions';
-
 import { isChangelogEnabled } from '@utils/feature';
 
-export async function getStaticPaths() {
-  if (!isChangelogEnabled()) {
-    return [];
-  }
+import { Page } from './_index.data';
 
-  const itemTypes: PageTypes[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows'];
-  const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
 
-  return allItems.flatMap((items, index) =>
-    items.map((item) => ({
-      params: {
-        type: itemTypes[index],
-        id: item.data.id,
-        version: item.data.version,
-      },
-      props: {
-        type: itemTypes[index],
-        allCollectionItems: items,
-        ...item,
-      },
-    }))
-  );
-}
+// Get data
+const props = await Page.getData(Astro);
 
 if (!isChangelogEnabled()) {
   return Astro.redirect('/docs');
 }
 
-const props = Astro.props;
 let collectionItem = props;
 const logs = await getChangeLogs(props);
 

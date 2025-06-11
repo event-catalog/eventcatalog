@@ -9,6 +9,7 @@ import remarkDirective from 'remark-directive';
 import { remarkDirectives } from "./src/remark-plugins/directives"
 import node from '@astrojs/node';
 import remarkComment from 'remark-comment'
+import auth from 'auth-astro';
 
 /** @type {import('bin/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
@@ -23,7 +24,7 @@ export default defineConfig({
   base,
   server: { port: config.port || 3000, host: host },
 
-  // output: config.output || 'static',
+  output: config.output || 'static',
 
   adapter: config.output === 'server' ? node({
     mode: 'standalone'
@@ -61,8 +62,8 @@ export default defineConfig({
       remarkPlugins: [remarkDirective, remarkDirectives, remarkComment, mermaid],
       gfm: true,
     }),
-    pagefind(),
-  ],
+    config.output !== 'server' && pagefind(),
+  ].filter(Boolean),
   vite: {
     define: {
       /**
@@ -81,5 +82,8 @@ export default defineConfig({
         transformMixedEsModules: true,
       }
     },
+    ssr: {
+      external: ['eventcatalog.auth.js'],
+    }
   }
 });

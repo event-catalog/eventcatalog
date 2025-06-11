@@ -3,6 +3,13 @@ import catalog from '@utils/eventcatalog-config/catalog';
 import Search from '@components/Search.astro';
 import { buildUrl } from '@utils/url-builder';
 import { showEventCatalogBranding, showCustomBranding } from '@utils/feature';
+import { getSession } from 'auth-astro/server';
+import { isAuthEnabled, isSSR } from '@utils/feature';
+
+let session = null;
+if (isAuthEnabled()) {
+  session = await getSession(Astro.request);
+}
 
 const logo = {
   src: ('/' + (catalog?.logo?.src || 'logo.png')).replace(/^\/+/, '/'),
@@ -27,35 +34,94 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
       </div>
 
       <div class="hidden lg:block flex-grow w-6/12 px-10">
-        <Search />
+        <!-- Page find only works on static builds, disable for SSR builds for now -->
+        {!isSSR() && <Search />}
       </div>
 
       <div class="hidden md:block w-3/12">
         {
-          showEventCatalogBranding() && (
-            <ul class="flex space-x-8 justify-end pr-2">
-              <li>
-                <a href="https://discord.com/invite/3rjaZMmrAm">
-                  <img src={buildUrl('/icons/discord.svg', true)} class="h-7 w-7" />
-                </a>
-              </li>
-              <li>
-                <a href="https://github.com/event-catalog/eventcatalog">
-                  <img src={buildUrl('/icons/github.svg', true)} class="h-7 w-7" />
-                </a>
-              </li>
-            </ul>
-          )
-        }
-        {
-          showCustomBranding() && !showEventCatalogBranding() && (
-            <ul class="flex space-x-8 justify-end pr-2">
-              <li>
-                <a href={repositoryUrl} class="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600">
-                  <img src={buildUrl('/icons/github.svg', true)} class="h-7 w-7" />
-                </a>
-              </li>
-            </ul>
+          session ? (
+            <div class="flex justify-end pr-2">
+              <div class="relative">
+                <button
+                  id="profile-menu-button"
+                  type="button"
+                  class="flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-full"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                >
+                  {session.user?.image ? (
+                    <img
+                      src={session.user.image}
+                      alt={session.user?.name || 'User'}
+                      class="h-8 w-8 rounded-full border-2 border-gray-200 hover:border-gray-300 transition-colors"
+                    />
+                  ) : (
+                    <div class="h-8 w-8 rounded-full border-2 border-gray-200 hover:border-gray-300 transition-colors bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-600">
+                      {session.user?.name
+                        ? session.user.name
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')
+                            .substring(0, 2)
+                            .toUpperCase()
+                        : 'U'}
+                    </div>
+                  )}
+                </button>
+                <div
+                  id="profile-dropdown"
+                  class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100"
+                >
+                  <div class="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
+                    <div class="font-medium">{session.user?.name || 'User'}</div>
+                    {session.user?.email && <div class="text-gray-500">{session.user.email}</div>}
+                  </div>
+                  <button
+                    id="signout-btn"
+                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div class="flex items-center space-x-4 justify-end pr-2">
+                {isAuthEnabled() && (
+                  <button
+                    id="okta-signin-btn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Sign In
+                  </button>
+                )}
+                {showEventCatalogBranding() && (
+                  <ul class="flex space-x-8">
+                    <li>
+                      <a href="https://discord.com/invite/3rjaZMmrAm">
+                        <img src={buildUrl('/icons/discord.svg', true)} class="h-7 w-7" />
+                      </a>
+                    </li>
+                    <li>
+                      <a href="https://github.com/event-catalog/eventcatalog">
+                        <img src={buildUrl('/icons/github.svg', true)} class="h-7 w-7" />
+                      </a>
+                    </li>
+                  </ul>
+                )}
+                {showCustomBranding() && !showEventCatalogBranding() && (
+                  <ul class="flex space-x-8">
+                    <li>
+                      <a href={repositoryUrl} class="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600">
+                        <img src={buildUrl('/icons/github.svg', true)} class="h-7 w-7" />
+                      </a>
+                    </li>
+                  </ul>
+                )}
+              </div>
+            </>
           )
         }
       </div>
@@ -100,10 +166,44 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
 <script>
   const menuToggle = document.getElementById('menu-toggle');
   const mobileMenu = document.getElementById('mobile-menu');
+  import { signOut } from 'auth-astro/client';
 
   if (menuToggle && mobileMenu) {
     menuToggle.addEventListener('click', () => {
       mobileMenu.classList.toggle('hidden');
+    });
+  }
+
+  // Profile dropdown functionality
+  const profileButton = document.getElementById('profile-menu-button');
+  const profileDropdown = document.getElementById('profile-dropdown');
+
+  if (profileButton && profileDropdown) {
+    profileButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      profileDropdown.classList.toggle('hidden');
+      profileButton.setAttribute('aria-expanded', !profileDropdown.classList.contains('hidden') ? 'true' : 'false');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!profileButton.contains(e.target as Node) && !profileDropdown.contains(e.target as Node)) {
+        profileDropdown.classList.add('hidden');
+        profileButton.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Close dropdown on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !profileDropdown.classList.contains('hidden')) {
+        profileDropdown.classList.add('hidden');
+        profileButton.setAttribute('aria-expanded', 'false');
+        profileButton.focus();
+      }
+    });
+
+    document.getElementById('signout-btn')?.addEventListener('click', async () => {
+      await signOut();
     });
   }
 </script>

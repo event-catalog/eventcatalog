@@ -2,40 +2,16 @@
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import VisualiserLayout from '@layouts/VisualiserLayout.astro';
 import type { PageTypes } from '@types';
-import { getFlows } from '@utils/collections/flows';
 import { buildUrl } from '@utils/url-builder';
-
-import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { ClientRouter } from 'astro:transitions';
-type PageTypesWithFlows = PageTypes | 'flows';
 
-export async function getStaticPaths() {
-  const loaders = {
-    ...pageDataLoader,
-    flows: getFlows,
-  };
+import { Page } from './_index.data';
 
-  const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows'];
-  const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
 
-  return allItems.flatMap((items, index) =>
-    items
-      .filter((item) => item.data.visualiser !== false)
-      .map((item) => ({
-        params: {
-          type: itemTypes[index],
-          id: item.data.id,
-          version: item.data.version,
-        },
-        props: {
-          type: itemTypes[index],
-          ...item,
-        },
-      }))
-  );
-}
-
-const props = Astro.props;
+// Get data
+const props = await Page.getData(Astro);
 
 const {
   data: { id },

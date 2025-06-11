@@ -13,7 +13,8 @@
       "@utils/*": ["src/utils/*"],
       "@layouts/*": ["src/layouts/*"],
       "@enterprise/*": ["src/enterprise/*"],
-      "@ai/*": ["src/generated-ai/*"]
+      "@ai/*": ["src/generated-ai/*"],
+      "auth:config": ["./auth.config.ts"]
     },
     "jsx": "react-jsx",
     "jsxImportSource": "react",

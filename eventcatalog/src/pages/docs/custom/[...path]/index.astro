@@ -1,20 +1,14 @@
 ---
 import CustomDocumentationPage from '@enterprise/custom-documentation/pages/docs/custom/index.astro';
-import { getCollection } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
-import type { GetStaticPaths } from 'astro';
 import { isCustomDocsEnabled } from '@utils/feature';
+import { Page } from './_index.data';
 
-export const getStaticPaths = (async () => {
-  const docs = await getCollection('customPages');
-  const paths = docs.map((doc) => ({
-    params: { path: doc.id.replace('docs/', '') },
-    props: doc,
-  }));
-  return paths;
-}) satisfies GetStaticPaths;
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
 
-const props = Astro.props;
+// Get data
+const props = await Page.getData(Astro);
 
 if (!isCustomDocsEnabled()) {
   return Astro.redirect(buildUrl('/docs/custom/feature'));

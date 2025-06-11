@@ -1,30 +1,13 @@
 ---
-import { getUsers } from '@utils/users';
-import { getTeams } from '@utils/teams';
+import type { CollectionEntry } from 'astro:content';
 
 import DirectoryLayout, { type Props as DirectoryLayoutProps } from '@layouts/DirectoryLayout.astro';
+import { Page } from './_index.data';
 
-export async function getStaticPaths() {
-  const loaders = {
-    users: getUsers,
-    teams: getTeams,
-  };
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
 
-  const itemTypes = ['users', 'teams'] as const;
-  const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
-
-  return allItems.flatMap((items, index) => ({
-    params: {
-      type: itemTypes[index],
-    },
-    props: {
-      data: items,
-      type: itemTypes[index],
-    },
-  }));
-}
-
-const { type, data } = Astro.props;
+const { type, data } = await Page.getData(Astro);
 
 function mapToItem(i: any) {
   return {
@@ -42,7 +25,7 @@ function mapToItem(i: any) {
   title={`${type} (${data.length})`}
   subtitle={`Find, filter and search for any ${type} in your system.`}
   data={data.map(
-    (d) =>
+    (d: CollectionEntry<'users' | 'teams'>) =>
       ({
         collection: d.collection,
         data: {
