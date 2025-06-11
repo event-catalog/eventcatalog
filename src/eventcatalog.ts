@@ -105,9 +105,12 @@ const createAuthFileIfNotExists = async (hasRequiredLicense: boolean) => {
   const authEnabled = await isAuthEnabled();
   const isSRR = await isOutputServer();
 
+  console.log('createAuthFileIfNotExists', authEnabled, isSRR, hasRequiredLicense);
+
   // If auth is enabled, then we need to create the auth API file
   try {
     if (authEnabled && hasRequiredLicense && isSRR) {
+      console.log('Creating auth file');
       fs.writeFileSync(
         join(core, 'src/pages/api/[...auth].ts'),
         `import { AstroAuth } from 'auth-astro/server';
