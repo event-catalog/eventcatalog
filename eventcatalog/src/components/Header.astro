@@ -50,7 +50,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                   aria-expanded="false"
                   aria-haspopup="true"
                 >
-                  {session.user?.image ? (
+                  {session.user?.image && !session.user?.image?.includes('googleusercontent.com') ? (
                     <img
                       src={session.user.image}
                       alt={session.user?.name || 'User'}

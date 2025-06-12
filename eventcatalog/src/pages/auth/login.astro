@@ -33,13 +33,13 @@ if (session) {
 const providerConfig = {
   github: {
     name: 'GitHub',
-    icon: `<svg class="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+    icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
       <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path>
     </svg>`,
   },
   google: {
     name: 'Google',
-    icon: `<svg class="mr-2 h-5 w-5" viewBox="0 0 24 24">
+    icon: `<svg class="w-5 h-5" viewBox="0 0 24 24">
       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
       <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
       <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -48,9 +48,13 @@ const providerConfig = {
   },
   okta: {
     name: 'Okta',
-    icon: `<svg class="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+    icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
       <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.418 0-8-3.582-8-8s3.582-8 8-8 8 3.582 8 8-3.582 8-8 8zm-1-13h2v6h-2V7zm0 8h2v2h-2v-2z"></path>
     </svg>`,
+  },
+  auth0: {
+    name: 'Auth0',
+    icon: `<svg class="w-5 h-5" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill="#000000" d="M12.549 1h-4.55l1.407 4.38h4.548l-3.68 2.61 1.406 4.405c2.37-1.725 3.143-4.336 2.274-7.016L12.55 1zM2.045 5.38h4.55L8 1H3.45L2.045 5.38c-.868 2.68-.094 5.29 2.275 7.015L5.725 7.99l-3.68-2.612zm2.275 7.015L8 15l3.68-2.605L8 9.745l-3.68 2.65z"></path></g></svg>`,
   },
 };
 ---
@@ -69,145 +73,177 @@ const providerConfig = {
     <style>
       body {
         font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
       }
     </style>
   </head>
-  <body class="bg-gray-50 min-h-screen">
-    <!-- Header -->
-    <nav class="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-100 py-3 z-10">
-      <div class="px-4 sm:px-4 lg:px-4">
-        <div class="flex justify-between items-center h-10">
-          <!-- Logo -->
-          <div class="flex-shrink-0 flex items-center">
-            {
-              logo && (
-                <a href="/" class="flex space-x-2 items-center">
-                  <img alt={logo.alt} src={logo.src} class="w-8 h-8" />
-                  <span class="hidden sm:inline-block text-lg font-bold">{title}</span>
-                </a>
-              )
-            }
-          </div>
-
-          <!-- GitHub Link -->
-          <div class="flex items-center">
-            <a
-              href="https://github.com/event-catalog/eventcatalog"
-              target="_blank"
-              class="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600"
-            >
-              <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-                ></path>
-              </svg>
-            </a>
-          </div>
-        </div>
+  <body class="min-h-screen">
+    <div class="flex min-h-screen flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <!-- Logo at the top -->
+      <div class="mb-8">
+        {
+          logo && (
+            <div class="flex flex-col items-center space-y-4">
+              <img alt={logo.alt} src={logo.src} class="w-12 h-12" />
+              <h1 class="text-2xl font-bold text-gray-900">{title}</h1>
+            </div>
+          )
+        }
       </div>
-    </nav>
 
-    <!-- Content with top padding to account for fixed header -->
-    <div class="flex min-h-screen flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 pt-24 bg-gray-50">
       {
         shouldShowLogin ? (
-          <div class="w-full max-w-md space-y-8">
-            <div class="text-center">
-              <h2 class="text-3xl font-bold tracking-tight text-gray-900">Welcome to {title} EventCatalog</h2>
-              <p class="mt-2 text-gray-600">Sign in to your account</p>
+          <div class="w-full max-w-md">
+            <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-8 space-y-6">
+              <div class="text-center">
+                <h2 class="text-2xl font-bold text-gray-900">Sign in to your account</h2>
+              </div>
+
+              <div class="space-y-4">
+                {providers.map((provider) => {
+                  const config = providerConfig[provider as keyof typeof providerConfig];
+                  if (!config) return null;
+
+                  return (
+                    <button
+                      data-provider={provider}
+                      class="provider-login-btn flex w-full items-center justify-center rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-purple-50 hover:border-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200"
+                    >
+                      <span class="mr-3" set:html={config.icon} />
+                      Sign in with {config.name}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            <div class="mt-8 space-y-4">
-              {providers.map((provider) => {
-                const config = providerConfig[provider as keyof typeof providerConfig];
-                if (!config) return null;
-
-                return (
-                  <button
-                    data-provider={provider}
-                    class="provider-login-btn flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
-                  >
-                    <Fragment set:html={config.icon} />
-                    Sign in with {config.name}
-                  </button>
-                );
-              })}
+            <div class="mt-6 text-center">
+              <p class="text-gray-600 text-sm">
+                Missing integration?
+                <a
+                  href="https://github.com/event-catalog/eventcatalog/issues"
+                  target="_blank"
+                  class="text-purple-600 hover:text-purple-700 underline font-medium"
+                >
+                  Let us know
+                </a>
+              </p>
             </div>
           </div>
         ) : hasConfigButNoProviders ? (
-          <div class="w-full max-w-2xl space-y-8">
-            <div class="text-center">
-              <h2 class="text-3xl font-bold tracking-tight text-gray-900">No Authentication Providers Configured</h2>
-              <p class="mt-4 text-lg text-gray-600">
-                Authentication is enabled but no providers are configured in your auth configuration file.
+          <div class="w-full max-w-2xl">
+            <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-8 space-y-6">
+              <div class="text-center">
+                <h2 class="text-2xl font-bold text-gray-900">No Authentication Providers Configured</h2>
+                <p class="mt-4 text-gray-600">
+                  Authentication is enabled but no providers are configured in your auth configuration file.
+                </p>
+              </div>
+
+              <div class="bg-purple-50 border border-purple-100 rounded-lg p-6 space-y-4">
+                <h3 class="text-lg font-semibold text-gray-900">To add authentication providers:</h3>
+                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                  <li>
+                    Update your{' '}
+                    <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">eventcatalog.auth.js</code>{' '}
+                    file to include at least one provider (GitHub, Google, Okta, etc.)
+                  </li>
+                  <li>Configure the provider with the necessary credentials and settings</li>
+                  <li>Restart your EventCatalog server to apply the changes</li>
+                </ol>
+              </div>
+
+              <div class="text-center">
+                <a
+                  href="#"
+                  class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors duration-200"
+                >
+                  Read Authentication Documentation
+                </a>
+              </div>
+            </div>
+
+            <div class="mt-6 text-center">
+              <p class="text-gray-600 text-sm">
+                Missing integration?
+                <a
+                  href="https://github.com/event-catalog/eventcatalog/issues"
+                  target="_blank"
+                  class="text-purple-600 hover:text-purple-700 underline font-medium"
+                >
+                  Let us know
+                </a>
               </p>
-            </div>
-
-            <div class="bg-white shadow-sm rounded-lg p-6 space-y-4">
-              <h3 class="text-lg font-semibold text-gray-900">To add authentication providers:</h3>
-              <ol class="list-decimal list-inside space-y-2 text-gray-700">
-                <li>
-                  Update your <code class="bg-gray-100 px-2 py-1 rounded text-sm">eventcatalog.auth.js</code> file to include at
-                  least one provider (GitHub, Google, Okta, etc.)
-                </li>
-                <li>Configure the provider with the necessary credentials and settings</li>
-                <li>Restart your EventCatalog server to apply the changes</li>
-              </ol>
-            </div>
-
-            <div class="text-center">
-              <a
-                href="#"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Read Authentication Documentation
-              </a>
             </div>
           </div>
         ) : (
-          <div class="w-full max-w-2xl space-y-8">
-            <div class="text-center">
-              <h2 class="text-3xl font-bold tracking-tight text-gray-900">Authentication Not Configured</h2>
-              <p class="mt-4 text-lg text-gray-600">
-                {!hasAuthConfigurationFile
-                  ? 'No authentication configuration file found.'
-                  : 'Authentication is not properly enabled.'}
+          <div class="w-full max-w-2xl">
+            <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-8 space-y-6">
+              <div class="text-center">
+                <h2 class="text-2xl font-bold text-gray-900">Authentication Not Configured</h2>
+                <p class="mt-4 text-gray-600">
+                  {!hasAuthConfigurationFile
+                    ? 'No authentication configuration file found.'
+                    : 'Authentication is not properly enabled.'}
+                </p>
+              </div>
+
+              <div class="bg-purple-50 border border-purple-100 rounded-lg p-6 space-y-4">
+                <h3 class="text-lg font-semibold text-gray-900">To enable authentication:</h3>
+                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                  {!hasAuthConfigurationFile && (
+                    <li>
+                      Create an{' '}
+                      <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">eventcatalog.auth.js</code>{' '}
+                      configuration file in your project root
+                    </li>
+                  )}
+                  {!isSSR() && (
+                    <li>
+                      Enable SSR (Server-Side Rendering) in your{' '}
+                      <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">
+                        eventcatalog.config.js
+                      </code>{' '}
+                      file by setting{' '}
+                      <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">output: 'server'</code>
+                    </li>
+                  )}
+                  {!isAuthEnabled() && (
+                    <li>
+                      Enable authentication in your{' '}
+                      <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">
+                        eventcatalog.config.js
+                      </code>{' '}
+                      file by setting{' '}
+                      <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">
+                        auth: {`{ enabled: true }`}
+                      </code>
+                    </li>
+                  )}
+                </ol>
+              </div>
+
+              <div class="text-center">
+                <a
+                  href="#"
+                  class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors duration-200"
+                >
+                  Read Authentication Documentation
+                </a>
+              </div>
+            </div>
+
+            <div class="mt-6 text-center">
+              <p class="text-gray-600 text-sm">
+                Missing integration?
+                <a
+                  href="https://github.com/event-catalog/eventcatalog/issues"
+                  target="_blank"
+                  class="text-purple-600 hover:text-purple-700 underline font-medium"
+                >
+                  Let us know
+                </a>
               </p>
-            </div>
-
-            <div class="bg-white shadow-sm rounded-lg p-6 space-y-4">
-              <h3 class="text-lg font-semibold text-gray-900">To enable authentication:</h3>
-              <ol class="list-decimal list-inside space-y-2 text-gray-700">
-                {!hasAuthConfigurationFile && (
-                  <li>
-                    Create an <code class="bg-gray-100 px-2 py-1 rounded text-sm">eventcatalog.auth.js</code> configuration file
-                    in your project root
-                  </li>
-                )}
-                {!isSSR() && (
-                  <li>
-                    Enable SSR (Server-Side Rendering) in your{' '}
-                    <code class="bg-gray-100 px-2 py-1 rounded text-sm">eventcatalog.config.js</code> file by setting{' '}
-                    <code class="bg-gray-100 px-2 py-1 rounded text-sm">output: 'server'</code>
-                  </li>
-                )}
-                {!isAuthEnabled() && (
-                  <li>
-                    Enable authentication in your{' '}
-                    <code class="bg-gray-100 px-2 py-1 rounded text-sm">eventcatalog.config.js</code> file by setting{' '}
-                    <code class="bg-gray-100 px-2 py-1 rounded text-sm">auth: {`{ enabled: true }`}</code>
-                  </li>
-                )}
-              </ol>
-            </div>
-
-            <div class="text-center">
-              <a
-                href="#"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                Read Authentication Documentation
-              </a>
             </div>
           </div>
         )
