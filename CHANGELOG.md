@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.43.1
+
+### Patch Changes
+
+- 0dbdeae: feat(core): added auth0 to list of providers for auth
+
 ## 2.43.0
 
 ### Minor Changes
