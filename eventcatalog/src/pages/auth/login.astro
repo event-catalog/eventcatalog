@@ -94,7 +94,6 @@ const providerConfig = {
       {
         shouldShowLogin ? (
           <div class="w-full max-w-md">
-            <!-- Login Box -->
             <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-8 space-y-6">
               <div class="text-center">
                 <h2 class="text-2xl font-bold text-gray-900">Sign in to your account</h2>
@@ -118,11 +117,14 @@ const providerConfig = {
               </div>
             </div>
 
-            <!-- Missing integration message -->
             <div class="mt-6 text-center">
               <p class="text-gray-600 text-sm">
-                Missing integration? 
-                <a href="https://github.com/event-catalog/eventcatalog/issues" target="_blank" class="text-purple-600 hover:text-purple-700 underline font-medium">
+                Missing integration?
+                <a
+                  href="https://github.com/event-catalog/eventcatalog/issues"
+                  target="_blank"
+                  class="text-purple-600 hover:text-purple-700 underline font-medium"
+                >
                   Let us know
                 </a>
               </p>
@@ -142,8 +144,9 @@ const providerConfig = {
                 <h3 class="text-lg font-semibold text-gray-900">To add authentication providers:</h3>
                 <ol class="list-decimal list-inside space-y-2 text-gray-700">
                   <li>
-                    Update your <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">eventcatalog.auth.js</code> file to include at
-                    least one provider (GitHub, Google, Okta, etc.)
+                    Update your{' '}
+                    <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">eventcatalog.auth.js</code>{' '}
+                    file to include at least one provider (GitHub, Google, Okta, etc.)
                   </li>
                   <li>Configure the provider with the necessary credentials and settings</li>
                   <li>Restart your EventCatalog server to apply the changes</li>
@@ -162,8 +165,12 @@ const providerConfig = {
 
             <div class="mt-6 text-center">
               <p class="text-gray-600 text-sm">
-                Missing integration? 
-                <a href="https://github.com/event-catalog/eventcatalog/issues" target="_blank" class="text-purple-600 hover:text-purple-700 underline font-medium">
+                Missing integration?
+                <a
+                  href="https://github.com/event-catalog/eventcatalog/issues"
+                  target="_blank"
+                  class="text-purple-600 hover:text-purple-700 underline font-medium"
+                >
                   Let us know
                 </a>
               </p>
@@ -186,22 +193,31 @@ const providerConfig = {
                 <ol class="list-decimal list-inside space-y-2 text-gray-700">
                   {!hasAuthConfigurationFile && (
                     <li>
-                      Create an <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">eventcatalog.auth.js</code> configuration file
-                      in your project root
+                      Create an{' '}
+                      <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">eventcatalog.auth.js</code>{' '}
+                      configuration file in your project root
                     </li>
                   )}
                   {!isSSR() && (
                     <li>
                       Enable SSR (Server-Side Rendering) in your{' '}
-                      <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">eventcatalog.config.js</code> file by setting{' '}
+                      <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">
+                        eventcatalog.config.js
+                      </code>{' '}
+                      file by setting{' '}
                       <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">output: 'server'</code>
                     </li>
                   )}
                   {!isAuthEnabled() && (
                     <li>
                       Enable authentication in your{' '}
-                      <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">eventcatalog.config.js</code> file by setting{' '}
-                      <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">auth: {`{ enabled: true }`}</code>
+                      <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">
+                        eventcatalog.config.js
+                      </code>{' '}
+                      file by setting{' '}
+                      <code class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm font-mono">
+                        auth: {`{ enabled: true }`}
+                      </code>
                     </li>
                   )}
                 </ol>
@@ -219,8 +235,12 @@ const providerConfig = {
 
             <div class="mt-6 text-center">
               <p class="text-gray-600 text-sm">
-                Missing integration? 
-                <a href="https://github.com/event-catalog/eventcatalog/issues" target="_blank" class="text-purple-600 hover:text-purple-700 underline font-medium">
+                Missing integration?
+                <a
+                  href="https://github.com/event-catalog/eventcatalog/issues"
+                  target="_blank"
+                  class="text-purple-600 hover:text-purple-700 underline font-medium"
+                >
                   Let us know
                 </a>
               </p>
