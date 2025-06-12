@@ -5,6 +5,7 @@ import Okta from '@auth/core/providers/okta';
 import type { Account, Profile, User, Session } from '@auth/core/types';
 import { isAuthEnabled, isSSR } from '@utils/feature';
 import Google from '@auth/core/providers/google';
+import Auth0 from '@auth/core/providers/auth0';
 
 // Need to try and read the eventcatalog.auth.js file and get the auth providers from there
 const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
@@ -51,6 +52,19 @@ const getAuthProviders = async () => {
         })
       );
       console.log('✅ Okta provider configured');
+    }
+
+    // Auth0 provider
+    if (authConfig.providers?.auth0) {
+      const auth0Config = authConfig.providers.auth0;
+      providers.push(
+        Auth0({
+          clientId: auth0Config.clientId,
+          clientSecret: auth0Config.clientSecret,
+          issuer: auth0Config.issuer,
+        })
+      );
+      console.log('✅ Auth0 provider configured');
     }
 
     if (providers.length === 0) {
