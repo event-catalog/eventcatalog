@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.43.2
+
+### Patch Changes
+
+- 1bc6ee4: feat(core): added entra to auth providers
+
 ## 2.43.1
 
 ### Patch Changes
