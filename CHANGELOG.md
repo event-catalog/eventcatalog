@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.43.3
+
+### Patch Changes
+
+- c70e610: feat(core): added google authentication options
+
 ## 2.43.2
 
 ### Patch Changes
