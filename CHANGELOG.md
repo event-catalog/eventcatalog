@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.43.4
+
+### Patch Changes
+
+- a070530: chore(core): added feature logs
+
 ## 2.43.3
 
 ### Patch Changes
