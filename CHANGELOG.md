@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.43.5
+
+### Patch Changes
+
+- e09594b: chore(core): updated astro versions
+
 ## 2.43.4
 
 ### Patch Changes
