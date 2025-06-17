@@ -21,7 +21,6 @@ try {
     console.log('✅ Loaded custom RBAC middleware');
   }
 } catch (error) {
-  console.log('Error loading custom RBAC middleware:', error);
   // Just silently fail, we don't want to block the app
 }
 
