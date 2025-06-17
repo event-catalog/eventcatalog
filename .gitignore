@@ -38,6 +38,6 @@ src/__tests__/example-catalog-dependencies/dependencies
 
 eventcatalog/public/ai
 examples/default/public/ai
-eventcatalog/src/pages/api/[...auth].ts
+**/[...auth].ts
 
 dev-scripts/
