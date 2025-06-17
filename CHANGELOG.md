@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.44.1
+
+### Patch Changes
+
+- 885bd94: feat(core): added search on visualizer
+
 ## 2.44.0
 
 ### Minor Changes
