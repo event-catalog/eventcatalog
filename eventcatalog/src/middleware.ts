@@ -1,4 +1,3 @@
-// src/middleware.ts - Your main middleware file
 import type { MiddlewareHandler } from 'astro';
 import { authMiddleware } from './middleware-auth.ts';
 import { sequence } from 'astro:middleware';
