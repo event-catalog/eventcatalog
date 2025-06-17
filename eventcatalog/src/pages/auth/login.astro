@@ -1,11 +1,9 @@
 ---
 import config from '@config';
 const { title, logo } = config;
-import { getSession } from 'auth-astro/server';
 import { join } from 'node:path';
 import { isAuthEnabled, isSSR } from '@utils/feature';
 
-const session = await getSession(Astro.request);
 const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
 
 let hasAuthConfigurationFile = false;
@@ -25,8 +23,18 @@ const shouldShowLogin = hasAuthConfigurationFile && isSSR() && isAuthEnabled() &
 // Check if configuration exists but no providers are set up
 const hasConfigButNoProviders = hasAuthConfigurationFile && isSSR() && isAuthEnabled() && providers.length === 0;
 
-if (session) {
+// If we are not in SSR mode, redirect to home
+if (!isSSR() || !isAuthEnabled()) {
   return Astro.redirect('/');
+}
+
+// If we are in SSR mode, check if the user is already logged in
+if (isSSR() && isAuthEnabled()) {
+  const { getSession } = await import(/* @vite-ignore */ 'auth-astro/server');
+  const session = await getSession(Astro.request);
+  if (session) {
+    return Astro.redirect('/');
+  }
 }
 
 // Provider configurations
