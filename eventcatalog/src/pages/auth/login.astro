@@ -4,7 +4,6 @@ const { title, logo } = config;
 import { join } from 'node:path';
 import { isAuthEnabled, isSSR } from '@utils/feature';
 
-// const session = await getSession(Astro.request);
 const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
 
 let hasAuthConfigurationFile = false;
