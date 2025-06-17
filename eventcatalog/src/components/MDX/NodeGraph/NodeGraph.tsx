@@ -12,9 +12,13 @@ import {
   type Edge,
   type Node,
   useReactFlow,
+  getNodesBounds,
+  getViewportForBounds,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { HistoryIcon } from 'lucide-react';
+import { toPng } from 'html-to-image';
+import { DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 // Nodes and edges
 import ServiceNode from './Nodes/Service';
 import FlowNode from './Nodes/Flow';
@@ -31,11 +35,11 @@ import CustomNode from './Nodes/Custom';
 import type { CollectionEntry } from 'astro:content';
 import { navigate } from 'astro:transitions/client';
 import type { CollectionTypes } from '@types';
-import DownloadButton from './DownloadButton';
 import { buildUrl } from '@utils/url-builder';
 import ChannelNode from './Nodes/Channel';
 import { CogIcon } from '@heroicons/react/20/solid';
 import { useEventCatalogVisualiser } from 'src/hooks/eventcatalog-visualizer';
+import VisualiserSearch, { type VisualiserSearchRef } from './VisualiserSearch';
 interface Props {
   nodes: any;
   edges: any;
@@ -47,6 +51,7 @@ interface Props {
   includeKey?: boolean;
   linksToVisualiser?: boolean;
   links?: { label: string; url: string }[];
+  mode?: 'full' | 'simple';
 }
 
 const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
@@ -62,6 +67,7 @@ const NodeGraphBuilder = ({
   includeKey = true,
   linksToVisualiser = false,
   links = [],
+  mode = 'full',
 }: Props) => {
   const nodeTypes = useMemo(
     () => ({
@@ -92,7 +98,8 @@ const NodeGraphBuilder = ({
   const [isAnimated, setIsAnimated] = useState(false);
   const [animateMessages, setAnimateMessages] = useState(false);
   const { hideChannels, toggleChannelsVisibility } = useEventCatalogVisualiser({ nodes, edges, setNodes, setEdges });
-  const { fitView } = useReactFlow();
+  const { fitView, getNodes } = useReactFlow();
+  const searchRef = useRef<VisualiserSearchRef>(null);
 
   const resetNodesAndEdges = useCallback(() => {
     setNodes((nds) =>
@@ -200,9 +207,58 @@ const NodeGraphBuilder = ({
 
   const handlePaneClick = useCallback(() => {
     setIsSettingsOpen(false);
+    searchRef.current?.hideSuggestions();
     resetNodesAndEdges();
     fitView({ duration: 800 });
   }, [resetNodesAndEdges, fitView]);
+
+  const handleNodeSelect = useCallback(
+    (node: Node) => {
+      handleNodeClick(null, node);
+    },
+    [handleNodeClick]
+  );
+
+  const handleSearchClear = useCallback(() => {
+    resetNodesAndEdges();
+    fitView({ duration: 800 });
+  }, [resetNodesAndEdges, fitView]);
+
+  const downloadImage = useCallback((dataUrl: string, filename?: string) => {
+    const a = document.createElement('a');
+    a.setAttribute('download', `${filename || 'eventcatalog'}.png`);
+    a.setAttribute('href', dataUrl);
+    a.click();
+  }, []);
+
+  const handleExportVisual = useCallback(() => {
+    const imageWidth = 1024;
+    const imageHeight = 768;
+    const nodesBounds = getNodesBounds(getNodes());
+    const width = imageWidth > nodesBounds.width ? imageWidth : nodesBounds.width;
+    const height = imageHeight > nodesBounds.height ? imageHeight : nodesBounds.height;
+    const viewport = getViewportForBounds(nodesBounds, width, height, 0.5, 2, 0);
+
+    // Hide settings panel and controls during export
+    setIsSettingsOpen(false);
+    const controls = document.querySelector('.react-flow__controls') as HTMLElement;
+    if (controls) controls.style.display = 'none';
+
+    toPng(document.querySelector('.react-flow__viewport') as HTMLElement, {
+      backgroundColor: '#f1f1f1',
+      width,
+      height,
+      style: {
+        width: width.toString(),
+        height: height.toString(),
+        transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+      },
+    }).then((dataUrl: string) => {
+      downloadImage(dataUrl, title);
+      // Restore controls
+      if (controls) controls.style.display = 'block';
+    });
+  }, [getNodes, downloadImage, title]);
 
   const handleLegendClick = useCallback(
     (collectionType: string, groupId?: string) => {
@@ -304,50 +360,55 @@ const NodeGraphBuilder = ({
       className="relative"
     >
       <Panel position="top-center" className="w-full pr-6 ">
-        <div className="flex space-x-2 justify-between  items-center">
-          <div>
-            <button
-              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-              className="py-2.5 px-3 bg-white rounded-md shadow-md hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-              aria-label="Open settings"
-            >
-              <CogIcon className="h-5 w-5 text-gray-600" />
-            </button>
-          </div>
-          {title && (
-            <span className="block shadow-sm bg-white text-xl z-10 text-black px-4 py-2 border-gray-200 rounded-md border opacity-80">
-              {title}
-            </span>
-          )}
-          <div className="flex justify-end space-x-2">
-            <DownloadButton filename={title} addPadding={false} />
-            {/* // Dropdown for links */}
-            {links.length > 0 && (
-              <div className="relative flex items-center -mt-1">
-                <span className="absolute left-2 pointer-events-none flex items-center h-full">
-                  <HistoryIcon className="h-4 w-4 text-gray-600" />
-                </span>
-                <select
-                  value={links.find((link) => window.location.href.includes(link.url))?.url || links[0].url}
-                  onChange={(e) => navigate(e.target.value)}
-                  className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-white rounded-md border border-gray-200 hover:bg-gray-100/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                  style={{ minWidth: 120, height: '26px' }}
-                >
-                  {links.map((link) => (
-                    <option key={link.url} value={link.url}>
-                      {link.label}
-                    </option>
-                  ))}
-                </select>
-                <span className="absolute right-2 pointer-events-none">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </span>
-              </div>
+        <div className="flex space-x-2 justify-between items-center">
+          <div className="flex space-x-2">
+            <div>
+              <button
+                onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                className="py-2.5 px-3 bg-white rounded-md shadow-md hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                aria-label="Open settings"
+              >
+                <CogIcon className="h-5 w-5 text-gray-600" />
+              </button>
+            </div>
+            {title && (
+              <span className="block shadow-sm bg-white text-xl z-10 text-black px-4 py-1.5 border-gray-200 rounded-md border opacity-80">
+                {title}
+              </span>
             )}
           </div>
+          {mode === 'full' && (
+            <div className="flex justify-end space-x-2 w-96">
+              <VisualiserSearch ref={searchRef} nodes={nodes} onNodeSelect={handleNodeSelect} onClear={handleSearchClear} />
+            </div>
+          )}
         </div>
+        {links.length > 0 && (
+          <div className="flex justify-end mt-3">
+            <div className="relative flex items-center -mt-1">
+              <span className="absolute left-2 pointer-events-none flex items-center h-full">
+                <HistoryIcon className="h-4 w-4 text-gray-600" />
+              </span>
+              <select
+                value={links.find((link) => window.location.href.includes(link.url))?.url || links[0].url}
+                onChange={(e) => navigate(e.target.value)}
+                className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-white rounded-md border border-gray-200 hover:bg-gray-100/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                style={{ minWidth: 120, height: '26px' }}
+              >
+                {links.map((link) => (
+                  <option key={link.url} value={link.url}>
+                    {link.label}
+                  </option>
+                ))}
+              </select>
+              <span className="absolute right-2 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </div>
+          </div>
+        )}
       </Panel>
 
       {isSettingsOpen && (
@@ -396,6 +457,15 @@ const NodeGraphBuilder = ({
               </div>
               <p className="text-[10px] text-gray-500">Show or hide channels in the visualizer.</p>
             </div>
+            <div className="pt-4 border-t border-gray-200">
+              <button
+                onClick={handleExportVisual}
+                className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              >
+                <DocumentArrowDownIcon className="w-4 h-4" />
+                <span>Export Visual</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -437,6 +507,7 @@ interface NodeGraphProps {
   footerLabel?: string;
   linksToVisualiser?: boolean;
   links?: { label: string; url: string }[];
+  mode?: 'full' | 'simple';
 }
 
 const NodeGraph = ({
@@ -451,6 +522,7 @@ const NodeGraph = ({
   footerLabel,
   linksToVisualiser = false,
   links = [],
+  mode = 'full',
 }: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
   const [showFooter, setShowFooter] = useState(true);
@@ -482,6 +554,7 @@ const NodeGraph = ({
             includeKey={includeKey}
             linksToVisualiser={linksToVisualiser}
             links={links}
+            mode={mode}
           />
 
           {showFooter && (
