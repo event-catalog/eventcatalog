@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.44.2
+
+### Patch Changes
+
+- c42518e: fix(core): fixed path matching for middleware
+- d4fd84a: fix(core): removed redundant error log
+
 ## 2.44.1
 
 ### Patch Changes
