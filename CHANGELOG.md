@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.44.3
+
+### Patch Changes
+
+- 46600ff: fix(core): fix for schema viewer
+
 ## 2.44.2
 
 ### Patch Changes
