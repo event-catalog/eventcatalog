@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.44.0
+
+### Minor Changes
+
+- e0d3efe: chore(core): added auth middleware for rbac
+
 ## 2.43.5
 
 ### Patch Changes
