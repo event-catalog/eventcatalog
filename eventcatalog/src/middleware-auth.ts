@@ -33,13 +33,21 @@ interface TypedLocals {
 }
 
 // Wildcard matching utilities
-export function matchesPattern(pattern: string, pathname: string): boolean {
-  const regexPattern = pattern
-    .replace(/\*/g, '[^/]+') // * matches any characters except /
-    .replace(/\*\*/g, '.*'); // ** matches any characters including /
+export function matchesPattern(pattern: string, path: string): boolean {
+  const escapeRegExp = (str: string) => str.replace(/[-/\\^$+?.()|[\]{}]/g, '\\$&');
 
-  const regex = new RegExp(`^${regexPattern}$`);
-  return regex.test(pathname);
+  // Convert the pattern to a regular expression
+  const regexStr = pattern
+    .split('/')
+    .map((part) => {
+      if (part === '**') return '.*';
+      if (part === '*') return '[^/]+';
+      return escapeRegExp(part);
+    })
+    .join('/');
+
+  const regex = new RegExp(`^${regexStr}$`);
+  return regex.test(path);
 }
 
 function calculateSpecificity(pattern: string): number {
