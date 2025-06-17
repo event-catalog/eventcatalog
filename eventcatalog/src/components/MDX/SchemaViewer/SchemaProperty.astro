@@ -13,7 +13,13 @@ const { name, details, isRequired, level, isListItem = false } = Astro.props;
 
 const hasNestedProperties = details.type === 'object' && details.properties && Object.keys(details.properties).length > 0;
 const hasArrayItems = details.type === 'array' && details.items;
-const isCollapsible = hasNestedProperties || (hasArrayItems && details.items.type === 'object' && details.items.properties);
+const hasArrayItemProperties =
+  hasArrayItems &&
+  ((details.items.type === 'object' && details.items.properties) ||
+    details.items.allOf ||
+    details.items.oneOf ||
+    details.items.$ref);
+const isCollapsible = hasNestedProperties || hasArrayItemProperties;
 
 // Using template literal for class calculation remains safe
 const indentationClass = `pl-${level * 3}`;
@@ -48,12 +54,19 @@ const contentId = `prop-${name}-${level}-${Math.random().toString(36).substring(
             {details.type}
             {details.type === 'array' && details.items?.type ? `[${details.items.type}]` : ''}
             {details.format ? `<${details.format}>` : ''}
+            {details._refPath && <span class="text-blue-600 ml-1">→ {details._refName || details._refPath}</span>}
+            {details._refNotFound && <span class="text-red-600 ml-1">❌ ref not found</span>}
           </span>
         </div>
         {isRequired && <span class="text-red-600 text-xs ml-3 flex-shrink-0">required</span>}
       </div>
 
       {details.description && <p class="text-gray-500 text-xs mt-0.5">{details.description}</p>}
+      {
+        details.title && details.title !== details.description && (
+          <p class="text-gray-500 text-xs mt-0.5 italic">Title: {details.title}</p>
+        )
+      }
 
       {/* Reverted arbitrary text size to standard 'text-xs' */}
       <div class="text-xs text-gray-500 mt-0.5 space-y-0">
@@ -75,6 +88,20 @@ const contentId = `prop-${name}-${level}-${Math.random().toString(36).substring(
           details.maximum !== undefined && (
             <div>
               Maximum: <code class="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">{details.maximum}</code>
+            </div>
+          )
+        }
+        {
+          details.minLength !== undefined && (
+            <div>
+              Min length: <code class="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">{details.minLength}</code>
+            </div>
+          )
+        }
+        {
+          details.maxLength !== undefined && (
+            <div>
+              Max length: <code class="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">{details.maxLength}</code>
             </div>
           )
         }
@@ -110,18 +137,24 @@ const contentId = `prop-${name}-${level}-${Math.random().toString(36).substring(
                 />
               ))}
 
-            {hasArrayItems && details.items.type === 'object' && details.items.properties && (
+            {hasArrayItemProperties && (
               <div class="mt-1 border-l border-dashed border-gray-400 pl-3 ml-1.5">
                 <span class="text-xs italic text-gray-500 block mb-1">Item Details:</span>
-                {Object.entries(details.items.properties).map(([itemPropName, itemPropDetails]) => (
-                  <SchemaProp
-                    name={itemPropName}
-                    details={itemPropDetails}
-                    isRequired={details.items.required?.includes(itemPropName) ?? false}
-                    level={level + 1}
-                    isListItem={true}
-                  />
-                ))}
+                {details.items.properties &&
+                  Object.entries(details.items.properties).map(([itemPropName, itemPropDetails]) => (
+                    <SchemaProp
+                      name={itemPropName}
+                      details={itemPropDetails}
+                      isRequired={details.items.required?.includes(itemPropName) ?? false}
+                      level={level + 1}
+                      isListItem={true}
+                    />
+                  ))}
+                {(details.items.allOf || details.items.oneOf || details.items.$ref) && !details.items.properties && (
+                  <div class="text-xs text-gray-500 mt-1">
+                    Complex array item schema detected. The properties should be processed by the parent SchemaViewer.
+                  </div>
+                )}
               </div>
             )}
           </div>

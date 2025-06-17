@@ -14,7 +14,8 @@ interface Props {
 const { id, file, title, maxHeight, schema } = Astro.props;
 
 // Function to merge allOf schemas
-function mergeAllOfSchemas(schema: any) {
+function mergeAllOfSchemas(schemaWithProcessor: any): any {
+  const { processSchema: processor, ...schema } = schemaWithProcessor;
   if (!schema.allOf) return schema;
 
   const mergedSchema: {
@@ -22,61 +23,163 @@ function mergeAllOfSchemas(schema: any) {
     properties: Record<string, any>;
     required: string[];
     description?: string;
+    [key: string]: any;
   } = {
-    type: 'object',
+    type: schema.type || 'object',
     properties: {},
     required: [],
     description: schema.description,
   };
 
+  // Copy base schema properties first (excluding allOf)
+  Object.keys(schema).forEach((key) => {
+    if (key !== 'allOf' && key !== 'properties' && key !== 'required' && key !== 'description') {
+      mergedSchema[key] = schema[key];
+    }
+  });
+
+  // Copy base properties if they exist
+  if (schema.properties) {
+    mergedSchema.properties = { ...schema.properties };
+  }
+  if (schema.required) {
+    mergedSchema.required = [...schema.required];
+  }
+
   schema.allOf.forEach((subSchema: any) => {
-    if (subSchema.properties) {
+    // Recursively process each subSchema in case it has its own allOf, oneOf, or $ref
+    const processedSubSchema = processor ? processor(subSchema) : subSchema;
+
+    if (processedSubSchema.properties) {
       mergedSchema.properties = {
         ...mergedSchema.properties,
-        ...subSchema.properties,
+        ...processedSubSchema.properties,
       };
     }
-    if (subSchema.required) {
-      mergedSchema.required = [...mergedSchema.required, ...subSchema.required];
+    if (processedSubSchema.required) {
+      mergedSchema.required = [...new Set([...mergedSchema.required, ...processedSubSchema.required])];
     }
-    if (subSchema.description && !mergedSchema.description) {
-      mergedSchema.description = subSchema.description;
+    if (processedSubSchema.description && !mergedSchema.description) {
+      mergedSchema.description = processedSubSchema.description;
     }
+
+    // Copy other properties from subSchema
+    Object.keys(processedSubSchema).forEach((key) => {
+      if (key !== 'properties' && key !== 'required' && key !== 'description' && key !== 'type') {
+        if (!mergedSchema[key]) {
+          mergedSchema[key] = processedSubSchema[key];
+        }
+      }
+    });
   });
 
   return mergedSchema;
 }
 
-function processSchema(schema: any) {
+function processSchema(schema: any, rootSchema?: any): any {
+  if (!schema) return schema;
+
+  // Set rootSchema for $ref resolution
+  const root = rootSchema || schema;
+
   // Handle $ref
   if (schema.$ref) {
-    // Only support local refs like "#/definitions/xyz"
     const refPath = schema.$ref;
+    let resolvedSchema = null;
+    let defName = '';
+
+    // Try draft-7 style first: #/definitions/
     if (refPath.startsWith('#/definitions/')) {
-      const defName = refPath.replace('#/definitions/', '');
-      const definitions = schema.definitions;
-      if (definitions && definitions[defName]) {
-        // Recursively process the referenced schema
-        return processSchema(definitions[defName]);
+      defName = refPath.replace('#/definitions/', '');
+      if (root.definitions && root.definitions[defName]) {
+        resolvedSchema = root.definitions[defName];
       }
     }
-    // If not found, return as is
-    return schema;
+    // Try 2020-12 style: #/$defs/
+    else if (refPath.startsWith('#/$defs/')) {
+      defName = refPath.replace('#/$defs/', '');
+      if (root.$defs && root.$defs[defName]) {
+        resolvedSchema = root.$defs[defName];
+      }
+    }
+    // Try other common patterns
+    else if (refPath.startsWith('#/components/schemas/')) {
+      defName = refPath.replace('#/components/schemas/', '');
+      if (root.components && root.components.schemas && root.components.schemas[defName]) {
+        resolvedSchema = root.components.schemas[defName];
+      }
+    }
+
+    if (resolvedSchema) {
+      // Recursively process the referenced schema
+      const processedSchema = processSchema(resolvedSchema, root);
+      // Add reference info to the resolved schema
+      return {
+        ...processedSchema,
+        _refPath: refPath,
+        _refName: defName,
+        _originalRef: schema.$ref,
+      };
+    }
+
+    // If not found, create a placeholder schema showing the reference
+    return {
+      type: 'string',
+      description: `Reference to ${refPath} (definition not found in root schema)`,
+      title: defName || refPath.split('/').pop(),
+      _refPath: refPath,
+      _refName: defName,
+      _refNotFound: true,
+    };
   }
 
   if (schema.allOf) {
-    return mergeAllOfSchemas(schema);
+    return mergeAllOfSchemas({ ...schema, processSchema: (s: any) => processSchema(s, root) });
   }
 
   if (schema.oneOf) {
-    // For oneOf, we'll keep the base properties and handle variants in the UI
+    // Process each oneOf variant and create a combined schema
+    const processedVariants = schema.oneOf.map((variant: any) => {
+      const processedVariant = processSchema(variant, root);
+      return {
+        title: processedVariant.title || variant.title || 'Unnamed Variant',
+        required: processedVariant.required || variant.required || [],
+        properties: processedVariant.properties || {},
+        ...processedVariant,
+      };
+    });
+
+    // Merge all properties from variants for display
+    const allProperties: Record<string, any> = {};
+    processedVariants.forEach((variant) => {
+      if (variant.properties) {
+        Object.assign(allProperties, variant.properties);
+      }
+    });
+
     return {
       ...schema,
-      variants: schema.oneOf.map((variant: any) => ({
-        title: variant.title || 'Unnamed Variant',
-        required: variant.required || [],
-      })),
+      type: schema.type || 'object',
+      properties: {
+        ...(schema.properties || {}),
+        ...allProperties,
+      },
+      variants: processedVariants,
     };
+  }
+
+  // Process nested schemas in properties
+  if (schema.properties) {
+    const processedProperties: Record<string, any> = {};
+    Object.entries(schema.properties).forEach(([key, prop]: [string, any]) => {
+      processedProperties[key] = processSchema(prop, root);
+    });
+    schema = { ...schema, properties: processedProperties };
+  }
+
+  // Process array items
+  if (schema.type === 'array' && schema.items) {
+    schema = { ...schema, items: processSchema(schema.items, root) };
   }
 
   return schema;
