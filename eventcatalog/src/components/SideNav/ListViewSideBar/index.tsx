@@ -8,6 +8,27 @@ import type { MessageItem, ServiceItem, ListViewSideBarProps } from './types';
 const STORAGE_KEY = 'EventCatalog:catalogSidebarCollapsedGroups';
 const DEBOUNCE_DELAY = 300; // 300ms debounce delay
 
+const HighlightedText = React.memo(({ text, searchTerm }: { text: string; searchTerm: string }) => {
+  if (!searchTerm) return <>{text}</>;
+
+  const regex = new RegExp(`(${searchTerm})`, 'gi');
+  const parts = text.split(regex);
+
+  return (
+    <>
+      {parts.map((part, index) =>
+        regex.test(part) ? (
+          <span key={index} className="bg-yellow-200 text-gray-900 font-semibold">
+            {part}
+          </span>
+        ) : (
+          <span key={index}>{part}</span>
+        )
+      )}
+    </>
+  );
+});
+
 export const getMessageColorByCollection = (collection: string) => {
   if (collection === 'commands') return 'bg-blue-50 text-blue-600';
   if (collection === 'queries') return 'bg-green-50 text-green-600';
@@ -46,12 +67,14 @@ const ServiceItem = React.memo(
     collapsedGroups,
     toggleGroupCollapse,
     isVisualizer,
+    searchTerm,
   }: {
     item: ServiceItem;
     decodedCurrentPath: string;
     collapsedGroups: { [key: string]: boolean };
     toggleGroupCollapse: (group: string) => void;
     isVisualizer: boolean;
+    searchTerm: string;
   }) => {
     const asyncAPISpecifications = item.specifications?.filter((spec) => spec.type === 'asyncapi');
     const openAPISpecifications = item.specifications?.filter((spec) => spec.type === 'openapi');
@@ -68,7 +91,9 @@ const ServiceItem = React.memo(
             }}
             className="flex justify-between items-center pl-2 w-full text-xs"
           >
-            <span className="truncate text-xs font-bold">{item.label}</span>
+            <span className="truncate text-xs font-bold">
+              <HighlightedText text={item.label} searchTerm={searchTerm} />
+            </span>
             <span className="text-purple-600 ml-2 text-[10px] font-medium bg-purple-50 px-2 py-0.5 rounded">SERVICE</span>
           </button>
         }
@@ -131,7 +156,7 @@ const ServiceItem = React.memo(
               </button>
             }
           >
-            <MessageList messages={item.receives} decodedCurrentPath={decodedCurrentPath} />
+            <MessageList messages={item.receives} decodedCurrentPath={decodedCurrentPath} searchTerm={searchTerm} />
           </CollapsibleGroup>
 
           <CollapsibleGroup
@@ -149,7 +174,7 @@ const ServiceItem = React.memo(
               </button>
             }
           >
-            <MessageList messages={item.sends} decodedCurrentPath={decodedCurrentPath} />
+            <MessageList messages={item.sends} decodedCurrentPath={decodedCurrentPath} searchTerm={searchTerm} />
           </CollapsibleGroup>
           {!isVisualizer && item.entities.length > 0 && (
             <CollapsibleGroup
@@ -167,7 +192,7 @@ const ServiceItem = React.memo(
                 </button>
               }
             >
-              <MessageList messages={item.entities} decodedCurrentPath={decodedCurrentPath} />
+              <MessageList messages={item.entities} decodedCurrentPath={decodedCurrentPath} searchTerm={searchTerm} />
             </CollapsibleGroup>
           )}
         </div>
@@ -207,14 +232,15 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
     if (!debouncedSearchTerm) return data;
 
     const filterItem = (item: { label: string; id?: string }) => {
-      return item.label.toLowerCase().includes(debouncedSearchTerm) || 
-        (item.id && item.id.toLowerCase().includes(debouncedSearchTerm));
+      return (
+        item.label.toLowerCase().includes(debouncedSearchTerm) || (item.id && item.id.toLowerCase().includes(debouncedSearchTerm))
+      );
     };
 
     const filterMessages = (messages: MessageItem[]) => {
-      return messages.filter((message) => 
-        message.data.name.toLowerCase().includes(debouncedSearchTerm) ||
-        message.id.toLowerCase().includes(debouncedSearchTerm)
+      return messages.filter(
+        (message) =>
+          message.data.name.toLowerCase().includes(debouncedSearchTerm) || message.id.toLowerCase().includes(debouncedSearchTerm)
       );
     };
 
@@ -228,21 +254,21 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
             receives: filterMessages(service.receives),
             isVisible:
               filterItem(service) ||
-              service.sends.some((msg: MessageItem) => 
-                msg.data.name.toLowerCase().includes(debouncedSearchTerm) ||
-                msg.id.toLowerCase().includes(debouncedSearchTerm)
+              service.sends.some(
+                (msg: MessageItem) =>
+                  msg.data.name.toLowerCase().includes(debouncedSearchTerm) || msg.id.toLowerCase().includes(debouncedSearchTerm)
               ) ||
-              service.receives.some((msg: MessageItem) => 
-                msg.data.name.toLowerCase().includes(debouncedSearchTerm) ||
-                msg.id.toLowerCase().includes(debouncedSearchTerm)
+              service.receives.some(
+                (msg: MessageItem) =>
+                  msg.data.name.toLowerCase().includes(debouncedSearchTerm) || msg.id.toLowerCase().includes(debouncedSearchTerm)
               ),
           }))
           .filter((service: ServiceItem & { isVisible: boolean }) => service.isVisible) || [],
       flows: data.flows?.filter(filterItem) || [],
       messagesNotInService:
-        data.messagesNotInService?.filter((msg: MessageItem) => 
-          msg.label.toLowerCase().includes(debouncedSearchTerm) ||
-          msg.id.toLowerCase().includes(debouncedSearchTerm)
+        data.messagesNotInService?.filter(
+          (msg: MessageItem) =>
+            msg.label.toLowerCase().includes(debouncedSearchTerm) || msg.id.toLowerCase().includes(debouncedSearchTerm)
         ) || [],
     };
   }, [data, debouncedSearchTerm]);
@@ -346,7 +372,9 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                             decodedCurrentPath === item.href
                           }`}
                         >
-                          <span className="truncate">{item.label}</span>
+                          <span className="truncate">
+                            <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
+                          </span>
                           <span className="text-yellow-600 ml-2 text-[10px] font-medium bg-yellow-50 px-2 py-0.5 rounded">
                             {isDomainSubDomain(item) ? 'SUBDOMAIN' : 'DOMAIN'}
                           </span>
@@ -408,7 +436,11 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                                 </button>
                               }
                             >
-                              <MessageList messages={item.entities} decodedCurrentPath={decodedCurrentPath} />
+                              <MessageList
+                                messages={item.entities}
+                                decodedCurrentPath={decodedCurrentPath}
+                                searchTerm={debouncedSearchTerm}
+                              />
                             </CollapsibleGroup>
                           )}
                         </div>
@@ -430,6 +462,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                       collapsedGroups={collapsedGroups}
                       toggleGroupCollapse={toggleGroupCollapse}
                       isVisualizer={isVisualizer}
+                      searchTerm={debouncedSearchTerm}
                     />
                   ))}
                 </ul>
@@ -447,7 +480,9 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                           decodedCurrentPath === item.href ? 'bg-purple-100 text-purple-900' : 'hover:bg-purple-100'
                         }`}
                       >
-                        <span className="truncate">{item.label}</span>
+                        <span className="truncate">
+                          <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
+                        </span>
                         <span
                           className={`ml-2 text-[10px] font-medium px-2 uppercase py-0.5 rounded ${getMessageColorByCollection(item.collection)}`}
                         >
@@ -471,7 +506,9 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                           decodedCurrentPath === item.href ? 'bg-cyan-100 text-cyan-900' : 'hover:bg-purple-100'
                         }`}
                       >
-                        <span className="truncate">{item.label}</span>
+                        <span className="truncate">
+                          <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
+                        </span>
                         <span className="text-cyan-600 ml-2 text-[10px] font-medium bg-cyan-50 px-2 py-0.5 rounded">FLOW</span>
                       </a>
                     </li>

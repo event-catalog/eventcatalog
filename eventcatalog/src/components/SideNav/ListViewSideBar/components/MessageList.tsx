@@ -1,9 +1,32 @@
 import React from 'react';
 import { getMessageColorByCollection, getMessageCollectionName } from '../index';
+
 interface MessageListProps {
   messages: any[];
   decodedCurrentPath: string;
+  searchTerm?: string;
 }
+
+const HighlightedText = React.memo(({ text, searchTerm }: { text: string; searchTerm?: string }) => {
+  if (!searchTerm) return <>{text}</>;
+
+  const regex = new RegExp(`(${searchTerm})`, 'gi');
+  const parts = text.split(regex);
+
+  return (
+    <>
+      {parts.map((part, index) =>
+        regex.test(part) ? (
+          <span key={index} className="bg-yellow-200 text-gray-900 font-semibold">
+            {part}
+          </span>
+        ) : (
+          <span key={index}>{part}</span>
+        )
+      )}
+    </>
+  );
+});
 
 const getMessageColorByLabelOrCollection = (collection: string, badge?: string) => {
   if (!badge) {
@@ -25,7 +48,7 @@ const getMessageColorByLabelOrCollection = (collection: string, badge?: string) 
   return getMessageColorByCollection(collection);
 };
 
-const MessageList: React.FC<MessageListProps> = ({ messages, decodedCurrentPath }) => (
+const MessageList: React.FC<MessageListProps> = ({ messages, decodedCurrentPath, searchTerm }) => (
   <ul className="space-y-0.5 border-l border-gray-200/80 ml-[9px] pl-4">
     {messages.map((message: any) => (
       <li key={message.id} data-active={decodedCurrentPath === message.href}>
@@ -35,7 +58,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages, decodedCurrentPath 
             decodedCurrentPath.includes(message.href) ? 'bg-purple-100 ' : 'hover:bg-purple-100'
           }`}
         >
-          <span className="truncate">{message.data?.sidebar?.label || message.data.name}</span>
+          <span className="truncate">
+            <HighlightedText text={message.data?.sidebar?.label || message.data.name} searchTerm={searchTerm} />
+          </span>
           <span
             className={`ml-2 text-[10px]  flex items-center gap-1 font-medium px-2 uppercase py-0.5 rounded ${getMessageColorByLabelOrCollection(message.collection, message.data?.sidebar?.badge)}`}
           >
