@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.44.4
+
+### Patch Changes
+
+- 3247596: feat(core): added node walkthroughs for flows
+- 5a27960: feat(core): improved search, now searched by name and id
+
 ## 2.44.3
 
 ### Patch Changes
