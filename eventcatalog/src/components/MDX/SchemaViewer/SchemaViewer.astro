@@ -151,7 +151,7 @@ function processSchema(schema: any, rootSchema?: any): any {
 
     // Merge all properties from variants for display
     const allProperties: Record<string, any> = {};
-    processedVariants.forEach((variant) => {
+    processedVariants.forEach((variant: any) => {
       if (variant.properties) {
         Object.assign(allProperties, variant.properties);
       }

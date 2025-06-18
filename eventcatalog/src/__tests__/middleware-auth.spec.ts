@@ -111,9 +111,9 @@ describe('middleware-auth', () => {
     });
 
     it('should prefer more specific patterns over less specific ones', () => {
-      const exactMatch = () => 'exact';
-      const singleWildcard = () => 'single';
-      const doubleWildcard = () => 'double';
+      const exactMatch = () => true;
+      const singleWildcard = () => true;
+      const doubleWildcard = () => true;
 
       const rules = {
         '/users/**': doubleWildcard,
