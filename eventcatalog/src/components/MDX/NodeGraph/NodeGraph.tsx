@@ -40,6 +40,7 @@ import ChannelNode from './Nodes/Channel';
 import { CogIcon } from '@heroicons/react/20/solid';
 import { useEventCatalogVisualiser } from 'src/hooks/eventcatalog-visualizer';
 import VisualiserSearch, { type VisualiserSearchRef } from './VisualiserSearch';
+import StepWalkthrough from './StepWalkthrough';
 interface Props {
   nodes: any;
   edges: any;
@@ -97,6 +98,7 @@ const NodeGraphBuilder = ({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAnimated, setIsAnimated] = useState(false);
   const [animateMessages, setAnimateMessages] = useState(false);
+  const [activeStepIndex, setActiveStepIndex] = useState<number | null>(null);
   const { hideChannels, toggleChannelsVisibility } = useEventCatalogVisualiser({ nodes, edges, setNodes, setEdges });
   const { fitView, getNodes } = useReactFlow();
   const searchRef = useRef<VisualiserSearchRef>(null);
@@ -343,6 +345,106 @@ const NodeGraphBuilder = ({
 
   const legend = getNodesByCollectionWithColors(nodes);
 
+  const handleStepChange = useCallback(
+    (nodeId: string | null, highlightPaths?: string[], shouldZoomOut?: boolean) => {
+      if (nodeId === null) {
+        // Reset all nodes and edges
+        resetNodesAndEdges();
+        setActiveStepIndex(null);
+
+        // If shouldZoomOut is true, fit the entire view
+        if (shouldZoomOut) {
+          setTimeout(() => {
+            fitView({ duration: 800, padding: 0.1 });
+          }, 100);
+        }
+        return;
+      }
+
+      const activeNode = nodes.find((node: Node) => node.id === nodeId);
+      if (!activeNode) return;
+
+      // Create set of highlighted nodes and edges
+      const highlightedNodeIds = new Set<string>();
+      const highlightedEdgeIds = new Set<string>();
+
+      // Add current node
+      highlightedNodeIds.add(activeNode.id);
+
+      // Add incoming edges and their source nodes
+      edges.forEach((edge: Edge) => {
+        if (edge.target === activeNode.id) {
+          highlightedEdgeIds.add(edge.id);
+          highlightedNodeIds.add(edge.source);
+        }
+      });
+
+      // Add outgoing edges
+      if (highlightPaths) {
+        // Highlight all possible paths when at a fork
+        highlightPaths.forEach((pathId) => {
+          const [source, target] = pathId.split('-');
+          edges.forEach((edge: Edge) => {
+            if (edge.source === source && edge.target === target) {
+              highlightedEdgeIds.add(edge.id);
+              highlightedNodeIds.add(edge.target);
+            }
+          });
+        });
+      } else {
+        // Highlight all outgoing edges normally
+        edges.forEach((edge: Edge) => {
+          if (edge.source === activeNode.id) {
+            highlightedEdgeIds.add(edge.id);
+            highlightedNodeIds.add(edge.target);
+          }
+        });
+      }
+
+      // Update nodes
+      const updatedNodes = nodes.map((node: Node) => {
+        if (highlightedNodeIds.has(node.id)) {
+          return { ...node, style: { ...node.style, opacity: 1 } };
+        }
+        return { ...node, style: { ...node.style, opacity: 0.2 } };
+      });
+
+      // Update edges
+      const updatedEdges = edges.map((edge: Edge) => {
+        if (highlightedEdgeIds.has(edge.id)) {
+          return {
+            ...edge,
+            data: { ...edge.data, opacity: 1, animated: true },
+            style: { ...edge.style, opacity: 1, strokeWidth: 3 },
+            labelStyle: { ...edge.labelStyle, opacity: 1 },
+            animated: true,
+          };
+        }
+        return {
+          ...edge,
+          data: { ...edge.data, opacity: 0.2, animated: false },
+          style: { ...edge.style, opacity: 0.2, strokeWidth: 2 },
+          labelStyle: { ...edge.labelStyle, opacity: 0.2 },
+          animated: false,
+        };
+      });
+
+      setNodes(updatedNodes);
+      setEdges(updatedEdges);
+
+      // Fit view to active node
+      fitView({
+        padding: 0.4,
+        duration: 800,
+        nodes: [activeNode],
+      });
+    },
+    [nodes, edges, setNodes, setEdges, resetNodesAndEdges, fitView]
+  );
+
+  // Check if this is a flow visualization by checking if edges use flow-edge type
+  const isFlowVisualization = edges.some((edge: Edge) => edge.type === 'flow-edge');
+
   return (
     <ReactFlow
       nodeTypes={nodeTypes}
@@ -471,6 +573,17 @@ const NodeGraphBuilder = ({
       )}
       {includeBackground && <Background color="#bbb" gap={16} />}
       {includeBackground && <Controls />}
+      {isFlowVisualization && (
+        <Panel position="bottom-left">
+          <StepWalkthrough
+            nodes={nodes}
+            edges={edges}
+            isFlowVisualization={isFlowVisualization}
+            onStepChange={handleStepChange}
+            mode={mode}
+          />
+        </Panel>
+      )}
       {includeKey && (
         <Panel position="bottom-right">
           <div className=" bg-white font-light px-4 text-[12px] shadow-md py-1 rounded-md">
