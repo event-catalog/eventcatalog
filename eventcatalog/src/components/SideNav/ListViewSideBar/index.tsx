@@ -206,12 +206,16 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
   const filteredData = useMemo(() => {
     if (!debouncedSearchTerm) return data;
 
-    const filterItem = (item: { label: string }) => {
-      return item.label.toLowerCase().includes(debouncedSearchTerm);
+    const filterItem = (item: { label: string; id?: string }) => {
+      return item.label.toLowerCase().includes(debouncedSearchTerm) || 
+        (item.id && item.id.toLowerCase().includes(debouncedSearchTerm));
     };
 
     const filterMessages = (messages: MessageItem[]) => {
-      return messages.filter((message) => message.data.name.toLowerCase().includes(debouncedSearchTerm));
+      return messages.filter((message) => 
+        message.data.name.toLowerCase().includes(debouncedSearchTerm) ||
+        message.id.toLowerCase().includes(debouncedSearchTerm)
+      );
     };
 
     return {
@@ -224,13 +228,22 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
             receives: filterMessages(service.receives),
             isVisible:
               filterItem(service) ||
-              service.sends.some((msg: MessageItem) => msg.data.name.toLowerCase().includes(debouncedSearchTerm)) ||
-              service.receives.some((msg: MessageItem) => msg.data.name.toLowerCase().includes(debouncedSearchTerm)),
+              service.sends.some((msg: MessageItem) => 
+                msg.data.name.toLowerCase().includes(debouncedSearchTerm) ||
+                msg.id.toLowerCase().includes(debouncedSearchTerm)
+              ) ||
+              service.receives.some((msg: MessageItem) => 
+                msg.data.name.toLowerCase().includes(debouncedSearchTerm) ||
+                msg.id.toLowerCase().includes(debouncedSearchTerm)
+              ),
           }))
           .filter((service: ServiceItem & { isVisible: boolean }) => service.isVisible) || [],
       flows: data.flows?.filter(filterItem) || [],
       messagesNotInService:
-        data.messagesNotInService?.filter((msg: MessageItem) => msg.label.toLowerCase().includes(debouncedSearchTerm)) || [],
+        data.messagesNotInService?.filter((msg: MessageItem) => 
+          msg.label.toLowerCase().includes(debouncedSearchTerm) ||
+          msg.id.toLowerCase().includes(debouncedSearchTerm)
+        ) || [],
     };
   }, [data, debouncedSearchTerm]);
 
