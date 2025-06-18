@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.44.5
+
+### Patch Changes
+
+- 125f14d: fix(core): fixing type errors
+
 ## 2.44.4
 
 ### Patch Changes
