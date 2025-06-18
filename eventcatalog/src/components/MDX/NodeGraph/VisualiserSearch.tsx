@@ -36,9 +36,9 @@ const VisualiserSearch = forwardRef<VisualiserSearchRef, VisualiserSearchProps>(
 
     const getNodeDisplayName = useCallback((node: Node) => {
       // @ts-ignore
-      const name = node.data?.message?.data?.name || node.data?.service?.data?.name || node.data?.name || node.id;
+      const name = node.data?.message?.data?.name || node.data?.service?.data?.name || node.data?.domain?.data?.name || node.data?.name || node.id;
       // @ts-ignore
-      const version = node.data?.message?.data?.version || node.data?.service?.data?.version || node.data?.version;
+      const version = node.data?.message?.data?.version || node.data?.service?.data?.version || node.data?.domain?.data?.version || node.data?.version;
       return version ? `${name} (v${version})` : name;
     }, []);
 
@@ -50,6 +50,7 @@ const VisualiserSearch = forwardRef<VisualiserSearchRef, VisualiserSearchProps>(
         commands: 'bg-blue-600 text-white',
         queries: 'bg-green-600 text-white',
         channels: 'bg-gray-600 text-white',
+        domains: 'bg-yellow-500 text-white',
         externalSystem: 'bg-pink-600 text-white',
         actor: 'bg-yellow-500 text-white',
         step: 'bg-gray-700 text-white',

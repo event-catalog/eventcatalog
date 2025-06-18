@@ -28,6 +28,7 @@ import UserNode from './Nodes/User';
 import StepNode from './Nodes/Step';
 import CommandNode from './Nodes/Command';
 import ExternalSystemNode from './Nodes/ExternalSystem';
+import DomainNode from './Nodes/Domain';
 import AnimatedMessageEdge from './Edges/AnimatedMessageEdge';
 import FlowEdge from './Edges/FlowEdge';
 import CustomNode from './Nodes/Custom';
@@ -78,6 +79,7 @@ const NodeGraphBuilder = ({
       channels: ChannelNode,
       queries: QueryNode,
       commands: CommandNode,
+      domains: DomainNode,
       step: StepNode,
       user: UserNode,
       actor: UserNode,
