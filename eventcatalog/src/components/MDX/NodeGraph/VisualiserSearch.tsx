@@ -140,7 +140,7 @@ const VisualiserSearch = forwardRef<VisualiserSearchRef, VisualiserSearchProps>(
     // Close suggestions when clicking outside
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
-        if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        if (containerRef.current && !containerRef.current.contains(event.target as any)) {
           setShowSuggestions(false);
           setSelectedSuggestionIndex(-1);
         }
