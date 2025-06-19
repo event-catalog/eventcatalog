@@ -1,0 +1,48 @@
+---
+id: FraudCheckCompleted
+version: 0.0.1
+name: Fraud Check Completed
+summary: Emitted when a fraud check has been completed for a transaction
+tags:
+  - payment
+  - fraud
+  - security
+badges:
+  - content: New
+    backgroundColor: green
+    textColor: white
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+The `FraudCheckCompleted` event is emitted when the fraud detection service has completed its analysis of a payment transaction. This event contains the risk assessment results and recommendations.
+
+## Schema
+
+<SchemaViewer title="FraudCheckCompleted Schema" schemaPath={frontmatter.schemaPath} />
+
+## Event Details
+
+- **Risk Score**: A numerical score from 0-100 indicating fraud risk
+- **Decision**: APPROVED, DECLINED, or MANUAL_REVIEW
+- **Reasons**: Array of reasons for the decision
+- **Confidence**: Confidence level of the fraud detection
+
+## Example Payload
+
+```json
+{
+  "transactionId": "txn_1234567890",
+  "paymentId": "pay_9876543210",
+  "riskScore": 25,
+  "decision": "APPROVED",
+  "reasons": ["Low risk merchant", "Customer history positive"],
+  "confidence": 0.92,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+<Footer />

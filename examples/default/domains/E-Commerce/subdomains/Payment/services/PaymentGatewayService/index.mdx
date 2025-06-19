@@ -1,0 +1,78 @@
+---
+id: PaymentGatewayService
+version: 0.0.1
+name: Payment Gateway Service
+summary: Manages integration with external payment processors (Stripe, PayPal, etc.)
+tags:
+  - payment
+  - gateway
+  - integration
+repository:
+  url: https://github.com/eventcatalog/payment-gateway-service
+receives:
+  - id: ProcessPayment
+    version: 0.0.1
+  - id: RefundPayment
+    version: 0.0.1
+  - id: FraudCheckCompleted
+    version: 0.0.1
+sends:
+  - id: PaymentAuthorized
+    version: 0.0.1
+  - id: PaymentCaptured
+    version: 0.0.1
+  - id: PaymentFailed
+    version: 0.0.1
+  - id: RefundProcessed
+    version: 0.0.1
+owners:
+  - paymentsTeam
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+The Payment Gateway Service acts as an abstraction layer between our payment system and external payment processors. It handles the complexity of integrating with multiple payment providers and provides a unified interface for payment operations.
+
+## Supported Payment Providers
+
+- **Stripe**: Credit/debit cards, digital wallets
+- **PayPal**: PayPal accounts, PayPal Credit
+- **Square**: In-person and online payments
+- **Adyen**: Global payment processing
+- **Braintree**: Multiple payment methods
+
+## Key Features
+
+- **Multi-provider Support**: Switch between providers seamlessly
+- **Retry Logic**: Automatic retry for failed transactions
+- **Tokenization**: Secure card data handling
+- **Webhook Management**: Handles provider webhooks
+- **Currency Conversion**: Support for 150+ currencies
+
+## API Endpoints
+
+### REST API
+- `POST /api/gateway/authorize` - Authorize a payment
+- `POST /api/gateway/capture` - Capture an authorized payment
+- `POST /api/gateway/refund` - Process a refund
+- `GET /api/gateway/status/{transactionId}` - Get transaction status
+
+## Configuration
+
+```yaml
+payment_gateway:
+  providers:
+    stripe:
+      api_key: ${STRIPE_API_KEY}
+      webhook_secret: ${STRIPE_WEBHOOK_SECRET}
+    paypal:
+      client_id: ${PAYPAL_CLIENT_ID}
+      client_secret: ${PAYPAL_CLIENT_SECRET}
+  retry:
+    max_attempts: 3
+    backoff_ms: 1000
+```
+
+<Footer />

@@ -1,0 +1,60 @@
+---
+id: PaymentFailed
+version: 0.0.1
+name: Payment Failed
+summary: Emitted when a payment attempt fails
+badges:
+  - content: Error Event
+    backgroundColor: red
+    textColor: white
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+The `PaymentFailed` event is emitted when a payment attempt fails for any reason. This event is consumed by various services to handle payment failures appropriately.
+
+## Consumers
+
+This event is consumed by:
+- **BillingService** (Subscriptions Domain) - To handle subscription payment failures
+- **OrdersService** (Orders Domain) - To handle order payment failures
+- **NotificationService** (Orders Domain) - To notify customers of payment failures
+
+## Failure Reasons
+
+Common failure reasons include:
+- **insufficient_funds** - Card has insufficient funds
+- **card_declined** - Card was declined by issuer
+- **expired_card** - Card has expired
+- **fraud_suspected** - Payment flagged as potentially fraudulent
+- **network_error** - Payment gateway network error
+- **invalid_payment_method** - Payment method is invalid
+
+## Schema
+
+<SchemaViewer title="PaymentFailed Schema" schemaPath={frontmatter.schemaPath} />
+
+## Example Payload
+
+```json
+{
+  "paymentId": "pay_123456",
+  "amount": 49.99,
+  "currency": "USD",
+  "failureReason": "insufficient_funds",
+  "failureMessage": "Your card has insufficient funds",
+  "metadata": {
+    "subscriptionId": "sub_ABC123",
+    "invoiceId": "inv_123456",
+    "customerId": "cust_XYZ789"
+  },
+  "canRetry": true,
+  "nextRetryAt": "2024-02-02T00:00:00Z",
+  "timestamp": "2024-02-01T10:30:00Z"
+}
+```
+
+<Footer />

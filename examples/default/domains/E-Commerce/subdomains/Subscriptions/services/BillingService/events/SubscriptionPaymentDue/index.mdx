@@ -1,0 +1,60 @@
+---
+id: SubscriptionPaymentDue
+version: 0.0.1
+name: Subscription Payment Due
+summary: Emitted when a subscription payment is due for collection
+tags:
+  - billing
+  - payment
+  - cross-domain
+badges:
+  - content: Cross-Domain
+    backgroundColor: purple
+    textColor: white
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+The `SubscriptionPaymentDue` event is emitted by the Billing Service when a subscription's billing cycle is due for payment. This event triggers the payment collection process in the Payment domain.
+
+## Cross-Domain Communication
+
+This event facilitates communication between:
+- **Source**: Subscriptions Domain (BillingService)
+- **Target**: Payment Domain (PaymentService, FraudDetectionService)
+
+## Schema
+
+<SchemaViewer title="SubscriptionPaymentDue Schema" schemaPath={frontmatter.schemaPath} />
+
+## Event Flow
+
+1. BillingService calculates when payment is due
+2. Emits `SubscriptionPaymentDue` event
+3. PaymentService receives and initiates payment
+4. FraudDetectionService performs risk assessment
+5. Payment is processed through PaymentGatewayService
+
+## Example Payload
+
+```json
+{
+  "subscriptionId": "sub_ABC123",
+  "customerId": "cust_XYZ789",
+  "invoiceId": "inv_123456",
+  "amount": 49.99,
+  "currency": "USD",
+  "dueDate": "2024-02-01T00:00:00Z",
+  "billingPeriod": {
+    "start": "2024-02-01",
+    "end": "2024-02-29"
+  },
+  "planId": "pro-monthly",
+  "retryAttempt": 0
+}
+```
+
+<Footer />
