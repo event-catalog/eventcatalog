@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.45.0
+
+### Minor Changes
+
+- 537281e: feat(core): added domain integration visualizer
+
 ## 2.44.5
 
 ### Patch Changes
