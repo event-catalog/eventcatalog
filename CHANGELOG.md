@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.45.1
+
+### Patch Changes
+
+- 59d3275: chore(core): renamed new domain feature
+
 ## 2.45.0
 
 ### Minor Changes
