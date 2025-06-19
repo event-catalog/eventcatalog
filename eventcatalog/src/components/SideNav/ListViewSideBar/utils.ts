@@ -109,7 +109,7 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
       ? {
           'context-map': [
             {
-              label: 'Integration Landscape',
+              label: 'Domain Integration Map',
               href: buildUrl('/visualiser/domain-integrations'),
               collection: 'domain-integrations',
             },
