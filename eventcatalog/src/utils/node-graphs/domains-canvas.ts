@@ -1,6 +1,7 @@
 import { getCollection } from 'astro:content';
 import dagre from 'dagre';
 import { generateIdForNode, createDagreGraph, calculatedNodes, createEdge } from '@utils/node-graphs/utils/utils';
+import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 import type { Node, Edge } from '@xyflow/react';
 import { getDomains } from '@utils/collections/domains';
 
@@ -26,10 +27,6 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
   const domainNodes: Node[] = [];
   const messageNodes: Node[] = [];
   const edges: Edge[] = [];
-  const domainRelationships = new Map<
-    string,
-    { message: any; sourceId: string; targetId: string; publisherService?: any; consumerServices?: any[] }
-  >();
 
   // Create dagre graph for layout
   const dagreGraph = createDagreGraph({ ranksep: 400, nodesep: 200 });
@@ -82,67 +79,97 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
   // Add domain-to-domain edges if their services communicate
   const allServices = await getCollection('services');
 
-  // Find domain relationships and create message nodes between domains
-  domainDataMap.forEach((domainData, domainId) => {
-    domainData.services.forEach((service: any) => {
-      const sends = service.data.sends ?? [];
-
-      sends.forEach((sentMessage: any) => {
-        // Find which services consume this message
-        allServices.forEach((consumerService) => {
-          const receives = consumerService.data.receives ?? [];
-          const consumesThisMessage = receives.some((recv: any) => recv.id === sentMessage.id);
-
-          if (consumesThisMessage) {
-            // Find which domain this consumer service belongs to
-            domainDataMap.forEach((otherDomainData, otherDomainId) => {
-              if (domainId !== otherDomainId) {
-                const hasConsumerService = otherDomainData.services.some((s: any) => s.data.id === consumerService.data.id);
-
-                if (hasConsumerService) {
-                  const relationshipKey = `${domainId}-${otherDomainId}-${sentMessage.id}`;
-
-                  if (!domainRelationships.has(relationshipKey)) {
-                    domainRelationships.set(relationshipKey, {
-                      message: sentMessage,
-                      sourceId: domainId,
-                      targetId: otherDomainId,
-                      publisherService: service,
-                      consumerServices: [consumerService],
-                    });
-                  } else {
-                    // Add to existing consumer services if not already there
-                    const existing = domainRelationships.get(relationshipKey)!;
-                    if (!existing.consumerServices?.some((s: any) => s.data.id === consumerService.data.id)) {
-                      existing.consumerServices = [...(existing.consumerServices || []), consumerService];
-                    }
-                  }
-                }
-              }
-            });
-          }
-        });
-      });
-    });
-  });
-
-  // Create message nodes and edges for domain relationships
+  // Get all messages for version resolution
   const allMessages = await getCollection('events')
     .then((events) => Promise.all([events, getCollection('commands'), getCollection('queries')]))
     .then(([events, commands, queries]) => [...events, ...commands, ...queries]);
 
-  domainRelationships.forEach(({ message, sourceId, targetId, publisherService, consumerServices }, relationshipKey) => {
-    // Find the actual message object
-    const messageObject = allMessages.find((m) => m.data.id === message.id && m.data.version === message.version);
+  // Map to track unique messages and their publishers/consumers across domains
+  const messageRelationships = new Map<
+    string,
+    {
+      message: any;
+      publishers: Array<{ domainId: string; service: any }>;
+      consumers: Array<{ domainId: string; service: any }>;
+    }
+  >();
 
-    if (messageObject) {
-      const sourceDomainNode = domainNodes.find((d) => d.id === sourceId);
-      const targetDomainNode = domainNodes.find((d) => d.id === targetId);
+  // Find all message relationships across domains
+  domainDataMap.forEach((domainData, domainId) => {
+    domainData.services.forEach((service: any) => {
+      // Track messages this service sends
+      const sendsRaw = service.data.sends ?? [];
+      const sendsHydrated = sendsRaw
+        .map((message) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
+        .flat()
+        .filter((e) => e !== undefined);
 
-      if (sourceDomainNode && targetDomainNode) {
-        const messageNodeId = `message-${relationshipKey}`;
+      sendsHydrated.forEach((sentMessage: any) => {
+        const messageKey = `${sentMessage.data.id}-${sentMessage.data.version}`;
 
-        // Create message node (position will be calculated by dagre)
+        if (!messageRelationships.has(messageKey)) {
+          messageRelationships.set(messageKey, {
+            message: sentMessage.data,
+            publishers: [],
+            consumers: [],
+          });
+        }
+
+        const relationship = messageRelationships.get(messageKey)!;
+        // Add publisher if not already added
+        if (!relationship.publishers.some((p) => p.domainId === domainId && p.service.data.id === service.data.id)) {
+          relationship.publishers.push({ domainId, service });
+        }
+      });
+
+      // Track messages this service receives
+      const receivesRaw = service.data.receives ?? [];
+      const receivesHydrated = receivesRaw
+        .map((message) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
+        .flat()
+        .filter((e) => e !== undefined);
+
+      receivesHydrated.forEach((receivedMessage: any) => {
+        const messageKey = `${receivedMessage.data.id}-${receivedMessage.data.version}`;
+
+        if (!messageRelationships.has(messageKey)) {
+          messageRelationships.set(messageKey, {
+            message: receivedMessage.data,
+            publishers: [],
+            consumers: [],
+          });
+        }
+
+        const relationship = messageRelationships.get(messageKey)!;
+        // Add consumer if not already added
+        if (!relationship.consumers.some((c) => c.domainId === domainId && c.service.data.id === service.data.id)) {
+          relationship.consumers.push({ domainId, service });
+        }
+      });
+    });
+  });
+
+  // Create message nodes and edges for cross-domain relationships
+
+  // Only create message nodes for messages that cross domain boundaries
+  messageRelationships.forEach(({ message, publishers, consumers }, messageKey) => {
+    // Check if this message crosses domain boundaries
+    const publisherDomains = new Set(publishers.map((p) => p.domainId));
+    const consumerDomains = new Set(consumers.map((c) => c.domainId));
+
+    // Only create a message node if it connects different domains
+    const crossesDomainBoundary = [...publisherDomains].some((pubDomain) =>
+      [...consumerDomains].some((conDomain) => pubDomain !== conDomain)
+    );
+
+    if (crossesDomainBoundary) {
+      // Find the actual message object
+      const messageObject = allMessages.find((m) => m.data.id === message.id && m.data.version === message.version);
+
+      if (messageObject) {
+        const messageNodeId = `message-${messageKey}`;
+
+        // Create a single message node for this unique message
         messageNodes.push({
           id: messageNodeId,
           type: messageObject.collection, // events, commands, or queries
@@ -155,42 +182,54 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
           targetPosition: 'left',
         } as Node);
 
-        // Create edge from specific publisher service to message
-        edges.push(
-          createEdge({
-            id: `edge-${sourceId}-${messageNodeId}`,
-            source: sourceId,
-            sourceHandle: `${publisherService.data.id}-source`,
-            target: messageNodeId,
-            type: 'animated',
-            animated: true,
-            label: 'publishes',
-            data: {
-              message: messageObject,
-              type: 'domain-to-message',
-              publisherService,
-            },
-          })
-        );
+        // Create edges from all publishers to the message node
+        publishers.forEach(({ domainId, service }) => {
+          // Only create edge if there's a consumer in a different domain
+          const hasExternalConsumer = consumers.some((c) => c.domainId !== domainId);
 
-        // Create edge from message to specific consumer service(s)
-        consumerServices?.forEach((consumerService: any) => {
-          edges.push(
-            createEdge({
-              id: `edge-${messageNodeId}-${targetId}-${consumerService.data.id}`,
-              source: messageNodeId,
-              target: targetId,
-              targetHandle: `${consumerService.data.id}-target`,
-              type: 'animated',
-              animated: true,
-              label: 'consumed by',
-              data: {
-                message: messageObject,
-                type: 'message-to-domain',
-                consumerService,
-              },
-            })
-          );
+          if (hasExternalConsumer) {
+            edges.push(
+              createEdge({
+                id: `edge-${domainId}-${service.data.id}-${messageNodeId}`,
+                source: domainId,
+                sourceHandle: `${service.data.id}-source`,
+                target: messageNodeId,
+                type: 'animated',
+                animated: true,
+                label: 'publishes',
+                data: {
+                  message: messageObject,
+                  type: 'domain-to-message',
+                  publisherService: service,
+                },
+              })
+            );
+          }
+        });
+
+        // Create edges from the message node to all consumers
+        consumers.forEach(({ domainId, service }) => {
+          // Only create edge if there's a publisher in a different domain
+          const hasExternalPublisher = publishers.some((p) => p.domainId !== domainId);
+
+          if (hasExternalPublisher) {
+            edges.push(
+              createEdge({
+                id: `edge-${messageNodeId}-${domainId}-${service.data.id}`,
+                source: messageNodeId,
+                target: domainId,
+                targetHandle: `${service.data.id}-target`,
+                type: 'animated',
+                animated: true,
+                label: 'consumed by',
+                data: {
+                  message: messageObject,
+                  type: 'message-to-domain',
+                  consumerService: service,
+                },
+              })
+            );
+          }
         });
       }
     }
