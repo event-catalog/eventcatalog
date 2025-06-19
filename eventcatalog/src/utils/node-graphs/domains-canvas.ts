@@ -1,27 +1,20 @@
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
 import { generateIdForNode, createDagreGraph, calculatedNodes, createEdge } from '@utils/node-graphs/utils/utils';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 import type { Node, Edge } from '@xyflow/react';
 import { getDomains } from '@utils/collections/domains';
 
-export interface DomainCanvasData {
+interface DomainCanvasData {
   domainNodes: Node[];
   messageNodes: Node[];
   edges: Edge[];
 }
 
-export const ZOOM_LEVELS = {
-  DOMAIN_OVERVIEW: { min: 0, max: 1.0, level: 1 },
-  SERVICE_DETAILS: { min: 1.0, max: 4.0, level: 2 },
-} as const;
-
 export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
-  const allDomains = await getDomains({ getAllVersions: false });
-  let domains = allDomains.filter((domain) => !domain.id.includes('/versioned'));
-  // const services = await getCollection('services');
+  let domains = await getDomains({ getAllVersions: false });
 
-  // only interested in domains that are not parent domains (e.g doamins that have subdoamins we dont want to display them here)
+  // only interested in domains that are not parent domains (e.g domains that have subdoamins we dont want to display them here)
   domains = domains.filter((domain) => !domain.data.domains?.length);
 
   const domainNodes: Node[] = [];
@@ -37,7 +30,7 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
   for (let index = 0; index < domains.length; index++) {
     const domain = domains[index];
     const domainNodeId = generateIdForNode(domain);
-    const domainServices = domain.data.services ?? [];
+    const domainServices = domain.data.services as unknown as CollectionEntry<'services'>[];
 
     // Count total messages for this domain
     let totalMessages = 0;
@@ -76,9 +69,6 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
     } as Node);
   }
 
-  // Add domain-to-domain edges if their services communicate
-  const allServices = await getCollection('services');
-
   // Get all messages for version resolution
   const allMessages = await getCollection('events')
     .then((events) => Promise.all([events, getCollection('commands'), getCollection('queries')]))
@@ -100,9 +90,9 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
       // Track messages this service sends
       const sendsRaw = service.data.sends ?? [];
       const sendsHydrated = sendsRaw
-        .map((message) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
+        .map((message: any) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
         .flat()
-        .filter((e) => e !== undefined);
+        .filter((e: any) => e !== undefined);
 
       sendsHydrated.forEach((sentMessage: any) => {
         const messageKey = `${sentMessage.data.id}-${sentMessage.data.version}`;
@@ -125,9 +115,9 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
       // Track messages this service receives
       const receivesRaw = service.data.receives ?? [];
       const receivesHydrated = receivesRaw
-        .map((message) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
+        .map((message: any) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
         .flat()
-        .filter((e) => e !== undefined);
+        .filter((e: any) => e !== undefined);
 
       receivesHydrated.forEach((receivedMessage: any) => {
         const messageKey = `${receivedMessage.data.id}-${receivedMessage.data.version}`;

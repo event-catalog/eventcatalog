@@ -201,7 +201,7 @@ describe('Domains Canvas', () => {
       expect(messageNodes.length).toBeGreaterThan(0);
 
       // Check for OrderPlaced message node between Orders and Payment
-      const orderPlacedNode = messageNodes.find((n) => n.data?.message?.data?.id === 'OrderPlaced');
+      const orderPlacedNode = messageNodes.find((n: any) => n.data?.message?.data?.id === 'OrderPlaced');
       expect(orderPlacedNode).toBeTruthy();
       expect(orderPlacedNode?.type).toBe('events');
       expect(orderPlacedNode?.data).toMatchObject({
@@ -278,7 +278,7 @@ describe('Domains Canvas', () => {
       const { domainNodes, messageNodes, edges } = await getDomainsCanvasData();
 
       // Even domains with no external relationships should appear
-      const allDomainIds = domainNodes.map((n) => n.data?.domain?.data?.id);
+      const allDomainIds = domainNodes.map((n: any) => n.data?.domain?.data?.id);
       expect(allDomainIds).toContain('Orders');
       expect(allDomainIds).toContain('Payment');
       expect(allDomainIds).toContain('Inventory');
