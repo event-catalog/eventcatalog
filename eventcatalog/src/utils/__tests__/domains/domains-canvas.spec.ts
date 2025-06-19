@@ -162,9 +162,9 @@ describe('Domains Canvas', () => {
       const { domainNodes, messageNodes, edges } = await getDomainsCanvasData();
 
       expect(domainNodes).toHaveLength(3);
-      
+
       // Check Orders domain node
-      const ordersNode = domainNodes.find(n => n.id === 'Orders-0.0.1');
+      const ordersNode = domainNodes.find((n) => n.id === 'Orders-0.0.1');
       expect(ordersNode).toBeTruthy();
       expect(ordersNode?.type).toBe('domains');
       expect(ordersNode?.data).toMatchObject({
@@ -174,7 +174,7 @@ describe('Domains Canvas', () => {
       });
 
       // Check Payment domain node
-      const paymentNode = domainNodes.find(n => n.id === 'Payment-0.0.1');
+      const paymentNode = domainNodes.find((n) => n.id === 'Payment-0.0.1');
       expect(paymentNode).toBeTruthy();
       expect(paymentNode?.type).toBe('domains');
       expect(paymentNode?.data).toMatchObject({
@@ -184,7 +184,7 @@ describe('Domains Canvas', () => {
       });
 
       // Check Inventory domain node
-      const inventoryNode = domainNodes.find(n => n.id === 'Inventory-0.0.1');
+      const inventoryNode = domainNodes.find((n) => n.id === 'Inventory-0.0.1');
       expect(inventoryNode).toBeTruthy();
       expect(inventoryNode?.type).toBe('domains');
       expect(inventoryNode?.data).toMatchObject({
@@ -201,11 +201,11 @@ describe('Domains Canvas', () => {
       expect(messageNodes.length).toBeGreaterThan(0);
 
       // Check for OrderPlaced message node between Orders and Payment
-      const orderPlacedNode = messageNodes.find(n => n.data?.message?.data?.id === 'OrderPlaced');
+      const orderPlacedNode = messageNodes.find((n) => n.data?.message?.data?.id === 'OrderPlaced');
       expect(orderPlacedNode).toBeTruthy();
       expect(orderPlacedNode?.type).toBe('events');
       expect(orderPlacedNode?.data).toMatchObject({
-        mode: 'full',
+        mode: 'simple',
       });
     });
 
@@ -213,10 +213,10 @@ describe('Domains Canvas', () => {
       const { domainNodes, messageNodes, edges } = await getDomainsCanvasData();
 
       // Check edges are created with animation
-      const domainToMessageEdges = edges.filter(e => e.data?.type === 'domain-to-message');
+      const domainToMessageEdges = edges.filter((e) => e.data?.type === 'domain-to-message');
       expect(domainToMessageEdges.length).toBeGreaterThan(0);
-      
-      domainToMessageEdges.forEach(edge => {
+
+      domainToMessageEdges.forEach((edge) => {
         expect(edge.type).toBe('animated');
         expect(edge.animated).toBe(true);
         expect(edge.markerEnd).toMatchObject({
@@ -227,10 +227,10 @@ describe('Domains Canvas', () => {
       });
 
       // Check message to domain edges
-      const messageToDomainEdges = edges.filter(e => e.data?.type === 'message-to-domain');
+      const messageToDomainEdges = edges.filter((e) => e.data?.type === 'message-to-domain');
       expect(messageToDomainEdges.length).toBeGreaterThan(0);
-      
-      messageToDomainEdges.forEach(edge => {
+
+      messageToDomainEdges.forEach((edge) => {
         expect(edge.type).toBe('animated');
         expect(edge.animated).toBe(true);
       });
@@ -240,16 +240,14 @@ describe('Domains Canvas', () => {
       const { domainNodes, messageNodes, edges } = await getDomainsCanvasData();
 
       // Orders -> OrderPlaced -> Payment
-      const orderPlacedEdges = edges.filter(e => 
-        e.id.includes('OrderPlaced') && 
-        (e.source.includes('Orders') || e.target.includes('Payment'))
+      const orderPlacedEdges = edges.filter(
+        (e) => e.id.includes('OrderPlaced') && (e.source.includes('Orders') || e.target.includes('Payment'))
       );
       expect(orderPlacedEdges.length).toBeGreaterThan(0);
 
       // Payment -> PaymentCompleted -> Orders
-      const paymentCompletedEdges = edges.filter(e => 
-        e.id.includes('PaymentCompleted') && 
-        (e.source.includes('Payment') || e.target.includes('Orders'))
+      const paymentCompletedEdges = edges.filter(
+        (e) => e.id.includes('PaymentCompleted') && (e.source.includes('Payment') || e.target.includes('Orders'))
       );
       expect(paymentCompletedEdges.length).toBeGreaterThan(0);
     });
@@ -258,7 +256,7 @@ describe('Domains Canvas', () => {
       const { domainNodes, messageNodes, edges } = await getDomainsCanvasData();
 
       // All nodes should have calculated positions
-      [...domainNodes, ...messageNodes].forEach(node => {
+      [...domainNodes, ...messageNodes].forEach((node) => {
         expect(node.position).toBeDefined();
         expect(node.position.x).toBeTypeOf('number');
         expect(node.position.y).toBeTypeOf('number');
@@ -271,7 +269,7 @@ describe('Domains Canvas', () => {
       const { domainNodes, messageNodes, edges } = await getDomainsCanvasData();
 
       // Check that each unique message relationship only creates one node
-      const messageNodeIds = messageNodes.map(n => n.id);
+      const messageNodeIds = messageNodes.map((n) => n.id);
       const uniqueIds = new Set(messageNodeIds);
       expect(messageNodeIds.length).toBe(uniqueIds.size);
     });
@@ -280,7 +278,7 @@ describe('Domains Canvas', () => {
       const { domainNodes, messageNodes, edges } = await getDomainsCanvasData();
 
       // Even domains with no external relationships should appear
-      const allDomainIds = domainNodes.map(n => n.data?.domain?.data?.id);
+      const allDomainIds = domainNodes.map((n) => n.data?.domain?.data?.id);
       expect(allDomainIds).toContain('Orders');
       expect(allDomainIds).toContain('Payment');
       expect(allDomainIds).toContain('Inventory');

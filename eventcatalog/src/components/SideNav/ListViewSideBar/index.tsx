@@ -4,7 +4,7 @@ import { buildUrl, buildUrlWithParams } from '@utils/url-builder';
 import CollapsibleGroup from './components/CollapsibleGroup';
 import MessageList from './components/MessageList';
 import SpecificationsList from './components/SpecificationList';
-import type { MessageItem, ServiceItem, ListViewSideBarProps } from './types';
+import type { MessageItem, ServiceItem, ListViewSideBarProps, DomainItem, FlowItem, Resources } from './types';
 const STORAGE_KEY = 'EventCatalog:catalogSidebarCollapsedGroups';
 const DEBOUNCE_DELAY = 300; // 300ms debounce delay
 
@@ -228,7 +228,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
   }, [searchTerm]);
 
   // Filter data based on search term
-  const filteredData = useMemo(() => {
+  const filteredData: Resources = useMemo(() => {
     if (!debouncedSearchTerm) return data;
 
     const filterItem = (item: { label: string; id?: string }) => {
@@ -245,6 +245,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
     };
 
     return {
+      'context-map': data['context-map']?.filter(filterItem) || [],
       domains: data.domains?.filter(filterItem) || [],
       services:
         data.services
@@ -326,6 +327,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
 
   const hasNoResults =
     debouncedSearchTerm &&
+    !filteredData['context-map']?.length &&
     !filteredData.domains?.length &&
     !filteredData.services?.length &&
     !filteredData.flows?.length &&
@@ -345,9 +347,33 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
           <NoResultsFound searchTerm={debouncedSearchTerm} />
         ) : (
           <>
+            {/* Bounded Context Map (Visualiser only) */}
+            {filteredData['context-map'] && (
+              <div className="pt-0">
+                <ul className="space-y-1">
+                  {filteredData['context-map'].map((item: any) => (
+                    <li key={item.href}>
+                      <a
+                        href={item.href}
+                        className={`flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md ${
+                          decodedCurrentPath === item.href ? 'bg-purple-100 text-purple-900' : 'hover:bg-purple-100'
+                        }`}
+                      >
+                        <span className="truncate flex flex-col items-start">
+                          <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
+                          <span className="text-[10px] text-gray-500 font-light">Explore integrations between domains</span>
+                        </span>
+                        <span className="text-blue-600 ml-2 text-[10px] font-medium bg-blue-50 px-2 py-0.5 rounded">DOMAINS</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* Domains */}
             {filteredData['domains'] && (
-              <div>
+              <div className={`${isVisualizer ? 'pt-4 pb-2' : 'p-0'}`}>
                 <ul className="space-y-2">
                   {filteredData['domains'].map((item: any) => (
                     <li key={item.href} className="space-y-0" data-active={decodedCurrentPath === item.href}>

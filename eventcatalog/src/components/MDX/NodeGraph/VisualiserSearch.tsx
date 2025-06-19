@@ -1,9 +1,42 @@
 import { useState, useCallback, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import type { Node } from '@xyflow/react';
 
+// Define interfaces for different node data structures
+interface MessageData {
+  name: string;
+  version?: string;
+}
+
+interface ServiceData {
+  name: string;
+  version?: string;
+}
+
+interface DomainData {
+  name: string;
+  version?: string;
+}
+
+interface NodeDataContent extends Record<string, unknown> {
+  message?: {
+    data: MessageData;
+  };
+  service?: {
+    data: ServiceData;
+  };
+  domain?: {
+    data: DomainData;
+  };
+  name?: string;
+  version?: string;
+}
+
+// Extend the Node type with our custom data structure
+type CustomNode = Node<NodeDataContent>;
+
 interface VisualiserSearchProps {
-  nodes: Node[];
-  onNodeSelect: (node: Node) => void;
+  nodes: CustomNode[];
+  onNodeSelect: (node: CustomNode) => void;
   onClear: () => void;
   onPaneClick?: () => void;
 }
@@ -15,7 +48,7 @@ export interface VisualiserSearchRef {
 const VisualiserSearch = forwardRef<VisualiserSearchRef, VisualiserSearchProps>(
   ({ nodes, onNodeSelect, onClear, onPaneClick }, ref) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const [filteredSuggestions, setFilteredSuggestions] = useState<Node[]>([]);
+    const [filteredSuggestions, setFilteredSuggestions] = useState<CustomNode[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
     const searchInputRef = useRef<HTMLInputElement>(null);
@@ -34,11 +67,18 @@ const VisualiserSearch = forwardRef<VisualiserSearchRef, VisualiserSearchProps>(
       [hideSuggestions]
     );
 
-    const getNodeDisplayName = useCallback((node: Node) => {
-      // @ts-ignore
-      const name = node.data?.message?.data?.name || node.data?.service?.data?.name || node.data?.domain?.data?.name || node.data?.name || node.id;
-      // @ts-ignore
-      const version = node.data?.message?.data?.version || node.data?.service?.data?.version || node.data?.domain?.data?.version || node.data?.version;
+    const getNodeDisplayName = useCallback((node: CustomNode) => {
+      const name =
+        node.data?.message?.data?.name ||
+        node.data?.service?.data?.name ||
+        node.data?.domain?.data?.name ||
+        node.data?.name ||
+        node.id;
+      const version =
+        node.data?.message?.data?.version ||
+        node.data?.service?.data?.version ||
+        node.data?.domain?.data?.version ||
+        node.data?.version;
       return version ? `${name} (v${version})` : name;
     }, []);
 
@@ -91,7 +131,7 @@ const VisualiserSearch = forwardRef<VisualiserSearchRef, VisualiserSearchProps>(
     }, [nodes, searchQuery]);
 
     const handleSuggestionClick = useCallback(
-      (node: Node) => {
+      (node: CustomNode) => {
         setSearchQuery(getNodeDisplayName(node));
         setShowSuggestions(false);
         onNodeSelect(node);

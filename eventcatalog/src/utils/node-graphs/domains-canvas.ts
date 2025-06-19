@@ -1,6 +1,5 @@
 import { getCollection } from 'astro:content';
 import dagre from 'dagre';
-import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 import { generateIdForNode, createDagreGraph, calculatedNodes, createEdge } from '@utils/node-graphs/utils/utils';
 import type { Node, Edge } from '@xyflow/react';
 import { getDomains } from '@utils/collections/domains';
@@ -24,7 +23,10 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
   const domainNodes: Node[] = [];
   const messageNodes: Node[] = [];
   const edges: Edge[] = [];
-  const domainRelationships = new Map<string, { message: any, sourceId: string, targetId: string, publisherService?: any, consumerServices?: any[] }>();
+  const domainRelationships = new Map<
+    string,
+    { message: any; sourceId: string; targetId: string; publisherService?: any; consumerServices?: any[] }
+  >();
 
   // Create dagre graph for layout
   const dagreGraph = createDagreGraph({ ranksep: 400, nodesep: 200 });
@@ -59,7 +61,13 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
       position: { x: 0, y: 0 }, // Temporary position, will be calculated by dagre
       data: {
         mode: 'full',
-        domain,
+        domain: {
+          ...domain,
+          data: {
+            ...domain.data,
+            services: domainServices,
+          },
+        },
         servicesCount: domainServices.length,
         messagesCount: totalMessages,
       },
@@ -75,29 +83,29 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
   domainDataMap.forEach((domainData, domainId) => {
     domainData.services.forEach((service: any) => {
       const sends = service.data.sends ?? [];
-      
+
       sends.forEach((sentMessage: any) => {
         // Find which services consume this message
-        allServices.forEach(consumerService => {
+        allServices.forEach((consumerService) => {
           const receives = consumerService.data.receives ?? [];
           const consumesThisMessage = receives.some((recv: any) => recv.id === sentMessage.id);
-          
+
           if (consumesThisMessage) {
             // Find which domain this consumer service belongs to
             domainDataMap.forEach((otherDomainData, otherDomainId) => {
               if (domainId !== otherDomainId) {
                 const hasConsumerService = otherDomainData.services.some((s: any) => s.data.id === consumerService.data.id);
-                
+
                 if (hasConsumerService) {
                   const relationshipKey = `${domainId}-${otherDomainId}-${sentMessage.id}`;
-                  
+
                   if (!domainRelationships.has(relationshipKey)) {
                     domainRelationships.set(relationshipKey, {
                       message: sentMessage,
                       sourceId: domainId,
                       targetId: otherDomainId,
                       publisherService: service,
-                      consumerServices: [consumerService]
+                      consumerServices: [consumerService],
                     });
                   } else {
                     // Add to existing consumer services if not already there
@@ -116,48 +124,44 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
   });
 
   // Create message nodes and edges for domain relationships
-  const allMessages = await getCollection('events').then(events => 
-    Promise.all([
-      events,
-      getCollection('commands'),
-      getCollection('queries')
-    ])
-  ).then(([events, commands, queries]) => [...events, ...commands, ...queries]);
+  const allMessages = await getCollection('events')
+    .then((events) => Promise.all([events, getCollection('commands'), getCollection('queries')]))
+    .then(([events, commands, queries]) => [...events, ...commands, ...queries]);
 
   domainRelationships.forEach(({ message, sourceId, targetId, publisherService, consumerServices }, relationshipKey) => {
     // Find the actual message object
-    const messageObject = allMessages.find(m => m.data.id === message.id && m.data.version === message.version);
-    
+    const messageObject = allMessages.find((m) => m.data.id === message.id && m.data.version === message.version);
+
     if (messageObject) {
-      const sourceDomainNode = domainNodes.find(d => d.id === sourceId);
-      const targetDomainNode = domainNodes.find(d => d.id === targetId);
-      
+      const sourceDomainNode = domainNodes.find((d) => d.id === sourceId);
+      const targetDomainNode = domainNodes.find((d) => d.id === targetId);
+
       if (sourceDomainNode && targetDomainNode) {
         const messageNodeId = `message-${relationshipKey}`;
-        
+
         // Create message node (position will be calculated by dagre)
         messageNodes.push({
           id: messageNodeId,
           type: messageObject.collection, // events, commands, or queries
           position: { x: 0, y: 0 }, // Temporary position, will be calculated by dagre
           data: {
-            mode: 'full',
+            mode: 'simple',
             message: messageObject,
           },
           sourcePosition: 'right',
           targetPosition: 'left',
         } as Node);
-        
-        // Create edge from source domain to message with publisher service name
-        const publisherLabel = publisherService ? `published by ${publisherService.data.id}` : 'publishes';
+
+        // Create edge from specific publisher service to message
         edges.push(
           createEdge({
             id: `edge-${sourceId}-${messageNodeId}`,
             source: sourceId,
+            sourceHandle: `${publisherService.data.id}-source`,
             target: messageNodeId,
             type: 'animated',
             animated: true,
-            label: publisherLabel,
+            label: 'publishes',
             data: {
               message: messageObject,
               type: 'domain-to-message',
@@ -165,33 +169,33 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
             },
           })
         );
-        
-        // Create edge from message to target domain with consumer service names
-        const consumerLabel = consumerServices && consumerServices.length > 0 
-          ? `consumed by ${consumerServices.map((s: any) => s.data.id).join(', ')}`
-          : 'consumed by';
-        edges.push(
-          createEdge({
-            id: `edge-${messageNodeId}-${targetId}`,
-            source: messageNodeId,
-            target: targetId,
-            type: 'animated',
-            animated: true,
-            label: consumerLabel,
-            data: {
-              message: messageObject,
-              type: 'message-to-domain',
-              consumerServices,
-            },
-          })
-        );
+
+        // Create edge from message to specific consumer service(s)
+        consumerServices?.forEach((consumerService: any) => {
+          edges.push(
+            createEdge({
+              id: `edge-${messageNodeId}-${targetId}-${consumerService.data.id}`,
+              source: messageNodeId,
+              target: targetId,
+              targetHandle: `${consumerService.data.id}-target`,
+              type: 'animated',
+              animated: true,
+              label: 'consumed by',
+              data: {
+                message: messageObject,
+                type: 'message-to-domain',
+                consumerService,
+              },
+            })
+          );
+        });
       }
     }
   });
 
   // Add all nodes to dagre graph for layout calculation
   const allNodes = [...domainNodes, ...messageNodes];
-  
+
   allNodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: 250, height: 120 });
   });

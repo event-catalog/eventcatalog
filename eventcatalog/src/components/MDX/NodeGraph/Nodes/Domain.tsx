@@ -1,83 +1,114 @@
 import type { CollectionEntry } from 'astro:content';
-import { Handle } from '@xyflow/react';
+import { Handle, useReactFlow, useOnSelectionChange, Position } from '@xyflow/react';
 import * as ContextMenu from '@radix-ui/react-context-menu';
 import { buildUrl } from '@utils/url-builder';
 import { getIcon } from '@utils/badges';
+import { useState } from 'react';
 
 interface Data {
-  label: string;
-  bgColor: string;
-  color: string;
   mode: 'simple' | 'full';
   domain: CollectionEntry<'domains'>;
-  servicesCount?: number;
-  messagesCount?: number;
 }
 
-function classNames(...classes: any) {
-  return classes.filter(Boolean).join(' ');
-}
+export default function DomainNode({ data, id: nodeId }: any) {
+  const { mode, domain } = data as Data;
+  const reactFlow = useReactFlow();
+  const [highlightedServices, setHighlightedServices] = useState<Set<string>>(new Set());
 
-export default function DomainNode({ data, sourcePosition, targetPosition }: any) {
-  const { mode, domain, servicesCount = 0, messagesCount = 0 } = data as Data;
-
-  const { id, version, name, summary, services = [], styles } = domain.data;
-  const { node: { color = 'yellow', label } = {}, icon = 'RectangleGroupIcon' } = styles || {};
+  const { id, version, name, services = [], styles } = domain.data;
+  const { icon = 'RectangleGroupIcon' } = styles || {};
 
   const Icon = getIcon(icon);
-  const nodeLabel = label || domain?.data?.sidebar?.badge || 'Domain';
-  const fontSize = nodeLabel.length > 10 ? '7px' : '9px';
+  const ServerIcon = getIcon('ServerIcon');
+
+  // Listen for selection changes to highlight connected services
+  useOnSelectionChange({
+    onChange: ({ nodes: selectedNodes }) => {
+      if (selectedNodes.length === 0) {
+        setHighlightedServices(new Set());
+        return;
+      }
+
+      const selectedNode = selectedNodes[0];
+      if (!selectedNode) {
+        setHighlightedServices(new Set());
+        return;
+      }
+
+      // Get all edges
+      const edges = reactFlow.getEdges();
+      const connectedServiceIds = new Set<string>();
+
+      // Find services connected to the selected node
+      edges.forEach((edge) => {
+        if (edge.source === selectedNode.id || edge.target === selectedNode.id) {
+          // Check if this edge connects to our domain
+          if (edge.source === nodeId && edge.sourceHandle) {
+            // Extract service ID from sourceHandle (format: "serviceId-source")
+            const serviceId = edge.sourceHandle.replace('-source', '');
+            connectedServiceIds.add(serviceId);
+          }
+          if (edge.target === nodeId && edge.targetHandle) {
+            // Extract service ID from targetHandle (format: "serviceId-target")
+            const serviceId = edge.targetHandle.replace('-target', '');
+            connectedServiceIds.add(serviceId);
+          }
+        }
+      });
+
+      setHighlightedServices(connectedServiceIds);
+    },
+  });
 
   return (
     <ContextMenu.Root>
       <ContextMenu.Trigger>
-        <div className={classNames(`w-full rounded-md border flex justify-start  bg-white text-black border-${color}-400`)}>
-          <div
-            className={classNames(
-              `bg-gradient-to-b from-${color}-500 to-${color}-700 relative flex items-center w-5 justify-center rounded-l-sm text-${color}-100`,
-              `border-r-[1px] border-${color}-500`
-            )}
-          >
-            {Icon && <Icon className="w-4 h-4 opacity-90 text-white absolute top-1 " />}
-            {mode === 'full' && (
-              <span
-                className={`rotate -rotate-90 w-1/2 text-center absolute bottom-1 text-[${fontSize}] text-white font-bold uppercase tracking-[3px] `}
-              >
-                {nodeLabel}
-              </span>
-            )}
-          </div>
-          <div className="p-1 min-w-60 max-w-[min-content]">
-            {targetPosition && <Handle type="target" position={targetPosition} />}
-            {sourcePosition && <Handle type="source" position={sourcePosition} />}
-            <div className={classNames(mode === 'full' ? `border-b border-gray-200` : '')}>
-              <span className="text-xs font-bold block pt-0.5 pb-0.5">{name}</span>
-              <div className="flex justify-between">
-                <span className="text-[10px] font-light block pt-0.5 pb-0.5 ">v{version}</span>
-                {mode === 'simple' && (
-                  <span className="text-[10px] text-gray-500 font-light block pt-0.5 pb-0.5 ">{nodeLabel}</span>
-                )}
-              </div>
+        <div className="w-full rounded-lg border-2 border-yellow-400 bg-white shadow-lg">
+          <div className="bg-yellow-100 px-3 py-2 flex items-center space-x-2">
+            {Icon && <Icon className="w-4 h-4 text-yellow-700" />}
+            <div>
+              <span className="text-sm font-bold text-yellow-900">{name}</span>
+              <span className="text-xs text-yellow-700 ml-2">v{version}</span>
             </div>
-            {mode === 'full' && (
-              <div className="divide-y divide-gray-200 ">
-                <div className="leading-3 py-1">
-                  <span className="text-[8px] font-light">{summary}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-x-4 py-1">
-                  <span className="text-xs" style={{ fontSize: '0.2em' }}>
-                    Services: {servicesCount}
-                  </span>
-                  <span className="text-xs" style={{ fontSize: '0.2em' }}>
-                    Messages: {messagesCount}
-                  </span>
-                  <span className="text-xs" style={{ fontSize: '0.2em' }}>
-                    Subdomains: {domain.data.domains?.length || 0}
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
+          {mode === 'full' && services.length > 0 && (
+            <div>
+              {services.map((service: any, index: number) => {
+                const isHighlighted = highlightedServices.has(service.data.id);
+
+                return (
+                  <div
+                    key={`${service.data.id}-${index}`}
+                    className={`relative flex items-center justify-between px-3 py-2 ${index !== services.length - 1 ? 'border-b border-gray-300' : ''} ${isHighlighted ? 'bg-pink-100 border-pink-300' : ''}`}
+                  >
+                    <Handle
+                      type="target"
+                      position={Position.Left}
+                      id={`${service.data.id}-target`}
+                      className="!left-[-1px] !w-2 !h-2 !bg-gray-400 !border !border-gray-500 !rounded-full !z-10"
+                      style={{ left: '-1px' }}
+                    />
+                    <Handle
+                      type="source"
+                      position={Position.Right}
+                      id={`${service.data.id}-source`}
+                      className="!right-[-1px] !w-2 !h-2 !bg-gray-400 !border !border-gray-500 !rounded-full !z-10"
+                      style={{ right: '-1px' }}
+                    />
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center justify-center w-5 h-5 bg-pink-500 rounded">
+                        {ServerIcon && <ServerIcon className="w-3 h-3 text-white" />}
+                      </div>
+                      <span className="text-sm font-medium text-gray-900">{service.data.name || service.data.id}</span>
+                    </div>
+                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <span className="text-xs">v{service.data.version}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </ContextMenu.Trigger>
       <ContextMenu.Portal>
