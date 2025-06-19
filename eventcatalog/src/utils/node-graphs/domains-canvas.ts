@@ -17,8 +17,11 @@ export const ZOOM_LEVELS = {
 
 export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
   const allDomains = await getDomains({ getAllVersions: false });
-  const domains = allDomains.filter((domain) => !domain.id.includes('/versioned'));
+  let domains = allDomains.filter((domain) => !domain.id.includes('/versioned'));
   // const services = await getCollection('services');
+
+  // only interested in domains that are not parent domains (e.g doamins that have subdoamins we dont want to display them here)
+  domains = domains.filter((domain) => !domain.data.domains?.length);
 
   const domainNodes: Node[] = [];
   const messageNodes: Node[] = [];

@@ -77,34 +77,57 @@ export default function DomainNode({ data, id: nodeId }: any) {
                 const isHighlighted = highlightedServices.has(service.data.id);
 
                 return (
-                  <div
-                    key={`${service.data.id}-${index}`}
-                    className={`relative flex items-center justify-between px-3 py-2 ${index !== services.length - 1 ? 'border-b border-gray-300' : ''} ${isHighlighted ? 'bg-pink-100 border-pink-300' : ''}`}
-                  >
-                    <Handle
-                      type="target"
-                      position={Position.Left}
-                      id={`${service.data.id}-target`}
-                      className="!left-[-1px] !w-2 !h-2 !bg-gray-400 !border !border-gray-500 !rounded-full !z-10"
-                      style={{ left: '-1px' }}
-                    />
-                    <Handle
-                      type="source"
-                      position={Position.Right}
-                      id={`${service.data.id}-source`}
-                      className="!right-[-1px] !w-2 !h-2 !bg-gray-400 !border !border-gray-500 !rounded-full !z-10"
-                      style={{ right: '-1px' }}
-                    />
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center justify-center w-5 h-5 bg-pink-500 rounded">
-                        {ServerIcon && <ServerIcon className="w-3 h-3 text-white" />}
+                  <ContextMenu.Root key={`${service.data.id}-${index}`}>
+                    <ContextMenu.Trigger asChild>
+                      <div
+                        className={`relative flex items-center justify-between px-3 py-2 cursor-pointer ${index !== services.length - 1 ? 'border-b border-gray-300' : ''} ${isHighlighted ? 'bg-pink-100 border-pink-300' : ''}`}
+                      >
+                        <Handle
+                          type="target"
+                          position={Position.Left}
+                          id={`${service.data.id}-target`}
+                          className="!left-[-1px] !w-2 !h-2 !bg-gray-400 !border !border-gray-500 !rounded-full !z-10"
+                          style={{ left: '-1px' }}
+                        />
+                        <Handle
+                          type="source"
+                          position={Position.Right}
+                          id={`${service.data.id}-source`}
+                          className="!right-[-1px] !w-2 !h-2 !bg-gray-400 !border !border-gray-500 !rounded-full !z-10"
+                          style={{ right: '-1px' }}
+                        />
+                        <div className="flex items-center space-x-3">
+                          <div className="flex items-center justify-center w-5 h-5 bg-pink-500 rounded">
+                            {ServerIcon && <ServerIcon className="w-3 h-3 text-white" />}
+                          </div>
+                          <span className="text-sm font-medium text-gray-900">{service.data.name || service.data.id}</span>
+                        </div>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                          <span className="text-xs">v{service.data.version}</span>
+                        </div>
                       </div>
-                      <span className="text-sm font-medium text-gray-900">{service.data.name || service.data.id}</span>
-                    </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span className="text-xs">v{service.data.version}</span>
-                    </div>
-                  </div>
+                    </ContextMenu.Trigger>
+                    <ContextMenu.Portal>
+                      <ContextMenu.Content className="min-w-[220px] bg-white rounded-md p-1 shadow-md border border-gray-200">
+                        <ContextMenu.Item
+                          className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
+                          onClick={() =>
+                            (window.location.href = buildUrl(`/docs/services/${service.data.id}/${service.data.version}`))
+                          }
+                        >
+                          View Service Documentation
+                        </ContextMenu.Item>
+                        <ContextMenu.Item
+                          className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
+                          onClick={() =>
+                            (window.location.href = buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}`))
+                          }
+                        >
+                          View Service Visualizer
+                        </ContextMenu.Item>
+                      </ContextMenu.Content>
+                    </ContextMenu.Portal>
+                  </ContextMenu.Root>
                 );
               })}
             </div>
@@ -112,15 +135,15 @@ export default function DomainNode({ data, id: nodeId }: any) {
         </div>
       </ContextMenu.Trigger>
       <ContextMenu.Portal>
-        <ContextMenu.Content className="min-w-[220px] bg-white rounded-md overflow-hidden p-[5px] shadow-[0px_10px_38px_-10px_rgba(22,_23,_24,_0.35),_0px_10px_20px_-15px_rgba(22,_23,_24,_0.2)]">
+        <ContextMenu.Content className="min-w-[220px] bg-white rounded-md p-1 shadow-md border border-gray-200">
           <ContextMenu.Item
-            className="group text-[13px] leading-none text-violet11 rounded-[3px] flex items-center h-[25px] px-[5px] relative pl-[25px] select-none outline-none data-[disabled]:text-mauve8 data-[disabled]:pointer-events-none data-[highlighted]:bg-violet9 data-[highlighted]:text-violet1 cursor-pointer"
+            className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
             onClick={() => (window.location.href = buildUrl(`/docs/domains/${id}/${version}`))}
           >
             View Domain Documentation
           </ContextMenu.Item>
           <ContextMenu.Item
-            className="group text-[13px] leading-none text-violet11 rounded-[3px] flex items-center h-[25px] px-[5px] relative pl-[25px] select-none outline-none data-[disabled]:text-mauve8 data-[disabled]:pointer-events-none data-[highlighted]:bg-violet9 data-[highlighted]:text-violet1 cursor-pointer"
+            className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
             onClick={() => (window.location.href = buildUrl(`/visualiser/domains/${id}/${version}`))}
           >
             View Domain Visualizer

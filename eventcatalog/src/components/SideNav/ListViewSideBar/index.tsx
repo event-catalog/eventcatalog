@@ -348,7 +348,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
         ) : (
           <>
             {/* Bounded Context Map (Visualiser only) */}
-            {filteredData['context-map'] && (
+            {filteredData['context-map'] && filteredData.domains && filteredData.domains.length > 0 && (
               <div className="pt-0">
                 <ul className="space-y-1">
                   {filteredData['context-map'].map((item: any) => (
