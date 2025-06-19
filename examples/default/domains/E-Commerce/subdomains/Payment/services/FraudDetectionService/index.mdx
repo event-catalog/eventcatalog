@@ -1,0 +1,59 @@
+---
+id: FraudDetectionService
+version: 0.0.1
+name: Fraud Detection Service
+summary: Analyzes payment transactions for fraudulent activity and risk assessment
+repository:
+  url: https://github.com/eventcatalog/fraud-detection-service
+receives:
+  - id: PaymentInitiated
+    version: 0.0.1
+  - id: PaymentProcessed
+    version: 0.0.1
+  - id: SubscriptionPaymentDue
+    version: 0.0.1
+sends:
+  - id: FraudCheckCompleted
+    version: 0.0.1
+  - id: FraudDetected
+    version: 0.0.1
+  - id: RiskScoreCalculated
+    version: 0.0.1
+owners:
+  - riskTeam
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+The Fraud Detection Service is responsible for analyzing payment transactions in real-time to detect potential fraudulent activity. It uses machine learning models and rule-based systems to assess risk and prevent financial losses.
+
+## Key Features
+
+- **Real-time Transaction Analysis**: Analyzes transactions as they occur
+- **Machine Learning Models**: Uses ML to identify suspicious patterns
+- **Risk Scoring**: Calculates risk scores for each transaction
+- **Automated Blocking**: Can automatically block high-risk transactions
+- **Manual Review Queue**: Flags medium-risk transactions for manual review
+
+## API Endpoints
+
+### REST API
+- `POST /api/fraud/check` - Submit transaction for fraud check
+- `GET /api/fraud/risk-score/{transactionId}` - Get risk score for transaction
+- `PUT /api/fraud/override/{transactionId}` - Manual override of fraud decision
+
+## Configuration
+
+```yaml
+fraud_detection:
+  risk_thresholds:
+    high: 80
+    medium: 50
+    low: 20
+  auto_block_threshold: 90
+  ml_model_version: "2.3.1"
+```
+
+<Footer />

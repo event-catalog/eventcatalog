@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "paymentId": {
+      "type": "string",
+      "description": "Unique identifier for the failed payment"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Payment amount that failed"
+    },
+    "currency": {
+      "type": "string",
+      "description": "Currency code (ISO 4217)"
+    },
+    "failureReason": {
+      "type": "string",
+      "enum": [
+        "insufficient_funds",
+        "card_declined",
+        "expired_card",
+        "fraud_suspected",
+        "network_error",
+        "invalid_payment_method",
+        "authentication_required",
+        "other"
+      ],
+      "description": "Reason for payment failure"
+    },
+    "failureMessage": {
+      "type": "string",
+      "description": "Human-readable failure message"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "subscriptionId": {
+          "type": "string"
+        },
+        "invoiceId": {
+          "type": "string"
+        },
+        "customerId": {
+          "type": "string"
+        },
+        "orderId": {
+          "type": "string"
+        }
+      }
+    },
+    "canRetry": {
+      "type": "boolean",
+      "description": "Whether this payment can be retried"
+    },
+    "nextRetryAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Suggested time for next retry attempt"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the failure occurred"
+    }
+  },
+  "required": ["paymentId", "amount", "currency", "failureReason", "timestamp"]
+}

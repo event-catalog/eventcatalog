@@ -10,6 +10,7 @@ import {
   getNodesAndEdges as getNodesAndEdgesForDomain,
   getNodesAndEdgesForDomainContextMap,
 } from '@utils/node-graphs/domains-node-graph';
+import { getDomainsCanvasData } from '@utils/node-graphs/domains-canvas';
 import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs/flows-node-graph';
 import { buildUrl } from '@utils/url-builder';
 import { getVersionFromCollection } from '@utils/collections/versions';
@@ -87,6 +88,12 @@ if (collection in getNodesAndEdgesFunctions) {
 if (collection === 'domain-context-map') {
   const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesForDomainContextMap({});
   nodes = fetchedNodes;
+  edges = fetchedEdges;
+}
+
+if (collection === 'domains-canvas') {
+  const { domainNodes, messageNodes, edges: fetchedEdges } = await getDomainsCanvasData();
+  nodes = [...domainNodes, ...messageNodes];
   edges = fetchedEdges;
 }
 ---

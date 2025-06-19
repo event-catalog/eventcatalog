@@ -3,11 +3,16 @@ id: Payment
 name: Payment
 version: 0.0.1
 summary: |
-  Domain that contains payment related services and messages.
+  Domain that contains payment related services and messages for processing financial transactions.
 owners:
     - dboyne
 services:
   - id: PaymentService
+    version: 0.0.1
+  - id: FraudDetectionService
+    version: 0.0.1
+  - id: PaymentGatewayService
+    version: 0.0.1
 entities:
   - id: Invoice
   - id: Payment
@@ -22,10 +27,29 @@ badges:
 
 ## Overview
 
-The Payment Domain encompasses all services and components related to handling financial transactions within the system. It is responsible for managing payments, transactions, billing, and financial records. The domain ensures secure, reliable, and efficient processing of all payment-related activities
+The Payment Domain encompasses all services and components related to handling financial transactions within the system. It is responsible for managing payments, transactions, billing, fraud detection, and financial records. The domain ensures secure, reliable, and efficient processing of all payment-related activities.
+
+## Services
+
+### PaymentService
+Core payment orchestration service that coordinates payment workflows and maintains payment state.
+
+### FraudDetectionService
+Analyzes transactions in real-time to detect fraudulent activity using machine learning models and rule-based systems.
+
+### PaymentGatewayService
+Manages integrations with external payment processors (Stripe, PayPal, etc.) and provides a unified interface for payment operations.
+
+## Cross-Domain Integration
+
+The Payment domain integrates with:
+
+- **Subscriptions Domain**: Processes recurring payments for subscriptions
+- **Orders Domain**: Handles payments for customer orders
+- **Inventory Domain**: Updates based on successful payments
 
 ## Bounded context
 
 <NodeGraph />
 
-<MessageTable format="all" limit={4} />
+<MessageTable format="all" limit={6} />

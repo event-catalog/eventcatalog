@@ -1,13 +1,16 @@
 ---
-id: Subscription
-name: Subscription
+id: Subscriptions
+name: Subscriptions
 version: 0.0.1
 summary: |
-  Domain that contains subscription related services and messages.
+  Manages subscription lifecycle, billing cycles, and plan management for recurring revenue streams.
 owners:
     - subscriptions-management
 services:
-    - id: SubscriptionService
+    - id: BillingService
+      version: 0.0.1
+    - id: PlanManagementService
+      version: 0.0.1
 entities:
     - id: BillingProfile
     - id: SubscriptionPeriod
@@ -19,10 +22,42 @@ badges:
 
 ## Overview
 
-The Payment Domain encompasses all services and components related to handling financial transactions within the system. It is responsible for managing payments, transactions, billing, and financial records. The domain ensures secure, reliable, and efficient processing of all payment-related activities
+The Subscriptions Domain is responsible for managing all aspects of subscription-based services within our e-commerce platform. This includes subscription lifecycle management, recurring billing, plan management, and integration with payment systems.
+
+## Core Capabilities
+
+- **Subscription Lifecycle**: Create, update, pause, resume, and cancel subscriptions
+- **Billing Cycles**: Manage monthly, quarterly, and annual billing cycles
+- **Plan Management**: Define and manage subscription plans and pricing
+- **Trial Periods**: Support free trials and promotional periods
+- **Usage-based Billing**: Track and bill based on usage metrics
+
+## Services
+
+### BillingService
+Handles billing cycle calculations, invoice generation, and payment scheduling. Coordinates with the Payment domain for processing recurring payments.
+
+### PlanManagementService
+Manages subscription plans, features, and pricing tiers. Controls feature access and usage limits based on subscription level.
+
+## Cross-Domain Integration
+
+The Subscriptions domain integrates closely with:
+
+- **Payment Domain**: For processing recurring payments and handling payment failures
+- **Orders Domain**: For managing subscription-based product orders
+- **Customer Domain**: For customer account and profile management
+
+## Domain Events
+
+Key events in the Subscriptions domain:
+- `SubscriptionPaymentDue` - Triggers payment collection
+- `InvoiceGenerated` - New invoice created
+- `BillingCycleCompleted` - Billing cycle successfully completed
+- `PlanMigrationCompleted` - Subscription plan changed
 
 ## Bounded context
 
 <NodeGraph />
 
-<MessageTable format="all" limit={4} />
+<MessageTable format="all" limit={6} />

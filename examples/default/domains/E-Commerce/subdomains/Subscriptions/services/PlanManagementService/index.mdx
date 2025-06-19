@@ -1,0 +1,96 @@
+---
+id: PlanManagementService
+version: 0.0.1
+name: Plan Management Service
+summary: Manages subscription plans, features, pricing tiers, and plan migrations
+tags:
+  - plans
+  - pricing
+  - subscriptions
+repository:
+  url: https://github.com/eventcatalog/plan-management-service
+specifications:
+  asyncapiPath: asyncapi.yml
+  openapiPath: openapi.yml
+receives:
+  - id: CreatePlan
+    version: 0.0.1
+  - id: UpdatePlan
+    version: 0.0.1
+  - id: MigratePlan
+    version: 0.0.1
+sends:
+  - id: PlanCreated
+    version: 0.0.1
+  - id: PlanUpdated
+    version: 0.0.1
+  - id: PlanMigrationCompleted
+    version: 0.0.1
+  - id: FeatureAccessChanged
+    version: 0.0.1
+owners:
+  - productTeam
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+The Plan Management Service handles the definition and management of subscription plans, including pricing, features, and plan migrations. It serves as the source of truth for what features and limits apply to each subscription tier.
+
+## Key Features
+
+- **Plan Definition**: Create and manage subscription plans with different tiers
+- **Feature Flags**: Control feature access based on subscription plans
+- **Usage Limits**: Define and enforce usage limits per plan
+- **Plan Migration**: Handle upgrades and downgrades between plans
+- **Pricing Management**: Manage pricing, discounts, and promotional offers
+
+## Supported Plan Types
+
+### Basic Plan
+- Essential features
+- Limited usage quotas
+- Email support
+
+### Professional Plan
+- All Basic features
+- Higher usage quotas
+- Priority support
+- Advanced analytics
+
+### Enterprise Plan
+- All Professional features
+- Unlimited usage
+- Dedicated support
+- Custom integrations
+- SLA guarantees
+
+## API Endpoints
+
+### REST API
+- `GET /api/plans` - List all available plans
+- `GET /api/plans/{planId}` - Get plan details
+- `POST /api/plans` - Create new plan
+- `PUT /api/plans/{planId}` - Update plan
+- `POST /api/plans/migrate` - Migrate subscription to different plan
+
+## Plan Structure
+
+```json
+{
+  "id": "pro-monthly",
+  "name": "Professional Monthly",
+  "price": 49.99,
+  "currency": "USD",
+  "interval": "monthly",
+  "features": {
+    "api_calls": 10000,
+    "storage_gb": 100,
+    "team_members": 10,
+    "priority_support": true
+  }
+}
+```
+
+<Footer />

@@ -107,8 +107,12 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
   const sideNav = {
     ...(currentPath.includes('visualiser')
       ? {
-          'bounded context map': [
-            { label: 'Domain map', href: buildUrl('/visualiser/context-map'), collection: 'bounded-context-map' },
+          'context-map': [
+            {
+              label: 'Integration Landscape',
+              href: buildUrl('/visualiser/domain-integrations'),
+              collection: 'domain-integrations',
+            },
           ],
         }
       : {}),
