@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.45.2
+
+### Patch Changes
+
+- 79ec914: feat(core): added search and expand features to schema viewer
+
 ## 2.45.1
 
 ### Patch Changes
