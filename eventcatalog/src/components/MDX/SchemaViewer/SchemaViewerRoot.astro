@@ -87,13 +87,19 @@ try {
     const schemaViewerClient = document.getElementById(`${schema.id}-${schema.file}-SchemaViewer-client`);
 
     if (schemaViewerContainer && schemaViewerClient) {
-      // Get the expand attribute from the portal
+      // Get attributes from the portal
       const expand = schemaViewerContainer.getAttribute('data-expand') === 'true';
       const maxHeight = schemaViewerContainer.getAttribute('data-max-height');
+      const search = schemaViewerContainer.getAttribute('data-search');
 
       // Set the expand attribute on the schema viewer client
       if (expand) {
         schemaViewerClient.setAttribute('data-expand', 'true');
+      }
+
+      // Set the search attribute on the schema viewer client
+      if (search) {
+        schemaViewerClient.setAttribute('data-search', search);
       }
 
       // Set the maxHeight on the schema viewer element
