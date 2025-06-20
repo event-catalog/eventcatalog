@@ -7,9 +7,10 @@ interface Props {
   isRequired: boolean;
   level: number;
   isListItem?: boolean;
+  expand?: boolean;
 }
 
-const { name, details, isRequired, level, isListItem = false } = Astro.props;
+const { name, details, isRequired, level, isListItem = false, expand = false } = Astro.props;
 
 const hasNestedProperties = details.type === 'object' && details.properties && Object.keys(details.properties).length > 0;
 const hasArrayItems = details.type === 'array' && details.items;
@@ -34,12 +35,12 @@ const contentId = `prop-${name}-${level}-${Math.random().toString(36).substring(
       isCollapsible && (
         <button
           type="button"
-          aria-expanded="false"
+          aria-expanded={expand ? 'true' : 'false'}
           aria-controls={contentId}
           class="property-toggle text-gray-500 hover:text-gray-700 pt-0.5 focus:outline-none w-3 text-center flex-shrink-0"
         >
-          <span class="icon-collapsed font-mono text-xs">&gt;</span>
-          <span class="icon-expanded font-mono text-xs hidden">v</span>
+          <span class:list={['icon-collapsed font-mono text-xs', { hidden: expand }]}>&gt;</span>
+          <span class:list={['icon-expanded font-mono text-xs', { hidden: !expand }]}>v</span>
         </button>
       )
     }
@@ -124,7 +125,7 @@ const contentId = `prop-${name}-${level}-${Math.random().toString(36).substring(
       {
         (hasNestedProperties || hasArrayItems) && (
           // class:list with conditional object is standard and should be safe
-          <div id={contentId} class:list={['nested-content mt-1', { hidden: isCollapsible }]}>
+          <div id={contentId} class:list={['nested-content mt-1', { hidden: isCollapsible && !expand }]}>
             {/* Recursive component calls */}
             {hasNestedProperties &&
               details.properties &&
@@ -134,6 +135,7 @@ const contentId = `prop-${name}-${level}-${Math.random().toString(36).substring(
                   details={nestedDetails}
                   isRequired={details.required?.includes(nestedName) ?? false}
                   level={level + 1}
+                  expand={expand}
                 />
               ))}
 
@@ -148,6 +150,7 @@ const contentId = `prop-${name}-${level}-${Math.random().toString(36).substring(
                       isRequired={details.items.required?.includes(itemPropName) ?? false}
                       level={level + 1}
                       isListItem={true}
+                      expand={expand}
                     />
                   ))}
                 {(details.items.allOf || details.items.oneOf || details.items.$ref) && !details.items.properties && (

@@ -15,7 +15,7 @@ try {
   const schemaViewers = getMDXComponentsByName(file, 'SchemaViewer');
 
   // Loop around all the possible SchemaViewers in the file.
-  const getAllComponents = schemaViewers.map(async (schemaViewerProps: any) => {
+  const getAllComponents = schemaViewers.map(async (schemaViewerProps: any, index: number) => {
     const schemaPath = path.join(path.dirname(filePath), schemaViewerProps.file);
     const exists = existsSync(schemaPath);
     let schema;
@@ -42,6 +42,7 @@ try {
       schemaPath,
       ...schemaViewerProps,
       render,
+      index,
     };
   });
 
@@ -59,7 +60,7 @@ try {
         if (!schema.render) return null;
         return (
           <div>
-            {schema.exists && <SchemaViewerClient {...schema} />}
+            {schema.exists && <SchemaViewerClient {...schema} id={`${schema.id}-${schema.file}-SchemaViewer-client`} />}
 
             {/* User has tried to load the schema, but it was not found on file system */}
             {!schema.exists && (
@@ -83,8 +84,33 @@ try {
   function moveSchemaViewerToPortal(schema) {
     const portalId = `${schema.id}-${schema.file}-SchemaViewer-portal`;
     const schemaViewerContainer = document.getElementById(portalId);
-    if (schemaViewerContainer) {
-      schemaViewerContainer.appendChild(document.getElementById(`${schema.id}-${schema.file}-SchemaViewer-client`));
+    const schemaViewerClient = document.getElementById(`${schema.id}-${schema.file}-SchemaViewer-client`);
+
+    if (schemaViewerContainer && schemaViewerClient) {
+      // Get attributes from the portal
+      const expand = schemaViewerContainer.getAttribute('data-expand') === 'true';
+      const maxHeight = schemaViewerContainer.getAttribute('data-max-height');
+      const search = schemaViewerContainer.getAttribute('data-search');
+
+      // Set the expand attribute on the schema viewer client
+      if (expand) {
+        schemaViewerClient.setAttribute('data-expand', 'true');
+      }
+
+      // Set the search attribute on the schema viewer client
+      if (search) {
+        schemaViewerClient.setAttribute('data-search', search);
+      }
+
+      // Set the maxHeight on the schema viewer element
+      if (maxHeight) {
+        const schemaViewerElement = schemaViewerClient.querySelector('.schema-viewer');
+        if (schemaViewerElement) {
+          schemaViewerElement.style.maxHeight = `${maxHeight}px`;
+        }
+      }
+
+      schemaViewerContainer.appendChild(schemaViewerClient);
     }
   }
 
