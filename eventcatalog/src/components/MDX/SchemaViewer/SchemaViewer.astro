@@ -9,9 +9,13 @@ interface Props {
   maxHeight: string;
   file: string;
   id: string;
+  expand?: boolean;
 }
 
-const { id, file, title, maxHeight, schema } = Astro.props;
+const { id, file, title, maxHeight, schema, expand = false } = Astro.props;
+
+// This will be used to pass expand state via data attribute
+const expandData = expand ? 'true' : 'false';
 
 // Function to merge allOf schemas
 function mergeAllOfSchemas(schemaWithProcessor: any): any {
@@ -192,12 +196,12 @@ const { description, properties, required = [], variants } = processedSchema;
 const instanceId = `${id}-${file}-${Math.random().toString(36).substring(2, 9)}`;
 ---
 
-<div id={`${id}-${file}-SchemaViewer-client`} class="not-prose my-4">
+<div id={`${id}-${file}-SchemaViewer-client`} class="not-prose my-4" data-expand={expandData}>
   {title && <h2 class="text-3xl font-bold mb-2 !mt-0">{title}</h2>}
   <div
     class="schema-viewer p-4 bg-white overflow-y-auto rounded-lg border border-gray-100 shadow-sm font-sans"
     style={{
-      maxHeight: maxHeight ? `${maxHeight}em` : `100em`,
+      maxHeight: maxHeight ? `${maxHeight}px` : `30em`,
     }}
   >
     {description && <p class="text-gray-600 text-xs mb-5">{description}</p>}
@@ -224,7 +228,13 @@ const instanceId = `${id}-${file}-${Math.random().toString(36).substring(2, 9)}`
       properties && (
         <div id={`${instanceId}-properties`}>
           {Object.entries(properties).map(([name, details]) => (
-            <SchemaProperty name={name} details={details} isRequired={variants ? false : required.includes(name)} level={0} />
+            <SchemaProperty
+              name={name}
+              details={details}
+              isRequired={variants ? false : required.includes(name)}
+              level={0}
+              expand={expand}
+            />
           ))}
         </div>
       )
@@ -234,7 +244,21 @@ const instanceId = `${id}-${file}-${Math.random().toString(36).substring(2, 9)}`
   </div>
 </div>
 
-<script define:vars={{ instanceId, variants }}>
+<script define:vars={{ instanceId, variants, id, file }}>
+  // Check if expand is set via data attribute (from portal movement)
+  function checkAndExpandAll() {
+    const schemaViewerClient = document.getElementById(`${id}-${file}-SchemaViewer-client`);
+    if (schemaViewerClient && schemaViewerClient.getAttribute('data-expand') === 'true') {
+      // Find all toggle buttons within this schema viewer
+      const toggleButtons = schemaViewerClient.querySelectorAll('.property-toggle');
+      toggleButtons.forEach((button) => {
+        if (button.getAttribute('aria-expanded') === 'false') {
+          button.click(); // Trigger the existing toggle logic
+        }
+      });
+    }
+  }
+
   if (variants) {
     const selector = document.getElementById(`${instanceId}-variant-selector`);
     const propertiesContainer = document.getElementById(`${instanceId}-properties`);
@@ -267,6 +291,15 @@ const instanceId = `${id}-${file}-${Math.random().toString(36).substring(2, 9)}`
     // Initialize with first variant
     updateRequiredFields();
   }
+
+  // Check expand state after page loads and after portal movement
+  document.addEventListener('astro:page-load', () => {
+    // Small delay to ensure portal movement has completed
+    setTimeout(checkAndExpandAll, 100);
+  });
+
+  // Also check immediately in case the component is already in place
+  checkAndExpandAll();
 </script>
 
 <style>
