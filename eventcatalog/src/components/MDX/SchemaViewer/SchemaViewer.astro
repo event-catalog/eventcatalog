@@ -219,10 +219,10 @@ const { description, properties, required = [], variants } = processedSchema;
 const totalProperties = countProperties(processedSchema);
 
 // Generate a unique ID for this instance
-const instanceId = `${id}-${file}-${Math.random().toString(36).substring(2, 9)}`;
+const instanceId = `${id}-${Math.random().toString(36).substring(2, 9)}`;
 ---
 
-<div id={`${id}-${file}-SchemaViewer-client`} class="not-prose my-4" data-expand={expandData} data-search={searchData}>
+<div id={id} class="not-prose my-4" data-expand={expandData} data-search={searchData}>
   {title && <h2 class="text-3xl font-bold mb-2 !mt-0">{title}</h2>}
   <div
     class="schema-viewer p-4 pt-0 bg-white overflow-y-auto rounded-lg border border-gray-100 shadow-sm font-sans"
@@ -366,7 +366,7 @@ const instanceId = `${id}-${file}-${Math.random().toString(36).substring(2, 9)}`
 
   // Setup search and utilities
   function setupSchemaUtilities() {
-    const schemaViewerClient = document.getElementById(`${id}-${file}-SchemaViewer-client`);
+    const schemaViewerClient = document.getElementById(id);
     if (!schemaViewerClient || schemaViewerClient.getAttribute('data-search') !== 'true') return;
 
     const searchInput = document.getElementById(`${instanceId}-search`);
