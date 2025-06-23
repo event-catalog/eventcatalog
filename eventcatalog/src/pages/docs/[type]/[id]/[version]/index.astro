@@ -6,6 +6,7 @@ import { marked } from 'marked';
 import components from '@components/MDX/components';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewerRoot.astro';
+import ProtoViewer from '@components/MDX/ProtoViewer/ProtoViewerRoot.astro';
 import Admonition from '@components/MDX/Admonition';
 
 import { getSpecificationsForService } from '@utils/collections/services';
@@ -325,6 +326,7 @@ nodeGraphs.push({
           <!-- @ts-ignore -->
           <!-- <SchemaViewer id={props.data.id} catalog={props.catalog} filePath={props.filePath} /> -->
           <SchemaViewer id={props.data.id} filePath={props.filePath} />
+          <ProtoViewer id={props.data.id} filePath={props.filePath} />
 
           {
             nodeGraphs.length > 0 &&
