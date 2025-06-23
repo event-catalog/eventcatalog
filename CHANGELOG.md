@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.46.0
+
+### Minor Changes
+
+- 9ad51a1: feat(core): added support for plantuml code blocks
+
 ## 2.45.3
 
 ### Patch Changes
