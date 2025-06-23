@@ -9,7 +9,8 @@ import remarkDirective from 'remark-directive';
 import { remarkDirectives } from "./src/remark-plugins/directives"
 import node from '@astrojs/node';
 import remarkComment from 'remark-comment'
-import auth from 'auth-astro';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 
 /** @type {import('bin/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
@@ -60,6 +61,17 @@ export default defineConfig({
       // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
       optimize: config.mdxOptimize || false,
       remarkPlugins: [remarkDirective, remarkDirectives, remarkComment, mermaid],
+      rehypePlugins: [
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: 'append',
+            properties: { className: ['anchor-link'] },
+            
+          },
+        ],
+      ],
       gfm: true,
     }),
     config.output !== 'server' && pagefind(),
