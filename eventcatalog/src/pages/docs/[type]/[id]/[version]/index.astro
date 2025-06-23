@@ -459,4 +459,62 @@ nodeGraphs.push({
       renderDiagrams(graphs);
     }
   </script>
+
+  <script>
+    import('pako').then(({ deflate }: any) => {
+      document.addEventListener('astro:page-load', () => {
+        const blocks = document.getElementsByClassName('plantuml');
+        if (blocks.length > 0) {
+          renderPlantUML(blocks, deflate);
+        }
+      });
+
+      function renderPlantUML(blocks: any, deflate: any) {
+        for (const block of blocks) {
+          const content = block.getAttribute('data-content');
+          if (!content) continue;
+
+          const encoded = encodePlantUML(content, deflate);
+          const img = document.createElement('img');
+          img.src = `https://www.plantuml.com/plantuml/svg/~1${encoded}`;
+          img.alt = 'PlantUML diagram';
+          img.loading = 'lazy';
+          block.innerHTML = '';
+          // Add class to the img
+          img.classList.add('mx-auto');
+          block.appendChild(img);
+        }
+      }
+
+      function encodePlantUML(text: any, deflate: any) {
+        const utf8encoded = new TextEncoder().encode(text);
+        const compressed = deflate(utf8encoded, { level: 9 });
+        return encode64(compressed);
+      }
+
+      const encode64 = (data: any) => {
+        const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
+        let str = '';
+        let i = 0;
+        while (i < data.length) {
+          let b1 = data[i++];
+          let b2 = i < data.length ? data[i++] : 0;
+          let b3 = i < data.length ? data[i++] : 0;
+
+          let c1 = b1 >> 2;
+          let c2 = ((b1 & 0x3) << 4) | (b2 >> 4);
+          let c3 = ((b2 & 0xf) << 2) | (b3 >> 6);
+          let c4 = b3 & 0x3f;
+
+          str += chars[c1] + chars[c2] + chars[c3] + chars[c4];
+        }
+        return str;
+      };
+
+      const graphs = document.getElementsByClassName('plantuml');
+      if (document.getElementsByClassName('plantuml').length > 0) {
+        renderPlantUML(graphs, deflate);
+      }
+    });
+  </script>
 </VerticalSideBarLayout>
