@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.45.3
+
+### Patch Changes
+
+- d9b144e: feat(core): added ability to link to headings
+
 ## 2.45.2
 
 ### Patch Changes
