@@ -4,6 +4,7 @@ import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import pagefind from "astro-pagefind";
 import { mermaid } from "./src/remark-plugins/mermaid"
+import { plantuml } from "./src/remark-plugins/plantuml"
 import { join } from 'node:path';
 import remarkDirective from 'remark-directive';
 import { remarkDirectives } from "./src/remark-plugins/directives"
@@ -60,7 +61,7 @@ export default defineConfig({
     mdx({
       // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
       optimize: config.mdxOptimize || false,
-      remarkPlugins: [remarkDirective, remarkDirectives, remarkComment, mermaid],
+      remarkPlugins: [remarkDirective, remarkDirectives, remarkComment, mermaid, plantuml],
       rehypePlugins: [
         rehypeSlug,
         [
