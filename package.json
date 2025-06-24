@@ -78,6 +78,7 @@
     "@xyflow/react": "^12.3.6",
     "ai": "^4.3.9",
     "astro": "^5.9.3",
+    "astro-compress": "^2.3.8",
     "astro-expressive-code": "^0.40.1",
     "astro-pagefind": "^1.6.0",
     "astro-seo": "^0.8.4",

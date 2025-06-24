@@ -19,10 +19,10 @@ let props;
 
 const SIDENAV_TYPE = config?.docs?.sidebar?.type ?? 'LIST_VIEW';
 
-if (SIDENAV_TYPE === 'TREE_VIEW') {
-  props = getTreeView({ projectDir: process.env.PROJECT_DIR!, currentPath });
-} else if (SIDENAV_TYPE === 'LIST_VIEW') {
+if (SIDENAV_TYPE === 'LIST_VIEW') {
   props = await getListViewResources({ currentPath });
+} else if (SIDENAV_TYPE === 'TREE_VIEW') {
+  props = getTreeView({ projectDir: process.env.PROJECT_DIR!, currentPath });
 }
 ---
 

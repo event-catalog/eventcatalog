@@ -76,9 +76,6 @@ const ServiceItem = React.memo(
     isVisualizer: boolean;
     searchTerm: string;
   }) => {
-    const asyncAPISpecifications = item.specifications?.filter((spec) => spec.type === 'asyncapi');
-    const openAPISpecifications = item.specifications?.filter((spec) => spec.type === 'openapi');
-
     return (
       <CollapsibleGroup
         isCollapsed={collapsedGroups[item.href]}
