@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.47.1
+
+### Patch Changes
+
+- c7f7ca1: chore(core): updated width of services in architecture page
+
 ## 2.47.0
 
 ### Minor Changes
