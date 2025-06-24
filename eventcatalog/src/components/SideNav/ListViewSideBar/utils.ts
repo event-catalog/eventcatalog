@@ -8,6 +8,15 @@ import { getCommands } from '@utils/commands';
 import { getEvents } from '@utils/events';
 import { getQueries } from '@utils/queries';
 
+const stripCollection = (collection: any) => {
+  return collection.map((item: any) => ({
+    data: {
+      id: item.data.id,
+      version: item.data.version,
+    },
+  }));
+};
+
 export async function getResourcesForNavigation({ currentPath }: { currentPath: string }) {
   const events = await getEvents({ getAllVersions: false });
   const commands = await getCommands({ getAllVersions: false });
@@ -45,15 +54,33 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
     const entities = isCollectionDomain || isCollectionService ? item.data.entities || null : null;
     // Add href to the sends and receives
     const sendsWithHref = sends?.map((send: any) => ({
-      ...send,
+      id: send.data.id,
+      data: {
+        name: send.data.name,
+        sidebar: send.data.sidebar,
+        aggregateRoot: send?.data?.aggregateRoot,
+      },
+      collection: send.collection,
       href: buildUrl(`/${route}/${send.collection}/${send.data.id}/${send.data.version}`),
     }));
     const receivesWithHref = receives?.map((receive: any) => ({
-      ...receive,
+      id: receive.data.id,
+      data: {
+        name: receive.data.name,
+        sidebar: receive.data.sidebar,
+        aggregateRoot: receive?.data?.aggregateRoot,
+      },
+      collection: receive.collection,
       href: buildUrl(`/${route}/${receive.collection}/${receive.data.id}/${receive.data.version}`),
     }));
     const entitiesWithHref = entities?.map((entity: any) => ({
-      ...entity,
+      id: entity.data.id,
+      data: {
+        name: entity.data.name,
+        sidebar: entity.data.sidebar,
+        aggregateRoot: entity?.data?.aggregateRoot,
+      },
+      collection: entity.collection,
       href: buildUrl(`/${route}/${entity.collection}/${entity.data.id}/${entity.data.version}`),
     }));
 
@@ -76,8 +103,8 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
       servicesCount,
       id: item.data.id,
       name: item.data.name,
-      services: isCollectionDomain ? item.data.services : null,
-      domains: isCollectionDomain ? item.data.domains : null,
+      services: isCollectionDomain ? stripCollection(item.data.services) : null,
+      domains: isCollectionDomain ? stripCollection(item.data.domains) : null,
       sends: sendsWithHref,
       receives: receivesWithHref,
       entities: entitiesWithHref,

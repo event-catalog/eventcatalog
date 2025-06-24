@@ -69,13 +69,16 @@ export default defineConfig({
           {
             behavior: 'append',
             properties: { className: ['anchor-link'] },
-            
+
           },
         ],
       ],
       gfm: true,
     }),
     config.output !== 'server' && pagefind(),
+    config.output !== 'server' && (await import("astro-compress")).default({
+      Logger: 0,
+    }),
   ].filter(Boolean),
   vite: {
     define: {
