@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.47.0
+
+### Minor Changes
+
+- 66edd2e: chore(core): refactor sidebar to reduce page weights
+
 ## 2.46.0
 
 ### Minor Changes
