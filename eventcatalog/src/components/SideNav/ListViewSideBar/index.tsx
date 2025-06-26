@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import { ChevronDownIcon, ChevronDoubleDownIcon, ChevronDoubleUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { buildUrl, buildUrlWithParams } from '@utils/url-builder';
 import CollapsibleGroup from './components/CollapsibleGroup';
 import MessageList from './components/MessageList';
 import SpecificationsList from './components/SpecificationList';
 import type { MessageItem, ServiceItem, ListViewSideBarProps, DomainItem, FlowItem, Resources } from './types';
+import { PanelLeft } from 'lucide-react';
 const STORAGE_KEY = 'EventCatalog:catalogSidebarCollapsedGroups';
 const DEBOUNCE_DELAY = 300; // 300ms debounce delay
 
@@ -204,6 +205,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [collapsedGroups, setCollapsedGroups] = useState<{ [key: string]: boolean }>(() => {
     if (typeof window !== 'undefined') {
       const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -241,9 +243,55 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
       );
     };
 
+    // Enhanced domain filtering that considers parent-subdomain relationships
+    const filterDomains = (domains: any[]) => {
+      const filteredDomains: any[] = [];
+
+      domains.forEach((domain: any) => {
+        const domainMatches = filterItem(domain);
+
+        // Check if this domain is a subdomain of another domain
+        const isSubdomain = domains.some((parentDomain: any) => {
+          const subdomains = parentDomain.domains || [];
+          return subdomains.some((subdomain: any) => subdomain.data.id === domain.id);
+        });
+
+        // If this is a parent domain, check if any of its subdomains match
+        let hasMatchingSubdomains = false;
+        if (!isSubdomain) {
+          const subdomains = domain.domains || [];
+          hasMatchingSubdomains = domains.some((potentialSubdomain: any) =>
+            subdomains.some((subdomain: any) => subdomain.data.id === potentialSubdomain.id && filterItem(potentialSubdomain))
+          );
+        }
+
+        // Include domain if:
+        // 1. The domain itself matches the search
+        // 2. It's a parent domain and has matching subdomains
+        // 3. It's a subdomain and matches the search
+        if (domainMatches || hasMatchingSubdomains || (isSubdomain && domainMatches)) {
+          filteredDomains.push(domain);
+        }
+
+        // If this is a subdomain that matches, also include its parent domain
+        if (isSubdomain && domainMatches) {
+          const parentDomain = domains.find((parentDomain: any) => {
+            const subdomains = parentDomain.domains || [];
+            return subdomains.some((subdomain: any) => subdomain.data.id === domain.id);
+          });
+
+          if (parentDomain && !filteredDomains.some((d: any) => d.id === parentDomain.id)) {
+            filteredDomains.push(parentDomain);
+          }
+        }
+      });
+
+      return filteredDomains;
+    };
+
     return {
       'context-map': data['context-map']?.filter(filterItem) || [],
-      domains: data.domains?.filter(filterItem) || [],
+      domains: data.domains ? filterDomains(data.domains) : [],
       services:
         data.services
           ?.map((service: ServiceItem) => ({
@@ -310,6 +358,65 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
     setSearchTerm(e.target.value);
   }, []);
 
+  const collapseAll = useCallback(() => {
+    const newCollapsedState: { [key: string]: boolean } = {};
+
+    // Collapse all domains
+    filteredData.domains?.forEach((domain: any) => {
+      newCollapsedState[domain.href] = true;
+      newCollapsedState[`${domain.href}-entities`] = true;
+      newCollapsedState[`${domain.href}-subdomains`] = true;
+    });
+
+    // Collapse all services
+    filteredData.services?.forEach((service: any) => {
+      newCollapsedState[service.href] = true;
+      newCollapsedState[`${service.href}-specifications`] = true;
+      newCollapsedState[`${service.href}-receives`] = true;
+      newCollapsedState[`${service.href}-sends`] = true;
+      newCollapsedState[`${service.href}-entities`] = true;
+    });
+
+    setCollapsedGroups(newCollapsedState);
+    setIsExpanded(false);
+  }, [filteredData]);
+
+  const expandAll = useCallback(() => {
+    const newCollapsedState: { [key: string]: boolean } = {};
+
+    // Expand all domains
+    filteredData.domains?.forEach((domain: any) => {
+      newCollapsedState[domain.href] = false;
+      newCollapsedState[`${domain.href}-entities`] = false;
+      newCollapsedState[`${domain.href}-subdomains`] = false;
+    });
+
+    // Expand all services
+    filteredData.services?.forEach((service: any) => {
+      newCollapsedState[service.href] = false;
+      newCollapsedState[`${service.href}-specifications`] = false;
+      newCollapsedState[`${service.href}-receives`] = false;
+      newCollapsedState[`${service.href}-sends`] = false;
+      newCollapsedState[`${service.href}-entities`] = false;
+    });
+
+    setCollapsedGroups(newCollapsedState);
+    setIsExpanded(true);
+  }, [filteredData]);
+
+  const toggleExpandCollapse = useCallback(() => {
+    if (isExpanded) {
+      collapseAll();
+    } else {
+      expandAll();
+    }
+  }, [isExpanded, collapseAll, expandAll]);
+
+  const hideSidebar = useCallback(() => {
+    // Dispatch custom event that the Astro layout will listen for
+    window.dispatchEvent(new CustomEvent('sidebarToggle', { detail: { action: 'hide' } }));
+  }, []);
+
   const isDomainSubDomain = useMemo(() => {
     return (domain: any) => {
       const domains = data.domains || [];
@@ -319,6 +426,125 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
       });
     };
   }, [data.domains]);
+
+  // Helper function to get parent domains (domains that are not subdomains)
+  const getParentDomains = useMemo(() => {
+    return (domains: any[]) => {
+      return domains.filter((domain: any) => !isDomainSubDomain(domain));
+    };
+  }, [isDomainSubDomain]);
+
+  // Helper function to get subdomains for a specific parent domain
+  const getSubdomainsForParent = useMemo(() => {
+    return (parentDomain: any, allDomains: any[]) => {
+      const subdomains = parentDomain.domains || [];
+      return allDomains.filter((domain: any) => subdomains.some((subdomain: any) => subdomain.data.id === domain.id));
+    };
+  }, []);
+
+  // Component to render a single domain item
+  const DomainItem = React.memo(
+    ({ item, isSubdomain = false, nestingLevel = 0 }: { item: any; isSubdomain?: boolean; nestingLevel?: number }) => {
+      const marginLeft = nestingLevel > 0 ? `ml-${nestingLevel * 4}` : '';
+
+      return (
+        <div className={`flex items-center ${marginLeft}`}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleGroupCollapse(item.href);
+            }}
+            className="p-1 hover:bg-gray-100 rounded-md"
+          >
+            <div className={`transition-transform duration-150 ${collapsedGroups[item.href] ? '' : 'rotate-180'}`}>
+              <ChevronDownIcon className="h-3 w-3 text-gray-500" />
+            </div>
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleGroupCollapse(item.href);
+            }}
+            className={`flex-grow flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md ${
+              decodedCurrentPath === item.href ? 'bg-purple-100' : 'hover:bg-purple-100'
+            }`}
+          >
+            <span className="truncate">
+              <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
+            </span>
+            <span className="text-yellow-600 ml-2 text-[10px] font-medium bg-yellow-50 px-2 py-0.5 rounded">
+              {isSubdomain ? 'SUBDOMAIN' : 'DOMAIN'}
+            </span>
+          </button>
+        </div>
+      );
+    }
+  );
+
+  // Component to render domain content (Overview, Architecture, etc.)
+  const DomainContent = React.memo(({ item, nestingLevel = 0 }: { item: any; nestingLevel?: number }) => {
+    const marginLeft = nestingLevel > 0 ? `ml-${nestingLevel * 4}` : '';
+
+    return (
+      <div
+        className={`overflow-hidden transition-[height] duration-150 ease-out ${collapsedGroups[item.href] ? 'h-0' : 'h-auto'}`}
+      >
+        <div className={`space-y-0.5 border-gray-200/80 border-l pl-4 ml-[9px] mt-1 ${marginLeft}`}>
+          <a
+            href={`${item.href}`}
+            className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
+              decodedCurrentPath === item.href ? 'bg-purple-100 ' : 'hover:bg-purple-100'
+            }`}
+          >
+            <span className="truncate">Overview</span>
+          </a>
+          {!isVisualizer && (
+            <a
+              href={buildUrlWithParams('/architecture/docs/services', {
+                serviceIds: item.services.map((service: any) => service.data.id).join(','),
+                domainId: item.id,
+                domainName: item.name,
+              })}
+              className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
+                window.location.href.includes(`domainId=${item.id}`) ? 'bg-purple-100 ' : 'hover:bg-purple-100'
+              }`}
+            >
+              <span className="truncate">Architecture</span>
+            </a>
+          )}
+          {!isVisualizer && (
+            <a
+              href={buildUrl(`/docs/domains/${item.id}/language`)}
+              className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
+                decodedCurrentPath.includes(`/docs/domains/${item.id}/language`) ? 'bg-purple-100 ' : 'hover:bg-purple-100'
+              }`}
+            >
+              <span className="truncate">Ubiquitous Language</span>
+            </a>
+          )}
+          {item.entities.length > 0 && !isVisualizer && (
+            <CollapsibleGroup
+              isCollapsed={collapsedGroups[`${item.href}-entities`]}
+              onToggle={() => toggleGroupCollapse(`${item.href}-entities`)}
+              title={
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleGroupCollapse(`${item.href}-entities`);
+                  }}
+                  className="truncate underline ml-2 text-xs mb-1 py-1"
+                >
+                  Entities ({item.entities.length})
+                </button>
+              }
+            >
+              <MessageList messages={item.entities} decodedCurrentPath={decodedCurrentPath} searchTerm={debouncedSearchTerm} />
+            </CollapsibleGroup>
+          )}
+        </div>
+      </div>
+    );
+  });
 
   if (!isInitialized) return null;
 
@@ -332,13 +558,35 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
 
   return (
     <nav ref={navRef} className="space-y-4 text-gray-800 px-3 py-4">
-      <input
-        type="text"
-        value={searchTerm}
-        onChange={handleSearchChange}
-        placeholder="Quick search..."
-        className="w-full p-2 text-sm rounded-md border border-gray-200 h-[30px]"
-      />
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={handleSearchChange}
+          placeholder="Quick search..."
+          className="flex-1 p-2 text-sm rounded-md border border-gray-200 h-[30px]"
+        />
+        <div className="flex gap-1">
+          <button
+            onClick={toggleExpandCollapse}
+            title={isExpanded ? 'Collapse All' : 'Expand All'}
+            className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-200 h-[30px] flex items-center justify-center"
+          >
+            {isExpanded ? (
+              <ChevronDoubleUpIcon className="h-4 w-4 text-gray-600" />
+            ) : (
+              <ChevronDoubleDownIcon className="h-4 w-4 text-gray-600" />
+            )}
+          </button>
+          <button
+            onClick={hideSidebar}
+            title="Hide Sidebar"
+            className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-200 h-[30px] flex items-center justify-center"
+          >
+            <PanelLeft className="h-4 w-4 text-gray-600" />
+          </button>
+        </div>
+      </div>
       <div className="space-y-2 divide-y divide-gray-200/80">
         {hasNoResults ? (
           <NoResultsFound searchTerm={debouncedSearchTerm} />
@@ -372,104 +620,50 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
             {filteredData['domains'] && (
               <div className={`${isVisualizer ? 'pt-4 pb-2' : 'p-0'}`}>
                 <ul className="space-y-2">
-                  {filteredData['domains'].map((item: any) => (
-                    <li key={item.href} className="space-y-0" data-active={decodedCurrentPath === item.href}>
-                      <div className="flex items-center">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleGroupCollapse(item.href);
-                          }}
-                          className="p-1 hover:bg-gray-100 rounded-md"
-                        >
-                          <div className={`transition-transform duration-150 ${collapsedGroups[item.href] ? '' : 'rotate-180'}`}>
-                            <ChevronDownIcon className="h-3 w-3 text-gray-500" />
-                          </div>
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleGroupCollapse(item.href);
-                          }}
-                          className={`flex-grow flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md ${
-                            decodedCurrentPath === item.href
-                          }`}
-                        >
-                          <span className="truncate">
-                            <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
-                          </span>
-                          <span className="text-yellow-600 ml-2 text-[10px] font-medium bg-yellow-50 px-2 py-0.5 rounded">
-                            {isDomainSubDomain(item) ? 'SUBDOMAIN' : 'DOMAIN'}
-                          </span>
-                        </button>
-                      </div>
-                      <div
-                        className={`overflow-hidden transition-[height] duration-150 ease-out ${
-                          collapsedGroups[item.href] ? 'h-0' : 'h-auto'
-                        }`}
-                      >
-                        <div className="space-y-0.5 border-gray-200/80 border-l pl-4 ml-[9px] mt-1">
-                          <a
-                            href={`${item.href}`}
-                            className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
-                              decodedCurrentPath === item.href ? 'bg-purple-100 ' : 'hover:bg-purple-100'
-                            }`}
-                          >
-                            <span className="truncate">Overview</span>
-                          </a>
-                          {!isVisualizer && (
-                            <a
-                              href={buildUrlWithParams('/architecture/docs/services', {
-                                serviceIds: item.services.map((service: any) => service.data.id).join(','),
-                                domainId: item.id,
-                                domainName: item.name,
-                              })}
-                              className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
-                                window.location.href.includes(`domainId=${item.id}`) ? 'bg-purple-100 ' : 'hover:bg-purple-100'
-                              }`}
-                            >
-                              <span className="truncate">Architecture</span>
-                            </a>
-                          )}
-                          {!isVisualizer && (
-                            <a
-                              href={buildUrl(`/docs/domains/${item.id}/language`)}
-                              className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
-                                decodedCurrentPath.includes(`/docs/domains/${item.id}/language`)
-                                  ? 'bg-purple-100 '
-                                  : 'hover:bg-purple-100'
-                              }`}
-                            >
-                              <span className="truncate">Ubiquitous Language</span>
-                            </a>
-                          )}
-                          {item.entities.length > 0 && !isVisualizer && (
+                  {getParentDomains(filteredData['domains'] || []).map((parentDomain: any) => {
+                    const subdomains = getSubdomainsForParent(parentDomain, filteredData['domains'] || []);
+
+                    return (
+                      <li key={parentDomain.href} className="space-y-0" data-active={decodedCurrentPath === parentDomain.href}>
+                        <DomainItem item={parentDomain} isSubdomain={false} />
+                        <DomainContent item={parentDomain} />
+
+                        {/* Render nested subdomains */}
+                        {subdomains.length > 0 && !collapsedGroups[parentDomain.href] && (
+                          <div className="space-y-0.5 border-gray-200/80 border-l pl-4 ml-[9px] mt-2">
                             <CollapsibleGroup
-                              isCollapsed={collapsedGroups[`${item.href}-entities`]}
-                              onToggle={() => toggleGroupCollapse(`${item.href}-entities`)}
+                              isCollapsed={collapsedGroups[`${parentDomain.href}-subdomains`]}
+                              onToggle={() => toggleGroupCollapse(`${parentDomain.href}-subdomains`)}
                               title={
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    toggleGroupCollapse(`${item.href}-entities`);
+                                    toggleGroupCollapse(`${parentDomain.href}-subdomains`);
                                   }}
                                   className="truncate underline ml-2 text-xs mb-1 py-1"
                                 >
-                                  Entities ({item.entities.length})
+                                  Subdomains ({subdomains.length})
                                 </button>
                               }
                             >
-                              <MessageList
-                                messages={item.entities}
-                                decodedCurrentPath={decodedCurrentPath}
-                                searchTerm={debouncedSearchTerm}
-                              />
+                              <div className="space-y-2">
+                                {subdomains.map((subdomain: any) => (
+                                  <div
+                                    key={subdomain.href}
+                                    className="space-y-0"
+                                    data-active={decodedCurrentPath === subdomain.href}
+                                  >
+                                    <DomainItem item={subdomain} isSubdomain={true} nestingLevel={1} />
+                                    <DomainContent item={subdomain} nestingLevel={1} />
+                                  </div>
+                                ))}
+                              </div>
                             </CollapsibleGroup>
-                          )}
-                        </div>
-                      </div>
-                    </li>
-                  ))}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             )}
@@ -492,7 +686,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
               </div>
             )}
 
-            {filteredData['messagesNotInService'] && (
+            {filteredData['messagesNotInService'] && filteredData['messagesNotInService'].length > 0 && (
               <div className="pt-4 pb-2">
                 <ul className="space-y-4">
                   {filteredData['messagesNotInService'].map((item: any) => (
