@@ -454,5 +454,15 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
         }
       });
     }
+
+    // Listen for custom sidebar toggle event from React components
+    window.addEventListener('sidebarToggle', (event) => {
+      const { action } = event.detail;
+      if (action === 'hide') {
+        hideSidebar();
+      } else if (action === 'show') {
+        showSidebar();
+      }
+    });
   });
 </script>
