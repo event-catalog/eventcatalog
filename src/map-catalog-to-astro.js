@@ -160,7 +160,6 @@ function getRelativeTargetPath(filePath) {
   }
 
   if (filePathArr[0] == 'snippets') {
-    console.log('SNIPPETS', filePathArr);
     return path.join('snippets', ...filePathArr.slice(1));
   }
 
