@@ -72,6 +72,7 @@ function isCatalogRelated(filePath) {
       'eventcatalog.config.js', // config file at root
       'eventcatalog.styles.css', // custom styles file at root
       'components', // custom components
+      'snippets', // custom snippets
       'public', // public assets
       '.env', // env file
       ...COLLECTION_KEYS,
@@ -128,6 +129,11 @@ function getBaseTargetPaths(filePath) {
     return [path.join('src', 'custom-defined-components')];
   }
 
+  // Custom snippets
+  if (filePathArr[0] == 'snippets') {
+    return [path.join('src')];
+  }
+
   // Public assets (public/*)
   if (filePathArr[0] == 'public') {
     return [path.join('public')];
@@ -153,10 +159,15 @@ function getRelativeTargetPath(filePath) {
     filePathArr.shift();
   }
 
+  if (filePathArr[0] == 'snippets') {
+    console.log('SNIPPETS', filePathArr);
+    return path.join('snippets', ...filePathArr.slice(1));
+  }
+
   const relativePath = [];
   for (let i = filePathArr.length - 1; i >= 0; i--) {
     relativePath.unshift(filePathArr[i]);
-    if (isCollectionKey(filePathArr[i])) break;
+    if (isCollectionKey(filePathArr[i]) && filePathArr[i] != 'snippets') break;
   }
 
   return path.join(...relativePath);

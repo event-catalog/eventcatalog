@@ -2,8 +2,6 @@ import watcher from '@parcel/watcher';
 import fs from 'node:fs';
 import { mapCatalogToAstro } from './map-catalog-to-astro.js';
 import { rimrafSync } from 'rimraf';
-import { addPropertyToFrontMatter } from './eventcatalog-config-file-utils.js';
-import path from 'node:path';
 
 /**
  * @typedef {Object} Event
@@ -37,7 +35,8 @@ export async function watch(projectDirectory, catalogDirectory, callback = undef
           const { path: filePath, type } = event;
 
           // Ignore any file ending with .mdx or .md, as Astro supports this with the new content collections
-          if (filePath.endsWith('.mdx') || filePath.endsWith('.md')) {
+          // snippets still need to be copied to the astro directory
+          if ((filePath.endsWith('.mdx') || filePath.endsWith('.md')) && !filePath.includes('snippets')) {
             continue;
           }
 
