@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 2.48.0
+
+### Minor Changes
+
+- 49d8395: feat(core): added support for MDX snippets
+
+### Patch Changes
+
+- a35c5b2: feat(core): sidebar now has collapse buttons
+
 ## 2.47.1
 
 ### Patch Changes
