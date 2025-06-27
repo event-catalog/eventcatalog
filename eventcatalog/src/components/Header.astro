@@ -5,6 +5,7 @@ import { buildUrl } from '@utils/url-builder';
 import { showEventCatalogBranding, showCustomBranding } from '@utils/feature';
 import { getSession } from 'auth-astro/server';
 import { isAuthEnabled, isSSR } from '@utils/feature';
+import { EnvironmentDropdown } from './EnvironmentDropdown';
 
 let session = null;
 if (isAuthEnabled()) {
@@ -41,7 +42,10 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
       <div class="hidden md:block w-3/12">
         {
           session ? (
-            <div class="flex justify-end pr-2">
+            <div class="flex items-center space-x-4 justify-end pr-2">
+              {catalog.environments && catalog.environments.length > 0 && (
+                <EnvironmentDropdown environments={catalog.environments} client:load />
+              )}
               <div class="relative">
                 <button
                   id="profile-menu-button"
@@ -89,6 +93,9 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
           ) : (
             <>
               <div class="flex items-center space-x-4 justify-end pr-2">
+                {catalog.environments && catalog.environments.length > 0 && (
+                  <EnvironmentDropdown environments={catalog.environments} client:load />
+                )}
                 {isAuthEnabled() && (
                   <button
                     id="okta-signin-btn"

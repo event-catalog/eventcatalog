@@ -106,4 +106,10 @@ export interface Config {
       renderMode?: 'flat' | 'single';
     };
   };
+  environments?: {
+    name: string;
+    url: string;
+    description?: string;
+    shortName?: string;
+  }[];
 }
