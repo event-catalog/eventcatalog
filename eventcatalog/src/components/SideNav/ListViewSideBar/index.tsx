@@ -99,6 +99,7 @@ const ServiceItem = React.memo(
         <div className="space-y-0.5 border-gray-200/80 border-l pl-3 ml-[9px] mt-1">
           <a
             href={`${item.href}`}
+            data-active={decodedCurrentPath === item.href}
             className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
               decodedCurrentPath === item.href ? 'bg-purple-100' : 'hover:bg-purple-100'
             }`}
@@ -111,6 +112,7 @@ const ServiceItem = React.memo(
                 serviceName: item.name,
                 serviceId: item.id,
               })}
+              data-active={window.location.href.includes(`serviceId=${item.id}`)}
               className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
                 window.location.href.includes(`serviceId=${item.id}`) ? 'bg-purple-100' : 'hover:bg-purple-100'
               }`}
@@ -343,7 +345,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
     const activeElement = document.querySelector('[data-active="true"]');
     if (activeElement) {
       // Add y offset to the scroll position
-      activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      activeElement.scrollIntoView({ behavior: 'instant', block: 'center' });
     }
   }, []);
 
@@ -492,6 +494,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
         <div className={`space-y-0.5 border-gray-200/80 border-l pl-4 ml-[9px] mt-1 ${marginLeft}`}>
           <a
             href={`${item.href}`}
+            data-active={decodedCurrentPath === item.href}
             className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
               decodedCurrentPath === item.href ? 'bg-purple-100 ' : 'hover:bg-purple-100'
             }`}
@@ -505,6 +508,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                 domainId: item.id,
                 domainName: item.name,
               })}
+              data-active={window.location.href.includes(`domainId=${item.id}`)}
               className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
                 window.location.href.includes(`domainId=${item.id}`) ? 'bg-purple-100 ' : 'hover:bg-purple-100'
               }`}
@@ -515,6 +519,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
           {!isVisualizer && (
             <a
               href={buildUrl(`/docs/domains/${item.id}/language`)}
+              data-active={decodedCurrentPath.includes(`/docs/domains/${item.id}/language`)}
               className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
                 decodedCurrentPath.includes(`/docs/domains/${item.id}/language`) ? 'bg-purple-100 ' : 'hover:bg-purple-100'
               }`}
@@ -600,6 +605,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                     <li key={item.href}>
                       <a
                         href={item.href}
+                        data-active={decodedCurrentPath === item.href}
                         className={`flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md ${
                           decodedCurrentPath === item.href ? 'bg-purple-100 text-purple-900' : 'hover:bg-purple-100'
                         }`}
@@ -672,15 +678,17 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
               <div className="pt-4 pb-2">
                 <ul className="space-y-4">
                   {filteredData['services'].map((item: any) => (
-                    <ServiceItem
-                      key={item.href}
-                      item={item}
-                      decodedCurrentPath={decodedCurrentPath}
-                      collapsedGroups={collapsedGroups}
-                      toggleGroupCollapse={toggleGroupCollapse}
-                      isVisualizer={isVisualizer}
-                      searchTerm={debouncedSearchTerm}
-                    />
+                    <li key={item.href} data-active={decodedCurrentPath === item.href}>
+                      <ServiceItem
+                        key={item.href}
+                        item={item}
+                        decodedCurrentPath={decodedCurrentPath}
+                        collapsedGroups={collapsedGroups}
+                        toggleGroupCollapse={toggleGroupCollapse}
+                        isVisualizer={isVisualizer}
+                        searchTerm={debouncedSearchTerm}
+                      />
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -693,6 +701,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                     <li key={item.href} className="space-y-0" data-active={decodedCurrentPath === item.href}>
                       <a
                         href={item.href}
+                        data-active={decodedCurrentPath === item.href}
                         className={`flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md ${
                           decodedCurrentPath === item.href ? 'bg-purple-100 text-purple-900' : 'hover:bg-purple-100'
                         }`}
@@ -719,6 +728,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                     <li key={item.href} className="space-y-0" data-active={decodedCurrentPath === item.href}>
                       <a
                         href={item.href}
+                        data-active={decodedCurrentPath === item.href}
                         className={`flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md ${
                           decodedCurrentPath === item.href ? 'bg-cyan-100 text-cyan-900' : 'hover:bg-purple-100'
                         }`}

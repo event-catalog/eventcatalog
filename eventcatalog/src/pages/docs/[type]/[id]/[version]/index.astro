@@ -33,7 +33,6 @@ import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
 import { Box, Boxes } from 'lucide-react';
 import type { CollectionTypes } from '@types';
 
-import { ClientRouter } from 'astro:transitions';
 import { render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 
@@ -363,7 +362,6 @@ nodeGraphs.push({
         {props?.collection === 'entities' && <EntitySideBar entity={props} />}
       </aside>
     </div>
-    <ClientRouter />
   </main>
 
   <style is:global>
