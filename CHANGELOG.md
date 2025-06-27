@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.48.1
+
+### Patch Changes
+
+- b77aa3b: fix(core): fixed list view sidebar scrolling to resources
+- 49f794e: feat(core): added support for MDX snippets
+
 ## 2.48.0
 
 ### Minor Changes
