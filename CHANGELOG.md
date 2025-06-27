@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.48.2
+
+### Patch Changes
+
+- f0d88aa: feat(core): added environments switcher
+
 ## 2.48.1
 
 ### Patch Changes
