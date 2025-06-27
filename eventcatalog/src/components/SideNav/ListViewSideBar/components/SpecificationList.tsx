@@ -26,6 +26,7 @@ const SpecificationList: React.FC<SpecificationListProps> = ({ specifications, i
           <a
             key={`${spec.name}-asyncapi`}
             href={buildUrl(`/docs/services/${id}/${version}/asyncapi/${spec.filenameWithoutExtension}`)}
+            data-active={window.location.href.includes(`docs/services/${id}/${version}/asyncapi`)}
             className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md justify-between ${
               window.location.href.includes(`docs/services/${id}/${version}/asyncapi`) ? 'bg-purple-100' : 'hover:bg-purple-100'
             }`}
@@ -42,6 +43,7 @@ const SpecificationList: React.FC<SpecificationListProps> = ({ specifications, i
           <a
             key={`${spec.name}-openapi`}
             href={buildUrl(`/docs/services/${id}/${version}/spec/${spec.filenameWithoutExtension}`)}
+            data-active={window.location.href.includes(`docs/services/${id}/${version}/spec/${spec.filenameWithoutExtension}`)}
             className={`items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md flex justify-between ${
               window.location.href.includes(`docs/services/${id}/${version}/spec/${spec.filenameWithoutExtension}`)
                 ? 'bg-purple-100'
