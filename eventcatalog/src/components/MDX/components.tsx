@@ -26,6 +26,7 @@ import FigJam from '@components/MDX/FigJam/FigJam.astro';
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
+import ProtoViewerPortal from '@components/MDX/ProtoViewer/ProtoViewerPortal.astro';
 import { jsx } from 'astro/jsx-runtime';
 
 const components = (props: any) => {
@@ -46,6 +47,7 @@ const components = (props: any) => {
     ResourceLink: (mdxProp: any) => jsx(ResourceLink, { ...props, ...mdxProp }),
     Schema: (mdxProp: any) => jsx(Schema, { ...props, ...mdxProp }),
     SchemaViewer: (mdxProp: any) => SchemaViewerPortal({ ...props.data, ...mdxProp }),
+    ProtoViewer: (mdxProp: any) => jsx(ProtoViewerPortal, { ...props.data, ...mdxProp }),
     Step,
     Steps,
     TabItem,

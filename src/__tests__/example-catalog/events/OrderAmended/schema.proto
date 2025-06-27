@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package commerce.order.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// OrderService defines operations for managing orders
+service OrderService {
+  // Creates a new order
+  rpc CreateOrder (CreateOrderRequest) returns (OrderResponse);
+
+  // Retrieves an order by ID
+  rpc GetOrder (GetOrderRequest) returns (OrderResponse);
+
+  // Lists all orders with pagination
+  rpc ListOrders (ListOrdersRequest) returns (ListOrdersResponse);
+}
+
+// Request message for creating a new order
+message CreateOrderRequest {
+  Customer customer = 1;
+  repeated OrderItem items = 2;
+}
+
+// Request message for fetching a specific order
+message GetOrderRequest {
+  string order_id = 1;
+}
+
+// Request message for listing orders
+message ListOrdersRequest {
+  int32 page = 1;
+  int32 per_page = 2;
+}
+
+// Response message for listing multiple orders
+message ListOrdersResponse {
+  repeated Order orders = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 per_page = 4;
+}
+
+// Represents a complete order
+message Order {
+  string id = 1;
+  Customer customer = 2;
+  repeated OrderItem items = 3;
+  OrderStatus status = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+
+  // Only one of these can be set to track state
+  oneof state_metadata {
+    OrderApproved approved = 7;
+    OrderCancelled cancelled = 8;
+  }
+}
+
+// Basic order item
+message OrderItem {
+  string product_id = 1;
+  string name = 2;
+  int32 quantity = 3;
+  float unit_price = 4;
+}
+
+// Customer information
+message Customer {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+}
+
+// Response message for Create/Get order
+message OrderResponse {
+  Order order = 1;
+  repeated Error errors = 2; // optional errors
+}
+
+// Order status enum
+enum OrderStatus {
+  ORDER_STATUS_UNSPECIFIED = 0;
+  PENDING = 1;
+  APPROVED = 2;
+  CANCELLED = 3;
+}
+
+// Event metadata for approved orders
+message OrderApproved {
+  string approved_by = 1;
+  google.protobuf.Timestamp approved_at = 2;
+}
+
+// Event metadata for cancelled orders
+message OrderCancelled {
+  string reason = 1;
+  google.protobuf.Timestamp cancelled_at = 2;
+}
+
+// Generic error structure
+message Error {
+  string code = 1;
+  string message = 2;
+  repeated string details = 3;
+}
