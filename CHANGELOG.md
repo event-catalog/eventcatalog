@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.48.3
+
+### Patch Changes
+
+- cf4f246: feat(core): added draft support for resources
+
 ## 2.48.2
 
 ### Patch Changes
