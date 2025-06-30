@@ -91,6 +91,7 @@ const ServiceItem = React.memo(
           >
             <span className="truncate text-xs font-bold">
               <HighlightedText text={item.label} searchTerm={searchTerm} />
+              <span className="text-xs text-gray-400">{item.draft ? ' (DRAFT)' : ''}</span>
             </span>
             <span className="text-purple-600 ml-2 text-[10px] font-medium bg-purple-50 px-2 py-0.5 rounded">SERVICE</span>
           </button>

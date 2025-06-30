@@ -31,6 +31,7 @@ const { title, subtitle, data, type } = Astro.props;
 const currentPath = Astro.url.pathname;
 
 const checkboxLatestId = 'latest-only';
+const checkboxDraftsId = 'show-drafts';
 
 const tabs = [
   {
@@ -117,14 +118,25 @@ const tabs = [
             <h1 class="text-4xl font-semibold text-gray-900 capitalize">{title}</h1>
             <p class="text-md text-gray-700">{subtitle}</p>
           </div>
-          <div class="p-4 border border-gray-200 rounded-md">
-            <Checkbox id={checkboxLatestId} name={checkboxLatestId} label="Show latest version only" checked />
+          <div class="flex gap-4">
+            <div class="p-4 border border-gray-200 rounded-md">
+              <Checkbox id={checkboxLatestId} name={checkboxLatestId} label="Show latest version only" checked />
+            </div>
+            <div class="p-4 border border-gray-200 rounded-md">
+              <Checkbox id={checkboxDraftsId} name={checkboxDraftsId} label="Show drafts only" />
+            </div>
           </div>
         </div>
         <div class="mt-4 flow-root">
           <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div class="inline-block min-w-full align-middle sm:px-6 lg:px-8">
-              <Table checkboxLatestId={checkboxLatestId} data={data} collection={type} client:load />
+              <Table
+                checkboxLatestId={checkboxLatestId}
+                checkboxDraftsId={checkboxDraftsId}
+                data={data}
+                collection={type}
+                client:load
+              />
             </div>
           </div>
         </div>

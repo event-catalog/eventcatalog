@@ -278,6 +278,21 @@ nodeGraphs.push({
                 </div>
               )
             }
+
+            {
+              props.data.draft && (
+                <Admonition type="warning" title={props.data?.draft?.title || `Draft ${friendlyCollectionName}`}>
+                  <div>
+                    {!props.data.draft.message && (
+                      <p>This resource has been marked as a draft and may still be under development.</p>
+                    )}
+                    {props.data.draft.message && (
+                      <div class="prose prose-sm max-w-none" set:html={marked.parse(props.data.draft.message)} />
+                    )}
+                  </div>
+                </Admonition>
+              )
+            }
           </div>
         </div>
 

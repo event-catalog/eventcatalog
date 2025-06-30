@@ -24,6 +24,7 @@ export interface ServiceItem {
   name: string;
   id: string;
   version: string;
+  draft: boolean | { title?: string; message: string };
   sends: MessageItem[];
   receives: MessageItem[];
   entities: EntityItem[];
