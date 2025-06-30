@@ -61,6 +61,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, decodedCurrentPath,
         >
           <span className="truncate">
             <HighlightedText text={message.data?.sidebar?.label || message.data.name} searchTerm={searchTerm} />
+            <span className="text-xs text-gray-400">{message.data.draft ? ' (DRAFT)' : ''}</span>
           </span>
           <span
             className={`ml-2 text-[10px]  flex items-center gap-1 font-medium px-2 uppercase py-0.5 rounded ${getMessageColorByLabelOrCollection(message.collection, message.data?.sidebar?.badge)}`}

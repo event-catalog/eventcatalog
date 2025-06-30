@@ -60,7 +60,11 @@ export const columns = () => [
   columnHelper.accessor('data.summary', {
     id: 'summary',
     header: () => 'Summary',
-    cell: (info) => <span className="font-light ">{info.renderValue()}</span>,
+    cell: (info) => (
+      <span className="font-light ">
+        {info.renderValue()} {info.row.original.data.draft ? ' (Draft)' : ''}
+      </span>
+    ),
     footer: (info) => info.column.id,
     meta: {
       showFilter: false,

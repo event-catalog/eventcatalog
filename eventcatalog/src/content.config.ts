@@ -73,6 +73,7 @@ const baseSchema = z.object({
   name: z.string(),
   summary: z.string().optional(),
   version: z.string(),
+  draft: z.union([z.boolean(), z.object({ title: z.string().optional(), message: z.string() })]).optional(),
   badges: z.array(badge).optional(),
   owners: z.array(ownerReference).optional(),
   schemaPath: z.string().optional(),

@@ -34,6 +34,7 @@ function mapToItem(i: any) {
           summary: d.data?.summary,
           version: d.data.version,
           latestVersion: d.data?.latestVersion,
+          draft: d.data?.draft,
           badges: d.data?.badges,
           // @ts-ignore
           consumers: d.data?.consumers?.map(mapToItem) ?? [],

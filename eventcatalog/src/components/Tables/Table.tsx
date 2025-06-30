@@ -48,6 +48,7 @@ export type TData<T extends TCollectionTypes> = {
     summary: string;
     version: string;
     latestVersion?: string; // Defined on getter collection utility
+    draft?: boolean | { title?: string; message: string }; // Draft property from base schema
     badges?: Array<{
       id: string; // Where is it defined?
       content: string;
@@ -124,13 +125,14 @@ export const Table = <T extends TCollectionTypes>({
   collection,
   mode = 'simple',
   checkboxLatestId,
+  checkboxDraftsId,
 }: {
   data: TData<T>[];
   collection: T;
   checkboxLatestId: string;
+  checkboxDraftsId: string;
   mode?: 'simple' | 'full';
 }) => {
-  const [data, _setData] = useState(initialData);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   useEffect(() => {
@@ -142,11 +144,13 @@ export const Table = <T extends TCollectionTypes>({
   }, []);
 
   const [showOnlyLatest, setShowOnlyLatest] = useState(true);
+  const [onlyShowDrafts, setOnlyShowDrafts] = useState(false);
 
   useEffect(() => {
     const checkbox = document.getElementById(checkboxLatestId);
     function handleChange(evt: Event) {
-      setShowOnlyLatest((evt.target as HTMLInputElement).checked);
+      const checked = (evt.target as HTMLInputElement).checked;
+      setShowOnlyLatest(checked);
     }
 
     checkbox?.addEventListener('change', handleChange);
@@ -154,10 +158,51 @@ export const Table = <T extends TCollectionTypes>({
     return () => checkbox?.removeEventListener('change', handleChange);
   }, [checkboxLatestId]);
 
+  useEffect(() => {
+    const checkbox = document.getElementById(checkboxDraftsId);
+    function handleChange(evt: Event) {
+      const checked = (evt.target as HTMLInputElement).checked;
+      setOnlyShowDrafts(checked);
+    }
+
+    checkbox?.addEventListener('change', handleChange);
+
+    return () => checkbox?.removeEventListener('change', handleChange);
+  }, [checkboxDraftsId]);
+
+  // Filter data based on checkbox states
+  const filteredData = useMemo(() => {
+    return initialData.filter((row) => {
+      if (row.data.id === 'OrderAmended') {
+        console.log(row.data);
+      }
+
+      // Check if item is a draft
+      const isDraft = row.data.draft === true || (typeof row.data.draft === 'object' && row.data.draft !== null);
+
+      // If "Only show drafts" is enabled, show only drafts
+      if (onlyShowDrafts && !isDraft) {
+        return false;
+      }
+
+      // If "Only show drafts" is enabled, don't apply other filters
+      if (onlyShowDrafts) {
+        return true;
+      }
+
+      // Check latest version filter (only when not showing only drafts)
+      if (showOnlyLatest) {
+        return isSameVersion(row.data.version, row.data.latestVersion);
+      }
+
+      return true;
+    });
+  }, [initialData, showOnlyLatest, onlyShowDrafts]);
+
   const columns = useMemo(() => getColumnsByCollection(collection), [collection]);
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -168,15 +213,6 @@ export const Table = <T extends TCollectionTypes>({
     getPaginationRowModel: getPaginationRowModel(),
     state: {
       columnFilters,
-      globalFilter: showOnlyLatest,
-    },
-    onGlobalFilterChange: setShowOnlyLatest,
-    globalFilterFn: (row, _columnId, showOnlyLatest: boolean) => {
-      if (showOnlyLatest) {
-        return isSameVersion(row.original.data.version, row.original.data.latestVersion);
-      }
-
-      return true;
     },
   });
 
