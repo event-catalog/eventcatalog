@@ -173,10 +173,6 @@ export const Table = <T extends TCollectionTypes>({
   // Filter data based on checkbox states
   const filteredData = useMemo(() => {
     return initialData.filter((row) => {
-      if (row.data.id === 'OrderAmended') {
-        console.log(row.data);
-      }
-
       // Check if item is a draft
       const isDraft = row.data.draft === true || (typeof row.data.draft === 'object' && row.data.draft !== null);
 
