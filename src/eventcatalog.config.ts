@@ -65,6 +65,7 @@ export interface Config {
     renderParsedSchemas?: boolean;
   };
   mdxOptimize?: boolean;
+  compress?: boolean;
   sidebar?: SideBarConfig[];
   docs: {
     sidebar: {

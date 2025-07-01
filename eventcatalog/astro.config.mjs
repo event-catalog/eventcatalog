@@ -20,6 +20,7 @@ import expressiveCode from 'astro-expressive-code';
 const projectDirectory = process.env.PROJECT_DIR || process.cwd();
 const base = config.base || '/';
 const host = config.host || false;
+const compress = config.compress || true;
 
 // https://astro.build/config
 export default defineConfig({
@@ -76,7 +77,7 @@ export default defineConfig({
       gfm: true,
     }),
     config.output !== 'server' && pagefind(),
-    config.output !== 'server' && (await import("astro-compress")).default({
+    config.output !== 'server' && compress && (await import("astro-compress")).default({
       Logger: 0,
     }),
   ].filter(Boolean),
