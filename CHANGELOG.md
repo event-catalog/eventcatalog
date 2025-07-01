@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.48.5
+
+### Patch Changes
+
+- ab83e48: feat(core): compressing build is now optional
+
 ## 2.48.4
 
 ### Patch Changes
