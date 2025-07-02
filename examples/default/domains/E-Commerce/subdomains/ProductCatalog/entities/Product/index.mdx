@@ -1,0 +1,115 @@
+---
+id: Product
+name: Product
+version: 1.0.0
+identifier: productId
+aggregateRoot: true
+summary: Represents a product or service available for purchase in the e-commerce system.
+properties:
+  - name: productId
+    type: UUID
+    required: true
+    description: Unique identifier for the product
+  - name: name
+    type: string
+    required: true
+    description: Name of the product
+  - name: description
+    type: string
+    required: false
+    description: Detailed description of the product
+  - name: sku
+    type: string
+    required: true
+    description: Stock Keeping Unit - unique product identifier
+  - name: price
+    type: decimal
+    required: true
+    description: Current selling price of the product
+  - name: categoryId
+    type: UUID
+    required: true
+    description: Category this product belongs to
+    references: Category
+    referencesIdentifier: categoryId
+    relationType: hasOne
+  - name: brand
+    type: string
+    required: false
+    description: Brand name of the product
+  - name: weight
+    type: decimal
+    required: false
+    description: Weight of the product in kilograms
+  - name: dimensions
+    type: object
+    required: false
+    description: Product dimensions (length, width, height)
+    properties:
+      - name: length
+        type: decimal
+      - name: width
+        type: decimal
+      - name: height
+        type: decimal
+  - name: isActive
+    type: boolean
+    required: true
+    description: Whether the product is currently available for sale
+  - name: createdAt
+    type: DateTime
+    required: true
+    description: Date and time when the product was created
+  - name: updatedAt
+    type: DateTime
+    required: false
+    description: Date and time when the product was last updated
+  - name: images
+    type: array
+    items:
+      type: string
+    required: false
+    description: URLs of product images
+  - name: inventory
+    type: Inventory
+    required: false
+    description: Inventory information for this product
+    references: Inventory
+    referencesIdentifier: productId
+    relationType: hasOne
+  - name: reviews
+    type: array
+    items:
+      type: Review
+    required: false
+    description: Customer reviews for this product
+    references: Review
+    referencesIdentifier: productId
+    relationType: hasMany
+---
+
+## Overview
+
+The Product entity represents items or services available for purchase in the e-commerce system. It serves as an aggregate root containing all product-related information including pricing, categorization, inventory details, and customer reviews.
+
+### Entity Properties
+<EntityPropertiesTable />
+
+## Relationships
+
+* **Category:** Each product belongs to one `Category` (identified by `categoryId`).
+* **Inventory:** Each product has one `Inventory` record tracking stock levels.
+* **Review:** A product can have multiple `Review` entities from customers.
+* **OrderItem:** Products are referenced in `OrderItem` entities when included in orders.
+
+## Examples
+
+* **Product #1:** "iPhone 15 Pro" - Electronics category, $999.99, with 50 units in stock and 4.5-star reviews.
+* **Product #2:** "Running Shoes" - Sports category, $129.99, various sizes available, with detailed size chart.
+
+## Business Rules
+
+* Products must have a unique SKU across the entire catalog
+* Products cannot be deleted if they have associated order items
+* Price changes should be tracked for audit purposes
+* Products must belong to an active category to be purchasable

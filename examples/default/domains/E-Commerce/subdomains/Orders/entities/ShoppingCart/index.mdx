@@ -1,0 +1,148 @@
+---
+id: ShoppingCart
+name: ShoppingCart
+version: 1.0.0
+identifier: cartId
+aggregateRoot: true
+summary: Represents a customer's shopping cart containing products before checkout.
+properties:
+  - name: cartId
+    type: UUID
+    required: true
+    description: Unique identifier for the shopping cart
+  - name: customerId
+    type: UUID
+    required: false
+    description: Customer who owns this cart (null for guest carts)
+    references: Customer
+    referencesIdentifier: customerId
+    relationType: hasOne
+  - name: sessionId
+    type: string
+    required: false
+    description: Session identifier for guest carts
+  - name: status
+    type: string
+    required: true
+    description: Current status of the cart
+    enum: ['active', 'abandoned', 'converted', 'expired']
+  - name: cartItems
+    type: array
+    items:
+      type: CartItem
+    required: false
+    description: Items in the shopping cart
+    references: CartItem
+    referencesIdentifier: cartId
+    relationType: hasMany
+  - name: subtotal
+    type: decimal
+    required: true
+    description: Subtotal amount before taxes and shipping
+  - name: taxAmount
+    type: decimal
+    required: false
+    description: Calculated tax amount
+  - name: shippingAmount
+    type: decimal
+    required: false
+    description: Calculated shipping amount
+  - name: discountAmount
+    type: decimal
+    required: false
+    description: Total discount amount applied
+  - name: totalAmount
+    type: decimal
+    required: true
+    description: Final total amount including taxes and shipping
+  - name: currency
+    type: string
+    required: true
+    description: Currency code for all amounts
+  - name: appliedCoupons
+    type: array
+    items:
+      type: string
+    required: false
+    description: Coupon codes applied to this cart
+  - name: shippingAddress
+    type: Address
+    required: false
+    description: Selected shipping address
+    references: Address
+    referencesIdentifier: addressId
+    relationType: hasOne
+  - name: billingAddress
+    type: Address
+    required: false
+    description: Selected billing address
+    references: Address
+    referencesIdentifier: addressId
+    relationType: hasOne
+  - name: notes
+    type: string
+    required: false
+    description: Customer notes or special instructions
+  - name: abandonedAt
+    type: DateTime
+    required: false
+    description: Date and time when cart was abandoned
+  - name: convertedToOrderId
+    type: UUID
+    required: false
+    description: Order ID if cart was successfully converted
+    references: Order
+    referencesIdentifier: orderId
+    relationType: hasOne
+  - name: expiresAt
+    type: DateTime
+    required: false
+    description: Date and time when cart expires
+  - name: createdAt
+    type: DateTime
+    required: true
+    description: Date and time when the cart was created
+  - name: updatedAt
+    type: DateTime
+    required: false
+    description: Date and time when the cart was last updated
+---
+
+## Overview
+
+The ShoppingCart entity manages the customer's shopping experience before checkout. It tracks selected products, quantities, pricing, and supports both registered customer and guest shopping scenarios.
+
+### Entity Properties
+<EntityPropertiesTable />
+
+## Relationships
+
+* **Customer:** A cart can belong to one `Customer` (identified by `customerId`).
+* **CartItem:** A cart contains multiple `CartItem` entities with product details.
+* **Address:** A cart can reference shipping and billing `Address` entities.
+* **Order:** A cart can be converted to one `Order` (identified by `convertedToOrderId`).
+
+## Cart States
+
+```
+active → abandoned
+   ↓       ↓
+converted  expired
+```
+
+## Examples
+
+* **Cart #1:** Customer cart with 3 items, $299.99 total, active status.
+* **Cart #2:** Guest cart abandoned after 24 hours, contains 1 high-value item.
+* **Cart #3:** Converted cart that became Order #12345, marked as converted.
+
+## Business Rules
+
+* Guest carts are identified by session ID when customer ID is null
+* Cart totals are recalculated when items are added/removed
+* Abandoned carts trigger marketing automation after configured time
+* Expired carts are cleaned up after retention period
+* Cart conversion creates an order and marks cart as converted
+* Inventory is not reserved until checkout begins
+* Applied coupons are validated on each cart update
+* Cart items maintain snapshot of product prices at time of addition
