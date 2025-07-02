@@ -9,6 +9,7 @@ export const mockDomains = [
       version: '0.0.1',
       services: [{ id: 'LocationService', version: '0.0.1' }],
       domains: [{ id: 'Checkout', version: '0.0.1' }],
+      entities: [{ id: 'Shipment', version: '0.0.1' }],
     },
   },
   {

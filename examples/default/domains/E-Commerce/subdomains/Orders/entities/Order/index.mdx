@@ -13,7 +13,10 @@ properties:
   - name: customerId
     type: UUID
     required: true
-    description: Identifier for the customer placing the order
+    description: Identifier for the customer placing the order test
+    references: Customer
+    referencesIdentifier: customerId
+    relationType: hasOne
   - name: orderDate
     type: DateTime
     required: true
@@ -28,6 +31,9 @@ properties:
     items:
       type: OrderItem # Assuming an OrderItem entity exists
     required: true
+    references: OrderItem
+    referencesIdentifier: orderItemId
+    relationType: hasMany
     description: List of items included in the order
   - name: totalAmount
     type: decimal

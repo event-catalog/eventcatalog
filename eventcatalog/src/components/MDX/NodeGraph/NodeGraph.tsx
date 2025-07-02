@@ -23,6 +23,7 @@ import { DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 import ServiceNode from './Nodes/Service';
 import FlowNode from './Nodes/Flow';
 import EventNode from './Nodes/Event';
+import EntityNode from './Nodes/Entity';
 import QueryNode from './Nodes/Query';
 import UserNode from './Nodes/User';
 import StepNode from './Nodes/Step';
@@ -85,6 +86,7 @@ const NodeGraphBuilder = ({
       actor: UserNode,
       custom: CustomNode,
       externalSystem: ExternalSystemNode,
+      entities: EntityNode,
     }),
     []
   );
@@ -101,7 +103,16 @@ const NodeGraphBuilder = ({
   const [isAnimated, setIsAnimated] = useState(false);
   const [animateMessages, setAnimateMessages] = useState(false);
   const [activeStepIndex, setActiveStepIndex] = useState<number | null>(null);
-  const { hideChannels, toggleChannelsVisibility } = useEventCatalogVisualiser({ nodes, edges, setNodes, setEdges });
+
+  // Check if there are channels to determine if we need the visualizer functionality
+  const hasChannels = useMemo(() => initialNodes.some((node: any) => node.type === 'channels'), [initialNodes]);
+  const { hideChannels, toggleChannelsVisibility } = useEventCatalogVisualiser({
+    nodes,
+    edges,
+    setNodes,
+    setEdges,
+    skipProcessing: !hasChannels, // Pass flag to skip processing when no channels
+  });
   const { fitView, getNodes } = useReactFlow();
   const searchRef = useRef<VisualiserSearchRef>(null);
 
@@ -540,27 +551,29 @@ const NodeGraphBuilder = ({
               </div>
               <p className="text-[10px] text-gray-500">Animate events, queries and commands.</p>
             </div>
-            <div>
-              <div className="flex items-center justify-between">
-                <label htmlFor="message-animation-toggle" className="text-sm font-medium text-gray-700">
-                  Hide Channels
-                </label>
-                <button
-                  id="message-animation-toggle"
-                  onClick={toggleChannelsVisibility}
-                  className={`${
-                    hideChannels ? 'bg-purple-600' : 'bg-gray-200'
-                  } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
-                >
-                  <span
+            {hasChannels && (
+              <div>
+                <div className="flex items-center justify-between">
+                  <label htmlFor="hide-channels-toggle" className="text-sm font-medium text-gray-700">
+                    Hide Channels
+                  </label>
+                  <button
+                    id="hide-channels-toggle"
+                    onClick={toggleChannelsVisibility}
                     className={`${
-                      hideChannels ? 'translate-x-6' : 'translate-x-1'
-                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-                  />
-                </button>
+                      hideChannels ? 'bg-purple-600' : 'bg-gray-200'
+                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
+                  >
+                    <span
+                      className={`${
+                        hideChannels ? 'translate-x-6' : 'translate-x-1'
+                      } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                    />
+                  </button>
+                </div>
+                <p className="text-[10px] text-gray-500">Show or hide channels in the visualizer.</p>
               </div>
-              <p className="text-[10px] text-gray-500">Show or hide channels in the visualizer.</p>
-            </div>
+            )}
             <div className="pt-4 border-t border-gray-200">
               <button
                 onClick={handleExportVisual}

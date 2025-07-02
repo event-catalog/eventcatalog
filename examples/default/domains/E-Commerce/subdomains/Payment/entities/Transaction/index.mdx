@@ -13,6 +13,8 @@ properties:
   - name: paymentId
     type: UUID
     required: true
+    references: Payment
+    relationType: hasOne
     description: Identifier of the parent Payment this transaction belongs to.
   - name: type
     type: string # (e.g., Authorize, Capture, Sale, Refund, Void, Verify)

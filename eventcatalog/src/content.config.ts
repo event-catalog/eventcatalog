@@ -429,6 +429,9 @@ const entities = defineCollection({
             type: z.string(),
             required: z.boolean().optional(),
             description: z.string().optional(),
+            references: z.string().optional(),
+            referencesIdentifier: z.string().optional(),
+            relationType: z.string().optional(),
           })
         )
         .optional(),

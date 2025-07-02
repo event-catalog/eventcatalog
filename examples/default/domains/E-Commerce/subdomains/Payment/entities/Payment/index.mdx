@@ -10,54 +10,61 @@ properties:
     type: UUID
     required: true
     description: Unique identifier for the payment transaction.
-  - name: customerId
-    type: UUID
-    required: true
-    description: Identifier of the customer making the payment.
-  - name: invoiceId # Optional, if payment is for a specific invoice
-    type: UUID
-    required: false
-    description: Identifier of the invoice this payment settles.
-  - name: orderId # Optional, if payment is directly for an order
-    type: UUID
-    required: false
-    description: Identifier of the order this payment is for.
   - name: paymentMethodId
     type: UUID
     required: true
     description: Identifier of the payment method used (e.g., credit card, bank transfer).
-  - name: amount
-    type: decimal
-    required: true
-    description: The amount of money transferred in the payment.
-  - name: currency
-    type: string # ISO 4217 code
-    required: true
-    description: Currency of the payment amount.
-  - name: status
-    type: string # (e.g., Pending, Succeeded, Failed, Refunded, Disputed)
-    required: true
-    description: Current status of the payment transaction.
-  - name: transactionReference # From payment gateway
-    type: string
-    required: false
-    description: External reference ID from the payment processor or bank.
-  - name: paymentDate
-    type: DateTime
-    required: true
-    description: Timestamp when the payment was processed or attempted.
-  - name: failureReason # If status is Failed
-    type: string
-    required: false
-    description: Reason provided by the payment gateway if the payment failed.
-  - name: refundAmount # If status is Refunded
-    type: decimal
-    required: false
-    description: The amount refunded, if any part of the payment was returned.
-  - name: refundDate # If status is Refunded
-    type: DateTime
-    required: false
-    description: Timestamp when the refund was processed.
+    references: PaymentMethod
+    referencesIdentifier: paymentMethodId
+    relationType: hasMany
+  # - name: customerId
+  #   type: UUID
+  #   required: true
+  #   description: Identifier of the customer making the payment.
+  # - name: invoiceId # Optional, if payment is for a specific invoice
+  #   type: UUID
+  #   required: false
+  #   description: Identifier of the invoice this payment settles.
+  # - name: orderId # Optional, if payment is directly for an order
+  #   type: UUID
+  #   required: false
+  #   description: Identifier of the order this payment is for.
+  # - name: paymentMethodId
+  #   type: UUID
+  #   required: true
+  #   description: Identifier of the payment method used (e.g., credit card, bank transfer).
+  # - name: amount
+  #   type: decimal
+  #   required: true
+  #   description: The amount of money transferred in the payment.
+  # - name: currency
+  #   type: string # ISO 4217 code
+  #   required: true
+  #   description: Currency of the payment amount.
+  # - name: status
+  #   type: string # (e.g., Pending, Succeeded, Failed, Refunded, Disputed)
+  #   required: true
+  #   description: Current status of the payment transaction.
+  # - name: transactionReference # From payment gateway
+  #   type: string
+  #   required: false
+  #   description: External reference ID from the payment processor or bank.
+  # - name: paymentDate
+  #   type: DateTime
+  #   required: true
+  #   description: Timestamp when the payment was processed or attempted.
+  # - name: failureReason # If status is Failed
+  #   type: string
+  #   required: false
+  #   description: Reason provided by the payment gateway if the payment failed.
+  # - name: refundAmount # If status is Refunded
+  #   type: decimal
+  #   required: false
+  #   description: The amount refunded, if any part of the payment was returned.
+  # - name: refundDate # If status is Refunded
+  #   type: DateTime
+  #   required: false
+  #   description: Timestamp when the refund was processed.
 ---
 
 ## Overview

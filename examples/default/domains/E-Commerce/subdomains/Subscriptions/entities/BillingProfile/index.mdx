@@ -14,10 +14,13 @@ properties:
     type: UUID
     required: true
     description: Identifier of the customer this billing profile belongs to.
+    references: Customer
+    referencesIdentifier: customerId
+    relationType: hasOne
   - name: billingEmail
     type: string
     required: false # May default to customer's primary email
-    description: Specific email address for sending invoices and billing notifications.
+    description: Specific email address for sending invoices and billing notifications
   - name: companyName # Optional, for B2B
     type: string
     required: false

@@ -16,9 +16,16 @@ interface EventCatalogVisualizerProps {
   edges: Edge[];
   setNodes: (nodes: Node[]) => void;
   setEdges: (edges: Edge[]) => void;
+  skipProcessing?: boolean;
 }
 
-export const useEventCatalogVisualiser = ({ nodes, edges, setNodes, setEdges }: EventCatalogVisualizerProps) => {
+export const useEventCatalogVisualiser = ({
+  nodes,
+  edges,
+  setNodes,
+  setEdges,
+  skipProcessing = false,
+}: EventCatalogVisualizerProps) => {
   const [hideChannels, setHideChannels] = useState(false);
   const [initialNodes] = useState(nodes);
   const [initialEdges] = useState(edges);
@@ -77,6 +84,11 @@ export const useEventCatalogVisualiser = ({ nodes, edges, setNodes, setEdges }: 
   }, [edges, channels]);
 
   useEffect(() => {
+    // Skip processing if there are no channels to manage
+    if (skipProcessing) {
+      return;
+    }
+
     if (hideChannels) {
       const { nodes: newNodes, edges: newEdges } = getNodesAndEdgesFromDagre({ nodes: updatedNodes, edges: updatedEdges });
       setNodes(newNodes);
@@ -85,7 +97,7 @@ export const useEventCatalogVisualiser = ({ nodes, edges, setNodes, setEdges }: 
       setNodes(initialNodes);
       setEdges(initialEdges);
     }
-  }, [hideChannels]);
+  }, [hideChannels, skipProcessing]);
 
   return {
     hideChannels,
