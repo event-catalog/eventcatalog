@@ -14,10 +14,15 @@ properties:
     type: UUID
     required: true
     description: Identifier for the parent Order
+    references: Order
+    relationType: hasOne
   - name: productId
     type: UUID
     required: true
     description: Identifier for the product being ordered
+    references: Product
+    referencesIdentifier: productId
+    relationType: hasOne 
   - name: productName
     type: string
     required: false # Often denormalized for performance/display

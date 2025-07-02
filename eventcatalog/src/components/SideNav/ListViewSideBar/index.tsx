@@ -485,72 +485,86 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
   );
 
   // Component to render domain content (Overview, Architecture, etc.)
-  const DomainContent = React.memo(({ item, nestingLevel = 0 }: { item: any; nestingLevel?: number }) => {
-    const marginLeft = nestingLevel > 0 ? `ml-${nestingLevel * 4}` : '';
+  const DomainContent = React.memo(
+    ({ item, nestingLevel = 0, className = '' }: { item: any; nestingLevel?: number; className?: string }) => {
+      const marginLeft = nestingLevel > 0 ? `ml-${nestingLevel * 4}` : '';
+      const hasEntities = item.entities && item.entities.length > 0;
 
-    return (
-      <div
-        className={`overflow-hidden transition-[height] duration-150 ease-out ${collapsedGroups[item.href] ? 'h-0' : 'h-auto'}`}
-      >
-        <div className={`space-y-0.5 border-gray-200/80 border-l pl-4 ml-[9px] mt-1 ${marginLeft}`}>
-          <a
-            href={`${item.href}`}
-            data-active={decodedCurrentPath === item.href}
-            className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
-              decodedCurrentPath === item.href ? 'bg-purple-100 ' : 'hover:bg-purple-100'
-            }`}
-          >
-            <span className="truncate">Overview</span>
-          </a>
-          {!isVisualizer && (
+      return (
+        <div
+          className={`overflow-hidden transition-[height] duration-150 ease-out ${collapsedGroups[item.href] ? 'h-0' : 'h-auto'} ${className}`}
+        >
+          <div className={`space-y-0.5 border-gray-200/80 border-l pl-4  mt-1 ${marginLeft ? marginLeft : 'ml-[9px]'}`}>
             <a
-              href={buildUrlWithParams('/architecture/docs/services', {
-                serviceIds: item.services.map((service: any) => service.data.id).join(','),
-                domainId: item.id,
-                domainName: item.name,
-              })}
-              data-active={window.location.href.includes(`domainId=${item.id}`)}
+              href={`${item.href}`}
+              data-active={decodedCurrentPath === item.href}
               className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
-                window.location.href.includes(`domainId=${item.id}`) ? 'bg-purple-100 ' : 'hover:bg-purple-100'
+                decodedCurrentPath === item.href ? 'bg-purple-100 ' : 'hover:bg-purple-100'
               }`}
             >
-              <span className="truncate">Architecture</span>
+              <span className="truncate">Overview</span>
             </a>
-          )}
-          {!isVisualizer && (
-            <a
-              href={buildUrl(`/docs/domains/${item.id}/language`)}
-              data-active={decodedCurrentPath.includes(`/docs/domains/${item.id}/language`)}
-              className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
-                decodedCurrentPath.includes(`/docs/domains/${item.id}/language`) ? 'bg-purple-100 ' : 'hover:bg-purple-100'
-              }`}
-            >
-              <span className="truncate">Ubiquitous Language</span>
-            </a>
-          )}
-          {item.entities.length > 0 && !isVisualizer && (
-            <CollapsibleGroup
-              isCollapsed={collapsedGroups[`${item.href}-entities`]}
-              onToggle={() => toggleGroupCollapse(`${item.href}-entities`)}
-              title={
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleGroupCollapse(`${item.href}-entities`);
-                  }}
-                  className="truncate underline ml-2 text-xs mb-1 py-1"
-                >
-                  Entities ({item.entities.length})
-                </button>
-              }
-            >
-              <MessageList messages={item.entities} decodedCurrentPath={decodedCurrentPath} searchTerm={debouncedSearchTerm} />
-            </CollapsibleGroup>
-          )}
+            {isVisualizer && hasEntities && (
+              <a
+                href={buildUrl(`/${item.href}/entity-map`)}
+                data-active={decodedCurrentPath === `${item.href}/entity-map`}
+                className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
+                  decodedCurrentPath === `${item.href}/entity-map` ? 'bg-purple-100 ' : 'hover:bg-purple-100'
+                }`}
+              >
+                <span className="truncate">Entity Map</span>
+              </a>
+            )}
+            {!isVisualizer && (
+              <a
+                href={buildUrlWithParams('/architecture/docs/services', {
+                  serviceIds: item.services.map((service: any) => service.data.id).join(','),
+                  domainId: item.id,
+                  domainName: item.name,
+                })}
+                data-active={window.location.href.includes(`domainId=${item.id}`)}
+                className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
+                  window.location.href.includes(`domainId=${item.id}`) ? 'bg-purple-100 ' : 'hover:bg-purple-100'
+                }`}
+              >
+                <span className="truncate">Architecture</span>
+              </a>
+            )}
+            {!isVisualizer && (
+              <a
+                href={buildUrl(`/docs/domains/${item.id}/language`)}
+                data-active={decodedCurrentPath.includes(`/docs/domains/${item.id}/language`)}
+                className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
+                  decodedCurrentPath.includes(`/docs/domains/${item.id}/language`) ? 'bg-purple-100 ' : 'hover:bg-purple-100'
+                }`}
+              >
+                <span className="truncate">Ubiquitous Language</span>
+              </a>
+            )}
+            {item.entities.length > 0 && !isVisualizer && (
+              <CollapsibleGroup
+                isCollapsed={collapsedGroups[`${item.href}-entities`]}
+                onToggle={() => toggleGroupCollapse(`${item.href}-entities`)}
+                title={
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleGroupCollapse(`${item.href}-entities`);
+                    }}
+                    className="truncate underline ml-2 text-xs mb-1 py-1"
+                  >
+                    Entities ({item.entities.length})
+                  </button>
+                }
+              >
+                <MessageList messages={item.entities} decodedCurrentPath={decodedCurrentPath} searchTerm={debouncedSearchTerm} />
+              </CollapsibleGroup>
+            )}
+          </div>
         </div>
-      </div>
-    );
-  });
+      );
+    }
+  );
 
   if (!isInitialized) return null;
 
@@ -661,7 +675,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                                     data-active={decodedCurrentPath === subdomain.href}
                                   >
                                     <DomainItem item={subdomain} isSubdomain={true} nestingLevel={1} />
-                                    <DomainContent item={subdomain} nestingLevel={1} />
+                                    <DomainContent item={subdomain} nestingLevel={3} className="ml-6" />
                                   </div>
                                 ))}
                               </div>

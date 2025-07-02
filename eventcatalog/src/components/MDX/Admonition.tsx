@@ -25,9 +25,9 @@ export default function Admonition({ children, type = 'info', className = '', ti
   const Icon = config.icon;
 
   return (
-    <div className={`bg-${config.color}-50 border-l-4 border-${config.color}-500 p-4 my-4 ${className} rounded-md`}>
+    <div className={`bg-${config.color}-50 border-l-4 border-${config.color}-500 p-4 my-4 ${className} rounded-md not-prose`}>
       <div className="flex flex-col">
-        <div className="flex items-center">
+        <div className="flex items-center justify-start">
           <Icon className={`h-6 w-6 text-${config.color}-500 stroke-2`} aria-hidden="true" />
           <h3 className={`ml-2 text-${config.color}-600 font-bold text-md`}>{title || config.title}</h3>
         </div>

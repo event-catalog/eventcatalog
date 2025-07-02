@@ -3,79 +3,138 @@ id: Payment
 name: Payment
 version: 1.0.0
 identifier: paymentId
-summary: Represents a payment transaction made by a customer, usually to settle an invoice or pay for an order.
-
+aggregateRoot: true
+summary: Represents payment transactions for orders in the e-commerce system.
 properties:
   - name: paymentId
     type: UUID
     required: true
-    description: Unique identifier for the payment transaction.
+    description: Unique identifier for the payment
+  - name: orderId
+    type: UUID
+    required: true
+    description: Order this payment is associated with
+    references: Order
+    referencesIdentifier: orderId
+    relationType: hasOne
   - name: customerId
     type: UUID
     required: true
-    description: Identifier of the customer making the payment.
-  - name: invoiceId # Optional, if payment is for a specific invoice
-    type: UUID
-    required: false
-    description: Identifier of the invoice this payment settles.
-  - name: orderId # Optional, if payment is directly for an order
-    type: UUID
-    required: false
-    description: Identifier of the order this payment is for.
-  - name: paymentMethodId
-    type: UUID
-    required: true
-    description: Identifier of the payment method used (e.g., credit card, bank transfer).
+    description: Customer who made the payment
+    references: Customer
+    referencesIdentifier: customerId
+    relationType: hasOne
   - name: amount
     type: decimal
     required: true
-    description: The amount of money transferred in the payment.
+    description: Payment amount
   - name: currency
-    type: string # ISO 4217 code
+    type: string
     required: true
-    description: Currency of the payment amount.
+    description: Currency code (e.g., USD, EUR, GBP)
+  - name: paymentMethod
+    type: string
+    required: true
+    description: Payment method used
+    enum: ['credit_card', 'debit_card', 'paypal', 'stripe', 'bank_transfer', 'apple_pay', 'google_pay']
+  - name: paymentMethodDetails
+    type: object
+    required: false
+    description: Additional payment method specific details
+    properties:
+      - name: cardLast4
+        type: string
+        description: Last 4 digits of card number
+      - name: cardType
+        type: string
+        description: Card type (Visa, MasterCard, etc.)
+      - name: expiryMonth
+        type: integer
+        description: Card expiry month
+      - name: expiryYear
+        type: integer
+        description: Card expiry year
   - name: status
-    type: string # (e.g., Pending, Succeeded, Failed, Refunded, Disputed)
+    type: string
     required: true
-    description: Current status of the payment transaction.
-  - name: transactionReference # From payment gateway
+    description: Current payment status
+    enum: ['pending', 'processing', 'completed', 'failed', 'cancelled', 'refunded', 'partially_refunded']
+  - name: transactionId
     type: string
     required: false
-    description: External reference ID from the payment processor or bank.
-  - name: paymentDate
-    type: DateTime
+    description: External payment processor transaction ID
+  - name: gatewayResponse
+    type: object
+    required: false
+    description: Raw response from payment gateway
+  - name: billingAddress
+    type: Address
     required: true
-    description: Timestamp when the payment was processed or attempted.
-  - name: failureReason # If status is Failed
+    description: Billing address for the payment
+    references: Address
+    referencesIdentifier: addressId
+    relationType: hasOne
+  - name: processedAt
+    type: DateTime
+    required: false
+    description: Date and time when payment was processed
+  - name: failureReason
     type: string
     required: false
-    description: Reason provided by the payment gateway if the payment failed.
-  - name: refundAmount # If status is Refunded
-    type: decimal
+    description: Reason for payment failure if applicable
+  - name: refunds
+    type: array
+    items:
+      type: PaymentRefund
     required: false
-    description: The amount refunded, if any part of the payment was returned.
-  - name: refundDate # If status is Refunded
+    description: Refunds associated with this payment
+    references: PaymentRefund
+    referencesIdentifier: paymentId
+    relationType: hasMany
+  - name: createdAt
+    type: DateTime
+    required: true
+    description: Date and time when the payment record was created
+  - name: updatedAt
     type: DateTime
     required: false
-    description: Timestamp when the refund was processed.
+    description: Date and time when the payment record was last updated
 ---
 
 ## Overview
 
-The Payment entity records the details of a monetary transaction initiated by a customer towards the business. It captures the amount, currency, payment method used, status (success, failure, refund), and links to the relevant invoice or order being paid.
+The Payment entity manages all payment transactions in the e-commerce system. It tracks payment details, status, and relationships with orders and customers, supporting various payment methods and refund scenarios.
 
 ### Entity Properties
 <EntityPropertiesTable />
 
 ## Relationships
 
-*   **Customer:** A payment is made by one `Customer`.
-*   **Invoice/Order:** A payment typically corresponds to one `Invoice` or `Order`.
-*   **PaymentMethod:** A payment is executed using a specific `PaymentMethod`.
-*   **Transaction:** A payment attempt often results in one or more lower-level `Transaction` records (e.g., authorization, capture).
+* **Order:** Each payment belongs to one `Order` (identified by `orderId`).
+* **Customer:** Each payment is made by one `Customer` (identified by `customerId`).
+* **Address:** Each payment has a billing `Address` (identified by `billingAddress`).
+* **PaymentRefund:** A payment can have multiple `PaymentRefund` entities for partial or full refunds.
+
+## Payment States
+
+```
+pending → processing → completed
+    ↓         ↓           ↓
+cancelled  failed    refunded/partially_refunded
+```
 
 ## Examples
 
-*   Payment #PAY-98765 from Jane Doe for $19.99 via Credit Card ending in 1234, status Succeeded, settling Invoice #INV-00123.
-*   Payment #PAY-98766 attempt from John Smith for $50.00 via Bank Transfer, status Failed (Reason: Insufficient Funds).
-*   Payment #PAY-98760 for $100.00, partially refunded for $25.00 on 2024-05-18. 
+* **Payment #1:** $299.99 credit card payment for Order #12345, completed successfully.
+* **Payment #2:** $150.00 PayPal payment for Order #67890, failed due to insufficient funds.
+* **Payment #3:** $500.00 bank transfer, completed with $50.00 partial refund.
+
+## Business Rules
+
+* Payment amount must match the order total
+* Payment status transitions must follow valid state machine
+* Failed payments should include failure reason
+* Completed payments cannot be cancelled
+* Refunds cannot exceed the original payment amount
+* Payment method details are encrypted and PCI compliant
+* Transaction IDs from payment gateways must be stored for reconciliation

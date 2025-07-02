@@ -1,0 +1,154 @@
+---
+id: Review
+name: Review
+version: 1.0.0
+identifier: reviewId
+summary: Represents customer reviews and ratings for products.
+properties:
+  - name: reviewId
+    type: UUID
+    required: true
+    description: Unique identifier for the review
+  - name: productId
+    type: UUID
+    required: true
+    description: Product being reviewed
+    references: Product
+    referencesIdentifier: productId
+    relationType: hasOne
+  - name: customerId
+    type: UUID
+    required: true
+    description: Customer who wrote the review
+    references: Customer
+    referencesIdentifier: customerId
+    relationType: hasOne
+  - name: orderId
+    type: UUID
+    required: false
+    description: Order associated with this review (for verified purchases)
+    references: Order
+    referencesIdentifier: orderId
+    relationType: hasOne
+  - name: rating
+    type: integer
+    required: true
+    description: Rating given by customer (1-5 stars)
+    minimum: 1
+    maximum: 5
+  - name: title
+    type: string
+    required: false
+    description: Review title or headline
+  - name: content
+    type: string
+    required: true
+    description: Review content and comments
+  - name: isVerifiedPurchase
+    type: boolean
+    required: true
+    description: Whether this review is from a verified purchase
+  - name: isRecommended
+    type: boolean
+    required: false
+    description: Whether customer recommends this product
+  - name: helpfulVotes
+    type: integer
+    required: true
+    description: Number of helpful votes received
+  - name: totalVotes
+    type: integer
+    required: true
+    description: Total number of votes received
+  - name: status
+    type: string
+    required: true
+    description: Current review status
+    enum: ['pending', 'approved', 'rejected', 'flagged']
+  - name: moderationNotes
+    type: string
+    required: false
+    description: Internal moderation notes
+  - name: images
+    type: array
+    items:
+      type: string
+    required: false
+    description: URLs of images uploaded with the review
+  - name: pros
+    type: array
+    items:
+      type: string
+    required: false
+    description: List of positive aspects mentioned
+  - name: cons
+    type: array
+    items:
+      type: string
+    required: false
+    description: List of negative aspects mentioned
+  - name: merchantResponse
+    type: object
+    required: false
+    description: Response from merchant to this review
+    properties:
+      - name: content
+        type: string
+        description: Merchant response content
+      - name: respondedAt
+        type: DateTime
+        description: When merchant responded
+      - name: respondedBy
+        type: string
+        description: Who responded for the merchant
+  - name: createdAt
+    type: DateTime
+    required: true
+    description: Date and time when the review was created
+  - name: updatedAt
+    type: DateTime
+    required: false
+    description: Date and time when the review was last updated
+  - name: moderatedAt
+    type: DateTime
+    required: false
+    description: Date and time when the review was moderated
+---
+
+## Overview
+
+The Review entity captures customer feedback and ratings for products. It supports verified purchase validation, content moderation, community voting, and merchant responses to build trust and provide valuable product insights.
+
+### Entity Properties
+<EntityPropertiesTable />
+
+## Relationships
+
+* **Product:** Each review belongs to one `Product` (identified by `productId`).
+* **Customer:** Each review is written by one `Customer` (identified by `customerId`).
+* **Order:** Each review can be linked to one `Order` for purchase verification (identified by `orderId`).
+
+## Review Lifecycle
+
+```
+submitted → pending → approved → published
+              ↓         ↓
+           rejected   flagged
+```
+
+## Examples
+
+* **Review #1:** 5-star review for iPhone 15 Pro, verified purchase, "Excellent camera quality!"
+* **Review #2:** 3-star review for Running Shoes, helpful votes: 15/20, includes photos
+* **Review #3:** 1-star review flagged for inappropriate content, pending moderation
+
+## Business Rules
+
+* Reviews can only be submitted by customers who purchased the product
+* Rating must be between 1-5 stars
+* Verified purchase reviews are given higher weight in calculations
+* Inappropriate content is flagged and requires moderation
+* Customers can only review the same product once per purchase
+* Helpful votes help surface most valuable reviews
+* Merchant responses are limited to one per review
+* Reviews older than 2 years may have reduced weight in calculations

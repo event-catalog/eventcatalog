@@ -1,0 +1,162 @@
+---
+id: Address
+name: Address
+version: 1.0.0
+identifier: addressId
+summary: Represents shipping and billing addresses for customers and orders.
+properties:
+  - name: addressId
+    type: UUID
+    required: true
+    description: Unique identifier for the address
+  - name: customerId
+    type: UUID
+    required: false
+    description: Customer this address belongs to
+    references: Customer
+    referencesIdentifier: customerId
+    relationType: hasOne
+  - name: type
+    type: string
+    required: true
+    description: Type of address
+    enum: ['billing', 'shipping', 'both']
+  - name: firstName
+    type: string
+    required: true
+    description: First name of the recipient
+  - name: lastName
+    type: string
+    required: true
+    description: Last name of the recipient
+  - name: company
+    type: string
+    required: false
+    description: Company name if applicable
+  - name: addressLine1
+    type: string
+    required: true
+    description: Primary address line (street address)
+  - name: addressLine2
+    type: string
+    required: false
+    description: Secondary address line (apartment, suite, etc.)
+  - name: city
+    type: string
+    required: true
+    description: City name
+  - name: state
+    type: string
+    required: true
+    description: State or province
+  - name: postalCode
+    type: string
+    required: true
+    description: Postal or ZIP code
+  - name: country
+    type: string
+    required: true
+    description: Country code (ISO 3166-1 alpha-2)
+  - name: phone
+    type: string
+    required: false
+    description: Phone number for delivery contact
+  - name: isDefault
+    type: boolean
+    required: true
+    description: Whether this is the default address for the customer
+  - name: isValidated
+    type: boolean
+    required: true
+    description: Whether the address has been validated
+  - name: validationDetails
+    type: object
+    required: false
+    description: Address validation details
+    properties:
+      - name: validatedAt
+        type: DateTime
+        description: When the address was validated
+      - name: validationService
+        type: string
+        description: Service used for validation
+      - name: confidence
+        type: decimal
+        description: Validation confidence score
+  - name: geocoordinates
+    type: object
+    required: false
+    description: Geographic coordinates for the address
+    properties:
+      - name: latitude
+        type: decimal
+        description: Latitude coordinate
+      - name: longitude
+        type: decimal
+        description: Longitude coordinate
+  - name: deliveryInstructions
+    type: string
+    required: false
+    description: Special delivery instructions
+  - name: orders
+    type: array
+    items:
+      type: Order
+    required: false
+    description: Orders using this address
+    references: Order
+    referencesIdentifier: shippingAddress
+    relationType: hasMany
+  - name: payments
+    type: array
+    items:
+      type: Payment
+    required: false
+    description: Payments using this as billing address
+    references: Payment
+    referencesIdentifier: billingAddress
+    relationType: hasMany
+  - name: createdAt
+    type: DateTime
+    required: true
+    description: Date and time when the address was created
+  - name: updatedAt
+    type: DateTime
+    required: false
+    description: Date and time when the address was last updated
+---
+
+## Overview
+
+The Address entity stores shipping and billing addresses for customers, orders, and payments. It supports address validation, geocoding, and delivery instructions to ensure accurate order fulfillment.
+
+### Entity Properties
+<EntityPropertiesTable />
+
+## Relationships
+
+* **Customer:** An address can belong to one `Customer` (identified by `customerId`).
+* **Order:** An address can be used by multiple `Order` entities for shipping.
+* **Payment:** An address can be used by multiple `Payment` entities for billing.
+
+## Address Types
+
+* **Billing:** Used for payment processing and invoicing
+* **Shipping:** Used for order delivery
+* **Both:** Can be used for both billing and shipping
+
+## Examples
+
+* **Address #1:** John Doe's home address - default shipping and billing address.
+* **Address #2:** Corporate office address - billing only, validated with high confidence.
+* **Address #3:** Gift recipient address - shipping only, with special delivery instructions.
+
+## Business Rules
+
+* Each customer can have only one default address per type
+* Addresses must be validated before being marked as default
+* International addresses require country-specific validation
+* Geocoordinates are automatically populated when available
+* Address changes should create new versions for audit trail
+* PO Box addresses may have shipping restrictions
+* Address validation improves delivery success rates
