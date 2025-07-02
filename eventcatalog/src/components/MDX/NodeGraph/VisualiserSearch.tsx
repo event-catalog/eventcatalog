@@ -17,6 +17,11 @@ interface DomainData {
   version?: string;
 }
 
+interface EntityData {
+  name: string;
+  version?: string;
+}
+
 interface NodeDataContent extends Record<string, unknown> {
   message?: {
     data: MessageData;
@@ -26,6 +31,9 @@ interface NodeDataContent extends Record<string, unknown> {
   };
   domain?: {
     data: DomainData;
+  };
+  entity?: {
+    data: EntityData;
   };
   name?: string;
   version?: string;
@@ -72,12 +80,14 @@ const VisualiserSearch = forwardRef<VisualiserSearchRef, VisualiserSearchProps>(
         node.data?.message?.data?.name ||
         node.data?.service?.data?.name ||
         node.data?.domain?.data?.name ||
+        node.data?.entity?.data?.name ||
         node.data?.name ||
         node.id;
       const version =
         node.data?.message?.data?.version ||
         node.data?.service?.data?.version ||
         node.data?.domain?.data?.version ||
+        node.data?.entity?.data?.version ||
         node.data?.version;
       return version ? `${name} (v${version})` : name;
     }, []);

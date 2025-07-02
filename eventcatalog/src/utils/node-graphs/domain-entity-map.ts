@@ -1,35 +1,20 @@
 import { getCollection, getEntry } from 'astro:content';
-import { createDagreGraph, calculatedNodes, generateIdForNode } from './utils/utils';
-import dagre from 'dagre';
+import { generateIdForNode } from './utils/utils';
+import ELK from 'elkjs/lib/elk.bundled.js';
 import { MarkerType } from '@xyflow/react';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { getEntities, type Entity } from '@utils/entities';
 import { getDomains, type Domain } from '@utils/collections/domains';
 
-type DagreGraph = any;
+const elk = new ELK();
 
 interface Props {
   id: string;
   version: string;
-  defaultFlow?: DagreGraph;
 }
 
-export const getNodesAndEdges = async ({ id, version, defaultFlow = null }: Props) => {
-  // Horizontal spread configuration for better distribution
-  const flow =
-    defaultFlow ??
-    createDagreGraph({
-      rankdir: 'LR', // Left to right for more horizontal spread
-      ranksep: 350, // Horizontal spacing between ranks (increased)
-      nodesep: 150, // Vertical spacing between nodes (increased)
-      edgesep: 25, // Spacing between edges (increased)
-      marginx: 50, // Margin around graph (increased)
-      marginy: 50, // Margin around graph (increased)
-      acyclicer: 'greedy', // Handle cycles better
-      ranker: 'network-simplex', // Use network-simplex for better distribution
-    });
-
+export const getNodesAndEdges = async ({ id, version }: Props) => {
   let nodes = [] as any,
     edges = [] as any;
 
@@ -64,18 +49,19 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow = null }: Prop
 
   // Helper function to find which domain an entity belongs to
   const findEntityDomain = (entityId: string) => {
-    return allDomains.find((domain) => domain.data.entities?.some((domainEntity: any) => domainEntity.id === entityId));
+    return allDomains.find((domain) => domain.data.entities?.some((domainEntity: any) => domainEntity.data.id === entityId));
   };
 
   const addedExternalEntities = [];
   for (const entityId of externalToDomain) {
-    const externalEntity = getItemsFromCollectionByIdAndSemverOrLatest(entities, entityId, 'latest')[0] as Entity;
+    const externalEntity = getItemsFromCollectionByIdAndSemverOrLatest(entities, entityId as string, 'latest')[0] as Entity;
 
     if (externalEntity) {
       const nodeId = generateIdForNode(externalEntity);
 
       // Find which domain this entity belongs to
-      const entityDomain = findEntityDomain(entityId);
+      const entityDomain = findEntityDomain(entityId as string);
+
       const domainName = entityDomain?.data.name || 'Unknown Domain';
       const domainId = entityDomain?.data.id || 'unknown';
 
@@ -153,13 +139,14 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow = null }: Prop
           label: referenceProperty.relationType || 'references',
           style: {
             strokeWidth: 2,
-            stroke: '#6366f1', // indigo color for relationship lines
+            stroke: '#000', // gray color for relationship lines
+            strokeDasharray: '5,5', // dashed line
           },
           markerEnd: {
             type: MarkerType.ArrowClosed,
             width: 20,
             height: 20,
-            color: '#6366f1',
+            color: '#000',
           },
         });
       } else {
@@ -185,60 +172,49 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow = null }: Prop
 
   const entitiesWithoutRelationships = allEntitiesInGraph.filter((entity) => !entitiesWithRelationships.includes(entity));
 
-  // Set node dimensions with better spacing consideration
-  nodes.forEach((node: any) => {
-    flow.setNode(node.id, { width: 280, height: 200 }); // Larger nodes to prevent overlap
+  // Prepare ELK graph structure
+  const elkNodes = nodes.map((node: any) => ({
+    id: node.id,
+    width: 280,
+    height: 200,
+  }));
+
+  const elkEdges = edges.map((edge: any) => ({
+    id: edge.id,
+    sources: [edge.source],
+    targets: [edge.target],
+  }));
+
+  const elkGraph = {
+    id: 'root',
+    layoutOptions: {
+      'elk.algorithm': 'force',
+      'elk.force.repulsivePower': '2.0',
+      'elk.force.iterations': '500',
+      'elk.spacing.nodeNode': '150',
+      'elk.spacing.edgeNode': '75',
+      'elk.spacing.edgeEdge': '30',
+      'elk.padding': '[top=50,left=50,bottom=50,right=50]',
+      'elk.separateConnectedComponents': 'true',
+    },
+    children: elkNodes,
+    edges: elkEdges,
+  };
+
+  // Run ELK layout
+  const layoutedGraph = await elk.layout(elkGraph);
+
+  // Apply positions to nodes
+  const positionedNodes = nodes.map((node: any) => {
+    const elkNode = layoutedGraph.children?.find((n: any) => n.id === node.id);
+    return {
+      ...node,
+      position: {
+        x: elkNode?.x || 0,
+        y: elkNode?.y || 0,
+      },
+    };
   });
-
-  edges.forEach((edge: any) => {
-    flow.setEdge(edge.source, edge.target);
-  });
-
-  // Run dagre layout for connected entities
-  dagre.layout(flow);
-
-  // Get the positioned nodes from dagre
-  let positionedNodes = calculatedNodes(flow, nodes);
-
-  // Manually position isolated entities in a grid
-  if (entitiesWithoutRelationships.length > 0) {
-    // Find the rightmost position of connected entities to avoid overlap
-    const connectedNodes = positionedNodes.filter((node) =>
-      entitiesWithRelationships.some((entity) => generateIdForNode(entity) === node.id)
-    );
-
-    const maxX =
-      connectedNodes.length > 0
-        ? Math.max(...connectedNodes.map((node) => node.position.x)) + 500 // Increased padding
-        : 0;
-
-    // Create grid for isolated entities - prefer fewer rows for better horizontal spread
-    const gridCols = Math.min(3, entitiesWithoutRelationships.length); // Max 3 columns
-    const gridRows = Math.ceil(entitiesWithoutRelationships.length / gridCols);
-
-    const nodeWidth = 280;
-    const nodeHeight = 200;
-    const spacingX = 400; // Increased horizontal spacing
-    const spacingY = 350; // Significantly increased vertical spacing
-
-    entitiesWithoutRelationships.forEach((entity, index) => {
-      const row = Math.floor(index / gridCols);
-      const col = index % gridCols;
-
-      const nodeId = generateIdForNode(entity);
-      const nodeIndex = positionedNodes.findIndex((node) => node.id === nodeId);
-
-      if (nodeIndex !== -1) {
-        const newX = maxX + col * spacingX;
-        const newY = row * spacingY;
-
-        positionedNodes[nodeIndex].position = {
-          x: newX,
-          y: newY,
-        };
-      }
-    });
-  }
 
   return { nodes: positionedNodes, edges };
 };
