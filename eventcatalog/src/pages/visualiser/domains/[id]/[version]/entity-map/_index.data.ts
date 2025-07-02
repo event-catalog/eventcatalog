@@ -27,9 +27,9 @@ export class Page extends HybridPage {
   }
 
   protected static async fetchData(params: any) {
-    const { type, id, version } = params;
+    const { id, version } = params;
 
-    if (!type || !id || !version) {
+    if (!id || !version) {
       return null;
     }
 
@@ -39,14 +39,13 @@ export class Page extends HybridPage {
     // Find the specific item by id and version, and only if it has entities
     const item = items.find((i) => i.data.id === id && i.data.version === version && domainHasEntities(i));
 
+    console.log('ITEM', item);
+
     if (!item) {
       return null;
     }
 
-    return {
-      type,
-      ...item,
-    };
+    return item;
   }
 
   protected static createNotFoundResponse(): Response {

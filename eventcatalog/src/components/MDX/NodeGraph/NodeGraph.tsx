@@ -636,6 +636,7 @@ interface NodeGraphProps {
   linksToVisualiser?: boolean;
   links?: { label: string; url: string }[];
   mode?: 'full' | 'simple';
+  portalId?: string;
 }
 
 const NodeGraph = ({
@@ -651,13 +652,16 @@ const NodeGraph = ({
   linksToVisualiser = false,
   links = [],
   mode = 'full',
+  portalId,
 }: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
   const [showFooter, setShowFooter] = useState(true);
 
+  const containerToRenderInto = portalId || `${id}-portal`;
+
   useEffect(() => {
     // @ts-ignore
-    setElem(document.getElementById(`${id}-portal`));
+    setElem(document.getElementById(containerToRenderInto));
   }, []);
 
   useEffect(() => {
