@@ -19,7 +19,10 @@ properties:
   - name: productId
     type: UUID
     required: true
-    description: Identifier for the product being ordered 
+    description: Identifier for the product being ordered
+    references: Product
+    referencesIdentifier: productId
+    relationType: hasOne 
   - name: productName
     type: string
     required: false # Often denormalized for performance/display
