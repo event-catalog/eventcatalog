@@ -1,0 +1,509 @@
+---
+import ProtoMessage from './ProtoMessage.astro';
+
+interface Props {
+  schema: {
+    messages: Record<string, any>;
+    enums: Record<string, any>;
+    services: Record<string, any>;
+  };
+  protoPath: string;
+  title: string;
+  maxHeight: string;
+  file: string;
+  id: string;
+  expand?: boolean | string;
+  search?: boolean | string;
+}
+
+const { id, file, title, maxHeight, schema, expand = false, search = true } = Astro.props;
+
+// Convert string props to booleans (MDX passes strings)
+const expandBool = expand === true || expand === 'true';
+const searchBool = search !== false && search !== 'false';
+
+// This will be used to pass expand state via data attribute
+const expandData = expandBool ? 'true' : 'false';
+const searchData = searchBool ? 'true' : 'false';
+
+// Count total fields across all messages, enums, and services
+function countTotalItems(schema: any): number {
+  let count = 0;
+
+  // Count message fields
+  Object.values(schema.messages || {}).forEach((message: any) => {
+    count += message.fields?.length || 0;
+  });
+
+  // Count enum values
+  Object.values(schema.enums || {}).forEach((enumDef: any) => {
+    count += enumDef.values?.length || 0;
+  });
+
+  // Count service methods
+  Object.values(schema.services || {}).forEach((service: any) => {
+    count += service.methods?.length || 0;
+  });
+
+  return count;
+}
+
+const totalItems = countTotalItems(schema);
+
+// Collect all available type names for linking (both full names and simple names)
+const availableTypes = [
+  ...Object.keys(schema.messages || {}),
+  ...Object.keys(schema.enums || {}),
+  ...Object.keys(schema.services || {}),
+  // Also add simple names (without package prefix) for easier matching
+  ...Object.keys(schema.messages || {}).map((name) => name.split('.').pop()),
+  ...Object.keys(schema.enums || {}).map((name) => name.split('.').pop()),
+  ...Object.keys(schema.services || {}).map((name) => name.split('.').pop()),
+].filter(Boolean) as string[];
+
+// Generate a unique ID for this instance
+const instanceId = `${id}-${Math.random().toString(36).substring(2, 9)}`;
+---
+
+<div id={id} class="not-prose my-4" data-expand={expandData} data-search={searchData}>
+  {title && <h2 class="text-3xl font-bold mb-2 !mt-0">{title}</h2>}
+  <div
+    class="proto-viewer p-4 pt-0 bg-white overflow-y-auto rounded-lg border border-gray-100 shadow-sm font-sans"
+    style={{
+      maxHeight: maxHeight ? `${maxHeight}px` : `30em`,
+      minHeight: '15em',
+    }}
+  >
+    {
+      searchBool && (
+        <div
+          class="proto-toolbar sticky top-0 z-10 bg-white pt-4 px-4 -mx-4 mb-4 pb-3 border-b border-gray-100 shadow-sm"
+          id={`${instanceId}-toolbar`}
+        >
+          <div class="flex flex-col sm:flex-row gap-3">
+            <div class="flex-1 relative">
+              <input
+                type="text"
+                id={`${instanceId}-search`}
+                placeholder="Search messages, fields, enums..."
+                class="w-full px-3 py-1.5 pr-20 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <div
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1"
+                id={`${instanceId}-nav-buttons`}
+              >
+                <button
+                  id={`${instanceId}-prev-match`}
+                  class="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  disabled
+                  title="Previous match"
+                >
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  id={`${instanceId}-next-match`}
+                  class="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  disabled
+                  title="Next match"
+                >
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                id={`${instanceId}-expand-all`}
+                class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                Expand All
+              </button>
+              <button
+                id={`${instanceId}-collapse-all`}
+                class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              >
+                Collapse All
+              </button>
+              <div class="text-xs text-gray-500">
+                {totalItems} {totalItems === 1 ? 'item' : 'items'}
+              </div>
+            </div>
+          </div>
+          <div id={`${instanceId}-search-results`} class="mt-2 text-xs text-gray-600 hidden" />
+        </div>
+      )
+    }
+
+    <div id={`${instanceId}-content`}>
+      <div id={`${instanceId}-properties`}>
+        {/* Services */}
+        {
+          Object.entries(schema.services || {}).map(([name, service]) => (
+            <ProtoMessage name={name} message={service} expand={expandBool} type="service" availableTypes={availableTypes} />
+          ))
+        }
+
+        {/* Messages */}
+        {
+          Object.entries(schema.messages || {}).map(([name, message]) => (
+            <ProtoMessage name={name} message={message} expand={expandBool} type="message" availableTypes={availableTypes} />
+          ))
+        }
+
+        {/* Enums */}
+        {
+          Object.entries(schema.enums || {}).map(([name, enumDef]) => (
+            <ProtoMessage name={name} message={enumDef} expand={expandBool} type="enum" availableTypes={availableTypes} />
+          ))
+        }
+      </div>
+
+      <div id={`${instanceId}-no-results`} class="hidden text-center py-8">
+        <div class="text-gray-400 text-sm">
+          <svg class="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            ></path>
+          </svg>
+          <p>No items match your search</p>
+          <p class="text-xs mt-1">Try a different search term or clear the search to see all items</p>
+        </div>
+      </div>
+    </div>
+
+    {
+      Object.keys(schema.messages || {}).length === 0 &&
+        Object.keys(schema.enums || {}).length === 0 &&
+        Object.keys(schema.services || {}).length === 0 && (
+          <p class="text-gray-500 text-sm">Proto file does not contain any messages, enums, or services.</p>
+        )
+    }
+  </div>
+</div>
+
+<script define:vars={{ instanceId, id, file, availableTypes }}>
+  // Function to scroll to a type definition
+  window.scrollToType = function (typeName) {
+    // Try both the full name and simple name
+    const possibleIds = [
+      `proto-type-${typeName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+      `proto-type-${typeName
+        .split('.')
+        .pop()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '-')}`,
+    ];
+
+    let element = null;
+    for (const id of possibleIds) {
+      element = document.getElementById(id);
+      if (element) break;
+    }
+
+    if (element) {
+      // Highlight the target briefly
+      element.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+      element.style.borderLeftColor = '#3b82f6';
+      element.style.borderLeftWidth = '3px';
+
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+
+      // Remove highlight after 2 seconds
+      setTimeout(() => {
+        element.style.backgroundColor = '';
+        element.style.borderLeftColor = '';
+        element.style.borderLeftWidth = '';
+      }, 2000);
+    }
+  };
+
+  // Check if expand is set via data attribute (from portal movement)
+  function checkAndExpandAll() {
+    const protoViewerClient = document.getElementById(`${id}-${file}-ProtoViewer-client`);
+    if (protoViewerClient && protoViewerClient.getAttribute('data-expand') === 'true') {
+      // Find all toggle buttons within this proto viewer
+      const toggleButtons = protoViewerClient.querySelectorAll('.proto-toggle');
+      toggleButtons.forEach((button) => {
+        if (button.getAttribute('aria-expanded') === 'false') {
+          button.click(); // Trigger the existing toggle logic
+        }
+      });
+    }
+  }
+
+  // Setup search and utilities
+  function setupProtoUtilities() {
+    const protoViewerClient = document.getElementById(id);
+    if (!protoViewerClient || protoViewerClient.getAttribute('data-search') !== 'true') return;
+
+    const searchInput = document.getElementById(`${instanceId}-search`);
+    const expandAllBtn = document.getElementById(`${instanceId}-expand-all`);
+    const collapseAllBtn = document.getElementById(`${instanceId}-collapse-all`);
+    const searchResults = document.getElementById(`${instanceId}-search-results`);
+    const propertiesContainer = document.getElementById(`${instanceId}-properties`);
+    const noResultsMessage = document.getElementById(`${instanceId}-no-results`);
+    const prevMatchBtn = document.getElementById(`${instanceId}-prev-match`);
+    const nextMatchBtn = document.getElementById(`${instanceId}-next-match`);
+
+    let currentMatches = [];
+    let currentMatchIndex = -1;
+
+    if (!searchInput || !propertiesContainer) return;
+
+    // Expand All functionality
+    if (expandAllBtn) {
+      expandAllBtn.addEventListener('click', () => {
+        const toggleButtons = protoViewerClient.querySelectorAll('.proto-toggle');
+        toggleButtons.forEach((button) => {
+          if (button.getAttribute('aria-expanded') === 'false') {
+            button.click();
+          }
+        });
+      });
+    }
+
+    // Collapse All functionality
+    if (collapseAllBtn) {
+      collapseAllBtn.addEventListener('click', () => {
+        const toggleButtons = protoViewerClient.querySelectorAll('.proto-toggle');
+        toggleButtons.forEach((button) => {
+          if (button.getAttribute('aria-expanded') === 'true') {
+            button.click();
+          }
+        });
+      });
+    }
+
+    // Helper functions
+    function scrollToMatch(container) {
+      container.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest',
+      });
+    }
+
+    function updateMatchDisplay() {
+      // Remove previous current match highlighting
+      currentMatches.forEach((match, index) => {
+        match.classList.remove('search-current-match');
+        if (index === currentMatchIndex) {
+          match.classList.add('search-current-match');
+        }
+      });
+
+      // Update navigation buttons
+      if (prevMatchBtn && nextMatchBtn) {
+        prevMatchBtn.disabled = currentMatches.length === 0 || currentMatchIndex <= 0;
+        nextMatchBtn.disabled = currentMatches.length === 0 || currentMatchIndex >= currentMatches.length - 1;
+      }
+
+      // Update search results with current position
+      if (searchResults && currentMatches.length > 0) {
+        searchResults.textContent = `${currentMatchIndex + 1} of ${currentMatches.length} ${currentMatches.length === 1 ? 'match' : 'matches'}`;
+      }
+    }
+
+    function performSearch(searchTerm) {
+      const propertyContainers = propertiesContainer.querySelectorAll('.property-container');
+      currentMatches = [];
+      currentMatchIndex = -1;
+
+      if (searchTerm === '') {
+        // Reset search
+        propertyContainers.forEach((container) => {
+          container.classList.remove('search-match', 'search-no-match', 'search-current-match', 'search-dimmed');
+          const nameEl = container.querySelector('.proto-name');
+          if (nameEl) {
+            nameEl.innerHTML = nameEl.textContent;
+          }
+          // Also reset field names
+          const fieldElements = container.querySelectorAll('.proto-field-name');
+          fieldElements.forEach((fieldEl) => {
+            fieldEl.innerHTML = fieldEl.textContent;
+          });
+        });
+        searchResults.classList.add('hidden');
+        if (noResultsMessage) {
+          noResultsMessage.classList.add('hidden');
+        }
+        updateMatchDisplay();
+
+        // Scroll back to top when search is cleared
+        const scrollableContainer = propertiesContainer.closest('.proto-viewer');
+        if (scrollableContainer) {
+          scrollableContainer.scrollTo({
+            top: 0,
+            behavior: 'smooth',
+          });
+        }
+        return;
+      }
+
+      // Find all matches
+      propertyContainers.forEach((container) => {
+        const nameEl = container.querySelector('.proto-name');
+        const fieldElements = container.querySelectorAll('.proto-field-name');
+        let hasMatch = false;
+
+        // Check message/enum/service name
+        if (nameEl) {
+          const name = nameEl.textContent.toLowerCase();
+          if (name.includes(searchTerm)) {
+            hasMatch = true;
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            nameEl.innerHTML = nameEl.textContent.replace(regex, '<mark class="bg-yellow-200 rounded px-0.5">$1</mark>');
+          }
+        }
+
+        // Check field names
+        fieldElements.forEach((fieldEl) => {
+          const fieldName = fieldEl.textContent.toLowerCase();
+          if (fieldName.includes(searchTerm)) {
+            hasMatch = true;
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            fieldEl.innerHTML = fieldEl.textContent.replace(regex, '<mark class="bg-yellow-200 rounded px-0.5">$1</mark>');
+          }
+        });
+
+        if (hasMatch) {
+          container.classList.add('search-match');
+          container.classList.remove('search-dimmed');
+          currentMatches.push(container);
+
+          // Expand parent containers to show the match
+          let parent = container.parentElement;
+          while (parent && parent.id !== `${instanceId}-properties`) {
+            if (parent.classList.contains('nested-content') && parent.classList.contains('hidden')) {
+              const parentPropertyContainer = parent.closest('.property-container');
+              if (parentPropertyContainer) {
+                const toggleBtn = parentPropertyContainer.querySelector('.property-toggle');
+                if (toggleBtn && toggleBtn.getAttribute('aria-expanded') === 'false') {
+                  toggleBtn.click();
+                }
+              }
+            }
+            parent = parent.parentElement;
+          }
+        } else {
+          container.classList.remove('search-match', 'search-current-match');
+          container.classList.add('search-dimmed');
+          if (nameEl) nameEl.innerHTML = nameEl.textContent;
+          fieldElements.forEach((fieldEl) => {
+            fieldEl.innerHTML = fieldEl.textContent;
+          });
+        }
+      });
+
+      // Show results
+      if (searchResults) {
+        searchResults.classList.remove('hidden');
+        if (currentMatches.length === 0) {
+          searchResults.textContent = 'No properties found';
+          searchResults.classList.add('text-red-600');
+          searchResults.classList.remove('text-gray-600');
+          if (noResultsMessage) {
+            noResultsMessage.classList.remove('hidden');
+          }
+        } else {
+          searchResults.classList.remove('text-red-600');
+          searchResults.classList.add('text-gray-600');
+          if (noResultsMessage) {
+            noResultsMessage.classList.add('hidden');
+          }
+          // Go to first match
+          currentMatchIndex = 0;
+          scrollToMatch(currentMatches[0]);
+        }
+      }
+
+      updateMatchDisplay();
+    }
+
+    // Search functionality
+    let searchTimeout;
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        performSearch(searchTerm);
+      }, 300);
+    });
+
+    // Navigation functionality
+    if (prevMatchBtn) {
+      prevMatchBtn.addEventListener('click', () => {
+        if (currentMatchIndex > 0) {
+          currentMatchIndex--;
+          scrollToMatch(currentMatches[currentMatchIndex]);
+          updateMatchDisplay();
+        }
+      });
+    }
+
+    if (nextMatchBtn) {
+      nextMatchBtn.addEventListener('click', () => {
+        if (currentMatchIndex < currentMatches.length - 1) {
+          currentMatchIndex++;
+          scrollToMatch(currentMatches[currentMatchIndex]);
+          updateMatchDisplay();
+        }
+      });
+    }
+
+    // Keyboard navigation
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (e.shiftKey && prevMatchBtn && !prevMatchBtn.disabled) {
+          prevMatchBtn.click();
+        } else if (!e.shiftKey && nextMatchBtn && !nextMatchBtn.disabled) {
+          nextMatchBtn.click();
+        }
+      }
+    });
+  }
+
+  // Check expand state after page loads and after portal movement
+  document.addEventListener('astro:page-load', () => {
+    // Small delay to ensure portal movement has completed
+    setTimeout(() => {
+      checkAndExpandAll();
+      setupProtoUtilities();
+    }, 100);
+  });
+
+  // Also check immediately in case the component is already in place
+  checkAndExpandAll();
+  setupProtoUtilities();
+</script>
+
+<style>
+  .proto-viewer code {
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  /* Search highlighting styles */
+  .search-dimmed {
+    opacity: 0.4;
+    transition: opacity 0.2s ease;
+  }
+
+  .search-match {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+  }
+
+  .search-current-match {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-left: 3px solid #3b82f6;
+    padding-left: 8px;
+    margin-left: -11px;
+    transition: all 0.2s ease;
+  }
+</style>

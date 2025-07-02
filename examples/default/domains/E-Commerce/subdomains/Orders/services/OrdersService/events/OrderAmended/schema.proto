@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package order.events.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// OrderAmended event is triggered when an existing order is modified.
+// It carries updated details such as amended items and new status.
+message OrderAmended {
+  string order_id = 1;    // Unique identifier of the order
+  string user_id = 2;     // User who amended the order
+  repeated AmendedItem amended_items = 3; // List of amended line items
+  OrderStatus order_status = 4;           // Updated order status
+  float total_amount = 5;                 // New total amount of the order
+  google.protobuf.Timestamp timestamp = 6;// Time of amendment
+}
+
+// Represents a single item that was changed in the order
+message AmendedItem {
+  string product_id = 1;     // Product identifier
+  string product_name = 2;   // Name of the product
+  int32 old_quantity = 3;    // Quantity before the amendment
+  int32 new_quantity = 4;    // Quantity after the amendment
+  float unit_price = 5;      // Price per unit
+  float total_price = 6;     // Calculated total for the item
+}
+
+// Possible order status values after amendment
+enum OrderStatus {
+  ORDER_STATUS_UNSPECIFIED = 0;
+  PENDING = 1;
+  CONFIRMED = 2;
+  SHIPPED = 3;
+  CANCELLED = 4;
+}
