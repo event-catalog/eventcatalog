@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.49.0
+
+### Minor Changes
+
+- 48de32d: feat(core): added domain entity map visualizer pages
+
 ## 2.48.5
 
 ### Patch Changes
