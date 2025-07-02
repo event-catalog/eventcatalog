@@ -319,13 +319,13 @@ describe('Domain Entity Map NodeGraph', () => {
         label: 'hasOne',
         style: {
           strokeWidth: 2,
-          stroke: '#6366f1',
+          stroke: '#000',
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
           width: 20,
           height: 20,
-          color: '#6366f1',
+          color: '#000',
         },
       });
 

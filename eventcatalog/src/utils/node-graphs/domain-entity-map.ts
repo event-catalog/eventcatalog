@@ -82,7 +82,7 @@ export const getNodesAndEdges = async ({ id, version }: Props) => {
         addedExternalEntities.push(externalEntity);
       }
     } else {
-      console.warn(`External entity "${entityId}" not found in catalog`);
+      console.warn(`Entity "${entityId}" not found in catalog`);
     }
   }
 
