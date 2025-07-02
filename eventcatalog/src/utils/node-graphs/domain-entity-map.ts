@@ -164,13 +164,11 @@ export const getNodesAndEdges = async ({ id, version }: Props) => {
     // Has outgoing references
     const hasOutgoingRefs = entity.data.properties?.some((property: any) => property.references);
     // Has incoming references (is referenced by others)
-    const hasIncomingRefs = entitiesWithReferences.some((e) =>
+    const hasIncomingRefs = entitiesWithReferences.some((e: any) =>
       e.data.properties?.some((prop: any) => prop.references === entity.data.id)
     );
     return hasOutgoingRefs || hasIncomingRefs;
   });
-
-  const entitiesWithoutRelationships = allEntitiesInGraph.filter((entity) => !entitiesWithRelationships.includes(entity));
 
   // Prepare ELK graph structure
   const elkNodes = nodes.map((node: any) => ({

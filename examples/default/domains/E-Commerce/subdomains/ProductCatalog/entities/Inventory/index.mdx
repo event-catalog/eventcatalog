@@ -97,7 +97,7 @@ The Inventory entity manages stock levels and availability for products in the e
 ## Stock Calculations
 
 * **Available Quantity** = Quantity On Hand - Quantity Reserved
-* **Reorder Needed** = Quantity Available <= Reorder Point
+* **Reorder Needed** = Quantity Available &lt;= Reorder Point
 * **Stock Value** = Quantity On Hand × Unit Cost
 
 ## Examples
@@ -110,7 +110,7 @@ The Inventory entity manages stock levels and availability for products in the e
 * Quantity on hand cannot be negative
 * Quantity reserved cannot exceed quantity on hand
 * Available quantity is automatically calculated
-* Reorder alerts are triggered when available <= reorder point
+* Reorder alerts are triggered when available = reorder point
 * Stock reservations are created when orders are placed
 * Stock is decremented when orders are shipped
 * Inventory adjustments must be logged for audit trail
