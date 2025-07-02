@@ -10,9 +10,13 @@ properties:
     type: UUID
     required: true
     description: Unique identifier for the order
+  - name: orderNumber
+    type: string
+    required: true
+    description: Unique identifier for the order
   - name: customerId
     type: UUID
-    required: true
+    required: false
     description: Identifier for the customer placing the order test
     references: Customer
     referencesIdentifier: customerId

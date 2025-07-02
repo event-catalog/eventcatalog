@@ -3,6 +3,9 @@ import { createDagreGraph, calculatedNodes, generateIdForNode } from './utils/ut
 import dagre from 'dagre';
 import { MarkerType } from '@xyflow/react';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+import { getVersionFromCollection } from '@utils/collections/versions';
+import { getEntities, type Entity } from '@utils/entities';
+import { getDomains, type Domain } from '@utils/collections/domains';
 
 type DagreGraph = any;
 
@@ -30,26 +33,17 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow = null }: Prop
   let nodes = [] as any,
     edges = [] as any;
 
-  const allDomains = await getCollection('domains');
-  const allEntities = await getCollection('entities');
-  const domain = await getEntry('domains', `${id}-${version}`);
-  const domainEntities = domain?.data.entities ?? [];
+  const allDomains = await getDomains();
+  const entities = await getEntities();
 
-  // Get all the entities (Latest versions);
-  const entities = allEntities.filter((entity) => !entity.id.includes('/versioned'));
+  const domain = getVersionFromCollection(allDomains, id, version)[0] as Domain;
+  const domainEntities = (domain?.data?.entities ?? []) as any;
 
-  const entitiesForDomain = domainEntities
-    .map((domainEntity) => getItemsFromCollectionByIdAndSemverOrLatest(entities, domainEntity.id, domainEntity.version))
-    .flat();
-
-  const entitiesWithReferences = entitiesForDomain.filter((entity) =>
-    entity.data.properties?.some((property: any) => {
-      return !!property.references;
-    })
+  const entitiesWithReferences = domainEntities.filter((entity: Entity) =>
+    entity.data.properties?.some((property: any) => property.references)
   );
-
   // Creates all the entity nodes for the domain
-  for (const entity of entitiesForDomain) {
+  for (const entity of domainEntities) {
     const nodeId = generateIdForNode(entity);
     nodes.push({
       id: nodeId,
@@ -61,14 +55,12 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow = null }: Prop
 
   // Create entities that are referenced but not owned by this domain
   const listOfReferencedEntities = entitiesWithReferences
-    .map((entity) => entity.data.properties?.map((property: any) => property.references))
+    .map((entity: Entity) => entity.data.properties?.map((property: any) => property.references))
     .flat()
-    .filter((ref) => ref !== undefined);
+    .filter((ref: any) => ref !== undefined);
 
   const externalToDomain = [...new Set(listOfReferencedEntities)] // Remove duplicates
-    .filter((entityId) => !domainEntities.some((domainEntity) => domainEntity.id === entityId));
-
-  console.log('External entities to add:', externalToDomain);
+    .filter((entityId: any) => !domainEntities.some((domainEntity: any) => domainEntity.id === entityId));
 
   // Helper function to find which domain an entity belongs to
   const findEntityDomain = (entityId: string) => {
@@ -77,7 +69,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow = null }: Prop
 
   const addedExternalEntities = [];
   for (const entityId of externalToDomain) {
-    const externalEntity = getItemsFromCollectionByIdAndSemverOrLatest(entities, entityId, 'latest')[0];
+    const externalEntity = getItemsFromCollectionByIdAndSemverOrLatest(entities, entityId, 'latest')[0] as Entity;
 
     if (externalEntity) {
       const nodeId = generateIdForNode(externalEntity);
@@ -112,7 +104,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow = null }: Prop
   entitiesWithReferences.push(...addedExternalEntities);
 
   // Create complete list of entities for edge creation and layout
-  const allEntitiesInGraph = [...entitiesForDomain, ...addedExternalEntities];
+  const allEntitiesInGraph = [...domainEntities, ...addedExternalEntities];
 
   // Go through any entities that are related to other entities
   for (const entity of entitiesWithReferences) {
