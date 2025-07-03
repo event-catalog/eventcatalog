@@ -10,25 +10,17 @@ tags:
 repository:
   url: https://github.com/eventcatalog/billing-service
 receives:
-  - id: SubscriptionCreated
-    version: 0.0.1
-  - id: SubscriptionUpdated
-    version: 0.0.1
   - id: PaymentProcessed
     version: 0.0.1
   - id: PaymentFailed
     version: 0.0.1
 sends:
-  - id: InvoiceGenerated
-    version: 0.0.1
   - id: SubscriptionPaymentDue
-    version: 0.0.1
-  - id: BillingCycleCompleted
     version: 0.0.1
   - id: ProcessPayment
     version: 0.0.1
 owners:
-  - billingTeam
+  - dboyne
 ---
 
 import Footer from '@catalog/components/footer.astro'

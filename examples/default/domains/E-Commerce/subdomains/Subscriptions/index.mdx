@@ -9,8 +9,6 @@ owners:
 services:
     - id: BillingService
       version: 0.0.1
-    - id: PlanManagementService
-      version: 0.0.1
 entities:
     - id: BillingProfile
     - id: SubscriptionPeriod
@@ -37,8 +35,6 @@ The Subscriptions Domain is responsible for managing all aspects of subscription
 ### BillingService
 Handles billing cycle calculations, invoice generation, and payment scheduling. Coordinates with the Payment domain for processing recurring payments.
 
-### PlanManagementService
-Manages subscription plans, features, and pricing tiers. Controls feature access and usage limits based on subscription level.
 
 ## Cross-Domain Integration
 
@@ -52,8 +48,6 @@ The Subscriptions domain integrates closely with:
 
 Key events in the Subscriptions domain:
 - `SubscriptionPaymentDue` - Triggers payment collection
-- `InvoiceGenerated` - New invoice created
-- `BillingCycleCompleted` - Billing cycle successfully completed
 - `PlanMigrationCompleted` - Subscription plan changed
 
 ## Bounded context

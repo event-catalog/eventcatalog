@@ -40,7 +40,8 @@
     "generate": "pnpm run build:bin && npx . generate",
     "release": "changeset publish",
     "format": "prettier --config .prettierrc --write \"**/*.{js,jsx,ts,tsx,json,astro}\"",
-    "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json,astro}\""
+    "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json,astro}\"",
+    "lint:catalog": "pnpm dlx @eventcatalog/linter examples/default"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.11",
@@ -57,6 +58,7 @@
     "@asyncapi/react-component": "^2.4.3",
     "@auth/core": "^0.37.4",
     "@eventcatalog/generator-ai": "^1.1.0",
+    "@eventcatalog/linter": "^0.0.2",
     "@eventcatalog/sdk": "^2.2.7",
     "@fontsource/inter": "^5.2.5",
     "@headlessui/react": "^2.0.3",

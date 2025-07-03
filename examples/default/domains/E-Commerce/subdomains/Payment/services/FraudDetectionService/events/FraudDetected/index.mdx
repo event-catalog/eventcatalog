@@ -1,0 +1,43 @@
+---
+id: FraudDetected
+version: 0.0.1
+name: Fraud Detected
+summary: Emitted when a fraud is detected in a transaction
+tags:
+  - payment
+  - fraud
+  - security
+badges:
+  - content: New
+    backgroundColor: green
+    textColor: white
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+The `FraudDetected` event is emitted when the fraud detection service identifies a potential fraud in a payment transaction. This event contains the details of the detected fraud.
+
+## Event Details
+
+- **Fraud Type**: Type of fraud detected
+- **Severity**: LOW, MEDIUM, or HIGH
+- **Indicators**: Array of indicators that led to the detection
+- **Confidence**: Confidence level of the fraud detection
+
+## Example Payload
+
+```json
+{
+  "transactionId": "txn_1234567890",
+  "paymentId": "pay_9876543210",
+  "fraudType": "Stolen Card",
+  "severity": "HIGH",
+  "indicators": ["Unusual location", "High transaction amount"],
+  "confidence": 0.95,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+<Footer />
