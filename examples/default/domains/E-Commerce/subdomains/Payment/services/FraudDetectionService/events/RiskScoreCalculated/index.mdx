@@ -1,0 +1,43 @@
+---
+id: RiskScoreCalculated
+version: 0.0.1
+name: Risk Score Calculated
+summary: Emitted when a risk score is calculated for a transaction
+tags:
+  - payment
+  - fraud
+  - security
+badges:
+  - content: New
+    backgroundColor: green
+    textColor: white
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+The `RiskScoreCalculated` event is emitted when the fraud detection service calculates a risk score for a payment transaction. This event contains the details of the calculated risk score.
+
+## Event Details
+
+- **Risk Score**: Calculated risk score for the transaction
+- **Severity**: LOW, MEDIUM, or HIGH
+- **Indicators**: Array of indicators used in the calculation
+- **Confidence**: Confidence level of the risk score calculation
+
+## Example Payload
+
+```json
+{
+  "transactionId": "txn_1234567890",
+  "paymentId": "pay_9876543210",
+  "riskScore": 85,
+  "severity": "MEDIUM",
+  "indicators": ["Unusual location", "High transaction amount"],
+  "confidence": 0.85,
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
+
+<Footer />

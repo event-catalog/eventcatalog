@@ -12,21 +12,13 @@ repository:
 receives:
   - id: ProcessPayment
     version: 0.0.1
-  - id: RefundPayment
-    version: 0.0.1
   - id: FraudCheckCompleted
     version: 0.0.1
 sends:
-  - id: PaymentAuthorized
-    version: 0.0.1
-  - id: PaymentCaptured
-    version: 0.0.1
   - id: PaymentFailed
     version: 0.0.1
-  - id: RefundProcessed
-    version: 0.0.1
 owners:
-  - paymentsTeam
+  - dboyne
 ---
 
 import Footer from '@catalog/components/footer.astro'
