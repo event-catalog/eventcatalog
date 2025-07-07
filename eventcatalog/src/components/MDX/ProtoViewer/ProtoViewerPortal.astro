@@ -1,0 +1,20 @@
+---
+export interface Props {
+  id: string;
+  file: string;
+  title?: string;
+  maxHeight?: string | number;
+  expand?: boolean | string;
+  search?: boolean | string;
+}
+
+const { id, file, title, maxHeight, expand, search } = Astro.props;
+
+// Convert props to data attributes for portal handling
+const portalId = `${id}-${file}-ProtoViewer-portal`;
+---
+
+<div id={portalId} class="proto-viewer-portal" data-expand={expand} data-max-height={maxHeight} data-search={search}>
+  {title && <h2 class="text-3xl font-bold mb-2 !mt-0">{title}</h2>}
+  <div class="text-gray-500 text-sm">Loading protobuf schema...</div>
+</div>

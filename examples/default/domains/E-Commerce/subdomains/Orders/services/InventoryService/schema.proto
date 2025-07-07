@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package events.v1;
+
+// Represents a stream of order-related events
+message OrderEvent {
+  // Unique identifier for this event
+  string event_id = 1;
+  
+  // Order identifier that this event relates to
+  string order_id = 2;
+  
+  // The specific event payload - only one can be set
+  oneof payload {
+    // Event when an order is created
+    OrderCreated created = 3;
+    
+    // Event when an order is cancelled
+    OrderCancelled cancelled = 4;
+  }
+}
+
+// Event when an order is created
+message OrderCreated {
+  // List of products in the order
+  repeated OrderItem products = 1;
+  
+  // Total amount of the order
+  double total_amount = 2;
+  
+  // Customer who created the order
+  Customer customer = 3;
+  
+  // Order status
+  OrderStatus status = 4;
+}
+
+// Event when an order is cancelled
+message OrderCancelled {
+  // Reason for cancellation
+  string reason = 1;
+  
+  // Who cancelled the order
+  Customer cancelled_by = 2;
+  
+  // Timestamp when cancelled
+  int64 cancelled_at = 3;
+}
+
+// Represents a customer
+message Customer {
+  // Unique customer identifier
+  string customer_id = 1;
+  
+  // Customer's full name
+  string name = 2;
+  
+  // Customer's email address
+  string email = 3;
+}
+
+// Represents an item in an order
+message OrderItem {
+  // Product identifier
+  string product_id = 1;
+  
+  // Quantity ordered
+  int32 quantity = 2;
+  
+  // Unit price at time of order
+  double unit_price = 3;
+}
+
+// Order status enumeration
+enum OrderStatus {
+  // Default unspecified status
+  ORDER_STATUS_UNSPECIFIED = 0;
+  
+  // Order is pending
+  PENDING = 1;
+  
+  // Order is confirmed
+  CONFIRMED = 2;
+  
+  // Order is being processed
+  PROCESSING = 3;
+  
+  // Order has been shipped
+  SHIPPED = 4;
+  
+  // Order has been delivered
+  DELIVERED = 5;
+  
+  // Order was cancelled
+  CANCELLED = 6;
+}
