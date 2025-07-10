@@ -12,17 +12,25 @@ const elk = new ELK();
 interface Props {
   id: string;
   version: string;
+  entities?: string[]; // Optional: array of entity IDs/names to include
 }
 
-export const getNodesAndEdges = async ({ id, version }: Props) => {
+export const getNodesAndEdges = async ({ id, version, entities }: Props) => {
   let nodes = [] as any,
     edges = [] as any;
 
   const allDomains = await getDomains();
-  const entities = await getEntities();
+  const allEntities = await getEntities();
 
   const domain = getVersionFromCollection(allDomains, id, version)[0] as Domain;
-  const domainEntities = (domain?.data?.entities ?? []) as any;
+  let domainEntities = (domain?.data?.entities ?? []) as any;
+
+  // If entities filter is provided, filter domainEntities to only those specified
+  if (entities && Array.isArray(entities) && entities.length > 0) {
+    domainEntities = domainEntities.filter((entity: Entity) =>
+      entities.includes(entity.data.id) || entities.includes(entity.data.name)
+    );
+  }
 
   const entitiesWithReferences = domainEntities.filter((entity: Entity) =>
     entity.data.properties?.some((property: any) => property.references)
@@ -44,7 +52,7 @@ export const getNodesAndEdges = async ({ id, version }: Props) => {
     .flat()
     .filter((ref: any) => ref !== undefined);
 
-  const externalToDomain = [...new Set(listOfReferencedEntities)] // Remove duplicates
+  const externalToDomain = Array.from(new Set<string>(listOfReferencedEntities as string[])) // Remove duplicates
     .filter((entityId: any) => !domainEntities.some((domainEntity: any) => domainEntity.id === entityId));
 
   // Helper function to find which domain an entity belongs to
@@ -54,7 +62,7 @@ export const getNodesAndEdges = async ({ id, version }: Props) => {
 
   const addedExternalEntities = [];
   for (const entityId of externalToDomain) {
-    const externalEntity = getItemsFromCollectionByIdAndSemverOrLatest(entities, entityId as string, 'latest')[0] as Entity;
+    const externalEntity = getItemsFromCollectionByIdAndSemverOrLatest(allEntities, entityId as string, 'latest')[0] as Entity;
 
     if (externalEntity) {
       const nodeId = generateIdForNode(externalEntity);
