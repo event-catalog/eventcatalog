@@ -5,7 +5,7 @@ import Admonition from '@components/MDX/Admonition';
 import NodeGraph from '../NodeGraph/NodeGraph';
 import { getVersionFromCollection } from '@utils/collections/versions';
 
-const { id, version = 'latest', maxHeight, includeKey = true } = Astro.props;
+const { id, version = 'latest', maxHeight, includeKey = true, entities } = Astro.props;
 
 // Find the flow for the given id and version
 const domains = await getDomains();
@@ -15,6 +15,7 @@ const domain = domainCollection[0];
 const { nodes, edges } = await getNodesAndEdges({
   id: id,
   version: domain?.data?.version,
+  ...(entities ? { entities } : {}), // Pass entities if provided
 });
 ---
 
