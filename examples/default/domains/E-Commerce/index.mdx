@@ -8,7 +8,7 @@ owners:
 domains:
   - id: Orders
   - id: Payment
-  - id: Subscription
+  - id: Subscriptions
   - id: MySubdomain
 badges:
   - content: Core domain
@@ -43,6 +43,7 @@ import Footer from '@catalog/components/footer.astro';
 
 The E-Commerce domain is the core business domain of FlowMart, our modern digital marketplace. This domain orchestrates all critical business operations from product discovery to order fulfillment, handling millions of transactions monthly across our global customer base.
 
+
 <Tiles>
     <Tile 
         icon="UserGroupIcon" 
@@ -55,6 +56,18 @@ The E-Commerce domain is the core business domain of FlowMart, our modern digita
         href={`/visualiser/domains/${frontmatter.id}/${frontmatter.version}`} 
         title="Domain Architecture" 
         description="Explore our domain structure and service interactions" 
+    />
+    <Tile 
+        icon="CircleStackIcon" 
+        href={`#flowmart-e-commerce-database-schema`} 
+        title="Database Schema" 
+        description="Explore our database schema for the E-Commerce domain" 
+    />
+    <Tile 
+        icon="RectangleGroupIcon" 
+        href={`#target-architecture-event-storming-results`} 
+        title="Target Architecture" 
+        description="Explore our target architecture for the E-Commerce domain" 
     />
 </Tiles>
 
@@ -74,21 +87,107 @@ FlowMart's E-Commerce domain is built on event-driven microservices architecture
 
 ## Core Domains for E-Commerce
 
-The <ResourceLink id="Orders" type="domain">Orders</ResourceLink> and <ResourceLink id="Subscription" type="domain">Subscription</ResourceLink> domains are core domains for the E-Commerce domain.
+The <ResourceLink id="Orders" type="domain">Orders</ResourceLink> and <ResourceLink id="Subscriptions" type="domain">Subscription</ResourceLink> domains are core domains for the E-Commerce domain.
 
 <span class="not-prose">They are used to manage the orders and subscriptions for the E-Commerce domain.</span>
 
 <div class="grid grid-cols-2 gap-4 not-prose">
   <NodeGraph id="Orders" version="0.0.3" type="domain" />
-  <NodeGraph id="Subscription" version="0.0.1" type="domain" />
+  <NodeGraph id="Subscriptions" version="0.0.1" type="domain" />
 </div>
 
 The E-Commerce domain is built on the following sub domains:
 
 - <ResourceLink id="Orders" type="domain">Orders</ResourceLink> - Core domain for order management
 - <ResourceLink id="Payment" type="domain">Payment</ResourceLink> - A generic domain for payment processing using Stripe as a payment provider
-- <ResourceLink id="Subscription" type="domain">Subscription</ResourceLink> - Generic subscription domain handling users subscriptions
+- <ResourceLink id="Subscriptions" type="domain">Subscription</ResourceLink> - Generic subscription domain handling users subscriptions
 
+
+### FlowMart E-Commerce Database Schema
+
+This diagram represents the core relational data model behind FlowMart, a fictional event-driven e-commerce platform. It captures the main business entities and their relationships, including customers, orders, products, inventory events, and payments.
+
+The schema is designed to support a distributed microservices architecture with event-sourced patterns, enabling services like OrderService, InventoryService, and PaymentService to operate independently while maintaining data consistency through asynchronous events.
+
+```plantuml
+@startuml
+!define Table(name,desc) class name as "desc" << (T,#E5E7EB) >>
+!define PK(x) <u>x</u>
+!define FK(x) <i>x</i>
+
+' ===== Core Tables =====
+
+Table(Customers, "Customers") {
+  PK(customerId): UUID
+  firstName: VARCHAR
+  lastName: VARCHAR
+  email: VARCHAR
+  phone: VARCHAR
+  dateRegistered: TIMESTAMP
+}
+
+Table(Orders, "Orders") {
+  PK(orderId): UUID
+  FK(customerId): UUID
+  orderDate: TIMESTAMP
+  status: VARCHAR
+  totalAmount: DECIMAL
+}
+
+Table(Products, "Products") {
+  PK(productId): UUID
+  name: VARCHAR
+  description: TEXT
+  price: DECIMAL
+  stockQuantity: INT
+}
+
+Table(OrderItems, "Order Items") {
+  PK(id): UUID
+  FK(orderId): UUID
+  FK(productId): UUID
+  quantity: INT
+  unitPrice: DECIMAL
+}
+
+Table(Payments, "Payments") {
+  PK(paymentId): UUID
+  FK(orderId): UUID
+  amount: DECIMAL
+  method: VARCHAR
+  status: VARCHAR
+  paidAt: TIMESTAMP
+}
+
+Table(InventoryEvents, "Inventory Events") {
+  PK(eventId): UUID
+  FK(productId): UUID
+  eventType: VARCHAR
+  quantityChange: INT
+  eventTime: TIMESTAMP
+}
+
+Table(Subscription, "Subscriptions") {
+  PK(subscriptionId): UUID
+  FK(customerId): UUID
+  plan: VARCHAR
+  status: VARCHAR
+  startDate: TIMESTAMP
+  endDate: TIMESTAMP
+}
+
+' ===== Relationships =====
+
+Customers ||--o{ Orders : places
+Orders ||--o{ OrderItems : contains
+Products ||--o{ OrderItems : includes
+Orders ||--o{ Payments : paid_by
+Products ||--o{ InventoryEvents : logs
+Customers ||--o{ Subscription : subscribes
+
+@enduml
+
+```
 
 ## Target Architecture (Event Storming Results)
 

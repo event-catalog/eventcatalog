@@ -16,6 +16,16 @@ const copyFiles = async (source, target) => {
     ignore: ['node_modules/**', '**/dist/**', '**/teams', '**/users', '**/*.mdx', '**/*.md', '**/package.json', '**/Dockerfile'],
   });
 
+  // Custom snippets
+  const snippets = await glob(path.join(source, 'snippets/**/*.mdx'), {
+    nodir: true,
+    windowsPathsNoEscape: os.platform() == 'win32',
+  });
+
+  if (snippets.length > 0) {
+    files.push(...snippets);
+  }
+
   // If we have .env file, copy it to the target
   if (fs.existsSync(path.join(source, '.env'))) {
     files.push(path.join(source, '.env'));

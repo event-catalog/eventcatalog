@@ -65,6 +65,7 @@ export interface Config {
     renderParsedSchemas?: boolean;
   };
   mdxOptimize?: boolean;
+  compress?: boolean;
   sidebar?: SideBarConfig[];
   docs: {
     sidebar: {
@@ -106,4 +107,10 @@ export interface Config {
       renderMode?: 'flat' | 'single';
     };
   };
+  environments?: {
+    name: string;
+    url: string;
+    description?: string;
+    shortName?: string;
+  }[];
 }

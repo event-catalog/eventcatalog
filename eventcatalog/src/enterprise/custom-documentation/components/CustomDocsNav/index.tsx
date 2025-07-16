@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { ChevronDoubleDownIcon, ChevronDoubleUpIcon } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
 import type { CustomDocsNavProps, SidebarSection, SidebarItem } from './types';
 import NestedItem from './components/NestedItem';
@@ -12,6 +13,7 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [collapsedGroups, setCollapsedGroups] = useState<{ [key: string]: boolean }>(() => {
     if (typeof window !== 'undefined') {
       const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -126,6 +128,70 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
     setSearchTerm(e.target.value);
   }, []);
 
+  const collapseAll = useCallback(() => {
+    const newCollapsedState: { [key: string]: boolean } = {};
+
+    // Collapse all sections
+    filteredSidebarItems.forEach((section, index) => {
+      const sectionKey = `section-${index}`;
+      newCollapsedState[sectionKey] = true;
+
+      // Collapse all nested items in the section
+      const collapseNestedItems = (items: SidebarItem[], parentId: string) => {
+        items.forEach((item, itemIndex) => {
+          if (item.items && item.items.length > 0) {
+            const itemKey = `${parentId}-${itemIndex}`;
+            newCollapsedState[itemKey] = true;
+            collapseNestedItems(item.items, itemKey);
+          }
+        });
+      };
+
+      if (section.items) {
+        collapseNestedItems(section.items, sectionKey);
+      }
+    });
+
+    setCollapsedGroups(newCollapsedState);
+    setIsExpanded(false);
+  }, [filteredSidebarItems]);
+
+  const expandAll = useCallback(() => {
+    const newCollapsedState: { [key: string]: boolean } = {};
+
+    // Expand all sections
+    filteredSidebarItems.forEach((section, index) => {
+      const sectionKey = `section-${index}`;
+      newCollapsedState[sectionKey] = false;
+
+      // Expand all nested items in the section
+      const expandNestedItems = (items: SidebarItem[], parentId: string) => {
+        items.forEach((item, itemIndex) => {
+          if (item.items && item.items.length > 0) {
+            const itemKey = `${parentId}-${itemIndex}`;
+            newCollapsedState[itemKey] = false;
+            expandNestedItems(item.items, itemKey);
+          }
+        });
+      };
+
+      if (section.items) {
+        expandNestedItems(section.items, sectionKey);
+      }
+    });
+
+    setCollapsedGroups(newCollapsedState);
+    setIsExpanded(true);
+  }, [filteredSidebarItems]);
+
+  const toggleExpandCollapse = useCallback(() => {
+    if (isExpanded) {
+      collapseAll();
+    } else {
+      expandAll();
+    }
+  }, [isExpanded, collapseAll, expandAll]);
+
   if (!isInitialized) return null;
 
   const hasNoResults = debouncedSearchTerm && filteredSidebarItems.length === 0;
@@ -133,13 +199,26 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
   return (
     <nav ref={navRef} className="h-full text-gray-800 pt-4 overflow-y-auto">
       <div className="mb-2 px-3 bg-white z-10">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          placeholder="Quick search..."
-          className="w-full p-2 px-2 text-sm rounded-md border border-gray-200 h-[30px]"
-        />
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            placeholder="Quick search..."
+            className="flex-1 p-2 px-2 text-sm rounded-md border border-gray-200 h-[30px]"
+          />
+          <button
+            onClick={toggleExpandCollapse}
+            title={isExpanded ? 'Collapse All' : 'Expand All'}
+            className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-200 h-[30px] flex items-center justify-center"
+          >
+            {isExpanded ? (
+              <ChevronDoubleUpIcon className="h-4 w-4 text-gray-600" />
+            ) : (
+              <ChevronDoubleDownIcon className="h-4 w-4 text-gray-600" />
+            )}
+          </button>
+        </div>
       </div>
 
       <div className="space-y-2 divide-y divide-gray-100/40 pb-4">

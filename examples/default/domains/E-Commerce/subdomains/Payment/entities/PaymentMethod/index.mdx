@@ -14,6 +14,8 @@ properties:
     type: UUID
     required: true
     description: Identifier of the customer who owns this payment method.
+    references: Customer
+    relationType: hasOne
   - name: type
     type: string # (e.g., CreditCard, BankAccount, PayPal, ApplePay)
     required: true

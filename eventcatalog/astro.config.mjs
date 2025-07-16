@@ -4,11 +4,14 @@ import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
 import pagefind from "astro-pagefind";
 import { mermaid } from "./src/remark-plugins/mermaid"
+import { plantuml } from "./src/remark-plugins/plantuml"
 import { join } from 'node:path';
 import remarkDirective from 'remark-directive';
 import { remarkDirectives } from "./src/remark-plugins/directives"
 import node from '@astrojs/node';
 import remarkComment from 'remark-comment'
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 
 /** @type {import('bin/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
@@ -17,13 +20,14 @@ import expressiveCode from 'astro-expressive-code';
 const projectDirectory = process.env.PROJECT_DIR || process.cwd();
 const base = config.base || '/';
 const host = config.host || false;
+const compress = config.compress ?? true;
 
 // https://astro.build/config
 export default defineConfig({
   base,
   server: { port: config.port || 3000, host: host },
 
-  // output: config.output || 'static',
+  output: config.output || 'static',
 
   adapter: config.output === 'server' ? node({
     mode: 'standalone'
@@ -58,11 +62,25 @@ export default defineConfig({
     mdx({
       // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
       optimize: config.mdxOptimize || false,
-      remarkPlugins: [remarkDirective, remarkDirectives, remarkComment, mermaid],
+      remarkPlugins: [remarkDirective, remarkDirectives, remarkComment, mermaid, plantuml],
+      rehypePlugins: [
+        rehypeSlug,
+        [
+          rehypeAutolinkHeadings,
+          {
+            behavior: 'append',
+            properties: { className: ['anchor-link'] },
+
+          },
+        ],
+      ],
       gfm: true,
     }),
-    pagefind(),
-  ],
+    config.output !== 'server' && pagefind(),
+    config.output !== 'server' && compress && (await import("astro-compress")).default({
+      Logger: 0,
+    }),
+  ].filter(Boolean),
   vite: {
     define: {
       /**
@@ -81,5 +99,8 @@ export default defineConfig({
         transformMixedEsModules: true,
       }
     },
+    ssr: {
+      external: ['eventcatalog.auth.js'],
+    }
   }
 });

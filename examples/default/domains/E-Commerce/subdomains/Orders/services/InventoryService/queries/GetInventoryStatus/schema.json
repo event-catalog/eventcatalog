@@ -1,28 +1,447 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "GetInventoryStatusResponse",
-    "type": "object",
-    "properties": {
-      "productId": {
-        "type": "string",
-        "description": "The unique identifier for the product"
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GetInventoryStatusResponse",
+  "type": "object",
+  "definitions": {
+    "Coordinates": {
+      "type": "object",
+      "properties": {
+        "latitude": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90,
+          "description": "Latitude coordinate"
+        },
+        "longitude": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180,
+          "description": "Longitude coordinate"
+        }
       },
-      "availableQuantity": {
-        "type": "integer",
-        "description": "The quantity of the product currently available in stock",
-        "minimum": 0
-      },
-      "reservedQuantity": {
-        "type": "integer",
-        "description": "The quantity of the product that is reserved for pending orders",
-        "minimum": 0
-      },
-      "warehouseLocation": {
-        "type": "string",
-        "description": "The location of the warehouse where the product is stored"
-      }
+      "required": ["latitude", "longitude"],
+      "additionalProperties": false
     },
-    "required": ["productId", "availableQuantity", "reservedQuantity", "warehouseLocation"],
-    "additionalProperties": false
-  }
+    "LocationDetails": {
+      "type": "object",
+      "properties": {
+        "facilityId": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}[0-9]{4}$",
+          "description": "Facility identifier in format CC0000"
+        },
+        "name": {
+          "type": "string",
+          "description": "Facility name"
+        },
+        "zone": {
+          "type": "string",
+          "enum": ["north", "south", "east", "west", "central"],
+          "description": "Geographic zone"
+        },
+        "coordinates": {
+          "$ref": "#/definitions/Coordinates"
+        },
+        "operatingHours": {
+          "type": "object",
+          "properties": {
+            "openTime": {
+              "type": "string",
+              "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$",
+              "description": "Opening time in HH:MM format"
+            },
+            "closeTime": {
+              "type": "string",
+              "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$",
+              "description": "Closing time in HH:MM format"
+            },
+            "timeZone": {
+              "type": "string",
+              "description": "Time zone identifier"
+            }
+          },
+          "required": ["openTime", "closeTime", "timeZone"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["facilityId", "name", "zone", "coordinates", "operatingHours"],
+      "additionalProperties": false
+    },
+    "SupplierInfo": {
+      "type": "object",
+      "properties": {
+        "supplierId": {
+          "type": "string",
+          "description": "Unique supplier identifier"
+        },
+        "companyName": {
+          "type": "string",
+          "description": "Supplier company name"
+        },
+        "tier": {
+          "type": "string",
+          "enum": ["primary", "secondary", "backup"],
+          "description": "Supplier tier level"
+        },
+        "performance": {
+          "type": "object",
+          "properties": {
+            "onTimeDelivery": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100,
+              "description": "On-time delivery percentage"
+            },
+            "qualityRating": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 5,
+              "description": "Quality rating (1-5 stars)"
+            },
+            "lastDeliveryDate": {
+              "type": "string",
+              "format": "date",
+              "description": "Date of last delivery"
+            }
+          },
+          "required": ["onTimeDelivery", "qualityRating"],
+          "additionalProperties": false
+        },
+        "contractTerms": {
+          "type": "object",
+          "properties": {
+            "minimumOrderQuantity": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Minimum order quantity"
+            },
+            "pricePerUnit": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Price per unit in USD"
+            },
+            "currency": {
+              "type": "string",
+              "enum": ["USD", "EUR", "GBP", "CAD", "JPY"],
+              "description": "Currency code"
+            }
+          },
+          "required": ["minimumOrderQuantity", "pricePerUnit", "currency"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["supplierId", "companyName", "tier", "performance", "contractTerms"],
+      "additionalProperties": false
+    },
+    "InventoryMovement": {
+      "type": "object",
+      "properties": {
+        "movementId": {
+          "type": "string",
+          "description": "Unique movement identifier"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["inbound", "outbound", "transfer", "adjustment"],
+          "description": "Type of inventory movement"
+        },
+        "quantity": {
+          "type": "integer",
+          "description": "Quantity moved (positive for inbound, negative for outbound)"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the movement occurred"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Reason for the movement"
+        },
+        "reference": {
+          "type": "object",
+          "properties": {
+            "orderId": {
+              "type": "string",
+              "description": "Related order ID if applicable"
+            },
+            "transferId": {
+              "type": "string",
+              "description": "Related transfer ID if applicable"
+            },
+            "userId": {
+              "type": "string",
+              "description": "User who initiated the movement"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["movementId", "type", "quantity", "timestamp", "reason"],
+      "additionalProperties": false
+    },
+    "QualityMetrics": {
+      "type": "object",
+      "properties": {
+        "inspectionDate": {
+          "type": "string",
+          "format": "date",
+          "description": "Date of last quality inspection"
+        },
+        "grade": {
+          "type": "string",
+          "enum": ["A", "B", "C", "D", "F"],
+          "description": "Quality grade"
+        },
+        "defectRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Defect rate percentage"
+        },
+        "expirationTracking": {
+          "type": "object",
+          "properties": {
+            "hasExpiration": {
+              "type": "boolean",
+              "description": "Whether product has expiration date"
+            },
+            "nearExpiryCount": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Count of items near expiration"
+            },
+            "expiredCount": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Count of expired items"
+            }
+          },
+          "required": ["hasExpiration"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["inspectionDate", "grade", "defectRate", "expirationTracking"],
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "productId": {
+      "type": "string",
+      "description": "The unique identifier for the product"
+    },
+    "productMetadata": {
+      "type": "object",
+      "properties": {
+        "sku": {
+          "type": "string",
+          "description": "Stock keeping unit"
+        },
+        "barcode": {
+          "type": "string",
+          "pattern": "^[0-9]{12,13}$",
+          "description": "Product barcode (UPC/EAN)"
+        },
+        "category": {
+          "type": "object",
+          "properties": {
+            "primary": {
+              "type": "string",
+              "description": "Primary category"
+            },
+            "secondary": {
+              "type": "string",
+              "description": "Secondary category"
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Category tags"
+            }
+          },
+          "required": ["primary"],
+          "additionalProperties": false
+        },
+        "dimensions": {
+          "type": "object",
+          "properties": {
+            "length": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Length in centimeters"
+            },
+            "width": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Width in centimeters"
+            },
+            "height": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Height in centimeters"
+            },
+            "weight": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Weight in grams"
+            }
+          },
+          "required": ["length", "width", "height", "weight"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["sku", "barcode", "category", "dimensions"],
+      "additionalProperties": false
+    },
+    "aggregatedInventory": {
+      "type": "object",
+      "properties": {
+        "totalAvailable": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total available quantity across all locations"
+        },
+        "totalReserved": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total reserved quantity across all locations"
+        },
+        "totalInTransit": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total quantity in transit between locations"
+        },
+        "safetyStock": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Safety stock level"
+        },
+        "reorderLevel": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Reorder point threshold"
+        }
+      },
+      "required": ["totalAvailable", "totalReserved", "totalInTransit", "safetyStock", "reorderLevel"],
+      "additionalProperties": false
+    },
+    "locationBreakdown": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "$ref": "#/definitions/LocationDetails"
+          },
+          "inventory": {
+            "type": "object",
+            "properties": {
+              "availableQuantity": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Available quantity at this location"
+              },
+              "reservedQuantity": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Reserved quantity at this location"
+              },
+              "lastCountDate": {
+                "type": "string",
+                "format": "date",
+                "description": "Date of last physical count"
+              }
+            },
+            "required": ["availableQuantity", "reservedQuantity", "lastCountDate"],
+            "additionalProperties": false
+          },
+          "qualityMetrics": {
+            "$ref": "#/definitions/QualityMetrics"
+          }
+        },
+        "required": ["location", "inventory", "qualityMetrics"],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "description": "Inventory breakdown by location"
+    },
+    "supplierInformation": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/SupplierInfo"
+      },
+      "description": "Information about suppliers for this product"
+    },
+    "recentMovements": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/InventoryMovement"
+      },
+      "maxItems": 10,
+      "description": "Recent inventory movements (last 10)"
+    },
+    "alerts": {
+      "type": "object",
+      "properties": {
+        "lowStock": {
+          "type": "boolean",
+          "description": "Whether product is below reorder level"
+        },
+        "qualityIssues": {
+          "type": "boolean",
+          "description": "Whether there are quality concerns"
+        },
+        "supplierDelays": {
+          "type": "boolean",
+          "description": "Whether there are supplier delivery delays"
+        },
+        "messages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "severity": {
+                "type": "string",
+                "enum": ["info", "warning", "error", "critical"],
+                "description": "Alert severity level"
+              },
+              "message": {
+                "type": "string",
+                "description": "Alert message"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When the alert was generated"
+              }
+            },
+            "required": ["severity", "message", "timestamp"],
+            "additionalProperties": false
+          },
+          "description": "Alert messages"
+        }
+      },
+      "required": ["lowStock", "qualityIssues", "supplierDelays", "messages"],
+      "additionalProperties": false
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when this data was last updated"
+    }
+  },
+  "required": [
+    "productId",
+    "productMetadata",
+    "aggregatedInventory",
+    "locationBreakdown",
+    "supplierInformation",
+    "recentMovements",
+    "alerts",
+    "lastUpdated"
+  ],
+  "additionalProperties": false
+}
   

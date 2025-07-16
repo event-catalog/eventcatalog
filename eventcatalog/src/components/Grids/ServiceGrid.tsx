@@ -128,7 +128,7 @@ const DomainSection = memo(
     return (
       <div className="space-y-6">
         {servicesWithoutSubdomains.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1 gap-6">
             {servicesWithoutSubdomains.map((service) => (
               <ServiceCard key={service.data.id} service={service} urlParams={urlParams} selectedTypes={selectedTypes} />
             ))}

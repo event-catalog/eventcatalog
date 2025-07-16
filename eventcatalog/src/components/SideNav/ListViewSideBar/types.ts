@@ -5,6 +5,7 @@ export interface MessageItem {
   id: string;
   direction: 'sends' | 'receives';
   type: 'command' | 'query' | 'event';
+  collection: string;
   data: {
     name: string;
   };
@@ -23,6 +24,7 @@ export interface ServiceItem {
   name: string;
   id: string;
   version: string;
+  draft: boolean | { title?: string; message: string };
   sends: MessageItem[];
   receives: MessageItem[];
   entities: EntityItem[];
@@ -35,21 +37,28 @@ export interface ServiceItem {
   }[];
 }
 
-interface DomainItem {
+export interface DomainItem {
   href: string;
   label: string;
   id: string;
   name: string;
   services: any[];
   domains: any[];
+  entities: EntityItem[];
 }
 
-interface FlowItem {
+export interface FlowItem {
   href: string;
   label: string;
 }
 
-interface Resources {
+export interface Resources {
+  'context-map'?: Array<{
+    href: string;
+    label: string;
+    id: string;
+    name: string;
+  }>;
   domains?: DomainItem[];
   services?: ServiceItem[];
   flows?: FlowItem[];

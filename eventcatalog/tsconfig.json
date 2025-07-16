@@ -9,11 +9,13 @@
       "@icons/*": ["src/icons/*"],
       "@components/*": ["src/components/*"],
       "@catalog/components/*": ["src/custom-defined-components/*"],
+      "@catalog/snippets/*": ["src/snippets/*"],
       "@types": ["src/types/index.ts"],
       "@utils/*": ["src/utils/*"],
       "@layouts/*": ["src/layouts/*"],
       "@enterprise/*": ["src/enterprise/*"],
-      "@ai/*": ["src/generated-ai/*"]
+      "@ai/*": ["src/generated-ai/*"],
+      "auth:config": ["./auth.config.ts"]
     },
     "jsx": "react-jsx",
     "jsxImportSource": "react",

@@ -1,0 +1,80 @@
+---
+id: PaymentRefunded
+name: PaymentRefunded
+version: 1.0.0
+identifier: refundId
+aggregateRoot: true
+summary: Represents refunded payment transactions for orders in the e-commerce system.
+properties:
+  - name: refundId
+    type: UUID
+    required: true
+    description: Unique identifier for the refund
+  - name: paymentId
+    type: UUID
+    required: true
+    description: Payment this refund is associated with
+    references: Payment
+    referencesIdentifier: paymentId
+    relationType: hasOne
+  - name: amount
+    type: decimal
+    required: true
+    description: Refund amount
+  - name: currency
+    type: string
+    required: true
+    description: Currency code (e.g., USD, EUR, GBP)
+  - name: status
+    type: string
+    required: true
+    description: Current refund status
+    enum: ['pending', 'processing', 'completed', 'failed', 'cancelled']
+  - name: processedAt
+    type: DateTime
+    required: false
+    description: Date and time when refund was processed
+  - name: failureReason
+    type: string
+    required: false
+    description: Reason for refund failure if applicable
+  - name: createdAt
+    type: DateTime
+    required: true
+    description: Date and time when the refund record was created
+  - name: updatedAt
+    type: DateTime
+    required: false
+    description: Date and time when the refund record was last updated
+---
+
+## Overview
+
+The PaymentRefunded entity manages all refund transactions in the e-commerce system. It tracks refund details, status, and relationships with payments, supporting various refund scenarios.
+
+### Entity Properties
+<EntityPropertiesTable />
+
+## Relationships
+
+* **Payment:** Each refund belongs to one `Payment` (identified by `paymentId`).
+
+## Refund States
+
+```
+pending → processing → completed
+    ↓         ↓           ↓
+cancelled  failed
+```
+
+## Examples
+
+* **Refund #1:** $50.00 refund for Payment #12345, completed successfully.
+* **Refund #2:** $20.00 refund for Payment #67890, failed due to processing error.
+
+## Business Rules
+
+* Refund amount cannot exceed the original payment amount
+* Refund status transitions must follow valid state machine
+* Failed refunds should include failure reason
+* Completed refunds cannot be cancelled

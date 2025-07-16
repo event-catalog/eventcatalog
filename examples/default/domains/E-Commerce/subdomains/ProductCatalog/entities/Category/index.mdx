@@ -1,0 +1,124 @@
+---
+id: Category
+name: Category
+version: 1.0.0
+identifier: categoryId
+aggregateRoot: true
+summary: Represents a product category with hierarchical structure support.
+properties:
+  - name: categoryId
+    type: UUID
+    required: true
+    description: Unique identifier for the category
+  - name: name
+    type: string
+    required: true
+    description: Name of the category
+  - name: description
+    type: string
+    required: false
+    description: Description of the category
+  - name: slug
+    type: string
+    required: true
+    description: URL-friendly identifier for the category
+  - name: parentCategoryId
+    type: UUID
+    required: false
+    description: Parent category for hierarchical structure
+    references: Category
+    referencesIdentifier: categoryId
+    relationType: hasOne
+  - name: childCategories
+    type: array
+    items:
+      type: Category
+    required: false
+    description: Subcategories under this category
+    references: Category
+    referencesIdentifier: parentCategoryId
+    relationType: hasMany
+  - name: level
+    type: integer
+    required: true
+    description: Depth level in the category hierarchy (0 = root)
+  - name: isActive
+    type: boolean
+    required: true
+    description: Whether the category is currently active
+  - name: sortOrder
+    type: integer
+    required: false
+    description: Display order within the same level
+  - name: icon
+    type: string
+    required: false
+    description: Icon URL or identifier for the category
+  - name: imageUrl
+    type: string
+    required: false
+    description: Category banner or thumbnail image
+  - name: seoTitle
+    type: string
+    required: false
+    description: SEO-optimized title for the category page
+  - name: seoDescription
+    type: string
+    required: false
+    description: SEO meta description for the category page
+  - name: products
+    type: array
+    items:
+      type: Product
+    required: false
+    description: Products belonging to this category
+    references: Product
+    referencesIdentifier: categoryId
+    relationType: hasMany
+  - name: createdAt
+    type: DateTime
+    required: true
+    description: Date and time when the category was created
+  - name: updatedAt
+    type: DateTime
+    required: false
+    description: Date and time when the category was last updated
+---
+
+## Overview
+
+The Category entity organizes products into a hierarchical structure, supporting multi-level categorization. It enables efficient product discovery and navigation through the e-commerce catalog.
+
+### Entity Properties
+<EntityPropertiesTable />
+
+## Relationships
+
+* **Parent Category:** Each category can have one parent `Category` (identified by `parentCategoryId`).
+* **Child Categories:** A category can have multiple child `Category` entities creating a hierarchy.
+* **Products:** A category contains multiple `Product` entities (identified by `categoryId`).
+
+## Hierarchy Examples
+
+```
+Electronics (Level 0)
+├── Computers (Level 1)
+│   ├── Laptops (Level 2)
+│   ├── Desktops (Level 2)
+│   └── Tablets (Level 2)
+├── Mobile Phones (Level 1)
+│   ├── Smartphones (Level 2)
+│   └── Feature Phones (Level 2)
+└── Audio (Level 1)
+    ├── Headphones (Level 2)
+    └── Speakers (Level 2)
+```
+
+## Business Rules
+
+* Root categories have `parentCategoryId` as null and `level` as 0
+* Child categories must have a valid `parentCategoryId`
+* Category slugs must be unique across the entire catalog
+* Categories cannot be deleted if they contain products or subcategories
+* Inactive categories should hide all associated products from public view
+* Maximum hierarchy depth should be limited (e.g., 5 levels)

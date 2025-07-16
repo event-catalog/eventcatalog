@@ -1,0 +1,121 @@
+---
+id: CartItem
+name: CartItem
+version: 1.0.0
+identifier: cartItemId
+summary: Represents an individual item within a shopping cart.
+properties:
+  - name: cartItemId
+    type: UUID
+    required: true
+    description: Unique identifier for the cart item
+  - name: cartId
+    type: UUID
+    required: true
+    description: Shopping cart this item belongs to
+    references: ShoppingCart
+    referencesIdentifier: cartId
+    relationType: hasOne
+  - name: productId
+    type: UUID
+    required: true
+    description: Product being added to cart
+    references: Product
+    referencesIdentifier: productId
+    relationType: hasOne
+  - name: sku
+    type: string
+    required: true
+    description: Product SKU at time of adding to cart
+  - name: productName
+    type: string
+    required: true
+    description: Product name snapshot at time of adding to cart
+  - name: productImage
+    type: string
+    required: false
+    description: Product image URL snapshot
+  - name: quantity
+    type: integer
+    required: true
+    description: Quantity of this product in the cart
+  - name: unitPrice
+    type: decimal
+    required: true
+    description: Unit price at time of adding to cart
+  - name: totalPrice
+    type: decimal
+    required: true
+    description: Total price for this line item (quantity × unit price)
+  - name: originalPrice
+    type: decimal
+    required: false
+    description: Original product price before any discounts
+  - name: discountAmount
+    type: decimal
+    required: false
+    description: Discount applied to this line item
+  - name: productVariant
+    type: object
+    required: false
+    description: Product variant details (size, color, etc.)
+    properties:
+      - name: size
+        type: string
+        description: Product size if applicable
+      - name: color
+        type: string
+        description: Product color if applicable
+      - name: style
+        type: string
+        description: Product style if applicable
+  - name: isAvailable
+    type: boolean
+    required: true
+    description: Whether the product is still available
+  - name: notes
+    type: string
+    required: false
+    description: Customer notes for this item
+  - name: addedAt
+    type: DateTime
+    required: true
+    description: Date and time when item was added to cart
+  - name: updatedAt
+    type: DateTime
+    required: false
+    description: Date and time when item was last updated
+---
+
+## Overview
+
+The CartItem entity represents individual products within a customer's shopping cart. It maintains snapshots of product information and pricing to ensure consistency during the shopping session.
+
+### Entity Properties
+<EntityPropertiesTable />
+
+## Relationships
+
+* **ShoppingCart:** Each cart item belongs to one `ShoppingCart` (identified by `cartId`).
+* **Product:** Each cart item references one `Product` (identified by `productId`).
+
+## Price Calculations
+
+* **Total Price** = Quantity × Unit Price - Discount Amount
+* **Savings** = Original Price - Unit Price (if applicable)
+
+## Examples
+
+* **CartItem #1:** iPhone 15 Pro, quantity 1, $999.99 unit price, no discount.
+* **CartItem #2:** Running Shoes Size 9, quantity 2, $64.99 unit price (was $129.99).
+* **CartItem #3:** T-Shirt Large/Blue, quantity 3, $19.99 unit price.
+
+## Business Rules
+
+* Quantity must be greater than zero
+* Unit price is captured at time of adding to maintain consistency
+* Product availability is checked when cart is accessed
+* Unavailable items are marked but not automatically removed
+* Total price is recalculated when quantity changes
+* Product snapshots prevent price changes from affecting active carts
+* Maximum quantity limits may apply per product type

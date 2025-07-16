@@ -1,7 +1,13 @@
 import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { mockDomains, mockServices, mockEvents, mockCommands, mockUbiquitousLanguages } from './mocks';
-import { getDomains, getDomainsForService, getParentDomains, getUbiquitousLanguage } from '../../collections/domains';
+import {
+  domainHasEntities,
+  getDomains,
+  getDomainsForService,
+  getParentDomains,
+  getUbiquitousLanguage,
+} from '../../collections/domains';
 import type { Service } from '@utils/collections/services';
 import type { Domain } from '@utils/collections/domains';
 vi.mock('astro:content', async (importOriginal) => {
@@ -97,6 +103,19 @@ describe('Domains', () => {
     it('returns an empty array if the domain is not found', async () => {
       const domains = await getParentDomains(mockDomains[2] as unknown as Domain);
       expect(domains).toEqual([]);
+    });
+  });
+
+  describe('domainHasEntities', () => {
+    it('should return true if the domain has entities', async () => {
+      const domains = await getDomains();
+      domains[0].data.entities = [{ id: 'Order', version: '1.0.0' }];
+      expect(domainHasEntities(domains[0])).toBe(true);
+    });
+
+    it('should return false if the domain has no entities', async () => {
+      const domains = await getDomains();
+      expect(domainHasEntities(domains[1])).toBe(false);
     });
   });
 });

@@ -1,5 +1,180 @@
 # @eventcatalog/core
 
+## 2.49.1
+
+### Patch Changes
+
+- 9e0b525: feat(core): compressing build is now optional (again)
+
+## 2.49.0
+
+### Minor Changes
+
+- 48de32d: feat(core): added domain entity map visualizer pages
+
+## 2.48.5
+
+### Patch Changes
+
+- ab83e48: feat(core): compressing build is now optional
+
+## 2.48.4
+
+### Patch Changes
+
+- 99a34cf: feat(core): added draft support for resources
+
+## 2.48.3
+
+### Patch Changes
+
+- cf4f246: feat(core): added draft support for resources
+
+## 2.48.2
+
+### Patch Changes
+
+- f0d88aa: feat(core): added environments switcher
+
+## 2.48.1
+
+### Patch Changes
+
+- b77aa3b: fix(core): fixed list view sidebar scrolling to resources
+- 49f794e: feat(core): added support for MDX snippets
+
+## 2.48.0
+
+### Minor Changes
+
+- 49d8395: feat(core): added support for MDX snippets
+
+### Patch Changes
+
+- a35c5b2: feat(core): sidebar now has collapse buttons
+
+## 2.47.1
+
+### Patch Changes
+
+- c7f7ca1: chore(core): updated width of services in architecture page
+
+## 2.47.0
+
+### Minor Changes
+
+- 66edd2e: chore(core): refactor sidebar to reduce page weights
+
+## 2.46.0
+
+### Minor Changes
+
+- 9ad51a1: feat(core): added support for plantuml code blocks
+
+## 2.45.3
+
+### Patch Changes
+
+- d9b144e: feat(core): added ability to link to headings
+
+## 2.45.2
+
+### Patch Changes
+
+- 79ec914: feat(core): added search and expand features to schema viewer
+
+## 2.45.1
+
+### Patch Changes
+
+- 59d3275: chore(core): renamed new domain feature
+
+## 2.45.0
+
+### Minor Changes
+
+- 537281e: feat(core): added domain integration visualizer
+
+## 2.44.5
+
+### Patch Changes
+
+- 125f14d: fix(core): fixing type errors
+
+## 2.44.4
+
+### Patch Changes
+
+- 3247596: feat(core): added node walkthroughs for flows
+- 5a27960: feat(core): improved search, now searched by name and id
+
+## 2.44.3
+
+### Patch Changes
+
+- 46600ff: fix(core): fix for schema viewer
+
+## 2.44.2
+
+### Patch Changes
+
+- c42518e: fix(core): fixed path matching for middleware
+- d4fd84a: fix(core): removed redundant error log
+
+## 2.44.1
+
+### Patch Changes
+
+- 885bd94: feat(core): added search on visualizer
+
+## 2.44.0
+
+### Minor Changes
+
+- e0d3efe: chore(core): added auth middleware for rbac
+
+## 2.43.5
+
+### Patch Changes
+
+- e09594b: chore(core): updated astro versions
+
+## 2.43.4
+
+### Patch Changes
+
+- a070530: chore(core): added feature logs
+
+## 2.43.3
+
+### Patch Changes
+
+- c70e610: feat(core): added google authentication options
+
+## 2.43.2
+
+### Patch Changes
+
+- 1bc6ee4: feat(core): added entra to auth providers
+
+## 2.43.1
+
+### Patch Changes
+
+- 0dbdeae: feat(core): added auth0 to list of providers for auth
+
+## 2.43.0
+
+### Minor Changes
+
+- 1b6c725: feat(core): added authentication and SSR options
+
+## 2.42.10
+
+### Patch Changes
+
+- 3b5138c: fix(core): services and domains visualizers now read the channel type
+
 ## 2.42.9
 
 ### Patch Changes

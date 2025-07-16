@@ -13,7 +13,9 @@ properties:
   - name: customerId
     type: UUID
     required: true
-    description: Identifier of the customer being invoiced.
+    description: Identifier of the customer being invoiced
+    references: Customer
+    relationType: hasOne
   - name: orderId # Optional, if invoice is directly tied to a single order
     type: UUID
     required: false

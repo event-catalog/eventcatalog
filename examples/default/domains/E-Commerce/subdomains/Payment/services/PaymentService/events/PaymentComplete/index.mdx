@@ -1,0 +1,41 @@
+---
+id: PaymentComplete
+name: Payment Complete
+version: 0.0.2
+summary: Event is triggered when a user completes a payment through the Payment Service
+owners:
+    - dboyne
+channels:
+  - id: payments.{env}.events
+    parameters:
+      env: staging
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The Payment Complete event is triggered when a user successfully completes a payment through the Payment Service. This event signifies the end of the payment process and confirms that the payment has been processed successfully.
+
+<NodeGraph />
+
+### Payload Example
+
+```json title="Payload example"
+{
+  "userId": "123e4567-e89b-12d3-a456-426614174000",
+  "orderId": "789e1234-b56c-78d9-e012-3456789fghij",
+  "amount": 100.50,
+  "paymentMethod": "CreditCard",
+  "timestamp": "2024-07-04T14:48:00Z",
+  "status": "Completed"
+}
+```
+
+### Security Considerations
+
+- **Authentication**: Ensure that only authenticated users can complete a payment, and the userId in the payload matches the authenticated user.
+- **Data Validation**: Validate all input data to prevent injection attacks or other malicious input.
+- **Sensitive Data Handling**: Avoid including sensitive information (e.g., credit card numbers) in the event payload. Use secure channels and encryption for such data.
+
+<Footer />

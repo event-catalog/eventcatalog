@@ -10,10 +10,17 @@ properties:
     type: UUID
     required: true
     description: Unique identifier for the order
+  - name: orderNumber
+    type: string
+    required: true
+    description: Unique identifier for the order
   - name: customerId
     type: UUID
-    required: true
-    description: Identifier for the customer placing the order
+    required: false
+    description: Identifier for the customer placing the order test
+    references: Customer
+    referencesIdentifier: customerId
+    relationType: hasOne
   - name: orderDate
     type: DateTime
     required: true
@@ -28,15 +35,42 @@ properties:
     items:
       type: OrderItem # Assuming an OrderItem entity exists
     required: true
+    references: OrderItem
+    referencesIdentifier: orderItemId
+    relationType: hasMany
     description: List of items included in the order
   - name: totalAmount
     type: decimal
     required: true
     description: Total monetary value of the order
   - name: shippingAddress
-    type: Address # Assuming an Address value object or entity exists
+    type: Address
     required: true
     description: Address where the order should be shipped
+    references: Address
+    referencesIdentifier: addressId
+    relationType: hasOne
+  - name: billingAddress
+    type: Address
+    required: true
+    description: Address for billing purposes
+    references: Address
+    referencesIdentifier: addressId
+    relationType: hasOne
+  - name: payment
+    type: Payment
+    required: false
+    description: Payment associated with this order
+    references: Payment
+    referencesIdentifier: orderId
+    relationType: hasOne
+  - name: convertedFromCartId
+    type: UUID
+    required: false
+    description: Shopping cart that was converted to this order
+    references: ShoppingCart
+    referencesIdentifier: cartId
+    relationType: hasOne
 ---
 
 ## Overview
@@ -50,7 +84,9 @@ The Order entity captures all details related to a customer's purchase request. 
 
 *   **Customer:** Each order belongs to one `Customer` (identified by `customerId`).
 *   **OrderItem:** An order contains one or more `OrderItem` entities detailing the specific products and quantities.
-*   **Payment:** An order is typically associated with a `Payment` entity (not detailed here).
+*   **Address:** Each order has shipping and billing `Address` entities (identified by `shippingAddress` and `billingAddress`).
+*   **Payment:** An order is associated with one `Payment` entity for transaction processing.
+*   **ShoppingCart:** An order can be converted from a `ShoppingCart` (identified by `convertedFromCartId`).
 *   **Shipment:** An order may lead to one or more `Shipment` entities (not detailed here).
 
 ## Examples

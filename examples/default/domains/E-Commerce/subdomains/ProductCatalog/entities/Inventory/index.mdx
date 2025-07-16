@@ -1,0 +1,116 @@
+---
+id: Inventory
+name: Inventory
+version: 1.0.0
+identifier: inventoryId
+summary: Tracks stock levels and availability for products.
+properties:
+  - name: inventoryId
+    type: UUID
+    required: true
+    description: Unique identifier for the inventory record
+  - name: productId
+    type: UUID
+    required: true
+    description: Product this inventory record tracks
+    references: Product
+    referencesIdentifier: productId
+    relationType: hasOne
+  - name: sku
+    type: string
+    required: true
+    description: Stock Keeping Unit matching the product SKU
+  - name: quantityOnHand
+    type: integer
+    required: true
+    description: Current available stock quantity
+  - name: quantityReserved
+    type: integer
+    required: true
+    description: Quantity reserved for pending orders
+  - name: quantityAvailable
+    type: integer
+    required: true
+    description: Calculated available quantity (onHand - reserved)
+  - name: minimumStockLevel
+    type: integer
+    required: true
+    description: Minimum stock level before reorder alert
+  - name: maximumStockLevel
+    type: integer
+    required: false
+    description: Maximum stock level for inventory management
+  - name: reorderPoint
+    type: integer
+    required: true
+    description: Stock level that triggers reorder process
+  - name: reorderQuantity
+    type: integer
+    required: true
+    description: Quantity to order when restocking
+  - name: unitCost
+    type: decimal
+    required: false
+    description: Cost per unit for inventory valuation
+  - name: warehouseLocation
+    type: string
+    required: false
+    description: Physical location or bin where item is stored
+  - name: lastRestockedAt
+    type: DateTime
+    required: false
+    description: Date and time of last restock
+  - name: lastSoldAt
+    type: DateTime
+    required: false
+    description: Date and time of last sale
+  - name: isTrackingEnabled
+    type: boolean
+    required: true
+    description: Whether inventory tracking is enabled for this product
+  - name: backorderAllowed
+    type: boolean
+    required: true
+    description: Whether backorders are allowed when out of stock
+  - name: createdAt
+    type: DateTime
+    required: true
+    description: Date and time when the inventory record was created
+  - name: updatedAt
+    type: DateTime
+    required: false
+    description: Date and time when the inventory record was last updated
+---
+
+## Overview
+
+The Inventory entity manages stock levels and availability for products in the e-commerce system. It tracks current quantities, reserved stock, and provides reorder management capabilities.
+
+### Entity Properties
+<EntityPropertiesTable />
+
+## Relationships
+
+* **Product:** Each inventory record belongs to one `Product` (identified by `productId`).
+* **OrderItem:** Inventory quantities are affected by `OrderItem` entities when orders are placed.
+
+## Stock Calculations
+
+* **Available Quantity** = Quantity On Hand - Quantity Reserved
+* **Reorder Needed** = Quantity Available &lt;= Reorder Point
+* **Stock Value** = Quantity On Hand × Unit Cost
+
+## Examples
+
+* **Inventory #1:** iPhone 15 Pro - 25 on hand, 5 reserved, 20 available, reorder at 10 units.
+* **Inventory #2:** Running Shoes Size 9 - 0 on hand, 2 reserved, backorder allowed.
+
+## Business Rules
+
+* Quantity on hand cannot be negative
+* Quantity reserved cannot exceed quantity on hand
+* Available quantity is automatically calculated
+* Reorder alerts are triggered when available = reorder point
+* Stock reservations are created when orders are placed
+* Stock is decremented when orders are shipped
+* Inventory adjustments must be logged for audit trail

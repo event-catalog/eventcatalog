@@ -147,3 +147,7 @@ export const getDomainsForService = async (service: Service): Promise<Domain[]> 
     return services.some((s) => s.data.id === service.data.id);
   });
 };
+
+export const domainHasEntities = (domain: Domain): boolean => {
+  return (domain.data.entities && domain.data.entities.length > 0) || false;
+};

@@ -5,7 +5,7 @@ import { getVersionForCollectionItem, satisfies } from './collections/util';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
-type Entity = CollectionEntry<'entities'> & {
+export type Entity = CollectionEntry<'entities'> & {
   catalog: {
     path: string;
     filePath: string;

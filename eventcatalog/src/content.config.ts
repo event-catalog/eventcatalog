@@ -73,6 +73,7 @@ const baseSchema = z.object({
   name: z.string(),
   summary: z.string().optional(),
   version: z.string(),
+  draft: z.union([z.boolean(), z.object({ title: z.string().optional(), message: z.string() })]).optional(),
   badges: z.array(badge).optional(),
   owners: z.array(ownerReference).optional(),
   schemaPath: z.string().optional(),
@@ -428,6 +429,9 @@ const entities = defineCollection({
             type: z.string(),
             required: z.boolean().optional(),
             description: z.string().optional(),
+            references: z.string().optional(),
+            referencesIdentifier: z.string().optional(),
+            relationType: z.string().optional(),
           })
         )
         .optional(),

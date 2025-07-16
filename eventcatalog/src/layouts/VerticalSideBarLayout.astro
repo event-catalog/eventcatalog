@@ -189,6 +189,39 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
         visibility: visible;
         z-index: 100;
       }
+
+      /* Hide anchor link by default */
+      .anchor-link {
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        margin-left: 0.5rem;
+        margin-top: 0.25rem;
+        background-image: url('data:image/svg+xml,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20fill%3D%22currentColor%22%20d%3D%22m12.11%2015.39-3.88%203.88a2.52%202.52%200%200%201-3.5%200%202.47%202.47%200%200%201%200-3.5l3.88-3.88a1%201%200%200%200-1.42-1.42l-3.88%203.89a4.48%204.48%200%200%200%206.33%206.33l3.89-3.88a1%201%200%201%200-1.42-1.42Zm8.58-12.08a4.49%204.49%200%200%200-6.33%200l-3.89%203.88a1%201%200%200%200%201.42%201.42l3.88-3.88a2.52%202.52%200%200%201%203.5%200%202.47%202.47%200%200%201%200%203.5l-3.88%203.88a1%201%200%201%200%201.42%201.42l3.88-3.89a4.49%204.49%200%200%200%200-6.33ZM8.83%2015.17a1%201%200%200%200%201.1.22%201%201%200%200%200%20.32-.22l4.92-4.92a1%201%200%200%200-1.42-1.42l-4.92%204.92a1%201%200%200%200%200%201.42Z%22/%3E%3C/svg%3E');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 1em 1em;
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+        text-decoration: none;
+        vertical-align: -2px;
+      }
+
+      /* Show icon on heading hover */
+      h1:hover .anchor-link,
+      h2:hover .anchor-link,
+      h3:hover .anchor-link,
+      h4:hover .anchor-link,
+      h5:hover .anchor-link,
+      h6:hover .anchor-link {
+        opacity: 1;
+      }
+
+      /* Show on keyboard focus */
+      .anchor-link:focus {
+        opacity: 1;
+        outline: none;
+      }
     </style>
   </head>
   <body>
@@ -421,5 +454,15 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
         }
       });
     }
+
+    // Listen for custom sidebar toggle event from React components
+    window.addEventListener('sidebarToggle', (event) => {
+      const { action } = event.detail;
+      if (action === 'hide') {
+        hideSidebar();
+      } else if (action === 'show') {
+        showSidebar();
+      }
+    });
   });
 </script>

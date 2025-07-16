@@ -1,0 +1,31 @@
+---
+import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
+import VisualiserLayout from '@layouts/VisualiserLayout.astro';
+import { buildUrl } from '@utils/url-builder';
+import { ClientRouter } from 'astro:transitions';
+---
+
+<VisualiserLayout title={`Visualiser | Domain Architecture`} description="High-level view of all domains and their relationships">
+  <div class="bg-gray-100/50 m-4">
+    <div
+      class="h-[calc(100vh-130px)] w-full relative border border-gray-200"
+      id="domains-canvas-portal"
+      transition:animate="fade"
+    >
+    </div>
+    <NodeGraph
+      id="domains-canvas"
+      collection="domains-canvas"
+      title="Domain Integration Map"
+      mode="full"
+      linkTo="visualiser"
+      version="1.0.0"
+      linksToVisualiser={false}
+      href={{
+        label: 'View Documentation',
+        url: buildUrl('/docs'),
+      }}
+    />
+  </div>
+  <ClientRouter />
+</VisualiserLayout>

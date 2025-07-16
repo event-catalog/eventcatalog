@@ -7,13 +7,20 @@ interface Props {
   isRequired: boolean;
   level: number;
   isListItem?: boolean;
+  expand?: boolean;
 }
 
-const { name, details, isRequired, level, isListItem = false } = Astro.props;
+const { name, details, isRequired, level, isListItem = false, expand = false } = Astro.props;
 
 const hasNestedProperties = details.type === 'object' && details.properties && Object.keys(details.properties).length > 0;
 const hasArrayItems = details.type === 'array' && details.items;
-const isCollapsible = hasNestedProperties || (hasArrayItems && details.items.type === 'object' && details.items.properties);
+const hasArrayItemProperties =
+  hasArrayItems &&
+  ((details.items.type === 'object' && details.items.properties) ||
+    details.items.allOf ||
+    details.items.oneOf ||
+    details.items.$ref);
+const isCollapsible = hasNestedProperties || hasArrayItemProperties;
 
 // Using template literal for class calculation remains safe
 const indentationClass = `pl-${level * 3}`;
@@ -28,12 +35,12 @@ const contentId = `prop-${name}-${level}-${Math.random().toString(36).substring(
       isCollapsible && (
         <button
           type="button"
-          aria-expanded="false"
+          aria-expanded={expand ? 'true' : 'false'}
           aria-controls={contentId}
           class="property-toggle text-gray-500 hover:text-gray-700 pt-0.5 focus:outline-none w-3 text-center flex-shrink-0"
         >
-          <span class="icon-collapsed font-mono text-xs">&gt;</span>
-          <span class="icon-expanded font-mono text-xs hidden">v</span>
+          <span class:list={['icon-collapsed font-mono text-xs', { hidden: expand }]}>&gt;</span>
+          <span class:list={['icon-expanded font-mono text-xs', { hidden: !expand }]}>v</span>
         </button>
       )
     }
@@ -48,12 +55,19 @@ const contentId = `prop-${name}-${level}-${Math.random().toString(36).substring(
             {details.type}
             {details.type === 'array' && details.items?.type ? `[${details.items.type}]` : ''}
             {details.format ? `<${details.format}>` : ''}
+            {details._refPath && <span class="text-blue-600 ml-1">→ {details._refName || details._refPath}</span>}
+            {details._refNotFound && <span class="text-red-600 ml-1">❌ ref not found</span>}
           </span>
         </div>
         {isRequired && <span class="text-red-600 text-xs ml-3 flex-shrink-0">required</span>}
       </div>
 
       {details.description && <p class="text-gray-500 text-xs mt-0.5">{details.description}</p>}
+      {
+        details.title && details.title !== details.description && (
+          <p class="text-gray-500 text-xs mt-0.5 italic">Title: {details.title}</p>
+        )
+      }
 
       {/* Reverted arbitrary text size to standard 'text-xs' */}
       <div class="text-xs text-gray-500 mt-0.5 space-y-0">
@@ -79,6 +93,20 @@ const contentId = `prop-${name}-${level}-${Math.random().toString(36).substring(
           )
         }
         {
+          details.minLength !== undefined && (
+            <div>
+              Min length: <code class="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">{details.minLength}</code>
+            </div>
+          )
+        }
+        {
+          details.maxLength !== undefined && (
+            <div>
+              Max length: <code class="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">{details.maxLength}</code>
+            </div>
+          )
+        }
+        {
           details.enum && (
             <div>
               <span class="text-xs inline-block">Allowed values:</span>
@@ -97,7 +125,7 @@ const contentId = `prop-${name}-${level}-${Math.random().toString(36).substring(
       {
         (hasNestedProperties || hasArrayItems) && (
           // class:list with conditional object is standard and should be safe
-          <div id={contentId} class:list={['nested-content mt-1', { hidden: isCollapsible }]}>
+          <div id={contentId} class:list={['nested-content mt-1', { hidden: isCollapsible && !expand }]}>
             {/* Recursive component calls */}
             {hasNestedProperties &&
               details.properties &&
@@ -107,21 +135,29 @@ const contentId = `prop-${name}-${level}-${Math.random().toString(36).substring(
                   details={nestedDetails}
                   isRequired={details.required?.includes(nestedName) ?? false}
                   level={level + 1}
+                  expand={expand}
                 />
               ))}
 
-            {hasArrayItems && details.items.type === 'object' && details.items.properties && (
+            {hasArrayItemProperties && (
               <div class="mt-1 border-l border-dashed border-gray-400 pl-3 ml-1.5">
                 <span class="text-xs italic text-gray-500 block mb-1">Item Details:</span>
-                {Object.entries(details.items.properties).map(([itemPropName, itemPropDetails]) => (
-                  <SchemaProp
-                    name={itemPropName}
-                    details={itemPropDetails}
-                    isRequired={details.items.required?.includes(itemPropName) ?? false}
-                    level={level + 1}
-                    isListItem={true}
-                  />
-                ))}
+                {details.items.properties &&
+                  Object.entries(details.items.properties).map(([itemPropName, itemPropDetails]) => (
+                    <SchemaProp
+                      name={itemPropName}
+                      details={itemPropDetails}
+                      isRequired={details.items.required?.includes(itemPropName) ?? false}
+                      level={level + 1}
+                      isListItem={true}
+                      expand={expand}
+                    />
+                  ))}
+                {(details.items.allOf || details.items.oneOf || details.items.$ref) && !details.items.properties && (
+                  <div class="text-xs text-gray-500 mt-1">
+                    Complex array item schema detected. The properties should be processed by the parent SchemaViewer.
+                  </div>
+                )}
               </div>
             )}
           </div>

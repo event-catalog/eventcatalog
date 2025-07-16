@@ -4,6 +4,7 @@ import File from '@components/MDX/File';
 import Accordion from '@components/MDX/Accordion/Accordion.astro';
 import AccordionGroup from '@components/MDX/Accordion/AccordionGroup.astro';
 import Flow from '@components/MDX/Flow/Flow.astro';
+import EntityMap from '@components/MDX/EntityMap/EntityMap.astro';
 import Tiles from '@components/MDX/Tiles/Tiles.astro';
 import Tile from '@components/MDX/Tiles/Tile.astro';
 import Steps from '@components/MDX/Steps/Steps.astro';
@@ -41,6 +42,7 @@ const components = (props: any) => {
     MessageTable: (mdxProp: any) => jsx(MessageTable, { ...props, ...mdxProp }),
     EntityPropertiesTable: (mdxProp: any) => jsx(EntityPropertiesTable, { ...props, ...mdxProp }),
     NodeGraph: (mdxProp: any) => jsx(NodeGraphPortal, { ...props.data, ...mdxProp, props, mdxProp }),
+    EntityMap,
     OpenAPI,
     ResourceGroupTable: (mdxProp: any) => jsx(ResourceGroupTable, { ...props, ...mdxProp }),
     ResourceLink: (mdxProp: any) => jsx(ResourceLink, { ...props, ...mdxProp }),

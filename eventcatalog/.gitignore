@@ -13,6 +13,7 @@ src/content/*
 public/generated/*
 src/catalog-files/*
 src/custom-defined-components/*
+src/snippets/*
 
 eventcatalog.config.js
 eventcatalog.styles.css

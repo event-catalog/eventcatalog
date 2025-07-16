@@ -107,10 +107,25 @@ export default {
     channels: {
       renderMode: 'flat'
     }
-  }
+  },
+  environments: [
+    {
+      name: 'Development',
+      url: 'https://demo.eventcatalog.dev',
+      description: 'Local development environment',
+      shortName: 'Dev'
+    },
+    {
+      name: 'Test',
+      url: 'https://demo.eventcatalog.dev',
+      description: 'Test environment for QA',
+      shortName: 'Test'
+    },
+    {
+      name: 'Production',
+      url: 'https://demo.eventcatalog.dev',
+      description: 'Production environment',
+      shortName: 'Prod'
+    },
+  ]
 };
-
-
-/**
- * TODO: Collapsed groups (collapsed: true)
- */
