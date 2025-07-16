@@ -79,11 +79,7 @@ export default defineConfig({
     config.output !== 'server' && pagefind(),
     config.output !== 'server' && compress && (await import("astro-compress")).default({
       Logger: 0,
-      Exclude: [
-        (File) =>
-          // Fix for https://github.com/event-catalog/eventcatalog/issues/1600
-					File.includes("TreeView"),
-      ],
+      CSS: false,
     }),
   ].filter(Boolean),
   vite: {
