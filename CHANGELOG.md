@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.49.3
+
+### Patch Changes
+
+- 7130716: fix(core): no longer compress css
+
 ## 2.49.2
 
 ### Patch Changes
