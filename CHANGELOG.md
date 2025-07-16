@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.49.2
+
+### Patch Changes
+
+- 8b0ae38: fix(core): fixed broken sidebar styles on list view settings
+
 ## 2.49.1
 
 ### Patch Changes
