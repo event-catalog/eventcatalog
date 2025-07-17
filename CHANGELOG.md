@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.49.4
+
+### Patch Changes
+
+- f9d22d8: feat(core): added edit links into resource pages
+
 ## 2.49.3
 
 ### Patch Changes
