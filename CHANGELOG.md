@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.49.5
+
+### Patch Changes
+
+- 789a248: fix(core): fixed domain language explorer in SSR mode
+
 ## 2.49.4
 
 ### Patch Changes
