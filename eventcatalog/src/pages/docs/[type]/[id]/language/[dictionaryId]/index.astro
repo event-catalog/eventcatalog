@@ -2,51 +2,17 @@
 import RectangleGroupIcon from '@heroicons/react/24/outline/RectangleGroupIcon';
 import Footer from '@layouts/Footer.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { getDomains, getUbiquitousLanguage } from '@utils/collections/domains';
 import { buildUrl } from '@utils/url-builder';
 import { ClientRouter } from 'astro:transitions';
 import { marked } from 'marked';
 
-export async function getStaticPaths() {
-  const domains = await getDomains({ getAllVersions: false });
+import { Page } from './_index.data';
 
-  const pages = await domains.reduce<Promise<any[]>>(async (acc, domain) => {
-    const accumulator = await acc;
-    const ubiquitousLanguages = await getUbiquitousLanguage(domain);
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
 
-    if (ubiquitousLanguages.length === 0) {
-      return accumulator;
-    }
+const props = await Page.getData(Astro);
 
-    const dictionary = ubiquitousLanguages[0].data.dictionary;
-
-    if (!dictionary) {
-      return accumulator;
-    }
-
-    return [
-      ...accumulator,
-      ...dictionary.map((item) => ({
-        params: {
-          type: domain.collection,
-          id: domain.data.id,
-          dictionaryId: item.id,
-        },
-        props: {
-          type: domain.collection,
-          domainId: domain.data.id,
-          domain: domain.data,
-          ubiquitousLanguage: item,
-          ...item,
-        },
-      })),
-    ];
-  }, Promise.resolve([]));
-
-  return pages;
-}
-
-const props = Astro.props;
 const { ubiquitousLanguage } = props;
 const pageTitle = `${props.type} | ${ubiquitousLanguage.name}`.replace(/^\w/, (c) => c.toUpperCase());
 
@@ -89,7 +55,7 @@ const badges = [
                 >
                   <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"></path>
                 </svg>
-                Back to ubiquitous language List
+                Back to Ubiquitous Language List
               </a>
             </li>
           </ol>
