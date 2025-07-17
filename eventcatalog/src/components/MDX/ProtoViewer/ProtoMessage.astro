@@ -1,0 +1,278 @@
+---
+import ProtoField from './ProtoField.astro';
+
+interface Props {
+  name: string;
+  message: any;
+  expand?: boolean;
+  type: 'message' | 'enum' | 'service';
+  level?: number;
+  availableTypes?: string[];
+}
+
+const { name, message, expand = false, type, level = 0, availableTypes = [] } = Astro.props;
+
+const contentId = `proto-${type}-${name}-${Math.random().toString(36).substring(2, 7)}`;
+
+const hasContent =
+  (type === 'message' && message.fields && message.fields.length > 0) ||
+  (type === 'enum' && message.values && message.values.length > 0) ||
+  (type === 'service' && message.methods && message.methods.length > 0);
+
+const indentationClass = `pl-${level * 3}`;
+
+// Create unique ID for this type for linking (use simple name without package)
+const simpleName = name.split('.').pop() || name;
+const typeId = `proto-type-${simpleName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+
+// Get type badge color
+const getTypeBadge = (type: string) => {
+  switch (type) {
+    case 'message':
+      return 'text-blue-600';
+    case 'enum':
+      return 'text-green-600';
+    case 'service':
+      return 'text-purple-600';
+    default:
+      return 'text-blue-600';
+  }
+};
+---
+
+<div id={typeId} class:list={['proto-container property-container mb-1.5 border-l border-gray-100 relative', indentationClass]}>
+  <div class="flex items-start space-x-1.5">
+    {
+      hasContent && (
+        <button
+          type="button"
+          aria-expanded={expand ? 'true' : 'false'}
+          aria-controls={contentId}
+          class="proto-toggle property-toggle text-gray-500 hover:text-gray-700 pt-0.5 focus:outline-none w-3 text-center flex-shrink-0"
+        >
+          <span class:list={['icon-collapsed font-mono text-xs', { hidden: expand }]}>&gt;</span>
+          <span class:list={['icon-expanded font-mono text-xs', { hidden: !expand }]}>v</span>
+        </button>
+      )
+    }
+    {!hasContent && <div class="w-3 h-4 flex-shrink-0" />}
+
+    <div class="flex-grow">
+      <div class="flex justify-between items-baseline">
+        <div>
+          <span class="proto-name font-semibold text-gray-800 text-sm">{simpleName}</span>
+          <span class={`ml-1.5 font-mono text-xs ${getTypeBadge(type)}`}>
+            {type}
+          </span>
+        </div>
+        <div class="text-xs text-gray-500 ml-3 flex-shrink-0">
+          {
+            type === 'message' && message.fields && (
+              <span>
+                {message.fields.length} {message.fields.length === 1 ? 'field' : 'fields'}
+              </span>
+            )
+          }
+          {
+            type === 'enum' && message.values && (
+              <span>
+                {message.values.length} {message.values.length === 1 ? 'value' : 'values'}
+              </span>
+            )
+          }
+          {
+            type === 'service' && message.methods && (
+              <span>
+                {message.methods.length} {message.methods.length === 1 ? 'method' : 'methods'}
+              </span>
+            )
+          }
+        </div>
+      </div>
+
+      {message.comment && <p class="text-gray-500 text-xs mt-0.5">{message.comment}</p>}
+
+      {
+        hasContent && (
+          <div id={contentId} class:list={['nested-content mt-1', { hidden: hasContent && !expand }]}>
+            {/* Message Fields */}
+            {type === 'message' && message.fields && message.fields.length > 0 && (
+              <div>
+                {/* Group fields by oneof or show regular fields */}
+                {(() => {
+                  // Group fields by their partOf (oneof group) property
+                  const fieldsGroupedByOneof = message.fields.reduce((acc: any, field: any) => {
+                    const groupName = field.partOf || 'regular';
+                    if (!acc[groupName]) acc[groupName] = [];
+                    acc[groupName].push(field);
+                    return acc;
+                  }, {});
+
+                  const result: any[] = [];
+
+                  // Render regular fields first
+                  if (fieldsGroupedByOneof.regular) {
+                    fieldsGroupedByOneof.regular.forEach((field: any) => {
+                      result.push(<ProtoField field={field} level={level + 1} availableTypes={availableTypes} />);
+                    });
+                  }
+
+                  // Render oneof groups
+                  Object.entries(fieldsGroupedByOneof).forEach(([groupName, fields]: [string, any]) => {
+                    if (groupName === 'regular') return;
+
+                    const oneofInfo = message.oneofs?.find((oneof: any) => oneof.name === groupName);
+
+                    result.push(
+                      <div class:list={['property-container mb-1.5 border-l border-gray-100 relative', `pl-${(level + 1) * 3}`]}>
+                        <div class="flex items-start space-x-1.5">
+                          <div class="w-3 h-4 flex-shrink-0" />
+                          <div class="flex-grow">
+                            <div class="flex justify-between items-baseline">
+                              <div>
+                                <span class="font-semibold text-gray-800 text-sm">{groupName}</span>
+                                <span class="ml-1.5 text-orange-600 font-mono text-xs">oneof</span>
+                              </div>
+                              <div class="text-xs text-gray-500 ml-3 flex-shrink-0">
+                                {fields.length} {fields.length === 1 ? 'option' : 'options'}
+                              </div>
+                            </div>
+                            {oneofInfo?.comment && (
+                              <div class="mt-1 p-1.5 bg-orange-50 rounded border-l-2 border-orange-200">
+                                <p class="text-orange-700 text-xs">{oneofInfo.comment}</p>
+                              </div>
+                            )}
+                            <div class="text-xs text-gray-500 mt-0.5">
+                              <span class="italic">Only one field can be set</span>
+                            </div>
+
+                            {/* Oneof fields */}
+                            <div class="mt-1">
+                              {fields.map((field: any) => (
+                                <ProtoField field={field} level={level + 2} availableTypes={availableTypes} />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  });
+
+                  return result;
+                })()}
+              </div>
+            )}
+
+            {/* Enum Values */}
+            {type === 'enum' && message.values && message.values.length > 0 && (
+              <div>
+                {message.values.map((value: any) => (
+                  <div class:list={['property-container mb-1.5 border-l border-gray-100 relative', `pl-${(level + 1) * 3}`]}>
+                    <div class="flex items-start space-x-1.5">
+                      <div class="w-3 h-4 flex-shrink-0" />
+                      <div class="flex-grow">
+                        <div class="flex justify-between items-baseline">
+                          <div>
+                            <span class="proto-field-name font-semibold text-gray-800 text-sm">{value.name}</span>
+                            <span class="ml-1.5 text-purple-600 font-mono text-xs">enum</span>
+                          </div>
+                          <span class="text-gray-500 text-xs ml-3 flex-shrink-0 font-mono">= {value.value}</span>
+                        </div>
+                        {value.comment && (
+                          <div class="mt-1 p-1.5 bg-green-50 rounded border-l-2 border-green-200">
+                            <p class="text-green-700 text-xs">{value.comment}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Service Methods */}
+            {type === 'service' && message.methods && message.methods.length > 0 && (
+              <div>
+                {message.methods.map((method: any) => (
+                  <div class:list={['property-container mb-1.5 border-l border-gray-100 relative', `pl-${(level + 1) * 3}`]}>
+                    <div class="flex items-start space-x-1.5">
+                      <div class="w-3 h-4 flex-shrink-0" />
+                      <div class="flex-grow">
+                        <div class="flex justify-between items-baseline">
+                          <div>
+                            <span class="proto-field-name font-semibold text-gray-800 text-sm">{method.name}</span>
+                            <span class="ml-1.5 text-purple-600 font-mono text-xs">rpc</span>
+                          </div>
+                        </div>
+
+                        <div class="text-xs text-gray-500 mt-0.5 space-y-0">
+                          <div>
+                            Request:{' '}
+                            <code class="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">
+                              {method.requestStream && 'stream '}
+                              {method.requestType}
+                            </code>
+                          </div>
+                          <div>
+                            Response:{' '}
+                            <code class="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">
+                              {method.responseStream && 'stream '}
+                              {method.responseType}
+                            </code>
+                          </div>
+                        </div>
+
+                        {method.comment && (
+                          <div class="mt-1 p-1.5 bg-purple-50 rounded border-l-2 border-purple-200">
+                            <p class="text-purple-700 text-xs">{method.comment}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      }
+
+      {
+        !hasContent && (
+          <p class="text-gray-500 text-xs mt-0.5">
+            {type === 'message' && 'No fields defined'}
+            {type === 'enum' && 'No values defined'}
+            {type === 'service' && 'No methods defined'}
+          </p>
+        )
+      }
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  function setupProtoToggle() {
+    document.querySelectorAll('.proto-toggle').forEach((button) => {
+      if (button.dataset.listenerAttached) return;
+      button.dataset.listenerAttached = 'true';
+
+      button.addEventListener('click', () => {
+        const contentId = button.getAttribute('aria-controls');
+        const content = document.getElementById(contentId);
+        const isExpanded = button.getAttribute('aria-expanded') === 'true';
+        const iconCollapsed = button.querySelector('.icon-collapsed');
+        const iconExpanded = button.querySelector('.icon-expanded');
+
+        if (content) {
+          button.setAttribute('aria-expanded', String(!isExpanded));
+          content.classList.toggle('hidden');
+          iconCollapsed?.classList.toggle('hidden', !isExpanded);
+          iconExpanded?.classList.toggle('hidden', isExpanded);
+        }
+      });
+    });
+  }
+
+  setupProtoToggle();
+  document.addEventListener('astro:page-load', setupProtoToggle);
+</script>

@@ -44,11 +44,5 @@ The OrderAmended event is triggered whenever an existing order is modified. This
 }
 ```
 
-## Schema (Avro)
 
-<Schema file="schema.avro" />
-
-## Schema (JSON)
-
-<Schema file="schema.json" />
-
+<ProtoViewer file="schema.proto" />
