@@ -30,7 +30,7 @@ import {
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
-import { Box, Boxes } from 'lucide-react';
+import { Box, Boxes, SquarePenIcon } from 'lucide-react';
 import type { CollectionTypes } from '@types';
 
 import { render } from 'astro:content';
@@ -38,7 +38,7 @@ import type { CollectionEntry } from 'astro:content';
 
 import { getIcon } from '@utils/badges';
 import { getDeprecatedDetails } from '@utils/collections/util';
-import { buildUrl } from '@utils/url-builder';
+import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
 import { getSchemasFromResource } from '@utils/collections/schemas';
 import { isEventCatalogChatEnabled, isMarkdownDownloadEnabled } from '@utils/feature';
 
@@ -57,6 +57,8 @@ const { Content } = await render(props);
 
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
 const contentBadges = props.data.badges || [];
+const editUrl =
+  props.data.editUrl || (config.editUrl && props?.filePath ? buildEditUrlForResource(config.editUrl, props?.filePath) : '');
 
 const getContentBadges = () =>
   contentBadges.map((badge: any) => ({
@@ -218,6 +220,7 @@ nodeGraphs.push({
                       schemas={schemasForResource}
                       chatQuery={generatePromptForResource(props)}
                       chatEnabled={isEventCatalogChatEnabled()}
+                      editUrl={editUrl}
                     />
                   </div>
                 )
@@ -362,6 +365,20 @@ nodeGraphs.push({
           }
         </div>
         <Footer />
+        <!-- Add edit this page button  with icon and text-->
+        <div class="flex justify-end">
+          <!-- Built with EventCatalog -->
+          {
+            editUrl && (
+              <div class="flex justify-end">
+                <a href={editUrl} class="text-sm text-gray-700 hover:text-gray-700 border border-gray-200 rounded-md p-2">
+                  <SquarePenIcon className="w-4 h-4 inline-block mr-1" />
+                  Edit this page
+                </a>
+              </div>
+            )
+          }
+        </div>
       </div>
       <aside class="hidden lg:block sticky top-0 pb-10 w-96 overflow-y-auto py-2" data-pagefind-ignore>
         <!-- @ts-ignore -->
