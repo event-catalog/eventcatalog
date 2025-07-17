@@ -105,6 +105,7 @@ const baseSchema = z.object({
     ])
     .optional(),
   hidden: z.boolean().optional(),
+  editUrl: z.string().optional(),
   resourceGroups: z
     .array(
       z.object({

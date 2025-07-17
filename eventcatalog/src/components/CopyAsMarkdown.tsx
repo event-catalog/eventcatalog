@@ -1,6 +1,5 @@
-import { Button } from '@headlessui/react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { Copy, FileText, MessageCircleQuestion, ChevronDownIcon, ExternalLink } from 'lucide-react';
+import { Copy, FileText, MessageCircleQuestion, ChevronDownIcon, ExternalLink, PenSquareIcon } from 'lucide-react';
 import React, { useState, isValidElement } from 'react';
 import type { Schema } from '@utils/collections/schemas';
 import { buildUrl } from '@utils/url-builder';
@@ -47,10 +46,12 @@ export function CopyPageMenu({
   schemas,
   chatQuery,
   chatEnabled = false,
+  editUrl,
 }: {
   schemas: Schema[];
   chatQuery?: string;
   chatEnabled: boolean;
+  editUrl: string;
 }) {
   const [buttonText, setButtonText] = useState('Copy page');
 
@@ -136,6 +137,20 @@ export function CopyPageMenu({
           <MenuItemContent icon={Copy} title="Copy page" description="Copy page as Markdown for LLMs" />
         </DropdownMenu.Item>
 
+        {editUrl && (
+          <DropdownMenu.Item
+            className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+            onSelect={() => window.open(editUrl, '_blank')}
+          >
+            <MenuItemContent
+              icon={PenSquareIcon}
+              title="Edit page"
+              description="Edit the contents of this page"
+              external={true}
+            />
+          </DropdownMenu.Item>
+        )}
+
         {schemas.map((schema) => {
           const title =
             schema.format === 'asyncapi'
@@ -166,6 +181,7 @@ export function CopyPageMenu({
             </DropdownMenu.Item>
           );
         })}
+
         <DropdownMenu.Item
           className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
           onSelect={() => window.open(markdownUrl, '_blank')}

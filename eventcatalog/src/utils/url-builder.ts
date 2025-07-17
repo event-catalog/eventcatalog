@@ -42,3 +42,9 @@ export const buildUrlWithParams = (baseUrl: string, params: Record<string, strin
 
   return `${buildUrl(baseUrl)}?${queryString}`;
 };
+
+export const buildEditUrlForResource = (editUrl: string, filePath: string) => {
+  // filepath may have ../ or ./ in it, so we need to remove it
+  const cleanFilePath = filePath.replace(/^\.\.?\//g, '');
+  return `${editUrl}/${cleanFilePath}`;
+};
