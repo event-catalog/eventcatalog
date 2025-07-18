@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.50.3
+
+### Patch Changes
+
+- 34d6bfa: fix(core): mermaid and plantuml now render in accordian
+
 ## 2.50.2
 
 ### Patch Changes
