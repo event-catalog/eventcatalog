@@ -1,17 +1,12 @@
 ---
-import type { CollectionEntry } from 'astro:content';
-import * as path from 'path';
 import fs from 'node:fs';
 import OpenAPISpec from './_OpenAPI.tsx';
 
-import type { CollectionTypes, PageTypes } from '@types';
 import { DocumentMinusIcon } from '@heroicons/react/24/outline';
-import { buildUrl } from '@utils/url-builder';
-import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { getSpecificationsForService } from '@utils/collections/services';
 import './_styles.css';
 import { Page } from './_[filename].data.ts';
+import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
@@ -23,8 +18,7 @@ const props = await Page.getData(Astro);
 const { collection, data, catalog, filePath, filename } = props;
 const fileName = filename || 'openapi.yml';
 
-const directory = path.dirname(filePath || '');
-const pathToSpec = path.join(directory, fileName);
+const pathToSpec = getAbsoluteFilePathForAstroFile(filePath, fileName);
 const fileExists = fs.existsSync(pathToSpec);
 
 let content = '';

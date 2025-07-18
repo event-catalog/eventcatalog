@@ -1,0 +1,47 @@
+# This docker file is used for project development only.
+# If you are looking for your Docker File for SSR you can find one in our docs: https://www.eventcatalog.dev/docs/development/deployment/hosting-options
+
+# If you want to locally reproduce any SSR / Docker bugs, use this docker file 
+
+# FOR DEVELOPMENT ONLY, DO NOT USE THIS FOR PRODUCTION
+
+FROM node:20-slim AS runtime
+WORKDIR /app
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
+
+# Copy the rest of the app
+COPY eventcatalog ./eventcatalog
+COPY examples/default ./examples/default
+COPY src ./src
+COPY scripts ./scripts
+COPY tsup.config.js ./tsup.config.js
+COPY . .   
+
+ENV PNPM_HOME=/usr/local/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+
+RUN mkdir -p $PNPM_HOME \
+  && pnpm config set global-bin-dir $PNPM_HOME \
+  && pnpm add -g cross-env
+
+RUN pnpm install
+RUN pnpm run build:bin
+
+# Fix for Astro in Docker: https://github.com/withastro/astro/issues/2596
+ENV NODE_OPTIONS=--max_old_space_size=4096
+
+ENV HOST=0.0.0.0
+ENV PORT=3000
+EXPOSE 3000
+
+RUN echo "HELLO"
+RUN pnpm run verify-build:catalog
+
+# Start the server
+# 
+CMD cd examples/default && node ../../dist/eventcatalog.js start

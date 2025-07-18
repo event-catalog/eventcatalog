@@ -12,6 +12,7 @@ import { AsyncApiComponentWP, type ConfigInterface } from '@asyncapi/react-compo
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import Config from '@utils/eventcatalog-config/catalog';
 import { Page } from './_[filename].data';
+import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
@@ -19,10 +20,8 @@ export const getStaticPaths = Page.getStaticPaths;
 // Get data
 const { collection, data, filePath, filename } = await Page.getData(Astro);
 
-// @ts-ignore
 const fileName = filename || 'asyncapi.yaml';
-const directory = path.dirname(filePath || '');
-const pathToSpec = path.join(directory, fileName);
+const pathToSpec = getAbsoluteFilePathForAstroFile(filePath, fileName);
 const fileExists = fs.existsSync(pathToSpec);
 let content = '';
 
