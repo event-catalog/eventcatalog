@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.50.2
+
+### Patch Changes
+
+- 498b9e4: feat(core): dropdown cta for all resource pages are now shown by default
+
 ## 2.50.1
 
 ### Patch Changes
