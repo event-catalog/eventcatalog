@@ -410,6 +410,9 @@ const badges = doc?.badges || [];
     renderDiagrams(graphs);
   }
 
+  // Make renderDiagrams available globally for accordion component
+  window.renderDiagrams = renderDiagrams;
+
   document.addEventListener('astro:page-load', setupObserver);
 </script>
 
@@ -467,5 +470,9 @@ const badges = doc?.badges || [];
     if (document.getElementsByClassName('plantuml').length > 0) {
       renderPlantUML(graphs, deflate);
     }
+
+    window.renderPlantUML = (graphs: any) => {
+      renderPlantUML(graphs, deflate);
+    };
   });
 </script>
