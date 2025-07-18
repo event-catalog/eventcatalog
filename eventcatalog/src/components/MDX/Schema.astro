@@ -2,6 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Code } from 'astro-expressive-code/components';
+import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 
 interface Props {
   file?: string;
@@ -17,9 +18,11 @@ const { file = 'schema.json', catalog, title, filePath, lang = 'json' } = Astro.
 
 let code: string | null = null;
 
-const exists = fs.existsSync(path.join(path.dirname(filePath), file));
+const absoluteFilePath = getAbsoluteFilePathForAstroFile(filePath, file);
+
+const exists = fs.existsSync(absoluteFilePath);
 if (exists) {
-  code = fs.readFileSync(path.join(path.dirname(filePath), file), 'utf-8');
+  code = fs.readFileSync(absoluteFilePath, 'utf-8');
 }
 ---
 
