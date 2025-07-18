@@ -212,19 +212,16 @@ nodeGraphs.push({
                 {props.data.name}
                 <span class="">(v{props.data.version})</span>
               </h2>
-              {
-                isMarkdownDownloadEnabled() && (
-                  <div class="hidden lg:block">
-                    <CopyAsMarkdown
-                      client:only="react"
-                      schemas={schemasForResource}
-                      chatQuery={generatePromptForResource(props)}
-                      chatEnabled={isEventCatalogChatEnabled()}
-                      editUrl={editUrl}
-                    />
-                  </div>
-                )
-              }
+              <div class="hidden lg:block">
+                <CopyAsMarkdown
+                  client:only="react"
+                  schemas={schemasForResource}
+                  chatQuery={generatePromptForResource(props)}
+                  chatEnabled={isEventCatalogChatEnabled()}
+                  markdownDownloadEnabled={isMarkdownDownloadEnabled()}
+                  editUrl={editUrl}
+                />
+              </div>
             </div>
             {
               isMarkedAsDeprecated && hasDeprecated && (
