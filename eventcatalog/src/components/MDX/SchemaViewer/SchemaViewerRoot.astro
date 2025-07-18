@@ -12,7 +12,7 @@ import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 let schemas = [];
 
 try {
-  const absoluteFilePath = getAbsoluteFilePathForAstroFile(filePath);
+  const absoluteFilePath = getAbsoluteFilePathForAstroFile(filePath, filePath.split(path.sep).pop());
   const file = await fs.readFile(absoluteFilePath, 'utf-8');
   const schemaViewers = getMDXComponentsByName(file, 'SchemaViewer');
 
