@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.50.0
+
+### Minor Changes
+
+- fff1249: fix(core): fixed issue loading files in SSR mode
+
 ## 2.49.5
 
 ### Patch Changes
