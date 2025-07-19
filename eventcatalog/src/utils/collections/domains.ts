@@ -132,6 +132,67 @@ export const getUbiquitousLanguage = async (domain: Domain): Promise<UbiquitousL
   return ubiquitousLanguages;
 };
 
+export const getUbiquitousLanguageWithSubdomains = async (
+  domain: Domain
+): Promise<{
+  domain: UbiquitousLanguage | null;
+  subdomains: Array<{ subdomain: Domain; ubiquitousLanguage: UbiquitousLanguage | null }>;
+  duplicateTerms: Set<string>;
+}> => {
+  // Get domain's own ubiquitous language
+  const domainUbiquitousLanguage = await getUbiquitousLanguage(domain);
+  const domainUL = domainUbiquitousLanguage[0] || null;
+
+  // Get all subdomains
+  const subdomains = (domain.data.domains as unknown as Domain[]) || [];
+
+  // Get ubiquitous language for each subdomain
+  const subdomainULs = await Promise.all(
+    subdomains.map(async (subdomain) => {
+      const subdomainUL = await getUbiquitousLanguage(subdomain);
+      return {
+        subdomain,
+        ubiquitousLanguage: subdomainUL[0] || null,
+      };
+    })
+  );
+
+  // Find duplicate terms across domain and subdomains
+  const duplicateTerms = new Set<string>();
+  const termCounts = new Map<string, number>();
+
+  // Count terms from domain
+  if (domainUL?.data?.dictionary) {
+    domainUL.data.dictionary.forEach((term) => {
+      const termName = term.name.toLowerCase();
+      termCounts.set(termName, (termCounts.get(termName) || 0) + 1);
+    });
+  }
+
+  // Count terms from subdomains
+  subdomainULs.forEach(({ ubiquitousLanguage }) => {
+    if (ubiquitousLanguage?.data?.dictionary) {
+      ubiquitousLanguage.data.dictionary.forEach((term) => {
+        const termName = term.name.toLowerCase();
+        termCounts.set(termName, (termCounts.get(termName) || 0) + 1);
+      });
+    }
+  });
+
+  // Identify duplicates
+  termCounts.forEach((count, termName) => {
+    if (count > 1) {
+      duplicateTerms.add(termName);
+    }
+  });
+
+  return {
+    domain: domainUL,
+    subdomains: subdomainULs,
+    duplicateTerms,
+  };
+};
+
 export const getParentDomains = async (domain: Domain): Promise<Domain[]> => {
   const domains = await getDomains({ getAllVersions: false });
   return domains.filter((d) => {
