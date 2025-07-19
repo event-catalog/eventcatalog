@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.50.3
+
+### Patch Changes
+
+- a14c3e8: feat(core): added customization (props) to nodegraphs and flow compon…
+- 34d6bfa: fix(core): mermaid and plantuml now render in accordian
+
 ## 2.50.2
 
 ### Patch Changes
