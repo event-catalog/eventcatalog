@@ -191,10 +191,17 @@ const generatePromptForResource = (props: any) => {
 // Handle node graphs in the markdown
 let nodeGraphs = getMDXComponentsByName(props.body || '', 'NodeGraph') || [];
 
+// Get props for the node graph (when no id is passed, we assume its the current page)
+const nodeGraphPropsForPage = nodeGraphs.find((nodeGraph: any) => nodeGraph.id === undefined) || ({} as any);
+
+// This will render the graph for this page
 nodeGraphs.push({
   id: props.data.id,
   version: props.data.version,
   type: collectionToResourceMap[props.collection as keyof typeof collectionToResourceMap],
+  ...nodeGraphPropsForPage,
+  search: nodeGraphPropsForPage?.search ? nodeGraphPropsForPage.search === 'true' : true,
+  legend: nodeGraphPropsForPage?.legend ? nodeGraphPropsForPage.legend === 'true' : true,
 });
 ---
 
@@ -350,8 +357,10 @@ nodeGraphs.push({
                     version={nodeGraph.version}
                     collection={collection}
                     title={nodeGraph.title}
-                    mode="simple"
+                    mode={nodeGraph.mode || 'simple'}
                     linksToVisualiser={true}
+                    showSearch={nodeGraph.search ?? true}
+                    showLegend={nodeGraph.legend ?? true}
                     href={{
                       label: 'Open in Visualiser',
                       url: buildUrl(`/visualiser/${collection}/${nodeGraph.id}/${nodeGraph.version}`),

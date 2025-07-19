@@ -55,6 +55,8 @@ interface Props {
   linksToVisualiser?: boolean;
   links?: { label: string; url: string }[];
   mode?: 'full' | 'simple';
+  showFlowWalkthrough?: boolean;
+  showSearch?: boolean;
 }
 
 const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
@@ -71,6 +73,8 @@ const NodeGraphBuilder = ({
   linksToVisualiser = false,
   links = [],
   mode = 'full',
+  showFlowWalkthrough = true,
+  showSearch = true,
 }: Props) => {
   const nodeTypes = useMemo(
     () => ({
@@ -492,7 +496,7 @@ const NodeGraphBuilder = ({
               </span>
             )}
           </div>
-          {mode === 'full' && (
+          {mode === 'full' && showSearch && (
             <div className="flex justify-end space-x-2 w-96">
               <VisualiserSearch ref={searchRef} nodes={nodes} onNodeSelect={handleNodeSelect} onClear={handleSearchClear} />
             </div>
@@ -588,7 +592,7 @@ const NodeGraphBuilder = ({
       )}
       {includeBackground && <Background color="#bbb" gap={16} />}
       {includeBackground && <Controls />}
-      {isFlowVisualization && (
+      {isFlowVisualization && showFlowWalkthrough && (
         <Panel position="bottom-left">
           <StepWalkthrough
             nodes={nodes}
@@ -637,6 +641,8 @@ interface NodeGraphProps {
   links?: { label: string; url: string }[];
   mode?: 'full' | 'simple';
   portalId?: string;
+  showFlowWalkthrough?: boolean;
+  showSearch?: boolean;
 }
 
 const NodeGraph = ({
@@ -653,6 +659,8 @@ const NodeGraph = ({
   links = [],
   mode = 'full',
   portalId,
+  showFlowWalkthrough = true,
+  showSearch = true,
 }: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
   const [showFooter, setShowFooter] = useState(true);
@@ -687,6 +695,8 @@ const NodeGraph = ({
             linksToVisualiser={linksToVisualiser}
             links={links}
             mode={mode}
+            showFlowWalkthrough={showFlowWalkthrough}
+            showSearch={showSearch}
           />
 
           {showFooter && (
