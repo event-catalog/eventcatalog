@@ -5,7 +5,7 @@ import Admonition from '@components/MDX/Admonition';
 import NodeGraph from '../NodeGraph/NodeGraph';
 import { getVersionFromCollection } from '@utils/collections/versions';
 
-const { id, version = 'latest', maxHeight, includeKey = true } = Astro.props;
+const { id, version = 'latest', maxHeight, includeKey = true, mode = 'simple', walkthrough = true, search = true } = Astro.props;
 
 // Find the flow for the given id and version
 const flows = await getFlows();
@@ -17,6 +17,7 @@ const flow = flowCollection[0];
 const { nodes, edges } = await getNodesAndEdges({
   id: id,
   version: flow.data.version,
+  mode: mode,
 });
 ---
 
@@ -53,6 +54,8 @@ const { nodes, edges } = await getNodesAndEdges({
     includeKey={includeKey}
     footerLabel=`Flow diagram - ${flow.data.name} - v(${flow.data.version})`
     client:only="react"
+    showFlowWalkthrough={walkthrough}
+    showSearch={search}
   />
 </div>
 
