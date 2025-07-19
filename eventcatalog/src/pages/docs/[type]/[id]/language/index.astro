@@ -1,10 +1,11 @@
 ---
 import Footer from '@layouts/Footer.astro';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { getUbiquitousLanguage } from '@utils/collections/domains';
+import { getUbiquitousLanguageWithSubdomains } from '@utils/collections/domains';
 import { buildUrl } from '@utils/url-builder';
 import { ClientRouter } from 'astro:transitions';
 import * as LucideIcons from 'lucide-react';
+import { RectangleGroupIcon } from '@heroicons/react/24/outline';
 
 import { Page } from './_index.data';
 
@@ -15,47 +16,82 @@ export const getStaticPaths = Page.getStaticPaths;
 const props = await Page.getData(Astro);
 
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
-const ubiquitousLanguages = await getUbiquitousLanguage(props);
-const ubiquitousLanguage = ubiquitousLanguages[0];
+const ubiquitousLanguageData = await getUbiquitousLanguageWithSubdomains(props);
+const ubiquitousLanguage = ubiquitousLanguageData.domain;
+const { subdomains, duplicateTerms } = ubiquitousLanguageData;
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
-  <main class="flex sm:px-8 docs-layout h-full" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
+  <main class="flex sm:px-6 docs-layout h-full" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
     <div class="flex docs-layout w-full">
-      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8 min-h-[50em]">
-        <nav class="flex mb-4" aria-label="Breadcrumb">
-          <ol class="inline-flex items-center space-x-1 md:space-x-3">
-            <li class="inline-flex items-center">
-              <a
-                href={buildUrl(`/docs/${props.type}/${props.data.id}/${props.data.latestVersion}`)}
-                class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-primary"
-              >
-                <svg
-                  class="w-3 h-3 mr-2.5"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="2"
-                  stroke="currentColor"
-                >
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"></path>
-                </svg>
-                Back to Documentation
-              </a>
-            </li>
-          </ol>
+      <div class="w-full lg:mr-2 pr-8 overflow-y-auto pt-6 pb-8 min-h-[50em]">
+        {/* Breadcrumb */}
+        <nav class="mb-4 flex items-center space-x-2 text-sm text-gray-500" aria-label="Breadcrumb">
+          <a
+            href={buildUrl(`/docs/${props.type}/${props.data.id}/${props.data.latestVersion}`)}
+            class="hover:text-gray-700 hover:underline flex items-center gap-2"
+          >
+            <RectangleGroupIcon className="h-4 w-4" />
+            {props.data.name}
+          </a>
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
+          </svg>
+          <span class="text-gray-900 flex items-center gap-2">
+            {
+              (() => {
+                const BookOpen = LucideIcons.BookOpen;
+                //@ts-ignore
+                return <BookOpen className="h-4 w-4" />;
+              })()
+            }
+            Ubiquitous Language Explorer
+          </span>
         </nav>
 
-        <div class="border-b border-gray-200 flex justify-between items-start md:pb-2">
-          <div>
-            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-black">Domain Language Explorer</h2>
-            <h2 class="text-2xl pt-2 text-gray-500 font-light">{props.data.name} domain</h2>
+        {/* Title Section */}
+        <div class="relative border-b border-gray-200 mb-4 pb-4">
+          <div class="xl:flex xl:items-start xl:justify-between">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <h1 class="text-xl font-bold leading-7 text-gray-900 sm:text-2xl xl:text-3xl">Ubiquitous Language Explorer</h1>
+              </div>
+              <p class="mt-2 text-sm text-gray-500">
+                Browse and discover ubiquitous language terms in the {props.data.name} domain{
+                  subdomains.length > 0 ? ' and its subdomains' : ''
+                }
+              </p>
+            </div>
+
+            <div class="mt-4 xl:mt-0 xl:ml-4 xl:flex-shrink-0">
+              <div class="relative w-full xl:w-96">
+                <input
+                  type="text"
+                  id="searchInput"
+                  placeholder="Search terms across domains..."
+                  class="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm xl:px-5 xl:py-3.5 xl:pl-12"
+                />
+                <div class="absolute inset-y-0 left-0 pl-3 xl:pl-4 flex items-center pointer-events-none">
+                  <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="mt-2 text-right">
+                <div class="text-sm text-gray-500" id="resultsCount">
+                  {/* This will be updated by JavaScript */}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         {
-          !ubiquitousLanguage && (
+          !ubiquitousLanguage && subdomains.length === 0 && (
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 my-4">
               <p class="text-yellow-700">
                 This domain does not have any defined ubiquitous language terms yet. Consider adding some terms to help establish
@@ -67,66 +103,138 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
 
         <div class="py-4 w-full min-h-[calc(100vh-10em)]">
           {
-            ubiquitousLanguage && (
+            (ubiquitousLanguage || subdomains.some((s) => s.ubiquitousLanguage)) && (
               <div>
-                <div class="mb-6">
-                  <input
-                    type="text"
-                    id="searchInput"
-                    placeholder="Search terms..."
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-
-                {!ubiquitousLanguage ? (
-                  <div class="text-center py-12 bg-gray-50 rounded-lg">
-                    <h3 class="text-lg font-medium text-gray-900">No domain language terms</h3>
-                    <p class="mt-2 text-sm text-gray-500">There are no language terms defined for this domain yet.</p>
-                  </div>
-                ) : (
-                  <div id="termsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {ubiquitousLanguage?.data?.dictionary?.map((term) => (
-                      <div class="term-card block bg-white border border-gray-200 rounded-lg p-6 transition-all duration-300 ease-in-out hover:shadow-md hover:border-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-white min-h-[12em]">
-                        <div class="flex flex-col h-full space-y-8">
-                          {term.icon && (
+                {/* Domain Language Section */}
+                {ubiquitousLanguage && (
+                  <div class="mb-8" data-domain-section="main">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                      {props.data.name} Domain Language
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" data-terms-grid="main">
+                      {ubiquitousLanguage?.data?.dictionary?.map((term) => (
+                        <div
+                          class={`term-card block bg-white border rounded-lg p-6 transition-all duration-300 ease-in-out hover:shadow-md hover:border-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-white min-h-[12em] ${duplicateTerms.has(term.name.toLowerCase()) ? 'border-orange-300 bg-orange-50' : 'border-gray-200'}`}
+                          data-domain="main"
+                        >
+                          <div class="flex flex-col h-full space-y-8">
+                            {term.icon && (
+                              <div>
+                                {(() => {
+                                  const Icon = LucideIcons[term.icon as keyof typeof LucideIcons];
+                                  //@ts-ignore
+                                  return Icon ? <Icon className="w-6 h-6 text-primary" /> : null;
+                                })()}
+                              </div>
+                            )}
                             <div>
-                              {(() => {
-                                const Icon = LucideIcons[term.icon as keyof typeof LucideIcons];
-                                //@ts-ignore
-                                return Icon ? <Icon className="w-6 h-6 text-primary" /> : null;
-                              })()}
-                            </div>
-                          )}
-                          <div>
-                            <h3 class="text-gray-800 text-lg font-semibold transition-colors duration-300 ease-in-out group-hover:text-gray-300">
-                              {term.name}
-                            </h3>
-                            <div class="term-content">
-                              <p class="summary-text text-gray-600 transition-colors duration-300 ease-in-out group-hover:text-gray-200 m-0 font-light text-sm mb-4">
-                                {term.summary}
-                              </p>
-                              {term.description && (
-                                <div class="prose prose-sm prose-p:my-3">
-                                  <a
-                                    href={buildUrl(`/docs/${props.type}/${props.data.id}/language/${term.id}`)}
-                                    class="show-more-text text-sm text-primary font-medium hover:underline"
-                                  >
-                                    Read more
-                                  </a>
-                                </div>
-                              )}
+                              <h4
+                                class={`text-lg font-semibold transition-colors duration-300 ease-in-out group-hover:text-gray-300 ${duplicateTerms.has(term.name.toLowerCase()) ? 'text-orange-800' : 'text-gray-800'}`}
+                              >
+                                {term.name}
+                                {duplicateTerms.has(term.name.toLowerCase()) && (
+                                  <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                                    Duplicate
+                                  </span>
+                                )}
+                              </h4>
+                              <div class="term-content">
+                                <p class="summary-text text-gray-600 transition-colors duration-300 ease-in-out group-hover:text-gray-200 m-0 font-light text-sm mb-4">
+                                  {term.summary}
+                                </p>
+                                {term.description && (
+                                  <div class="prose prose-sm prose-p:my-3">
+                                    <a
+                                      href={buildUrl(`/docs/${props.type}/${props.data.id}/language/${term.id}`)}
+                                      class="show-more-text text-sm text-primary font-medium hover:underline"
+                                    >
+                                      Read more
+                                    </a>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                    <div class="hidden domain-no-results text-center py-8 bg-gray-50 rounded-lg" data-domain-no-results="main">
+                      <h4 class="text-md font-medium text-gray-900">No matching terms in {props.data.name} domain</h4>
+                      <p class="mt-1 text-sm text-gray-500">Try adjusting your search terms.</p>
+                    </div>
                   </div>
                 )}
 
-                <div id="noSearchResults" class="hidden text-center py-12 bg-gray-50 rounded-lg">
-                  <h3 class="text-lg font-medium text-gray-900">No matching terms</h3>
-                  <p class="mt-2 text-sm text-gray-500">Try adjusting your search terms.</p>
-                </div>
+                {/* Subdomain Language Sections */}
+                {subdomains
+                  .filter((s) => s.ubiquitousLanguage)
+                  .map(({ subdomain, ubiquitousLanguage: subdomainUL }) => (
+                    <div class="mb-8" data-domain-section={subdomain.data.id}>
+                      <div class="flex justify-between items-center mb-4 border-b border-gray-200 pb-2">
+                        <h3 class="text-xl font-semibold text-gray-900">{subdomain.data.name} Subdomain Language</h3>
+                        <a
+                          href={buildUrl(`/docs/domains/${subdomain.data.id}/${subdomain.data.version}`)}
+                          class="text-sm text-primary hover:underline font-medium"
+                        >
+                          View Domain →
+                        </a>
+                      </div>
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" data-terms-grid={subdomain.data.id}>
+                        {subdomainUL?.data?.dictionary?.map((term) => (
+                          <div
+                            class={`term-card block bg-white border rounded-lg p-6 transition-all duration-300 ease-in-out hover:shadow-md hover:border-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-white min-h-[12em] ${duplicateTerms.has(term.name.toLowerCase()) ? 'border-orange-300 bg-orange-50' : 'border-gray-200'}`}
+                            data-domain={subdomain.data.id}
+                          >
+                            <div class="flex flex-col h-full space-y-8">
+                              {term.icon && (
+                                <div>
+                                  {(() => {
+                                    const Icon = LucideIcons[term.icon as keyof typeof LucideIcons];
+                                    //@ts-ignore
+                                    return Icon ? <Icon className="w-6 h-6 text-primary" /> : null;
+                                  })()}
+                                </div>
+                              )}
+                              <div>
+                                <h4
+                                  class={`text-lg font-semibold transition-colors duration-300 ease-in-out group-hover:text-gray-300 ${duplicateTerms.has(term.name.toLowerCase()) ? 'text-orange-800' : 'text-gray-800'}`}
+                                >
+                                  {term.name}
+                                  {duplicateTerms.has(term.name.toLowerCase()) && (
+                                    <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                                      Duplicate
+                                    </span>
+                                  )}
+                                </h4>
+                                <div class="term-content">
+                                  <p class="summary-text text-gray-600 transition-colors duration-300 ease-in-out group-hover:text-gray-200 m-0 font-light text-sm mb-4">
+                                    {term.summary}
+                                  </p>
+                                  {term.description && (
+                                    <div class="prose prose-sm prose-p:my-3">
+                                      <a
+                                        href={buildUrl(`/docs/${props.type}/${subdomain.data.id}/language/${term.id}`)}
+                                        class="show-more-text text-sm text-primary font-medium hover:underline"
+                                      >
+                                        Read more
+                                      </a>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div
+                        class="hidden domain-no-results text-center py-8 bg-gray-50 rounded-lg"
+                        data-domain-no-results={subdomain.data.id}
+                      >
+                        <h4 class="text-md font-medium text-gray-900">No matching terms in {subdomain.data.name} subdomain</h4>
+                        <p class="mt-1 text-sm text-gray-500">Try adjusting your search terms.</p>
+                      </div>
+                    </div>
+                  ))}
               </div>
             )
           }
@@ -141,27 +249,55 @@ const ubiquitousLanguage = ubiquitousLanguages[0];
   <script>
     function initializeSearch() {
       const searchInput = document.getElementById('searchInput');
-      const termCards = document.querySelectorAll('.term-card');
-      const noSearchResults = document.getElementById('noSearchResults');
+      const domainSections = document.querySelectorAll('[data-domain-section]');
+      const resultsCount = document.getElementById('resultsCount');
 
-      searchInput?.addEventListener('input', (e) => {
-        const searchTerm = (e.target as HTMLInputElement).value.toLowerCase();
-        let visibleCount = 0;
+      function updateResults() {
+        //@ts-ignore
+        const searchTerm = searchInput?.value.toLowerCase() || '';
+        let totalVisibleTerms = 0;
+        let totalTerms = 0;
 
-        termCards.forEach((card) => {
-          const title = card.querySelector('h3')?.textContent?.toLowerCase() || '';
-          const description = card.querySelector('p')?.textContent?.toLowerCase() || '';
-          const matches = title.includes(searchTerm) || description.includes(searchTerm);
+        // Handle search for each domain section
+        domainSections.forEach((section) => {
+          const domainId = section.getAttribute('data-domain-section');
+          const domainCards = section.querySelectorAll('.term-card');
+          const domainNoResults = section.querySelector(`[data-domain-no-results="${domainId}"]`);
+          let domainVisibleCount = 0;
 
-          card.classList.toggle('hidden', !matches);
-          if (matches) visibleCount++;
+          domainCards.forEach((card) => {
+            totalTerms++;
+            const title = card.querySelector('h4')?.textContent?.toLowerCase() || '';
+            const description = card.querySelector('p')?.textContent?.toLowerCase() || '';
+            const matches = searchTerm === '' || title.includes(searchTerm) || description.includes(searchTerm);
+
+            card.classList.toggle('hidden', !matches);
+            if (matches) {
+              domainVisibleCount++;
+              totalVisibleTerms++;
+            }
+          });
+
+          // Show/hide domain-specific no results message
+          if (domainNoResults) {
+            if (searchTerm.trim() === '') {
+              domainNoResults.classList.add('hidden');
+            } else {
+              domainNoResults.classList.toggle('hidden', domainVisibleCount > 0);
+            }
+          }
         });
 
-        // Show/hide no results message
-        if (noSearchResults) {
-          noSearchResults.classList.toggle('hidden', visibleCount > 0);
+        // Update results count
+        if (resultsCount) {
+          resultsCount.textContent = `Showing ${totalVisibleTerms} terms`;
         }
-      });
+      }
+
+      searchInput?.addEventListener('input', updateResults);
+
+      // Initialize results count
+      updateResults();
     }
 
     function initializeShowMore() {
