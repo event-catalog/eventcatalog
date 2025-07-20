@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.51.0
+
+### Minor Changes
+
+- 560c3a8: feat(core): updated ubiquitous language page, now renders subdomains …
+
 ## 2.50.3
 
 ### Patch Changes
