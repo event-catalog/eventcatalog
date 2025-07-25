@@ -19,7 +19,6 @@
     },
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "types": ["vitest/globals"],
-    "lib": ["dom", "dom.iterable", "es2016", "esnext"]
+    "types": ["vitest/globals"]
   }
 }

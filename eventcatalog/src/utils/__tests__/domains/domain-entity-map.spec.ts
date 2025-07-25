@@ -338,6 +338,63 @@ describe('Domain Entity Map NodeGraph', () => {
       });
     });
 
+    it.only('if the entities array is provided, it should only return entities that are in the entities array and related ones to them', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Orders', version: '1.0.0', entities: ['Order'] });
+
+      expect(nodes).toHaveLength(4);
+
+      /// Check Order node
+      const orderNode = nodes.find((n: any) => n.data.entity.data.id === 'Order');
+      expect(orderNode).toMatchObject({
+        id: 'Order-1.0.0',
+        type: 'entities',
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        data: {
+          label: 'Order',
+          entity: expect.objectContaining({ data: expect.objectContaining({ id: 'Order' }) }),
+          domainName: 'Orders',
+          domainId: 'Orders',
+        },
+      });
+
+      // Check OrderItem node
+      const orderItemNode = nodes.find((n: any) => n.data.entity.data.id === 'OrderItem');
+      expect(orderItemNode).toMatchObject({
+        id: 'OrderItem-1.0.0',
+        type: 'entities',
+        data: {
+          label: 'OrderItem',
+          domainName: 'Orders',
+          domainId: 'Orders',
+        },
+      });
+
+      // Check external Customer node
+      const customerNode = nodes.find((n: any) => n.data.entity.data.id === 'Customer');
+      expect(customerNode).toMatchObject({
+        id: 'Customer-1.0.0',
+        type: 'entities',
+        data: {
+          label: 'Customer',
+          externalToDomain: true,
+          domainName: 'Customers',
+          domainId: 'Customers',
+        },
+      });
+
+      // Payment node
+      const paymentNode = nodes.find((n: any) => n.data.entity.data.id === 'Payment');
+      expect(paymentNode).toMatchObject({
+        id: 'Payment-1.0.0',
+        type: 'entities',
+        data: {
+          label: 'Payment',
+          domainName: 'Payments',
+          domainId: 'Payments',
+        },
+      });
+    });
+
     it('should render domain entities without relationships', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'Orders', version: '1.0.0' });
 
