@@ -338,7 +338,7 @@ describe('Domain Entity Map NodeGraph', () => {
       });
     });
 
-    it.only('if the entities array is provided, it should only return entities that are in the entities array and related ones to them', async () => {
+    it('if the entities array is provided, it should only return entities that are in the entities array and related ones to them', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'Orders', version: '1.0.0', entities: ['Order'] });
 
       expect(nodes).toHaveLength(4);
