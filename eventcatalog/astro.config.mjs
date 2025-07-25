@@ -92,6 +92,11 @@ export default defineConfig({
        */
       '__EC_TRAILING_SLASH__': config.trailingSlash || false,
     },
+    server: {
+      fs: {
+        allow: ['..', './node_modules/@fontsource']
+      }
+    },
     worker: {
       format: 'es',
     },

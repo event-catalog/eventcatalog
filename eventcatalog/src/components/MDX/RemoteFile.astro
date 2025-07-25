@@ -1,0 +1,177 @@
+---
+import jsonpath from 'jsonpath';
+import SchemaViewer from './SchemaViewer/SchemaViewer.astro';
+import { Code } from 'astro-expressive-code/components';
+import { isPrivateRemoteSchemaEnabled } from '@utils/feature';
+
+const {
+  url,
+  headers = {},
+  jsonPath = null,
+  renderAs = 'auto',
+  title = 'Remote Schema',
+  maxHeight = '400',
+  ...props
+} = Astro.props;
+
+function resolveTemplates(input: any): any {
+  if (typeof input === 'string') {
+    return input.replace(/\$\{(\w+)\}/g, (_, varName) => import.meta.env[varName] || '');
+  }
+
+  if (typeof input === 'object' && input !== null) {
+    return Object.fromEntries(Object.entries(input).map(([k, v]) => [k, resolveTemplates(v)]));
+  }
+
+  return input;
+}
+
+function isValidJSON(str: string): boolean {
+  try {
+    JSON.parse(str);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function isJSONSchema(data: any): boolean {
+  if (!data || typeof data !== 'object') return false;
+
+  // Check for common JSON Schema indicators
+  const hasSchemaIndicators =
+    data.$schema ||
+    data.type ||
+    data.properties ||
+    data.items ||
+    data.definitions ||
+    data.$defs ||
+    data.allOf ||
+    data.oneOf ||
+    data.anyOf ||
+    (data.components && data.components.schemas); // OpenAPI style
+
+  return Boolean(hasSchemaIndicators);
+}
+
+function extractWithJSONPath(data: any, path: string): any {
+  try {
+    const result = jsonpath.query(data, path);
+    // If the result is an array with a single element, return the element itself
+    // unless the original query was meant to return an array
+    if (Array.isArray(result) && result.length === 1 && !path.includes('[*]') && !path.includes('.*')) {
+      return result[0];
+    }
+    return result.length > 0 ? result : data;
+  } catch (error) {
+    console.error('JSONPath error:', error);
+    return data;
+  }
+}
+
+const resolvedUrl = resolveTemplates(url);
+const resolvedHeaders = isPrivateRemoteSchemaEnabled() ? resolveTemplates(headers) : {};
+
+let content = '';
+let processedData: any = null;
+let contentType = 'text';
+let isSchema = false;
+let error = null;
+let showPaidFeatureMessage = false;
+
+// Check if headers were provided but private remote schema is not enabled
+if (Object.keys(headers).length > 0 && !isPrivateRemoteSchemaEnabled()) {
+  error = '401 Unauthorized - Headers provided but private remote schema feature is not enabled';
+  showPaidFeatureMessage = true;
+}
+
+try {
+  const response = await fetch(resolvedUrl, {
+    headers: resolvedHeaders,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
+  }
+
+  content = await response.text();
+
+  // Detect content type
+  if (isValidJSON(content)) {
+    contentType = 'json';
+    processedData = JSON.parse(content);
+
+    // Check if it's a JSON Schema
+    isSchema = isJSONSchema(processedData);
+
+    // Apply JSONPath if provided
+    if (jsonPath) {
+      content = extractWithJSONPath(processedData, jsonPath);
+    } else {
+      content = JSON.stringify(processedData, null, 2);
+    }
+  }
+} catch (e) {
+  if (!showPaidFeatureMessage) {
+    error = e instanceof Error ? e.message : String(e);
+  }
+}
+
+// Determine rendering method
+let finalRenderAs = renderAs;
+if (renderAs === 'auto') {
+  if (contentType === 'json' && isSchema) {
+    finalRenderAs = 'schema';
+  } else {
+    finalRenderAs = 'raw';
+  }
+}
+---
+
+{
+  error ? (
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded not-prose">
+      <strong>
+        Error loading remote file: <span class=" text-red-900">{url}</span>
+      </strong>
+      <p class="text-xs py-2">{` ${error} `}</p>
+      {showPaidFeatureMessage && (
+        <div class="my-1 p-3 bg-white border border-gray-200 rounded text-gray-700">
+          <strong>Private API Access</strong>
+          <p class="mt-1 text-xs">
+            Fetching files from private APIs with headers is a paid feature.
+            <a href="https://eventcatalog.cloud" class="underline hover:no-underline" target="_blank" rel="noopener noreferrer">
+              Sign up for a EventCatalog Scale license key
+            </a>{' '}
+            to access this functionality.
+          </p>
+        </div>
+      )}
+    </div>
+  ) : (
+    <div class="remote-file-content">
+      {finalRenderAs === 'schema' ? (
+        <SchemaViewer
+          schema={processedData}
+          schemaPath={resolvedUrl}
+          title={title}
+          maxHeight={maxHeight}
+          file="remote"
+          id={`remote-schema-${Math.random().toString(36).substring(2, 9)}`}
+          expand={false}
+          search={true}
+        />
+      ) : (
+        <div class="not-prose max-w-4xl overflow-x-auto" style={`max-height: ${maxHeight}px;`}>
+          <Code code={content} title={title || ''} lang="json" />
+        </div>
+      )}
+
+      {jsonPath && (
+        <div class="mt-2 text-xs text-gray-500">
+          Applied JSONPath: <code class="bg-gray-100 px-1 rounded">{jsonPath}</code>
+        </div>
+      )}
+    </div>
+  )
+}

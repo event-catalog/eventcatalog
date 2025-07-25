@@ -1,0 +1,22 @@
+---
+import { isSSR } from '@utils/feature';
+import Admonition from './Admonition';
+import RemoteFile from './RemoteFile.astro';
+const { url, headers, jsonPath, renderAs, ...props } = Astro.props;
+---
+
+{
+  isSSR() ? (
+    <RemoteFile url={url} headers={headers} jsonPath={jsonPath} renderAs={renderAs} {...props} />
+  ) : (
+    <Admonition type="warning">
+      <div>
+        <span class="block font-bold">{`<RemoteSchema/>`} is only available on the server</span>
+        <span class="block">
+          You are trying to load a remote file, but this component is not supported in the client. You must switch to SSR mode to
+          use this component.
+        </span>
+      </div>
+    </Admonition>
+  )
+}

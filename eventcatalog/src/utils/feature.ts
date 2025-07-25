@@ -19,6 +19,8 @@ import { join } from 'path';
 export const isEventCatalogStarterEnabled = () => process.env.EVENTCATALOG_STARTER === 'true';
 export const isEventCatalogScaleEnabled = () => process.env.EVENTCATALOG_SCALE === 'true';
 
+export const isPrivateRemoteSchemaEnabled = () => isEventCatalogScaleEnabled() || isEventCatalogStarterEnabled();
+
 export const showEventCatalogBranding = () => {
   const override = process.env.EVENTCATALOG_SHOW_BRANDING;
   // if any value we return true

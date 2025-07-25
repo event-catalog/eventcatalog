@@ -28,6 +28,7 @@ import FigJam from '@components/MDX/FigJam/FigJam.astro';
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
 import { jsx } from 'astro/jsx-runtime';
+import RemoteSchema from '@components/MDX/RemoteSchema.astro';
 
 const components = (props: any) => {
   return {
@@ -37,6 +38,7 @@ const components = (props: any) => {
     AsyncAPI,
     ChannelInformation: (mdxProp: any) => ChannelInformation({ ...props.data, ...mdxProp }),
     File: (mdxProp: any) => File({ ...props, ...mdxProp }),
+    RemoteSchema,
     Flow,
     Link: (mdxProp: any) => jsx(Link, { ...props, ...mdxProp }),
     MessageTable: (mdxProp: any) => jsx(MessageTable, { ...props, ...mdxProp }),
