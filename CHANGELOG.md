@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.51.1
+
+### Patch Changes
+
+- 2622135: feat:(core): added ability to restrict which entities are shown on the EntityMap component
+
 ## 2.51.0
 
 ### Minor Changes
