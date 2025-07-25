@@ -27,8 +27,8 @@ export const getNodesAndEdges = async ({ id, version, entities }: Props) => {
 
   // If entities filter is provided, filter domainEntities to only those specified
   if (entities && Array.isArray(entities) && entities.length > 0) {
-    domainEntities = domainEntities.filter((entity: Entity) =>
-      entities.includes(entity.data.id) || entities.includes(entity.data.name)
+    domainEntities = domainEntities.filter(
+      (entity: Entity) => entities.includes(entity.data.id) || entities.includes(entity.data.name)
     );
   }
 
