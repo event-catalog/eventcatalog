@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.52.0
+
+### Minor Changes
+
+- 6c7433e: feat(core): added ability to fetch schemas from a remote url
+
 ## 2.51.1
 
 ### Patch Changes
