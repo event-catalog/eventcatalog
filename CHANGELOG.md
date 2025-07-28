@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.53.0
+
+### Minor Changes
+
+- c4074d0: feat(core): added ability to customize detail panels on all pages
+
 ## 2.52.0
 
 ### Minor Changes
