@@ -98,6 +98,14 @@ const publicPath = message?.catalog?.publicPath;
 
 const schemaFilePath = message?.data?.schemaPath;
 const schemaURL = path.join(publicPath, schemaFilePath || '');
+
+const shouldRenderSideBarSection = (section: string) => {
+  if (!message.data.detailsPanel) {
+    return true;
+  }
+  // @ts-ignore
+  return message.data.detailsPanel[section]?.visible ?? true;
+};
 ---
 
 <aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto py-4">
@@ -108,7 +116,7 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
         .map((section) => <CustomSideBarSectionList section={section} />)
     }
     {
-      producerList.length > 0 && (
+      producerList.length > 0 && shouldRenderSideBarSection('producers') && (
         <PillListFlat
           color="pink"
           title={`Producers (${producerList.length})`}
@@ -119,7 +127,7 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
       )
     }
     {
-      consumerList.length > 0 && (
+      consumerList.length > 0 && shouldRenderSideBarSection('consumers') && (
         <PillListFlat
           color="pink"
           title={`Consumers (${consumerList.length})`}
@@ -130,13 +138,13 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
       )
     }
     {
-      channelList.length > 0 && (
+      channelList.length > 0 && shouldRenderSideBarSection('channels') && (
         <PillListFlat color="pink" title={`Channels (${channelList.length})`} pills={channelList} client:load />
       )
     }
 
     {
-      message.data.versions && (
+      message.data.versions && shouldRenderSideBarSection('versions') && (
         <VersionList
           title={`Versions (${message.data.versions?.length})`}
           versions={message.data.versions}
@@ -145,15 +153,19 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
       )
     }
 
-    <OwnersList
-      title={`Owners (${ownersList.length})`}
-      owners={ownersList}
-      emptyMessage={`This ${type} does not have any documented owners.`}
-      client:load
-    />
+    {
+      ownersList.length > 0 && shouldRenderSideBarSection('owners') && (
+        <OwnersList
+          title={`Owners (${ownersList.length})`}
+          owners={ownersList}
+          emptyMessage={`This ${type} does not have any documented owners.`}
+          client:load
+        />
+      )
+    }
 
     {
-      message.data.repository && (
+      message.data.repository && shouldRenderSideBarSection('repository') && (
         <RepositoryList repository={message.data.repository?.url} language={message.data.repository?.language} />
       )
     }
@@ -196,7 +208,7 @@ const schemaURL = path.join(publicPath, schemaFilePath || '');
       </a>
 
       {
-        isChangelogEnabled() && (
+        isChangelogEnabled() && shouldRenderSideBarSection('changelog') && (
           <a
             href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.latestVersion}/changelog`)}
             class="flex items-center space-x-2 justify-center text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
