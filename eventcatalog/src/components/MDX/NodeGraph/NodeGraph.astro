@@ -32,6 +32,7 @@ interface Props {
   linksToVisualiser?: boolean;
   showSearch?: boolean;
   showLegend?: boolean;
+  zoomOnScroll?: boolean;
 }
 
 const {
@@ -45,6 +46,7 @@ const {
   linksToVisualiser,
   showSearch = true,
   showLegend = true,
+  zoomOnScroll = false,
 } = Astro.props;
 
 let nodes = [],
@@ -136,6 +138,7 @@ if (collection === 'domains-entities') {
     mode={mode}
     showSearch={showSearch}
     includeKey={showLegend}
+    zoomOnScroll={zoomOnScroll}
   />
 </div>
 
