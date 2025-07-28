@@ -17,10 +17,10 @@ import {
   isEventCatalogStarterEnabled,
   isEventCatalogScaleEnabled,
   isOutputServer,
+  getProjectOutDir,
   isAuthEnabled,
 } from './features';
 import updateNotifier from 'update-notifier';
-import stream from 'stream';
 import dotenv from 'dotenv';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
@@ -259,6 +259,7 @@ program
     const canEmbedPages = await isBackstagePluginEnabled();
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
+    const isServerOutput = await isOutputServer();
 
     // Create the auth.config.ts file if it doesn't exist
     await createAuthFileIfNotExists(isEventCatalogScale);
@@ -292,6 +293,24 @@ program
         stdio: 'inherit',
       }
     );
+
+    // Not server rendered, then we need to index the site
+    if (!isServerOutput) {
+      const outDir = await getProjectOutDir();
+
+      const windowsCommand = `npx -y pagefind --site ${outDir} --output-subdir ${dir}\\public\\pagefind`;
+      const unixCommand = `npx -y pagefind --site ${outDir} --output-subdir ${dir}/public/pagefind`;
+      const pagefindCommand = process.platform === 'win32' ? windowsCommand : unixCommand;
+
+      // Run the index command
+      execSync(
+        `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} ${pagefindCommand}`,
+        {
+          cwd: dir,
+          stdio: 'inherit',
+        }
+      );
+    }
   });
 
 const previewCatalog = ({

@@ -2,7 +2,6 @@ import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
-import pagefind from "astro-pagefind";
 import { mermaid } from "./src/remark-plugins/mermaid"
 import { plantuml } from "./src/remark-plugins/plantuml"
 import { join } from 'node:path';
@@ -76,7 +75,6 @@ export default defineConfig({
       ],
       gfm: true,
     }),
-    config.output !== 'server' && pagefind(),
     config.output !== 'server' && compress && (await import("astro-compress")).default({
       Logger: 0,
       CSS: false,

@@ -9,6 +9,11 @@ type LicenseResponse = {
   state: string;
 };
 
+export const getProjectOutDir = async () => {
+  const config = await getEventCatalogConfigFile(process.env.PROJECT_DIR || '');
+  return config?.outDir || 'dist';
+};
+
 export const isOutputServer = async () => {
   const config = await getEventCatalogConfigFile(process.env.PROJECT_DIR || '');
   return config?.output === 'server';
