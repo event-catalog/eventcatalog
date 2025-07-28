@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.53.1
+
+### Patch Changes
+
+- f811fb0: fix(core): fixed issue with scrolling on docs and nodegraphs
+
 ## 2.53.0
 
 ### Minor Changes
