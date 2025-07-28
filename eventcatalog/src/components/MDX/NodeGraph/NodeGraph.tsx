@@ -57,6 +57,7 @@ interface Props {
   mode?: 'full' | 'simple';
   showFlowWalkthrough?: boolean;
   showSearch?: boolean;
+  zoomOnScroll?: boolean;
 }
 
 const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
@@ -75,6 +76,7 @@ const NodeGraphBuilder = ({
   mode = 'full',
   showFlowWalkthrough = true,
   showSearch = true,
+  zoomOnScroll = false,
 }: Props) => {
   const nodeTypes = useMemo(
     () => ({
@@ -119,6 +121,8 @@ const NodeGraphBuilder = ({
   });
   const { fitView, getNodes } = useReactFlow();
   const searchRef = useRef<VisualiserSearchRef>(null);
+  const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
+  const scrollableContainerRef = useRef<HTMLElement | null>(null);
 
   const resetNodesAndEdges = useCallback(() => {
     setNodes((nds) =>
@@ -223,6 +227,70 @@ const NodeGraphBuilder = ({
       fitView({ duration: 800 });
     }, 150);
   }, []);
+
+  // Handle scroll wheel events to forward to page when no modifier keys are pressed
+  // Only when zoomOnScroll is disabled
+  // This is a fix for when we embed node graphs into pages, and users are scrolling the documentation pages
+  // We dont want REACT FLOW to swallow the scroll events, so we forward them to the parent page
+  useEffect(() => {
+    // Skip scroll handling if zoomOnScroll is enabled
+    if (zoomOnScroll) return;
+
+    // Cache the scrollable container on mount (expensive operation done once)
+    const findScrollableContainer = (): HTMLElement | null => {
+      // Try specific known selectors first (fast)
+      const selectors = [
+        '.docs-layout .overflow-y-auto',
+        '.overflow-y-auto',
+        '[style*="overflow-y:auto"]',
+        '[style*="overflow-y: auto"]',
+      ];
+
+      for (const selector of selectors) {
+        const element = document.querySelector(selector) as HTMLElement;
+        if (element) return element;
+      }
+
+      return null;
+    };
+
+    // Find and cache the scrollable container once
+    if (!scrollableContainerRef.current) {
+      scrollableContainerRef.current = findScrollableContainer();
+    }
+
+    const handleWheel = (event: WheelEvent) => {
+      // Only forward scroll if no modifier keys are pressed
+      if (!event.ctrlKey && !event.shiftKey && !event.metaKey) {
+        event.preventDefault();
+
+        const scrollableContainer = scrollableContainerRef.current;
+
+        if (scrollableContainer) {
+          scrollableContainer.scrollBy({
+            top: event.deltaY,
+            left: event.deltaX,
+            behavior: 'instant',
+          });
+        } else {
+          // Fallback to window scroll
+          window.scrollBy({
+            top: event.deltaY,
+            left: event.deltaX,
+            behavior: 'instant',
+          });
+        }
+      }
+    };
+
+    const wrapper = reactFlowWrapperRef.current;
+    if (wrapper) {
+      wrapper.addEventListener('wheel', handleWheel, { passive: false });
+      return () => {
+        wrapper.removeEventListener('wheel', handleWheel);
+      };
+    }
+  }, [zoomOnScroll]);
 
   const handlePaneClick = useCallback(() => {
     setIsSettingsOpen(false);
@@ -463,167 +531,170 @@ const NodeGraphBuilder = ({
   const isFlowVisualization = edges.some((edge: Edge) => edge.type === 'flow-edge');
 
   return (
-    <ReactFlow
-      nodeTypes={nodeTypes}
-      edgeTypes={edgeTypes}
-      minZoom={0.07}
-      nodes={nodes}
-      edges={edges}
-      fitView
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      connectionLineType={ConnectionLineType.SmoothStep}
-      nodeOrigin={[0.1, 0.1]}
-      onNodeClick={handleNodeClick}
-      onPaneClick={handlePaneClick}
-      className="relative"
-    >
-      <Panel position="top-center" className="w-full pr-6 ">
-        <div className="flex space-x-2 justify-between items-center">
-          <div className="flex space-x-2">
-            <div>
-              <button
-                onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                className="py-2.5 px-3 bg-white rounded-md shadow-md hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                aria-label="Open settings"
-              >
-                <CogIcon className="h-5 w-5 text-gray-600" />
-              </button>
-            </div>
-            {title && (
-              <span className="block shadow-sm bg-white text-xl z-10 text-black px-4 py-1.5 border-gray-200 rounded-md border opacity-80">
-                {title}
-              </span>
-            )}
-          </div>
-          {mode === 'full' && showSearch && (
-            <div className="flex justify-end space-x-2 w-96">
-              <VisualiserSearch ref={searchRef} nodes={nodes} onNodeSelect={handleNodeSelect} onClear={handleSearchClear} />
-            </div>
-          )}
-        </div>
-        {links.length > 0 && (
-          <div className="flex justify-end mt-3">
-            <div className="relative flex items-center -mt-1">
-              <span className="absolute left-2 pointer-events-none flex items-center h-full">
-                <HistoryIcon className="h-4 w-4 text-gray-600" />
-              </span>
-              <select
-                value={links.find((link) => window.location.href.includes(link.url))?.url || links[0].url}
-                onChange={(e) => navigate(e.target.value)}
-                className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-white rounded-md border border-gray-200 hover:bg-gray-100/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-                style={{ minWidth: 120, height: '26px' }}
-              >
-                {links.map((link) => (
-                  <option key={link.url} value={link.url}>
-                    {link.label}
-                  </option>
-                ))}
-              </select>
-              <span className="absolute right-2 pointer-events-none">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </span>
-            </div>
-          </div>
-        )}
-      </Panel>
-
-      {isSettingsOpen && (
-        <div className="absolute top-[68px] left-5 w-72 p-4 bg-white rounded-lg shadow-lg z-30 border border-gray-200">
-          <h3 className="text-lg font-semibold mb-4">Visualizer Settings</h3>
-          <div className="space-y-4 ">
-            <div>
-              <div className="flex items-center justify-between">
-                <label htmlFor="message-animation-toggle" className="text-sm font-medium text-gray-700">
-                  Simulate Messages
-                </label>
+    <div ref={reactFlowWrapperRef} className="w-full h-full">
+      <ReactFlow
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        minZoom={0.07}
+        nodes={nodes}
+        edges={edges}
+        fitView
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        connectionLineType={ConnectionLineType.SmoothStep}
+        nodeOrigin={[0.1, 0.1]}
+        onNodeClick={handleNodeClick}
+        onPaneClick={handlePaneClick}
+        zoomOnScroll={zoomOnScroll}
+        className="relative"
+      >
+        <Panel position="top-center" className="w-full pr-6 ">
+          <div className="flex space-x-2 justify-between items-center">
+            <div className="flex space-x-2">
+              <div>
                 <button
-                  id="message-animation-toggle"
-                  onClick={toggleAnimateMessages}
-                  className={`${
-                    animateMessages ? 'bg-purple-600' : 'bg-gray-200'
-                  } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
+                  onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                  className="py-2.5 px-3 bg-white rounded-md shadow-md hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  aria-label="Open settings"
                 >
-                  <span
-                    className={`${
-                      animateMessages ? 'translate-x-6' : 'translate-x-1'
-                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-                  />
+                  <CogIcon className="h-5 w-5 text-gray-600" />
                 </button>
               </div>
-              <p className="text-[10px] text-gray-500">Animate events, queries and commands.</p>
+              {title && (
+                <span className="block shadow-sm bg-white text-xl z-10 text-black px-4 py-1.5 border-gray-200 rounded-md border opacity-80">
+                  {title}
+                </span>
+              )}
             </div>
-            {hasChannels && (
+            {mode === 'full' && showSearch && (
+              <div className="flex justify-end space-x-2 w-96">
+                <VisualiserSearch ref={searchRef} nodes={nodes} onNodeSelect={handleNodeSelect} onClear={handleSearchClear} />
+              </div>
+            )}
+          </div>
+          {links.length > 0 && (
+            <div className="flex justify-end mt-3">
+              <div className="relative flex items-center -mt-1">
+                <span className="absolute left-2 pointer-events-none flex items-center h-full">
+                  <HistoryIcon className="h-4 w-4 text-gray-600" />
+                </span>
+                <select
+                  value={links.find((link) => window.location.href.includes(link.url))?.url || links[0].url}
+                  onChange={(e) => navigate(e.target.value)}
+                  className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-white rounded-md border border-gray-200 hover:bg-gray-100/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  style={{ minWidth: 120, height: '26px' }}
+                >
+                  {links.map((link) => (
+                    <option key={link.url} value={link.url}>
+                      {link.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="absolute right-2 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
+              </div>
+            </div>
+          )}
+        </Panel>
+
+        {isSettingsOpen && (
+          <div className="absolute top-[68px] left-5 w-72 p-4 bg-white rounded-lg shadow-lg z-30 border border-gray-200">
+            <h3 className="text-lg font-semibold mb-4">Visualizer Settings</h3>
+            <div className="space-y-4 ">
               <div>
                 <div className="flex items-center justify-between">
-                  <label htmlFor="hide-channels-toggle" className="text-sm font-medium text-gray-700">
-                    Hide Channels
+                  <label htmlFor="message-animation-toggle" className="text-sm font-medium text-gray-700">
+                    Simulate Messages
                   </label>
                   <button
-                    id="hide-channels-toggle"
-                    onClick={toggleChannelsVisibility}
+                    id="message-animation-toggle"
+                    onClick={toggleAnimateMessages}
                     className={`${
-                      hideChannels ? 'bg-purple-600' : 'bg-gray-200'
+                      animateMessages ? 'bg-purple-600' : 'bg-gray-200'
                     } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
                   >
                     <span
                       className={`${
-                        hideChannels ? 'translate-x-6' : 'translate-x-1'
+                        animateMessages ? 'translate-x-6' : 'translate-x-1'
                       } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                     />
                   </button>
                 </div>
-                <p className="text-[10px] text-gray-500">Show or hide channels in the visualizer.</p>
+                <p className="text-[10px] text-gray-500">Animate events, queries and commands.</p>
               </div>
-            )}
-            <div className="pt-4 border-t border-gray-200">
-              <button
-                onClick={handleExportVisual}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-              >
-                <DocumentArrowDownIcon className="w-4 h-4" />
-                <span>Export Visual</span>
-              </button>
+              {hasChannels && (
+                <div>
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="hide-channels-toggle" className="text-sm font-medium text-gray-700">
+                      Hide Channels
+                    </label>
+                    <button
+                      id="hide-channels-toggle"
+                      onClick={toggleChannelsVisibility}
+                      className={`${
+                        hideChannels ? 'bg-purple-600' : 'bg-gray-200'
+                      } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
+                    >
+                      <span
+                        className={`${
+                          hideChannels ? 'translate-x-6' : 'translate-x-1'
+                        } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                      />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-gray-500">Show or hide channels in the visualizer.</p>
+                </div>
+              )}
+              <div className="pt-4 border-t border-gray-200">
+                <button
+                  onClick={handleExportVisual}
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                >
+                  <DocumentArrowDownIcon className="w-4 h-4" />
+                  <span>Export Visual</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-      {includeBackground && <Background color="#bbb" gap={16} />}
-      {includeBackground && <Controls />}
-      {isFlowVisualization && showFlowWalkthrough && (
-        <Panel position="bottom-left">
-          <StepWalkthrough
-            nodes={nodes}
-            edges={edges}
-            isFlowVisualization={isFlowVisualization}
-            onStepChange={handleStepChange}
-            mode={mode}
-          />
-        </Panel>
-      )}
-      {includeKey && (
-        <Panel position="bottom-right">
-          <div className=" bg-white font-light px-4 text-[12px] shadow-md py-1 rounded-md">
-            <ul className="m-0 p-0 ">
-              {Object.entries(legend).map(([key, { count, colorClass, groupId }]) => (
-                <li
-                  key={key}
-                  className="flex space-x-2 items-center text-[10px] cursor-pointer hover:text-purple-600 hover:underline"
-                  onClick={() => handleLegendClick(key, groupId)}
-                >
-                  <span className={`w-2 h-2 block ${colorClass}`} />
-                  <span className="block capitalize">
-                    {key} ({count})
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Panel>
-      )}
-    </ReactFlow>
+        )}
+        {includeBackground && <Background color="#bbb" gap={16} />}
+        {includeBackground && <Controls />}
+        {isFlowVisualization && showFlowWalkthrough && (
+          <Panel position="bottom-left">
+            <StepWalkthrough
+              nodes={nodes}
+              edges={edges}
+              isFlowVisualization={isFlowVisualization}
+              onStepChange={handleStepChange}
+              mode={mode}
+            />
+          </Panel>
+        )}
+        {includeKey && (
+          <Panel position="bottom-right">
+            <div className=" bg-white font-light px-4 text-[12px] shadow-md py-1 rounded-md">
+              <ul className="m-0 p-0 ">
+                {Object.entries(legend).map(([key, { count, colorClass, groupId }]) => (
+                  <li
+                    key={key}
+                    className="flex space-x-2 items-center text-[10px] cursor-pointer hover:text-purple-600 hover:underline"
+                    onClick={() => handleLegendClick(key, groupId)}
+                  >
+                    <span className={`w-2 h-2 block ${colorClass}`} />
+                    <span className="block capitalize">
+                      {key} ({count})
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Panel>
+        )}
+      </ReactFlow>
+    </div>
   );
 };
 
@@ -643,6 +714,7 @@ interface NodeGraphProps {
   portalId?: string;
   showFlowWalkthrough?: boolean;
   showSearch?: boolean;
+  zoomOnScroll?: boolean;
 }
 
 const NodeGraph = ({
@@ -661,6 +733,7 @@ const NodeGraph = ({
   portalId,
   showFlowWalkthrough = true,
   showSearch = true,
+  zoomOnScroll = false,
 }: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
   const [showFooter, setShowFooter] = useState(true);
@@ -697,6 +770,7 @@ const NodeGraph = ({
             mode={mode}
             showFlowWalkthrough={showFlowWalkthrough}
             showSearch={showSearch}
+            zoomOnScroll={zoomOnScroll}
           />
 
           {showFooter && (
