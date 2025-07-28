@@ -31,6 +31,10 @@ const pointer = z.object({
   version: z.string().optional().default('latest'),
 });
 
+const detailPanelPropertySchema = z.object({
+  visible: z.boolean().optional(),
+});
+
 const channelPointer = z
   .object({
     parameters: z.record(z.string()).optional(),
@@ -175,6 +179,13 @@ const flows = defineCollection({
   }),
   schema: z
     .object({
+      detailsPanel: z
+        .object({
+          owners: detailPanelPropertySchema.optional(),
+          versions: detailPanelPropertySchema.optional(),
+          changelog: detailPanelPropertySchema.optional(),
+        })
+        .optional(),
       steps: z.array(
         z
           .object({
@@ -185,6 +196,7 @@ const flows = defineCollection({
             message: pointer.optional(),
             service: pointer.optional(),
             flow: pointer.optional(),
+
             actor: z
               .object({
                 name: z.string(),
@@ -233,6 +245,16 @@ const flows = defineCollection({
     .merge(baseSchema),
 });
 
+const messageDetailsPanelPropertySchema = z.object({
+  producers: detailPanelPropertySchema.optional(),
+  consumers: detailPanelPropertySchema.optional(),
+  channels: detailPanelPropertySchema.optional(),
+  versions: detailPanelPropertySchema.optional(),
+  repository: detailPanelPropertySchema.optional(),
+  owners: detailPanelPropertySchema.optional(),
+  changelog: detailPanelPropertySchema.optional(),
+});
+
 const events = defineCollection({
   loader: glob({
     pattern: ['**/events/*/index.(md|mdx)', '**/events/*/versioned/*/index.(md|mdx)'],
@@ -248,6 +270,7 @@ const events = defineCollection({
       channels: z.array(channelPointer).optional(),
       // Used by eventcatalog
       messageChannels: z.array(reference('channels')).optional(),
+      detailsPanel: messageDetailsPanelPropertySchema.optional(),
     })
     .merge(baseSchema),
 });
@@ -265,6 +288,7 @@ const commands = defineCollection({
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
       channels: z.array(channelPointer).optional(),
+      detailsPanel: messageDetailsPanelPropertySchema.optional(),
       // Used by eventcatalog
       messageChannels: z.array(reference('channels')).optional(),
     })
@@ -284,6 +308,7 @@ const queries = defineCollection({
       producers: z.array(reference('services')).optional(),
       consumers: z.array(reference('services')).optional(),
       channels: z.array(channelPointer).optional(),
+      detailsPanel: messageDetailsPanelPropertySchema.optional(),
       // Used by eventcatalog
       messageChannels: z.array(reference('channels')).optional(),
     })
@@ -314,6 +339,18 @@ const services = defineCollection({
       sends: z.array(pointer).optional(),
       receives: z.array(pointer).optional(),
       entities: z.array(pointer).optional(),
+      detailsPanel: z
+        .object({
+          domains: detailPanelPropertySchema.optional(),
+          messages: detailPanelPropertySchema.optional(),
+          versions: detailPanelPropertySchema.optional(),
+          specifications: detailPanelPropertySchema.optional(),
+          entities: detailPanelPropertySchema.optional(),
+          repository: detailPanelPropertySchema.optional(),
+          owners: detailPanelPropertySchema.optional(),
+          changelog: detailPanelPropertySchema.optional(),
+        })
+        .optional(),
     })
     .merge(baseSchema),
 });
@@ -356,6 +393,20 @@ const domains = defineCollection({
       services: z.array(pointer).optional(),
       domains: z.array(pointer).optional(),
       entities: z.array(pointer).optional(),
+      detailsPanel: z
+        .object({
+          parentDomains: detailPanelPropertySchema.optional(),
+          subdomains: detailPanelPropertySchema.optional(),
+          services: detailPanelPropertySchema.optional(),
+          entities: detailPanelPropertySchema.optional(),
+          messages: detailPanelPropertySchema.optional(),
+          ubiquitousLanguage: detailPanelPropertySchema.optional(),
+          repository: detailPanelPropertySchema.optional(),
+          versions: detailPanelPropertySchema.optional(),
+          owners: detailPanelPropertySchema.optional(),
+          changelog: detailPanelPropertySchema.optional(),
+        })
+        .optional(),
     })
     .merge(baseSchema),
 });
@@ -383,6 +434,19 @@ const channels = defineCollection({
         )
         .optional(),
       messages: z.array(z.object({ collection: z.string(), name: z.string(), ...pointer.shape })).optional(),
+      detailsPanel: z
+        .object({
+          producers: detailPanelPropertySchema.optional(),
+          consumers: detailPanelPropertySchema.optional(),
+          messages: detailPanelPropertySchema.optional(),
+          protocols: detailPanelPropertySchema.optional(),
+          parameters: detailPanelPropertySchema.optional(),
+          versions: detailPanelPropertySchema.optional(),
+          repository: detailPanelPropertySchema.optional(),
+          owners: detailPanelPropertySchema.optional(),
+          changelog: detailPanelPropertySchema.optional(),
+        })
+        .optional(),
     })
     .merge(baseSchema),
 });
@@ -438,6 +502,16 @@ const entities = defineCollection({
         .optional(),
       services: z.array(reference('services')).optional(),
       domains: z.array(reference('domains')).optional(),
+      detailsPanel: z
+        .object({
+          domains: detailPanelPropertySchema.optional(),
+          services: detailPanelPropertySchema.optional(),
+          messages: detailPanelPropertySchema.optional(),
+          versions: detailPanelPropertySchema.optional(),
+          owners: detailPanelPropertySchema.optional(),
+          changelog: detailPanelPropertySchema.optional(),
+        })
+        .optional(),
     })
 
     .merge(baseSchema),

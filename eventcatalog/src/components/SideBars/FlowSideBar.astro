@@ -29,6 +29,14 @@ const ownersList = filteredOwners.map((o) => ({
 }));
 
 const isRSSEnabled = config.rss?.enabled;
+
+const shouldRenderSideBarSection = (section: string) => {
+  if (!flow.data.detailsPanel) {
+    return true;
+  }
+  // @ts-ignore
+  return flow.data.detailsPanel[section]?.visible ?? true;
+};
 ---
 
 <aside class="sticky top-28 left-0 h-full overflow-y-auto pr-6 py-4">
@@ -38,14 +46,22 @@ const isRSSEnabled = config.rss?.enabled;
         .filter((section) => section.items.length > 0 && section.sidebar)
         .map((section) => <CustomSideBarSectionList section={section} />)
     }
-    {flow.data.versions && <VersionList versions={flow.data.versions} collectionItem={flow} />}
+    {
+      flow.data.versions && shouldRenderSideBarSection('versions') && (
+        <VersionList versions={flow.data.versions} collectionItem={flow} />
+      )
+    }
 
-    <OwnersList
-      title={`Owners (${ownersList.length})`}
-      owners={ownersList}
-      emptyMessage={`This flow does not have any documented owners.`}
-      client:load
-    />
+    {
+      shouldRenderSideBarSection('owners') && (
+        <OwnersList
+          title={`Owners (${ownersList.length})`}
+          owners={ownersList}
+          emptyMessage={`This flow does not have any documented owners.`}
+          client:load
+        />
+      )
+    }
 
     {
       isRSSEnabled && (
@@ -72,7 +88,7 @@ const isRSSEnabled = config.rss?.enabled;
         <span class="block">View in visualiser</span>
       </a>
       {
-        isChangelogEnabled() && (
+        isChangelogEnabled() && shouldRenderSideBarSection('changelog') && (
           <a
             href={buildUrl(`/docs/${flow.collection}/${flow.data.id}/${flow.data.latestVersion}/changelog`)}
             class="flex items-center space-x-2 justify-center text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
