@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.54.1
+
+### Patch Changes
+
+- 44ac76f: fix(core): fixed pagefind output directory on build
+- cba92ab: fix(core): fixed entity spelling on search modal
+
 ## 2.54.0
 
 ### Minor Changes
