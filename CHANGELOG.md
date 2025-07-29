@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.54.2
+
+### Patch Changes
+
+- 6b1b554: fix(core): search no longer loads every result on load
+
 ## 2.54.1
 
 ### Patch Changes
