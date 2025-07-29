@@ -35,6 +35,7 @@ const SearchResultItem = React.memo<{
     if (type === 'openapi') return 'OpenAPI';
     if (type === 'language') return 'Language';
     if (type === 'entities') return 'Entity';
+    if (type === 'queries') return 'Query';
     // For plurals, remove 's' at the end, otherwise just capitalize
     if (type.endsWith('s')) {
       return type.charAt(0).toUpperCase() + type.slice(1, -1);
@@ -113,8 +114,6 @@ const SearchModal: React.FC = () => {
   useEffect(() => {
     const handleModalToggle = (event: CustomEvent) => {
       setIsOpen(event.detail.isOpen);
-
-      // Load all results when modal opens - will be handled by another effect
     };
 
     window.addEventListener('searchModalToggle', handleModalToggle as EventListener);
@@ -286,57 +285,6 @@ const SearchModal: React.FC = () => {
     return 'other';
   }, []);
 
-  // Load all results using a wildcard search
-  const loadAllResults = useCallback(async () => {
-    if (!pagefind) return;
-
-    setIsLoading(true);
-    try {
-      // Use a common word or wildcard to get all indexed content
-      const search = await pagefind.search('a');
-      if (!search || !search.results) {
-        return;
-      }
-      const processedResults: SearchResult[] = [];
-
-      for (const result of search.results) {
-        const data = await result.data();
-        const type = getTypeFromUrl(data.url);
-
-        // Clean the title by removing any "Type | " prefix if it exists
-        let cleanTitle = data.meta?.title || 'Untitled';
-
-        // Use regex for more efficient prefix removal
-        cleanTitle = cleanTitle.replace(
-          /^(Domains?|Services?|Events?|Commands?|Queries?|Entities?|Channels?|Teams?|Users?|Language) \| /,
-          ''
-        );
-
-        processedResults.push({
-          id: result.id,
-          name: cleanTitle,
-          type: type,
-          description: data.excerpt || '',
-          url: data.url,
-          tags: data.meta?.tags ? data.meta.tags.split(',').map((tag: string) => tag.trim()) : [],
-        });
-      }
-
-      setAllResults(processedResults);
-    } catch (error) {
-      console.error('Error loading all results:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [pagefind, getTypeFromUrl]);
-
-  // Load results when modal opens and pagefind is available
-  useEffect(() => {
-    if (isOpen && pagefind && !pagefindLoadError) {
-      loadAllResults();
-    }
-  }, [isOpen, pagefind, pagefindLoadError, loadAllResults]);
-
   // Perform search
   const performSearch = useCallback(
     async (searchTerm: string): Promise<SearchResult[]> => {
@@ -407,7 +355,7 @@ const SearchModal: React.FC = () => {
     [exactMatch, currentSearch]
   );
 
-  // Update results
+  // Update results with debouncing
   const updateResults = useCallback(async () => {
     if (currentSearch.trim()) {
       const results = await performSearch(currentSearch);
@@ -417,10 +365,19 @@ const SearchModal: React.FC = () => {
     }
   }, [currentSearch, performSearch]);
 
-  // Search on input change
+  // Search on input change with debouncing
   useEffect(() => {
-    updateResults();
-  }, [updateResults]);
+    if (!currentSearch.trim()) {
+      setAllResults([]);
+      return;
+    }
+
+    const debounceTimer = setTimeout(() => {
+      updateResults();
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(debounceTimer);
+  }, [currentSearch, updateResults]);
 
   // Handle input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -578,7 +535,7 @@ const SearchModal: React.FC = () => {
                             <div className="flex items-center gap-1.5">
                               <span>All Resources</span>
                             </div>
-                            <span className="text-xs text-gray-400">{counts.all}</span>
+                            <span className="text-xs text-gray-700 font-thin">{counts.all}</span>
                           </div>
                         </button>
                       </div>
@@ -586,7 +543,7 @@ const SearchModal: React.FC = () => {
 
                     {/* Resources Section */}
                     <div className="mb-4">
-                      <h3 className="text-xs font-medium text-gray-600 mb-2">Resources</h3>
+                      <h3 className="text-xs font-bold text-gray-600 mb-2">Resources</h3>
                       <div className="space-y-1">
                         {Object.entries({
                           domains: 'Domains',
@@ -610,9 +567,9 @@ const SearchModal: React.FC = () => {
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
                                   {IconComponent && <IconComponent className="h-3 w-3" />}
-                                  <span>{label}</span>
+                                  <span className="font-thin">{label}</span>
                                 </div>
-                                <span className="text-xs text-gray-400">{counts[key as keyof typeof counts]}</span>
+                                <span className="text-xs text-gray-700 font-thin">{counts[key as keyof typeof counts]}</span>
                               </div>
                             </button>
                           );
@@ -622,7 +579,7 @@ const SearchModal: React.FC = () => {
 
                     {/* Messages Section */}
                     <div className="mb-4">
-                      <h3 className="text-xs font-medium text-gray-600 mb-2">Messages</h3>
+                      <h3 className="text-xs font-bold text-gray-600 mb-2">Messages</h3>
                       <div className="space-y-1">
                         {Object.entries({
                           events: 'Events',
@@ -646,9 +603,9 @@ const SearchModal: React.FC = () => {
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
                                   {IconComponent && <IconComponent className="h-3 w-3" />}
-                                  <span>{label}</span>
+                                  <span className="font-thin">{label}</span>
                                 </div>
-                                <span className="text-xs text-gray-400">{counts[key as keyof typeof counts]}</span>
+                                <span className="text-xs text-gray-700 font-thin">{counts[key as keyof typeof counts]}</span>
                               </div>
                             </button>
                           );
@@ -658,7 +615,7 @@ const SearchModal: React.FC = () => {
 
                     {/* Organization Section */}
                     <div className="mb-4">
-                      <h3 className="text-xs font-medium text-gray-600 mb-2">Organization</h3>
+                      <h3 className="text-xs font-bold text-gray-600 mb-2">Organization</h3>
                       <div className="space-y-1">
                         {Object.entries({
                           teams: 'Teams',
@@ -680,9 +637,9 @@ const SearchModal: React.FC = () => {
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
                                   {IconComponent && <IconComponent className="h-3 w-3" />}
-                                  <span>{label}</span>
+                                  <span className="font-thin">{label}</span>
                                 </div>
-                                <span className="text-xs text-gray-400">{counts[key as keyof typeof counts]}</span>
+                                <span className="text-xs text-gray-700 font-thin">{counts[key as keyof typeof counts]}</span>
                               </div>
                             </button>
                           );
@@ -692,7 +649,7 @@ const SearchModal: React.FC = () => {
 
                     {/* Specifications Section */}
                     <div className="mb-4">
-                      <h3 className="text-xs font-medium text-gray-600 mb-2">Specifications</h3>
+                      <h3 className="text-xs font-bold text-gray-600 mb-2">Specifications</h3>
                       <div className="space-y-1">
                         {Object.entries({
                           openapi: 'OpenAPI Specification',
@@ -714,9 +671,9 @@ const SearchModal: React.FC = () => {
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
                                   <IconComponent className="h-3 w-3" />
-                                  <span>{label}</span>
+                                  <span className="font-thin">{label}</span>
                                 </div>
-                                <span className="text-xs text-gray-400">{counts[key as keyof typeof counts]}</span>
+                                <span className="text-xs text-gray-700 font-thin">{counts[key as keyof typeof counts]}</span>
                               </div>
                             </button>
                           );
@@ -726,25 +683,16 @@ const SearchModal: React.FC = () => {
                   </div>
 
                   {/* Right Results */}
-                  <div className="flex-1 p-4 overflow-y-auto">
-                    {/* Show stats and exact match toggle */}
-                    <div className="mb-4 flex items-center justify-between">
-                      <div className="text-sm text-gray-500">
-                        {currentSearch.trim() ? (
-                          <>
-                            <span>{filteredResults.length} results</span> for "{currentSearch}"
-                            {isLoading && <span className="ml-2">Loading...</span>}
-                          </>
-                        ) : (
-                          <>
-                            <span>{filteredResults.length} resources</span> in EventCatalog
-                            {isLoading && <span className="ml-2">Loading...</span>}
-                          </>
-                        )}
-                      </div>
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    {/* Show stats and exact match toggle - only when there are results or search term */}
+                    {currentSearch.trim() && (filteredResults.length > 0 || isLoading) && (
+                      <div className="p-4 pb-2 flex items-center justify-between border-b border-gray-100">
+                        <div className="text-sm text-gray-500 font-thin">
+                          <span>{filteredResults.length} results</span> for "{currentSearch}"
+                          {isLoading && <span className="ml-2">Loading...</span>}
+                        </div>
 
-                      {/* Exact Match Checkbox - moved here */}
-                      {currentSearch.trim() && (
+                        {/* Exact Match Checkbox */}
                         <div className="flex items-center">
                           <input
                             id="exact-match-results"
@@ -757,49 +705,51 @@ const SearchModal: React.FC = () => {
                             Exact match in title
                           </label>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
-                    <div className="search-results grid grid-cols-1 lg:grid-cols-2 gap-3">
-                      {!currentSearch.trim() && filteredResults.length === 0 ? (
-                        // Show when no search term is entered and no results loaded yet
-                        <div className="col-span-full text-center py-20">
-                          <svg className="mx-auto h-16 w-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="1.5"
-                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                            />
-                          </svg>
-                          <h3 className="mt-4 text-lg font-medium text-gray-900">
-                            {isLoading ? 'Loading resources...' : 'Discover your EventCatalog'}
-                          </h3>
-                          <p className="mt-2 text-sm text-gray-300">
-                            {isLoading
-                              ? 'Fetching all available resources from EventCatalog.'
-                              : 'Start typing to search for domains, services, events, and more.'}
-                          </p>
+                    {/* Main content area */}
+                    <div className="flex-1 overflow-y-auto">
+                      {!currentSearch.trim() ? (
+                        // Show when no search term is entered - centered
+                        <div className="h-full flex items-center justify-center">
+                          <div className="text-center">
+                            <MagnifyingGlassIcon className="mx-auto h-8 w-8 text-gray-300" />
+                            <h3 className="mt-4 text-lg font-medium text-gray-900">Discover your EventCatalog</h3>
+                            <p className="mt-2 text-sm text-gray-500 font-thin">
+                              Start typing to search for domains, services, events, and more.
+                            </p>
+                          </div>
                         </div>
-                      ) : currentSearch.trim() && filteredResults.length === 0 ? (
-                        // Show when search term exists but no results
-                        <div className="col-span-full text-center py-16">
-                          <svg className="mx-auto h-12 w-12 text-gray-300" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                            <path
-                              d="M21 21l6-6m-6 6l6 6m-6-6h6m-6 0v6"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                          <h3 className="mt-2 text-sm font-medium text-gray-900">No results found</h3>
-                          <p className="mt-1 text-sm text-gray-500">
-                            No results found for "<span className="font-medium">{currentSearch}</span>". Try different keywords or
-                            check your spelling.
-                          </p>
+                      ) : filteredResults.length === 0 && !isLoading ? (
+                        // Show when search term exists but no results and not loading - centered
+                        <div className="h-full flex items-center justify-center">
+                          <div className="text-center">
+                            <MagnifyingGlassIcon className="mx-auto h-8 w-8 text-gray-300" />
+                            <h3 className="mt-2 text-sm font-bold text-gray-900">No results found</h3>
+                            <p className="mt-1 text-sm text-gray-500 font-thin">
+                              No results found for "<span className="font-medium">{currentSearch}</span>".
+                            </p>
+                          </div>
+                        </div>
+                      ) : isLoading ? (
+                        // Show loading state - centered
+                        <div className="h-full flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                            <h3 className="mt-4 text-sm font-medium text-gray-900">Searching...</h3>
+                            <p className="mt-2 text-sm text-gray-500 font-thin">
+                              Finding results for "<span className="font-medium">{currentSearch}</span>"
+                            </p>
+                          </div>
                         </div>
                       ) : (
-                        <SearchResults results={filteredResults} typeConfig={typeConfig} currentSearch={currentSearch} />
+                        // Show results in a grid with padding
+                        <div className="p-4">
+                          <div className="search-results grid grid-cols-1 lg:grid-cols-2 gap-3">
+                            <SearchResults results={filteredResults} typeConfig={typeConfig} currentSearch={currentSearch} />
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
