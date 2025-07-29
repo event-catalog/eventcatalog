@@ -34,6 +34,7 @@ const SearchResultItem = React.memo<{
     if (type === 'asyncapi') return 'AsyncAPI';
     if (type === 'openapi') return 'OpenAPI';
     if (type === 'language') return 'Language';
+    if (type === 'entities') return 'Entity';
     // For plurals, remove 's' at the end, otherwise just capitalize
     if (type.endsWith('s')) {
       return type.charAt(0).toUpperCase() + type.slice(1, -1);
