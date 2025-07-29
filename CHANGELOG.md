@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.54.0
+
+### Minor Changes
+
+- 3944204: feat(core): update search to custom pagefind solution
+
 ## 2.53.1
 
 ### Patch Changes
