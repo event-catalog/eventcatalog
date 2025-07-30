@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.54.3
+
+### Patch Changes
+
+- 3f99807: chore(core): updated astro
+- 898e53f: fix(core): entities now render in services pages
+
 ## 2.54.2
 
 ### Patch Changes
