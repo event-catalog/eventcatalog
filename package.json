@@ -110,6 +110,7 @@
     "mermaid": "^11.4.1",
     "pagefind": "^1.3.0",
     "pako": "^2.1.0",
+    "protobufjs": "^7.5.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
