@@ -7,12 +7,12 @@ import path from 'path';
 import SchemaViewerClient from './SchemaViewer.astro';
 import Admonition from '../Admonition';
 import { getMDXComponentsByName } from '@utils/markdown';
-import { getAbsoluteFilePathForAstroFile } from '@utils/files';
+import { getAbsoluteFilePathForAstroFile, resolveProjectPath } from '@utils/files';
 
 let schemas = [];
 
 try {
-  const absoluteFilePath = getAbsoluteFilePathForAstroFile(filePath, filePath.split(path.sep).pop());
+  const absoluteFilePath = resolveProjectPath(filePath);
   const file = await fs.readFile(absoluteFilePath, 'utf-8');
   const schemaViewers = getMDXComponentsByName(file, 'SchemaViewer');
 
