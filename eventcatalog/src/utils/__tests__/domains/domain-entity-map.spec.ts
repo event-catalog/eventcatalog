@@ -229,6 +229,19 @@ const mockDomains = [
   },
 ];
 
+const mockServices = [
+  {
+    id: 'services/OrdersService-1.0.0',
+    slug: 'services/OrdersService',
+    collection: 'services',
+    data: {
+      id: 'OrdersService',
+      name: 'Orders Service',
+      version: '1.0.0',
+    },
+  },
+];
+
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
@@ -238,6 +251,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockDomains);
         case 'entities':
           return Promise.resolve(mockEntities);
+        case 'services':
+          return Promise.resolve(mockServices);
         default:
           return Promise.resolve([]);
       }
@@ -245,6 +260,9 @@ vi.mock('astro:content', async (importOriginal) => {
     getEntry: (collection: ContentCollectionKey, id: string) => {
       if (collection === 'domains') {
         return Promise.resolve(mockDomains.find((d) => d.id === `domains/${id}`));
+      }
+      if (collection === 'services') {
+        return Promise.resolve(mockServices.find((s) => s.id === `services/${id}`));
       }
       return Promise.resolve(null);
     },
