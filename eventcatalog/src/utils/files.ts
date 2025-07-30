@@ -11,7 +11,7 @@ export const resolveProjectPath = (filePath: string, projectDir: string = proces
     const pathAfterDotDot = filePath.substring(3);
     const projectDirName = path.basename(projectDir);
     const projectParentName = path.basename(path.dirname(projectDir));
-    
+
     if (pathAfterDotDot.startsWith(`${projectParentName}/${projectDirName}/`)) {
       const remainingPath = pathAfterDotDot.substring(`${projectParentName}/${projectDirName}/`.length);
       return path.join(projectDir, remainingPath);
@@ -22,7 +22,6 @@ export const resolveProjectPath = (filePath: string, projectDir: string = proces
   }
   return path.join(projectDir, filePath);
 };
-
 
 /**
  * Using the Astro filePath, this returns the absolute path to the file
