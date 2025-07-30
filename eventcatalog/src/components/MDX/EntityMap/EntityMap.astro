@@ -4,28 +4,47 @@ import { getNodesAndEdges } from '@utils/node-graphs/domain-entity-map.ts';
 import Admonition from '@components/MDX/Admonition';
 import NodeGraph from '../NodeGraph/NodeGraph';
 import { getVersionFromCollection } from '@utils/collections/versions';
+import { getServices } from '@utils/collections/services';
 
-const { id, version = 'latest', maxHeight, includeKey = true, entities } = Astro.props;
+const { id, version = 'latest', maxHeight, includeKey = true, entities, collection = 'domains', ...rest } = Astro.props;
+let resource = null;
 
-// Find the flow for the given id and version
-const domains = await getDomains();
-const domainCollection = getVersionFromCollection(domains, id, version) || [];
-const domain = domainCollection[0];
+let resourceId = id;
+
+// If the user did not provide an id, we need to use the id from the rest props (the collection)
+const isAstroGeneratedId = id.match(/-\d+\.\d+\.\d+$/);
+if (isAstroGeneratedId) {
+  resourceId = rest.data.id;
+}
+
+if (collection === 'domains') {
+  const domains = await getDomains();
+  const domainCollection = getVersionFromCollection(domains, resourceId, version) || [];
+  resource = domainCollection[0];
+} else if (collection === 'services') {
+  const services = await getServices();
+  const serviceCollection = getVersionFromCollection(services, resourceId, version) || [];
+  resource = serviceCollection[0];
+} else {
+  throw new Error(`Invalid collection: ${collection}`);
+}
 
 const { nodes, edges } = await getNodesAndEdges({
-  id: id,
-  version: domain?.data?.version,
+  id: resourceId,
+  version: resource?.data?.version,
   ...(entities ? { entities } : {}), // Pass entities if provided
+  type: collection,
 });
 ---
 
 {
-  !domain && (
+  !resource && (
     <Admonition type="warning">
       <div>
         <span class="block font-bold">{`<EntityMap/>`} failed to load</span>
         <span class="block">
-          Tried to load domain id: {id} with version {version}. Make sure you have this domain defined in your project.
+          Tried to load {collection} id: {id} with version {version}. Make sure you have this {collection} defined in your
+          project.
         </span>
       </div>
     </Admonition>
@@ -49,7 +68,7 @@ const { nodes, edges } = await getNodesAndEdges({
     linkTo={'visualiser'}
     mode="simple"
     includeKey={includeKey}
-    footerLabel=`Entity Map - ${domain?.data?.name} - v(${domain?.data?.version})`
+    footerLabel={`Entity Map - ${resource?.data?.name} - v(${resource?.data?.version})`}
     client:only="react"
     portalId={`${id}-entity-map-portal`}
   />

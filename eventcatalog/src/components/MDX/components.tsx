@@ -44,7 +44,7 @@ const components = (props: any) => {
     MessageTable: (mdxProp: any) => jsx(MessageTable, { ...props, ...mdxProp }),
     EntityPropertiesTable: (mdxProp: any) => jsx(EntityPropertiesTable, { ...props, ...mdxProp }),
     NodeGraph: (mdxProp: any) => jsx(NodeGraphPortal, { ...props.data, ...mdxProp, props, mdxProp }),
-    EntityMap,
+    EntityMap: (mdxProp: any) => jsx(EntityMap, { ...props, ...mdxProp }),
     OpenAPI,
     ResourceGroupTable: (mdxProp: any) => jsx(ResourceGroupTable, { ...props, ...mdxProp }),
     ResourceLink: (mdxProp: any) => jsx(ResourceLink, { ...props, ...mdxProp }),
