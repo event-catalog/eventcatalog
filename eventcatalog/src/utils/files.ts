@@ -1,6 +1,29 @@
 import path from 'node:path';
 
 /**
+ * Resolves a file path relative to PROJECT_DIR, handling ../ paths correctly
+ * @param filePath - The path to resolve
+ * @param projectDir - The project directory to resolve relative to
+ * @returns The resolved absolute path
+ */
+export const resolveProjectPath = (filePath: string, projectDir: string = process.env.PROJECT_DIR || process.cwd()): string => {
+  if (filePath.startsWith('../')) {
+    const pathAfterDotDot = filePath.substring(3);
+    const projectDirName = path.basename(projectDir);
+    const projectParentName = path.basename(path.dirname(projectDir));
+
+    if (pathAfterDotDot.startsWith(`${projectParentName}/${projectDirName}/`)) {
+      const remainingPath = pathAfterDotDot.substring(`${projectParentName}/${projectDirName}/`.length);
+      return path.join(projectDir, remainingPath);
+    } else {
+      const projectParent = path.dirname(projectDir);
+      return path.join(projectParent, pathAfterDotDot);
+    }
+  }
+  return path.join(projectDir, filePath);
+};
+
+/**
  * Using the Astro filePath, this returns the absolute path to the file
  *
  * The astro file path does not return the absolute path to the file, it returns the relative path to the file.
@@ -14,30 +37,10 @@ export const getAbsoluteFilePathForAstroFile = (filePath: string, fileName?: str
   const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
   if (fileName) {
-    const safeRelativePath = path.posix.relative('/', path.resolve('/', filePath));
-
-    // Check for overlapping path segments
-    const projectDirSegments = PROJECT_DIR.split(path.sep);
-    const relativePathSegments = safeRelativePath.split(path.posix.sep);
-
-    // Find the longest matching suffix of PROJECT_DIR with prefix of relative path
-    let overlapLength = 0;
-    for (let i = 1; i <= Math.min(projectDirSegments.length, relativePathSegments.length); i++) {
-      const projectSuffix = projectDirSegments.slice(-i);
-      const relativPrefix = relativePathSegments.slice(0, i);
-
-      if (projectSuffix.join(path.sep) === relativPrefix.join(path.posix.sep)) {
-        overlapLength = i;
-      }
-    }
-
-    // Remove overlapping segments from the relative path
-    const cleanedRelativePath = relativePathSegments.slice(overlapLength).join(path.posix.sep);
-    const absoluteFilePath = path.join(PROJECT_DIR, cleanedRelativePath);
-
-    const directory = path.dirname(absoluteFilePath || '');
+    const resolvedFilePath = resolveProjectPath(filePath, PROJECT_DIR);
+    const directory = path.dirname(resolvedFilePath);
     return path.join(directory, fileName);
   }
 
-  return path.join(PROJECT_DIR, filePath);
+  return resolveProjectPath(filePath, PROJECT_DIR);
 };
