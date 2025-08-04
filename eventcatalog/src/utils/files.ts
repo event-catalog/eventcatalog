@@ -15,7 +15,7 @@ export const resolveProjectPath = (filePath: string, projectDir: string = proces
     // Normalize path separators for cross-platform compatibility
     const normalizedPathAfterDotDot = pathAfterDotDot.replace(/[/\\]/g, path.sep);
     const expectedPattern = `${projectParentName}${path.sep}${projectDirName}${path.sep}`;
-    
+
     if (normalizedPathAfterDotDot.startsWith(expectedPattern)) {
       const remainingPath = normalizedPathAfterDotDot.substring(expectedPattern.length);
       return path.join(projectDir, remainingPath);
