@@ -56,6 +56,9 @@ importers:
       '@eventcatalog/sdk':
         specifier: ^2.2.7
         version: 2.2.7
+      '@eventcatalogtest/visualizer2':
+        specifier: link:../eventcatalog-studio-2/packages/visualizer
+        version: link:../eventcatalog-studio-2/packages/visualizer
       '@fontsource/inter':
         specifier: ^5.2.5
         version: 5.2.5
@@ -137,9 +140,6 @@ importers:
       commander:
         specifier: ^12.1.0
         version: 12.1.0
-      concurrently:
-        specifier: ^8.2.2
-        version: 8.2.2
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
@@ -312,6 +312,9 @@ importers:
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
+      concurrently:
+        specifier: ^8.2.2
+        version: 8.2.2
       prettier:
         specifier: ^3.3.3
         version: 3.5.0

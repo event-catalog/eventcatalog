@@ -7,4 +7,5 @@ export default defineConfig({
   format: ['esm', 'cjs'],
   shims: true,
   clean: true,
+  external: ['concurrently'],
 });
