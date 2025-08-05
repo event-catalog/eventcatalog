@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.54.6
+
+### Patch Changes
+
+- 6f2f4f9: fix(core): pagefind now includes the base config param
+
 ## 2.54.5
 
 ### Patch Changes
