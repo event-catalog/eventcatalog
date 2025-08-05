@@ -1,0 +1,276 @@
+---
+const { id, filePath } = Astro.props;
+import fs from 'node:fs/promises';
+import { existsSync } from 'fs';
+import path from 'path';
+import protobuf from 'protobufjs';
+import ProtoViewerClient from './ProtoViewer.astro';
+import Admonition from '../Admonition';
+import { getMDXComponentsByName } from '@utils/markdown';
+
+let protoSchemas = [];
+
+// Function to extract comments from proto file content
+function extractCommentsFromProto(content: string) {
+  const comments: Record<string, string> = {};
+  const lines = content.split('\n');
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    const nextLine = i + 1 < lines.length ? lines[i + 1].trim() : '';
+
+    // Look for comment followed by field declaration
+    if (line.startsWith('//') && nextLine) {
+      const comment = line.replace(/^\/\/\s*/, '');
+
+      // Try to match different field patterns
+      const fieldMatch = nextLine.match(/^\s*(\w+)\s+(\w+)\s*=\s*(\d+);?/);
+      const rpcMatch = nextLine.match(/^\s*rpc\s+(\w+)\s*\(/);
+      const serviceMatch = nextLine.match(/^\s*service\s+(\w+)\s*\{/);
+      const messageMatch = nextLine.match(/^\s*message\s+(\w+)\s*\{/);
+      const enumMatch = nextLine.match(/^\s*enum\s+(\w+)\s*\{/);
+      const enumValueMatch = nextLine.match(/^\s*(\w+)\s*=\s*(\d+);?/);
+      const oneofMatch = nextLine.match(/^\s*oneof\s+(\w+)\s*\{/);
+
+      if (fieldMatch) {
+        const [, type, fieldName] = fieldMatch;
+        comments[`field:${fieldName}`] = comment;
+      } else if (rpcMatch) {
+        const [, methodName] = rpcMatch;
+        comments[`rpc:${methodName}`] = comment;
+      } else if (serviceMatch) {
+        const [, serviceName] = serviceMatch;
+        comments[`service:${serviceName}`] = comment;
+      } else if (messageMatch) {
+        const [, messageName] = messageMatch;
+        comments[`message:${messageName}`] = comment;
+      } else if (enumMatch) {
+        const [, enumName] = enumMatch;
+        comments[`enum:${enumName}`] = comment;
+      } else if (enumValueMatch) {
+        const [, valueName] = enumValueMatch;
+        comments[`enumvalue:${valueName}`] = comment;
+      } else if (oneofMatch) {
+        const [, oneofName] = oneofMatch;
+        comments[`oneof:${oneofName}`] = comment;
+      }
+    }
+  }
+
+  return comments;
+}
+
+try {
+  const file = await fs.readFile(filePath, 'utf-8');
+  const protoViewers = getMDXComponentsByName(file, 'ProtoViewer');
+
+  // Loop around all the possible ProtoViewers in the file.
+  const getAllComponents = protoViewers.map(async (protoViewerProps: any, index: number) => {
+    if (!protoViewerProps.file) {
+      return {
+        id: protoViewerProps.id || id,
+        exists: false,
+        schema: null,
+        protoPath: 'unknown',
+        ...protoViewerProps,
+        render: false,
+        index,
+      };
+    }
+    const protoPath = path.join(path.dirname(filePath), protoViewerProps.file);
+    const exists = existsSync(protoPath);
+    let schema: any;
+    let render = true;
+
+    if (exists) {
+      try {
+        // First read the raw proto file to extract comments
+        const protoContent = await fs.readFile(protoPath, 'utf-8');
+        const comments = extractCommentsFromProto(protoContent);
+
+        // Load and parse the .proto file
+        const root = await protobuf.load(protoPath);
+
+        // Extract all the proto definitions
+        schema = {
+          packages: {},
+          messages: {},
+          enums: {},
+          services: {},
+        };
+
+        // Recursively extract all nested types
+        function extractTypes(namespace: any, packageName = '') {
+          if (namespace.nested) {
+            Object.keys(namespace.nested).forEach((name) => {
+              const item = namespace.nested[name];
+              const fullName = packageName ? `${packageName}.${name}` : name;
+
+              if (item instanceof protobuf.Type) {
+                // Extract message
+                schema.messages[fullName] = {
+                  name: item.name,
+                  fullName,
+                  fields: item.fieldsArray.map((field) => ({
+                    name: field.name,
+                    type: field.type,
+                    id: field.id,
+                    rule: (field as any).rule,
+                    optional: field.optional,
+                    repeated: field.repeated,
+                    required: field.required,
+                    partOf: field.partOf ? field.partOf.name : null, // oneof group name
+                    comment: comments[`field:${field.name}`] || field.comment || null,
+                  })),
+                  oneofs: item.oneofsArray
+                    ? item.oneofsArray.map((oneof) => ({
+                        name: oneof.name,
+                        fieldNames: oneof.fieldsArray ? oneof.fieldsArray.map((f: any) => f.name) : [],
+                        comment: comments[`oneof:${oneof.name}`] || null,
+                      }))
+                    : [],
+                  nested: item.nested ? Object.keys(item.nested) : [],
+                  comment: comments[`message:${item.name}`] || item.comment || null,
+                };
+              } else if (item instanceof protobuf.Enum) {
+                // Extract enum
+                schema.enums[fullName] = {
+                  name: item.name,
+                  fullName,
+                  values: Object.keys(item.values).map((key) => ({
+                    name: key,
+                    value: item.values[key],
+                    comment: comments[`enumvalue:${key}`] || (item.comments && item.comments[key] ? item.comments[key] : null),
+                  })),
+                  comment: comments[`enum:${item.name}`] || item.comment || null,
+                };
+              } else if (item instanceof protobuf.Service) {
+                // Extract service
+                schema.services[fullName] = {
+                  name: item.name,
+                  fullName,
+                  methods: item.methodsArray.map((method) => ({
+                    name: method.name,
+                    requestType: method.requestType,
+                    responseType: method.responseType,
+                    requestStream: method.requestStream,
+                    responseStream: method.responseStream,
+                    comment: comments[`rpc:${method.name}`] || method.comment || null,
+                  })),
+                  comment: comments[`service:${item.name}`] || item.comment || null,
+                };
+              }
+
+              // Recursively process nested items
+              if (item.nested) {
+                extractTypes(item, fullName);
+              }
+            });
+          }
+        }
+
+        extractTypes(root);
+      } catch (parseError) {
+        console.error('Failed to parse proto file:', parseError);
+        schema = null;
+        render = false;
+      }
+    }
+
+    return {
+      id: protoViewerProps.id || id,
+      exists,
+      schema,
+      protoPath,
+      ...protoViewerProps,
+      render,
+      index,
+    };
+  });
+
+  protoSchemas = await Promise.all(getAllComponents);
+} catch (error) {
+  console.log('Failed to process proto schemas');
+  console.log(error);
+}
+---
+
+<section class="space-y-4">
+  {
+    protoSchemas.length > 0 &&
+      protoSchemas.map((protoSchema) => {
+        if (!protoSchema.render) return null;
+        return (
+          <div>
+            {protoSchema.exists && protoSchema.schema && (
+              <ProtoViewerClient {...protoSchema} id={`${protoSchema.id}-${protoSchema.file}-ProtoViewer-client`} />
+            )}
+
+            {/* User has tried to load the proto schema, but it was not found on file system */}
+            {!protoSchema.exists && (
+              <Admonition type="warning">
+                <div>
+                  <span class="block font-bold">{`<ProtoViewer/>`} failed to load</span>
+                  <span class="block">Tried to load proto schema from {protoSchema.protoPath}, but no schema can be found</span>
+                </div>
+              </Admonition>
+            )}
+
+            {/* Proto file exists but failed to parse */}
+            {protoSchema.exists && !protoSchema.schema && (
+              <Admonition type="error">
+                <div>
+                  <span class="block font-bold">{`<ProtoViewer/>`} failed to parse</span>
+                  <span class="block">
+                    Proto file at {protoSchema.protoPath} exists but could not be parsed. Please check the syntax.
+                  </span>
+                </div>
+              </Admonition>
+            )}
+          </div>
+        );
+      })
+  }
+</section>
+
+<script is:inline define:vars={{ protoSchemas }}>
+  function moveProtoViewerToPortal(protoSchema) {
+    const portalId = `${protoSchema.id}-${protoSchema.file}-ProtoViewer-portal`;
+    const protoViewerContainer = document.getElementById(portalId);
+    const protoViewerClient = document.getElementById(`${protoSchema.id}-${protoSchema.file}-ProtoViewer-client`);
+
+    if (protoViewerContainer && protoViewerClient) {
+      // Get attributes from the portal
+      const expand = protoViewerContainer.getAttribute('data-expand') === 'true';
+      const maxHeight = protoViewerContainer.getAttribute('data-max-height');
+      const search = protoViewerContainer.getAttribute('data-search');
+
+      // Set the expand attribute on the proto viewer client
+      if (expand) {
+        protoViewerClient.setAttribute('data-expand', 'true');
+      }
+
+      // Set the search attribute on the proto viewer client
+      if (search) {
+        protoViewerClient.setAttribute('data-search', search);
+      }
+
+      // Set the maxHeight on the proto viewer element
+      if (maxHeight) {
+        const protoViewerElement = protoViewerClient.querySelector('.proto-viewer');
+        if (protoViewerElement) {
+          protoViewerElement.style.maxHeight = `${maxHeight}px`;
+        }
+      }
+
+      // Clear the loading message and replace with the proto viewer
+      protoViewerContainer.innerHTML = '';
+      protoViewerContainer.appendChild(protoViewerClient);
+    }
+  }
+
+  // on DOM ready, move the ProtoViewerClient to the portal
+  document.addEventListener('astro:page-load', () => {
+    protoSchemas.forEach(moveProtoViewerToPortal);
+  });
+</script>

@@ -1,0 +1,109 @@
+---
+interface Props {
+  field: {
+    name: string;
+    type: string;
+    id: number;
+    rule?: string;
+    optional?: boolean;
+    repeated?: boolean;
+    required?: boolean;
+    comment?: string | null;
+  };
+  level?: number;
+  availableTypes?: string[];
+}
+
+const { field, level = 0, availableTypes = [] } = Astro.props;
+
+// Determine field modifier
+const getFieldModifier = (field: any) => {
+  if (field.repeated) return 'repeated';
+  if (field.optional) return 'optional';
+  if (field.required) return 'required';
+  if (field.rule) return field.rule;
+  return '';
+};
+
+const modifier = getFieldModifier(field);
+const indentationClass = `pl-${level * 3}`;
+
+// Check if the type is a custom type (message or enum)
+const isCustomType = (type: string) => {
+  // Standard protobuf types that shouldn't be linked
+  const builtinTypes = [
+    'string',
+    'int32',
+    'int64',
+    'uint32',
+    'uint64',
+    'sint32',
+    'sint64',
+    'fixed32',
+    'fixed64',
+    'sfixed32',
+    'sfixed64',
+    'bool',
+    'bytes',
+    'float',
+    'double',
+  ];
+
+  return !builtinTypes.includes(type) && availableTypes.includes(type);
+};
+
+const shouldLinkType = isCustomType(field.type);
+---
+
+<div class:list={['property-container mb-1.5 border-l border-gray-100 relative', indentationClass]}>
+  <div class="flex items-start space-x-1.5">
+    <div class="w-3 h-4 flex-shrink-0"></div>
+
+    <div class="flex-grow">
+      <div class="flex justify-between items-baseline">
+        <div>
+          <span class="proto-field-name font-semibold text-gray-800 text-sm">{field.name}</span>
+          <span class="ml-1.5 text-purple-600 font-mono text-xs">
+            {
+              shouldLinkType ? (
+                <button
+                  class="type-link text-blue-600 hover:text-blue-800 hover:underline cursor-pointer bg-transparent border-none p-0 font-mono text-xs"
+                  onclick={`scrollToType('${field.type}')`}
+                  title={`Jump to ${field.type} definition`}
+                >
+                  {field.type}
+                </button>
+              ) : (
+                <span>{field.type}</span>
+              )
+            }
+            {modifier && <span class="text-orange-600 ml-1">{modifier}</span>}
+          </span>
+        </div>
+        <span class="text-gray-500 text-xs ml-3 flex-shrink-0 font-mono">
+          = {field.id}
+        </span>
+      </div>
+
+      {field.comment && <p class="text-gray-500 text-xs mt-0.5">{field.comment}</p>}
+
+      {/* Additional field constraints */}
+      <div class="text-xs text-gray-500 mt-0.5 space-y-0">
+        {
+          modifier === 'repeated' && (
+            <div>
+              <span class="italic">Array of {field.type} values</span>
+            </div>
+          )
+        }
+        {
+          modifier === 'optional' && (
+            <div>
+              <span class="italic">Optional field</span>
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</div>
