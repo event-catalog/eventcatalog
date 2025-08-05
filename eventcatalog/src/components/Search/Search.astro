@@ -1,15 +1,22 @@
 ---
 import MagnifyingGlassIcon from '@heroicons/react/24/outline/MagnifyingGlassIcon';
 import SearchModal from './SearchModal.tsx';
+import { buildUrl } from '@utils/url-builder.ts';
+
+const pagefindJsUrl = buildUrl('/pagefind/pagefind.js');
+const pagefindCssUrl = buildUrl('/pagefind/pagefind-ui.css');
 ---
 
-<link href="/pagefind/pagefind-ui.css" rel="stylesheet" />
-<script type="module">
+<link href={pagefindCssUrl} rel="stylesheet" />
+<script type="module" define:vars={{ pagefindJsUrl }}>
   // Load Pagefind and expose it globally
-  import * as pagefind from '/pagefind/pagefind.js';
-
-  window.pagefind = pagefind;
-  window.dispatchEvent(new CustomEvent('pagefindLoaded'));
+  try {
+    const pagefind = await import(pagefindJsUrl);
+    window.pagefind = pagefind;
+    window.dispatchEvent(new CustomEvent('pagefindLoaded'));
+  } catch (error) {
+    console.error('Failed to load pagefind:', error);
+  }
 </script>
 
 <div>
