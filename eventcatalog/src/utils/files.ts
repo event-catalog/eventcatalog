@@ -12,12 +12,18 @@ export const resolveProjectPath = (filePath: string, projectDir: string = proces
     const projectDirName = path.basename(projectDir);
     const projectParentName = path.basename(path.dirname(projectDir));
 
-    if (pathAfterDotDot.startsWith(`${projectParentName}/${projectDirName}/`)) {
-      const remainingPath = pathAfterDotDot.substring(`${projectParentName}/${projectDirName}/`.length);
+    // Normalize path separators for cross-platform compatibility
+    const normalizedPathAfterDotDot = pathAfterDotDot.replace(/[/\\]/g, path.sep);
+    const expectedPattern = `${projectParentName}${path.sep}${projectDirName}${path.sep}`;
+
+    if (normalizedPathAfterDotDot.startsWith(expectedPattern)) {
+      const remainingPath = normalizedPathAfterDotDot.substring(expectedPattern.length);
       return path.join(projectDir, remainingPath);
     } else {
-      const projectParent = path.dirname(projectDir);
-      return path.join(projectParent, pathAfterDotDot);
+      // Instead of going to parent directory, resolve relative to current project directory
+      // This fixes the issue where ../ paths were incorrectly resolved outside the project
+      // Normalize the path separators before joining
+      return path.join(projectDir, normalizedPathAfterDotDot);
     }
   }
   return path.join(projectDir, filePath);
