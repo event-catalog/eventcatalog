@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.54.7
+
+### Patch Changes
+
+- 7a2cd70: fix(core): schema viewer now renders in the correct location
+- cbc8d2b: fix(core): fixed custom docs layout issues
+
 ## 2.54.6
 
 ### Patch Changes
