@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.54.8
+
+### Patch Changes
+
+- f3f8f5d: fix(core): fixed issue with pagefind when users have trailingslash configured
+
 ## 2.54.7
 
 ### Patch Changes
