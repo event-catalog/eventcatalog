@@ -3,8 +3,8 @@ import MagnifyingGlassIcon from '@heroicons/react/24/outline/MagnifyingGlassIcon
 import SearchModal from './SearchModal.tsx';
 import { buildUrl } from '@utils/url-builder.ts';
 
-const pagefindJsUrl = buildUrl('/pagefind/pagefind.js');
-const pagefindCssUrl = buildUrl('/pagefind/pagefind-ui.css');
+const pagefindJsUrl = buildUrl('/pagefind/pagefind.js', true);
+const pagefindCssUrl = buildUrl('/pagefind/pagefind-ui.css', true);
 ---
 
 <link href={pagefindCssUrl} rel="stylesheet" />
