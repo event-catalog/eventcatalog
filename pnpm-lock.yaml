@@ -56,7 +56,7 @@ importers:
       '@eventcatalog/sdk':
         specifier: ^2.2.7
         version: 2.2.7
-      '@eventcatalog/visualizer
+      '@eventcatalog/visualizer':
         specifier: ^0.0.2
         version: 0.0.2(@types/react@18.3.18)(immer@9.0.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@fontsource/inter':
@@ -140,6 +140,9 @@ importers:
       commander:
         specifier: ^12.1.0
         version: 12.1.0
+      concurrently:
+        specifier: ^8.2.2
+        version: 8.2.2
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
@@ -312,9 +315,6 @@ importers:
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
-      concurrently:
-        specifier: ^8.2.2
-        version: 8.2.2
       prettier:
         specifier: ^3.3.3
         version: 3.5.0
