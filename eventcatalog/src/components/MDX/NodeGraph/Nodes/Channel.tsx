@@ -1,29 +1,13 @@
-import type { CollectionEntry } from 'astro:content';
 import { Handle, Position } from '@xyflow/react';
 import * as ContextMenu from '@radix-ui/react-context-menu';
 import { buildUrl } from '@utils/url-builder';
 
-import { nodeComponents, type ChannelNode, type ChannelNodeData } from '@eventcatalogtest/visualizer2';
+import { nodeComponents, type ChannelNode } from '@eventcatalog/visualizer';
 const ChannelComponent = nodeComponents.channel;
 
-interface Props extends ChannelNode {
-  data: {
-    channel: CollectionEntry<'channels'>;
-  } & ChannelNodeData;
-}
-
-export default function ChannelNode(props: Props) {
-  const { id, version } = props.data.channel.data;
-  const nodeData = {
-    id: props.data.channel.id,
-    name: props.data.channel.data.name,
-    version: props.data.channel.data.version,
-    summary: props.data.channel.data.summary,
-    owners: props.data.channel.data.owners,
-    address: props.data.channel.data.address,
-    protocols: props.data.channel.data.protocols,
-    mode: props.data.mode,
-  };
+export default function ChannelNode(props: ChannelNode) {
+  // @ts-ignore
+  const { id, version } = props.data.channel;
 
   return (
     <ContextMenu.Root>
@@ -41,7 +25,7 @@ export default function ChannelNode(props: Props) {
             style={{ width: 10, height: 10, background: 'green', zIndex: 10 }}
             className="bg-gray-500"
           />
-          <ChannelComponent {...props} data={nodeData as ChannelNodeData} />
+          <ChannelComponent {...props} />
         </div>
       </ContextMenu.Trigger>
       <ContextMenu.Portal>

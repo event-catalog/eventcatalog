@@ -1,0 +1,31 @@
+---
+import NodeGraph from '@components/MDX/NodeGraph/NodeGraph';
+import { ClientRouter } from 'astro:transitions';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+
+import { Page } from './_index.data';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+const props = Astro.props;
+
+const { data } = props;
+---
+
+<VerticalSideBarLayout title={`Visualiser | Bounded context map`}>
+  <div class="bg-gray-100/50 m-4">
+    <div class="h-[calc(100vh-130px)] w-full relative border border-gray-200" id={`${data.id}-portal`} transition:animate="fade">
+    </div>
+    <NodeGraph
+      id={data.id}
+      nodes={data.nodes}
+      edges={data.edges}
+      title={data.name}
+      client:only="react"
+      mode="full"
+      linkTo="visualiser"
+    />
+  </div>
+  <ClientRouter />
+</VerticalSideBarLayout>

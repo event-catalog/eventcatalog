@@ -1,7 +1,10 @@
 import { z, defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { glob as globPackage } from 'glob';
 import { v4 as uuidv4 } from 'uuid';
 import { badge, ownerReference } from './content.config-shared-collections';
+import fs from 'fs';
+import path from 'path';
 
 // Enterprise Collections
 import { chatPromptsSchema, customPagesSchema } from './enterprise/collections';
@@ -556,6 +559,35 @@ const teams = defineCollection({
   }),
 });
 
+const designs = defineCollection({
+  loader: async () => {
+    const data = await globPackage('**/**/*.ecstudio', { cwd: projectDirBase });
+    // File all the files in the designs folder
+    // Limit 3 designs community edition?
+    const files = data.reduce<{ id: string; name: string }[]>((acc, filePath) => {
+      try {
+        const data = fs.readFileSync(path.join(projectDirBase!, filePath), 'utf-8');
+        const json = JSON.parse(data);
+        return [...acc, { ...json }];
+      } catch (error) {
+        console.error('Error loading design', error);
+        return acc;
+      }
+    }, []);
+    return files;
+  },
+  schema: z.object({
+    id: z.string(),
+    name: z.string(),
+    creationDate: z.string(),
+    source: z.string(),
+    nodes: z.any(),
+    edges: z.any(),
+    viewport: z.any(),
+    version: z.string(),
+  }),
+});
+
 export const collections = {
   events,
   commands,
@@ -576,4 +608,7 @@ export const collections = {
   // EventCatalog Pro Collections
   customPages,
   chatPrompts,
+
+  // EventCatalog Studio Collections
+  designs,
 };

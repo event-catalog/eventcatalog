@@ -131,7 +131,7 @@ export const getChannelNodesAndEdges = ({
       nodes.push(
         createNode({
           id: channelId,
-          data: { title: channel?.data.id, mode, channel, source, target },
+          data: { title: channel?.data.id, mode, channel: { ...channel, ...channel.data }, source, target },
           position: { x: 0, y: 0 },
           type: channel?.collection,
         })

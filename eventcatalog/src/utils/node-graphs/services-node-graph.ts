@@ -106,7 +106,7 @@ export const getNodesAndEdges = async ({
       type: receive?.collection,
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: { mode, message: receive },
+      data: { mode, message: { ...receive.data } },
     });
 
     // does the message have channels defined?
@@ -132,7 +132,7 @@ export const getNodesAndEdges = async ({
           source: generateIdForNode(receive),
           target: generateIdForNode(service),
           label: getReceivesMessageByMessageType(receive?.collection),
-          data: { message: receive },
+          data: { message: { ...receive.data } },
         })
       );
     }
@@ -143,7 +143,8 @@ export const getNodesAndEdges = async ({
     id: generateIdForNode(service),
     sourcePosition: 'right',
     targetPosition: 'left',
-    data: { mode, service: service },
+    // data: { mode, service: { ...service, ...service.data } },
+    data: { mode, service: { ...service.data } },
     type: service.collection,
   });
 
@@ -153,7 +154,7 @@ export const getNodesAndEdges = async ({
       id: generateIdForNode(send),
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: { mode, message: send },
+      data: { mode, message: { ...send.data } },
       type: send?.collection,
     });
 
@@ -179,7 +180,7 @@ export const getNodesAndEdges = async ({
           source: generateIdForNode(service),
           target: generateIdForNode(send),
           label: getSendsMessageByMessageType(send?.collection),
-          data: { message: send },
+          data: { message: { ...send.data } },
         })
       );
     }
@@ -194,7 +195,7 @@ export const getNodesAndEdges = async ({
         target: generateIdForNode(message),
         label: `${getSendsMessageByMessageType(message?.collection)} & ${getReceivesMessageByMessageType(message?.collection)}`,
         animated: false,
-        data: { message },
+        data: { message: { ...message.data } },
         markerEnd: {
           type: MarkerType.ArrowClosed,
           width: 40,

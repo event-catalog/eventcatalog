@@ -166,7 +166,7 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
           position: { x: 0, y: 0 }, // Temporary position, will be calculated by dagre
           data: {
             mode: 'simple',
-            message: messageObject,
+            message: { ...messageObject.data },
           },
           sourcePosition: 'right',
           targetPosition: 'left',
@@ -188,7 +188,7 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
                 animated: true,
                 label: 'publishes',
                 data: {
-                  message: messageObject,
+                  message: { ...messageObject.data },
                   type: 'domain-to-message',
                   publisherService: service,
                 },
@@ -213,7 +213,7 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
                 animated: true,
                 label: 'consumed by',
                 data: {
-                  message: messageObject,
+                  message: { ...messageObject.data },
                   type: 'message-to-domain',
                   consumerService: service,
                 },

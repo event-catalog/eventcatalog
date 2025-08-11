@@ -1,0 +1,60 @@
+---
+const { file: designPath, filePath } = Astro.props;
+import fs from 'fs';
+import { getAbsoluteFilePathForAstroFile } from '@utils/files';
+import Admonition from '@components/MDX/Admonition';
+import NodeGraph from '../NodeGraph/NodeGraph';
+
+let design: any;
+let id = 'design';
+let maxHeight = 30;
+
+try {
+  const pathToSpec = getAbsoluteFilePathForAstroFile(filePath, designPath);
+  const designFile = fs.readFileSync(pathToSpec, 'utf8');
+  design = JSON.parse(designFile);
+} catch (error) {
+  console.error(`Error reading design file: ${error}`);
+}
+---
+
+{
+  !design && (
+    <Admonition type="warning">
+      <div>
+        <span class="block font-bold">{`<Design/>`} failed to load</span>
+        <span class="block">
+          Tried to load design file: {designPath}. Make sure you have this design file defined in your project.
+        </span>
+      </div>
+    </Admonition>
+  )
+}
+
+<div
+  class="h-[30em] my-6 mb-12 w-full relative border border-gray-200 rounded-md"
+  id={`${id}-portal`}
+  style={{
+    maxHeight: maxHeight ? `${maxHeight}em` : `30em`,
+  }}
+>
+</div>
+
+<div>
+  <NodeGraph
+    id={id}
+    title={design.name}
+    nodes={design.nodes || []}
+    edges={design.edges || []}
+    hrefLabel={'View in visualizer'}
+    linkTo={'visualiser'}
+    designId={design.id || id}
+    client:only="react"
+  />
+</div>
+
+<style is:global>
+  .react-flow__attribution {
+    display: none;
+  }
+</style>

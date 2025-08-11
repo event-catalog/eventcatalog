@@ -15,6 +15,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 /** @type {import('bin/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
+import ecstudioWatcher from './integrations/ecstudio-watcher.mjs';
 
 const projectDirectory = process.env.PROJECT_DIR || process.cwd();
 const base = config.base || '/';
@@ -79,6 +80,7 @@ export default defineConfig({
       Logger: 0,
       CSS: false,
     }),
+    ecstudioWatcher(),
   ].filter(Boolean),
   vite: {
     define: {

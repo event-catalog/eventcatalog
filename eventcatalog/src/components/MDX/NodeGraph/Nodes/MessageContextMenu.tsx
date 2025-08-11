@@ -1,16 +1,22 @@
 import * as ContextMenu from '@radix-ui/react-context-menu';
 import { buildUrl } from '@utils/url-builder';
-import type { CollectionEntry } from 'astro:content';
 import type { CollectionMessageTypes } from '@types';
 interface Data {
-  message: CollectionEntry<CollectionMessageTypes>;
+  message: {
+    id: string;
+    version: string;
+    name: string;
+    schemaPath: string;
+  };
   messageType: CollectionMessageTypes;
   children: React.ReactNode;
 }
 
 export default function MessageContextMenu(data: Data) {
   const { message, messageType, children } = data;
-  const { id, version, name, schemaPath } = message.data;
+  const { id, version, name, schemaPath } = message;
+
+  if (!id) return null;
 
   return (
     <ContextMenu.Root>

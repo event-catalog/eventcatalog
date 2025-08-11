@@ -44,7 +44,7 @@ describe('Domains NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: mockServices[0] },
+        data: { mode: 'simple', service: { ...mockServices[0].data } },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -54,7 +54,7 @@ describe('Domains NodeGraph', () => {
         targetPosition: 'left',
         data: {
           mode: 'simple',
-          message: mockEvents[0],
+          message: { ...mockEvents[0].data },
           group: {
             type: 'Domain',
             value: 'Checkout',
@@ -109,10 +109,8 @@ describe('Domains NodeGraph', () => {
         data: {
           mode: 'simple',
           service: expect.objectContaining({
-            data: expect.objectContaining({
-              id: 'OrderService',
-              version: '1.0.0',
-            }),
+            id: 'OrderService',
+            version: '1.0.0',
           }),
           group: {
             type: 'Domain',
@@ -139,7 +137,7 @@ describe('Domains NodeGraph', () => {
           id: 'PlaceOrder-1.7.7',
           sourcePosition: 'right',
           targetPosition: 'left',
-          data: { mode: 'simple', message: mockCommands[2] },
+          data: { mode: 'simple', message: { ...mockCommands[2].data } },
           position: { x: expect.any(Number), y: expect.any(Number) },
           type: 'commands',
         },
@@ -149,7 +147,7 @@ describe('Domains NodeGraph', () => {
           targetPosition: 'left',
           data: {
             mode: 'simple',
-            service: mockServices[2],
+            service: { ...mockServices[2].data },
           },
           position: { x: expect.any(Number), y: expect.any(Number) },
           type: 'services',
@@ -158,7 +156,7 @@ describe('Domains NodeGraph', () => {
           id: 'OrderPlaced-0.0.1',
           sourcePosition: 'right',
           targetPosition: 'left',
-          data: { mode: 'simple', message: mockEvents[0] },
+          data: { mode: 'simple', message: { ...mockEvents[0].data } },
           position: { x: expect.any(Number), y: expect.any(Number) },
           type: 'events',
         },
@@ -169,7 +167,7 @@ describe('Domains NodeGraph', () => {
           targetPosition: 'left',
           data: {
             mode: 'simple',
-            service: mockServices[3],
+            service: { ...mockServices[3].data },
           },
           position: { x: expect.any(Number), y: expect.any(Number) },
           type: 'services',
@@ -178,7 +176,7 @@ describe('Domains NodeGraph', () => {
           id: 'PaymentPaid-0.0.1',
           sourcePosition: 'right',
           targetPosition: 'left',
-          data: { mode: 'simple', message: mockEvents[1] },
+          data: { mode: 'simple', message: { ...mockEvents[1].data } },
           position: { x: expect.any(Number), y: expect.any(Number) },
           type: 'events',
         },
@@ -186,7 +184,7 @@ describe('Domains NodeGraph', () => {
           id: 'PaymentPaid-0.0.2',
           sourcePosition: 'right',
           targetPosition: 'left',
-          data: { mode: 'simple', message: mockEvents[2] },
+          data: { mode: 'simple', message: { ...mockEvents[2].data } },
           position: { x: expect.any(Number), y: expect.any(Number) },
           type: 'events',
         },
@@ -194,7 +192,7 @@ describe('Domains NodeGraph', () => {
           id: 'PaymentRefunded-1.0.0',
           sourcePosition: 'right',
           targetPosition: 'left',
-          data: { mode: 'simple', message: mockEvents[4] },
+          data: { mode: 'simple', message: { ...mockEvents[4].data } },
           position: { x: expect.any(Number), y: expect.any(Number) },
           type: 'events',
         },
@@ -202,7 +200,7 @@ describe('Domains NodeGraph', () => {
           id: 'PaymentFailed-1.0.0',
           sourcePosition: 'right',
           targetPosition: 'left',
-          data: { mode: 'simple', message: mockEvents[6] },
+          data: { mode: 'simple', message: { ...mockEvents[6].data } },
           position: { x: expect.any(Number), y: expect.any(Number) },
           type: 'events',
         },

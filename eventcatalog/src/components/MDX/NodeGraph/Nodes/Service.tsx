@@ -3,20 +3,11 @@ import * as ContextMenu from '@radix-ui/react-context-menu';
 import { buildUrl } from '@utils/url-builder';
 import { Position } from '@xyflow/react';
 
-import { nodeComponents, type ServiceNode, type ServiceNodeData } from '@eventcatalogtest/visualizer2';
-import type { CollectionEntry } from 'astro:content';
+import { nodeComponents, type ServiceNode } from '@eventcatalog/visualizer';
 const ServiceComponent = nodeComponents.service;
 
-interface Props extends ServiceNode {
-  data: {
-    service: CollectionEntry<'services'>;
-  } & ServiceNodeData;
-}
-
-export default function ServiceNode(props: Props) {
-  const { service } = props.data;
-
-  const { id, version, specifications, repository } = service.data;
+export default function ServiceNode(props: ServiceNode) {
+  const { id, version, specifications, repository } = props.data.service as any;
 
   let asyncApiFiles = Array.isArray(specifications) ? specifications?.filter((spec) => spec.type === 'asyncapi') : ([] as any);
   let openApiFiles = Array.isArray(specifications) ? specifications?.filter((spec) => spec.type === 'openapi') : ([] as any);
@@ -46,18 +37,6 @@ export default function ServiceNode(props: Props) {
 
   const repositoryUrl = repository?.url;
 
-  const nodeData = {
-    name: service.data.name,
-    version: service.data.version,
-    summary: service.data.summary,
-    owners: service.data.owners,
-    sends: service.data.sends,
-    receives: service.data.receives,
-    specifications: service.data.specifications,
-    repository: service.data.repository,
-    mode: props.data.mode,
-  };
-
   return (
     <ContextMenu.Root>
       <ContextMenu.Trigger>
@@ -74,7 +53,7 @@ export default function ServiceNode(props: Props) {
             style={{ width: 10, height: 10, background: 'pink', zIndex: 10 }}
             className="bg-pink-500"
           />
-          <ServiceComponent {...props} data={nodeData as ServiceNodeData} />
+          <ServiceComponent {...props} />
         </div>
       </ContextMenu.Trigger>
       <ContextMenu.Portal>
