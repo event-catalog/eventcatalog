@@ -14,6 +14,7 @@ import {
   useReactFlow,
   getNodesBounds,
   getViewportForBounds,
+  type NodeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { HistoryIcon } from 'lucide-react';
@@ -82,29 +83,30 @@ const NodeGraphBuilder = ({
   zoomOnScroll = false,
 }: Props) => {
   const nodeTypes = useMemo(
-    () => ({
-      service: ServiceNode,
-      services: ServiceNode,
-      flow: FlowNode,
-      flows: FlowNode,
-      event: EventNode,
-      events: EventNode,
-      channel: ChannelNode,
-      channels: ChannelNode,
-      query: QueryNode,
-      queries: QueryNode,
-      command: CommandNode,
-      commands: CommandNode,
-      domain: DomainNode,
-      domains: DomainNode,
-      step: StepNode,
-      user: UserNode,
-      custom: CustomNode,
-      externalSystem: ExternalSystemNode,
-      entity: EntityNode,
-      entities: EntityNode,
-      note: (props: any) => <NoteNode {...props} readOnly={true} />,
-    }),
+    () =>
+      ({
+        service: ServiceNode,
+        services: ServiceNode,
+        flow: FlowNode,
+        flows: FlowNode,
+        event: EventNode,
+        events: EventNode,
+        channel: ChannelNode,
+        channels: ChannelNode,
+        query: QueryNode,
+        queries: QueryNode,
+        command: CommandNode,
+        commands: CommandNode,
+        domain: DomainNode,
+        domains: DomainNode,
+        step: StepNode,
+        user: UserNode,
+        custom: CustomNode,
+        externalSystem: ExternalSystemNode,
+        entity: EntityNode,
+        entities: EntityNode,
+        note: (props: any) => <NoteNode {...props} readOnly={true} />,
+      }) as unknown as NodeTypes,
     []
   );
   const edgeTypes = useMemo(
