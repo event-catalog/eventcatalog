@@ -314,6 +314,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
           }))
           .filter((service: ServiceItem & { isVisible: boolean }) => service.isVisible) || [],
       flows: data.flows?.filter(filterItem) || [],
+      designs: data.designs?.filter(filterItem) || [],
       messagesNotInService:
         data.messagesNotInService?.filter(
           (msg: MessageItem) =>
@@ -752,6 +753,28 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                           <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
                         </span>
                         <span className="text-cyan-600 ml-2 text-[10px] font-medium bg-cyan-50 px-2 py-0.5 rounded">FLOW</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {filteredData['designs'] && isVisualizer && (
+              <div className="pt-4 pb-2">
+                <ul className="space-y-4">
+                  {filteredData['designs'].map((item: any) => (
+                    <li key={item.href} className="space-y-0" data-active={decodedCurrentPath === item.href}>
+                      <a
+                        href={item.href}
+                        data-active={decodedCurrentPath === item.href}
+                        className={`flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md ${
+                          decodedCurrentPath === item.href ? 'bg-cyan-100 text-cyan-900' : 'hover:bg-purple-100'
+                        }`}
+                      >
+                        <span className="truncate">
+                          <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
+                        </span>
+                        <span className="text-cyan-600 ml-2 text-[10px] font-medium bg-cyan-50 px-2 py-0.5 rounded">DESIGN</span>
                       </a>
                     </li>
                   ))}

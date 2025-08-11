@@ -24,6 +24,7 @@ import Miro from '@components/MDX/Miro/Miro.astro';
 import Lucid from '@components/MDX/Lucid/Lucid.astro';
 import DrawIO from '@components/MDX/DrawIO/DrawIO.astro';
 import FigJam from '@components/MDX/FigJam/FigJam.astro';
+import Design from '@components/MDX/Design/Design.astro';
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
@@ -37,6 +38,7 @@ const components = (props: any) => {
     Admonition,
     AsyncAPI,
     ChannelInformation: (mdxProp: any) => ChannelInformation({ ...props.data, ...mdxProp }),
+    Design: (mdxProp: any) => jsx(Design, { ...props, ...mdxProp }),
     File: (mdxProp: any) => File({ ...props, ...mdxProp }),
     RemoteSchema,
     Flow,

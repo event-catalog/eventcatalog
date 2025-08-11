@@ -66,7 +66,7 @@ const getNodesAndEdges = async ({
       type: producer?.collection,
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: { mode, service: producer },
+      data: { mode, service: { ...producer.data } },
       position: { x: 250, y: 0 },
     });
 
@@ -110,7 +110,12 @@ const getNodesAndEdges = async ({
     id: generateIdForNode(message),
     sourcePosition: 'right',
     targetPosition: 'left',
-    data: { mode, message: message },
+    data: {
+      mode,
+      message: {
+        ...message.data,
+      },
+    },
     position: { x: 0, y: 0 },
     type: message.collection,
   });
@@ -121,7 +126,7 @@ const getNodesAndEdges = async ({
       id: generateIdForNode(consumer),
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: { title: consumer?.data.id, mode, service: consumer },
+      data: { title: consumer?.data.id, mode, service: { ...consumer.data } },
       position: { x: 0, y: 0 },
       type: consumer?.collection,
     });

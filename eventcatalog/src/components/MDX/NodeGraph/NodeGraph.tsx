@@ -34,6 +34,8 @@ import AnimatedMessageEdge from './Edges/AnimatedMessageEdge';
 import FlowEdge from './Edges/FlowEdge';
 import CustomNode from './Nodes/Custom';
 
+import { Note as NoteNode } from '@eventcatalog/visualizer';
+
 import type { CollectionEntry } from 'astro:content';
 import { navigate } from 'astro:transitions/client';
 import type { CollectionTypes } from '@types';
@@ -58,6 +60,7 @@ interface Props {
   showFlowWalkthrough?: boolean;
   showSearch?: boolean;
   zoomOnScroll?: boolean;
+  designId?: string;
 }
 
 const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
@@ -80,19 +83,27 @@ const NodeGraphBuilder = ({
 }: Props) => {
   const nodeTypes = useMemo(
     () => ({
+      service: ServiceNode,
       services: ServiceNode,
+      flow: FlowNode,
       flows: FlowNode,
+      event: EventNode,
       events: EventNode,
+      channel: ChannelNode,
       channels: ChannelNode,
+      query: QueryNode,
       queries: QueryNode,
+      command: CommandNode,
       commands: CommandNode,
+      domain: DomainNode,
       domains: DomainNode,
       step: StepNode,
       user: UserNode,
-      actor: UserNode,
       custom: CustomNode,
       externalSystem: ExternalSystemNode,
+      entity: EntityNode,
       entities: EntityNode,
+      note: (props: any) => <NoteNode {...props} readOnly={true} />,
     }),
     []
   );
@@ -106,7 +117,6 @@ const NodeGraphBuilder = ({
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isAnimated, setIsAnimated] = useState(false);
   const [animateMessages, setAnimateMessages] = useState(false);
   const [activeStepIndex, setActiveStepIndex] = useState<number | null>(null);
 
@@ -560,6 +570,7 @@ const NodeGraphBuilder = ({
                   <CogIcon className="h-5 w-5 text-gray-600" />
                 </button>
               </div>
+
               {title && (
                 <span className="block shadow-sm bg-white text-xl z-10 text-black px-4 py-1.5 border-gray-200 rounded-md border opacity-80">
                   {title}
@@ -715,6 +726,7 @@ interface NodeGraphProps {
   showFlowWalkthrough?: boolean;
   showSearch?: boolean;
   zoomOnScroll?: boolean;
+  designId?: string;
 }
 
 const NodeGraph = ({
@@ -734,6 +746,7 @@ const NodeGraph = ({
   showFlowWalkthrough = true,
   showSearch = true,
   zoomOnScroll = false,
+  designId,
 }: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
   const [showFooter, setShowFooter] = useState(true);
@@ -771,6 +784,7 @@ const NodeGraph = ({
             showFlowWalkthrough={showFlowWalkthrough}
             showSearch={showSearch}
             zoomOnScroll={zoomOnScroll}
+            designId={designId || id}
           />
 
           {showFooter && (
