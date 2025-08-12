@@ -2,4 +2,4 @@
 '@eventcatalog/core': patch
 ---
 
-Add support for avsc files in diffs
+feat(core): added support for avsc files in diffs
