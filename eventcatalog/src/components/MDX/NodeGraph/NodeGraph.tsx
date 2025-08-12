@@ -34,6 +34,7 @@ import DomainNode from './Nodes/Domain';
 import AnimatedMessageEdge from './Edges/AnimatedMessageEdge';
 import FlowEdge from './Edges/FlowEdge';
 import CustomNode from './Nodes/Custom';
+import DataNode from './Nodes/Data';
 
 import { Note as NoteNode } from '@eventcatalog/visualizer';
 
@@ -105,6 +106,7 @@ const NodeGraphBuilder = ({
         externalSystem: ExternalSystemNode,
         entity: EntityNode,
         entities: EntityNode,
+        data: DataNode,
         note: (props: any) => <NoteNode {...props} readOnly={true} />,
       }) as unknown as NodeTypes,
     []
