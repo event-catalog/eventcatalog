@@ -17,7 +17,6 @@ try {
 } catch (error) {
   console.error(`Error reading design file: ${error}`);
 }
-
 ---
 
 {
@@ -33,30 +32,32 @@ try {
   )
 }
 
-{design && 
+{
+  design && (
+    <div>
+      <div
+        class="h-[30em] my-6 mb-12 w-full relative border border-gray-200 rounded-md"
+        id={`${id}-portal`}
+        style={{
+          maxHeight: maxHeight ? `${maxHeight}em` : `30em`,
+        }}
+      />
 
-  <div
-    class="h-[30em] my-6 mb-12 w-full relative border border-gray-200 rounded-md"
-    id={`${id}-portal`}
-    style={{
-      maxHeight: maxHeight ? `${maxHeight}em` : `30em`,
-    }}
-  >
-  </div>
-
-  <div>
-    <NodeGraph
-      id={id}
-      title={title ?? design.name}
-      nodes={design.nodes || []}
-      edges={design.edges || []}
-      hrefLabel={'View in visualizer'}
-      linkTo={'visualiser'}
-      designId={design.id || id}
-      client:only="react"
-      showSearch={search}
-    />
-  </div>
+      <div>
+        <NodeGraph
+          id={id}
+          title={title ?? design.name}
+          nodes={design.nodes || []}
+          edges={design.edges || []}
+          hrefLabel={'View in visualizer'}
+          linkTo={'visualiser'}
+          designId={design.id || id}
+          client:only="react"
+          showSearch={search}
+        />
+      </div>
+    </div>
+  )
 }
 
 <style is:global>

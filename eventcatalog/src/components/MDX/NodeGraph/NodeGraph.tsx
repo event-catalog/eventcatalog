@@ -35,7 +35,9 @@ import AnimatedMessageEdge from './Edges/AnimatedMessageEdge';
 import FlowEdge from './Edges/FlowEdge';
 import CustomNode from './Nodes/Custom';
 import DataNode from './Nodes/Data';
-
+import ViewNode from './Nodes/View';
+import ActorNode from './Nodes/Actor';
+import ExternalSystemNode2 from './Nodes/ExternalSystem2';
 import { Note as NoteNode } from '@eventcatalog/visualizer';
 
 import type { CollectionEntry } from 'astro:content';
@@ -104,9 +106,12 @@ const NodeGraphBuilder = ({
         user: UserNode,
         custom: CustomNode,
         externalSystem: ExternalSystemNode,
+        'external-system': ExternalSystemNode2,
         entity: EntityNode,
         entities: EntityNode,
         data: DataNode,
+        view: ViewNode,
+        actor: ActorNode,
         note: (props: any) => <NoteNode {...props} readOnly={true} />,
       }) as unknown as NodeTypes,
     []
