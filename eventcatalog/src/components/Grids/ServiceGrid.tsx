@@ -186,7 +186,7 @@ const DomainSection = memo(
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1 gap-6">
                 {subdomainServices.map((service) => (
                   <ServiceCard
                     key={service.data.id}
@@ -386,7 +386,7 @@ export default function ServiceGrid({ services, domains, embeded }: ServiceGridP
                 />
               ))
           ) : (
-            <div className={`grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-${embeded ? 1 : 2} gap-6`}>
+            <div className={`grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1 gap-6`}>
               {paginatedServices.map((service) => (
                 <ServiceCard key={service.data.id} service={service} urlParams={urlParams} selectedTypes={selectedTypes} />
               ))}
