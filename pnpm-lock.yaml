@@ -57,8 +57,8 @@ importers:
         specifier: ^2.2.7
         version: 2.7.3
       '@eventcatalog/visualizer':
-        specifier: ^0.0.4
-        version: 0.0.4(@types/react@18.3.23)(immer@9.0.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^0.0.5
+        version: 0.0.5(@types/react@18.3.23)(immer@9.0.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@fontsource/inter':
         specifier: ^5.2.5
         version: 5.2.6
@@ -946,8 +946,8 @@ packages:
   '@eventcatalog/sdk@2.7.3':
     resolution: {integrity: sha512-/QFL05P7GgucycdcQcARPrDcpSFevh4CgKgof4ALKg4TqnDBOaTW28lH/jaLAPeGROvvPkDIts+07a0F3WnL0A==}
 
-  '@eventcatalog/visualizer@0.0.4':
-    resolution: {integrity: sha512-vYW06onBYC82fbydhA0TNbj6J+tZICkY6HAUqQTcKY+L3uUeh3w63oF4E+4HN0pHEJVyKcQKhnPiTadvzSPdzA==}
+  '@eventcatalog/visualizer@0.0.5':
+    resolution: {integrity: sha512-+WwRD2g2Nrwu+ycD/Sv7QJv4z7MkXjpRxr4xyATg1Sp6P1jDFHf8w96Gc9ugP0zwWhGuS6/ZMyxLQoK6CciB6Q==}
     peerDependencies:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
@@ -8880,7 +8880,7 @@ snapshots:
       semver: 7.6.3
       slugify: 1.6.6
 
-  '@eventcatalog/visualizer@0.0.4(@types/react@18.3.23)(immer@9.0.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@eventcatalog/visualizer@0.0.5(@types/react@18.3.23)(immer@9.0.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@xyflow/react': 12.8.2(@types/react@18.3.23)(immer@9.0.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       lucide-react: 0.510.0(react@18.3.1)

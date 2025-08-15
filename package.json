@@ -61,7 +61,7 @@
     "@eventcatalog/generator-ai": "^1.1.0",
     "@eventcatalog/linter": "^0.0.2",
     "@eventcatalog/sdk": "^2.2.7",
-    "@eventcatalog/visualizer": "^0.0.4",
+    "@eventcatalog/visualizer": "^0.0.5",
     "@fontsource/inter": "^5.2.5",
     "@headlessui/react": "^2.0.3",
     "@heroicons/react": "^2.1.3",
