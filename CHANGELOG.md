@@ -1,5 +1,21 @@
 # @eventcatalog/core
 
+## 2.55.0
+
+### Minor Changes
+
+- 5ba7868: feat(core): updated visualizer and setup for designs
+  - Visualizer now pulls information from @eventcatalog/visualizer package
+  - Project now supports .ecstudio files (For EventCatalog Studio)
+  - Project now supports Designs as a Resource type (EventCatalog Studio)
+
+### Patch Changes
+
+- 4f4a911: chore(core): architecture pages now single column
+- b3e5636: feat(core): added support for avsc files in diffs
+- b3dfb93: fix(core): added data nodes from studio into eventcatalog
+- 68cbd22: feat(core): fixed type checks in build
+
 ## 2.54.8
 
 ### Patch Changes
@@ -28,7 +44,6 @@
   Addresses issues #1652 and #1644 by improving the path resolution logic in the `resolveProjectPath` function with full cross-platform compatibility. This fix ensures that paths starting with `../` are resolved correctly on Windows, macOS, and Linux systems.
 
   **Key improvements:**
-
   - Normalizes path separators (`/` and `\`) for cross-platform compatibility
   - Prevents `../` paths from incorrectly resolving outside the project directory
   - Fixes OpenAPI specifications and schemas failing to load after version 2.54.4
@@ -43,7 +58,6 @@
 - 2d563c9: fix(core): resolve SchemaViewer path resolution for relative paths
 
   Fixes SchemaViewer components failing to load schema files with paths starting with "../". The issue was caused by inconsistent path resolution logic in SchemaViewerRoot.astro.
-
   - Added resolveProjectPath function to handle "../" paths correctly
   - Updated getAbsoluteFilePathForAstroFile to use the new path resolution logic
   - SchemaViewerRoot.astro now uses resolveProjectPath for consistent path handling
