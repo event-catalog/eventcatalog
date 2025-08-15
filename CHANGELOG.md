@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.55.1
+
+### Patch Changes
+
+- e77e6fc: feat(viualizer): added support for webrtc in channels
+
 ## 2.55.0
 
 ### Minor Changes
