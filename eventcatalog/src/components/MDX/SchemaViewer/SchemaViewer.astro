@@ -230,7 +230,7 @@ if (processedSchema.type === 'array' && processedSchema.items) {
       ...processedSchema.items,
       description: processedSchema.description || processedSchema.items.description,
       _isRootArrayItem: true,
-      _rootArraySchema: processedSchema
+      _rootArraySchema: processedSchema,
     };
   } else if (processedSchema.items.allOf || processedSchema.items.oneOf || processedSchema.items.$ref) {
     // Process complex array item schemas
@@ -238,7 +238,7 @@ if (processedSchema.type === 'array' && processedSchema.items) {
       ...processSchema(processedSchema.items),
       description: processedSchema.description || processedSchema.items.description,
       _isRootArrayItem: true,
-      _rootArraySchema: processedSchema
+      _rootArraySchema: processedSchema,
     };
   }
 }
@@ -323,17 +323,19 @@ const instanceId = `${id}-${Math.random().toString(36).substring(2, 9)}`;
         </div>
       )
     }
-    {isRootArray && (
-      <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-        <div class="flex items-center space-x-2">
-          <span class="text-blue-600 font-medium text-sm">Array Schema</span>
-          <span class="text-blue-500 font-mono text-xs">array[object]</span>
+    {
+      isRootArray && (
+        <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          <div class="flex items-center space-x-2">
+            <span class="text-blue-600 font-medium text-sm">Array Schema</span>
+            <span class="text-blue-500 font-mono text-xs">array[object]</span>
+          </div>
+          <p class="text-blue-700 text-xs mt-1">
+            This schema defines an array of objects. Each item in the array has the properties shown below.
+          </p>
         </div>
-        <p class="text-blue-700 text-xs mt-1">
-          This schema defines an array of objects. Each item in the array has the properties shown below.
-        </p>
-      </div>
-    )}
+      )
+    }
     {description && <p class="text-gray-600 text-xs mb-5">{description}</p>}
 
     {
@@ -387,16 +389,19 @@ const instanceId = `${id}-${Math.random().toString(36).substring(2, 9)}`;
     }
 
     {!properties && !isRootArray && <p class="text-gray-500 text-sm">Schema does not contain any properties.</p>}
-    {!properties && isRootArray && (
-      <div class="text-center py-8">
-        <div class="text-gray-500 text-sm">
-          <p>This array contains items of type: <span class="font-mono text-blue-600">{processedSchema.items?.type || 'unknown'}</span></p>
-          {processedSchema.items?.description && (
-            <p class="text-xs mt-2 text-gray-600">{processedSchema.items.description}</p>
-          )}
+    {
+      !properties && isRootArray && (
+        <div class="text-center py-8">
+          <div class="text-gray-500 text-sm">
+            <p>
+              This array contains items of type:{' '}
+              <span class="font-mono text-blue-600">{processedSchema.items?.type || 'unknown'}</span>
+            </p>
+            {processedSchema.items?.description && <p class="text-xs mt-2 text-gray-600">{processedSchema.items.description}</p>}
+          </div>
         </div>
-      </div>
-    )}
+      )
+    }
   </div>
 </div>
 
