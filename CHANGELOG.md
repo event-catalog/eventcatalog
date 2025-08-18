@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.55.3
+
+### Patch Changes
+
+- 362933f: fix(core): reduced the pagesize of the architecture/messages page
+
 ## 2.55.2
 
 ### Patch Changes
