@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.55.2
+
+### Patch Changes
+
+- bf83b89: fix(core): fixed schemaviewer for array rooted schemas
+
 ## 2.55.1
 
 ### Patch Changes
