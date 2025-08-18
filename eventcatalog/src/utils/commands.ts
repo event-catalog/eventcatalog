@@ -15,6 +15,7 @@ type Command = CollectionEntry<'commands'> & {
 
 interface Props {
   getAllVersions?: boolean;
+  hydrateServices?: boolean;
 }
 
 // cache for build time
@@ -23,10 +24,10 @@ let cachedCommands: Record<string, Command[]> = {
   currentVersions: [],
 };
 
-export const getCommands = async ({ getAllVersions = true }: Props = {}): Promise<Command[]> => {
+export const getCommands = async ({ getAllVersions = true, hydrateServices = true }: Props = {}): Promise<Command[]> => {
   const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
 
-  if (cachedCommands[cacheKey].length > 0) {
+  if (cachedCommands[cacheKey].length > 0 && hydrateServices) {
     return cachedCommands[cacheKey];
   }
 
@@ -37,24 +38,35 @@ export const getCommands = async ({ getAllVersions = true }: Props = {}): Promis
   const services = await getCollection('services');
   const allChannels = await getCollection('channels');
 
+  // @ts-ignore
   cachedCommands[cacheKey] = commands.map((command) => {
     const { latestVersion, versions } = getVersionForCollectionItem(command, commands);
 
-    const producers = services.filter((service) => {
-      return service.data.sends?.some((item) => {
-        if (item.id != command.data.id) return false;
-        if (item.version == 'latest' || item.version == undefined) return command.data.version == latestVersion;
-        return satisfies(command.data.version, item.version);
+    const producers = services
+      .filter((service) => {
+        return service.data.sends?.some((item) => {
+          if (item.id != command.data.id) return false;
+          if (item.version == 'latest' || item.version == undefined) return command.data.version == latestVersion;
+          return satisfies(command.data.version, item.version);
+        });
+      })
+      .map((service) => {
+        if (!hydrateServices) return { id: service.id, version: service.data.version };
+        return service;
       });
-    });
 
-    const consumers = services.filter((service) => {
-      return service.data.receives?.some((item) => {
-        if (item.id != command.data.id) return false;
-        if (item.version == 'latest' || item.version == undefined) return command.data.version == latestVersion;
-        return satisfies(command.data.version, item.version);
+    const consumers = services
+      .filter((service) => {
+        return service.data.receives?.some((item) => {
+          if (item.id != command.data.id) return false;
+          if (item.version == 'latest' || item.version == undefined) return command.data.version == latestVersion;
+          return satisfies(command.data.version, item.version);
+        });
+      })
+      .map((service) => {
+        if (!hydrateServices) return { id: service.id, version: service.data.version };
+        return service;
       });
-    });
 
     const messageChannels = command.data.channels || [];
     const channelsForCommand = allChannels.filter((c) => messageChannels.some((channel) => c.data.id === channel.id));
