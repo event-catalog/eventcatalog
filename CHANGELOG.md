@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.55.4
+
+### Patch Changes
+
+- ba5b02a: feat(core): added ability to switch column layout for architecture pages
+
 ## 2.55.3
 
 ### Patch Changes
