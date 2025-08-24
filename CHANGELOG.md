@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.55.5
+
+### Patch Changes
+
+- 1c9a4bb: fix(core): fixed architecture page for filtered messages with services
+
 ## 2.55.4
 
 ### Patch Changes
