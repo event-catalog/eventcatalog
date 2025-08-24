@@ -51,7 +51,7 @@ export const getEvents = async ({ getAllVersions = true, hydrateServices = true 
         })
       )
       .map((service) => {
-        if (!hydrateServices) return { id: service.id, version: service.data.version };
+        if (!hydrateServices) return { id: service.data.id, version: service.data.version };
         return service;
       });
 
@@ -64,7 +64,7 @@ export const getEvents = async ({ getAllVersions = true, hydrateServices = true 
         })
       )
       .map((service) => {
-        if (!hydrateServices) return { id: service.id, version: service.data.version };
+        if (!hydrateServices) return { id: service.data.id, version: service.data.version };
         return service;
       });
 

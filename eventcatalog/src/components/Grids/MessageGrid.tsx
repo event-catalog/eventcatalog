@@ -68,10 +68,10 @@ export default function MessageGrid({ messages, embeded }: MessageGridProps) {
       result = result.filter(
         (message) =>
           message.data.producers?.some(
-            (producer: any) => producer.data.id === urlParams.serviceId && !producer.id.includes('/versioned/')
+            (producer: any) => producer.id === urlParams.serviceId && !producer.id.includes('/versioned/')
           ) ||
           message.data.consumers?.some(
-            (consumer: any) => consumer.data.id === urlParams.serviceId && !consumer.id.includes('/versioned/')
+            (consumer: any) => consumer.id === urlParams.serviceId && !consumer.id.includes('/versioned/')
           )
       );
     }
@@ -121,10 +121,10 @@ export default function MessageGrid({ messages, embeded }: MessageGridProps) {
 
     const serviceIdentifier = urlParams.serviceId;
     const sends = filteredAndSortedMessages.filter((message) =>
-      message.data.producers?.some((producer: any) => producer.data.id === serviceIdentifier)
+      message.data.producers?.some((producer: any) => producer.id === serviceIdentifier)
     );
     const receives = filteredAndSortedMessages.filter((message) =>
-      message.data.consumers?.some((consumer: any) => consumer.data.id === serviceIdentifier)
+      message.data.consumers?.some((consumer: any) => consumer.id === serviceIdentifier)
     );
 
     return { sends, receives };
