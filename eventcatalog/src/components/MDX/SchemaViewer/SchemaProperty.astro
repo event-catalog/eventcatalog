@@ -57,6 +57,13 @@ const contentId = `prop-${name}-${level}-${Math.random().toString(36).substring(
             {details.format ? `<${details.format}>` : ''}
             {details._refPath && <span class="text-blue-600 ml-1">→ {details._refName || details._refPath}</span>}
             {details._refNotFound && <span class="text-red-600 ml-1">❌ ref not found</span>}
+            {
+              details.const !== undefined && (
+                <span>
+                  constant: <code>{details.const}</code>
+                </span>
+              )
+            }
           </span>
         </div>
         {isRequired && <span class="text-red-600 text-xs ml-3 flex-shrink-0">required</span>}
