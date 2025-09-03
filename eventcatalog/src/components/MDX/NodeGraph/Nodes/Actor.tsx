@@ -1,9 +1,31 @@
-import { Handle, Position } from '@xyflow/react';
+import { Handle, Position, type XYPosition } from '@xyflow/react';
 
-import { nodeComponents, type ActorNode } from '@eventcatalog/visualizer';
+import { nodeComponents } from '@eventcatalog/visualizer';
 const ActorComponent = nodeComponents.actor;
 
-export default function ActorNode(props: ActorNode) {
+interface Data {
+  data: {
+    actor: {
+      name: string;
+      summary: string;
+    };
+    mode: 'simple' | 'full';
+  };
+  type: 'actor';
+  id: string;
+  position: XYPosition;
+}
+
+export default function ActorNode(props: Data) {
+  const componentData = {
+    ...props,
+    data: {
+      ...props.data,
+      name: props.data.actor.name,
+      summary: props.data.actor.summary,
+    },
+  };
+
   return (
     <div className="relative">
       <Handle
@@ -18,7 +40,7 @@ export default function ActorNode(props: ActorNode) {
         style={{ width: 10, height: 10, background: 'orange', zIndex: 10 }}
         className="bg-gray-500"
       />
-      <ActorComponent {...props} />
+      <ActorComponent {...componentData} />
     </div>
   );
 }

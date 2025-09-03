@@ -203,6 +203,7 @@ const flows = defineCollection({
             actor: z
               .object({
                 name: z.string(),
+                summary: z.string().optional(),
               })
               .optional(),
             custom: z
