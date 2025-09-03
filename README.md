@@ -34,7 +34,7 @@
 <h4>Features: Documentation for Event Driven Architectures, Integration with any broker, Generator from your OpenAPI and AsyncAPI documents, Docs and Code, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-56-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-57-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [Read the Docs](https://www.eventcatalog.dev/docs/development/getting-started/introduction) | [View Demo](https://demo.eventcatalog.dev)
@@ -258,6 +258,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/alexanderhorner"><img src="https://avatars.githubusercontent.com/u/18349361?v=4?s=100" width="100px;" alt="Alexander Horner"/><br /><sub><b>Alexander Horner</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=alexanderhorner" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/simonwfarrow"><img src="https://avatars.githubusercontent.com/u/3245908?v=4?s=100" width="100px;" alt="simonwfarrow"/><br /><sub><b>simonwfarrow</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=simonwfarrow" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/augusto-romero-arango"><img src="https://avatars.githubusercontent.com/u/142316821?v=4?s=100" width="100px;" alt="Augusto Romero Arango"/><br /><sub><b>Augusto Romero Arango</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=augusto-romero-arango" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/cc-stjm"><img src="https://avatars.githubusercontent.com/u/47748595?v=4?s=100" width="100px;" alt="cc-stjm"/><br /><sub><b>cc-stjm</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=cc-stjm" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
