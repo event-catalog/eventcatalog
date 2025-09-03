@@ -39,19 +39,19 @@ export default {
     // model: 'gemini-1.5-pro-latest',
     // For server (Dynamic EventCatalog)
   },
-  generators: [
-    [
-      "@eventcatalog/generator-ai", {
-        debug: true,
-        splitMarkdownFiles: false,
-        includeUsersAndTeams: false,
-        embedding: {
-          provider: 'huggingface',
-          model: 'Xenova/all-MiniLM-L6-v2'
-        }
-      }
-    ],
-  ],
+  // generators: [
+  //   [
+  //     "@eventcatalog/generator-ai", {
+  //       debug: true,
+  //       splitMarkdownFiles: false,
+  //       includeUsersAndTeams: false,
+  //       embedding: {
+  //         provider: 'huggingface',
+  //         model: 'Xenova/all-MiniLM-L6-v2'
+  //       }
+  //     }
+  //   ],
+  // ],
   api: {
     fullCatalogAPIEnabled: true,
   },
