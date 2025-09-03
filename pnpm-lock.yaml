@@ -50,6 +50,9 @@ importers:
       '@eventcatalog/generator-ai':
         specifier: ^1.1.0
         version: 1.2.0(@langchain/core@0.3.69(@opentelemetry/api@1.9.0)(openai@5.12.2(ws@8.18.3)(zod@3.25.76)))(@opentelemetry/api@1.9.0)(axios@1.11.0)(ws@8.18.3)(zod@3.25.76)
+      '@eventcatalog/license':
+        specifier: ^0.0.2
+        version: 0.0.2
       '@eventcatalog/linter':
         specifier: ^0.0.2
         version: 0.0.2
@@ -937,6 +940,10 @@ packages:
 
   '@eventcatalog/generator-ai@1.2.0':
     resolution: {integrity: sha512-66FxkeNnjn4J8E9igmdGHxsNpF8hQKNL2S+rtEb7H2SUBPKcFDBnBKaFb5y1bCPgq/iAx5mBVr9GRdpGeUOhgQ==}
+
+  '@eventcatalog/license@0.0.2':
+    resolution: {integrity: sha512-f5QXeWBw3ozpp7qTzO/YjwexS5QBRMtVg+kLICXzMe6Dfez31p3cSDHOv/VC0R3tGECKcJTJRpHU+/dhyjnTdw==}
+    engines: {node: '>=16.0.0'}
 
   '@eventcatalog/linter@0.0.2':
     resolution: {integrity: sha512-wfRkX62H8pvsj5m7drnPA8jxoAv3Hl3DKgFaooyAr2+evcjwiWqdcGKsXX1mOTfYs71AxkDYPpEqoiwBJ/Nu2Q==}
@@ -3467,6 +3474,10 @@ packages:
 
   chalk@5.5.0:
     resolution: {integrity: sha512-1tm8DTaJhPBG3bIkVeZt1iZM9GfSX2lzOeDVZH9R9ffRHpmHvxZ/QhgQH/aDTkswQVt+YHdXAdS/In/30OjCbg==}
+    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
+
+  chalk@5.6.0:
+    resolution: {integrity: sha512-46QrSQFyVSEyYAgQ22hQ+zDa60YHA4fBstHmtSApj1Y5vKtG27fWowW03jCk5KcbXEWPZUIR894aARCA/G1kfQ==}
     engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
 
   character-entities-html4@2.1.0:
@@ -8859,6 +8870,12 @@ snapshots:
       - ws
       - zod
 
+  '@eventcatalog/license@0.0.2':
+    dependencies:
+      boxen: 8.0.1
+      chalk: 5.6.0
+      jose: 5.10.0
+
   '@eventcatalog/linter@0.0.2':
     dependencies:
       '@types/semver': 7.7.0
@@ -11580,6 +11597,8 @@ snapshots:
       supports-color: 7.2.0
 
   chalk@5.5.0: {}
+
+  chalk@5.6.0: {}
 
   character-entities-html4@2.1.0: {}
 
