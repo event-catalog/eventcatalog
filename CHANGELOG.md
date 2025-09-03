@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 2.55.6
+
+### Patch Changes
+
+- 290d4d1: fix(core): SchemaViewer now display constant values
+- b0928a8: fix(core): enums and items now shown on entity properties map
+- 821fdd0: fix(core): fixed actor details now showing in visualizer
+
 ## 2.55.5
 
 ### Patch Changes
