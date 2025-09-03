@@ -500,6 +500,12 @@ const entities = defineCollection({
             references: z.string().optional(),
             referencesIdentifier: z.string().optional(),
             relationType: z.string().optional(),
+            enum: z.array(z.string()).optional(),
+            items: z
+              .object({
+                type: z.string(),
+              })
+              .optional(),
           })
         )
         .optional(),
