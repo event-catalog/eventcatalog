@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 2.56.0
+
+### Minor Changes
+
+- fad3998: feat(core): added support for offline license checks
+
+### Patch Changes
+
+- 9877fcb: chore(core): updated astro versions
+
 ## 2.55.6
 
 ### Patch Changes
