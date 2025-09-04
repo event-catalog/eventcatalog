@@ -59,6 +59,7 @@
     "@asyncapi/react-component": "^2.4.3",
     "@auth/core": "^0.37.4",
     "@eventcatalog/generator-ai": "^1.1.0",
+    "@eventcatalog/license": "^0.0.6",
     "@eventcatalog/linter": "^0.0.2",
     "@eventcatalog/sdk": "^2.2.7",
     "@eventcatalog/visualizer": "^0.0.5",
