@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.56.2
+
+### Patch Changes
+
+- 2509425: feat(core): added ability to mofidy the service label in the sidebar
+
 ## 2.56.1
 
 ### Patch Changes
