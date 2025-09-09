@@ -545,6 +545,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "villAsh",
+      "name": "Vilas Chauvhan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50195101?v=4",
+      "profile": "https://github.com/villAsh",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
