@@ -93,7 +93,10 @@ const ServiceItem = React.memo(
               <HighlightedText text={item.label} searchTerm={searchTerm} />
               <span className="text-xs text-gray-400">{item.draft ? ' (DRAFT)' : ''}</span>
             </span>
-            <span className="text-purple-600 ml-2 text-[10px] font-medium bg-purple-50 px-2 py-0.5 rounded">SERVICE</span>
+            <span style={{
+              color:  item.sidebar?.color || "#9333ea",
+              backgroundColor: item.sidebar?.backgroundColor || "#faf5ff"
+            }} className="ml-2 rounded bg-purple-50 px-2 py-0.5 text-[10px] font-medium text-purple-600">{item.sidebar?.badge ? item.sidebar.badge?.toUpperCase() : "SERVICE"}</span>
           </button>
         }
       >

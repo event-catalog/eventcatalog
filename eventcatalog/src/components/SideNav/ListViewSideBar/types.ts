@@ -24,6 +24,11 @@ export interface ServiceItem {
   name: string;
   id: string;
   version: string;
+  sidebar?: {
+    badge?: string;
+    color?: string;
+    backgroundColor?: string;
+  };
   draft: boolean | { title?: string; message: string };
   sends: MessageItem[];
   receives: MessageItem[];

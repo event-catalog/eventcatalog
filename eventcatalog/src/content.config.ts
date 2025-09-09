@@ -88,6 +88,8 @@ const baseSchema = z.object({
     .object({
       label: z.string().optional(),
       badge: z.string().optional(),
+      color: z.string().optional(),
+      backgroundColor: z.string().optional(),
     })
     .optional(),
   repository: z
