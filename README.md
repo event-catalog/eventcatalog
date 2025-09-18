@@ -34,7 +34,7 @@
 <h4>Features: Documentation for Event Driven Architectures, Integration with any broker, Generator from your OpenAPI and AsyncAPI documents, Docs and Code, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-60-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-61-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [Read the Docs](https://www.eventcatalog.dev/docs/development/getting-started/introduction) | [View Demo](https://demo.eventcatalog.dev)
@@ -264,6 +264,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/lucianlature/"><img src="https://avatars.githubusercontent.com/u/24992?v=4?s=100" width="100px;" alt="Lucian Lature"/><br /><sub><b>Lucian Lature</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/issues?q=author%3Alucianlature" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/villAsh"><img src="https://avatars.githubusercontent.com/u/50195101?v=4?s=100" width="100px;" alt="Vilas Chauvhan"/><br /><sub><b>Vilas Chauvhan</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=villAsh" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/mrerichoffman"><img src="https://avatars.githubusercontent.com/u/7565432?v=4?s=100" width="100px;" alt="Eric Hoffman"/><br /><sub><b>Eric Hoffman</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/issues?q=author%3Amrerichoffman" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/wimhaesen-kine"><img src="https://avatars.githubusercontent.com/u/231914377?v=4?s=100" width="100px;" alt="wimhaesen-kine"/><br /><sub><b>wimhaesen-kine</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=wimhaesen-kine" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
