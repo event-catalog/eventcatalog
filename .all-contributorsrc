@@ -563,6 +563,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "wimhaesen-kine",
+      "name": "wimhaesen-kine",
+      "avatar_url": "https://avatars.githubusercontent.com/u/231914377?v=4",
+      "profile": "https://github.com/wimhaesen-kine",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
