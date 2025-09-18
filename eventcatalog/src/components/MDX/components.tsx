@@ -25,6 +25,7 @@ import Lucid from '@components/MDX/Lucid/Lucid.astro';
 import DrawIO from '@components/MDX/DrawIO/DrawIO.astro';
 import FigJam from '@components/MDX/FigJam/FigJam.astro';
 import Design from '@components/MDX/Design/Design.astro';
+import MermaidFileLoader from '@components/MDX/MermaidFileLoader/MermaidFileLoader.astro';
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
@@ -62,6 +63,7 @@ const components = (props: any) => {
     Lucid: (mdxProp: any) => jsx(Lucid, { ...props, ...mdxProp }),
     DrawIO: (mdxProp: any) => jsx(DrawIO, { ...props, ...mdxProp }),
     FigJam: (mdxProp: any) => jsx(FigJam, { ...props, ...mdxProp }),
+    MermaidFileLoader: (mdxProp: any) => jsx(MermaidFileLoader, { ...props, ...mdxProp }),
   };
 };
 
