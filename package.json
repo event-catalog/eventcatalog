@@ -62,7 +62,7 @@
     "@eventcatalog/license": "^0.0.6",
     "@eventcatalog/linter": "^0.0.2",
     "@eventcatalog/sdk": "^2.2.7",
-    "@eventcatalog/visualizer": "^0.0.5",
+    "@eventcatalog/visualizer": "^0.0.6",
     "@fontsource/inter": "^5.2.5",
     "@headlessui/react": "^2.0.3",
     "@heroicons/react": "^2.1.3",
