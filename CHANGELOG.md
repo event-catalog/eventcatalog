@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.56.4
+
+### Patch Changes
+
+- 068cdf6: feat(core): added new mermaid file loader component
+
 ## 2.56.3
 
 ### Patch Changes
