@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.56.3
+
+### Patch Changes
+
+- d5299f2: chore(core): updated astro version
+- e378fc7: fix(core): fix copy button for trialing slash catalogs
+
 ## 2.56.2
 
 ### Patch Changes
