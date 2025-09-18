@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.57.1
+
+### Patch Changes
+
+- def4aaf: chore(core): updated visualizer version
+
 ## 2.57.0
 
 ### Minor Changes
