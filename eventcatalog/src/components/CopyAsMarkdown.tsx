@@ -2,7 +2,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Copy, FileText, MessageCircleQuestion, ChevronDownIcon, ExternalLink, PenSquareIcon } from 'lucide-react';
 import React, { useState, isValidElement } from 'react';
 import type { Schema } from '@utils/collections/schemas';
-import { buildUrl } from '@utils/url-builder';
+import { buildUrl, toMarkdownUrl } from '@utils/url-builder';
 
 // Type allows either a component type (like Lucide icon) or a pre-rendered element (like <img>)
 type IconInput = React.ElementType | React.ReactElement;
@@ -74,7 +74,7 @@ export function CopyPageMenu({
 
   // get the url of the current page
   const url = window.location.href;
-  const markdownUrl = url + '.mdx';
+  const markdownUrl = toMarkdownUrl(url);
 
   // Determine the default action based on what's available
   const getDefaultAction = () => {
@@ -290,7 +290,7 @@ export function CopyPageMenu({
         {availableActions.chat && (
           <DropdownMenu.Item
             className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-            onSelect={() => window.open(buildUrl(`/chat?query=${chatQuery}`))}
+            onSelect={() => window.open(buildUrl(`/chat`) + `?query=${chatQuery}`)}
           >
             <MenuItemContent
               icon={MessageCircleQuestion}
