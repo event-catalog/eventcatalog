@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.57.0
+
+### Minor Changes
+
+- 99c2474: feat(core): added ability to open visualizer into studio
+
 ## 2.56.4
 
 ### Patch Changes
