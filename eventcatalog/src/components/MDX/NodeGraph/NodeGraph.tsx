@@ -17,7 +17,7 @@ import {
   type NodeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { HistoryIcon } from 'lucide-react';
+import { ExternalLink, HistoryIcon } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 // Nodes and edges
@@ -49,6 +49,7 @@ import { CogIcon } from '@heroicons/react/20/solid';
 import { useEventCatalogVisualiser } from 'src/hooks/eventcatalog-visualizer';
 import VisualiserSearch, { type VisualiserSearchRef } from './VisualiserSearch';
 import StepWalkthrough from './StepWalkthrough';
+import StudioModal from './StudioModal';
 interface Props {
   nodes: any;
   edges: any;
@@ -65,6 +66,8 @@ interface Props {
   showSearch?: boolean;
   zoomOnScroll?: boolean;
   designId?: string;
+  isStudioModalOpen?: boolean;
+  setIsStudioModalOpen?: (isOpen: boolean) => void;
 }
 
 const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
@@ -84,6 +87,8 @@ const NodeGraphBuilder = ({
   showFlowWalkthrough = true,
   showSearch = true,
   zoomOnScroll = false,
+  isStudioModalOpen,
+  setIsStudioModalOpen = () => {},
 }: Props) => {
   const nodeTypes = useMemo(
     () =>
@@ -128,6 +133,7 @@ const NodeGraphBuilder = ({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [animateMessages, setAnimateMessages] = useState(false);
   const [activeStepIndex, setActiveStepIndex] = useState<number | null>(null);
+  // const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
 
   // Check if there are channels to determine if we need the visualizer functionality
   const hasChannels = useMemo(() => initialNodes.some((node: any) => node.type === 'channels'), [initialNodes]);
@@ -138,7 +144,7 @@ const NodeGraphBuilder = ({
     setEdges,
     skipProcessing: !hasChannels, // Pass flag to skip processing when no channels
   });
-  const { fitView, getNodes } = useReactFlow();
+  const { fitView, getNodes, toObject } = useReactFlow();
   const searchRef = useRef<VisualiserSearchRef>(null);
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
   const scrollableContainerRef = useRef<HTMLElement | null>(null);
@@ -336,6 +342,10 @@ const NodeGraphBuilder = ({
     a.setAttribute('href', dataUrl);
     a.click();
   }, []);
+
+  const openStudioModal = () => {
+    setIsStudioModalOpen(true);
+  };
 
   const handleExportVisual = useCallback(() => {
     const imageWidth = 1024;
@@ -569,7 +579,7 @@ const NodeGraphBuilder = ({
       >
         <Panel position="top-center" className="w-full pr-6 ">
           <div className="flex space-x-2 justify-between items-center">
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 ml-4">
               <div>
                 <button
                   onClick={() => setIsSettingsOpen(!isSettingsOpen)}
@@ -668,13 +678,27 @@ const NodeGraphBuilder = ({
                   <p className="text-[10px] text-gray-500">Show or hide channels in the visualizer.</p>
                 </div>
               )}
-              <div className="pt-4 border-t border-gray-200">
+              <div className="pt-4 border-t border-gray-200 space-y-2">
+                <button
+                  onClick={openStudioModal}
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-black hover:bg-gray-800 text-white text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                    />
+                  </svg>
+                  <span>Open in EventCatalog Studio</span>
+                </button>
                 <button
                   onClick={handleExportVisual}
-                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                  className="w-full flex items-center justify-center border border-gray-200 space-x-2 px-4 py-2 bg-white text-gray-800 text-sm font-medium rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
                 >
                   <DocumentArrowDownIcon className="w-4 h-4" />
-                  <span>Export Visual</span>
+                  <span>Export as png</span>
                 </button>
               </div>
             </div>
@@ -714,6 +738,7 @@ const NodeGraphBuilder = ({
           </Panel>
         )}
       </ReactFlow>
+      <StudioModal isOpen={isStudioModalOpen || false} onClose={() => setIsStudioModalOpen(false)} />
     </div>
   );
 };
@@ -759,6 +784,11 @@ const NodeGraph = ({
 }: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
   const [showFooter, setShowFooter] = useState(true);
+  const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
+
+  const openStudioModal = useCallback(() => {
+    setIsStudioModalOpen(true);
+  }, []);
 
   const containerToRenderInto = portalId || `${id}-portal`;
 
@@ -794,6 +824,8 @@ const NodeGraph = ({
             showSearch={showSearch}
             zoomOnScroll={zoomOnScroll}
             designId={designId || id}
+            isStudioModalOpen={isStudioModalOpen}
+            setIsStudioModalOpen={setIsStudioModalOpen}
           />
 
           {showFooter && (
@@ -806,7 +838,14 @@ const NodeGraph = ({
 
               {href && (
                 <div className="py-2 w-full text-right flex justify-between">
-                  <span className="text-sm text-gray-500 italic">Right click a node to access documentation</span>
+                  {/* <span className="text-sm text-gray-500 italic">Right click a node to access documentation</span> */}
+                  <button
+                    onClick={openStudioModal}
+                    className=" text-sm underline text-gray-800 hover:text-primary flex items-center space-x-1"
+                  >
+                    <span>Open in EventCatalog Studio</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </button>
                   <a className=" text-sm underline text-gray-800 hover:text-primary" href={href}>
                     {hrefLabel} &rarr;
                   </a>
