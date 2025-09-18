@@ -48,3 +48,15 @@ export const buildEditUrlForResource = (editUrl: string, filePath: string) => {
   const cleanFilePath = filePath.replace(/^\.\.?\//g, '');
   return `${editUrl}/${cleanFilePath}`;
 };
+
+// Takes a given url and returns the .mdx url
+export const toMarkdownUrl = (url: string) => {
+  const trailingSlash = __EC_TRAILING_SLASH__;
+
+  if (trailingSlash) {
+    const urlWithoutTrailingSlash = url.replace(/\/$/, '');
+    return urlWithoutTrailingSlash + '.mdx/';
+  }
+
+  return url + '.mdx';
+};
