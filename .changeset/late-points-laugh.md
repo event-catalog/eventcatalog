@@ -2,4 +2,4 @@
 "@eventcatalog/core": patch
 ---
 
-fix(core): services and domains visualizers now read the channel type
+chore(core): fixing vite issues using eventcataog with pnpm
