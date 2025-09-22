@@ -29,6 +29,19 @@ const filteredOwners = owners.filter((o) => o !== undefined);
 
 const resourceGroups = message.data?.resourceGroups || [];
 
+const attachments = message.data.attachments || [];
+
+const attachmentsList = attachments.map((a) => {
+  const attachmentIsURL = typeof a === 'string';
+  return {
+    label: attachmentIsURL ? a : (a.title ?? a.url),
+    href: attachmentIsURL ? a : a.url,
+    icon: attachmentIsURL ? 'ExternalLinkIcon' : (a.icon ?? 'ExternalLinkIcon'),
+    target: '_blank' as const,
+    subgroup: attachmentIsURL ? undefined : (a.type ?? ''),
+  };
+});
+
 const producerList = producers.map((p) => ({
   label: `${p.data.name}`,
   tag: `v${p.data.version}`,
@@ -149,6 +162,18 @@ const shouldRenderSideBarSection = (section: string) => {
           title={`Versions (${message.data.versions?.length})`}
           versions={message.data.versions}
           collectionItem={message}
+        />
+      )
+    }
+
+    {
+      message.data.attachments && shouldRenderSideBarSection('attachments') && (
+        <PillListFlat
+          title={`Attachments (${attachmentsList.length})`}
+          pills={attachmentsList}
+          emptyMessage={`This ${type} does not have any attachments.`}
+          color="pink"
+          client:load
         />
       )
     }

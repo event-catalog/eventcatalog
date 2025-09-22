@@ -2,9 +2,9 @@
 const { title, columns = 2 } = Astro.props;
 ---
 
-<section class="not-prose">
-  {title && <h2 class="text-2xl font-bold text-gray-800 mb-4">{title}</h2>}
-  <div class={`grid grid-cols-1 md:grid-cols-${columns} gap-4 w-full not-prose`}>
+<section class="not-prose my-8">
+  {title && <h2 class="text-2xl font-bold text-gray-800 mb-6">{title}</h2>}
+  <div class={`grid grid-cols-1 md:grid-cols-${columns} gap-6 w-full not-prose`}>
     <slot />
   </div>
 </section>

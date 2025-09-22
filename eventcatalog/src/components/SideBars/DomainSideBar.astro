@@ -25,6 +25,8 @@ const subDomains = (domain.data.domains as CollectionEntry<'domains'>[]) || [];
 // @ts-ignore
 const entities = (domain.data.entities as CollectionEntry<'entities'>[]) || [];
 
+const attachments = domain.data.attachments || [];
+
 const ubiquitousLanguage = await getUbiquitousLanguage(domain);
 const hasUbiquitousLanguage = ubiquitousLanguage.length > 0;
 const ubiquitousLanguageDictionary = hasUbiquitousLanguage ? ubiquitousLanguage[0].data.dictionary : [];
@@ -105,6 +107,18 @@ const ownersList = filteredOwners.map((o) => ({
   avatarUrl: o.collection === 'users' ? o.data.avatarUrl : '',
   href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
 }));
+
+const attachmentsList = attachments.map((a) => {
+  const attachmentIsURL = typeof a === 'string';
+
+  return {
+    label: attachmentIsURL ? a : (a.title ?? a.url),
+    href: attachmentIsURL ? a : a.url,
+    icon: attachmentIsURL ? 'ExternalLinkIcon' : (a.icon ?? 'ExternalLinkIcon'),
+    target: '_blank' as const,
+    subgroup: attachmentIsURL ? undefined : (a.type ?? ''),
+  };
+});
 
 const shouldRenderSideBarSection = (section: string) => {
   if (!domain.data.detailsPanel) {
@@ -206,6 +220,17 @@ const shouldRenderSideBarSection = (section: string) => {
     {
       domain.data.versions && shouldRenderSideBarSection('versions') && (
         <VersionList versions={domain.data.versions} collectionItem={domain} />
+      )
+    }
+    {
+      domain.data.attachments && shouldRenderSideBarSection('attachments') && (
+        <PillListFlat
+          title={`Attachments (${attachmentsList.length})`}
+          pills={attachmentsList}
+          emptyMessage={`This domain does not have any attachments.`}
+          color="pink"
+          client:load
+        />
       )
     }
     {

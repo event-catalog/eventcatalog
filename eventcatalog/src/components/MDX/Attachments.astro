@@ -1,0 +1,158 @@
+---
+import type { ComponentType } from 'react';
+import * as Icons from '@heroicons/react/24/outline';
+import * as SolidIcons from '@heroicons/react/24/solid';
+import * as LucideIcons from 'lucide-react';
+
+interface AttachmentObject {
+  url: string;
+  title?: string;
+  type?: string;
+  description?: string;
+  summary?: string;
+  icon?: string;
+}
+
+type Attachment = string | AttachmentObject;
+
+interface Props {
+  title?: string;
+  description?: string;
+  columns?: number;
+  data: {
+    attachments: Attachment[];
+  };
+}
+
+const { title = 'Attachments', description, columns = 2, ...props } = Astro.props;
+const { attachments } = props.data;
+
+function getIconForAttachment(attachment: AttachmentObject): ComponentType<{ className?: string }> | null {
+  // If custom icon is provided, try to find it
+  if (attachment.icon) {
+    const customIcon =
+      (LucideIcons as any)[attachment.icon] || (Icons as any)[attachment.icon] || (SolidIcons as any)[attachment.icon];
+    if (customIcon) return customIcon;
+  }
+
+  // Default to link icon for all attachments
+  return Icons.LinkIcon;
+}
+
+function normalizeAttachment(attachment: Attachment): AttachmentObject {
+  if (typeof attachment === 'string') {
+    // Extract filename from URL for title
+    const urlParts = attachment.split('/');
+    const filename = urlParts[urlParts.length - 1];
+    const title = filename.includes('.') ? filename.split('.')[0] : filename || 'Link';
+
+    return {
+      url: attachment,
+      title: title.replace(/[-_]/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+    };
+  }
+  return attachment;
+}
+
+function isExternalUrl(url: string): boolean {
+  return url.startsWith('http://') || url.startsWith('https://');
+}
+
+const normalizedAttachments = attachments.map(normalizeAttachment);
+
+// Group attachments by type
+const groupedAttachments = normalizedAttachments.reduce(
+  (groups, attachment) => {
+    const type = attachment.type || 'Other';
+    if (!groups[type]) {
+      groups[type] = [];
+    }
+    groups[type].push(attachment);
+    return groups;
+  },
+  {} as Record<string, AttachmentObject[]>
+);
+
+const sortedGroups = Object.entries(groupedAttachments).sort(([a], [b]) => {
+  if (a === 'Other') return 1;
+  if (b === 'Other') return -1;
+  return a.localeCompare(b);
+});
+---
+
+<section class="not-prose my-8">
+  {title && <h3 class="flex items-center gap-2 text-3xl font-bold mb-4">{title}</h3>}
+
+  {description && <p class="text-gray-600 mb-6 prose prose-md">{description}</p>}
+
+  {
+    normalizedAttachments.length === 0 ? (
+      <div class="text-gray-500 text-sm italic">No attachments available.</div>
+    ) : (
+      <div class="space-y-6">
+        {sortedGroups.map(([groupType, groupAttachments], index) => (
+          <div key={groupType + index}>
+            <h4 class="text-sm font-medium text-gray-900 mb-3 uppercase tracking-wider">
+              {groupType} ({groupAttachments.length})
+            </h4>
+            <div class={`grid grid-cols-1 ${columns === 1 ? '' : `md:grid-cols-${Math.min(columns, 3)}`} gap-4`}>
+              {groupAttachments.map((attachment) => {
+                const IconComponent = getIconForAttachment(attachment);
+                const isExternal = isExternalUrl(attachment.url);
+
+                return (
+                  <a
+                    href={attachment.url}
+                    target={isExternal ? '_blank' : '_self'}
+                    rel={isExternal ? 'noopener noreferrer' : undefined}
+                    class="group block bg-white border border-gray-200 rounded-lg p-4 transition-all duration-200 hover:shadow-md hover:border-purple-300 hover:bg-purple-50/30 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                  >
+                    <div class="flex items-start gap-3">
+                      <div class="flex-shrink-0 p-2 bg-gray-100 rounded-lg group-hover:bg-purple-100 transition-colors duration-200">
+                        {IconComponent && <IconComponent className="w-5 h-5 text-gray-600 group-hover:text-purple-600" />}
+                      </div>
+
+                      <div class="flex-grow min-w-0">
+                        <div class="flex items-center gap-2">
+                          <h5 class="text-sm font-medium text-gray-900 group-hover:text-purple-900 truncate">
+                            {attachment.title || 'Attachment'}
+                          </h5>
+                          {isExternal && (
+                            <Icons.ArrowTopRightOnSquareIcon className="w-3 h-3 text-gray-400 group-hover:text-purple-500 flex-shrink-0" />
+                          )}
+                        </div>
+
+                        {attachment.summary && (
+                          <p class="mt-1 text-xs text-gray-600 group-hover:text-purple-700 line-clamp-2">{attachment.summary}</p>
+                        )}
+
+                        {attachment.description && (
+                          <p class="mt-1 text-xs text-gray-600 group-hover:text-purple-700 line-clamp-2">
+                            {attachment.description}
+                          </p>
+                        )}
+
+                        <div class="mt-2 text-xs text-gray-400 group-hover:text-purple-500 truncate">
+                          {attachment.url.replace(/^https?:\/\//, '')}
+                        </div>
+                      </div>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+</section>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

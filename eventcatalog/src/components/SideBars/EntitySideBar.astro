@@ -23,6 +23,19 @@ const services = (entity.data.services as CollectionEntry<'services'>[]) || [];
 // @ts-ignore
 const domains = (entity.data.domains as CollectionEntry<'domains'>[]) || [];
 
+const attachments = entity.data.attachments || [];
+
+const attachmentsList = attachments.map((a) => {
+  const attachmentIsURL = typeof a === 'string';
+  return {
+    label: attachmentIsURL ? a : (a.title ?? a.url),
+    href: attachmentIsURL ? a : a.url,
+    icon: attachmentIsURL ? 'ExternalLinkIcon' : (a.icon ?? 'ExternalLinkIcon'),
+    target: '_blank' as const,
+    subgroup: attachmentIsURL ? undefined : (a.type ?? ''),
+  };
+});
+
 const ownersList = filteredOwners.map((o) => ({
   label: o.data.name,
   type: o.collection,
@@ -85,6 +98,17 @@ const shouldRenderSideBarSection = (section: string) => {
     {
       entity.data.versions && shouldRenderSideBarSection('versions') && (
         <VersionList versions={entity.data.versions} collectionItem={entity} />
+      )
+    }
+    {
+      entity.data.attachments && shouldRenderSideBarSection('attachments') && (
+        <PillListFlat
+          title={`Attachments (${attachmentsList.length})`}
+          pills={attachmentsList}
+          emptyMessage={`This entity does not have any attachments.`}
+          color="pink"
+          client:load
+        />
       )
     }
     {
