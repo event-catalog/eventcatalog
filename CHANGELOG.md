@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.57.2
+
+### Patch Changes
+
+- ed05f34: chore(core): fixing vite issues using eventcataog with pnpm
+- 1a2ddca: feat(core): added ability to add attachments to all resources
+
 ## 2.57.1
 
 ### Patch Changes
