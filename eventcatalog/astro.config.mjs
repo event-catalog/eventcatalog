@@ -2,7 +2,7 @@ import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
-import { searchForWorkspaceRoot} from 'vite';
+import { searchForWorkspaceRoot } from 'vite';
 import { mermaid } from "./src/remark-plugins/mermaid"
 import { plantuml } from "./src/remark-plugins/plantuml"
 import { join } from 'node:path';
