@@ -34,7 +34,7 @@
 <h4>Features: Documentation for Event Driven Architectures, Integration with any broker, Generator from your OpenAPI and AsyncAPI documents, Docs and Code, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-54-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-61-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [Read the Docs](https://www.eventcatalog.dev/docs/development/getting-started/introduction) | [View Demo](https://demo.eventcatalog.dev)
@@ -136,15 +136,6 @@ Thank you to our project  sponsors.
   </picture>
   <p style="margin: 0; padding: 0;">Manage, secure, and govern every API in your organization</p>
   <a href="https://gravitee.io?utm_source=eventcatalog&utm_medium=web&utm_campaign=sponsorship" target="_blank">Learn more</a>
-</div>
-
-<hr />
-
-<div align="center">
-  <img alt="oso" src="./images/sponsors/oso-logo-green.png" width="30%" />
-  <p style="margin: 0; padding: 0;">Delivering Apache Kafka professional services to your business
-</p>
-  <a href="https://oso.sh/?utm_source=eventcatalog&utm_medium=web&utm_campaign=sponsorship" target="_blank" >Learn more</a>
 </div>
 
 <hr />
@@ -265,6 +256,15 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/VitaliiBalash"><img src="https://avatars.githubusercontent.com/u/4520809?v=4?s=100" width="100px;" alt="Vitalii Balash"/><br /><sub><b>Vitalii Balash</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=VitaliiBalash" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ababilone"><img src="https://avatars.githubusercontent.com/u/925013?v=4?s=100" width="100px;" alt="Arnaud Babilone"/><br /><sub><b>Arnaud Babilone</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=ababilone" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/alexanderhorner"><img src="https://avatars.githubusercontent.com/u/18349361?v=4?s=100" width="100px;" alt="Alexander Horner"/><br /><sub><b>Alexander Horner</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=alexanderhorner" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/simonwfarrow"><img src="https://avatars.githubusercontent.com/u/3245908?v=4?s=100" width="100px;" alt="simonwfarrow"/><br /><sub><b>simonwfarrow</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=simonwfarrow" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/augusto-romero-arango"><img src="https://avatars.githubusercontent.com/u/142316821?v=4?s=100" width="100px;" alt="Augusto Romero Arango"/><br /><sub><b>Augusto Romero Arango</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=augusto-romero-arango" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/cc-stjm"><img src="https://avatars.githubusercontent.com/u/47748595?v=4?s=100" width="100px;" alt="cc-stjm"/><br /><sub><b>cc-stjm</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=cc-stjm" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.linkedin.com/in/lucianlature/"><img src="https://avatars.githubusercontent.com/u/24992?v=4?s=100" width="100px;" alt="Lucian Lature"/><br /><sub><b>Lucian Lature</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/issues?q=author%3Alucianlature" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/villAsh"><img src="https://avatars.githubusercontent.com/u/50195101?v=4?s=100" width="100px;" alt="Vilas Chauvhan"/><br /><sub><b>Vilas Chauvhan</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=villAsh" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/mrerichoffman"><img src="https://avatars.githubusercontent.com/u/7565432?v=4?s=100" width="100px;" alt="Eric Hoffman"/><br /><sub><b>Eric Hoffman</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/issues?q=author%3Amrerichoffman" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/wimhaesen-kine"><img src="https://avatars.githubusercontent.com/u/231914377?v=4?s=100" width="100px;" alt="wimhaesen-kine"/><br /><sub><b>wimhaesen-kine</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=wimhaesen-kine" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

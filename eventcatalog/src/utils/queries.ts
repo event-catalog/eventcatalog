@@ -15,6 +15,7 @@ type Query = CollectionEntry<'queries'> & {
 
 interface Props {
   getAllVersions?: boolean;
+  hydrateServices?: boolean;
 }
 
 // Cache for build time
@@ -23,10 +24,10 @@ let cachedQueries: Record<string, Query[]> = {
   currentVersions: [],
 };
 
-export const getQueries = async ({ getAllVersions = true }: Props = {}): Promise<Query[]> => {
+export const getQueries = async ({ getAllVersions = true, hydrateServices = true }: Props = {}): Promise<Query[]> => {
   const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
 
-  if (cachedQueries[cacheKey].length > 0) {
+  if (cachedQueries[cacheKey].length > 0 && hydrateServices) {
     return cachedQueries[cacheKey];
   }
 
@@ -37,24 +38,35 @@ export const getQueries = async ({ getAllVersions = true }: Props = {}): Promise
   const services = await getCollection('services');
   const allChannels = await getCollection('channels');
 
+  // @ts-ignore
   cachedQueries[cacheKey] = queries.map((query) => {
     const { latestVersion, versions } = getVersionForCollectionItem(query, queries);
 
-    const producers = services.filter((service) =>
-      service.data.sends?.some((item) => {
-        if (item.id != query.data.id) return false;
-        if (item.version == 'latest' || item.version == undefined) return query.data.version == latestVersion;
-        return satisfies(query.data.version, item.version);
-      })
-    );
+    const producers = services
+      .filter((service) =>
+        service.data.sends?.some((item) => {
+          if (item.id != query.data.id) return false;
+          if (item.version == 'latest' || item.version == undefined) return query.data.version == latestVersion;
+          return satisfies(query.data.version, item.version);
+        })
+      )
+      .map((service) => {
+        if (!hydrateServices) return { id: service.data.id, version: service.data.version };
+        return service;
+      });
 
-    const consumers = services.filter((service) =>
-      service.data.receives?.some((item) => {
-        if (item.id != query.data.id) return false;
-        if (item.version == 'latest' || item.version == undefined) return query.data.version == latestVersion;
-        return satisfies(query.data.version, item.version);
-      })
-    );
+    const consumers = services
+      .filter((service) =>
+        service.data.receives?.some((item) => {
+          if (item.id != query.data.id) return false;
+          if (item.version == 'latest' || item.version == undefined) return query.data.version == latestVersion;
+          return satisfies(query.data.version, item.version);
+        })
+      )
+      .map((service) => {
+        if (!hydrateServices) return { id: service.data.id, version: service.data.version };
+        return service;
+      });
 
     const messageChannels = query.data.channels || [];
     const channelsForQuery = allChannels.filter((c) => messageChannels.some((channel) => c.data.id === channel.id));

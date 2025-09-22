@@ -75,12 +75,20 @@ const consumersList = consumers.map((c) => ({
   tag: `v${c.data.version}`,
   href: buildUrl(`/docs/${c.collection}/${c.data.id}/${c.data.version}`),
 }));
+
+const shouldRenderSideBarSection = (section: string) => {
+  if (!channel.data.detailsPanel) {
+    return true;
+  }
+  // @ts-ignore
+  return channel.data.detailsPanel[section]?.visible ?? true;
+};
 ---
 
 <aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto py-4">
   <div class="">
     {
-      producersList.length > 0 && (
+      producersList.length > 0 && shouldRenderSideBarSection('producers') && (
         <PillListFlat
           title={`Producers (${producersList.length})`}
           pills={producersList}
@@ -92,7 +100,7 @@ const consumersList = consumers.map((c) => ({
     }
 
     {
-      consumersList.length > 0 && (
+      consumersList.length > 0 && shouldRenderSideBarSection('consumers') && (
         <PillListFlat
           title={`Consumers (${consumersList.length})`}
           pills={consumersList}
@@ -104,7 +112,7 @@ const consumersList = consumers.map((c) => ({
     }
 
     {
-      messageList.length > 0 && (
+      messageList.length > 0 && shouldRenderSideBarSection('messages') && (
         <PillListFlat
           title={`Messages using channel (${messageList.length})`}
           pills={messageList}
@@ -116,13 +124,13 @@ const consumersList = consumers.map((c) => ({
     }
 
     {
-      protocolList.length > 0 && (
+      protocolList.length > 0 && shouldRenderSideBarSection('protocols') && (
         <ProtocolList color="pink" title={`Protocols (${protocolList.length})`} pills={protocolList} client:load />
       )
     }
 
     {
-      channel.data.versions && (
+      channel.data.versions && shouldRenderSideBarSection('versions') && (
         <VersionList
           title={`Versions (${channel.data.versions?.length})`}
           versions={channel.data.versions}
@@ -131,27 +139,31 @@ const consumersList = consumers.map((c) => ({
       )
     }
 
-    <OwnersList
-      title={`Owners (${filteredOwners.length})`}
-      owners={ownersList}
-      emptyMessage={`This channel does not have any documented owners.`}
-      client:load
-    />
+    {
+      ownersList.length > 0 && shouldRenderSideBarSection('owners') && (
+        <OwnersList
+          title={`Owners (${filteredOwners.length})`}
+          owners={ownersList}
+          emptyMessage={`This channel does not have any documented owners.`}
+          client:load
+        />
+      )
+    }
 
     {
-      channel.data.repository && (
+      channel.data.repository && shouldRenderSideBarSection('repository') && (
         <RepositoryList repository={channel.data.repository?.url} language={channel.data.repository?.language} />
       )
     }
 
     {
-      paramsList.length > 0 && (
+      paramsList.length > 0 && shouldRenderSideBarSection('parameters') && (
         <PillListFlat color="pink" title={`Parameters (${paramsList.length})`} pills={paramsList} client:load />
       )
     }
 
     {
-      isChangelogEnabled() && (
+      isChangelogEnabled() && shouldRenderSideBarSection('changelog') && (
         <div class="space-y-2">
           <a
             href={buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.latestVersion}/changelog`)}

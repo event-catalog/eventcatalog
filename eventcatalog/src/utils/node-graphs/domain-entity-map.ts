@@ -6,35 +6,53 @@ import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { getEntities, type Entity } from '@utils/entities';
 import { getDomains, type Domain } from '@utils/collections/domains';
+import { getServices, type Service } from '@utils/collections/services';
 
 const elk = new ELK();
 
 interface Props {
   id: string;
   version: string;
+  entities?: string[]; // Optional: array of entity IDs/names to include
+  type?: 'domains' | 'services';
 }
 
-export const getNodesAndEdges = async ({ id, version }: Props) => {
+export const getNodesAndEdges = async ({ id, version, entities, type = 'domains' }: Props) => {
   let nodes = [] as any,
     edges = [] as any;
 
   const allDomains = await getDomains();
-  const entities = await getEntities();
+  const allEntities = await getEntities();
+  const allServices = await getServices();
 
-  const domain = getVersionFromCollection(allDomains, id, version)[0] as Domain;
-  const domainEntities = (domain?.data?.entities ?? []) as any;
+  let resource = null;
 
-  const entitiesWithReferences = domainEntities.filter((entity: Entity) =>
+  if (type === 'domains') {
+    resource = getVersionFromCollection(allDomains, id, version)[0] as Domain;
+  } else if (type === 'services') {
+    resource = getVersionFromCollection(allServices, id, version)[0] as Service;
+  }
+
+  let resourceEntities = (resource?.data?.entities ?? []) as any;
+
+  // If entities filter is provided, filter domainEntities to only those specified
+  if (entities && Array.isArray(entities) && entities.length > 0) {
+    resourceEntities = resourceEntities.filter(
+      (entity: Entity) => entities.includes(entity.data.id) || entities.includes(entity.data.name)
+    );
+  }
+
+  const entitiesWithReferences = resourceEntities.filter((entity: Entity) =>
     entity.data.properties?.some((property: any) => property.references)
   );
   // Creates all the entity nodes for the domain
-  for (const entity of domainEntities) {
+  for (const entity of resourceEntities) {
     const nodeId = generateIdForNode(entity);
     nodes.push({
       id: nodeId,
       type: 'entities',
       position: { x: 0, y: 0 },
-      data: { label: entity.data.name, entity, domainName: domain?.data.name, domainId: domain?.data.id },
+      data: { label: entity.data.name, entity, domainName: resource?.data.name, domainId: resource?.data.id },
     });
   }
 
@@ -44,8 +62,8 @@ export const getNodesAndEdges = async ({ id, version }: Props) => {
     .flat()
     .filter((ref: any) => ref !== undefined);
 
-  const externalToDomain = [...new Set(listOfReferencedEntities)] // Remove duplicates
-    .filter((entityId: any) => !domainEntities.some((domainEntity: any) => domainEntity.id === entityId));
+  const externalToDomain = Array.from(new Set<string>(listOfReferencedEntities as string[])) // Remove duplicates
+    .filter((entityId: any) => !resourceEntities.some((domainEntity: any) => domainEntity.id === entityId));
 
   // Helper function to find which domain an entity belongs to
   const findEntityDomain = (entityId: string) => {
@@ -54,7 +72,7 @@ export const getNodesAndEdges = async ({ id, version }: Props) => {
 
   const addedExternalEntities = [];
   for (const entityId of externalToDomain) {
-    const externalEntity = getItemsFromCollectionByIdAndSemverOrLatest(entities, entityId as string, 'latest')[0] as Entity;
+    const externalEntity = getItemsFromCollectionByIdAndSemverOrLatest(allEntities, entityId as string, 'latest')[0] as Entity;
 
     if (externalEntity) {
       const nodeId = generateIdForNode(externalEntity);
@@ -90,7 +108,7 @@ export const getNodesAndEdges = async ({ id, version }: Props) => {
   entitiesWithReferences.push(...addedExternalEntities);
 
   // Create complete list of entities for edge creation and layout
-  const allEntitiesInGraph = [...domainEntities, ...addedExternalEntities];
+  const allEntitiesInGraph = [...resourceEntities, ...addedExternalEntities];
 
   // Go through any entities that are related to other entities
   for (const entity of entitiesWithReferences) {

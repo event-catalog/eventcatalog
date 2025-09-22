@@ -148,3 +148,11 @@ export const getDeprecatedDetails = (item: CollectionEntry<CollectionTypes>) => 
 
   return options;
 };
+
+export const removeContentFromCollection = (collection: CollectionEntry<CollectionTypes>[]) => {
+  return collection.map((item) => ({
+    ...item,
+    body: undefined,
+    catalog: undefined,
+  }));
+};

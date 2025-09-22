@@ -229,6 +229,19 @@ const mockDomains = [
   },
 ];
 
+const mockServices = [
+  {
+    id: 'services/OrdersService-1.0.0',
+    slug: 'services/OrdersService',
+    collection: 'services',
+    data: {
+      id: 'OrdersService',
+      name: 'Orders Service',
+      version: '1.0.0',
+    },
+  },
+];
+
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
@@ -238,6 +251,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockDomains);
         case 'entities':
           return Promise.resolve(mockEntities);
+        case 'services':
+          return Promise.resolve(mockServices);
         default:
           return Promise.resolve([]);
       }
@@ -245,6 +260,9 @@ vi.mock('astro:content', async (importOriginal) => {
     getEntry: (collection: ContentCollectionKey, id: string) => {
       if (collection === 'domains') {
         return Promise.resolve(mockDomains.find((d) => d.id === `domains/${id}`));
+      }
+      if (collection === 'services') {
+        return Promise.resolve(mockServices.find((s) => s.id === `services/${id}`));
       }
       return Promise.resolve(null);
     },
@@ -335,6 +353,63 @@ describe('Domain Entity Map NodeGraph', () => {
         sourceHandle: 'orderItems-source',
         targetHandle: 'orderItemId-target',
         label: 'hasMany',
+      });
+    });
+
+    it('if the entities array is provided, it should only return entities that are in the entities array and related ones to them', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Orders', version: '1.0.0', entities: ['Order'] });
+
+      expect(nodes).toHaveLength(4);
+
+      /// Check Order node
+      const orderNode = nodes.find((n: any) => n.data.entity.data.id === 'Order');
+      expect(orderNode).toMatchObject({
+        id: 'Order-1.0.0',
+        type: 'entities',
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        data: {
+          label: 'Order',
+          entity: expect.objectContaining({ data: expect.objectContaining({ id: 'Order' }) }),
+          domainName: 'Orders',
+          domainId: 'Orders',
+        },
+      });
+
+      // Check OrderItem node
+      const orderItemNode = nodes.find((n: any) => n.data.entity.data.id === 'OrderItem');
+      expect(orderItemNode).toMatchObject({
+        id: 'OrderItem-1.0.0',
+        type: 'entities',
+        data: {
+          label: 'OrderItem',
+          domainName: 'Orders',
+          domainId: 'Orders',
+        },
+      });
+
+      // Check external Customer node
+      const customerNode = nodes.find((n: any) => n.data.entity.data.id === 'Customer');
+      expect(customerNode).toMatchObject({
+        id: 'Customer-1.0.0',
+        type: 'entities',
+        data: {
+          label: 'Customer',
+          externalToDomain: true,
+          domainName: 'Customers',
+          domainId: 'Customers',
+        },
+      });
+
+      // Payment node
+      const paymentNode = nodes.find((n: any) => n.data.entity.data.id === 'Payment');
+      expect(paymentNode).toMatchObject({
+        id: 'Payment-1.0.0',
+        type: 'entities',
+        data: {
+          label: 'Payment',
+          domainName: 'Payments',
+          domainId: 'Payments',
+        },
       });
     });
 

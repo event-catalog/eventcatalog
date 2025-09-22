@@ -509,6 +509,69 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "simonwfarrow",
+      "name": "simonwfarrow",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3245908?v=4",
+      "profile": "https://github.com/simonwfarrow",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "augusto-romero-arango",
+      "name": "Augusto Romero Arango",
+      "avatar_url": "https://avatars.githubusercontent.com/u/142316821?v=4",
+      "profile": "https://github.com/augusto-romero-arango",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "cc-stjm",
+      "name": "cc-stjm",
+      "avatar_url": "https://avatars.githubusercontent.com/u/47748595?v=4",
+      "profile": "https://github.com/cc-stjm",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "lucianlature",
+      "name": "Lucian Lature",
+      "avatar_url": "https://avatars.githubusercontent.com/u/24992?v=4",
+      "profile": "https://www.linkedin.com/in/lucianlature/",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "villAsh",
+      "name": "Vilas Chauvhan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50195101?v=4",
+      "profile": "https://github.com/villAsh",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "mrerichoffman",
+      "name": "Eric Hoffman",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7565432?v=4",
+      "profile": "https://github.com/mrerichoffman",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "wimhaesen-kine",
+      "name": "wimhaesen-kine",
+      "avatar_url": "https://avatars.githubusercontent.com/u/231914377?v=4",
+      "profile": "https://github.com/wimhaesen-kine",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

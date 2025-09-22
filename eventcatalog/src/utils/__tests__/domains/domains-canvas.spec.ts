@@ -195,13 +195,13 @@ describe('Domains Canvas', () => {
     });
 
     it('should create message nodes between domains with relationships', async () => {
-      const { domainNodes, messageNodes, edges } = await getDomainsCanvasData();
+      const { messageNodes } = await getDomainsCanvasData();
 
       // Should have message nodes for domain relationships
       expect(messageNodes.length).toBeGreaterThan(0);
 
       // Check for OrderPlaced message node between Orders and Payment
-      const orderPlacedNode = messageNodes.find((n: any) => n.data?.message?.data?.id === 'OrderPlaced');
+      const orderPlacedNode = messageNodes.find((n: any) => n.data?.message?.id === 'OrderPlaced');
       expect(orderPlacedNode).toBeTruthy();
       expect(orderPlacedNode?.type).toBe('events');
       expect(orderPlacedNode?.data).toMatchObject({

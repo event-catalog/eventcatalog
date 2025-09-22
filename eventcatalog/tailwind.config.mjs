@@ -61,6 +61,7 @@ export default {
     'bg-indigo-100',
     'text-[5px]',
     'text-[9px]',
+    'min-h-[100px]',
   ],
 
   plugins: [require('@tailwindcss/typography')],

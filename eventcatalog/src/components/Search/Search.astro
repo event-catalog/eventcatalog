@@ -1,0 +1,109 @@
+---
+import MagnifyingGlassIcon from '@heroicons/react/24/outline/MagnifyingGlassIcon';
+import SearchModal from './SearchModal.tsx';
+import { buildUrl } from '@utils/url-builder.ts';
+
+const pagefindJsUrl = buildUrl('/pagefind/pagefind.js', true);
+const pagefindCssUrl = buildUrl('/pagefind/pagefind-ui.css', true);
+---
+
+<link href={pagefindCssUrl} rel="stylesheet" />
+<script type="module" define:vars={{ pagefindJsUrl }}>
+  // Load Pagefind and expose it globally
+  try {
+    const pagefind = await import(pagefindJsUrl);
+    window.pagefind = pagefind;
+    window.dispatchEvent(new CustomEvent('pagefindLoaded'));
+  } catch (error) {
+    console.error('Failed to load pagefind:', error);
+  }
+</script>
+
+<div>
+  <div class="relative flex items-center">
+    <input
+      id="search-dummy-input"
+      type="text"
+      name="search"
+      placeholder="Search EventCatalog"
+      class="block w-full rounded-md caret-transparent border-0 py-1.5 pr-14 pl-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 font-light sm:text-sm sm:leading-6 px-4"
+    />
+    <MagnifyingGlassIcon className="absolute inset-y-0 -left-1 h-9 w-8 flex items-center pl-4 text-gray-400" />
+    <div class="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
+      <kbd class="inline-flex items-center rounded px-1 font-sans text-xs text-gray-400">⌘K</kbd>
+    </div>
+  </div>
+</div>
+
+<SearchModal client:only />
+
+<script>
+  // Create a global state for the search modal
+  (window as any).searchModalState = {
+    isOpen: false,
+    toggle: function () {
+      this.isOpen = !this.isOpen;
+      this.render();
+    },
+    close: function () {
+      this.isOpen = false;
+      this.render();
+    },
+    render: function () {
+      // This will be handled by React component
+      const event = new CustomEvent('searchModalToggle', {
+        detail: { isOpen: this.isOpen },
+      });
+      window.dispatchEvent(event);
+    },
+  };
+
+  const dummyInput = document.getElementById('search-dummy-input');
+  const header = document.getElementById('eventcatalog-header');
+  const verticalNav = document.getElementById('eventcatalog-vertical-nav');
+
+  // Event listeners
+  window.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+      event.preventDefault();
+      dummyInput?.click();
+    }
+  });
+
+  dummyInput?.addEventListener('click', function (e) {
+    e.preventDefault();
+    this.blur();
+    (window as any).searchModalState.toggle();
+  });
+
+  // Listen for modal state changes to update page elements
+  window.addEventListener('searchModalToggle', (event) => {
+    // Handle custom docs sidebars
+    const customDocsSidebars = document.querySelectorAll('aside[class*="fixed"][class*="z-10"]');
+
+    if ((event as any).detail.isOpen) {
+      if (header) header.classList.remove('backdrop-blur-sm');
+      if (verticalNav) verticalNav.style.zIndex = '-100';
+      // Hide custom docs sidebars when modal opens
+      customDocsSidebars.forEach((sidebar: any) => {
+        sidebar.style.zIndex = '-100';
+      });
+    } else {
+      if (header) header.classList.add('backdrop-blur-sm');
+      if (verticalNav) verticalNav.style.zIndex = '10';
+      // Restore custom docs sidebars when modal closes
+      customDocsSidebars.forEach((sidebar: any) => {
+        sidebar.style.zIndex = '10';
+      });
+    }
+  });
+</script>
+
+<style>
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

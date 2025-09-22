@@ -7,6 +7,7 @@ import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import DomainGrid from '@components/Grids/DomainGrid';
 import ServiceGrid from '@components/Grids/ServiceGrid';
 import MessageGrid from '@components/Grids/MessageGrid';
+import { removeContentFromCollection } from '@utils/collections/util';
 
 import type { CollectionEntry } from 'astro:content';
 import type { CollectionMessageTypes } from '@types';
@@ -64,13 +65,9 @@ if (type === 'services') {
   }) as unknown as Service[];
   items = filteredServices;
 } else if (type === 'messages') {
-  const { events, commands, queries } = await getMessages({ getAllVersions: false });
+  const { events, commands, queries } = await getMessages({ getAllVersions: false, hydrateServices: false });
   const messages = [...events, ...commands, ...queries];
-  items = messages.map((m) => ({
-    ...m,
-    body: undefined,
-    catalog: undefined,
-  })) as unknown as CollectionEntry<CollectionMessageTypes>[];
+  items = removeContentFromCollection(messages) as unknown as CollectionEntry<CollectionMessageTypes>[];
 }
 ---
 

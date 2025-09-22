@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, memo } from 'react';
-import { ServerIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { ServerIcon, ChevronRightIcon, Squares2X2Icon, QueueListIcon } from '@heroicons/react/24/outline';
 import { RectangleGroupIcon } from '@heroicons/react/24/outline';
 import { buildUrl, buildUrlWithParams } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
@@ -117,7 +117,19 @@ const ServiceCard = memo(({ service, urlParams, selectedTypes }: { service: any;
 
 // Domain Section component
 const DomainSection = memo(
-  ({ domain, services, urlParams, selectedTypes }: { domain: any; services: any[]; urlParams: any; selectedTypes: string[] }) => {
+  ({
+    domain,
+    services,
+    urlParams,
+    selectedTypes,
+    isMultiColumn,
+  }: {
+    domain: any;
+    services: any[];
+    urlParams: any;
+    selectedTypes: string[];
+    isMultiColumn: boolean;
+  }) => {
     const subdomains = domain.data.domains || [];
     const allSubDomainServices = subdomains.map((subdomain: any) => subdomain.data.services || []).flat();
 
@@ -128,7 +140,9 @@ const DomainSection = memo(
     return (
       <div className="space-y-6">
         {servicesWithoutSubdomains.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1 gap-6">
+          <div
+            className={`grid gap-6 ${isMultiColumn ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2' : 'grid-cols-1'}`}
+          >
             {servicesWithoutSubdomains.map((service) => (
               <ServiceCard key={service.data.id} service={service} urlParams={urlParams} selectedTypes={selectedTypes} />
             ))}
@@ -186,7 +200,9 @@ const DomainSection = memo(
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-2 gap-6">
+              <div
+                className={`grid gap-6 ${isMultiColumn ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2' : 'grid-cols-1'}`}
+              >
                 {subdomainServices.map((service) => (
                   <ServiceCard
                     key={service.data.id}
@@ -219,6 +235,7 @@ export default function ServiceGrid({ services, domains, embeded }: ServiceGridP
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTypes, setSelectedTypes] = useState<CollectionMessageTypes[]>([]);
+  const [isMultiColumn, setIsMultiColumn] = useState(false);
   const ITEMS_PER_PAGE = 16;
   const [urlParams, setUrlParams] = useState<{
     serviceIds?: string[];
@@ -236,6 +253,23 @@ export default function ServiceGrid({ services, domains, embeded }: ServiceGridP
       serviceName: params.get('serviceName') || undefined,
     });
   }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('EventCatalog:ServiceColumnLayout');
+      if (saved !== null) {
+        setIsMultiColumn(saved === 'multi');
+      }
+    }
+  }, []);
+
+  const toggleColumnLayout = () => {
+    const newValue = !isMultiColumn;
+    setIsMultiColumn(newValue);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('EventCatalog:ServiceColumnLayout', newValue ? 'multi' : 'single');
+    }
+  };
 
   const filteredAndSortedServices = useMemo(() => {
     if (urlParams === null) return [];
@@ -325,7 +359,7 @@ export default function ServiceGrid({ services, domains, embeded }: ServiceGridP
             </p>
           </div>
 
-          <div className="mt-6 md:mt-0 md:ml-4 flex-shrink-0">
+          <div className="mt-6 md:mt-0 md:ml-4 flex-shrink-0 flex items-center gap-3">
             <SearchBar
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
@@ -333,6 +367,17 @@ export default function ServiceGrid({ services, domains, embeded }: ServiceGridP
               totalResults={filteredAndSortedServices.length}
               totalItems={services.length}
             />
+            <button
+              onClick={toggleColumnLayout}
+              className="flex items-center justify-center p-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200"
+              title={isMultiColumn ? 'Switch to single column' : 'Switch to multi column'}
+            >
+              {isMultiColumn ? (
+                <QueueListIcon className="h-5 w-5 text-gray-600" />
+              ) : (
+                <Squares2X2Icon className="h-5 w-5 text-gray-600" />
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -383,10 +428,13 @@ export default function ServiceGrid({ services, domains, embeded }: ServiceGridP
                   services={paginatedServices}
                   urlParams={urlParams}
                   selectedTypes={selectedTypes}
+                  isMultiColumn={isMultiColumn}
                 />
               ))
           ) : (
-            <div className={`grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-${embeded ? 1 : 2} gap-6`}>
+            <div
+              className={`grid gap-6 ${isMultiColumn ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2' : 'grid-cols-1'}`}
+            >
               {paginatedServices.map((service) => (
                 <ServiceCard key={service.data.id} service={service} urlParams={urlParams} selectedTypes={selectedTypes} />
               ))}

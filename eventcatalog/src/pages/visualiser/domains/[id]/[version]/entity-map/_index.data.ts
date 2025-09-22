@@ -39,8 +39,6 @@ export class Page extends HybridPage {
     // Find the specific item by id and version, and only if it has entities
     const item = items.find((i) => i.data.id === id && i.data.version === version && domainHasEntities(i));
 
-    console.log('ITEM', item);
-
     if (!item) {
       return null;
     }

@@ -30,7 +30,7 @@ import {
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
-import { Box, Boxes } from 'lucide-react';
+import { Box, Boxes, SquarePenIcon } from 'lucide-react';
 import type { CollectionTypes } from '@types';
 
 import { render } from 'astro:content';
@@ -38,7 +38,7 @@ import type { CollectionEntry } from 'astro:content';
 
 import { getIcon } from '@utils/badges';
 import { getDeprecatedDetails } from '@utils/collections/util';
-import { buildUrl } from '@utils/url-builder';
+import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
 import { getSchemasFromResource } from '@utils/collections/schemas';
 import { isEventCatalogChatEnabled, isMarkdownDownloadEnabled } from '@utils/feature';
 
@@ -57,6 +57,8 @@ const { Content } = await render(props);
 
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
 const contentBadges = props.data.badges || [];
+const editUrl =
+  props.data.editUrl || (config.editUrl && props?.filePath ? buildEditUrlForResource(config.editUrl, props?.filePath) : '');
 
 const getContentBadges = () =>
   contentBadges.map((badge: any) => ({
@@ -189,10 +191,17 @@ const generatePromptForResource = (props: any) => {
 // Handle node graphs in the markdown
 let nodeGraphs = getMDXComponentsByName(props.body || '', 'NodeGraph') || [];
 
+// Get props for the node graph (when no id is passed, we assume its the current page)
+const nodeGraphPropsForPage = nodeGraphs.find((nodeGraph: any) => nodeGraph.id === undefined) || ({} as any);
+
+// This will render the graph for this page
 nodeGraphs.push({
   id: props.data.id,
   version: props.data.version,
   type: collectionToResourceMap[props.collection as keyof typeof collectionToResourceMap],
+  ...nodeGraphPropsForPage,
+  search: nodeGraphPropsForPage?.search ? nodeGraphPropsForPage.search === 'true' : true,
+  legend: nodeGraphPropsForPage?.legend ? nodeGraphPropsForPage.legend === 'true' : true,
 });
 ---
 
@@ -210,18 +219,16 @@ nodeGraphs.push({
                 {props.data.name}
                 <span class="">(v{props.data.version})</span>
               </h2>
-              {
-                isMarkdownDownloadEnabled() && (
-                  <div class="hidden lg:block">
-                    <CopyAsMarkdown
-                      client:only="react"
-                      schemas={schemasForResource}
-                      chatQuery={generatePromptForResource(props)}
-                      chatEnabled={isEventCatalogChatEnabled()}
-                    />
-                  </div>
-                )
-              }
+              <div class="hidden lg:block">
+                <CopyAsMarkdown
+                  client:only="react"
+                  schemas={schemasForResource}
+                  chatQuery={generatePromptForResource(props)}
+                  chatEnabled={isEventCatalogChatEnabled()}
+                  markdownDownloadEnabled={isMarkdownDownloadEnabled()}
+                  editUrl={editUrl}
+                />
+              </div>
             </div>
             {
               isMarkedAsDeprecated && hasDeprecated && (
@@ -350,8 +357,10 @@ nodeGraphs.push({
                     version={nodeGraph.version}
                     collection={collection}
                     title={nodeGraph.title}
-                    mode="simple"
+                    mode={nodeGraph.mode || 'simple'}
                     linksToVisualiser={true}
+                    showSearch={nodeGraph.search ?? true}
+                    showLegend={nodeGraph.legend ?? true}
                     href={{
                       label: 'Open in Visualiser',
                       url: buildUrl(`/visualiser/${collection}/${nodeGraph.id}/${nodeGraph.version}`),
@@ -362,6 +371,20 @@ nodeGraphs.push({
           }
         </div>
         <Footer />
+        <!-- Add edit this page button  with icon and text-->
+        <div class="flex justify-end">
+          <!-- Built with EventCatalog -->
+          {
+            editUrl && (
+              <div class="flex justify-end">
+                <a href={editUrl} class="text-sm text-gray-700 hover:text-gray-700 border border-gray-200 rounded-md p-2">
+                  <SquarePenIcon className="w-4 h-4 inline-block mr-1" />
+                  Edit this page
+                </a>
+              </div>
+            )
+          }
+        </div>
       </div>
       <aside class="hidden lg:block sticky top-0 pb-10 w-96 overflow-y-auto py-2" data-pagefind-ignore>
         <!-- @ts-ignore -->
@@ -471,6 +494,9 @@ nodeGraphs.push({
     if (document.getElementsByClassName('mermaid').length > 0) {
       renderDiagrams(graphs);
     }
+
+    // Make renderDiagrams available globally for accordion component
+    window.renderDiagrams = renderDiagrams;
   </script>
 
   <script>
@@ -528,6 +554,10 @@ nodeGraphs.push({
       if (document.getElementsByClassName('plantuml').length > 0) {
         renderPlantUML(graphs, deflate);
       }
+
+      window.renderPlantUML = (graphs: any) => {
+        renderPlantUML(graphs, deflate);
+      };
     });
   </script>
 </VerticalSideBarLayout>

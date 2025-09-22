@@ -1,0 +1,56 @@
+---
+import fs from 'fs';
+import { getAbsoluteFilePathForAstroFile } from '@utils/files';
+import Admonition from '@components/MDX/Admonition';
+
+const { file: mermaidFile, filePath } = Astro.props;
+
+// const escapeHtml = (str: string) => str.replace(/[&<>"']/g, (c) => escapeMap[c]);
+let isValidMermaidFile = mermaidFile.endsWith('.mmd') || mermaidFile.endsWith('.mermaid');
+let mermaidFileContent = '';
+
+if (isValidMermaidFile) {
+  try {
+    const pathToSpec = getAbsoluteFilePathForAstroFile(filePath, mermaidFile);
+    mermaidFileContent = fs.readFileSync(pathToSpec, 'utf8');
+  } catch (error) {
+    console.error(`Error reading design file: ${error}`);
+  }
+}
+---
+
+{
+  !mermaidFileContent && (
+    <Admonition type="warning">
+      <div>
+        <span class="block font-bold">{`<MermaidFileLoader/>`} failed to load</span>
+        <span class="block">
+          Tried to load mermaid file: {mermaidFile}. Make sure you have this mermaid file defined in your project.
+        </span>
+      </div>
+    </Admonition>
+  )
+}
+
+{
+  !isValidMermaidFile && (
+    <Admonition type="warning">
+      <div>
+        <span class="block font-bold">{`<MermaidFileLoader/>`} failed to load</span>
+        <span class="block">
+          Tried to load mermaid file: {mermaidFile}. Make sure the file extension is either .mmd or .mermaid.
+        </span>
+      </div>
+    </Admonition>
+  )
+}
+
+{
+  mermaidFileContent && isValidMermaidFile && (
+    <div class="mermaid-block pb-4">
+      <div class="mermaid border border-gray-200 rounded-lg p-1" data-content={mermaidFileContent}>
+        <p>Loading graph...</p>
+      </div>
+    </div>
+  )
+}

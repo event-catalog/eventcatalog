@@ -1,9 +1,8 @@
-import { Button } from '@headlessui/react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { Copy, FileText, MessageCircleQuestion, ChevronDownIcon, ExternalLink } from 'lucide-react';
+import { Copy, FileText, MessageCircleQuestion, ChevronDownIcon, ExternalLink, PenSquareIcon } from 'lucide-react';
 import React, { useState, isValidElement } from 'react';
 import type { Schema } from '@utils/collections/schemas';
-import { buildUrl } from '@utils/url-builder';
+import { buildUrl, toMarkdownUrl } from '@utils/url-builder';
 
 // Type allows either a component type (like Lucide icon) or a pre-rendered element (like <img>)
 type IconInput = React.ElementType | React.ReactElement;
@@ -47,16 +46,78 @@ export function CopyPageMenu({
   schemas,
   chatQuery,
   chatEnabled = false,
+  editUrl,
+  markdownDownloadEnabled = false,
 }: {
   schemas: Schema[];
   chatQuery?: string;
   chatEnabled: boolean;
+  editUrl: string;
+  markdownDownloadEnabled: boolean;
 }) {
-  const [buttonText, setButtonText] = useState('Copy page');
+  // Define available actions
+  const availableActions = {
+    copyMarkdown: markdownDownloadEnabled,
+    editPage: !!editUrl,
+    copySchemas: schemas.length > 0,
+    viewMarkdown: markdownDownloadEnabled,
+    chat: chatEnabled,
+  };
+
+  // Check if any actions are available
+  const hasAnyActions = Object.values(availableActions).some(Boolean);
+
+  // If no actions are available, return null
+  if (!hasAnyActions) {
+    return null;
+  }
 
   // get the url of the current page
   const url = window.location.href;
-  const markdownUrl = url + '.mdx';
+  const markdownUrl = toMarkdownUrl(url);
+
+  // Determine the default action based on what's available
+  const getDefaultAction = () => {
+    if (availableActions.copyMarkdown) {
+      return {
+        type: 'copyMarkdown',
+        text: 'Copy page',
+        icon: Copy,
+      };
+    }
+    if (availableActions.editPage) {
+      return {
+        type: 'editPage',
+        text: 'Edit page',
+        icon: PenSquareIcon,
+      };
+    }
+    if (availableActions.copySchemas) {
+      return {
+        type: 'copySchemas',
+        text: 'Copy schema',
+        icon: FileText,
+      };
+    }
+    if (availableActions.viewMarkdown) {
+      return {
+        type: 'viewMarkdown',
+        text: 'View Markdown',
+        icon: FileText,
+      };
+    }
+    if (availableActions.chat) {
+      return {
+        type: 'chat',
+        text: 'Open Chat',
+        icon: MessageCircleQuestion,
+      };
+    }
+    return null;
+  };
+
+  const defaultAction = getDefaultAction();
+  const [buttonText, setButtonText] = useState(defaultAction?.text || 'Action');
 
   // Fetch the markdown from the url + .mdx
   const copyMarkdownToClipboard = async () => {
@@ -69,11 +130,11 @@ export function CopyPageMenu({
       }
       const markdown = await response.text();
       await navigator.clipboard.writeText(markdown);
-      setTimeout(() => setButtonText('Copy page'), 3000); // Revert after 3 seconds
+      setTimeout(() => setButtonText(defaultAction?.text || 'Action'), 3000); // Revert after 3 seconds
     } catch (error) {
       console.error('Failed to copy markdown:', error);
       setButtonText('Copy failed'); // Provide feedback on failure
-      setTimeout(() => setButtonText('Copy page'), 3000);
+      setTimeout(() => setButtonText(defaultAction?.text || 'Action'), 3000);
     }
   };
 
@@ -90,25 +151,52 @@ export function CopyPageMenu({
       }
       const schemaContent = await response.text(); // Or response.json() if it's always JSON
       await navigator.clipboard.writeText(schemaContent);
-      setTimeout(() => setButtonText('Copy page'), 3000); // Revert after 3 seconds
+      setTimeout(() => setButtonText(defaultAction?.text || 'Action'), 3000); // Revert after 3 seconds
     } catch (error) {
       console.error('Failed to copy schema:', error);
       setButtonText('Copy failed'); // Provide feedback on failure
-      setTimeout(() => setButtonText('Copy page'), 3000);
+      setTimeout(() => setButtonText(defaultAction?.text || 'Action'), 3000);
     }
   };
+
+  // Handle the default action based on type
+  const handleDefaultAction = () => {
+    if (!defaultAction) return;
+
+    switch (defaultAction.type) {
+      case 'copyMarkdown':
+        copyMarkdownToClipboard();
+        break;
+      case 'editPage':
+        window.open(editUrl, '_blank');
+        break;
+      case 'copySchemas':
+        copySchemaToClipboard(schemas[0]);
+        break;
+      case 'viewMarkdown':
+        window.open(markdownUrl, '_blank');
+        break;
+      case 'chat':
+        window.open(buildUrl(`/chat?query=${chatQuery}`));
+        break;
+    }
+  };
+
+  if (!defaultAction) {
+    return null;
+  }
 
   return (
     <DropdownMenu.Root>
       {/* Container for the split button */}
       <div className="inline-flex rounded-md shadow-sm border border-gray-300">
-        {/* Left Button: Copy Action */}
+        {/* Left Button: Default Action */}
         <button
           type="button"
-          onClick={copyMarkdownToClipboard}
+          onClick={handleDefaultAction}
           className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white rounded-l-md hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         >
-          <Copy className="w-4 h-4" />
+          <defaultAction.icon className="w-4 h-4" />
           {buttonText}
         </button>
         {/* Right Button: Dropdown Trigger */}
@@ -129,55 +217,81 @@ export function CopyPageMenu({
         sideOffset={5}
         align="end"
       >
-        <DropdownMenu.Item
-          className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-          onSelect={() => copyMarkdownToClipboard()}
-        >
-          <MenuItemContent icon={Copy} title="Copy page" description="Copy page as Markdown for LLMs" />
-        </DropdownMenu.Item>
-
-        {schemas.map((schema) => {
-          const title =
-            schema.format === 'asyncapi'
-              ? 'Copy AsyncAPI specification'
-              : schema.format === 'openapi'
-                ? 'Copy OpenAPI specification'
-                : 'Copy schema';
-          const type =
-            schema.format === 'asyncapi' || schema.format === 'openapi'
-              ? 'specification'
-              : `${schema.format.toUpperCase()} schema`;
-
-          const Icon =
-            schema.format === 'asyncapi' ? (
-              <img src={buildUrl('/icons/asyncapi.svg', true)} className="w-4 h-4" />
-            ) : schema.format === 'openapi' ? (
-              <img src={buildUrl('/icons/openapi.svg', true)} className="w-4 h-4" />
-            ) : (
-              FileText
-            );
-
-          return (
-            <DropdownMenu.Item
-              className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-              onSelect={() => copySchemaToClipboard(schema)}
-            >
-              <MenuItemContent icon={Icon} title={title} description={`Copy ${type} to clipboard`} />
-            </DropdownMenu.Item>
-          );
-        })}
-        <DropdownMenu.Item
-          className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-          onSelect={() => window.open(markdownUrl, '_blank')}
-        >
-          <MenuItemContent icon={FileText} title="View as Markdown" description="View this page as plain text" external={true} />
-        </DropdownMenu.Item>
-        {chatEnabled && (
+        {availableActions.copyMarkdown && (
           <DropdownMenu.Item
             className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-            onSelect={() => window.open(buildUrl(`/chat?query=${chatQuery}`))}
+            onSelect={() => copyMarkdownToClipboard()}
           >
-            {/* Using MessageCircleQuestion as a placeholder for Claude logo */}
+            <MenuItemContent icon={Copy} title="Copy page" description="Copy page as Markdown for LLMs" />
+          </DropdownMenu.Item>
+        )}
+
+        {availableActions.editPage && (
+          <DropdownMenu.Item
+            className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+            onSelect={() => window.open(editUrl, '_blank')}
+          >
+            <MenuItemContent
+              icon={PenSquareIcon}
+              title="Edit page"
+              description="Edit the contents of this page"
+              external={true}
+            />
+          </DropdownMenu.Item>
+        )}
+
+        {availableActions.copySchemas &&
+          schemas.map((schema) => {
+            const title =
+              schema.format === 'asyncapi'
+                ? 'Copy AsyncAPI specification'
+                : schema.format === 'openapi'
+                  ? 'Copy OpenAPI specification'
+                  : 'Copy schema';
+            const type =
+              schema.format === 'asyncapi' || schema.format === 'openapi'
+                ? 'specification'
+                : `${schema.format.toUpperCase()} schema`;
+
+            const Icon =
+              schema.format === 'asyncapi' ? (
+                <img src={buildUrl('/icons/asyncapi.svg', true)} className="w-4 h-4" />
+              ) : schema.format === 'openapi' ? (
+                <img src={buildUrl('/icons/openapi.svg', true)} className="w-4 h-4" />
+              ) : (
+                FileText
+              );
+
+            return (
+              <DropdownMenu.Item
+                key={schema.url}
+                className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+                onSelect={() => copySchemaToClipboard(schema)}
+              >
+                <MenuItemContent icon={Icon} title={title} description={`Copy ${type} to clipboard`} />
+              </DropdownMenu.Item>
+            );
+          })}
+
+        {availableActions.viewMarkdown && (
+          <DropdownMenu.Item
+            className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+            onSelect={() => window.open(markdownUrl, '_blank')}
+          >
+            <MenuItemContent
+              icon={FileText}
+              title="View as Markdown"
+              description="View this page as plain text"
+              external={true}
+            />
+          </DropdownMenu.Item>
+        )}
+
+        {availableActions.chat && (
+          <DropdownMenu.Item
+            className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+            onSelect={() => window.open(buildUrl(`/chat`) + `?query=${chatQuery}`)}
+          >
             <MenuItemContent
               icon={MessageCircleQuestion}
               title="Open in EventCatalog Chat"

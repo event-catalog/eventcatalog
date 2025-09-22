@@ -8,6 +8,7 @@ import {
   isMarkdownDownloadEnabled,
   showEventCatalogBranding,
   showCustomBranding,
+  isPrivateRemoteSchemaEnabled,
 } from '../feature';
 
 import config from '@config';
@@ -49,6 +50,24 @@ describe('features', () => {
     it('should return false when EVENTCATALOG_STARTER is not set', () => {
       delete process.env.EVENTCATALOG_STARTER;
       expect(isEventCatalogStarterEnabled()).toBe(false);
+    });
+  });
+
+  describe('isPrivateRemoteSchemaEnabled', () => {
+    it('should return true when EVENTCATALOG_STARTER is true', () => {
+      process.env.EVENTCATALOG_STARTER = 'true';
+      expect(isPrivateRemoteSchemaEnabled()).toBe(true);
+    });
+
+    it('should return true when EVENTCATALOG_SCALE is true', () => {
+      process.env.EVENTCATALOG_SCALE = 'true';
+      expect(isPrivateRemoteSchemaEnabled()).toBe(true);
+    });
+
+    it('should return false when neither feature is enabled', () => {
+      delete process.env.EVENTCATALOG_STARTER;
+      delete process.env.EVENTCATALOG_SCALE;
+      expect(isPrivateRemoteSchemaEnabled()).toBe(false);
     });
   });
 

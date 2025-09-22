@@ -8,6 +8,7 @@ export { getEvents } from '@utils/events';
 
 interface Props {
   getAllVersions?: boolean;
+  hydrateServices?: boolean;
 }
 
 type Messages = {
@@ -17,11 +18,11 @@ type Messages = {
 };
 
 // Main function that uses the imported functions
-export const getMessages = async ({ getAllVersions = true }: Props = {}): Promise<Messages> => {
+export const getMessages = async ({ getAllVersions = true, hydrateServices = true }: Props = {}): Promise<Messages> => {
   const [commands, events, queries] = await Promise.all([
-    getCommands({ getAllVersions }),
-    getEvents({ getAllVersions }),
-    getQueries({ getAllVersions }),
+    getCommands({ getAllVersions, hydrateServices }),
+    getEvents({ getAllVersions, hydrateServices }),
+    getQueries({ getAllVersions, hydrateServices }),
   ]);
 
   return {

@@ -42,3 +42,21 @@ export const buildUrlWithParams = (baseUrl: string, params: Record<string, strin
 
   return `${buildUrl(baseUrl)}?${queryString}`;
 };
+
+export const buildEditUrlForResource = (editUrl: string, filePath: string) => {
+  // filepath may have ../ or ./ in it, so we need to remove it
+  const cleanFilePath = filePath.replace(/^\.\.?\//g, '');
+  return `${editUrl}/${cleanFilePath}`;
+};
+
+// Takes a given url and returns the .mdx url
+export const toMarkdownUrl = (url: string) => {
+  const trailingSlash = __EC_TRAILING_SLASH__;
+
+  if (trailingSlash) {
+    const urlWithoutTrailingSlash = url.replace(/\/$/, '');
+    return urlWithoutTrailingSlash + '.mdx/';
+  }
+
+  return url + '.mdx';
+};

@@ -24,6 +24,11 @@ export interface ServiceItem {
   name: string;
   id: string;
   version: string;
+  sidebar?: {
+    badge?: string;
+    color?: string;
+    backgroundColor?: string;
+  };
   draft: boolean | { title?: string; message: string };
   sends: MessageItem[];
   receives: MessageItem[];
@@ -52,6 +57,13 @@ export interface FlowItem {
   label: string;
 }
 
+export interface DesignItem {
+  href: string;
+  label: string;
+  id: string;
+  name: string;
+}
+
 export interface Resources {
   'context-map'?: Array<{
     href: string;
@@ -62,6 +74,7 @@ export interface Resources {
   domains?: DomainItem[];
   services?: ServiceItem[];
   flows?: FlowItem[];
+  designs?: DesignItem[];
   messagesNotInService?: MessageItem[];
   commands?: MessageItem[];
   queries?: MessageItem[];

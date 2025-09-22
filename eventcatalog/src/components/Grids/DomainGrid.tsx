@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { ServerIcon, EnvelopeIcon, RectangleGroupIcon } from '@heroicons/react/24/outline';
+import { useState, useMemo, useEffect } from 'react';
+import { ServerIcon, EnvelopeIcon, RectangleGroupIcon, Squares2X2Icon, QueueListIcon } from '@heroicons/react/24/outline';
 import { buildUrlWithParams } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
 import { type CollectionMessageTypes } from '@types';
@@ -21,6 +21,24 @@ interface DomainGridProps {
 
 export default function DomainGrid({ domains, embeded }: DomainGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMultiColumn, setIsMultiColumn] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('EventCatalog:ArchitectureColumnLayout');
+      if (saved !== null) {
+        setIsMultiColumn(saved === 'multi');
+      }
+    }
+  }, []);
+
+  const toggleColumnLayout = () => {
+    const newValue = !isMultiColumn;
+    setIsMultiColumn(newValue);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('EventCatalog:ArchitectureColumnLayout', newValue ? 'multi' : 'single');
+    }
+  };
 
   const filteredDomains = useMemo(() => {
     let result = [...domains];
@@ -63,7 +81,7 @@ export default function DomainGrid({ domains, embeded }: DomainGridProps) {
             <p className="mt-2 text-sm text-gray-500">Browse and manage domains in your event-driven architecture</p>
           </div>
 
-          <div className="mt-6 md:mt-0 md:ml-4 flex-shrink-0">
+          <div className="mt-6 md:mt-0 md:ml-4 flex-shrink-0 flex items-center gap-3">
             <SearchBar
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
@@ -71,11 +89,22 @@ export default function DomainGrid({ domains, embeded }: DomainGridProps) {
               totalResults={filteredDomains.length}
               totalItems={domains.length}
             />
+            <button
+              onClick={toggleColumnLayout}
+              className="flex items-center justify-center p-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors duration-200"
+              title={isMultiColumn ? 'Switch to single column' : 'Switch to multi column'}
+            >
+              {isMultiColumn ? (
+                <QueueListIcon className="h-5 w-5 text-gray-600" />
+              ) : (
+                <Squares2X2Icon className="h-5 w-5 text-gray-600" />
+              )}
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
+      <div className={`grid gap-6 ${isMultiColumn ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2' : 'grid-cols-1'}`}>
         {filteredDomains.map((domain) => (
           <a
             key={domain.data.id}

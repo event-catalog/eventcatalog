@@ -7,16 +7,18 @@ import path from 'path';
 import SchemaViewerClient from './SchemaViewer.astro';
 import Admonition from '../Admonition';
 import { getMDXComponentsByName } from '@utils/markdown';
+import { getAbsoluteFilePathForAstroFile, resolveProjectPath } from '@utils/files';
 
 let schemas = [];
 
 try {
-  const file = await fs.readFile(filePath, 'utf-8');
+  const absoluteFilePath = resolveProjectPath(filePath);
+  const file = await fs.readFile(absoluteFilePath, 'utf-8');
   const schemaViewers = getMDXComponentsByName(file, 'SchemaViewer');
 
   // Loop around all the possible SchemaViewers in the file.
   const getAllComponents = schemaViewers.map(async (schemaViewerProps: any, index: number) => {
-    const schemaPath = path.join(path.dirname(filePath), schemaViewerProps.file);
+    const schemaPath = getAbsoluteFilePathForAstroFile(filePath, schemaViewerProps.file);
     const exists = existsSync(schemaPath);
     let schema;
     let render = true;
@@ -113,6 +115,11 @@ try {
       schemaViewerContainer.appendChild(schemaViewerClient);
     }
   }
+
+  // on DOM ready, move the SchemaViewerClient to the portal
+  document.addEventListener('DOMContentLoaded', () => {
+    schemas.forEach(moveSchemaViewerToPortal);
+  });
 
   // on DOM ready, move the SchemaViewerClient to the portal
   document.addEventListener('astro:page-load', () => {

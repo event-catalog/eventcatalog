@@ -3,6 +3,7 @@ export const mockDomains = [
     id: 'domains/Shipping/index.mdx',
     slug: 'domains/Shipping',
     collection: 'domains',
+    filePath: 'domains/Shipping/index.mdx',
     data: {
       id: 'Shipping',
       name: 'Shipping',
@@ -16,6 +17,7 @@ export const mockDomains = [
     id: 'domains/Checkout/index.mdx',
     slug: 'domains/Checkout',
     collection: 'domains',
+    filePath: 'domains/Checkout/index.mdx',
     data: {
       id: 'Checkout',
       name: 'Checkout',
@@ -27,6 +29,7 @@ export const mockDomains = [
     id: 'domains/Notification/index.mdx',
     slug: 'domains/Notification',
     collection: 'domains',
+    filePath: 'domains/Notification/index.mdx',
     data: {
       id: 'Notification',
       name: 'Notification',
@@ -209,9 +212,36 @@ export const mockUbiquitousLanguages = [
     id: 'domains/Shipping/ubiquitous-language.mdx',
     slug: 'domains/Shipping/ubiquitous-language',
     collection: 'ubiquitousLanguages',
+    filePath: 'domains/Shipping/ubiquitous-language.mdx',
     data: {
       id: 'Shipping',
-      dictionary: [{ id: 'Payment', name: 'Payment' }],
+      dictionary: [
+        { id: 'Payment', name: 'Payment', summary: 'A financial transaction' },
+        { id: 'Order', name: 'Order', summary: 'A customer purchase request' },
+      ],
+    },
+  },
+  {
+    id: 'domains/Checkout/ubiquitous-language.mdx',
+    slug: 'domains/Checkout/ubiquitous-language',
+    collection: 'ubiquitousLanguages',
+    filePath: 'domains/Checkout/ubiquitous-language.mdx',
+    data: {
+      id: 'Checkout',
+      dictionary: [
+        { id: 'Payment', name: 'Payment', summary: 'Processing customer payment' },
+        { id: 'Cart', name: 'Cart', summary: 'Shopping cart items' },
+      ],
+    },
+  },
+  {
+    id: 'domains/Notification/ubiquitous-language.mdx',
+    slug: 'domains/Notification/ubiquitous-language',
+    collection: 'ubiquitousLanguages',
+    filePath: 'domains/Notification/ubiquitous-language.mdx',
+    data: {
+      id: 'Notification',
+      dictionary: [{ id: 'Email', name: 'Email', summary: 'Electronic mail notification' }],
     },
   },
 ];

@@ -1,4 +1,4 @@
-import { buildUrl, buildUrlWithParams } from '../url-builder';
+import { buildEditUrlForResource, buildUrl, buildUrlWithParams, toMarkdownUrl } from '../url-builder';
 
 declare global {
   interface Window {
@@ -101,6 +101,46 @@ describe('url-builder', () => {
         key4: 'value4',
       });
       expect(url).toBe('example.com?key1=value1&key4=value4');
+    });
+  });
+
+  describe('buildEditUrlForResource', () => {
+    it('should build a basic url', () => {
+      const url = buildEditUrlForResource(
+        'https://github.com/eventcatalog/eventcatalog/edit/main',
+        'examples/default/domains/E-Commerce/index.mdx'
+      );
+      expect(url).toBe('https://github.com/eventcatalog/eventcatalog/edit/main/examples/default/domains/E-Commerce/index.mdx');
+    });
+
+    it('should remove ../ from the filepath', () => {
+      const url = buildEditUrlForResource(
+        'https://github.com/eventcatalog/eventcatalog/edit/main',
+        '../examples/default/domains/E-Commerce/index.mdx'
+      );
+      expect(url).toBe('https://github.com/eventcatalog/eventcatalog/edit/main/examples/default/domains/E-Commerce/index.mdx');
+    });
+
+    it('should remove ./ from the filepath', () => {
+      const url = buildEditUrlForResource(
+        'https://github.com/eventcatalog/eventcatalog/edit/main',
+        './examples/default/domains/E-Commerce/index.mdx'
+      );
+      expect(url).toBe('https://github.com/eventcatalog/eventcatalog/edit/main/examples/default/domains/E-Commerce/index.mdx');
+    });
+  });
+
+  describe('toMarkdownUrl', () => {
+    it('should add .mdx to the url when trailing slash is false', () => {
+      const url = toMarkdownUrl('example.com');
+      expect(url).toBe('example.com.mdx');
+    });
+
+    it('should add .mdx/ to the url when trailing slash is true', () => {
+      // @ts-ignore
+      global.__EC_TRAILING_SLASH__ = true;
+      const url = toMarkdownUrl('example.com');
+      expect(url).toBe('example.com.mdx/');
     });
   });
 });

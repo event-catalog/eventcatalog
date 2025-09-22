@@ -24,10 +24,13 @@ import Miro from '@components/MDX/Miro/Miro.astro';
 import Lucid from '@components/MDX/Lucid/Lucid.astro';
 import DrawIO from '@components/MDX/DrawIO/DrawIO.astro';
 import FigJam from '@components/MDX/FigJam/FigJam.astro';
+import Design from '@components/MDX/Design/Design.astro';
+import MermaidFileLoader from '@components/MDX/MermaidFileLoader/MermaidFileLoader.astro';
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
 import { jsx } from 'astro/jsx-runtime';
+import RemoteSchema from '@components/MDX/RemoteSchema.astro';
 
 const components = (props: any) => {
   return {
@@ -36,13 +39,15 @@ const components = (props: any) => {
     Admonition,
     AsyncAPI,
     ChannelInformation: (mdxProp: any) => ChannelInformation({ ...props.data, ...mdxProp }),
+    Design: (mdxProp: any) => jsx(Design, { ...props, ...mdxProp }),
     File: (mdxProp: any) => File({ ...props, ...mdxProp }),
+    RemoteSchema,
     Flow,
     Link: (mdxProp: any) => jsx(Link, { ...props, ...mdxProp }),
     MessageTable: (mdxProp: any) => jsx(MessageTable, { ...props, ...mdxProp }),
     EntityPropertiesTable: (mdxProp: any) => jsx(EntityPropertiesTable, { ...props, ...mdxProp }),
     NodeGraph: (mdxProp: any) => jsx(NodeGraphPortal, { ...props.data, ...mdxProp, props, mdxProp }),
-    EntityMap,
+    EntityMap: (mdxProp: any) => jsx(EntityMap, { ...props, ...mdxProp }),
     OpenAPI,
     ResourceGroupTable: (mdxProp: any) => jsx(ResourceGroupTable, { ...props, ...mdxProp }),
     ResourceLink: (mdxProp: any) => jsx(ResourceLink, { ...props, ...mdxProp }),
@@ -58,6 +63,7 @@ const components = (props: any) => {
     Lucid: (mdxProp: any) => jsx(Lucid, { ...props, ...mdxProp }),
     DrawIO: (mdxProp: any) => jsx(DrawIO, { ...props, ...mdxProp }),
     FigJam: (mdxProp: any) => jsx(FigJam, { ...props, ...mdxProp }),
+    MermaidFileLoader: (mdxProp: any) => jsx(MermaidFileLoader, { ...props, ...mdxProp }),
   };
 };
 

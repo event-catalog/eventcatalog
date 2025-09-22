@@ -105,12 +105,20 @@ const ownersList = filteredOwners.map((o) => ({
   avatarUrl: o.collection === 'users' ? o.data.avatarUrl : '',
   href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
 }));
+
+const shouldRenderSideBarSection = (section: string) => {
+  if (!domain.data.detailsPanel) {
+    return true;
+  }
+  // @ts-ignore
+  return domain.data.detailsPanel[section]?.visible ?? true;
+};
 ---
 
 <aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto py-4">
   <div>
     {
-      parentDomains.length > 0 && (
+      parentDomains.length > 0 && shouldRenderSideBarSection('parentDomains') && (
         <PillListFlat
           title={`Parent domains (${parentDomains.length})`}
           pills={parentDomainList}
@@ -123,7 +131,7 @@ const ownersList = filteredOwners.map((o) => ({
     }
 
     {
-      subDomains.length > 0 && (
+      subDomains.length > 0 && shouldRenderSideBarSection('subdomains') && (
         <PillListFlat
           title={`Subdomains (${subDomains.length})`}
           pills={subDomainList}
@@ -139,29 +147,41 @@ const ownersList = filteredOwners.map((o) => ({
         .filter((section) => section.items.length > 0 && section.sidebar)
         .map((section) => <CustomSideBarSectionList section={section} />)
     }
-    <PillListFlat
-      title={`Services (${services.length})`}
-      pills={serviceList}
-      emptyMessage={`This domain does not contain any services.`}
-      color="pink"
-      client:load
-    />
-    <PillListFlat
-      title={`Sends messages (${sendsList.length})`}
-      pills={sendsList}
-      emptyMessage={`This domain does not send any messages.`}
-      color="orange"
-      client:load
-    />
-    <PillListFlat
-      title={`Receives messages (${receivesList.length})`}
-      pills={receivesList}
-      emptyMessage={`This domain does not receive any messages.`}
-      color="orange"
-      client:load
-    />
     {
-      ubiquitousLanguageList && hasUbiquitousLanguage && (
+      shouldRenderSideBarSection('services') && (
+        <PillListFlat
+          title={`Services (${services.length})`}
+          pills={serviceList}
+          emptyMessage={`This domain does not contain any services.`}
+          color="pink"
+          client:load
+        />
+      )
+    }
+    {
+      shouldRenderSideBarSection('messages') && (
+        <PillListFlat
+          title={`Sends messages (${sendsList.length})`}
+          pills={sendsList}
+          emptyMessage={`This domain does not send any messages.`}
+          color="orange"
+          client:load
+        />
+      )
+    }
+    {
+      shouldRenderSideBarSection('messages') && (
+        <PillListFlat
+          title={`Receives messages (${receivesList.length})`}
+          pills={receivesList}
+          emptyMessage={`This domain does not receive any messages.`}
+          color="orange"
+          client:load
+        />
+      )
+    }
+    {
+      ubiquitousLanguageList && hasUbiquitousLanguage && shouldRenderSideBarSection('ubiquitousLanguage') && (
         <PillListFlat
           title={`Ubiquitous Language Dictionary (${ubiquitousLanguageDictionary?.length})`}
           pills={ubiquitousLanguageList}
@@ -173,7 +193,7 @@ const ownersList = filteredOwners.map((o) => ({
       )
     }
     {
-      entities.length > 0 && (
+      entities.length > 0 && shouldRenderSideBarSection('entities') && (
         <PillListFlat
           title={`Entities (${entities.length})`}
           pills={entityList}
@@ -183,18 +203,26 @@ const ownersList = filteredOwners.map((o) => ({
         />
       )
     }
-    {domain.data.versions && <VersionList versions={domain.data.versions} collectionItem={domain} />}
     {
-      domain.data.repository && (
+      domain.data.versions && shouldRenderSideBarSection('versions') && (
+        <VersionList versions={domain.data.versions} collectionItem={domain} />
+      )
+    }
+    {
+      domain.data.repository && shouldRenderSideBarSection('repository') && (
         <RepositoryList repository={domain.data.repository?.url} language={domain.data.repository?.language} />
       )
     }
-    <OwnersList
-      title={`Owners (${ownersList.length})`}
-      owners={ownersList}
-      emptyMessage={`This domain does not have any documented owners.`}
-      client:load
-    />
+    {
+      shouldRenderSideBarSection('owners') && (
+        <OwnersList
+          title={`Owners (${ownersList.length})`}
+          owners={ownersList}
+          emptyMessage={`This domain does not have any documented owners.`}
+          client:load
+        />
+      )
+    }
 
     <div class="space-y-2">
       <a
@@ -205,7 +233,7 @@ const ownersList = filteredOwners.map((o) => ({
         <span class="block">View in visualiser</span>
       </a>
       {
-        isChangelogEnabled() && (
+        isChangelogEnabled() && shouldRenderSideBarSection('changelog') && (
           <a
             href={buildUrl(`/docs/${domain.collection}/${domain.data.id}/${domain.data.latestVersion}/changelog`)}
             class="flex items-center space-x-2 justify-center text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"

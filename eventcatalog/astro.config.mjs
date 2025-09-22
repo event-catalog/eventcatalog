@@ -2,7 +2,6 @@ import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
 import react from '@astrojs/react';
-import pagefind from "astro-pagefind";
 import { mermaid } from "./src/remark-plugins/mermaid"
 import { plantuml } from "./src/remark-plugins/plantuml"
 import { join } from 'node:path';
@@ -16,6 +15,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 /** @type {import('bin/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
+import ecstudioWatcher from './integrations/ecstudio-watcher.mjs';
 
 const projectDirectory = process.env.PROJECT_DIR || process.cwd();
 const base = config.base || '/';
@@ -76,10 +76,11 @@ export default defineConfig({
       ],
       gfm: true,
     }),
-    config.output !== 'server' && pagefind(),
     config.output !== 'server' && compress && (await import("astro-compress")).default({
       Logger: 0,
+      CSS: false,
     }),
+    ecstudioWatcher(),
   ].filter(Boolean),
   vite: {
     define: {
@@ -90,6 +91,11 @@ export default defineConfig({
        * such as `node:path`.
        */
       '__EC_TRAILING_SLASH__': config.trailingSlash || false,
+    },
+    server: {
+      fs: {
+        allow: ['..', './node_modules/@fontsource']
+      }
     },
     worker: {
       format: 'es',

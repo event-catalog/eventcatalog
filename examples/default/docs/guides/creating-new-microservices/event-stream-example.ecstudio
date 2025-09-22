@@ -1,0 +1,354 @@
+{
+  "nodes": [
+    {
+      "id": "service-producer1",
+      "type": "service",
+      "position": {
+        "x": 12,
+        "y": 348.3333333333333
+      },
+      "data": {
+        "mode": "full",
+        "service": {
+          "id": "order-producer",
+          "name": "Order Producer",
+          "owners": [
+            "order-team"
+          ],
+          "sends": [
+            "OrderCreated",
+            "OrderUpdated"
+          ],
+          "receives": [],
+          "version": "1.0.0",
+          "summary": "Produces order events to the stream"
+        }
+      },
+      "measured": {
+        "width": 262,
+        "height": 98
+      }
+    },
+    {
+      "id": "service-producer2",
+      "type": "service",
+      "position": {
+        "x": 394,
+        "y": 526.3333333333333
+      },
+      "data": {
+        "mode": "full",
+        "service": {
+          "id": "user-producer",
+          "name": "User Producer",
+          "owners": [
+            "user-team"
+          ],
+          "sends": [
+            "UserCreated",
+            "UserUpdated"
+          ],
+          "receives": [],
+          "version": "1.0.0",
+          "summary": "Produces user events to the stream"
+        }
+      },
+      "measured": {
+        "width": 262,
+        "height": 98
+      }
+    },
+    {
+      "id": "channel-event-stream",
+      "type": "channel",
+      "position": {
+        "x": 776,
+        "y": 364
+      },
+      "data": {
+        "mode": "full",
+        "channel": {
+          "id": "event-stream",
+          "name": "event-stream",
+          "version": "1.0.0",
+          "summary": "High-throughput Kafka stream for real-time event processing"
+        }
+      },
+      "measured": {
+        "width": 262,
+        "height": 100
+      }
+    },
+    {
+      "id": "service-stream-processor",
+      "type": "service",
+      "position": {
+        "x": 1158,
+        "y": 348.3333333333333
+      },
+      "data": {
+        "mode": "full",
+        "service": {
+          "id": "stream-processor",
+          "name": "Stream Processor",
+          "owners": [
+            "analytics-team"
+          ],
+          "sends": [
+            "MetricsCalculated",
+            "AlertTriggered"
+          ],
+          "receives": [
+            "OrderCreated",
+            "UserCreated"
+          ],
+          "version": "1.0.0",
+          "summary": "Real-time stream processing with Kafka Streams"
+        }
+      },
+      "measured": {
+        "width": 262,
+        "height": 98
+      }
+    },
+    {
+      "id": "service-consumer1",
+      "type": "service",
+      "position": {
+        "x": 1158,
+        "y": 526.3333333333333
+      },
+      "data": {
+        "mode": "full",
+        "service": {
+          "id": "notification-consumer",
+          "name": "Notification Consumer",
+          "owners": [
+            "notification-team"
+          ],
+          "sends": [
+            "NotificationSent"
+          ],
+          "receives": [
+            "OrderCreated",
+            "AlertTriggered"
+          ],
+          "version": "1.0.0",
+          "summary": "Consumes events to send real-time notifications"
+        }
+      },
+      "measured": {
+        "width": 262,
+        "height": 98
+      }
+    },
+    {
+      "id": "data-stream-store",
+      "type": "data",
+      "position": {
+        "x": 1540,
+        "y": 332
+      },
+      "data": {
+        "mode": "full",
+        "data": {
+          "id": "stream-store",
+          "name": "Stream State Store",
+          "owners": [
+            "analytics-team"
+          ],
+          "version": "1.0.0",
+          "summary": "Local state store for stream processing aggregations",
+          "type": "Database"
+        }
+      },
+      "measured": {
+        "width": 262,
+        "height": 98
+      }
+    },
+    {
+      "id": "service-consumer2",
+      "type": "service",
+      "position": {
+        "x": 1540,
+        "y": 510
+      },
+      "data": {
+        "mode": "full",
+        "service": {
+          "id": "analytics-consumer",
+          "name": "Analytics Consumer",
+          "owners": [
+            "analytics-team"
+          ],
+          "sends": [],
+          "receives": [
+            "MetricsCalculated"
+          ],
+          "version": "1.0.0",
+          "summary": "Consumes processed metrics for dashboard updates"
+        }
+      },
+      "measured": {
+        "width": 262,
+        "height": 98
+      }
+    },
+    {
+      "id": "data-analytics-db",
+      "type": "data",
+      "position": {
+        "x": 1922,
+        "y": 510
+      },
+      "data": {
+        "mode": "full",
+        "data": {
+          "id": "analytics-database",
+          "name": "Analytics Database",
+          "owners": [
+            "analytics-team"
+          ],
+          "version": "1.0.0",
+          "summary": "Time-series database for storing processed stream data",
+          "type": "Database"
+        }
+      },
+      "measured": {
+        "width": 262,
+        "height": 98
+      }
+    },
+    {
+      "id": "event-order-created",
+      "type": "event",
+      "position": {
+        "x": 394,
+        "y": 348.3333333333333
+      },
+      "data": {
+        "mode": "full",
+        "message": {
+          "id": "order-created-stream",
+          "name": "OrderCreated",
+          "version": "1.0.0",
+          "summary": "Order creation event in the stream"
+        }
+      },
+      "measured": {
+        "width": 262,
+        "height": 98
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "service-producer1",
+      "target": "event-order-created",
+      "label": "Produces",
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#000000"
+      },
+      "animated": true,
+      "type": "animatedMessage",
+      "id": "xy-edge__service-producer1-event-order-created"
+    },
+    {
+      "source": "service-producer2",
+      "target": "channel-event-stream",
+      "label": "Produces",
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#000000"
+      },
+      "animated": true,
+      "type": "animatedMessage",
+      "id": "xy-edge__service-producer2-channel-event-stream"
+    },
+    {
+      "source": "event-order-created",
+      "target": "channel-event-stream",
+      "label": "Flows to",
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#000000"
+      },
+      "animated": true,
+      "type": "animatedMessage",
+      "id": "xy-edge__event-order-created-channel-event-stream"
+    },
+    {
+      "source": "channel-event-stream",
+      "target": "service-stream-processor",
+      "label": "Stream Processing",
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#000000"
+      },
+      "animated": true,
+      "type": "animatedMessage",
+      "id": "xy-edge__channel-event-stream-service-stream-processor"
+    },
+    {
+      "source": "channel-event-stream",
+      "target": "service-consumer1",
+      "label": "Consumes",
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#000000"
+      },
+      "animated": true,
+      "type": "animatedMessage",
+      "id": "xy-edge__channel-event-stream-service-consumer1"
+    },
+    {
+      "source": "service-stream-processor",
+      "target": "data-stream-store",
+      "label": "Maintains State",
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#000000"
+      },
+      "animated": false,
+      "type": "default",
+      "id": "xy-edge__service-stream-processor-data-stream-store"
+    },
+    {
+      "source": "service-stream-processor",
+      "target": "service-consumer2",
+      "label": "Processed Events",
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#000000"
+      },
+      "animated": true,
+      "type": "animatedMessage",
+      "id": "xy-edge__service-stream-processor-service-consumer2"
+    },
+    {
+      "source": "service-consumer2",
+      "target": "data-analytics-db",
+      "label": "Stores Metrics",
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#000000"
+      },
+      "animated": false,
+      "type": "default",
+      "id": "xy-edge__service-consumer2-data-analytics-db"
+    }
+  ],
+  "viewport": {
+    "x": 154,
+    "y": 41,
+    "zoom": 0.6
+  },
+  "creationDate": "2025-08-12T09:12:34.680Z",
+  "name": "Event Streaming Pattern",
+  "version": "1.0",
+  "source": "https://app.eventcatalog.dev",
+  "appState": {},
+  "id": "event-streaming-pattern"
+}

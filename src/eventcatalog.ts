@@ -12,18 +12,13 @@ import { watch } from './watcher';
 import { catalogToAstro, checkAndConvertMdToMdx } from './catalog-to-astro-content-directory';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
 import boxen from 'boxen';
-import {
-  isBackstagePluginEnabled,
-  isEventCatalogStarterEnabled,
-  isEventCatalogScaleEnabled,
-  isOutputServer,
-  isAuthEnabled,
-} from './features';
+import { isOutputServer, getProjectOutDir, isAuthEnabled } from './features';
 import updateNotifier from 'update-notifier';
-import stream from 'stream';
 import dotenv from 'dotenv';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
+
+import { isEventCatalogStarterEnabled, isEventCatalogScaleEnabled, isFeatureEnabled } from '@eventcatalog/license';
 
 // The users dierctory
 const dir = path.resolve(process.env.PROJECT_DIR || process.cwd());
@@ -194,7 +189,10 @@ program
     await copyServerFiles();
 
     // Check if backstage is enabled
-    const canEmbedPages = await isBackstagePluginEnabled();
+    const canEmbedPages = await isFeatureEnabled(
+      '@eventcatalog/backstage-plugin-eventcatalog',
+      process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE
+    );
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
@@ -220,7 +218,7 @@ program
             env: {
               PROJECT_DIR: dir,
               CATALOG_DIR: core,
-              ENABLE_EMBED: canEmbedPages,
+              ENABLE_EMBED: canEmbedPages || isEventCatalogScale,
               EVENTCATALOG_STARTER: isEventCatalogStarter,
               EVENTCATALOG_SCALE: isEventCatalogScale,
               NODE_NO_WARNINGS: '1',
@@ -256,9 +254,13 @@ program
     await copyServerFiles();
 
     // Check if backstage is enabled
-    const canEmbedPages = await isBackstagePluginEnabled();
+    const canEmbedPages = await isFeatureEnabled(
+      '@eventcatalog/backstage-plugin-eventcatalog',
+      process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE
+    );
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
+    const isServerOutput = await isOutputServer();
 
     // Create the auth.config.ts file if it doesn't exist
     await createAuthFileIfNotExists(isEventCatalogScale);
@@ -266,7 +268,7 @@ program
     await logBuild(dir, {
       isEventCatalogStarterEnabled: isEventCatalogStarter,
       isEventCatalogScaleEnabled: isEventCatalogScale,
-      isBackstagePluginEnabled: canEmbedPages,
+      isBackstagePluginEnabled: canEmbedPages || isEventCatalogScale,
     });
 
     await resolveCatalogDependencies(dir, core);
@@ -292,6 +294,29 @@ program
         stdio: 'inherit',
       }
     );
+
+    // Not server rendered, then we need to index the site
+    if (!isServerOutput) {
+      const outDir = await getProjectOutDir();
+
+      const windowsCommand = `npx -y pagefind --site ${outDir}`;
+      const unixCommand = `npx -y pagefind --site ${outDir}`;
+      const pagefindCommand = process.platform === 'win32' ? windowsCommand : unixCommand;
+
+      // Build pagefind into the output directory for the final build version
+      execSync(
+        `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} ${pagefindCommand}`,
+        {
+          cwd: dir,
+          stdio: 'inherit',
+        }
+      );
+
+      // Copy the pagefind directory into the public directory for dev mode
+      if (fs.existsSync(join(dir, outDir, 'pagefind'))) {
+        fs.cpSync(join(dir, outDir, 'pagefind'), join(dir, 'public', 'pagefind'), { recursive: true });
+      }
+    }
   });
 
 const previewCatalog = ({
@@ -345,7 +370,10 @@ program
       dotenv.config({ path: path.join(dir, '.env') });
     }
 
-    const canEmbedPages = await isBackstagePluginEnabled();
+    const canEmbedPages = await isFeatureEnabled(
+      '@eventcatalog/backstage-plugin-eventcatalog',
+      process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE
+    );
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
@@ -354,7 +382,7 @@ program
     // Create the auth.config.ts file if it doesn't exist
     await createAuthFileIfNotExists(isEventCatalogScale);
 
-    previewCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
+    previewCatalog({ command, canEmbedPages: canEmbedPages || isEventCatalogScale, isEventCatalogStarter, isEventCatalogScale });
   });
 
 program
@@ -368,16 +396,29 @@ program
       dotenv.config({ path: path.join(dir, '.env') });
     }
 
-    const canEmbedPages = await isBackstagePluginEnabled();
+    const canEmbedPages = await isFeatureEnabled(
+      '@eventcatalog/backstage-plugin-eventcatalog',
+      process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE
+    );
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
     const isServerOutput = await isOutputServer();
 
     if (isServerOutput) {
-      startServerCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
+      startServerCatalog({
+        command,
+        canEmbedPages: canEmbedPages || isEventCatalogScale,
+        isEventCatalogStarter,
+        isEventCatalogScale,
+      });
     } else {
-      previewCatalog({ command, canEmbedPages, isEventCatalogStarter, isEventCatalogScale });
+      previewCatalog({
+        command,
+        canEmbedPages: canEmbedPages || isEventCatalogScale,
+        isEventCatalogStarter,
+        isEventCatalogScale,
+      });
     }
   });
 

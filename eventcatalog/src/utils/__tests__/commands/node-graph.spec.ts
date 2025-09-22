@@ -39,7 +39,7 @@ describe('Commands NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: mockServices[0] },
+        data: { mode: 'simple', service: { ...mockServices[0].data } },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -50,7 +50,7 @@ describe('Commands NodeGraph', () => {
         data: {
           title: 'PaymentService',
           mode: 'simple',
-          service: mockServices[1],
+          service: { ...mockServices[1].data },
         },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
@@ -125,7 +125,7 @@ describe('Commands NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: mockServices[4] },
+        data: { mode: 'simple', service: { ...mockServices[4].data } },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -136,7 +136,7 @@ describe('Commands NodeGraph', () => {
         data: {
           title: 'LegacyOrderService',
           mode: 'simple',
-          service: mockServices[4],
+          service: { ...mockServices[4].data },
         },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
@@ -236,7 +236,7 @@ describe('Commands NodeGraph', () => {
         data: {
           title: 'OrderService',
           mode: 'simple',
-          service: mockServices[0],
+          service: { ...mockServices[0].data },
         },
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',

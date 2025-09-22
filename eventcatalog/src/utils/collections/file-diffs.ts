@@ -6,7 +6,7 @@ import { getItemsFromCollectionByIdAndSemverOrLatest } from './util';
 import type { CollectionEntry } from 'astro:content';
 import type { CollectionTypes } from '@types';
 
-const FILE_EXTENSIONS_TO_INCLUDE = ['.json', '.avro', '.yaml', '.yml', '.proto', '.pb', '.pbjson', '.pb.go'];
+const FILE_EXTENSIONS_TO_INCLUDE = ['.json', '.avsc', '.avro', '.yaml', '.yml', '.proto', '.pb', '.pbjson', '.pb.go'];
 
 /**
  * Generates a diff string in a unified diff format for two versions of a file.

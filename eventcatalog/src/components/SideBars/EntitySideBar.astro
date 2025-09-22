@@ -48,12 +48,20 @@ const domainsList = domains.map((p) => ({
   tag: `v${p.data.version}`,
   href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
 }));
+
+const shouldRenderSideBarSection = (section: string) => {
+  if (!entity.data.detailsPanel) {
+    return true;
+  }
+  // @ts-ignore
+  return entity.data.detailsPanel[section]?.visible ?? true;
+};
 ---
 
 <aside class="sticky top-28 left-0 space-y-8 h-full overflow-y-auto py-4">
   <div class="">
     {
-      (
+      shouldRenderSideBarSection('domains') && (
         <PillListFlat
           title={`Domains (${domainsList.length})`}
           pills={domainsList}
@@ -64,7 +72,7 @@ const domainsList = domains.map((p) => ({
       )
     }
     {
-      servicesList.length > 0 && (
+      servicesList.length > 0 && shouldRenderSideBarSection('services') && (
         <PillListFlat
           title={`Services (${servicesList.length})`}
           pills={servicesList}
@@ -74,16 +82,24 @@ const domainsList = domains.map((p) => ({
         />
       )
     }
-    {entity.data.versions && <VersionList versions={entity.data.versions} collectionItem={entity} />}
-    <OwnersList
-      title={`Owners (${filteredOwners.length})`}
-      owners={ownersList}
-      emptyMessage={`This entity does not have any documented owners.`}
-      client:load
-    />
+    {
+      entity.data.versions && shouldRenderSideBarSection('versions') && (
+        <VersionList versions={entity.data.versions} collectionItem={entity} />
+      )
+    }
+    {
+      filteredOwners.length > 0 && shouldRenderSideBarSection('owners') && (
+        <OwnersList
+          title={`Owners (${filteredOwners.length})`}
+          owners={ownersList}
+          emptyMessage={`This entity does not have any documented owners.`}
+          client:load
+        />
+      )
+    }
 
     {
-      isChangelogEnabled() && (
+      isChangelogEnabled() && shouldRenderSideBarSection('changelog') && (
         <div class="space-y-2">
           <a
             href={buildUrl(`/docs/${entity.collection}/${entity.data.id}/${entity.data.latestVersion}/changelog`)}

@@ -7,6 +7,7 @@ import { getServices, getSpecificationsForService } from '@utils/collections/ser
 import { getCommands } from '@utils/commands';
 import { getEvents } from '@utils/events';
 import { getQueries } from '@utils/queries';
+import { getDesigns } from '@utils/collections/designs';
 
 const stripCollection = (collection: any) => {
   return collection.map((item: any) => ({
@@ -25,6 +26,7 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
   const domains = await getDomains({ getAllVersions: false });
   const channels = await getChannels({ getAllVersions: false });
   const flows = await getFlows({ getAllVersions: false });
+  const designs = await getDesigns({ getAllVersions: false });
 
   const messages = [...events, ...commands, ...queries];
 
@@ -151,6 +153,15 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
     ...allDataAsSideNav,
     messagesNotInService: messagesNotInServiceAsSideNav,
   };
+
+  // Add designs?
+  if (designs.length > 0) {
+    sideNav['designs'] = designs.map((design) => ({
+      label: design.data.name,
+      href: buildUrl(`/visualiser/designs/${design.data.id}`),
+      collection: 'designs',
+    }));
+  }
 
   return sideNav;
 }

@@ -87,6 +87,14 @@ const isRSSEnabled = config.rss?.enabled;
 const publicPath = service?.catalog?.publicPath;
 const schemaFilePath = service?.data?.schemaPath;
 const schemaURL = join(publicPath, schemaFilePath || '');
+
+const shouldRenderSideBarSection = (section: string) => {
+  if (!service.data.detailsPanel) {
+    return true;
+  }
+  // @ts-ignore
+  return service.data.detailsPanel[section]?.visible ?? true;
+};
 ---
 
 <aside class="sticky top-28 left-0 h-full overflow-y-auto pr-6 py-4">
@@ -97,7 +105,7 @@ const schemaURL = join(publicPath, schemaFilePath || '');
         .map((section) => <CustomSideBarSectionList section={section} />)
     }
     {
-      domainList.length > 0 && (
+      domainList.length > 0 && shouldRenderSideBarSection('domains') && (
         <PillListFlat
           title={`Domains (${domainList.length})`}
           pills={domainList}
@@ -107,26 +115,40 @@ const schemaURL = join(publicPath, schemaFilePath || '');
         />
       )
     }
-    <PillListFlat
-      title={`Receives Messages (${receivesList.length})`}
-      pills={receivesList}
-      emptyMessage={`This service does not receive any messages.`}
-      color="orange"
-      client:load
-    />
-    <PillListFlat
-      title={`Sends Messages (${sendsList.length})`}
-      pills={sendsList}
-      emptyMessage={`This service does not send any messages.`}
-      color="orange"
-      client:load
-    />
-    {service.data.versions && <VersionList versions={service.data.versions} collectionItem={service} />}
-
-    {service.data.specifications && <SpecificationsList collectionItem={service} />}
+    {
+      shouldRenderSideBarSection('messages') && (
+        <>
+          <PillListFlat
+            title={`Receives Messages (${receivesList.length})`}
+            pills={receivesList}
+            emptyMessage={`This service does not receive any messages.`}
+            color="orange"
+            client:load
+          />
+          <PillListFlat
+            title={`Sends Messages (${sendsList.length})`}
+            pills={sendsList}
+            emptyMessage={`This service does not send any messages.`}
+            color="orange"
+            client:load
+          />
+        </>
+      )
+    }
+    {
+      service.data.versions && shouldRenderSideBarSection('versions') && (
+        <VersionList versions={service.data.versions} collectionItem={service} />
+      )
+    }
 
     {
-      entities.length > 0 && (
+      service.data.specifications && shouldRenderSideBarSection('specifications') && (
+        <SpecificationsList collectionItem={service} />
+      )
+    }
+
+    {
+      entities.length > 0 && shouldRenderSideBarSection('entities') && (
         <PillListFlat
           title={`Entities (${entities.length})`}
           pills={entityList}
@@ -137,15 +159,19 @@ const schemaURL = join(publicPath, schemaFilePath || '');
       )
     }
 
-    <OwnersList
-      title={`Owners (${ownersList.length})`}
-      owners={ownersList}
-      emptyMessage={`This service does not have any documented owners.`}
-      client:load
-    />
+    {
+      shouldRenderSideBarSection('owners') && (
+        <OwnersList
+          title={`Owners (${ownersList.length})`}
+          owners={ownersList}
+          emptyMessage={`This service does not have any documented owners.`}
+          client:load
+        />
+      )
+    }
 
     {
-      service.data.repository && (
+      service.data.repository && shouldRenderSideBarSection('repository') && (
         <RepositoryList repository={service.data.repository?.url} language={service.data.repository?.language} />
       )
     }
@@ -187,7 +213,7 @@ const schemaURL = join(publicPath, schemaFilePath || '');
         <span class="block">View in visualiser</span>
       </a>
       {
-        isChangelogEnabled() && (
+        isChangelogEnabled() && shouldRenderSideBarSection('changelog') && (
           <a
             href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.latestVersion}/changelog`)}
             class="flex items-center space-x-2 justify-center text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"

@@ -1,5 +1,257 @@
 # @eventcatalog/core
 
+## 2.57.1
+
+### Patch Changes
+
+- def4aaf: chore(core): updated visualizer version
+
+## 2.57.0
+
+### Minor Changes
+
+- 99c2474: feat(core): added ability to open visualizer into studio
+
+## 2.56.4
+
+### Patch Changes
+
+- 068cdf6: feat(core): added new mermaid file loader component
+
+## 2.56.3
+
+### Patch Changes
+
+- d5299f2: chore(core): updated astro version
+- e378fc7: fix(core): fix copy button for trialing slash catalogs
+
+## 2.56.2
+
+### Patch Changes
+
+- 2509425: feat(core): added ability to mofidy the service label in the sidebar
+
+## 2.56.1
+
+### Patch Changes
+
+- 551a687: chore(core): updated astro versions
+
+## 2.56.0
+
+### Minor Changes
+
+- fad3998: feat(core): added support for offline license checks
+
+### Patch Changes
+
+- 9877fcb: chore(core): updated astro versions
+
+## 2.55.6
+
+### Patch Changes
+
+- 290d4d1: fix(core): SchemaViewer now display constant values
+- b0928a8: fix(core): enums and items now shown on entity properties map
+- 821fdd0: fix(core): fixed actor details now showing in visualizer
+
+## 2.55.5
+
+### Patch Changes
+
+- 1c9a4bb: fix(core): fixed architecture page for filtered messages with services
+
+## 2.55.4
+
+### Patch Changes
+
+- ba5b02a: feat(core): added ability to switch column layout for architecture pages
+
+## 2.55.3
+
+### Patch Changes
+
+- 362933f: fix(core): reduced the pagesize of the architecture/messages page
+
+## 2.55.2
+
+### Patch Changes
+
+- bf83b89: fix(core): fixed schemaviewer for array rooted schemas
+
+## 2.55.1
+
+### Patch Changes
+
+- e77e6fc: feat(viualizer): added support for webrtc in channels
+
+## 2.55.0
+
+### Minor Changes
+
+- 5ba7868: feat(core): updated visualizer and setup for designs
+  - Visualizer now pulls information from @eventcatalog/visualizer package
+  - Project now supports .ecstudio files (For EventCatalog Studio)
+  - Project now supports Designs as a Resource type (EventCatalog Studio)
+
+### Patch Changes
+
+- 4f4a911: chore(core): architecture pages now single column
+- b3e5636: feat(core): added support for avsc files in diffs
+- b3dfb93: fix(core): added data nodes from studio into eventcatalog
+- 68cbd22: feat(core): fixed type checks in build
+
+## 2.54.8
+
+### Patch Changes
+
+- f3f8f5d: fix(core): fixed issue with pagefind when users have trailingslash configured
+
+## 2.54.7
+
+### Patch Changes
+
+- 7a2cd70: fix(core): schema viewer now renders in the correct location
+- cbc8d2b: fix(core): fixed custom docs layout issues
+
+## 2.54.6
+
+### Patch Changes
+
+- 6f2f4f9: fix(core): pagefind now includes the base config param
+
+## 2.54.5
+
+### Patch Changes
+
+- 8c87054: Fix cross-platform path resolution for OpenAPI specs and schemas
+
+  Addresses issues #1652 and #1644 by improving the path resolution logic in the `resolveProjectPath` function with full cross-platform compatibility. This fix ensures that paths starting with `../` are resolved correctly on Windows, macOS, and Linux systems.
+
+  **Key improvements:**
+  - Normalizes path separators (`/` and `\`) for cross-platform compatibility
+  - Prevents `../` paths from incorrectly resolving outside the project directory
+  - Fixes OpenAPI specifications and schemas failing to load after version 2.54.4
+  - Maintains security boundaries while ensuring functionality across all operating systems
+
+  This resolves the root cause that wasn't fully addressed in version 2.54.4, ensuring that both OpenAPI specifications and AsyncAPI specifications render correctly across all platforms.
+
+## 2.54.4
+
+### Patch Changes
+
+- 2d563c9: fix(core): resolve SchemaViewer path resolution for relative paths
+
+  Fixes SchemaViewer components failing to load schema files with paths starting with "../". The issue was caused by inconsistent path resolution logic in SchemaViewerRoot.astro.
+  - Added resolveProjectPath function to handle "../" paths correctly
+  - Updated getAbsoluteFilePathForAstroFile to use the new path resolution logic
+  - SchemaViewerRoot.astro now uses resolveProjectPath for consistent path handling
+
+## 2.54.3
+
+### Patch Changes
+
+- 3f99807: chore(core): updated astro
+- 898e53f: fix(core): entities now render in services pages
+
+## 2.54.2
+
+### Patch Changes
+
+- 6b1b554: fix(core): search no longer loads every result on load
+
+## 2.54.1
+
+### Patch Changes
+
+- 44ac76f: fix(core): fixed pagefind output directory on build
+- cba92ab: fix(core): fixed entity spelling on search modal
+
+## 2.54.0
+
+### Minor Changes
+
+- 3944204: feat(core): update search to custom pagefind solution
+
+## 2.53.1
+
+### Patch Changes
+
+- f811fb0: fix(core): fixed issue with scrolling on docs and nodegraphs
+
+## 2.53.0
+
+### Minor Changes
+
+- c4074d0: feat(core): added ability to customize detail panels on all pages
+
+## 2.52.0
+
+### Minor Changes
+
+- 6c7433e: feat(core): added ability to fetch schemas from a remote url
+
+## 2.51.1
+
+### Patch Changes
+
+- 2622135: feat:(core): added ability to restrict which entities are shown on the EntityMap component
+
+## 2.51.0
+
+### Minor Changes
+
+- 560c3a8: feat(core): updated ubiquitous language page, now renders subdomains …
+
+## 2.50.3
+
+### Patch Changes
+
+- a14c3e8: feat(core): added customization (props) to nodegraphs and flow compon…
+- 34d6bfa: fix(core): mermaid and plantuml now render in accordian
+
+## 2.50.2
+
+### Patch Changes
+
+- 498b9e4: feat(core): dropdown cta for all resource pages are now shown by default
+
+## 2.50.1
+
+### Patch Changes
+
+- 7f6da53: fix(core): fixed issue loading files in SSR mode
+
+## 2.50.0
+
+### Minor Changes
+
+- fff1249: fix(core): fixed issue loading files in SSR mode
+
+## 2.49.5
+
+### Patch Changes
+
+- 789a248: fix(core): fixed domain language explorer in SSR mode
+
+## 2.49.4
+
+### Patch Changes
+
+- f9d22d8: feat(core): added edit links into resource pages
+
+## 2.49.3
+
+### Patch Changes
+
+- 7130716: fix(core): no longer compress css
+
+## 2.49.2
+
+### Patch Changes
+
+- 8b0ae38: fix(core): fixed broken sidebar styles on list view settings
+
 ## 2.49.1
 
 ### Patch Changes
