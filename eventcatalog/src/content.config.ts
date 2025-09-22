@@ -147,6 +147,20 @@ const baseSchema = z.object({
     ])
     .optional(),
   visualiser: z.boolean().optional(),
+  attachments: z
+    .array(
+      z.union([
+        z.string().url(), // simple case
+        z.object({
+          url: z.string().url(),
+          title: z.string().optional(),
+          type: z.string().optional(), // e.g. "architecture-record", "diagram"
+          description: z.string().optional(),
+          icon: z.string().optional(),
+        }),
+      ])
+    )
+    .optional(),
   // Used by eventcatalog
   versions: z.array(z.string()).optional(),
   latestVersion: z.string().optional(),
@@ -259,6 +273,7 @@ const messageDetailsPanelPropertySchema = z.object({
   repository: detailPanelPropertySchema.optional(),
   owners: detailPanelPropertySchema.optional(),
   changelog: detailPanelPropertySchema.optional(),
+  attachments: detailPanelPropertySchema.optional(),
 });
 
 const events = defineCollection({
@@ -411,6 +426,7 @@ const domains = defineCollection({
           versions: detailPanelPropertySchema.optional(),
           owners: detailPanelPropertySchema.optional(),
           changelog: detailPanelPropertySchema.optional(),
+          attachments: detailPanelPropertySchema.optional(),
         })
         .optional(),
     })
@@ -451,6 +467,7 @@ const channels = defineCollection({
           repository: detailPanelPropertySchema.optional(),
           owners: detailPanelPropertySchema.optional(),
           changelog: detailPanelPropertySchema.optional(),
+          attachments: detailPanelPropertySchema.optional(),
         })
         .optional(),
     })
@@ -522,6 +539,7 @@ const entities = defineCollection({
           versions: detailPanelPropertySchema.optional(),
           owners: detailPanelPropertySchema.optional(),
           changelog: detailPanelPropertySchema.optional(),
+          attachments: detailPanelPropertySchema.optional(),
         })
         .optional(),
     })

@@ -1,6 +1,7 @@
 ---
 import OwnersList from '@components/Lists/OwnersList';
 import VersionList from '@components/Lists/VersionList.astro';
+import PillListFlat from '@components/Lists/PillListFlat';
 import { buildUrl } from '@utils/url-builder';
 import { getOwner } from '@utils/collections/owners';
 import type { CollectionEntry } from 'astro:content';
@@ -30,6 +31,19 @@ const ownersList = filteredOwners.map((o) => ({
 
 const isRSSEnabled = config.rss?.enabled;
 
+const attachments = flow.data.attachments || [];
+
+const attachmentsList = attachments.map((a) => {
+  const attachmentIsURL = typeof a === 'string';
+  return {
+    label: attachmentIsURL ? a : (a.title ?? a.url),
+    href: attachmentIsURL ? a : a.url,
+    icon: attachmentIsURL ? 'ExternalLinkIcon' : (a.icon ?? 'ExternalLinkIcon'),
+    target: '_blank' as const,
+    subgroup: attachmentIsURL ? undefined : (a.type ?? ''),
+  };
+});
+
 const shouldRenderSideBarSection = (section: string) => {
   if (!flow.data.detailsPanel) {
     return true;
@@ -49,6 +63,17 @@ const shouldRenderSideBarSection = (section: string) => {
     {
       flow.data.versions && shouldRenderSideBarSection('versions') && (
         <VersionList versions={flow.data.versions} collectionItem={flow} />
+      )
+    }
+    {
+      flow.data.attachments && shouldRenderSideBarSection('attachments') && (
+        <PillListFlat
+          title={`Attachments (${attachmentsList.length})`}
+          pills={attachmentsList}
+          emptyMessage={`This flow does not have any attachments.`}
+          color="pink"
+          client:load
+        />
       )
     }
 

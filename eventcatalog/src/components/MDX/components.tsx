@@ -13,6 +13,7 @@ import Admonition from '@components/MDX/Admonition';
 import OpenAPI from '@components/MDX/OpenAPI/OpenAPI.astro';
 import AsyncAPI from '@components/MDX/AsyncAPI/AsyncAPI.astro';
 import ChannelInformation from '@components/MDX/ChannelInformation/ChannelInformation';
+import Attachments from '@components/MDX/Attachments.astro';
 import MessageTable from '@components/MDX/MessageTable/MessageTable.astro';
 import ResourceGroupTable from '@components/MDX/ResourceGroupTable/ResourceGroupTable.astro';
 import EntityPropertiesTable from '@components/MDX/EntityPropertiesTable/EntityPropertiesTable.astro';
@@ -34,6 +35,7 @@ import RemoteSchema from '@components/MDX/RemoteSchema.astro';
 
 const components = (props: any) => {
   return {
+    Attachments: (mdxProp: any) => jsx(Attachments, { ...props, ...mdxProp }),
     Accordion,
     AccordionGroup,
     Admonition,

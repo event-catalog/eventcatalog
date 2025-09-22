@@ -267,17 +267,37 @@ nodeGraphs.push({
             <h2 class="text-lg pt-2 text-gray-500 font-light">{props.data.summary}</h2>
             {
               badges && (
-                <div class="flex flex-wrap py-2 pt-4">
+                <div class="flex flex-wrap gap-3 py-4">
                   {badges.map((badge: any) => {
                     return (
-                      <a href={badge.url || '#'} class="pb-2">
+                      <a href={badge.url || '#'} class="group transition-all duration-200 hover:scale-105">
                         <span
                           id={badge.id || ''}
-                          class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2  bg-gradient-to-b  from-${badge.backgroundColor}-100 to-${badge.backgroundColor}-200 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}
+                          class={`
+                            inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
+                            bg-${badge.backgroundColor || 'white'}-50 border border-${badge.backgroundColor || 'gray'}-200
+                            text-${badge.textColor || 'gray'}-700 shadow-sm
+                            hover:bg-${badge.backgroundColor || 'purple'}-100 hover:border-${badge.backgroundColor || 'purple'}-300
+                            hover:shadow-md hover:text-${badge.textColor || 'purple'}-800
+                            transition-all duration-200 ease-out
+                            ${badge.class ? badge.class : ''}
+                          `}
                         >
-                          {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
-                          {badge.iconURL && <img src={badge.iconURL} class="w-5 h-5 inline-block " />}
-                          <span>{badge.content}</span>
+                          {badge.icon && (
+                            <badge.icon
+                              className={`w-4 h-4 flex-shrink-0 text-${badge.textColor || 'gray'}-600 group-hover:text-${badge.textColor || 'purple'}-700 transition-colors duration-200`}
+                            />
+                          )}
+                          {badge.iconURL && (
+                            <img
+                              src={badge.iconURL}
+                              class="w-4 h-4 flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity duration-200"
+                              alt=""
+                            />
+                          )}
+                          <span class={`group-hover:text-${badge.textColor || 'purple'}-800 transition-colors duration-200`}>
+                            {badge.content}
+                          </span>
                         </span>
                       </a>
                     );
