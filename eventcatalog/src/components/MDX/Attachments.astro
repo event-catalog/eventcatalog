@@ -91,7 +91,7 @@ const sortedGroups = Object.entries(groupedAttachments).sort(([a], [b]) => {
     ) : (
       <div class="space-y-6">
         {sortedGroups.map(([groupType, groupAttachments], index) => (
-          <div key={groupType + index}>
+          <div>
             <h4 class="text-sm font-medium text-gray-900 mb-3 uppercase tracking-wider">
               {groupType} ({groupAttachments.length})
             </h4>
