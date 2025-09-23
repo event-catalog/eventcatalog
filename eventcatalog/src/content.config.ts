@@ -103,10 +103,11 @@ const baseSchema = z.object({
       z.object({
         openapiPath: z.string().optional(),
         asyncapiPath: z.string().optional(),
+        graphqlPath: z.string().optional(),
       }),
       z.array(
         z.object({
-          type: z.enum(['openapi', 'asyncapi']),
+          type: z.enum(['openapi', 'asyncapi', 'graphql']),
           path: z.string(),
           name: z.string().optional(),
         })
