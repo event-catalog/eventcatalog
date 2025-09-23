@@ -1,0 +1,191 @@
+scalar DateTime
+scalar Money
+
+enum BillingCycle {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  SCHEDULED
+  PROCESSING
+  PAID
+  FAILED
+  RETRYING
+  SUSPENDED
+}
+
+type Subscription {
+  id: ID!
+  customerId: ID!
+  planId: ID!
+  status: String!
+  billingCycle: BillingCycle!
+  currentPeriodStart: DateTime!
+  currentPeriodEnd: DateTime!
+  cancelAtPeriodEnd: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type LineItem {
+  id: ID!
+  description: String!
+  quantity: Int!
+  unitPrice: Money!
+  totalAmount: Money!
+  taxAmount: Money!
+  proratedDays: Int
+}
+
+type Invoice {
+  id: ID!
+  subscriptionId: ID!
+  invoiceNumber: String!
+  status: InvoiceStatus!
+  subtotal: Money!
+  taxAmount: Money!
+  totalAmount: Money!
+  dueDate: DateTime!
+  paidAt: DateTime
+  lineItems: [LineItem!]!
+  billingPeriodStart: DateTime!
+  billingPeriodEnd: DateTime!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Payment {
+  id: ID!
+  invoiceId: ID!
+  amount: Money!
+  status: PaymentStatus!
+  attemptCount: Int!
+  nextRetryAt: DateTime
+  failureReason: String
+  processedAt: DateTime
+  createdAt: DateTime!
+}
+
+type BillingHistory {
+  subscriptionId: ID!
+  invoices: [Invoice!]!
+  totalPages: Int!
+  currentPage: Int!
+}
+
+type ChargePreview {
+  subscriptionId: ID!
+  nextBillingDate: DateTime!
+  upcomingCharges: [LineItem!]!
+  proratedCredits: [LineItem!]!
+  totalAmount: Money!
+}
+
+type RetryResult {
+  success: Boolean!
+  payment: Payment
+  errorMessage: String
+}
+
+input ChargePreviewInput {
+  subscriptionId: ID!
+  planChanges: [PlanChangeInput!]
+  addons: [AddonInput!]
+}
+
+input PlanChangeInput {
+  newPlanId: ID!
+  effectiveDate: DateTime
+}
+
+input AddonInput {
+  addonId: ID!
+  quantity: Int!
+}
+
+type Query {
+  """Get current invoice for a subscription"""
+  currentInvoice(subscriptionId: ID!): Invoice
+
+  """Get billing history for a subscription with pagination"""
+  billingHistory(
+    subscriptionId: ID!
+    page: Int = 1
+    limit: Int = 10
+  ): BillingHistory!
+
+  """Preview upcoming charges for a subscription"""
+  previewCharges(input: ChargePreviewInput!): ChargePreview!
+
+  """Get invoice by ID"""
+  invoice(id: ID!): Invoice
+
+  """Get payment details"""
+  payment(id: ID!): Payment
+
+  """Get all failed payments for retry"""
+  failedPayments(subscriptionId: ID!): [Payment!]!
+}
+
+type Mutation {
+  """Retry a failed payment"""
+  retryPayment(invoiceId: ID!): RetryResult!
+
+  """Generate invoice for subscription"""
+  generateInvoice(subscriptionId: ID!): Invoice!
+
+  """Process immediate payment"""
+  processPayment(invoiceId: ID!): Payment!
+
+  """Cancel invoice"""
+  cancelInvoice(invoiceId: ID!): Invoice!
+
+  """Apply credit to subscription"""
+  applyCredit(
+    subscriptionId: ID!
+    amount: Money!
+    reason: String!
+  ): Invoice!
+}
+
+type Subscription {
+  """Real-time updates for billing events"""
+  billingEvents(subscriptionId: ID!): BillingEvent!
+}
+
+union BillingEvent = InvoiceGenerated | PaymentProcessed | PaymentFailed | PaymentRetrying
+
+type InvoiceGenerated {
+  invoice: Invoice!
+  subscription: Subscription!
+}
+
+type PaymentProcessed {
+  payment: Payment!
+  invoice: Invoice!
+}
+
+type PaymentFailed {
+  payment: Payment!
+  invoice: Invoice!
+  retryScheduledAt: DateTime
+}
+
+type PaymentRetrying {
+  payment: Payment!
+  attemptNumber: Int!
+  nextRetryAt: DateTime!
+}
