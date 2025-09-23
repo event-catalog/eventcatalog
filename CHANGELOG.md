@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.58.1
+
+### Patch Changes
+
+- dbdd4d7: fix(core): fixed small type issue with astro
+
 ## 2.58.0
 
 ### Minor Changes
