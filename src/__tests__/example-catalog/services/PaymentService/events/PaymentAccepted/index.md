@@ -15,7 +15,7 @@ The Payment Accepted event is triggered when a user accepts a payment through th
 
 ### Payload Example
 
-```json title="Payload example"
+```json 
 {
   "userId": "123e4567-e89b-12d3-a456-426614174000",
   "orderId": "789e1234-b56c-78d9-e012-3456789fghij",
