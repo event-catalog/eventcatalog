@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.58.2
+
+### Patch Changes
+
+- 4d30128: fix(core): fixed code styling issues
+
 ## 2.58.1
 
 ### Patch Changes
