@@ -13,6 +13,8 @@ import remarkComment from 'remark-comment'
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 
+import rehypeExpressiveCode from 'rehype-expressive-code'
+
 /** @type {import('bin/eventcatalog.config').Config} */
 import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
@@ -22,6 +24,13 @@ const projectDirectory = process.env.PROJECT_DIR || process.cwd();
 const base = config.base || '/';
 const host = config.host || false;
 const compress = config.compress ?? true;
+
+const expressiveCodeConfig = {
+  themes: ['andromeeda'],
+  defaultProps: {
+    wrap: true,
+  },
+};
 
 // https://astro.build/config
 export default defineConfig({
@@ -53,25 +62,22 @@ export default defineConfig({
     react(),
     tailwind(),
     expressiveCode({
-      themes: ['github-light'],
-      defaultProps: {
-        // Enable word wrap by default
-        wrap: true,
-      },
+      ...expressiveCodeConfig,
     }),
-
     mdx({
       // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
       optimize: config.mdxOptimize || false,
       remarkPlugins: [remarkDirective, remarkDirectives, remarkComment, mermaid, plantuml],
       rehypePlugins: [
+        [rehypeExpressiveCode, {
+            ...expressiveCodeConfig,
+        }],
         rehypeSlug,
         [
           rehypeAutolinkHeadings,
           {
             behavior: 'append',
             properties: { className: ['anchor-link'] },
-
           },
         ],
       ],

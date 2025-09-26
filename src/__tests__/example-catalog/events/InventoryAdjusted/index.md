@@ -37,7 +37,7 @@ The `Inventory Adjusted` event is triggered whenever there is a change in the in
 
 Event example you my see being published.
 
-```json title="Payload example"
+```json 
 {
   "Name": "John Doe",
   "Age": 30,
