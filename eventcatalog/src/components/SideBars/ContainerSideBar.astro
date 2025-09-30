@@ -17,7 +17,8 @@ interface Props {
 
 const { container } = Astro.props;
 
-const services = (container.data.services as CollectionEntry<'services'>[]) || [];
+const servicesThatWriteToContainer = (container.data.servicesThatWriteToContainer as CollectionEntry<'services'>[]) || [];
+const servicesThatReadFromContainer = (container.data.servicesThatReadFromContainer as CollectionEntry<'services'>[]) || [];
 const ownersRaw = container.data?.owners || [];
 
 const owners = await Promise.all<ReturnType<typeof getOwner>>(ownersRaw.map(getOwner));
@@ -36,14 +37,14 @@ const attachmentsList = attachments.map((a) => {
   };
 });
 
-const writesToList = container.data.servicesThatWriteToContainer.map((p) => ({
+const writesToList = servicesThatWriteToContainer?.map((p) => ({
   label: p.data.name,
   tag: `v${p.data.version}`,
   collection: p.collection,
   href: buildUrl(`/docs/services/${p.data.id}/${p.data.version}`),
 }));
 
-const readsFromList = container.data.servicesThatReadFromContainer.map((p) => ({
+const readsFromList = servicesThatReadFromContainer?.map((p) => ({
   label: p.data.name,
   tag: `v${p.data.version}`,
   collection: p.collection,

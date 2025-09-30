@@ -9,7 +9,7 @@ export default {
   repositoryUrl: 'https://github.com/event-catalog/eventcatalog',
   port: 3000,
   outDir: 'dist',
-  // output: 'server',
+  output: 'server',
   logo: {
     alt: 'FlowMart',
     src: '/logo.png',

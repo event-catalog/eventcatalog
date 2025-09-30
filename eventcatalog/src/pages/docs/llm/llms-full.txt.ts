@@ -16,7 +16,8 @@ type AllowedCollections =
   | 'customPages'
   | 'channels'
   | 'entities'
-  | 'flows';
+  | 'flows'
+  | 'containers';
 
 const events = await getCollection('events');
 const commands = await getCollection('commands');
@@ -28,6 +29,7 @@ const users = await getCollection('users');
 const entities = await getCollection('entities');
 const channels = await getCollection('channels');
 const flows = await getCollection('flows');
+const containers = await getCollection('containers');
 
 const customDocs = await getCollection('customPages');
 
@@ -46,6 +48,7 @@ export const GET: APIRoute = async ({ params, request }) => {
     ...users,
     ...entities,
     ...channels,
+    ...containers,
     ...flows,
   ];
 

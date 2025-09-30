@@ -12,6 +12,8 @@ export const GET: APIRoute = async ({ params, request }) => {
   const formatServiceWithLinks = (service: CollectionEntry<'services'>) => {
     const sends = service.data.sends as unknown as CollectionEntry<'events'>[];
     const receives = service.data.receives as unknown as CollectionEntry<'events'>[];
+    const writesTo = service.data.writesTo as unknown as CollectionEntry<'containers'>[];
+    const readsFrom = service.data.readsFrom as unknown as CollectionEntry<'containers'>[];
 
     const sendsList =
       sends
@@ -29,7 +31,23 @@ export const GET: APIRoute = async ({ params, request }) => {
         )
         .join('') || '    - Does not receive any messages';
 
-    return `## [${service.data.name} - ${service.data.version}](${baseUrl}/docs/services/${service.data.id}/${service.data.version}.mdx) - ${service.data.summary}\n  ## Sends\n${sendsList}\n  ## Receives\n${receivesList}`;
+    const writesToList =
+      writesTo
+        .map(
+          (write) =>
+            `    - [${write.data.name} - ${write.data.version}](${baseUrl}/docs/containers/${write.data.id}/${write.data.version}.mdx) - ${write.data.summary}`
+        )
+        .join('') || '    - Does not write to any containers';
+
+    const readsFromList =
+      readsFrom
+        .map(
+          (read) =>
+            `    - [${read.data.name} - ${read.data.version}](${baseUrl}/docs/containers/${read.data.id}/${read.data.version}.mdx) - ${read.data.summary}`
+        )
+        .join('') || '    - Does not read from any containers';
+
+    return `## [${service.data.name} - ${service.data.version}](${baseUrl}/docs/services/${service.data.id}/${service.data.version}.mdx) - ${service.data.summary}\n  ## Sends\n${sendsList}\n  ## Receives\n${receivesList}\n  ## Writes to\n${writesToList}\n  ## Reads from\n${readsFromList} \n`;
   };
 
   const content = ['# Services \n\n', services.map((item) => formatServiceWithLinks(item)).join('\n')].join('\n');
