@@ -1,0 +1,182 @@
+---
+id: ml-model-store
+name: ML Model Store
+version: 0.0.1
+container_type: objectStore
+technology: s3
+access_mode: read
+classification: internal
+retention: 3y
+residency: eu-west-1
+summary: Object storage for trained ML models, model artifacts, and versioned fraud detection models
+---
+
+<NodeGraph />
+
+### What is this?
+ML Model Store is an S3 bucket that stores trained machine learning models, feature extractors, and model artifacts used by the Fraud Detection Service. It provides versioned storage for model rollback and A/B testing.
+
+### What does it store?
+- **Trained Models**: Serialized fraud detection models (TensorFlow SavedModel, ONNX, pickle)
+- **Model Metadata**: Model version, training date, performance metrics, feature schema
+- **Feature Extractors**: Preprocessing pipelines and feature engineering code
+- **Model Configs**: Hyperparameters, training configuration, deployment settings
+- **Experiment Results**: Training logs, validation metrics, confusion matrices
+
+### Storage structure
+```
+ml-models/
+├── fraud-detection/
+│   ├── production/
+│   │   ├── v2.3.1/
+│   │   │   ├── model.onnx
+│   │   │   ├── metadata.json
+│   │   │   ├── feature_schema.json
+│   │   │   └── performance_metrics.json
+│   │   └── current -> v2.3.1 (symlink)
+│   ├── staging/
+│   │   └── v2.4.0-rc1/
+│   └── experiments/
+│       └── exp-2024-01-15-xgboost/
+├── feature-extractors/
+│   └── v1.2.0/
+│       ├── preprocessor.pkl
+│       └── feature_config.yaml
+└── archived/
+    └── deprecated-models/
+```
+
+### Who writes to it?
+- **ML Training Pipeline** uploads newly trained models after validation
+- **Data Science Team** uploads experimental models and feature extractors
+- **CI/CD Pipeline** promotes models from staging to production
+
+### Who reads from it?
+- **FraudDetectionService** loads production models on startup and refresh
+- **Model Serving Infrastructure** fetches models for deployment
+- **A/B Testing Framework** loads multiple model versions for comparison
+- **Model Monitoring Service** reads metadata for drift detection
+
+### Object lifecycle
+1. Models trained in ML platform → uploaded to `experiments/` folder
+2. Validated models promoted to `staging/` with metadata
+3. Approved models moved to `production/` with version tag
+4. Old production models archived after 90 days in `archived/`
+5. Archived models deleted after 3 years
+
+### Model metadata format
+```json
+{
+  "model_id": "fraud-detection-v2.3.1",
+  "version": "2.3.1",
+  "trained_at": "2024-01-15T10:30:00Z",
+  "framework": "tensorflow",
+  "format": "onnx",
+  "training_dataset": {
+    "date_range": "2023-10-01 to 2024-01-01",
+    "total_samples": 5000000,
+    "fraud_rate": 0.023
+  },
+  "performance": {
+    "auc_roc": 0.94,
+    "precision": 0.89,
+    "recall": 0.87,
+    "f1_score": 0.88,
+    "false_positive_rate": 0.02
+  },
+  "features": ["transaction_amount", "device_fingerprint", "ip_country", "..."],
+  "deployment": {
+    "min_memory_mb": 512,
+    "inference_latency_p99_ms": 50,
+    "deployed_at": "2024-01-16T08:00:00Z"
+  }
+}
+```
+
+### Access patterns
+- Models loaded on FraudDetectionService startup (cold start)
+- Periodic refresh every 6 hours to pick up new model versions
+- Blue-green deployment: new version tested in parallel before full rollout
+- Model download cached locally on service instances to reduce S3 calls
+
+### Versioning strategy
+- **Semantic versioning**: major.minor.patch (e.g., 2.3.1)
+- **Major**: Breaking changes to feature schema or model API
+- **Minor**: Model improvements without breaking changes
+- **Patch**: Bug fixes, retraining with same architecture
+- Git tags linked to model versions for traceability
+
+### Security and access control
+- **Read access**: FraudDetectionService IAM role only
+- **Write access**: ML training pipeline CI/CD role only
+- **Encryption**: AES-256 server-side encryption enabled
+- **Versioning**: S3 versioning enabled for rollback capability
+- **Access logs**: All S3 access logged to audit bucket
+
+### Requesting access
+To request access to ML Model Store:
+
+1. **Read access** (for service integration):
+   - Create IAM role request via [AWS Access Portal](https://company.awsapps.com)
+   - Select "S3 Read Access" → "ml-model-store"
+   - Requires fraud team lead approval
+   - Access granted within 1 business day
+
+2. **Write access** (for ML engineers):
+   - Submit request via #ml-platform Slack channel
+   - Requires senior ML engineer approval + security review
+   - Write access limited to `experiments/` and `staging/` folders
+   - Production writes restricted to CI/CD pipeline only
+
+3. **Data Science exploration**:
+   - Use ML Platform workbench with pre-configured read access
+   - Contact #ml-platform for workspace setup
+
+**Contact**:
+- ML Platform: #ml-platform
+- Fraud ML Team: #fraud-ml-team
+- Model governance: ml-governance@company.com
+
+### Model deployment workflow
+1. Train model in ML platform environment
+2. Upload to `experiments/` with metadata and performance metrics
+3. Validation tests run automatically (schema check, performance baseline)
+4. If validated, promote to `staging/` for canary deployment
+5. Monitor staging metrics for 24 hours
+6. Approve production promotion via deployment ticket
+7. CI/CD pipeline moves model to `production/` and updates symlink
+8. FraudDetectionService auto-refreshes and loads new model
+
+### Monitoring and alerts
+- **Model staleness**: Alert if production model > 30 days old
+- **Download failures**: Alert on 5xx errors from S3
+- **Storage costs**: Monitor bucket size (alert at $500/month)
+- **Performance drift**: Compare new model metrics vs. baseline
+
+### Backup and disaster recovery
+- **S3 versioning**: Enabled for accidental deletion protection
+- **Cross-region replication**: Models replicated to us-east-1 for DR
+- **Backup frequency**: Automatic with S3 durability (99.999999999%)
+- **Recovery time**: < 5 minutes (point production symlink to previous version)
+
+### Local development
+- Local MinIO S3-compatible storage: `docker-compose up minio`
+- Connection: `AWS_ENDPOINT_URL=http://localhost:9000`
+- Seed models: `npm run seed:ml-models`
+- CLI access: `aws s3 ls s3://ml-model-store/ --endpoint-url http://localhost:9000`
+
+### Common issues and troubleshooting
+- **Model load timeout**: Increase service timeout, check S3 connectivity
+- **Version mismatch**: Ensure feature schema matches model version in metadata
+- **Cold start latency**: Pre-warm model cache on service startup
+- **S3 rate limits**: Use CloudFront or S3 acceleration for high-traffic models
+- **Model size too large**: Compress models with ONNX optimization or quantization
+
+### Best practices
+- Always include metadata.json with model performance metrics
+- Test models in staging before production deployment
+- Keep last 3 production versions for quick rollback
+- Document breaking changes in model version release notes
+- Monitor inference latency in production after deployment
+
+For more information, see ML Platform documentation and Model Deployment Playbook.

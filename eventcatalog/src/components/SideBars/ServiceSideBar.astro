@@ -25,6 +25,11 @@ const sends = (service.data.sends as CollectionEntry<'events'>[]) || [];
 const receives = (service.data.receives as CollectionEntry<'events'>[]) || [];
 
 // @ts-ignore
+const writesTo = (service.data.writesTo as CollectionEntry<'containers'>[]) || [];
+// @ts-ignore
+const readsFrom = (service.data.readsFrom as CollectionEntry<'containers'>[]) || [];
+
+// @ts-ignore
 const entities = (service.data.entities as CollectionEntry<'entities'>[]) || [];
 
 const ownersRaw = service.data?.owners || [];
@@ -69,6 +74,24 @@ const receivesList = receives
     collection: p.collection,
     href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
   }));
+
+const writesToList = writesTo.map((p) => ({
+  label: p.data.name,
+  badge: p.collection,
+  color: p.collection === 'containers' ? 'green' : 'blue',
+  collection: p.collection,
+  tag: `v${p.data.version}`,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+}));
+
+const readsFromList = readsFrom.map((p) => ({
+  label: p.data.name,
+  badge: p.collection,
+  color: p.collection === 'containers' ? 'green' : 'blue',
+  collection: p.collection,
+  tag: `v${p.data.version}`,
+  href: buildUrl(`/docs/${p.collection}/${p.data.id}/${p.data.version}`),
+}));
 
 const ownersList = filteredOwners.map((o) => ({
   label: o.data.name,
@@ -148,6 +171,24 @@ const shouldRenderSideBarSection = (section: string) => {
         </>
       )
     }
+    <>
+      <PillListFlat
+        title={`Writes to (${writesToList.length})`}
+        pills={writesToList}
+        emptyMessage={`This service does not receive any messages.`}
+        color="orange"
+        client:load
+      />
+    </>
+    <>
+      <PillListFlat
+        title={`Reads from (${readsFromList.length})`}
+        pills={readsFromList}
+        emptyMessage={`This service does not read from any containers.`}
+        color="orange"
+        client:load
+      />
+    </>
     {
       service.data.versions && shouldRenderSideBarSection('versions') && (
         <VersionList versions={service.data.versions} collectionItem={service} />

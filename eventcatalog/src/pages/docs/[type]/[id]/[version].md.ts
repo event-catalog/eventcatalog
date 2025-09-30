@@ -15,6 +15,7 @@ const services = await getCollection('services');
 const domains = await getCollection('domains');
 const flows = await getCollection('flows');
 const channels = await getCollection('channels');
+const containers = await getCollection('containers');
 const entities = await getEntities();
 export async function getStaticPaths() {
   // Just return empty array if LLMs are not enabled
@@ -30,6 +31,7 @@ export async function getStaticPaths() {
     domains,
     flows,
     channels,
+    containers,
     entities,
   };
   const paths = Object.keys(collections).map((type) => {

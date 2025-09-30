@@ -1,0 +1,186 @@
+---
+id: notifications-queue
+name: Notifications Queue
+version: 0.0.1
+container_type: other
+technology: sqs
+access_mode: readWrite
+classification: internal
+retention: 14d
+residency: eu-west-1
+summary: Message queue for asynchronous notification delivery across email, SMS, and push channels
+---
+
+<NodeGraph />
+
+### What is this?
+Notifications Queue is an AWS SQS FIFO queue that buffers notification requests for asynchronous processing. It ensures reliable, ordered delivery of notifications while decoupling notification producers from delivery channels.
+
+### What does it store?
+- **Notification Messages**: Structured notification payloads with recipient, channel, template, and data
+- **Delivery Metadata**: Priority, retry count, scheduled delivery time
+- **Batch Groups**: Related notifications grouped for efficient batch processing
+- **Dead Letter Queue Messages**: Failed notifications after max retry attempts
+
+### Queue structure
+```
+notifications-queue (Primary Queue)
+├── High Priority (MessageGroupId: priority-high)
+├── Normal Priority (MessageGroupId: priority-normal)
+└── Low Priority (MessageGroupId: priority-low)
+
+notifications-dlq (Dead Letter Queue)
+└── Failed messages after 3 retry attempts
+```
+
+### Message format
+```json
+{
+  "notification_id": "uuid",
+  "recipient": {
+    "customer_id": "uuid",
+    "email": "customer@example.com",
+    "phone": "+1234567890",
+    "device_tokens": ["fcm_token_123"]
+  },
+  "channel": "EMAIL | SMS | PUSH | IN_APP",
+  "template_id": "order_confirmation",
+  "template_data": {
+    "order_id": "12345",
+    "order_total": "$99.99",
+    "items_count": 3
+  },
+  "priority": "HIGH | NORMAL | LOW",
+  "scheduled_at": "2024-01-15T10:30:00Z",
+  "metadata": {
+    "source_service": "OrdersService",
+    "event_type": "OrderConfirmed",
+    "idempotency_key": "uuid"
+  }
+}
+```
+
+### Who writes to it?
+- **OrdersService** sends order-related notifications (confirmations, updates, cancellations)
+- **PaymentService** sends payment status notifications
+- **SubscriptionService** sends subscription lifecycle notifications
+- **InventoryService** sends low-stock alerts to internal teams
+- **Fraud DetectionService** sends fraud alert notifications
+
+### Who reads from it?
+- **NotificationService Workers** consume messages and dispatch to delivery channels
+- **Email Worker**: Processes EMAIL channel notifications via SendGrid/SES
+- **SMS Worker**: Processes SMS notifications via Twilio
+- **Push Worker**: Processes mobile push notifications via FCM/APNs
+- **In-App Worker**: Writes in-app notifications to database
+
+### Message processing flow
+1. Service publishes notification to queue with appropriate priority
+2. NotificationService worker polls queue (long polling, 20s)
+3. Worker validates message and loads template
+4. Renders template with provided data
+5. Dispatches to delivery channel (email provider, SMS gateway, etc.)
+6. On success: delete message from queue
+7. On failure: message returned to queue (visibility timeout) for retry
+8. After 3 failures: message moved to DLQ for manual review
+
+### Queue configuration
+- **Queue type**: FIFO (First-In-First-Out) for ordered delivery
+- **Message retention**: 14 days
+- **Visibility timeout**: 60 seconds (time for worker to process)
+- **Delivery delay**: 0 seconds (immediate)
+- **Max message size**: 256 KB
+- **Dead letter queue**: After 3 receive attempts
+- **Throughput**: 3,000 messages/second per message group
+
+### Priority handling
+- **HIGH**: Immediate delivery (fraud alerts, payment failures, security notifications)
+- **NORMAL**: Standard delivery (order confirmations, shipping updates)
+- **LOW**: Batch delivery (marketing emails, digest notifications)
+
+Priority implemented via message group IDs - high priority workers process high-priority groups first.
+
+### Access patterns and guidance
+- Use message group IDs to maintain order within notification types
+- Include idempotency keys to prevent duplicate notifications
+- Set appropriate visibility timeout based on channel latency
+- Monitor DLQ and investigate failures
+- Use batch sends for multiple notifications to same recipient
+
+### Monitoring and alerts
+- Queue depth monitoring (alert if > 10,000 messages)
+- DLQ message count (alert on any messages)
+- Message age monitoring (alert if oldest message > 5 minutes)
+- Consumer lag (alert if lag > 30 seconds)
+- Channel-specific delivery failure rates
+
+### Security and access control
+- **IAM policies**: Service-specific roles for send/receive permissions
+- **Encryption**: Messages encrypted at rest with AWS KMS
+- **Encryption in transit**: TLS for all queue operations
+- **Access logs**: CloudTrail logs all API calls
+- **PII protection**: Sensitive data in messages should be references, not full values
+
+### Requesting access
+To request access to Notifications Queue:
+
+1. **Publish access** (for services sending notifications):
+   - Submit request via [AWS Access Portal](https://company.awsapps.com)
+   - Select "SQS Send Permission" → "notifications-queue"
+   - Requires notification team approval
+   - IAM policy attached within 1 business day
+
+2. **Consume access** (for worker services):
+   - Restricted to NotificationService worker roles only
+   - New worker setup requires architecture review
+   - Contact #notifications-team for onboarding
+
+3. **DLQ access** (for troubleshooting):
+   - Read-only access via #notifications-oncall
+   - Write access requires incident ticket
+
+**Contact**:
+- Slack: #notifications-team
+- Email: notifications-team@company.com
+- On-call: PagerDuty #notifications-oncall
+
+### Retry and failure handling
+- **Transient failures**: Automatic retry via SQS (exponential backoff)
+- **Delivery failures**: Logged with error details, retried up to 3 times
+- **DLQ messages**: Daily review, manual retry or discard after investigation
+- **Circuit breaker**: If channel failure rate > 50%, pause and alert
+
+### Rate limiting
+- **Email**: 100 emails/second (provider limit)
+- **SMS**: 10 SMS/second (cost control)
+- **Push**: 1,000 push/second
+- Per-recipient limits to prevent spam: max 10 notifications/hour
+
+### Local development
+- LocalStack SQS emulation: `docker-compose up localstack`
+- Connection: `AWS_ENDPOINT_URL=http://localhost:4566`
+- Create queue: `npm run setup:local-queues`
+- Send test message: `npm run test:send-notification`
+
+### Performance characteristics
+- **Delivery latency**: p99 < 5 seconds from queue to delivery
+- **Throughput**: 10,000+ notifications/minute
+- **Message processing time**: p95 < 2 seconds
+- **DLQ rate**: < 0.1% of messages
+
+### Common issues and troubleshooting
+- **High queue depth**: Scale up worker instances or check for processing errors
+- **Messages in DLQ**: Check worker logs, validate template IDs, verify channel credentials
+- **Duplicate notifications**: Ensure idempotency keys are unique and properly checked
+- **Slow processing**: Check channel API latencies, may need to increase visibility timeout
+- **Message loss**: Verify IAM permissions, check for queue purge events in CloudTrail
+
+### Best practices
+- Always include idempotency key to prevent duplicates
+- Use structured logging to correlate queue messages with delivery outcomes
+- Set appropriate message retention based on business requirements
+- Monitor DLQ regularly and investigate root causes
+- Test notification templates before deploying to production
+- Use message attributes for filtering and routing
+
+For more information, see NotificationService documentation and SQS Best Practices Guide.

@@ -1,0 +1,52 @@
+---
+import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
+import VisualiserLayout from '@layouts/VisualiserLayout.astro';
+import { buildUrl } from '@utils/url-builder';
+import { ClientRouter } from 'astro:transitions';
+
+import { Page } from './_index.data';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+// Get data
+const props = await Page.getData(Astro);
+
+const {
+  data: { id },
+  collection,
+} = props;
+---
+
+<VisualiserLayout title={`Visualiser | ${props.data.name} (${props.collection})`} description={props.data.summary}>
+  <div class="bg-gray-100/50 m-4">
+    <div class="h-[calc(100vh-130px)] w-full relative border border-gray-200" id={`${id}-portal`} transition:animate="fade"></div>
+    <NodeGraph
+      id={id}
+      collection={`${collection}-containers`}
+      title={`${props.data.name} (v${props.data.version}) - Data`}
+      mode="full"
+      linkTo="visualiser"
+      version={props.data.version}
+      linksToVisualiser={false}
+      href={{
+        label: `Open documentation for ${props.data.name} v${props.data.version}`,
+        url: buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}`),
+      }}
+    />
+  </div>
+  <ClientRouter />
+</VisualiserLayout>
+
+<script define:vars={{ id }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const params = Object.fromEntries(urlSearchParams.entries());
+    const embeded = params.embed === 'true' ? true : false;
+    const viewport = document.getElementById(`${id}-portal`);
+
+    if (embeded) {
+      viewport.style.height = 'calc(100vh - 30px)';
+    }
+  });
+</script>

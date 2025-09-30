@@ -16,6 +16,18 @@ sends:
   - id: PaymentProcessed
     version: 0.0.1
   - id: GetOrder
+writesTo:
+  - id: payments-db
+    version: 0.0.1
+  - id: payment-cache
+    version: 0.0.1
+readsFrom:
+  - id: order-metadata-store
+    version: 0.0.1
+  - id: payments-db
+    version: 0.0.1
+  - id: payment-cache
+    version: 0.0.1
 repository:
   language: JavaScript
   url: https://github.com/event-catalog/pretend-shipping-service

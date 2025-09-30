@@ -1,6 +1,13 @@
 import { useState, useMemo, useEffect } from 'react';
-import { ServerIcon, EnvelopeIcon, RectangleGroupIcon, Squares2X2Icon, QueueListIcon } from '@heroicons/react/24/outline';
-import { buildUrlWithParams } from '@utils/url-builder';
+import {
+  ServerIcon,
+  EnvelopeIcon,
+  RectangleGroupIcon,
+  Squares2X2Icon,
+  QueueListIcon,
+  CircleStackIcon,
+} from '@heroicons/react/24/outline';
+import { buildUrlWithParams, buildUrl } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
 import { type CollectionMessageTypes } from '@types';
 import { getCollectionStyles } from './utils';
@@ -287,6 +294,64 @@ export default function DomainGrid({ domains, embeded }: DomainGridProps) {
                         </div>
                       </div>
                     </div>
+
+                    {/* Container lists at the bottom */}
+                    {((service.data.readsFrom && service.data.readsFrom.length > 0) ||
+                      (service.data.writesTo && service.data.writesTo.length > 0)) && (
+                      <div className="mt-3 pt-3 border-t border-gray-200 grid grid-cols-2 gap-4">
+                        {/* Reads From */}
+                        {service.data.readsFrom && service.data.readsFrom.length > 0 && (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <CircleStackIcon className="h-4 w-4 text-orange-500" />
+                              <h4 className="text-xs font-semibold text-gray-700">Reads from</h4>
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {service.data.readsFrom.slice(0, 3).map((container: any) => (
+                                <span
+                                  key={container.id}
+                                  className="group inline-flex items-center gap-1 px-2 py-1 bg-orange-100 border border-orange-300 rounded-md text-[11px] font-medium hover:bg-orange-200 transition-colors duration-200"
+                                >
+                                  <CircleStackIcon className="h-3 w-3 text-orange-600" />
+                                  <span className="text-orange-800">{container.id}</span>
+                                </span>
+                              ))}
+                              {service.data.readsFrom.length > 3 && (
+                                <span className="inline-flex items-center px-2 py-1 text-xs text-gray-500">
+                                  + {service.data.readsFrom.length - 3} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Writes To */}
+                        {service.data.writesTo && service.data.writesTo.length > 0 && (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <CircleStackIcon className="h-4 w-4 text-purple-500" />
+                              <h4 className="text-xs font-semibold text-gray-700">Writes to</h4>
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {service.data.writesTo.slice(0, 3).map((container: any) => (
+                                <span
+                                  key={container.id}
+                                  className="group inline-flex items-center gap-1 px-2 py-1 bg-purple-100 border border-purple-300 rounded-md text-[11px] font-medium hover:bg-purple-200 transition-colors duration-200"
+                                >
+                                  <CircleStackIcon className="h-3 w-3 text-purple-600" />
+                                  <span className="text-purple-800">{container.id}</span>
+                                </span>
+                              ))}
+                              {service.data.writesTo.length > 3 && (
+                                <span className="inline-flex items-center px-2 py-1 text-xs text-gray-500">
+                                  + {service.data.writesTo.length - 3} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
                 {domain.data.domains && domain.data.domains.length > 2 && (

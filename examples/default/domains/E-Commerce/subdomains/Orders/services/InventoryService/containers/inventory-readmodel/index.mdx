@@ -1,0 +1,122 @@
+---
+id: inventory-readmodel
+name: Inventory Read Model
+version: 0.0.1
+container_type: database
+technology: postgres@14
+authoritative: false
+access_mode: read
+summary: Projection of stock levels from Inventory domain
+---
+
+<NodeGraph />
+
+The Inventory Read Model is a PostgreSQL database that serves as an optimized projection of inventory data for high-performance read operations. This read model is specifically designed to support fast queries for stock levels, product availability, and inventory reporting across our e-commerce platform.
+
+## Overview
+
+This read model is maintained by the Inventory Service and provides denormalized views of inventory data that are optimized for query performance. It serves as the primary data source for:
+
+- Real-time stock level checks during order processing
+- Inventory reporting and analytics
+- Product availability displays on the storefront
+- Low stock alerts and notifications
+
+## Database Schema
+
+### Core Tables
+
+#### `inventory_projection`
+- **product_id** (UUID) - Primary key, references the product
+- **sku** (VARCHAR) - Stock keeping unit identifier
+- **available_quantity** (INTEGER) - Current available stock
+- **reserved_quantity** (INTEGER) - Stock reserved for pending orders
+- **total_quantity** (INTEGER) - Total physical stock
+- **reorder_point** (INTEGER) - Minimum stock threshold
+- **last_updated** (TIMESTAMP) - When this record was last updated
+- **version** (BIGINT) - Event sourcing version number
+
+#### `product_locations`
+- **product_id** (UUID) - Foreign key to inventory_projection
+- **warehouse_id** (UUID) - Warehouse identifier
+- **location_code** (VARCHAR) - Specific location within warehouse
+- **quantity** (INTEGER) - Quantity at this location
+- **last_counted** (TIMESTAMP) - Last physical count date
+
+#### `stock_movements_summary`
+- **product_id** (UUID) - Product identifier
+- **movement_date** (DATE) - Date of movement
+- **inbound_quantity** (INTEGER) - Total items received
+- **outbound_quantity** (INTEGER) - Total items shipped
+- **adjustment_quantity** (INTEGER) - Manual adjustments
+- **ending_balance** (INTEGER) - End of day balance
+
+## Data Sources
+
+This read model is populated from the following event streams:
+
+- **InventoryReceived** - Updates available quantity when new stock arrives
+- **InventoryReserved** - Increases reserved quantity for orders
+- **InventoryReleased** - Decreases reserved quantity when reservations expire
+- **InventoryAdjusted** - Manual stock adjustments from warehouse operations
+- **InventoryTransferred** - Stock movements between locations
+
+## Performance Characteristics
+
+- **Read Latency**: < 5ms for single product queries
+- **Throughput**: 50,000+ queries per second
+- **Data Freshness**: Near real-time (< 100ms from event occurrence)
+- **Availability**: 99.95% uptime SLA
+
+## Usage Patterns
+
+### High-Frequency Operations
+- Stock availability checks during checkout
+- Real-time inventory displays on product pages
+- Order validation and reservation
+
+### Reporting Operations
+- Daily inventory reports
+- Low stock alerts
+- Inventory turnover analysis
+- Warehouse utilization metrics
+
+## Maintenance
+
+### Data Retention
+- Transaction-level data: 2 years
+- Summary data: 7 years
+- Archived data moved to cold storage after retention period
+
+### Backup Strategy
+- Full backups: Daily at 2 AM EST
+- Incremental backups: Every 4 hours
+- Point-in-time recovery available for 30 days
+- Cross-region replication for disaster recovery
+
+### Monitoring
+- Stock level discrepancy alerts
+- Query performance monitoring
+- Event processing lag alerts
+- Database health checks every 5 minutes
+
+## Security
+
+- **Access Control**: Role-based access with principle of least privilege
+- **Encryption**: Data encrypted at rest using AES-256
+- **Network Security**: VPC isolation with private subnets
+- **Audit Logging**: All data access logged for compliance
+
+## Dependencies
+
+- **Event Store**: Primary source of inventory events
+- **Message Bus**: RabbitMQ for event consumption
+- **Cache Layer**: Redis for frequently accessed data
+- **Monitoring**: Prometheus and Grafana for metrics
+
+## Contact Information
+
+For questions about this read model, please contact:
+- **Primary**: Inventory Team (inventory@acmecorp.com)
+- **On-call**: Use PagerDuty escalation policy "Inventory-ReadModel"
+- **Architecture Questions**: Sarah Mitchell (s.mitchell@acmecorp.com)

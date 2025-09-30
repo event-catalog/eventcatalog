@@ -32,6 +32,7 @@ import CommandNode from './Nodes/Command';
 import ExternalSystemNode from './Nodes/ExternalSystem';
 import DomainNode from './Nodes/Domain';
 import AnimatedMessageEdge from './Edges/AnimatedMessageEdge';
+import MultilineEdgeLabel from './Edges/MultilineEdgeLabel';
 import FlowEdge from './Edges/FlowEdge';
 import CustomNode from './Nodes/Custom';
 import DataNode from './Nodes/Data';
@@ -124,6 +125,7 @@ const NodeGraphBuilder = ({
   const edgeTypes = useMemo(
     () => ({
       animated: AnimatedMessageEdge,
+      multiline: MultilineEdgeLabel,
       'flow-edge': FlowEdge,
     }),
     []
@@ -241,7 +243,7 @@ const NodeGraphBuilder = ({
       eds.map((edge) => ({
         ...edge,
         animated: animateMessages,
-        type: edge.type === 'flow-edge' ? 'flow-edge' : animateMessages ? 'animated' : 'default',
+        type: edge.type === 'flow-edge' || edge.type === 'multiline' ? edge.type : animateMessages ? 'animated' : 'default',
         data: { ...edge.data, animateMessages, animated: animateMessages },
       }))
     );
@@ -423,6 +425,7 @@ const NodeGraphBuilder = ({
       externalSystem: 'bg-pink-600',
       actor: 'bg-yellow-500',
       step: 'bg-gray-700',
+      data: 'bg-blue-600',
     };
 
     let legendForDomains: { [key: string]: { count: number; colorClass: string; groupId: string } } = {};

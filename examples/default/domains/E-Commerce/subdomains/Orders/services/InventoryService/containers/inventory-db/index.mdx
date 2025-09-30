@@ -1,0 +1,195 @@
+---
+id: inventory-db
+name: Inventory DB
+version: 0.0.1
+container_type: database
+technology: postgres@14
+authoritative: true
+access_mode: readWrite
+classification: internal
+retention: 5y
+residency: eu-west-1
+summary: Authoritative database for product inventory levels, warehouse stock, and inventory movements
+---
+
+<NodeGraph />
+
+### What is this?
+Inventory DB is the system of record for real-time inventory tracking across multiple warehouses and fulfillment centers. It maintains accurate stock levels, handles inventory reservations, and tracks all inventory movements (receipts, shipments, adjustments).
+
+### What does it store?
+- **Inventory Levels**: Current stock quantities by product and warehouse
+- **Inventory Reservations**: Temporary holds on inventory for pending orders
+- **Stock Movements**: Audit trail of all inventory transactions (in, out, adjustments)
+- **Reorder Points**: Low-stock thresholds and automatic reorder triggers
+- **Warehouse Locations**: Bin/shelf locations for physical inventory management
+
+### Who writes to it?
+- **InventoryService** manages stock levels, reservations, and adjustments
+- **OrdersService** creates reservations when orders are placed
+- **Warehouse Management System** updates physical inventory counts
+- **Receiving System** adds stock when shipments arrive
+
+### Who reads from it?
+- **OrdersService** checks stock availability before order confirmation
+- **Inventory Service** monitors low-stock alerts and reorder points
+- **Analytics** tracks inventory turnover and stock-out rates
+- **Warehouse Operations** for pick/pack workflows
+- **Finance** for inventory valuation reports
+
+### High-level data model
+- `inventory_levels`: Current quantities by product and warehouse (frequently updated)
+- `inventory_reservations`: Temporary allocations for pending orders (auto-expire)
+- `stock_movements`: Immutable log of all inventory changes
+- `reorder_rules`: Automated replenishment configuration
+
+### Common queries
+```sql
+-- Check available inventory for a product (excluding reservations)
+SELECT
+  il.warehouse_id,
+  il.quantity_on_hand,
+  COALESCE(SUM(ir.quantity), 0) AS quantity_reserved,
+  il.quantity_on_hand - COALESCE(SUM(ir.quantity), 0) AS quantity_available
+FROM inventory_levels il
+LEFT JOIN inventory_reservations ir
+  ON ir.product_id = il.product_id
+  AND ir.warehouse_id = il.warehouse_id
+  AND ir.expires_at > NOW()
+WHERE il.product_id = $1
+GROUP BY il.warehouse_id, il.quantity_on_hand;
+
+-- Find low-stock items needing reorder
+SELECT
+  il.product_id,
+  il.warehouse_id,
+  il.quantity_on_hand,
+  rr.reorder_point,
+  rr.reorder_quantity
+FROM inventory_levels il
+JOIN reorder_rules rr
+  ON rr.product_id = il.product_id
+  AND rr.warehouse_id = il.warehouse_id
+WHERE il.quantity_on_hand <= rr.reorder_point
+  AND rr.enabled = true;
+
+-- Track inventory movements for audit (last 30 days)
+SELECT
+  sm.movement_id,
+  sm.product_id,
+  sm.warehouse_id,
+  sm.movement_type, -- 'RECEIPT', 'SHIPMENT', 'ADJUSTMENT', 'RETURN'
+  sm.quantity_change,
+  sm.reason,
+  sm.created_at,
+  sm.created_by
+FROM stock_movements sm
+WHERE sm.product_id = $1
+  AND sm.created_at >= NOW() - INTERVAL '30 days'
+ORDER BY sm.created_at DESC;
+
+-- Calculate inventory turnover rate
+SELECT
+  p.product_id,
+  p.product_name,
+  SUM(CASE WHEN sm.movement_type = 'SHIPMENT' THEN ABS(sm.quantity_change) ELSE 0 END) AS units_sold_30d,
+  AVG(il.quantity_on_hand) AS avg_inventory_level,
+  (SUM(CASE WHEN sm.movement_type = 'SHIPMENT' THEN ABS(sm.quantity_change) ELSE 0 END) /
+   NULLIF(AVG(il.quantity_on_hand), 0)) AS turnover_ratio
+FROM stock_movements sm
+JOIN inventory_levels il USING (product_id, warehouse_id)
+JOIN products p USING (product_id)
+WHERE sm.created_at >= NOW() - INTERVAL '30 days'
+GROUP BY p.product_id, p.product_name
+ORDER BY turnover_ratio DESC;
+```
+
+### Inventory reservation flow
+1. Customer adds item to cart → soft reservation (not written to DB yet)
+2. Customer proceeds to checkout → `OrdersService` creates reservation with 15-minute expiry
+3. Payment successful → reservation converted to stock movement (`SHIPMENT` type)
+4. Payment failed or timeout → reservation auto-expires, stock released
+5. Order cancelled → reservation deleted, stock released immediately
+
+### Access patterns and guidance
+- Use indexed lookups by `product_id` and `warehouse_id`
+- Reservations have TTL; expired reservations cleaned up hourly
+- Stock movements are append-only for audit compliance
+- Use pessimistic locking for concurrent inventory updates
+- Read replicas for analytics to avoid impacting operational queries
+
+### Concurrency and consistency
+- **Row-level locking**: `SELECT FOR UPDATE` on inventory_levels during reservations
+- **Atomic updates**: All inventory changes in transactions (reserve + deduct + log)
+- **Idempotency**: Movement records include idempotency keys to prevent duplicates
+- **Eventual consistency**: Read model (inventory-readmodel container) synced asynchronously
+
+### Security and compliance
+- Inventory adjustments logged with user identity for audit trail
+- Role-based access: warehouse staff vs. system services
+- Financial impact tracked for high-value inventory movements
+- Historical data retained for 5 years (tax/audit requirements)
+
+### Requesting access
+To request access to Inventory DB:
+
+1. **Read-only access** (for reporting):
+   - Submit request via [ServiceNow](https://company.service-now.com)
+   - Select "Database Access" → "Inventory DB (Read-Only)"
+   - Approval from inventory team lead
+   - Access granted within 24 hours
+
+2. **Write access** (for services):
+   - Restricted to InventoryService and authorized systems only
+   - New service integration requires architecture review
+   - Contact #inventory-team for integration onboarding
+
+3. **Warehouse operations access**:
+   - Access via Warehouse Management System only (no direct DB access)
+   - Contact #warehouse-operations for WMS training
+
+**Contact**:
+- Slack: #inventory-team
+- Email: inventory-team@company.com
+- On-call: PagerDuty #inventory-oncall
+
+### Monitoring and alerts
+- Stock-out alerts (inventory level = 0 for critical products)
+- Negative inventory alerts (data integrity issue)
+- Reservation expiry rate (high rate indicates checkout abandonment)
+- Database lock contention (alert if wait time > 100ms)
+- Replication lag (alert at > 5 seconds)
+
+### Backup and disaster recovery
+- Continuous backups with 5-minute RPO
+- Point-in-time recovery window: 35 days
+- Cross-region backup replication for DR
+- Daily backup validation
+
+### Performance characteristics
+- **Read latency**: p99 < 20ms
+- **Write latency**: p99 < 50ms (includes locking)
+- **Reservation throughput**: 1,000+ reservations/second
+- **Concurrent updates**: Supports high concurrency with row-level locking
+
+### Local development
+- Connection string: `INVENTORY_DB_URL` environment variable
+- Docker setup: `docker-compose up inventory-db`
+- Seed data: `npm run seed:inventory`
+- Test data includes multiple warehouses and stock levels
+
+### Common issues and troubleshooting
+- **Negative inventory**: Check for missing rollback on failed reservations
+- **Stuck reservations**: Run cleanup job for expired reservations
+- **Lock contention**: Reduce transaction duration, consider optimistic locking
+- **Inventory drift**: Reconcile with physical counts, investigate stock movement gaps
+- **Replication lag**: Check network latency, increase replication capacity
+
+### Integration with read model
+Inventory DB is the write-side (source of truth). The `inventory-readmodel` container provides optimized read queries:
+- Real-time sync via change data capture (CDC)
+- Denormalized views for fast lookups
+- Eventually consistent (typically < 1 second lag)
+- Used by high-traffic read operations (product pages, search)
+
+For more information, see InventoryService documentation and Inventory Management Playbook.

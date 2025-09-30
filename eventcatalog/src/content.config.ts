@@ -47,7 +47,7 @@ const channelPointer = z
 const resourcePointer = z.object({
   id: z.string(),
   version: z.string().optional().default('latest'),
-  type: z.enum(['service', 'event', 'command', 'query', 'flow', 'channel', 'domain', 'user', 'team']),
+  type: z.enum(['service', 'event', 'command', 'query', 'flow', 'channel', 'domain', 'user', 'team', 'container']),
 });
 
 const changelogs = defineCollection({
@@ -361,6 +361,8 @@ const services = defineCollection({
       sends: z.array(pointer).optional(),
       receives: z.array(pointer).optional(),
       entities: z.array(pointer).optional(),
+      writesTo: z.array(pointer).optional(),
+      readsFrom: z.array(pointer).optional(),
       detailsPanel: z
         .object({
           domains: detailPanelPropertySchema.optional(),
@@ -371,8 +373,61 @@ const services = defineCollection({
           repository: detailPanelPropertySchema.optional(),
           owners: detailPanelPropertySchema.optional(),
           changelog: detailPanelPropertySchema.optional(),
+          containers: detailPanelPropertySchema.optional(),
         })
         .optional(),
+    })
+    .merge(baseSchema),
+});
+
+// 1) Put this near your other enums/utilities
+const containerTypeEnum = z.enum([
+  // Core
+  'database',
+  'cache',
+  'objectStore',
+  'searchIndex',
+  'dataWarehouse',
+  'dataLake',
+  'externalSaaS',
+  // Fallback
+  'other',
+]);
+
+const accessModeEnum = z.enum(['read', 'write', 'readWrite', 'appendOnly']);
+const dataClassificationEnum = z.enum(['public', 'internal', 'confidential', 'regulated']);
+
+const containers = defineCollection({
+  loader: glob({
+    pattern: ['**/containers/*/index.(md|mdx)', '**/containers/*/versioned/*/index.(md|mdx)'],
+    base: projectDirBase,
+    generateId: ({ data }) => {
+      return `${data.id}-${data.version}`;
+    },
+  }),
+  schema: z
+    .object({
+      container_type: containerTypeEnum, // <— the important discriminator inside DataContainer
+      technology: z.string().optional(), // e.g. "postgres@14", "kafka", "s3"
+      authoritative: z.boolean().optional().default(false),
+      access_mode: accessModeEnum.optional(), // read/write/readWrite/appendOnly
+      classification: dataClassificationEnum.optional(),
+      residency: z.string().optional(),
+      retention: z.string().optional(),
+      // details panel toggles (aligns with your pattern)
+      detailsPanel: z
+        .object({
+          versions: detailPanelPropertySchema.optional(),
+          repository: detailPanelPropertySchema.optional(),
+          owners: detailPanelPropertySchema.optional(),
+          changelog: detailPanelPropertySchema.optional(),
+          attachments: detailPanelPropertySchema.optional(),
+        })
+        .optional(),
+      services: z.array(reference('services')).optional(),
+
+      servicesThatWriteToContainer: z.array(reference('services')).optional(),
+      servicesThatReadFromContainer: z.array(reference('services')).optional(),
     })
     .merge(baseSchema),
 });
@@ -628,6 +683,7 @@ export const collections = {
   flows,
   pages,
   changelogs,
+  containers,
 
   // DDD Collections
   ubiquitousLanguages,

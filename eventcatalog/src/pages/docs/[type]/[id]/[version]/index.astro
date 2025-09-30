@@ -19,6 +19,7 @@ import DomainSideBar from '@components/SideBars/DomainSideBar.astro';
 import ChannelSideBar from '@components/SideBars/ChannelSideBar.astro';
 import FlowSideBar from '@components/SideBars/FlowSideBar.astro';
 import EntitySideBar from '@components/SideBars/EntitySideBar.astro';
+import ContainerSideBar from '@components/SideBars/ContainerSideBar.astro';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
 
 import {
@@ -28,9 +29,11 @@ import {
   BoltIcon,
   ChatBubbleLeftIcon,
   MagnifyingGlassIcon,
+  MapIcon,
+  ClockIcon,
 } from '@heroicons/react/24/outline';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
-import { Box, Boxes, SquarePenIcon } from 'lucide-react';
+import { Box, Boxes, SquarePenIcon, DatabaseIcon, DatabaseZapIcon, ShieldCheckIcon } from 'lucide-react';
 import type { CollectionTypes } from '@types';
 
 import { render } from 'astro:content';
@@ -99,6 +102,51 @@ const getBadge = () => {
 
   if (props.collection === 'channels') {
     return [{ backgroundColor: 'teal', textColor: 'teal', content: 'Channel', icon: ArrowsRightLeftIcon, class: 'text-gray' }];
+  }
+
+  if (props.collection === 'containers') {
+    const badges = [];
+    const content = props.data.container_type?.charAt(0).toUpperCase() + props.data.container_type?.slice(1) || 'Database';
+
+    badges.push({ backgroundColor: 'blue', textColor: 'blue', content: content, icon: DatabaseIcon, class: 'text-gray' });
+
+    if (props.data?.technology) {
+      badges.push({
+        backgroundColor: 'indigo',
+        textColor: 'indigo',
+        content: `${props.data.technology}`,
+        icon: DatabaseZapIcon,
+      });
+    }
+
+    if (props.data?.residency) {
+      badges.push({
+        backgroundColor: 'red',
+        textColor: 'red',
+        content: `Residency: ${props.data.residency}`,
+        icon: MapIcon,
+      });
+    }
+
+    if (props.data?.retention) {
+      badges.push({
+        backgroundColor: 'green',
+        textColor: 'green',
+        content: `Retention: ${props.data.retention}`,
+        icon: ClockIcon,
+      });
+    }
+
+    if (props.data?.access_mode) {
+      badges.push({
+        backgroundColor: 'green',
+        textColor: 'green',
+        content: `Access Mode: ${props.data.access_mode}`,
+        icon: ShieldCheckIcon,
+      });
+    }
+
+    return badges;
   }
 
   if (props.collection === 'entities') {
@@ -435,6 +483,7 @@ nodeGraphs.push({
         {props?.collection === 'channels' && <ChannelSideBar channel={props} />}
         {props?.collection === 'flows' && <FlowSideBar flow={props} />}
         {props?.collection === 'entities' && <EntitySideBar entity={props} />}
+        {props?.collection === 'containers' && <ContainerSideBar container={props} />}
       </aside>
     </div>
   </main>

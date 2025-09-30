@@ -1,0 +1,158 @@
+---
+id: payment-cache
+name: Payment Cache
+version: 0.0.1
+container_type: cache
+technology: redis@7
+access_mode: readWrite
+classification: internal
+retention: 24h
+residency: eu-west-1
+summary: High-performance cache for payment session data and idempotency checks
+---
+
+<NodeGraph />
+
+### What is this?
+Payment Cache is a Redis 7 cluster used for caching payment session data, rate limiting, and idempotency key tracking. It provides sub-millisecond latency for payment processing flows and reduces load on the primary database.
+
+### What does it store?
+- **Payment Sessions**: Temporary payment context during checkout (15-minute TTL)
+- **Idempotency Keys**: Fast duplicate payment prevention (24-hour TTL)
+- **Rate Limiting Counters**: Per-customer payment attempt limits
+- **Payment Method Cache**: Recently used payment methods (1-hour TTL)
+- **Gateway Status**: Payment gateway health check results (5-minute TTL)
+
+### Who writes to it?
+- **PaymentService** writes session data, idempotency keys, and cached payment methods
+- **PaymentGatewayService** updates gateway health status
+- **FraudDetectionService** writes rate limiting counters
+
+### Who reads from it?
+- **PaymentService** reads session data and checks idempotency keys before processing
+- **FraudDetectionService** reads rate limiting counters for risk assessment
+- **Frontend APIs** check payment session validity
+
+### Key patterns and structure
+```redis
+# Payment session keys (TTL: 15 minutes)
+payment:session:{session_id} -> {
+  "customer_id": "uuid",
+  "order_id": "uuid",
+  "amount_cents": 9999,
+  "currency": "USD",
+  "payment_method_id": "uuid",
+  "created_at": "2024-01-15T10:30:00Z"
+}
+
+# Idempotency keys (TTL: 24 hours)
+payment:idempotency:{idempotency_key} -> {payment_id}
+
+# Rate limiting (TTL: 1 hour)
+payment:ratelimit:{customer_id}:hour -> count
+payment:ratelimit:{customer_id}:day -> count
+
+# Payment method cache (TTL: 1 hour)
+payment:method:{payment_method_id} -> {
+  "type": "CARD",
+  "last_four": "4242",
+  "brand": "VISA",
+  "customer_id": "uuid"
+}
+
+# Gateway health status (TTL: 5 minutes)
+payment:gateway:{gateway_name}:status -> "UP" | "DOWN" | "DEGRADED"
+```
+
+### Common operations
+```javascript
+// Create payment session
+await redis.setex(
+  `payment:session:${sessionId}`,
+  900, // 15 minutes
+  JSON.stringify(sessionData)
+);
+
+// Check idempotency key
+const existingPaymentId = await redis.get(`payment:idempotency:${key}`);
+if (existingPaymentId) {
+  return { duplicate: true, paymentId: existingPaymentId };
+}
+
+// Set idempotency key
+await redis.setex(`payment:idempotency:${key}`, 86400, paymentId);
+
+// Increment rate limit counter
+const attempts = await redis.incr(`payment:ratelimit:${customerId}:hour`);
+if (attempts === 1) {
+  await redis.expire(`payment:ratelimit:${customerId}:hour`, 3600);
+}
+if (attempts > 10) {
+  throw new RateLimitError('Too many payment attempts');
+}
+
+// Cache payment method
+await redis.setex(
+  `payment:method:${methodId}`,
+  3600,
+  JSON.stringify(paymentMethod)
+);
+```
+
+### Configuration
+- **Cluster mode**: Enabled for high availability (3 primary + 3 replica nodes)
+- **Eviction policy**: `allkeys-lru` (automatically evict least recently used keys)
+- **Max memory**: 4GB per node
+- **Persistence**: AOF disabled (cache data is ephemeral)
+- **Connection pooling**: Min 10, Max 50 connections per service instance
+
+### Access patterns and guidance
+- Always set appropriate TTLs to prevent memory bloat
+- Use Redis Cluster key hashing for scalability
+- Idempotency checks must be atomic (use `SETNX` or Lua scripts)
+- Rate limiting uses `INCR` with `EXPIRE` for atomic counters
+- Payment sessions should be invalidated on completion or expiry
+
+### Monitoring and alerts
+- Cache hit rate monitored (target: > 85%)
+- Memory usage alerts at 80% capacity
+- Connection pool exhaustion alerts
+- Slow command alerts (> 10ms)
+- Replication lag monitoring (target: < 1 second)
+
+### High availability
+- Multi-AZ deployment across 3 availability zones
+- Automatic failover with Redis Sentinel
+- Read replicas for read-heavy operations
+- Connection retry logic in application code
+
+### Security
+- Redis AUTH enabled with strong password rotation
+- TLS encryption for all connections
+- VPC isolation - no public internet access
+- Network ACLs restrict access to payment services only
+
+### Backup and disaster recovery
+- No persistent backups (cache data is ephemeral and can be rebuilt)
+- Cluster configuration backed up for rapid rebuild
+- Runbooks for cache warmup after total failure
+
+### Local development
+- Connection string: `PAYMENT_CACHE_URL` environment variable
+- Local Redis via Docker: `docker run -d -p 6379:6379 redis:7-alpine`
+- Test data can be seeded via `npm run seed:payment-cache`
+
+### Common issues and troubleshooting
+- **Cache misses on payment sessions**: Check TTL configuration, may need adjustment for slow checkouts
+- **Idempotency key collisions**: Ensure clients generate unique keys (recommend UUID v4)
+- **Rate limiting false positives**: Review rate limit thresholds, may need per-tier limits
+- **Memory pressure**: Monitor eviction rates, consider increasing cluster size
+- **Connection timeouts**: Check connection pool settings and network latency
+
+### Performance characteristics
+- **Read latency**: p99 < 5ms
+- **Write latency**: p99 < 10ms
+- **Throughput**: 50,000+ ops/sec per node
+- **TTL precision**: 1-second granularity
+
+For more information, see the PaymentService caching strategy documentation.

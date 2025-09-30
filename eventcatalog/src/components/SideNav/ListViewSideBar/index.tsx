@@ -77,6 +77,11 @@ const ServiceItem = React.memo(
     isVisualizer: boolean;
     searchTerm: string;
   }) => {
+    const readsAndWritesTo = item.writesTo.filter((writeTo) => item.readsFrom.some((readFrom) => readFrom.id === writeTo.id));
+    const resourceReads = item.readsFrom.filter((readFrom) => !readsAndWritesTo.some((writeTo) => writeTo.id === readFrom.id));
+    const resourceWrites = item.writesTo.filter((writeTo) => !readsAndWritesTo.some((readFrom) => readFrom.id === writeTo.id));
+    const hasData = item.writesTo.length > 0 || item.readsFrom.length > 0;
+
     return (
       <CollapsibleGroup
         isCollapsed={collapsedGroups[item.href]}
@@ -115,6 +120,17 @@ const ServiceItem = React.memo(
           >
             <span className="truncate">Overview</span>
           </a>
+          {isVisualizer && hasData && (
+            <a
+              href={buildUrl(`/${item.href}/data`)}
+              data-active={decodedCurrentPath === `${item.href}/data`}
+              className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
+                decodedCurrentPath === `${item.href}/data` ? 'bg-purple-100 ' : 'hover:bg-purple-100'
+              }`}
+            >
+              <span className="truncate">Data Diagram</span>
+            </a>
+          )}
           {!isVisualizer && (
             <a
               href={buildUrlWithParams('/architecture/docs/messages', {
@@ -185,6 +201,84 @@ const ServiceItem = React.memo(
           >
             <MessageList messages={item.sends} decodedCurrentPath={decodedCurrentPath} searchTerm={searchTerm} />
           </CollapsibleGroup>
+          {!isVisualizer && hasData && (
+            <CollapsibleGroup
+              isCollapsed={collapsedGroups[`${item.href}-data`]}
+              onToggle={() => toggleGroupCollapse(`${item.href}-data`)}
+              title={
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleGroupCollapse(`${item.href}-data`);
+                  }}
+                  className="truncate underline ml-2 text-xs mb-1 py-1"
+                >
+                  Data Stores ({readsAndWritesTo.length + resourceWrites.length + resourceReads.length})
+                </button>
+              }
+            >
+              {readsAndWritesTo.length > 0 && (
+                <CollapsibleGroup
+                  className="ml-4"
+                  isCollapsed={collapsedGroups[`${item.href}-writesTo-data`]}
+                  onToggle={() => toggleGroupCollapse(`${item.href}-writesTo-data`)}
+                  title={
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleGroupCollapse(`${item.href}-writesTo-data`);
+                      }}
+                      className="truncate underline ml-2 text-xs mb-1 py-1"
+                    >
+                      Reads and writes to
+                    </button>
+                  }
+                >
+                  <MessageList messages={readsAndWritesTo} decodedCurrentPath={decodedCurrentPath} searchTerm={searchTerm} />
+                </CollapsibleGroup>
+              )}
+              {resourceWrites.length > 0 && (
+                <CollapsibleGroup
+                  className="ml-4"
+                  isCollapsed={collapsedGroups[`${item.href}-writesTo-data`]}
+                  onToggle={() => toggleGroupCollapse(`${item.href}-writesTo-data`)}
+                  title={
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleGroupCollapse(`${item.href}-writesTo-data`);
+                      }}
+                      className="truncate underline ml-2 text-xs mb-1 py-1"
+                    >
+                      Writes to
+                    </button>
+                  }
+                >
+                  <MessageList messages={resourceWrites} decodedCurrentPath={decodedCurrentPath} searchTerm={searchTerm} />
+                </CollapsibleGroup>
+              )}
+              {resourceReads.length > 0 && (
+                <CollapsibleGroup
+                  className="ml-4"
+                  isCollapsed={collapsedGroups[`${item.href}-readsFrom-data`]}
+                  onToggle={() => toggleGroupCollapse(`${item.href}-readsFrom-data`)}
+                  title={
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleGroupCollapse(`${item.href}-readsFrom-data`);
+                      }}
+                      className="truncate underline ml-2 text-xs mb-1 py-1"
+                    >
+                      Reads From
+                    </button>
+                  }
+                >
+                  <MessageList messages={resourceReads} decodedCurrentPath={decodedCurrentPath} searchTerm={searchTerm} />
+                </CollapsibleGroup>
+              )}
+            </CollapsibleGroup>
+          )}
           {!isVisualizer && item.entities.length > 0 && (
             <CollapsibleGroup
               isCollapsed={collapsedGroups[`${item.href}-entities`]}
@@ -513,6 +607,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
             >
               <span className="truncate">Overview</span>
             </a>
+
             {isVisualizer && hasEntities && (
               <a
                 href={buildUrl(`/${item.href}/entity-map`)}
@@ -720,73 +815,169 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
 
             {filteredData['messagesNotInService'] && filteredData['messagesNotInService'].length > 0 && (
               <div className="pt-4 pb-2">
-                <ul className="space-y-4">
-                  {filteredData['messagesNotInService'].map((item: any) => (
-                    <li key={item.href} className="space-y-0" data-active={decodedCurrentPath === item.href}>
-                      <a
-                        href={item.href}
-                        data-active={decodedCurrentPath === item.href}
-                        className={`flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md ${
-                          decodedCurrentPath === item.href ? 'bg-purple-100 text-purple-900' : 'hover:bg-purple-100'
-                        }`}
-                      >
-                        <span className="truncate">
-                          <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
-                        </span>
-                        <span
-                          className={`ml-2 text-[10px] font-medium px-2 uppercase py-0.5 rounded ${getMessageColorByCollection(item.collection)}`}
+                <CollapsibleGroup
+                  isCollapsed={collapsedGroups['messagesNotInService-group']}
+                  onToggle={() => toggleGroupCollapse('messagesNotInService-group')}
+                  title={
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleGroupCollapse('messagesNotInService-group');
+                      }}
+                      className="flex justify-between items-center pl-2 w-full text-xs"
+                    >
+                      <span className="truncate text-xs font-bold">Orphaned Messages</span>
+                    </button>
+                  }
+                >
+                  <div className="space-y-2 border-gray-200/80 border-l pl-3 ml-[9px] mt-3">
+                    {filteredData['messagesNotInService'].map((item: any) => (
+                      <div key={item.href} data-active={decodedCurrentPath === item.href}>
+                        <a
+                          href={item.href}
+                          data-active={decodedCurrentPath === item.href}
+                          className={`flex items-center justify-between px-2 py-0.5 text-xs font-thin rounded-md ${
+                            decodedCurrentPath === item.href ? 'bg-purple-100 text-purple-900' : 'hover:bg-purple-100'
+                          }`}
                         >
-                          {getMessageCollectionName(item.collection, item)}
-                        </span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+                          <span className="truncate">
+                            <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
+                          </span>
+                          <span
+                            className={`ml-2 text-[10px] font-medium px-2 uppercase py-0.5 rounded ${getMessageColorByCollection(item.collection)}`}
+                          >
+                            {getMessageCollectionName(item.collection, item)}
+                          </span>
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleGroup>
               </div>
             )}
 
-            {filteredData['flows'] && (
+            {/* Flows Group */}
+            {filteredData['flows'] && filteredData['flows'].length > 0 && (
               <div className="pt-4 pb-2">
-                <ul className="space-y-4">
-                  {filteredData['flows'].map((item: any) => (
-                    <li key={item.href} className="space-y-0" data-active={decodedCurrentPath === item.href}>
-                      <a
-                        href={item.href}
-                        data-active={decodedCurrentPath === item.href}
-                        className={`flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md ${
-                          decodedCurrentPath === item.href ? 'bg-cyan-100 text-cyan-900' : 'hover:bg-purple-100'
-                        }`}
-                      >
-                        <span className="truncate">
-                          <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
-                        </span>
-                        <span className="text-cyan-600 ml-2 text-[10px] font-medium bg-cyan-50 px-2 py-0.5 rounded">FLOW</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+                <CollapsibleGroup
+                  isCollapsed={collapsedGroups['flows-group']}
+                  onToggle={() => toggleGroupCollapse('flows-group')}
+                  title={
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleGroupCollapse('flows-group');
+                      }}
+                      className="flex justify-between items-center pl-2 w-full text-xs"
+                    >
+                      <span className="truncate text-xs font-bold">Flows</span>
+                    </button>
+                  }
+                >
+                  <div className="space-y-2 border-gray-200/80 border-l pl-3 ml-[9px] mt-3">
+                    {filteredData['flows'].map((item: any) => (
+                      <div key={item.href} data-active={decodedCurrentPath === item.href}>
+                        <a
+                          href={item.href}
+                          data-active={decodedCurrentPath === item.href}
+                          className={`flex items-center justify-between px-2 py-0.5 text-xs font-thin rounded-md ${
+                            decodedCurrentPath === item.href ? 'bg-purple-100 text-purple-900' : 'hover:bg-purple-100'
+                          }`}
+                        >
+                          <span className="truncate">
+                            <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
+                          </span>
+                          <span className={`ml-2 text-[10px] font-medium px-2 uppercase py-0.5 rounded bg-teal-50 text-teal-600`}>
+                            FLOW
+                          </span>
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleGroup>
               </div>
             )}
-            {filteredData['designs'] && isVisualizer && (
+
+            {/* Data Group */}
+            {filteredData['containers'] && filteredData['containers'].length > 0 && (
               <div className="pt-4 pb-2">
-                <ul className="space-y-4">
-                  {filteredData['designs'].map((item: any) => (
-                    <li key={item.href} className="space-y-0" data-active={decodedCurrentPath === item.href}>
-                      <a
-                        href={item.href}
-                        data-active={decodedCurrentPath === item.href}
-                        className={`flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md ${
-                          decodedCurrentPath === item.href ? 'bg-cyan-100 text-cyan-900' : 'hover:bg-purple-100'
-                        }`}
-                      >
-                        <span className="truncate">
-                          <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
-                        </span>
-                        <span className="text-cyan-600 ml-2 text-[10px] font-medium bg-cyan-50 px-2 py-0.5 rounded">DESIGN</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+                <CollapsibleGroup
+                  isCollapsed={collapsedGroups['data-group']}
+                  onToggle={() => toggleGroupCollapse('data-group')}
+                  title={
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleGroupCollapse('data-group');
+                      }}
+                      className="flex justify-between items-center pl-2 w-full text-xs"
+                    >
+                      <span className="truncate text-xs font-bold">Data</span>
+                    </button>
+                  }
+                >
+                  <div className="space-y-2 border-gray-200/80 border-l pl-3 ml-[9px] mt-3">
+                    {filteredData['containers'].map((item: any) => (
+                      <div key={item.href} data-active={decodedCurrentPath === item.href}>
+                        <a
+                          href={item.href}
+                          data-active={decodedCurrentPath === item.href}
+                          className={`flex items-center justify-between px-2 py-0.5 text-xs font-thin rounded-md ${
+                            decodedCurrentPath === item.href ? 'bg-purple-100 text-purple-900' : 'hover:bg-purple-100'
+                          }`}
+                        >
+                          <span className="truncate">
+                            <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
+                          </span>
+                          <span className={`ml-2 text-[10px] font-medium px-2 uppercase py-0.5 rounded bg-blue-50 text-blue-600`}>
+                            DATA
+                          </span>
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleGroup>
+              </div>
+            )}
+
+            {filteredData['designs'] && filteredData['designs'].length > 0 && (
+              <div className="pt-4 pb-2">
+                <CollapsibleGroup
+                  isCollapsed={collapsedGroups['designs-group']}
+                  onToggle={() => toggleGroupCollapse('designs-group')}
+                  title={
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleGroupCollapse('designs-group');
+                      }}
+                      className="flex justify-between items-center pl-2 w-full text-xs"
+                    >
+                      <span className="truncate text-xs font-bold">Designs</span>
+                    </button>
+                  }
+                >
+                  <div className="space-y-2 border-gray-200/80 border-l pl-3 ml-[9px] mt-3">
+                    {filteredData['designs'].map((item: any) => (
+                      <div key={item.href} data-active={decodedCurrentPath === item.href}>
+                        <a
+                          href={item.href}
+                          data-active={decodedCurrentPath === item.href}
+                          className={`flex items-center justify-between px-2 py-0.5 text-xs font-thin rounded-md ${
+                            decodedCurrentPath === item.href ? 'bg-purple-100 text-purple-900' : 'hover:bg-purple-100'
+                          }`}
+                        >
+                          <span className="truncate">
+                            <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
+                          </span>
+                          <span className={`ml-2 text-[10px] font-medium px-2 uppercase py-0.5 rounded bg-teal-50 text-teal-600`}>
+                            DESIGN
+                          </span>
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleGroup>
               </div>
             )}
           </>

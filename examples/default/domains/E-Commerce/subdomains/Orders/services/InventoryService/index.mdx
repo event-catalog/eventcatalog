@@ -18,12 +18,22 @@ sends:
   - id: InventoryAdjusted
   - id: OutOfStock
   - id: GetOrder
+writesTo:
+  - id: inventory-db
+    version: 0.0.1
+  - id: inventory-readmodel
+    version: 0.0.1
+readsFrom:
+  - id: inventory-db
+    version: 0.0.1
+  - id: inventory-readmodel
+    version: 0.0.1
 repository:
   language: JavaScript
   url: https://github.com/event-catalog/pretend-shipping-service
 deprecated:
   date: 2026-05-01
-  message: | 
+  message: |
     This service is **being deprecated** and replaced by the new service **InventoryServiceV2**.
     Please contact the [team for more information](mailto:inventory-team@example.com) or visit our [website](https://eventcatalog.dev).
 ---

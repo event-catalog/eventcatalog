@@ -17,6 +17,7 @@ const users = await getCollection('users');
 
 const flows = await getCollection('flows');
 const channels = await getCollection('channels');
+const containers = await getCollection('containers');
 
 const entities = await getCollection('entities');
 
@@ -115,6 +116,8 @@ export const GET: APIRoute = async ({ params, request }) => {
       )
       .join(''),
     ...(Object.keys(ubiquitousLanguages).length > 0 ? ['## Ubiquitous Language', renderUbiquitousLanguages(baseUrl)] : []),
+    '\n## Containers (Databases, External Systems)',
+    containers.map((item) => formatVersionedItem(item, 'containers')).join('\n'),
     '\n## Entities',
     renderEntities(baseUrl),
     '\n## Teams',

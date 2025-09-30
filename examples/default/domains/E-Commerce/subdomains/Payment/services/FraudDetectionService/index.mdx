@@ -19,6 +19,16 @@ sends:
     version: 0.0.1
   - id: RiskScoreCalculated
     version: 0.0.1
+writesTo:
+  - id: fraud-analytics-db
+    version: 0.0.1
+readsFrom:
+  - id: fraud-analytics-db
+    version: 0.0.1
+  - id: ml-model-store
+    version: 0.0.1
+  - id: payment-cache
+    version: 0.0.1
 owners:
   - dboyne
 ---
@@ -28,6 +38,8 @@ import Footer from '@catalog/components/footer.astro'
 ## Overview
 
 The Fraud Detection Service is responsible for analyzing payment transactions in real-time to detect potential fraudulent activity. It uses machine learning models and rule-based systems to assess risk and prevent financial losses.
+
+<NodeGraph />
 
 ## Key Features
 

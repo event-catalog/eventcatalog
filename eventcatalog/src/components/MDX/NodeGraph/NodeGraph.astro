@@ -16,6 +16,7 @@ import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs
 import { buildUrl } from '@utils/url-builder';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
+import { getNodesAndEdges as getNodesAndEdgesForContainer } from '@utils/node-graphs/container-node-graph';
 import config from '@config';
 
 interface Props {
@@ -59,6 +60,7 @@ const getNodesAndEdgesFunctions = {
   queries: getNodesAndEdgesForQueries,
   domains: getNodesAndEdgesForDomain,
   flows: getNodesAndEdgesForFlows,
+  containers: getNodesAndEdgesForContainer,
 };
 
 let links: { label: string; url: string }[] = [];
@@ -117,6 +119,17 @@ if (collection === 'domains-entities') {
   const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesForDomainEntityMap({
     id,
     version,
+  });
+  nodes = fetchedNodes;
+  edges = fetchedEdges;
+}
+
+if (collection === 'services-containers') {
+  const { nodes: fetchedNodes, edges: fetchedEdges } = await getNodesAndEdgesForService({
+    id,
+    version,
+    renderMessages: false,
+    mode: 'full',
   });
   nodes = fetchedNodes;
   edges = fetchedEdges;

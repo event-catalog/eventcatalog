@@ -9,6 +9,8 @@ import { getEvents } from '@utils/events';
 import { getServices } from '@utils/collections/services';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/queries';
+import { getContainers } from '@utils/collections/containers';
+import { DatabaseIcon } from 'lucide-react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
 import Checkbox from '@components/Checkbox.astro';
@@ -19,7 +21,7 @@ const commands = await getCommands();
 const services = await getServices();
 const domains = await getDomains();
 const flows = await getFlows();
-
+const containers = await getContainers();
 export interface Props<T extends TCollectionTypes> {
   title: string;
   subtitle: string;
@@ -73,6 +75,14 @@ const tabs = [
     icon: RectangleGroupIcon,
     activeColor: 'yellow',
     enabled: domains.length > 0,
+  },
+  {
+    label: `Data (${containers.length})`,
+    href: buildUrl('/discover/containers'),
+    isActive: currentPath === '/discover/containers',
+    icon: DatabaseIcon,
+    activeColor: 'blue',
+    enabled: containers.length > 0,
   },
   {
     label: `Flows (${flows.length})`,

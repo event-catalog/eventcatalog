@@ -5,13 +5,20 @@ import { getEvents } from '@utils/events';
 import { getCommands } from '@utils/commands';
 import { getServices } from '@utils/collections/services';
 import { getDomains } from '@utils/collections/domains';
+import { getContainers } from '@utils/collections/containers';
 import type { CollectionEntry } from 'astro:content';
 import type { CollectionTypes } from '@types';
 
 export async function getStaticPaths() {
-  const [events, commands, services, domains] = await Promise.all([getEvents(), getCommands(), getServices(), getDomains()]);
+  const [events, commands, services, domains, containers] = await Promise.all([
+    getEvents(),
+    getCommands(),
+    getServices(),
+    getDomains(),
+    getContainers(),
+  ]);
 
-  const resources = [...domains, ...events, ...services, ...commands];
+  const resources = [...domains, ...events, ...services, ...commands, ...containers];
   const resourcesWithVisualiserEnabled = resources.filter((resource) => resource.data.visualiser !== false);
 
   const buildPages = (collection: CollectionEntry<CollectionTypes>[]) => {

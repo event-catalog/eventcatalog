@@ -11,6 +11,15 @@ receives:
   - id: GetOrder
   - id: PlaceOrder
   - id: UserSubscriptionCancelled
+writesTo:
+  - id: orders-db
+    version: 0.0.1
+  - id: order-metadata-store
+    version: 0.0.1
+readsFrom:
+  - id: orders-db
+  - id: inventory-readmodel
+  - id: order-metadata-store
 sends:
   - id: OrderAmended
   - id: OrderCancelled

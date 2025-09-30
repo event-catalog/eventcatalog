@@ -30,6 +30,18 @@ export const mockServices = [
           version: '0.0.1',
         },
       ],
+      writesTo: [
+        {
+          id: 'OrderDatabase',
+          version: '1.0.0',
+        },
+      ],
+      readsFrom: [
+        {
+          id: 'PaymentDatabase',
+          version: '1.0.0',
+        },
+      ],
     },
   },
   {
@@ -250,6 +262,25 @@ export const mockQueries = [
     data: {
       id: 'GetOrder',
       version: '0.0.1',
+    },
+  },
+];
+
+export const mockContainers = [
+  {
+    id: 'OrderDatabase',
+    collection: 'containers',
+    data: {
+      id: 'OrderDatabase',
+      version: '1.0.0',
+    },
+  },
+  {
+    id: 'PaymentDatabase',
+    collection: 'containers',
+    data: {
+      id: 'PaymentDatabase',
+      version: '1.0.0',
     },
   },
 ];

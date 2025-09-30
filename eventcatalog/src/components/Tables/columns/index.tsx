@@ -4,6 +4,7 @@ import { columns as ServiceTableColumns } from './ServiceTableColumns';
 import { columns as DomainTableColumns } from './DomainTableColumns';
 import { columns as FlowTableColumns } from './FlowTableColumns';
 import { columns as TeamsTableColumns } from './TeamsTableColumns';
+import { columns as ContainerTableColumns } from './ContainersTableColumns';
 export const getColumnsByCollection = (collection: string): any => {
   switch (collection) {
     case 'events':
@@ -20,6 +21,8 @@ export const getColumnsByCollection = (collection: string): any => {
       return UserTableColumns();
     case 'teams':
       return TeamsTableColumns();
+    case 'containers':
+      return ContainerTableColumns();
     default:
       return [];
   }
