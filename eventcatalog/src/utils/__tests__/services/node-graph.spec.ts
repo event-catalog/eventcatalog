@@ -1,7 +1,7 @@
 import { MarkerType } from '@xyflow/react';
 import { getNodesAndEdges } from '../../node-graphs/services-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockCommands, mockEvents, mockQueries, mockServices, mockChannels } from './mocks';
+import { mockCommands, mockEvents, mockQueries, mockServices, mockChannels, mockContainers } from './mocks';
 import type { ContentCollectionKey } from 'astro:content';
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -20,6 +20,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockCommands);
         case 'queries':
           return Promise.resolve(mockQueries);
+        case 'containers':
+          return Promise.resolve(mockContainers);
       }
     },
   };
@@ -64,37 +66,99 @@ describe('Services NodeGraph', () => {
         type: 'events',
       };
 
+      const expectedOrderDatabaseNode = {
+        id: 'OrderDatabase-1.0.0',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', data: { ...mockContainers[0].data } },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'data',
+      };
+
+      const expectedPaymentDatabaseNode = {
+        id: 'PaymentDatabase-1.0.0',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', data: { ...mockContainers[1].data } },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+        type: 'data',
+      };
+
       const expectedEdges = [
         {
-          id: 'PaymentProcessed-0.0.1-OrderService-1.0.0',
-          source: 'PaymentProcessed-0.0.1',
-          target: 'OrderService-1.0.0',
           label: 'accepts',
           animated: false,
           markerEnd: {
-            type: MarkerType.ArrowClosed,
+            type: 'arrowclosed',
             width: 40,
             height: 40,
           },
           style: {
             strokeWidth: 1,
           },
-          data: { message: expect.anything() },
+          id: 'PaymentProcessed-0.0.1-OrderService-1.0.0',
+          source: 'PaymentProcessed-0.0.1',
+          target: 'OrderService-1.0.0',
+          data: {
+            message: {
+              id: 'PaymentProcessed',
+              version: '0.0.1',
+            },
+          },
         },
         {
-          id: 'OrderService-1.0.0-OrderCreatedEvent-0.0.1',
+          label: 'writes to \n (undefined)',
+          animated: false,
+          markerEnd: {
+            type: 'arrowclosed',
+            color: '#666',
+            width: 40,
+            height: 40,
+          },
+          style: {
+            strokeWidth: 1,
+          },
+          id: 'OrderService-1.0.0-OrderDatabase-1.0.0',
           source: 'OrderService-1.0.0',
-          target: 'OrderCreatedEvent-0.0.1',
+          target: 'OrderDatabase-1.0.0',
+          type: 'multiline',
+        },
+        {
+          label: 'reads from \n (undefined)',
+          animated: false,
+          style: {
+            strokeWidth: 1,
+          },
+          id: 'OrderService-1.0.0-PaymentDatabase-1.0.0',
+          source: 'PaymentDatabase-1.0.0',
+          target: 'OrderService-1.0.0',
+          type: 'multiline',
+          markerStart: {
+            type: 'arrowclosed',
+            color: '#666',
+            width: 40,
+            height: 40,
+          },
+        },
+        {
           label: 'publishes event',
           animated: false,
           markerEnd: {
-            type: MarkerType.ArrowClosed,
+            type: 'arrowclosed',
             width: 40,
             height: 40,
           },
-          data: { message: expect.anything() },
           style: {
             strokeWidth: 1,
+          },
+          id: 'OrderService-1.0.0-OrderCreatedEvent-0.0.1',
+          source: 'OrderService-1.0.0',
+          target: 'OrderCreatedEvent-0.0.1',
+          data: {
+            message: {
+              id: 'OrderCreatedEvent',
+              version: '0.0.1',
+            },
           },
         },
       ];
@@ -103,6 +167,10 @@ describe('Services NodeGraph', () => {
         expect.arrayContaining([
           // Nodes on the left
           expect.objectContaining(expectedRecivesNode),
+
+          // The data node
+          expect.objectContaining(expectedOrderDatabaseNode),
+          expect.objectContaining(expectedPaymentDatabaseNode),
 
           // The service node itself
           expect.objectContaining(expectedServiceNode),
@@ -431,6 +499,23 @@ describe('Services NodeGraph', () => {
           data: { message: expect.anything(), source: expect.anything(), target: expect.anything(), channel: expect.anything() },
         },
       ]);
+    });
+
+    it('when `renderMessages` is false it should not render any messages or channels', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'PaymentService', version: '1.0.0', renderMessages: false });
+
+      const hasMessages = nodes.some((node) => node.type === 'events' || node.type === 'commands' || node.type === 'queries');
+      const hasChannels = nodes.some((node) => node.type === 'channels');
+
+      expect(hasMessages).toBe(false);
+      expect(hasChannels).toBe(false);
+    });
+
+    it('will render any container (data) that the service writes to or reads from', async () => {
+      const { nodes } = await getNodesAndEdges({ id: 'OrderService', version: '1.0.0' });
+
+      const hasContainers = nodes.some((node) => node.type === 'data');
+      expect(hasContainers).toBe(true);
     });
   });
 });

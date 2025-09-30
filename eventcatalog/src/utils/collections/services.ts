@@ -35,6 +35,7 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
   const commands = await getCollection('commands');
   const queries = await getCollection('queries');
   const entities = await getCollection('entities');
+  const containers = await getCollection('containers');
   const allMessages = [...events, ...commands, ...queries];
 
   // @ts-ignore // TODO: Fix this type
@@ -44,6 +45,8 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
     const sendsMessages = service.data.sends || [];
     const receivesMessages = service.data.receives || [];
     const serviceEntities = service.data.entities || [];
+    const serviceWritesTo = service.data.writesTo || [];
+    const serviceReadsFrom = service.data.readsFrom || [];
 
     const sends = sendsMessages
       .map((message: any) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
@@ -60,10 +63,22 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
       .flat()
       .filter((e: any) => e !== undefined);
 
+    const mappedWritesTo = serviceWritesTo
+      .map((container: any) => getItemsFromCollectionByIdAndSemverOrLatest(containers, container.id, container.version))
+      .flat()
+      .filter((e: any) => e !== undefined);
+
+    const mappedReadsFrom = serviceReadsFrom
+      .map((container: any) => getItemsFromCollectionByIdAndSemverOrLatest(containers, container.id, container.version))
+      .flat()
+      .filter((e: any) => e !== undefined);
+
     return {
       ...service,
       data: {
         ...service.data,
+        writesTo: mappedWritesTo,
+        readsFrom: mappedReadsFrom,
         receives,
         sends,
         versions,
@@ -157,7 +172,6 @@ export const getSpecificationsForService = (service: CollectionEntry<CollectionT
     filenameWithoutExtension: path.basename(spec.path, path.extname(spec.path)),
   }));
 };
-
 // Get services for channel
 export const getProducersAndConsumersForChannel = async (channel: CollectionEntry<'channels'>) => {
   const messages = channel.data.messages ?? [];

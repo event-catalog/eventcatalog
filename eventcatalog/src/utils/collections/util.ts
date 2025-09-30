@@ -87,8 +87,8 @@ export const getItemsFromCollectionByIdAndSemverOrLatest = <T extends { data: { 
 };
 
 export const findMatchingNodes = (
-  nodesA: CollectionEntry<'events' | 'commands' | 'queries' | 'services'>[],
-  nodesB: CollectionEntry<'events' | 'commands' | 'queries' | 'services'>[]
+  nodesA: CollectionEntry<'events' | 'commands' | 'queries' | 'services' | 'containers'>[],
+  nodesB: CollectionEntry<'events' | 'commands' | 'queries' | 'services' | 'containers'>[]
 ) => {
   // Track messages that are both sent and received
   return nodesA.filter((nodeA) => {
@@ -108,6 +108,7 @@ export const resourceToCollectionMap = {
   channel: 'channels',
   user: 'users',
   team: 'teams',
+  container: 'containers',
 } as const;
 
 export const collectionToResourceMap = {
@@ -120,6 +121,7 @@ export const collectionToResourceMap = {
   channels: 'channel',
   users: 'user',
   teams: 'team',
+  containers: 'container',
 } as const;
 
 export const getDeprecatedDetails = (item: CollectionEntry<CollectionTypes>) => {

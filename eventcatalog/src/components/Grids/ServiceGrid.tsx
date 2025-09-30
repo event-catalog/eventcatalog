@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, memo } from 'react';
-import { ServerIcon, ChevronRightIcon, Squares2X2Icon, QueueListIcon } from '@heroicons/react/24/outline';
+import { ServerIcon, ChevronRightIcon, Squares2X2Icon, QueueListIcon, CircleStackIcon } from '@heroicons/react/24/outline';
 import { RectangleGroupIcon } from '@heroicons/react/24/outline';
 import { buildUrl, buildUrlWithParams } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
@@ -110,6 +110,66 @@ const ServiceCard = memo(({ service, urlParams, selectedTypes }: { service: any;
             <MessagesContainer messages={service.data.sends} type="sends" selectedTypes={selectedTypes} />
           </div>
         )}
+
+        {/* Container lists at the bottom */}
+        {((service.data.readsFrom && service.data.readsFrom.length > 0) ||
+          (service.data.writesTo && service.data.writesTo.length > 0)) && (
+          <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 gap-4">
+            {/* Reads From */}
+            {service.data.readsFrom && service.data.readsFrom.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <CircleStackIcon className="h-4 w-4 text-orange-500" />
+                  <h4 className="text-xs font-semibold text-gray-700">Reads from</h4>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {service.data.readsFrom.slice(0, 3).map((container: any) => (
+                    <a
+                      key={container.id}
+                      href={buildUrl(`/docs/containers/${container.data.id}/${container.data.version}`)}
+                      className="group inline-flex items-center gap-1 px-2 py-1 bg-orange-100 border border-orange-300 rounded-md text-[11px] font-medium hover:bg-orange-200 transition-colors duration-200"
+                    >
+                      <CircleStackIcon className="h-3 w-3 text-orange-600" />
+                      <span className="text-orange-800">{container.data.name}</span>
+                    </a>
+                  ))}
+                  {service.data.readsFrom.length > 3 && (
+                    <span className="inline-flex items-center px-2 py-1 text-xs text-gray-500">
+                      + {service.data.readsFrom.length - 3} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Writes To */}
+            {service.data.writesTo && service.data.writesTo.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <CircleStackIcon className="h-4 w-4 text-purple-500" />
+                  <h4 className="text-xs font-semibold text-gray-700">Writes to</h4>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {service.data.writesTo.slice(0, 3).map((container: any) => (
+                    <a
+                      key={container.id}
+                      href={buildUrl(`/docs/containers/${container.data.id}/${container.data.version}`)}
+                      className="group inline-flex items-center gap-1 px-2 py-1 bg-purple-100 border border-purple-300 rounded-md text-[11px] font-medium hover:bg-purple-200 transition-colors duration-200"
+                    >
+                      <CircleStackIcon className="h-3 w-3 text-purple-600" />
+                      <span className="text-purple-800">{container.data.name}</span>
+                    </a>
+                  ))}
+                  {service.data.writesTo.length > 3 && (
+                    <span className="inline-flex items-center px-2 py-1 text-xs text-gray-500">
+                      + {service.data.writesTo.length - 3} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </a>
   );
@@ -184,19 +244,23 @@ const DomainSection = memo(
 
               {/* Entities */}
               {subdomain.data.entities && subdomain.data.entities.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 xl:grid-cols-4 gap-6">
-                  {subdomain.data.entities.map((entity: any) => (
-                    <a
-                      key={entity.id}
-                      href={buildUrl(`/docs/entities/${entity.id}`)}
-                      className="bg-white border-2 border-dashed border-purple-400 rounded-lg p-4 space-y-4 hover:bg-purple-50 transition-colors duration-200"
-                    >
-                      <div className="flex items-center gap-2">
-                        <BoxIcon className="h-5 w-5 text-purple-500" />
-                        <h3 className="text-lg font-semibold text-gray-900">{entity.id} (Entity)</h3>
-                      </div>
-                    </a>
-                  ))}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <BoxIcon className="h-4 w-4 text-purple-500" />
+                    <h4 className="text-xs font-semibold text-gray-700">Entities</h4>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {subdomain.data.entities.map((entity: any) => (
+                      <a
+                        key={entity.id}
+                        href={buildUrl(`/docs/entities/${entity.id}`)}
+                        className="group inline-flex items-center gap-1 px-2 py-1 bg-purple-100 border border-purple-300 rounded-md text-[11px] font-medium hover:bg-purple-200 transition-colors duration-200"
+                      >
+                        <BoxIcon className="h-3 w-3 text-purple-600" />
+                        <span className="text-purple-800">{entity.id}</span>
+                      </a>
+                    ))}
+                  </div>
                 </div>
               )}
 

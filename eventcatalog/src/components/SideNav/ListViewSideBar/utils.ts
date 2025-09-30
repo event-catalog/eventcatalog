@@ -8,6 +8,7 @@ import { getCommands } from '@utils/commands';
 import { getEvents } from '@utils/events';
 import { getQueries } from '@utils/queries';
 import { getDesigns } from '@utils/collections/designs';
+import { getContainers } from '@utils/collections/containers';
 
 const stripCollection = (collection: any) => {
   return collection.map((item: any) => ({
@@ -26,6 +27,7 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
   const domains = await getDomains({ getAllVersions: false });
   const channels = await getChannels({ getAllVersions: false });
   const flows = await getFlows({ getAllVersions: false });
+  const containers = await getContainers({ getAllVersions: false });
   const designs = await getDesigns({ getAllVersions: false });
 
   const messages = [...events, ...commands, ...queries];
@@ -43,7 +45,7 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
   const route = currentPath.includes('visualiser') ? 'visualiser' : 'docs';
 
   // Just the domains for now.
-  const allDataAsSideNav = [...domains, ...services, ...flows, ...channels].reduce((acc, item) => {
+  const allDataAsSideNav = [...domains, ...services, ...flows, ...channels, ...containers].reduce((acc, item) => {
     const title = item.collection;
     const group = acc[title] || [];
 
@@ -54,6 +56,10 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
     const sends = isCollectionService ? item.data.sends || null : null;
     const receives = isCollectionService ? item.data.receives || null : null;
     const entities = isCollectionDomain || isCollectionService ? item.data.entities || null : null;
+
+    const writesTo = isCollectionService ? item.data.writesTo || null : null;
+    const readsFrom = isCollectionService ? item.data.readsFrom || null : null;
+
     // Add href to the sends and receives
     const sendsWithHref = sends?.map((send: any) => ({
       id: send.data.id,
@@ -89,6 +95,32 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
       href: buildUrl(`/${route}/${entity.collection}/${entity.data.id}/${entity.data.version}`),
     }));
 
+    const writesToWithHref = writesTo?.map((writeTo: any) => ({
+      id: writeTo.data.id,
+      data: {
+        name: writeTo.data.name,
+        sidebar: {
+          badge: writeTo.data.container_type || writeTo.collection,
+          backgroundColor: 'bg-blue-100 text-blue-600',
+        },
+      },
+      collection: writeTo.collection,
+      href: buildUrl(`/${route}/${writeTo.collection}/${writeTo.data.id}/${writeTo.data.version}`),
+    }));
+
+    const readsFromWithHref = readsFrom?.map((readFrom: any) => ({
+      id: readFrom.data.id,
+      data: {
+        name: readFrom.data.name,
+        sidebar: {
+          badge: readFrom.data.container_type || readFrom.collection,
+          backgroundColor: 'bg-blue-100 text-indigo-600',
+        },
+      },
+      collection: readFrom.collection,
+      href: buildUrl(`/${route}/${readFrom.collection}/${readFrom.data.id}/${readFrom.data.version}`),
+    }));
+
     // don't render items if we are in the visualiser and the item has visualiser set to false
     if (currentPath.includes('visualiser') && item.data.visualiser === false) {
       return acc;
@@ -115,6 +147,8 @@ export async function getResourcesForNavigation({ currentPath }: { currentPath: 
       receives: receivesWithHref,
       entities: entitiesWithHref,
       specifications: isCollectionService ? getSpecificationsForService(item) : null,
+      writesTo: writesToWithHref,
+      readsFrom: readsFromWithHref,
       sidebar: item.data?.sidebar,
       renderInVisualiser: item.data?.visualiser ?? true,
     };

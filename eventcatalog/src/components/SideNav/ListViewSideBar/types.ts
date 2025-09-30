@@ -33,6 +33,8 @@ export interface ServiceItem {
   sends: MessageItem[];
   receives: MessageItem[];
   entities: EntityItem[];
+  writesTo: MessageItem[];
+  readsFrom: MessageItem[];
   specifications?: {
     type: string;
     path: string;
@@ -79,6 +81,7 @@ export interface Resources {
   commands?: MessageItem[];
   queries?: MessageItem[];
   events?: MessageItem[];
+  containers?: MessageItem[];
 }
 
 export interface ListViewSideBarProps {

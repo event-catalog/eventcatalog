@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { EnvelopeIcon, ChevronRightIcon, ServerIcon } from '@heroicons/react/24/outline';
+import { EnvelopeIcon, ChevronRightIcon, ServerIcon, CircleStackIcon } from '@heroicons/react/24/outline';
 import { RectangleGroupIcon } from '@heroicons/react/24/outline';
 import { buildUrl, buildUrlWithParams } from '@utils/url-builder';
 import type { CollectionEntry } from 'astro:content';
@@ -9,6 +9,7 @@ import { SearchBar, TypeFilters, Pagination } from './components';
 
 interface MessageGridProps {
   messages: CollectionEntry<CollectionMessageTypes>[];
+  containers?: CollectionEntry<'containers'>[];
   embeded: boolean;
 }
 
@@ -18,7 +19,7 @@ interface GroupedMessages {
   receives?: CollectionEntry<CollectionMessageTypes>[];
 }
 
-export default function MessageGrid({ messages, embeded }: MessageGridProps) {
+export default function MessageGrid({ messages, embeded, containers }: MessageGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [urlParams, setUrlParams] = useState<{
     serviceId?: string;
@@ -129,6 +130,19 @@ export default function MessageGrid({ messages, embeded }: MessageGridProps) {
 
     return { sends, receives };
   }, [filteredAndSortedMessages, urlParams]);
+
+  // Get the containers that are referenced by the service
+  const serviceContainersReferenced = useMemo(() => {
+    if (!urlParams?.serviceId || !containers) return { writesTo: [], readsFrom: [] };
+    return {
+      writesTo: containers.filter((container) =>
+        container.data.servicesThatWriteToContainer?.some((service: any) => service.data.id === urlParams.serviceId)
+      ),
+      readsFrom: containers.filter((container) =>
+        container.data.servicesThatReadFromContainer?.some((service: any) => service.data.id === urlParams.serviceId)
+      ),
+    };
+  }, [containers, urlParams]);
 
   const renderTypeFilters = () => {
     return (
@@ -373,64 +387,166 @@ export default function MessageGrid({ messages, embeded }: MessageGridProps) {
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-8 relative">
-                  {/* Receives Section */}
-                  <div className="bg-blue-50 bg-opacity-50 border border-blue-300 border-dashed rounded-lg p-4">
-                    <div className="mb-6">
-                      <h2 className={`font-semibold text-gray-900 flex items-center gap-2 ${embeded ? 'text-sm' : 'text-xl'}`}>
-                        <ServerIcon className="h-5 w-5 text-blue-500" />
-                        Receives messages ({groupedMessages.receives?.length || 0})
-                      </h2>
+                  {/* Left Column - Receives Messages & Reads From Containers */}
+                  <div className="space-y-6">
+                    {/* Receives Messages Section */}
+                    <div className="bg-blue-50 bg-opacity-50 border border-blue-300 border-dashed rounded-lg p-4">
+                      <div className="mb-6">
+                        <h2 className={`font-semibold text-gray-900 flex items-center gap-2 ${embeded ? 'text-sm' : 'text-xl'}`}>
+                          <ServerIcon className="h-5 w-5 text-blue-500" />
+                          Receives ({groupedMessages.receives?.length || 0})
+                        </h2>
+                      </div>
+                      {groupedMessages.receives && groupedMessages.receives.length > 0 ? (
+                        renderMessageGrid(groupedMessages.receives)
+                      ) : (
+                        <div className="text-center py-12">
+                          <p className="text-gray-500 text-sm">No messages</p>
+                        </div>
+                      )}
                     </div>
-                    {groupedMessages.receives && groupedMessages.receives.length > 0 ? (
-                      renderMessageGrid(groupedMessages.receives)
-                    ) : (
-                      <div className="text-center py-12">
-                        <p className="text-gray-500">
-                          {selectedTypes.length > 0
-                            ? `Service does not receive ${selectedTypes.join(' or ')}`
-                            : 'Service does not receive any messages'}
-                        </p>
+
+                    {/* Reads From Containers - Only show if containers exist */}
+                    {serviceContainersReferenced.readsFrom && serviceContainersReferenced.readsFrom.length > 0 && (
+                      <div className="bg-orange-50 border border-orange-300 border-dashed rounded-lg p-4 relative">
+                        <div className="mb-6">
+                          <h2
+                            className={`font-semibold text-gray-900 flex items-center gap-2 ${embeded ? 'text-sm' : 'text-xl'}`}
+                          >
+                            <CircleStackIcon className="h-5 w-5 text-orange-500" />
+                            Reads from ({serviceContainersReferenced.readsFrom.length})
+                          </h2>
+                        </div>
+                        <div className="space-y-3">
+                          {serviceContainersReferenced.readsFrom.map((container: CollectionEntry<'containers'>) => (
+                            <a
+                              key={container.data.id}
+                              href={buildUrl(`/docs/containers/${container.data.id}/${container.data.version}`)}
+                              className="group bg-white border border-orange-200 hover:bg-orange-100 rounded-lg p-3 block transition-all duration-200"
+                            >
+                              <div className="flex items-center gap-2">
+                                <CircleStackIcon className="h-4 w-4 text-orange-500" />
+                                <h3 className="font-semibold text-gray-900 text-sm group-hover:text-orange-700">
+                                  {container.data.name}
+                                </h3>
+                              </div>
+                              {container.data.summary && (
+                                <p className="text-xs text-gray-600 mt-1 line-clamp-2">{container.data.summary}</p>
+                              )}
+                            </a>
+                          ))}
+                        </div>
+                        {/* Arrow from Reads From to Service */}
+                        <div className="absolute -right-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-16 z-10">
+                          <div className="absolute left-0 w-4 h-4 border-b-[3px] border-l-[3px] border-orange-200 transform rotate-45 -translate-x-1 translate-y-[-1px] shadow-[-1px_1px_0_1px_rgba(0,0,0,0.1)]"></div>
+                          <div className="w-full h-[3px] bg-orange-200 shadow-[0_0_0_1px_rgba(0,0,0,0.1)]"></div>
+                        </div>
                       </div>
                     )}
                   </div>
 
                   {/* Arrow from Receives to Service */}
-                  <div className="absolute left-[30%] top-1/2 -translate-y-1/2 flex items-center justify-center w-16">
+                  <div className="absolute left-[30%] top-[25%] -translate-y-1/2 flex items-center justify-center w-16">
                     <div className="w-full h-[3px] bg-blue-200 shadow-[0_0_0_1px_rgba(0,0,0,0.1)]"></div>
                     <div className="absolute right-0 w-4 h-4 border-t-[3px] border-r-[3px] border-blue-200 transform rotate-45 translate-x-1 translate-y-[-1px] shadow-[1px_-1px_0_1px_rgba(0,0,0,0.1)]"></div>
                   </div>
 
-                  {/* Service Information */}
-                  <div className="bg-white border-2 border-pink-100 rounded-lg p-3 flex items-center justify-center min-h-[80px]">
-                    <div className="flex flex-col items-center gap-2">
-                      <ServerIcon className="h-10 w-10 text-pink-500" />
-                      <p className="text-lg font-medium text-gray-900">{urlParams.serviceName}</p>
+                  {/* Service Information (Center) */}
+                  <div className="bg-white border-2 border-pink-100 rounded-lg p-6 flex flex-col justify-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <ServerIcon className="h-12 w-12 text-pink-500" />
+                      <p className="text-xl font-semibold text-gray-900 text-center">{urlParams.serviceName}</p>
+
+                      {/* Quick Stats Grid */}
+                      <div className="w-full grid grid-cols-2 gap-3 mt-2">
+                        <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <div className="text-2xl font-bold text-blue-600">{groupedMessages.receives?.length || 0}</div>
+                          <div className="text-xs text-gray-600 mt-1">Receives</div>
+                        </div>
+                        <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
+                          <div className="text-2xl font-bold text-green-600">{groupedMessages.sends?.length || 0}</div>
+                          <div className="text-xs text-gray-600 mt-1">Sends</div>
+                        </div>
+                        {serviceContainersReferenced.readsFrom && serviceContainersReferenced.readsFrom.length > 0 && (
+                          <div className="text-center p-3 bg-orange-50 rounded-lg border border-orange-200">
+                            <div className="text-2xl font-bold text-orange-600">
+                              {serviceContainersReferenced.readsFrom.length}
+                            </div>
+                            <div className="text-xs text-gray-600 mt-1">Reads from</div>
+                          </div>
+                        )}
+                        {serviceContainersReferenced.writesTo && serviceContainersReferenced.writesTo.length > 0 && (
+                          <div className="text-center p-3 bg-purple-50 rounded-lg border border-purple-200">
+                            <div className="text-2xl font-bold text-purple-600">
+                              {serviceContainersReferenced.writesTo.length}
+                            </div>
+                            <div className="text-xs text-gray-600 mt-1">Writes to</div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
                   {/* Arrow from Service to Sends */}
-                  <div className="absolute right-[30%] top-1/2 -translate-y-1/2 flex items-center justify-center w-16">
+                  <div className="absolute right-[30%] top-[25%] -translate-y-1/2 flex items-center justify-center w-16">
                     <div className="w-full h-[3px] bg-green-200 shadow-[0_0_0_1px_rgba(0,0,0,0.1)]"></div>
                     <div className="absolute right-0 w-4 h-4 border-t-[3px] border-r-[3px] border-green-200 transform rotate-45 translate-x-1 translate-y-[-1px] shadow-[1px_-1px_0_1px_rgba(0,0,0,0.1)]"></div>
                   </div>
 
-                  {/* Sends Section */}
-                  <div className="bg-green-50  border border-green-300 border-dashed rounded-lg p-4">
-                    <div className="mb-6">
-                      <h2 className={`font-semibold text-gray-900 flex items-center gap-2 ${embeded ? 'text-sm' : 'text-xl'}`}>
-                        <ServerIcon className="h-5 w-5 text-emerald-500" />
-                        Sends messages ({groupedMessages.sends?.length || 0})
-                      </h2>
+                  {/* Right Column - Sends Messages & Writes To Containers */}
+                  <div className="space-y-6">
+                    {/* Sends Messages Section */}
+                    <div className="bg-green-50 border border-green-300 border-dashed rounded-lg p-4">
+                      <div className="mb-6">
+                        <h2 className={`font-semibold text-gray-900 flex items-center gap-2 ${embeded ? 'text-sm' : 'text-xl'}`}>
+                          <ServerIcon className="h-5 w-5 text-emerald-500" />
+                          Sends ({groupedMessages.sends?.length || 0})
+                        </h2>
+                      </div>
+                      {groupedMessages.sends && groupedMessages.sends.length > 0 ? (
+                        renderMessageGrid(groupedMessages.sends)
+                      ) : (
+                        <div className="text-center py-12">
+                          <p className="text-gray-500 text-sm">No messages</p>
+                        </div>
+                      )}
                     </div>
-                    {groupedMessages.sends && groupedMessages.sends.length > 0 ? (
-                      renderMessageGrid(groupedMessages.sends)
-                    ) : (
-                      <div className="text-center py-8">
-                        <p className="text-gray-500">
-                          {selectedTypes.length > 0
-                            ? `Service does not send ${selectedTypes.join(' or ')}`
-                            : 'Service does not send any messages'}
-                        </p>
+
+                    {/* Writes To Containers - Only show if containers exist */}
+                    {serviceContainersReferenced.writesTo && serviceContainersReferenced.writesTo.length > 0 && (
+                      <div className="bg-purple-50 border border-purple-300 border-dashed rounded-lg p-4 relative">
+                        {/* Arrow from Service to Writes To */}
+                        <div className="absolute -left-8 top-1/2 -translate-y-1/2 flex items-center justify-center w-16 z-10">
+                          <div className="w-full h-[3px] bg-purple-200 shadow-[0_0_0_1px_rgba(0,0,0,0.1)]"></div>
+                          <div className="absolute right-0 w-4 h-4 border-t-[3px] border-r-[3px] border-purple-200 transform rotate-45 translate-x-1 translate-y-[-1px] shadow-[1px_-1px_0_1px_rgba(0,0,0,0.1)]"></div>
+                        </div>
+                        <div className="mb-6">
+                          <h2
+                            className={`font-semibold text-gray-900 flex items-center gap-2 ${embeded ? 'text-sm' : 'text-xl'}`}
+                          >
+                            <CircleStackIcon className="h-5 w-5 text-purple-500" />
+                            Writes to ({serviceContainersReferenced.writesTo.length})
+                          </h2>
+                        </div>
+                        <div className="space-y-3">
+                          {serviceContainersReferenced.writesTo.map((container: CollectionEntry<'containers'>) => (
+                            <a
+                              key={container.data.id}
+                              href={buildUrl(`/docs/containers/${container.data.id}/${container.data.version}`)}
+                              className="group bg-white border border-purple-200 hover:bg-purple-100 rounded-lg p-3 block transition-all duration-200"
+                            >
+                              <div className="flex items-center gap-2">
+                                <CircleStackIcon className="h-4 w-4 text-purple-500" />
+                                <h3 className="font-semibold text-gray-900 text-sm group-hover:text-purple-700">
+                                  {container.data.name}
+                                </h3>
+                              </div>
+                              {container.data.summary && (
+                                <p className="text-xs text-gray-600 mt-1 line-clamp-2">{container.data.summary}</p>
+                              )}
+                            </a>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>

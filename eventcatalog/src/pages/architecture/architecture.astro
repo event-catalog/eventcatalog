@@ -1,6 +1,7 @@
 ---
 import { getDomains, getMessagesForDomain } from '@utils/collections/domains';
 import { getServices } from '@utils/collections/services';
+import { getContainers } from '@utils/collections/containers';
 import { getMessages } from '@utils/messages';
 import type { ExtendedDomain } from '@components/Grids/DomainGrid';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
@@ -27,6 +28,7 @@ const { type, embeded = false } = Astro.props as { type: ValidType; embeded: boo
 // Get data based on type
 let items: Service[] | CollectionEntry<'commands'>[] | CollectionEntry<CollectionMessageTypes>[] = [];
 let domains: ExtendedDomain[] = [];
+let containers: CollectionEntry<'containers'>[] = [];
 
 const getDomainsForArchitecturePages = async () => {
   const domains = await getDomains({ getAllVersions: false });
@@ -68,6 +70,7 @@ if (type === 'services') {
   const { events, commands, queries } = await getMessages({ getAllVersions: false, hydrateServices: false });
   const messages = [...events, ...commands, ...queries];
   items = removeContentFromCollection(messages) as unknown as CollectionEntry<CollectionMessageTypes>[];
+  containers = await getContainers({ getAllVersions: false });
 }
 ---
 
@@ -83,7 +86,12 @@ if (type === 'services') {
         }
         {
           type === 'messages' && (
-            <MessageGrid messages={items as CollectionEntry<CollectionMessageTypes>[]} embeded={embeded} client:load />
+            <MessageGrid
+              messages={items as CollectionEntry<CollectionMessageTypes>[]}
+              embeded={embeded}
+              containers={containers}
+              client:load
+            />
           )
         }
       </div>

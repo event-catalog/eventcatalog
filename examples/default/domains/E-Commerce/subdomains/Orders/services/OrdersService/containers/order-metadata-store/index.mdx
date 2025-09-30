@@ -1,0 +1,210 @@
+---
+id: order-metadata-store
+name: Order Metadata Store
+version: 0.0.1
+container_type: objectStore
+technology: aws-s3
+summary: Long-term storage of order documents, receipts, and metadata files
+access_mode: read
+residency: eu-west-1
+retention: 7y
+---
+
+<NodeGraph />
+
+The Order Metadata Store is an AWS S3 bucket that provides scalable, durable object storage for order-related documents and metadata. This storage system handles large files and documents that are associated with orders but don't require real-time database access.
+
+## Overview
+
+This S3-based object store serves as the primary repository for:
+
+- Order confirmation PDFs and receipts
+- Customer upload documents (delivery instructions, custom specifications)
+- Order processing audit trails and logs
+- Large metadata files that exceed database field limits
+- Invoice documents and tax records
+- Shipping labels and tracking documents
+
+## Bucket Configuration
+
+### Structure
+- **Bucket Name**: `acmecorp-order-metadata-prod`
+- **Region**: `us-east-1`
+- **Storage Classes**:
+  - Standard (first 30 days)
+  - Standard-IA (30-90 days)
+  - Glacier (90+ days)
+- **Versioning**: Enabled
+- **Cross-Region Replication**: Enabled to `us-west-2`
+
+### Folder Organization
+```
+/orders/
+  /{year}/
+    /{month}/
+      /{order-id}/
+        /receipts/
+          - order-confirmation.pdf
+          - payment-receipt.pdf
+        /documents/
+          - delivery-instructions.txt
+          - custom-specifications.json
+        /audit/
+          - processing-log.json
+          - status-changes.json
+        /invoices/
+          - invoice.pdf
+          - tax-document.pdf
+        /shipping/
+          - shipping-label.pdf
+          - tracking-info.json
+```
+
+## Data Types and Formats
+
+### Order Receipts
+- **Format**: PDF
+- **Size Range**: 50KB - 2MB
+- **Retention**: 7 years (regulatory compliance)
+- **Access Pattern**: High read frequency first 30 days, then infrequent
+
+### Customer Documents
+- **Formats**: PDF, TXT, JSON, JPG, PNG
+- **Size Range**: 10KB - 50MB
+- **Retention**: 2 years
+- **Access Pattern**: Infrequent reads after order completion
+
+### Audit Trails
+- **Format**: JSON, CSV
+- **Size Range**: 1KB - 10MB
+- **Retention**: 5 years
+- **Access Pattern**: Rare access, compliance queries only
+
+### Invoice Documents
+- **Format**: PDF, XML
+- **Size Range**: 100KB - 5MB
+- **Retention**: 7 years (tax compliance)
+- **Access Pattern**: Medium frequency during tax season
+
+## Performance Characteristics
+
+- **Upload Throughput**: 1,000+ objects per second
+- **Download Latency**: < 100ms for Standard storage
+- **Availability**: 99.999999999% (11 9's) durability
+- **Consistency**: Strong read-after-write consistency
+- **Multi-part Upload**: Enabled for files > 100MB
+
+## Security and Access Control
+
+### IAM Policies
+- **OrderService Role**: Full read/write access to order folders
+- **ReportingService Role**: Read-only access for analytics
+- **CustomerService Role**: Read access to customer documents
+- **Compliance Role**: Full access for audit purposes
+
+### Encryption
+- **At Rest**: AES-256 with AWS KMS
+- **In Transit**: TLS 1.2+
+- **Key Management**: Customer-managed KMS keys with automatic rotation
+
+### Access Logging
+- **CloudTrail**: All API calls logged
+- **S3 Access Logs**: Detailed request logging
+- **Monitoring**: CloudWatch metrics and alarms
+- **Audit**: Quarterly access reviews
+
+## Lifecycle Management
+
+### Automated Transitions
+1. **0-30 days**: Standard storage class
+2. **30-90 days**: Standard-IA (Infrequent Access)
+3. **90-365 days**: Glacier storage class
+4. **1+ years**: Glacier Deep Archive
+
+### Data Retention Policies
+- **Order receipts**: 7 years (regulatory)
+- **Customer documents**: 2 years (business requirement)
+- **Audit trails**: 5 years (compliance)
+- **Invoice documents**: 7 years (tax law)
+- **Automated deletion**: After retention period expires
+
+## Integration Patterns
+
+### Write Operations
+- Orders Service uploads receipts and confirmations
+- Customer portal uploads delivery instructions
+- Payment Service stores transaction receipts
+- Shipping Service uploads tracking labels
+
+### Read Operations
+- Customer Service retrieves order documents for support
+- Reporting Service accesses historical data
+- Compliance Service performs audit queries
+- External systems via pre-signed URLs
+
+## Monitoring and Alerting
+
+### Key Metrics
+- **Upload Success Rate**: > 99.9%
+- **Download Latency**: < 100ms (95th percentile)
+- **Storage Utilization**: Tracked per folder structure
+- **Cost Optimization**: Storage class distribution
+
+### Alerts
+- Upload failure rate > 0.1%
+- Unusual access patterns (security)
+- Storage cost increases > 20% month-over-month
+- Lifecycle policy failures
+
+## Backup and Disaster Recovery
+
+### Backup Strategy
+- **Cross-Region Replication**: Real-time to us-west-2
+- **Versioning**: 30 previous versions retained
+- **MFA Delete**: Required for permanent deletion
+- **Point-in-Time Recovery**: Via object versioning
+
+### Disaster Recovery
+- **RTO**: 2 hours (switch to backup region)
+- **RPO**: < 15 minutes (replication lag)
+- **Testing**: Monthly failover tests
+- **Documentation**: Runbooks for recovery scenarios
+
+## Cost Optimization
+
+### Current Usage (Monthly)
+- **Standard Storage**: ~500GB ($11.50)
+- **Standard-IA**: ~2TB ($25.60)
+- **Glacier**: ~10TB ($40.00)
+- **Requests**: ~1M PUT/GET ($4.00)
+- **Data Transfer**: ~100GB ($9.00)
+- **Total**: ~$90/month
+
+### Optimization Strategies
+- Automated lifecycle transitions
+- Regular cleanup of expired objects
+- Compression for text-based files
+- Cost allocation tags per business unit
+
+## Dependencies
+
+- **AWS KMS**: Encryption key management
+- **CloudWatch**: Monitoring and metrics
+- **CloudTrail**: API call auditing
+- **Lambda**: Automated cleanup functions
+- **SNS**: Alert notifications
+
+## Compliance
+
+- **SOX**: Financial record retention
+- **PCI DSS**: Payment card data storage
+- **GDPR**: Customer data handling
+- **HIPAA**: Healthcare order compliance (when applicable)
+
+## Contact Information
+
+For questions about the Order Metadata Store:
+- **Primary**: Orders Team (orders@acmecorp.com)
+- **Infrastructure**: Michael Chen (m.chen@acmecorp.com)
+- **Security**: security@acmecorp.com
+- **On-call**: Use PagerDuty escalation policy "Orders-Infrastructure"

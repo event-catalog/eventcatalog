@@ -11,7 +11,7 @@ import {
   VariableIcon,
   MapIcon,
 } from '@heroicons/react/24/outline';
-import { BookText, Box } from 'lucide-react';
+import { BookText, Box, DatabaseIcon } from 'lucide-react';
 
 export const getIconForCollection = (collection: string) => {
   switch (collection) {
@@ -41,6 +41,8 @@ export const getIconForCollection = (collection: string) => {
       return MapIcon;
     case 'entities':
       return Box;
+    case 'containers':
+      return DatabaseIcon;
     default:
       return ServerIcon;
   }

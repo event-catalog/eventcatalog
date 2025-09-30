@@ -31,14 +31,16 @@ declare module '@tanstack/react-table' {
       | 'ownedQueries'
       | 'ownedEvents'
       | 'ownedServices'
-      | 'associatedTeams';
+      | 'associatedTeams'
+      | 'servicesThatWriteToContainer'
+      | 'servicesThatReadFromContainer';
     filteredItemHasVersion?: boolean;
     showFilter?: boolean;
     className?: string;
   }
 }
 
-export type TCollectionTypes = 'domains' | 'services' | CollectionMessageTypes | 'flows' | 'users' | 'teams';
+export type TCollectionTypes = 'domains' | 'services' | CollectionMessageTypes | 'flows' | 'users' | 'teams' | 'containers';
 
 export type TData<T extends TCollectionTypes> = {
   collection: T;
@@ -96,6 +98,24 @@ export type TData<T extends TCollectionTypes> = {
     }>;
     // Only for messages
     consumers?: Array<{
+      collection: string; // Specify only 'services'?
+      data: {
+        id: string;
+        name: string;
+        version: string;
+      };
+    }>;
+    // Only for containers
+    servicesThatWriteToContainer?: Array<{
+      collection: string; // Specify only 'services'?
+      data: {
+        id: string;
+        name: string;
+        version: string;
+      };
+    }>;
+    // Only for containers
+    servicesThatReadFromContainer?: Array<{
       collection: string; // Specify only 'services'?
       data: {
         id: string;
