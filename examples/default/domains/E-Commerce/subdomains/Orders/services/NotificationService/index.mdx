@@ -3,7 +3,7 @@ id: NotificationService
 version: 0.0.2
 name: Notifications
 summary: |
-  Service that handles orders
+  Service that handles notifications across multiple channels (email, SMS, push)
 owners:
     - order-management
 receives:
@@ -20,6 +20,9 @@ sends:
     version: latest
   - id: GetInventoryList
     version: 0.0.x
+readsFrom:
+  - id: notifications-queue
+    version: 0.0.1
 repository:
   language: JavaScript
   url: https://github.com/event-catalog/pretend-shipping-service

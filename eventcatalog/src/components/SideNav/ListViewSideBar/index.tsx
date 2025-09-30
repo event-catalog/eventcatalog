@@ -128,7 +128,7 @@ const ServiceItem = React.memo(
                 decodedCurrentPath === `${item.href}/data` ? 'bg-purple-100 ' : 'hover:bg-purple-100'
               }`}
             >
-              <span className="truncate">Data Stores</span>
+              <span className="truncate">Data Diagram</span>
             </a>
           )}
           {!isVisualizer && (

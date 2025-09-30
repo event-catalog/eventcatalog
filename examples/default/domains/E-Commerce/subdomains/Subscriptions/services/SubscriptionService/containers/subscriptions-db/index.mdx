@@ -1,0 +1,167 @@
+---
+id: subscriptions-db
+name: Subscriptions DB
+version: 0.0.1
+container_type: database
+technology: postgres@15
+authoritative: true
+access_mode: readWrite
+classification: internal
+retention: 7y
+residency: eu-west-1
+summary: Primary database for subscription plans, user subscriptions, and recurring billing cycles
+---
+
+<NodeGraph />
+
+### What is this?
+Subscriptions DB is the system of record for all subscription-related data including subscription plans, customer subscriptions, billing cycles, and subscription lifecycle events. It uses PostgreSQL 15 with specialized extensions for time-series billing data.
+
+### What does it store?
+- **Subscription Plans**: Available plans with pricing, billing frequency, and features
+- **Customer Subscriptions**: Active and historical subscriptions with status tracking
+- **Billing Cycles**: Recurring billing periods, next billing dates, and payment status
+- **Subscription Changes**: Audit trail of plan changes, upgrades, downgrades, cancellations
+- **Usage Tracking**: For metered billing features and overage calculations
+
+### Who writes to it?
+- **SubscriptionService** manages subscription lifecycle (create, update, cancel, renew)
+- **BillingService** updates billing cycle status and payment attempts
+- **PaymentService** updates payment method associations
+
+### Who reads from it?
+- **BillingService** reads upcoming billing cycles for charge processing
+- **PaymentService** checks subscription status for payment validation
+- **OrdersService** validates subscription benefits for order processing
+- **Analytics** tracks subscription metrics (churn, MRR, LTV)
+- **Customer Support** views subscription history and status
+
+### High-level data model
+- `subscription_plans`: Catalog of available plans and pricing tiers
+- `subscriptions`: Customer subscriptions linked to plans and payment methods
+- `billing_cycles`: Time-based records of billing periods
+- Subscription status: `TRIAL`, `ACTIVE`, `PAST_DUE`, `CANCELLED`, `EXPIRED`
+
+### Common queries
+```sql
+-- Get active subscriptions with next billing date
+SELECT s.subscription_id, s.customer_id, sp.name AS plan_name,
+       bc.next_billing_date, bc.amount_cents
+FROM subscriptions s
+JOIN subscription_plans sp USING (plan_id)
+JOIN billing_cycles bc ON bc.subscription_id = s.subscription_id
+WHERE s.status = 'ACTIVE'
+  AND bc.next_billing_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days';
+
+-- Calculate Monthly Recurring Revenue (MRR)
+SELECT
+  sp.name AS plan_name,
+  COUNT(*) AS active_subscriptions,
+  SUM(bc.amount_cents)/100.0 AS monthly_revenue
+FROM subscriptions s
+JOIN subscription_plans sp USING (plan_id)
+JOIN billing_cycles bc ON bc.subscription_id = s.subscription_id
+WHERE s.status = 'ACTIVE'
+  AND sp.billing_frequency = 'MONTHLY'
+GROUP BY sp.name;
+
+-- Find subscriptions due for renewal today
+SELECT s.subscription_id, s.customer_id, s.payment_method_id,
+       bc.amount_cents, bc.currency
+FROM subscriptions s
+JOIN billing_cycles bc ON bc.subscription_id = s.subscription_id
+WHERE bc.next_billing_date = CURRENT_DATE
+  AND s.status = 'ACTIVE'
+  AND bc.status = 'PENDING';
+
+-- Customer subscription history (for support)
+SELECT s.subscription_id, sp.name, s.status,
+       s.started_at, s.cancelled_at,
+       CASE WHEN s.status = 'ACTIVE'
+            THEN DATE_PART('day', NOW() - s.started_at)
+            ELSE DATE_PART('day', s.cancelled_at - s.started_at)
+       END AS subscription_days
+FROM subscriptions s
+JOIN subscription_plans sp USING (plan_id)
+WHERE s.customer_id = $1
+ORDER BY s.started_at DESC;
+```
+
+### Subscription lifecycle
+1. Customer selects plan → `SubscriptionService` creates subscription with `TRIAL` or `ACTIVE` status
+2. Billing cycle created with `next_billing_date`
+3. BillingService processes payment on billing date
+4. On success: cycle renewed, `next_billing_date` updated
+5. On failure: subscription status → `PAST_DUE`, retry logic triggered
+6. Cancellation: status → `CANCELLED`, billing cycles stop
+7. Expiration: status → `EXPIRED` after grace period
+
+### Access patterns and guidance
+- Use indexed lookups by `customer_id` and `subscription_id`
+- Billing date queries use `next_billing_date` index for daily batch processing
+- Status filtering is common; maintain composite index on `(status, next_billing_date)`
+- Subscription changes are append-only for audit trail
+- Use read replicas for analytics and reporting queries
+
+### Security and compliance
+- Payment method tokens stored, not raw card data
+- Customer PII encrypted at rest
+- Access logged for compliance audits
+- GDPR right-to-deletion supported via customer_id purge
+- Financial data retention: 7 years for tax/regulatory requirements
+
+### Requesting access
+To request access to Subscriptions DB:
+
+1. **Development access** (read-only):
+   - Submit ticket via [ServiceNow](https://company.service-now.com)
+   - Select "Database Access" → "Subscriptions DB (Dev)"
+   - Approval from subscriptions team lead required
+   - Access granted within 24 hours
+
+2. **Analytics access** (read-replica):
+   - Request via #subscriptions-data Slack channel
+   - Use read-replica endpoint for reporting queries
+   - No approval needed for read-only analytics access
+
+3. **Production write access**:
+   - Restricted to SubscriptionService and BillingService only
+   - Manual production writes require incident ticket + approval
+   - Emergency access via on-call: PagerDuty #subscriptions-oncall
+
+**Contact**:
+- Slack: #subscriptions-team
+- Email: subscriptions-team@company.com
+- Team lead: subscriptions-management team
+
+### Monitoring and alerts
+- Failed billing cycle alerts (> 5% failure rate)
+- Subscription churn rate monitoring (weekly)
+- Database replication lag (alert at > 10 seconds)
+- Past-due subscription count (daily alert if > threshold)
+
+### Backup and disaster recovery
+- Automated daily snapshots with 35-day retention
+- Point-in-time recovery with 5-minute RPO
+- Cross-region backup replication
+- Monthly restore drills
+
+### Performance characteristics
+- **Read latency**: p99 < 50ms
+- **Write latency**: p99 < 100ms
+- **Daily billing batch**: processes 50,000+ subscriptions in < 1 hour
+- **Connection pool**: 20-100 connections depending on load
+
+### Local development
+- Connection string: `SUBSCRIPTIONS_DB_URL` environment variable
+- Docker setup: `docker-compose up subscriptions-db`
+- Seed data: `npm run seed:subscriptions`
+- Test data includes trial, active, and cancelled subscriptions
+
+### Common issues and troubleshooting
+- **Duplicate billing cycles**: Check idempotency in billing cycle creation
+- **Missed renewals**: Verify cron job schedule and timezone handling
+- **Past-due stuck subscriptions**: Run retry job, check payment method validity
+- **Timezone issues**: All dates stored in UTC, convert for display only
+
+For more information, see SubscriptionService documentation and Billing Runbooks.

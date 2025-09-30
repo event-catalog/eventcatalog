@@ -1,0 +1,163 @@
+---
+id: fraud-analytics-db
+name: Fraud Analytics DB
+version: 0.0.1
+container_type: dataWarehouse
+technology: clickhouse@23
+access_mode: readWrite
+classification: confidential
+retention: 5y
+residency: eu-west-1
+summary: Analytics database for fraud detection patterns, risk scoring, and transaction analysis
+---
+
+<NodeGraph />
+
+### What is this?
+Fraud Analytics DB is a ClickHouse columnar database optimized for high-speed analytics on transaction patterns, fraud signals, and risk assessment. It stores historical fraud data and real-time transaction features used by machine learning models.
+
+### What does it store?
+- **Transaction Features**: Extracted features from payment transactions for ML model scoring
+- **Fraud Signals**: Device fingerprints, IP addresses, velocity metrics, behavioral patterns
+- **Risk Scores**: Historical risk scores and fraud decisions for model training
+- **Fraud Cases**: Confirmed fraud incidents with investigation notes
+- **Model Predictions**: ML model outputs and confidence scores for analysis
+
+### Who writes to it?
+- **FraudDetectionService** writes real-time transaction features and risk scores
+- **Data Pipeline** ingests historical fraud data from payment systems
+- **Manual Review Team** updates fraud case outcomes and labels
+
+### Who reads from it?
+- **FraudDetectionService** queries historical patterns for real-time scoring
+- **ML Training Pipeline** extracts training data for model retraining
+- **Data Science Team** analyzes fraud trends and model performance
+- **Business Intelligence** generates fraud metrics and dashboards
+- **Compliance Team** audits fraud detection decisions
+
+### High-level data model
+- `transaction_features`: Real-time extracted features (device, location, amount patterns)
+- `fraud_signals`: Aggregated signals (velocity, anomaly scores)
+- `risk_decisions`: Historical risk decisions and outcomes
+- `fraud_labels`: Ground truth labels for confirmed fraud cases
+- Time-series data partitioned by day for optimal query performance
+
+### Common queries
+```sql
+-- Calculate fraud rate by country (last 30 days)
+SELECT
+  country_code,
+  COUNT(*) as total_transactions,
+  SUM(is_fraud) as fraud_count,
+  (SUM(is_fraud) * 100.0 / COUNT(*)) as fraud_rate
+FROM transaction_features
+WHERE event_date >= today() - 30
+GROUP BY country_code
+ORDER BY fraud_rate DESC;
+
+-- Get high-risk transaction patterns
+SELECT
+  customer_id,
+  COUNT(*) as transaction_count,
+  AVG(risk_score) as avg_risk_score,
+  MAX(risk_score) as max_risk_score
+FROM risk_decisions
+WHERE event_date = today()
+  AND risk_score > 80
+GROUP BY customer_id
+HAVING transaction_count > 5;
+
+-- Analyze model performance over time
+SELECT
+  toStartOfHour(created_at) as hour,
+  model_version,
+  AVG(risk_score) as avg_score,
+  SUM(is_fraud) as actual_fraud_count,
+  COUNT(*) as total_predictions
+FROM risk_decisions
+WHERE created_at >= now() - INTERVAL 7 DAY
+GROUP BY hour, model_version
+ORDER BY hour DESC;
+
+-- Find velocity anomalies (multiple transactions same customer)
+SELECT
+  customer_id,
+  COUNT(*) as tx_count,
+  SUM(amount_cents) as total_amount,
+  arrayDistinct(groupArray(ip_address)) as unique_ips,
+  arrayDistinct(groupArray(device_fingerprint)) as unique_devices
+FROM transaction_features
+WHERE event_date = today()
+  AND created_at >= now() - INTERVAL 1 HOUR
+GROUP BY customer_id
+HAVING tx_count > 5 OR length(unique_ips) > 3;
+```
+
+### Access patterns and guidance
+- Queries are highly parallelized across columns for fast analytics
+- Use `event_date` partition key in WHERE clauses for optimal performance
+- Aggregate queries benefit from ClickHouse's native aggregation functions
+- Avoid SELECT * on large tables; specify needed columns
+- Use materialized views for frequently accessed aggregations
+
+### Data retention and archiving
+- **Hot data**: Last 90 days on high-performance SSD storage
+- **Warm data**: 91 days to 2 years on standard storage
+- **Cold archive**: 2-5 years on object storage (S3)
+- Automated archival jobs run monthly
+
+### Security and compliance
+- Contains sensitive fraud signals and PII (IP addresses, device IDs)
+- Access requires security clearance and fraud team membership
+- All queries logged for audit trail
+- Data anonymized for ML training datasets shared outside fraud team
+- GDPR right-to-deletion supported via customer_id purge jobs
+
+### Requesting access
+To request access to Fraud Analytics DB:
+
+1. **Analyst access** (read-only):
+   - Submit request via [ServiceNow](https://company.service-now.com)
+   - Select "Data Analytics Access" → "Fraud Analytics DB"
+   - Requires fraud team manager approval + security clearance
+   - Access granted within 2-3 business days
+
+2. **Data Science access** (read + export):
+   - Additional approval from Chief Data Officer required
+   - Data export must be to secure workbench environment only
+   - Training data exports require anonymization review
+
+3. **Production write access**:
+   - Restricted to FraudDetectionService automated processes
+   - Manual writes require incident ticket and fraud team lead approval
+
+**Contact**: For access questions:
+- Slack: #fraud-detection-team
+- Email: fraud-team@company.com
+- Data governance: data-governance@company.com
+
+### Performance characteristics
+- **Query latency**: p95 < 500ms for point queries, < 5s for complex aggregations
+- **Insert throughput**: 100,000+ events/second
+- **Compression ratio**: ~10x (columnar storage)
+- **Data freshness**: Near real-time (< 10 second delay)
+
+### Monitoring and alerts
+- Query performance monitoring (slow queries > 10s)
+- Data freshness lag alerts
+- Storage capacity monitoring (alert at 80%)
+- Replication lag alerts for distributed tables
+
+### Local development
+- Local ClickHouse via Docker: `docker-compose up fraud-analytics-db`
+- Connection string: `FRAUD_ANALYTICS_DB_URL` environment variable
+- Sample dataset available: `npm run seed:fraud-analytics`
+- Use ClickHouse client: `clickhouse-client --host localhost --port 9000`
+
+### Common issues and troubleshooting
+- **Slow aggregation queries**: Ensure event_date partition key is used in WHERE clause
+- **Out of memory errors**: Reduce query complexity or increase max_memory_usage setting
+- **Data duplication**: Use ReplacingMergeTree for deduplication on insert
+- **Query timeout**: Increase max_execution_time or optimize query with EXPLAIN
+
+For more information, see FraudDetectionService documentation and ClickHouse best practices guide.
