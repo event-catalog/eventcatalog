@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.59.0
+
+### Minor Changes
+
+- 1901c50: feat(core): added database containers as a resource type
+
 ## 2.58.2
 
 ### Patch Changes
