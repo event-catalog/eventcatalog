@@ -58,6 +58,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, decodedCurrentPath,
           className={`flex items-center justify-between px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
             decodedCurrentPath.includes(message.href) ? 'bg-purple-100 ' : 'hover:bg-purple-100'
           }`}
+          title={message.data?.sidebar?.label || message.data.name}
         >
           <span className="truncate">
             <HighlightedText text={message.data?.sidebar?.label || message.data.name} searchTerm={searchTerm} />

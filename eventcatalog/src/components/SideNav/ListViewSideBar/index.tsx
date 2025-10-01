@@ -93,6 +93,7 @@ const ServiceItem = React.memo(
               toggleGroupCollapse(item.href);
             }}
             className="flex justify-between items-center pl-2 w-full text-xs"
+            title={item.label}
           >
             <span className="truncate text-xs font-bold">
               <HighlightedText text={item.label} searchTerm={searchTerm} />
@@ -314,8 +315,41 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
   const [collapsedGroups, setCollapsedGroups] = useState<{ [key: string]: boolean }>(() => {
     if (typeof window !== 'undefined') {
       const saved = window.localStorage.getItem(STORAGE_KEY);
+      const savedState = saved ? JSON.parse(saved) : {};
+      const currentPath = window.location.pathname;
+
+      // Default all sections to collapsed
+      const defaultCollapsedState: { [key: string]: boolean } = {
+        'all-services-group': true,
+        'flows-group': true,
+        'data-group': true,
+        'designs-group': true,
+        'messagesNotInService-group': true,
+      };
+
+      // Default all domains, services, and their subsections to collapsed
+      resources.domains?.forEach((domain: any) => {
+        const isDomainActive = currentPath.includes(domain.href);
+        defaultCollapsedState[domain.href] = !isDomainActive;
+        defaultCollapsedState[`${domain.href}-entities`] = true;
+        defaultCollapsedState[`${domain.href}-subdomains`] = true;
+        defaultCollapsedState[`${domain.href}-services`] = true;
+      });
+
+      resources.services?.forEach((service: any) => {
+        const isServiceActive = currentPath.includes(service.href);
+        defaultCollapsedState[service.href] = !isServiceActive;
+        defaultCollapsedState[`${service.href}-specifications`] = true;
+        defaultCollapsedState[`${service.href}-receives`] = true;
+        defaultCollapsedState[`${service.href}-sends`] = true;
+        defaultCollapsedState[`${service.href}-entities`] = true;
+        defaultCollapsedState[`${service.href}-data`] = true;
+        defaultCollapsedState[`${service.href}-writesTo-data`] = true;
+        defaultCollapsedState[`${service.href}-readsFrom-data`] = true;
+      });
+
       setIsInitialized(true);
-      return saved ? JSON.parse(saved) : {};
+      return { ...defaultCollapsedState, ...savedState };
     }
     return {};
   });
@@ -444,12 +478,99 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
     }
   }, [collapsedGroups]);
 
-  // If we find a data-active element, scroll to it on mount
+  // If we find a data-active element, scroll to it on mount and open its section
   useEffect(() => {
     const activeElement = document.querySelector('[data-active="true"]');
     if (activeElement) {
       // Add y offset to the scroll position
       activeElement.scrollIntoView({ behavior: 'instant', block: 'center' });
+
+      // Check which section the active element belongs to and open it
+      const newCollapsedState = { ...collapsedGroups };
+
+      // Check if active page is in a domain
+      data.domains?.forEach((domain: any) => {
+        if (decodedCurrentPath.includes(domain.href)) {
+          newCollapsedState[domain.href] = false;
+
+          // Check if it's in domain entities
+          const isInDomainEntities = domain.entities?.some((entity: any) => decodedCurrentPath.includes(entity.href));
+          if (isInDomainEntities) {
+            newCollapsedState[`${domain.href}-entities`] = false;
+          }
+
+          // Check if it's in domain services
+          const isInDomainServices = domain.services?.some((service: any) => decodedCurrentPath.includes(service.data.id));
+          if (isInDomainServices) {
+            newCollapsedState[`${domain.href}-services`] = false;
+          }
+
+          // Check if it's in a subdomain
+          const subdomains = domain.domains || [];
+          subdomains.forEach((subdomain: any) => {
+            const actualSubdomain = data.domains?.find((d: any) => d.id === subdomain.data.id);
+            if (actualSubdomain && decodedCurrentPath.includes(actualSubdomain.href)) {
+              newCollapsedState[`${domain.href}-subdomains`] = false;
+              newCollapsedState[actualSubdomain.href] = false;
+
+              // Check subdomain entities
+              const isInSubdomainEntities = actualSubdomain.entities?.some((entity: any) =>
+                decodedCurrentPath.includes(entity.href)
+              );
+              if (isInSubdomainEntities) {
+                newCollapsedState[`${actualSubdomain.href}-entities`] = false;
+              }
+
+              // Check subdomain services
+              const isInSubdomainServices = actualSubdomain.services?.some((service: any) =>
+                decodedCurrentPath.includes(service.data.id)
+              );
+              if (isInSubdomainServices) {
+                newCollapsedState[`${actualSubdomain.href}-services`] = false;
+              }
+            }
+          });
+        }
+      });
+
+      // Check if active page is a service
+      data.services?.forEach((service: ServiceItem) => {
+        if (decodedCurrentPath.includes(service.href)) {
+          newCollapsedState['all-services-group'] = false;
+          newCollapsedState[service.href] = false;
+
+          // Open specific service sections if active
+          if (decodedCurrentPath.includes('/data')) {
+            newCollapsedState[`${service.href}-data`] = false;
+          }
+        }
+      });
+
+      // Check if active page is a flow
+      const isFlow = data.flows?.some((flow: FlowItem) => decodedCurrentPath === flow.href);
+      if (isFlow) {
+        newCollapsedState['flows-group'] = false;
+      }
+
+      // Check if active page is a container/data store
+      const isContainer = data.containers?.some((container: any) => decodedCurrentPath === container.href);
+      if (isContainer) {
+        newCollapsedState['data-group'] = false;
+      }
+
+      // Check if active page is a design
+      const isDesign = data.designs?.some((design: any) => decodedCurrentPath === design.href);
+      if (isDesign) {
+        newCollapsedState['designs-group'] = false;
+      }
+
+      // Check if active page is an orphaned message
+      const isOrphanedMessage = data.messagesNotInService?.some((msg: MessageItem) => decodedCurrentPath === msg.href);
+      if (isOrphanedMessage) {
+        newCollapsedState['messagesNotInService-group'] = false;
+      }
+
+      setCollapsedGroups(newCollapsedState);
     }
   }, []);
 
@@ -472,6 +593,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
       newCollapsedState[domain.href] = true;
       newCollapsedState[`${domain.href}-entities`] = true;
       newCollapsedState[`${domain.href}-subdomains`] = true;
+      newCollapsedState[`${domain.href}-services`] = true;
     });
 
     // Collapse all services
@@ -495,6 +617,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
       newCollapsedState[domain.href] = false;
       newCollapsedState[`${domain.href}-entities`] = false;
       newCollapsedState[`${domain.href}-subdomains`] = false;
+      newCollapsedState[`${domain.href}-services`] = false;
     });
 
     // Expand all services
@@ -548,6 +671,24 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
     };
   }, []);
 
+  // Helper function to get services for a specific domain (only direct services, not from subdomains)
+  const getServicesForDomain = useMemo(() => {
+    return (domain: any, allServices: ServiceItem[], allDomains: any[]) => {
+      const domainServices = domain.services || [];
+      const subdomains = getSubdomainsForParent(domain, allDomains);
+
+      // Get all service IDs from subdomains
+      const subdomainServiceIds = subdomains.flatMap((subdomain: any) => (subdomain.services || []).map((s: any) => s.data.id));
+
+      // Filter services that belong to this domain but NOT to any of its subdomains
+      return allServices.filter(
+        (service: ServiceItem) =>
+          domainServices.some((domainService: any) => domainService.data.id === service.id) &&
+          !subdomainServiceIds.includes(service.id)
+      );
+    };
+  }, [getSubdomainsForParent]);
+
   // Component to render a single domain item
   const DomainItem = React.memo(
     ({ item, isSubdomain = false, nestingLevel = 0 }: { item: any; isSubdomain?: boolean; nestingLevel?: number }) => {
@@ -561,6 +702,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
               toggleGroupCollapse(item.href);
             }}
             className="p-1 hover:bg-gray-100 rounded-md"
+            title={item.label}
           >
             <div className={`transition-transform duration-150 ${collapsedGroups[item.href] ? '' : 'rotate-180'}`}>
               <ChevronDownIcon className="h-3 w-3 text-gray-500" />
@@ -574,6 +716,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
             className={`flex-grow flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md ${
               decodedCurrentPath === item.href ? 'bg-purple-100' : 'hover:bg-purple-100'
             }`}
+            title={item.label}
           >
             <span className="truncate">
               <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
@@ -589,9 +732,22 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
 
   // Component to render domain content (Overview, Architecture, etc.)
   const DomainContent = React.memo(
-    ({ item, nestingLevel = 0, className = '' }: { item: any; nestingLevel?: number; className?: string }) => {
+    ({
+      item,
+      nestingLevel = 0,
+      className = '',
+      isSubdomain = false,
+    }: {
+      item: any;
+      nestingLevel?: number;
+      className?: string;
+      isSubdomain?: boolean;
+    }) => {
       const marginLeft = nestingLevel > 0 ? `ml-${nestingLevel * 4}` : '';
       const hasEntities = item.entities && item.entities.length > 0;
+
+      // Get services for this domain
+      const domainServices = getServicesForDomain(item, filteredData['services'] || [], filteredData['domains'] || []);
 
       return (
         <div
@@ -604,6 +760,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
               className={`flex items-center px-2 py-1.5 text-xs text-gray-600 hover:bg-purple-100 rounded-md ${
                 decodedCurrentPath === item.href ? 'bg-purple-100 ' : 'hover:bg-purple-100'
               }`}
+              title={`${item.label} - Overview`}
             >
               <span className="truncate">Overview</span>
             </a>
@@ -645,6 +802,40 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                 <span className="truncate">Ubiquitous Language</span>
               </a>
             )}
+
+            {/* Render services before entities */}
+            {domainServices.length > 0 && (
+              <CollapsibleGroup
+                isCollapsed={collapsedGroups[`${item.href}-services`]}
+                onToggle={() => toggleGroupCollapse(`${item.href}-services`)}
+                title={
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleGroupCollapse(`${item.href}-services`);
+                    }}
+                    className="truncate underline ml-2 text-xs mb-1 py-1"
+                  >
+                    Services ({domainServices.length})
+                  </button>
+                }
+              >
+                <div className="space-y-2 pl-4">
+                  {domainServices.map((service: ServiceItem) => (
+                    <ServiceItem
+                      key={service.href}
+                      item={service}
+                      decodedCurrentPath={decodedCurrentPath}
+                      collapsedGroups={collapsedGroups}
+                      toggleGroupCollapse={toggleGroupCollapse}
+                      isVisualizer={isVisualizer}
+                      searchTerm={debouncedSearchTerm}
+                    />
+                  ))}
+                </div>
+              </CollapsibleGroup>
+            )}
+
             {item.entities.length > 0 && !isVisualizer && (
               <CollapsibleGroup
                 isCollapsed={collapsedGroups[`${item.href}-entities`]}
@@ -779,7 +970,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                                     data-active={decodedCurrentPath === subdomain.href}
                                   >
                                     <DomainItem item={subdomain} isSubdomain={true} nestingLevel={1} />
-                                    <DomainContent item={subdomain} nestingLevel={3} className="ml-6" />
+                                    <DomainContent item={subdomain} nestingLevel={3} className="ml-6" isSubdomain={true} />
                                   </div>
                                 ))}
                               </div>
@@ -793,64 +984,46 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
               </div>
             )}
 
-            {filteredData['services'] && (
-              <div className="pt-4 pb-2">
-                <ul className="space-y-4">
-                  {filteredData['services'].map((item: any) => (
-                    <li key={item.href} data-active={decodedCurrentPath === item.href}>
-                      <ServiceItem
-                        key={item.href}
-                        item={item}
-                        decodedCurrentPath={decodedCurrentPath}
-                        collapsedGroups={collapsedGroups}
-                        toggleGroupCollapse={toggleGroupCollapse}
-                        isVisualizer={isVisualizer}
-                        searchTerm={debouncedSearchTerm}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {filteredData['messagesNotInService'] && filteredData['messagesNotInService'].length > 0 && (
+            {/* All Services Group */}
+            {filteredData['services'] && filteredData['services'].length > 0 && (
               <div className="pt-4 pb-2">
                 <CollapsibleGroup
-                  isCollapsed={collapsedGroups['messagesNotInService-group']}
-                  onToggle={() => toggleGroupCollapse('messagesNotInService-group')}
+                  isCollapsed={collapsedGroups['all-services-group']}
+                  onToggle={() => toggleGroupCollapse('all-services-group')}
                   title={
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleGroupCollapse('messagesNotInService-group');
+                        toggleGroupCollapse('all-services-group');
                       }}
                       className="flex justify-between items-center pl-2 w-full text-xs"
                     >
-                      <span className="truncate text-xs font-bold">Orphaned Messages</span>
+                      <span className="truncate text-xs font-bold">All Services ({filteredData['services'].length})</span>
+                      <span className="ml-2 rounded bg-purple-50 px-2 py-0.5 text-[10px] font-medium text-purple-600">
+                        SERVICES
+                      </span>
                     </button>
                   }
                 >
-                  <div className="space-y-2 border-gray-200/80 border-l pl-3 ml-[9px] mt-3">
-                    {filteredData['messagesNotInService'].map((item: any) => (
-                      <div key={item.href} data-active={decodedCurrentPath === item.href}>
-                        <a
-                          href={item.href}
-                          data-active={decodedCurrentPath === item.href}
-                          className={`flex items-center justify-between px-2 py-0.5 text-xs font-thin rounded-md ${
-                            decodedCurrentPath === item.href ? 'bg-purple-100 text-purple-900' : 'hover:bg-purple-100'
-                          }`}
-                        >
-                          <span className="truncate">
-                            <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
-                          </span>
-                          <span
-                            className={`ml-2 text-[10px] font-medium px-2 uppercase py-0.5 rounded ${getMessageColorByCollection(item.collection)}`}
-                          >
-                            {getMessageCollectionName(item.collection, item)}
-                          </span>
-                        </a>
-                      </div>
-                    ))}
+                  <div className="space-y-4 border-gray-200/80 border-l pl-3 ml-[9px] mt-3">
+                    {filteredData['services'].map((item: any) => {
+                      // Ensure service is collapsed by default if not in collapsedGroups
+                      if (collapsedGroups[item.href] === undefined) {
+                        collapsedGroups[item.href] = true;
+                      }
+
+                      return (
+                        <ServiceItem
+                          key={item.href}
+                          item={item}
+                          decodedCurrentPath={decodedCurrentPath}
+                          collapsedGroups={collapsedGroups}
+                          toggleGroupCollapse={toggleGroupCollapse}
+                          isVisualizer={isVisualizer}
+                          searchTerm={debouncedSearchTerm}
+                        />
+                      );
+                    })}
                   </div>
                 </CollapsibleGroup>
               </div>
@@ -870,7 +1043,8 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                       }}
                       className="flex justify-between items-center pl-2 w-full text-xs"
                     >
-                      <span className="truncate text-xs font-bold">Flows</span>
+                      <span className="truncate text-xs font-bold">All Flows ({filteredData['flows'].length})</span>
+                      <span className="ml-2 rounded bg-teal-50 px-2 py-0.5 text-[10px] font-medium text-teal-600">FLOWS</span>
                     </button>
                   }
                 >
@@ -883,6 +1057,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                           className={`flex items-center justify-between px-2 py-0.5 text-xs font-thin rounded-md ${
                             decodedCurrentPath === item.href ? 'bg-purple-100 text-purple-900' : 'hover:bg-purple-100'
                           }`}
+                          title={item.label}
                         >
                           <span className="truncate">
                             <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
@@ -912,7 +1087,8 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                       }}
                       className="flex justify-between items-center pl-2 w-full text-xs"
                     >
-                      <span className="truncate text-xs font-bold">Data</span>
+                      <span className="truncate text-xs font-bold">All Data Stores ({filteredData['containers'].length})</span>
+                      <span className="ml-2 rounded bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-600">DATA</span>
                     </button>
                   }
                 >
@@ -925,6 +1101,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                           className={`flex items-center justify-between px-2 py-0.5 text-xs font-thin rounded-md ${
                             decodedCurrentPath === item.href ? 'bg-purple-100 text-purple-900' : 'hover:bg-purple-100'
                           }`}
+                          title={item.label}
                         >
                           <span className="truncate">
                             <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
@@ -953,7 +1130,8 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                       }}
                       className="flex justify-between items-center pl-2 w-full text-xs"
                     >
-                      <span className="truncate text-xs font-bold">Designs</span>
+                      <span className="truncate text-xs font-bold">All Designs ({filteredData['designs'].length})</span>
+                      <span className="ml-2 rounded bg-teal-50 px-2 py-0.5 text-[10px] font-medium text-teal-600">DESIGNS</span>
                     </button>
                   }
                 >
@@ -966,12 +1144,57 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
                           className={`flex items-center justify-between px-2 py-0.5 text-xs font-thin rounded-md ${
                             decodedCurrentPath === item.href ? 'bg-purple-100 text-purple-900' : 'hover:bg-purple-100'
                           }`}
+                          title={item.label}
                         >
                           <span className="truncate">
                             <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
                           </span>
                           <span className={`ml-2 text-[10px] font-medium px-2 uppercase py-0.5 rounded bg-teal-50 text-teal-600`}>
                             DESIGN
+                          </span>
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </CollapsibleGroup>
+              </div>
+            )}
+
+            {filteredData['messagesNotInService'] && filteredData['messagesNotInService'].length > 0 && (
+              <div className="pt-4 pb-2">
+                <CollapsibleGroup
+                  isCollapsed={collapsedGroups['messagesNotInService-group']}
+                  onToggle={() => toggleGroupCollapse('messagesNotInService-group')}
+                  title={
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleGroupCollapse('messagesNotInService-group');
+                      }}
+                      className="flex justify-between items-center pl-2 w-full text-xs"
+                    >
+                      <span className="truncate text-xs font-bold">Orphaned Messages</span>
+                    </button>
+                  }
+                >
+                  <div className="space-y-2 border-gray-200/80 border-l pl-3 ml-[9px] mt-3">
+                    {filteredData['messagesNotInService'].map((item: any) => (
+                      <div key={item.href} data-active={decodedCurrentPath === item.href}>
+                        <a
+                          href={item.href}
+                          data-active={decodedCurrentPath === item.href}
+                          className={`flex items-center justify-between px-2 py-0.5 text-xs font-thin rounded-md ${
+                            decodedCurrentPath === item.href ? 'bg-purple-100 text-purple-900' : 'hover:bg-purple-100'
+                          }`}
+                          title={item.label}
+                        >
+                          <span className="truncate">
+                            <HighlightedText text={item.label} searchTerm={debouncedSearchTerm} />
+                          </span>
+                          <span
+                            className={`ml-2 text-[10px] font-medium px-2 uppercase py-0.5 rounded ${getMessageColorByCollection(item.collection)}`}
+                          >
+                            {getMessageCollectionName(item.collection, item)}
                           </span>
                         </a>
                       </div>
