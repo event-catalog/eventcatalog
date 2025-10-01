@@ -22,49 +22,21 @@ Orders DB is the primary database for the Orders domain. It is a PostgreSQL 14 d
 - **Order Lines**: One row per item inside an order. Includes product, quantities, and pricing.
 - **Relationships**: `order_lines` are linked to `orders` by `order_id` (cascading deletes are enabled).
 
-### Who writes to it?
-- **OrdersService** writes and updates orders in response to domain commands, emitting domain events such as `OrderPlaced`, `OrderCancelled`, `OrderPaid`, `OrderFulfilled`, and `OrderRefunded`.
-
-### Who reads from it?
-- **Payments** reads order totals and status to validate charge attempts.
-- **Shipping** reads fulfilled or to-be-fulfilled orders to create shipments.
-- **Inventory** may validate allocations against order lines.
-- **Reporting/Analytics** aggregates order trends and KPIs.
+## Schema and test data for Orders DB
+<AccordionGroup>
+  <Accordion title="Orders DB Schema">
+    <Schema file="db.sql" lang="sql" title="Orders DB Schema.sql" />
+  </Accordion>
+  <Accordion title="Test data for Orders DB">
+    <Schema file="test-data.sql" lang="sql" title="Test data for Orders DB.sql" />
+  </Accordion>
+</AccordionGroup>
 
 ### High-level data model
 - An `order` has many `order_lines`.
 - Order lifecycle is tracked via the `status` column. Common statuses: `PENDING`, `PAID`, `CANCELLED`, `FULFILLED`, `REFUNDED`.
 - Monetary values are stored as integer cents; currency is 3-letter ISO (e.g. `USD`).
 
-### Example schema (illustrative)
-```sql
--- Orders table: system of record for order headers
-CREATE TABLE IF NOT EXISTS orders (
-  order_id UUID PRIMARY KEY,
-  customer_id UUID NOT NULL,
-  status TEXT NOT NULL CHECK (status IN ('PENDING','PAID','CANCELLED','FULFILLED','REFUNDED')),
-  currency CHAR(3) NOT NULL,
-  total_amount_cents INTEGER NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
--- Order lines: one row per purchased item
-CREATE TABLE IF NOT EXISTS order_lines (
-  order_id UUID NOT NULL REFERENCES orders(order_id) ON DELETE CASCADE,
-  line_id UUID NOT NULL,
-  product_id UUID NOT NULL,
-  quantity INTEGER NOT NULL CHECK (quantity > 0),
-  unit_price_cents INTEGER NOT NULL,
-  total_price_cents INTEGER GENERATED ALWAYS AS (quantity * unit_price_cents) STORED,
-  PRIMARY KEY (order_id, line_id)
-);
-
--- Helpful indexes for common access patterns
-CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders (customer_id);
-CREATE INDEX IF NOT EXISTS idx_orders_status_created_at ON orders (status, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_order_lines_product ON order_lines (product_id);
-```
 
 ### Common queries
 ```sql

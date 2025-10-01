@@ -9,6 +9,7 @@ import {
   MagnifyingGlassIcon,
   QueueListIcon,
 } from '@heroicons/react/24/outline';
+import { DatabaseIcon } from 'lucide-react';
 import { render, getEntry } from 'astro:content';
 import mdxComponents from '@components/MDX/components';
 import 'diff2html/bundles/css/diff2html.min.css';
@@ -96,18 +97,15 @@ const getBadge = () => {
       class: 'text-yellow-400',
     };
   }
+  if (props.collection === 'containers') {
+    return { backgroundColor: 'blue', textColor: 'blue', content: 'Container', icon: DatabaseIcon, class: 'text-blue-400' };
+  }
   if (props.collection === 'flows') {
     return { backgroundColor: 'teal', textColor: 'teal', content: 'Flow', icon: QueueListIcon, class: 'text-teal-400' };
   }
 };
 
 const badges = [getBadge()];
-import { HomeIcon } from '@heroicons/react/20/solid';
-
-const pages = [
-  { name: 'Projects', href: '#', current: false },
-  { name: 'Project Nero', href: '#', current: true },
-];
 ---
 
 <VerticalSideBarLayout title="ChangeLog">
