@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.59.1
+
+### Patch Changes
+
+- aff5ad1: fix(core): fixed changelogs for data stores
+
 ## 2.59.0
 
 ### Minor Changes
