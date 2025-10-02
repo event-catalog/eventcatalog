@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.60.0
+
+### Minor Changes
+
+- df59049: feat(core): services are now nested in domains for the sidebar
+
 ## 2.59.1
 
 ### Patch Changes
