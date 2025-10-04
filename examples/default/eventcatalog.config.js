@@ -18,6 +18,7 @@ export default {
   base: '/',
   trailingSlash: false,
   mermaid: {
+    enableSupportForElkLayout: true,
     iconPacks: ['logos'],
   },
   rss: {

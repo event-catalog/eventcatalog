@@ -534,7 +534,7 @@ nodeGraphs.push({
 
       if (window.eventcatalog.mermaid) {
         const { icons } = await import('@iconify-json/logos');
-        const { iconPacks = [] } = window.eventcatalog.mermaid ?? {};
+        const { iconPacks = [], enableSupportForElkLayout = false } = window.eventcatalog.mermaid ?? {};
 
         if (iconPacks.length > 0) {
           const iconPacksToRegister = iconPacks.map((name: any) => {
@@ -546,7 +546,13 @@ nodeGraphs.push({
 
           mermaid.registerIconPacks(iconPacksToRegister);
         }
+
+        if (enableSupportForElkLayout) {
+          const { default: elkLayouts } = await import('@mermaid-js/layout-elk/dist/mermaid-layout-elk.core.mjs');
+          mermaid.registerLayoutLoaders(elkLayouts);
+        }
       }
+
 
       mermaid.initialize({
         // fontSize: 2,
