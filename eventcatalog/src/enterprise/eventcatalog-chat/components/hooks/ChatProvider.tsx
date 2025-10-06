@@ -1,3 +1,4 @@
+import type { UIMessage } from '@ai-sdk/react';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
@@ -31,7 +32,7 @@ interface ChatContextType {
   setCurrentSession: (session: ChatSession | null) => void;
   isStreaming: boolean;
   setIsStreaming: (isStreaming: boolean) => void;
-  storeMessagesToSession: (sessionId: string, messages: Message[]) => void;
+  storeMessagesToSession: (sessionId: string, messages: UIMessage[]) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -93,13 +94,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   };
 
   // Set all messages to the session
-  const storeMessagesToSession = (sessionId: string, messages: Message[]) => {
+  const storeMessagesToSession = (sessionId: string, messages: UIMessage[]) => {
     setSessions((prev) => {
       const index = prev.findIndex((s) => s.id === sessionId);
       if (index === -1) return prev;
 
       const updated = [...prev];
-      updated[index].messages = messages;
+      updated[index].messages = messages as unknown as Message[];
       updated[index].lastUpdated = Date.now();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       return updated;

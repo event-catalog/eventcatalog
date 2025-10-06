@@ -1,5 +1,4 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import config from '@config';
 import type { APIRoute } from 'astro';
 import fs from 'fs';
 import { isCustomDocsEnabled } from '@utils/feature';
@@ -30,11 +29,12 @@ const entities = await getCollection('entities');
 const channels = await getCollection('channels');
 const flows = await getCollection('flows');
 const containers = await getCollection('containers');
-
 const customDocs = await getCollection('customPages');
 
+import { isLLMSTxtEnabled } from '@utils/feature';
+
 export const GET: APIRoute = async ({ params, request }) => {
-  if (!config.llmsTxt?.enabled) {
+  if (!isLLMSTxtEnabled()) {
     return new Response('llms.txt is not enabled for this Catalog.', { status: 404 });
   }
 

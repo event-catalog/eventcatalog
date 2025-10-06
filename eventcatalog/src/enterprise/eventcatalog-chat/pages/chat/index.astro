@@ -61,19 +61,6 @@ const generatorConfig = `
       isEnabled ? (
         directoryExists ? (
           <>
-            <div id="browserWarning" class="flex items-center justify-center w-full p-4 sm:p-8" style="display: none;">
-              <div class="max-w-2xl text-center bg-yellow-100 text-yellow-800 px-8 py-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-bold mb-4">Unsupported Browser</h2>
-                <p>
-                  EventCatalog AI Assistant uses LLM models in the browser which is{' '}
-                  <a href="https://developer.mozilla.org/en-US/docs/Web/API/GPU" class="text-blue-500 hover:underline">
-                    only supported in Chrome and Edge browsers
-                  </a>
-                  . <br />
-                  Please switch to a supported browser for the best experience.
-                </p>
-              </div>
-            </div>
             <div id="chatContainer" class="w-full">
               <Chat
                 client:only="react"
@@ -162,30 +149,6 @@ const generatorConfig = `
     }
   </div>
 </VerticalSideBarLayout>
-
-<script>
-  function checkBrowser() {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isChrome = /chrome/.test(userAgent) && !/edg/.test(userAgent);
-    const isEdge = /edg/.test(userAgent);
-
-    const warningElement = document.getElementById('browserWarning') as HTMLElement;
-    const chatContainer = document.getElementById('chatContainer') as HTMLElement;
-
-    if (warningElement && chatContainer) {
-      if (!isChrome && !isEdge) {
-        warningElement.style.display = 'flex';
-        chatContainer.style.display = 'none';
-      } else {
-        warningElement.style.display = 'none';
-        chatContainer.style.display = 'block';
-      }
-    }
-  }
-
-  // Run check when DOM is loaded
-  document.addEventListener('DOMContentLoaded', checkBrowser);
-</script>
 
 <style>
   .loading-status.ready {
