@@ -21,3 +21,5 @@ eventcatalog.styles.css
 src/generated-ai/*
 
 src/pages/api/server/*
+src/pages/api/chat.ts
+src/pages/api/[...auth].ts

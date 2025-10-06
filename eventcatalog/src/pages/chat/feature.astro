@@ -1,6 +1,6 @@
 ---
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { isEventCatalogChatEnabled as hasEventCatlaogChatLicense } from '@utils/feature';
+import { isEventCatalogChatEnabled as hasEventCatlaogChatLicense, isSSR } from '@utils/feature';
 import { BotMessageSquare } from 'lucide-react';
 const hasChatLicense = hasEventCatlaogChatLicense();
 
@@ -27,20 +27,19 @@ if (hasChatLicense) {
             <div>
               <div class="inline-flex items-center px-4 py-2 rounded-full bg-purple-100 text-purple-700 font-medium text-sm mb-6">
                 <BotMessageSquare className="w-4 h-4 mr-2" />
-                New: Ask your catalog anything
+                EventCatalog: Agent
               </div>
               <h1 class="text-4xl font-bold text-gray-900 tracking-tight mb-4">Ask. Understand. Ship faster.</h1>
               <p class="text-xl text-gray-600 mb-8">
-                Get answers about your events, services, and domains — instantly. Runs entirely in your browser — your data never
-                leaves your machine.
+                Get answers about your architecture — instantly. Connect to your own AI models and data.
               </p>
-              <div class="flex flex-col sm:flex-row gap-4 mb-8">
+              <div class="flex flex-col sm:flex-row gap-4 mb-2">
                 <a
-                  href="https://demo.eventcatalog.dev/chat"
+                  href="https://www.eventcatalog.dev/docs/development/guides/eventcatlaog-chat/what-is-eventcatalog-chat"
                   target="_blank"
                   class="inline-flex items-center juNot ready for AI chat? You castify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-purple-600 hover:bg-purple-700 transition-colors duration-150"
                 >
-                  Try the demo
+                  Get Started
                   <svg class="ml-2 w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
                     <path
                       fill-rule="evenodd"
@@ -56,12 +55,19 @@ if (hasChatLicense) {
                   Try for free
                 </a>
               </div>
-              <p class="text-sm text-gray-500">
-                Available with EventCatalog Starter or Scale plans
-                <a href="https://www.eventcatalog.dev/pricing" class="text-purple-600 font-medium block"
-                  >Try free for 14 days, no credit card required</a
-                >
-              </p>
+
+              <p class="text-sm text-gray-500 italic mb-6">Available with EventCatalog Starter or Scale plans</p>
+
+              {
+                !isSSR() && (
+                  <p class="text-sm text-gray-500 my-4 bg-yellow-50 p-4 rounded-lg">
+                    <span class="font-bold">This feature is only available on server side.</span> You can switch to server side by
+                    setting the <code class="font-mono bg-gray-100 p-0.5 rounded">output</code> property to{' '}
+                    <code class="font-mono bg-gray-100 p-0.5 rounded">server</code> in your{' '}
+                    <code class="font-mono bg-gray-100 p-0.5 rounded">eventcatalog.config.js</code> file.
+                  </p>
+                )
+              }
             </div>
 
             <div class="relative">
@@ -117,9 +123,9 @@ if (hasChatLicense) {
                   ></path>
                 </svg>
               </div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">Instant Search</h3>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">Direct Answers</h3>
               <p class="text-gray-600">
-                Search and understand complex service relationships in seconds with natural language queries.
+                Ask questions about your catalog and get direct answers, using your own models and API keys.
               </p>
             </div>
 
@@ -144,7 +150,9 @@ if (hasChatLicense) {
                 </svg>
               </div>
               <h3 class="text-lg font-semibold text-gray-900 mb-2">Privacy First</h3>
-              <p class="text-gray-600">All processing happens locally in your browser. Your data never leaves your machine.</p>
+              <p class="text-gray-600">
+                Runs on your own infrastructure, and your own models. Provide your own API keys to get started.
+              </p>
             </div>
           </div>
 
