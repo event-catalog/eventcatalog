@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.61.2
+
+### Patch Changes
+
+- 788b4f4: feat(core): added support for remote spec files
+
 ## 2.61.1
 
 ### Patch Changes
