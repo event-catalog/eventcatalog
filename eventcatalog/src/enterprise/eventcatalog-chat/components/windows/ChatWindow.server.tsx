@@ -5,9 +5,9 @@ import React from 'react';
 import MentionInput from '../MentionInput';
 import InputModal from '../InputModal';
 import type { ChatPromptCategoryGroup, ChatPrompt } from '@enterprise/eventcatalog-chat/utils/chat-prompts';
-import { useMutation } from '@tanstack/react-query';
 import WelcomePromptArea from '../WelcomePromptArea';
 import ChatMessage from '../ChatMessage'; // Import the new component
+import { useChat as useAiChat, type UIMessage } from '@ai-sdk/react';
 
 // Update Message type to include resources
 interface Resource {
@@ -37,21 +37,22 @@ const ChatWindow = ({
   resources: mentionInputResources = [],
   chatPrompts,
 }: ChatWindowProps) => {
-  const [messages, setMessages] = useState<Array<Message>>([]);
+  // const [messages] = useState<Array<Message>>([]);
   const [inputValue, setInputValue] = useState('');
-  const [showWelcome, setShowWelcome] = useState(true);
-  const [isThinking, setIsThinking] = useState(false);
-  const completionRef = useRef<any>(null);
   const outputRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [activeCategory, setActiveCategory] = useState<string>(chatPrompts?.[0]?.label || '');
+
+  const { messages, sendMessage, stop, status, setMessages: setAiMessages } = useAiChat();
+  const isStreaming = status === 'streaming' && messages.length > 0;
+  const isThinking = status === 'submitted' || (status === 'streaming' && messages.length === 0);
 
   // --- New state for input modal ---
   const [promptForInput, setPromptForInput] = useState<ChatPrompt | null>(null);
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
   // --- End new state ---
 
-  const { currentSession, storeMessagesToSession, updateSession, isStreaming, setIsStreaming, createSession } = useChat();
+  const { currentSession, storeMessagesToSession, updateSession, createSession } = useChat();
 
   // If the messages change add them to the session
   useEffect(() => {
@@ -60,134 +61,10 @@ const ChatWindow = ({
     }
   }, [messages]);
 
-  const mutation = useMutation({
-    mutationFn: async (input: { question: string; additionalContext?: string }) => {
-      const history = messages.map((message) => ({
-        createdAt: new Date(message.timestamp),
-        content: message.content,
-        role: message.isUser ? 'user' : 'assistant', // Correct role mapping
-      }));
-
-      const chatPromise = fetch('/api/server/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: input.question, messages: history, additionalContext: input.additionalContext }),
-      });
-
-      const resourcesPromise = fetch('/api/server/ai/resources', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: input.question }),
-      });
-
-      const [chatResponse, resourcesResponse] = await Promise.all([chatPromise, resourcesPromise]);
-      const { resources } = await resourcesResponse.json();
-
-      if (!chatResponse.ok) {
-        const chatResponseJson = await chatResponse.json();
-        if (chatResponseJson?.error) {
-          throw new Error(`Chat API request failed with status ${chatResponse.status}: ${chatResponseJson.error}`);
-        } else {
-          throw new Error(`Chat API request failed with status ${chatResponse.status}`);
-        }
-      }
-      if (!chatResponse.body) {
-        throw new Error('No response body from chat API');
-      }
-
-      const reader = chatResponse.body.getReader();
-      const decoder = new TextDecoder();
-      let responseText = '';
-      let isFirstChunk = true;
-
-      // Start processing the stream
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        try {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          responseText += chunk;
-
-          if (isFirstChunk) {
-            setIsThinking(false);
-            setMessages((prev) => [...prev, { content: responseText, isUser: false, timestamp: Date.now() }]);
-            isFirstChunk = false;
-          } else {
-            setMessages((prev) => {
-              const newMessages = [...prev];
-              const lastMessageIndex = newMessages.length - 1;
-              if (lastMessageIndex >= 0 && !newMessages[lastMessageIndex].isUser) {
-                newMessages[lastMessageIndex] = {
-                  ...newMessages[lastMessageIndex],
-                  content: responseText,
-                };
-              }
-              return newMessages;
-            });
-          }
-          // Defer scroll until after state update seems complete
-          requestAnimationFrame(() => scrollToBottom(false)); // Use non-smooth scroll during stream
-        } catch (error) {
-          console.error('Error reading stream:', error);
-          setIsThinking(false);
-          setIsStreaming(false);
-          // Potentially set an error message state here
-          throw error; // Re-throw to allow mutation's onError to catch it
-        }
-      }
-
-      // Final state update including resources
-      let finalMessages: Message[] = [];
-      setMessages((prev) => {
-        const newMessages = [...prev];
-        const lastMessageIndex = newMessages.length - 1;
-        if (lastMessageIndex >= 0 && !newMessages[lastMessageIndex].isUser) {
-          newMessages[lastMessageIndex] = {
-            ...newMessages[lastMessageIndex],
-            content: responseText, // Ensure final content is set
-            resources: resources,
-          };
-        }
-        finalMessages = newMessages; // Capture the final state
-        return newMessages;
-      });
-
-      // Store messages to session AFTER streaming is complete and state is updated
-      if (currentSession) {
-        storeMessagesToSession(currentSession.id, finalMessages);
-      }
-
-      // Reset flags and scroll smoothly to the end
-      setIsThinking(false);
-      setIsStreaming(false);
-      completionRef.current = null; // Clear ref if needed
-      scrollToBottom(); // Smooth scroll after completion
-
-      return responseText; // Return the complete text
-    },
-    onError: (error) => {
-      console.error('Chat mutation error:', error);
-      // Handle error state in UI, e.g., show an error message to the user
-      setIsThinking(false);
-      setIsStreaming(false);
-      // Maybe add an error message to the chat
-      setMessages((prev) => [
-        ...prev,
-        { content: `Sorry, an error occurred: ${error.message}`, isUser: false, timestamp: Date.now() },
-      ]);
-    },
-  });
-
   // Load messages when session changes
   useEffect(() => {
     if (currentSession) {
-      setMessages(currentSession.messages);
-      setShowWelcome(false);
-    } else {
-      setMessages([]);
-      setShowWelcome(true);
+      setAiMessages(currentSession.messages as unknown as UIMessage[]);
     }
   }, [currentSession]);
 
@@ -198,18 +75,6 @@ const ChatWindow = ({
     }
   }, [isStreaming]);
 
-  // Helper function to stop the current completion
-  const handleStop = useCallback(async () => {
-    if (completionRef.current) {
-      try {
-        setIsStreaming(false);
-        setIsThinking(false);
-      } catch (error) {
-        console.error('Error stopping completion:', error);
-      }
-    }
-  }, []);
-
   // New function to handle submitting a question (user input or predefined)
   const submitQuestion = useCallback(
     async (question: string, additionalContext?: string) => {
@@ -218,10 +83,8 @@ const ChatWindow = ({
       const userMessage: Message = { content: question, isUser: true, timestamp: Date.now(), additionalContext };
       const isFirstMessage = messages.length === 0;
 
-      setMessages((prev) => [...prev, userMessage]);
-      setShowWelcome(false);
-      setIsThinking(true);
-      setIsStreaming(true);
+      // setMessages((prev) => [...prev, userMessage]);
+      // setShowWelcome(false);
       setInputValue('');
 
       // Scroll to bottom immediately after adding user message and setting thinking state
@@ -235,15 +98,14 @@ const ChatWindow = ({
         });
       }
 
-      mutation.mutate({ question, additionalContext });
+      sendMessage({ text: additionalContext || question });
+
+      // mutation.mutate({ question, additionalContext });
     },
     [
       currentSession,
-      mutation,
       updateSession,
-      setIsStreaming,
-      setIsThinking,
-      setMessages,
+      // setMessages,
       setInputValue,
       messages.length,
       isStreaming,
@@ -303,9 +165,10 @@ const ChatWindow = ({
   const handleSubmit = useCallback(
     (e?: React.FormEvent) => {
       e?.preventDefault();
+      // sendMessage({ text: inputValue });
       submitQuestion(inputValue); // Use standard input value, no additional context here
     },
-    [inputValue, submitQuestion]
+    [inputValue, sendMessage]
   );
 
   // Add new function to handle smooth scrolling
@@ -327,9 +190,16 @@ const ChatWindow = ({
   // Memoize the messages list with the new ChatMessage component
   const messagesList = useMemo(
     () => (
-      <div className="space-y-4 max-w-[900px] mx-auto">
+      <div className="space-y-4 max-w-[900px] mx-auto pb-6">
         {messages.map((message, index) => (
-          <ChatMessage key={message.timestamp} message={message} />
+          <ChatMessage
+            key={message.id}
+            message={{
+              isUser: message.role === 'user',
+              content: message.parts.map((part) => (part.type === 'text' ? part.text : '')).join(''),
+              timestamp: Date.now(),
+            }}
+          />
         ))}
         {isThinking && (
           <div className="flex justify-start mb-4">
@@ -431,26 +301,26 @@ const ChatWindow = ({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden h-[calc(100vh-60px)] w-full bg-white">
-      {/* Main content area - renders messages or predefined questions */}
-      <div ref={outputRef} className="flex-1 overflow-y-auto">
-        {' '}
-        {/* Outer container handles scroll OR centering */}
-        {messages.length > 0 ? (
-          // Render messages when they exist
-          <div id="output" className="p-4 space-y-4 w-full max-w-[900px] mx-auto h-full pb-10">
-            {messagesList}
-          </div>
-        ) : (
-          // Render centered predefined questions when chat is empty
-          <WelcomePromptArea
-            chatPrompts={chatPrompts}
-            activeCategory={activeCategory}
-            setActiveCategory={setActiveCategory}
-            onPromptClick={handlePredefinedQuestionClick} // Pass the existing handler
-            isProcessing={isThinking || isStreaming} // Combine thinking/streaming state
-          />
-        )}
-      </div>
+      {messages.length === 0 && (
+        <WelcomePromptArea
+          chatPrompts={chatPrompts}
+          activeCategory={activeCategory}
+          setActiveCategory={setActiveCategory}
+          onPromptClick={handlePredefinedQuestionClick}
+          isProcessing={isStreaming || isThinking}
+        />
+      )}
+
+      {messages.length > 0 && (
+        <div ref={outputRef} className="flex-1 overflow-y-auto">
+          {messages.length > 0 && (
+            <div id="output" className="p-4 space-y-4 w-full max-w-[900px] mx-auto h-full pb-16">
+              {messagesList}
+            </div>
+          )}
+          ;
+        </div>
+      )}
 
       {/* Input Area (remains at the bottom) */}
       <div className="border-t border-gray-200 p-4 bg-white">
@@ -474,7 +344,7 @@ const ChatWindow = ({
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
             {isStreaming ? (
               <button
-                onClick={handleStop}
+                onClick={() => stop()}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium"
               >
                 Stop

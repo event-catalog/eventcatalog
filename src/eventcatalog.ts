@@ -91,7 +91,7 @@ const copyServerFiles = async () => {
   }
 
   // copy the server files into the core directory
-  fs.cpSync(join(eventCatalogDir, 'src/enterprise/eventcatalog-chat/pages/api'), join(core, 'src/pages/api/server'), {
+  fs.cpSync(join(eventCatalogDir, 'src/enterprise/eventcatalog-chat/pages/api'), join(core, 'src/pages/api'), {
     recursive: true,
   });
 };

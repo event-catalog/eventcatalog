@@ -1,5 +1,30 @@
 # @eventcatalog/core
 
+## 2.61.3
+
+### Patch Changes
+
+- f3817eb: fix(core): fixed issue with broken sidebar
+
+## 2.61.2
+
+### Patch Changes
+
+- 788b4f4: feat(core): added support for remote spec files
+
+## 2.61.1
+
+### Patch Changes
+
+- fa838a6: chore(core): updated astro to 5.14.1
+- 02d4217: chore(core): simplify eventcatalog chat
+
+## 2.61.0
+
+### Minor Changes
+
+- e32da88: chore(core): simplify eventcatalog chat
+
 ## 2.60.0
 
 ### Minor Changes

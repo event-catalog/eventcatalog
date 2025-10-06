@@ -1,3 +1,5 @@
+// Don't import config here, as it breaks in the client, as path cannot be resolved.
+
 const cleanUrl = (url: string) => {
   return url.replace(/\/+/g, '/');
 };

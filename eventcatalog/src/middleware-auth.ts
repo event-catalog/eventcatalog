@@ -3,6 +3,9 @@ import type { MiddlewareHandler } from 'astro';
 import { getSession } from 'auth-astro/server';
 import { isAuthEnabled } from '@utils/feature';
 import jwt from 'jsonwebtoken';
+import { isLLMSTxtEnabled } from '@utils/feature';
+
+const isLLMSTextEnabled = isLLMSTxtEnabled();
 
 // Define the types in this file
 export interface NormalizedUser {
@@ -89,13 +92,21 @@ export const authMiddleware: MiddlewareHandler = async (context, next) => {
 
   // Skip system/browser requests
   const systemRoutes = ['/.well-known/', '/favicon.ico', '/robots.txt', '/sitemap.xml', '/_astro/', '/__astro'];
-  const publicRoutes = ['/auth/login', '/auth/signout', '/auth/error', '/api/auth'];
+  let publicRoutes = ['/auth/login', '/auth/signout', '/auth/error', '/api/auth'];
+
+  const llmsRoutes = ['/docs/llm/llms.txt', '/docs/llm/llms-services.txt', '/docs/llm/llms-full.txt'];
+
+  if (isLLMSTextEnabled) {
+    publicRoutes = [...publicRoutes, ...llmsRoutes];
+  }
 
   if (
     pathname.startsWith('/_') ||
     systemRoutes.some((route) => pathname.startsWith(route)) ||
     pathname.startsWith('/.well-known/') ||
-    publicRoutes.some((route) => pathname.startsWith(route))
+    publicRoutes.some((route) => pathname.startsWith(route)) ||
+    (pathname.endsWith('.mdx') && isLLMSTextEnabled) ||
+    (pathname.endsWith('.md') && isLLMSTextEnabled)
   ) {
     return next();
   }

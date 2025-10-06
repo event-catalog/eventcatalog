@@ -3,31 +3,16 @@ import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import Chat from '@enterprise/eventcatalog-chat/components/Chat';
 import { getChatPromptsGroupedByCategory } from '@enterprise/eventcatalog-chat/utils/chat-prompts';
 import config from '@config';
-import path from 'node:path';
-import fs from 'node:fs';
 import { Code } from 'astro-expressive-code/components';
 import { getDomains } from '@utils/collections/domains';
 import { getEvents } from '@utils/events';
 import { getCommands } from '@utils/commands';
 import { getServices } from '@utils/collections/services';
 import { getQueries } from '@utils/queries';
-import { getConfigurationForGivenGenerator } from '@utils/generators';
 
 const isEnabled = config.chat?.enabled || false;
 const chatConfig = config.chat || {};
 const output = config.output || 'static';
-
-const aiGeneratorConfig = getConfigurationForGivenGenerator('@eventcatalog/generator-ai');
-let embeddingModel = aiGeneratorConfig?.embedding?.model || 'all-MiniLM-L6-v2';
-
-if (aiGeneratorConfig?.embedding?.provider === 'openai') {
-  embeddingModel = aiGeneratorConfig?.embedding?.model || 'text-embedding-3-large';
-}
-
-const PROJECT_DIR = path.resolve(process.env.PROJECT_DIR || process.cwd());
-const GENERATED_AI_DIR = path.resolve(PROJECT_DIR, 'public/ai');
-
-const directoryExists = fs.existsSync(GENERATED_AI_DIR);
 
 // Get all information for the mention input
 const [events, commands, queries, services, domains] = await Promise.all([
@@ -42,86 +27,25 @@ const allItems = [...events, ...commands, ...queries, ...services, ...domains];
 const chatPrompts = await getChatPromptsGroupedByCategory();
 
 const resources = allItems.map((item) => ({ id: item.data.id, type: item.collection, name: item.data.name }));
-
-const generatorConfig = `
- generators: [
-    [
-      "@eventcatalog/generator-ai", {
-        // If you want to chunk files into smaller chunks, set this to true
-        splitMarkdownFiles: true
-      }
-    ],
-  ],
-`;
 ---
 
 <VerticalSideBarLayout title="AI Chat">
   <div class="flex h-[calc(100vh-60px)] bg-white">
     {
       isEnabled ? (
-        directoryExists ? (
-          <>
-            <div id="browserWarning" class="flex items-center justify-center w-full p-4 sm:p-8" style="display: none;">
-              <div class="max-w-2xl text-center bg-yellow-100 text-yellow-800 px-8 py-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-bold mb-4">Unsupported Browser</h2>
-                <p>
-                  EventCatalog AI Assistant uses LLM models in the browser which is{' '}
-                  <a href="https://developer.mozilla.org/en-US/docs/Web/API/GPU" class="text-blue-500 hover:underline">
-                    only supported in Chrome and Edge browsers
-                  </a>
-                  . <br />
-                  Please switch to a supported browser for the best experience.
-                </p>
-              </div>
-            </div>
-            <div id="chatContainer" class="w-full">
-              <Chat
-                client:only="react"
-                chatConfig={{
-                  ...chatConfig,
-                  embeddingModel,
-                }}
-                resources={resources}
-                chatPrompts={chatPrompts}
-                output={output as 'static' | 'server'}
-              />
-            </div>
-          </>
-        ) : (
-          <div class="flex items-center justify-center w-full p-4 sm:p-8">
-            <div class="max-w-2xl text-center">
-              <h2 class="text-2xl font-bold text-gray-900 mb-4">EventCatalog AI Assistant Setup Required</h2>
-              <p class="text-gray-600 mb-6">
-                To use the AI Assistant, you need to generate the AI data first.
-                <br />
-                Please install the plugin and run the generator command to generate the AI data.
-              </p>
-
-              <div class="text-left space-y-4">
-                <div class="space-y-2">
-                  <h2 class="text-lg font-semibold  text-left">1. Install the generator</h2>
-                  <Code code={`npm i @eventcatalog/generator-ai`} lang="bash" frame="terminal" />
-                </div>
-
-                <div class="space-y-2">
-                  <h2 class="text-lg font-semibold text-left">2. Configure the generator</h2>
-                  <Code code={generatorConfig} lang="javascript" frame="terminal" title="eventcatalog.config.js" />
-                </div>
-
-                <div class="space-y-2">
-                  <h2 class="text-lg font-semibold  text-left">3. Generate the AI data</h2>
-                  <Code code={`npm run generate`} lang="bash" frame="none" />
-                </div>
-                <p class="text-gray-600 text-sm mt-2">
-                  After running the generator, a new folder called <code class="bg-gray-100 p-1 rounded-md">generated-ai</code>{' '}
-                  will be created in your project.
-                </p>
-
-                <p class="text-gray-600 text-sm mt-2">Once done, refresh this page.</p>
-              </div>
-            </div>
+        <>
+          <div id="chatContainer" class="w-full">
+            <Chat
+              client:only="react"
+              chatConfig={{
+                ...chatConfig,
+              }}
+              resources={resources}
+              chatPrompts={chatPrompts}
+              output={output as 'static' | 'server'}
+            />
           </div>
-        )
+        </>
       ) : (
         <div class="flex items-center justify-center w-full p-4 sm:p-8">
           <div class="max-w-6xl flex flex-col md:flex-row gap-8 md:gap-12 items-center">
@@ -162,30 +86,6 @@ const generatorConfig = `
     }
   </div>
 </VerticalSideBarLayout>
-
-<script>
-  function checkBrowser() {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isChrome = /chrome/.test(userAgent) && !/edg/.test(userAgent);
-    const isEdge = /edg/.test(userAgent);
-
-    const warningElement = document.getElementById('browserWarning') as HTMLElement;
-    const chatContainer = document.getElementById('chatContainer') as HTMLElement;
-
-    if (warningElement && chatContainer) {
-      if (!isChrome && !isEdge) {
-        warningElement.style.display = 'flex';
-        chatContainer.style.display = 'none';
-      } else {
-        warningElement.style.display = 'none';
-        chatContainer.style.display = 'block';
-      }
-    }
-  }
-
-  // Run check when DOM is loaded
-  document.addEventListener('DOMContentLoaded', checkBrowser);
-</script>
 
 <style>
   .loading-status.ready {

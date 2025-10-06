@@ -39,13 +39,14 @@ export const isChangelogEnabled = () => config?.changelog?.enabled ?? true;
 export const isCustomDocsEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
 export const isEventCatalogChatEnabled = () => {
   const isFeatureEnabledFromPlan = isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
-  return isFeatureEnabledFromPlan && config?.chat?.enabled;
+  return isFeatureEnabledFromPlan && config?.chat?.enabled && isSSR();
 };
 
 export const isEventCatalogUpgradeEnabled = () => !isEventCatalogStarterEnabled() && !isEventCatalogScaleEnabled();
 export const isCustomLandingPageEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
 
 export const isMarkdownDownloadEnabled = () => config?.llmsTxt?.enabled ?? false;
+export const isLLMSTxtEnabled = () => (config?.llmsTxt?.enabled || isEventCatalogChatEnabled()) ?? false;
 
 export const isAuthEnabled = () => {
   const directory = process.env.PROJECT_DIR || process.cwd();

@@ -107,19 +107,25 @@ describe('features', () => {
   });
 
   describe('isEventCatalogChatEnabled', () => {
-    it('should return true when EVENTCATALOG_STARTER is true', () => {
+    it('should return true when EVENTCATALOG_STARTER is true, chat is enabled and isSSR', () => {
       process.env.EVENTCATALOG_STARTER = 'true';
+      config.chat.enabled = true;
+      config.output = 'server';
       expect(isEventCatalogChatEnabled()).toBe(true);
     });
 
-    it('should return true when EVENTCATALOG_SCALE is true', () => {
+    it('should return true when EVENTCATALOG_SCALE is true, chat is enabled and isSSR', () => {
       process.env.EVENTCATALOG_SCALE = 'true';
+      config.chat.enabled = true;
+      config.output = 'server';
       expect(isEventCatalogChatEnabled()).toBe(true);
     });
 
-    it('should return false when neither feature is enabled', () => {
+    it('should return false when neither feature is enabled, chat is enabled and isSSR', () => {
       delete process.env.EVENTCATALOG_STARTER;
       delete process.env.EVENTCATALOG_SCALE;
+      config.chat.enabled = true;
+      config.output = 'server';
       expect(isEventCatalogChatEnabled()).toBe(false);
     });
   });
