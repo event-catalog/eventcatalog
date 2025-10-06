@@ -1,4 +1,4 @@
-import config from '@config';
+// Don't import config here, as it breaks in the client, as path cannot be resolved.
 
 const cleanUrl = (url: string) => {
   return url.replace(/\/+/g, '/');
@@ -61,11 +61,4 @@ export const toMarkdownUrl = (url: string) => {
   }
 
   return url + '.mdx';
-};
-
-export const getBaseURL = () => {
-  if (import.meta.env.MODE === 'development') {
-    return `http://localhost:${config.port || 3000}`;
-  }
-  return config.homepageLink || 'https://eventcatalog.dev/';
 };
