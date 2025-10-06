@@ -1,6 +1,13 @@
-import { getBaseURL } from '@utils/url-builder';
 import { streamText, tool, type LanguageModel, type UIMessage, stepCountIs, convertToModelMessages } from 'ai';
 import { z } from 'astro/zod';
+import config from '@config';
+
+const getBaseURL = () => {
+  if (import.meta.env.MODE === 'development') {
+    return `http://localhost:${config.port || 3000}`;
+  }
+  return config.homepageLink || 'https://eventcatalog.dev/';
+};
 
 export const getEventCatalogResources = async () => {
   const baseUrl = process.env.EVENTCATALOG_URL || getBaseURL();
