@@ -84,7 +84,7 @@
     "@tanstack/react-query": "^5.74.3",
     "@tanstack/react-table": "^8.17.3",
     "@xyflow/react": "^12.3.6",
-    "ai": "^4.3.9",
+    "ai": "^5.0.60",
     "astro": "^5.14.1",
     "astro-compress": "^2.3.8",
     "astro-expressive-code": "^0.41.3",
