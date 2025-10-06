@@ -15,11 +15,12 @@ export const getStaticPaths = Page.getStaticPaths;
 const props = await Page.getData(Astro);
 
 // @ts-ignore
-const { collection, data, catalog, filePath, filename } = props;
+const { collection, data, catalog, filePath, filename, path: relativeSpecPath } = props;
 const fileName = filename || 'openapi.yml';
 
 const pathToSpec = getAbsoluteFilePathForAstroFile(filePath, fileName);
 const fileExists = fs.existsSync(pathToSpec);
+const isRemote = relativeSpecPath.includes('https://');
 
 let content = '';
 
@@ -35,14 +36,19 @@ const pagefindAttributes =
       }
     : {};
 
-if (fileExists) {
+if (fileExists && !isRemote) {
   content = fs.readFileSync(pathToSpec, 'utf8');
+}
+
+if (isRemote) {
+  // Fetch the content from the remote path
+  content = await fetch(relativeSpecPath).then((res) => res.text());
 }
 ---
 
 <VerticalSideBarLayout title={pageTitle}>
   {
-    !fileExists ? (
+    !fileExists && !isRemote ? (
       <div class="text-center h-screen  flex flex-col justify-center ">
         <DocumentMinusIcon className="mx-auto h-12 w-12 text-gray-400" />
         <h3 class="mt-2 text-sm font-semibold text-gray-900">No OpenAPI spec file found</h3>

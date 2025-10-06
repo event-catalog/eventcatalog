@@ -1,5 +1,4 @@
 ---
-import path from 'path';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { Parser } from '@asyncapi/parser';
@@ -18,15 +17,21 @@ export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
 
 // Get data
-const { collection, data, filePath, filename } = await Page.getData(Astro);
+const { collection, data, filePath, filename, path: relativeSpecPath } = await Page.getData(Astro);
 
 const fileName = filename || 'asyncapi.yaml';
 const pathToSpec = getAbsoluteFilePathForAstroFile(filePath, fileName);
 const fileExists = fs.existsSync(pathToSpec);
+const isRemote = relativeSpecPath.includes('https://');
 let content = '';
 
-if (fileExists) {
+if (fileExists && !isRemote) {
   content = fs.readFileSync(pathToSpec, 'utf8');
+}
+
+if (isRemote) {
+  // Fetch the content from the remote path
+  content = await fetch(relativeSpecPath).then((res) => res.text());
 }
 
 // AsyncAPI parser will parser schemas for users, they can turn this off.
