@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.61.0
+
+### Minor Changes
+
+- e32da88: chore(core): simplify eventcatalog chat
+
 ## 2.60.0
 
 ### Minor Changes
