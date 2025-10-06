@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.61.1
+
+### Patch Changes
+
+- fa838a6: chore(core): updated astro to 5.14.1
+- 02d4217: chore(core): simplify eventcatalog chat
+
 ## 2.61.0
 
 ### Minor Changes
