@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.61.3
+
+### Patch Changes
+
+- f3817eb: fix(core): fixed issue with broken sidebar
+
 ## 2.61.2
 
 ### Patch Changes
