@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.61.4
+
+### Patch Changes
+
+- a8c060a: feat(core): users can now load all resources into studio
+
 ## 2.61.3
 
 ### Patch Changes
