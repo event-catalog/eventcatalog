@@ -16,6 +16,7 @@ import {
   Sparkles,
   Rocket,
   FileText,
+  SquareDashedMousePointerIcon,
 } from 'lucide-react';
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
@@ -35,6 +36,7 @@ import { isCollectionVisibleInCatalog } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/queries';
 import { hasLandingPageForDocs } from '@utils/pages';
+
 const events = await getEvents({ getAllVersions: false });
 const commands = await getCommands({ getAllVersions: false });
 const queries = await getQueries({ getAllVersions: false });
@@ -110,6 +112,7 @@ const navigationItems = [
     current: currentPath.includes('/visualiser'),
     sidebar: true,
   },
+
   {
     id: '/discover',
     label: 'Explore',
@@ -140,6 +143,15 @@ const navigationItems = [
   return userSideBarOption ? userSideBarOption.visible : true;
 });
 
+const studioNavigationItem = {
+  id: '/studio',
+  label: 'EventCatalog Studio',
+  icon: SquareDashedMousePointerIcon,
+  href: buildUrl('/studio'),
+  current: currentPath.includes('/studio'),
+  sidebar: false,
+};
+
 const premiumFeatures = [
   {
     id: '/docs/custom',
@@ -163,7 +175,7 @@ const premiumFeatures = [
   return userSideBarOption ? userSideBarOption.visible : true;
 });
 
-const currentNavigationItem = [...navigationItems, ...premiumFeatures].find((item) => item.current);
+const currentNavigationItem = [...navigationItems, ...[studioNavigationItem], ...premiumFeatures].find((item) => item.current);
 const { title, description } = Astro.props;
 
 const showSideBarOnLoad = currentNavigationItem?.sidebar;
@@ -232,7 +244,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
           class="fixed flex flex-col items-center w-16 h-screen py-4 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 z-20 shadow-md justify-between"
         >
           <nav class="flex flex-col h-[calc(100vh-70px)] justify-between">
-            <div class="flex flex-col items-center flex-1 space-y-8">
+            <div class="flex flex-col items-center flex-1 space-y-6">
               {
                 navigationItems
                   .filter((item) => !item.hidden)
@@ -258,6 +270,24 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
                     );
                   })
               }
+
+              <hr class="w-8 border-t border-gray-200" />
+
+              <a
+                id={studioNavigationItem.id}
+                data-role="nav-item"
+                href={studioNavigationItem.href}
+                class={`p-1.5 inline-block pt-1 pb-1 mt-0 mb-0 transition-colors duration-200 rounded-lg relative ${studioNavigationItem.current ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700' : 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-700 hover:text-white text-gray-700'}`}
+              >
+                <div class="has-tooltip">
+                  <span
+                    class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10"
+                  >
+                    {studioNavigationItem.label}
+                  </span>
+                  <studioNavigationItem.icon className="h-6 w-6" />
+                </div>
+              </a>
 
               <hr class="w-8 border-t border-gray-200" />
 

@@ -1,0 +1,234 @@
+---
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { getEvents } from '@utils/events';
+import { getCommands } from '@utils/commands';
+import { getServices } from '@utils/collections/services';
+import { BoltIcon, ServerIcon, RectangleGroupIcon } from '@heroicons/react/24/outline';
+import { SquareDashedMousePointerIcon, ArrowLeftRightIcon } from 'lucide-react';
+import StudioPageModal from '@components/Studio/StudioPageModal';
+import { getChannels } from '@utils/channels';
+
+const [events, commands, services, channels] = await Promise.all([
+  getEvents().catch(() => []),
+  getCommands().catch(() => []),
+  getServices().catch(() => []),
+  getChannels().catch(() => []),
+]);
+
+// Get counts
+const eventCount = events.length;
+const serviceCount = services.length;
+const commandCount = commands.length;
+const channelCount = channels.length;
+
+// Get a few sample resources to display
+const sampleEvents = events.slice(0, 2);
+const sampleServices = services.slice(0, 2);
+const sampleChannels = channels.slice(0, 1);
+
+// Determine which resources to show (fallback if some are missing)
+const resourcesToShow = [
+  ...sampleEvents.map((event, index) => ({ type: 'event', data: event, index })),
+  ...sampleServices.map((service, index) => ({ type: 'service', data: service, index: index + 2 })),
+  ...sampleChannels.map((channel, index) => ({ type: 'channel', data: channel, index: index + 4 })),
+].slice(0, 5); // Max 5 resources
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>EventCatalog Studio</title>
+  </head>
+  <body>
+    <VerticalSideBarLayout title="EventCatalog Studio">
+      <div class="min-h-[calc(100vh-60px)] bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          {/* Hero Section */}
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
+            <div>
+              <div class="inline-flex items-center px-4 py-2 rounded-full bg-gray-100 text-gray-900 font-medium text-sm mb-6">
+                <SquareDashedMousePointerIcon className="w-4 h-4 mr-2" />
+                EventCatalog Studio
+              </div>
+              <h1 class="text-4xl font-bold text-gray-900 tracking-tight mb-4">Turn your resources into designs</h1>
+              <p class="text-xl text-gray-600 mb-8">
+                Transform your documented messages, services, and domains into architecture diagrams. Drag, drop, and design with
+                what you already have.
+              </p>
+              <div class="flex flex-col sm:flex-row gap-4 mb-2">
+                <button
+                  id="design-button"
+                  class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-gray-900 hover:bg-gray-800 transition-colors duration-150"
+                >
+                  <SquareDashedMousePointerIcon className="w-4 h-4 mr-2" />
+                  Open EventCatalog Studio
+                </button>
+              </div>
+
+              <p class="text-sm text-gray-500 italic mb-6">
+                {eventCount + serviceCount + channelCount + commandCount} resources ready to design with
+              </p>
+            </div>
+
+            <div class="relative">
+              <div class="relative">
+                {/* Animation container */}
+                <div class="relative h-[400px] flex items-center justify-center">
+                  {/* Resource cards that animate in */}
+                  <div class="absolute left-0 top-1/2 -translate-y-1/2 space-y-3">
+                    {
+                      resourcesToShow.map((resource) => {
+                        if (resource.type === 'event') {
+                          return (
+                            <div
+                              class="animate-float-in flex items-center gap-2 text-sm text-gray-700 px-4 py-3 bg-orange-50 rounded-lg border border-orange-200 shadow-sm"
+                              style={`animation-delay: ${resource.index * 0.4}s;`}
+                            >
+                              <BoltIcon className="w-4 h-4 text-orange-600" />
+                              {resource.data.data.name}
+                            </div>
+                          );
+                        } else if (resource.type === 'service') {
+                          return (
+                            <div
+                              class="animate-float-in flex items-center gap-2 text-sm text-gray-700 px-4 py-3 bg-pink-50 rounded-lg border border-pink-200 shadow-sm"
+                              style={`animation-delay: ${resource.index * 0.4}s;`}
+                            >
+                              <ServerIcon className="w-4 h-4 text-gray-600" />
+                              {resource.data.data.name}
+                            </div>
+                          );
+                        } else if (resource.type === 'channel') {
+                          return (
+                            <div
+                              class="animate-float-in flex items-center gap-2 text-sm text-gray-700 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200 shadow-sm"
+                              style={`animation-delay: ${resource.index * 0.4}s;`}
+                            >
+                              <ArrowLeftRightIcon className="w-4 h-4 text-gray-600" />
+                              {resource.data.data.name}
+                            </div>
+                          );
+                        }
+                      })
+                    }
+                  </div>
+
+                  {/* Arrow indicator */}
+                  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse">
+                    <svg class="w-12 h-12 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                    </svg>
+                  </div>
+
+                  {/* Design preview */}
+                  <div class="absolute right-0 top-1/2 -translate-y-1/2 animate-fade-in-scale" style="animation-delay: 2s;">
+                    <img
+                      src="/studio-bg.png"
+                      alt="Studio Design Preview"
+                      class="rounded-xl shadow-xl border border-gray-200 w-64 h-auto"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Features Section */}
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+              <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-gray-900" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect width="8" height="8" x="3" y="3" rx="2"></rect>
+                  <path d="M7 11v4a2 2 0 0 0 2 2h4"></path>
+                  <rect width="8" height="8" x="13" y="13" rx="2"></rect>
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">Real Resources</h3>
+              <p class="text-gray-600">
+                Drag and drop messages, services, and domains from your catalog. No more copying names or keeping things manually
+                in sync.
+              </p>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+              <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-gray-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">Save & Version</h3>
+              <p class="text-gray-600">Save designs locally and store in Git. All designs and data is owned by you.</p>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+              <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+                <svg class="w-6 h-6 text-gray-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="16 18 22 12 16 6"></polyline>
+                  <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-2">Embed Anywhere</h3>
+              <p class="text-gray-600">
+                Drop diagrams directly into documentation pages. One source of truth for your architecture.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Studio Modal */}
+      <StudioPageModal client:only="react" />
+    </VerticalSideBarLayout>
+
+    <script>
+      // Handle opening the studio modal
+      const button = document.getElementById('design-button');
+      if (button) {
+        button.addEventListener('click', () => {
+          // Trigger the modal to open
+          window.dispatchEvent(new CustomEvent('openStudioModal'));
+        });
+      }
+    </script>
+
+    <style>
+      @keyframes float-in {
+        0% {
+          opacity: 0;
+          transform: translateX(-30px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes fade-in-scale {
+        0% {
+          opacity: 0;
+          transform: translateY(-50%) scale(0.9);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(-50%) scale(1);
+        }
+      }
+
+      .animate-float-in {
+        animation: float-in 0.6s ease-out forwards;
+        opacity: 0;
+      }
+
+      .animate-fade-in-scale {
+        animation: fade-in-scale 0.8s ease-out forwards;
+        opacity: 0;
+      }
+    </style>
+  </body>
+</html>
