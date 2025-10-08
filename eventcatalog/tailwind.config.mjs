@@ -1,4 +1,5 @@
 import config from './eventcatalog.config.js';
+import typography from '@tailwindcss/typography';
 
 const HEADER_HEIGHT = '4rem';
 const theme = config.theme || {};
@@ -64,5 +65,5 @@ export default {
     'min-h-[100px]',
   ],
 
-  plugins: [require('@tailwindcss/typography')],
+  plugins: [typography],
 };
