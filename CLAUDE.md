@@ -12,11 +12,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Code Style Guidelines
 
 ### TypeScript
+
 - Strict typing with TypeScript
 - ES modules with explicit imports/exports
 - Error handling with proper type guards
 
 ## Project Structure
+
 - `/eventcatalog` - The EventCatalog codebase
 - `/examples/default` - An example of how users use EventCatalog. This is the default example that is used when you run `pnpm run start:catalog`
 - `/scripts` - Scripts to help with the development of the EventCatalog
