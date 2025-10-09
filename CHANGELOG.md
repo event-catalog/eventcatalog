@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.61.5
+
+### Patch Changes
+
+- 44ae131: feat(core): mermaid diagrams now support ELK layout
+
 ## 2.61.4
 
 ### Patch Changes
