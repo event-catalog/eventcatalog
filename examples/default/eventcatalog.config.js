@@ -33,9 +33,6 @@ export default {
   //   provider: 'openai',
   //   model: 'gpt-4.1',
   // },
-  api: {
-    fullCatalogAPIEnabled: true,
-  },
   customDocs: {
     sidebar: [
       {

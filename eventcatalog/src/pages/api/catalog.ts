@@ -9,7 +9,9 @@ import config from '@config';
  * @returns
  */
 export const GET: APIRoute = async ({ params, request }) => {
-  if (!config.api?.fullCatalogAPIEnabled) {
+  const isFullCatalogAPIEnabled = config.api?.fullCatalogAPIEnabled ?? true;
+
+  if (!isFullCatalogAPIEnabled) {
     return new Response(JSON.stringify({ error: 'Full catalog API is not enabled' }), {
       status: 404,
     });
