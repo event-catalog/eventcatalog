@@ -46,7 +46,7 @@ const channelPointer = z
 
 const resourcePointer = z.object({
   id: z.string(),
-  version: z.string().optional().default('latest'),
+  version: z.union([z.string(), z.number()]).optional().default('latest'),
   type: z.enum(['service', 'event', 'command', 'query', 'flow', 'channel', 'domain', 'user', 'team', 'container']),
 });
 
@@ -79,7 +79,7 @@ const baseSchema = z.object({
   id: z.string(),
   name: z.string(),
   summary: z.string().optional(),
-  version: z.string(),
+  version: z.union([z.string(), z.number()]),
   draft: z.union([z.boolean(), z.object({ title: z.string().optional(), message: z.string() })]).optional(),
   badges: z.array(badge).optional(),
   owners: z.array(ownerReference).optional(),
