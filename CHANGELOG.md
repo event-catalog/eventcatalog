@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 2.61.6
+
+### Patch Changes
+
+- 57a1f3f: fix(core): resource versions can be strings or numbers
+- 3c1e854: fix(core): replaced commonjs imports for tailwind
+- cfb08cf: chore(core): catalog api is enabled by default
+
 ## 2.61.5
 
 ### Patch Changes
