@@ -573,6 +573,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "freaz",
+      "name": "Ondrej Musil",
+      "avatar_url": "https://avatars.githubusercontent.com/u/959390?v=4",
+      "profile": "https://www.ondrejmusil.cz",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
