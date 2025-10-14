@@ -591,6 +591,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "reisingerf",
+      "name": "reisingerf",
+      "avatar_url": "https://avatars.githubusercontent.com/u/31906163?v=4",
+      "profile": "https://github.com/reisingerf",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,

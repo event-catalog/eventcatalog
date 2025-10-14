@@ -34,7 +34,7 @@
 <h4>Features: Documentation for Event Driven Architectures, Integration with any broker, Generator from your OpenAPI and AsyncAPI documents, Docs and Code, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-63-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-64-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [Read the Docs](https://www.eventcatalog.dev/docs/development/getting-started/introduction) | [View Demo](https://demo.eventcatalog.dev)
@@ -267,6 +267,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/wimhaesen-kine"><img src="https://avatars.githubusercontent.com/u/231914377?v=4?s=100" width="100px;" alt="wimhaesen-kine"/><br /><sub><b>wimhaesen-kine</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=wimhaesen-kine" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.ondrejmusil.cz"><img src="https://avatars.githubusercontent.com/u/959390?v=4?s=100" width="100px;" alt="Ondrej Musil"/><br /><sub><b>Ondrej Musil</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/issues?q=author%3Afreaz" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/anatolybolshakov"><img src="https://avatars.githubusercontent.com/u/8779682?v=4?s=100" width="100px;" alt="Anatoly Bolshakov"/><br /><sub><b>Anatoly Bolshakov</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=anatolybolshakov" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/reisingerf"><img src="https://avatars.githubusercontent.com/u/31906163?v=4?s=100" width="100px;" alt="reisingerf"/><br /><sub><b>reisingerf</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=reisingerf" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
