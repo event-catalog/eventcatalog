@@ -143,14 +143,19 @@ const navigationItems = [
   return userSideBarOption ? userSideBarOption.visible : true;
 });
 
-const studioNavigationItem = {
-  id: '/studio',
-  label: 'EventCatalog Studio',
-  icon: SquareDashedMousePointerIcon,
-  href: buildUrl('/studio'),
-  current: currentPath.includes('/studio'),
-  sidebar: false,
-};
+const studioNavigationItem = [
+  {
+    id: '/studio',
+    label: 'EventCatalog Studio',
+    icon: SquareDashedMousePointerIcon,
+    href: buildUrl('/studio'),
+    current: currentPath.includes('/studio'),
+    sidebar: false,
+  },
+].filter((item) => {
+  const userSideBarOption = userSideBarConfiguration.find((config: { id: string; visible: boolean }) => config.id === item.id);
+  return userSideBarOption ? userSideBarOption.visible : true;
+});
 
 const premiumFeatures = [
   {
@@ -175,7 +180,7 @@ const premiumFeatures = [
   return userSideBarOption ? userSideBarOption.visible : true;
 });
 
-const currentNavigationItem = [...navigationItems, ...[studioNavigationItem], ...premiumFeatures].find((item) => item.current);
+const currentNavigationItem = [...navigationItems, ...studioNavigationItem, ...premiumFeatures].find((item) => item.current);
 const { title, description } = Astro.props;
 
 const showSideBarOnLoad = currentNavigationItem?.sidebar;
@@ -273,23 +278,25 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
 
               <hr class="w-8 border-t border-gray-200" />
 
-              <a
-                id={studioNavigationItem.id}
-                data-role="nav-item"
-                href={studioNavigationItem.href}
-                class={`p-1.5 inline-block pt-1 pb-1 mt-0 mb-0 transition-colors duration-200 rounded-lg relative ${studioNavigationItem.current ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700' : 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-700 hover:text-white text-gray-700'}`}
-              >
-                <div class="has-tooltip">
-                  <span
-                    class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10"
+              {
+                studioNavigationItem.length > 0 && (
+                  <a
+                    id={studioNavigationItem[0].id}
+                    data-role="nav-item"
+                    href={studioNavigationItem[0].href}
+                    class={`p-1.5 inline-block pt-1 pb-1 mt-0 mb-0 transition-colors duration-200 rounded-lg relative ${studioNavigationItem[0].current ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700' : 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-700 hover:text-white text-gray-700'}`}
                   >
-                    {studioNavigationItem.label}
-                  </span>
-                  <studioNavigationItem.icon className="h-6 w-6" />
-                </div>
-              </a>
+                    <div class="has-tooltip">
+                      <span class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10">
+                        {studioNavigationItem[0].label}
+                      </span>
+                      <SquareDashedMousePointerIcon className="h-6 w-6" />
+                    </div>
+                  </a>
+                )
+              }
 
-              <hr class="w-8 border-t border-gray-200" />
+              {studioNavigationItem.length > 0 && <hr class="w-8 border-t border-gray-200" />}
 
               {
                 premiumFeatures.map((item) => (
