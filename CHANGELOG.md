@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.61.7
+
+### Patch Changes
+
+- ba3d4cc: fix(core): users can now hide studio on the sidebar
+
 ## 2.61.6
 
 ### Patch Changes
