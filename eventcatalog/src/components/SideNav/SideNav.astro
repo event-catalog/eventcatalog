@@ -18,6 +18,7 @@ const currentPath = Astro.url.pathname;
 let props;
 
 const SIDENAV_TYPE = config?.docs?.sidebar?.type ?? 'LIST_VIEW';
+const SHOW_ORPHANED_MESSAGES = config?.docs?.sidebar?.showOrphanedMessages ?? true;
 
 if (SIDENAV_TYPE === 'LIST_VIEW') {
   props = await getListViewResources({ currentPath });
@@ -27,6 +28,10 @@ if (SIDENAV_TYPE === 'LIST_VIEW') {
 ---
 
 <div {...Astro.props}>
-  {SIDENAV_TYPE === 'LIST_VIEW' && <ListViewSideBar resources={props} currentPath={currentPath} client:only />}
+  {
+    SIDENAV_TYPE === 'LIST_VIEW' && (
+      <ListViewSideBar resources={props} currentPath={currentPath} client:only showOrphanedMessages={SHOW_ORPHANED_MESSAGES} />
+    )
+  }
   {SIDENAV_TYPE === 'TREE_VIEW' && <SideNavTreeView client:only transition:persist tree={props} />}
 </div>

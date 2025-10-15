@@ -70,6 +70,7 @@ export interface Config {
   docs: {
     sidebar: {
       type?: 'TREE_VIEW' | 'LIST_VIEW';
+      showOrphanedMessages?: boolean;
     };
   };
   dependencies?: {

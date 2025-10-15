@@ -87,4 +87,5 @@ export interface Resources {
 export interface ListViewSideBarProps {
   resources: Resources;
   currentPath: string;
+  showOrphanedMessages: boolean;
 }

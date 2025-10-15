@@ -305,7 +305,7 @@ const ServiceItem = React.memo(
   }
 );
 
-const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPath }) => {
+const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPath, showOrphanedMessages }) => {
   const navRef = useRef<HTMLElement>(null);
   const [data] = useState(resources);
   const [searchTerm, setSearchTerm] = useState('');
@@ -1160,7 +1160,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
               </div>
             )}
 
-            {filteredData['messagesNotInService'] && filteredData['messagesNotInService'].length > 0 && (
+            {filteredData['messagesNotInService'] && filteredData['messagesNotInService'].length > 0 && showOrphanedMessages && (
               <div className="pt-4 pb-2">
                 <CollapsibleGroup
                   isCollapsed={collapsedGroups['messagesNotInService-group']}
