@@ -24,7 +24,7 @@ import ecstudioWatcher from './integrations/ecstudio-watcher.mjs';
 const projectDirectory = process.env.PROJECT_DIR || process.cwd();
 const base = config.base || '/';
 const host = config.host || false;
-const compress = config.compress ?? true;
+const compress = config.compress ?? false;
 
 const expressiveCodeConfig = {
   themes: ['andromeeda'],
