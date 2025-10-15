@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.61.9
+
+### Patch Changes
+
+- 1b7b6b1: chore(core): eventcatalog no longer compresses static output by default
+
 ## 2.61.8
 
 ### Patch Changes
