@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.61.8
+
+### Patch Changes
+
+- 77c109a: feat(core): added ability to hide orphaned messages
+
 ## 2.61.7
 
 ### Patch Changes
