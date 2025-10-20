@@ -5,6 +5,7 @@ import path from 'path';
 import semver from 'semver';
 import type { CollectionTypes } from '@types';
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
+import utils from '@eventcatalog/sdk';
 
 export type Service = CollectionEntry<'services'>;
 
@@ -39,69 +40,79 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
   const allMessages = [...events, ...commands, ...queries];
 
   // @ts-ignore // TODO: Fix this type
-  cachedServices[cacheKey] = services.map((service) => {
-    const { latestVersion, versions } = getVersionForCollectionItem(service, services);
+  cachedServices[cacheKey] = await Promise.all(
+    services.map(async (service) => {
+      const { latestVersion, versions } = getVersionForCollectionItem(service, services);
 
-    const sendsMessages = service.data.sends || [];
-    const receivesMessages = service.data.receives || [];
-    const serviceEntities = service.data.entities || [];
-    const serviceWritesTo = service.data.writesTo || [];
-    const serviceReadsFrom = service.data.readsFrom || [];
+      const sendsMessages = service.data.sends || [];
+      const receivesMessages = service.data.receives || [];
+      const serviceEntities = service.data.entities || [];
+      const serviceWritesTo = service.data.writesTo || [];
+      const serviceReadsFrom = service.data.readsFrom || [];
 
-    const sends = sendsMessages
-      .map((message: any) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
-      .flat()
-      .filter((e: any) => e !== undefined);
+      const sends = sendsMessages
+        .map((message: any) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
+        .flat()
+        .filter((e: any) => e !== undefined);
 
-    const receives = receivesMessages
-      .map((message: any) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
-      .flat()
-      .filter((e: any) => e !== undefined);
+      const receives = receivesMessages
+        .map((message: any) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
+        .flat()
+        .filter((e: any) => e !== undefined);
 
-    const mappedEntities = serviceEntities
-      .map((entity: any) => getItemsFromCollectionByIdAndSemverOrLatest(entities, entity.id, entity.version))
-      .flat()
-      .filter((e: any) => e !== undefined);
+      const mappedEntities = serviceEntities
+        .map((entity: any) => getItemsFromCollectionByIdAndSemverOrLatest(entities, entity.id, entity.version))
+        .flat()
+        .filter((e: any) => e !== undefined);
 
-    const mappedWritesTo = serviceWritesTo
-      .map((container: any) => getItemsFromCollectionByIdAndSemverOrLatest(containers, container.id, container.version))
-      .flat()
-      .filter((e: any) => e !== undefined);
+      const mappedWritesTo = serviceWritesTo
+        .map((container: any) => getItemsFromCollectionByIdAndSemverOrLatest(containers, container.id, container.version))
+        .flat()
+        .filter((e: any) => e !== undefined);
 
-    const mappedReadsFrom = serviceReadsFrom
-      .map((container: any) => getItemsFromCollectionByIdAndSemverOrLatest(containers, container.id, container.version))
-      .flat()
-      .filter((e: any) => e !== undefined);
+      const mappedReadsFrom = serviceReadsFrom
+        .map((container: any) => getItemsFromCollectionByIdAndSemverOrLatest(containers, container.id, container.version))
+        .flat()
+        .filter((e: any) => e !== undefined);
 
-    return {
-      ...service,
-      data: {
-        ...service.data,
-        writesTo: mappedWritesTo,
-        readsFrom: mappedReadsFrom,
-        receives,
-        sends,
-        versions,
-        latestVersion,
-        entities: mappedEntities,
-      },
-      // TODO: verify if it could be deleted.
-      nodes: {
-        receives,
-        sends,
-      },
-      catalog: {
-        // TODO: avoid use string replace at path due to win32
-        path: path.join(service.collection, service.id.replace('/index.mdx', '')),
-        absoluteFilePath: path.join(PROJECT_DIR, service.collection, service.id.replace('/index.mdx', '/index.md')),
-        astroContentFilePath: path.join(process.cwd(), 'src', 'content', service.collection, service.id),
-        filePath: path.join(process.cwd(), 'src', 'catalog-files', service.collection, service.id.replace('/index.mdx', '')),
-        // service will be MySerive-0.0.1 remove the version
-        publicPath: path.join('/generated', service.collection, service.id.replace(`-${service.data.version}`, '')),
-        type: 'service',
-      },
-    };
-  });
+      const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
+      const folderName = await getResourceFolderName(
+        process.env.PROJECT_DIR ?? '',
+        service.data.id,
+        service.data.version.toString()
+      );
+      const serviceFolderName = folderName ?? service.id.replace(`-${service.data.version}`, '');
+
+      return {
+        ...service,
+        data: {
+          ...service.data,
+          writesTo: mappedWritesTo,
+          readsFrom: mappedReadsFrom,
+          receives,
+          sends,
+          versions,
+          latestVersion,
+          entities: mappedEntities,
+        },
+        // TODO: verify if it could be deleted.
+        nodes: {
+          receives,
+          sends,
+        },
+        catalog: {
+          // TODO: avoid use string replace at path due to win32
+          path: path.join(service.collection, service.id.replace('/index.mdx', '')),
+          absoluteFilePath: path.join(PROJECT_DIR, service.collection, service.id.replace('/index.mdx', '/index.md')),
+          astroContentFilePath: path.join(process.cwd(), 'src', 'content', service.collection, service.id),
+          filePath: path.join(process.cwd(), 'src', 'catalog-files', service.collection, service.id.replace('/index.mdx', '')),
+          // service will be MySerive-0.0.1 remove the version
+          publicPath: path.join('/generated', service.collection, serviceFolderName),
+          type: 'service',
+        },
+      };
+    })
+  );
 
   // order them by the name of the service
   cachedServices[cacheKey].sort((a, b) => {

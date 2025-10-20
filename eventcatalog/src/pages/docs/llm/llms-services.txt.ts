@@ -16,41 +16,64 @@ export const GET: APIRoute = async ({ params, request }) => {
     const readsFrom = service.data.readsFrom as unknown as CollectionEntry<'containers'>[];
 
     const sendsList =
-      sends
-        .map(
-          (send) =>
-            `    - [${send.data.name} - ${send.data.version}](${baseUrl}/docs/events/${send.data.id}/${send.data.version}.mdx) - ${send.data.summary}`
-        )
-        .join('') || '    - Does not send any messages';
+      sends.length > 0
+        ? sends
+            .map(
+              (send) =>
+                `- [${send.data.name} - ${send.data.version}](${baseUrl}/docs/events/${send.data.id}/${send.data.version}.mdx) - ${send.data.summary?.trim() || ''}`
+            )
+            .join('\n')
+        : '- Does not send any messages';
 
     const receivesList =
-      receives
-        .map(
-          (receive) =>
-            `    - [${receive.data.name} - ${receive.data.version}](${baseUrl}/docs/events/${receive.data.id}/${receive.data.version}.mdx) - ${receive.data.summary}`
-        )
-        .join('') || '    - Does not receive any messages';
+      receives.length > 0
+        ? receives
+            .map(
+              (receive) =>
+                `- [${receive.data.name} - ${receive.data.version}](${baseUrl}/docs/events/${receive.data.id}/${receive.data.version}.mdx) - ${receive.data.summary?.trim() || ''}`
+            )
+            .join('\n')
+        : '- Does not receive any messages';
 
     const writesToList =
-      writesTo
-        .map(
-          (write) =>
-            `    - [${write.data.name} - ${write.data.version}](${baseUrl}/docs/containers/${write.data.id}/${write.data.version}.mdx) - ${write.data.summary}`
-        )
-        .join('') || '    - Does not write to any containers';
+      writesTo.length > 0
+        ? writesTo
+            .map(
+              (write) =>
+                `- [${write.data.name} - ${write.data.version}](${baseUrl}/docs/containers/${write.data.id}/${write.data.version}.mdx) - ${write.data.summary?.trim() || ''}`
+            )
+            .join('\n')
+        : '- Does not write to any containers';
 
     const readsFromList =
-      readsFrom
-        .map(
-          (read) =>
-            `    - [${read.data.name} - ${read.data.version}](${baseUrl}/docs/containers/${read.data.id}/${read.data.version}.mdx) - ${read.data.summary}`
-        )
-        .join('') || '    - Does not read from any containers';
+      readsFrom.length > 0
+        ? readsFrom
+            .map(
+              (read) =>
+                `- [${read.data.name} - ${read.data.version}](${baseUrl}/docs/containers/${read.data.id}/${read.data.version}.mdx) - ${read.data.summary?.trim() || ''}`
+            )
+            .join('\n')
+        : '- Does not read from any containers';
 
-    return `## [${service.data.name} - ${service.data.version}](${baseUrl}/docs/services/${service.data.id}/${service.data.version}.mdx) - ${service.data.summary}\n  ## Sends\n${sendsList}\n  ## Receives\n${receivesList}\n  ## Writes to\n${writesToList}\n  ## Reads from\n${readsFromList} \n`;
+    return `## [${service.data.name} - ${service.data.version}](${baseUrl}/docs/services/${service.data.id}/${service.data.version}.mdx)
+
+${service.data.summary?.trim() || ''}
+
+### Sends
+${sendsList}
+
+### Receives
+${receivesList}
+
+### Writes to
+${writesToList}
+
+### Reads from
+${readsFromList}
+`;
   };
 
-  const content = ['# Services \n\n', services.map((item) => formatServiceWithLinks(item)).join('\n')].join('\n');
+  const content = ['# Services\n', services.map((item) => formatServiceWithLinks(item)).join('\n')].join('\n');
 
   return new Response(content, {
     headers: { 'Content-Type': 'text/plain; charset=utf-8' },
