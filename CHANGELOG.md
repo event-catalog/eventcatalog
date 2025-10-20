@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 2.62.0
+
+### Minor Changes
+
+- 7b62734: fix(core): public paths to download schemas fixed
+
+### Patch Changes
+
+- 7b62734: fix(core): fixed an issue when downloading schemas with foldername and id mismatches
+
 ## 2.61.9
 
 ### Patch Changes
