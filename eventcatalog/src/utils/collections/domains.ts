@@ -4,6 +4,7 @@ import type { CollectionEntry } from 'astro:content';
 import path from 'path';
 import type { CollectionMessageTypes } from '@types';
 import type { Service } from './services';
+import utils from '@eventcatalog/sdk';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
@@ -37,56 +38,66 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
   const entitiesCollection = await getCollection('entities');
 
   // @ts-ignore // TODO: Fix this type
-  cachedDomains[cacheKey] = domains.map((domain) => {
-    const { latestVersion, versions } = getVersionForCollectionItem(domain, domains);
+  cachedDomains[cacheKey] = await Promise.all(
+    domains.map(async (domain) => {
+      const { latestVersion, versions } = getVersionForCollectionItem(domain, domains);
 
-    // const receives = service.data.receives || [];
-    const servicesInDomain = domain.data.services || [];
-    const subDomainsInDomain = domain.data.domains || [];
-    const entitiesInDomain = domain.data.entities || [];
-    const subDomains = subDomainsInDomain
-      .map((_subDomain: { id: string; version: string | undefined }) =>
-        getItemsFromCollectionByIdAndSemverOrLatest(domains, _subDomain.id, _subDomain.version)
-      )
-      .flat()
-      // Stop circular references
-      .filter((subDomain) => subDomain.data.id !== domain.data.id);
+      // const receives = service.data.receives || [];
+      const servicesInDomain = domain.data.services || [];
+      const subDomainsInDomain = domain.data.domains || [];
+      const entitiesInDomain = domain.data.entities || [];
+      const subDomains = subDomainsInDomain
+        .map((_subDomain: { id: string; version: string | undefined }) =>
+          getItemsFromCollectionByIdAndSemverOrLatest(domains, _subDomain.id, _subDomain.version)
+        )
+        .flat()
+        // Stop circular references
+        .filter((subDomain) => subDomain.data.id !== domain.data.id);
 
-    // Services in the sub domains
-    const subdomainServices = subDomains.flatMap((subDomain) => subDomain.data.services || []);
+      // Services in the sub domains
+      const subdomainServices = subDomains.flatMap((subDomain) => subDomain.data.services || []);
 
-    const services = [...servicesInDomain, ...subdomainServices]
-      .map((_service: { id: string; version: string | undefined }) =>
-        getItemsFromCollectionByIdAndSemverOrLatest(servicesCollection, _service.id, _service.version)
-      )
-      .flat();
+      const services = [...servicesInDomain, ...subdomainServices]
+        .map((_service: { id: string; version: string | undefined }) =>
+          getItemsFromCollectionByIdAndSemverOrLatest(servicesCollection, _service.id, _service.version)
+        )
+        .flat();
 
-    const entities = [...entitiesInDomain]
-      .map((_entity: { id: string; version: string | undefined }) =>
-        getItemsFromCollectionByIdAndSemverOrLatest(entitiesCollection, _entity.id, _entity.version)
-      )
-      .flat();
+      const entities = [...entitiesInDomain]
+        .map((_entity: { id: string; version: string | undefined }) =>
+          getItemsFromCollectionByIdAndSemverOrLatest(entitiesCollection, _entity.id, _entity.version)
+        )
+        .flat();
 
-    return {
-      ...domain,
-      data: {
-        ...domain.data,
-        services: services,
-        domains: subDomains,
-        entities: entities,
-        latestVersion,
-        versions,
-      },
-      catalog: {
-        path: path.join(domain.collection, domain.id.replace('/index.mdx', '')),
-        absoluteFilePath: path.join(PROJECT_DIR, domain.collection, domain.id.replace('/index.mdx', '/index.md')),
-        astroContentFilePath: path.join(process.cwd(), 'src', 'content', domain.collection, domain.id),
-        filePath: path.join(process.cwd(), 'src', 'catalog-files', domain.collection, domain.id.replace('/index.mdx', '')),
-        publicPath: path.join('/generated', domain.collection, domain.id.replace(`-${domain.data.version}`, '')),
-        type: 'service',
-      },
-    };
-  });
+      const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
+      const folderName = await getResourceFolderName(
+        process.env.PROJECT_DIR ?? '',
+        domain.data.id,
+        domain.data.version.toString()
+      );
+      const domainFolderName = folderName ?? domain.id.replace(`-${domain.data.version}`, '');
+
+      return {
+        ...domain,
+        data: {
+          ...domain.data,
+          services: services,
+          domains: subDomains,
+          entities: entities,
+          latestVersion,
+          versions,
+        },
+        catalog: {
+          path: path.join(domain.collection, domain.id.replace('/index.mdx', '')),
+          absoluteFilePath: path.join(PROJECT_DIR, domain.collection, domain.id.replace('/index.mdx', '/index.md')),
+          astroContentFilePath: path.join(process.cwd(), 'src', 'content', domain.collection, domain.id),
+          filePath: path.join(process.cwd(), 'src', 'catalog-files', domain.collection, domain.id.replace('/index.mdx', '')),
+          publicPath: path.join('/generated', domain.collection, domainFolderName),
+          type: 'service',
+        },
+      };
+    })
+  );
 
   // order them by the name of the domain
   cachedDomains[cacheKey].sort((a, b) => {
