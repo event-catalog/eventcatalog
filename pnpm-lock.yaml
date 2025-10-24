@@ -57,8 +57,8 @@ importers:
         specifier: ^1.1.0
         version: 1.2.0(@langchain/core@0.3.78(@opentelemetry/api@1.9.0)(openai@4.104.0(ws@8.18.3)(zod@3.25.76)))(@opentelemetry/api@1.9.0)(@types/node@20.19.19)(axios@1.12.2)(ws@8.18.3)(zod@3.25.76)
       '@eventcatalog/license':
-        specifier: ^0.0.6
-        version: 0.0.6
+        specifier: ^0.0.7
+        version: 0.0.7
       '@eventcatalog/linter':
         specifier: ^0.0.2
         version: 0.0.2
@@ -944,8 +944,8 @@ packages:
   '@eventcatalog/generator-ai@1.2.0':
     resolution: {integrity: sha512-66FxkeNnjn4J8E9igmdGHxsNpF8hQKNL2S+rtEb7H2SUBPKcFDBnBKaFb5y1bCPgq/iAx5mBVr9GRdpGeUOhgQ==}
 
-  '@eventcatalog/license@0.0.6':
-    resolution: {integrity: sha512-KpYQacAyCm5a6Vs4DBhb+EQGz3XC2PXNgfbILBOg5riykqEu5D8zNqyQgc4ns2bnX1CjkhSunaR2u6Q0VxSM1Q==}
+  '@eventcatalog/license@0.0.7':
+    resolution: {integrity: sha512-izSIn3Dfc6LTcPiA89EqZ4/l5WCitLxt0XVu2yilyaibMOioxW7ABRFZY8/Azocd6ULKseVA2lCcoeT35/GRcg==}
     engines: {node: '>=16.0.0'}
 
   '@eventcatalog/linter@0.0.2':
@@ -8355,11 +8355,14 @@ snapshots:
       - ws
       - zod
 
-  '@eventcatalog/license@0.0.6':
+  '@eventcatalog/license@0.0.7':
     dependencies:
       boxen: 8.0.1
       chalk: 5.6.2
+      https-proxy-agent: 7.0.6
       jose: 5.10.0
+    transitivePeerDependencies:
+      - supports-color
 
   '@eventcatalog/linter@0.0.2':
     dependencies:
