@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.62.1
+
+### Patch Changes
+
+- 750c983: fix(core): https proxy added for license server
+
 ## 2.62.0
 
 ### Minor Changes
