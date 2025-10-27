@@ -1,3 +1,8 @@
+import path from "path";
+import url from "url";
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+
 /** @type {import('../../bin/eventcatalog.config').Config} */
 export default {
   cId: '8027010c-f3d6-417a-8234-e2f46087fc56',
@@ -6,7 +11,6 @@ export default {
   organizationName: 'FlowMart',
   homepageLink: 'https://eventcatalog.dev',
   editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
-  repositoryUrl: 'https://github.com/event-catalog/eventcatalog',
   port: 3000,
   outDir: 'dist',
   // output: 'server',

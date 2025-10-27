@@ -6,13 +6,13 @@ import { DatabaseIcon } from 'lucide-react';
 import { createBadgesColumn } from './SharedColumns';
 import type { TData } from '../Table';
 import { filterCollectionByName } from '../filters/custom-filters';
-
+import type { TableConfiguration } from '@types';
 const columnHelper = createColumnHelper<TData<'containers'>>();
 
-export const columns = () => [
+export const columns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.name', {
     id: 'name',
-    header: () => <span>Storage</span>,
+    header: () => <span>{tableConfiguration.columns?.name?.label || 'Storage'}</span>,
     cell: (info) => {
       const containerRaw = info.row.original;
       const color = 'blue';
@@ -44,7 +44,7 @@ export const columns = () => [
   }),
   columnHelper.accessor('data.summary', {
     id: 'summary',
-    header: () => 'Summary',
+    header: () => <span>{tableConfiguration.columns?.summary?.label || 'Summary'}</span>,
     cell: (info) => <span className="font-light ">{info.renderValue()}</span>,
     footer: (info) => info.column.id,
     meta: {
@@ -53,7 +53,8 @@ export const columns = () => [
     },
   }),
   columnHelper.accessor('data.servicesThatWriteToContainer', {
-    header: () => <span>Writes</span>,
+    id: 'writes',
+    header: () => <span>{tableConfiguration.columns?.writes?.label || 'Writes'}</span>,
     meta: {
       filterVariant: 'collection',
       collectionFilterKey: 'servicesThatWriteToContainer',
@@ -92,7 +93,8 @@ export const columns = () => [
     filterFn: filterCollectionByName('servicesThatWriteToContainer'),
   }),
   columnHelper.accessor('data.servicesThatReadFromContainer', {
-    header: () => <span>Reads</span>,
+    id: 'reads',
+    header: () => <span>{tableConfiguration.columns?.reads?.label || 'Reads'}</span>,
     meta: {
       filterVariant: 'collection',
       collectionFilterKey: 'servicesThatReadFromContainer',
@@ -130,9 +132,9 @@ export const columns = () => [
     footer: (info) => info.column.id,
     filterFn: filterCollectionByName('servicesThatReadFromContainer'),
   }),
-  createBadgesColumn(columnHelper),
+  createBadgesColumn(columnHelper, tableConfiguration),
   columnHelper.accessor('data.name', {
-    header: () => <span />,
+    header: () => <span>{tableConfiguration.columns?.actions?.label || 'Actions'}</span>,
     cell: (info) => {
       const container = info.row.original;
       return (

@@ -6,13 +6,13 @@ import { buildUrl } from '@utils/url-builder';
 import { getColorAndIconForCollection } from '@utils/collections/icons';
 import { createBadgesColumn } from './SharedColumns';
 import type { TData } from '../Table';
-
+import type { TableConfiguration } from '@types';
 const columnHelper = createColumnHelper<TData<'services'>>();
 
-export const columns = () => [
+export const columns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.name', {
     id: 'name',
-    header: () => <span>Service</span>,
+    header: () => <span>{tableConfiguration.columns?.name?.label || 'Service'}</span>,
     cell: (info) => {
       const messageRaw = info.row.original;
       const color = 'pink';
@@ -43,7 +43,7 @@ export const columns = () => [
   }),
   columnHelper.accessor('data.summary', {
     id: 'summary',
-    header: () => 'Summary',
+    header: () => <span>{tableConfiguration.columns?.summary?.label || 'Summary'}</span>,
     cell: (info) => (
       <span className="font-light ">
         {info.renderValue()} {info.row.original.data.draft ? ' (Draft)' : ''}
@@ -56,6 +56,7 @@ export const columns = () => [
     },
   }),
   columnHelper.accessor('data.receives', {
+    id: 'receives',
     header: () => <span>Receives</span>,
     meta: {
       filterVariant: 'collection',
@@ -117,6 +118,7 @@ export const columns = () => [
     filterFn: filterCollectionByName('receives'),
   }),
   columnHelper.accessor('data.sends', {
+    id: 'sends',
     header: () => <span>Sends</span>,
     meta: {
       filterVariant: 'collection',
@@ -177,9 +179,10 @@ export const columns = () => [
     },
     filterFn: filterCollectionByName('sends'),
   }),
-  createBadgesColumn(columnHelper),
+  createBadgesColumn(columnHelper, tableConfiguration),
   columnHelper.accessor('data.name', {
-    header: () => <span />,
+    id: 'actions',
+    header: () => <span>{tableConfiguration.columns?.actions?.label || 'Actions'}</span>,
     cell: (info) => {
       const domain = info.row.original;
       return (
@@ -191,7 +194,6 @@ export const columns = () => [
         </a>
       );
     },
-    id: 'actions',
     meta: {
       showFilter: false,
     },

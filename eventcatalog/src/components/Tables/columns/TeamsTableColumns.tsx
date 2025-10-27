@@ -7,13 +7,13 @@ import type { TData } from '../Table';
 import type { CollectionUserTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
 import { ServerIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/solid';
-
+import type { TableConfiguration } from '@types';
 const columnHelper = createColumnHelper<TData<CollectionUserTypes>>();
 
-export const columns = () => [
+export const columns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.name', {
     id: 'name',
-    header: () => <span>Name</span>,
+    header: () => <span>{tableConfiguration.columns?.name?.label || 'Name'}</span>,
     cell: (info) => {
       const messageRaw = info.row.original;
       const type = useMemo(() => messageRaw.collection.slice(0, -1), [messageRaw.collection]);
@@ -42,7 +42,8 @@ export const columns = () => [
   }),
 
   columnHelper.accessor('data.ownedEvents', {
-    header: () => <span>Owned events</span>,
+    id: 'ownedEvents',
+    header: () => <span>{tableConfiguration.columns?.ownedEvents?.label || 'Owned events'}</span>,
     meta: {
       filterVariant: 'collection',
       collectionFilterKey: 'ownedEvents',
@@ -94,7 +95,8 @@ export const columns = () => [
   }),
 
   columnHelper.accessor('data.ownedCommands', {
-    header: () => <span>Owned commands</span>,
+    id: 'ownedCommands',
+    header: () => <span>{tableConfiguration.columns?.ownedCommands?.label || 'Owned commands'}</span>,
     meta: {
       filterVariant: 'collection',
       collectionFilterKey: 'ownedCommands',
@@ -148,7 +150,8 @@ export const columns = () => [
   }),
 
   columnHelper.accessor('data.ownedQueries', {
-    header: () => <span>Owned queries</span>,
+    id: 'ownedQueries',
+    header: () => <span>{tableConfiguration.columns?.ownedQueries?.label || 'Owned queries'}</span>,
     meta: {
       filterVariant: 'collection',
       collectionFilterKey: 'ownedQueries',
@@ -202,7 +205,8 @@ export const columns = () => [
   }),
 
   columnHelper.accessor('data.ownedServices', {
-    header: () => <span>Owned Services</span>,
+    id: 'ownedServices',
+    header: () => <span>{tableConfiguration.columns?.ownedServices?.label || 'Owned Services'}</span>,
     meta: {
       filterVariant: 'collection',
       collectionFilterKey: 'ownedServices',
@@ -254,7 +258,7 @@ export const columns = () => [
   }),
 
   columnHelper.accessor('data.name', {
-    header: () => <span />,
+    header: () => <span>{tableConfiguration.columns?.actions?.label || 'Actions'}</span>,
     cell: (info) => {
       const domain = info.row.original;
       return (

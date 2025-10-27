@@ -14,6 +14,7 @@ import { DatabaseIcon } from 'lucide-react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
 import Checkbox from '@components/Checkbox.astro';
+import config from '@config';
 
 const events = await getEvents();
 const queries = await getQueries();
@@ -35,6 +36,9 @@ const currentPath = Astro.url.pathname;
 const checkboxLatestId = 'latest-only';
 const checkboxDraftsId = 'show-drafts';
 
+// @ts-ignore
+const tableConfiguration = config[type as keyof typeof config]?.tableConfiguration ?? { columns: {} };
+
 const tabs = [
   {
     label: `Events (${events.length})`,
@@ -43,6 +47,7 @@ const tabs = [
     icon: BoltIcon,
     activeColor: 'orange',
     enabled: events.length > 0,
+    visible: events.length > 0,
   },
   {
     label: `Commands (${commands.length})`,
@@ -51,6 +56,7 @@ const tabs = [
     icon: ChatBubbleLeftIcon,
     activeColor: 'blue',
     enabled: commands.length > 0,
+    visible: commands.length > 0,
   },
   {
     label: `Queries (${queries.length})`,
@@ -59,6 +65,7 @@ const tabs = [
     icon: MagnifyingGlassIcon,
     activeColor: 'green',
     enabled: queries.length > 0,
+    visible: queries.length > 0,
   },
   {
     label: `Services (${services.length})`,
@@ -67,6 +74,7 @@ const tabs = [
     icon: ServerIcon,
     activeColor: 'pink',
     enabled: services.length > 0,
+    visible: services.length > 0,
   },
   {
     label: `Domains (${domains.length})`,
@@ -75,6 +83,7 @@ const tabs = [
     icon: RectangleGroupIcon,
     activeColor: 'yellow',
     enabled: domains.length > 0,
+    visible: domains.length > 0,
   },
   {
     label: `Data (${containers.length})`,
@@ -83,6 +92,7 @@ const tabs = [
     icon: DatabaseIcon,
     activeColor: 'blue',
     enabled: containers.length > 0,
+    visible: containers.length > 0,
   },
   {
     label: `Flows (${flows.length})`,
@@ -91,6 +101,7 @@ const tabs = [
     icon: QueueListIcon,
     activeColor: 'teal',
     enabled: flows.length > 0,
+    visible: flows.length > 0,
   },
 ];
 ---
@@ -102,18 +113,20 @@ const tabs = [
         <div class="border-b border-gray-200">
           <nav class="flex space-x-8 -mb-0.5 pl-6" aria-label="Tabs">
             {
-              tabs.map((tab) => (
-                <a
-                  href={tab.href}
-                  class={` text-black  group inline-flex items-center py-4 px-1 text-sm font-light ${tab.isActive ? `border-${tab.activeColor}-500 border-b-[2px] text-${tab.activeColor}-500` : 'opacity-80'} ${!tab.enabled ? 'disabled' : ''}`}
-                  aria-current="page"
-                >
-                  <tab.icon
-                    className={`w-6 h-6 -ml-0.5 mr-2  ${tab.isActive ? `text-${tab.activeColor}-500` : 'text-gray-500'}`}
-                  />
-                  <span>{tab.label}</span>
-                </a>
-              ))
+              tabs
+                .filter((tab) => tab.visible)
+                .map((tab) => (
+                  <a
+                    href={tab.href}
+                    class={` text-black  group inline-flex items-center py-4 px-1 text-sm font-light ${tab.isActive ? `border-${tab.activeColor}-500 border-b-[2px] text-${tab.activeColor}-500` : 'opacity-80'} ${!tab.enabled ? 'disabled' : ''}`}
+                    aria-current="page"
+                  >
+                    <tab.icon
+                      className={`w-6 h-6 -ml-0.5 mr-2  ${tab.isActive ? `text-${tab.activeColor}-500` : 'text-gray-500'}`}
+                    />
+                    <span>{tab.label}</span>
+                  </a>
+                ))
             }
           </nav>
         </div>
@@ -145,6 +158,7 @@ const tabs = [
                 checkboxDraftsId={checkboxDraftsId}
                 data={data}
                 collection={type}
+                tableConfiguration={tableConfiguration}
                 client:load
               />
             </div>

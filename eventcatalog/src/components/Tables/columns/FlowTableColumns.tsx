@@ -4,13 +4,14 @@ import { buildUrl } from '@utils/url-builder';
 import { QueueListIcon } from '@heroicons/react/24/solid';
 import { createBadgesColumn } from './SharedColumns';
 import type { TData } from '../Table';
+import type { TableConfiguration } from '@types';
 
 const columnHelper = createColumnHelper<TData<'flows'>>();
 
-export const columns = () => [
+export const columns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.name', {
     id: 'name',
-    header: () => <span>Flow</span>,
+    header: () => <span>{tableConfiguration.columns?.name?.label || 'Flow'}</span>,
     cell: (info) => {
       const flowRaw = info.row.original;
       const color = 'teal';
@@ -41,7 +42,8 @@ export const columns = () => [
     filterFn: filterByName,
   }),
   columnHelper.accessor('data.version', {
-    header: () => <span>Version</span>,
+    id: 'version',
+    header: () => <span>{tableConfiguration.columns?.version?.label || 'Version'}</span>,
     cell: (info) => {
       const service = info.row.original;
       return (
@@ -52,7 +54,7 @@ export const columns = () => [
   }),
   columnHelper.accessor('data.summary', {
     id: 'summary',
-    header: () => 'Summary',
+    header: () => <span>{tableConfiguration.columns?.summary?.label || 'Summary'}</span>,
     cell: (info) => <span className="font-light ">{info.renderValue()}</span>,
     footer: (info) => info.column.id,
     meta: {
@@ -60,9 +62,10 @@ export const columns = () => [
       className: 'max-w-md',
     },
   }),
-  createBadgesColumn(columnHelper),
+  createBadgesColumn(columnHelper, tableConfiguration),
   columnHelper.accessor('data.name', {
-    header: () => <span />,
+    id: 'actions',
+    header: () => <span>{tableConfiguration.columns?.actions?.label || 'Actions'}</span>,
     cell: (info) => {
       const domain = info.row.original;
       return (
@@ -74,7 +77,6 @@ export const columns = () => [
         </a>
       );
     },
-    id: 'actions',
     meta: {
       showFilter: false,
     },

@@ -1,20 +1,11 @@
 ---
 import { Table, type TData, type TCollectionTypes } from '@components/Tables/Table';
-import { QueueListIcon, RectangleGroupIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
-import ServerIcon from '@heroicons/react/24/outline/ServerIcon';
-import { getCommands } from '@utils/commands';
-import { getDomains } from '@utils/collections/domains';
-import { getFlows } from '@utils/collections/flows';
-import { getEvents } from '@utils/events';
-import { getServices } from '@utils/collections/services';
 import { buildUrl } from '@utils/url-builder';
-import { getQueries } from '@utils/queries';
-import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
-import Checkbox from '@components/Checkbox.astro';
 import { User, Users } from 'lucide-react';
 import { getUsers } from '@utils/users';
 import { getTeams } from '@utils/teams';
+import config from '@config';
 
 const users = await getUsers();
 const teams = await getTeams();
@@ -32,6 +23,9 @@ const currentPath = Astro.url.pathname;
 const checkboxLatestId = 'latest-only';
 const checkboxDraftsId = 'drafts-only';
 
+// @ts-ignore
+const tableConfiguration = config[type as keyof typeof config]?.tableConfiguration ?? { columns: {} };
+
 const tabs = [
   {
     label: `Users (${users.length})`,
@@ -40,6 +34,7 @@ const tabs = [
     icon: User,
     activeColor: 'orange',
     enabled: users.length > 0,
+    visible: users.length > 0,
   },
   {
     label: `Teams (${teams.length})`,
@@ -48,6 +43,7 @@ const tabs = [
     icon: Users,
     activeColor: 'blue',
     enabled: teams.length > 0,
+    visible: teams.length > 0,
   },
 ];
 ---
@@ -59,18 +55,20 @@ const tabs = [
         <div class="border-b border-gray-200">
           <nav class="flex space-x-8 -mb-0.5 pl-6" aria-label="Tabs">
             {
-              tabs.map((tab) => (
-                <a
-                  href={tab.href}
-                  class={` text-black  group inline-flex items-center py-4 px-1 text-sm font-light ${tab.isActive ? `border-${tab.activeColor}-500 border-b-[2px] text-${tab.activeColor}-500` : 'opacity-80'} ${!tab.enabled ? 'disabled' : ''}`}
-                  aria-current="page"
-                >
-                  <tab.icon
-                    className={`w-6 h-6 -ml-0.5 mr-2  ${tab.isActive ? `text-${tab.activeColor}-500` : 'text-gray-500'}`}
-                  />
-                  <span>{tab.label}</span>
-                </a>
-              ))
+              tabs
+                .filter((tab) => tab.visible)
+                .map((tab) => (
+                  <a
+                    href={tab.href}
+                    class={` text-black  group inline-flex items-center py-4 px-1 text-sm font-light ${tab.isActive ? `border-${tab.activeColor}-500 border-b-[2px] text-${tab.activeColor}-500` : 'opacity-80'} ${!tab.enabled ? 'disabled' : ''}`}
+                    aria-current="page"
+                  >
+                    <tab.icon
+                      className={`w-6 h-6 -ml-0.5 mr-2  ${tab.isActive ? `text-${tab.activeColor}-500` : 'text-gray-500'}`}
+                    />
+                    <span>{tab.label}</span>
+                  </a>
+                ))
             }
           </nav>
         </div>
@@ -94,6 +92,7 @@ const tabs = [
                 checkboxDraftsId={checkboxDraftsId}
                 data={data}
                 collection={type}
+                tableConfiguration={tableConfiguration}
                 client:load
               />
             </div>

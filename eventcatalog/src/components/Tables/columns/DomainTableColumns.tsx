@@ -4,13 +4,14 @@ import { filterByName, filterCollectionByName } from '../filters/custom-filters'
 import { buildUrl } from '@utils/url-builder';
 import { createBadgesColumn } from './SharedColumns';
 import type { TData } from '../Table';
+import type { TableConfiguration } from '@types';
 
 const columnHelper = createColumnHelper<TData<'domains'>>();
 
-export const columns = () => [
+export const columns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.name', {
     id: 'name',
-    header: () => <span>Domain</span>,
+    header: () => <span>{tableConfiguration.columns?.name?.label || 'Domain'}</span>,
     cell: (info) => {
       const messageRaw = info.row.original;
       const color = 'yellow';
@@ -42,7 +43,7 @@ export const columns = () => [
   }),
   columnHelper.accessor('data.summary', {
     id: 'summary',
-    header: () => 'Summary',
+    header: () => <span>{tableConfiguration.columns?.summary?.label || 'Summary'}</span>,
     cell: (info) => (
       <span className="font-light ">
         {info.renderValue()} {info.row.original.data.draft ? ' (Draft)' : ''}
@@ -55,6 +56,7 @@ export const columns = () => [
     },
   }),
   columnHelper.accessor('data.services', {
+    id: 'services',
     header: () => <span>Services</span>,
     meta: {
       filterVariant: 'collection',
@@ -94,9 +96,10 @@ export const columns = () => [
     },
     filterFn: filterCollectionByName('services'),
   }),
-  createBadgesColumn(columnHelper),
+  createBadgesColumn(columnHelper, tableConfiguration),
   columnHelper.accessor('data.name', {
-    header: () => <span />,
+    id: 'actions',
+    header: () => <span>{tableConfiguration.columns?.actions?.label || 'Actions'}</span>,
     cell: (info) => {
       const domain = info.row.original;
       return (
@@ -108,7 +111,6 @@ export const columns = () => [
         </a>
       );
     },
-    id: 'actions',
     meta: {
       showFilter: false,
     },

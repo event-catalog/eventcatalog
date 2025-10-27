@@ -3,13 +3,15 @@ import { Tag } from 'lucide-react';
 import { filterByBadge } from '../filters/custom-filters';
 import type { TCollectionTypes, TData } from '../Table';
 import { getIcon } from '@utils/badges';
+import type { TableConfiguration } from '@types';
 
 export const createBadgesColumn = <T extends { data: Pick<TData<U>['data'], 'badges'> }, U extends TCollectionTypes>(
-  columnHelper: ReturnType<typeof createColumnHelper<T>>
+  columnHelper: ReturnType<typeof createColumnHelper<T>>,
+  tableConfiguration: TableConfiguration
 ) => {
   return columnHelper.accessor((row) => row.data.badges, {
     id: 'badges',
-    header: () => <span>Badges</span>,
+    header: () => <span>{tableConfiguration.columns?.badges?.label || 'Badges'}</span>,
     cell: (info) => {
       const item = info.row.original;
       const badges = item.data.badges || [];

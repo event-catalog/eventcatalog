@@ -20,3 +20,12 @@ export type PageTypes =
   | 'flows'
   | 'entities'
   | 'containers';
+
+export type TableConfiguration = {
+  columns: {
+    [key: string]: {
+      label?: string;
+      visible?: boolean;
+    };
+  };
+};
