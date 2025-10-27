@@ -46,7 +46,7 @@ const channelPointer = z
 
 const resourcePointer = z.object({
   id: z.string(),
-  version: z.union([z.string(), z.number()]).optional().default('latest'),
+  version: z.string().optional().default('latest'),
   type: z.enum(['service', 'event', 'command', 'query', 'flow', 'channel', 'domain', 'user', 'team', 'container']),
 });
 

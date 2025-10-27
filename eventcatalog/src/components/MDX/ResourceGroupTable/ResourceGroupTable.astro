@@ -48,11 +48,7 @@ if (section?.items) {
       const allItemsInCollection = await getCollection(collectionName);
 
       // Find the specific version of the resource
-      const matchedItems = getItemsFromCollectionByIdAndSemverOrLatest(
-        allItemsInCollection as any,
-        item.id,
-        item.version?.toString()
-      );
+      const matchedItems = getItemsFromCollectionByIdAndSemverOrLatest(allItemsInCollection as any, item.id, item.version);
 
       if (matchedItems.length > 0) {
         const entry = matchedItems[0] as any;
