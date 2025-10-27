@@ -5,24 +5,25 @@ import { columns as DomainTableColumns } from './DomainTableColumns';
 import { columns as FlowTableColumns } from './FlowTableColumns';
 import { columns as TeamsTableColumns } from './TeamsTableColumns';
 import { columns as ContainerTableColumns } from './ContainersTableColumns';
-export const getColumnsByCollection = (collection: string): any => {
+import type { TableConfiguration } from '@types';
+export const getColumnsByCollection = (collection: string, tableConfiguration: TableConfiguration): any => {
   switch (collection) {
     case 'events':
     case 'commands':
     case 'queries':
-      return MessageTableColumns();
+      return MessageTableColumns(tableConfiguration);
     case 'services':
-      return ServiceTableColumns();
+      return ServiceTableColumns(tableConfiguration);
     case 'domains':
-      return DomainTableColumns();
+      return DomainTableColumns(tableConfiguration);
     case 'flows':
-      return FlowTableColumns();
+      return FlowTableColumns(tableConfiguration);
     case 'users':
-      return UserTableColumns();
+      return UserTableColumns(tableConfiguration);
     case 'teams':
-      return TeamsTableColumns();
+      return TeamsTableColumns(tableConfiguration);
     case 'containers':
-      return ContainerTableColumns();
+      return ContainerTableColumns(tableConfiguration);
     default:
       return [];
   }

@@ -5,7 +5,7 @@ import { filterByName, filterCollectionByName } from '../filters/custom-filters'
 import { buildUrl } from '@utils/url-builder';
 import { createBadgesColumn } from './SharedColumns';
 import type { TData } from '../Table';
-import type { CollectionMessageTypes } from '@types';
+import type { CollectionMessageTypes, TableConfiguration } from '@types';
 
 const columnHelper = createColumnHelper<TData<CollectionMessageTypes>>();
 
@@ -23,10 +23,10 @@ export const getColorAndIconForMessageType = (type: string) => {
   }
 };
 
-export const columns = () => [
+export const columns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.name', {
     id: 'name',
-    header: () => <span>Message</span>,
+    header: () => <span>{tableConfiguration.columns?.name?.label || 'Name'}</span>,
     cell: (info) => {
       const messageRaw = info.row.original;
       const type = useMemo(() => messageRaw.collection.slice(0, -1), [messageRaw.collection]);
@@ -59,7 +59,7 @@ export const columns = () => [
 
   columnHelper.accessor('data.summary', {
     id: 'summary',
-    header: () => 'Summary',
+    header: () => <span>{tableConfiguration.columns?.summary?.label || 'Summary'}</span>,
     cell: (info) => (
       <span className="font-light ">
         {info.renderValue()} {info.row.original.data.draft ? ' (Draft)' : ''}
@@ -73,6 +73,7 @@ export const columns = () => [
   }),
 
   columnHelper.accessor('data.producers', {
+    id: 'producers',
     header: () => <span>Producers</span>,
     meta: {
       filterVariant: 'collection',
@@ -112,6 +113,7 @@ export const columns = () => [
     filterFn: filterCollectionByName('producers'),
   }),
   columnHelper.accessor('data.consumers', {
+    id: 'consumers',
     header: () => <span>Consumers</span>,
     meta: {
       filterVariant: 'collection',
@@ -151,9 +153,10 @@ export const columns = () => [
     footer: (info) => info.column.id,
     filterFn: filterCollectionByName('consumers'),
   }),
-  createBadgesColumn(columnHelper),
+  createBadgesColumn(columnHelper, tableConfiguration),
   columnHelper.accessor('data.name', {
-    header: () => <span />,
+    id: 'actions',
+    header: () => <span>{tableConfiguration.columns?.actions?.label || 'Actions'}</span>,
     cell: (info) => {
       const domain = info.row.original;
       return (

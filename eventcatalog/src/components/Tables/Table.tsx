@@ -14,7 +14,7 @@ import DebouncedInput from './DebouncedInput';
 
 import { getColumnsByCollection } from './columns';
 import { useEffect, useMemo, useState } from 'react';
-import type { CollectionMessageTypes } from '@types';
+import type { CollectionMessageTypes, TableConfiguration } from '@types';
 import { isSameVersion } from '@utils/collections/util';
 
 declare module '@tanstack/react-table' {
@@ -146,12 +146,14 @@ export const Table = <T extends TCollectionTypes>({
   mode = 'simple',
   checkboxLatestId,
   checkboxDraftsId,
+  tableConfiguration,
 }: {
   data: TData<T>[];
   collection: T;
   checkboxLatestId: string;
   checkboxDraftsId: string;
   mode?: 'simple' | 'full';
+  tableConfiguration?: TableConfiguration;
 }) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
@@ -215,7 +217,7 @@ export const Table = <T extends TCollectionTypes>({
     });
   }, [initialData, showOnlyLatest, onlyShowDrafts]);
 
-  const columns = useMemo(() => getColumnsByCollection(collection), [collection]);
+  const columns = useMemo(() => getColumnsByCollection(collection, tableConfiguration), [collection, tableConfiguration]);
 
   const table = useReactTable({
     data: filteredData,
@@ -229,6 +231,9 @@ export const Table = <T extends TCollectionTypes>({
     getPaginationRowModel: getPaginationRowModel(),
     state: {
       columnFilters,
+      columnVisibility: Object.fromEntries(
+        Object.entries(tableConfiguration?.columns ?? {}).map(([key, value]) => [key, value.visible ?? true])
+      ),
     },
   });
 
