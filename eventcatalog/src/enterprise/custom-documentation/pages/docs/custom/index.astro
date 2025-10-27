@@ -377,6 +377,7 @@ const badges = doc?.badges || [];
       }
 
       if (enableSupportForElkLayout) {
+        // @ts-ignore
         const { default: elkLayouts } = await import('@mermaid-js/layout-elk/dist/mermaid-layout-elk.core.mjs');
         mermaid.registerLayoutLoaders(elkLayouts);
       }

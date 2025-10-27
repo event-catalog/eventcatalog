@@ -217,7 +217,10 @@ export const Table = <T extends TCollectionTypes>({
     });
   }, [initialData, showOnlyLatest, onlyShowDrafts]);
 
-  const columns = useMemo(() => getColumnsByCollection(collection, tableConfiguration), [collection, tableConfiguration]);
+  const columns = useMemo(
+    () => getColumnsByCollection(collection, tableConfiguration ?? ({ columns: {} } as TableConfiguration)),
+    [collection, tableConfiguration]
+  );
 
   const table = useReactTable({
     data: filteredData,

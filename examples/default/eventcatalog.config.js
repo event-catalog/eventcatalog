@@ -1,10 +1,9 @@
-/** @type {import('../../bin/eventcatalog.config').Config} */
-
 import path from "path";
 import url from "url";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
+/** @type {import('../../bin/eventcatalog.config').Config} */
 export default {
   cId: '8027010c-f3d6-417a-8234-e2f46087fc56',
   title: 'FlowMart',

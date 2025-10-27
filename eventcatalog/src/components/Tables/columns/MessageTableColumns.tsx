@@ -168,7 +168,6 @@ export const columns = (tableConfiguration: TableConfiguration) => [
         </a>
       );
     },
-    id: 'actions',
     meta: {
       showFilter: false,
     },
