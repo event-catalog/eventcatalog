@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.63.0
+
+### Minor Changes
+
+- 465d8b8: feat(core): added configuration for eventcatalog tables
+
 ## 2.62.1
 
 ### Patch Changes
