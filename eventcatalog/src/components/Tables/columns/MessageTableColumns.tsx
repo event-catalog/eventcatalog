@@ -74,7 +74,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
 
   columnHelper.accessor('data.producers', {
     id: 'producers',
-    header: () => <span>Producers</span>,
+    header: () => <span>{tableConfiguration.columns?.producers?.label || 'Producers'}</span>,
     meta: {
       filterVariant: 'collection',
       collectionFilterKey: 'producers',
@@ -114,7 +114,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
   }),
   columnHelper.accessor('data.consumers', {
     id: 'consumers',
-    header: () => <span>Consumers</span>,
+    header: () => <span>{tableConfiguration.columns?.consumers?.label || 'Consumers'}</span>,
     meta: {
       filterVariant: 'collection',
       collectionFilterKey: 'consumers',
