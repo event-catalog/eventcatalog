@@ -1,0 +1,65 @@
+---
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { getEvents } from '@utils/events';
+import { getCommands } from '@utils/commands';
+import { getQueries } from '@utils/queries';
+import SchemaRegistry from '@components/SchemaRegistry/SchemaRegistry';
+import fs from 'fs';
+import path from 'path';
+
+// Fetch all messages
+const events = await getEvents({ hydrateServices: false });
+const commands = await getCommands({ hydrateServices: false });
+const queries = await getQueries({ hydrateServices: false });
+
+// Combine all messages
+const allMessages = [...events, ...commands, ...queries];
+
+// Filter messages with schemas and read schema content
+const messagesWithSchemas = await Promise.all(
+  allMessages
+    .filter((message) => message.data.schemaPath)
+    .map(async (message) => {
+      try {
+        // Get the schema file path
+        const schemaPath = message.data.schemaPath;
+        const fullSchemaPath = path.join(path.dirname(message.filePath ?? ''), schemaPath ?? '');
+
+        // Read the schema content
+        let schemaContent = '';
+        if (fs.existsSync(fullSchemaPath)) {
+          schemaContent = fs.readFileSync(fullSchemaPath, 'utf-8');
+        }
+
+        // Get schema file extension
+        const schemaExtension = path.extname(schemaPath ?? '').slice(1);
+
+        return {
+          ...message,
+          schemaContent,
+          schemaExtension,
+        };
+      } catch (error) {
+        console.error(`Error reading schema for ${message.data.id}:`, error);
+        return {
+          ...message,
+          schemaContent: '',
+          schemaExtension: 'json',
+        };
+      }
+    })
+);
+
+---
+
+<VerticalSideBarLayout title="Schema Registry - EventCatalog">
+    <main class="flex sm:px-8 docs-layout h-[calc(100vh-var(--header-height,0px)-64px)]">
+        <div class="flex docs-layout w-full h-full">
+            <div class="w-full lg:mr-2 pr-8 py-6 flex flex-col h-full">
+                <div class="w-full !max-w-none h-full flex flex-col overflow-hidden">
+                    <SchemaRegistry client:load messages={messagesWithSchemas} />
+                </div>
+            </div>
+        </div>
+    </main>
+</VerticalSideBarLayout>

@@ -1,6 +1,6 @@
 ---
 import jsonpath from 'jsonpath';
-import SchemaViewer from './SchemaViewer/SchemaViewer.astro';
+import JSONSchemaViewer from '@components/SchemaRegistry/JSONSchemaViewer';
 import { Code } from 'astro-expressive-code/components';
 import { isPrivateRemoteSchemaEnabled } from '@utils/feature';
 
@@ -151,16 +151,24 @@ if (renderAs === 'auto') {
   ) : (
     <div class="remote-file-content">
       {finalRenderAs === 'schema' ? (
-        <SchemaViewer
-          schema={processedData}
-          schemaPath={resolvedUrl}
-          title={title}
-          maxHeight={maxHeight}
-          file="remote"
-          id={`remote-schema-${Math.random().toString(36).substring(2, 9)}`}
-          expand={false}
-          search={true}
-        />
+        <div class="not-prose my-4">
+          {title && <h2 class="text-3xl font-bold mb-2 !mt-0">{title}</h2>}
+          <div
+            class="schema-viewer"
+            style={{
+              maxHeight: maxHeight ? `${maxHeight}px` : `30em`,
+              minHeight: '15em',
+            }}
+          >
+            <JSONSchemaViewer
+              client:load
+              schema={processedData}
+              maxHeight={maxHeight}
+              expand={false}
+              search={true}
+            />
+          </div>
+        </div>
       ) : (
         <div class="not-prose max-w-4xl overflow-x-auto" style={`max-height: ${maxHeight}px;`}>
           <Code code={content} title={title || ''} lang="json" />

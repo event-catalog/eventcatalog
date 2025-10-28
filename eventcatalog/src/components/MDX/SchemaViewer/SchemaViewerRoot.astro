@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import { existsSync } from 'fs';
 import yaml from 'js-yaml';
 import path from 'path';
-import SchemaViewerClient from './SchemaViewer.astro';
+import JSONSchemaViewer from '@components/SchemaRegistry/JSONSchemaViewer';
 import Admonition from '../Admonition';
 import { getMDXComponentsByName } from '@utils/markdown';
 import { getAbsoluteFilePathForAstroFile, resolveProjectPath } from '@utils/files';
@@ -62,7 +62,31 @@ try {
         if (!schema.render) return null;
         return (
           <div>
-            {schema.exists && <SchemaViewerClient {...schema} id={`${schema.id}-${schema.file}-SchemaViewer-client`} />}
+            {schema.exists && (
+              <div
+                id={`${schema.id}-${schema.file}-SchemaViewer-client`}
+                class="not-prose my-4"
+                data-expand={schema.expand ? 'true' : 'false'}
+                data-search={schema.search !== false ? 'true' : 'false'}
+              >
+                {schema.title && <h2 class="text-3xl font-bold mb-2 !mt-0">{schema.title}</h2>}
+                <div
+                  class="schema-viewer"
+                  style={{
+                    maxHeight: schema.maxHeight ? `${schema.maxHeight}px` : `30em`,
+                    minHeight: '15em',
+                  }}
+                >
+                  <JSONSchemaViewer
+                    client:load
+                    schema={schema.schema}
+                    maxHeight={schema.maxHeight}
+                    expand={schema.expand}
+                    search={schema.search}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* User has tried to load the schema, but it was not found on file system */}
             {!schema.exists && (
