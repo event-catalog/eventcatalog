@@ -1,0 +1,380 @@
+openapi: 3.0.3
+info:
+  title: EventCatalog API
+  description: |
+    API endpoints for EventCatalog - a tool for documenting event-driven architectures.
+
+    ## Features
+    - **Catalog Dump**: Export the entire catalog as JSON
+    - **Message Schemas**: Access schemas for events, commands, and queries
+    - **Service Specifications**: Retrieve OpenAPI, AsyncAPI, and other specifications for services
+
+    ## Scale Features
+    Some endpoints require EventCatalog Scale to be enabled. These endpoints will return `501 Not Implemented` if the feature is not available.
+  version: 1.0.0
+  contact:
+    name: EventCatalog
+    url: https://eventcatalog.dev
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+  - url: https://your-catalog.example.com
+    description: Production server (replace with your actual URL)
+
+tags:
+  - name: Catalog
+    description: Endpoints for accessing the full catalog
+  - name: Schemas
+    description: Endpoints for accessing message schemas and service specifications
+
+paths:
+  /api/catalog:
+    get:
+      summary: Get full catalog dump
+      description: |
+        Returns the entire EventCatalog as JSON without markdown content.
+        This is an experimental API that can be disabled via configuration.
+
+        **Configuration**: Can be disabled by setting `config.api.fullCatalogAPIEnabled` to `false`.
+      operationId: getCatalog
+      tags:
+        - Catalog
+      responses:
+        '200':
+          description: Successful response with full catalog data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
+        '404':
+          description: API endpoint is disabled in configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/schemas/{collection}/{id}/{version}:
+    get:
+      summary: Get message schema
+      description: |
+        Retrieves the schema for a specific message (event, command, or query).
+
+        **Requires**: EventCatalog Scale
+
+        The schema is returned in its original format (JSON Schema, Avro, Protobuf, etc.).
+      operationId: getMessageSchema
+      tags:
+        - Schemas
+      parameters:
+        - name: collection
+          in: path
+          required: true
+          description: Type of message
+          schema:
+            type: string
+            enum:
+              - events
+              - commands
+              - queries
+        - name: id
+          in: path
+          required: true
+          description: Message identifier
+          schema:
+            type: string
+          example: UserCreated
+        - name: version
+          in: path
+          required: true
+          description: Message version
+          schema:
+            type: string
+          example: 1.0.0
+      responses:
+        '200':
+          description: Successful response with schema content
+          content:
+            application/json:
+              schema:
+                type: object
+                description: JSON Schema or other schema format
+              example:
+                $schema: "http://json-schema.org/draft-07/schema#"
+                type: object
+                properties:
+                  userId:
+                    type: string
+                  email:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+            text/plain:
+              schema:
+                type: string
+                description: Schema in original format (Avro, Protobuf, etc.)
+        '404':
+          description: Schema not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '501':
+          description: EventCatalog Scale feature not enabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/schemas/services/{id}/{version}/{specification}:
+    get:
+      summary: Get service specification
+      description: |
+        Retrieves specification files for a specific service (e.g., OpenAPI, AsyncAPI).
+
+        **Requires**: EventCatalog Scale
+
+        The specification is returned in its original format.
+      operationId: getServiceSpecification
+      tags:
+        - Schemas
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Service identifier
+          schema:
+            type: string
+          example: PaymentService
+        - name: version
+          in: path
+          required: true
+          description: Service version
+          schema:
+            type: string
+          example: 1.0.0
+        - name: specification
+          in: path
+          required: true
+          description: Specification file name (e.g., openapi, asyncapi)
+          schema:
+            type: string
+          example: openapi
+      responses:
+        '200':
+          description: Successful response with specification content
+          content:
+            application/json:
+              schema:
+                type: object
+                description: OpenAPI, AsyncAPI, or other specification format
+            application/x-yaml:
+              schema:
+                type: string
+                description: Specification in YAML format
+            text/plain:
+              schema:
+                type: string
+                description: Specification in original format
+        '404':
+          description: Specification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '501':
+          description: EventCatalog Scale feature not enabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Catalog:
+      type: object
+      description: Complete EventCatalog data structure
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+        commands:
+          type: array
+          items:
+            $ref: '#/components/schemas/Command'
+        queries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Query'
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/Service'
+        domains:
+          type: array
+          items:
+            $ref: '#/components/schemas/Domain'
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Event identifier
+        name:
+          type: string
+          description: Event name
+        version:
+          type: string
+          description: Event version
+        summary:
+          type: string
+          description: Brief summary of the event
+        producers:
+          type: array
+          items:
+            type: string
+          description: Services that produce this event
+        consumers:
+          type: array
+          items:
+            type: string
+          description: Services that consume this event
+        schemaPath:
+          type: string
+          description: Path to the schema file (if available)
+        badges:
+          type: array
+          items:
+            type: object
+      example:
+        id: UserCreated
+        name: User Created
+        version: 1.0.0
+        summary: Triggered when a new user is created in the system
+        producers:
+          - UserService
+        consumers:
+          - EmailService
+          - AnalyticsService
+
+    Command:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Command identifier
+        name:
+          type: string
+          description: Command name
+        version:
+          type: string
+          description: Command version
+        summary:
+          type: string
+          description: Brief summary of the command
+        schemaPath:
+          type: string
+          description: Path to the schema file (if available)
+      example:
+        id: CreateUser
+        name: Create User
+        version: 1.0.0
+        summary: Command to create a new user
+
+    Query:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Query identifier
+        name:
+          type: string
+          description: Query name
+        version:
+          type: string
+          description: Query version
+        summary:
+          type: string
+          description: Brief summary of the query
+        schemaPath:
+          type: string
+          description: Path to the schema file (if available)
+      example:
+        id: GetUser
+        name: Get User
+        version: 1.0.0
+        summary: Query to retrieve user information
+
+    Service:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Service identifier
+        name:
+          type: string
+          description: Service name
+        version:
+          type: string
+          description: Service version
+        summary:
+          type: string
+          description: Brief summary of the service
+        specifications:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                description: Specification type (openapi, asyncapi, etc.)
+              path:
+                type: string
+                description: Path to the specification file
+      example:
+        id: PaymentService
+        name: Payment Service
+        version: 1.0.0
+        summary: Handles payment processing
+        specifications:
+          - type: openapi
+            path: /specifications/openapi.yaml
+
+    Domain:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Domain identifier
+        name:
+          type: string
+          description: Domain name
+        version:
+          type: string
+          description: Domain version
+        summary:
+          type: string
+          description: Brief summary of the domain
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        message:
+          type: string
+          description: Detailed error description
+        statusCode:
+          type: integer
+          description: HTTP status code
+      example:
+        error: Not Found
+        message: API endpoint is disabled in configuration
+        statusCode: 404
