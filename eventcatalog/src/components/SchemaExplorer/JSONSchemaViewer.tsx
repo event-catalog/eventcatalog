@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { ChevronRightIcon } from '@heroicons/react/24/outline';
 
 interface JSONSchemaViewerProps {
   schema: any;
@@ -435,7 +434,7 @@ export default function JSONSchemaViewer({ schema, title, maxHeight, expand = fa
         const regex = new RegExp(`(${query})`, 'gi');
         nameEl.innerHTML = (nameEl.textContent || '').replace(regex, '<mark class="bg-yellow-200 rounded px-0.5">$1</mark>');
 
-        // Expand parent containers
+        // Expand parent containers and remove dimming from them
         let parent = container.parentElement;
         while (parent && parent !== propertiesContainerRef.current) {
           if (parent.classList.contains('nested-content') && parent.classList.contains('hidden')) {
@@ -446,6 +445,10 @@ export default function JSONSchemaViewer({ schema, title, maxHeight, expand = fa
                 (toggleBtn as HTMLButtonElement).click();
               }
             }
+          }
+          // Remove dimming from parent property containers so they're fully visible
+          if (parent.classList.contains('property-container')) {
+            parent.classList.remove('search-dimmed');
           }
           parent = parent.parentElement;
         }

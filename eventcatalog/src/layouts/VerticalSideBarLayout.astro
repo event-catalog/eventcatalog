@@ -18,6 +18,7 @@ import {
   FileText,
   SquareDashedMousePointerIcon,
   PackageSearch,
+  FileJson,
 } from 'lucide-react';
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
@@ -125,7 +126,7 @@ const navigationItems = [
   {
     id: '/schemas',
     label: 'Schema Explorer',
-    icon: PackageSearch,
+    icon: FileJson,
     href: buildUrl('/schemas'),
     current: currentPath.includes('/schemas'),
     sidebar: false,
