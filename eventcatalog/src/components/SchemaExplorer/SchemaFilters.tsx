@@ -15,6 +15,7 @@ interface SchemaFiltersProps {
   filtersExpanded: boolean;
   onToggleExpanded: () => void;
   searchInputRef: React.RefObject<HTMLInputElement>;
+  isMounted: boolean;
 }
 
 export default function SchemaFilters({
@@ -29,6 +30,7 @@ export default function SchemaFilters({
   filtersExpanded,
   onToggleExpanded,
   searchInputRef,
+  isMounted,
 }: SchemaFiltersProps) {
   const activeFilterCount = [searchQuery, selectedType !== 'all', selectedSchemaType !== 'all'].filter(Boolean).length;
 
@@ -55,8 +57,8 @@ export default function SchemaFilters({
         )}
       </button>
 
-      {/* Collapsible Filter Content */}
-      {filtersExpanded && (
+      {/* Collapsible Filter Content - Only render after mount to prevent FOUC */}
+      {isMounted && filtersExpanded && (
         <div className="p-3 pt-0">
           {/* Search */}
           <div className="mb-3">

@@ -48,9 +48,15 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     }
     return true;
   });
+  const [isMounted, setIsMounted] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const selectedItemRef = useRef<HTMLButtonElement>(null);
   const ITEMS_PER_PAGE = 50;
+
+  // Set mounted state after hydration to prevent FOUC
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Function to update URL with query params
   const updateUrlParams = (message: SchemaItem) => {
@@ -335,6 +341,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
             filtersExpanded={filtersExpanded}
             onToggleExpanded={() => setFiltersExpanded(!filtersExpanded)}
             searchInputRef={searchInputRef}
+            isMounted={isMounted}
           />
 
           {/* Schema List - Independently Scrollable */}

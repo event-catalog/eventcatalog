@@ -312,6 +312,8 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [isInitialized, setIsInitialized] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isSearchPinned, setIsSearchPinned] = useState(false);
+  const [lastScrollTop, setLastScrollTop] = useState(0);
   const [collapsedGroups, setCollapsedGroups] = useState<{ [key: string]: boolean }>(() => {
     if (typeof window !== 'undefined') {
       const saved = window.localStorage.getItem(STORAGE_KEY);
@@ -470,6 +472,31 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
       setCollapsedGroups(newCollapsedState);
     }
   }, [debouncedSearchTerm]);
+
+  // Handle scroll for sticky search bar
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const handleScroll = () => {
+      const scrollTop = nav.scrollTop;
+      const scrollThreshold = 50; // Pin after scrolling 50px
+
+      // Scrolling down past threshold
+      if (scrollTop > scrollThreshold && scrollTop > lastScrollTop) {
+        setIsSearchPinned(true);
+      }
+      // Scrolling up near the top
+      else if (scrollTop <= scrollThreshold) {
+        setIsSearchPinned(false);
+      }
+
+      setLastScrollTop(scrollTop);
+    };
+
+    nav.addEventListener('scroll', handleScroll);
+    return () => nav.removeEventListener('scroll', handleScroll);
+  }, [lastScrollTop]);
 
   // Store collapsed groups in local storage
   useEffect(() => {
@@ -872,8 +899,12 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
     !filteredData.messagesNotInService?.length;
 
   return (
-    <nav ref={navRef} className="space-y-4 text-gray-800 px-3 py-4">
-      <div className="flex gap-2">
+    <nav ref={navRef} className="space-y-4 text-gray-800 px-3 py-4 overflow-auto h-full">
+      <div
+        className={`flex gap-2 transition-all duration-200 ${
+          isSearchPinned ? 'sticky top-0 z-10 bg-white shadow-md -mx-3 px-3 py-2 border-b border-gray-200' : ''
+        }`}
+      >
         <input
           type="text"
           value={searchTerm}
