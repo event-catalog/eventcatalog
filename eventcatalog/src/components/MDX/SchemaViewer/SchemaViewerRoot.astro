@@ -70,21 +70,13 @@ try {
                 data-search={schema.search !== false ? 'true' : 'false'}
               >
                 {schema.title && <h2 class="text-3xl font-bold mb-2 !mt-0">{schema.title}</h2>}
-                <div
-                  class="schema-viewer"
-                  style={{
-                    maxHeight: schema.maxHeight ? `${schema.maxHeight}px` : `30em`,
-                    minHeight: '15em',
-                  }}
-                >
-                  <JSONSchemaViewer
-                    client:load
-                    schema={schema.schema}
-                    maxHeight={schema.maxHeight}
-                    expand={schema.expand}
-                    search={schema.search}
-                  />
-                </div>
+                <JSONSchemaViewer
+                  client:load
+                  schema={schema.schema}
+                  maxHeight={schema.maxHeight}
+                  expand={schema.expand}
+                  search={schema.search}
+                />
               </div>
             )}
 

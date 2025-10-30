@@ -508,84 +508,99 @@ export default function JSONSchemaViewer({ schema, title, maxHeight, expand = fa
     );
   }
 
+  const containerStyle = maxHeight
+    ? {
+        maxHeight: maxHeight.includes('px') ? maxHeight : `${maxHeight}px`,
+        minHeight: '15em',
+      }
+    : {};
+
+  // Use h-full when no maxHeight (SchemaRegistry context), otherwise size based on content (MDX context)
+  const heightClass = maxHeight ? '' : 'h-full';
+  const overflowClass = maxHeight ? 'overflow-hidden' : '';
+
   return (
-    <div id={id} className="h-full flex flex-col bg-white overflow-hidden">
+    <div
+      id={id}
+      className={`${heightClass} ${overflowClass} flex flex-col bg-white border border-gray-100 rounded-md shadow-sm`}
+      style={containerStyle}
+    >
       {/* Toolbar */}
       {searchBool && (
         <div className="flex-shrink-0 bg-white pt-4 px-4 mb-4 pb-3 border-b border-gray-100 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1 relative">
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search properties..."
-              className="w-full px-3 py-1.5 pr-20 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  if (e.shiftKey) {
-                    handlePrevMatch();
-                  } else {
-                    handleNextMatch();
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 relative">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search properties..."
+                className="w-full px-3 py-1.5 pr-20 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (e.shiftKey) {
+                      handlePrevMatch();
+                    } else {
+                      handleNextMatch();
+                    }
                   }
-                }
-              }}
-            />
-            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                }}
+              />
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                <button
+                  onClick={handlePrevMatch}
+                  disabled={currentMatches.length === 0 || currentMatchIndex <= 0}
+                  className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Previous match"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={handleNextMatch}
+                  disabled={currentMatches.length === 0 || currentMatchIndex >= currentMatches.length - 1}
+                  className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Next match"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
               <button
-                onClick={handlePrevMatch}
-                disabled={currentMatches.length === 0 || currentMatchIndex <= 0}
-                className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                title="Previous match"
+                onClick={handleExpandAll}
+                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
               >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                </svg>
+                Expand All
               </button>
               <button
-                onClick={handleNextMatch}
-                disabled={currentMatches.length === 0 || currentMatchIndex >= currentMatches.length - 1}
-                className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                title="Next match"
+                onClick={handleCollapseAll}
+                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
               >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                </svg>
+                Collapse All
               </button>
+              <div className="text-xs text-gray-500">
+                {totalProperties} {totalProperties === 1 ? 'property' : 'properties'}
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleExpandAll}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
-            >
-              Expand All
-            </button>
-            <button
-              onClick={handleCollapseAll}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
-            >
-              Collapse All
-            </button>
-            <div className="text-xs text-gray-500">
-              {totalProperties} {totalProperties === 1 ? 'property' : 'properties'}
+          {searchQuery && (
+            <div className="mt-2 text-xs text-gray-600">
+              {currentMatches.length > 0
+                ? `${currentMatchIndex + 1} of ${currentMatches.length} ${currentMatches.length === 1 ? 'match' : 'matches'}`
+                : 'No properties found'}
             </div>
-          </div>
+          )}
         </div>
-        {searchQuery && (
-          <div className="mt-2 text-xs text-gray-600">
-            {currentMatches.length > 0
-              ? `${currentMatchIndex + 1} of ${currentMatches.length} ${currentMatches.length === 1 ? 'match' : 'matches'}`
-              : 'No properties found'}
-          </div>
-        )}
-      </div>
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-auto px-4">
+      <div className={`flex-1 px-4 pb-4 ${maxHeight ? 'overflow-auto' : ''}`}>
         {isRootArray && (
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <div className="flex items-center space-x-2">
@@ -625,7 +640,9 @@ export default function JSONSchemaViewer({ schema, title, maxHeight, expand = fa
                 key={name}
                 name={name}
                 details={details}
-                isRequired={variants ? variants[selectedVariantIndex]?.required?.includes(name) || false : required.includes(name)}
+                isRequired={
+                  variants ? variants[selectedVariantIndex]?.required?.includes(name) || false : required.includes(name)
+                }
                 level={0}
                 expand={expandAll}
               />
@@ -640,7 +657,9 @@ export default function JSONSchemaViewer({ schema, title, maxHeight, expand = fa
                 This array contains items of type:{' '}
                 <span className="font-mono text-blue-600">{processedSchema.items?.type || 'unknown'}</span>
               </p>
-              {processedSchema.items?.description && <p className="text-xs mt-2 text-gray-600">{processedSchema.items.description}</p>}
+              {processedSchema.items?.description && (
+                <p className="text-xs mt-2 text-gray-600">{processedSchema.items.description}</p>
+              )}
             </div>
           </div>
         )}
