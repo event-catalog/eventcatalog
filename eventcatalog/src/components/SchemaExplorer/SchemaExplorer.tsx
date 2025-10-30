@@ -8,12 +8,12 @@ import SchemaDetailsPanel from './SchemaDetailsPanel';
 import Pagination from './Pagination';
 import type { SchemaItem } from './types';
 
-interface SchemaRegistryProps {
+interface SchemaExplorerProps {
   schemas: SchemaItem[];
   apiAccessEnabled?: boolean;
 }
 
-export default function SchemaRegistry({ schemas, apiAccessEnabled = false }: SchemaRegistryProps) {
+export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: SchemaExplorerProps) {
   const [searchQuery, setSearchQuery] = useState(() => {
     // Load from localStorage
     if (typeof window !== 'undefined') {
@@ -152,6 +152,13 @@ export default function SchemaRegistry({ schemas, apiAccessEnabled = false }: Sc
           msg.data.id?.toLowerCase().includes(query)
       );
     }
+
+    // Sort by name alphabetically
+    result.sort((a, b) => {
+      const nameA = a.data.name?.toLowerCase() || '';
+      const nameB = b.data.name?.toLowerCase() || '';
+      return nameA.localeCompare(nameB);
+    });
 
     return result;
   }, [latestMessages, searchQuery, selectedType, selectedSchemaType]);
@@ -304,7 +311,7 @@ export default function SchemaRegistry({ schemas, apiAccessEnabled = false }: Sc
       {/* Compact Header */}
       <div className="flex-shrink-0 border-b border-gray-200 pb-2 mb-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Schema Registry</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Schema Explorer</h1>
           <p className="mt-0.5 text-xs text-gray-600">
             {filteredMessages.length} schema{filteredMessages.length !== 1 ? 's' : ''} available
           </p>

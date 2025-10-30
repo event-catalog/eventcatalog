@@ -10,6 +10,13 @@ export interface Consumer {
   version: string;
 }
 
+export interface Owner {
+  id: string;
+  name: string;
+  type: 'users' | 'teams';
+  href: string;
+}
+
 export interface SchemaItem {
   collection: CollectionMessageTypes | 'services';
   data: {
@@ -20,6 +27,7 @@ export interface SchemaItem {
     schemaPath?: string;
     producers?: Producer[];
     consumers?: Consumer[];
+    owners?: Owner[];
   };
   schemaContent?: string;
   schemaExtension?: string;

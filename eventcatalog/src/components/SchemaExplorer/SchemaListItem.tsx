@@ -34,16 +34,20 @@ export default function SchemaListItem({ message, isSelected, versions, onClick,
               <span className="text-xs text-gray-500 flex-shrink-0">v{message.data.version}</span>
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
-              <span
-                className={`inline-flex items-center rounded-full bg-${color}-100 px-1.5 py-0.5 text-xs font-medium text-${color}-800`}
-              >
-                {message.collection}
-              </span>
               <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800">
                 {(() => {
                   const ext = message.schemaExtension?.toLowerCase();
-                  if (ext === 'openapi' || ext === 'asyncapi' || ext === 'graphql') {
-                    const iconPath = buildUrl(`/icons/${ext}.svg`, true);
+                  if (
+                    ext === 'openapi' ||
+                    ext === 'asyncapi' ||
+                    ext === 'graphql' ||
+                    ext === 'avro' ||
+                    ext === 'json' ||
+                    ext === 'proto'
+                  ) {
+                    // Map json extension to json-schema icon
+                    const iconName = ext === 'json' ? 'json-schema' : ext;
+                    const iconPath = buildUrl(`/icons/${iconName}.svg`, true);
                     return (
                       <>
                         <img src={iconPath} alt={`${ext} icon`} className="h-3 w-3" />

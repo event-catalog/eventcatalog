@@ -4,8 +4,10 @@ import { getEvents } from '@utils/events';
 import { getCommands } from '@utils/commands';
 import { getQueries } from '@utils/queries';
 import { getServices, getSpecificationsForService } from '@utils/collections/services';
-import SchemaRegistry from '@components/SchemaRegistry/SchemaRegistry';
+import SchemaExplorer from '@components/SchemaExplorer/SchemaExplorer';
 import { isEventCatalogScaleEnabled } from '@utils/feature';
+import { getOwner } from '@utils/collections/owners';
+import { buildUrl } from '@utils/url-builder';
 import fs from 'fs';
 import path from 'path';
 
@@ -19,6 +21,21 @@ const services = await getServices({ getAllVersions: true });
 
 // Combine all messages
 const allMessages = [...events, ...commands, ...queries];
+
+// Helper function to enrich owners with full details
+async function enrichOwners(ownersRaw: any[]) {
+  if (!ownersRaw || ownersRaw.length === 0) return [];
+
+  const owners = await Promise.all(ownersRaw.map(getOwner));
+  const filteredOwners = owners.filter((o) => o !== undefined);
+
+  return filteredOwners.map((o) => ({
+    id: o.data.id,
+    name: o.data.name,
+    type: o.collection,
+    href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
+  }));
+}
 
 // Filter messages with schemas and read schema content - only keep essential data
 const messagesWithSchemas = await Promise.all(
@@ -41,6 +58,9 @@ const messagesWithSchemas = await Promise.all(
         // Get schema file extension
         const schemaExtension = path.extname(schemaPath ?? '').slice(1);
 
+        // Enrich owners with full details
+        const enrichedOwners = await enrichOwners(message.data.owners || []);
+
         // Only return essential data - strip out markdown, full data objects, etc.
         return {
           collection: message.collection,
@@ -52,12 +72,14 @@ const messagesWithSchemas = await Promise.all(
             schemaPath: message.data.schemaPath,
             producers: message.data.producers || [],
             consumers: message.data.consumers || [],
+            owners: enrichedOwners,
           },
           schemaContent,
           schemaExtension,
         };
       } catch (error) {
         console.error(`Error reading schema for ${message.data.id}:`, error);
+        const enrichedOwners = await enrichOwners(message.data.owners || []);
         return {
           collection: message.collection,
           data: {
@@ -68,6 +90,7 @@ const messagesWithSchemas = await Promise.all(
             schemaPath: message.data.schemaPath,
             producers: message.data.producers || [],
             consumers: message.data.consumers || [],
+            owners: enrichedOwners,
           },
           schemaContent: '',
           schemaExtension: 'json',
@@ -101,6 +124,9 @@ const servicesWithSpecs = await Promise.all(
           // Use spec type (openapi, asyncapi) as the extension for proper labeling
           const schemaExtension = spec.type;
 
+          // Enrich owners with full details
+          const enrichedOwners = await enrichOwners(service.data.owners || []);
+
           // Only return essential data - strip out markdown, sends/receives, entities, etc.
           return {
             collection: 'services',
@@ -110,6 +136,7 @@ const servicesWithSpecs = await Promise.all(
               version: service.data.version,
               summary: service.data.summary,
               schemaPath: spec.path,
+              owners: enrichedOwners,
             },
             schemaContent,
             schemaExtension,
@@ -135,12 +162,12 @@ const allSchemas = [...messagesWithSchemas, ...flatServicesWithSpecs];
 const apiAccessEnabled = isEventCatalogScaleEnabled();
 ---
 
-<VerticalSideBarLayout title="Schema Registry - EventCatalog">
+<VerticalSideBarLayout title="Schema Explorer - EventCatalog">
   <main class="flex sm:px-8 docs-layout h-[calc(100vh-var(--header-height,0px)-64px)]">
     <div class="flex docs-layout w-full h-full">
       <div class="w-full lg:mr-2 pr-8 py-6 flex flex-col h-full">
         <div class="w-full !max-w-none h-full flex flex-col overflow-hidden">
-          <SchemaRegistry client:load schemas={allSchemas as any} apiAccessEnabled={apiAccessEnabled} />
+          <SchemaExplorer client:load schemas={allSchemas as any} apiAccessEnabled={apiAccessEnabled} />
         </div>
       </div>
     </div>

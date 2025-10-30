@@ -4,9 +4,12 @@ import { html } from 'diff2html';
 import 'diff2html/bundles/css/diff2html.min.css';
 import SchemaDetailsHeader from './SchemaDetailsHeader';
 import ApiAccessSection from './ApiAccessSection';
+import OwnersSection from './OwnersSection';
 import ProducersConsumersSection from './ProducersConsumersSection';
 import SchemaContentViewer from './SchemaContentViewer';
 import DiffViewer from './DiffViewer';
+import VersionHistoryModal from './VersionHistoryModal';
+import SchemaCodeModal from './SchemaCodeModal';
 import { copyToClipboard, downloadSchema } from './utils';
 import type { SchemaItem, VersionDiff } from './types';
 
@@ -28,7 +31,10 @@ export default function SchemaDetailsPanel({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [schemaViewMode, setSchemaViewMode] = useState<'code' | 'schema' | 'diff'>('code');
   const [apiAccessExpanded, setApiAccessExpanded] = useState(false);
+  const [ownersExpanded, setOwnersExpanded] = useState(false);
   const [producersConsumersExpanded, setProducersConsumersExpanded] = useState(false);
+  const [isDiffModalOpen, setIsDiffModalOpen] = useState(false);
+  const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
 
   const hasMultipleVersions = availableVersions.length > 1;
 
@@ -130,16 +136,15 @@ export default function SchemaDetailsPanel({
         diffCount={allDiffs.length}
       />
 
-      {/* API Access Section - Only show if Scale is enabled */}
-      {apiAccessEnabled && (
-        <ApiAccessSection
-          message={message}
-          isExpanded={apiAccessExpanded}
-          onToggle={() => setApiAccessExpanded(!apiAccessExpanded)}
-          onCopy={handleCopyCustom}
-          copiedId={copiedId}
-        />
-      )}
+      {/* API Access Section - Always show, but content changes based on Scale access */}
+      <ApiAccessSection
+        message={message}
+        isExpanded={apiAccessExpanded}
+        onToggle={() => setApiAccessExpanded(!apiAccessExpanded)}
+        onCopy={handleCopyCustom}
+        copiedId={copiedId}
+        apiAccessEnabled={apiAccessEnabled}
+      />
 
       {/* Producers and Consumers Section - Only show for messages (not services) */}
       {message.collection !== 'services' && (
@@ -150,10 +155,13 @@ export default function SchemaDetailsPanel({
         />
       )}
 
+      {/* Owners Section */}
+      <OwnersSection message={message} isExpanded={ownersExpanded} onToggle={() => setOwnersExpanded(!ownersExpanded)} />
+
       {/* Schema Content - Takes full remaining height */}
       <div className="flex-1 overflow-hidden">
         {schemaViewMode === 'diff' && allDiffs.length > 0 ? (
-          <DiffViewer diffs={allDiffs} />
+          <DiffViewer diffs={allDiffs} onOpenFullscreen={() => setIsDiffModalOpen(true)} apiAccessEnabled={apiAccessEnabled} />
         ) : (
           <SchemaContentViewer
             message={message}
@@ -161,9 +169,27 @@ export default function SchemaDetailsPanel({
             isCopied={isCopied}
             viewMode={schemaViewMode}
             parsedSchema={parsedSchema}
+            onOpenFullscreen={schemaViewMode === 'code' ? () => setIsCodeModalOpen(true) : undefined}
           />
         )}
       </div>
+
+      {/* Version History Modal */}
+      <VersionHistoryModal
+        isOpen={isDiffModalOpen}
+        onOpenChange={setIsDiffModalOpen}
+        diffs={allDiffs}
+        messageName={message.data.name}
+      />
+
+      {/* Schema Code Modal */}
+      <SchemaCodeModal
+        isOpen={isCodeModalOpen}
+        onOpenChange={setIsCodeModalOpen}
+        message={message}
+        onCopy={handleCopy}
+        isCopied={isCopied}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { ClipboardDocumentIcon } from '@heroicons/react/24/outline';
+import { ClipboardDocumentIcon, ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight as syntaxHighlighterStyle } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { buildUrl } from '@utils/url-builder';
@@ -12,9 +12,17 @@ interface SchemaContentViewerProps {
   isCopied: boolean;
   viewMode: 'code' | 'schema' | 'diff';
   parsedSchema: any;
+  onOpenFullscreen?: () => void;
 }
 
-export default function SchemaContentViewer({ message, onCopy, isCopied, viewMode, parsedSchema }: SchemaContentViewerProps) {
+export default function SchemaContentViewer({
+  message,
+  onCopy,
+  isCopied,
+  viewMode,
+  parsedSchema,
+  onOpenFullscreen,
+}: SchemaContentViewerProps) {
   if (!message.schemaContent) {
     return (
       <div className="flex items-center justify-center h-full text-gray-500">
@@ -69,6 +77,16 @@ export default function SchemaContentViewer({ message, onCopy, isCopied, viewMod
               </a>
             );
           })()}
+        {onOpenFullscreen && (
+          <button
+            onClick={onOpenFullscreen}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md transition-colors shadow-sm"
+            title="Open in fullscreen"
+          >
+            <ArrowsPointingOutIcon className="h-3.5 w-3.5" />
+            Fullscreen
+          </button>
+        )}
         <button
           onClick={onCopy}
           className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md transition-colors shadow-sm"

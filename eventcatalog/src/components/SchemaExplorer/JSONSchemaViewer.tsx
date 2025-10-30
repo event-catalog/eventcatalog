@@ -515,7 +515,7 @@ export default function JSONSchemaViewer({ schema, title, maxHeight, expand = fa
       }
     : {};
 
-  // Use h-full when no maxHeight (SchemaRegistry context), otherwise size based on content (MDX context)
+  // Use h-full when no maxHeight (SchemaExplorer context), otherwise size based on content (MDX context)
   const heightClass = maxHeight ? '' : 'h-full';
   const overflowClass = maxHeight ? 'overflow-hidden' : '';
 
