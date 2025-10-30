@@ -3,6 +3,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight as syntaxHighlighterStyle } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { buildUrl } from '@utils/url-builder';
 import JSONSchemaViewer from './JSONSchemaViewer';
+import AvroSchemaViewer from './AvroSchemaViewer';
 import { getLanguageForHighlight } from './utils';
 import type { SchemaItem } from './types';
 
@@ -12,6 +13,7 @@ interface SchemaContentViewerProps {
   isCopied: boolean;
   viewMode: 'code' | 'schema' | 'diff';
   parsedSchema: any;
+  parsedAvroSchema?: any;
   onOpenFullscreen?: () => void;
 }
 
@@ -21,6 +23,7 @@ export default function SchemaContentViewer({
   isCopied,
   viewMode,
   parsedSchema,
+  parsedAvroSchema,
   onOpenFullscreen,
 }: SchemaContentViewerProps) {
   if (!message.schemaContent) {
@@ -31,8 +34,14 @@ export default function SchemaContentViewer({
     );
   }
 
-  if (viewMode === 'schema' && parsedSchema) {
-    return <JSONSchemaViewer schema={parsedSchema} />;
+  // Render schema viewer based on schema type
+  if (viewMode === 'schema') {
+    if (parsedAvroSchema) {
+      return <AvroSchemaViewer schema={parsedAvroSchema} onOpenFullscreen={onOpenFullscreen} />;
+    }
+    if (parsedSchema) {
+      return <JSONSchemaViewer schema={parsedSchema} onOpenFullscreen={onOpenFullscreen} />;
+    }
   }
 
   return (

@@ -10,6 +10,7 @@ import SchemaContentViewer from './SchemaContentViewer';
 import DiffViewer from './DiffViewer';
 import VersionHistoryModal from './VersionHistoryModal';
 import SchemaCodeModal from './SchemaCodeModal';
+import SchemaViewerModal from './SchemaViewerModal';
 import { copyToClipboard, downloadSchema } from './utils';
 import type { SchemaItem, VersionDiff } from './types';
 
@@ -35,6 +36,7 @@ export default function SchemaDetailsPanel({
   const [producersConsumersExpanded, setProducersConsumersExpanded] = useState(false);
   const [isDiffModalOpen, setIsDiffModalOpen] = useState(false);
   const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
+  const [isSchemaViewerModalOpen, setIsSchemaViewerModalOpen] = useState(false);
 
   const hasMultipleVersions = availableVersions.length > 1;
 
@@ -94,6 +96,24 @@ export default function SchemaDetailsPanel({
     }
   }, [message.schemaContent, message.schemaExtension]);
 
+  // Check if this is an Avro schema
+  const parsedAvroSchema = useMemo(() => {
+    const ext = message.schemaExtension?.toLowerCase();
+    const isAvroSchema = (ext === 'avro' || ext === 'avsc') && message.schemaContent && message.schemaContent.trim() !== '';
+    if (!isAvroSchema) return null;
+
+    try {
+      const parsed = JSON.parse(message.schemaContent ?? '');
+      // Check if it's actually an Avro Schema (has type field, typically "record")
+      if (!parsed.type) {
+        return null;
+      }
+      return parsed;
+    } catch {
+      return null;
+    }
+  }, [message.schemaContent, message.schemaExtension]);
+
   const handleCopy = async () => {
     if (!message.schemaContent) return;
     const success = await copyToClipboard(message.schemaContent);
@@ -131,7 +151,7 @@ export default function SchemaDetailsPanel({
         isCopied={isCopied}
         schemaViewMode={schemaViewMode}
         onViewModeChange={setSchemaViewMode}
-        hasParsedSchema={!!parsedSchema}
+        hasParsedSchema={!!parsedSchema || !!parsedAvroSchema}
         hasDiffs={allDiffs.length > 0}
         diffCount={allDiffs.length}
       />
@@ -169,7 +189,14 @@ export default function SchemaDetailsPanel({
             isCopied={isCopied}
             viewMode={schemaViewMode}
             parsedSchema={parsedSchema}
-            onOpenFullscreen={schemaViewMode === 'code' ? () => setIsCodeModalOpen(true) : undefined}
+            parsedAvroSchema={parsedAvroSchema}
+            onOpenFullscreen={
+              schemaViewMode === 'code'
+                ? () => setIsCodeModalOpen(true)
+                : schemaViewMode === 'schema' && (parsedSchema || parsedAvroSchema)
+                  ? () => setIsSchemaViewerModalOpen(true)
+                  : undefined
+            }
           />
         )}
       </div>
@@ -180,6 +207,7 @@ export default function SchemaDetailsPanel({
         onOpenChange={setIsDiffModalOpen}
         diffs={allDiffs}
         messageName={message.data.name}
+        apiAccessEnabled={apiAccessEnabled}
       />
 
       {/* Schema Code Modal */}
@@ -189,6 +217,15 @@ export default function SchemaDetailsPanel({
         message={message}
         onCopy={handleCopy}
         isCopied={isCopied}
+      />
+
+      {/* Schema Viewer Modal */}
+      <SchemaViewerModal
+        isOpen={isSchemaViewerModalOpen}
+        onOpenChange={setIsSchemaViewerModalOpen}
+        message={message}
+        parsedSchema={parsedSchema}
+        parsedAvroSchema={parsedAvroSchema}
       />
     </div>
   );

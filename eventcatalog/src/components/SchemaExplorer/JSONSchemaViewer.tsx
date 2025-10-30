@@ -7,6 +7,7 @@ interface JSONSchemaViewerProps {
   expand?: boolean | string;
   search?: boolean | string;
   id?: string;
+  onOpenFullscreen?: () => void;
 }
 
 interface SchemaPropertyProps {
@@ -351,7 +352,15 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
 };
 
 // Main JSONSchemaViewer component
-export default function JSONSchemaViewer({ schema, title, maxHeight, expand = false, search = true, id }: JSONSchemaViewerProps) {
+export default function JSONSchemaViewer({
+  schema,
+  title,
+  maxHeight,
+  expand = false,
+  search = true,
+  id,
+  onOpenFullscreen,
+}: JSONSchemaViewerProps) {
   // Convert string props to booleans (MDX passes strings)
   const expandBool = expand === true || expand === 'true';
   const searchBool = search !== false && search !== 'false';
@@ -575,6 +584,28 @@ export default function JSONSchemaViewer({ schema, title, maxHeight, expand = fa
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {onOpenFullscreen && (
+                <button
+                  onClick={onOpenFullscreen}
+                  className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  title="Open in fullscreen"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-3.5 w-3.5 inline-block"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                    />
+                  </svg>
+                </button>
+              )}
               <button
                 onClick={handleExpandAll}
                 className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
@@ -603,7 +634,7 @@ export default function JSONSchemaViewer({ schema, title, maxHeight, expand = fa
       )}
 
       {/* Content */}
-      <div className={`flex-1 px-4 pb-4 ${maxHeight ? 'overflow-auto' : ''}`}>
+      <div className="flex-1 px-4 pb-4 overflow-auto">
         {isRootArray && (
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
             <div className="flex items-center space-x-2">

@@ -3,11 +3,11 @@ const { id, filePath } = Astro.props;
 import fs from 'node:fs/promises';
 import { existsSync } from 'fs';
 import yaml from 'js-yaml';
-import path from 'path';
 import JSONSchemaViewer from '@components/SchemaExplorer/JSONSchemaViewer';
+import AvroSchemaViewer from '@components/SchemaExplorer/AvroSchemaViewer';
 import Admonition from '../Admonition';
 import { getMDXComponentsByName } from '@utils/markdown';
-import { getAbsoluteFilePathForAstroFile, resolveProjectPath } from '@utils/files';
+import { getAbsoluteFilePathForAstroFile, resolveProjectPath, isAvroSchema } from '@utils/files';
 
 let schemas = [];
 
@@ -22,16 +22,22 @@ try {
     const exists = existsSync(schemaPath);
     let schema;
     let render = true;
+    let isAvro = false;
 
     if (exists) {
+      // Check if this is an Avro schema file
+      isAvro = isAvroSchema(schemaPath);
+
       // Load the schema for the component
       schema = await fs.readFile(schemaPath, 'utf-8');
+
       if (schemaPath.endsWith('.yml') || schemaPath.endsWith('.yaml')) {
         schema = yaml.load(schema);
       } else {
         schema = JSON.parse(schema);
-        // Lets JSON schema control if the component should be rendered or not
-        if (schema['x-eventcatalog-render-schema-viewer'] !== undefined) {
+
+        // For non-Avro schemas, let JSON schema control if the component should be rendered
+        if (!isAvro && schema['x-eventcatalog-render-schema-viewer'] !== undefined) {
           render = schema['x-eventcatalog-render-schema-viewer'];
         }
       }
@@ -42,6 +48,7 @@ try {
       exists,
       schema,
       schemaPath,
+      isAvroSchema: isAvro,
       ...schemaViewerProps,
       render,
       index,
@@ -69,14 +76,26 @@ try {
                 data-expand={schema.expand ? 'true' : 'false'}
                 data-search={schema.search !== false ? 'true' : 'false'}
               >
-                {schema.title && <h2 class="text-3xl font-bold mb-2 !mt-0">{schema.title}</h2>}
-                <JSONSchemaViewer
-                  client:load
-                  schema={schema.schema}
-                  maxHeight={schema.maxHeight}
-                  expand={schema.expand}
-                  search={schema.search}
-                />
+                {schema.title && <h2 class="text-2xl font-bold mb-2 !mt-0">{schema.title}</h2>}
+
+                {/* Render AvroSchemaViewer for Avro schemas */}
+                {schema.isAvroSchema ? (
+                  <AvroSchemaViewer
+                    client:load
+                    schema={schema.schema}
+                    maxHeight={schema.maxHeight}
+                    expand={schema.expand}
+                    search={schema.search}
+                  />
+                ) : (
+                  <JSONSchemaViewer
+                    client:load
+                    schema={schema.schema}
+                    maxHeight={schema.maxHeight}
+                    expand={schema.expand}
+                    search={schema.search}
+                  />
+                )}
               </div>
             )}
 

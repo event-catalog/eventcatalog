@@ -1,23 +1,28 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { XMarkIcon, ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
-import DiffViewer from './DiffViewer';
-import type { VersionDiff } from './types';
+import JSONSchemaViewer from './JSONSchemaViewer';
+import AvroSchemaViewer from './AvroSchemaViewer';
+import type { SchemaItem } from './types';
 
-interface VersionHistoryModalProps {
+interface SchemaViewerModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  diffs: VersionDiff[];
-  messageName: string;
-  apiAccessEnabled?: boolean;
+  message: SchemaItem;
+  parsedSchema: any;
+  parsedAvroSchema?: any;
 }
 
-export default function VersionHistoryModal({
+export default function SchemaViewerModal({
   isOpen,
   onOpenChange,
-  diffs,
-  messageName,
-  apiAccessEnabled = false,
-}: VersionHistoryModalProps) {
+  message,
+  parsedSchema,
+  parsedAvroSchema,
+}: SchemaViewerModalProps) {
+  if (!parsedSchema && !parsedAvroSchema) return null;
+
+  const isAvro = !!parsedAvroSchema;
+
   return (
     <Dialog.Root open={isOpen} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -28,8 +33,10 @@ export default function VersionHistoryModal({
             <div className="flex items-center gap-3">
               <ArrowsPointingOutIcon className="h-6 w-6 text-gray-500" />
               <div>
-                <Dialog.Title className="text-xl font-semibold text-gray-900">Version History</Dialog.Title>
-                <Dialog.Description className="text-sm text-gray-600 mt-1">{messageName}</Dialog.Description>
+                <Dialog.Title className="text-xl font-semibold text-gray-900">{message.data.name}</Dialog.Title>
+                <Dialog.Description className="text-sm text-gray-600 mt-1">
+                  v{message.data.version} · {isAvro ? 'Avro' : 'JSON'} Schema
+                </Dialog.Description>
               </div>
             </div>
             <Dialog.Close asChild>
@@ -44,13 +51,11 @@ export default function VersionHistoryModal({
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
-            {diffs.length > 0 ? (
-              <DiffViewer diffs={diffs} apiAccessEnabled={apiAccessEnabled} />
+          <div className="flex-1 overflow-hidden p-6">
+            {isAvro ? (
+              <AvroSchemaViewer schema={parsedAvroSchema} expand={true} search={true} />
             ) : (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-gray-500 text-center">No version history available</p>
-              </div>
+              <JSONSchemaViewer schema={parsedSchema} expand={true} search={true} />
             )}
           </div>
 

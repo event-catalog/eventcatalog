@@ -61,7 +61,7 @@ export default function SchemaFilters({
           {/* Search */}
           <div className="mb-3">
             <label htmlFor="search" className="block text-xs font-medium text-gray-700 mb-1.5">
-              Search <kbd className="ml-1 px-1.5 py-0.5 text-xs bg-white border border-gray-300 rounded">⌘K</kbd>
+              Search
             </label>
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5">
