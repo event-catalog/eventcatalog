@@ -902,7 +902,7 @@ const ListViewSideBar: React.FC<ListViewSideBarProps> = ({ resources, currentPat
     <nav ref={navRef} className="space-y-4 text-gray-800 px-3 py-4 overflow-auto h-full">
       <div
         className={`flex gap-2 transition-all duration-200 ${
-          isSearchPinned ? 'sticky top-0 z-10 bg-white shadow-md -mx-3 px-3 py-2 border-b border-gray-200' : ''
+          isSearchPinned ? 'sticky -top-5 z-10 bg-white shadow-md -mx-3 px-3 py-2 border-b border-gray-200' : ''
         }`}
       >
         <input
