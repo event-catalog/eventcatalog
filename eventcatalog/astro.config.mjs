@@ -107,7 +107,8 @@ export default defineConfig({
           './node_modules/@fontsource',
           searchForWorkspaceRoot(process.cwd()),
         ]
-      }
+      },
+      ...(config.server?.allowedHosts ? { allowedHosts: config.server?.allowedHosts } : {}),
     },
     worker: {
       format: 'es',
