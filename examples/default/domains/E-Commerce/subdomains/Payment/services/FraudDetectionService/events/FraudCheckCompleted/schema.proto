@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package com.example.frauddetection;
+
+message FraudCheckCompleted {
+  string transactionId = 1;
+  string paymentId = 2;
+  int32 riskScore = 3;
+  string decision = 4;
+  repeated string reasons = 5;
+  double confidence = 6;
+  string timestamp = 7;
+}
+
+message FraudCheckCompletedEvent {
+  FraudCheckCompleted fraudCheckCompleted = 1;
+}

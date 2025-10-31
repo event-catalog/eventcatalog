@@ -7,15 +7,7 @@
         "shipmentId": {
             "type": "number",
             "description": "Unique identifier for the shipment"
-        },
-        "orderId": {
-            "type": "string",
-            "description": "Identifier for the associated order"
-        },
-        "failureReason": {
-            "type": "string",
-            "description": "Reason for the delivery failure"
         }
     },
-    "required": ["shipmentId", "orderId", "failureReason"]
+    "required": ["shipmentId", "orderId"]
 }

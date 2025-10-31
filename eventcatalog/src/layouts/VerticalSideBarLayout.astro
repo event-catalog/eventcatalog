@@ -17,6 +17,8 @@ import {
   Rocket,
   FileText,
   SquareDashedMousePointerIcon,
+  PackageSearch,
+  FileJson,
 } from 'lucide-react';
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
@@ -119,6 +121,14 @@ const navigationItems = [
     icon: TableProperties,
     href: buildUrl('/discover/events'),
     current: currentPath.includes('/discover/'),
+    sidebar: false,
+  },
+  {
+    id: '/schemas',
+    label: 'Schema Explorer',
+    icon: FileJson,
+    href: buildUrl('/schemas'),
+    current: currentPath.includes('/schemas'),
     sidebar: false,
   },
   {

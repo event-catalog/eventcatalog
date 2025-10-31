@@ -50,3 +50,12 @@ export const getAbsoluteFilePathForAstroFile = (filePath: string, fileName?: str
 
   return resolveProjectPath(filePath, PROJECT_DIR);
 };
+
+/**
+ * Checks if a file path is an Avro schema based on its extension
+ * @param filePath - The file path to check
+ * @returns True if the file is an Avro schema (.avro or .avsc)
+ */
+export const isAvroSchema = (filePath: string): boolean => {
+  return filePath.endsWith('.avro') || filePath.endsWith('.avsc');
+};

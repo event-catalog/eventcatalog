@@ -1,7 +1,7 @@
-import { BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
-import type { CollectionMessageTypes } from '@types';
+import { BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon, EnvelopeIcon, ServerIcon } from '@heroicons/react/24/outline';
+import type { CollectionMessageTypes, CollectionTypes } from '@types';
 
-export const getCollectionStyles = (collection: CollectionMessageTypes) => {
+export const getCollectionStyles = (collection: CollectionMessageTypes | CollectionTypes) => {
   switch (collection) {
     case 'events':
       return { color: 'orange', Icon: BoltIcon };
@@ -9,6 +9,8 @@ export const getCollectionStyles = (collection: CollectionMessageTypes) => {
       return { color: 'blue', Icon: ChatBubbleLeftIcon };
     case 'queries':
       return { color: 'green', Icon: MagnifyingGlassIcon };
+    case 'services':
+      return { color: 'pink', Icon: ServerIcon };
     default:
       return { color: 'gray', Icon: EnvelopeIcon };
   }

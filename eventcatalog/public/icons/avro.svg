@@ -1,0 +1,21 @@
+<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid">
+  <defs>
+    <linearGradient id="avroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0066CC;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#003D7A;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="128" cy="128" r="120" fill="url(#avroGradient)"/>
+
+  <!-- Letter A -->
+  <path d="M 85 180 L 105 130 L 125 180 Z M 115 110 L 95 160 L 135 160 Z M 108 90 L 128 140 L 148 90 Z"
+        fill="#FFFFFF" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- Simplified wave pattern representing data serialization -->
+  <path d="M 50 200 Q 70 190 90 200 T 130 200 T 170 200 T 210 200"
+        fill="none" stroke="#66B3FF" stroke-width="2" opacity="0.6"/>
+  <path d="M 50 210 Q 70 200 90 210 T 130 210 T 170 210 T 210 210"
+        fill="none" stroke="#66B3FF" stroke-width="2" opacity="0.4"/>
+</svg>

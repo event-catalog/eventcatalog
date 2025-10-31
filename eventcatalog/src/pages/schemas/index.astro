@@ -1,0 +1,175 @@
+---
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { getEvents } from '@utils/events';
+import { getCommands } from '@utils/commands';
+import { getQueries } from '@utils/queries';
+import { getServices, getSpecificationsForService } from '@utils/collections/services';
+import SchemaExplorer from '@components/SchemaExplorer/SchemaExplorer';
+import { isEventCatalogScaleEnabled } from '@utils/feature';
+import { getOwner } from '@utils/collections/owners';
+import { buildUrl } from '@utils/url-builder';
+import fs from 'fs';
+import path from 'path';
+
+// Fetch all messages
+const events = await getEvents({ getAllVersions: true });
+const commands = await getCommands({ getAllVersions: true });
+const queries = await getQueries({ getAllVersions: true });
+
+// Fetch all services
+const services = await getServices({ getAllVersions: true });
+
+// Combine all messages
+const allMessages = [...events, ...commands, ...queries];
+
+// Helper function to enrich owners with full details
+async function enrichOwners(ownersRaw: any[]) {
+  if (!ownersRaw || ownersRaw.length === 0) return [];
+
+  const owners = await Promise.all(ownersRaw.map(getOwner));
+  const filteredOwners = owners.filter((o) => o !== undefined);
+
+  return filteredOwners.map((o) => ({
+    id: o.data.id,
+    name: o.data.name,
+    type: o.collection,
+    href: buildUrl(`/docs/${o.collection}/${o.data.id}`),
+  }));
+}
+
+// Filter messages with schemas and read schema content - only keep essential data
+const messagesWithSchemas = await Promise.all(
+  allMessages
+    .filter((message) => message.data.schemaPath)
+    // Make sure the file exists
+    .filter((message) => fs.existsSync(path.join(path.dirname(message.filePath ?? ''), message.data.schemaPath ?? '')))
+    .map(async (message) => {
+      try {
+        // Get the schema file path
+        const schemaPath = message.data.schemaPath;
+        const fullSchemaPath = path.join(path.dirname(message.filePath ?? ''), schemaPath ?? '');
+
+        // Read the schema content
+        let schemaContent = '';
+        if (fs.existsSync(fullSchemaPath)) {
+          schemaContent = fs.readFileSync(fullSchemaPath, 'utf-8');
+        }
+
+        // Get schema file extension
+        const schemaExtension = path.extname(schemaPath ?? '').slice(1);
+
+        // Enrich owners with full details
+        const enrichedOwners = await enrichOwners(message.data.owners || []);
+
+        // Only return essential data - strip out markdown, full data objects, etc.
+        return {
+          collection: message.collection,
+          data: {
+            id: message.data.id,
+            name: message.data.name,
+            version: message.data.version,
+            summary: message.data.summary,
+            schemaPath: message.data.schemaPath,
+            producers: message.data.producers || [],
+            consumers: message.data.consumers || [],
+            owners: enrichedOwners,
+          },
+          schemaContent,
+          schemaExtension,
+        };
+      } catch (error) {
+        console.error(`Error reading schema for ${message.data.id}:`, error);
+        const enrichedOwners = await enrichOwners(message.data.owners || []);
+        return {
+          collection: message.collection,
+          data: {
+            id: message.data.id,
+            name: message.data.name,
+            version: message.data.version,
+            summary: message.data.summary,
+            schemaPath: message.data.schemaPath,
+            producers: message.data.producers || [],
+            consumers: message.data.consumers || [],
+            owners: enrichedOwners,
+          },
+          schemaContent: '',
+          schemaExtension: 'json',
+        };
+      }
+    })
+);
+
+// Filter services with specifications and read spec content - only keep essential data
+const servicesWithSpecs = await Promise.all(
+  services.map(async (service) => {
+    try {
+      const specifications = getSpecificationsForService(service);
+
+      // Only include services that have specifications
+      if (specifications.length === 0) {
+        return null;
+      }
+
+      // Process each specification file for this service
+      return await Promise.all(
+        specifications.map(async (spec) => {
+          const specPath = path.join(path.dirname(service.filePath ?? ''), spec.path);
+
+          // Only include if the spec file exists
+          if (!fs.existsSync(specPath)) {
+            return null;
+          }
+
+          const schemaContent = fs.readFileSync(specPath, 'utf-8');
+          // Use spec type (openapi, asyncapi) as the extension for proper labeling
+          const schemaExtension = spec.type;
+
+          // Enrich owners with full details
+          const enrichedOwners = await enrichOwners(service.data.owners || []);
+
+          // Only return essential data - strip out markdown, sends/receives, entities, etc.
+          return {
+            collection: 'services',
+            data: {
+              id: `${service.data.id}`,
+              name: `${service.data.name} - ${spec.name}`,
+              version: service.data.version,
+              summary: service.data.summary,
+              schemaPath: spec.path,
+              owners: enrichedOwners,
+            },
+            schemaContent,
+            schemaExtension,
+            specType: spec.type,
+            specName: spec.name,
+            specFilenameWithoutExtension: spec.filenameWithoutExtension,
+          };
+        })
+      );
+    } catch (error) {
+      console.error(`Error reading specifications for service ${service.data.id}:`, error);
+      return null;
+    }
+  })
+);
+
+// Flatten and filter out null values
+const flatServicesWithSpecs = servicesWithSpecs.flat().filter((service) => service !== null);
+
+// Combine messages and services
+const allSchemas = [...messagesWithSchemas, ...flatServicesWithSpecs];
+
+const apiAccessEnabled = isEventCatalogScaleEnabled();
+---
+
+<VerticalSideBarLayout title="Schema Explorer - EventCatalog">
+  <main class="flex sm:px-8 docs-layout h-[calc(100vh-var(--header-height,0px)-64px)]">
+    <div class="flex docs-layout w-full h-full">
+      <div class="w-full lg:mr-2 pr-8 py-6 flex flex-col h-full">
+        <div class="w-full !max-w-none h-full flex flex-col overflow-hidden">
+          <SchemaExplorer client:load schemas={allSchemas as any} apiAccessEnabled={apiAccessEnabled} />
+        </div>
+      </div>
+    </div>
+  </main>
+</VerticalSideBarLayout>
