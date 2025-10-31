@@ -1,5 +1,16 @@
 # @eventcatalog/core
 
+## 2.64.0
+
+### Minor Changes
+
+- 4235eb3: feat(core): added schema registry page
+- f37fbad: feat(core): added schemas.txt and also schema API
+
+### Patch Changes
+
+- 5d40372: chore(core): allowed allowed host configuration for server
+
 ## 2.63.0
 
 ### Minor Changes
