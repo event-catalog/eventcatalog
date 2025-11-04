@@ -156,5 +156,16 @@
     "vite-tsconfig-paths": "^4.3.2",
     "vitest": "2.1.9"
   },
-  "packageManager": "pnpm@9.14.4"
+  "packageManager": "pnpm@9.14.4",
+  "pnpm": {
+    "overrides": {
+      "esbuild@<=0.24.2": ">=0.25.0",
+      "prismjs@<1.30.0": ">=1.30.0",
+      "jsondiffpatch@<0.7.2": ">=0.7.2",
+      "astro@<5.14.3": ">=5.14.3",
+      "vite@>=6.0.0 <=6.4.0": ">=6.4.1",
+      "vite@>=7.1.0 <=7.1.10": ">=7.1.11",
+      "tar@=7.5.1": ">=7.5.2"
+    }
+  }
 }
