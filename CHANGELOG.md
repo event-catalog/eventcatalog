@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.64.2
+
+### Patch Changes
+
+- c48484f: fix(core): fixed issue fetching specifications on ssr mode for pages
+- c009458: chore(core): updated astro versions
+
 ## 2.64.1
 
 ### Patch Changes
