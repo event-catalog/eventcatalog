@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.64.3
+
+### Patch Changes
+
+- c0d466e: chore(core): removed unsed dependency
+
 ## 2.64.2
 
 ### Patch Changes
