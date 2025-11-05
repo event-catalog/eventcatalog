@@ -6,6 +6,7 @@ interface AvroSchemaViewerProps {
   maxHeight?: string;
   expand?: boolean | string;
   search?: boolean | string;
+  showRequired?: boolean | string;
   onOpenFullscreen?: () => void;
 }
 
@@ -13,6 +14,7 @@ interface AvroFieldProps {
   field: any;
   level: number;
   expand: boolean;
+  showRequired?: boolean;
 }
 
 // Format Avro type for display
@@ -56,11 +58,38 @@ function hasNestedFields(type: any): boolean {
   return false;
 }
 
+// Check if a field is required (not optional)
+// A field is optional if:
+// - It has a default value, OR
+// - Its type is null or includes null in a union
+function isFieldRequired(field: any): boolean {
+  // If field has a default value, it's optional
+  if ('default' in field) {
+    return false;
+  }
+
+  const fieldType = field.type;
+
+  // If type is null, field is optional
+  if (fieldType === 'null') {
+    return false;
+  }
+
+  // If type is a union (array), check if it includes null
+  if (Array.isArray(fieldType)) {
+    return !fieldType.includes('null');
+  }
+
+  // Otherwise, field is required
+  return true;
+}
+
 // AvroField component - displays a single field with nested support
-const AvroField = ({ field, level, expand }: AvroFieldProps) => {
+const AvroField = ({ field, level, expand, showRequired }: AvroFieldProps) => {
   const [isExpanded, setIsExpanded] = useState(expand);
   const hasNested = hasNestedFields(field.type);
   const indentClass = `pl-${level * 4}`;
+  const isRequired = showRequired ? isFieldRequired(field) : undefined;
 
   useEffect(() => {
     setIsExpanded(expand);
@@ -84,9 +113,12 @@ const AvroField = ({ field, level, expand }: AvroFieldProps) => {
 
         {/* Field details */}
         <div className="flex-grow">
-          <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="avro-field-name font-semibold text-gray-800 text-sm">{field.name}</span>
-            <span className="text-purple-600 font-mono text-xs">{formatAvroType(field.type)}</span>
+          <div className="flex justify-between items-baseline">
+            <div>
+              <span className="avro-field-name font-semibold text-gray-800 text-sm">{field.name}</span>
+              <span className="ml-1.5 text-purple-600 font-mono text-xs">{formatAvroType(field.type)}</span>
+            </div>
+            {showRequired && isRequired && <span className="text-red-600 text-xs ml-3 flex-shrink-0">required</span>}
           </div>
 
           {field.doc && <p className="text-gray-600 text-xs mt-1">{field.doc}</p>}
@@ -107,7 +139,13 @@ const AvroField = ({ field, level, expand }: AvroFieldProps) => {
           {hasNested && (
             <div className={`avro-nested-content mt-2 ${!isExpanded ? 'hidden' : ''}`}>
               {field.type.fields.map((nestedField: any) => (
-                <AvroField key={nestedField.name} field={nestedField} level={level + 1} expand={expand} />
+                <AvroField
+                  key={nestedField.name}
+                  field={nestedField}
+                  level={level + 1}
+                  expand={expand}
+                  showRequired={showRequired}
+                />
               ))}
             </div>
           )}
@@ -124,10 +162,12 @@ export default function AvroSchemaViewer({
   maxHeight,
   expand = false,
   search = true,
+  showRequired = false,
   onOpenFullscreen,
 }: AvroSchemaViewerProps) {
   const expandBool = expand === true || expand === 'true';
   const searchBool = search !== false && search !== 'false';
+  const showRequiredBool = showRequired === true || showRequired === 'true';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [expandAll, setExpandAll] = useState(expandBool);
@@ -374,7 +414,9 @@ export default function AvroSchemaViewer({
       {/* Fields */}
       <div ref={fieldsContainerRef} className="flex-1 px-4 pb-4 overflow-auto">
         {schema.fields && schema.fields.length > 0 ? (
-          schema.fields.map((field: any) => <AvroField key={field.name} field={field} level={0} expand={expandAll} />)
+          schema.fields.map((field: any) => (
+            <AvroField key={field.name} field={field} level={0} expand={expandAll} showRequired={showRequiredBool} />
+          ))
         ) : (
           <div className="text-center py-8 text-gray-400">
             <p className="text-sm">No fields defined</p>
