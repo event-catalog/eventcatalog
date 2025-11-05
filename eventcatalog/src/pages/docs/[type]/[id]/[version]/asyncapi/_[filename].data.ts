@@ -86,6 +86,7 @@ export class Page extends HybridPage {
       type,
       filenameWithoutExtension: spec.filenameWithoutExtension || spec.type,
       filename: spec.filename || spec.type,
+      path: spec.path,
       ...item,
     };
   }
