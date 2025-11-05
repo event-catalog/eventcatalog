@@ -190,6 +190,7 @@ export default function SchemaDetailsPanel({
             viewMode={schemaViewMode}
             parsedSchema={parsedSchema}
             parsedAvroSchema={parsedAvroSchema}
+            showRequired={true}
             onOpenFullscreen={
               schemaViewMode === 'code'
                 ? () => setIsCodeModalOpen(true)

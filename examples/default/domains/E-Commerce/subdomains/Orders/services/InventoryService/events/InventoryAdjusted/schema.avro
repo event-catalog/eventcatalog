@@ -1,13 +1,14 @@
 {
-  "type" : "record",
-  "namespace" : "Tutorialspoint",
-  "name" : "Employee",
-  "fields" : [
-     { "name" : "Name", "type" : "string" },
-     { "name" : "Age", "type" : "int" },
-     { "name" : "Department", "type" : "string" },
-     { "name" : "Position", "type" : "string" },
-     { "name" : "Salary", "type" : "double" },
-     { "name" : "JoinDate", "type" : "string", "logicalType": "date" }
+  "type": "record",
+  "namespace": "Tutorialspoint",
+  "name": "Employee",
+  "doc": "Represents an employee in the organisation HR system.",
+  "fields": [
+    { "name": "Name", "type": "string", "doc": "Full name of the employee.", "default": "" },
+    { "name": "Age", "type": "int", "doc": "Age in years at time of record creation.", "default": 0 },
+    { "name": "Department", "type": "string", "doc": "The department the employee belongs to.", "default": "Unknown" },
+    { "name": "Position", "type": "string", "doc": "The employee's job title or role.", "default": "Unknown" },
+    { "name": "Salary", "type": "double", "doc": "Annual salary in the company currency.", "default": 0.0 },
+    { "name": "JoinDate", "type": "string", "logicalType": "date", "doc": "Date employee joined the company. Format: YYYY-MM-DD.", "default": "" }
   ]
 }

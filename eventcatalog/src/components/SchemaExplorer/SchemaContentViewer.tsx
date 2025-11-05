@@ -15,6 +15,7 @@ interface SchemaContentViewerProps {
   parsedSchema: any;
   parsedAvroSchema?: any;
   onOpenFullscreen?: () => void;
+  showRequired?: boolean;
 }
 
 export default function SchemaContentViewer({
@@ -24,6 +25,7 @@ export default function SchemaContentViewer({
   viewMode,
   parsedSchema,
   parsedAvroSchema,
+  showRequired = false,
   onOpenFullscreen,
 }: SchemaContentViewerProps) {
   if (!message.schemaContent) {
@@ -37,7 +39,7 @@ export default function SchemaContentViewer({
   // Render schema viewer based on schema type
   if (viewMode === 'schema') {
     if (parsedAvroSchema) {
-      return <AvroSchemaViewer schema={parsedAvroSchema} onOpenFullscreen={onOpenFullscreen} />;
+      return <AvroSchemaViewer schema={parsedAvroSchema} onOpenFullscreen={onOpenFullscreen} showRequired={showRequired} />;
     }
     if (parsedSchema) {
       return <JSONSchemaViewer schema={parsedSchema} onOpenFullscreen={onOpenFullscreen} />;
