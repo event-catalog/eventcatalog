@@ -49,7 +49,6 @@
     "@ai-sdk/google": "^2.0.17",
     "@ai-sdk/openai": "^2.0.42",
     "@ai-sdk/react": "^2.0.60",
-    "@ai-sdk/rsc": "^1.0.60",
     "@astrojs/markdown-remark": "^6.3.8",
     "@astrojs/mdx": "^4.3.9",
     "@astrojs/node": "^9.5.0",
