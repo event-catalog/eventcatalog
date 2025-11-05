@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { getNavigationItems } from '../../utils/custom-docs';
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import type { ContentCollectionKey } from 'astro:content';
 import { mockDocs } from './mocks';
 
