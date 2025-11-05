@@ -601,6 +601,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "jbarette-rossel",
+      "name": "Jonathan Barette",
+      "avatar_url": "https://avatars.githubusercontent.com/u/162966566?v=4",
+      "profile": "https://github.com/jbarette-rossel",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
