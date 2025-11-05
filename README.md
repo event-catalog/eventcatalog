@@ -34,7 +34,7 @@
 <h4>Features: Documentation for Event Driven Architectures, Integration with any broker, Generator from your OpenAPI and AsyncAPI documents, Docs and Code, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-64-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-65-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [Read the Docs](https://www.eventcatalog.dev/docs/development/getting-started/introduction) | [View Demo](https://demo.eventcatalog.dev)
@@ -270,6 +270,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/reisingerf"><img src="https://avatars.githubusercontent.com/u/31906163?v=4?s=100" width="100px;" alt="reisingerf"/><br /><sub><b>reisingerf</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=reisingerf" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jbarette-rossel"><img src="https://avatars.githubusercontent.com/u/162966566?v=4?s=100" width="100px;" alt="Jonathan Barette"/><br /><sub><b>Jonathan Barette</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=jbarette-rossel" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
