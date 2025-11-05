@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.64.1
+
+### Patch Changes
+
+- ca1478d: feat(core): avro schema viewer now shows required fields
+
 ## 2.64.0
 
 ### Minor Changes
