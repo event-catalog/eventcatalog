@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.64.4
+
+### Patch Changes
+
+- ac4cf00: fix(core): Schemaviewer required flags for Avro schemas now working
+
 ## 2.64.3
 
 ### Patch Changes
