@@ -84,84 +84,35 @@ describe('Services NodeGraph', () => {
         type: 'data',
       };
 
-      const expectedEdges = [
-        {
+      const expectedEdges = expect.arrayContaining([
+        expect.objectContaining({
           label: 'accepts',
           animated: false,
-          markerEnd: {
-            type: 'arrowclosed',
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          id: 'PaymentProcessed-0.0.1-OrderService-1.0.0',
+          id: 'PaymentProcessed-0.0.1-OrderService-1.0.0-warning',
           source: 'PaymentProcessed-0.0.1',
           target: 'OrderService-1.0.0',
-          data: {
-            message: {
-              id: 'PaymentProcessed',
-              version: '0.0.1',
-            },
-          },
-        },
-        {
-          label: 'writes to \n (undefined)',
-          animated: false,
-          markerEnd: {
-            type: 'arrowclosed',
-            color: '#666',
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
+        }),
+        expect.objectContaining({
           id: 'OrderService-1.0.0-OrderDatabase-1.0.0',
           source: 'OrderService-1.0.0',
           target: 'OrderDatabase-1.0.0',
           type: 'multiline',
-        },
-        {
+        }),
+        expect.objectContaining({
           label: 'reads from \n (undefined)',
-          animated: false,
-          style: {
-            strokeWidth: 1,
-          },
           id: 'OrderService-1.0.0-PaymentDatabase-1.0.0',
           source: 'PaymentDatabase-1.0.0',
           target: 'OrderService-1.0.0',
           type: 'multiline',
-          markerStart: {
-            type: 'arrowclosed',
-            color: '#666',
-            width: 40,
-            height: 40,
-          },
-        },
-        {
-          label: 'publishes event',
+        }),
+        expect.objectContaining({
+          label: 'publishes \nevent',
           animated: false,
-          markerEnd: {
-            type: 'arrowclosed',
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
           id: 'OrderService-1.0.0-OrderCreatedEvent-0.0.1',
           source: 'OrderService-1.0.0',
           target: 'OrderCreatedEvent-0.0.1',
-          data: {
-            message: {
-              id: 'OrderCreatedEvent',
-              version: '0.0.1',
-            },
-          },
-        },
-      ];
+        }),
+      ]);
 
       expect(nodes).toEqual(
         expect.arrayContaining([
@@ -216,38 +167,23 @@ describe('Services NodeGraph', () => {
         type: 'events',
       };
 
-      const expectedEdges = [
-        {
+      const expectedEdges = expect.arrayContaining([
+        expect.objectContaining({
           id: 'OrderCreatedEvent-2.0.0-NotificationsService-1.0.0',
           source: 'OrderCreatedEvent-2.0.0',
           target: 'NotificationsService-1.0.0',
-          label: 'receives event',
-          animated: false,
-          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
-          style: { strokeWidth: 1 },
-          data: { message: expect.anything() },
-        },
-        {
+        }),
+        expect.objectContaining({
           id: 'NotificationsService-1.0.0-OrderCreatedEvent-2.0.0',
           source: 'NotificationsService-1.0.0',
           target: 'OrderCreatedEvent-2.0.0',
-          label: 'publishes event',
-          animated: false,
-          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
-          style: { strokeWidth: 1 },
-          data: { message: expect.anything() },
-        },
-        {
+        }),
+        expect.objectContaining({
           id: 'NotificationsService-1.0.0-OrderCreatedEvent-2.0.0-both',
           source: 'NotificationsService-1.0.0',
           target: 'OrderCreatedEvent-2.0.0',
-          label: 'publishes event & receives event',
-          animated: false,
-          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
-          style: { strokeWidth: 1 },
-          data: { message: expect.anything() },
-        },
-      ];
+        }),
+      ]);
 
       expect(nodes).toEqual(
         expect.arrayContaining([
@@ -305,40 +241,18 @@ describe('Services NodeGraph', () => {
         type: 'events',
       };
 
-      const expectedEdges = [
-        {
+      const expectedEdges = expect.arrayContaining([
+        expect.objectContaining({
           id: 'OrderCreatedEvent-1.3.9-InventoryService-1.0.0',
           source: 'OrderCreatedEvent-1.3.9',
           target: 'InventoryService-1.0.0',
-          label: 'receives event',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-        {
+        }),
+        expect.objectContaining({
           id: 'InventoryService-1.0.0-InventoryAdjusted-2.0.0',
           source: 'InventoryService-1.0.0',
           target: 'InventoryAdjusted-2.0.0',
-          label: 'publishes event',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-      ];
+        }),
+      ]);
 
       expect(nodes).toEqual(
         expect.arrayContaining([
@@ -356,7 +270,7 @@ describe('Services NodeGraph', () => {
       expect(edges).toEqual(expectedEdges);
     });
 
-    it('creates channel nodes and edges between the service and messages if the message has a channel defined', async () => {
+    it('creates a channel node between the service and message if the service defined a channel', async () => {
       const { nodes, edges } = await getNodesAndEdges({ id: 'PaymentService', version: '1.0.0' });
 
       // The middle node itself, the service
@@ -369,8 +283,16 @@ describe('Services NodeGraph', () => {
         type: 'services',
       };
 
-      // Message coming into the service with a channel
-      const expectedRecivesNode = {
+      const expectedConsumedMessageWithoutChannel = {
+        id: 'OrderCreatedEvent-2.0.0',
+        type: 'events',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', message: expect.anything() },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
+      const expectedConsumedMessageWithChannel = {
         id: 'OrderDeletedEvent-2.0.0',
         type: 'events',
         sourcePosition: 'right',
@@ -379,126 +301,87 @@ describe('Services NodeGraph', () => {
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
+      const expectedChannelNode = {
+        id: 'EmailChannel-1.0.0',
+        type: 'channels',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', channel: expect.anything() },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
       // Message coming into the service with a channel
-      const expectedRecivesChannelNode = {
-        id: 'PaymentService-1.0.0-EmailChannel-1.0.0-EmailVerified-1.0.0',
-        type: 'channels',
-        sourcePosition: 'right',
-        targetPosition: 'left',
-        data: {
-          title: 'EmailChannel',
-          mode: 'simple',
-          channel: expect.anything(),
-          source: expect.anything(),
-          target: expect.anything(),
-        },
-        position: { x: expect.any(Number), y: expect.any(Number) },
-      };
-
-      // Nodes going out of the service (right)
-      const expectedSendsNode = {
-        id: 'EmailVerified-1.0.0',
-        sourcePosition: 'right',
-        targetPosition: 'left',
-        position: { x: expect.any(Number), y: expect.any(Number) },
+      const expectedProducedMessage = {
+        id: 'PaymentPaid-2.0.0',
         type: 'events',
-      };
-
-      // Nodes going out of the service with channel (right)
-      const expectedSendsChannelNode = {
-        id: 'PaymentService-1.0.0-EmailChannel-1.0.0-EmailVerified-1.0.0',
         sourcePosition: 'right',
         targetPosition: 'left',
+        data: { mode: 'simple', message: expect.anything() },
         position: { x: expect.any(Number), y: expect.any(Number) },
-        type: 'channels',
       };
 
-      expect(nodes).toEqual(
-        expect.arrayContaining([
-          // Nodes on the left
-          expect.objectContaining(expectedRecivesNode),
-          expect.objectContaining(expectedRecivesChannelNode),
+      // Message coming into the service with a channel
+      const expectedChannelAfterProducedMessage = {
+        id: 'EmailChannel-1.0.0',
+        type: 'channels',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', channel: expect.anything() },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
 
-          expect.objectContaining(expectedServiceNode),
-
-          // The event node itself
-          expect.objectContaining(expectedSendsNode),
-          expect.objectContaining(expectedSendsChannelNode),
-        ])
-      );
-
-      expect(edges).toEqual([
-        {
-          label: 'receives event',
-          animated: false,
-          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
-          style: { strokeWidth: 1 },
-          id: 'OrderCreatedEvent-2.0.0-PaymentService-1.0.0',
-          source: 'OrderCreatedEvent-2.0.0',
-          target: 'PaymentService-1.0.0',
-          data: { message: expect.anything() },
-        },
-        {
-          label: '',
-          animated: false,
-          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
-          style: { strokeWidth: 1 },
-          id: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0-PaymentService-1.0.0',
-          source: 'OrderDeletedEvent-2.0.0',
-          target: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0-PaymentService-1.0.0',
-          data: { message: expect.anything(), source: expect.anything(), target: expect.anything(), channel: expect.anything() },
-        },
-        {
-          label: 'receives event',
-          animated: false,
-          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
-          style: { strokeWidth: 1 },
-          id: 'OrderChannel-1.0.0-PaymentService-1.0.0-OrderDeletedEvent-2.0.0',
-          source: 'OrderDeletedEvent-2.0.0-OrderChannel-1.0.0-PaymentService-1.0.0',
-          target: 'PaymentService-1.0.0',
-          data: { message: expect.anything(), source: expect.anything(), target: expect.anything(), channel: expect.anything() },
-        },
-        {
-          label: 'publishes event',
-          animated: false,
-          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
-          style: { strokeWidth: 1 },
+      const expectedEdges = expect.arrayContaining([
+        // The service to the message (it publishes)
+        expect.objectContaining({
           id: 'PaymentService-1.0.0-PaymentPaid-2.0.0',
           source: 'PaymentService-1.0.0',
           target: 'PaymentPaid-2.0.0',
-          data: { message: expect.anything() },
-        },
-        {
-          label: 'publishes event',
-          animated: false,
-          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
-          style: { strokeWidth: 1 },
-          id: 'PaymentService-1.0.0-PaymentFailed-1.2.3',
-          source: 'PaymentService-1.0.0',
-          target: 'PaymentFailed-1.2.3',
-          data: { message: expect.anything() },
-        },
-        {
-          label: '',
-          animated: false,
-          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
-          style: { strokeWidth: 1 },
-          id: 'PaymentService-1.0.0-EmailChannel-1.0.0-EmailVerified-1.0.0',
-          source: 'PaymentService-1.0.0',
-          target: 'PaymentService-1.0.0-EmailChannel-1.0.0-EmailVerified-1.0.0',
-          data: { message: expect.anything(), source: expect.anything(), target: expect.anything(), channel: expect.anything() },
-        },
-        {
-          label: 'publishes event',
-          animated: false,
-          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
-          style: { strokeWidth: 1 },
-          id: 'EmailChannel-1.0.0-EmailVerified-1.0.0-PaymentService-1.0.0',
-          source: 'PaymentService-1.0.0-EmailChannel-1.0.0-EmailVerified-1.0.0',
-          target: 'EmailVerified-1.0.0',
-          data: { message: expect.anything(), source: expect.anything(), target: expect.anything(), channel: expect.anything() },
-        },
+        }),
+        // The Message to the channel defined by the producing service
+        expect.objectContaining({
+          id: 'PaymentPaid-2.0.0-EmailChannel-1.0.0',
+          source: 'PaymentPaid-2.0.0',
+          target: 'EmailChannel-1.0.0',
+        }),
+
+        // The consumed message with no channel defined
+        // We expect to to connect to the service
+        expect.objectContaining({
+          id: 'OrderCreatedEvent-2.0.0-PaymentService-1.0.0',
+          source: 'OrderCreatedEvent-2.0.0',
+          target: 'PaymentService-1.0.0',
+        }),
+
+        // The consume message with a channel defined
+        expect.objectContaining({
+          id: 'OrderDeletedEvent-2.0.0-EmailChannel-1.0.0',
+          source: 'OrderDeletedEvent-2.0.0',
+          target: 'EmailChannel-1.0.0',
+        }),
       ]);
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          // message the service consumes
+          expect.objectContaining(expectedConsumedMessageWithoutChannel),
+
+          // message the service consumes with a channel
+          expect.objectContaining(expectedConsumedMessageWithChannel),
+
+          // The channel node
+          expect.objectContaining(expectedChannelNode),
+
+          // The service node itself
+          expect.objectContaining(expectedServiceNode),
+
+          // message on the right of the service
+          expect.objectContaining(expectedProducedMessage),
+
+          expect.objectContaining(expectedChannelAfterProducedMessage),
+        ])
+      );
+
+      expect(edges).toEqual(expectedEdges);
     });
 
     it('when `renderMessages` is false it should not render any messages or channels', async () => {

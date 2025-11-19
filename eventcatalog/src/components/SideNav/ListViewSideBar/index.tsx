@@ -82,6 +82,9 @@ const ServiceItem = React.memo(
     const resourceWrites = item.writesTo.filter((writeTo) => !readsAndWritesTo.some((readFrom) => readFrom.id === writeTo.id));
     const hasData = item.writesTo.length > 0 || item.readsFrom.length > 0;
 
+    const sendsMessages = item.sends && item.sends.length > 0;
+    const receivesMessages = item.receives && item.receives.length > 0;
+
     return (
       <CollapsibleGroup
         isCollapsed={collapsedGroups[item.href]}
@@ -167,41 +170,44 @@ const ServiceItem = React.memo(
             </CollapsibleGroup>
           )}
 
-          <CollapsibleGroup
-            isCollapsed={collapsedGroups[`${item.href}-receives`]}
-            onToggle={() => toggleGroupCollapse(`${item.href}-receives`)}
-            title={
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleGroupCollapse(`${item.href}-receives`);
-                }}
-                className="truncate underline ml-2 text-xs mb-1 py-1"
-              >
-                Receives messages ({item.receives.length})
-              </button>
-            }
-          >
-            <MessageList messages={item.receives} decodedCurrentPath={decodedCurrentPath} searchTerm={searchTerm} />
-          </CollapsibleGroup>
-
-          <CollapsibleGroup
-            isCollapsed={collapsedGroups[`${item.href}-sends`]}
-            onToggle={() => toggleGroupCollapse(`${item.href}-sends`)}
-            title={
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleGroupCollapse(`${item.href}-sends`);
-                }}
-                className="truncate underline ml-2 text-xs mb-1 py-1"
-              >
-                Sends messages ({item.sends.length})
-              </button>
-            }
-          >
-            <MessageList messages={item.sends} decodedCurrentPath={decodedCurrentPath} searchTerm={searchTerm} />
-          </CollapsibleGroup>
+          {receivesMessages && (
+            <CollapsibleGroup
+              isCollapsed={collapsedGroups[`${item.href}-receives`]}
+              onToggle={() => toggleGroupCollapse(`${item.href}-receives`)}
+              title={
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleGroupCollapse(`${item.href}-receives`);
+                  }}
+                  className="truncate underline ml-2 text-xs mb-1 py-1"
+                >
+                  Receives messages ({item.receives.length})
+                </button>
+              }
+            >
+              <MessageList messages={item.receives} decodedCurrentPath={decodedCurrentPath} searchTerm={searchTerm} />
+            </CollapsibleGroup>
+          )}
+          {sendsMessages && (
+            <CollapsibleGroup
+              isCollapsed={collapsedGroups[`${item.href}-sends`]}
+              onToggle={() => toggleGroupCollapse(`${item.href}-sends`)}
+              title={
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleGroupCollapse(`${item.href}-sends`);
+                  }}
+                  className="truncate underline ml-2 text-xs mb-1 py-1"
+                >
+                  Sends messages ({item.sends.length})
+                </button>
+              }
+            >
+              <MessageList messages={item.sends} decodedCurrentPath={decodedCurrentPath} searchTerm={searchTerm} />
+            </CollapsibleGroup>
+          )}
           {!isVisualizer && hasData && (
             <CollapsibleGroup
               isCollapsed={collapsedGroups[`${item.href}-data`]}

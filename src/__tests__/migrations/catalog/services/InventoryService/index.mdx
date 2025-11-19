@@ -1,0 +1,21 @@
+---
+id: InventoryService
+version: 0.0.3
+name: Inventory Service
+summary: |
+  Service that handles inventory
+owners:
+  - inventory-management
+sends:
+  - id: OrderAmended
+    to:
+      - id: eventbus
+        version: 1.0.0
+receives:
+  - id: InventoryAdjusted
+    from:
+      - id: eventbus
+        version: 1.0.0
+---
+
+Example Inventory Service

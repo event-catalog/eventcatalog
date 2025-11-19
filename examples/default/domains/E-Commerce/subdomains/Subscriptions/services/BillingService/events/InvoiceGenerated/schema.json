@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "InvoiceGenerated",
+  "description": "Schema for invoice generated event",
+  "properties": {
+    "invoiceId": {
+      "type": "string",
+      "description": "Unique identifier for the invoice"
+    },
+    "invoiceNumber": {
+      "type": "string",
+      "description": "Human-readable invoice number"
+    },
+    "subscriptionId": {
+      "type": "string",
+      "description": "Unique identifier for the subscription"
+    },
+    "customerId": {
+      "type": "string",
+      "description": "Unique identifier for the customer"
+    },
+    "invoiceDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date and time when the invoice was generated"
+    },
+    "dueDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date and time when the invoice payment is due"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["generated", "sent", "paid", "overdue", "cancelled"],
+      "description": "Current status of the invoice"
+    },
+    "lineItems": {
+      "type": "array",
+      "description": "List of items on the invoice",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description of the line item"
+          },
+          "quantity": {
+            "type": "number",
+            "description": "Quantity of the item"
+          },
+          "unitPrice": {
+            "type": "number",
+            "description": "Price per unit"
+          },
+          "total": {
+            "type": "number",
+            "description": "Total price for this line item (quantity * unitPrice)"
+          }
+        },
+        "required": ["description", "quantity", "unitPrice", "total"]
+      }
+    },
+    "subtotal": {
+      "type": "number",
+      "description": "Subtotal amount before taxes"
+    },
+    "tax": {
+      "type": "number",
+      "description": "Tax amount applied to the invoice"
+    },
+    "total": {
+      "type": "number",
+      "description": "Total amount including taxes"
+    },
+    "currency": {
+      "type": "string",
+      "description": "Currency code (ISO 4217)"
+    },
+    "billingPeriod": {
+      "type": "object",
+      "description": "Billing period covered by this invoice",
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date",
+          "description": "Start date of the billing period"
+        },
+        "end": {
+          "type": "string",
+          "format": "date",
+          "description": "End date of the billing period"
+        }
+      },
+      "required": ["start", "end"]
+    },
+    "planId": {
+      "type": "string",
+      "description": "Subscription plan identifier"
+    }
+  },
+  "required": [
+    "invoiceId",
+    "invoiceNumber",
+    "subscriptionId",
+    "customerId",
+    "invoiceDate",
+    "dueDate",
+    "status",
+    "lineItems",
+    "subtotal",
+    "tax",
+    "total",
+    "currency",
+    "billingPeriod",
+    "planId"
+  ]
+}
+

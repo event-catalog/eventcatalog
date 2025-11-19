@@ -1,7 +1,7 @@
-import type { ContentCollectionKey } from 'astro:content';
+import type { CollectionEntry, ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { mockCommands, mockEvents, mockQueries, mockServices, mockChannels } from './mocks';
-import { getChannels } from '@utils/channels';
+import { getChannels, getChannelChain, isChannelsConnected } from '@utils/channels';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
@@ -78,6 +78,174 @@ describe('channels', () => {
           }),
         ])
       );
+    });
+  });
+
+  describe('getChannelChain', () => {
+    it('returns all the channels from the source to the target if there is a route between them', () => {
+      const sourceChannel = {
+        id: 'EventBridgeChannel',
+        version: '1.0.0',
+        collection: 'channels',
+        data: {
+          id: 'EventBridgeChannel',
+          version: '1.0.0',
+          routes: [{ id: 'SNSChannel', version: '1.0.0' }],
+        },
+      } as unknown as CollectionEntry<'channels'>;
+
+      const firstRouteChannel = {
+        id: 'SNSChannel',
+        version: '1.0.0',
+        collection: 'channels',
+        data: {
+          id: 'SNSChannel',
+          version: '1.0.0',
+          routes: [{ id: 'SQSChannel', version: '1.0.0' }],
+        },
+      } as unknown as CollectionEntry<'channels'>;
+
+      const secondRouteChannel = {
+        id: 'SQSChannel',
+        version: '1.0.0',
+        collection: 'channels',
+        data: {
+          id: 'SQSChannel',
+          version: '1.0.0',
+          routes: [{ id: 'FinalChannel', version: '1.0.0' }],
+        },
+      } as unknown as CollectionEntry<'channels'>;
+
+      const targetChannel = {
+        id: 'FinalChannel',
+        version: '1.0.0',
+        collection: 'channels',
+        data: {
+          id: 'FinalChannel',
+          version: '1.0.0',
+        },
+      } as unknown as CollectionEntry<'channels'>;
+
+      const channels = [sourceChannel, firstRouteChannel, secondRouteChannel, targetChannel];
+
+      const connectedChannels = getChannelChain(sourceChannel, targetChannel, channels);
+
+      expect(connectedChannels).toEqual([sourceChannel, firstRouteChannel, secondRouteChannel, targetChannel]);
+    });
+
+    it('returns an empty array if the channels are not connected', () => {
+      const sourceChannel = {
+        id: 'EventBridgeChannel',
+        version: '1.0.0',
+        collection: 'channels',
+        data: {
+          id: 'EventBridgeChannel',
+          version: '1.0.0',
+        },
+      } as unknown as CollectionEntry<'channels'>;
+      const targetChannel = {
+        id: 'SNSChannel',
+        version: '1.0.0',
+        collection: 'channels',
+        data: {
+          id: 'SNSChannel',
+          version: '1.0.0',
+        },
+      } as unknown as CollectionEntry<'channels'>;
+
+      const connectedChannels = getChannelChain(sourceChannel, targetChannel, [sourceChannel, targetChannel]);
+
+      expect(connectedChannels).toEqual([]);
+    });
+  });
+
+  describe('isChannelsConnected', () => {
+    it('returns true if the channels are connected through a route', () => {
+      const sourceChannel = {
+        id: 'EventBridgeChannel',
+        version: '1.0.0',
+        collection: 'channels',
+        data: {
+          id: 'EventBridgeChannel',
+          version: '1.0.0',
+          routes: [{ id: 'SNSChannel', version: '1.0.0' }],
+        },
+      } as unknown as CollectionEntry<'channels'>;
+      const targetChannel = {
+        id: 'SNSChannel',
+        version: '1.0.0',
+        collection: 'channels',
+        data: {
+          id: 'SNSChannel',
+          version: '1.0.0',
+        },
+      } as unknown as CollectionEntry<'channels'>;
+
+      const isConnected = isChannelsConnected(sourceChannel, targetChannel, [sourceChannel, targetChannel]);
+
+      expect(isConnected).toBe(true);
+    });
+
+    it('returns false if the channels are not connected through a route', () => {
+      const sourceChannel = {
+        id: 'EventBridgeChannel',
+        version: '1.0.0',
+        collection: 'channels',
+        data: {
+          id: 'EventBridgeChannel',
+          version: '1.0.0',
+        },
+      } as unknown as CollectionEntry<'channels'>;
+      const targetChannel = {
+        id: 'SNSChannel',
+        version: '1.0.0',
+        collection: 'channels',
+        data: {
+          id: 'SNSChannel',
+          version: '1.0.0',
+        },
+      } as unknown as CollectionEntry<'channels'>;
+
+      const isConnected = isChannelsConnected(sourceChannel, targetChannel, [sourceChannel, targetChannel]);
+
+      expect(isConnected).toBe(false);
+    });
+
+    it('returns false if the channels are not connected through any route', () => {
+      const sourceChannel = {
+        id: 'EventBridgeChannel',
+        version: '1.0.0',
+        collection: 'channels',
+        data: {
+          id: 'EventBridgeChannel',
+          version: '1.0.0',
+          routes: [{ id: 'SNSChannel', version: '1.0.0' }],
+        },
+      } as unknown as CollectionEntry<'channels'>;
+
+      const firstRouteChannel = {
+        id: 'SNSChannel',
+        version: '1.0.0',
+        collection: 'channels',
+        data: {
+          id: 'SNSChannel',
+          version: '1.0.0',
+        },
+      } as unknown as CollectionEntry<'channels'>;
+
+      const targetChannel = {
+        id: 'FinalChannel',
+        version: '1.0.0',
+        collection: 'channels',
+        data: {
+          id: 'FinalChannel',
+          version: '1.0.0',
+        },
+      } as unknown as CollectionEntry<'channels'>;
+
+      const isConnected = isChannelsConnected(sourceChannel, targetChannel, [sourceChannel, firstRouteChannel, targetChannel]);
+
+      expect(isConnected).toBe(false);
     });
   });
 });

@@ -1,4 +1,3 @@
-import { MarkerType } from '@xyflow/react';
 import { getNodesAndEdgesForEvents as getNodesAndEdges } from '../../node-graphs/message-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
 import { mockEvents, mockServices, mockChannels } from './mocks';
@@ -64,40 +63,31 @@ describe('Events NodeGraph', () => {
         type: 'services',
       };
 
-      const expectedEdges = [
-        {
+      const expectedEdges = expect.arrayContaining([
+        expect.objectContaining({
           id: 'OrderService-0.0.1-OrderCreatedEvent-0.0.1',
           source: 'OrderService-0.0.1',
           target: 'OrderCreatedEvent-0.0.1',
-          label: 'publishes event',
+          label: 'publishes \nevent',
           animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-        {
+        }),
+        // The channel to the event
+        expect.objectContaining({
+          id: 'OrderCreatedEvent-0.0.1-EmailChannel-1.0.0',
+          source: 'OrderCreatedEvent-0.0.1',
+          target: 'EmailChannel-1.0.0',
+          label: 'routes to',
+          animated: false,
+        }),
+        // The event to the consumer
+        expect.objectContaining({
           id: 'OrderCreatedEvent-0.0.1-PaymentService-0.0.1',
           source: 'OrderCreatedEvent-0.0.1',
           target: 'PaymentService-0.0.1',
           label: 'subscribed by',
           animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-      ];
+        }),
+      ]);
 
       expect(nodes).toEqual(
         expect.arrayContaining([
@@ -151,56 +141,29 @@ describe('Events NodeGraph', () => {
         type: 'services',
       };
 
-      const expectedEdges = [
-        {
+      const expectedEdges = expect.arrayContaining([
+        // Producer to the event
+        expect.objectContaining({
           id: 'NotificationsService-0.0.1-EmailSent-1.0.0',
           source: 'NotificationsService-0.0.1',
           target: 'EmailSent-1.0.0',
-          label: 'publishes event',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-        {
-          id: 'EmailSent-1.0.0-NotificationsService-0.0.1',
+          label: 'publishes \nevent',
+        }),
+        // Event to the channel
+        expect.objectContaining({
+          id: 'EmailSent-1.0.0-EmailChannel-1.0.0',
           source: 'EmailSent-1.0.0',
-          target: 'NotificationsService-0.0.1',
-          label: 'subscribed by',
+          target: 'EmailChannel-1.0.0',
+          label: 'routes to',
           animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-        {
+        }),
+        expect.objectContaining({
           id: 'EmailSent-1.0.0-NotificationsService-0.0.1-both',
           source: 'EmailSent-1.0.0',
           target: 'NotificationsService-0.0.1',
           label: 'publishes and subscribes',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-      ];
+        }),
+      ]);
 
       expect(nodes).toEqual(
         expect.arrayContaining([
@@ -218,10 +181,10 @@ describe('Events NodeGraph', () => {
       expect(edges).toEqual(expectedEdges);
     });
 
-    it('creates channel nodes and edges between the producer and the event if the event has a channel specified', async () => {
-      const { nodes, edges } = await getNodesAndEdges({ id: 'EmailVerified', version: '1.0.0' });
+    it('if the consumer of an event has defined a channel, it will render the channel node and edges', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'EmailSent', version: '1.0.0' });
 
-      const expectedProducerNode = {
+      const expectedConsumerNode = {
         id: 'NotificationsService-0.0.1',
         type: 'services',
         sourcePosition: 'right',
@@ -233,29 +196,91 @@ describe('Events NodeGraph', () => {
       const expectedChannelNode = {
         sourcePosition: 'right',
         targetPosition: 'left',
-        id: 'NotificationsService-0.0.1-EmailChannel-1.0.0-EmailVerified-1.0.0',
-        data: {
-          title: 'EmailChannel',
-          mode: 'simple',
-          channel: expect.anything(),
-          source: expect.anything(),
-          target: expect.anything(),
-        },
-        position: { x: expect.any(Number), y: expect.any(Number) },
+        id: 'EmailChannel-1.0.0',
         type: 'channels',
       };
 
-      // The middle node itself, the service
       const expectedEventNode = {
-        id: 'EmailVerified-1.0.0',
+        id: 'EmailSent-1.0.0',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: expect.anything(),
-        position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'events',
       };
 
-      expect(nodes).toHaveLength(3);
+      const expectedEdges = expect.arrayContaining([
+        // Message to the channel
+        expect.objectContaining({
+          id: 'EmailSent-1.0.0-EmailChannel-1.0.0',
+          source: 'EmailSent-1.0.0',
+          target: 'EmailChannel-1.0.0',
+        }),
+        // Channel to the consumer
+        expect.objectContaining({
+          id: 'EmailChannel-1.0.0-NotificationsService-0.0.1',
+          source: 'EmailChannel-1.0.0',
+          target: 'NotificationsService-0.0.1',
+        }),
+      ]);
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          // Nodes on the left
+          expect.objectContaining(expectedConsumerNode),
+
+          // channel
+          expect.objectContaining(expectedChannelNode),
+
+          // The event node itself
+          expect.objectContaining(expectedEventNode),
+        ])
+      );
+
+      expect(edges).toEqual(expectedEdges);
+    });
+
+    it('if the producer of an event has defined a channel, it will render the channel node and edges', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'OrderCreatedEvent', version: '0.0.1' });
+
+      const expectedProducerNode = {
+        id: 'OrderService-0.0.1',
+        type: 'services',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
+      const expectedChannelNode = {
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        id: 'EmailChannel-1.0.0',
+        type: 'channels',
+      };
+
+      const expectedEventNode = {
+        id: 'OrderCreatedEvent-0.0.1',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        type: 'events',
+      };
+
+      const expectedEdges = expect.arrayContaining([
+        // Producer to the message
+        expect.objectContaining({
+          id: 'OrderService-0.0.1-OrderCreatedEvent-0.0.1',
+          source: 'OrderService-0.0.1',
+          target: 'OrderCreatedEvent-0.0.1',
+          label: 'publishes \nevent',
+          animated: false,
+        }),
+        // Message to the channel
+        expect.objectContaining({
+          id: 'OrderCreatedEvent-0.0.1-EmailChannel-1.0.0',
+          source: 'OrderCreatedEvent-0.0.1',
+          target: 'EmailChannel-1.0.0',
+          label: 'routes to',
+          animated: false,
+        }),
+      ]);
 
       expect(nodes).toEqual(
         expect.arrayContaining([
@@ -270,28 +295,7 @@ describe('Events NodeGraph', () => {
         ])
       );
 
-      expect(edges).toEqual([
-        {
-          label: '',
-          animated: false,
-          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
-          style: { strokeWidth: 1 },
-          id: 'NotificationsService-0.0.1-EmailChannel-1.0.0-EmailVerified-1.0.0',
-          source: 'NotificationsService-0.0.1',
-          target: 'NotificationsService-0.0.1-EmailChannel-1.0.0-EmailVerified-1.0.0',
-          data: { message: expect.anything(), source: expect.anything(), target: expect.anything(), channel: expect.anything() },
-        },
-        {
-          label: 'publishes event',
-          animated: false,
-          markerEnd: { type: MarkerType.ArrowClosed, width: 40, height: 40 },
-          style: { strokeWidth: 1 },
-          id: 'EmailChannel-1.0.0-EmailVerified-1.0.0-NotificationsService-0.0.1',
-          source: 'NotificationsService-0.0.1-EmailChannel-1.0.0-EmailVerified-1.0.0',
-          target: 'EmailVerified-1.0.0',
-          data: { message: expect.anything(), source: expect.anything(), target: expect.anything(), channel: expect.anything() },
-        },
-      ]);
+      expect(edges).toEqual(expectedEdges);
     });
 
     it('returns empty nodes and edges if no event is found', async () => {
@@ -332,40 +336,22 @@ describe('Events NodeGraph', () => {
         type: 'services',
       };
 
-      const expectedEdges = [
-        {
+      const expectedEdges = expect.arrayContaining([
+        expect.objectContaining({
           id: 'InventoryService-0.0.1-InventoryAdjusted-1.5.1',
           source: 'InventoryService-0.0.1',
           target: 'InventoryAdjusted-1.5.1',
-          label: 'publishes event',
+          label: 'publishes \nevent',
           animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-        {
+        }),
+        expect.objectContaining({
           id: 'InventoryAdjusted-1.5.1-CatalogService-0.0.1',
           source: 'InventoryAdjusted-1.5.1',
           target: 'CatalogService-0.0.1',
           label: 'subscribed by',
           animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-      ];
+        }),
+      ]);
 
       expect(nodes).toEqual(
         expect.arrayContaining([

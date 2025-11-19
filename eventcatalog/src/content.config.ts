@@ -44,6 +44,32 @@ const channelPointer = z
   })
   .merge(pointer);
 
+const sendsPointer = z.object({
+  id: z.string(),
+  version: z.string().optional().default('latest'),
+  to: z
+    .array(
+      z.object({
+        ...channelPointer.shape,
+        delivery_mode: z.enum(['push', 'pull', 'push-pull']).optional().default('push'),
+      })
+    )
+    .optional(),
+});
+
+const receivesPointer = z.object({
+  id: z.string(),
+  version: z.string().optional().default('latest'),
+  from: z
+    .array(
+      z.object({
+        ...channelPointer.shape,
+        delivery_mode: z.enum(['push', 'pull', 'push-pull']).optional().default('push'),
+      })
+    )
+    .optional(),
+});
+
 const resourcePointer = z.object({
   id: z.string(),
   version: z.string().optional().default('latest'),
@@ -359,8 +385,8 @@ const services = defineCollection({
   }),
   schema: z
     .object({
-      sends: z.array(pointer).optional(),
-      receives: z.array(pointer).optional(),
+      sends: z.array(sendsPointer).optional(),
+      receives: z.array(receivesPointer).optional(),
       entities: z.array(pointer).optional(),
       writesTo: z.array(pointer).optional(),
       readsFrom: z.array(pointer).optional(),
@@ -492,7 +518,7 @@ const domains = defineCollection({
 
 const channels = defineCollection({
   loader: glob({
-    pattern: ['**/channels/*/index.(md|mdx)', '**/channels/*/versioned/*/index.(md|mdx)'],
+    pattern: ['**/channels/**/index.(md|mdx)', '**/channels/**/versioned/*/index.(md|mdx)'],
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
@@ -500,8 +526,10 @@ const channels = defineCollection({
   }),
   schema: z
     .object({
+      channels: z.array(channelPointer).optional(),
       address: z.string().optional(),
       protocols: z.array(z.string()).optional(),
+      routes: z.array(channelPointer).optional(),
       parameters: z
         .record(
           z.object({

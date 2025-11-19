@@ -5,16 +5,14 @@ name: Orders Service
 summary: |
   Service that handles orders
 owners:
-    - dboyne
-receives:
-  - id: InventoryAdjusted
+  - dboyne
 sends:
-  - id: AddInventory  
+  - id: AddInventory
     version: 0.0.3
 repository:
   language: JavaScript
-  url: https://github.com/event-catalog/pretend-shipping-service
-schemaPath: "openapi.yml"
+  url: 'https://github.com/event-catalog/pretend-shipping-service'
+schemaPath: openapi.yml
 specifications:
   asyncapiPath: order-service-asyncapi.yaml
   openapiPath: openapi.yml

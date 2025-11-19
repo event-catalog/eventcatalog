@@ -27,26 +27,44 @@ export const generatedIdForEdge = (source: CollectionItem, target: CollectionIte
   return `${source.data.id}-${source.data.version}-${target.data.id}-${target.data.version}`;
 };
 
+export const getColorFromString = (id: string) => {
+  // Takes the given id (string) and returns a custom hex color based on the id
+  // Create a hash from the string
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  // Convert the hash into a hex color
+  let color = '#';
+  for (let i = 0; i < 3; i++) {
+    const value = (hash >> (i * 8)) & 0xff;
+    color += value.toString(16).padStart(2, '0');
+  }
+
+  return color;
+};
+
 export const getEdgeLabelForServiceAsTarget = (data: MessageCollectionItem) => {
   const type = data.collection;
   switch (type) {
     case 'commands':
       return 'invokes';
     case 'events':
-      return 'publishes event';
+      return 'publishes \nevent';
     case 'queries':
       return 'requests';
     default:
       return 'sends to';
   }
 };
-export const getEdgeLabelForMessageAsSource = (data: MessageCollectionItem) => {
+export const getEdgeLabelForMessageAsSource = (data: MessageCollectionItem, throughChannel = false) => {
   const type = data.collection;
   switch (type) {
     case 'commands':
       return 'accepts';
     case 'events':
-      return 'subscribed by';
+      return throughChannel ? 'subscribed to' : 'subscribed by';
     case 'queries':
       return 'accepts';
     default:
@@ -73,6 +91,11 @@ export const createEdge = (edgeOptions: Edge) => {
   return {
     label: 'subscribed by',
     animated: false,
+    // markerStart: {
+    //   type: MarkerType.Arrow,
+    //   width: 40,
+    //   height: 40,
+    // },
     markerEnd: {
       type: MarkerType.ArrowClosed,
       width: 40,
@@ -91,83 +114,6 @@ export const createNode = (values: Node): Node => {
     targetPosition: Position.Left,
     ...values,
   };
-};
-
-export const getChannelNodesAndEdges = ({
-  channels: channelsCollection,
-  channelsToRender,
-  source,
-  target,
-  channelToTargetLabel = 'sends from channel',
-  sourceToChannelLabel = 'sends to channel',
-  mode = 'full',
-  currentNodes = [],
-  channelRenderMode = 'flat',
-}: {
-  channels: CollectionItem[];
-  channelsToRender: { id: string; version: string }[];
-  source: CollectionItem;
-  target: CollectionItem;
-  channelToTargetLabel?: string;
-  sourceToChannelLabel?: string;
-  mode?: 'simple' | 'full';
-  currentNodes?: Node[];
-  channelRenderMode?: 'flat' | 'single';
-}) => {
-  const nodes: Node[] = [];
-  const edges: Edge[] = [];
-
-  // Get the channels from the collection
-  const channels = channelsToRender
-    .map((channel) => getItemsFromCollectionByIdAndSemverOrLatest(channelsCollection, channel.id, channel.version)[0])
-    .filter((channel) => channel !== undefined);
-
-  channels.forEach((channel) => {
-    const singleChannel = channelRenderMode === 'single'; // Only one node per channel, other wise one node per channel connection
-    const channelId = singleChannel ? generateIdForNodes([channel]) : generateIdForNodes([source, channel, target]);
-
-    // Need to check if the channel node is already in the graph
-    if (!currentNodes.find((node) => node.id === channelId)) {
-      nodes.push(
-        createNode({
-          id: channelId,
-          data: { title: channel?.data.id, mode, channel: { ...channel, ...channel.data }, source, target },
-          position: { x: 0, y: 0 },
-          type: channel?.collection,
-        })
-      );
-    }
-
-    // if the source (left node) is a service, use the target as the edge message
-    const edgeMessage = source.collection === 'services' ? target : source;
-
-    // Link from left to channel
-    edges.push(
-      createEdge({
-        // id: generatedIdForEdge(source, channel),
-        id: generateIdForNodes([source, channel, target]),
-        source: generateIdForNode(source),
-        target: channelId,
-        label: '',
-        // label: sourceToChannelLabel,
-        data: { message: edgeMessage, source: edgeMessage, channel, target },
-      })
-    );
-
-    // Link channel to service
-    edges.push(
-      createEdge({
-        // id: generatedIdForEdge(channel, target),
-        id: generateIdForNodes([channel, target, source]),
-        source: channelId,
-        target: generateIdForNode(target),
-        label: channelToTargetLabel,
-        data: { message: edgeMessage, source, channel, target },
-      })
-    );
-  });
-
-  return { nodes, edges };
 };
 
 type DagreGraph = any;

@@ -17,6 +17,16 @@ export const mockServices = [
           id: 'PlaceOrder',
           version: '>1.5.0',
         },
+        {
+          id: 'GetOrder',
+          version: '0.0.1',
+          from: [
+            {
+              id: 'EmailChannel',
+              version: '1.0.0',
+            },
+          ],
+        },
       ],
     },
   },
@@ -27,6 +37,28 @@ export const mockServices = [
     data: {
       id: 'PaymentService',
       version: '0.0.1',
+      sends: [
+        {
+          id: 'PlaceOrder',
+          version: '0.0.1',
+          to: [
+            {
+              id: 'EmailChannel',
+              version: '1.0.0',
+            },
+          ],
+        },
+        {
+          id: 'GetOrder',
+          version: '0.0.1',
+          to: [
+            {
+              id: 'EmailChannel',
+              version: '1.0.0',
+            },
+          ],
+        },
+      ],
       receives: [
         {
           id: 'AdjustOrder',
@@ -121,6 +153,18 @@ export const mockCommands = [
     data: {
       id: 'GetOrder',
       version: '0.0.1',
+    },
+  },
+];
+
+export const mockChannels = [
+  {
+    id: 'EmailChannel',
+    slug: 'EmailChannel',
+    collection: 'channels',
+    data: {
+      id: 'EmailChannel',
+      version: '1.0.0',
     },
   },
 ];

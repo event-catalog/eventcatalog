@@ -2,34 +2,31 @@
 id: BillingService
 version: 0.0.1
 name: Billing Service
-summary: Manages billing cycles, invoice generation, and payment scheduling for subscriptions
+summary: >-
+  Manages billing cycles, invoice generation, and payment scheduling for
+  subscriptions
 tags:
   - billing
   - subscriptions
   - invoicing
 repository:
-  url: https://github.com/eventcatalog/billing-service
+  url: 'https://github.com/eventcatalog/billing-service'
 receives:
   - id: PaymentProcessed
-    version: 0.0.1
-  - id: PaymentFailed
-    version: 0.0.1
 sends:
+  - id: InvoiceGenerated
   - id: SubscriptionPaymentDue
-    version: 0.0.1
-  - id: ProcessPayment
-    version: 0.0.1
 owners:
   - dboyne
 attachments:
-  - url: https://example.com/adr/001
+  - url: 'https://example.com/adr/001'
     title: ADR-001 - Use Kafka for asynchronous messaging
-    type: 'architecture-decisions'
+    type: architecture-decisions
     icon: FileTextIcon
-  - url: https://example.com/adr/001
+  - url: 'https://example.com/adr/001'
     title: ADR-002 - Database per service
     icon: FileTextIcon
-    type: 'architecture-decisions'
+    type: architecture-decisions
 specifications:
   - type: graphql
     path: schema.graphql

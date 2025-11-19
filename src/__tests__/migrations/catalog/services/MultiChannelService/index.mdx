@@ -1,0 +1,18 @@
+---
+id: InventoryService
+version: 0.0.3
+name: Inventory Service
+summary: |
+  Service that handles inventory
+owners:
+  - inventory-management
+sends:
+  - id: MultiChannelMessage
+    to:
+      - id: eventbus
+        version: 1.0.0
+      - id: http-channel
+        version: 1.0.0
+---
+
+Example Inventory Service

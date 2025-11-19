@@ -42,3 +42,5 @@ examples/default/public/ai
 **/[...auth].ts
 
 dev-scripts/
+
+examples/e-commerce

@@ -1,0 +1,22 @@
+---
+id: RegistrationService
+version: 0.0.1
+name: Registration Service
+summary: |
+  Service that handles registration operations
+owners:
+    - dboyne
+sends:
+  - id: UserSignedUpEvent
+    to:
+      - id: registrations-domain-eventbus
+  - id: UserForgotPasswordEvent
+    to:
+      - id: registrations-domain-eventbus
+receives:
+  - id: DeliveryFailed
+    from:
+      - id: registrations-domain-eventbus
+---
+
+This is a registration service that sends a registration event.

@@ -1,0 +1,12 @@
+---
+id: OrderService
+name: Order Service
+version: 1.0.0
+receives:
+  - id: PaymentProcessed
+    version: 0.0.1
+    from:
+      - id: SNSChannel
+        version: 1.0.0
+---
+## Order Service

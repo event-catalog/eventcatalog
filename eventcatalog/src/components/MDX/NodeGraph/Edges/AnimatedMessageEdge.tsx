@@ -12,6 +12,7 @@ const AnimatedMessageEdge = ({
   data,
   label = '',
   markerEnd,
+  markerStart,
 }: any) => {
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
@@ -21,9 +22,6 @@ const AnimatedMessageEdge = ({
     targetY,
     targetPosition,
   });
-
-  const collection = data?.message?.collection;
-  const opacity = data?.opacity ?? 1;
 
   const messageColor = useMemo(
     () => (collection: string) => {
@@ -41,41 +39,57 @@ const AnimatedMessageEdge = ({
     []
   );
 
+  const collection = data?.message?.collection;
+  const opacity = data?.opacity ?? 1;
+  const customColor = data?.customColor || messageColor(collection ?? 'default');
+  const warning = data?.warning;
+
+  // For each customColor (string or array of strings), we need to create the animated nodes
+  const customColors = Array.isArray(customColor) ? customColor : [customColor];
+
   const randomDelay = useMemo(() => Math.random() * 1, []);
 
-  return (
-    // @ts-ignore
-    <>
-      <BaseEdge id={id} path={edgePath} markerEnd={markerEnd} />
-      {/* Circle Icon */}
+  const animatedNodes = customColors.map((color, index) => {
+    // Stagger the animations so multiple colored nodes are visible
+    const delay = randomDelay + index * 0.3;
+    return (
       <g className={`z-30 ${opacity === 1 ? 'opacity-100' : 'opacity-10'}`}>
-        <circle cx="0" cy="0" r="7" fill={messageColor(collection)}>
-          <animateMotion dur="2s" repeatCount="indefinite" path={edgePath} rotate="auto" begin={`${randomDelay}s`}>
+        <circle key={`${id}-${color}-${index}`} cx="0" cy="0" r="7" fill={color}>
+          <animateMotion dur="2s" repeatCount="indefinite" path={edgePath} rotate="auto" begin={`${delay}s`}>
             <mpath href={`#${id}`} />
           </animateMotion>
         </circle>
       </g>
-      <g>
-        {/* Background rectangle */}
-        <rect
-          x={labelX - label.length * 3} // Adjust based on text length
-          y={labelY - 15} // Position above the text
-          width={label.length * 6} // Width based on text length
-          height={20} // Fixed height
-          fill="white" // Background color
-          opacity={0.8} // Opacity
-          rx="4" // Rounded corners
-        />
+    );
+  });
 
+  // Label can be spit using \n to create multiple lines
+  const lines = String(label ?? '').split('\n');
+
+  return (
+    // @ts-ignore
+    <>
+      <BaseEdge
+        id={id}
+        path={edgePath}
+        markerEnd={markerEnd}
+        markerStart={markerStart}
+        style={warning ? { stroke: 'red', strokeWidth: 1 } : {}}
+      />
+      {/* Circle Icon */}
+      {animatedNodes}
+      {/* <g className={`z-30 ${opacity === 1 ? 'opacity-100' : 'opacity-10'}`}>
+      </g> */}
+      <g>
         {/* Text element */}
-        <text x={labelX} y={labelY} fill="black" fontSize="10" textAnchor="middle" dy="-2">
-          {label}
+        <text x={labelX} y={labelY} textAnchor="middle" dominantBaseline="middle" fontSize="10px" pointerEvents="none">
+          {lines.map((line, i) => (
+            <tspan key={i} x={labelX} dy={i === 0 ? 0 : '1.2em'} style={{ fontStyle: i === 0 ? 'normal' : 'italic' }}>
+              {line}
+            </tspan>
+          ))}
         </text>
       </g>
-      {/* Label */}
-      {/* <text x={labelX} y={labelY} fill="black" fontSize="12" textAnchor="middle" dy="-5">
-        {label}
-      </text> */}
     </>
   );
 };

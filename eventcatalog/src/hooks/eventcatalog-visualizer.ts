@@ -62,22 +62,22 @@ export const useEventCatalogVisualiser = ({
       const dataTarget = data?.target as CollectionEntry<CollectionTypes>;
       const dataSource = data?.source as CollectionEntry<CollectionTypes>;
 
-      if (sourceIsChannel) {
-        const edgeLabel =
-          dataTarget?.collection === 'services'
-            ? getEdgeLabelForMessageAsSource(dataSource as CollectionEntry<CollectionMessageTypes>)
-            : getEdgeLabelForServiceAsTarget(dataTarget as CollectionEntry<CollectionMessageTypes>);
+      // if (sourceIsChannel) {
+      //   const edgeLabel =
+      //     dataTarget?.collection === 'services'
+      //       ? getEdgeLabelForMessageAsSource(dataSource as CollectionEntry<CollectionMessageTypes>)
+      //       : getEdgeLabelForServiceAsTarget(dataTarget as CollectionEntry<CollectionMessageTypes>);
 
-        return [
-          ...acc,
-          createEdge({
-            id: generatedIdForEdge(dataSource, dataTarget),
-            source: generateIdForNode(dataSource),
-            target: generateIdForNode(dataTarget),
-            label: edgeLabel,
-          }),
-        ];
-      }
+      //   return [
+      //     ...acc,
+      //     createEdge({
+      //       id: generatedIdForEdge(dataSource, dataTarget),
+      //       source: generateIdForNode(dataSource),
+      //       target: generateIdForNode(dataTarget),
+      //       label: edgeLabel,
+      //     }),
+      //   ];
+      // }
 
       return [...acc, edge];
     }, []);
