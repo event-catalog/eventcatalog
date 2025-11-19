@@ -118,7 +118,7 @@ describe('Domains NodeGraph', () => {
       expect(edges.length).toEqual(9);
     });
 
-    it.only('should return nodes and edges for a given domain with services using semver range or latest version (version undefind)', async () => {
+    it('should return nodes and edges for a given domain with services using semver range or latest version (version undefind)', async () => {
       // @ts-ignore
       const { nodes, edges } = await getNodesAndEdges({ id: 'Checkout', version: '0.0.1' });
 
