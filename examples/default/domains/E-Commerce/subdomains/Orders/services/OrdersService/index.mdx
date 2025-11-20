@@ -5,12 +5,11 @@ name: Orders Service
 summary: |
   Service that handles orders
 owners:
-    - order-management
+  - order-management
 receives:
   - id: InventoryAdjusted
-  - id: GetOrder
-  - id: PlaceOrder
-  - id: UserSubscriptionCancelled
+    from:
+      - id: orders-service-sqs-channel
 writesTo:
   - id: orders-db
     version: 0.0.1
@@ -22,14 +21,18 @@ readsFrom:
   - id: order-metadata-store
 sends:
   - id: OrderAmended
+    to:
+      - id: orders-domain-eventbus
   - id: OrderCancelled
+    to:
+      - id: orders-domain-eventbus
   - id: OrderConfirmed
-  - id: AddInventory
-    version: 0.0.3
+    to:
+      - id: orders-domain-eventbus
 repository:
   language: JavaScript
-  url: https://github.com/event-catalog/pretend-shipping-service
-schemaPath: "openapi-v1.yml"
+  url: 'https://github.com/event-catalog/pretend-shipping-service'
+schemaPath: openapi-v1.yml
 specifications:
   - type: asyncapi
     path: order-service-asyncapi.yaml

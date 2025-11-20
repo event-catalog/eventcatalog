@@ -15,7 +15,7 @@ vi.mock('astro:content', async (importOriginal) => {
         case 'commands':
           return mockCommands.filter(filterFn as any);
         case 'channels':
-          return mockChannels.filter(filterFn);
+          return mockChannels.filter(filterFn as any);
         case 'queries':
           return mockQueries.filter(filterFn);
       }

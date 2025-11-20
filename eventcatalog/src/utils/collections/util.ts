@@ -42,6 +42,13 @@ export function sortVersioned<T>(versioned: T[], versionExtractor: (e: T) => str
   }
 }
 
+// Takes a collection and a id of a resource, and checks if the version is the latest version in the collection
+export const getLatestVersionInCollectionById = (collection: CollectionEntry<CollectionTypes>[], id: string) => {
+  const items = collection.filter((i) => i.data.id === id);
+  const sortedVersions = sortVersioned(items, (v) => v.data.version);
+  return sortedVersions[0]?.data.version ?? id;
+};
+
 export const getVersionForCollectionItem = (
   item: CollectionEntry<CollectionTypes>,
   collection: CollectionEntry<CollectionTypes>[]

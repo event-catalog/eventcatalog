@@ -5,23 +5,33 @@ name: Shipping Service
 summary: |
   Service that handles shipping
 owners:
-    - dboyne
+  - dboyne
 receives:
-  - id: CancelShipment
-  - id: CreateReturnLabel
-  - id: CreateShipment
-  - id: UpdateShipmentStatus
   - id: PaymentProcessed
+    from:
+      - id: orders-domain-eventbus
 sends:
   - id: ShipmentCreated
+    to:
+      - id: orders-domain-eventbus
   - id: ReturnInitiated
+    to:
+      - id: orders-domain-eventbus
   - id: ShipmentDispatched
+    to:
+      - id: orders-domain-eventbus
   - id: ShipmentInTransit
+    to:
+      - id: orders-domain-eventbus
   - id: ShipmentDelivered
+    to:
+      - id: orders-domain-eventbus
   - id: DeliveryFailed
+    to:
+      - id: orders-domain-eventbus
 repository:
   language: JavaScript
-  url: https://github.com/event-catalog/pretend-shipping-service
+  url: 'https://github.com/event-catalog/pretend-shipping-service'
 ---
 
 import Footer from '@catalog/components/footer.astro';

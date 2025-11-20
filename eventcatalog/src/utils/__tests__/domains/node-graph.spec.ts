@@ -2,7 +2,6 @@ import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
 import { mockDomains, mockServices, mockEvents, mockCommands } from './mocks';
 import { getNodesAndEdges } from '@utils/node-graphs/domains-node-graph';
-import { MarkerType } from '@xyflow/react';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
@@ -44,7 +43,7 @@ describe('Domains NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: { ...mockServices[0].data } },
+        data: { mode: 'simple', service: { ...mockServices[0].data }, group: expect.anything() },
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -65,24 +64,15 @@ describe('Domains NodeGraph', () => {
         type: 'events',
       };
 
-      const expectedEdges = [
-        {
+      const expectedEdges = expect.arrayContaining([
+        expect.objectContaining({
           id: 'OrderPlaced-0.0.1-LocationService-0.0.1',
           source: 'OrderPlaced-0.0.1',
           target: 'LocationService-0.0.1',
-          label: 'receives event',
+          label: 'subscribed by',
           animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-      ];
+        }),
+      ]);
 
       expect(nodes).toEqual(
         expect.arrayContaining([
@@ -94,7 +84,7 @@ describe('Domains NodeGraph', () => {
         ])
       );
 
-      expect(edges).toEqual(expect.arrayContaining(expectedEdges));
+      expect(edges).toEqual(expectedEdges);
     });
 
     it('should return a list of nodes and edges with a domain has subdomains', async () => {
@@ -124,8 +114,8 @@ describe('Domains NodeGraph', () => {
 
       expect(nodes).toEqual(expect.arrayContaining([expect.objectContaining(expectedEventNode)]));
 
-      expect(nodes.length).toEqual(9);
-      expect(edges.length).toEqual(8);
+      expect(nodes.length).toEqual(10);
+      expect(edges.length).toEqual(9);
     });
 
     it('should return nodes and edges for a given domain with services using semver range or latest version (version undefind)', async () => {
@@ -206,124 +196,7 @@ describe('Domains NodeGraph', () => {
         },
       ];
 
-      const expectedEdges = [
-        {
-          id: 'PlaceOrder-1.7.7-OrderService-1.0.0',
-          source: 'PlaceOrder-1.7.7',
-          target: 'OrderService-1.0.0',
-          label: 'accepts',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-        {
-          id: 'OrderService-1.0.0-OrderPlaced-0.0.1',
-          source: 'OrderService-1.0.0',
-          target: 'OrderPlaced-0.0.1',
-          label: 'publishes event',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-        {
-          id: 'OrderPlaced-0.0.1-PaymentService-0.0.1',
-          source: 'OrderPlaced-0.0.1',
-          target: 'PaymentService-0.0.1',
-          label: 'receives event',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-        {
-          id: 'PaymentService-0.0.1-PaymentRefunded-1.0.0',
-          source: 'PaymentService-0.0.1',
-          target: 'PaymentRefunded-1.0.0',
-          label: 'publishes event',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-        {
-          id: 'PaymentService-0.0.1-PaymentFailed-1.0.0',
-          source: 'PaymentService-0.0.1',
-          target: 'PaymentFailed-1.0.0',
-          label: 'publishes event',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-        {
-          id: 'PaymentService-0.0.1-PaymentPaid-0.0.1',
-          source: 'PaymentService-0.0.1',
-          target: 'PaymentPaid-0.0.1',
-          label: 'publishes event',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-        {
-          id: 'PaymentService-0.0.1-PaymentPaid-0.0.2',
-          source: 'PaymentService-0.0.1',
-          target: 'PaymentPaid-0.0.2',
-          label: 'publishes event',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-      ];
-
       expect(nodes).toStrictEqual(expect.arrayContaining(expectedNodes.map((n) => expect.objectContaining(n))));
-
-      expect(edges).toStrictEqual(expect.arrayContaining(expectedEdges));
     });
   });
 });

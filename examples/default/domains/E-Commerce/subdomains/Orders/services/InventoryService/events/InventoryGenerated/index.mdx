@@ -1,0 +1,84 @@
+---
+id: InventoryGenerated
+version: 0.0.1
+name: Inventory Generated
+summary: Emitted when new inventory is generated or created for a product
+tags:
+  - inventory
+  - stock
+  - warehouse
+badges:
+  - content: New Event
+    backgroundColor: blue
+    textColor: white
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+The `InventoryGenerated` event is emitted by the Inventory Service when new inventory is created or generated for a product. This event is typically triggered when products are received from suppliers, restocked, or when new inventory records are initialized in the system.
+
+## Event Flow
+
+1. InventoryService receives new stock from supplier or warehouse
+2. System validates product information and quantities
+3. Inventory record is created in the database
+4. `InventoryGenerated` event is emitted
+5. Downstream services (OrdersService, AnalyticsService) receive the event
+6. Product availability is updated across the system
+
+## Schema
+
+<SchemaViewer title="InventoryGenerated Schema" file={frontmatter.schemaPath} />
+
+## Example Payload
+
+```json
+{
+  "eventId": "evt_inv_20240215_001",
+  "timestamp": "2024-02-15T10:30:00Z",
+  "inventoryId": "inv_ABC123XYZ",
+  "productId": "prod_789456",
+  "sku": "SKU-2024-WIDGET-BLUE",
+  "productName": "Premium Widget - Blue",
+  "quantity": 500,
+  "unitCost": 12.50,
+  "totalValue": 6250.00,
+  "currency": "USD",
+  "warehouseId": "wh_MAIN_001",
+  "warehouseName": "Main Distribution Center",
+  "warehouseLocation": "Aisle 12, Shelf 3, Bin 7",
+  "supplierId": "supp_ACME_CORP",
+  "supplierName": "ACME Corporation",
+  "purchaseOrderId": "PO-2024-0123",
+  "batchNumber": "BATCH-2024-02-15-001",
+  "expirationDate": "2025-12-31",
+  "receivedBy": "user_john_doe",
+  "receivedAt": "2024-02-15T09:45:00Z",
+  "status": "active",
+  "metadata": {
+    "source": "manual_entry",
+    "qualityCheck": true,
+    "temperature": 22.5,
+    "humidity": 45
+  }
+}
+```
+
+## Use Cases
+
+- **Stock Replenishment**: Triggered when new stock arrives from suppliers
+- **Initial Setup**: When setting up inventory for new products
+- **Bulk Import**: When importing inventory from external systems
+- **Warehouse Transfer**: When inventory is transferred between warehouses
+
+## Related Events
+
+- `InventoryAdjusted` - When inventory levels are modified
+- `OutOfStock` - When inventory reaches zero
+- `LowStockAlert` - When inventory falls below threshold
+
+<Footer />
+

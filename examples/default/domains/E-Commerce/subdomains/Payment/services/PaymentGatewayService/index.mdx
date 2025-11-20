@@ -12,6 +12,8 @@ repository:
 receives:
   - id: ProcessPayment
     version: 0.0.1
+    from:
+      - id: 'payment-domain-eventbus'
   - id: FraudCheckCompleted
     version: 0.0.1
 sends:

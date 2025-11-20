@@ -15,6 +15,7 @@ import boxen from 'boxen';
 import { isOutputServer, getProjectOutDir, isAuthEnabled } from './features';
 import updateNotifier from 'update-notifier';
 import dotenv from 'dotenv';
+import { runMigrations } from './migrations';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -182,6 +183,9 @@ program
     // We need to convert all the md files to mdx to use Astro Glob Loaders
     await checkAndConvertMdToMdx(dir, core);
 
+    // Run any migrations for the catalog
+    await runMigrations(dir);
+
     // Move files like public directory to the root of the eventcatalog-core directory
     await catalogToAstro(dir, core);
 
@@ -275,6 +279,9 @@ program
 
     // We need to convert all the md files to mdx to use Astro Glob Loaders
     await checkAndConvertMdToMdx(dir, core);
+
+    // Run any migrations for the catalog
+    await runMigrations(dir);
 
     await catalogToAstro(dir, core);
 

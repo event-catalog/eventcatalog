@@ -5,17 +5,16 @@ version: 0.0.1
 summary: |
   Service that handles payments
 owners:
-    - dboyne
+  - dboyne
 receives:
   - id: PaymentInitiated
     version: 0.0.1
-  - id: GetPaymentStatus
-  - id: UserSubscriptionStarted
-  - id: InventoryAdjusted
+    from:
+      - id: 'payments.{env}.events'
+        parameters:
+          env: staging
 sends:
   - id: PaymentProcessed
-    version: 0.0.1
-  - id: GetOrder
 writesTo:
   - id: payments-db
     version: 0.0.1
@@ -30,7 +29,7 @@ readsFrom:
     version: 0.0.1
 repository:
   language: JavaScript
-  url: https://github.com/event-catalog/pretend-shipping-service
+  url: 'https://github.com/event-catalog/pretend-shipping-service'
 ---
 
 The Payment Service is a crucial component of our system that handles all payment-related operations. It processes payments, manages transactions, and communicates with other services through events. Using an event-driven architecture, it ensures that all actions are asynchronous, decoupled, and scalable.

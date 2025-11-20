@@ -1,0 +1,23 @@
+---
+id: cross-account-bus
+name: Organization Cross Account Bus
+version: 1.0.0
+summary: |
+  Amazon Organization Cross Account Bus
+owners:
+  - dboyne
+address: cross-account-bus.amazonaws.com
+protocols: 
+  - aws-cross-account-bus
+parameters:
+  accountId:
+    description: 'The AWS account ID to use'
+routes:
+  - id: registrations-domain-eventbus
+  - id: shipping-domain-eventbus
+  # - id: orders-domain-eventbus
+---
+
+{/* Information about the AWS cross account eventbridge bus */}
+
+Full this....

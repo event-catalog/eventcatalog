@@ -1,0 +1,33 @@
+---
+id: InvoiceGenerated
+version: 0.0.1
+name: Invoice Generated
+summary: Emitted when an invoice is generated for a subscription
+tags:
+  - billing
+  - payment
+  - cross-domain
+badges:
+  - content: Cross-Domain
+    backgroundColor: purple
+    textColor: white
+schemaPath: schema.json
+---
+
+import Footer from '@catalog/components/footer.astro'
+
+## Overview
+
+The `InvoiceGenerated` event is emitted by the Billing Service when an invoice has been successfully generated for a subscription. This event notifies other services that a new invoice is available and ready for payment processing.
+
+## Cross-Domain Communication
+
+This event facilitates communication between:
+- **Source**: Subscriptions Domain (BillingService)
+- **Target**: Payment Domain (PaymentService), Notification Services, Accounting Systems
+
+## Schema
+
+<SchemaViewer title="InvoiceGenerated Schema" file="schema.json" />
+
+<Footer />

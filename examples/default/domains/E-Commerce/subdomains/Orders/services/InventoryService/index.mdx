@@ -5,19 +5,31 @@ name: Inventory Service
 summary: |
   Service that handles the inventory
 owners:
-    - order-management
+  - order-management
 receives:
+  - id: UserSignedUp
   - id: OrderConfirmed
-  - id: GetInventoryList
+    from:
+      - id: inventory-service-filter-by-orders-over-100
   - id: OrderAmended
+    from:
+      - id: orders-domain-eventbus
   - id: UpdateInventory
+    from:
+      - id: inventory-domain-eventbus
   - id: AddInventory
-  - id: GetInventoryStatus
+    from:
+      - id: inventory-domain-eventbus
   - id: DeleteInventory
+    from:
+      - id: inventory-domain-eventbus
 sends:
   - id: InventoryAdjusted
+    to:
+      - id: orders-domain-eventbus
   - id: OutOfStock
-  - id: GetOrder
+    to:
+      - id: orders-domain-eventbus 
 writesTo:
   - id: inventory-db
     version: 0.0.1
@@ -30,12 +42,16 @@ readsFrom:
     version: 0.0.1
 repository:
   language: JavaScript
-  url: https://github.com/event-catalog/pretend-shipping-service
+  url: 'https://github.com/event-catalog/pretend-shipping-service'
 deprecated:
-  date: 2026-05-01
-  message: |
-    This service is **being deprecated** and replaced by the new service **InventoryServiceV2**.
-    Please contact the [team for more information](mailto:inventory-team@example.com) or visit our [website](https://eventcatalog.dev).
+  date: 2026-05-01T00:00:00.000Z
+  message: >
+    This service is **being deprecated** and replaced by the new service
+    **InventoryServiceV2**.
+
+    Please contact the [team for more
+    information](mailto:inventory-team@example.com) or visit our
+    [website](https://eventcatalog.dev).
 ---
 
 import Footer from '@catalog/components/footer.astro';

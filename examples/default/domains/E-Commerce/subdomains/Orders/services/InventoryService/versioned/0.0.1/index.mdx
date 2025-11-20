@@ -5,20 +5,36 @@ name: Inventory Service
 summary: |
   Service that handles the inventory
 owners:
-    - dboyne
-    - full-stack
-    - mobile-devs
+  - dboyne
+  - full-stack
+  - mobile-devs
 receives:
   - id: OrderConfirmed
+    from:
+      - id: 'orders.{env}.events'
   - id: OrderCancelled
+    from:
+      - id: 'orders.{env}.events'
   - id: OrderAmended
+    from:
+      - id: 'orders.{env}.events'
+        parameters:
+          env: staging
   - id: UpdateInventory
+    from:
+      - id: 'inventory.{env}.events'
+        parameters:
+          env: staging
 sends:
   - id: InventoryAdjusted
+    to:
+      - id: 'inventory.{env}.events'
   - id: OutOfStock
+    to:
+      - id: 'inventory.{env}.events'
 repository:
   language: JavaScript
-  url: https://github.com/event-catalog/pretend-shipping-service
+  url: 'https://github.com/event-catalog/pretend-shipping-service'
 ---
 
 ## Overview

@@ -5,31 +5,37 @@ version: 0.0.1
 summary: |
   Indicates an order has been changed
 owners:
-    - order-management
+  - order-management
 badges:
-    - content: Recently updated!
-      backgroundColor: green
-      textColor: green
-    - content: Broker:Apache Kafka
-      backgroundColor: yellow
-      textColor: yellow
-      icon: kafka
+  - content: Recently updated!
+    backgroundColor: green
+    textColor: green
+  - content: 'Broker:Apache Kafka'
+    backgroundColor: yellow
+    textColor: yellow
+    icon: kafka
 schemaPath: schema.avro
-channels:
-  - id: orders.{env}.events
-    parameters:
-      env: staging
-draft: 
-  title: "In draft awaiting feedback"
-  message: |
+draft:
+  title: In draft awaiting feedback
+  message: >
     ### Use with caution, still in draft
-    This event is still in draft. It is not yet ready for production. We are still working on it and collecting feedback from the team.
-    If you would like to provide feedback, please contact us at [feedback@eventcatalog.io](mailto:feedback@eventcatalog.io) or our slack channel [Order Management](https://join.slack.com/t/eventcatalog/shared_invite/zt-1q900000000000000000000000000000).
 
-    If you are looking for a similar event, you can still use the [OrderConfirmed](/docs/events/OrderConfirmed/0.0.1) event, until it is deprecated.
+    This event is still in draft. It is not yet ready for production. We are
+    still working on it and collecting feedback from the team.
 
-    If you want to use this event in lower environments, you can. We are looking for feedback on the event and how it is used in the team.
+    If you would like to provide feedback, please contact us at
+    [feedback@eventcatalog.io](mailto:feedback@eventcatalog.io) or our slack
+    channel [Order
+    Management](https://join.slack.com/t/eventcatalog/shared_invite/zt-1q900000000000000000000000000000).
 
+
+    If you are looking for a similar event, you can still use the
+    [OrderConfirmed](/docs/events/OrderConfirmed/0.0.1) event, until it is
+    deprecated.
+
+
+    If you want to use this event in lower environments, you can. We are looking
+    for feedback on the event and how it is used in the team.
 ---
 
 import Footer from '@catalog/components/footer.astro';

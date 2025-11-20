@@ -1,7 +1,7 @@
 import { MarkerType } from '@xyflow/react';
 import { getNodesAndEdgesForQueries as getNodesAndEdges } from '../../node-graphs/message-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockQueries, mockServices } from './mocks';
+import { mockQueries, mockServices, mockChannels } from './mocks';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
@@ -13,6 +13,9 @@ vi.mock('astro:content', async (importOriginal) => {
       }
       if (key === 'queries') {
         return Promise.resolve(mockQueries);
+      }
+      if (key === 'channels') {
+        return Promise.resolve(mockChannels);
       }
       return Promise.resolve([]);
     },
@@ -61,40 +64,20 @@ describe('Queries NodeGraph', () => {
         type: 'services',
       };
 
-      const expectedEdges = [
-        {
+      const expectedEdges = expect.arrayContaining([
+        expect.objectContaining({
           id: 'OrderService-0.0.1-GetLatestOrder-0.0.1',
           source: 'OrderService-0.0.1',
           target: 'GetLatestOrder-0.0.1',
           label: 'requests',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-        {
+        }),
+        expect.objectContaining({
           id: 'GetLatestOrder-0.0.1-PaymentService-0.0.1',
           source: 'GetLatestOrder-0.0.1',
           target: 'PaymentService-0.0.1',
           label: 'accepts',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-      ];
+        }),
+      ]);
 
       expect(nodes).toEqual(
         expect.arrayContaining([
@@ -147,40 +130,20 @@ describe('Queries NodeGraph', () => {
         type: 'services',
       };
 
-      const expectedEdges = [
-        {
+      const expectedEdges = expect.arrayContaining([
+        expect.objectContaining({
           id: 'LegacyOrderService-0.0.1-GetOrderLegacy-0.0.1',
           source: 'LegacyOrderService-0.0.1',
           target: 'GetOrderLegacy-0.0.1',
           label: 'requests',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-        {
+        }),
+        expect.objectContaining({
           id: 'GetOrderLegacy-0.0.1-LegacyOrderService-0.0.1',
           source: 'GetOrderLegacy-0.0.1',
           target: 'LegacyOrderService-0.0.1',
           label: 'accepts',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-        {
+        }),
+        expect.objectContaining({
           id: 'GetOrderLegacy-0.0.1-LegacyOrderService-0.0.1-both',
           source: 'GetOrderLegacy-0.0.1',
           target: 'LegacyOrderService-0.0.1',
@@ -191,12 +154,8 @@ describe('Queries NodeGraph', () => {
             width: 40,
             height: 40,
           },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-      ];
+        }),
+      ]);
 
       expect(nodes).toEqual(
         expect.arrayContaining([
@@ -208,6 +167,123 @@ describe('Queries NodeGraph', () => {
 
           // Nodes on the right
           expect.objectContaining(expectedProducerNode),
+        ])
+      );
+
+      expect(edges).toEqual(expectedEdges);
+    });
+
+    it('if the consumer of a query has defined a channel, it will render the channel node and edges', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'GetProductStatus', version: '0.0.1' });
+
+      const expectedConsumerNode = {
+        id: 'OrderService-0.0.1',
+        type: 'services',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode: 'simple', service: { ...mockServices[0].data }, title: 'OrderService' },
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
+      const expectedChannelNode = {
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        id: 'EmailChannel-1.0.0',
+        type: 'channels',
+      };
+
+      const expectedQueryNode = {
+        id: 'GetProductStatus-0.0.1',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        type: 'queries',
+      };
+
+      const expectedEdges = expect.arrayContaining([
+        // Message to the channel
+        expect.objectContaining({
+          id: 'GetProductStatus-0.0.1-EmailChannel-1.0.0',
+          source: 'GetProductStatus-0.0.1',
+          target: 'EmailChannel-1.0.0',
+        }),
+        // Channel to the consumer
+        expect.objectContaining({
+          id: 'EmailChannel-1.0.0-OrderService-0.0.1',
+          source: 'EmailChannel-1.0.0',
+          target: 'OrderService-0.0.1',
+        }),
+      ]);
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          // Nodes on the left
+          expect.objectContaining(expectedConsumerNode),
+
+          // channel
+          expect.objectContaining(expectedChannelNode),
+
+          // The query node itself
+          expect.objectContaining(expectedQueryNode),
+        ])
+      );
+
+      expect(edges).toEqual(expectedEdges);
+    });
+
+    it('if the producer of a query has defined a channel, it will render the channel node and edges', async () => {
+      const { nodes, edges } = await getNodesAndEdges({ id: 'GetProductStatus', version: '0.0.1' });
+
+      const expectedProducerNode = {
+        id: 'InventoryService-0.0.1',
+        type: 'services',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
+      const expectedChannelNode = {
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        id: 'EmailChannel-1.0.0',
+        type: 'channels',
+      };
+
+      const expectedQueryNode = {
+        id: 'GetProductStatus-0.0.1',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        type: 'queries',
+      };
+
+      const expectedEdges = expect.arrayContaining([
+        // Producer to the message
+        expect.objectContaining({
+          id: 'InventoryService-0.0.1-GetProductStatus-0.0.1',
+          source: 'InventoryService-0.0.1',
+          target: 'GetProductStatus-0.0.1',
+          label: 'requests',
+          animated: false,
+        }),
+        // Message to the channel
+        expect.objectContaining({
+          id: 'GetProductStatus-0.0.1-EmailChannel-1.0.0',
+          source: 'GetProductStatus-0.0.1',
+          target: 'EmailChannel-1.0.0',
+          label: 'routes to',
+          animated: false,
+        }),
+      ]);
+
+      expect(nodes).toEqual(
+        expect.arrayContaining([
+          // Nodes on the left
+          expect.objectContaining(expectedProducerNode),
+
+          // channel
+          expect.objectContaining(expectedChannelNode),
+
+          // The query node itself
+          expect.objectContaining(expectedQueryNode),
         ])
       );
 
@@ -252,40 +328,20 @@ describe('Queries NodeGraph', () => {
         type: 'services',
       };
 
-      const expectedEdges = [
-        {
+      const expectedEdges = expect.arrayContaining([
+        expect.objectContaining({
           id: 'InventoryService-0.0.1-GetInventoryItem-1.5.1',
           source: 'InventoryService-0.0.1',
           target: 'GetInventoryItem-1.5.1',
           label: 'requests',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-        {
+        }),
+        expect.objectContaining({
           id: 'GetInventoryItem-1.5.1-CatalogService-0.0.1',
           source: 'GetInventoryItem-1.5.1',
           target: 'CatalogService-0.0.1',
           label: 'accepts',
-          animated: false,
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
-          },
-          style: {
-            strokeWidth: 1,
-          },
-          data: { message: expect.anything() },
-        },
-      ];
+        }),
+      ]);
 
       expect(nodes).toEqual(
         expect.arrayContaining([

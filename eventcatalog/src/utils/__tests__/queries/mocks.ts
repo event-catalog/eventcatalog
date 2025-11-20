@@ -12,6 +12,18 @@ export const mockServices = [
           version: '0.0.1',
         },
       ],
+      receives: [
+        {
+          id: 'GetProductStatus',
+          version: '0.0.1',
+          from: [
+            {
+              id: 'EmailChannel',
+              version: '1.0.0',
+            },
+          ],
+        },
+      ],
     },
   },
   {
@@ -43,6 +55,13 @@ export const mockServices = [
         },
         {
           id: 'GetProductStatus',
+          version: '0.0.1',
+          from: [
+            {
+              id: 'EmailChannel',
+              version: '1.0.0',
+            },
+          ],
         },
         {
           id: 'GetStockStatus',
@@ -143,6 +162,18 @@ export const mockQueries = [
     data: {
       id: 'GetOrderLegacy',
       version: '0.0.1',
+    },
+  },
+];
+
+export const mockChannels = [
+  {
+    id: 'EmailChannel',
+    slug: 'EmailChannel',
+    collection: 'channels',
+    data: {
+      id: 'EmailChannel',
+      version: '1.0.0',
     },
   },
 ];

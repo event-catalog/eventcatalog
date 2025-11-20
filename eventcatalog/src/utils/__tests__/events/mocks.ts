@@ -10,6 +10,12 @@ export const mockServices = [
         {
           id: 'OrderCreatedEvent',
           version: '0.0.1',
+          to: [
+            {
+              id: 'EmailChannel',
+              version: '1.0.0',
+            },
+          ],
         },
       ],
     },
@@ -79,6 +85,12 @@ export const mockServices = [
       receives: [
         {
           id: 'EmailSent',
+          from: [
+            {
+              id: 'EmailChannel',
+              version: '1.0.0',
+            },
+          ],
         },
       ],
       sends: [
@@ -167,12 +179,6 @@ export const mockEvents = [
     data: {
       id: 'EmailVerified',
       version: '1.0.0',
-      channels: [
-        {
-          id: 'EmailChannel',
-          version: '1.0.0',
-        },
-      ],
     },
   },
 ];

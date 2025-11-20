@@ -5,27 +5,28 @@ name: Notifications
 summary: |
   Service that handles notifications across multiple channels (email, SMS, push)
 owners:
-    - order-management
+  - order-management
+sends: 
+  - id: NotificationSent
 receives:
   - id: InventoryAdjusted
-    version: ">1.0.0"
+    from:
+      - id: notifications-queue
   - id: PaymentProcessed
-    version: ^1.0.0
-  - id: GetUserNotifications
-    version: x
-  - id: GetNotificationDetails
-    version: x
-sends:
+    from:
+      - id: notifications-queue
+  - id: InvoiceGenerated
+    from:
+      - id: notifications-queue
   - id: OutOfStock
-    version: latest
-  - id: GetInventoryList
-    version: 0.0.x
+    from:
+      - id: notifications-queue
 readsFrom:
   - id: notifications-queue
     version: 0.0.1
 repository:
   language: JavaScript
-  url: https://github.com/event-catalog/pretend-shipping-service
+  url: 'https://github.com/event-catalog/pretend-shipping-service'
 ---
 
 import Footer from '@catalog/components/footer.astro';

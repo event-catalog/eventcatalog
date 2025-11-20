@@ -5,20 +5,23 @@ name: Subscription Service
 summary: |
   Service that handles subscriptions
 owners:
-    - subscriptions-management
+  - subscriptions-management
 receives:
-  - id: SubscribeUser
-    version: 0.0.1
-  - id: CancelSubscription
-    version: 0.0.1
-  - id: GetSubscriptionStatus
   - id: PaymentProcessed
     version: 0.0.1
+    from:
+      - id: 'payments.{env}.events'
+        parameters:
+          env: staging
 sends:
   - id: UserSubscriptionStarted
     version: 0.0.1
+    to:
+      - id: 'subscription-domain-eventbus'
   - id: UserSubscriptionCancelled
     version: 0.0.1
+    to:
+      - id: 'subscription-domain-eventbus'
 writesTo:
   - id: subscriptions-db
     version: 0.0.1
@@ -29,7 +32,7 @@ readsFrom:
     version: 0.0.1
 repository:
   language: JavaScript
-  url: https://github.com/event-catalog/pretend-subscription-service
+  url: 'https://github.com/event-catalog/pretend-subscription-service'
 ---
 
 import Footer from '@catalog/components/footer.astro';

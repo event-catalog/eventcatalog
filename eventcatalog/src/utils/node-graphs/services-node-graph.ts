@@ -6,11 +6,12 @@ import {
   generatedIdForEdge,
   calculatedNodes,
   createEdge,
-  getChannelNodesAndEdges,
 } from '@utils/node-graphs/utils/utils';
+
 import { findMatchingNodes, getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 import { MarkerType } from '@xyflow/react';
 import type { CollectionMessageTypes } from '@types';
+import { getNodesAndEdgesForConsumedMessage, getNodesAndEdgesForProducedMessage } from './message-node-graph';
 
 type DagreGraph = any;
 
@@ -119,42 +120,20 @@ export const getNodesAndEdges = async ({
   if (renderMessages) {
     // All the messages the service receives
     receives.forEach((receive) => {
-      // Create the node for the message
-      nodes.push({
-        id: generateIdForNode(receive),
-        type: receive?.collection,
-        sourcePosition: 'right',
-        targetPosition: 'left',
-        data: { mode, message: { ...receive.data } },
+      const targetChannels = receivesRaw.find((receiveRaw) => receiveRaw.id === receive.data.id)?.from;
+
+      const { nodes: consumedMessageNodes, edges: consumedMessageEdges } = getNodesAndEdgesForConsumedMessage({
+        message: receive,
+        targetChannels: targetChannels,
+        services,
+        currentNodes: nodes,
+        target: service,
+        mode,
+        channels,
       });
 
-      // does the message have channels defined?
-      if (receive.data.channels) {
-        const { nodes: channelNodes, edges: channelEdges } = getChannelNodesAndEdges({
-          channels,
-          channelsToRender: receive.data.channels,
-          source: receive,
-          channelToTargetLabel: getReceivesMessageByMessageType(receive?.collection),
-          target: service,
-          mode,
-          currentNodes: nodes,
-          channelRenderMode,
-        });
-
-        nodes.push(...channelNodes);
-        edges.push(...channelEdges);
-      } else {
-        // No channels, just link the message to the service
-        edges.push(
-          createEdge({
-            id: generatedIdForEdge(receive, service),
-            source: generateIdForNode(receive),
-            target: generateIdForNode(service),
-            label: getReceivesMessageByMessageType(receive?.collection),
-            data: { message: { ...receive.data } },
-          })
-        );
-      }
+      nodes.push(...consumedMessageNodes);
+      edges.push(...consumedMessageEdges);
     });
   }
 
@@ -230,42 +209,22 @@ export const getNodesAndEdges = async ({
   });
 
   if (renderMessages) {
-    // The messages the service sends
-    sends.forEach((send, index) => {
-      nodes.push({
-        id: generateIdForNode(send),
-        sourcePosition: 'right',
-        targetPosition: 'left',
-        data: { mode, message: { ...send.data } },
-        type: send?.collection,
+    sends.forEach((send) => {
+      const sourceChannels = sendsRaw.find((sendRaw) => sendRaw.id === send.data.id)?.to;
+
+      const { nodes: producedMessageNodes, edges: producedMessageEdges } = getNodesAndEdgesForProducedMessage({
+        message: send,
+        sourceChannels: sourceChannels,
+        services,
+        currentNodes: nodes,
+        source: service,
+        currentEdges: edges,
+        mode,
+        channels,
       });
 
-      if (send.data.channels) {
-        const { nodes: channelNodes, edges: channelEdges } = getChannelNodesAndEdges({
-          channels,
-          channelsToRender: send.data.channels,
-          source: service,
-          target: send,
-          mode,
-          sourceToChannelLabel: `${getSendsMessageByMessageType(send?.collection)}`,
-          channelToTargetLabel: getSendsMessageByMessageType(send?.collection),
-          currentNodes: nodes,
-          channelRenderMode,
-        });
-        nodes.push(...channelNodes);
-        edges.push(...channelEdges);
-      } else {
-        // No channels, just link the message to the service
-        edges.push(
-          createEdge({
-            id: generatedIdForEdge(service, send),
-            source: generateIdForNode(service),
-            target: generateIdForNode(send),
-            label: getSendsMessageByMessageType(send?.collection),
-            data: { message: { ...send.data } },
-          })
-        );
-      }
+      nodes.push(...producedMessageNodes);
+      edges.push(...producedMessageEdges);
     });
 
     // Handle messages that are both sent and received
@@ -325,8 +284,25 @@ export const getNodesAndEdges = async ({
   // Render the diagram in memory getting the X and Y
   dagre.layout(flow);
 
+  // Find any duplicated edges, and merge them into one edge
+  const uniqueEdges = edges.reduce((acc: any[], edge: any) => {
+    const existingEdge = acc.find((e: any) => e.id === edge.id);
+    if (existingEdge) {
+      existingEdge.label = `${existingEdge.label} & ${edge.label}`;
+      // Add the custom colors to the existing edge which can be an array of strings
+      const value = Array.isArray(edge.data.customColor) ? edge.data.customColor : [edge.data.customColor];
+      const existingValue = Array.isArray(existingEdge.data.customColor)
+        ? existingEdge.data.customColor
+        : [existingEdge.data.customColor];
+      existingEdge.data.customColor = [...value, ...existingValue];
+    } else {
+      acc.push(edge);
+    }
+    return acc;
+  }, []);
+
   return {
     nodes: calculatedNodes(flow, nodes),
-    edges,
+    edges: uniqueEdges,
   };
 };

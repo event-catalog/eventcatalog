@@ -82,11 +82,23 @@ export const mockServices = [
         },
         {
           id: 'OrderDeletedEvent',
+          from: [
+            {
+              id: 'EmailChannel',
+              version: '1.0.0',
+            },
+          ],
         },
       ],
       sends: [
         {
           id: 'PaymentPaid',
+          to: [
+            {
+              id: 'EmailChannel',
+              version: '1.0.0',
+            },
+          ],
         },
         {
           id: 'PaymentFailed',

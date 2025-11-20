@@ -14,8 +14,6 @@ export const getEventCatalogResources = async () => {
   const url = new URL('/docs/llm/llms.txt', baseUrl);
   const response = await fetch(url.toString());
   const text = await response.text();
-  console.log('URL', url.toString());
-  // console.log('TEXT', text);
   return text;
 };
 
@@ -102,7 +100,6 @@ export class AIProvider {
           ].join('\n'),
           inputSchema: z.object({}),
           execute: async () => {
-            console.log('TOOL HAS BEEN CALLED');
             const text = await getEventCatalogResources();
             return text;
           },
@@ -133,7 +130,6 @@ export class AIProvider {
               .describe('The type of resource to find'),
           }),
           execute: async ({ id, version, type }) => {
-            console.log('TOOL HAS BEEN CALLED TO GET DETAILED INFORMATION ABOUT A RESOURCE');
             const text = await getResourceInformation(type, id, version);
             return text;
           },

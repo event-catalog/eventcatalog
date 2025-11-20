@@ -1,0 +1,21 @@
+---
+id: OrdersService
+version: 0.0.1
+name: Orders Service
+summary: |
+  Service that handles orders
+owners:
+  - order-management
+receives:
+  - id: InventoryAdjusted
+    from:
+      - id: eventbus
+        version: 1.0.0
+sends:
+  - id: OrderAmended
+    to:
+      - id: eventbus
+        version: 1.0.0
+---
+
+Example Inventory Service

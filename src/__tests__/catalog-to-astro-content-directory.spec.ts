@@ -20,8 +20,6 @@ describe('catalog-to-astro-content-directory', () => {
     await fs.mkdir(ASTRO_CONTENT_DIRECTORY, { recursive: true });
     await fs.writeFile(path.join(ASTRO_CONTENT_DIRECTORY, 'config.ts'), 'export const config = {};');
 
-    // console.log(path.join(ASTRO_OUTPUT, 'config.ts'))
-
     // Convert the catalog
     await catalogToAstro(CATALOG_DIR, ASTRO_OUTPUT);
   });

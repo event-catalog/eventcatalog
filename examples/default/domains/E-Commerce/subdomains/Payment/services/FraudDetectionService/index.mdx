@@ -4,14 +4,14 @@ version: 0.0.1
 name: Fraud Detection Service
 summary: Analyzes payment transactions for fraudulent activity and risk assessment
 repository:
-  url: https://github.com/eventcatalog/fraud-detection-service
+  url: 'https://github.com/eventcatalog/fraud-detection-service'
 receives:
   - id: PaymentInitiated
     version: 0.0.1
-  - id: PaymentProcessed
-    version: 0.0.1
-  - id: SubscriptionPaymentDue
-    version: 0.0.1
+    from:
+      - id: 'payments.{env}.events'
+        parameters:
+          env: staging
 sends:
   - id: FraudCheckCompleted
     version: 0.0.1
