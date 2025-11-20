@@ -27,8 +27,8 @@ export const useEventCatalogVisualiser = ({
   skipProcessing = false,
 }: EventCatalogVisualizerProps) => {
   const [hideChannels, setHideChannels] = useState(false);
-  const [initialNodes] = useState(nodes);
-  const [initialEdges] = useState(edges);
+  const [initialNodes, setInitialNodes] = useState(nodes);
+  const [initialEdges, setInitialEdges] = useState(edges);
 
   // Initialize hideChannels from localStorage
   useEffect(() => {
@@ -37,6 +37,14 @@ export const useEventCatalogVisualiser = ({
       setHideChannels(storedHideChannels === 'true');
     }
   }, []);
+
+  useEffect(() => {
+    const hasChannels = nodes.some((node) => node.type === 'channels');
+    if (!hideChannels || hasChannels) {
+      setInitialNodes(nodes);
+      setInitialEdges(edges);
+    }
+  }, [nodes, edges, hideChannels]);
 
   const toggleChannelsVisibility = useCallback(() => {
     setHideChannels((prev) => {
@@ -50,7 +58,7 @@ export const useEventCatalogVisualiser = ({
   const updatedNodes = useMemo(() => nodes.filter((node) => node.type !== 'channels'), [nodes]);
 
   const updatedEdges = useMemo(() => {
-    return edges.reduce<Edge[]>((acc, edge) => {
+    const newEdges = edges.reduce<Edge[]>((acc, edge) => {
       const { source, target, data } = edge;
       const targetIsChannel = channels.some((channel) => channel.id === target);
       const sourceIsChannel = channels.some((channel) => channel.id === source);
@@ -59,29 +67,41 @@ export const useEventCatalogVisualiser = ({
         return [...acc, edge];
       }
 
-      const dataTarget = data?.target as CollectionEntry<CollectionTypes>;
-      const dataSource = data?.source as CollectionEntry<CollectionTypes>;
+      if (sourceIsChannel || targetIsChannel) {
+        const rootSourceAndTarget = data?.rootSourceAndTarget as {
+          source: { id: string; collection: string };
+          target: { id: string; collection: string };
+        };
 
-      // if (sourceIsChannel) {
-      //   const edgeLabel =
-      //     dataTarget?.collection === 'services'
-      //       ? getEdgeLabelForMessageAsSource(dataSource as CollectionEntry<CollectionMessageTypes>)
-      //       : getEdgeLabelForServiceAsTarget(dataTarget as CollectionEntry<CollectionMessageTypes>);
+        if (!rootSourceAndTarget) {
+          return [...acc, edge];
+        }
 
-      //   return [
-      //     ...acc,
-      //     createEdge({
-      //       id: generatedIdForEdge(dataSource, dataTarget),
-      //       source: generateIdForNode(dataSource),
-      //       target: generateIdForNode(dataTarget),
-      //       label: edgeLabel,
-      //     }),
-      //   ];
-      // }
+        // is target services?
+        const targetIsService = rootSourceAndTarget?.target?.collection === 'services';
+        const edgeLabel = targetIsService
+          ? getEdgeLabelForMessageAsSource(rootSourceAndTarget.source as any)
+          : getEdgeLabelForServiceAsTarget(rootSourceAndTarget.target as any);
 
-      return [...acc, edge];
+        const newEdgeId = `${rootSourceAndTarget.source.id}-${rootSourceAndTarget.target.id}`;
+
+        return [
+          ...acc,
+          createEdge({
+            id: newEdgeId,
+            source: rootSourceAndTarget.source.id,
+            target: rootSourceAndTarget.target.id,
+            label: edgeLabel,
+          }),
+        ];
+      }
+      return acc;
     }, []);
+
+    return newEdges.filter((edge, index, self) => index === self.findIndex((t) => t.id === edge.id));
   }, [edges, channels]);
+
+  // console.log('UPDATED EDGES', JSON.stringify(updatedEdges, null, 2));
 
   useEffect(() => {
     // Skip processing if there are no channels to manage

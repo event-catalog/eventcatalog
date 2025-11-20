@@ -102,6 +102,11 @@ const getNodesAndEdges = async ({
 
     const producerHasChannels = producerChannelConfiguration?.length > 0;
 
+    const rootSourceAndTarget = {
+      source: { id: generateIdForNode(producer), collection: producer.collection },
+      target: { id: generateIdForNode(message), collection: message.collection },
+    };
+
     // If the producer does not have any channels defined, then we just connect the producer to the event directly
     if (!producerHasChannels) {
       edges.push({
@@ -109,7 +114,7 @@ const getNodesAndEdges = async ({
         source: generateIdForNode(producer),
         target: generateIdForNode(message),
         label: getEdgeLabelForServiceAsTarget(message),
-        data: { message, customColor: getColorFromString(message.data.id) },
+        data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
         animated: false,
         markerEnd: {
           type: MarkerType.ArrowClosed,
@@ -136,7 +141,7 @@ const getNodesAndEdges = async ({
             source: generateIdForNode(producer),
             target: generateIdForNode(message),
             label: getEdgeLabelForMessageAsSource(message),
-            data: { customColor: getColorFromString(message.data.id) },
+            data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
           })
         );
         continue;
@@ -158,7 +163,7 @@ const getNodesAndEdges = async ({
           id: generatedIdForEdge(producer, message),
           source: generateIdForNode(producer),
           target: generateIdForNode(message),
-          data: { customColor: getColorFromString(message.data.id) },
+          data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
           label: getEdgeLabelForServiceAsTarget(message),
         })
       );
@@ -169,7 +174,7 @@ const getNodesAndEdges = async ({
           id: generatedIdForEdge(message, channel),
           source: generateIdForNode(message),
           target: generateIdForNode(channel),
-          data: { customColor: getColorFromString(message.data.id) },
+          data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
           label: 'routes to',
         })
       );
@@ -194,6 +199,11 @@ const getNodesAndEdges = async ({
 
     const consumerHasChannels = consumerChannelConfiguration.length > 0;
 
+    const rootSourceAndTarget = {
+      source: { id: generateIdForNode(message), collection: message.collection },
+      target: { id: generateIdForNode(consumer), collection: consumer.collection },
+    };
+
     // If the consumer does not have any channels defined, connect the consumer to the event directly
     if (!consumerHasChannels) {
       edges.push(
@@ -202,7 +212,7 @@ const getNodesAndEdges = async ({
           source: generateIdForNode(message),
           target: generateIdForNode(consumer),
           label: getEdgeLabelForMessageAsSource(message),
-          data: { customColor: getColorFromString(message.data.id) },
+          data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
         })
       );
     }
@@ -223,7 +233,7 @@ const getNodesAndEdges = async ({
             source: generateIdForNode(message),
             target: generateIdForNode(consumer),
             label: getEdgeLabelForMessageAsSource(message),
-            data: { customColor: getColorFromString(message.data.id) },
+            data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
           })
         );
         continue;
@@ -277,7 +287,7 @@ const getNodesAndEdges = async ({
                 source: generateIdForNode(message),
                 target: generateIdForNode(channel),
                 label: 'routes to',
-                data: { customColor: getColorFromString(message.data.id) },
+                data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
               })
             );
             edges.push(
@@ -286,7 +296,7 @@ const getNodesAndEdges = async ({
                 source: generateIdForNode(channel),
                 target: generateIdForNode(consumer),
                 label: getEdgeLabelForMessageAsSource(message),
-                data: { customColor: getColorFromString(message.data.id) },
+                data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
               })
             );
           }
@@ -312,7 +322,7 @@ const getNodesAndEdges = async ({
             source: generateIdForNode(message),
             target: generateIdForNode(channel),
             label: 'routes to',
-            data: { customColor: getColorFromString(message.data.id) },
+            data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
           })
         );
 
@@ -323,7 +333,7 @@ const getNodesAndEdges = async ({
             source: generateIdForNode(channel),
             target: generateIdForNode(consumer),
             label: getEdgeLabelForMessageAsSource(message),
-            data: { customColor: getColorFromString(message.data.id) },
+            data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
           })
         );
       }
@@ -339,7 +349,7 @@ const getNodesAndEdges = async ({
           source: generateIdForNode(message),
           target: generateIdForNode(_message),
           label: 'publishes and subscribes',
-          data: { message, customColor: getColorFromString(message.data.id) },
+          data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget: { source: message, target: _message } },
         })
       );
     }
@@ -420,6 +430,11 @@ export const getNodesAndEdgesForConsumedMessage = ({
 
   const messageId = generateIdForNode(message);
 
+  const rootSourceAndTarget = {
+    source: { id: generateIdForNode(message), collection: message.collection },
+    target: { id: generateIdForNode(target), collection: target.collection },
+  };
+
   // Render the message node
   nodes.push(
     createNode({
@@ -462,7 +477,7 @@ export const getNodesAndEdgesForConsumedMessage = ({
         source: messageId,
         target: generateIdForNode(target),
         label: isMessageEvent ? `⚠️ No producers found \n ${message.data.name}` : getEdgeLabelForMessageAsSource(message),
-        data: { customColor: getColorFromString(message.data.id), warning: isMessageEvent },
+        data: { customColor: getColorFromString(message.data.id), warning: isMessageEvent, rootSourceAndTarget },
       })
     );
   }
@@ -484,7 +499,7 @@ export const getNodesAndEdgesForConsumedMessage = ({
             source: messageId,
             target: generateIdForNode(target),
             label: getEdgeLabelForMessageAsSource(message),
-            data: { customColor: getColorFromString(message.data.id) },
+            data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
           })
         );
         continue;
@@ -509,7 +524,7 @@ export const getNodesAndEdgesForConsumedMessage = ({
           source: channelId,
           target: generateIdForNode(target),
           label: `consumes \n ${message.data.name}`,
-          data: { customColor: getColorFromString(message.data.id), warning: producers.length === 0 },
+          data: { customColor: getColorFromString(message.data.id), warning: producers.length === 0, rootSourceAndTarget },
         })
       );
 
@@ -523,7 +538,7 @@ export const getNodesAndEdgesForConsumedMessage = ({
             source: messageId,
             target: channelId,
             label: isEvent ? `⚠️ No producers found \n ${message.data.name}` : getEdgeLabelForMessageAsSource(message),
-            data: { customColor: getColorFromString(message.data.id), warning: isEvent },
+            data: { customColor: getColorFromString(message.data.id), warning: isEvent, rootSourceAndTarget },
             markerEnd: {
               type: MarkerType.ArrowClosed,
               width: 40,
@@ -561,7 +576,7 @@ export const getNodesAndEdgesForConsumedMessage = ({
         source: producerId,
         target: messageId,
         label: getEdgeLabelForServiceAsTarget(message),
-        data: { message, customColor: getColorFromString(message.data.id) },
+        data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
       })
     );
 
@@ -581,7 +596,7 @@ export const getNodesAndEdgesForConsumedMessage = ({
           source: messageId,
           target: generateIdForNode(target),
           label: getEdgeLabelForMessageAsSource(message),
-          data: { customColor: getColorFromString(message.data.id) },
+          data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
         })
       );
       continue;
@@ -597,7 +612,13 @@ export const getNodesAndEdgesForConsumedMessage = ({
             source: messageId,
             target: generateIdForNode(targetChannel),
             label: 'routes to',
-            data: { customColor: getColorFromString(message.data.id) },
+            data: {
+              customColor: getColorFromString(message.data.id),
+              rootSourceAndTarget: {
+                source: { id: generateIdForNode(message), collection: message.collection },
+                target: { id: generateIdForNode(target), collection: target.collection },
+              },
+            },
           })
         );
       }
@@ -620,7 +641,13 @@ export const getNodesAndEdgesForConsumedMessage = ({
             source: messageId,
             target: generateIdForNode(target),
             label: getEdgeLabelForMessageAsSource(message),
-            data: { customColor: getColorFromString(message.data.id) },
+            data: {
+              customColor: getColorFromString(message.data.id),
+              rootSourceAndTarget: {
+                source: { id: generateIdForNode(message), collection: message.collection },
+                target: { id: generateIdForNode(target), collection: target.collection },
+              },
+            },
           })
         );
         continue;
@@ -634,7 +661,13 @@ export const getNodesAndEdgesForConsumedMessage = ({
             source: messageId,
             target: generateIdForNode(target),
             label: getEdgeLabelForMessageAsSource(message),
-            data: { customColor: getColorFromString(message.data.id) },
+            data: {
+              customColor: getColorFromString(message.data.id),
+              rootSourceAndTarget: {
+                source: { id: generateIdForNode(message), collection: message.collection },
+                target: { id: generateIdForNode(target), collection: target.collection },
+              },
+            },
           })
         );
         continue;
@@ -671,6 +704,12 @@ export const getNodesAndEdgesForConsumedMessage = ({
               source: messageId,
               target: generateIdForNode(targetChannel),
               label: 'routes to',
+              data: {
+                rootSourceAndTarget: {
+                  source: { id: generateIdForNode(message), collection: message.collection },
+                  target: { id: generateIdForNode(targetChannel), collection: targetChannel.collection },
+                },
+              },
             })
           );
         }
@@ -715,6 +754,11 @@ export const getNodesAndEdgesForProducedMessage = ({
 
   const messageId = generateIdForNode(message);
 
+  const rootSourceAndTarget = {
+    source: { id: generateIdForNode(source), collection: source.collection },
+    target: { id: generateIdForNode(message), collection: message.collection },
+  };
+
   // Render the message node
   nodes.push(
     createNode({
@@ -742,7 +786,7 @@ export const getNodesAndEdgesForProducedMessage = ({
       source: generateIdForNode(source),
       target: messageId,
       label: getEdgeLabelForServiceAsTarget(message),
-      data: { message, customColor: getColorFromString(message.data.id) },
+      data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
     })
   );
 
@@ -770,7 +814,7 @@ export const getNodesAndEdgesForProducedMessage = ({
             source: messageId,
             target: generateIdForNode(source),
             label: getEdgeLabelForMessageAsSource(message),
-            data: { customColor: getColorFromString(message.data.id) },
+            data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
           })
         );
         continue;
@@ -795,7 +839,7 @@ export const getNodesAndEdgesForProducedMessage = ({
           source: messageId,
           target: channelId,
           label: 'routes to',
-          data: { customColor: getColorFromString(message.data.id) },
+          data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
         })
       );
     }
@@ -839,7 +883,7 @@ export const getNodesAndEdgesForProducedMessage = ({
           source: messageId,
           target: consumerId,
           label: getEdgeLabelForMessageAsSource(message),
-          data: { customColor: getColorFromString(message.data.id) },
+          data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
         })
       );
       continue;
@@ -853,7 +897,7 @@ export const getNodesAndEdgesForProducedMessage = ({
         consumerChannel.version
       )[0] as CollectionEntry<'channels'>;
 
-      const edgeProps = { customColor: getColorFromString(message.data.id) };
+      const edgeProps = { customColor: getColorFromString(message.data.id), rootSourceAndTarget };
 
       // If the channel cannot be found in EventCatalog, we just connect the message to the consumer directly
       // as a fallback, rather than just an empty node floating around
@@ -897,7 +941,13 @@ export const getNodesAndEdgesForProducedMessage = ({
             source: generateIdForNode(channel),
             target: generateIdForNode(consumer),
             label: getEdgeLabelForMessageAsSource(message),
-            data: { ...edgeProps },
+            data: {
+              ...edgeProps,
+              rootSourceAndTarget: {
+                source: { id: generateIdForNode(message), collection: message.collection },
+                target: { id: generateIdForNode(consumer), collection: consumer.collection },
+              },
+            },
           })
         );
         continue;
@@ -926,7 +976,13 @@ export const getNodesAndEdgesForProducedMessage = ({
               source: messageId,
               target: generateIdForNode(channel),
               label: 'routes to',
-              data: edgeProps,
+              data: {
+                ...edgeProps,
+                rootSourceAndTarget: {
+                  source: { id: generateIdForNode(message), collection: message.collection },
+                  target: { id: generateIdForNode(consumer), collection: consumer.collection },
+                },
+              },
             })
           );
           edges.push(
@@ -935,7 +991,13 @@ export const getNodesAndEdgesForProducedMessage = ({
               source: generateIdForNode(channel),
               target: generateIdForNode(consumer),
               label: `${getEdgeLabelForMessageAsSource(message, true)} \n ${message.data.name}`,
-              data: { ...edgeProps },
+              data: {
+                ...edgeProps,
+                rootSourceAndTarget: {
+                  source: { id: generateIdForNode(message), collection: message.collection },
+                  target: { id: generateIdForNode(consumer), collection: consumer.collection },
+                },
+              },
             })
           );
         }

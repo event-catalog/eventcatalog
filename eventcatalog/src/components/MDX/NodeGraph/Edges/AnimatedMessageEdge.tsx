@@ -53,7 +53,7 @@ const AnimatedMessageEdge = ({
     // Stagger the animations so multiple colored nodes are visible
     const delay = randomDelay + index * 0.3;
     return (
-      <g className={`z-30 ${opacity === 1 ? 'opacity-100' : 'opacity-10'}`}>
+      <g className={`z-30 ${opacity === 1 ? 'opacity-100' : 'opacity-10'}`} key={`${id}-${color}-${index}`}>
         <circle key={`${id}-${color}-${index}`} cx="0" cy="0" r="7" fill={color}>
           <animateMotion dur="2s" repeatCount="indefinite" path={edgePath} rotate="auto" begin={`${delay}s`}>
             <mpath href={`#${id}`} />
