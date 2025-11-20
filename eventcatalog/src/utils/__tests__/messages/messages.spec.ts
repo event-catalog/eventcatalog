@@ -9,7 +9,7 @@ vi.mock('astro:content', async (importOriginal) => {
     async getCollection<T extends ContentCollectionKey>(key: T, filterFn: (entry: CollectionEntry<T>) => boolean = () => true) {
       switch (key) {
         case 'services':
-          return mockServices.filter(filterFn);
+          return mockServices.filter(filterFn as any);
         case 'events':
           return mockEvents.filter(filterFn as any);
         case 'commands':
