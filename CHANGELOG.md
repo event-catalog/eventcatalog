@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.65.0-beta.0
+
+### Minor Changes
+
+- 81033b8: feat(core): refactored channel configuration for eventcataog
+
 ## 2.64.4
 
 ### Patch Changes

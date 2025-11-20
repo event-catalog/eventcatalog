@@ -4,5 +4,7 @@
   "initialVersions": {
     "@eventcatalog/core": "2.64.4"
   },
-  "changesets": []
+  "changesets": [
+    "soft-ghosts-worry"
+  ]
 }
