@@ -1,5 +1,16 @@
 # @eventcatalog/core
 
+## 2.65.0-beta.2
+
+### Minor Changes
+
+- 9d8e419: fix(core): fixed a bug with avro schema viewer layout
+
+### Patch Changes
+
+- 41f3637: fix(core): fixed a bug with avro schema viewer and union options
+- a3e8bfe: chore(core): updated astro versions
+
 ## 2.65.0-beta.1
 
 ### Minor Changes
