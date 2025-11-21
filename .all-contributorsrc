@@ -619,6 +619,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "Argonus",
+      "name": "Piotr Rybarczyk",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9743549?v=4",
+      "profile": "https://www.argonus.tech",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
