@@ -88,6 +88,17 @@ const copyServerFiles = async () => {
   }
 
   if (!isServerOutput) {
+    // remove the chat API if it exists, this is only a SSR feature
+    // TODO: Make this more flexible and better in the future when we have more features like this.
+    if (fs.existsSync(join(core, 'src/pages/api/chat.ts'))) {
+      fs.rmSync(join(core, 'src/pages/api/chat.ts'));
+    }
+
+    // Auth requires SSR Mode
+    if (fs.existsSync(join(core, 'src/pages/api/[...auth].ts'))) {
+      fs.rmSync(join(core, 'src/pages/api/[...auth].ts'));
+    }
+
     return;
   }
 
