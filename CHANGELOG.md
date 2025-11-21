@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.65.0-beta.1
+
+### Minor Changes
+
+- 0392e72: fix(core): fixed bug for missing adapter on static sites
+
 ## 2.65.0-beta.0
 
 ### Minor Changes
