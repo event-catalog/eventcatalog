@@ -1,296 +1,38 @@
- {
-    "name": "OrderEvent",
-    "doc": "Complex order event with nested records, unions, and various Avro types",
-    "namespace": "com.example.ecommerce",
-    "type": "record",
-    "fields": [
-      {
-        "name": "orderId",
-        "doc": "Unique order identifier",
-        "type": "string"
-      },
-      {
-        "name": "timestamp",
-        "doc": "When the order was created",
-        "type": {
-          "type": "long",
-          "logicalType": "timestamp-millis"
-        }
-      },
-      {
-        "name": "customer",
-        "doc": "Customer information - nested record",
-        "type": {
-          "type": "record",
-          "name": "Customer",
-          "fields": [
-            {
-              "name": "customerId",
-              "type": "string"
-            },
-            {
-              "name": "email",
-              "type": "string"
-            },
-            {
-              "name": "registrationDate",
-              "type": {
-                "type": "long",
-                "logicalType": "timestamp-millis"
-              }
-            },
-            {
-              "name": "loyaltyTier",
-              "doc": "Customer loyalty status",
-              "type": {
-                "type": "enum",
-                "name": "LoyaltyTier",
-                "symbols": ["BRONZE", "SILVER", "GOLD", "PLATINUM"]
-              }
-            }
-          ]
-        }
-      },
-      {
-        "name": "items",
-        "doc": "Array of order line items",
-        "type": {
-          "type": "array",
-          "items": {
-            "type": "record",
-            "name": "LineItem",
-            "fields": [
-              {
-                "name": "sku",
-                "type": "string"
-              },
-              {
-                "name": "quantity",
-                "type": "int"
-              },
-              {
-                "name": "price",
-                "doc": "Price in cents",
-                "type": {
-                  "type": "long",
-                  "logicalType": "decimal",
-                  "precision": 10,
-                  "scale": 2
-                }
-              },
-              {
-                "name": "discount",
-                "doc": "Optional discount - union with null",
-                "type": ["null", {
-                  "type": "record",
-                  "name": "Discount",
-                  "fields": [
-                    {
-                      "name": "code",
-                      "type": "string"
-                    },
-                    {
-                      "name": "percentage",
-                      "type": "float"
-                    }
-                  ]
-                }],
-                "default": null
-              }
-            ]
-          }
-        }
-      },
-      {
-        "name": "shippingAddress",
-        "doc": "Shipping address - union with multiple record types",
-        "type": [
-          "null",
-          {
-            "type": "record",
-            "name": "USAddress",
-            "fields": [
-              {
-                "name": "street",
-                "type": "string"
-              },
-              {
-                "name": "city",
-                "type": "string"
-              },
-              {
-                "name": "state",
-                "type": "string"
-              },
-              {
-                "name": "zipCode",
-                "type": "string"
-              }
-            ]
-          },
-          {
-            "type": "record",
-            "name": "InternationalAddress",
-            "fields": [
-              {
-                "name": "street",
-                "type": "string"
-              },
-              {
-                "name": "city",
-                "type": "string"
-              },
-              {
-                "name": "country",
-                "type": "string"
-              },
-              {
-                "name": "postalCode",
-                "type": "string"
-              }
-            ]
-          }
-        ],
-        "default": null
-      },
-      {
-        "name": "payment",
-        "doc": "Payment information - union of different payment types",
-        "type": [
-          {
-            "type": "record",
-            "name": "CreditCard",
-            "fields": [
-              {
-                "name": "lastFour",
-                "type": "string"
-              },
-              {
-                "name": "expiration",
-                "type": "string"
-              },
-              {
-                "name": "issuer",
-                "type": {
-                  "type": "enum",
-                  "name": "CardIssuer",
-                  "symbols": ["VISA", "MASTERCARD", "AMEX", "DISCOVER"]
-                }
-              }
-            ]
-          },
-          {
-            "type": "record",
-            "name": "PayPal",
-            "fields": [
-              {
-                "name": "accountEmail",
-                "type": "string"
-              },
-              {
-                "name": "transactionId",
-                "type": "string"
-              }
-            ]
-          },
-          "null"
-        ],
-        "default": null
-      },
-      {
-        "name": "metadata",
-        "doc": "Key-value metadata - map type",
-        "type": {
-          "type": "map",
-          "values": "string"
-        },
-        "default": {}
-      },
-      {
-        "name": "tags",
-        "doc": "Order tags - array of strings",
-        "type": {
-          "type": "array",
-          "items": "string"
-        },
-        "default": []
-      },
-      {
-        "name": "orderStatus",
-        "doc": "Current order status",
-        "type": {
-          "type": "enum",
-          "name": "OrderStatus",
-          "symbols": ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED",
-  "RETURNED"]
-        }
-      },
-      {
-        "name": "notes",
-        "doc": "Optional order notes",
-        "type": ["null", "string"],
-        "default": null
-      },
-      {
-        "name": "trackingInfo",
-        "doc": "Shipping tracking - complex union with nested record",
-        "type": [
-          "null",
-          {
-            "type": "record",
-            "name": "TrackingInfo",
-            "fields": [
-              {
-                "name": "carrier",
-                "type": {
-                  "type": "enum",
-                  "name": "ShippingCarrier",
-                  "symbols": ["FEDEX", "UPS", "USPS", "DHL"]
-                }
-              },
-              {
-                "name": "trackingNumber",
-                "type": "string"
-              },
-              {
-                "name": "estimatedDelivery",
-                "type": {
-                  "type": "long",
-                  "logicalType": "timestamp-millis"
-                }
-              },
-              {
-                "name": "events",
-                "doc": "Tracking events history",
-                "type": {
-                  "type": "array",
-                  "items": {
-                    "type": "record",
-                    "name": "TrackingEvent",
-                    "fields": [
-                      {
-                        "name": "status",
-                        "type": "string"
-                      },
-                      {
-                        "name": "location",
-                        "type": "string"
-                      },
-                      {
-                        "name": "timestamp",
-                        "type": {
-                          "type": "long",
-                          "logicalType": "timestamp-millis"
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            ]
-          }
-        ],
-        "default": null
-      }
-    ]
-  }
+{
+  "name": "Example",
+  "doc": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+  "namespace": "Item",
+  "type": "record",
+  "fields": [
+    {
+    "name": "ItemId",
+    "doc": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.",
+    "type": "string"
+},
+{
+    "name": "EventTimestamp",
+    "doc": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+    "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+    }
+},
+    {
+    "name": "EventId",
+    "doc": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr.",
+    "type": ["null", "string", "int", {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+    }]
+},
+{
+    "name": "TraceId",
+    "type": [
+      "null",
+      "string"
+    ],
+    "default": null,
+    "doc": "Lorem ipsum dolor sit amet, consetetur sadipscing elitr."
+}
+  ]
+}

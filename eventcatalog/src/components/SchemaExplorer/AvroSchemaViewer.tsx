@@ -115,28 +115,26 @@ const AvroField = ({ field, level, expand, showRequired }: AvroFieldProps) => {
 
   return (
     <div className={`avro-field-container mb-2 border-l border-gray-200 ${indentClass}`}>
-      <div className="flex items-start space-x-2">
+      <div className="flex space-x-2">
         {/* Collapse/Expand button */}
-        {hasNested ? (
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="avro-field-toggle text-gray-500 hover:text-gray-700 pt-0.5 w-4 text-center flex-shrink-0"
-            aria-expanded={isExpanded}
-          >
-            <span className="font-mono text-xs">{isExpanded ? '▼' : '▶'}</span>
-          </button>
-        ) : (
-          <div className="w-4" />
-        )}
+        <div className="flex-shrink-0 w-4 pt-0.5">
+          {hasNested ? (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="avro-field-toggle text-gray-500 hover:text-gray-700 w-4 text-center"
+              aria-expanded={isExpanded}
+            >
+              <span className="font-mono text-xs">{isExpanded ? '▼' : '▶'}</span>
+            </button>
+          ) : null}
+        </div>
 
         {/* Field details */}
-        <div className="flex-grow">
-          <div className="flex justify-between items-baseline">
-            <div>
-              <span className="avro-field-name font-semibold text-gray-800 text-sm">{field.name}</span>
-              <span className="ml-1.5 text-purple-600 font-mono text-xs">{formatAvroType(field.type)}</span>
-            </div>
-            {showRequired && isRequired && <span className="text-red-600 text-xs ml-3 flex-shrink-0">required</span>}
+        <div className="flex-grow min-w-0">
+          <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+            <span className="avro-field-name font-semibold text-gray-800 text-sm">{field.name}</span>
+            <span className="text-purple-600 font-mono text-xs">{formatAvroType(field.type)}</span>
+            {showRequired && isRequired && <span className="text-red-600 text-xs ml-auto flex-shrink-0">required</span>}
           </div>
 
           {field.doc && <p className="text-gray-600 text-xs mt-1">{field.doc}</p>}
