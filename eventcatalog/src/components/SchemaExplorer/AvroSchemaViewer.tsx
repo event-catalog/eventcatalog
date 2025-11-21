@@ -24,8 +24,8 @@ function formatAvroType(type: any): string {
   }
 
   if (Array.isArray(type)) {
-    // Union type - show all options
-    return type.join(' | ');
+    // Union type - show all options, properly formatting each member
+    return type.map((t) => formatAvroType(t)).join(' | ');
   }
 
   if (typeof type === 'object') {
@@ -52,9 +52,16 @@ function formatAvroType(type: any): string {
 
 // Check if a type has nested fields
 function hasNestedFields(type: any): boolean {
+  // Check if it's a direct record type
   if (typeof type === 'object' && !Array.isArray(type)) {
     return type.type === 'record' && type.fields && type.fields.length > 0;
   }
+
+  // Check if it's a union type that contains a record
+  if (Array.isArray(type)) {
+    return type.some((t) => typeof t === 'object' && !Array.isArray(t) && t.type === 'record' && t.fields && t.fields.length > 0);
+  }
+
   return false;
 }
 
@@ -84,12 +91,23 @@ function isFieldRequired(field: any): boolean {
   return true;
 }
 
+// Helper function to get the record type from a union if it exists
+function getRecordFromUnion(type: any): any {
+  if (Array.isArray(type)) {
+    return type.find((t) => typeof t === 'object' && !Array.isArray(t) && t.type === 'record');
+  }
+  return null;
+}
+
 // AvroField component - displays a single field with nested support
 const AvroField = ({ field, level, expand, showRequired }: AvroFieldProps) => {
   const [isExpanded, setIsExpanded] = useState(expand);
   const hasNested = hasNestedFields(field.type);
   const indentClass = `pl-${level * 4}`;
   const isRequired = showRequired ? isFieldRequired(field) : undefined;
+
+  // Get the record type, either directly or from within a union
+  const recordType = typeof field.type === 'object' && field.type.type === 'record' ? field.type : getRecordFromUnion(field.type);
 
   useEffect(() => {
     setIsExpanded(expand);
@@ -136,9 +154,9 @@ const AvroField = ({ field, level, expand, showRequired }: AvroFieldProps) => {
           )}
 
           {/* Nested fields for record types */}
-          {hasNested && (
+          {hasNested && recordType && (
             <div className={`avro-nested-content mt-2 ${!isExpanded ? 'hidden' : ''}`}>
-              {field.type.fields.map((nestedField: any) => (
+              {recordType.fields.map((nestedField: any) => (
                 <AvroField
                   key={nestedField.name}
                   field={nestedField}

@@ -1,75 +1,296 @@
-{
-  "type": "record",
-  "name": "OrderAmendedEvent",
-  "namespace": "com.example.events",
-  "fields": [
-    {
-      "name": "orderId",
-      "type": "string",
-      "doc": "The unique identifier of the order that was amended."
-    },
-    {
-      "name": "userId",
-      "type": "string",
-      "doc": "The unique identifier of the user who placed the order."
-    },
-    {
-      "name": "amendedItems",
-      "type": {
-        "type": "array",
-        "items": {
+ {
+    "name": "OrderEvent",
+    "doc": "Complex order event with nested records, unions, and various Avro types",
+    "namespace": "com.example.ecommerce",
+    "type": "record",
+    "fields": [
+      {
+        "name": "orderId",
+        "doc": "Unique order identifier",
+        "type": "string"
+      },
+      {
+        "name": "timestamp",
+        "doc": "When the order was created",
+        "type": {
+          "type": "long",
+          "logicalType": "timestamp-millis"
+        }
+      },
+      {
+        "name": "customer",
+        "doc": "Customer information - nested record",
+        "type": {
           "type": "record",
-          "name": "AmendedItem",
+          "name": "Customer",
           "fields": [
             {
-              "name": "productId",
-              "type": "string",
-              "doc": "The unique identifier of the product."
+              "name": "customerId",
+              "type": "string"
             },
             {
-              "name": "productName",
-              "type": "string",
-              "doc": "The name of the product."
+              "name": "email",
+              "type": "string"
             },
             {
-              "name": "oldQuantity",
-              "type": "int",
-              "doc": "The original quantity of the product ordered."
+              "name": "registrationDate",
+              "type": {
+                "type": "long",
+                "logicalType": "timestamp-millis"
+              }
             },
             {
-              "name": "newQuantity",
-              "type": "int",
-              "doc": "The new quantity of the product ordered."
-            },
-            {
-              "name": "unitPrice",
-              "type": "double",
-              "doc": "The price per unit of the product."
-            },
-            {
-              "name": "totalPrice",
-              "type": "double",
-              "doc": "The total price for this order item (newQuantity * unitPrice)."
+              "name": "loyaltyTier",
+              "doc": "Customer loyalty status",
+              "type": {
+                "type": "enum",
+                "name": "LoyaltyTier",
+                "symbols": ["BRONZE", "SILVER", "GOLD", "PLATINUM"]
+              }
             }
           ]
         }
       },
-      "doc": "A list of items that were amended in the order, each containing product details and updated quantities."
-    },
-    {
-      "name": "orderStatus",
-      "type": "string",
-      "doc": "The current status of the order after the amendment."
-    },
-    {
-      "name": "totalAmount",
-      "type": "double",
-      "doc": "The total amount of the order after the amendment."
-    },
-    {
-      "name": "timestamp",
-      "type": "string",
-      "doc": "The date and time when the order was amended, in ISO 8601 format."
-    }
-  ]
-}
+      {
+        "name": "items",
+        "doc": "Array of order line items",
+        "type": {
+          "type": "array",
+          "items": {
+            "type": "record",
+            "name": "LineItem",
+            "fields": [
+              {
+                "name": "sku",
+                "type": "string"
+              },
+              {
+                "name": "quantity",
+                "type": "int"
+              },
+              {
+                "name": "price",
+                "doc": "Price in cents",
+                "type": {
+                  "type": "long",
+                  "logicalType": "decimal",
+                  "precision": 10,
+                  "scale": 2
+                }
+              },
+              {
+                "name": "discount",
+                "doc": "Optional discount - union with null",
+                "type": ["null", {
+                  "type": "record",
+                  "name": "Discount",
+                  "fields": [
+                    {
+                      "name": "code",
+                      "type": "string"
+                    },
+                    {
+                      "name": "percentage",
+                      "type": "float"
+                    }
+                  ]
+                }],
+                "default": null
+              }
+            ]
+          }
+        }
+      },
+      {
+        "name": "shippingAddress",
+        "doc": "Shipping address - union with multiple record types",
+        "type": [
+          "null",
+          {
+            "type": "record",
+            "name": "USAddress",
+            "fields": [
+              {
+                "name": "street",
+                "type": "string"
+              },
+              {
+                "name": "city",
+                "type": "string"
+              },
+              {
+                "name": "state",
+                "type": "string"
+              },
+              {
+                "name": "zipCode",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "type": "record",
+            "name": "InternationalAddress",
+            "fields": [
+              {
+                "name": "street",
+                "type": "string"
+              },
+              {
+                "name": "city",
+                "type": "string"
+              },
+              {
+                "name": "country",
+                "type": "string"
+              },
+              {
+                "name": "postalCode",
+                "type": "string"
+              }
+            ]
+          }
+        ],
+        "default": null
+      },
+      {
+        "name": "payment",
+        "doc": "Payment information - union of different payment types",
+        "type": [
+          {
+            "type": "record",
+            "name": "CreditCard",
+            "fields": [
+              {
+                "name": "lastFour",
+                "type": "string"
+              },
+              {
+                "name": "expiration",
+                "type": "string"
+              },
+              {
+                "name": "issuer",
+                "type": {
+                  "type": "enum",
+                  "name": "CardIssuer",
+                  "symbols": ["VISA", "MASTERCARD", "AMEX", "DISCOVER"]
+                }
+              }
+            ]
+          },
+          {
+            "type": "record",
+            "name": "PayPal",
+            "fields": [
+              {
+                "name": "accountEmail",
+                "type": "string"
+              },
+              {
+                "name": "transactionId",
+                "type": "string"
+              }
+            ]
+          },
+          "null"
+        ],
+        "default": null
+      },
+      {
+        "name": "metadata",
+        "doc": "Key-value metadata - map type",
+        "type": {
+          "type": "map",
+          "values": "string"
+        },
+        "default": {}
+      },
+      {
+        "name": "tags",
+        "doc": "Order tags - array of strings",
+        "type": {
+          "type": "array",
+          "items": "string"
+        },
+        "default": []
+      },
+      {
+        "name": "orderStatus",
+        "doc": "Current order status",
+        "type": {
+          "type": "enum",
+          "name": "OrderStatus",
+          "symbols": ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED",
+  "RETURNED"]
+        }
+      },
+      {
+        "name": "notes",
+        "doc": "Optional order notes",
+        "type": ["null", "string"],
+        "default": null
+      },
+      {
+        "name": "trackingInfo",
+        "doc": "Shipping tracking - complex union with nested record",
+        "type": [
+          "null",
+          {
+            "type": "record",
+            "name": "TrackingInfo",
+            "fields": [
+              {
+                "name": "carrier",
+                "type": {
+                  "type": "enum",
+                  "name": "ShippingCarrier",
+                  "symbols": ["FEDEX", "UPS", "USPS", "DHL"]
+                }
+              },
+              {
+                "name": "trackingNumber",
+                "type": "string"
+              },
+              {
+                "name": "estimatedDelivery",
+                "type": {
+                  "type": "long",
+                  "logicalType": "timestamp-millis"
+                }
+              },
+              {
+                "name": "events",
+                "doc": "Tracking events history",
+                "type": {
+                  "type": "array",
+                  "items": {
+                    "type": "record",
+                    "name": "TrackingEvent",
+                    "fields": [
+                      {
+                        "name": "status",
+                        "type": "string"
+                      },
+                      {
+                        "name": "location",
+                        "type": "string"
+                      },
+                      {
+                        "name": "timestamp",
+                        "type": {
+                          "type": "long",
+                          "logicalType": "timestamp-millis"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ],
+        "default": null
+      }
+    ]
+  }
