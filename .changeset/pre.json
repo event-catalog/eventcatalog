@@ -4,5 +4,8 @@
   "initialVersions": {
     "@eventcatalog/core": "2.64.4"
   },
-  "changesets": ["soft-ghosts-worry"]
+  "changesets": [
+    "cuddly-nails-hug",
+    "soft-ghosts-worry"
+  ]
 }
