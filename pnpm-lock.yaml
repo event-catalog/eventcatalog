@@ -39,14 +39,14 @@ importers:
         specifier: ^6.0.2
         version: 6.0.2(astro@5.15.3(@types/node@20.19.19)(jiti@1.21.7)(lightningcss@1.29.3)(rollup@4.52.4)(terser@5.39.0)(typescript@5.9.3)(yaml@2.8.1))(tailwindcss@3.4.18(yaml@2.8.1))
       '@asyncapi/avro-schema-parser':
-        specifier: ^3.0.24
+        specifier: 3.0.24
         version: 3.0.24
       '@asyncapi/parser':
-        specifier: ^3.4.0
+        specifier: 3.4.0
         version: 3.4.0
       '@asyncapi/react-component':
-        specifier: ^2.4.3
-        version: 2.6.4(postcss@8.5.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 2.4.3
+        version: 2.4.3(postcss@8.5.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@auth/core':
         specifier: ^0.37.4
         version: 0.37.4
@@ -482,8 +482,8 @@ packages:
     resolution: {integrity: sha512-z6zVRAMi2bkkgjREoCIvUg7KcacyoEh+VIwQmEni/JPuPFMOD3oPv4kwoftEeiF2+gGiioeIxpkI5x7rmHf2Nw==}
     engines: {node: '>=18'}
 
-  '@asyncapi/react-component@2.6.4':
-    resolution: {integrity: sha512-2Cq+NeBtYrA+ovtE6EuXgpWDaKIW4OomSxN95eKx1ddtcUBdKizFlkQJMydhUowR17OwxnuLMuLuyfWZVQmVTA==}
+  '@asyncapi/react-component@2.4.3':
+    resolution: {integrity: sha512-8DZdadD2vGoq7rw18RehmytQLT2Y1RFQ+UgvhQA3UaTqIFL2qFOHIm1YMnl5VVPxtTmkvi20wZZk37nyNvzJug==}
     peerDependencies:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
@@ -6072,11 +6072,6 @@ packages:
     peerDependencies:
       react: ^18.3.1
 
-  react-error-boundary@4.1.2:
-    resolution: {integrity: sha512-GQDxZ5Jd+Aq/qUxbCm1UtzmL/s++V7zKgE8yMktJiCQXCCFZnMZh9ng+6/Ne6PjNSXH0L9CjeOEREfRnq6Duag==}
-    peerDependencies:
-      react: '>=16.13.1'
-
   react-markdown@10.1.0:
     resolution: {integrity: sha512-qKxVopLT/TyA6BX3Ue5NwabOsAzm0Q7kAPwq6L+wWDwisYs7R8vZ0nRXqq6rkueboxpkjvLGU9fWifiX/ZZFxQ==}
     peerDependencies:
@@ -7898,7 +7893,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@asyncapi/react-component@2.6.4(postcss@8.5.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@asyncapi/react-component@2.4.3(postcss@8.5.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@asyncapi/avro-schema-parser': 3.0.24
       '@asyncapi/openapi-schema-parser': 3.0.24
@@ -7910,7 +7905,6 @@ snapshots:
       openapi-sampler: 1.6.1
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
-      react-error-boundary: 4.1.2(react@18.3.1)
       use-resize-observer: 9.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     transitivePeerDependencies:
       - bufferutil
@@ -10013,7 +10007,7 @@ snapshots:
 
   '@stoplight/json-ref-readers@1.2.2':
     dependencies:
-      node-fetch: 2.6.7
+      node-fetch: 2.7.0
       tslib: 1.14.1
     transitivePeerDependencies:
       - encoding
@@ -14642,11 +14636,6 @@ snapshots:
       loose-envify: 1.4.0
       react: 18.3.1
       scheduler: 0.23.2
-
-  react-error-boundary@4.1.2(react@18.3.1):
-    dependencies:
-      '@babel/runtime': 7.28.4
-      react: 18.3.1
 
   react-markdown@10.1.0(@types/react@18.3.26)(react@18.3.1):
     dependencies:
