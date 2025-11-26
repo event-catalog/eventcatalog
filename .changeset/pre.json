@@ -4,11 +4,5 @@
   "initialVersions": {
     "@eventcatalog/core": "2.64.4"
   },
-  "changesets": [
-    "cuddly-nails-hug",
-    "eighty-radios-clean",
-    "polite-falcons-shop",
-    "real-keys-invite",
-    "soft-ghosts-worry"
-  ]
+  "changesets": ["cuddly-nails-hug", "eighty-radios-clean", "polite-falcons-shop", "real-keys-invite", "soft-ghosts-worry"]
 }

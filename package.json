@@ -96,7 +96,7 @@
     "diff2html": "^3.4.48",
     "dotenv": "^16.5.0",
     "elkjs": "^0.10.0",
-    "glob": "^10.4.1",
+    "glob": "^10.5.0",
     "gray-matter": "^4.0.3",
     "html-to-image": "^1.11.11",
     "js-yaml": "^4.1.0",
@@ -155,5 +155,5 @@
     "vite-tsconfig-paths": "^4.3.2",
     "vitest": "2.1.9"
   },
-  "packageManager": "pnpm@9.14.4"
+  "packageManager": "pnpm@10.23.0+sha512.21c4e5698002ade97e4efe8b8b4a89a8de3c85a37919f957e7a0f30f38fbc5bbdd05980ffe29179b2fb6e6e691242e098d945d1601772cad0fef5fb6411e2a4b"
 }
