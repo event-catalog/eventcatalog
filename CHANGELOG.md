@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 2.65.0-beta.3
+
+### Patch Changes
+
+- 682c149: feat(core): added ability to get latest schema in the schema api
+- 38958d2: chore(core): updated glob version of package
+
 ## 2.65.0-beta.2
 
 ### Minor Changes
