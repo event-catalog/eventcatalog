@@ -90,10 +90,10 @@ paths:
         - name: version
           in: path
           required: true
-          description: Message version
+          description: Message version or "latest" for the latest version
           schema:
             type: string
-          example: 1.0.0
+          example: 1.0.0 or latest
       responses:
         '200':
           description: Successful response with schema content
