@@ -476,8 +476,8 @@ export const getNodesAndEdgesForConsumedMessage = ({
         id: generatedIdForEdge(message, target) + '-warning',
         source: messageId,
         target: generateIdForNode(target),
-        label: isMessageEvent ? `⚠️ No producers found \n ${message.data.name}` : getEdgeLabelForMessageAsSource(message),
-        data: { customColor: getColorFromString(message.data.id), warning: isMessageEvent, rootSourceAndTarget },
+        label: getEdgeLabelForMessageAsSource(message),
+        data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
       })
     );
   }
@@ -512,7 +512,7 @@ export const getNodesAndEdgesForConsumedMessage = ({
         createNode({
           id: channelId,
           type: channel.collection,
-          data: { mode, channel: { ...channel.data, ...channel } },
+          data: { mode, channel: { ...channel.data, ...channel, id: channel.data.id } },
           position: { x: 0, y: 0 },
         })
       );
@@ -523,8 +523,8 @@ export const getNodesAndEdgesForConsumedMessage = ({
           id: generatedIdForEdge(channel, target),
           source: channelId,
           target: generateIdForNode(target),
-          label: `consumes \n ${message.data.name}`,
-          data: { customColor: getColorFromString(message.data.id), warning: producers.length === 0, rootSourceAndTarget },
+          label: getEdgeLabelForMessageAsSource(message),
+          data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
         })
       );
 
@@ -537,18 +537,8 @@ export const getNodesAndEdgesForConsumedMessage = ({
             id: generatedIdForEdge(message, channel),
             source: messageId,
             target: channelId,
-            label: isEvent ? `⚠️ No producers found \n ${message.data.name}` : getEdgeLabelForMessageAsSource(message),
-            data: { customColor: getColorFromString(message.data.id), warning: isEvent, rootSourceAndTarget },
-            markerEnd: {
-              type: MarkerType.ArrowClosed,
-              width: 40,
-              height: 40,
-              color: 'red',
-            },
-            style: {
-              strokeWidth: 5,
-              stroke: 'red',
-            },
+            label: 'routes to',
+            data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
           })
         );
       }
@@ -827,7 +817,7 @@ export const getNodesAndEdgesForProducedMessage = ({
         createNode({
           id: channelId,
           type: channel.collection,
-          data: { mode, channel: { ...channel.data, ...channel, mode } },
+          data: { mode, channel: { ...channel.data, ...channel, mode, id: channel.data.id } },
           position: { x: 0, y: 0 },
         })
       );
