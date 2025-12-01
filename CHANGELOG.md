@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.65.0-beta.5
+
+### Patch Changes
+
+- c5ec61b: fix(core): fixed minor issues with new channel updates
+
 ## 2.65.0-beta.4
 
 ### Patch Changes
