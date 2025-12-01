@@ -1,5 +1,23 @@
 # @eventcatalog/core
 
+## 2.65.0
+
+### Minor Changes
+
+- 0392e72: fix(core): fixed bug for missing adapter on static sites
+- 1bf9a0f: feat(core): added new channel 2.0
+- 9d8e419: fix(core): fixed a bug with avro schema viewer layout
+- 81033b8: feat(core): refactored channel configuration for eventcataog
+
+### Patch Changes
+
+- 544f480: fix(plugin): fix versions of asyncapi plugin
+- 41f3637: fix(core): fixed a bug with avro schema viewer and union options
+- 682c149: feat(core): added ability to get latest schema in the schema api
+- a3e8bfe: chore(core): updated astro versions
+- 38958d2: chore(core): updated glob version of package
+- c5ec61b: fix(core): fixed minor issues with new channel updates
+
 ## 2.65.0-beta.5
 
 ### Patch Changes
