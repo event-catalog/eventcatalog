@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.65.0-beta.4
+
+### Patch Changes
+
+- 544f480: fix(plugin): fix versions of asyncapi plugin
+
 ## 2.65.0-beta.3
 
 ### Patch Changes

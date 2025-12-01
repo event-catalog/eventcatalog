@@ -5,6 +5,7 @@
     "@eventcatalog/core": "2.64.4"
   },
   "changesets": [
+    "angry-rice-mix",
     "cuddly-nails-hug",
     "eighty-radios-clean",
     "famous-geese-act",
