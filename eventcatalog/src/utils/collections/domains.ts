@@ -12,6 +12,7 @@ export type Domain = CollectionEntry<'domains'>;
 export type UbiquitousLanguage = CollectionEntry<'ubiquitousLanguages'>;
 interface Props {
   getAllVersions?: boolean;
+  includeServicesInSubdomains?: boolean;
 }
 
 // Update cache to store both versions
@@ -20,13 +21,16 @@ let cachedDomains: Record<string, Domain[]> = {
   currentVersions: [],
 };
 
-export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise<Domain[]> => {
-  const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
+export const getDomains = async ({ getAllVersions = true, includeServicesInSubdomains = true }: Props = {}): Promise<Domain[]> => {
+
+  const cacheKey = `${getAllVersions ? 'allVersions' : 'currentVersions'}-${includeServicesInSubdomains ? 'true' : 'false'}`;
+  
+  // const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
 
   // Check if we have cached domains for this specific getAllVersions value
-  if (cachedDomains[cacheKey].length > 0) {
-    return cachedDomains[cacheKey];
-  }
+  // if (cachedDomains[cacheKey] && cachedDomains[cacheKey].length > 0) {
+  //   return cachedDomains[cacheKey];
+  // }
 
   // Get all the domains that are not versioned
   const domains = await getCollection('domains', (domain) => {
@@ -57,7 +61,9 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
       // Services in the sub domains
       const subdomainServices = subDomains.flatMap((subDomain) => subDomain.data.services || []);
 
-      const services = [...servicesInDomain, ...subdomainServices]
+      const listOfServicesAssociatedWithDomain = includeServicesInSubdomains ? [...servicesInDomain, ...subdomainServices] : servicesInDomain;
+
+      const services = listOfServicesAssociatedWithDomain
         .map((_service: { id: string; version: string | undefined }) =>
           getItemsFromCollectionByIdAndSemverOrLatest(servicesCollection, _service.id, _service.version)
         )
@@ -210,6 +216,13 @@ export const getParentDomains = async (domain: Domain): Promise<Domain[]> => {
     const subDomains = (d.data.domains as unknown as Domain[]) || [];
     return subDomains.some((d) => d.data.id === domain.data.id);
   });
+};
+
+// Only return domains that are not found any any subdomain configuration
+export const getRootDomains = async (): Promise<Domain[]> => {
+  const domains = await getDomains({ getAllVersions: false });
+  const allSubDomains = domains.flatMap((d) => d.data.domains as unknown as Domain[]);
+  return domains.filter((d) => !allSubDomains.some((sd) => sd.data.id === d.data.id));
 };
 
 export const getDomainsForService = async (service: Service): Promise<Domain[]> => {

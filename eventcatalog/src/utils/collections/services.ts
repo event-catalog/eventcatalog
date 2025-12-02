@@ -5,7 +5,8 @@ import path from 'path';
 import semver from 'semver';
 import type { CollectionTypes } from '@types';
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
-import utils from '@eventcatalog/sdk';
+import utils, { type Domain } from '@eventcatalog/sdk';
+import { getDomains, getDomainsForService } from './domains';
 
 export type Service = CollectionEntry<'services'>;
 
@@ -23,9 +24,9 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
   const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
 
   // Check if we have cached domains for this specific getAllVersions value
-  if (cachedServices[cacheKey].length > 0) {
-    return cachedServices[cacheKey];
-  }
+  // if (cachedServices[cacheKey].length > 0) {
+  //   return cachedServices[cacheKey];
+  // }
 
   // Get services that are not versioned
   const services = await getCollection('services', (service) => {
@@ -208,4 +209,17 @@ export const getProducersAndConsumersForChannel = async (channel: CollectionEntr
     producers: producers ?? [],
     consumers: consumers ?? [],
   };
+};
+export const getServicesNotInAnyDomain = async (): Promise<Service[]> => {
+  const services = await getServices({ getAllVersions: false });
+
+  // We need an async-aware filter: run all lookups, then filter by the results
+  const domainCountsForServices = await Promise.all(
+    services.map(async (service) => {
+      const domainsForService = await getDomainsForService(service);
+      return domainsForService.length;
+    })
+  );
+
+  return services.filter((_, index) => domainCountsForServices[index] === 0);
 };

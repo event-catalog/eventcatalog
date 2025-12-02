@@ -10,6 +10,8 @@ import { SideNavTreeView } from './TreeView';
 import { getTreeView } from './TreeView/getTreeView';
 
 import ListViewSideBar from './ListViewSideBar';
+import NestedSideBar from './NestedSideBar';
+import { getNestedSideBarData } from './NestedSideBar/utils';
 
 interface Props extends Omit<HTMLAttributes<'div'>, 'children'> {}
 
@@ -20,18 +22,24 @@ let props;
 const SIDENAV_TYPE = config?.docs?.sidebar?.type ?? 'LIST_VIEW';
 const SHOW_ORPHANED_MESSAGES = config?.docs?.sidebar?.showOrphanedMessages ?? true;
 
+// Make a request to the 
+
 if (SIDENAV_TYPE === 'LIST_VIEW') {
   props = await getListViewResources({ currentPath });
 } else if (SIDENAV_TYPE === 'TREE_VIEW') {
   props = getTreeView({ projectDir: process.env.PROJECT_DIR!, currentPath });
 }
+
+props = await getNestedSideBarData()
+
 ---
 
 <div {...Astro.props}>
-  {
+  <NestedSideBar client:only transition:persist data={props} />
+  <!-- {
     SIDENAV_TYPE === 'LIST_VIEW' && (
       <ListViewSideBar resources={props} currentPath={currentPath} client:only showOrphanedMessages={SHOW_ORPHANED_MESSAGES} />
     )
   }
-  {SIDENAV_TYPE === 'TREE_VIEW' && <SideNavTreeView client:only transition:persist tree={props} />}
+  {SIDENAV_TYPE === 'TREE_VIEW' && <SideNavTreeView client:only transition:persist tree={props} />} -->
 </div>

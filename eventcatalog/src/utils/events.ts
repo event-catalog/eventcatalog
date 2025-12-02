@@ -77,6 +77,8 @@ export const getEvents = async ({ getAllVersions = true, hydrateServices = true 
       const folderName = await getResourceFolderName(process.env.PROJECT_DIR ?? '', event.data.id, event.data.version.toString());
       const eventFolderName = folderName ?? event.id.replace(`-${event.data.version}`, '');
 
+      console.log("PRODUCERS", producers.length)
+
       return {
         ...event,
         data: {
