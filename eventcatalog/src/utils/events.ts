@@ -28,9 +28,9 @@ let cachedEvents: Record<string, Event[]> = {
 export const getEvents = async ({ getAllVersions = true, hydrateServices = true }: Props = {}): Promise<Event[]> => {
   const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
 
-  if (cachedEvents[cacheKey].length > 0 && hydrateServices) {
-    return cachedEvents[cacheKey];
-  }
+  // if (cachedEvents[cacheKey].length > 0 && hydrateServices) {
+  //   return cachedEvents[cacheKey];
+  // }
 
   const events = await getCollection('events', (event) => {
     return (getAllVersions || !event.filePath?.includes('versioned')) && event.data.hidden !== true;

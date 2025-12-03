@@ -1,6 +1,8 @@
+import { getContainers } from '@utils/collections/containers';
 import { getDomains, getRootDomains, getUbiquitousLanguageWithSubdomains } from '@utils/collections/domains';
 import { getServices, getServicesNotInAnyDomain, getSpecificationsForService } from '@utils/collections/services';
 import { getMessages } from '@utils/messages';
+import { getOwner } from '@utils/collections/owners';
 import { buildUrl, buildUrlWithParams } from '@utils/url-builder';
 
 /**
@@ -31,6 +33,12 @@ export type NavigationData = {
     nodes: Record<string, NavNode>       // Flat map of all nodes by key
 }
 
+const uniqueBy = <T>(array: T[], key: keyof T): T[] => {
+    return array.filter((item, index, self) =>
+        index === self.findIndex((t) => t[key] === item[key])
+    );
+}
+
 /**
  * Get the navigation data for the sidebar
  */
@@ -39,9 +47,62 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     const domains = await getDomains({ getAllVersions: false, includeServicesInSubdomains: false });
     const services = await getServices({ getAllVersions: false });
     const { events, commands, queries } = await getMessages({ getAllVersions: false });
+
+    const containers = await getContainers({ getAllVersions: false });
+
     const messages = [...events, ...commands, ...queries];
 
-    const domainNodes = domains.reduce((acc, domain) => {
+    // Process all domains with their owners first (async)
+    const domainsWithOwners = await Promise.all(
+        domains.map(async (domain) => {
+            const ownersInDomain = domain.data.owners || [];
+            const owners = await Promise.all(
+                ownersInDomain.map((owner) => getOwner(owner))
+            );
+            const filteredOwners = owners.filter((o) => o !== undefined) as Array<NonNullable<typeof owners[0]>>;
+            
+            // Log owners for now (as requested)
+            if (filteredOwners.length > 0) {
+                console.log(`Domain ${domain.data.name} owners:`, filteredOwners.map(o => o?.data.name || o?.data.id));
+            }
+            
+            return {
+                domain,
+                owners: filteredOwners,
+            };
+        })
+    );
+
+    // Services with owners
+    const servicesWithOwners = await Promise.all(
+        services.map(async (service) => {
+            const ownersInService = service.data.owners || [];
+            const owners = await Promise.all(ownersInService.map((owner) => getOwner(owner)));
+            const filteredOwners = owners.filter((o) => o !== undefined) as Array<NonNullable<typeof owners[0]>>;
+            return { service, owners: filteredOwners };
+        })
+    );
+
+    // Messages with owners
+    const messagesWithOwners = await Promise.all(
+        messages.map(async (message) => {
+            const ownersInMessage = message.data.owners || [];
+            const owners = await Promise.all(ownersInMessage.map((owner) => getOwner(owner)));
+            const filteredOwners = owners.filter((o) => o !== undefined) as Array<NonNullable<typeof owners[0]>>;
+            return { message, owners: filteredOwners };
+        })
+    );
+
+    const containerWithOwners = await Promise.all(
+        containers.map(async (container) => {
+            const ownersInContainer = container.data.owners || [];
+            const owners = await Promise.all(ownersInContainer.map((owner) => getOwner(owner)));
+            const filteredOwners = owners.filter((o) => o !== undefined) as Array<NonNullable<typeof owners[0]>>;
+            return { container, owners: filteredOwners };
+        })
+    );
+
+    const domainNodes = domainsWithOwners.reduce((acc, { domain, owners }) => {
         const servicesInDomain = domain.data.services || [];
         const hasServices = servicesInDomain.length > 0;
 
@@ -50,6 +111,9 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
         const entitiesInDomain = domain.data.entities || [];
         const hasEntities = entitiesInDomain.length > 0;
+
+        const hasOwners = owners.length > 0;
+
 
         acc[`item:domain:${domain.data.id}:${domain.data.version}`] = {
             type: 'item',
@@ -67,17 +131,20 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
                 },
                 {
                     type: 'section',
-                    title: 'Architecture Diagrams',
+                    title: 'Architecture & Design',
                     icon: 'Workflow',
                     children: [
                         {
-                            type: 'item', title: 'Architecture', href: buildUrlWithParams('/architecture/docs/services', {
+                            type: 'item', title: 'Architecture Diagram', href: buildUrlWithParams('/architecture/docs/services', {
                                 domainId: domain.data.id,
                                 domainName: domain.data.name,
                             })
                         },
-                        { type: 'item', title: 'Visualizer', href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}`) },
-                    ]
+                        hasEntities && {
+                            type: 'item', title: 'Entity Map', href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/entity-map`)
+                        },
+                        { type: 'item', title: 'Interaction Map', href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}`) },
+                    ].filter(Boolean) as ChildRef[]
                 },
                 hasEntities && {
                     type: 'section',
@@ -95,10 +162,17 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
                 },
                 hasServices && {
                     type: 'section',
-                    title: 'Services in Domain',
+                    title: 'Domain Services',
                     icon: 'Server',
                     children: servicesInDomain.map((service) => `item:service:${service.data.id}:${service.data.version}`),
                     visible: hasServices,
+                },
+                hasOwners && {
+                    type: 'section',
+                    title: 'Owners',
+                    icon: 'Users',
+                    children: owners.map((owner) => ({ type: 'item', title: owner?.data.name ?? '', href: buildUrl(`/docs/${owner?.collection}/${owner?.data.id}`) })),
+                    visible: hasOwners,
                 },
 
             ].filter(Boolean) as ChildRef[]
@@ -107,7 +181,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     }, {} as Record<string, NavNode>);
 
 
-    const serviceNodes = services.reduce((acc, service) => {
+    const serviceNodes = servicesWithOwners.reduce((acc, { service, owners }) => {
         const sendsMessages = service.data.sends || [];
         const receivesMessages = service.data.receives || [];
         const serviceEntities = service.data.entities || [];
@@ -117,6 +191,12 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
         const openAPISpecifications = specifications.filter((specification) => specification.type === 'openapi');
         const asyncAPISpecifications = specifications.filter((specification) => specification.type === 'asyncapi');
         const graphQLSpecifications = specifications.filter((specification) => specification.type === 'graphql');
+
+        const dataStoresInService = uniqueBy([...(service.data.writesTo || []), ...(service.data.readsFrom || [])], 'id');
+
+        const hasDataStores = dataStoresInService.length > 0;
+
+        const hasOwners = owners.length > 0;
 
         acc[`item:service:${service.data.id}:${service.data.version}`] = {
             type: 'item',
@@ -133,27 +213,34 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
                 },
                 {
                     type: 'section',
-                    title: 'Architecture Diagrams',
+                    title: 'Architecture & Design',
                     icon: 'Workflow',
                     children: [
                         {
-                            type: 'item', title: 'Architecture', href: buildUrlWithParams('/architecture/docs/messages', {
+                            type: 'item', title: 'Architecture Diagram', href: buildUrlWithParams('/architecture/docs/messages', {
                                 serviceName: service.data.name,
                                 serviceId: service.data.id,
                             })
                         },
-                        { type: 'item', title: 'Visualizer', href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}`) },
+                        { type: 'item', title: 'Interaction Map', href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}`) },
+                        { type: 'item', title: 'Data Map', href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}/data`) },
                     ]
                 },
                 hasSpecifications && {
                     type: 'section',
-                    title: 'Specifications',
+                    title: 'API & Contracts',
                     icon: 'FileCode',
                     children: [
                         ...openAPISpecifications.map((specification) => ({ type: 'item', title: `${specification.name} (OpenAPI)`, href: buildUrl(`/docs/services/${service.data.id}/${service.data.version}/spec/${specification.filenameWithoutExtension}`) })),
                         ...asyncAPISpecifications.map((specification) => ({ type: 'item', title: `${specification.name} (AsyncAPI)`, href: buildUrl(`/docs/services/${service.data.id}/${service.data.version}/asyncapi/${specification.filenameWithoutExtension}`) })),
                         ...graphQLSpecifications.map((specification) => ({ type: 'item', title: `${specification.name} (GraphQL)`, href: buildUrl(`/docs/services/${service.data.id}/${service.data.version}/graphql/${specification.filenameWithoutExtension}`) })),
                     ]
+                },
+                hasDataStores && {
+                    type: 'section',
+                    title: 'State and Persistence',
+                    icon: 'Database',
+                    children: dataStoresInService.map((dataStore) => `item:container:${dataStore.data.id}:${dataStore.data.version}`),
                 },
                 serviceEntities.length > 0 && {
                     type: 'section',
@@ -164,29 +251,44 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
                 },
                 sendsMessages.length > 0 && {
                     type: 'section',
-                    title: 'Sends Messages',
+                    title: 'Outbound Messages',
                     icon: 'Mail',
                     children: sendsMessages.map((message) => `item:message:${message.data.id}:${message.data.version}`),
                     visible: sendsMessages.length > 0,
-                },  
+                },
                 receivesMessages.length > 0 && {
                     type: 'section',
-                    title: 'Receives Messages',
+                    title: 'Inbound Messages',
                     icon: 'Mail',
                     children: receivesMessages.map((receive) => `item:message:${receive.data.id}:${receive.data.version}`),
                     visible: receivesMessages.length > 0,
-                }
+                },
+                hasOwners && {
+                    type: 'section',
+                    title: 'Owners',
+                    icon: 'Users',
+                    children: owners.map((owner) => ({ type: 'item', title: owner?.data.name ?? '', href: buildUrl(`/docs/${owner?.collection}/${owner?.data.id}`) })),
+                    visible: hasOwners,
+                },
             ].filter(Boolean) as ChildRef[]
         };
         return acc;
     }, {} as Record<string, NavNode>);
 
 
-    const messageNodes = messages.reduce((acc, message) => {
+    const messageNodes = messagesWithOwners.reduce((acc, { message, owners }) => {
 
         const producers = message.data.producers || [];
         const consumers = message.data.consumers || [];
         const collection = message.collection;
+
+        const hasOwners = owners.length > 0;
+        const hasProducers = producers.length > 0;
+        const hasConsumers = consumers.length > 0;
+
+        console.log('MESSAGE ID', message.data.id)
+        console.log(JSON.stringify(producers, null, 2))
+        console.log('MESSAGE DATA', JSON.stringify(message.data, null, 2))
 
         // Determine badge based on collection type
         const badgeMap: Record<string, string> = {
@@ -206,34 +308,97 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
                     title: 'Quick Reference',
                     icon: 'BookOpen',
                     children: [
-                        { type: 'item', title: 'Documentation', href: buildUrl(`/docs/${collection}/${message.data.id}/${message.data.version}`) },
+                        { type: 'item', title: 'Overview', href: buildUrl(`/docs/${collection}/${message.data.id}/${message.data.version}`) },
                     ]
                 },
                 {
                     type: 'section',
-                    title: 'Architecture Diagrams',
+                    title: 'Architecture & Design',
                     icon: 'Workflow',
                     children: [
-                        { type: 'item', title: 'Architecture', href: buildUrl(`/docs/architecture`) },
-                        { type: 'item', title: 'Visualizer', href: buildUrl(`/visualiser/messages/${message.data.id}/${message.data.version}`) },
+                        { type: 'item', title: 'Interaction Map', href: buildUrl(`/visualiser/${collection}/${message.data.id}/${message.data.version}`) },
                     ]
                 },
 
-                {
+                hasProducers && {
                     type: 'section',
                     title: 'Producers',
                     icon: 'Server',
-                    children: producers.map((producer) => `item:service:${producer.id}:${producer.version}`),
+                    children: producers.map((producer) => `item:service:${producer.data.id}:${producer.data.version}`),
                     visible: producers.length > 0,
                 },
-                {
+                hasConsumers && {
                     type: 'section',
                     title: 'Consumers',
                     icon: 'Server',
-                    children: consumers.map((consumer) => `item:service:${consumer.id}:${consumer.version}`),
+                    children: consumers.map((consumer) => `item:service:${consumer.data.id}:${consumer.data.version}`),
                     visible: consumers.length > 0,
-                }
-            ],
+                },
+                hasOwners && {
+                    type: 'section',
+                    title: 'Owners',
+                    icon: 'Users',
+                    children: owners.map((owner) => ({ type: 'item', title: owner?.data.name ?? '', href: buildUrl(`/docs/${owner?.collection}/${owner?.data.id}`) })),
+                    visible: hasOwners,
+                },
+            ].filter(Boolean) as ChildRef[],
+        };
+        return acc;
+    }, {} as Record<string, NavNode>);
+
+    const containerNodes = containerWithOwners.reduce((acc, { container, owners }) => {
+
+        const servicesWritingToContainer = container.data.servicesThatWriteToContainer || [];
+        const servicesReadingFromContainer = container.data.servicesThatReadFromContainer || [];
+        const hasServicesWritingToContainer = servicesWritingToContainer.length > 0;
+        const hasServicesReadingFromContainer = servicesReadingFromContainer.length > 0;
+
+        const hasOwners = container.data.owners || [];
+
+
+        acc[`item:container:${container.data.id}:${container.data.version}`] = {
+            type: 'item',
+            title: container.data.name,
+            badge: 'Container',
+            children: [
+                {
+                    type: 'section',
+                    title: 'Quick Reference',
+                    icon: 'BookOpen',
+                    children: [
+                        { type: 'item', title: 'Overview', href: buildUrl(`/docs/containers/${container.data.id}/${container.data.version}`) },
+                    ]
+                },
+                {
+                    type: 'section',
+                    title: 'Architecture & Design',
+                    icon: 'Workflow',
+                    children: [
+                        { type: 'item', title: 'Interaction Map', href: buildUrl(`/visualiser/containers/${container.data.id}/${container.data.version}`) },
+                    ]
+                },
+                hasServicesWritingToContainer && {
+                    type: 'section',
+                    title: 'Services (Writes)',
+                    icon: 'Server',
+                    children: servicesWritingToContainer.map((service) => `item:service:${service.data.id}:${service.data.version}`),
+                    visible: hasServicesWritingToContainer,
+                },
+                hasServicesReadingFromContainer && {
+                    type: 'section',
+                    title: 'Services (Reads)',
+                    icon: 'Server',
+                    children: servicesReadingFromContainer.map((service) => `item:service:${service.data.id}:${service.data.version}`),
+                    visible: hasServicesReadingFromContainer,
+                },
+                hasOwners && {
+                    type: 'section',
+                    title: 'Owners',
+                    icon: 'Users',
+                    children: owners.map((owner) => ({ type: 'item', title: owner?.data.name ?? '', href: buildUrl(`/docs/${owner?.collection}/${owner?.data.id}`) })),
+                    visible: hasOwners,
+                },
+            ].filter(Boolean) as ChildRef[]
         };
         return acc;
     }, {} as Record<string, NavNode>);
@@ -271,6 +436,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
             ...domainNodes,
             ...serviceNodes,
             ...messageNodes,
+            ...containerNodes,
         }
     }
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import * as LucideIcons from "lucide-react"
-import { ChevronRight, ChevronLeft, ChevronDown } from "lucide-react"
+import { ChevronRight, ChevronLeft, ChevronDown, Home, Star } from "lucide-react"
 import type { NavigationData, NavNode, ChildRef } from "./utils"
 
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(" ")
@@ -13,10 +13,19 @@ const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolea
 
 const STORAGE_KEY = 'eventcatalog-sidebar-nav'
 const COLLAPSED_SECTIONS_KEY = 'eventcatalog-sidebar-collapsed'
+const FAVORITES_KEY = 'eventcatalog-sidebar-favorites'
 
 type PersistedState = {
     path: string[]      // Array of node keys representing drill-down path
     currentUrl: string  // The URL when this state was saved
+}
+
+type FavoriteItem = {
+    nodeKey: string         // The key of the favorited node
+    path: string[]          // Path of keys to reach this node
+    title: string           // Display title
+    badge?: string          // Type badge (Domain, Service, etc.)
+    href?: string           // Direct link if it's a leaf item
 }
 
 const saveState = (state: PersistedState) => {
@@ -52,6 +61,24 @@ const loadCollapsedSections = (): Set<string> => {
     } catch (e) {
         console.warn('Failed to load collapsed sections:', e)
         return new Set()
+    }
+}
+
+const saveFavorites = (favorites: FavoriteItem[]) => {
+    try {
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites))
+    } catch (e) {
+        console.warn('Failed to save favorites:', e)
+    }
+}
+
+const loadFavorites = (): FavoriteItem[] => {
+    try {
+        const stored = localStorage.getItem(FAVORITES_KEY)
+        return stored ? JSON.parse(stored) : []
+    } catch (e) {
+        console.warn('Failed to load favorites:', e)
+        return []
     }
 }
 
@@ -99,6 +126,9 @@ export default function NestedSideBar({ data }: Props) {
     const [isInitialized, setIsInitialized] = useState(false)
     const [currentPath, setCurrentPath] = useState<string>('')
     const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
+    const [showPathPreview, setShowPathPreview] = useState(false)
+    const [showFullPath, setShowFullPath] = useState(false)
+    const [favorites, setFavorites] = useState<FavoriteItem[]>([])
 
     /**
      * Toggle section collapse state
@@ -124,6 +154,16 @@ export default function NestedSideBar({ data }: Props) {
         const saved = loadCollapsedSections()
         if (saved.size > 0) {
             setCollapsedSections(saved)
+        }
+    }, [])
+
+    /**
+     * Load favorites from localStorage on mount
+     */
+    useEffect(() => {
+        const saved = loadFavorites()
+        if (saved.length > 0) {
+            setFavorites(saved)
         }
     }, [])
 
@@ -292,6 +332,85 @@ export default function NestedSideBar({ data }: Props) {
         }
     }
 
+    /**
+     * Navigate to a specific level in the stack
+     */
+    const navigateToLevel = (levelIndex: number) => {
+        if (levelIndex < navigationStack.length - 1) {
+            setSlideDirection("backward")
+            setAnimationKey(prev => prev + 1)
+            setNavigationStack(navigationStack.slice(0, levelIndex + 1))
+            setShowPathPreview(false)
+        }
+    }
+
+    /**
+     * Check if a node is favorited
+     */
+    const isFavorited = useCallback((nodeKey: string | null): boolean => {
+        if (!nodeKey) return false
+        return favorites.some(fav => fav.nodeKey === nodeKey)
+    }, [favorites])
+
+    /**
+     * Toggle favorite status for a node
+     */
+    const toggleFavorite = (nodeKey: string | null, node: NavNode) => {
+        if (!nodeKey) return
+
+        setFavorites(prev => {
+            const existing = prev.find(fav => fav.nodeKey === nodeKey)
+            let next: FavoriteItem[]
+
+            if (existing) {
+                // Remove from favorites
+                next = prev.filter(fav => fav.nodeKey !== nodeKey)
+            } else {
+                // Add to favorites with current path
+                const newFavorite: FavoriteItem = {
+                    nodeKey,
+                    path: getCurrentPath(),
+                    title: node.title,
+                    badge: node.badge,
+                    href: node.href
+                }
+                next = [...prev, newFavorite]
+            }
+
+            saveFavorites(next)
+            return next
+        })
+    }
+
+    /**
+     * Navigate to a favorited item
+     */
+    const navigateToFavorite = (favorite: FavoriteItem) => {
+        // If it has an href and no children, just navigate to the URL
+        const node = nodes[favorite.nodeKey]
+        if (favorite.href && (!node?.children || node.children.length === 0)) {
+            window.location.href = favorite.href
+            return
+        }
+
+        // Build the stack to this favorite
+        const stack = buildStackFromPath(favorite.path)
+
+        // If the node has children, add it to the stack
+        if (node && node.children && node.children.length > 0) {
+            stack.push({
+                key: favorite.nodeKey,
+                entries: node.children,
+                title: node.title,
+                badge: node.badge
+            })
+        }
+
+        setSlideDirection("forward")
+        setAnimationKey(prev => prev + 1)
+        setNavigationStack(stack)
+    }
+
     const isTopLevel = navigationStack.length === 1
 
     /**
@@ -423,11 +542,19 @@ export default function NestedSideBar({ data }: Props) {
     const renderItem = (item: NavNode, itemKey: string | null, index: number) => {
         const itemHasChildren = hasChildren(item)
         const isActive = item.href && currentPath === item.href
+        const isFav = isFavorited(itemKey)
+        const canFavorite = itemKey !== null // Only items with keys can be favorited
 
         // Get icon component from lucide-react
         const IconComponent = item.icon
             ? (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[item.icon]
             : null
+
+        const handleStarClick = (e: React.MouseEvent) => {
+            e.preventDefault()
+            e.stopPropagation()
+            toggleFavorite(itemKey, item)
+        }
 
         const content = (
             <>
@@ -447,11 +574,26 @@ export default function NestedSideBar({ data }: Props) {
                         {item.title}
                     </span>
                 </div>
-                {itemHasChildren && (
-                    <span className="flex items-center justify-center w-5 h-5 text-gray-400 flex-shrink-0 group-hover:text-purple-500 group-hover:translate-x-0.5 transition-transform">
-                        <ChevronRight className="w-4 h-4" />
-                    </span>
-                )}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                    {canFavorite && (
+                        <button
+                            onClick={handleStarClick}
+                            className={cn(
+                                "flex items-center justify-center w-5 h-5 rounded transition-colors",
+                                isFav
+                                    ? "text-amber-400 hover:text-amber-500"
+                                    : "text-gray-300 opacity-0 group-hover:opacity-100 hover:text-amber-400"
+                            )}
+                        >
+                            <Star className={cn("w-3.5 h-3.5", isFav && "fill-current")} />
+                        </button>
+                    )}
+                    {itemHasChildren && (
+                        <span className="flex items-center justify-center w-5 h-5 text-gray-400 group-hover:text-purple-500 group-hover:translate-x-0.5 transition-transform">
+                            <ChevronRight className="w-4 h-4" />
+                        </span>
+                    )}
+                </div>
             </>
         )
 
@@ -494,7 +636,14 @@ export default function NestedSideBar({ data }: Props) {
     return (
         <aside className="w-[350px] h-screen flex flex-col bg-gray-50  font-sans">
             {/* Back Navigation */}
-            <div className="px-3 py-2 bg-white border-b border-gray-200 sticky top-0 z-10">
+            <div
+                className="px-3 py-2 bg-white border-b border-gray-200 sticky top-0 z-10 relative"
+                onMouseEnter={() => !isTopLevel && setShowPathPreview(true)}
+                onMouseLeave={() => {
+                    setShowPathPreview(false)
+                    setShowFullPath(false)
+                }}
+            >
                 <button
                     onClick={navigateBack}
                     disabled={isTopLevel}
@@ -523,6 +672,103 @@ export default function NestedSideBar({ data }: Props) {
                         </span>
                     )}
                 </button>
+
+                {/* Path Preview Dropdown */}
+                {showPathPreview && navigationStack.length > 1 && (
+                    <div className="absolute left-0 right-0 top-full bg-white border-b border-gray-200 shadow-lg z-20">
+                        <div className="px-3 py-2">
+                            <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-2">
+                                Navigation Path
+                            </div>
+                            <div className="flex flex-col gap-0.5">
+                                {(() => {
+                                    const SHOW_FIRST = 2  // Show first N items
+                                    const SHOW_LAST = 2   // Show last N items (including current)
+                                    const totalItems = navigationStack.length
+                                    const hiddenCount = totalItems - SHOW_FIRST - SHOW_LAST
+                                    const shouldTruncate = hiddenCount > 0 && !showFullPath
+
+                                    const renderPathItem = (level: NavigationLevel, index: number, displayIndex: number) => {
+                                        const isCurrentLevel = index === navigationStack.length - 1
+                                        return (
+                                            <button
+                                                key={`path-${index}`}
+                                                onClick={() => navigateToLevel(index)}
+                                                disabled={isCurrentLevel}
+                                                className={cn(
+                                                    "flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors",
+                                                    !isCurrentLevel && "hover:bg-gray-100 cursor-pointer",
+                                                    isCurrentLevel && "bg-purple-50 cursor-default"
+                                                )}
+                                                style={{ paddingLeft: `${(displayIndex * 12) + 8}px` }}
+                                            >
+                                                {index === 0 ? (
+                                                    <Home className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                                ) : (
+                                                    <ChevronRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                                                )}
+                                                <span className={cn(
+                                                    "text-sm truncate",
+                                                    isCurrentLevel ? "font-medium text-purple-700" : "text-gray-600"
+                                                )}>
+                                                    {level.title}
+                                                </span>
+                                                {level.badge && (
+                                                    <span className={cn(
+                                                        "ml-auto px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide rounded flex-shrink-0",
+                                                        getBadgeClasses(level.badge)
+                                                    )}>
+                                                        {level.badge}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        )
+                                    }
+
+                                    if (shouldTruncate) {
+                                        return (
+                                            <>
+                                                {/* First N items */}
+                                                {navigationStack.slice(0, SHOW_FIRST).map((level, index) =>
+                                                    renderPathItem(level, index, index)
+                                                )}
+
+                                                {/* Collapsed middle section */}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        setShowFullPath(true)
+                                                    }}
+                                                    className="flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors hover:bg-gray-100 cursor-pointer"
+                                                    style={{ paddingLeft: `${(SHOW_FIRST * 12) + 8}px` }}
+                                                >
+                                                    <span className="flex items-center justify-center w-3.5 h-3.5 text-gray-400">
+                                                        <span className="text-xs">•••</span>
+                                                    </span>
+                                                    <span className="text-sm text-gray-500">
+                                                        {hiddenCount} more level{hiddenCount > 1 ? 's' : ''}
+                                                    </span>
+                                                    <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-auto" />
+                                                </button>
+
+                                                {/* Last N items */}
+                                                {navigationStack.slice(-SHOW_LAST).map((level, sliceIndex) => {
+                                                    const actualIndex = totalItems - SHOW_LAST + sliceIndex
+                                                    return renderPathItem(level, actualIndex, SHOW_FIRST + 1 + sliceIndex)
+                                                })}
+                                            </>
+                                        )
+                                    }
+
+                                    // Show full path
+                                    return navigationStack.map((level, index) =>
+                                        renderPathItem(level, index, index)
+                                    )
+                                })()}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Navigation Content */}
@@ -537,6 +783,68 @@ export default function NestedSideBar({ data }: Props) {
                     scrollbarColor: '#e5e7eb transparent'
                 }}
             >
+                {/* Favorites Section */}
+                {favorites.length > 0 && isTopLevel && (
+                    <div className="mb-6">
+                        <div className="flex items-center px-2 py-2 pb-2">
+                            <Star className="w-3.5 h-3.5 mr-2 text-amber-400 fill-current" />
+                            <span className="text-sm text-black font-semibold">
+                                Favorites
+                            </span>
+                        </div>
+                        <div className="flex flex-col gap-0.5 border-l ml-3.5 border-amber-200">
+                            {favorites.map((fav, index) => {
+                                const node = nodes[fav.nodeKey]
+                                const isActive = fav.href && currentPath === fav.href
+
+                                return (
+                                    <button
+                                        key={`fav-${index}`}
+                                        onClick={() => navigateToFavorite(fav)}
+                                        className={cn(
+                                            "group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-amber-50 active:bg-amber-100",
+                                            isActive && "bg-purple-100 hover:bg-purple-100 border-l-4 border-purple-600 rounded-l-none"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                            <span className={cn(
+                                                "text-[14px] truncate",
+                                                isActive ? "text-purple-600 font-medium" : "text-gray-600 group-hover:text-gray-900"
+                                            )}>
+                                                {fav.title}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-1 flex-shrink-0">
+                                            {fav.badge && (
+                                                <span className={cn(
+                                                    "px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide rounded",
+                                                    getBadgeClasses(fav.badge)
+                                                )}>
+                                                    {fav.badge}
+                                                </span>
+                                            )}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    if (node) toggleFavorite(fav.nodeKey, node)
+                                                }}
+                                                className="flex items-center justify-center w-5 h-5 text-amber-400 hover:text-amber-500 rounded transition-colors"
+                                            >
+                                                <Star className="w-3.5 h-3.5 fill-current" />
+                                            </button>
+                                            {node?.children && node.children.length > 0 && (
+                                                <span className="flex items-center justify-center w-5 h-5 text-gray-400 group-hover:text-purple-500">
+                                                    <ChevronRight className="w-4 h-4" />
+                                                </span>
+                                            )}
+                                        </div>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </div>
+                )}
+
                 {renderEntries(currentLevel.entries)}
             </nav>
 
