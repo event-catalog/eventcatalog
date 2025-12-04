@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.65.1
+
+### Patch Changes
+
+- fa47d1e: feat(core): added ability for defult homepage and turn visualizer off
+
 ## 2.65.0
 
 ### Minor Changes
