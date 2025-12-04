@@ -2,7 +2,7 @@
 import Architecture from '../architecture.astro';
 
 export async function getStaticPaths() {
-  const VALID_TYPES = ['domains', 'services', 'messages'] as const;
+  const VALID_TYPES = ['services', 'messages'] as const;
   return VALID_TYPES.map((type) => ({
     params: { type },
   }));

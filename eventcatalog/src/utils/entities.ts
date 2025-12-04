@@ -1,8 +1,8 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
-import { getVersionForCollectionItem, satisfies } from './collections/util';
 import utils from '@eventcatalog/sdk';
+import { createVersionedMap, satisfies } from './collections/util';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
@@ -11,6 +11,7 @@ export type Entity = CollectionEntry<'entities'> & {
     path: string;
     filePath: string;
     type: string;
+    publicPath: string;
   };
 };
 
@@ -19,46 +20,62 @@ interface Props {
 }
 
 // cache for build time
-let cachedEntities: Record<string, Entity[]> = {
-  allVersions: [],
-  currentVersions: [],
-};
+let memoryCache: Record<string, Entity[]> = {};
 
 export const getEntities = async ({ getAllVersions = true }: Props = {}): Promise<Entity[]> => {
+  // console.time('✅ New getEntities');
   const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
 
-  if (cachedEntities[cacheKey].length > 0) {
-    return cachedEntities[cacheKey];
+  if (memoryCache[cacheKey] && memoryCache[cacheKey].length > 0) {
+    // console.timeEnd('✅ New getEntities');
+    return memoryCache[cacheKey];
   }
 
-  const entities = await getCollection('entities', (entity) => {
-    return (getAllVersions || !entity.filePath?.includes('versioned')) && entity.data.hidden !== true;
+  // 1. Fetch collections in parallel
+  const [allEntities, allServices, allDomains] = await Promise.all([
+    getCollection('entities'),
+    getCollection('services'),
+    getCollection('domains'),
+  ]);
+
+  // 2. Build optimized maps
+  const entityMap = createVersionedMap(allEntities);
+
+  // 3. Filter entities
+  const targetEntities = allEntities.filter((entity) => {
+    if (entity.data.hidden === true) return false;
+    if (!getAllVersions && entity.filePath?.includes('versioned')) return false;
+    return true;
   });
 
-  const services = await getCollection('services');
-  const domains = await getCollection('domains');
+  const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
 
-  cachedEntities[cacheKey] = await Promise.all(
-    entities.map(async (entity) => {
-      const { latestVersion, versions } = getVersionForCollectionItem(entity, entities);
+  // 4. Enrich entities
+  const processedEntities = await Promise.all(
+    targetEntities.map(async (entity) => {
+      // Version info
+      const entityVersions = entityMap.get(entity.data.id) || [];
+      const latestVersion = entityVersions[0]?.data.version || entity.data.version;
+      const versions = entityVersions.map((e) => e.data.version);
 
-      const servicesThatReferenceEntity = services.filter((service) =>
+      // Find Services that reference this entity
+      const servicesThatReferenceEntity = allServices.filter((service) =>
         service.data.entities?.some((item) => {
-          if (item.id != entity.data.id) return false;
-          if (item.version == 'latest' || item.version == undefined) return entity.data.version == latestVersion;
+          if (item.id !== entity.data.id) return false;
+          if (item.version === 'latest' || item.version === undefined) return entity.data.version === latestVersion;
           return satisfies(entity.data.version, item.version);
         })
       );
 
-      const domainsThatReferenceEntity = domains.filter((domain) =>
+      // Find Domains that reference this entity
+      const domainsThatReferenceEntity = allDomains.filter((domain) =>
         domain.data.entities?.some((item) => {
-          if (item.id != entity.data.id) return false;
-          if (item.version == 'latest' || item.version == undefined) return entity.data.version == latestVersion;
+          if (item.id !== entity.data.id) return false;
+          if (item.version === 'latest' || item.version === undefined) return entity.data.version === latestVersion;
           return satisfies(entity.data.version, item.version);
         })
       );
 
-      const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
       const folderName = await getResourceFolderName(
         process.env.PROJECT_DIR ?? '',
         entity.data.id,
@@ -87,10 +104,13 @@ export const getEntities = async ({ getAllVersions = true }: Props = {}): Promis
     })
   );
 
-  // order them by the name of the event
-  cachedEntities[cacheKey].sort((a, b) => {
+  // order them by the name of the entity
+  processedEntities.sort((a, b) => {
     return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
   });
 
-  return cachedEntities[cacheKey];
+  memoryCache[cacheKey] = processedEntities;
+  // console.timeEnd('✅ New getEntities');
+
+  return processedEntities;
 };

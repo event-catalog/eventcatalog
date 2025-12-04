@@ -1,49 +1,68 @@
+import type { CollectionTypes } from '@types';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
 
 export type Team = CollectionEntry<'teams'>;
-
+const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 // Cache for build time
-let cachedTeams: Team[] = [];
+let memoryCache: Team[] = [];
 
 export const getTeams = async (): Promise<Team[]> => {
-  if (cachedTeams.length > 0) {
-    return cachedTeams;
+  // console.time('✅ New getTeams');
+  if (memoryCache.length > 0 && CACHE_ENABLED) {
+    // console.timeEnd('✅ New getTeams');
+    return memoryCache;
   }
 
-  // Get services that are not versioned
-  const teams = await getCollection('teams', (team) => {
-    return team.data.hidden !== true;
-  });
-  // What do they own?
-  const domains = await getCollection('domains');
-  // What do they own?
-  const services = await getCollection('services');
-  // What do they own?
-  const events = await getCollection('events');
-  const commands = await getCollection('commands');
-  const queries = await getCollection('queries');
-  cachedTeams = teams.map((team) => {
-    const ownedDomains = domains.filter((domain) => {
-      return domain.data.owners?.find((owner) => owner.id === team.data.id);
-    });
+  // 1. Fetch all collections in parallel
+  const [allTeams, allDomains, allServices, allEvents, allCommands, allQueries] = await Promise.all([
+    getCollection('teams'),
+    getCollection('domains'),
+    getCollection('services'),
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+  ]);
 
-    const ownedServices = services.filter((service) => {
-      return service.data.owners?.find((owner) => owner.id === team.data.id);
-    });
+  // 2. Filter teams
+  const targetTeams = allTeams.filter((team) => team.data.hidden !== true);
 
-    const ownedEvents = events.filter((event) => {
-      return event.data.owners?.find((owner) => owner.id === team.data.id);
-    });
+  // 3. Build Owner Index: Map<OwnerID, Item[]>
+  // This index groups all items (domains, services, etc.) by their owner IDs.
+  // This allows O(1) lookup to find all items owned by a specific team.
+  const ownershipMap = new Map<string, CollectionEntry<CollectionTypes>[]>();
 
-    const ownedCommands = commands.filter((command) => {
-      return command.data.owners?.find((owner) => owner.id === team.data.id);
-    });
+  const addToIndex = (items: CollectionEntry<CollectionTypes>[]) => {
+    for (const item of items) {
+      if (item.data.owners) {
+        for (const owner of item.data.owners) {
+          if (!ownershipMap.has(owner.id)) {
+            ownershipMap.set(owner.id, []);
+          }
+          ownershipMap.get(owner.id)!.push(item);
+        }
+      }
+    }
+  };
 
-    const ownedQueries = queries.filter((query) => {
-      return query.data.owners?.find((owner) => owner.id === team.data.id);
-    });
+  addToIndex(allDomains);
+  addToIndex(allServices);
+  addToIndex(allEvents);
+  addToIndex(allCommands);
+  addToIndex(allQueries);
+
+  // 4. Enrich teams using the ownership index
+  const processedTeams = targetTeams.map((team) => {
+    const teamId = team.data.id;
+    const ownedItems = ownershipMap.get(teamId) || [];
+
+    // Categorize items
+    const ownedDomains = ownedItems.filter((i) => i.collection === 'domains') as CollectionEntry<'domains'>[];
+    const ownedServices = ownedItems.filter((i) => i.collection === 'services') as CollectionEntry<'services'>[];
+    const ownedEvents = ownedItems.filter((i) => i.collection === 'events') as CollectionEntry<'events'>[];
+    const ownedCommands = ownedItems.filter((i) => i.collection === 'commands') as CollectionEntry<'commands'>[];
+    const ownedQueries = ownedItems.filter((i) => i.collection === 'queries') as CollectionEntry<'queries'>[];
 
     return {
       ...team,
@@ -64,9 +83,12 @@ export const getTeams = async (): Promise<Team[]> => {
   });
 
   // order them by the name of the team
-  cachedTeams.sort((a, b) => {
+  processedTeams.sort((a, b) => {
     return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
   });
 
-  return cachedTeams;
+  memoryCache = processedTeams;
+  // console.timeEnd('✅ New getTeams');
+
+  return processedTeams;
 };

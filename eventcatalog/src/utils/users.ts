@@ -5,44 +5,91 @@ import path from 'path';
 
 export type User = CollectionEntry<'users'>;
 
+// Simple in-memory cache
+let memoryCache: User[] = [];
+
 export const getUsers = async (): Promise<User[]> => {
-  // Get services that are not versioned
-  const users = await getCollection('users', (user) => {
-    return user.data.hidden !== true;
-  });
+  // console.time('✅ New getUsers');
 
-  // What do they own?
-  const domains = await getCollection('domains');
-  const services = await getCollection('services');
-  const events = await getCollection('events');
-  const commands = await getCollection('commands');
-  const queries = await getCollection('queries');
+  if (memoryCache.length > 0) {
+    // console.timeEnd('✅ New getUsers');
+    return memoryCache;
+  }
 
-  const teams = await getCollection('teams', (team) => {
-    return team.data.hidden !== true;
-  });
+  // 1. Fetch all collections in parallel
+  const [allUsers, allDomains, allServices, allEvents, allCommands, allQueries, allTeams] = await Promise.all([
+    getCollection('users'),
+    getCollection('domains'),
+    getCollection('services'),
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+    getCollection('teams'),
+  ]);
 
-  const mappedUsers = users.map((user) => {
-    const associatedTeams = teams.filter((team) => {
-      return team.data.members?.some((member) => member.id === user.data.id);
-    });
+  // 2. Filter users
+  const targetUsers = allUsers.filter((user) => user.data.hidden !== true);
+  const visibleTeams = allTeams.filter((team) => team.data.hidden !== true);
 
-    const ownedDomains = domains.filter((domain) => {
-      return domain.data.owners?.find((owner) => owner.id === user.data.id);
-    });
+  // 3. Process users (Optimization: Iterate once over relationships if possible,
+  // but since we need to check ownership for EACH user against ALL items,
+  // we can't easily invert the map without building an "owner" index first.
+  // Given users/teams count is usually lower than events/services, iterating users and filtering items is acceptable,
+  // OR we can index items by ownerID for O(1) lookup. Let's try indexing items by ownerID.)
 
-    const isOwnedByUserOrAssociatedTeam = (item: CollectionEntry<CollectionTypes>) => {
-      const associatedTeamsId: string[] = associatedTeams.map((team) => team.data.id);
-      return item.data.owners?.some((owner) => owner.id === user.data.id || associatedTeamsId.includes(owner.id));
-    };
+  // Build Owner Index: Map<OwnerID, Item[]>
+  const ownershipMap = new Map<string, CollectionEntry<CollectionTypes>[]>();
 
-    const ownedServices = services.filter(isOwnedByUserOrAssociatedTeam);
+  const addToIndex = (items: CollectionEntry<CollectionTypes>[]) => {
+    for (const item of items) {
+      if (item.data.owners) {
+        for (const owner of item.data.owners) {
+          if (!ownershipMap.has(owner.id)) {
+            ownershipMap.set(owner.id, []);
+          }
+          ownershipMap.get(owner.id)!.push(item);
+        }
+      }
+    }
+  };
 
-    const ownedEvents = events.filter(isOwnedByUserOrAssociatedTeam);
+  addToIndex(allDomains);
+  addToIndex(allServices);
+  addToIndex(allEvents);
+  addToIndex(allCommands);
+  addToIndex(allQueries);
 
-    const ownedCommands = commands.filter(isOwnedByUserOrAssociatedTeam);
+  // Team Membership Index: Map<UserID, Team[]>
+  const teamMembershipMap = new Map<string, typeof visibleTeams>();
+  for (const team of visibleTeams) {
+    if (team.data.members) {
+      for (const member of team.data.members) {
+        if (!teamMembershipMap.has(member.id)) {
+          teamMembershipMap.set(member.id, []);
+        }
+        teamMembershipMap.get(member.id)!.push(team);
+      }
+    }
+  }
 
-    const ownedQueries = queries.filter(isOwnedByUserOrAssociatedTeam);
+  const mappedUsers = targetUsers.map((user) => {
+    const userId = user.data.id;
+    const associatedTeams = teamMembershipMap.get(userId) || [];
+    const associatedTeamIds = associatedTeams.map((t) => t.data.id);
+
+    // Collect all owned items directly owned by user OR by their teams
+    const directOwnedItems = ownershipMap.get(userId) || [];
+    const teamOwnedItems = associatedTeamIds.flatMap((teamId) => ownershipMap.get(teamId) || []);
+
+    // Combine and deduplicate items (by ID+Version or just reference equality since they come from same source arrays)
+    const allOwnedItems = Array.from(new Set([...directOwnedItems, ...teamOwnedItems]));
+
+    // Categorize items
+    const ownedDomains = allOwnedItems.filter((i) => i.collection === 'domains') as CollectionEntry<'domains'>[];
+    const ownedServices = allOwnedItems.filter((i) => i.collection === 'services') as CollectionEntry<'services'>[];
+    const ownedEvents = allOwnedItems.filter((i) => i.collection === 'events') as CollectionEntry<'events'>[];
+    const ownedCommands = allOwnedItems.filter((i) => i.collection === 'commands') as CollectionEntry<'commands'>[];
+    const ownedQueries = allOwnedItems.filter((i) => i.collection === 'queries') as CollectionEntry<'queries'>[];
 
     return {
       ...user,
@@ -67,6 +114,9 @@ export const getUsers = async (): Promise<User[]> => {
   mappedUsers.sort((a, b) => {
     return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
   });
+
+  memoryCache = mappedUsers;
+  // console.timeEnd('✅ New getUsers');
 
   return mappedUsers;
 };

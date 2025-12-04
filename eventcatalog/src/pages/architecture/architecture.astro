@@ -49,11 +49,8 @@ const getDomainsForArchitecturePages = async () => {
   );
 };
 
-if (type === 'domains' || type === 'services') {
-  domains = await getDomainsForArchitecturePages();
-}
-
 if (type === 'services') {
+  domains = await getDomainsForArchitecturePages();
   const services = await getServices({ getAllVersions: false });
   let filteredServices = services.map((s) => {
     // @ts-ignore we have to remove markdown information, as it's all send to the astro components. This reduced the page size.
@@ -76,7 +73,7 @@ if (type === 'services') {
 
 <VerticalSideBarLayout title={'EventCatalog'}>
   <div class="bg-white min-h-screen">
-    <div class="max-w-[90em] mx-auto">
+    <div class="mx-auto">
       <div class="px-6 py-6" transition:animate={fade({ duration: '0.4s' })}>
         {type === 'domains' && <DomainGrid domains={domains} embeded={embeded} client:load />}
         {

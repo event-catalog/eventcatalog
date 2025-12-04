@@ -17,12 +17,14 @@ interface Props {
 }
 
 export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simple', channelRenderMode = 'flat' }: Props) => {
+  // 1. Fetch data
   const containers = await getContainers();
 
   const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
   const nodes = [] as any,
     edges = [] as any;
 
+  // Optimized: Use find since we're looking for a specific item
   const container = containers.find((container) => container.data.id === id && container.data.version === version);
 
   // Nothing found...

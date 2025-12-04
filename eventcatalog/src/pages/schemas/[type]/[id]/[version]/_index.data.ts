@@ -16,25 +16,33 @@ export class Page extends HybridPage {
       'events',
       'commands',
       'queries',
-      'services',
-      'domains',
-      'flows',
-      'channels',
-      'entities',
-      'containers',
+      // 'services',
+      // 'domains',
+      // 'flows',
+      // 'channels',
+      // 'entities',
+      // 'containers',
     ];
     const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
-    return allItems.flatMap((items, index) =>
-      items.map((item) => ({
-        params: {
-          type: itemTypes[index],
-          id: item.data.id,
-          version: item.data.version,
-        },
-        props: {},
-      }))
-    );
+    // We only care about any item that has data.schemaPath
+    const itemsWithSchema = allItems.flatMap((items) => items.filter((item) => item.data.schemaPath));
+
+    // return allItems.flatMap((items, index) =>
+    return itemsWithSchema.map((item, index) => ({
+      params: {
+        type: item.collection,
+        id: item.data.id,
+        version: item.data.version,
+      },
+      props: {
+        type: item.collection,
+        ...item,
+        // Not everything needs the body of the page itself.
+        body: undefined,
+      },
+    }));
+    // );
   }
 
   protected static async fetchData(params: any) {

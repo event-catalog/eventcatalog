@@ -24,7 +24,7 @@
     "dev": "astro dev",
     "build:bin": "tsup",
     "prepublishOnly": "pnpm run build:bin",
-    "test": "vitest",
+    "test": "cross-env DISABLE_EVENTCATALOG_CACHE=true vitest",
     "test:ci": "node scripts/ci/test.js",
     "test:e2e": "playwright test",
     "start": "astro dev",

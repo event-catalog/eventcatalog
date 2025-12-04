@@ -8,7 +8,7 @@ import {
   createEdge,
 } from '@utils/node-graphs/utils/utils';
 
-import { findMatchingNodes, getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+import { findMatchingNodes, findInMap, createVersionedMap } from '@utils/collections/util';
 import { MarkerType } from '@xyflow/react';
 import type { CollectionMessageTypes } from '@types';
 import { getNodesAndEdgesForConsumedMessage, getNodesAndEdgesForProducedMessage } from './message-node-graph';
@@ -63,7 +63,15 @@ export const getNodesAndEdges = async ({
   let nodes = [] as any,
     edges = [] as any;
 
-  const services = await getCollection('services');
+  // Fetch all collections in parallel
+  const [services, events, commands, queries, channels, containers] = await Promise.all([
+    getCollection('services'),
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+    getCollection('channels'),
+    getCollection('containers'),
+  ]);
 
   const service = services.find((service) => service.data.id === id && service.data.version === version);
 
@@ -75,37 +83,31 @@ export const getNodesAndEdges = async ({
     };
   }
 
+  // Build maps for O(1) lookups
+  const messages = [...events, ...commands, ...queries];
+  const messageMap = createVersionedMap(messages);
+  const containerMap = createVersionedMap(containers);
+  const channelMap = createVersionedMap(channels);
+
   const receivesRaw = service?.data.receives || [];
   const sendsRaw = service?.data.sends || [];
   const writesToRaw = service?.data.writesTo || [];
   const readsFromRaw = service?.data.readsFrom || [];
 
-  const events = await getCollection('events');
-  const commands = await getCollection('commands');
-  const queries = await getCollection('queries');
-  const channels = await getCollection('channels');
-  const containers = await getCollection('containers');
-
-  const messages = [...events, ...commands, ...queries];
-
   const receivesHydrated = receivesRaw
-    .map((message) => getItemsFromCollectionByIdAndSemverOrLatest(messages, message.id, message.version))
-    .flat()
+    .map((message) => findInMap(messageMap, message.id, message.version))
     .filter((e) => e !== undefined);
 
   const sendsHydrated = sendsRaw
-    .map((message) => getItemsFromCollectionByIdAndSemverOrLatest(messages, message.id, message.version))
-    .flat()
+    .map((message) => findInMap(messageMap, message.id, message.version))
     .filter((e) => e !== undefined);
 
   const writesToHydrated = writesToRaw
-    .map((container) => getItemsFromCollectionByIdAndSemverOrLatest(containers, container.id, container.version))
-    .flat()
+    .map((container) => findInMap(containerMap, container.id, container.version))
     .filter((e) => e !== undefined);
 
   const readsFromHydrated = readsFromRaw
-    .map((container) => getItemsFromCollectionByIdAndSemverOrLatest(containers, container.id, container.version))
-    .flat()
+    .map((container) => findInMap(containerMap, container.id, container.version))
     .filter((e) => e !== undefined);
 
   const receives = (receivesHydrated as CollectionEntry<CollectionMessageTypes>[]) || [];
@@ -130,6 +132,7 @@ export const getNodesAndEdges = async ({
         target: service,
         mode,
         channels,
+        channelMap,
       });
 
       nodes.push(...consumedMessageNodes);
@@ -221,6 +224,7 @@ export const getNodesAndEdges = async ({
         currentEdges: edges,
         mode,
         channels,
+        channelMap,
       });
 
       nodes.push(...producedMessageNodes);

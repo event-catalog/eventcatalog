@@ -13,15 +13,15 @@ export class Page extends HybridPage {
     }
 
     const itemTypes: PageTypes[] = [
-      'events',
-      'commands',
-      'queries',
+      // 'events',
+      // 'commands',
+      // 'queries',
       'services',
       'domains',
-      'flows',
-      'channels',
-      'entities',
-      'containers',
+      // 'flows',
+      // 'channels',
+      // 'entities',
+      // 'containers',
     ];
     const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
@@ -32,7 +32,12 @@ export class Page extends HybridPage {
           id: item.data.id,
           version: item.data.version,
         },
-        props: {},
+        props: {
+          type: itemTypes[index],
+          ...item,
+          // Not everything needs the body of the page itself.
+          body: undefined,
+        },
       }))
     );
   }

@@ -34,6 +34,20 @@ export default {
         },
         ...theme,
       },
+      keyframes: {
+        'progress-bar': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
+        'progress-bar-reverse': {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(-100%)' },
+        },
+      },
+      animation: {
+        'progress-bar': 'progress-bar 2s linear infinite',
+        'progress-bar-reverse': 'progress-bar-reverse 2s linear infinite',
+      },
     },
   },
   safelist: [

@@ -29,6 +29,8 @@ import '@fontsource/inter';
 import '@fontsource/inter/400.css'; // Specify weight
 import '@fontsource/inter/700.css'; // Specify weight
 
+import { ClientRouter } from 'astro:transitions';
+
 import { getCommands } from '@utils/commands';
 import { getDomains } from '@utils/collections/domains';
 import { getEvents } from '@utils/events';
@@ -103,18 +105,12 @@ const navigationItems = [
     icon: BookOpenText,
     href: catalogHasDefaultLandingPageForDocs ? buildUrl('/docs') : getDefaultUrl('docs', '/docs'),
     current:
-      (currentPath.includes('/docs') && !currentPath.includes('/docs/custom')) || currentPath.includes('/architecture/docs/'),
+      (currentPath.includes('/docs') && !currentPath.includes('/docs/custom')) ||
+      currentPath.includes('/architecture/docs/') ||
+      currentPath.includes('/visualiser') ||
+      (currentPath.includes('/schemas') && !currentPath.includes('/schemas/explorer')),
     sidebar: true,
   },
-  {
-    id: '/visualiser',
-    label: 'Visualiser',
-    icon: Workflow,
-    href: getDefaultUrl('visualiser', '/visualiser'),
-    current: currentPath.includes('/visualiser'),
-    sidebar: true,
-  },
-
   {
     id: '/discover',
     label: 'Explore',
@@ -127,8 +123,15 @@ const navigationItems = [
     id: '/schemas',
     label: 'Schema Explorer',
     icon: FileJson,
-    href: buildUrl('/schemas'),
-    current: currentPath.includes('/schemas'),
+    sidebar: true,
+    hidden: true,
+  },
+  {
+    id: '/schemas/explorer',
+    label: 'Schema Explorer',
+    icon: FileJson,
+    href: buildUrl('/schemas/explorer'),
+    current: currentPath.includes('/schemas/explorer'),
     sidebar: false,
   },
   {
@@ -145,7 +148,7 @@ const navigationItems = [
     icon: BookUser,
     href: buildUrl('/architecture/domains'),
     current: currentPath.includes('/architecture/'),
-    sidebar: false,
+    sidebar: true,
     hidden: true,
   },
 ].filter((item) => {
@@ -386,6 +389,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
     </div>
   </body>
 </html>
+<ClientRouter />
 <script define:vars={{ navigationItems, currentNavigationItem, showSideBarOnLoad, canPageBeEmbedded }}>
   // Listen for Astro transititions
   document.addEventListener('astro:page-load', () => {

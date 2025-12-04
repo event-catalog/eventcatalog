@@ -1,9 +1,10 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
 import { generateIdForNode, createDagreGraph, calculatedNodes, createEdge } from '@utils/node-graphs/utils/utils';
-import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+import { findInMap, createVersionedMap } from '@utils/collections/util';
 import type { Node, Edge } from '@xyflow/react';
 import { getDomains } from '@utils/collections/domains';
+import type { CollectionMessageTypes } from '@types';
 
 interface DomainCanvasData {
   domainNodes: Node[];
@@ -69,10 +70,14 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
     } as Node);
   }
 
-  // Get all messages for version resolution
-  const allMessages = await getCollection('events')
-    .then((events) => Promise.all([events, getCollection('commands'), getCollection('queries')]))
-    .then(([events, commands, queries]) => [...events, ...commands, ...queries]);
+  // Get all messages for version resolution in parallel
+  const [events, commands, queries] = await Promise.all([
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+  ]);
+  const allMessages = [...events, ...commands, ...queries];
+  const messageMap = createVersionedMap(allMessages);
 
   // Map to track unique messages and their publishers/consumers across domains
   const messageRelationships = new Map<
@@ -89,9 +94,9 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
     domainData.services.forEach((service: any) => {
       // Track messages this service sends
       const sendsRaw = service.data.sends ?? [];
+
       const sendsHydrated = sendsRaw
-        .map((message: any) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
-        .flat()
+        .map((message: any) => findInMap(messageMap, message.id, message.version))
         .filter((e: any) => e !== undefined);
 
       sendsHydrated.forEach((sentMessage: any) => {
@@ -115,8 +120,7 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
       // Track messages this service receives
       const receivesRaw = service.data.receives ?? [];
       const receivesHydrated = receivesRaw
-        .map((message: any) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
-        .flat()
+        .map((message: any) => findInMap(messageMap, message.id, message.version))
         .filter((e: any) => e !== undefined);
 
       receivesHydrated.forEach((receivedMessage: any) => {
@@ -154,7 +158,7 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
 
     if (crossesDomainBoundary) {
       // Find the actual message object
-      const messageObject = allMessages.find((m) => m.data.id === message.id && m.data.version === message.version);
+      const messageObject = findInMap(messageMap, message.id, message.version) as CollectionEntry<CollectionMessageTypes>;
 
       if (messageObject) {
         const messageNodeId = `message-${messageKey}`;
