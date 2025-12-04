@@ -1,10 +1,11 @@
 import { HybridPage } from '@utils/page-loaders/hybrid-page';
 import { isAuthEnabled } from '@utils/feature';
 import { domainHasEntities, getDomains, type Domain } from '@utils/collections/domains';
+import { isVisualiserEnabled } from '@utils/feature';
 
 export class Page extends HybridPage {
   static async getStaticPaths(): Promise<Array<{ params: any; props: any }>> {
-    if (isAuthEnabled()) {
+    if (isAuthEnabled() || !isVisualiserEnabled()) {
       return [];
     }
 
@@ -29,7 +30,7 @@ export class Page extends HybridPage {
   protected static async fetchData(params: any) {
     const { id, version } = params;
 
-    if (!id || !version) {
+    if (!id || !version || !isVisualiserEnabled()) {
       return null;
     }
 
@@ -54,7 +55,7 @@ export class Page extends HybridPage {
   }
 
   static get clientAuthScript(): string {
-    if (!isAuthEnabled()) {
+    if (!isAuthEnabled() || !isVisualiserEnabled()) {
       return '';
     }
 

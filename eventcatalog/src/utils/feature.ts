@@ -55,3 +55,5 @@ export const isAuthEnabled = () => {
 };
 
 export const isSSR = () => config?.output === 'server';
+
+export const isVisualiserEnabled = () => config?.visualiser?.enabled ?? true;

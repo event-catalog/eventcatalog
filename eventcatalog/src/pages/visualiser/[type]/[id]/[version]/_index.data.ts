@@ -3,12 +3,13 @@ import { HybridPage } from '@utils/page-loaders/hybrid-page';
 import { isAuthEnabled } from '@utils/feature';
 import type { PageTypes } from '@types';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
+import { isVisualiserEnabled } from '@utils/feature';
 
 type PageTypesWithFlows = PageTypes | 'flows';
 
 export class Page extends HybridPage {
   static async getStaticPaths(): Promise<Array<{ params: any; props: any }>> {
-    if (isAuthEnabled()) {
+    if (isAuthEnabled() || !isVisualiserEnabled()) {
       return [];
     }
 
@@ -42,7 +43,7 @@ export class Page extends HybridPage {
   protected static async fetchData(params: any) {
     const { type, id, version } = params;
 
-    if (!type || !id || !version) {
+    if (!type || !id || !version || !isVisualiserEnabled()) {
       return null;
     }
 
@@ -77,7 +78,7 @@ export class Page extends HybridPage {
   }
 
   static get clientAuthScript(): string {
-    if (!isAuthEnabled()) {
+    if (!isAuthEnabled() || !isVisualiserEnabled()) {
       return '';
     }
 
