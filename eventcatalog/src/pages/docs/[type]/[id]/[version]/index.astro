@@ -43,7 +43,7 @@ import { getIcon } from '@utils/badges';
 import { getDeprecatedDetails } from '@utils/collections/util';
 import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
 import { getSchemasFromResource } from '@utils/collections/schemas';
-import { isEventCatalogChatEnabled, isMarkdownDownloadEnabled } from '@utils/feature';
+import { isEventCatalogChatEnabled, isMarkdownDownloadEnabled, isVisualiserEnabled } from '@utils/feature';
 
 import { getMDXComponentsByName } from '@utils/markdown';
 
@@ -446,10 +446,14 @@ nodeGraphs.push({
                     linksToVisualiser={true}
                     showSearch={nodeGraph.search ?? true}
                     showLegend={nodeGraph.legend ?? true}
-                    href={{
-                      label: 'Open in Visualiser',
-                      url: buildUrl(`/visualiser/${collection}/${nodeGraph.id}/${nodeGraph.version}`),
-                    }}
+                    href={
+                      isVisualiserEnabled()
+                        ? {
+                            label: 'Open in Visualiser',
+                            url: buildUrl(`/visualiser/${collection}/${nodeGraph.id}/${nodeGraph.version}`),
+                          }
+                        : undefined
+                    }
                   />
                 );
               })

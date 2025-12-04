@@ -16,6 +16,8 @@ import { getAdjacentPages } from '@enterprise/custom-documentation/utils/custom-
 import CustomDocsNav from '@enterprise/custom-documentation/components/CustomDocsNav/CustomDocsNav.astro';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 
+import { isVisualiserEnabled } from '@utils/feature';
+
 const props = Astro.props;
 const doc = props.data;
 const { Content, headings } = await render(props as any);
@@ -132,10 +134,14 @@ const badges = doc?.badges || [];
                   title={nodeGraph.title}
                   mode="simple"
                   linksToVisualiser={true}
-                  href={{
-                    label: 'Open in Visualiser',
-                    url: buildUrl(`/visualiser/${collection}/${nodeGraph.id}/${nodeGraph.version}`),
-                  }}
+                  href={
+                    isVisualiserEnabled()
+                      ? {
+                          label: 'Open in Visualiser',
+                          url: buildUrl(`/visualiser/${collection}/${nodeGraph.id}/${nodeGraph.version}`),
+                        }
+                      : undefined
+                  }
                 />
               );
             })

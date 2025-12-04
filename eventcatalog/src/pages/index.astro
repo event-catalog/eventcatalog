@@ -7,8 +7,9 @@ import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import { getMDXComponentsByName } from '@utils/markdown';
 import { resourceToCollectionMap } from '@utils/collections/util';
 import { buildUrl } from '@utils/url-builder';
-import { isCustomLandingPageEnabled } from '@utils/feature';
+import { isCustomLandingPageEnabled, isVisualiserEnabled } from '@utils/feature';
 import DefaultAstroLandingPage from './_index.astro';
+import config from '@config';
 
 let nodeGraphs: any[] = [];
 let CustomContent = null;
@@ -27,6 +28,10 @@ if (existsSync(pathToUserDefinedLandingPage) && isCustomLandingPageEnabled()) {
 
   const rawContent = readFileSync(pathToUserDefinedLandingPage, 'utf-8');
   nodeGraphs = getMDXComponentsByName(rawContent, 'NodeGraph') || [];
+}
+
+if (config.landingPage) {
+  return Astro.redirect(buildUrl(config.landingPage));
 }
 ---
 
@@ -53,10 +58,14 @@ if (existsSync(pathToUserDefinedLandingPage) && isCustomLandingPageEnabled()) {
                 title={nodeGraph.title}
                 mode="simple"
                 linksToVisualiser={true}
-                href={{
-                  label: 'Open in Visualiser',
-                  url: buildUrl(`/visualiser/${collection}/${nodeGraph.id}/${nodeGraph.version}`),
-                }}
+                href={
+                  isVisualiserEnabled()
+                    ? {
+                        label: 'Open in Visualiser',
+                        url: buildUrl(`/visualiser/${collection}/${nodeGraph.id}/${nodeGraph.version}`),
+                      }
+                    : undefined
+                }
               />
             );
           })}

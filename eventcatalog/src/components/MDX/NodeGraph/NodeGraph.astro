@@ -26,7 +26,7 @@ interface Props {
   version: string;
   mode: 'full' | 'simple';
   linkTo?: 'docs' | 'visualiser';
-  href: {
+  href?: {
     label: string;
     url: string;
   };
@@ -142,8 +142,8 @@ if (collection === 'services-containers') {
     nodes={nodes}
     edges={edges}
     title={title}
-    hrefLabel={href.label}
-    href={href.url}
+    hrefLabel={href?.label}
+    href={href?.url}
     linkTo={linkTo}
     client:only="react"
     linksToVisualiser={linksToVisualiser}

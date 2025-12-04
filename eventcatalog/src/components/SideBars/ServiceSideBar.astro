@@ -12,7 +12,7 @@ import { ScrollText, Workflow, FileDownIcon, Code, Link, RssIcon } from 'lucide-
 import { join } from 'node:path';
 import config from '@config';
 import { getDomainsForService } from '@utils/collections/domains';
-import { isChangelogEnabled } from '@utils/feature';
+import { isChangelogEnabled, isVisualiserEnabled } from '@utils/feature';
 interface Props {
   service: CollectionEntry<'services'>;
 }
@@ -271,13 +271,17 @@ const shouldRenderSideBarSection = (section: string) => {
           </a>
         )
       }
-      <a
-        href={buildUrl(`/visualiser/${service.collection}/${service.data.id}/${service.data.version}`)}
-        class="flex items-center justify-center space-x-2 text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
-      >
-        <Workflow strokeWidth={2} size={16} />
-        <span class="block">View in visualiser</span>
-      </a>
+      {
+        isVisualiserEnabled() && (
+          <a
+            href={buildUrl(`/visualiser/${service.collection}/${service.data.id}/${service.data.version}`)}
+            class="flex items-center justify-center space-x-2 text-center rounded-md w-full bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-100/60 hover:text-primary"
+          >
+            <Workflow strokeWidth={2} size={16} />
+            <span class="block">View in visualiser</span>
+          </a>
+        )
+      }
       {
         isChangelogEnabled() && shouldRenderSideBarSection('changelog') && (
           <a

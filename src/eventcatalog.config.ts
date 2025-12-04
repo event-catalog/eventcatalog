@@ -112,6 +112,7 @@ export interface Config {
     enabled: boolean;
   };
   visualiser?: {
+    enabled?: boolean;
     channels?: {
       renderMode?: 'flat' | 'single';
     };
