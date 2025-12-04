@@ -47,7 +47,7 @@ const domains = await getDomains({ getAllVersions: false });
 const flows = await getFlows({ getAllVersions: false });
 const customDocs = await getCollection('customPages');
 
-import { isEventCatalogUpgradeEnabled } from '@utils/feature';
+import { isEventCatalogUpgradeEnabled, isVisualiserEnabled } from '@utils/feature';
 
 // Try and load any custom styles if they exist
 try {
@@ -88,6 +88,7 @@ const getDefaultUrl = (route: string, defaultValue: string) => {
 };
 
 const userSideBarConfiguration = config.sidebar || [];
+
 const navigationItems = [
   {
     id: '/',
@@ -96,6 +97,7 @@ const navigationItems = [
     href: buildUrl('/'),
     current: currentPath === '/',
     sidebar: false,
+    hidden: !!config.landingPage,
   },
   {
     id: '/docs',
@@ -113,6 +115,7 @@ const navigationItems = [
     href: getDefaultUrl('visualiser', '/visualiser'),
     current: currentPath.includes('/visualiser'),
     sidebar: true,
+    hidden: !isVisualiserEnabled(),
   },
 
   {

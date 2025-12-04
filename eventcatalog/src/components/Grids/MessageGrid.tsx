@@ -11,6 +11,7 @@ interface MessageGridProps {
   messages: CollectionEntry<CollectionMessageTypes>[];
   containers?: CollectionEntry<'containers'>[];
   embeded: boolean;
+  isVisualiserEnabled: boolean;
 }
 
 interface GroupedMessages {
@@ -19,7 +20,7 @@ interface GroupedMessages {
   receives?: CollectionEntry<CollectionMessageTypes>[];
 }
 
-export default function MessageGrid({ messages, embeded, containers }: MessageGridProps) {
+export default function MessageGrid({ messages, embeded, containers, isVisualiserEnabled }: MessageGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [urlParams, setUrlParams] = useState<{
     serviceId?: string;
@@ -344,12 +345,14 @@ export default function MessageGrid({ messages, embeded, containers }: MessageGr
                   </a>
                 </div>
                 <div className="flex gap-2">
-                  <a
-                    href={buildUrl(`/visualiser/domains/${urlParams.domainId}`)}
-                    className="inline-flex items-center px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md transition-colors duration-200"
-                  >
-                    View in visualizer
-                  </a>
+                  {isVisualiserEnabled && (
+                    <a
+                      href={buildUrl(`/visualiser/domains/${urlParams.domainId}`)}
+                      className="inline-flex items-center px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md transition-colors duration-200"
+                    >
+                      View in visualizer
+                    </a>
+                  )}
                   <a
                     href={buildUrl(`/docs/domains/${urlParams.domainId}`)}
                     className="inline-flex items-center px-3 py-2 text-sm font-medium text-black border border-gray-300 bg-white  rounded-md transition-colors duration-200"
@@ -372,12 +375,14 @@ export default function MessageGrid({ messages, embeded, containers }: MessageGr
                   <ServerIcon className="h-6 w-6 text-pink-500" />
                   <h2 className="text-2xl font-semibold text-gray-900">{urlParams.serviceName}</h2>
                   <div className="flex gap-2 ml-auto">
-                    <a
-                      href={buildUrl(`/visualiser/services/${urlParams.serviceId}`)}
-                      className="inline-flex items-center px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md transition-colors duration-200 hover:bg-gray-50"
-                    >
-                      View in visualizer
-                    </a>
+                    {isVisualiserEnabled && (
+                      <a
+                        href={buildUrl(`/visualiser/services/${urlParams.serviceId}`)}
+                        className="inline-flex items-center px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md transition-colors duration-200 hover:bg-gray-50"
+                      >
+                        View in visualizer
+                      </a>
+                    )}
                     <a
                       href={buildUrl(`/docs/services/${urlParams.serviceId}`)}
                       className="inline-flex items-center px-3 py-2 text-sm font-medium text-black border border-gray-300 bg-white rounded-md transition-colors duration-200 hover:bg-gray-50"

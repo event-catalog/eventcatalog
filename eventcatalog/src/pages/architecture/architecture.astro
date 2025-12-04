@@ -13,6 +13,8 @@ import { removeContentFromCollection } from '@utils/collections/util';
 import type { CollectionEntry } from 'astro:content';
 import type { CollectionMessageTypes } from '@types';
 
+import { isVisualiserEnabled } from '@utils/feature';
+
 import { ClientRouter, fade } from 'astro:transitions';
 // Define valid types and their corresponding data fetchers
 const VALID_TYPES = ['domains', 'services', 'messages'] as const;
@@ -81,7 +83,13 @@ if (type === 'services') {
         {type === 'domains' && <DomainGrid domains={domains} embeded={embeded} client:load />}
         {
           type === 'services' && (
-            <ServiceGrid domains={domains} services={items as unknown as Service[]} embeded={embeded} client:load />
+            <ServiceGrid
+              domains={domains}
+              services={items as unknown as Service[]}
+              embeded={embeded}
+              isVisualiserEnabled={isVisualiserEnabled()}
+              client:load
+            />
           )
         }
         {
@@ -90,6 +98,7 @@ if (type === 'services') {
               messages={items as CollectionEntry<CollectionMessageTypes>[]}
               embeded={embeded}
               containers={containers}
+              isVisualiserEnabled={isVisualiserEnabled()}
               client:load
             />
           )

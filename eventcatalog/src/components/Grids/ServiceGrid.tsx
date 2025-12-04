@@ -183,12 +183,14 @@ const DomainSection = memo(
     urlParams,
     selectedTypes,
     isMultiColumn,
+    isVisualiserEnabled,
   }: {
     domain: any;
     services: any[];
     urlParams: any;
     selectedTypes: string[];
     isMultiColumn: boolean;
+    isVisualiserEnabled: boolean;
   }) => {
     const subdomains = domain.data.domains || [];
     const allSubDomainServices = subdomains.map((subdomain: any) => subdomain.data.services || []).flat();
@@ -227,12 +229,14 @@ const DomainSection = memo(
                   <h3 className="text-xl font-semibold text-gray-900">{subdomain.data.name} (Subdomain)</h3>
                 </div>
                 <div className="flex gap-2">
-                  <a
-                    href={buildUrl(`/visualiser/domains/${subdomain.data.id}`)}
-                    className="inline-flex items-center px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md transition-colors duration-200"
-                  >
-                    View in visualizer
-                  </a>
+                  {isVisualiserEnabled && (
+                    <a
+                      href={buildUrl(`/visualiser/domains/${subdomain.data.id}`)}
+                      className="inline-flex items-center px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-md transition-colors duration-200"
+                    >
+                      View in visualizer
+                    </a>
+                  )}
                   <a
                     href={buildUrl(`/docs/domains/${subdomain.data.id}`)}
                     className="inline-flex items-center px-3 py-2 text-sm font-medium text-black border border-gray-300 bg-white rounded-md transition-colors duration-200"
@@ -292,10 +296,11 @@ interface ServiceGridProps {
   services: CollectionEntry<'services'>[];
   domains: ExtendedDomain[];
   embeded: boolean;
+  isVisualiserEnabled: boolean;
 }
 
 // Main ServiceGrid component
-export default function ServiceGrid({ services, domains, embeded }: ServiceGridProps) {
+export default function ServiceGrid({ services, domains, embeded, isVisualiserEnabled }: ServiceGridProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTypes, setSelectedTypes] = useState<CollectionMessageTypes[]>([]);
@@ -493,6 +498,7 @@ export default function ServiceGrid({ services, domains, embeded }: ServiceGridP
                   urlParams={urlParams}
                   selectedTypes={selectedTypes}
                   isMultiColumn={isMultiColumn}
+                  isVisualiserEnabled={isVisualiserEnabled}
                 />
               ))
           ) : (

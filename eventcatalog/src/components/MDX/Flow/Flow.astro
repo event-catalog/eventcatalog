@@ -4,6 +4,7 @@ import { getNodesAndEdges } from '@utils/node-graphs/flows-node-graph';
 import Admonition from '@components/MDX/Admonition';
 import NodeGraph from '../NodeGraph/NodeGraph';
 import { getVersionFromCollection } from '@utils/collections/versions';
+import { isVisualiserEnabled } from '@utils/feature';
 
 const { id, version = 'latest', maxHeight, includeKey = true, mode = 'simple', walkthrough = true, search = true } = Astro.props;
 
@@ -49,7 +50,7 @@ const { nodes, edges } = await getNodesAndEdges({
     nodes={nodes}
     edges={edges}
     hrefLabel={'View in visualizer'}
-    href={`/visualiser/flows/${id}/${version}`}
+    href={isVisualiserEnabled() ? `/visualiser/flows/${id}/${version}` : undefined}
     linkTo={'visualiser'}
     includeKey={includeKey}
     footerLabel=`Flow diagram - ${flow.data.name} - v(${flow.data.version})`

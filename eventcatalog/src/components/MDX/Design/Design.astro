@@ -5,6 +5,8 @@ import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import Admonition from '@components/MDX/Admonition';
 import NodeGraph from '../NodeGraph/NodeGraph';
 
+import { isVisualiserEnabled } from '@utils/feature';
+
 let design: any;
 let id = 'design';
 let maxHeight = 30;
@@ -49,7 +51,8 @@ try {
           title={title ?? design.name}
           nodes={design.nodes || []}
           edges={design.edges || []}
-          hrefLabel={'View in visualizer'}
+          hrefLabel={isVisualiserEnabled() ? 'View in visualizer' : undefined}
+          href={isVisualiserEnabled() ? `/visualiser/designs/${design.id}` : undefined}
           linkTo={'visualiser'}
           designId={design.id || id}
           client:only="react"
