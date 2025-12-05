@@ -390,6 +390,7 @@ const services = defineCollection({
       entities: z.array(pointer).optional(),
       writesTo: z.array(pointer).optional(),
       readsFrom: z.array(pointer).optional(),
+      flows: z.array(pointer).optional(),
       detailsPanel: z
         .object({
           domains: detailPanelPropertySchema.optional(),
@@ -497,6 +498,7 @@ const domains = defineCollection({
       services: z.array(pointer).optional(),
       domains: z.array(pointer).optional(),
       entities: z.array(pointer).optional(),
+      flows: z.array(pointer).optional(),
       detailsPanel: z
         .object({
           parentDomains: detailPanelPropertySchema.optional(),

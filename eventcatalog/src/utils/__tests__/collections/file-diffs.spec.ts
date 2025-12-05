@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getDiffsForCurrentAndPreviousVersion } from '@utils/collections/file-diffs';
+import { getDiffsForCurrentAndPreviousVersion } from '@utils/file-diffs';
 import { join } from 'node:path';
 
 const pathToTestCatalog = join(__dirname, 'fake-catalog');

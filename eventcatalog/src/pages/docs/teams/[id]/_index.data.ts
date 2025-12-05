@@ -12,7 +12,7 @@ export class Page extends HybridPage {
       return [];
     }
 
-    const { getTeams } = await import('@utils/teams');
+    const { getTeams } = await import('@utils/collections/teams');
     const teams = await getTeams();
 
     return teams.map((team) => ({
@@ -28,7 +28,7 @@ export class Page extends HybridPage {
       return null;
     }
 
-    const { getTeams } = await import('@utils/teams');
+    const { getTeams } = await import('@utils/collections/teams');
     const teams = await getTeams();
 
     // Find the specific team by id

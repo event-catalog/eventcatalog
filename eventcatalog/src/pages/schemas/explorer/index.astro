@@ -1,8 +1,8 @@
 ---
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { getEvents } from '@utils/events';
-import { getCommands } from '@utils/commands';
-import { getQueries } from '@utils/queries';
+import { getEvents } from '@utils/collections/events';
+import { getCommands } from '@utils/collections/commands';
+import { getQueries } from '@utils/collections/queries';
 import { getServices, getSpecificationsForService } from '@utils/collections/services';
 import SchemaExplorer from '@components/SchemaExplorer/SchemaExplorer';
 import { isEventCatalogScaleEnabled } from '@utils/feature';

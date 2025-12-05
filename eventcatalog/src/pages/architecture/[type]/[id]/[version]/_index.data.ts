@@ -12,17 +12,7 @@ export class Page extends HybridPage {
       return [];
     }
 
-    const itemTypes: PageTypes[] = [
-      // 'events',
-      // 'commands',
-      // 'queries',
-      'services',
-      'domains',
-      // 'flows',
-      // 'channels',
-      // 'entities',
-      // 'containers',
-    ];
+    const itemTypes: PageTypes[] = ['services', 'domains'];
     const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
     return allItems.flatMap((items, index) =>

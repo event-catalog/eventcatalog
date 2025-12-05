@@ -1,6 +1,6 @@
 ---
-import DomainGridV2 from '@components/Grids/DomainGridV2';
-import MessageGridV2 from '@components/Grids/MessageGridV2';
+import DomainGrid from '@components/Grids/DomainGrid';
+import MessageGrid from '@components/Grids/MessageGrid';
 
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { Page } from './_index.data';
@@ -21,13 +21,8 @@ const type = props.type;
   <div class="bg-white min-h-screen">
     <div class="mx-auto h-full">
       <div class="px-6 py-6 h-full">
-        {type === 'domains' && <DomainGridV2 domain={domain} client:load />}
-        {type === 'services' && <MessageGridV2 service={props} client:load />}
-        {
-          type !== 'domains' && type !== 'services' && (
-            <div class="text-gray-500">Architecture view for {type} coming soon...</div>
-          )
-        }
+        {type === 'domains' && <DomainGrid domain={domain} client:load />}
+        {type === 'services' && <MessageGrid service={props} client:load />}
       </div>
     </div>
   </div>

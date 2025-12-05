@@ -25,6 +25,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockQueries);
         case 'containers':
           return Promise.resolve(mockContainers);
+        default:
+          return Promise.resolve([]);
       }
     },
   };

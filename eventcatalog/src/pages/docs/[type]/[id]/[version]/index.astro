@@ -7,6 +7,7 @@ import components from '@components/MDX/components';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewerRoot.astro';
 import Admonition from '@components/MDX/Admonition';
+import VersionList from '@components/Lists/VersionList.astro';
 
 import { getSpecificationsForService } from '@utils/collections/services';
 
@@ -271,8 +272,8 @@ nodeGraphs.push({
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
-  <main class="flex sm:px-8 docs-layout h-full" {...pagefindAttributes}>
-    <div class="flex docs-layout w-full">
+  <main class="flex docs-layout h-full" {...pagefindAttributes}>
+    <div class="flex docs-layout w-full pl-16 pr-24">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
         <div class="border-b border-gray-200 md:pb-2">
           <div>
@@ -475,47 +476,47 @@ nodeGraphs.push({
           }
         </div>
       </div>
-      <aside
-        class="hidden lg:block sticky top-0 pb-10 w-80 overflow-y-auto border-l border-gray-100 bg-white p-6 flex-shrink-0 py-2"
-      >
-        <div class="py-4">
-          <h3 class="text-sm text-black font-semibold group-data-[hover]:text-black/80 capitalize flex items-center gap-2">
-            <AlignLeft className="w-4 h-4" />
-            On this page
-          </h3>
-          <nav class="space-y-1 text-sm py-4">
-            {
-              headings.map((heading) => {
-                if (heading.depth > 3) {
-                  return null;
-                }
-                return (
-                  <a
-                    href={`#${heading.slug}`}
-                    class={`block text-[12px] py-0.5 ${heading.depth === 1 ? 'font-light' : ''} text-gray-400 hover:text-primary-600`}
-                    style={`padding-left: ${(heading.depth - 1) * 8}px`}
-                  >
-                    {heading.text}
-                  </a>
-                );
-              })
-            }
-          </nav>
+      <aside class="hidden lg:block sticky top-0 pb-10 w-80 overflow-y-auto bg-white py-2 flex-shrink-0">
+        <div class="py-4 mt-4 space-y-8">
+          {
+            headings.length > 0 && (
+              <div>
+                <h3 class="text-xs text-black font-semibold group-data-[hover]:text-black/80 capitalize flex items-center gap-2 mb-4">
+                  <AlignLeft className="w-4 h-4" />
+                  On this page
+                </h3>
+                <div class="space-y-8">
+                  <nav class="text-xs border-l border-gray-200">
+                    {headings.map((heading) => {
+                      const level = heading.depth > 2 ? heading.depth : 1;
+                      if (heading.depth > 3) {
+                        return null;
+                      }
+                      return (
+                        <a
+                          href={`#${heading.slug}`}
+                          class={`block py-1.5 pr-2.5 leading-5 text-gray-500 hover:border-gray-300 hover:text-gray-900 border-l-2 border-transparent -ml-px transition-all duration-200`}
+                          style={`padding-left: ${level * 0.75}rem`}
+                        >
+                          {heading.text}
+                        </a>
+                      );
+                    })}
+                  </nav>
+                </div>
+              </div>
+            )
+          }
+          {
+            props.data.versions && props.data.versions.length > 1 && (
+              <VersionList
+                title={`Versions (${props.data.versions?.length})`}
+                versions={props.data.versions}
+                collectionItem={props}
+              />
+            )
+          }
         </div>
-        <!-- <aside class="hidden lg:block sticky top-0 pb-10 w-96 overflow-y-auto py-2" data-pagefind-ignore> -->
-        <!-- @ts-ignore -->
-        <!-- {
-          (props?.collection === 'events' || props.collection === 'commands' || props.collection === 'queries') && (
-            <MessageSideBar message={props} />
-          )
-        }
-        {props?.collection === 'services' && <ServiceSideBar service={props} />}
-        {props?.collection === 'domains' && <DomainSideBar domain={props} />}
-        {props?.collection === 'channels' && <ChannelSideBar channel={props} />}
-        {props?.collection === 'flows' && <FlowSideBar flow={props} />}
-        {props?.collection === 'entities' && <EntitySideBar entity={props} />}
-        {props?.collection === 'containers' && <ContainerSideBar container={props} />} -->
-        <!-- </aside> -->
       </aside>
     </div>
 
@@ -682,6 +683,119 @@ nodeGraphs.push({
           renderPlantUML(graphs, deflate);
         };
       });
+    </script>
+    <script>
+      // @ts-nocheck
+      function setupObserver() {
+        try {
+          const observerOptions = {
+            rootMargin: '0px 0px -40% 0px',
+            threshold: 0.1,
+          };
+
+          // Flag to temporarily disable observer after click
+          let observerPaused = false;
+
+          // Function to highlight a TOC item
+          function highlightTocItem(id) {
+            // Remove active class from all links
+            document.querySelectorAll('.active-toc-item').forEach((link) => {
+              link.classList.remove('active-toc-item', 'text-purple-600', 'font-medium', 'border-purple-600');
+              link.classList.add('text-gray-500', 'border-transparent');
+            });
+
+            // Add active class to current link
+            const tocLink = document.querySelector(`nav a[href="#${id}"]`);
+            if (tocLink) {
+              tocLink.classList.add('active-toc-item', 'text-purple-600', 'font-medium', 'border-purple-600');
+              tocLink.classList.remove('text-gray-500', 'border-transparent');
+
+              // Scroll the highlighted item into view with a small delay to ensure DOM updates first
+              setTimeout(() => {
+                tocLink.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+              }, 10);
+            }
+          }
+
+          // Set up the intersection observer for scrolling
+          const observer = new IntersectionObserver((entries) => {
+            // If observer is paused, don't process entries
+            if (observerPaused) return;
+
+            entries.forEach((entry) => {
+              try {
+                const id = entry.target.getAttribute('id');
+                if (entry.isIntersecting && id) {
+                  highlightTocItem(id);
+                }
+              } catch (entryError) {
+                console.error('Error processing intersection entry:', entryError);
+              }
+            });
+          }, observerOptions);
+
+          // Find all headings in the content area within the .prose container to observe
+          const prose = document.querySelector('.prose');
+          if (!prose) {
+            console.warn('No .prose container found for TOC highlighting');
+            return;
+          }
+
+          // First try to find headings with IDs
+          const headings = prose.querySelectorAll('h1[id], h2[id], h3[id]');
+
+          if (headings.length > 0) {
+            headings.forEach((heading) => {
+              observer.observe(heading);
+            });
+          } else {
+            // Fallback: If no headings with IDs found, attach IDs to them
+            const allHeadings = prose.querySelectorAll('h1, h2, h3');
+
+            allHeadings.forEach((heading) => {
+              // Only add ID if it doesn't exist
+              if (!heading.id) {
+                const text = heading.textContent || '';
+                const slug = text
+                  .toLowerCase()
+                  .replace(/[^\w\s-]/g, '')
+                  .replace(/\s+/g, '-');
+                heading.id = slug;
+              }
+              observer.observe(heading);
+            });
+          }
+
+          // Add click event listeners to all TOC links
+          const tocLinks = document.querySelectorAll('nav a[href^="#"]');
+          tocLinks.forEach((link) => {
+            link.addEventListener('click', (e) => {
+              // Get the ID from the href attribute
+              const hrefAttr = link.getAttribute('href');
+              if (!hrefAttr) return;
+
+              const id = hrefAttr.substring(1);
+
+              // Highlight the clicked item
+              highlightTocItem(id);
+
+              // Temporarily pause the observer to prevent immediate highlighting changes
+              observerPaused = true;
+
+              // Resume the observer after a delay (1.5 seconds)
+              setTimeout(() => {
+                observerPaused = false;
+              }, 500);
+            });
+          });
+        } catch (error) {
+          console.error('Error setting up TOC highlighting:', error);
+        }
+      }
+
+      setupObserver();
+
+      document.addEventListener('astro:page-load', setupObserver);
     </script>
   </main>
 </VerticalSideBarLayout>

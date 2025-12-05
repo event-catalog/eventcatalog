@@ -80,7 +80,12 @@ export const getDomains = async ({
   }
 
   // 1. Fetch collections
-  const collectionsToFetch: any[] = [getCollection('domains'), getCollection('services'), getCollection('entities')];
+  const collectionsToFetch: any[] = [
+    getCollection('domains'),
+    getCollection('services'),
+    getCollection('entities'),
+    getCollection('flows'),
+  ];
 
   if (enrichServices) {
     collectionsToFetch.push(
@@ -92,13 +97,13 @@ export const getDomains = async ({
   }
 
   const results = await Promise.all(collectionsToFetch);
-  const [allDomains, allServices, allEntities] = results;
+  const [allDomains, allServices, allEntities, allFlows] = results;
 
   let messageMap = new Map();
   let containerMap = new Map();
 
   if (enrichServices) {
-    const [, , , allEvents, allCommands, allQueries, allContainers] = results;
+    const [, , , , allEvents, allCommands, allQueries, allContainers] = results;
     const allMessages = [...allEvents, ...allCommands, ...allQueries];
     messageMap = createVersionedMap(allMessages);
     containerMap = createVersionedMap(allContainers);
@@ -108,6 +113,7 @@ export const getDomains = async ({
   const domainMap = createVersionedMap(allDomains);
   const serviceMap = createVersionedMap(allServices);
   const entityMap = createVersionedMap(allEntities);
+  const flowMap = createVersionedMap(allFlows);
 
   // 3. Filter the domains we actually want to process/return
   const targetDomains = allDomains.filter((domain: Domain) => {
@@ -160,6 +166,12 @@ export const getDomains = async ({
         .map((entity: { id: string; version: string | undefined }) => findInMap(entityMap, entity.id, entity.version))
         .filter((e): e is CollectionEntry<'entities'> => !!e);
 
+      // Resolve Flows
+      const flowsInDomain = domain.data.flows || [];
+      const flows = flowsInDomain
+        .map((flow: { id: string; version: string | undefined }) => findInMap(flowMap, flow.id, flow.version))
+        .filter((f): f is CollectionEntry<'flows'> => !!f);
+
       // Resolve Services for Main Domain
       const servicesInDomain = domain.data.services || [];
 
@@ -195,6 +207,7 @@ export const getDomains = async ({
           services: services as any, // Cast to avoid deep type issues with enriched data
           domains: subDomains as any,
           entities: entities as any,
+          flows: flows as any,
           latestVersion,
           versions,
         },

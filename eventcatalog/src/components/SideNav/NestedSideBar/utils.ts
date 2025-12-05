@@ -1,10 +1,14 @@
 import { getContainers } from '@utils/collections/containers';
 import { getDomains, getRootDomains, getUbiquitousLanguageWithSubdomains } from '@utils/collections/domains';
 import { getServices, getServicesNotInAnyDomain, getSpecificationsForService } from '@utils/collections/services';
-import { getMessages } from '@utils/messages';
+import { getMessages } from '@utils/collections/messages';
 import { getOwner } from '@utils/collections/owners';
 import { buildUrl, buildUrlWithParams } from '@utils/url-builder';
 import { getSchemaFormatFromURL } from '@utils/collections/schemas';
+import { getFlows } from '@utils/collections/flows';
+import type { ResourceGroup } from '@eventcatalog/sdk';
+import type { CollectionEntry } from 'astro:content';
+import { getLatestVersionInCollectionById } from '@utils/collections/util';
 
 /**
  * A child reference can be:
@@ -46,18 +50,83 @@ const uniqueBy = <T>(array: T[], key: keyof T): T[] => {
   });
 };
 
+const buildResourceGroupSections = (
+  resourceGroups: ResourceGroup[],
+  context: {
+    services: CollectionEntry<'services'>[];
+    domains: CollectionEntry<'domains'>[];
+    events: CollectionEntry<'events'>[];
+    commands: CollectionEntry<'commands'>[];
+    queries: CollectionEntry<'queries'>[];
+    flows: CollectionEntry<'flows'>[];
+    containers: CollectionEntry<'containers'>[];
+  }
+) => {
+  return resourceGroups.map((resourceGroup) => buildResourceGroupSection(resourceGroup, context));
+};
+
+const buildResourceGroupSection = (
+  resourceGroup: ResourceGroup,
+  context: {
+    services: CollectionEntry<'services'>[];
+    domains: CollectionEntry<'domains'>[];
+    events: CollectionEntry<'events'>[];
+    commands: CollectionEntry<'commands'>[];
+    queries: CollectionEntry<'queries'>[];
+    flows: CollectionEntry<'flows'>[];
+    containers: CollectionEntry<'containers'>[];
+  }
+) => {
+  // Only render resource groups that have a type
+  const resourcesWithTypes = resourceGroup.items.filter((item) => item.type !== undefined);
+
+  if (resourcesWithTypes.length === 0) {
+    return null;
+  }
+
+  // If no version is provided, we need to get the latest version
+  const resourcesWithVersions = resourcesWithTypes.map((item) => {
+    let collection: any[] = [];
+
+    if (item.type === 'service') collection = context.services;
+    else if (item.type === 'domain') collection = context.domains;
+    else if (item.type === 'event') collection = context.events;
+    else if (item.type === 'command') collection = context.commands;
+    else if (item.type === 'query') collection = context.queries;
+    else if (item.type === 'flow') collection = context.flows;
+    else if (item.type === 'container') collection = context.containers;
+
+    if (item.version === undefined || item.version === 'latest') {
+      return { ...item, version: getLatestVersionInCollectionById(collection, item.id as string) };
+    }
+    return item;
+  });
+
+  return {
+    type: 'section',
+    title: resourceGroup.title,
+    icon: 'Box',
+    children: resourcesWithVersions.map((item) => {
+      const type = ['event', 'command', 'query'].includes(item.type as string) ? 'message' : item.type;
+      return `item:${type}:${item.id}:${item.version}`;
+    }),
+  };
+};
+
 /**
  * Get the navigation data for the sidebar
  */
 export const getNestedSideBarData = async (): Promise<NavigationData> => {
-  const [domains, services, { events, commands, queries }, containers, rootDomains, servicesNotInAnyDomain] = await Promise.all([
-    getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
-    getServices({ getAllVersions: false }),
-    getMessages({ getAllVersions: false }),
-    getContainers({ getAllVersions: false }),
-    getRootDomains(),
-    getServicesNotInAnyDomain(),
-  ]);
+  const [domains, services, { events, commands, queries }, containers, flows, rootDomains, servicesNotInAnyDomain] =
+    await Promise.all([
+      getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
+      getServices({ getAllVersions: false }),
+      getMessages({ getAllVersions: false }),
+      getContainers({ getAllVersions: false }),
+      getFlows({ getAllVersions: false }),
+      getRootDomains(),
+      getServicesNotInAnyDomain(),
+    ]);
 
   const messages = [...events, ...commands, ...queries];
 
@@ -104,18 +173,57 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     })
   );
 
+  const flowNodes = flows.reduce(
+    (acc, flow) => {
+      acc[`item:flow:${flow.data.id}:${flow.data.version}`] = {
+        type: 'item',
+        title: flow.data.name,
+        icon: 'Waypoint',
+        badge: 'Flow',
+        children: [
+          {
+            type: 'section',
+            title: 'Quick Reference',
+            icon: 'BookOpen',
+            children: [{ type: 'item', title: 'Overview', href: buildUrl(`/docs/flows/${flow.data.id}/${flow.data.version}`) }],
+          },
+          {
+            type: 'section',
+            title: 'Architecture & Design',
+            icon: 'Workflow',
+            children: [
+              {
+                type: 'item',
+                title: 'Flow Diagram',
+                href: buildUrl(`/visualiser/flows/${flow.data.id}/${flow.data.version}`),
+              },
+            ].filter(Boolean) as ChildRef[],
+          },
+        ],
+      };
+      return acc;
+    },
+    {} as Record<string, NavNode>
+  );
+
   const domainNodes = domainsWithOwners.reduce(
     (acc, { domain, owners }) => {
       const servicesInDomain = domain.data.services || [];
       const hasServices = servicesInDomain.length > 0;
 
-      const domains = domain.data.domains || [];
-      const hasSubDomains = domains.length > 0;
+      const subDomains = domain.data.domains || [];
+      const hasSubDomains = subDomains.length > 0;
 
       const entitiesInDomain = domain.data.entities || [];
       const hasEntities = entitiesInDomain.length > 0;
 
       const hasOwners = owners.length > 0;
+
+      const domainFlows = domain.data.flows || [];
+      const hasFlows = domainFlows.length > 0;
+
+      const resourceGroups = domain.data.resourceGroups || [];
+      const hasResourceGroups = resourceGroups.length > 0;
 
       acc[`item:domain:${domain.data.id}:${domain.data.version}`] = {
         type: 'item',
@@ -153,6 +261,13 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
               },
             ].filter(Boolean) as ChildRef[],
           },
+          hasFlows && {
+            type: 'section',
+            title: 'Flows',
+            icon: 'Waypoints',
+            children: domainFlows.map((flow) => `item:flow:${(flow as any).data.id}:${(flow as any).data.version}`),
+            visible: hasFlows,
+          },
           hasEntities && {
             type: 'section',
             title: 'Entities',
@@ -168,9 +283,20 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
             type: 'section',
             title: 'Subdomains',
             icon: 'Boxes',
-            children: domains.map((domain) => `item:domain:${(domain as any).data.id}:${(domain as any).data.version}`),
+            children: subDomains.map((domain) => `item:domain:${(domain as any).data.id}:${(domain as any).data.version}`),
             visible: hasSubDomains,
           },
+          ...(hasResourceGroups
+            ? buildResourceGroupSections(resourceGroups, {
+                services,
+                domains,
+                events,
+                commands,
+                queries,
+                flows,
+                containers,
+              })
+            : []),
           hasServices && {
             type: 'section',
             title: 'Domain Services',
@@ -384,7 +510,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
             children: [
               {
                 type: 'item',
-                title: `Schema (${getSchemaFormatFromURL(message.data.schemaPath).toUpperCase()})`,
+                title: `Schema (${getSchemaFormatFromURL(message.data.schemaPath!).toUpperCase()})`,
                 href: buildUrl(`/schemas/${collection}/${message.data.id}/${message.data.version}`),
               },
             ],
@@ -524,6 +650,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       ...serviceNodes,
       ...messageNodes,
       ...containerNodes,
+      ...flowNodes,
     },
   };
 };

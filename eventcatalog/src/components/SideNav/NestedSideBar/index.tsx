@@ -325,7 +325,7 @@ export default function NestedSideBar({ data }: Props) {
   // Show loading state if no data yet
   if (!data || roots.length === 0) {
     return (
-      <aside className="w-[320px] h-screen flex flex-col bg-gray-50 border-r border-gray-200">
+      <aside className="w-[315px] h-screen flex flex-col bg-gray-50 border-r border-gray-200">
         <div className="px-3 py-2 bg-white border-b border-gray-200">
           <span className="text-sm font-semibold text-gray-900">Loading...</span>
         </div>
@@ -498,7 +498,7 @@ export default function NestedSideBar({ data }: Props) {
     const flushItemGroup = () => {
       if (currentItemGroup.length > 0) {
         result.push(
-          <div key={`items-${result.length}`} className="flex flex-col gap-0.5 mb-2">
+          <div key={`items-${result.length}`} className="flex flex-col gap-0.5 mb-1.5">
             {currentItemGroup.map((item, idx) => renderItem(item.node, item.key, idx))}
           </div>
         );
@@ -564,16 +564,16 @@ export default function NestedSideBar({ data }: Props) {
     );
 
     return (
-      <div key={`section-${sectionKey || index}`} className="mb-6 last:mb-2">
+      <div key={`section-${sectionKey || index}`} className="mb-4 last:mb-2">
         {canCollapse ? (
           <button
             onClick={() => toggleSectionCollapse(sectionId)}
-            className="flex items-center justify-between w-full px-2 py-2 pb-2 hover:bg-gray-100 rounded transition-colors cursor-pointer"
+            className="flex items-center justify-between w-full px-2 py-1.5 pb-1.5 hover:bg-gray-100 rounded transition-colors cursor-pointer"
           >
             {headerContent}
           </button>
         ) : (
-          <div className="flex items-center justify-between px-2 py-2 pb-2">{headerContent}</div>
+          <div className="flex items-center justify-between px-2 py-1.5 pb-1.5">{headerContent}</div>
         )}
         {!isCollapsed && (
           <div className="flex flex-col gap-0.5 border-l ml-3.5 border-gray-100">
@@ -588,7 +588,7 @@ export default function NestedSideBar({ data }: Props) {
                 if (!hasVisibleChildren(child)) return null;
 
                 return (
-                  <div key={`nested-section-${childKey || childIndex}`} className="ml-3 mt-2 pl-3 border-l border-gray-200">
+                  <div key={`nested-section-${childKey || childIndex}`} className="ml-3 mt-1.5 pl-3 border-l border-gray-200">
                     {renderSection(child, childKey, childIndex)}
                   </div>
                 );
@@ -634,7 +634,7 @@ export default function NestedSideBar({ data }: Props) {
           )}
           <span
             className={cn(
-              'text-[14px] truncate',
+              'text-[13px] truncate',
               isActive ? 'text-purple-600 font-medium' : 'text-gray-600 group-hover:text-gray-900'
             )}
           >
@@ -665,7 +665,7 @@ export default function NestedSideBar({ data }: Props) {
     );
 
     const baseClasses =
-      'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-gray-100 active:bg-gray-200';
+      'group flex items-center justify-between w-full px-3 py-1 rounded-lg cursor-pointer text-left transition-colors hover:bg-gray-100 active:bg-gray-200';
     const parentClasses = itemHasChildren ? 'font-medium' : '';
     const activeClasses = isActive ? 'bg-purple-100 hover:bg-purple-100 border-l-4 border-purple-600 rounded-l-none' : '';
 
@@ -698,7 +698,7 @@ export default function NestedSideBar({ data }: Props) {
   };
 
   return (
-    <aside className="w-[350px] h-screen flex flex-col font-sans">
+    <aside className="w-[315px] h-full flex flex-col font-sans">
       {/* Search */}
       <SearchBar nodes={nodes} onSelectResult={navigateToSearchResult} onSearchChange={setIsSearching} />
 

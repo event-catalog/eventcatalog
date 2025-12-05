@@ -3,8 +3,8 @@ import { Table, type TData, type TCollectionTypes } from '@components/Tables/Tab
 import { buildUrl } from '@utils/url-builder';
 import VerticalSideBarLayout from './VerticalSideBarLayout.astro';
 import { User, Users } from 'lucide-react';
-import { getUsers } from '@utils/users';
-import { getTeams } from '@utils/teams';
+import { getUsers } from '@utils/collections/users';
+import { getTeams } from '@utils/collections/teams';
 import config from '@config';
 
 const users = await getUsers();

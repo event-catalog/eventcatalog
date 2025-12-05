@@ -8,8 +8,8 @@ export class Page extends HybridPage {
   }
 
   static async getStaticPaths(): Promise<Array<{ params: any; props: any }>> {
-    const { getUsers } = await import('@utils/users');
-    const { getTeams } = await import('@utils/teams');
+    const { getUsers } = await import('@utils/collections/users');
+    const { getTeams } = await import('@utils/collections/teams');
 
     const loaders = {
       users: getUsers,
@@ -37,8 +37,8 @@ export class Page extends HybridPage {
       return null;
     }
 
-    const { getUsers } = await import('@utils/users');
-    const { getTeams } = await import('@utils/teams');
+    const { getUsers } = await import('@utils/collections/users');
+    const { getTeams } = await import('@utils/collections/teams');
 
     const loaders = {
       users: getUsers,

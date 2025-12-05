@@ -1,5 +1,5 @@
 // import { getColor } from '@utils/colors';
-import { getEvents } from '@utils/events';
+import { getEvents } from '@utils/collections/events';
 import type { CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
 import {
@@ -21,13 +21,13 @@ import {
   findInMap,
 } from '@utils/collections/util';
 import type { CollectionMessageTypes } from '@types';
-import { getCommands } from '@utils/commands';
-import { getQueries } from '@utils/queries';
+import { getCommands } from '@utils/collections/commands';
+import { getQueries } from '@utils/collections/queries';
 import { createNode } from './utils/utils';
 import { getConsumersOfMessage, getProducersOfMessage } from '@utils/collections/services';
 import { getNodesAndEdgesForChannelChain } from './channel-node-graph';
-import { getChannelChain, isChannelsConnected } from '@utils/channels';
-import { getChannels } from '@utils/channels';
+import { getChannelChain, isChannelsConnected } from '@utils/collections/channels';
+import { getChannels } from '@utils/collections/channels';
 
 type DagreGraph = any;
 

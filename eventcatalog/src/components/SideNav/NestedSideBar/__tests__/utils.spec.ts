@@ -283,6 +283,23 @@ describe('getNestedSideBarData', () => {
       });
     });
 
+    describe('Flows section', () => {
+      it('is not listed if the domain does not have any flows', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        const flowsSection = getChildNodeByTitle('Flows', domainNode.children ?? []);
+        expect(flowsSection).toBeUndefined();
+      });
+    });
+
     describe('entities section', () => {
       it('if a domain has entities, the entities section is listed in the navigation item', async () => {
         const { writeDomain, writeEntity } = utils(CATALOG_FOLDER);
@@ -360,6 +377,44 @@ describe('getNestedSideBarData', () => {
         const subdomainSection = getChildNodeByTitle('Subdomains', domainNode.children ?? []);
         expect(subdomainSection.children).toEqual(['item:domain:Checkout:0.0.1']);
       });
+    });
+
+    describe('resource group section', () => {
+      it('is not listed if the domain does not have any resource groups', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+        });
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        const resourceGroupSection = getChildNodeByTitle('Resource Groups', domainNode.children ?? []);
+        expect(resourceGroupSection).toBeUndefined();
+      });
+
+      // it.only('if it defines a resource group, these resources are returned', async () => {
+
+      //   const { writeDomain } = utils(CATALOG_FOLDER);
+      //   await writeDomain({
+      //     id: 'Shipping',
+      //     name: 'Shipping',
+      //     version: '0.0.1',
+      //     markdown: 'Shipping',
+      //     resourceGroups: [{
+      //       id: 'ShippingResourceGroup',
+      //       title: 'Shipping Resource Group',
+      //       items: [{ id: 'ShippingResource', version: '0.0.1' }],
+      //     }],
+      //   });
+
+      //   const navigationData = await getNestedSideBarData();
+      //   const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+      //   const resourceGroupSection = getChildNodeByTitle('Resource Groups', domainNode.children ?? []);
+      //   expect(resourceGroupSection).toBeDefined();
+
+      // });
     });
 
     describe('services section', () => {

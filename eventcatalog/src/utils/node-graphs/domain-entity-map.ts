@@ -4,7 +4,7 @@ import ELK from 'elkjs/lib/elk.bundled.js';
 import { MarkerType } from '@xyflow/react';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { getVersionFromCollection } from '@utils/collections/versions';
-import { getEntities, type Entity } from '@utils/entities';
+import { getEntities, type Entity } from '@utils/collections/entities';
 import { getDomains, type Domain } from '@utils/collections/domains';
 import { getServices, type Service } from '@utils/collections/services';
 

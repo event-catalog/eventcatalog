@@ -31,23 +31,36 @@ import '@fontsource/inter/700.css'; // Specify weight
 
 import { ClientRouter } from 'astro:transitions';
 
-import { getCommands } from '@utils/commands';
+import { getCommands } from '@utils/collections/commands';
 import { getDomains } from '@utils/collections/domains';
-import { getEvents } from '@utils/events';
+import { getEvents } from '@utils/collections/events';
 import { getServices } from '@utils/collections/services';
 import { getFlows } from '@utils/collections/flows';
 import { isCollectionVisibleInCatalog } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
-import { getQueries } from '@utils/queries';
+import { getQueries } from '@utils/collections/queries';
 import { hasLandingPageForDocs } from '@utils/pages';
 
-const events = await getEvents({ getAllVersions: false });
-const commands = await getCommands({ getAllVersions: false });
-const queries = await getQueries({ getAllVersions: false });
-const services = await getServices({ getAllVersions: false });
-const domains = await getDomains({ getAllVersions: false });
-const flows = await getFlows({ getAllVersions: false });
+const catalogHasDefaultLandingPageForDocs = await hasLandingPageForDocs();
 const customDocs = await getCollection('customPages');
+
+let events: any[] = [];
+let commands: any[] = [];
+let queries: any[] = [];
+let services: any[] = [];
+let domains: any[] = [];
+let flows: any[] = [];
+
+if (!catalogHasDefaultLandingPageForDocs) {
+  [events, commands, queries, services, domains, flows] = await Promise.all([
+    getEvents({ getAllVersions: false, hydrateServices: false }),
+    getCommands({ getAllVersions: false, hydrateServices: false }),
+    getQueries({ getAllVersions: false, hydrateServices: false }),
+    getServices({ getAllVersions: false }),
+    getDomains({ getAllVersions: false }),
+    getFlows({ getAllVersions: false }),
+  ]);
+}
 
 import { isEventCatalogUpgradeEnabled, isVisualiserEnabled } from '@utils/feature';
 
@@ -57,8 +70,6 @@ try {
 } catch (error) {}
 
 const currentPath = Astro.url.pathname;
-
-const catalogHasDefaultLandingPageForDocs = await hasLandingPageForDocs();
 
 const getDefaultUrl = (route: string, defaultValue: string) => {
   if (route === 'docs/custom') {
@@ -113,16 +124,6 @@ const navigationItems = [
       (currentPath.includes('/schemas') && !currentPath.includes('/schemas/explorer')),
     sidebar: true,
   },
-  {
-    id: '/visualiser',
-    label: 'Visualiser',
-    icon: Workflow,
-    href: getDefaultUrl('visualiser', '/visualiser'),
-    current: currentPath.includes('/visualiser'),
-    sidebar: true,
-    hidden: !isVisualiserEnabled(),
-  },
-
   {
     id: '/discover',
     label: 'Explore',
@@ -271,7 +272,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
     <div class="flex">
       <aside class="flex" id="eventcatalog-vertical-nav">
         <div
-          class="fixed flex flex-col items-center w-16 h-screen py-4 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 z-20 shadow-md justify-between"
+          class="fixed flex flex-col items-center w-14 h-screen py-3 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 z-20 shadow-md justify-between"
         >
           <nav class="flex flex-col h-[calc(100vh-70px)] justify-between">
             <div class="flex flex-col items-center flex-1 space-y-6">
@@ -373,11 +374,11 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
 
         <SideNav
           id="sidebar"
-          class={`sidebar-transition h-content  overflow-y-auto bg-white  border-r border-gray-100 w-[22em] ml-16 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
+          class={`sidebar-transition h-content bg-white  border-r border-gray-100 w-[320px] ml-14 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
         />
       </aside>
       <main
-        class={`sidebar-transition w-full max-h-content overflow-y-auto ${showSideBarOnLoad ? 'ml-0' : 'ml-16'}`}
+        class={`sidebar-transition w-full max-h-content overflow-y-auto ${showSideBarOnLoad ? 'ml-0' : 'ml-14'}`}
         id="content"
       >
         <slot />
@@ -442,7 +443,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
         if (element) element.style.display = 'none';
       });
 
-      content.classList.remove('ml-16');
+      content.classList.remove('ml-14');
       return;
     }
 
@@ -453,7 +454,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
     if (!currentNavigationItem?.sidebar) {
       sidebar.style.display = 'none';
       content.style.width = '100%';
-      content.classList.add('ml-16');
+      content.classList.add('ml-14');
     } else {
       sidebar.style.display = 'block';
     }
@@ -495,7 +496,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
       setTimeout(() => {
         sidebar.style.transform = 'translateX(0)';
         content.style.transform = 'translateX(0)';
-        content.classList.remove('ml-16');
+        content.classList.remove('ml-14');
         content.style.width = 'calc(100% - 240px)';
       }, 10);
     }
@@ -506,7 +507,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
       sidebar.style.transform = 'translateX(-100%)';
       content.style.transform = 'translateX(0px)';
       content.style.width = '100%';
-      content.classList.add('ml-16');
+      content.classList.add('ml-14');
     }
 
     if (sidebar) {
