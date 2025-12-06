@@ -1,27 +1,20 @@
 ---
+// External dependencies
+import { marked } from 'marked';
+
+import { render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import Footer from '@layouts/Footer.astro';
-import { marked } from 'marked';
 
 import components from '@components/MDX/components';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewerRoot.astro';
 import Admonition from '@components/MDX/Admonition';
 import VersionList from '@components/Lists/VersionList.astro';
-
-import { getSpecificationsForService } from '@utils/collections/services';
-
-import { resourceToCollectionMap, collectionToResourceMap } from '@utils/collections/util';
-
-// SideBars
-import ServiceSideBar from '@components/SideBars/ServiceSideBar.astro';
-import MessageSideBar from '@components/SideBars/MessageSideBar.astro';
-import DomainSideBar from '@components/SideBars/DomainSideBar.astro';
-import ChannelSideBar from '@components/SideBars/ChannelSideBar.astro';
-import FlowSideBar from '@components/SideBars/FlowSideBar.astro';
-import EntitySideBar from '@components/SideBars/EntitySideBar.astro';
-import ContainerSideBar from '@components/SideBars/ContainerSideBar.astro';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
+import { shouldRenderSideBarSection } from '@components/SideNav/NestedSideBar/builders/shared';
 
 import {
   QueueListIcon,
@@ -35,20 +28,19 @@ import {
 } from '@heroicons/react/24/outline';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
 import { Box, Boxes, SquarePenIcon, DatabaseIcon, DatabaseZapIcon, ShieldCheckIcon, AlignLeft } from 'lucide-react';
-import type { CollectionTypes } from '@types';
 
-import { render } from 'astro:content';
-import type { CollectionEntry } from 'astro:content';
-
-import { getIcon } from '@utils/badges';
-import { getDeprecatedDetails } from '@utils/collections/util';
-import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
+import { getSpecificationsForService } from '@utils/collections/services';
+import { resourceToCollectionMap, collectionToResourceMap, getDeprecatedDetails } from '@utils/collections/util';
 import { getSchemasFromResource } from '@utils/collections/schemas';
-import { isEventCatalogChatEnabled, isMarkdownDownloadEnabled, isVisualiserEnabled } from '@utils/feature';
-
+import { getIcon } from '@utils/badges';
+import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
+import { isEventCatalogChatEnabled, isMarkdownDownloadEnabled, isVisualiserEnabled, isChangelogEnabled, isRSSEnabled } from '@utils/feature';
 import { getMDXComponentsByName } from '@utils/markdown';
 
+import type { CollectionTypes } from '@types';
+
 import config from '@config';
+
 import { Page } from './_index.data';
 
 export const prerender = Page.prerender;
@@ -260,6 +252,8 @@ let nodeGraphs = getMDXComponentsByName(props.body || '', 'NodeGraph') || [];
 // Get props for the node graph (when no id is passed, we assume its the current page)
 const nodeGraphPropsForPage = nodeGraphs.find((nodeGraph: any) => nodeGraph.id === undefined) || ({} as any);
 
+const shouldRenderVersionList = shouldRenderSideBarSection(props,'versions') && props.data.versions && props.data.versions.length > 1;
+
 // This will render the graph for this page
 nodeGraphs.push({
   id: props.data.id,
@@ -292,6 +286,7 @@ nodeGraphs.push({
                   chatQuery={generatePromptForResource(props)}
                   chatEnabled={isEventCatalogChatEnabled()}
                   markdownDownloadEnabled={isMarkdownDownloadEnabled()}
+                  rssFeedEnabled={isRSSEnabled()}
                   editUrl={editUrl}
                 />
               </div>
@@ -508,7 +503,7 @@ nodeGraphs.push({
             )
           }
           {
-            props.data.versions && props.data.versions.length > 1 && (
+            shouldRenderVersionList && (
               <VersionList
                 title={`Versions (${props.data.versions?.length})`}
                 versions={props.data.versions}
@@ -516,6 +511,14 @@ nodeGraphs.push({
               />
             )
           }
+          <!-- Change log link -->
+         {
+          isChangelogEnabled() && shouldRenderSideBarSection(props,'changelog') && (
+            <a href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}/changelog`)} class="text-xs text-gray-500 underline">
+              <span class="block">Read changelog &rarr;</span>
+            </a>
+          )
+         }
         </div>
       </aside>
     </div>

@@ -34,7 +34,7 @@ export const showCustomBranding = () => {
   return isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
 };
 
-export const isChangelogEnabled = () => config?.changelog?.enabled ?? true;
+export const isChangelogEnabled = () => config?.changelog?.enabled ?? false;
 
 export const isCustomDocsEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
 export const isEventCatalogChatEnabled = () => {
@@ -55,5 +55,5 @@ export const isAuthEnabled = () => {
 };
 
 export const isSSR = () => config?.output === 'server';
-
+export const isRSSEnabled = () => config?.rss?.enabled ?? false;
 export const isVisualiserEnabled = () => config?.visualiser?.enabled ?? true;

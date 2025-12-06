@@ -2,6 +2,8 @@ import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
+import { getDomains } from './domains';
+import { getServices } from './services';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
@@ -92,4 +94,20 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
   // console.timeEnd('✅ New getFlows');
 
   return processedFlows;
+};
+
+export const getFlowsNotInAnyResource = async (): Promise<Flow[]> => {
+
+  const [flows, domains, services] = await Promise.all([
+    getFlows({ getAllVersions: false }),
+    getDomains({ getAllVersions: false }),
+    getServices({ getAllVersions: false }),
+  ]);
+
+  const flowsNotInAnyResource = flows.filter((flow) => {
+    const domainsForFlow = domains.filter((domain) => domain.data.flows?.some((f: any) => f.id === flow.id));
+    const servicesForFlow = services.filter((service) => service.data.flows?.some((f: any) => f.id === flow.id));
+    return domainsForFlow.length === 0 && servicesForFlow.length === 0;
+  });
+  return flowsNotInAnyResource;
 };

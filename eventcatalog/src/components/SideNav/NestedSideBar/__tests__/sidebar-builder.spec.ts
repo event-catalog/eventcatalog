@@ -1,13 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
-import { getNestedSideBarData, type ChildRef, type NavigationData, type NavNode } from '../utils';
+import { getNestedSideBarData, type NavigationData, type NavNode } from '../sidebar-builder';
 import type { ContentCollectionKey } from 'astro:content';
-import { mockDomains, mockServices, mockEvents, mockCommands } from './mocks';
 import utils from '@eventcatalog/sdk';
 import path from 'path';
 import fs from 'fs';
-import type { Assertion, AsymmetricMatchersContaining } from 'vitest';
+import config from '@config';
 
 const CATALOG_FOLDER = path.join(__dirname, 'catalog');
+
 
 declare global {
   interface Window {
@@ -85,6 +85,9 @@ vi.mock('astro:content', async (importOriginal) => {
           const { getTeams } = utils(CATALOG_FOLDER);
           const teams = (await getTeams()) ?? [];
           return Promise.resolve(teams.map((team) => toAstroCollection(team, 'teams')));
+        case 'flows':
+          // NO SDK Support for flows yet, so we just mock it out for now
+          return Promise.resolve([]);
         default:
           return Promise.resolve([]);
       }
@@ -207,6 +210,33 @@ describe('getNestedSideBarData', () => {
       const servicesNode = getNavigationConfigurationByKey('section:services', navigationData);
       expect(servicesNode.children).toEqual(['item:service:ShippingService:0.0.1']);
     });
+
+    // TODO: Need to add flows to the SDK..... then we can test properly
+    // it('renders a list of flows that are not assigned to anything (e.g domain or service)', async () => {
+
+    //   vi.mock('astro:content', async (importOriginal) => {
+    //     return {
+    //       ...(await importOriginal<typeof import('astro:content')>()),
+    //       getCollection: async (key: ContentCollectionKey) => {
+    //         if (key === 'flows') {
+    //           return Promise.resolve([toAstroCollection({
+    //             id: 'ShippingFlow',
+    //             name: 'ShippingFlow',
+    //             version: '0.0.1',
+    //             markdown: 'ShippingFlow',
+    //           }, 'flows')]);
+    //         }
+    //         return Promise.resolve((await importOriginal<typeof import('astro:content')>()).getCollection(key));
+    //       },
+    //     };
+    //   });
+
+    //   // No SDK support for flows yet, so we just mock it out for now
+    //   const navigationData = await getNestedSideBarData();
+    //   const flowsNode = getNavigationConfigurationByKey('section:flows', navigationData);
+    //   expect(flowsNode.children).toEqual(['item:flow:ShippingFlow:0.0.1']);
+    // });
+
   });
 
   describe('domain navigation item', () => {
@@ -231,6 +261,29 @@ describe('getNestedSideBarData', () => {
           href: '/docs/domains/Shipping/language',
         });
       });
+
+      it('the ubiquitous language link is not listed if the domain is configured not to render the page', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          detailsPanel: {
+            ubiquitousLanguage: {
+              visible: false,
+            },
+          },
+        });
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        expect(domainNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Ubiquitous Language',
+          href: '/docs/domains/Shipping/language',
+        });
+      });
+
     });
 
     describe('Architecture & Design section', () => {
@@ -255,6 +308,30 @@ describe('getNestedSideBarData', () => {
           title: 'Architecture Diagram',
           href: '/architecture/domains/Shipping/0.0.1',
         });
+      });
+
+      it('the visualizer link is not displayed if the visualizer is turned off in the catalog configuration', async () => {
+        // Globally set the visualizer to be disabled in the EventCatalog configuration
+        config.visualiser.enabled = false;
+
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        expect(domainNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Interaction Map',
+          href: '/visualiser/domains/Shipping/0.0.1',
+        });
+
+        // Turn it back on
+        config.visualiser.enabled = true;
       });
 
       it('the entity map link is only listed if the domain has entities', async () => {
@@ -324,6 +401,34 @@ describe('getNestedSideBarData', () => {
         expect(entitiesSection.children).toEqual([{ type: 'item', title: 'Order', href: '/docs/entities/Order/0.0.1' }]);
       });
 
+      it('is not listed if the domain is configured not to render the section', async () => {
+        const { writeDomain, writeEntity } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          entities: [{ id: 'Order', version: '0.0.1' }],
+          detailsPanel: {
+            entities: {
+              visible: false,
+            },
+          },
+        });
+
+        await writeEntity({
+          id: 'Order',
+          name: 'Order',
+          version: '0.0.1',
+          markdown: 'Order',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        const entitiesSection = getChildNodeByTitle('Entities', domainNode.children ?? []);
+        expect(entitiesSection).toBeUndefined();
+      });
+
       it('is not listed if the domain does not have any entities', async () => {
         const { writeDomain } = utils(CATALOG_FOLDER);
         await writeDomain({
@@ -352,6 +457,34 @@ describe('getNestedSideBarData', () => {
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
         expect(domainNode.children).not.toContain('section:subdomains');
+      });
+
+      it('is not listed if the domain is configured not to render the section', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          domains: [{ id: 'Checkout', version: '0.0.1' }],
+          detailsPanel: {
+            subdomains: {
+              visible: false,
+            },
+          },
+        });
+
+        await writeDomain({
+          id: 'Checkout',
+          name: 'Checkout',
+          version: '0.0.1',
+          markdown: 'Checkout',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        const subdomainSection = getChildNodeByTitle('Subdomains', domainNode.children ?? []);
+        expect(subdomainSection).toBeUndefined();
       });
 
       it('lists subdomains if the domain has subdomains', async () => {
@@ -433,6 +566,35 @@ describe('getNestedSideBarData', () => {
         expect(servicesInDomainSection).toBeUndefined();
       });
 
+      it('is not listed if the domain is configured not to render the section', async () => {
+        const { writeDomain, writeService } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          services: [{ id: 'ShippingService', version: '0.0.1' }],
+          detailsPanel: {
+            services: {
+              visible: false,
+            },
+          },
+        });
+
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        const servicesInDomainSection = getChildNodeByTitle('Domain Services', domainNode.children ?? []);
+        expect(servicesInDomainSection).toBeUndefined();
+
+      });
+
       it('renders services for the domain if the domain has services', async () => {
         const { writeDomain, writeService } = utils(CATALOG_FOLDER);
 
@@ -487,6 +649,34 @@ describe('getNestedSideBarData', () => {
         });
       });
 
+      it('is not listed if the domain is configured not to render the section', async () => {
+        const { writeDomain, writeUser } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          owners: ['John Doe'],
+          detailsPanel: {
+            owners: {
+              visible: false,
+            },
+          },
+        });
+
+        await writeUser({
+          id: 'John Doe',
+          name: 'John Doe',
+          markdown: 'John Doe',
+          avatarUrl: 'https://example.com/avatar.png',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        const ownersSection = getChildNodeByTitle('Owners', domainNode.children ?? []);
+        expect(ownersSection).toBeUndefined();
+      });
+
       it('lists the owners that the domain has if the domain has owners', async () => {
         const { writeDomain, writeUser } = utils(CATALOG_FOLDER);
         await writeDomain({
@@ -509,6 +699,69 @@ describe('getNestedSideBarData', () => {
         const ownersSection = getChildNodeByTitle('Owners', domainNode.children ?? []);
         expect(ownersSection.children).toEqual([{ type: 'item', title: 'John Doe', href: '/docs/users/John Doe' }]);
       });
+    });
+
+    describe('code section', () => {
+
+      it('is not listed if the domain does not have a repository configured', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        const codeSection = getChildNodeByTitle('Code', domainNode.children ?? []);
+        expect(codeSection).toBeUndefined();
+
+      });
+
+      it('is not listed if the domain is configured not to render the section', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          repository: {
+            url: 'https://github.com/eventcatalog/eventcatalog',
+            language: 'TypeScript',
+          },
+          detailsPanel: {
+            repository: {
+              visible: false,
+            },
+          },
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        const codeSection = getChildNodeByTitle('Code', domainNode.children ?? []);
+        expect(codeSection).toBeUndefined();
+      });
+
+      it('lists the code repository if the domain has a repository configured', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          repository: {
+            url: 'https://github.com/eventcatalog/eventcatalog',
+            language: 'TypeScript',
+          },
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        const codeSection = getChildNodeByTitle('Code', domainNode.children ?? []);
+        expect(codeSection).toBeDefined();
+      });
+
     });
   });
 
@@ -556,6 +809,31 @@ describe('getNestedSideBarData', () => {
           href: '/visualiser/services/ShippingService/0.0.1',
         });
       });
+
+      it('the interaction map link is not displayed if the visualizer is turned off in the catalog configuration', async () => {
+        // Globally set the visualizer to be disabled in the EventCatalog configuration
+        config.visualiser.enabled = false;
+
+        const { writeService } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
+        expect(serviceNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Interaction Map',
+          href: '/visualiser/services/ShippingService/0.0.1',
+        });
+
+        // Turn it back on
+        config.visualiser.enabled = true;
+      });
+
     });
 
     describe('API & Contracts section', () => {
@@ -566,6 +844,29 @@ describe('getNestedSideBarData', () => {
           name: 'ShippingService',
           version: '0.0.1',
           markdown: 'ShippingService',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
+        const apiContractsSection = getChildNodeByTitle('API & Contracts', serviceNode.children ?? []);
+        expect(apiContractsSection).toBeUndefined();
+      });
+
+      it('is not listed if the service is configured not to render the section', async () => {
+        const { writeService } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+          detailsPanel: {
+            specifications: {
+              visible: false,
+            },
+          },
+          specifications: [
+            { type: 'openapi', path: 'openapi.yaml', name: 'OpenAPI' },
+          ],
         });
 
         const navigationData = await getNestedSideBarData();
@@ -653,6 +954,34 @@ describe('getNestedSideBarData', () => {
         });
       });
 
+      it('is not listed if the service is configured not to render the section', async () => {
+        const { writeService, writeEntity } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+          detailsPanel: {
+            entities: {
+              visible: false,
+            },
+          },
+          entities: [{ id: 'Order', version: '0.0.1' }],
+        });
+
+        await writeEntity({
+          id: 'Order',
+          name: 'Order',
+          version: '0.0.1',
+          markdown: 'Order',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
+        const entitiesSection = getChildNodeByTitle('Entities', serviceNode.children ?? []);
+        expect(entitiesSection).toBeUndefined();
+      });
+
       it('lists the entities that the service has if the service has entities', async () => {
         const { writeService, writeEntity } = utils(CATALOG_FOLDER);
         await writeEntity({
@@ -685,6 +1014,34 @@ describe('getNestedSideBarData', () => {
           name: 'ShippingService',
           version: '0.0.1',
           markdown: 'ShippingService',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
+        const producesMessagesSection = getChildNodeByTitle('Outbound Messages', serviceNode.children ?? []);
+        expect(producesMessagesSection).toBeUndefined();
+      });
+
+      it('is not listed if the service is configured not to render the section', async () => {
+        const { writeService, writeEvent } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+          detailsPanel: {
+            messages: {
+              visible: false,
+            },
+          },
+          sends: [{ id: 'PaymentProcessed', version: '0.0.1' }],
+        });
+
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
         });
 
         const navigationData = await getNestedSideBarData();
@@ -733,6 +1090,34 @@ describe('getNestedSideBarData', () => {
         expect(receivesMessagesSection).toBeUndefined();
       });
 
+      it('is not listed if the service is configured not to render the section', async () => {
+        const { writeService, writeEvent } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+          detailsPanel: {
+            messages: {
+              visible: false,
+            },
+          },
+          receives: [{ id: 'PaymentProcessed', version: '0.0.1' }],
+        });
+
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
+        const receivesMessagesSection = getChildNodeByTitle('Inbound Messages', serviceNode.children ?? []);
+        expect(receivesMessagesSection).toBeUndefined();
+      });
+
       it('lists the messages that the service consumes if the service consumes messages', async () => {
         const { writeService, writeEvent } = utils(CATALOG_FOLDER);
         await writeEvent({
@@ -768,6 +1153,34 @@ describe('getNestedSideBarData', () => {
         });
       });
 
+      it('is not listed if the service is configured not to render the section', async () => {
+        const { writeService, writeUser } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+          detailsPanel: {
+            owners: {
+              visible: false,
+            },
+          },
+          owners: ['John Doe'],
+        });
+
+        writeUser({
+          id: 'John Doe',
+          name: 'John Doe',
+          markdown: 'John Doe',
+          avatarUrl: 'https://example.com/avatar.png',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
+        const ownersSection = getChildNodeByTitle('Owners', serviceNode.children ?? []);
+        expect(ownersSection).toBeUndefined();
+      });
+
       it('lists the owners that the service has if the service has owners', async () => {
         const { writeService, writeUser } = utils(CATALOG_FOLDER);
         await writeService({
@@ -789,6 +1202,66 @@ describe('getNestedSideBarData', () => {
         const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
         const ownersSection = getChildNodeByTitle('Owners', serviceNode.children ?? []);
         expect(ownersSection.children).toEqual([{ type: 'item', title: 'John Doe', href: '/docs/users/John Doe' }]);
+      });
+    });
+
+    describe('repository section', () => {
+      it('is not listed if the service does not have a repository', async () => {
+        const { writeService } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', serviceNode.children ?? []);
+        expect(repositorySection).toBeUndefined();
+      });
+
+      it('is not listed if the service is configured not to render the section', async () => {
+        const { writeService } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+          detailsPanel: {
+            repository: {
+              visible: false,
+            },
+          },
+          repository: {
+            url: 'https://github.com/eventcatalog/eventcatalog',
+            language: 'TypeScript',
+          },
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', serviceNode.children ?? []);
+        expect(repositorySection).toBeUndefined();
+      });
+
+      it('lists the repository if the service has a repository configured', async () => {
+        const { writeService } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+          repository: {
+            url: 'https://github.com/eventcatalog/eventcatalog',
+            language: 'TypeScript',
+          },
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', serviceNode.children ?? []);
+        expect(repositorySection).toBeDefined();
       });
     });
   });
@@ -832,6 +1305,32 @@ describe('getNestedSideBarData', () => {
           href: '/visualiser/events/PaymentProcessed/0.0.1',
         });
       });
+
+      it('the visalizer link is not displayed if the visualizer is turned off in the catalog configuration', async () => {
+        // Globally set the visualizer to be disabled in the EventCatalog configuration
+        config.visualiser.enabled = false;
+
+        const { writeEvent } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
+        expect(messageNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Interaction Map',
+          href: '/visualiser/events/PaymentProcessed/0.0.1',
+        });
+
+        // Turn it back on
+        config.visualiser.enabled = true;
+      });
+
+
     });
 
     describe('producers section', () => {
@@ -842,6 +1341,33 @@ describe('getNestedSideBarData', () => {
           name: 'Payment Processed',
           version: '0.0.1',
           markdown: 'Payment Processed',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
+        const producesMessagesSection = getChildNodeByTitle('Producers', messageNode.children ?? []);
+        expect(producesMessagesSection).toBeUndefined();
+      });
+
+      it('is not listed if the message is configured not to render the section', async () => {
+        const { writeEvent, writeService } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+          detailsPanel: {
+            producers: {
+              visible: false,
+            },
+          },
+        });
+        await writeService({
+          id: 'PaymentService',
+          name: 'Payment Service',
+          version: '0.0.1',
+          markdown: 'Payment Service',
+          sends: [{ id: 'PaymentProcessed', version: '0.0.1' }],
         });
 
         const navigationData = await getNestedSideBarData();
@@ -891,6 +1417,34 @@ describe('getNestedSideBarData', () => {
         expect(consumersSection).toBeUndefined();
       });
 
+      it('is not listed if the message is configured not to render the section', async () => {
+        const { writeEvent, writeService } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+          detailsPanel: {
+            consumers: {
+              visible: false,
+            },
+          },
+        });
+
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+          receives: [{ id: 'PaymentProcessed', version: '0.0.1' }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
+        const consumersSection = getChildNodeByTitle('Consumers', messageNode.children ?? []);
+        expect(consumersSection).toBeUndefined();
+      });
+
       it('lists the consumers if the message is consumed by any services', async () => {
         const { writeEvent, writeService } = utils(CATALOG_FOLDER);
         await writeService({
@@ -926,6 +1480,32 @@ describe('getNestedSideBarData', () => {
         });
       });
 
+      it('is not listed if the message is configured not to render the section', async () => {
+        const { writeEvent, writeUser } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+          detailsPanel: {
+            owners: {
+              visible: false,
+            },
+          },
+        });
+        await writeUser({
+          id: 'John Doe',
+          name: 'John Doe',
+          markdown: 'John Doe',
+          avatarUrl: 'https://example.com/avatar.png',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
+        const ownersSection = getChildNodeByTitle('Owners', messageNode.children ?? []);
+        expect(ownersSection).toBeUndefined();
+      });
+
       it('lists the owners that the message has if the message has owners', async () => {
         const { writeEvent, writeUser } = utils(CATALOG_FOLDER);
         await writeEvent({
@@ -947,6 +1527,62 @@ describe('getNestedSideBarData', () => {
         const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
         const ownersSection = getChildNodeByTitle('Owners', messageNode.children ?? []);
         expect(ownersSection.children).toEqual([{ type: 'item', title: 'John Doe', href: '/docs/users/John Doe' }]);
+      });
+    });
+
+    describe('repository section', () => {
+      it('is not listed if the message does not have a repository', async () => {
+        const { writeEvent } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', messageNode.children ?? []);
+        expect(repositorySection).toBeUndefined();
+      });
+
+      it('is not listed if the message is configured not to render the section', async () => {
+        const { writeEvent } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+          detailsPanel: {
+            repository: {
+              visible: false,
+            },
+          },
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', messageNode.children ?? []);
+        expect(repositorySection).toBeUndefined();
+      });
+
+      it('lists the repository if the message has a repository', async () => {
+        const { writeEvent } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+          repository: {
+            url: 'https://github.com/eventcatalog/eventcatalog',
+            language: 'TypeScript',
+          },
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', messageNode.children ?? []);
+        expect(repositorySection).toBeDefined();
       });
     });
   });
@@ -992,6 +1628,31 @@ describe('getNestedSideBarData', () => {
           href: '/visualiser/containers/PaymentDataStore/0.0.1',
         });
       });
+
+      it('the visualizer link is not displayed if the visualizer is turned off in the catalog configuration', async () => {
+        // Globally set the visualizer to be disabled in the EventCatalog configuration
+        config.visualiser.enabled = false;
+
+        const { writeDataStore } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
+        expect(containerNode).not.toHaveNavigationLink({
+          type: 'item',
+          title: 'Interaction Map',
+          href: '/visualiser/containers/PaymentDataStore/0.0.1',
+        });
+
+        // Turn it back on
+        config.visualiser.enabled = true;
+      });
     });
 
     describe('services (writes) section', () => {
@@ -1003,6 +1664,34 @@ describe('getNestedSideBarData', () => {
           version: '0.0.1',
           markdown: 'Payment DataStore',
           container_type: 'database',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
+        const servicesSection = getChildNodeByTitle('Services (Writes)', containerNode.children ?? []);
+        expect(servicesSection).toBeUndefined();
+      });
+
+      it('is not listed if the container is configured not to render the section', async () => {
+        const { writeDataStore, writeService } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+          detailsPanel: {
+            services: {
+              visible: false,
+            },
+          },
+        });
+        await writeService({
+          id: 'PaymentService',
+          name: 'Payment Service',
+          version: '0.0.1',
+          markdown: 'Payment Service',
+          writesTo: [{ id: 'PaymentDataStore', version: '0.0.1' }],
         });
 
         const navigationData = await getNestedSideBarData();
@@ -1053,6 +1742,34 @@ describe('getNestedSideBarData', () => {
         expect(servicesSection).toBeUndefined();
       });
 
+      it('is not listed if the container is configured not to render the section', async () => {
+        const { writeDataStore, writeService } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+          detailsPanel: {
+            services: {
+              visible: false,
+            },
+          },
+        });
+        await writeService({
+          id: 'PaymentService',
+          name: 'Payment Service',
+          version: '0.0.1',
+          markdown: 'Payment Service',
+          readsFrom: [{ id: 'PaymentDataStore', version: '0.0.1' }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
+        const servicesSection = getChildNodeByTitle('Services (Reads)', containerNode.children ?? []);
+        expect(servicesSection).toBeUndefined();
+      });
+
       it('lists the services that read from the container if the container has services that read from it', async () => {
         const { writeDataStore, writeService } = utils(CATALOG_FOLDER);
         await writeDataStore({
@@ -1095,6 +1812,34 @@ describe('getNestedSideBarData', () => {
         expect(ownersSection).toBeUndefined();
       });
 
+      it('is not listed if the container is configured not to render the section', async () => {
+        const { writeDataStore, writeUser } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+          owners: ['John Doe'],
+          detailsPanel: {
+            owners: {
+              visible: false,
+            },
+          },
+        });
+        await writeUser({
+          id: 'John Doe',
+          name: 'John Doe',
+          markdown: 'John Doe',
+          avatarUrl: 'https://example.com/avatar.png',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
+        const ownersSection = getChildNodeByTitle('Owners', containerNode.children ?? []);
+        expect(ownersSection).toBeUndefined();
+      });
+
       it('lists the owners that the container has if the container has owners', async () => {
         const { writeDataStore, writeUser } = utils(CATALOG_FOLDER);
         await writeDataStore({
@@ -1117,6 +1862,68 @@ describe('getNestedSideBarData', () => {
         const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
         const ownersSection = getChildNodeByTitle('Owners', containerNode.children ?? []);
         expect(ownersSection.children).toEqual([{ type: 'item', title: 'John Doe', href: '/docs/users/John Doe' }]);
+      });
+    });
+
+    describe('repository section', () => {
+      it('is not listed if the container does not have a repository', async () => {
+        const { writeDataStore } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', containerNode.children ?? []);
+        expect(repositorySection).toBeUndefined();
+      });
+    });
+
+    describe('repository section', () => {
+      it('is not listed if the container is configured not to render the section', async () => {
+        const { writeDataStore } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+          detailsPanel: {
+            repository: {
+              visible: false,
+            },
+          },
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', containerNode.children ?? []);
+        expect(repositorySection).toBeUndefined();
+      });
+
+      it('lists the repository if the container has a repository', async () => {
+        const { writeDataStore } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+          repository: {
+            url: 'https://github.com/eventcatalog/eventcatalog',
+            language: 'TypeScript',
+          },
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', containerNode.children ?? []);
+        expect(repositorySection).toBeDefined();
+        expect(repositorySection.children).toEqual([{ type: 'item', title: 'https://github.com/eventcatalog/eventcatalog', href: 'https://github.com/eventcatalog/eventcatalog' }]);
       });
     });
   });

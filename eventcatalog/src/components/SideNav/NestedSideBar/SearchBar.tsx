@@ -1,8 +1,20 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { Search, X, SlidersHorizontal, ChevronRight } from 'lucide-react';
-import type { NavNode } from './utils';
+import {
+  Search,
+  X,
+  SlidersHorizontal,
+  ChevronRight,
+  Boxes,
+  Server,
+  Zap,
+  MessageSquare,
+  Search as SearchIcon,
+  Database,
+  Waypoints,
+} from 'lucide-react';
+import type { NavNode } from './sidebar-builder';
 
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
 
@@ -51,11 +63,13 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
   };
 
   const filterTypes = [
-    { key: 'domain', label: 'Domains', badge: 'Domain' },
-    { key: 'service', label: 'Services', badge: 'Service' },
-    { key: 'event', label: 'Events', badge: 'Event' },
-    { key: 'command', label: 'Commands', badge: 'Command' },
-    { key: 'query', label: 'Queries', badge: 'Query' },
+    { key: 'command', label: 'Commands', badge: 'Command', icon: MessageSquare },
+    { key: 'container', label: 'Data Stores', badge: 'Container', icon: Database },
+    { key: 'domain', label: 'Domains', badge: 'Domain', icon: Boxes },
+    { key: 'event', label: 'Events', badge: 'Event', icon: Zap },
+    { key: 'flow', label: 'Flows', badge: 'Flow', icon: Waypoints },
+    { key: 'query', label: 'Queries', badge: 'Query', icon: SearchIcon },
+    { key: 'service', label: 'Services', badge: 'Service', icon: Server },
   ];
 
   const toggleSearchFilter = (filterKey: string) => {
@@ -82,6 +96,8 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
       Event: 'event',
       Command: 'command',
       Query: 'query',
+      Container: 'container',
+      Flow: 'flow',
     };
 
     // Use the memoized array instead of Object.entries(nodes)
@@ -176,6 +192,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
                     <div className="flex flex-col gap-0.5 mt-1">
                       {filterTypes.map((filter) => {
                         const isActive = searchFilters.has(filter.key);
+                        const Icon = filter.icon;
                         return (
                           <button
                             key={filter.key}
@@ -185,7 +202,10 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
                               isActive ? 'bg-purple-50 text-purple-700' : 'text-gray-600 hover:bg-gray-100'
                             )}
                           >
-                            <span>{filter.label}</span>
+                            <span className="flex items-center gap-2">
+                              <Icon className="w-3 h-3" />
+                              {filter.label}
+                            </span>
                             {isActive && <span className="text-purple-600">✓</span>}
                           </button>
                         );

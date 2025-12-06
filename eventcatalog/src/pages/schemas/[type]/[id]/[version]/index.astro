@@ -46,7 +46,9 @@ const availableVersions = await Promise.all(
             version: message.data.version,
             summary: message.data.summary,
             schemaPath: message.data.schemaPath,
+            // @ts-ignore
             producers: message.data.producers || [],
+            // @ts-ignore
             consumers: message.data.consumers || [],
           },
           schemaContent,

@@ -44,6 +44,13 @@ type TableConfiguration = {
   };
 };
 
+type SideBarItemConfig = {
+  type: 'item' | 'section';
+  title: string;
+  icon?: string;
+  children?: string[];
+};
+
 export interface Config {
   title: string;
   tagline: false;
@@ -77,6 +84,7 @@ export interface Config {
   sidebar?: SideBarConfig[];
   docs: {
     sidebar: {
+      navigation?: SideBarItemConfig[];
       type?: 'TREE_VIEW' | 'LIST_VIEW';
       showOrphanedMessages?: boolean;
     };

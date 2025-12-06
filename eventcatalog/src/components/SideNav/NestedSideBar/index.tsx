@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { ChevronRight, ChevronLeft, ChevronDown, Home, Star } from 'lucide-react';
-import type { NavigationData, NavNode, ChildRef } from './utils';
+import type { NavigationData, NavNode, ChildRef } from './sidebar-builder';
 import SearchBar from './SearchBar';
 import {
   saveState,
@@ -179,10 +179,10 @@ export default function NestedSideBar({ data }: Props) {
   }, [navigationStack]);
 
   /**
-   * Find a node by matching URL patterns and navigate to it
+   * Find a node key by matching URL patterns
    */
-  const findAndNavigateToUrl = useCallback(
-    (url: string): boolean => {
+  const findNodeKeyByUrl = useCallback(
+    (url: string): string | null => {
       // URL patterns to match resources
       const urlPatterns = [
         // Domains
@@ -211,27 +211,92 @@ export default function NestedSideBar({ data }: Props) {
         const match = url.match(pattern);
         if (match) {
           const id = match[1];
-
           // Use the lookup map for O(1) access
           const foundNodeKey = nodeLookup.get(`${type}:${id}`);
+          if (foundNodeKey) return foundNodeKey;
+        }
+      }
+      return null;
+    },
+    [nodeLookup]
+  );
 
-          if (foundNodeKey) {
-            const foundNode = nodes[foundNodeKey];
+  /**
+   * Try to connect a target node to the current stack (drill down, move up, or validate leaf)
+   */
+  const tryConnectStack = useCallback(
+    (targetKey: string, currentStack: NavigationLevel[]): NavigationLevel[] | null => {
+      const targetNode = nodes[targetKey];
+      if (!targetNode) return null;
 
-            if (foundNode && foundNode.children && foundNode.children.length > 0) {
-              // Navigate to this node
-              setNavigationStack([
-                { key: null, entries: roots, title: 'Documentation' },
-                { key: foundNodeKey, entries: foundNode.children, title: foundNode.title, badge: foundNode.badge },
-              ]);
-              return true;
-            }
+      // 1. Check if we are already at this level (or above)
+      const existingLevelIndex = currentStack.findIndex((level) => level.key === targetKey);
+      if (existingLevelIndex !== -1) {
+        // Truncate stack to this level
+        return currentStack.slice(0, existingLevelIndex + 1);
+      }
+
+      // 2. Check if it's a child of the current last level
+      const lastLevel = currentStack[currentStack.length - 1];
+      const lastNode = lastLevel.key ? nodes[lastLevel.key] : null;
+      
+      // If root level (key=null), we check against roots
+      const parentChildren = lastLevel.key === null ? roots : lastNode?.children;
+
+      if (parentChildren) {
+        const isChild = parentChildren.some((ref) => {
+          if (typeof ref === 'string') return ref === targetKey;
+          // Inline nodes don't have global keys usually
+          return false;
+        });
+
+        if (isChild) {
+          // If it has children, we drill down
+          if (targetNode.children && targetNode.children.length > 0) {
+            return [
+              ...currentStack,
+              { key: targetKey, entries: targetNode.children, title: targetNode.title, badge: targetNode.badge },
+            ];
           }
+          // If it's a leaf, the stack is valid as is
+          return currentStack;
+        }
+      }
+
+      return null;
+    },
+    [nodes, roots]
+  );
+
+  /**
+   * Find a node by matching URL patterns and navigate to it
+   */
+  const findAndNavigateToUrl = useCallback(
+    (url: string) => {
+      const foundNodeKey = findNodeKeyByUrl(url);
+
+      if (foundNodeKey) {
+        // Try to connect to current stack first
+        const connectedStack = tryConnectStack(foundNodeKey, navigationStack);
+        
+        if (connectedStack) {
+          setNavigationStack(connectedStack);
+          return true;
+        }
+
+        const foundNode = nodes[foundNodeKey];
+        if (foundNode && foundNode.children && foundNode.children.length > 0) {
+          // Fallback: Flattened navigation
+          setNavigationStack([
+            { key: null, entries: roots, title: 'Documentation' },
+            { key: foundNodeKey, entries: foundNode.children, title: foundNode.title, badge: foundNode.badge },
+          ]);
+          return true;
         }
       }
       return false;
     },
-    [nodes, roots, nodeLookup]
+    [findNodeKeyByUrl, tryConnectStack, navigationStack, nodes, roots]
   );
 
   /**
@@ -242,26 +307,47 @@ export default function NestedSideBar({ data }: Props) {
     if (isInitialized) return;
 
     const currentUrl = window.location.pathname;
+    const savedState = loadState();
+    const targetKey = findNodeKeyByUrl(currentUrl);
 
-    // First, try to navigate based on URL
-    const navigatedToUrl = findAndNavigateToUrl(currentUrl);
+    let finalStack: NavigationLevel[] | null = null;
 
-    if (!navigatedToUrl) {
-      // No URL match, try to restore from localStorage
-      const savedState = loadState();
-
-      if (savedState && savedState.path.length > 0) {
-        // Rebuild the stack from saved path
-        const restoredStack = buildStackFromPath(savedState.path);
-        setNavigationStack(restoredStack);
+    // 1. Try to restore saved state + connect to target
+    if (savedState && savedState.path.length > 0) {
+      const restoredStack = buildStackFromPath(savedState.path);
+      
+      if (targetKey) {
+        // Try to connect restored stack to target
+        const connectedStack = tryConnectStack(targetKey, restoredStack);
+        if (connectedStack) {
+          finalStack = connectedStack;
+        }
       } else {
-        // No saved state, start fresh
-        setNavigationStack([{ key: null, entries: roots, title: 'Documentation' }]);
+          // No target from URL, just restore saved state
+          finalStack = restoredStack;
       }
     }
 
+    // 2. If no valid stack from step 1, try just the target (flattened)
+    if (!finalStack && targetKey) {
+       const targetNode = nodes[targetKey];
+       if (targetNode && targetNode.children && targetNode.children.length > 0) {
+          finalStack = [
+             { key: null, entries: roots, title: 'Documentation' },
+             { key: targetKey, entries: targetNode.children, title: targetNode.title, badge: targetNode.badge }
+          ];
+       }
+    }
+
+    // 3. Fallback to root
+    if (!finalStack) {
+       setNavigationStack([{ key: null, entries: roots, title: 'Documentation' }]);
+    } else {
+       setNavigationStack(finalStack);
+    }
+
     setIsInitialized(true);
-  }, [data, roots, buildStackFromPath, isInitialized, findAndNavigateToUrl]);
+  }, [data, roots, buildStackFromPath, isInitialized, findNodeKeyByUrl, tryConnectStack, nodes]);
 
   /**
    * Save state whenever navigation changes
@@ -672,7 +758,7 @@ export default function NestedSideBar({ data }: Props) {
     // Leaf item with href → render as link
     if (item.href && !itemHasChildren) {
       return (
-        <a key={`item-${itemKey || index}`} href={item.href} className={cn(baseClasses, parentClasses, activeClasses)}>
+        <a key={`item-${itemKey || index}`} href={item.href} target={item.external ? '_blank' : undefined} className={cn(baseClasses, parentClasses, activeClasses)}>
           {content}
         </a>
       );

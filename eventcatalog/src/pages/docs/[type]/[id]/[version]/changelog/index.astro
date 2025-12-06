@@ -29,10 +29,6 @@ export const getStaticPaths = Page.getStaticPaths;
 // Get data
 const props = await Page.getData(Astro);
 
-if (!isChangelogEnabled()) {
-  return Astro.redirect('/docs');
-}
-
 let collectionItem = props;
 const logs = await getChangeLogs(props);
 

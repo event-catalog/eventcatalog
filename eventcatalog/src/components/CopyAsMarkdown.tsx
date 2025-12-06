@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { Copy, FileText, MessageCircleQuestion, ChevronDownIcon, ExternalLink, PenSquareIcon } from 'lucide-react';
+import { Copy, FileText, MessageCircleQuestion, ChevronDownIcon, ExternalLink, PenSquareIcon, RssIcon } from 'lucide-react';
 import React, { useState, isValidElement } from 'react';
 import type { Schema } from '@utils/collections/schemas';
 import { buildUrl, toMarkdownUrl } from '@utils/url-builder';
@@ -48,12 +48,14 @@ export function CopyPageMenu({
   chatEnabled = false,
   editUrl,
   markdownDownloadEnabled = false,
+  rssFeedEnabled = false,
 }: {
   schemas: Schema[];
   chatQuery?: string;
   chatEnabled: boolean;
   editUrl: string;
   markdownDownloadEnabled: boolean;
+  rssFeedEnabled: boolean;
 }) {
   // Define available actions
   const availableActions = {
@@ -62,6 +64,7 @@ export function CopyPageMenu({
     copySchemas: schemas.length > 0,
     viewMarkdown: markdownDownloadEnabled,
     chat: chatEnabled,
+    rssFeed: rssFeedEnabled,
   };
 
   // Check if any actions are available
@@ -111,6 +114,13 @@ export function CopyPageMenu({
         type: 'chat',
         text: 'Open Chat',
         icon: MessageCircleQuestion,
+      };
+    }
+    if (availableActions.rssFeed) {
+      return {
+        type: 'rssFeed',
+        text: 'RSS Feed',
+        icon: RssIcon,
       };
     }
     return null;
@@ -287,6 +297,14 @@ export function CopyPageMenu({
           </DropdownMenu.Item>
         )}
 
+        {availableActions.rssFeed && (
+          <DropdownMenu.Item
+            className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+            onSelect={() => window.open(buildUrl(`/rss/all/rss.xml`), '_blank')}
+          >
+            <MenuItemContent icon={RssIcon} title="RSS Feed" description="View this page as RSS feed" external={true} />
+          </DropdownMenu.Item>
+        )}
         {availableActions.chat && (
           <DropdownMenu.Item
             className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
