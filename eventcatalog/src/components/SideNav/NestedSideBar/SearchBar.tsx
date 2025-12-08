@@ -51,8 +51,20 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
 
   // Pre-process searchable nodes to avoid iterating object on every render
   const searchableNodes = useMemo(() => {
-    return Object.entries(nodes).filter(([_, node]) => node.type !== 'section' && node.type !== 'group');
+    return Object.entries(nodes).filter(([_, node]) => node.type !== 'group');
   }, [nodes]);
+
+  // Get available badges from nodes
+  const availableBadges = useMemo(() => {
+    const badges = new Set<string>();
+
+    for (const [_, node] of searchableNodes) {
+      if (node.badge) {
+        badges.add(node.badge);
+      }
+    }
+    return badges;
+  }, [searchableNodes]);
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
@@ -73,7 +85,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
     { key: 'flow', label: 'Flows', badge: 'Flow', icon: Waypoints },
     { key: 'query', label: 'Queries', badge: 'Query', icon: SearchIcon },
     { key: 'service', label: 'Services', badge: 'Service', icon: Server },
-  ];
+  ].filter((filter) => availableBadges.has(filter.badge));
 
   const toggleSearchFilter = (filterKey: string) => {
     setSearchFilters((prev) => {
@@ -267,7 +279,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
                           {node.badge}
                         </span>
                       )}
-                      {node.children && node.children.length > 0 && (
+                      {node.pages && node.pages.length > 0 && (
                         <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-purple-500" />
                       )}
                     </div>

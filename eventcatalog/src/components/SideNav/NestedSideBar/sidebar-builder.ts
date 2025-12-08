@@ -190,112 +190,173 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode>
   );
 
-  const rootDomainsNodes: Record<string, NavNode> = {
-    'list:top-level-domains': {
+  const rootDomainsNodes: Record<string, NavNode> = {};
+
+  if (rootDomains.length > 0) {
+    rootDomainsNodes['list:top-level-domains'] = {
       type: 'group',
       title: 'Domains',
       icon: 'Boxes',
       pages: rootDomains.map((domain) => `domain:${domain.data.id}:${domain.data.version}`),
-    },
-  };
+    };
+  }
 
-  const allNodes: Record<string, NavNode> = {
-    'list:all': {
-      type: 'group',
-      title: 'Browse',
-      icon: 'Telescope',
-      pages: ['list:domains', 'list:services', 'list:messages', 'list:flows', 'list:containers', 'list:designs', 'list:people'],
-    },
-    'list:domains': {
-      type: 'item',
-      title: 'Domains',
-      icon: 'Boxes',
-      pages: domains.map((domain) => `domain:${domain.data.id}:${domain.data.version}`),
-    },
-    'list:services': {
-      type: 'item',
-      title: 'Services',
-      icon: 'Server',
-      pages: services.map((service) => `service:${service.data.id}:${service.data.version}`),
-    },
-    'list:messages': {
+  const createLeaf = (items: any[], node: NavNode) => (items.length > 0 ? node : undefined);
+
+  const domainsList = createLeaf(domains, {
+    type: 'item',
+    title: 'Domains',
+    icon: 'Boxes',
+    pages: domains.map((domain) => `domain:${domain.data.id}:${domain.data.version}`),
+  });
+
+  const servicesList = createLeaf(services, {
+    type: 'item',
+    title: 'Services',
+    icon: 'Server',
+    pages: services.map((service) => `service:${service.data.id}:${service.data.version}`),
+  });
+
+  const eventsList = createLeaf(events, {
+    type: 'group',
+    title: 'Events',
+    icon: 'Zap',
+    pages: events.map((event) => `event:${event.data.id}:${event.data.version}`),
+  });
+
+  const commandsList = createLeaf(commands, {
+    type: 'group',
+    title: 'Commands',
+    icon: 'Terminal',
+    pages: commands.map((command) => `command:${command.data.id}:${command.data.version}`),
+  });
+
+  const queriesList = createLeaf(queries, {
+    type: 'group',
+    title: 'Queries',
+    icon: 'Search',
+    pages: queries.map((query) => `query:${query.data.id}:${query.data.version}`),
+  });
+
+  const flowsList = createLeaf(flows, {
+    type: 'item',
+    title: 'Flows',
+    icon: 'Waypoints',
+    pages: flows.map((flow) => `flow:${flow.data.id}:${flow.data.version}`),
+  });
+
+  const containersList = createLeaf(containers, {
+    type: 'item',
+    title: 'Data Stores',
+    icon: 'Database',
+    pages: containers.map((container) => `container:${container.data.id}:${container.data.version}`),
+  });
+
+  const designsList = createLeaf(designs, {
+    type: 'item',
+    title: 'Designs',
+    icon: 'SquareMousePointer',
+    pages: designs.map((design) => `design:${design.data.id}`),
+  });
+
+  const teamsList = createLeaf(teams, {
+    type: 'group',
+    title: 'Teams',
+    icon: 'Users',
+    pages: teams.map((team) => `team:${team.data.id}`),
+  });
+
+  const usersList = createLeaf(users, {
+    type: 'group',
+    title: 'Users',
+    icon: 'User',
+    pages: users.map((user) => `user:${user.data.id}`),
+  });
+
+  const messagesChildren = ['list:events', 'list:commands', 'list:queries'].filter(
+    (key, index) => [eventsList, commandsList, queriesList][index] !== undefined
+  );
+
+  let messagesList;
+  if (messagesChildren.length > 0) {
+    messagesList = {
       type: 'item',
       title: 'Messages',
       icon: 'Mail',
-      pages: ['list:events', 'list:commands', 'list:queries'],
-    },
-    'list:events': {
-      type: 'group',
-      title: 'Events',
-      icon: 'Zap',
-      pages: events.map((event) => `event:${event.data.id}:${event.data.version}`),
-    },
-    'list:commands': {
-      type: 'group',
-      title: 'Commands',
-      icon: 'Terminal',
-      pages: commands.map((command) => `command:${command.data.id}:${command.data.version}`),
-    },
-    'list:queries': {
-      type: 'group',
-      title: 'Queries',
-      icon: 'Search',
-      pages: queries.map((query) => `query:${query.data.id}:${query.data.version}`),
-    },
-    'list:flows': {
-      type: 'item',
-      title: 'Flows',
-      icon: 'Waypoints',
-      pages: flows.map((flow) => `flow:${flow.data.id}:${flow.data.version}`),
-    },
-    'list:containers': {
-      type: 'item',
-      title: 'Data Stores',
-      icon: 'Database',
-      pages: containers.map((container) => `container:${container.data.id}:${container.data.version}`),
-    },
-    'list:designs': {
-      type: 'item',
-      title: 'Designs',
-      icon: 'SquareMousePointer',
-      pages: designs.map((design) => `design:${design.data.id}`),
-    },
-    'list:people': {
+      pages: messagesChildren,
+    };
+  }
+
+  const peopleChildren = ['list:teams', 'list:users'].filter((key, index) => [teamsList, usersList][index] !== undefined);
+
+  let peopleList;
+  if (peopleChildren.length > 0) {
+    peopleList = {
       type: 'item',
       title: 'Teams & Users',
       icon: 'Users',
-      pages: ['list:teams', 'list:users'],
-    },
-    'list:teams': {
+      pages: peopleChildren,
+    };
+  }
+
+  const allChildrenKeys = [
+    'list:domains',
+    'list:services',
+    'list:messages',
+    'list:flows',
+    'list:containers',
+    'list:designs',
+    'list:people',
+  ];
+  const allChildrenNodes = [domainsList, servicesList, messagesList, flowsList, containersList, designsList, peopleList];
+
+  const validAllChildren = allChildrenKeys.filter((_, idx) => allChildrenNodes[idx] !== undefined);
+
+  let allList;
+  if (validAllChildren.length > 0) {
+    allList = {
       type: 'group',
-      title: 'Teams',
-      icon: 'Users',
-      pages: teams.map((team) => `team:${team.data.id}`),
-    },
-    'list:users': {
-      type: 'group',
-      title: 'Users',
-      icon: 'User',
-      pages: users.map((user) => `user:${user.data.id}`),
-    },
+      title: 'Browse',
+      icon: 'Telescope',
+      pages: validAllChildren,
+    };
+  }
+
+  const allNodes: Record<string, NavNode> = {
+    ...(domainsList ? { 'list:domains': domainsList } : {}),
+    ...(servicesList ? { 'list:services': servicesList } : {}),
+    ...(eventsList ? { 'list:events': eventsList } : {}),
+    ...(commandsList ? { 'list:commands': commandsList } : {}),
+    ...(queriesList ? { 'list:queries': queriesList } : {}),
+    ...(messagesList ? { 'list:messages': messagesList as NavNode } : {}),
+    ...(flowsList ? { 'list:flows': flowsList } : {}),
+    ...(containersList ? { 'list:containers': containersList } : {}),
+    ...(designsList ? { 'list:designs': designsList } : {}),
+    ...(teamsList ? { 'list:teams': teamsList } : {}),
+    ...(usersList ? { 'list:users': usersList } : {}),
+    ...(peopleList ? { 'list:people': peopleList as NavNode } : {}),
+    ...(allList ? { 'list:all': allList as NavNode } : {}),
   };
 
+  const allGeneratedNodes = {
+    ...rootDomainsNodes,
+    ...domainNodes,
+    ...serviceNodes,
+    ...messageNodes,
+    ...containerNodes,
+    ...flowNodes,
+    ...userNodes,
+    ...teamNodes,
+    ...designNodes,
+    ...allNodes,
+  };
+
+  // only filter if child is string
   const rootNavigationConfig = config?.navigation?.pages || ['list:top-level-domains', 'list:all'];
 
   const navigationConfig = {
     roots: rootNavigationConfig,
-    nodes: {
-      ...rootDomainsNodes,
-      ...domainNodes,
-      ...serviceNodes,
-      ...messageNodes,
-      ...containerNodes,
-      ...flowNodes,
-      ...userNodes,
-      ...teamNodes,
-      ...designNodes,
-      ...allNodes,
-    },
+    nodes: allGeneratedNodes,
   };
 
   memoryCache = navigationConfig;
