@@ -36,6 +36,7 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
     type: 'item',
     title: domain.data.name,
     badge: 'Domain',
+    summary: domain.data.summary,
     pages: [
       buildQuickReferenceSection([
         { title: 'Overview', href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}`) },

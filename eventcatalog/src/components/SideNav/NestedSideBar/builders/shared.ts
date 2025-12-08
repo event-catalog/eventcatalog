@@ -22,6 +22,7 @@ export type NavNode = {
   pages?: ChildRef[]; // Can mix keys and inline nodes
   visible?: boolean; // If false, hide this node (default: true)
   badge?: string; // Category badge shown in header (e.g., "Domain", "Service", "Message")
+  summary?: string; // Short description of the item
 };
 
 /**

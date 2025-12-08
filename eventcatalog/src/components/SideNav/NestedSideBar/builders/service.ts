@@ -45,6 +45,7 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
     type: 'item',
     title: service.data.name,
     badge: 'Service',
+    summary: service.data.summary,
     pages: [
       buildQuickReferenceSection([
         { title: 'Overview', href: buildUrl(`/docs/services/${service.data.id}/${service.data.version}`) },

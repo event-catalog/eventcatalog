@@ -14,6 +14,7 @@ import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewerRoot.astro';
 import Admonition from '@components/MDX/Admonition';
 import VersionList from '@components/Lists/VersionList.astro';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
+import FavoriteButton from '@components/FavoriteButton';
 import { shouldRenderSideBarSection } from '@components/SideNav/NestedSideBar/builders/shared';
 
 import {
@@ -279,13 +280,25 @@ nodeGraphs.push({
         <div class="border-b border-gray-200 md:pb-2">
           <div>
             <div class="flex justify-between items-center">
-              <h2
-                id="doc-page-header"
-                class={`text-2xl md:text-4xl font-bold text-black ${props.data.deprecated && hasDeprecated ? 'text-red-500' : ''}`}
-              >
-                {props.data.name}
-                <span class="">(v{props.data.version})</span>
-              </h2>
+              <div class="flex items-center gap-2">
+                <h2
+                  id="doc-page-header"
+                  class={`text-2xl md:text-4xl font-bold text-black ${props.data.deprecated && hasDeprecated ? 'text-red-500' : ''}`}
+                >
+                  {props.data.name}
+                  <span class="">(v{props.data.version})</span>
+                </h2>
+                <FavoriteButton
+                  client:load
+                  nodeKey={`${collectionToResourceMap[props.collection as keyof typeof collectionToResourceMap]}:${props.data.id}:${props.data.version}`}
+                  title={props.data.name}
+                  badge={collectionToResourceMap[props.collection as keyof typeof collectionToResourceMap]
+                    .charAt(0)
+                    .toUpperCase() + collectionToResourceMap[props.collection as keyof typeof collectionToResourceMap].slice(1)}
+                  href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}`)}
+                  size="md"
+                />
+              </div>
               <div class="hidden lg:block">
                 <CopyAsMarkdown
                   client:only="react"

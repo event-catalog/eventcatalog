@@ -23,6 +23,7 @@ export const buildContainerNode = (container: CollectionEntry<'containers'>, own
     type: 'item',
     title: container.data.name,
     badge: 'Container',
+    summary: container.data.summary,
     pages: [
       buildQuickReferenceSection([
         {

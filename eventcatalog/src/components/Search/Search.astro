@@ -1,23 +1,7 @@
 ---
 import MagnifyingGlassIcon from '@heroicons/react/24/outline/MagnifyingGlassIcon';
 import SearchModal from './SearchModal.tsx';
-import { buildUrl } from '@utils/url-builder.ts';
-
-const pagefindJsUrl = buildUrl('/pagefind/pagefind.js', true);
-const pagefindCssUrl = buildUrl('/pagefind/pagefind-ui.css', true);
 ---
-
-<link href={pagefindCssUrl} rel="stylesheet" />
-<script type="module" define:vars={{ pagefindJsUrl }}>
-  // Load Pagefind and expose it globally
-  try {
-    const pagefind = await import(pagefindJsUrl);
-    window.pagefind = pagefind;
-    window.dispatchEvent(new CustomEvent('pagefindLoaded'));
-  } catch (error) {
-    console.error('Failed to load pagefind:', error);
-  }
-</script>
 
 <div>
   <div class="relative flex items-center">
@@ -26,6 +10,7 @@ const pagefindCssUrl = buildUrl('/pagefind/pagefind-ui.css', true);
       type="text"
       name="search"
       placeholder="Search EventCatalog"
+      autocomplete="off"
       class="block w-full rounded-md caret-transparent border-0 py-1.5 pr-14 pl-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 font-light sm:text-sm sm:leading-6 px-4"
     />
     <MagnifyingGlassIcon className="absolute inset-y-0 -left-1 h-9 w-8 flex items-center pl-4 text-gray-400" />
@@ -35,19 +20,32 @@ const pagefindCssUrl = buildUrl('/pagefind/pagefind-ui.css', true);
   </div>
 </div>
 
-<SearchModal client:only />
+<SearchModal client:only="react" />
 
 <script>
   // Create a global state for the search modal
   (window as any).searchModalState = {
     isOpen: false,
+    isClosing: false,
+    open: function () {
+      if (this.isClosing) return;
+      this.isOpen = true;
+      this.render();
+    },
     toggle: function () {
+      if (this.isClosing) return;
       this.isOpen = !this.isOpen;
       this.render();
     },
     close: function () {
       this.isOpen = false;
+      this.isClosing = true;
       this.render();
+      // Reset isClosing after a short delay to prevent immediate reopening by focus restoration
+      // waiting for transition (200ms) + buffer
+      setTimeout(() => {
+        this.isClosing = false;
+      }, 500);
     },
     render: function () {
       // This will be handled by React component
@@ -58,26 +56,42 @@ const pagefindCssUrl = buildUrl('/pagefind/pagefind-ui.css', true);
     },
   };
 
-  const dummyInput = document.getElementById('search-dummy-input');
-  const header = document.getElementById('eventcatalog-header');
-  const verticalNav = document.getElementById('eventcatalog-vertical-nav');
+  // Setup function to initialize event listeners
+  function setupSearchListeners() {
+    const dummyInput = document.getElementById('search-dummy-input');
 
-  // Event listeners
+    // Remove existing listeners if any to prevent duplicates
+    if (dummyInput) {
+      const newInput = dummyInput.cloneNode(true) as HTMLElement;
+      dummyInput.parentNode?.replaceChild(newInput, dummyInput);
+      const refreshedInput = document.getElementById('search-dummy-input');
+
+      refreshedInput?.addEventListener('click', function (e) {
+        e.preventDefault();
+        this.blur();
+        (window as any).searchModalState.open();
+      });
+
+      refreshedInput?.addEventListener('focus', function (e) {
+        e.preventDefault();
+        this.blur();
+        (window as any).searchModalState.open();
+      });
+    }
+  }
+
+  // Setup keyboard shortcut (only needs to be done once)
   window.addEventListener('keydown', (event) => {
     if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
       event.preventDefault();
-      dummyInput?.click();
+      (window as any).searchModalState.open();
     }
-  });
-
-  dummyInput?.addEventListener('click', function (e) {
-    e.preventDefault();
-    this.blur();
-    (window as any).searchModalState.toggle();
   });
 
   // Listen for modal state changes to update page elements
   window.addEventListener('searchModalToggle', (event) => {
+    const header = document.getElementById('eventcatalog-header');
+    const verticalNav = document.getElementById('eventcatalog-vertical-nav');
     // Handle custom docs sidebars
     const customDocsSidebars = document.querySelectorAll('aside[class*="fixed"][class*="z-10"]');
 
@@ -97,6 +111,12 @@ const pagefindCssUrl = buildUrl('/pagefind/pagefind-ui.css', true);
       });
     }
   });
+
+  // Setup listeners on initial load
+  setupSearchListeners();
+
+  // Re-setup listeners after client-side navigation
+  document.addEventListener('astro:page-load', setupSearchListeners);
 </script>
 
 <style>

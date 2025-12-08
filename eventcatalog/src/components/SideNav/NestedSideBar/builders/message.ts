@@ -31,6 +31,7 @@ export const buildMessageNode = (message: CollectionEntry<'events' | 'commands' 
     type: 'item',
     title: message.data.name,
     badge,
+    summary: message.data.summary,
     pages: [
       buildQuickReferenceSection([
         {

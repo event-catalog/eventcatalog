@@ -5,15 +5,10 @@ import * as LucideIcons from 'lucide-react';
 import { ChevronRight, ChevronLeft, ChevronDown, Home, Star } from 'lucide-react';
 import type { NavigationData, NavNode, ChildRef } from './sidebar-builder';
 import SearchBar from './SearchBar';
-import {
-  saveState,
-  loadState,
-  saveCollapsedSections,
-  loadCollapsedSections,
-  saveFavorites,
-  loadFavorites,
-  type FavoriteItem,
-} from './storage';
+import { saveState, loadState, saveCollapsedSections, loadCollapsedSections } from './storage';
+import { useStore } from '@nanostores/react';
+import { sidebarStore } from '@stores/sidebar-store';
+import { favoritesStore, toggleFavorite as toggleFavoriteAction, type FavoriteItem } from '@stores/favorites-store';
 
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
 
@@ -45,11 +40,9 @@ type NavigationLevel = {
   badge?: string; // Category badge (e.g., "Domain", "Service")
 };
 
-type Props = {
-  data: NavigationData;
-};
+export default function NestedSideBar() {
+  const data = useStore(sidebarStore);
 
-export default function NestedSideBar({ data }: Props) {
   // Guard against undefined data (e.g., during hydration)
   const roots = data?.roots ?? [];
   const nodes = data?.nodes ?? {};
@@ -64,7 +57,7 @@ export default function NestedSideBar({ data }: Props) {
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
   const [showPathPreview, setShowPathPreview] = useState(false);
   const [showFullPath, setShowFullPath] = useState(false);
-  const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
+  const favorites = useStore(favoritesStore);
   const [isSearching, setIsSearching] = useState(false);
 
   // Build a lookup map for faster URL navigation
@@ -73,12 +66,19 @@ export default function NestedSideBar({ data }: Props) {
     const lookup = new Map<string, string>();
 
     Object.keys(nodes).forEach((key) => {
-      // Key format is usually "item:type:id:version"
+      // Key formats:
+      // - "type:id:version" (e.g., "service:OrdersService:0.0.3")
+      // - "type:id" (e.g., "service:OrdersService", "user:john", "team:backend")
+      // - "list:name" (e.g., "list:domains") - skip these
       const parts = key.split(':');
-      if (parts.length >= 4) {
+
+      // Skip list items
+      if (parts[0] === 'list') return;
+
+      if (parts.length >= 2) {
         // Store as "type:id"
-        const type = parts[1];
-        const id = parts[2];
+        const type = parts[0];
+        const id = parts[1];
         lookup.set(`${type}:${id}`, key);
       }
     });
@@ -114,14 +114,13 @@ export default function NestedSideBar({ data }: Props) {
   }, []);
 
   /**
-   * Load favorites from localStorage on mount
+   * Populate the store with the data when the component mounts or data changes
    */
-  useEffect(() => {
-    const saved = loadFavorites();
-    if (saved.length > 0) {
-      setFavorites(saved);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (data) {
+  //     setSidebarData(data);
+  //   }
+  // }, [data]);
 
   /**
    * Resolve a child reference to a NavNode
@@ -183,10 +182,9 @@ export default function NestedSideBar({ data }: Props) {
    */
   const findNodeKeyByUrl = useCallback(
     (url: string): string | null => {
-      // URL patterns to match resources
-      const urlPatterns = [
+      // URL patterns to match resources with version
+      const urlPatternsWithVersion = [
         // Domains
-        { pattern: /^\/docs\/domains\/([^/]+)\/language/, type: 'domain' },
         { pattern: /^\/docs\/domains\/([^/]+)\/([^/]+)/, type: 'domain' },
         { pattern: /^\/visualiser\/domains\/([^/]+)\/([^/]+)/, type: 'domain' },
         { pattern: /^\/architecture\/domains\/([^/]+)\/([^/]+)/, type: 'domain' },
@@ -194,31 +192,57 @@ export default function NestedSideBar({ data }: Props) {
         { pattern: /^\/docs\/services\/([^/]+)\/([^/]+)/, type: 'service' },
         { pattern: /^\/architecture\/services\/([^/]+)\/([^/]+)/, type: 'service' },
         { pattern: /^\/visualiser\/services\/([^/]+)\/([^/]+)/, type: 'service' },
-        // Messages (events, commands, queries)
-        { pattern: /^\/docs\/events\/([^/]+)\/([^/]+)/, type: 'message' },
-        { pattern: /^\/docs\/commands\/([^/]+)\/([^/]+)/, type: 'message' },
-        { pattern: /^\/docs\/queries\/([^/]+)\/([^/]+)/, type: 'message' },
+        // Messages (events, commands, queries) - note: keys use singular form
+        { pattern: /^\/docs\/events\/([^/]+)\/([^/]+)/, type: 'event' },
+        { pattern: /^\/docs\/commands\/([^/]+)\/([^/]+)/, type: 'command' },
+        { pattern: /^\/docs\/queries\/([^/]+)\/([^/]+)/, type: 'query' },
         { pattern: /^\/visualiser\/messages\/([^/]+)\/([^/]+)/, type: 'message' },
-        { pattern: /^\/visualiser\/events\/([^/]+)\/([^/]+)/, type: 'message' },
-        { pattern: /^\/visualiser\/commands\/([^/]+)\/([^/]+)/, type: 'message' },
-        { pattern: /^\/visualiser\/queries\/([^/]+)\/([^/]+)/, type: 'message' },
+        { pattern: /^\/visualiser\/events\/([^/]+)\/([^/]+)/, type: 'event' },
+        { pattern: /^\/visualiser\/commands\/([^/]+)\/([^/]+)/, type: 'command' },
+        { pattern: /^\/visualiser\/queries\/([^/]+)\/([^/]+)/, type: 'query' },
         // Containers
         { pattern: /^\/docs\/containers\/([^/]+)\/([^/]+)/, type: 'container' },
         { pattern: /^\/visualiser\/containers\/([^/]+)\/([^/]+)/, type: 'container' },
+        // Flows
+        { pattern: /^\/docs\/flows\/([^/]+)\/([^/]+)/, type: 'flow' },
+        { pattern: /^\/visualiser\/flows\/([^/]+)\/([^/]+)/, type: 'flow' },
       ];
 
-      for (const { pattern, type } of urlPatterns) {
+      // URL patterns without version (language pages, etc)
+      const urlPatternsWithoutVersion = [{ pattern: /^\/docs\/domains\/([^/]+)\/language/, type: 'domain' }];
+
+      // First try to match patterns with version
+      for (const { pattern, type } of urlPatternsWithVersion) {
         const match = url.match(pattern);
         if (match) {
           const id = match[1];
-          // Use the lookup map for O(1) access
+          const version = match[2];
+
+          // First try with version
+          const keyWithVersion = `${type}:${id}:${version}`;
+          if (nodes[keyWithVersion]) {
+            return keyWithVersion;
+          }
+
+          // Fallback to lookup without version (for latest)
           const foundNodeKey = nodeLookup.get(`${type}:${id}`);
           if (foundNodeKey) return foundNodeKey;
         }
       }
+
+      // Then try patterns without version
+      for (const { pattern, type } of urlPatternsWithoutVersion) {
+        const match = url.match(pattern);
+        if (match) {
+          const id = match[1];
+          const foundNodeKey = nodeLookup.get(`${type}:${id}`);
+          if (foundNodeKey) return foundNodeKey;
+        }
+      }
+
       return null;
     },
-    [nodeLookup]
+    [nodeLookup, nodes]
   );
 
   /**
@@ -293,6 +317,14 @@ export default function NestedSideBar({ data }: Props) {
           ]);
           return true;
         }
+      } else if (url === '/' || url === '') {
+        // Reset to root if we are on homepage
+        if (navigationStack.length > 1) {
+          setSlideDirection('backward');
+          setAnimationKey((prev) => prev + 1);
+        }
+        setNavigationStack([{ key: null, entries: roots, title: 'Documentation' }]);
+        return true;
       }
       return false;
     },
@@ -307,6 +339,14 @@ export default function NestedSideBar({ data }: Props) {
     if (isInitialized) return;
 
     const currentUrl = window.location.pathname;
+
+    // Force root navigation on homepage
+    if (currentUrl === '/' || currentUrl === '') {
+      setNavigationStack([{ key: null, entries: roots, title: 'Documentation' }]);
+      setIsInitialized(true);
+      return;
+    }
+
     const savedState = loadState();
     const targetKey = findNodeKeyByUrl(currentUrl);
 
@@ -453,6 +493,9 @@ export default function NestedSideBar({ data }: Props) {
       setAnimationKey((prev) => prev + 1);
       const newStack = [...navigationStack, { key: nodeKey, entries: node.pages, title: node.title, badge: node.badge }];
       setNavigationStack(newStack);
+      // Reset hover states to prevent showing path preview immediately after navigation
+      setShowPathPreview(false);
+      setShowFullPath(false);
     }
   };
 
@@ -464,6 +507,9 @@ export default function NestedSideBar({ data }: Props) {
       setSlideDirection('backward');
       setAnimationKey((prev) => prev + 1);
       setNavigationStack(navigationStack.slice(0, -1));
+      // Reset hover states
+      setShowPathPreview(false);
+      setShowFullPath(false);
     }
   };
 
@@ -476,6 +522,7 @@ export default function NestedSideBar({ data }: Props) {
       setAnimationKey((prev) => prev + 1);
       setNavigationStack(navigationStack.slice(0, levelIndex + 1));
       setShowPathPreview(false);
+      setShowFullPath(false);
     }
   };
 
@@ -496,28 +543,15 @@ export default function NestedSideBar({ data }: Props) {
   const toggleFavorite = (nodeKey: string | null, node: NavNode) => {
     if (!nodeKey) return;
 
-    setFavorites((prev) => {
-      const existing = prev.find((fav) => fav.nodeKey === nodeKey);
-      let next: FavoriteItem[];
+    const favoriteItem: FavoriteItem = {
+      nodeKey,
+      path: getCurrentPath(),
+      title: node.title,
+      badge: node.badge,
+      href: node.href,
+    };
 
-      if (existing) {
-        // Remove from favorites
-        next = prev.filter((fav) => fav.nodeKey !== nodeKey);
-      } else {
-        // Add to favorites with current path
-        const newFavorite: FavoriteItem = {
-          nodeKey,
-          path: getCurrentPath(),
-          title: node.title,
-          badge: node.badge,
-          href: node.href,
-        };
-        next = [...prev, newFavorite];
-      }
-
-      saveFavorites(next);
-      return next;
-    });
+    toggleFavoriteAction(favoriteItem);
   };
 
   /**
@@ -547,6 +581,9 @@ export default function NestedSideBar({ data }: Props) {
     setSlideDirection('forward');
     setAnimationKey((prev) => prev + 1);
     setNavigationStack(stack);
+    // Reset hover states
+    setShowPathPreview(false);
+    setShowFullPath(false);
   };
 
   const isTopLevel = navigationStack.length === 1;
@@ -572,6 +609,9 @@ export default function NestedSideBar({ data }: Props) {
     }
 
     setIsSearching(false);
+    // Reset hover states
+    setShowPathPreview(false);
+    setShowFullPath(false);
   };
 
   /**
@@ -796,137 +836,142 @@ export default function NestedSideBar({ data }: Props) {
       {/* Back Navigation and Nav Content - hidden when showing search results */}
       {!isSearching && (
         <>
-          <div
-            className="px-3 py-2 bg-white border-b border-gray-200 sticky top-0 z-10"
-            onMouseEnter={() => !isTopLevel && setShowPathPreview(true)}
-            onMouseLeave={() => {
-              setShowPathPreview(false);
-              setShowFullPath(false);
-            }}
-          >
-            <button
-              onClick={navigateBack}
-              disabled={isTopLevel}
-              className={cn(
-                'flex items-center gap-2 w-full px-2 py-1.5 -mx-2 rounded-md transition-colors',
-                !isTopLevel && 'hover:bg-gray-100 cursor-pointer',
-                isTopLevel && 'cursor-default'
-              )}
+          {!isTopLevel && (
+            <div
+              className="px-3 py-2 bg-white border-b border-gray-200 sticky top-0 z-10"
+              onMouseEnter={() => !isTopLevel && setShowPathPreview(true)}
+              onMouseLeave={() => {
+                setShowPathPreview(false);
+                setShowFullPath(false);
+              }}
             >
-              <span
+              <button
+                onClick={navigateBack}
+                disabled={isTopLevel}
                 className={cn(
-                  'flex items-center justify-center w-5 h-5 text-gray-500 transition-all',
-                  isTopLevel && 'opacity-0',
-                  !isTopLevel && 'group-hover:-translate-x-0.5'
+                  'flex items-center gap-2 w-full px-2 py-1.5 -mx-2 rounded-md transition-colors',
+                  !isTopLevel && 'hover:bg-gray-100 cursor-pointer',
+                  isTopLevel && 'cursor-default'
                 )}
               >
-                <ChevronLeft className="w-4 h-4" />
-              </span>
-              <span className="text-sm font-semibold text-gray-900 truncate">{currentLevel.title}</span>
-              {currentLevel.badge && (
                 <span
                   className={cn(
-                    'ml-auto px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide rounded',
-                    getBadgeClasses(currentLevel.badge)
+                    'flex items-center justify-center w-5 h-5 text-gray-500 transition-all',
+                    isTopLevel && 'opacity-0',
+                    !isTopLevel && 'group-hover:-translate-x-0.5'
                   )}
                 >
-                  {currentLevel.badge}
+                  <ChevronLeft className="w-4 h-4" />
                 </span>
-              )}
-            </button>
+                <span className="text-sm font-semibold text-gray-900 truncate">{currentLevel.title}</span>
+                {currentLevel.badge && (
+                  <span
+                    className={cn(
+                      'ml-auto px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide rounded',
+                      getBadgeClasses(currentLevel.badge)
+                    )}
+                  >
+                    {currentLevel.badge}
+                  </span>
+                )}
+              </button>
 
-            {/* Path Preview Dropdown */}
-            {showPathPreview && navigationStack.length > 1 && (
-              <div className="absolute left-0 right-0 top-full bg-white border-b border-gray-200 shadow-lg z-20">
-                <div className="px-3 py-2">
-                  <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-2">Navigation Path</div>
-                  <div className="flex flex-col gap-0.5">
-                    {(() => {
-                      const SHOW_FIRST = 2; // Show first N items
-                      const SHOW_LAST = 2; // Show last N items (including current)
-                      const totalItems = navigationStack.length;
-                      const hiddenCount = totalItems - SHOW_FIRST - SHOW_LAST;
-                      const shouldTruncate = hiddenCount > 0 && !showFullPath;
+              {/* Path Preview Dropdown */}
+              {showPathPreview && navigationStack.length > 1 && (
+                <div className="absolute left-0 right-0 top-full bg-white border-b border-gray-200 shadow-lg z-20">
+                  <div className="px-3 py-2">
+                    <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-2">Navigation Path</div>
+                    <div className="flex flex-col gap-0.5">
+                      {(() => {
+                        const SHOW_FIRST = 2; // Show first N items
+                        const SHOW_LAST = 2; // Show last N items (including current)
+                        const totalItems = navigationStack.length;
+                        const hiddenCount = totalItems - SHOW_FIRST - SHOW_LAST;
+                        const shouldTruncate = hiddenCount > 0 && !showFullPath;
 
-                      const renderPathItem = (level: NavigationLevel, index: number, displayIndex: number) => {
-                        const isCurrentLevel = index === navigationStack.length - 1;
-                        return (
-                          <button
-                            key={`path-${index}`}
-                            onClick={() => navigateToLevel(index)}
-                            disabled={isCurrentLevel}
-                            className={cn(
-                              'flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors',
-                              !isCurrentLevel && 'hover:bg-gray-100 cursor-pointer',
-                              isCurrentLevel && 'bg-purple-50 cursor-default'
-                            )}
-                            style={{ paddingLeft: `${displayIndex * 12 + 8}px` }}
-                          >
-                            {index === 0 ? (
-                              <Home className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                            ) : (
-                              <ChevronRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
-                            )}
-                            <span
-                              className={cn('text-sm truncate', isCurrentLevel ? 'font-medium text-purple-700' : 'text-gray-600')}
+                        const renderPathItem = (level: NavigationLevel, index: number, displayIndex: number) => {
+                          const isCurrentLevel = index === navigationStack.length - 1;
+                          return (
+                            <button
+                              key={`path-${index}`}
+                              onClick={() => navigateToLevel(index)}
+                              disabled={isCurrentLevel}
+                              className={cn(
+                                'flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors',
+                                !isCurrentLevel && 'hover:bg-gray-100 cursor-pointer',
+                                isCurrentLevel && 'bg-purple-50 cursor-default'
+                              )}
+                              style={{ paddingLeft: `${displayIndex * 12 + 8}px` }}
                             >
-                              {level.title}
-                            </span>
-                            {level.badge && (
+                              {index === 0 ? (
+                                <Home className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                              ) : (
+                                <ChevronRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                              )}
                               <span
                                 className={cn(
-                                  'ml-auto px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide rounded flex-shrink-0',
-                                  getBadgeClasses(level.badge)
+                                  'text-sm truncate',
+                                  isCurrentLevel ? 'font-medium text-purple-700' : 'text-gray-600'
                                 )}
                               >
-                                {level.badge}
+                                {level.title}
                               </span>
-                            )}
-                          </button>
-                        );
-                      };
-
-                      if (shouldTruncate) {
-                        return (
-                          <>
-                            {/* First N items */}
-                            {navigationStack.slice(0, SHOW_FIRST).map((level, index) => renderPathItem(level, index, index))}
-
-                            {/* Collapsed middle section */}
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowFullPath(true);
-                              }}
-                              className="flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors hover:bg-gray-100 cursor-pointer"
-                              style={{ paddingLeft: `${SHOW_FIRST * 12 + 8}px` }}
-                            >
-                              <span className="flex items-center justify-center w-3.5 h-3.5 text-gray-400">
-                                <span className="text-xs">•••</span>
-                              </span>
-                              <span className="text-sm text-gray-500">
-                                {hiddenCount} more level{hiddenCount > 1 ? 's' : ''}
-                              </span>
-                              <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-auto" />
+                              {level.badge && (
+                                <span
+                                  className={cn(
+                                    'ml-auto px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide rounded flex-shrink-0',
+                                    getBadgeClasses(level.badge)
+                                  )}
+                                >
+                                  {level.badge}
+                                </span>
+                              )}
                             </button>
+                          );
+                        };
 
-                            {/* Last N items */}
-                            {navigationStack.slice(-SHOW_LAST).map((level, sliceIndex) => {
-                              const actualIndex = totalItems - SHOW_LAST + sliceIndex;
-                              return renderPathItem(level, actualIndex, SHOW_FIRST + 1 + sliceIndex);
-                            })}
-                          </>
-                        );
-                      }
+                        if (shouldTruncate) {
+                          return (
+                            <>
+                              {/* First N items */}
+                              {navigationStack.slice(0, SHOW_FIRST).map((level, index) => renderPathItem(level, index, index))}
 
-                      // Show full path
-                      return navigationStack.map((level, index) => renderPathItem(level, index, index));
-                    })()}
+                              {/* Collapsed middle section */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowFullPath(true);
+                                }}
+                                className="flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors hover:bg-gray-100 cursor-pointer"
+                                style={{ paddingLeft: `${SHOW_FIRST * 12 + 8}px` }}
+                              >
+                                <span className="flex items-center justify-center w-3.5 h-3.5 text-gray-400">
+                                  <span className="text-xs">•••</span>
+                                </span>
+                                <span className="text-sm text-gray-500">
+                                  {hiddenCount} more level{hiddenCount > 1 ? 's' : ''}
+                                </span>
+                                <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-auto" />
+                              </button>
+
+                              {/* Last N items */}
+                              {navigationStack.slice(-SHOW_LAST).map((level, sliceIndex) => {
+                                const actualIndex = totalItems - SHOW_LAST + sliceIndex;
+                                return renderPathItem(level, actualIndex, SHOW_FIRST + 1 + sliceIndex);
+                              })}
+                            </>
+                          );
+                        }
+
+                        // Show full path
+                        return navigationStack.map((level, index) => renderPathItem(level, index, index));
+                      })()}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* Navigation Content */}
           <nav

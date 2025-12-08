@@ -35,8 +35,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
       </div>
 
       <div class="hidden lg:block flex-grow w-6/12 px-10">
-        <!-- Page find only works on static builds, disable for SSR builds for now -->
-        {!isSSR() && <Search />}
+        <Search />
       </div>
 
       <div class="hidden md:block w-3/12">

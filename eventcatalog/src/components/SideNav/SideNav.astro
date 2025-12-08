@@ -11,5 +11,17 @@ const props = await getNestedSideBarData();
 
 <div {...Astro.props}>
   <ClientRouter />
-  <NestedSideBar client:only data={props} />
+  <NestedSideBar client:only="react" />
 </div>
+
+<script is:inline define:vars={{ props }}>
+  window.sidebarData = props;
+</script>
+
+<script>
+  import { setSidebarData } from '@stores/sidebar-store';
+  const data = (window as any).sidebarData;
+  if (data) {
+    setSidebarData(data);
+  }
+</script>

@@ -15,7 +15,8 @@
       "@layouts/*": ["src/layouts/*"],
       "@enterprise/*": ["src/enterprise/*"],
       "@ai/*": ["src/generated-ai/*"],
-      "auth:config": ["./auth.config.ts"]
+      "auth:config": ["./auth.config.ts"],
+      "@stores/*": ["src/stores/*"]
     },
     "jsx": "react-jsx",
     "jsxImportSource": "react",

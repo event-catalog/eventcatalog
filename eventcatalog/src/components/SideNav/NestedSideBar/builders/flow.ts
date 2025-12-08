@@ -9,6 +9,7 @@ export const buildFlowNode = (flow: CollectionEntry<'flows'>): NavNode => {
     title: flow.data.name,
     icon: 'Waypoint',
     badge: 'Flow',
+    summary: flow.data.summary,
     pages: [
       buildQuickReferenceSection([{ title: 'Overview', href: buildUrl(`/docs/flows/${flow.data.id}/${flow.data.version}`) }]),
       {
