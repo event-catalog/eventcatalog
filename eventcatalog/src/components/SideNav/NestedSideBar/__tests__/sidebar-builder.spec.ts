@@ -198,18 +198,23 @@ describe('getNestedSideBarData', () => {
       expect(rootDomainsToRender.pages).toEqual(['domain:Shipping:0.0.1']);
     });
 
-    it('renders everything in the catalog in a browse section', async () => {
+    it('the browser section only lists resources that are in the catalog', async () => {
+      const { writeDomain, writeService } = utils(CATALOG_FOLDER);
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+      });
+      await writeService({
+        id: 'ShippingService',
+        name: 'ShippingService',
+        version: '0.0.1',
+        markdown: 'ShippingService',
+      });
       const navigationData = await getNestedSideBarData();
       const browseNode = getNavigationConfigurationByKey('list:all', navigationData);
-      expect(browseNode.pages).toEqual([
-        'list:domains',
-        'list:services',
-        'list:messages',
-        'list:flows',
-        'list:containers',
-        'list:designs',
-        'list:people',
-      ]);
+      expect(browseNode.pages).toEqual(['list:domains', 'list:services']);
     });
   });
 
