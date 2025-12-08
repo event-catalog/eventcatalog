@@ -106,7 +106,6 @@ export default function NestedSideBar({ data }: Props) {
    * Load collapsed sections from localStorage on mount
    */
   useEffect(() => {
-    console.log('WE HAVE RELOADED BABY....');
     const saved = loadCollapsedSections();
     if (saved.size > 0) {
       setCollapsedSections(saved);
@@ -153,10 +152,10 @@ export default function NestedSideBar({ data }: Props) {
 
       for (const key of path) {
         const node = nodes[key];
-        if (node && node.children) {
+        if (node && node.pages) {
           stack.push({
             key,
-            entries: node.children,
+            entries: node.pages,
             title: node.title,
             badge: node.badge,
           });
@@ -239,9 +238,9 @@ export default function NestedSideBar({ data }: Props) {
       // 2. Check if it's a child of the current last level
       const lastLevel = currentStack[currentStack.length - 1];
       const lastNode = lastLevel.key ? nodes[lastLevel.key] : null;
-      
+
       // If root level (key=null), we check against roots
-      const parentChildren = lastLevel.key === null ? roots : lastNode?.children;
+      const parentChildren = lastLevel.key === null ? roots : lastNode?.pages;
 
       if (parentChildren) {
         const isChild = parentChildren.some((ref) => {
@@ -252,10 +251,10 @@ export default function NestedSideBar({ data }: Props) {
 
         if (isChild) {
           // If it has children, we drill down
-          if (targetNode.children && targetNode.children.length > 0) {
+          if (targetNode.pages && targetNode.pages.length > 0) {
             return [
               ...currentStack,
-              { key: targetKey, entries: targetNode.children, title: targetNode.title, badge: targetNode.badge },
+              { key: targetKey, entries: targetNode.pages, title: targetNode.title, badge: targetNode.badge },
             ];
           }
           // If it's a leaf, the stack is valid as is
@@ -278,18 +277,18 @@ export default function NestedSideBar({ data }: Props) {
       if (foundNodeKey) {
         // Try to connect to current stack first
         const connectedStack = tryConnectStack(foundNodeKey, navigationStack);
-        
+
         if (connectedStack) {
           setNavigationStack(connectedStack);
           return true;
         }
 
         const foundNode = nodes[foundNodeKey];
-        if (foundNode && foundNode.children && foundNode.children.length > 0) {
+        if (foundNode && foundNode.pages && foundNode.pages.length > 0) {
           // Fallback: Flattened navigation
           setNavigationStack([
             { key: null, entries: roots, title: 'Documentation' },
-            { key: foundNodeKey, entries: foundNode.children, title: foundNode.title, badge: foundNode.badge },
+            { key: foundNodeKey, entries: foundNode.pages, title: foundNode.title, badge: foundNode.badge },
           ]);
           return true;
         }
@@ -315,7 +314,7 @@ export default function NestedSideBar({ data }: Props) {
     // 1. Try to restore saved state + connect to target
     if (savedState && savedState.path.length > 0) {
       const restoredStack = buildStackFromPath(savedState.path);
-      
+
       if (targetKey) {
         // Try to connect restored stack to target
         const connectedStack = tryConnectStack(targetKey, restoredStack);
@@ -323,27 +322,27 @@ export default function NestedSideBar({ data }: Props) {
           finalStack = connectedStack;
         }
       } else {
-          // No target from URL, just restore saved state
-          finalStack = restoredStack;
+        // No target from URL, just restore saved state
+        finalStack = restoredStack;
       }
     }
 
     // 2. If no valid stack from step 1, try just the target (flattened)
     if (!finalStack && targetKey) {
-       const targetNode = nodes[targetKey];
-       if (targetNode && targetNode.children && targetNode.children.length > 0) {
-          finalStack = [
-             { key: null, entries: roots, title: 'Documentation' },
-             { key: targetKey, entries: targetNode.children, title: targetNode.title, badge: targetNode.badge }
-          ];
-       }
+      const targetNode = nodes[targetKey];
+      if (targetNode && targetNode.pages && targetNode.pages.length > 0) {
+        finalStack = [
+          { key: null, entries: roots, title: 'Documentation' },
+          { key: targetKey, entries: targetNode.pages, title: targetNode.title, badge: targetNode.badge },
+        ];
+      }
     }
 
     // 3. Fallback to root
     if (!finalStack) {
-       setNavigationStack([{ key: null, entries: roots, title: 'Documentation' }]);
+      setNavigationStack([{ key: null, entries: roots, title: 'Documentation' }]);
     } else {
-       setNavigationStack(finalStack);
+      setNavigationStack(finalStack);
     }
 
     setIsInitialized(true);
@@ -422,23 +421,23 @@ export default function NestedSideBar({ data }: Props) {
   const currentLevel = navigationStack[navigationStack.length - 1];
 
   /**
-   * Check if a node is a section
+   * Check if a node is a group
    */
-  const isSection = (node: NavNode): boolean => node.type === 'section';
+  const isGroup = (node: NavNode): boolean => node.type === 'group';
 
   /**
    * Check if a node has children
    */
   const hasChildren = (node: NavNode): boolean => {
-    return (node.children?.length ?? 0) > 0;
+    return (node.pages?.length ?? 0) > 0;
   };
 
   /**
    * Check if a section has any visible children
    */
   const hasVisibleChildren = (node: NavNode): boolean => {
-    if (!node.children) return false;
-    return node.children.some((childRef) => {
+    if (!node.pages) return false;
+    return node.pages.some((childRef) => {
       const child = resolveRef(childRef);
       return isVisible(child);
     });
@@ -448,10 +447,10 @@ export default function NestedSideBar({ data }: Props) {
    * Handle drilling down into an item with children
    */
   const handleDrillDown = (node: NavNode, nodeKey: string | null) => {
-    if (node.children && node.children.length > 0) {
+    if (node.pages && node.pages.length > 0) {
       setSlideDirection('forward');
       setAnimationKey((prev) => prev + 1);
-      const newStack = [...navigationStack, { key: nodeKey, entries: node.children, title: node.title, badge: node.badge }];
+      const newStack = [...navigationStack, { key: nodeKey, entries: node.pages, title: node.title, badge: node.badge }];
       setNavigationStack(newStack);
     }
   };
@@ -526,7 +525,7 @@ export default function NestedSideBar({ data }: Props) {
   const navigateToFavorite = (favorite: FavoriteItem) => {
     // If it has an href and no children, just navigate to the URL
     const node = nodes[favorite.nodeKey];
-    if (favorite.href && (!node?.children || node.children.length === 0)) {
+    if (favorite.href && (!node?.pages || node.pages.length === 0)) {
       window.location.href = favorite.href;
       return;
     }
@@ -535,10 +534,10 @@ export default function NestedSideBar({ data }: Props) {
     const stack = buildStackFromPath(favorite.path);
 
     // If the node has children, add it to the stack
-    if (node && node.children && node.children.length > 0) {
+    if (node && node.pages && node.pages.length > 0) {
       stack.push({
         key: favorite.nodeKey,
-        entries: node.children,
+        entries: node.pages,
         title: node.title,
         badge: node.badge,
       });
@@ -556,18 +555,18 @@ export default function NestedSideBar({ data }: Props) {
    */
   const navigateToSearchResult = (nodeKey: string, node: NavNode) => {
     // If it's a leaf node with href, navigate directly
-    if (node.href && (!node.children || node.children.length === 0)) {
+    if (node.href && (!node.pages || node.pages.length === 0)) {
       window.location.href = node.href;
       return;
     }
 
     // If it has children, drill down to it
-    if (node.children && node.children.length > 0) {
+    if (node.pages && node.pages.length > 0) {
       setSlideDirection('forward');
       setAnimationKey((prev) => prev + 1);
       setNavigationStack([
         { key: null, entries: roots, title: 'Documentation' },
-        { key: nodeKey, entries: node.children, title: node.title, badge: node.badge },
+        { key: nodeKey, entries: node.pages, title: node.title, badge: node.badge },
       ]);
     }
 
@@ -602,12 +601,12 @@ export default function NestedSideBar({ data }: Props) {
       // Track the key if this is a reference
       const nodeKey = typeof ref === 'string' ? ref : null;
 
-      if (isSection(node)) {
-        // Skip sections with no visible children
+      if (isGroup(node)) {
+        // Skip groups with no visible children
         if (!hasVisibleChildren(node)) return;
 
         flushItemGroup();
-        result.push(renderSection(node, nodeKey, index));
+        result.push(renderGroup(node, nodeKey, index));
       } else {
         currentItemGroup.push({ node, key: nodeKey });
       }
@@ -618,42 +617,42 @@ export default function NestedSideBar({ data }: Props) {
   };
 
   /**
-   * Render a section with its children
+   * Render a group with its children
    */
-  const renderSection = (section: NavNode, sectionKey: string | null, index: number) => {
-    // Get optional icon for section
-    const SectionIcon = section.icon ? (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[section.icon] : null;
+  const renderGroup = (group: NavNode, groupKey: string | null, index: number) => {
+    // Get optional icon for group
+    const GroupIcon = group.icon ? (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[group.icon] : null;
 
     // Get visible children
     const visibleChildren =
-      section.children?.filter((childRef) => {
+      group.pages?.filter((childRef) => {
         const child = resolveRef(childRef);
         return child && isVisible(child);
       }) ?? [];
 
-    const sectionId = sectionKey || `section-${index}`;
-    const isCollapsed = collapsedSections.has(sectionId);
+    const groupId = groupKey || `group-${index}`;
+    const isCollapsed = collapsedSections.has(groupId);
     const canCollapse = visibleChildren.length > 3;
 
     const headerContent = (
       <>
         <div className="flex items-center">
-          {SectionIcon && (
+          {GroupIcon && (
             <span className="mr-2 text-gray-900">
-              <SectionIcon className="w-3.5 h-3.5" />
+              <GroupIcon className="w-3.5 h-3.5" />
             </span>
           )}
-          <span className="text-sm text-black font-semibold">{section.title}</span>
+          <span className="text-sm text-black font-semibold">{group.title}</span>
         </div>
         {canCollapse && <ChevronDown className={cn('w-4 h-4 text-gray-400 transition-transform', isCollapsed && '-rotate-90')} />}
       </>
     );
 
     return (
-      <div key={`section-${sectionKey || index}`} className="mb-4 last:mb-2">
+      <div key={`group-${groupKey || index}`} className="mb-4 last:mb-2">
         {canCollapse ? (
           <button
-            onClick={() => toggleSectionCollapse(sectionId)}
+            onClick={() => toggleSectionCollapse(groupId)}
             className="flex items-center justify-between w-full px-2 py-1.5 pb-1.5 hover:bg-gray-100 rounded transition-colors cursor-pointer"
           >
             {headerContent}
@@ -669,13 +668,13 @@ export default function NestedSideBar({ data }: Props) {
 
               const childKey = typeof childRef === 'string' ? childRef : null;
 
-              if (isSection(child)) {
-                // Skip nested sections with no visible children
+              if (isGroup(child)) {
+                // Skip nested groups with no visible children
                 if (!hasVisibleChildren(child)) return null;
 
                 return (
-                  <div key={`nested-section-${childKey || childIndex}`} className="ml-3 mt-1.5 pl-3 border-l border-gray-200">
-                    {renderSection(child, childKey, childIndex)}
+                  <div key={`nested-group-${childKey || childIndex}`} className="ml-3 mt-1.5 pl-3 border-l border-gray-200">
+                    {renderGroup(child, childKey, childIndex)}
                   </div>
                 );
               }
@@ -758,7 +757,12 @@ export default function NestedSideBar({ data }: Props) {
     // Leaf item with href → render as link
     if (item.href && !itemHasChildren) {
       return (
-        <a key={`item-${itemKey || index}`} href={item.href} target={item.external ? '_blank' : undefined} className={cn(baseClasses, parentClasses, activeClasses)}>
+        <a
+          key={`item-${itemKey || index}`}
+          href={item.href}
+          target={item.external ? '_blank' : undefined}
+          className={cn(baseClasses, parentClasses, activeClasses)}
+        >
           {content}
         </a>
       );
@@ -983,7 +987,7 @@ export default function NestedSideBar({ data }: Props) {
                           >
                             <Star className="w-3.5 h-3.5 fill-current" />
                           </button>
-                          {node?.children && node.children.length > 0 && (
+                          {node?.pages && node.pages.length > 0 && (
                             <span className="flex items-center justify-center w-5 h-5 text-gray-400 group-hover:text-purple-500">
                               <ChevronRight className="w-4 h-4" />
                             </span>

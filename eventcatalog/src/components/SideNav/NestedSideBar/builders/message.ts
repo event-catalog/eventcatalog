@@ -5,10 +5,7 @@ import type { NavNode, ChildRef } from './shared';
 import { buildQuickReferenceSection, buildOwnersSection, shouldRenderSideBarSection, buildRepositorySection } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
-export const buildMessageNode = (
-  message: CollectionEntry<'events' | 'commands' | 'queries'>,
-  owners: any[]
-): NavNode => {
+export const buildMessageNode = (message: CollectionEntry<'events' | 'commands' | 'queries'>, owners: any[]): NavNode => {
   const producers = message.data.producers || [];
   const consumers = message.data.consumers || [];
   const collection = message.collection;
@@ -34,7 +31,7 @@ export const buildMessageNode = (
     type: 'item',
     title: message.data.name,
     badge,
-    children: [
+    pages: [
       buildQuickReferenceSection([
         {
           title: 'Overview',
@@ -42,10 +39,10 @@ export const buildMessageNode = (
         },
       ]),
       renderVisualiser && {
-        type: 'section',
+        type: 'group',
         title: 'Architecture & Design',
         icon: 'Workflow',
-        children: [
+        pages: [
           {
             type: 'item',
             title: 'Interaction Map',
@@ -54,10 +51,10 @@ export const buildMessageNode = (
         ],
       },
       hasSchema && {
-        type: 'section',
+        type: 'group',
         title: `API & Contracts`,
         icon: 'FileJson',
-        children: [
+        pages: [
           {
             type: 'item',
             title: `Schema (${getSchemaFormatFromURL(message.data.schemaPath!).toUpperCase()})`,
@@ -66,17 +63,17 @@ export const buildMessageNode = (
         ],
       },
       renderProducers && {
-        type: 'section',
+        type: 'group',
         title: 'Producers',
         icon: 'Server',
-        children: producers.map((producer) => `item:service:${(producer as any).data.id}:${(producer as any).data.version}`),
+        pages: producers.map((producer) => `service:${(producer as any).data.id}:${(producer as any).data.version}`),
         visible: producers.length > 0,
       },
       renderConsumers && {
-        type: 'section',
+        type: 'group',
         title: 'Consumers',
         icon: 'Server',
-        children: consumers.map((consumer) => `item:service:${(consumer as any).data.id}:${(consumer as any).data.version}`),
+        pages: consumers.map((consumer) => `service:${(consumer as any).data.id}:${(consumer as any).data.version}`),
         visible: consumers.length > 0,
       },
       renderOwners && buildOwnersSection(owners),
@@ -84,4 +81,3 @@ export const buildMessageNode = (
     ].filter(Boolean) as ChildRef[],
   };
 };
-

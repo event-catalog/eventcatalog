@@ -4,15 +4,14 @@ import type { NavNode, ChildRef } from './shared';
 import { buildQuickReferenceSection, buildOwnersSection, shouldRenderSideBarSection, buildRepositorySection } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
-export const buildContainerNode = (
-  container: CollectionEntry<'containers'>,
-  owners: any[]
-): NavNode => {
+export const buildContainerNode = (container: CollectionEntry<'containers'>, owners: any[]): NavNode => {
   const servicesWritingToContainer = container.data.servicesThatWriteToContainer || [];
   const servicesReadingFromContainer = container.data.servicesThatReadFromContainer || [];
 
-  const renderServicesWritingToContainer = servicesWritingToContainer.length > 0 && shouldRenderSideBarSection(container, 'services');
-  const renderServicesReadingFromContainer = servicesReadingFromContainer.length > 0 && shouldRenderSideBarSection(container, 'services');
+  const renderServicesWritingToContainer =
+    servicesWritingToContainer.length > 0 && shouldRenderSideBarSection(container, 'services');
+  const renderServicesReadingFromContainer =
+    servicesReadingFromContainer.length > 0 && shouldRenderSideBarSection(container, 'services');
 
   const renderVisualiser = isVisualiserEnabled();
 
@@ -24,7 +23,7 @@ export const buildContainerNode = (
     type: 'item',
     title: container.data.name,
     badge: 'Container',
-    children: [
+    pages: [
       buildQuickReferenceSection([
         {
           title: 'Overview',
@@ -32,10 +31,10 @@ export const buildContainerNode = (
         },
       ]),
       renderVisualiser && {
-        type: 'section',
+        type: 'group',
         title: 'Architecture & Design',
         icon: 'Workflow',
-        children: [
+        pages: [
           {
             type: 'item',
             title: 'Interaction Map',
@@ -44,19 +43,19 @@ export const buildContainerNode = (
         ],
       },
       renderServicesWritingToContainer && {
-        type: 'section',
+        type: 'group',
         title: 'Services (Writes)',
         icon: 'Server',
-        children: servicesWritingToContainer.map(
-          (service) => `item:service:${(service as any).data.id}:${(service as any).data.version}`
+        pages: servicesWritingToContainer.map(
+          (service) => `service:${(service as any).data.id}:${(service as any).data.version}`
         ),
       },
       renderServicesReadingFromContainer && {
-        type: 'section',
+        type: 'group',
         title: 'Services (Reads)',
         icon: 'Server',
-        children: servicesReadingFromContainer.map(
-          (service) => `item:service:${(service as any).data.id}:${(service as any).data.version}`
+        pages: servicesReadingFromContainer.map(
+          (service) => `service:${(service as any).data.id}:${(service as any).data.version}`
         ),
       },
       renderOwners && buildOwnersSection(owners),
@@ -64,4 +63,3 @@ export const buildContainerNode = (
     ].filter(Boolean) as ChildRef[],
   };
 };
-

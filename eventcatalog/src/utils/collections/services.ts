@@ -30,13 +30,14 @@ export const getServices = async ({ getAllVersions = true, returnBody = false }:
   }
 
   // 1. Fetch all collections in parallel
-  const [allServices, allEvents, allCommands, allQueries, allEntities, allContainers] = await Promise.all([
+  const [allServices, allEvents, allCommands, allQueries, allEntities, allContainers, allFlows] = await Promise.all([
     getCollection('services'),
     getCollection('events'),
     getCollection('commands'),
     getCollection('queries'),
     getCollection('entities'),
     getCollection('containers'),
+    getCollection('flows'),
   ]);
 
   const allMessages = [...allEvents, ...allCommands, ...allQueries];
@@ -46,6 +47,7 @@ export const getServices = async ({ getAllVersions = true, returnBody = false }:
   const messageMap = createVersionedMap(allMessages);
   const entityMap = createVersionedMap(allEntities);
   const containerMap = createVersionedMap(allContainers);
+  const flowMap = createVersionedMap(allFlows);
 
   // 3. Filter services
   const targetServices = allServices.filter((service) => {
@@ -84,6 +86,10 @@ export const getServices = async ({ getAllVersions = true, returnBody = false }:
         .map((c) => findInMap(containerMap, c.id, c.version))
         .filter((e): e is CollectionEntry<'containers'> => !!e);
 
+      const mappedFlows = (service.data.flows || [])
+        .map((f) => findInMap(flowMap, f.id, f.version))
+        .filter((f): f is CollectionEntry<'flows'> => !!f);
+
       const folderName = await getResourceFolderName(
         process.env.PROJECT_DIR ?? '',
         service.data.id,
@@ -97,6 +103,7 @@ export const getServices = async ({ getAllVersions = true, returnBody = false }:
           ...service.data,
           writesTo: mappedWritesTo as any,
           readsFrom: mappedReadsFrom as any,
+          flows: mappedFlows as any,
           receives: receives as any,
           sends: sends as any,
           versions,

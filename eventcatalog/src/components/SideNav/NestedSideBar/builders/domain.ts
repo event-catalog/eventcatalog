@@ -1,15 +1,16 @@
 import type { CollectionEntry } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
 import type { NavNode, ChildRef, ResourceGroupContext } from './shared';
-import { buildResourceGroupSections, buildQuickReferenceSection, buildOwnersSection, shouldRenderSideBarSection, buildRepositorySection } from './shared';
+import {
+  buildResourceGroupSections,
+  buildQuickReferenceSection,
+  buildOwnersSection,
+  shouldRenderSideBarSection,
+  buildRepositorySection,
+} from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
-export const buildDomainNode = (
-  domain: CollectionEntry<'domains'>,
-  owners: any[],
-  context: ResourceGroupContext
-): NavNode => {
-
+export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[], context: ResourceGroupContext): NavNode => {
   const servicesInDomain = domain.data.services || [];
   const renderServices = servicesInDomain.length > 0 && shouldRenderSideBarSection(domain, 'services');
 
@@ -35,26 +36,27 @@ export const buildDomainNode = (
     type: 'item',
     title: domain.data.name,
     badge: 'Domain',
-    children: [
+    pages: [
       buildQuickReferenceSection([
         { title: 'Overview', href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}`) },
         renderUbiquitousLanguage && { title: 'Ubiquitous Language', href: buildUrl(`/docs/domains/${domain.data.id}/language`) },
       ]),
       {
-        type: 'section',
+        type: 'group',
         title: 'Architecture & Design',
         icon: 'Workflow',
-        children: [
+        pages: [
           {
             type: 'item',
             title: 'Architecture Diagram',
             href: buildUrl(`/architecture/domains/${domain.data.id}/${domain.data.version}`),
           },
-          renderEntities && renderVisualiser && {
-            type: 'item',
-            title: 'Entity Map',
-            href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/entity-map`),
-          },
+          renderEntities &&
+            renderVisualiser && {
+              type: 'item',
+              title: 'Entity Map',
+              href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/entity-map`),
+            },
           renderVisualiser && {
             type: 'item',
             title: 'Interaction Map',
@@ -63,41 +65,36 @@ export const buildDomainNode = (
         ].filter(Boolean) as ChildRef[],
       },
       hasFlows && {
-        type: 'section',
+        type: 'group',
         title: 'Flows',
         icon: 'Waypoints',
-        children: domainFlows.map((flow) => `item:flow:${(flow as any).data.id}:${(flow as any).data.version}`),
+        pages: domainFlows.map((flow) => `flow:${(flow as any).data.id}:${(flow as any).data.version}`),
       },
       renderEntities && {
-        type: 'section',
+        type: 'group',
         title: 'Entities',
         icon: 'Box',
-        children: entitiesInDomain.map((entity) => ({
+        pages: entitiesInDomain.map((entity) => ({
           type: 'item',
           title: (entity as any).data?.name || (entity as any).data.id,
           href: buildUrl(`/docs/entities/${(entity as any).data.id}/${(entity as any).data.version}`),
         })),
       },
       renderSubDomains && {
-        type: 'section',
+        type: 'group',
         title: 'Subdomains',
         icon: 'Boxes',
-        children: subDomains.map((domain) => `item:domain:${(domain as any).data.id}:${(domain as any).data.version}`),
+        pages: subDomains.map((domain) => `domain:${(domain as any).data.id}:${(domain as any).data.version}`),
       },
-      ...(hasResourceGroups
-        ? buildResourceGroupSections(resourceGroups, context)
-        : []),
+      ...(hasResourceGroups ? buildResourceGroupSections(resourceGroups, context) : []),
       renderServices && {
-        type: 'section',
-        title: 'Domain Services',
+        type: 'group',
+        title: 'Services In Domain',
         icon: 'Server',
-        children: servicesInDomain.map(
-          (service) => `item:service:${(service as any).data.id}:${(service as any).data.version}`
-        ),
+        pages: servicesInDomain.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
       },
       renderOwners && buildOwnersSection(owners),
       renderRepository && buildRepositorySection(domain.data.repository as { url: string; language: string }),
     ].filter(Boolean) as ChildRef[],
   };
 };
-

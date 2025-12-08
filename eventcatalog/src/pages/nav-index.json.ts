@@ -12,9 +12,9 @@ export async function GET() {
 
   const index = [
     {
-      type: 'section',
+      type: 'group',
       title: 'Domains',
-      children: [
+      pages: [
         {
           type: 'item',
           title: 'Inventory Domain',

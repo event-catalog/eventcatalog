@@ -9,15 +9,13 @@ export const buildFlowNode = (flow: CollectionEntry<'flows'>): NavNode => {
     title: flow.data.name,
     icon: 'Waypoint',
     badge: 'Flow',
-    children: [
-      buildQuickReferenceSection([
-        { title: 'Overview', href: buildUrl(`/docs/flows/${flow.data.id}/${flow.data.version}`) },
-      ]),
+    pages: [
+      buildQuickReferenceSection([{ title: 'Overview', href: buildUrl(`/docs/flows/${flow.data.id}/${flow.data.version}`) }]),
       {
-        type: 'section',
+        type: 'group',
         title: 'Architecture & Design',
         icon: 'Workflow',
-        children: [
+        pages: [
           {
             type: 'item',
             title: 'Flow Diagram',
@@ -28,4 +26,3 @@ export const buildFlowNode = (flow: CollectionEntry<'flows'>): NavNode => {
     ],
   };
 };
-

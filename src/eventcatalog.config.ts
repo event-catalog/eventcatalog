@@ -44,11 +44,11 @@ type TableConfiguration = {
   };
 };
 
-type SideBarItemConfig = {
-  type: 'item' | 'section';
+type PagesConfiguration = {
+  type: 'item' | 'group';
   title: string;
   icon?: string;
-  children?: string[];
+  pages?: string[];
 };
 
 export interface Config {
@@ -82,9 +82,11 @@ export interface Config {
   mdxOptimize?: boolean;
   compress?: boolean;
   sidebar?: SideBarConfig[];
+  navigation?: {
+    pages: PagesConfiguration[];
+  };
   docs: {
     sidebar: {
-      navigation?: SideBarItemConfig[];
       type?: 'TREE_VIEW' | 'LIST_VIEW';
       showOrphanedMessages?: boolean;
     };

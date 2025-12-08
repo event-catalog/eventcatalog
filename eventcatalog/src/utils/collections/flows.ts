@@ -97,7 +97,6 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
 };
 
 export const getFlowsNotInAnyResource = async (): Promise<Flow[]> => {
-
   const [flows, domains, services] = await Promise.all([
     getFlows({ getAllVersions: false }),
     getDomains({ getAllVersions: false }),

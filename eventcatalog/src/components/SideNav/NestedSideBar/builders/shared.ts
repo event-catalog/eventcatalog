@@ -14,12 +14,12 @@ export type ChildRef = string | NavNode;
  * A navigation node (can be section or item)
  */
 export type NavNode = {
-  type: 'section' | 'item';
+  type: 'group' | 'item';
   title: string;
   icon?: string; // Lucide icon name
   href?: string; // URL (for leaf items)
   external?: boolean; // If true, the item will open in a new tab
-  children?: ChildRef[]; // Can mix keys and inline nodes
+  pages?: ChildRef[]; // Can mix keys and inline nodes
   visible?: boolean; // If false, hide this node (default: true)
   badge?: string; // Category badge shown in header (e.g., "Domain", "Service", "Message")
 };
@@ -55,10 +55,10 @@ export type ResourceGroupContext = {
 };
 
 export const buildQuickReferenceSection = (items: { title: string; href: string }[]): NavNode => ({
-  type: 'section',
+  type: 'group',
   title: 'Quick Reference',
   icon: 'BookOpen',
-  children: items.map((item) => ({
+  pages: items.map((item) => ({
     type: 'item',
     title: item.title,
     href: item.href,
@@ -68,10 +68,10 @@ export const buildQuickReferenceSection = (items: { title: string; href: string 
 export const buildOwnersSection = (owners: any[]): NavNode | null => {
   if (owners.length === 0) return null;
   return {
-    type: 'section',
+    type: 'group',
     title: 'Owners',
     icon: 'Users',
-    children: owners.map((owner) => ({
+    pages: owners.map((owner) => ({
       type: 'item',
       title: owner?.data.name ?? '',
       href: buildUrl(`/docs/${owner?.collection}/${owner?.data.id}`),
@@ -83,28 +83,24 @@ export const buildOwnersSection = (owners: any[]): NavNode | null => {
 export const buildRepositorySection = (repository: { url: string; language: string }): NavNode | null => {
   if (!repository) return null;
   return {
-    type: 'section',
+    type: 'group',
     title: 'Code',
     icon: 'Code',
-    children: [{
-      type: 'item',
-      title: repository.url,
-      href: repository.url,
-    }],
+    pages: [
+      {
+        type: 'item',
+        title: repository.url,
+        href: repository.url,
+      },
+    ],
   };
 };
 
-export const buildResourceGroupSections = (
-  resourceGroups: ResourceGroup[],
-  context: ResourceGroupContext
-) => {
+export const buildResourceGroupSections = (resourceGroups: ResourceGroup[], context: ResourceGroupContext) => {
   return resourceGroups.map((resourceGroup) => buildResourceGroupSection(resourceGroup, context));
 };
 
-const buildResourceGroupSection = (
-  resourceGroup: ResourceGroup,
-  context: ResourceGroupContext
-) => {
+const buildResourceGroupSection = (resourceGroup: ResourceGroup, context: ResourceGroupContext) => {
   // Only render resource groups that have a type
   const resourcesWithTypes = resourceGroup.items.filter((item) => item.type !== undefined);
 
@@ -131,18 +127,17 @@ const buildResourceGroupSection = (
   });
 
   return {
-    type: 'section',
+    type: 'group',
     title: resourceGroup.title,
     icon: 'Box',
-    children: resourcesWithVersions.map((item) => {
+    pages: resourcesWithVersions.map((item) => {
       const type = ['event', 'command', 'query'].includes(item.type as string) ? 'message' : item.type;
-      return `item:${type}:${item.id}:${item.version}`;
+      return `${type}:${item.id}:${item.version}`;
     }),
   };
 };
 
-
-export const shouldRenderSideBarSection = (resource: any,section: string) => {
+export const shouldRenderSideBarSection = (resource: any, section: string) => {
   if (!resource.data.detailsPanel) {
     return true;
   }

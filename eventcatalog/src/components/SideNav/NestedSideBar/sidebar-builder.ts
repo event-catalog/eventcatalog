@@ -1,7 +1,7 @@
 import { getContainers } from '@utils/collections/containers';
 import { getDomains } from '@utils/collections/domains';
 import { getServices } from '@utils/collections/services';
-import { getMessages } from '@utils/collections/messages';
+import { getMessages, pluralizeMessageType } from '@utils/collections/messages';
 import { getOwner } from '@utils/collections/owners';
 import { getFlows } from '@utils/collections/flows';
 import { getUsers } from '@utils/collections/users';
@@ -14,6 +14,7 @@ import { buildMessageNode } from './builders/message';
 import { buildContainerNode } from './builders/container';
 import { buildFlowNode } from './builders/flow';
 import config from '@config';
+import { getDesigns } from '@utils/collections/designs';
 
 export type { NavigationData, NavNode, ChildRef };
 
@@ -24,34 +25,24 @@ let memoryCache: NavigationData | null = null;
  * Get the navigation data for the sidebar
  */
 export const getNestedSideBarData = async (): Promise<NavigationData> => {
-
   if (memoryCache && CACHE_ENABLED) {
     return memoryCache;
   }
 
-  const [domains, services, { events, commands, queries }, containers, flows, users, teams] =
-    await Promise.all([
-      getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
-      getServices({ getAllVersions: false }),
-      getMessages({ getAllVersions: false }),
-      getContainers({ getAllVersions: false }),
-      getFlows({ getAllVersions: false }),
-      getUsers(),
-      getTeams(),
-    ]);
+  const [domains, services, { events, commands, queries }, containers, flows, users, teams, designs] = await Promise.all([
+    getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
+    getServices({ getAllVersions: false }),
+    getMessages({ getAllVersions: false }),
+    getContainers({ getAllVersions: false }),
+    getFlows({ getAllVersions: false }),
+    getUsers(),
+    getTeams(),
+    getDesigns(),
+  ]);
 
   // Calculate derived lists to avoid extra fetches
   const allSubDomainIds = new Set(domains.flatMap((d) => (d.data.domains || []).map((sd: any) => sd.data.id)));
   const rootDomains = domains.filter((d) => !allSubDomainIds.has(d.data.id));
-
-  const allServiceIdsInDomains = new Set(domains.flatMap((d) => (d.data.services || []).map((s: any) => s.data.id)));
-  const servicesNotInAnyDomain = services.filter((s) => !allServiceIdsInDomains.has(s.data.id));
-
-  const flowsInDomains = new Set(domains.flatMap((d) => (d.data.flows || []).map((f: any) => f.id)));
-  const flowsInServices = new Set(services.flatMap((s) => (s.data.flows || []).map((f: any) => f.id)));
-  const flowsNotInAnyResource = flows.filter(
-    (f) => !flowsInDomains.has(f.data.id) && !flowsInServices.has(f.data.id)
-  );
 
   const messages = [...events, ...commands, ...queries];
 
@@ -110,7 +101,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const flowNodes = flows.reduce(
     (acc, flow) => {
-      acc[`item:flow:${flow.data.id}:${flow.data.version}`] = buildFlowNode(flow);
+      acc[`flow:${flow.data.id}:${flow.data.version}`] = buildFlowNode(flow);
       return acc;
     },
     {} as Record<string, NavNode>
@@ -118,7 +109,10 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const domainNodes = domainsWithOwners.reduce(
     (acc, { domain, owners }) => {
-      acc[`item:domain:${domain.data.id}:${domain.data.version}`] = buildDomainNode(domain, owners, context);
+      acc[`domain:${domain.data.id}:${domain.data.version}`] = buildDomainNode(domain, owners, context);
+      if (domain.data.latestVersion === domain.data.version) {
+        acc[`domain:${domain.data.id}`] = buildDomainNode(domain, owners, context);
+      }
       return acc;
     },
     {} as Record<string, NavNode>
@@ -126,7 +120,10 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const serviceNodes = servicesWithOwners.reduce(
     (acc, { service, owners }) => {
-      acc[`item:service:${service.data.id}:${service.data.version}`] = buildServiceNode(service, owners, context);
+      acc[`service:${service.data.id}:${service.data.version}`] = buildServiceNode(service, owners, context);
+      if (service.data.latestVersion === service.data.version) {
+        acc[`service:${service.data.id}`] = buildServiceNode(service, owners, context);
+      }
       return acc;
     },
     {} as Record<string, NavNode>
@@ -134,7 +131,12 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const messageNodes = messagesWithOwners.reduce(
     (acc, { message, owners }) => {
-      acc[`item:message:${message.data.id}:${message.data.version}`] = buildMessageNode(message, owners);
+      const type = pluralizeMessageType(message as any);
+
+      acc[`${type}:${message.data.id}:${message.data.version}`] = buildMessageNode(message, owners);
+      if (message.data.latestVersion === message.data.version) {
+        acc[`${type}:${message.data.id}`] = buildMessageNode(message, owners);
+      }
       return acc;
     },
     {} as Record<string, NavNode>
@@ -142,7 +144,22 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const containerNodes = containerWithOwners.reduce(
     (acc, { container, owners }) => {
-      acc[`item:container:${container.data.id}:${container.data.version}`] = buildContainerNode(container, owners);
+      acc[`container:${container.data.id}:${container.data.version}`] = buildContainerNode(container, owners);
+      if (container.data.latestVersion === container.data.version) {
+        acc[`container:${container.data.id}`] = buildContainerNode(container, owners);
+      }
+      return acc;
+    },
+    {} as Record<string, NavNode>
+  );
+
+  const designNodes = designs.reduce(
+    (acc, design) => {
+      acc[`design:${design.data.id}`] = {
+        type: 'item',
+        title: design.data.name,
+        href: buildUrl(`/visualiser/designs/${design.data.id}`),
+      };
       return acc;
     },
     {} as Record<string, NavNode>
@@ -150,7 +167,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const userNodes = users.reduce(
     (acc, user) => {
-      acc[`item:user:${user.data.id}`] = {
+      acc[`user:${user.data.id}`] = {
         type: 'item',
         title: user.data.name,
         href: buildUrl(`/docs/users/${user.data.id}`),
@@ -160,9 +177,12 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode>
   );
 
+  console.log('DESIGN NODES', designNodes);
+  console.log('USER NODES', userNodes);
+
   const teamNodes = teams.reduce(
     (acc, team) => {
-      acc[`item:team:${team.data.id}`] = {
+      acc[`team:${team.data.id}`] = {
         type: 'item',
         title: team.data.name,
         href: buildUrl(`/docs/teams/${team.data.id}`),
@@ -173,119 +193,96 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   );
 
   const rootDomainsNodes: Record<string, NavNode> = {
-    'section:root-domains': {
-      type: 'section',
+    'list:top-level-domains': {
+      type: 'group',
       title: 'Domains',
       icon: 'Boxes',
-      children: rootDomains.map((domain) => `item:domain:${domain.data.id}:${domain.data.version}`),
-    },
-    'section:root-services': {
-      type: 'section',
-      title: 'Services',
-      icon: 'Server',
-      children: servicesNotInAnyDomain.map((service) => `item:service:${service.data.id}:${service.data.version}`),
+      pages: rootDomains.map((domain) => `domain:${domain.data.id}:${domain.data.version}`),
     },
   };
 
-  const rootFlowsNodes: Record<string, NavNode> = {
-    'section:root-flows': {
-      type: 'section',
-      title: 'Flows',
-      icon: 'Waypoints',
-      children: flowsNotInAnyResource.map((flow) => `item:flow:${flow.data.id}:${flow.data.version}`),
-    },
-  };
-
-  const browseNodes: Record<string, NavNode> = {
-    'section:browse': {
-      type: 'section',
+  const allNodes: Record<string, NavNode> = {
+    'list:all': {
+      type: 'group',
       title: 'Browse',
       icon: 'Telescope',
-      children: [
-        'item:browse:domains',
-        'item:browse:services',
-        'item:browse:messages',
-        'item:browse:flows',
-        'item:browse:containers',
-        'item:browse:people',
-      ],
+      pages: ['list:domains', 'list:services', 'list:messages', 'list:flows', 'list:containers', 'list:designs', 'list:people'],
     },
-    'item:browse:domains': {
+    'list:domains': {
       type: 'item',
       title: 'Domains',
       icon: 'Boxes',
-      children: domains.map((domain) => `item:domain:${domain.data.id}:${domain.data.version}`),
+      pages: domains.map((domain) => `domain:${domain.data.id}:${domain.data.version}`),
     },
-    'item:browse:services': {
+    'list:services': {
       type: 'item',
       title: 'Services',
       icon: 'Server',
-      children: services.map((service) => `item:service:${service.data.id}:${service.data.version}`),
+      pages: services.map((service) => `service:${service.data.id}:${service.data.version}`),
     },
-    'item:browse:messages': {
+    'list:messages': {
       type: 'item',
       title: 'Messages',
       icon: 'Mail',
-      children: ['section:browse:events', 'section:browse:commands', 'section:browse:queries'],
+      pages: ['list:events', 'list:commands', 'list:queries'],
     },
-    'section:browse:events': {
-      type: 'section',
+    'list:events': {
+      type: 'group',
       title: 'Events',
       icon: 'Zap',
-      children: events.map((event) => `item:message:${event.data.id}:${event.data.version}`),
+      pages: events.map((event) => `event:${event.data.id}:${event.data.version}`),
     },
-    'section:browse:commands': {
-      type: 'section',
+    'list:commands': {
+      type: 'group',
       title: 'Commands',
       icon: 'Terminal',
-      children: commands.map((command) => `item:message:${command.data.id}:${command.data.version}`),
+      pages: commands.map((command) => `command:${command.data.id}:${command.data.version}`),
     },
-    'section:browse:queries': {
-      type: 'section',
+    'list:queries': {
+      type: 'group',
       title: 'Queries',
       icon: 'Search',
-      children: queries.map((query) => `item:message:${query.data.id}:${query.data.version}`),
+      pages: queries.map((query) => `query:${query.data.id}:${query.data.version}`),
     },
-    'item:browse:flows': {
+    'list:flows': {
       type: 'item',
       title: 'Flows',
       icon: 'Waypoints',
-      children: flows.map((flow) => `item:flow:${flow.data.id}:${flow.data.version}`),
+      pages: flows.map((flow) => `flow:${flow.data.id}:${flow.data.version}`),
     },
-    'item:browse:containers': {
+    'list:containers': {
       type: 'item',
       title: 'Data Stores',
       icon: 'Database',
-      children: containers.map((container) => `item:container:${container.data.id}:${container.data.version}`),
+      pages: containers.map((container) => `container:${container.data.id}:${container.data.version}`),
     },
-    'item:browse:people': {
+    'list:designs': {
+      type: 'item',
+      title: 'Designs',
+      icon: 'SquareMousePointer',
+      pages: designs.map((design) => `design:${design.data.id}`),
+    },
+    'list:people': {
       type: 'item',
       title: 'Teams & Users',
       icon: 'Users',
-      children: ['section:browse:teams', 'section:browse:users'],
+      pages: ['list:teams', 'list:users'],
     },
-    'section:browse:teams': {
-      type: 'section',
+    'list:teams': {
+      type: 'group',
       title: 'Teams',
       icon: 'Users',
-      children: teams.map((team) => `item:team:${team.data.id}`),
+      pages: teams.map((team) => `team:${team.data.id}`),
     },
-    'section:browse:users': {
-      type: 'section',
+    'list:users': {
+      type: 'group',
       title: 'Users',
       icon: 'User',
-      children: users.map((user) => `item:user:${user.data.id}`),
+      pages: users.map((user) => `user:${user.data.id}`),
     },
   };
 
-  const defaultRootNavigationConfig = [
-    'section:root-domains',
-    'section:root-services',
-    'section:root-flows',
-    'section:browse',
-  ]
-
-  const rootNavigationConfig = config?.docs?.sidebar?.navigation || defaultRootNavigationConfig;
+  const rootNavigationConfig = config?.navigation?.pages || ['list:top-level-domains', 'list:all'];
 
   const navigationConfig = {
     roots: rootNavigationConfig,
@@ -295,11 +292,11 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       ...serviceNodes,
       ...messageNodes,
       ...containerNodes,
-      ...rootFlowsNodes,
       ...flowNodes,
       ...userNodes,
       ...teamNodes,
-      ...browseNodes,
+      ...designNodes,
+      ...allNodes,
     },
   };
 

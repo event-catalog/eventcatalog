@@ -17,6 +17,15 @@ type Messages = {
   queries: CollectionEntry<'queries'>[];
 };
 
+export const pluralizeMessageType = (message: CollectionEntry<'events' | 'commands' | 'queries'>) => {
+  const typeMap: Record<string, string> = {
+    events: 'event',
+    commands: 'command',
+    queries: 'query',
+  };
+  return typeMap[message.collection] || 'message';
+};
+
 // Main function that uses the imported functions
 export const getMessages = async ({ getAllVersions = true, hydrateServices = true }: Props = {}): Promise<Messages> => {
   const [commands, events, queries] = await Promise.all([

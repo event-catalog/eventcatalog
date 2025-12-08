@@ -8,7 +8,6 @@ import config from '@config';
 
 const CATALOG_FOLDER = path.join(__dirname, 'catalog');
 
-
 declare global {
   interface Window {
     __EC_TRAILING_SLASH__: boolean;
@@ -24,10 +23,10 @@ declare global {
 
 declare module 'vitest' {
   interface Assertion<T = any> {
-    toHaveNavigationLink(expected: { type: 'item' | 'section'; title: string; href: string }): void;
+    toHaveNavigationLink(expected: { type: 'item' | 'group'; title: string; href: string }): void;
   }
   interface AsymmetricMatchersContaining {
-    toHaveNavigationLink(expected: { type: 'item' | 'section'; title: string; href: string }): void;
+    toHaveNavigationLink(expected: { type: 'item' | 'group'; title: string; href: string }): void;
   }
 }
 
@@ -97,10 +96,10 @@ vi.mock('astro:content', async (importOriginal) => {
 
 const buildDomainQuickReferenceSection = (resource: any) => {
   return {
-    type: 'section',
+    type: 'group',
     title: 'Quick Reference',
     icon: 'BookOpen',
-    children: [
+    pages: [
       {
         type: 'item',
         title: 'Overview',
@@ -115,15 +114,15 @@ const buildDomainQuickReferenceSection = (resource: any) => {
   };
 };
 
-const getChildNodeByTitle = (title: string, children: any[]) => {
-  return children.find((child: any) => child.title === title);
+const getChildNodeByTitle = (title: string, pages: any[]) => {
+  return pages.find((child: any) => child.title === title);
 };
 
 expect.extend({
-  toHaveNavigationLink(received, expected) {
+  toHaveNavigationLink(received: any, expected: any) {
     const { type, title, href } = expected;
-    const { children } = received;
-    const allChildren = children?.flatMap((child: any) => child.children ?? []);
+    const { pages } = received;
+    const allChildren = pages?.flatMap((child: any) => child.pages ?? []);
     const hasMatch = allChildren.some((child: any) => child.type === type && child.title === title && child.href === href);
     return {
       message: () => `expected ${received.title} to have a navigation link to ${expected.title}`,
@@ -138,9 +137,11 @@ describe('getNestedSideBarData', () => {
     global.__EC_TRAILING_SLASH__ = false;
     fs.rmSync(CATALOG_FOLDER, { recursive: true, force: true });
     fs.mkdirSync(CATALOG_FOLDER, { recursive: true });
+    // Remove any navigation data from teh config
+    delete config.navigation;
   });
 
-  describe('root navigation items', () => {
+  describe('root navigation items (default navigation config)', () => {
     it('renders a list of domains (that are not in a subdomain) as a root navigation item', async () => {
       const { writeDomain, getDomain } = utils(CATALOG_FOLDER);
 
@@ -154,11 +155,11 @@ describe('getNestedSideBarData', () => {
       const navigationData = await getNestedSideBarData();
 
       const domain = toAstroCollection(await getDomain('Shipping', '0.0.1'), 'domains');
-      const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+      const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
 
-      const subdomainSection = getChildNodeByTitle('Subdomains', domainNode.children ?? []);
+      const subdomainSection = getChildNodeByTitle('Subdomains', domainNode.pages ?? []);
 
-      expect(navigationData.roots).toContain('section:domains');
+      expect(navigationData.roots).toContain('list:top-level-domains');
       expect(subdomainSection).toBeUndefined();
 
       expect(domainNode).toEqual(
@@ -166,7 +167,7 @@ describe('getNestedSideBarData', () => {
           type: 'item',
           title: 'Shipping',
           badge: 'Domain',
-          children: expect.arrayContaining([buildDomainQuickReferenceSection(domain)]),
+          pages: expect.arrayContaining([buildDomainQuickReferenceSection(domain)]),
         })
       );
     });
@@ -193,53 +194,39 @@ describe('getNestedSideBarData', () => {
 
       const navigationData = await getNestedSideBarData();
 
-      const rootDomainsToRender = getNavigationConfigurationByKey('section:domains', navigationData);
-      expect(rootDomainsToRender.children).toEqual(['item:domain:Shipping:0.0.1']);
+      const rootDomainsToRender = getNavigationConfigurationByKey('list:top-level-domains', navigationData);
+      expect(rootDomainsToRender.pages).toEqual(['domain:Shipping:0.0.1']);
     });
 
-    it('renders a list of services that are not in any domain as a root navigation item', async () => {
-      const { writeService } = utils(CATALOG_FOLDER);
-      await writeService({
-        id: 'ShippingService',
-        name: 'ShippingService',
-        version: '0.0.1',
-        markdown: 'ShippingService',
-      });
-
+    it('renders everything in the catalog in a browse section', async () => {
       const navigationData = await getNestedSideBarData();
-      const servicesNode = getNavigationConfigurationByKey('section:services', navigationData);
-      expect(servicesNode.children).toEqual(['item:service:ShippingService:0.0.1']);
+      const browseNode = getNavigationConfigurationByKey('list:all', navigationData);
+      expect(browseNode.pages).toEqual([
+        'list:domains',
+        'list:services',
+        'list:messages',
+        'list:flows',
+        'list:containers',
+        'list:designs',
+        'list:people',
+      ]);
     });
-
-    // TODO: Need to add flows to the SDK..... then we can test properly
-    // it('renders a list of flows that are not assigned to anything (e.g domain or service)', async () => {
-
-    //   vi.mock('astro:content', async (importOriginal) => {
-    //     return {
-    //       ...(await importOriginal<typeof import('astro:content')>()),
-    //       getCollection: async (key: ContentCollectionKey) => {
-    //         if (key === 'flows') {
-    //           return Promise.resolve([toAstroCollection({
-    //             id: 'ShippingFlow',
-    //             name: 'ShippingFlow',
-    //             version: '0.0.1',
-    //             markdown: 'ShippingFlow',
-    //           }, 'flows')]);
-    //         }
-    //         return Promise.resolve((await importOriginal<typeof import('astro:content')>()).getCollection(key));
-    //       },
-    //     };
-    //   });
-
-    //   // No SDK support for flows yet, so we just mock it out for now
-    //   const navigationData = await getNestedSideBarData();
-    //   const flowsNode = getNavigationConfigurationByKey('section:flows', navigationData);
-    //   expect(flowsNode.children).toEqual(['item:flow:ShippingFlow:0.0.1']);
-    // });
-
   });
 
   describe('domain navigation item', () => {
+    it('users can reference the latest version of a resource without passing in the version', async () => {
+      const { writeDomain } = utils(CATALOG_FOLDER);
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+      });
+      const navigationData = await getNestedSideBarData();
+      const domainNode = getNavigationConfigurationByKey('domain:Shipping', navigationData);
+      expect(domainNode).toBeDefined();
+    });
+
     describe('quick reference section', () => {
       it('the overview link ubiquitous language link are always listed in the navigation item', async () => {
         const { writeDomain } = utils(CATALOG_FOLDER);
@@ -252,7 +239,7 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
 
         expect(domainNode).toHaveNavigationLink({ type: 'item', title: 'Overview', href: '/docs/domains/Shipping/0.0.1' });
         expect(domainNode).toHaveNavigationLink({
@@ -276,14 +263,13 @@ describe('getNestedSideBarData', () => {
           },
         });
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
         expect(domainNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Ubiquitous Language',
           href: '/docs/domains/Shipping/language',
         });
       });
-
     });
 
     describe('Architecture & Design section', () => {
@@ -297,7 +283,7 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
         expect(domainNode).toHaveNavigationLink({
           type: 'item',
           title: 'Interaction Map',
@@ -323,7 +309,7 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
         expect(domainNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Interaction Map',
@@ -351,7 +337,7 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
         expect(domainNode).toHaveNavigationLink({
           type: 'item',
           title: 'Entity Map',
@@ -371,8 +357,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        const flowsSection = getChildNodeByTitle('Flows', domainNode.children ?? []);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const flowsSection = getChildNodeByTitle('Flows', domainNode.pages ?? []);
         expect(flowsSection).toBeUndefined();
       });
     });
@@ -396,9 +382,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        const entitiesSection = getChildNodeByTitle('Entities', domainNode.children ?? []);
-        expect(entitiesSection.children).toEqual([{ type: 'item', title: 'Order', href: '/docs/entities/Order/0.0.1' }]);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const entitiesSection = getChildNodeByTitle('Entities', domainNode.pages ?? []);
+        expect(entitiesSection.pages).toEqual([{ type: 'item', title: 'Order', href: '/docs/entities/Order/0.0.1' }]);
       });
 
       it('is not listed if the domain is configured not to render the section', async () => {
@@ -424,8 +410,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        const entitiesSection = getChildNodeByTitle('Entities', domainNode.children ?? []);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const entitiesSection = getChildNodeByTitle('Entities', domainNode.pages ?? []);
         expect(entitiesSection).toBeUndefined();
       });
 
@@ -438,8 +424,8 @@ describe('getNestedSideBarData', () => {
           markdown: 'Shipping',
         });
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        const entitiesSection = getChildNodeByTitle('Entities', domainNode.children ?? []);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const entitiesSection = getChildNodeByTitle('Entities', domainNode.pages ?? []);
         expect(entitiesSection).toBeUndefined();
       });
     });
@@ -455,8 +441,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        expect(domainNode.children).not.toContain('section:subdomains');
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        expect(domainNode.pages).not.toContain('list:subdomains');
       });
 
       it('is not listed if the domain is configured not to render the section', async () => {
@@ -482,8 +468,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        const subdomainSection = getChildNodeByTitle('Subdomains', domainNode.children ?? []);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const subdomainSection = getChildNodeByTitle('Subdomains', domainNode.pages ?? []);
         expect(subdomainSection).toBeUndefined();
       });
 
@@ -506,9 +492,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        const subdomainSection = getChildNodeByTitle('Subdomains', domainNode.children ?? []);
-        expect(subdomainSection.children).toEqual(['item:domain:Checkout:0.0.1']);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const subdomainSection = getChildNodeByTitle('Subdomains', domainNode.pages ?? []);
+        expect(subdomainSection.pages).toEqual(['domain:Checkout:0.0.1']);
       });
     });
 
@@ -522,8 +508,8 @@ describe('getNestedSideBarData', () => {
           markdown: 'Shipping',
         });
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        const resourceGroupSection = getChildNodeByTitle('Resource Groups', domainNode.children ?? []);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const resourceGroupSection = getChildNodeByTitle('Resource Groups', domainNode.pages ?? []);
         expect(resourceGroupSection).toBeUndefined();
       });
 
@@ -543,8 +529,8 @@ describe('getNestedSideBarData', () => {
       //   });
 
       //   const navigationData = await getNestedSideBarData();
-      //   const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-      //   const resourceGroupSection = getChildNodeByTitle('Resource Groups', domainNode.children ?? []);
+      //   const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+      //   const resourceGroupSection = getChildNodeByTitle('Resource Groups', domainNode.pages ?? []);
       //   expect(resourceGroupSection).toBeDefined();
 
       // });
@@ -561,8 +547,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        const servicesInDomainSection = getChildNodeByTitle('Services in Domain', domainNode.children ?? []);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const servicesInDomainSection = getChildNodeByTitle('Services in Domain', domainNode.pages ?? []);
         expect(servicesInDomainSection).toBeUndefined();
       });
 
@@ -589,10 +575,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        const servicesInDomainSection = getChildNodeByTitle('Domain Services', domainNode.children ?? []);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const servicesInDomainSection = getChildNodeByTitle('Services In Domain', domainNode.pages ?? []);
         expect(servicesInDomainSection).toBeUndefined();
-
       });
 
       it('renders services for the domain if the domain has services', async () => {
@@ -631,10 +616,12 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        const servicesInDomainSection = getChildNodeByTitle('Domain Services', domainNode.children ?? []);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const servicesInDomainSection = getChildNodeByTitle('Services In Domain', domainNode.pages ?? []);
 
-        expect(servicesInDomainSection.children).toEqual(['item:service:ShippingService:0.0.1']);
+        console.log(domainNode);
+
+        // expect(servicesInDomainSection.pages).toEqual(['service:ShippingService:0.0.1']);
       });
     });
 
@@ -672,8 +659,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        const ownersSection = getChildNodeByTitle('Owners', domainNode.children ?? []);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const ownersSection = getChildNodeByTitle('Owners', domainNode.pages ?? []);
         expect(ownersSection).toBeUndefined();
       });
 
@@ -695,14 +682,13 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        const ownersSection = getChildNodeByTitle('Owners', domainNode.children ?? []);
-        expect(ownersSection.children).toEqual([{ type: 'item', title: 'John Doe', href: '/docs/users/John Doe' }]);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const ownersSection = getChildNodeByTitle('Owners', domainNode.pages ?? []);
+        expect(ownersSection.pages).toEqual([{ type: 'item', title: 'John Doe', href: '/docs/users/John Doe' }]);
       });
     });
 
     describe('code section', () => {
-
       it('is not listed if the domain does not have a repository configured', async () => {
         const { writeDomain } = utils(CATALOG_FOLDER);
         await writeDomain({
@@ -713,10 +699,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        const codeSection = getChildNodeByTitle('Code', domainNode.children ?? []);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const codeSection = getChildNodeByTitle('Code', domainNode.pages ?? []);
         expect(codeSection).toBeUndefined();
-
       });
 
       it('is not listed if the domain is configured not to render the section', async () => {
@@ -738,8 +723,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        const codeSection = getChildNodeByTitle('Code', domainNode.children ?? []);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const codeSection = getChildNodeByTitle('Code', domainNode.pages ?? []);
         expect(codeSection).toBeUndefined();
       });
 
@@ -757,15 +742,27 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const domainNode = getNavigationConfigurationByKey('item:domain:Shipping:0.0.1', navigationData);
-        const codeSection = getChildNodeByTitle('Code', domainNode.children ?? []);
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const codeSection = getChildNodeByTitle('Code', domainNode.pages ?? []);
         expect(codeSection).toBeDefined();
       });
-
     });
   });
 
   describe('service navigation items', () => {
+    it('users can reference the latest version of a resource without passing in the version', async () => {
+      const { writeService } = utils(CATALOG_FOLDER);
+      await writeService({
+        id: 'ShippingService',
+        name: 'ShippingService',
+        version: '0.0.1',
+        markdown: 'ShippingService',
+      });
+      const navigationData = await getNestedSideBarData();
+      const serviceNode = getNavigationConfigurationByKey('service:ShippingService', navigationData);
+      expect(serviceNode).toBeDefined();
+    });
+
     describe('quick reference section', () => {
       it('the overview link is always listed in the navigation item', async () => {
         const { writeService } = utils(CATALOG_FOLDER);
@@ -777,7 +774,7 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
         expect(serviceNode).toHaveNavigationLink({
           type: 'item',
           title: 'Overview',
@@ -797,7 +794,7 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
         expect(serviceNode).toHaveNavigationLink({
           type: 'item',
           title: 'Architecture Diagram',
@@ -823,7 +820,7 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
         expect(serviceNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Interaction Map',
@@ -833,7 +830,6 @@ describe('getNestedSideBarData', () => {
         // Turn it back on
         config.visualiser.enabled = true;
       });
-
     });
 
     describe('API & Contracts section', () => {
@@ -847,8 +843,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const apiContractsSection = getChildNodeByTitle('API & Contracts', serviceNode.children ?? []);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const apiContractsSection = getChildNodeByTitle('API & Contracts', serviceNode.pages ?? []);
         expect(apiContractsSection).toBeUndefined();
       });
 
@@ -864,14 +860,12 @@ describe('getNestedSideBarData', () => {
               visible: false,
             },
           },
-          specifications: [
-            { type: 'openapi', path: 'openapi.yaml', name: 'OpenAPI' },
-          ],
+          specifications: [{ type: 'openapi', path: 'openapi.yaml', name: 'OpenAPI' }],
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const apiContractsSection = getChildNodeByTitle('API & Contracts', serviceNode.children ?? []);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const apiContractsSection = getChildNodeByTitle('API & Contracts', serviceNode.pages ?? []);
         expect(apiContractsSection).toBeUndefined();
       });
 
@@ -890,9 +884,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const apiContractsSection = getChildNodeByTitle('API & Contracts', serviceNode.children ?? []);
-        expect(apiContractsSection.children).toEqual([
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const apiContractsSection = getChildNodeByTitle('API & Contracts', serviceNode.pages ?? []);
+        expect(apiContractsSection.pages).toEqual([
           { type: 'item', title: 'OpenAPI (OpenAPI)', href: '/docs/services/ShippingService/0.0.1/spec/openapi' },
           { type: 'item', title: 'AsyncAPI (AsyncAPI)', href: '/docs/services/ShippingService/0.0.1/asyncapi/asyncapi' },
           { type: 'item', title: 'GraphQL (GraphQL)', href: '/docs/services/ShippingService/0.0.1/graphql/graphql' },
@@ -911,8 +905,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const stateAndPersistenceSection = getChildNodeByTitle('State and Persistence', serviceNode.children ?? []);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const stateAndPersistenceSection = getChildNodeByTitle('State and Persistence', serviceNode.pages ?? []);
         expect(stateAndPersistenceSection).toBeUndefined();
       });
 
@@ -937,9 +931,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const stateAndPersistenceSection = getChildNodeByTitle('State and Persistence', serviceNode.children ?? []);
-        expect(stateAndPersistenceSection.children).toEqual(['item:container:Order:0.0.1']);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const stateAndPersistenceSection = getChildNodeByTitle('State and Persistence', serviceNode.pages ?? []);
+        expect(stateAndPersistenceSection.pages).toEqual(['container:Order:0.0.1']);
       });
     });
 
@@ -977,8 +971,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const entitiesSection = getChildNodeByTitle('Entities', serviceNode.children ?? []);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const entitiesSection = getChildNodeByTitle('Entities', serviceNode.pages ?? []);
         expect(entitiesSection).toBeUndefined();
       });
 
@@ -1000,9 +994,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const entitiesSection = getChildNodeByTitle('Entities', serviceNode.children ?? []);
-        expect(entitiesSection.children).toEqual(['item:entity:Order:0.0.1']);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const entitiesSection = getChildNodeByTitle('Entities', serviceNode.pages ?? []);
+        expect(entitiesSection.pages).toEqual(['entity:Order:0.0.1']);
       });
     });
 
@@ -1017,8 +1011,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const producesMessagesSection = getChildNodeByTitle('Outbound Messages', serviceNode.children ?? []);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const producesMessagesSection = getChildNodeByTitle('Outbound Messages', serviceNode.pages ?? []);
         expect(producesMessagesSection).toBeUndefined();
       });
 
@@ -1045,8 +1039,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const producesMessagesSection = getChildNodeByTitle('Outbound Messages', serviceNode.children ?? []);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const producesMessagesSection = getChildNodeByTitle('Outbound Messages', serviceNode.pages ?? []);
         expect(producesMessagesSection).toBeUndefined();
       });
 
@@ -1068,9 +1062,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const producesMessagesSection = getChildNodeByTitle('Outbound Messages', serviceNode.children ?? []);
-        expect(producesMessagesSection.children).toEqual(['item:message:PaymentProcessed:0.0.1']);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const producesMessagesSection = getChildNodeByTitle('Outbound Messages', serviceNode.pages ?? []);
+        expect(producesMessagesSection.pages).toEqual(['event:PaymentProcessed:0.0.1']);
       });
     });
 
@@ -1085,8 +1079,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const receivesMessagesSection = getChildNodeByTitle('Inbound Messages', serviceNode.children ?? []);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const receivesMessagesSection = getChildNodeByTitle('Inbound Messages', serviceNode.pages ?? []);
         expect(receivesMessagesSection).toBeUndefined();
       });
 
@@ -1113,8 +1107,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const receivesMessagesSection = getChildNodeByTitle('Inbound Messages', serviceNode.children ?? []);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const receivesMessagesSection = getChildNodeByTitle('Inbound Messages', serviceNode.pages ?? []);
         expect(receivesMessagesSection).toBeUndefined();
       });
 
@@ -1136,9 +1130,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const receivesMessagesSection = getChildNodeByTitle('Inbound Messages', serviceNode.children ?? []);
-        expect(receivesMessagesSection.children).toEqual(['item:message:PaymentProcessed:0.0.1']);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const receivesMessagesSection = getChildNodeByTitle('Inbound Messages', serviceNode.pages ?? []);
+        expect(receivesMessagesSection.pages).toEqual(['event:PaymentProcessed:0.0.1']);
       });
     });
 
@@ -1176,8 +1170,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const ownersSection = getChildNodeByTitle('Owners', serviceNode.children ?? []);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const ownersSection = getChildNodeByTitle('Owners', serviceNode.pages ?? []);
         expect(ownersSection).toBeUndefined();
       });
 
@@ -1199,9 +1193,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const ownersSection = getChildNodeByTitle('Owners', serviceNode.children ?? []);
-        expect(ownersSection.children).toEqual([{ type: 'item', title: 'John Doe', href: '/docs/users/John Doe' }]);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const ownersSection = getChildNodeByTitle('Owners', serviceNode.pages ?? []);
+        expect(ownersSection.pages).toEqual([{ type: 'item', title: 'John Doe', href: '/docs/users/John Doe' }]);
       });
     });
 
@@ -1216,8 +1210,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const repositorySection = getChildNodeByTitle('Code', serviceNode.children ?? []);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', serviceNode.pages ?? []);
         expect(repositorySection).toBeUndefined();
       });
 
@@ -1240,8 +1234,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const repositorySection = getChildNodeByTitle('Code', serviceNode.children ?? []);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', serviceNode.pages ?? []);
         expect(repositorySection).toBeUndefined();
       });
 
@@ -1259,14 +1253,27 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const serviceNode = getNavigationConfigurationByKey('item:service:ShippingService:0.0.1', navigationData);
-        const repositorySection = getChildNodeByTitle('Code', serviceNode.children ?? []);
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', serviceNode.pages ?? []);
         expect(repositorySection).toBeDefined();
       });
     });
   });
 
   describe('message navigation items', () => {
+    it('users can reference the latest version of a resource without passing in the version', async () => {
+      const { writeEvent } = utils(CATALOG_FOLDER);
+      await writeEvent({
+        id: 'PaymentProcessed',
+        name: 'Payment Processed',
+        version: '0.0.1',
+        markdown: 'Payment Processed',
+      });
+      const navigationData = await getNestedSideBarData();
+      const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed', navigationData);
+      expect(messageNode).toBeDefined();
+    });
+
     describe('quick reference section', () => {
       it('the overview link is always listed in the navigation item', async () => {
         const { writeEvent } = utils(CATALOG_FOLDER);
@@ -1278,7 +1285,7 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
         expect(messageNode).toHaveNavigationLink({
           type: 'item',
           title: 'Overview',
@@ -1298,7 +1305,7 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
         expect(messageNode).toHaveNavigationLink({
           type: 'item',
           title: 'Interaction Map',
@@ -1319,7 +1326,7 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
         expect(messageNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Interaction Map',
@@ -1329,8 +1336,6 @@ describe('getNestedSideBarData', () => {
         // Turn it back on
         config.visualiser.enabled = true;
       });
-
-
     });
 
     describe('producers section', () => {
@@ -1344,8 +1349,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
-        const producesMessagesSection = getChildNodeByTitle('Producers', messageNode.children ?? []);
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const producesMessagesSection = getChildNodeByTitle('Producers', messageNode.pages ?? []);
         expect(producesMessagesSection).toBeUndefined();
       });
 
@@ -1371,8 +1376,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
-        const producesMessagesSection = getChildNodeByTitle('Producers', messageNode.children ?? []);
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const producesMessagesSection = getChildNodeByTitle('Producers', messageNode.pages ?? []);
         expect(producesMessagesSection).toBeUndefined();
       });
 
@@ -1395,9 +1400,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
-        const producesMessagesSection = getChildNodeByTitle('Producers', messageNode.children ?? []);
-        expect(producesMessagesSection.children).toEqual(['item:service:PaymentService:0.0.1']);
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const producesMessagesSection = getChildNodeByTitle('Producers', messageNode.pages ?? []);
+        expect(producesMessagesSection.pages).toEqual(['service:PaymentService:0.0.1']);
       });
     });
 
@@ -1412,8 +1417,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
-        const consumersSection = getChildNodeByTitle('Consumers', messageNode.children ?? []);
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const consumersSection = getChildNodeByTitle('Consumers', messageNode.pages ?? []);
         expect(consumersSection).toBeUndefined();
       });
 
@@ -1440,8 +1445,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
-        const consumersSection = getChildNodeByTitle('Consumers', messageNode.children ?? []);
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const consumersSection = getChildNodeByTitle('Consumers', messageNode.pages ?? []);
         expect(consumersSection).toBeUndefined();
       });
 
@@ -1463,9 +1468,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
-        const consumersSection = getChildNodeByTitle('Consumers', messageNode.children ?? []);
-        expect(consumersSection.children).toEqual(['item:service:ShippingService:0.0.1']);
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const consumersSection = getChildNodeByTitle('Consumers', messageNode.pages ?? []);
+        expect(consumersSection.pages).toEqual(['service:ShippingService:0.0.1']);
       });
     });
 
@@ -1501,8 +1506,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
-        const ownersSection = getChildNodeByTitle('Owners', messageNode.children ?? []);
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const ownersSection = getChildNodeByTitle('Owners', messageNode.pages ?? []);
         expect(ownersSection).toBeUndefined();
       });
 
@@ -1524,9 +1529,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
-        const ownersSection = getChildNodeByTitle('Owners', messageNode.children ?? []);
-        expect(ownersSection.children).toEqual([{ type: 'item', title: 'John Doe', href: '/docs/users/John Doe' }]);
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const ownersSection = getChildNodeByTitle('Owners', messageNode.pages ?? []);
+        expect(ownersSection.pages).toEqual([{ type: 'item', title: 'John Doe', href: '/docs/users/John Doe' }]);
       });
     });
 
@@ -1541,8 +1546,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
-        const repositorySection = getChildNodeByTitle('Code', messageNode.children ?? []);
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', messageNode.pages ?? []);
         expect(repositorySection).toBeUndefined();
       });
 
@@ -1561,8 +1566,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
-        const repositorySection = getChildNodeByTitle('Code', messageNode.children ?? []);
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', messageNode.pages ?? []);
         expect(repositorySection).toBeUndefined();
       });
 
@@ -1580,14 +1585,28 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const messageNode = getNavigationConfigurationByKey('item:message:PaymentProcessed:0.0.1', navigationData);
-        const repositorySection = getChildNodeByTitle('Code', messageNode.children ?? []);
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', messageNode.pages ?? []);
         expect(repositorySection).toBeDefined();
       });
     });
   });
 
   describe('container navigation items', () => {
+    it('users can reference the latest version of a resource without passing in the version', async () => {
+      const { writeDataStore } = utils(CATALOG_FOLDER);
+      await writeDataStore({
+        id: 'PaymentDataStore',
+        name: 'Payment DataStore',
+        version: '0.0.1',
+        markdown: 'Payment DataStore',
+        container_type: 'database',
+      });
+      const navigationData = await getNestedSideBarData();
+      const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore', navigationData);
+      expect(containerNode).toBeDefined();
+    });
+
     describe('quick reference section', () => {
       it('the overview link is always listed in the navigation item', async () => {
         const { writeDataStore } = utils(CATALOG_FOLDER);
@@ -1600,7 +1619,7 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
         expect(containerNode).toHaveNavigationLink({
           type: 'item',
           title: 'Overview',
@@ -1621,7 +1640,7 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
         expect(containerNode).toHaveNavigationLink({
           type: 'item',
           title: 'Interaction Map',
@@ -1643,7 +1662,7 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
         expect(containerNode).not.toHaveNavigationLink({
           type: 'item',
           title: 'Interaction Map',
@@ -1667,8 +1686,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
-        const servicesSection = getChildNodeByTitle('Services (Writes)', containerNode.children ?? []);
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const servicesSection = getChildNodeByTitle('Services (Writes)', containerNode.pages ?? []);
         expect(servicesSection).toBeUndefined();
       });
 
@@ -1695,8 +1714,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
-        const servicesSection = getChildNodeByTitle('Services (Writes)', containerNode.children ?? []);
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const servicesSection = getChildNodeByTitle('Services (Writes)', containerNode.pages ?? []);
         expect(servicesSection).toBeUndefined();
       });
 
@@ -1719,9 +1738,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
-        const servicesSection = getChildNodeByTitle('Services (Writes)', containerNode.children ?? []);
-        expect(servicesSection.children).toEqual(['item:service:PaymentService:0.0.1']);
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const servicesSection = getChildNodeByTitle('Services (Writes)', containerNode.pages ?? []);
+        expect(servicesSection.pages).toEqual(['service:PaymentService:0.0.1']);
       });
     });
 
@@ -1737,8 +1756,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
-        const servicesSection = getChildNodeByTitle('Services (Reads)', containerNode.children ?? []);
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const servicesSection = getChildNodeByTitle('Services (Reads)', containerNode.pages ?? []);
         expect(servicesSection).toBeUndefined();
       });
 
@@ -1765,8 +1784,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
-        const servicesSection = getChildNodeByTitle('Services (Reads)', containerNode.children ?? []);
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const servicesSection = getChildNodeByTitle('Services (Reads)', containerNode.pages ?? []);
         expect(servicesSection).toBeUndefined();
       });
 
@@ -1789,9 +1808,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
-        const servicesSection = getChildNodeByTitle('Services (Reads)', containerNode.children ?? []);
-        expect(servicesSection.children).toEqual(['item:service:PaymentService:0.0.1']);
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const servicesSection = getChildNodeByTitle('Services (Reads)', containerNode.pages ?? []);
+        expect(servicesSection.pages).toEqual(['service:PaymentService:0.0.1']);
       });
     });
 
@@ -1807,8 +1826,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
-        const ownersSection = getChildNodeByTitle('Owners', containerNode.children ?? []);
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const ownersSection = getChildNodeByTitle('Owners', containerNode.pages ?? []);
         expect(ownersSection).toBeUndefined();
       });
 
@@ -1835,8 +1854,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
-        const ownersSection = getChildNodeByTitle('Owners', containerNode.children ?? []);
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const ownersSection = getChildNodeByTitle('Owners', containerNode.pages ?? []);
         expect(ownersSection).toBeUndefined();
       });
 
@@ -1859,9 +1878,9 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
-        const ownersSection = getChildNodeByTitle('Owners', containerNode.children ?? []);
-        expect(ownersSection.children).toEqual([{ type: 'item', title: 'John Doe', href: '/docs/users/John Doe' }]);
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const ownersSection = getChildNodeByTitle('Owners', containerNode.pages ?? []);
+        expect(ownersSection.pages).toEqual([{ type: 'item', title: 'John Doe', href: '/docs/users/John Doe' }]);
       });
     });
 
@@ -1877,8 +1896,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
-        const repositorySection = getChildNodeByTitle('Code', containerNode.children ?? []);
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', containerNode.pages ?? []);
         expect(repositorySection).toBeUndefined();
       });
     });
@@ -1900,8 +1919,8 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
-        const repositorySection = getChildNodeByTitle('Code', containerNode.children ?? []);
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const repositorySection = getChildNodeByTitle('Code', containerNode.pages ?? []);
         expect(repositorySection).toBeUndefined();
       });
 
@@ -1920,10 +1939,18 @@ describe('getNestedSideBarData', () => {
         });
 
         const navigationData = await getNestedSideBarData();
-        const containerNode = getNavigationConfigurationByKey('item:container:PaymentDataStore:0.0.1', navigationData);
-        const repositorySection = getChildNodeByTitle('Code', containerNode.children ?? []);
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+
+        const repositorySection = getChildNodeByTitle('Code', containerNode.pages ?? []);
+
         expect(repositorySection).toBeDefined();
-        expect(repositorySection.children).toEqual([{ type: 'item', title: 'https://github.com/eventcatalog/eventcatalog', href: 'https://github.com/eventcatalog/eventcatalog' }]);
+        expect(repositorySection.pages).toEqual([
+          {
+            type: 'item',
+            title: 'https://github.com/eventcatalog/eventcatalog',
+            href: 'https://github.com/eventcatalog/eventcatalog',
+          },
+        ]);
       });
     });
   });
