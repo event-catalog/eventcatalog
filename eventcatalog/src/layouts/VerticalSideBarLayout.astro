@@ -107,22 +107,15 @@ const navigationItems = [
     id: '/',
     label: 'Home',
     icon: House,
-    href: buildUrl('/'),
-    current: currentPath === '/',
-    sidebar: false,
-    hidden: !!config.landingPage,
-  },
-  {
-    id: '/docs',
-    label: 'Architecture Documentation',
-    icon: BookOpenText,
-    href: catalogHasDefaultLandingPageForDocs ? buildUrl('/docs') : getDefaultUrl('docs', '/docs'),
+    href: buildUrl(config.landingPage || '/'),
     current:
+      currentPath === '/' ||
       (currentPath.includes('/docs') && !currentPath.includes('/docs/custom')) ||
-      currentPath.includes('/architecture/docs/') ||
+      currentPath.includes('/architecture/') ||
       currentPath.includes('/visualiser') ||
       (currentPath.includes('/schemas') && !currentPath.includes('/schemas/explorer')),
     sidebar: true,
+    hidden: false,
   },
   {
     id: '/discover',
@@ -465,9 +458,23 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
     navItems.forEach((item) => {
       item.addEventListener('click', (e) => {
         const currentPath = window.location.href;
+        const currentPathname = window.location.pathname;
         const id = item.getAttribute('id');
 
         const navItem = navigationItems.find((navItem) => navItem.id === id);
+
+        // Special handling for the home route
+        // If the ID is "/" we want to make sure we are exactly on the home page (or the href target)
+        // logic for other items uses .includes which works fine for sub-paths (e.g /discover)
+        // but for "/" it matches everything, so we need to be more specific here.
+        if (navItem.id === '/') {
+          const isSamePage =
+            currentPathname === navItem.href || currentPathname === navItem.href + '/' || currentPathname + '/' === navItem.href;
+          if (!isSamePage) {
+            window.location.href = navItem.href;
+            return;
+          }
+        }
 
         if (!navItem.sidebar || !currentPath.includes(navItem.id) || currentPath.includes('/docs/custom')) {
           window.location.href = navItem.href;

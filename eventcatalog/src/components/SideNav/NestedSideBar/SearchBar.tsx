@@ -13,6 +13,7 @@ import {
   Search as SearchIcon,
   Database,
   Waypoints,
+  SquareMousePointer,
 } from 'lucide-react';
 import type { NavNode } from './sidebar-builder';
 
@@ -26,6 +27,7 @@ const getBadgeClasses = (badge: string): string => {
     command: 'bg-pink-100 text-pink-700',
     query: 'bg-purple-100 text-purple-700',
     message: 'bg-indigo-100 text-indigo-700',
+    design: 'bg-teal-100 text-teal-700',
   };
   return badgeColors[badge.toLowerCase()] || 'bg-gray-100 text-gray-600';
 };
@@ -49,7 +51,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
 
   // Pre-process searchable nodes to avoid iterating object on every render
   const searchableNodes = useMemo(() => {
-    return Object.entries(nodes).filter(([_, node]) => node.type !== 'section');
+    return Object.entries(nodes).filter(([_, node]) => node.type !== 'section' && node.type !== 'group');
   }, [nodes]);
 
   const handleSearchChange = (value: string) => {
@@ -65,6 +67,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
   const filterTypes = [
     { key: 'command', label: 'Commands', badge: 'Command', icon: MessageSquare },
     { key: 'container', label: 'Data Stores', badge: 'Container', icon: Database },
+    { key: 'design', label: 'Designs', badge: 'Design', icon: SquareMousePointer },
     { key: 'domain', label: 'Domains', badge: 'Domain', icon: Boxes },
     { key: 'event', label: 'Events', badge: 'Event', icon: Zap },
     { key: 'flow', label: 'Flows', badge: 'Flow', icon: Waypoints },
@@ -98,6 +101,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
       Query: 'query',
       Container: 'container',
       Flow: 'flow',
+      Design: 'design',
     };
 
     // Use the memoized array instead of Object.entries(nodes)

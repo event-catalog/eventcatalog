@@ -29,6 +29,7 @@ const getBadgeClasses = (badge: string): string => {
     command: 'bg-pink-100 text-pink-700',
     query: 'bg-purple-100 text-purple-700',
     message: 'bg-indigo-100 text-indigo-700',
+    design: 'bg-teal-100 text-teal-700',
   };
   return badgeColors[badge.toLowerCase()] || 'bg-gray-100 text-gray-600';
 };

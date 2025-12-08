@@ -158,6 +158,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       acc[`design:${design.data.id}`] = {
         type: 'item',
         title: design.data.name,
+        badge: 'Design',
         href: buildUrl(`/visualiser/designs/${design.data.id}`),
       };
       return acc;
@@ -176,9 +177,6 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     },
     {} as Record<string, NavNode>
   );
-
-  console.log('DESIGN NODES', designNodes);
-  console.log('USER NODES', userNodes);
 
   const teamNodes = teams.reduce(
     (acc, team) => {
