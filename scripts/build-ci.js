@@ -31,5 +31,6 @@ execSync(`pnpm exec astro check --minimumSeverity error --root ${catalogDir}`, {
     PATH: process.env.PATH,
     CATALOG_DIR: catalogDir,
     PROJECT_DIR: projectDIR,
+    NODE_OPTIONS: '--max-old-space-size=8192',
   },
 });

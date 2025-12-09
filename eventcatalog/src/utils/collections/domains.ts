@@ -2,7 +2,7 @@ import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
 import type { CollectionMessageTypes } from '@types';
-import type { Service } from './services';
+import type { Service } from './types';
 import utils from '@eventcatalog/sdk';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 
