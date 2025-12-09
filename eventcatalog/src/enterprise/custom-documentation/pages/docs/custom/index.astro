@@ -80,7 +80,7 @@ const ownersList = filteredOwners.map((o) => ({
 const badges = doc?.badges || [];
 ---
 
-<VerticalSideBarLayout title={doc.title || 'Documentation'}>
+<VerticalSideBarLayout title={doc.title || 'Documentation'} showNestedSideBar={false}>
   <div class="flex w-full" data-pagefind-body data-pagefind-meta={`title:${doc.title}`}>
     <!-- Left Sidebar Navigation -->
     <aside class="sidebar-transition overflow-y-auto bg-white border-r border-gray-100 w-80 fixed top-16 bottom-0 z-10">

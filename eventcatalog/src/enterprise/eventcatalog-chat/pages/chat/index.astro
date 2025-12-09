@@ -29,7 +29,7 @@ const chatPrompts = await getChatPromptsGroupedByCategory();
 const resources = allItems.map((item) => ({ id: item.data.id, type: item.collection, name: item.data.name }));
 ---
 
-<VerticalSideBarLayout title="AI Chat">
+<VerticalSideBarLayout title="AI Chat" showNestedSideBar={false}>
   <div class="flex h-[calc(100vh-60px)] bg-white">
     {
       isEnabled ? (
