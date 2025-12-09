@@ -1,14 +1,14 @@
 ---
 import Seo from '@components/Seo.astro';
 import { buildUrl } from '@utils/url-builder';
-import { getEvents } from '@utils/events';
-import { getEntities } from '@utils/entities';
-import { getCommands } from '@utils/commands';
+import { getEvents } from '@utils/collections/events';
+import { getEntities } from '@utils/collections/entities';
+import { getCommands } from '@utils/collections/commands';
 import { getServices } from '@utils/collections/services';
 import { getDomains } from '@utils/collections/domains';
 import type { CollectionEntry } from 'astro:content';
 import type { CollectionTypes } from '@types';
-import { getChannels } from '@utils/channels';
+import { getChannels } from '@utils/collections/channels';
 
 export async function getStaticPaths() {
   const [events, commands, services, domains, channels, entities] = await Promise.all([

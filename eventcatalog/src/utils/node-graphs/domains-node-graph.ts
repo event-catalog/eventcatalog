@@ -9,7 +9,7 @@ import {
 } from '@utils/node-graphs/utils/utils';
 import { getNodesAndEdges as getServicesNodeAndEdges } from './services-node-graph';
 import merge from 'lodash.merge';
-import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+import { createVersionedMap, findInMap } from '@utils/collections/util';
 import type { Node } from '@xyflow/react';
 import { getProducersOfMessage } from '@utils/collections/services';
 
@@ -25,22 +25,29 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
   let nodes = [] as any,
     edges = [] as any;
 
-  const allDomains = await getCollection('domains');
+  // 1. Parallel Fetching
+  const [allDomains, services, events, commands, queries] = await Promise.all([
+    getCollection('domains'),
+    getCollection('services'),
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+  ]);
+
   const domains = allDomains.filter((domain) => !domain.id.includes('/versioned'));
-  const services = await getCollection('services');
-
-  const events = await getCollection('events');
-  const commands = await getCollection('commands');
-  const queries = await getCollection('queries');
-
   const messages = [...events, ...commands, ...queries];
+
+  // 2. Build optimized maps
+  const serviceMap = createVersionedMap(services);
+  const messageMap = createVersionedMap(messages);
 
   domains.forEach((domain, index) => {
     const nodeId = generateIdForNode(domain);
     const rawServices = domain.data.services ?? [];
+
+    // Optimized service resolution
     const domainServices = rawServices
-      .map((service) => getItemsFromCollectionByIdAndSemverOrLatest(services, service.id, service.version))
-      .flat()
+      .map((service) => findInMap(serviceMap, service.id, service.version))
       .filter((e) => e !== undefined);
 
     // Calculate domain node size based on services
@@ -60,14 +67,12 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
     const rowIndex = Math.floor(index / DOMAINS_PER_ROW);
     const colIndex = index % DOMAINS_PER_ROW;
 
-    const test = servicesCount * SERVICE_HEIGHT + PADDING * 2;
-
     nodes.push({
       id: nodeId,
       type: 'group',
       position: {
-        x: colIndex * (domainWidth + 400), // Increased from 100 to 400px gap between domains
-        y: rowIndex * (domainHeight + 300), // Increased from 100 to 300px gap between rows
+        x: colIndex * (domainWidth + 400),
+        y: rowIndex * (domainHeight + 300),
       },
       style: {
         width: domainWidth,
@@ -107,7 +112,6 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
       domainServices.forEach((service, serviceIndex) => {
         const row = Math.floor(serviceIndex / SERVICES_PER_ROW);
         const col = serviceIndex % SERVICES_PER_ROW;
-        const serviceNodeId = `service-${domain.id}-${service.id}`;
 
         // Add spacing between services
         const SERVICE_MARGIN = 25;
@@ -136,10 +140,13 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
         const rawReceives = service.data.receives ?? [];
         const rawSends = service.data.sends ?? [];
 
+        // Optimized message resolution
         const receives = rawReceives
-          .map((receive) => getItemsFromCollectionByIdAndSemverOrLatest(messages, receive.id, receive.version))
-          .flat();
-        const sends = rawSends.map((send) => getItemsFromCollectionByIdAndSemverOrLatest(messages, send.id, send.version)).flat();
+          .map((receive) => findInMap(messageMap, receive.id, receive.version))
+          .filter((msg): msg is any => !!msg); // Filter undefined
+
+        // Note: 'sends' was defined but not used in the original loop logic for edges?
+        // Based on original code, it iterates `receives`.
 
         for (const receive of receives) {
           const producers = getProducersOfMessage(services, receive);
@@ -148,19 +155,6 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
             const isSameDomain = domainServices.some((domainService) => domainService.data.id === producer.data.id);
 
             if (!isSameDomain) {
-              // WIP... adding messages?
-              // edges.push(createEdge({
-              //   id: generatedIdForEdge(receive, service),
-              //   source: generateIdForNode(receive),
-              //   target: generateIdForNode(service),
-              //   label: getEdgeLabelForServiceAsTarget(receive),
-              //   zIndex: 1000,
-              // }));
-
-              // Find the producer and consumer nodes to get their positions
-              // const producerNode = nodes.find(n => n.id === generateIdForNode(producer));
-              // const consumerNode = nodes.find(n => n.id === generateIdForNode(service));
-
               edges.push(
                 createEdge({
                   id: generatedIdForEdge(producer, service),
@@ -170,32 +164,6 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
                   zIndex: 1000,
                 })
               );
-
-              // // Calculate middle position between producer and consumer
-              // const messageX = (producerNode?.position?.x ?? 0) +
-              //   ((consumerNode?.position?.x ?? 0) - (producerNode?.position?.x ?? 0)) / 2;
-              // const messageY = (producerNode?.position?.y ?? 0) +
-              //   ((consumerNode?.position?.y ?? 0) - (producerNode?.position?.y ?? 0)) / 2;
-
-              // nodes.push({
-              //   id: generateIdForNode(receive),
-              //   type: receive.collection,
-              //   sourcePosition: 'right',
-              //   targetPosition: 'left',
-              //   data: {
-              //     message: receive,
-              //     mode: 'full',
-              //   },
-              //   position: { x: messageX, y: messageY },
-              // });
-
-              // edges.push(createEdge({
-              //   id: generatedIdForEdge(producer, receive),
-              //   source: generateIdForNode(producer),
-              //   target: generateIdForNode(receive),
-              //   label: getEdgeLabelForServiceAsTarget(receive),
-              //   zIndex: 1000,
-              // }));
             }
           }
         }
@@ -230,7 +198,8 @@ export const getNodesAndEdges = async ({
   let nodes = new Map(),
     edges = new Map();
 
-  const domains = await getCollection('domains');
+  // 1. Parallel Fetching
+  const [domains, services] = await Promise.all([getCollection('domains'), getCollection('services')]);
 
   const domain = domains.find((service) => service.data.id === id && service.data.version === version);
 
@@ -242,19 +211,22 @@ export const getNodesAndEdges = async ({
     };
   }
 
+  // 2. Build optimized maps
+  const serviceMap = createVersionedMap(services);
+  const domainMap = createVersionedMap(domains);
+
   const rawServices = domain?.data.services || [];
   const rawSubDomains = domain?.data.domains || [];
 
-  const servicesCollection = await getCollection('services');
-
+  // Optimized hydration
   const domainServicesWithVersion = rawServices
-    .map((service) => getItemsFromCollectionByIdAndSemverOrLatest(servicesCollection, service.id, service.version))
-    .flat()
+    .map((service) => findInMap(serviceMap, service.id, service.version))
+    .filter((s): s is any => !!s)
     .map((svc) => ({ id: svc.data.id, version: svc.data.version }));
 
   const domainSubDomainsWithVersion = rawSubDomains
-    .map((subDomain) => getItemsFromCollectionByIdAndSemverOrLatest(domains, subDomain.id, subDomain.version))
-    .flat()
+    .map((subDomain) => findInMap(domainMap, subDomain.id, subDomain.version))
+    .filter((d): d is any => !!d)
     .map((svc) => ({ id: svc.data.id, version: svc.data.version }));
 
   // Get all the nodes for everyhing

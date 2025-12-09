@@ -1,79 +1,202 @@
-import { getItemsFromCollectionByIdAndSemverOrLatest, getVersionForCollectionItem } from '@utils/collections/util';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
 import type { CollectionMessageTypes } from '@types';
 import type { Service } from './services';
 import utils from '@eventcatalog/sdk';
+import { createVersionedMap, findInMap } from '@utils/collections/util';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
+const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 
 export type Domain = CollectionEntry<'domains'>;
 export type UbiquitousLanguage = CollectionEntry<'ubiquitousLanguages'>;
+
 interface Props {
   getAllVersions?: boolean;
+  includeServicesInSubdomains?: boolean;
+  enrichServices?: boolean;
 }
 
-// Update cache to store both versions
-let cachedDomains: Record<string, Domain[]> = {
-  allVersions: [],
-  currentVersions: [],
+// Simple in-memory cache variable
+let memoryCache: Record<string, Domain[]> = {};
+
+// Helper to hydrate services
+const hydrateServices = (
+  servicesList: any[],
+  serviceMap: Map<string, any[]>,
+  messageMap: Map<string, any[]>,
+  containerMap: Map<string, any[]>
+) => {
+  return servicesList
+    .map((service: { id: string; version: string | undefined }) => findInMap(serviceMap, service.id, service.version))
+    .filter((s) => !!s)
+    .map((service) => {
+      // Hydrate service messages and containers
+      const sends = (service.data.sends || [])
+        .map((msg: any) => findInMap(messageMap, msg.id, msg.version))
+        .filter((m: any) => !!m);
+
+      const receives = (service.data.receives || [])
+        .map((msg: any) => findInMap(messageMap, msg.id, msg.version))
+        .filter((m: any) => !!m);
+
+      const readsFrom = (service.data.readsFrom || [])
+        .map((c: any) => findInMap(containerMap, c.id, c.version))
+        .filter((c: any) => !!c);
+
+      const writesTo = (service.data.writesTo || [])
+        .map((c: any) => findInMap(containerMap, c.id, c.version))
+        .filter((c: any) => !!c);
+
+      return {
+        ...service,
+        data: {
+          ...service.data,
+          sends: sends as any,
+          receives: receives as any,
+          readsFrom: readsFrom as any,
+          writesTo: writesTo as any,
+        },
+      };
+    });
 };
 
-export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise<Domain[]> => {
-  const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
+// --- MAIN FUNCTION ---
 
-  // Check if we have cached domains for this specific getAllVersions value
-  if (cachedDomains[cacheKey].length > 0) {
-    return cachedDomains[cacheKey];
+export const getDomains = async ({
+  getAllVersions = true,
+  includeServicesInSubdomains = true,
+  enrichServices = false,
+}: Props = {}): Promise<Domain[]> => {
+  // console.time('✅ New getDomains');
+
+  const cacheKey = `${getAllVersions ? 'allVersions' : 'currentVersions'}-${includeServicesInSubdomains ? 'true' : 'false'}-${enrichServices ? 'enriched' : 'simple'}`;
+
+  // Check cache
+  if (memoryCache[cacheKey] && memoryCache[cacheKey].length > 0 && CACHE_ENABLED) {
+    // console.timeEnd('✅ New getDomains');
+    return memoryCache[cacheKey];
   }
 
-  // Get all the domains that are not versioned
-  const domains = await getCollection('domains', (domain) => {
-    return (getAllVersions || !domain.filePath?.includes('versioned')) && domain.data.hidden !== true;
+  // 1. Fetch collections
+  const collectionsToFetch: any[] = [
+    getCollection('domains'),
+    getCollection('services'),
+    getCollection('entities'),
+    getCollection('flows'),
+  ];
+
+  if (enrichServices) {
+    collectionsToFetch.push(
+      getCollection('events'),
+      getCollection('commands'),
+      getCollection('queries'),
+      getCollection('containers')
+    );
+  }
+
+  const results = await Promise.all(collectionsToFetch);
+  const [allDomains, allServices, allEntities, allFlows] = results;
+
+  let messageMap = new Map();
+  let containerMap = new Map();
+
+  if (enrichServices) {
+    const [, , , , allEvents, allCommands, allQueries, allContainers] = results;
+    const allMessages = [...allEvents, ...allCommands, ...allQueries];
+    messageMap = createVersionedMap(allMessages);
+    containerMap = createVersionedMap(allContainers);
+  }
+
+  // 2. Build optimized maps
+  const domainMap = createVersionedMap(allDomains);
+  const serviceMap = createVersionedMap(allServices);
+  const entityMap = createVersionedMap(allEntities);
+  const flowMap = createVersionedMap(allFlows);
+
+  // 3. Filter the domains we actually want to process/return
+  const targetDomains = allDomains.filter((domain: Domain) => {
+    // Filter out hidden
+    if (domain.data.hidden === true) return false;
+    // Handle version filtering
+    if (!getAllVersions && domain.filePath?.includes('versioned')) return false;
+    return true;
   });
 
-  // Get all the services that are not versioned
-  const servicesCollection = await getCollection('services');
-  const entitiesCollection = await getCollection('entities');
+  const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
 
-  // @ts-ignore // TODO: Fix this type
-  cachedDomains[cacheKey] = await Promise.all(
-    domains.map(async (domain) => {
-      const { latestVersion, versions } = getVersionForCollectionItem(domain, domains);
+  // 4. Process domains using Map lookups (O(1))
+  const processedDomains = await Promise.all(
+    targetDomains.map(async (domain: Domain) => {
+      // Get version info from the map
+      const domainVersions = domainMap.get(domain.data.id) || [];
+      const latestVersion = domainVersions[0]?.data.version || domain.data.version;
+      const versions = domainVersions.map((d) => d.data.version);
 
-      // const receives = service.data.receives || [];
-      const servicesInDomain = domain.data.services || [];
+      // Resolve Subdomains
       const subDomainsInDomain = domain.data.domains || [];
-      const entitiesInDomain = domain.data.entities || [];
       const subDomains = subDomainsInDomain
-        .map((_subDomain: { id: string; version: string | undefined }) =>
-          getItemsFromCollectionByIdAndSemverOrLatest(domains, _subDomain.id, _subDomain.version)
-        )
-        .flat()
-        // Stop circular references
-        .filter((subDomain) => subDomain.data.id !== domain.data.id);
+        .map((sd: { id: string; version: string | undefined }) => findInMap(domainMap, sd.id, sd.version))
+        .filter((sd): sd is Domain => !!sd && sd.data.id !== domain.data.id) // Filter nulls and self-refs
+        .map((subDomain: any) => {
+          // Hydrate services for the subdomain
+          let hydratedServices = subDomain.data.services || [];
+          if (enrichServices) {
+            hydratedServices = hydrateServices(subDomain.data.services || [], serviceMap, messageMap, containerMap);
+          } else {
+            // Just resolve the service objects without enrichment
+            hydratedServices = (subDomain.data.services || [])
+              .map((service: { id: string; version: string | undefined }) => findInMap(serviceMap, service.id, service.version))
+              .filter((s: any) => !!s);
+          }
 
-      // Services in the sub domains
-      const subdomainServices = subDomains.flatMap((subDomain) => subDomain.data.services || []);
+          return {
+            ...subDomain,
+            data: {
+              ...subDomain.data,
+              services: hydratedServices as any,
+            },
+          };
+        });
 
-      const services = [...servicesInDomain, ...subdomainServices]
-        .map((_service: { id: string; version: string | undefined }) =>
-          getItemsFromCollectionByIdAndSemverOrLatest(servicesCollection, _service.id, _service.version)
-        )
-        .flat();
+      // Resolve Entities
+      const entitiesInDomain = domain.data.entities || [];
+      const entities = entitiesInDomain
+        .map((entity: { id: string; version: string | undefined }) => findInMap(entityMap, entity.id, entity.version))
+        .filter((e): e is CollectionEntry<'entities'> => !!e);
 
-      const entities = [...entitiesInDomain]
-        .map((_entity: { id: string; version: string | undefined }) =>
-          getItemsFromCollectionByIdAndSemverOrLatest(entitiesCollection, _entity.id, _entity.version)
-        )
-        .flat();
+      // Resolve Flows
+      const flowsInDomain = domain.data.flows || [];
+      const flows = flowsInDomain
+        .map((flow: { id: string; version: string | undefined }) => findInMap(flowMap, flow.id, flow.version))
+        .filter((f): f is CollectionEntry<'flows'> => !!f);
 
-      const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
+      // Resolve Services for Main Domain
+      const servicesInDomain = domain.data.services || [];
+
+      // Hydrate main domain services
+      let hydratedMainServices = [];
+      if (enrichServices) {
+        hydratedMainServices = hydrateServices(servicesInDomain, serviceMap, messageMap, containerMap);
+      } else {
+        hydratedMainServices = servicesInDomain
+          .map((service: { id: string; version: string | undefined }) => findInMap(serviceMap, service.id, service.version))
+          .filter((s) => !!s);
+      }
+
+      // Get already-hydrated subdomain services
+      const hydratedSubdomainServices = subDomains.flatMap((subDomain: any) => subDomain.data.services || []);
+
+      const services = includeServicesInSubdomains
+        ? [...(hydratedMainServices as any), ...(hydratedSubdomainServices as any)]
+        : (hydratedMainServices as any);
+
+      // Calculate folder paths
       const folderName = await getResourceFolderName(
         process.env.PROJECT_DIR ?? '',
         domain.data.id,
-        domain.data.version.toString()
+        domain.data.version?.toString()
       );
       const domainFolderName = folderName ?? domain.id.replace(`-${domain.data.version}`, '');
 
@@ -81,9 +204,10 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
         ...domain,
         data: {
           ...domain.data,
-          services: services,
-          domains: subDomains,
-          entities: entities,
+          services: services as any, // Cast to avoid deep type issues with enriched data
+          domains: subDomains as any,
+          entities: entities as any,
+          flows: flows as any,
           latestVersion,
           versions,
         },
@@ -99,12 +223,17 @@ export const getDomains = async ({ getAllVersions = true }: Props = {}): Promise
     })
   );
 
-  // order them by the name of the domain
-  cachedDomains[cacheKey].sort((a, b) => {
+  // Sort by name
+  processedDomains.sort((a, b) => {
     return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
   });
 
-  return cachedDomains[cacheKey];
+  // Cache result
+  memoryCache[cacheKey] = processedDomains;
+
+  // console.timeEnd('✅ New getDomains');
+
+  return processedDomains;
 };
 
 export const getMessagesForDomain = async (
@@ -113,23 +242,29 @@ export const getMessagesForDomain = async (
   // We already have the services from the domain
   const services = domain.data.services as unknown as CollectionEntry<'services'>[];
 
-  const events = await getCollection('events');
-  const commands = await getCollection('commands');
-  const queries = await getCollection('queries');
+  const [events, commands, queries] = await Promise.all([
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+  ]);
 
   const allMessages = [...events, ...commands, ...queries];
+  const messageMap = createVersionedMap(allMessages);
 
   const sends = services.flatMap((service) => service.data.sends || []);
   const receives = services.flatMap((service) => service.data.receives || []);
 
-  const sendsMessages = sends.map((send) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, send.id, send.version));
-  const receivesMessages = receives.map((receive) =>
-    getItemsFromCollectionByIdAndSemverOrLatest(allMessages, receive.id, receive.version)
-  );
+  const sendsMessages = sends
+    .map((send) => findInMap(messageMap, send.id, send.version))
+    .filter((msg): msg is CollectionEntry<CollectionMessageTypes> => !!msg);
+
+  const receivesMessages = receives
+    .map((receive) => findInMap(messageMap, receive.id, receive.version))
+    .filter((msg): msg is CollectionEntry<CollectionMessageTypes> => !!msg);
 
   return {
-    sends: sendsMessages.flat(),
-    receives: receivesMessages.flat(),
+    sends: sendsMessages,
+    receives: receivesMessages,
   };
 };
 
@@ -210,6 +345,13 @@ export const getParentDomains = async (domain: Domain): Promise<Domain[]> => {
     const subDomains = (d.data.domains as unknown as Domain[]) || [];
     return subDomains.some((d) => d.data.id === domain.data.id);
   });
+};
+
+// Only return domains that are not found any any subdomain configuration
+export const getRootDomains = async (): Promise<Domain[]> => {
+  const domains = await getDomains({ getAllVersions: false });
+  const allSubDomains = domains.flatMap((d) => d.data.domains as unknown as Domain[]);
+  return domains.filter((d) => !allSubDomains.some((sd) => sd.data.id === d.data.id));
 };
 
 export const getDomainsForService = async (service: Service): Promise<Domain[]> => {

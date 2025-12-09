@@ -29,23 +29,38 @@ import '@fontsource/inter';
 import '@fontsource/inter/400.css'; // Specify weight
 import '@fontsource/inter/700.css'; // Specify weight
 
-import { getCommands } from '@utils/commands';
+import { ClientRouter } from 'astro:transitions';
+
+import { getCommands } from '@utils/collections/commands';
 import { getDomains } from '@utils/collections/domains';
-import { getEvents } from '@utils/events';
+import { getEvents } from '@utils/collections/events';
 import { getServices } from '@utils/collections/services';
 import { getFlows } from '@utils/collections/flows';
 import { isCollectionVisibleInCatalog } from '@eventcatalog';
 import { buildUrl } from '@utils/url-builder';
-import { getQueries } from '@utils/queries';
+import { getQueries } from '@utils/collections/queries';
 import { hasLandingPageForDocs } from '@utils/pages';
 
-const events = await getEvents({ getAllVersions: false });
-const commands = await getCommands({ getAllVersions: false });
-const queries = await getQueries({ getAllVersions: false });
-const services = await getServices({ getAllVersions: false });
-const domains = await getDomains({ getAllVersions: false });
-const flows = await getFlows({ getAllVersions: false });
+const catalogHasDefaultLandingPageForDocs = await hasLandingPageForDocs();
 const customDocs = await getCollection('customPages');
+
+let events: any[] = [];
+let commands: any[] = [];
+let queries: any[] = [];
+let services: any[] = [];
+let domains: any[] = [];
+let flows: any[] = [];
+
+if (!catalogHasDefaultLandingPageForDocs) {
+  [events, commands, queries, services, domains, flows] = await Promise.all([
+    getEvents({ getAllVersions: false, hydrateServices: false }),
+    getCommands({ getAllVersions: false, hydrateServices: false }),
+    getQueries({ getAllVersions: false, hydrateServices: false }),
+    getServices({ getAllVersions: false }),
+    getDomains({ getAllVersions: false }),
+    getFlows({ getAllVersions: false }),
+  ]);
+}
 
 import { isEventCatalogUpgradeEnabled, isVisualiserEnabled } from '@utils/feature';
 
@@ -55,8 +70,6 @@ try {
 } catch (error) {}
 
 const currentPath = Astro.url.pathname;
-
-const catalogHasDefaultLandingPageForDocs = await hasLandingPageForDocs();
 
 const getDefaultUrl = (route: string, defaultValue: string) => {
   if (route === 'docs/custom') {
@@ -94,30 +107,16 @@ const navigationItems = [
     id: '/',
     label: 'Home',
     icon: House,
-    href: buildUrl('/'),
-    current: currentPath === '/',
-    sidebar: false,
-    hidden: !!config.landingPage,
-  },
-  {
-    id: '/docs',
-    label: 'Architecture Documentation',
-    icon: BookOpenText,
-    href: catalogHasDefaultLandingPageForDocs ? buildUrl('/docs') : getDefaultUrl('docs', '/docs'),
+    href: buildUrl(config.landingPage || '/'),
     current:
-      (currentPath.includes('/docs') && !currentPath.includes('/docs/custom')) || currentPath.includes('/architecture/docs/'),
+      currentPath === '/' ||
+      (currentPath.includes('/docs') && !currentPath.includes('/docs/custom')) ||
+      currentPath.includes('/architecture/') ||
+      currentPath.includes('/visualiser') ||
+      (currentPath.includes('/schemas') && !currentPath.includes('/schemas/explorer')),
     sidebar: true,
+    hidden: false,
   },
-  {
-    id: '/visualiser',
-    label: 'Visualiser',
-    icon: Workflow,
-    href: getDefaultUrl('visualiser', '/visualiser'),
-    current: currentPath.includes('/visualiser'),
-    sidebar: true,
-    hidden: !isVisualiserEnabled(),
-  },
-
   {
     id: '/discover',
     label: 'Explore',
@@ -130,8 +129,15 @@ const navigationItems = [
     id: '/schemas',
     label: 'Schema Explorer',
     icon: FileJson,
-    href: buildUrl('/schemas'),
-    current: currentPath.includes('/schemas'),
+    sidebar: true,
+    hidden: true,
+  },
+  {
+    id: '/schemas/explorer',
+    label: 'Schema Explorer',
+    icon: FileJson,
+    href: buildUrl('/schemas/explorer'),
+    current: currentPath.includes('/schemas/explorer'),
     sidebar: false,
   },
   {
@@ -148,7 +154,7 @@ const navigationItems = [
     icon: BookUser,
     href: buildUrl('/architecture/domains'),
     current: currentPath.includes('/architecture/'),
-    sidebar: false,
+    sidebar: true,
     hidden: true,
   },
 ].filter((item) => {
@@ -259,7 +265,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
     <div class="flex">
       <aside class="flex" id="eventcatalog-vertical-nav">
         <div
-          class="fixed flex flex-col items-center w-16 h-screen py-4 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 z-20 shadow-md justify-between"
+          class="fixed flex flex-col items-center w-14 h-screen py-3 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 z-20 shadow-md justify-between"
         >
           <nav class="flex flex-col h-[calc(100vh-70px)] justify-between">
             <div class="flex flex-col items-center flex-1 space-y-6">
@@ -361,11 +367,11 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
 
         <SideNav
           id="sidebar"
-          class={`sidebar-transition h-content  overflow-y-auto bg-white  border-r border-gray-100 w-[22em] ml-16 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
+          class={`sidebar-transition h-content bg-white  border-r border-gray-100 w-[320px] ml-14 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
         />
       </aside>
       <main
-        class={`sidebar-transition w-full max-h-content overflow-y-auto ${showSideBarOnLoad ? 'ml-0' : 'ml-16'}`}
+        class={`sidebar-transition w-full max-h-content overflow-y-auto ${showSideBarOnLoad ? 'ml-0' : 'ml-14'}`}
         id="content"
       >
         <slot />
@@ -389,6 +395,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
     </div>
   </body>
 </html>
+<ClientRouter />
 <script define:vars={{ navigationItems, currentNavigationItem, showSideBarOnLoad, canPageBeEmbedded }}>
   // Listen for Astro transititions
   document.addEventListener('astro:page-load', () => {
@@ -429,47 +436,59 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
         if (element) element.style.display = 'none';
       });
 
-      content.classList.remove('ml-16');
+      content.classList.remove('ml-14');
       return;
     }
 
     const sidebar = document.getElementById('sidebar');
-    const currentPath = window.location.href;
+    const currentPath = window.location.pathname;
 
-    // Hide the sidebar if the current navigation item is not a sidebar item
-    if (!currentNavigationItem?.sidebar) {
+    // Determine if we should show the sidebar based on current path
+    let shouldShowSidebar = false;
+
+    // Check each navigation item to see if it matches current path and has sidebar enabled
+    for (const item of navigationItems) {
+      if (!item.sidebar) continue; // Skip items that don't have sidebar
+
+      if (item.id === '/') {
+        // Home route - show sidebar for home, docs, architecture, visualiser, schemas (not explorer)
+        if (
+          currentPath === '/' ||
+          (currentPath.includes('/docs') && !currentPath.includes('/docs/custom')) ||
+          currentPath.includes('/architecture/') ||
+          currentPath.includes('/visualiser') ||
+          (currentPath.includes('/schemas') && !currentPath.includes('/schemas/explorer'))
+        ) {
+          shouldShowSidebar = true;
+          break;
+        }
+      } else if (currentPath.includes(item.id)) {
+        // Other routes - simple match
+        shouldShowSidebar = true;
+        break;
+      }
+    }
+
+    // Show or hide sidebar based on result
+    if (shouldShowSidebar) {
+      sidebar.style.display = 'block';
+      content.classList.remove('ml-14');
+    } else {
       sidebar.style.display = 'none';
       content.style.width = '100%';
-      content.classList.add('ml-16');
-    } else {
-      sidebar.style.display = 'block';
+      content.classList.add('ml-14');
     }
 
     const navItems = document.querySelectorAll('[data-role="nav-item"]');
-    let isOpen = showSideBarOnLoad;
 
+    // Navigation items simply navigate to their href - no toggle logic
     navItems.forEach((item) => {
       item.addEventListener('click', (e) => {
-        const currentPath = window.location.href;
         const id = item.getAttribute('id');
-
         const navItem = navigationItems.find((navItem) => navItem.id === id);
 
-        if (!navItem.sidebar || !currentPath.includes(navItem.id) || currentPath.includes('/docs/custom')) {
+        if (navItem && navItem.href) {
           window.location.href = navItem.href;
-          return;
-        }
-
-        // not on the target page then just go to it.
-        if (!currentPath.includes(navItem.id)) return;
-
-        if (currentPath.includes(navItem.id)) {
-          e.preventDefault();
-          if (isOpen) {
-            hideSidebar();
-          } else {
-            showSidebar();
-          }
         }
       });
     });
@@ -482,7 +501,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
       setTimeout(() => {
         sidebar.style.transform = 'translateX(0)';
         content.style.transform = 'translateX(0)';
-        content.classList.remove('ml-16');
+        content.classList.remove('ml-14');
         content.style.width = 'calc(100% - 240px)';
       }, 10);
     }
@@ -493,7 +512,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
       sidebar.style.transform = 'translateX(-100%)';
       content.style.transform = 'translateX(0px)';
       content.style.width = '100%';
-      content.classList.add('ml-16');
+      content.classList.add('ml-14');
     }
 
     if (sidebar) {

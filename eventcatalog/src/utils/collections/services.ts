@@ -1,81 +1,95 @@
-import { getItemsFromCollectionByIdAndSemverOrLatest, getVersionForCollectionItem } from '@utils/collections/util';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
 import semver from 'semver';
-import type { CollectionTypes } from '@types';
+import type { CollectionMessageTypes, CollectionTypes } from '@types';
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
-import utils from '@eventcatalog/sdk';
+import utils, { type Domain } from '@eventcatalog/sdk';
+import { getDomains, getDomainsForService } from './domains';
+import { createVersionedMap, findInMap } from '@utils/collections/util';
 
 export type Service = CollectionEntry<'services'>;
 
+const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 interface Props {
   getAllVersions?: boolean;
+  returnBody?: boolean;
 }
 
-// Cache for build time
-let cachedServices: Record<string, Service[]> = {
-  allVersions: [],
-  currentVersions: [],
-};
+// Simple in-memory cache
+let memoryCache: Record<string, Service[]> = {};
 
-export const getServices = async ({ getAllVersions = true }: Props = {}): Promise<Service[]> => {
-  const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
+export const getServices = async ({ getAllVersions = true, returnBody = false }: Props = {}): Promise<Service[]> => {
+  // console.time('✅ New getServices');
+  const cacheKey = `${getAllVersions ? 'allVersions' : 'currentVersions'}-${returnBody ? 'withBody' : 'noBody'}`;
 
-  // Check if we have cached domains for this specific getAllVersions value
-  if (cachedServices[cacheKey].length > 0) {
-    return cachedServices[cacheKey];
+  // Check if we have cached services
+  if (memoryCache[cacheKey] && memoryCache[cacheKey].length > 0 && CACHE_ENABLED) {
+    // console.timeEnd('✅ New getServices');
+    return memoryCache[cacheKey];
   }
 
-  // Get services that are not versioned
-  const services = await getCollection('services', (service) => {
-    return (getAllVersions || !service.filePath?.includes('versioned')) && service.data.hidden !== true;
+  // 1. Fetch all collections in parallel
+  const [allServices, allEvents, allCommands, allQueries, allEntities, allContainers, allFlows] = await Promise.all([
+    getCollection('services'),
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+    getCollection('entities'),
+    getCollection('containers'),
+    getCollection('flows'),
+  ]);
+
+  const allMessages = [...allEvents, ...allCommands, ...allQueries];
+
+  // 2. Build optimized maps
+  const serviceMap = createVersionedMap(allServices);
+  const messageMap = createVersionedMap(allMessages);
+  const entityMap = createVersionedMap(allEntities);
+  const containerMap = createVersionedMap(allContainers);
+  const flowMap = createVersionedMap(allFlows);
+
+  // 3. Filter services
+  const targetServices = allServices.filter((service) => {
+    if (service.data.hidden === true) return false;
+    if (!getAllVersions && service.filePath?.includes('versioned')) return false;
+    return true;
   });
 
-  const events = await getCollection('events');
-  const commands = await getCollection('commands');
-  const queries = await getCollection('queries');
-  const entities = await getCollection('entities');
-  const containers = await getCollection('containers');
-  const allMessages = [...events, ...commands, ...queries];
+  const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
 
-  // @ts-ignore // TODO: Fix this type
-  cachedServices[cacheKey] = await Promise.all(
-    services.map(async (service) => {
-      const { latestVersion, versions } = getVersionForCollectionItem(service, services);
+  // 4. Enrich services using Map lookups (O(1))
+  const processedServices = await Promise.all(
+    targetServices.map(async (service) => {
+      // Version info
+      const serviceVersions = serviceMap.get(service.data.id) || [];
+      const latestVersion = serviceVersions[0]?.data.version || service.data.version;
+      const versions = serviceVersions.map((s) => s.data.version);
 
-      const sendsMessages = service.data.sends || [];
-      const receivesMessages = service.data.receives || [];
-      const serviceEntities = service.data.entities || [];
-      const serviceWritesTo = service.data.writesTo || [];
-      const serviceReadsFrom = service.data.readsFrom || [];
+      const sends = (service.data.sends || [])
+        .map((m) => findInMap(messageMap, m.id, m.version))
+        .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
 
-      const sends = sendsMessages
-        .map((message: any) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
-        .flat()
-        .filter((e: any) => e !== undefined);
+      const receives = (service.data.receives || [])
+        .map((m) => findInMap(messageMap, m.id, m.version))
+        .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
 
-      const receives = receivesMessages
-        .map((message: any) => getItemsFromCollectionByIdAndSemverOrLatest(allMessages, message.id, message.version))
-        .flat()
-        .filter((e: any) => e !== undefined);
+      const mappedEntities = (service.data.entities || [])
+        .map((e) => findInMap(entityMap, e.id, e.version))
+        .filter((e): e is CollectionEntry<'entities'> => !!e);
 
-      const mappedEntities = serviceEntities
-        .map((entity: any) => getItemsFromCollectionByIdAndSemverOrLatest(entities, entity.id, entity.version))
-        .flat()
-        .filter((e: any) => e !== undefined);
+      const mappedWritesTo = (service.data.writesTo || [])
+        .map((c) => findInMap(containerMap, c.id, c.version))
+        .filter((e): e is CollectionEntry<'containers'> => !!e);
 
-      const mappedWritesTo = serviceWritesTo
-        .map((container: any) => getItemsFromCollectionByIdAndSemverOrLatest(containers, container.id, container.version))
-        .flat()
-        .filter((e: any) => e !== undefined);
+      const mappedReadsFrom = (service.data.readsFrom || [])
+        .map((c) => findInMap(containerMap, c.id, c.version))
+        .filter((e): e is CollectionEntry<'containers'> => !!e);
 
-      const mappedReadsFrom = serviceReadsFrom
-        .map((container: any) => getItemsFromCollectionByIdAndSemverOrLatest(containers, container.id, container.version))
-        .flat()
-        .filter((e: any) => e !== undefined);
+      const mappedFlows = (service.data.flows || [])
+        .map((f) => findInMap(flowMap, f.id, f.version))
+        .filter((f): f is CollectionEntry<'flows'> => !!f);
 
-      const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
       const folderName = await getResourceFolderName(
         process.env.PROJECT_DIR ?? '',
         service.data.id,
@@ -87,18 +101,19 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
         ...service,
         data: {
           ...service.data,
-          writesTo: mappedWritesTo,
-          readsFrom: mappedReadsFrom,
-          receives,
-          sends,
+          writesTo: mappedWritesTo as any,
+          readsFrom: mappedReadsFrom as any,
+          flows: mappedFlows as any,
+          receives: receives as any,
+          sends: sends as any,
           versions,
           latestVersion,
-          entities: mappedEntities,
+          entities: mappedEntities as any,
         },
         // TODO: verify if it could be deleted.
         nodes: {
-          receives,
-          sends,
+          receives: receives as any,
+          sends: sends as any,
         },
         catalog: {
           // TODO: avoid use string replace at path due to win32
@@ -110,16 +125,20 @@ export const getServices = async ({ getAllVersions = true }: Props = {}): Promis
           publicPath: path.join('/generated', service.collection, serviceFolderName),
           type: 'service',
         },
+        body: returnBody ? service.body : undefined,
       };
     })
   );
 
   // order them by the name of the service
-  cachedServices[cacheKey].sort((a, b) => {
+  processedServices.sort((a, b) => {
     return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
   });
 
-  return cachedServices[cacheKey];
+  memoryCache[cacheKey] = processedServices;
+  // console.timeEnd('✅ New getServices');
+
+  return processedServices;
 };
 
 export const getProducersOfMessage = (services: Service[], message: CollectionEntry<'events' | 'commands' | 'queries'>) => {
@@ -208,4 +227,17 @@ export const getProducersAndConsumersForChannel = async (channel: CollectionEntr
     producers: producers ?? [],
     consumers: consumers ?? [],
   };
+};
+export const getServicesNotInAnyDomain = async (): Promise<Service[]> => {
+  const services = await getServices({ getAllVersions: false });
+
+  // We need an async-aware filter: run all lookups, then filter by the results
+  const domainCountsForServices = await Promise.all(
+    services.map(async (service) => {
+      const domainsForService = await getDomainsForService(service);
+      return domainsForService.length;
+    })
+  );
+
+  return services.filter((_, index) => domainCountsForServices[index] === 0);
 };

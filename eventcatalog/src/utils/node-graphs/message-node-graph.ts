@@ -1,5 +1,5 @@
 // import { getColor } from '@utils/colors';
-import { getEvents } from '@utils/events';
+import { getEvents } from '@utils/collections/events';
 import type { CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
 import {
@@ -17,15 +17,17 @@ import {
   findMatchingNodes,
   getItemsFromCollectionByIdAndSemverOrLatest,
   getLatestVersionInCollectionById,
+  createVersionedMap,
+  findInMap,
 } from '@utils/collections/util';
 import type { CollectionMessageTypes } from '@types';
-import { getCommands } from '@utils/commands';
-import { getQueries } from '@utils/queries';
+import { getCommands } from '@utils/collections/commands';
+import { getQueries } from '@utils/collections/queries';
 import { createNode } from './utils/utils';
 import { getConsumersOfMessage, getProducersOfMessage } from '@utils/collections/services';
 import { getNodesAndEdgesForChannelChain } from './channel-node-graph';
-import { getChannelChain, isChannelsConnected } from '@utils/channels';
-import { getChannels } from '@utils/channels';
+import { getChannelChain, isChannelsConnected } from '@utils/collections/channels';
+import { getChannels } from '@utils/collections/channels';
 
 type DagreGraph = any;
 
@@ -63,6 +65,9 @@ const getNodesAndEdges = async ({
       edges: [],
     };
   }
+
+  // Pre-calculate channel map for O(1) lookups
+  const channelMap = createVersionedMap(channels);
 
   // We always render the message itself
   nodes.push({
@@ -127,11 +132,7 @@ const getNodesAndEdges = async ({
 
     // If the producer has channels defined, we need to render them
     for (const producerChannel of producerChannelConfiguration) {
-      const channel = getItemsFromCollectionByIdAndSemverOrLatest(
-        channels,
-        producerChannel.id,
-        producerChannel.version
-      )[0] as CollectionEntry<'channels'>;
+      const channel = findInMap(channelMap, producerChannel.id, producerChannel.version) as CollectionEntry<'channels'>;
 
       // If we cannot find the channel in EventCatalog, we just connect the producer to the event directly
       if (!channel) {
@@ -219,11 +220,7 @@ const getNodesAndEdges = async ({
 
     // If the consumer has channels defined, we try and render them
     for (const consumerChannel of consumerChannelConfiguration) {
-      const channel = getItemsFromCollectionByIdAndSemverOrLatest(
-        channels,
-        consumerChannel.id,
-        consumerChannel.version
-      )[0] as CollectionEntry<'channels'>;
+      const channel = findInMap(channelMap, consumerChannel.id, consumerChannel.version) as CollectionEntry<'channels'>;
 
       // If we cannot find the channel in EventCatalog, we connect the message directly to the consumer
       if (!channel) {
@@ -246,18 +243,18 @@ const getNodesAndEdges = async ({
       const consumerChannels = consumer.data.receives?.find((receive) => receive.id === message.data.id)?.from ?? [];
 
       for (const producerChannel of producerChannels) {
-        const producerChannelValue = getItemsFromCollectionByIdAndSemverOrLatest(
-          channels,
+        const producerChannelValue = findInMap(
+          channelMap,
           producerChannel.id,
           producerChannel.version
-        )[0] as CollectionEntry<'channels'>;
+        ) as CollectionEntry<'channels'>;
 
         for (const consumerChannel of consumerChannels) {
-          const consumerChannelValue = getItemsFromCollectionByIdAndSemverOrLatest(
-            channels,
+          const consumerChannelValue = findInMap(
+            channelMap,
             consumerChannel.id,
             consumerChannel.version
-          )[0] as CollectionEntry<'channels'>;
+          ) as CollectionEntry<'channels'>;
           const channelChainToRender = getChannelChain(producerChannelValue, consumerChannelValue, channels);
 
           // If there is a chain between them we need to render them al
@@ -416,6 +413,7 @@ export const getNodesAndEdgesForConsumedMessage = ({
   currentNodes = [],
   target,
   mode = 'simple',
+  channelMap,
 }: {
   message: CollectionEntry<CollectionMessageTypes>;
   targetChannels?: { id: string; version: string }[];
@@ -424,9 +422,13 @@ export const getNodesAndEdgesForConsumedMessage = ({
   currentNodes: Node[];
   target: CollectionEntry<'services'>;
   mode?: 'simple' | 'full';
+  channelMap?: Map<string, CollectionEntry<'channels'>[]>;
 }) => {
   let nodes = [] as Node[],
     edges = [] as any;
+
+  // Use the provided map or create one if missing
+  const map = channelMap || createVersionedMap(channels);
 
   const messageId = generateIdForNode(message);
 
@@ -458,16 +460,14 @@ export const getNodesAndEdgesForConsumedMessage = ({
   const targetMessageConfiguration = target.data.receives?.find((receive) => receive.id === message.data.id);
   const channelsFromMessageToTarget = targetMessageConfiguration?.from ?? [];
   const hydratedChannelsFromMessageToTarget = channelsFromMessageToTarget
-    .map((channel) => getItemsFromCollectionByIdAndSemverOrLatest(channels, channel.id, channel.version)[0])
-    .filter((channel) => channel !== undefined);
+    .map((channel) => findInMap(map, channel.id, channel.version))
+    .filter((channel): channel is CollectionEntry<'channels'> => channel !== undefined);
 
   // Now we get the producers of the message and create nodes and edges for them
   const producers = getProducersOfMessage(services, message);
 
   const hasProducers = producers.length > 0;
   const targetHasDefinedChannels = targetChannels.length > 0;
-
-  const isMessageEvent = message.collection === 'events';
 
   // Warning edge if no producers or target channels are defined
   if (!hasProducers && !targetHasDefinedChannels) {
@@ -485,11 +485,7 @@ export const getNodesAndEdgesForConsumedMessage = ({
   // If the target defined channels they consume the message from, we need to create the channel nodes and edges
   if (targetHasDefinedChannels) {
     for (const targetChannel of targetChannels) {
-      const channel = getItemsFromCollectionByIdAndSemverOrLatest(
-        channels,
-        targetChannel.id,
-        targetChannel.version
-      )[0] as CollectionEntry<'channels'>;
+      const channel = findInMap(map, targetChannel.id, targetChannel.version) as CollectionEntry<'channels'>;
 
       if (!channel) {
         // No channe found, we just connect the message to the target directly
@@ -530,8 +526,6 @@ export const getNodesAndEdgesForConsumedMessage = ({
 
       // If we dont have any producers, we will connect the message to the channel directly
       if (producers.length === 0) {
-        const isEvent = message.collection === 'events';
-
         edges.push(
           createEdge({
             id: generatedIdForEdge(message, channel),
@@ -617,11 +611,7 @@ export const getNodesAndEdgesForConsumedMessage = ({
 
     // Process each producer channel configuration
     for (const producerChannel of producerChannelConfiguration) {
-      const channel = getItemsFromCollectionByIdAndSemverOrLatest(
-        channels,
-        producerChannel.id,
-        producerChannel.version
-      )[0] as CollectionEntry<'channels'>;
+      const channel = findInMap(map, producerChannel.id, producerChannel.version) as CollectionEntry<'channels'>;
 
       // If we cannot find the channel in EventCatalog, we just connect the message to the target directly
       if (!channel) {
@@ -729,6 +719,7 @@ export const getNodesAndEdgesForProducedMessage = ({
   currentEdges = [],
   source,
   mode = 'simple',
+  channelMap,
 }: {
   message: CollectionEntry<CollectionMessageTypes>;
   sourceChannels?: { id: string; version: string }[];
@@ -738,9 +729,13 @@ export const getNodesAndEdgesForProducedMessage = ({
   currentEdges: Edge[];
   source: CollectionEntry<'services'>;
   mode?: 'simple' | 'full';
+  channelMap?: Map<string, CollectionEntry<'channels'>[]>;
 }) => {
   let nodes = [] as Node[],
     edges = [] as any;
+
+  // Use provided map or create one
+  const map = channelMap || createVersionedMap(channels);
 
   const messageId = generateIdForNode(message);
 
@@ -784,17 +779,13 @@ export const getNodesAndEdgesForProducedMessage = ({
   const channelsFromSourceToMessage = sourceMessageConfiguration?.to ?? [];
 
   const hydratedChannelsFromSourceToMessage = channelsFromSourceToMessage
-    .map((channel) => getItemsFromCollectionByIdAndSemverOrLatest(channels, channel.id, channel.version)[0])
-    .filter((channel) => channel !== undefined);
+    .map((channel) => findInMap(map, channel.id, channel.version))
+    .filter((channel): channel is CollectionEntry<'channels'> => channel !== undefined);
 
   // If the source defined channels they send the message to, we need to create the channel nodes and edges
   if (sourceChannels && sourceChannels.length > 0) {
     for (const sourceChannel of sourceChannels) {
-      const channel = getItemsFromCollectionByIdAndSemverOrLatest(
-        channels,
-        sourceChannel.id,
-        sourceChannel.version
-      )[0] as CollectionEntry<'channels'>;
+      const channel = findInMap(map, sourceChannel.id, sourceChannel.version) as CollectionEntry<'channels'>;
 
       if (!channel) {
         // No channel found, we just connect the message to the source directly
@@ -881,11 +872,7 @@ export const getNodesAndEdgesForProducedMessage = ({
 
     // Process each consumer channel configuration
     for (const consumerChannel of consumerChannelConfiguration) {
-      const channel = getItemsFromCollectionByIdAndSemverOrLatest(
-        channels,
-        consumerChannel.id,
-        consumerChannel.version
-      )[0] as CollectionEntry<'channels'>;
+      const channel = findInMap(map, consumerChannel.id, consumerChannel.version) as CollectionEntry<'channels'>;
 
       const edgeProps = { customColor: getColorFromString(message.data.id), rootSourceAndTarget };
 

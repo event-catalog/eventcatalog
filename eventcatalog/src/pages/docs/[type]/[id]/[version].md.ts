@@ -4,7 +4,7 @@
 
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
-import { getEntities } from '@utils/entities';
+import { getEntities } from '@utils/collections/entities';
 import config from '@config';
 import fs from 'fs';
 

@@ -18,10 +18,7 @@ export class Page extends HybridPage {
         type: item.collection,
         id: item.data.id,
       },
-      props: {
-        type: item.collection,
-        ...item,
-      },
+      props: {},
     }));
   }
 

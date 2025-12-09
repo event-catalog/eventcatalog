@@ -25,36 +25,12 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
   <main class="flex sm:px-6 docs-layout h-full" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto pt-6 pb-8 min-h-[50em]">
-        {/* Breadcrumb */}
-        <nav class="mb-4 flex items-center space-x-2 text-sm text-gray-500" aria-label="Breadcrumb">
-          <a
-            href={buildUrl(`/docs/${props.type}/${props.data.id}/${props.data.latestVersion}`)}
-            class="hover:text-gray-700 hover:underline flex items-center gap-2"
-          >
-            <RectangleGroupIcon className="h-4 w-4" />
-            {props.data.name}
-          </a>
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
-          </svg>
-          <span class="text-gray-900 flex items-center gap-2">
-            {
-              (() => {
-                const BookOpen = LucideIcons.BookOpen;
-                //@ts-ignore
-                return <BookOpen className="h-4 w-4" />;
-              })()
-            }
-            Ubiquitous Language Explorer
-          </span>
-        </nav>
-
         {/* Title Section */}
         <div class="relative border-b border-gray-200 mb-4 pb-4">
           <div class="xl:flex xl:items-start xl:justify-between">
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
-                <h1 class="text-xl font-bold leading-7 text-gray-900 sm:text-2xl xl:text-3xl">Ubiquitous Language Explorer</h1>
+                <h1 class="text-xl font-bold leading-7 text-gray-900 sm:text-2xl xl:text-3xl">Ubiquitous Language</h1>
               </div>
               <p class="mt-2 text-sm text-gray-500">
                 Browse and discover ubiquitous language terms in the {props.data.name} domain{
@@ -145,7 +121,7 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                                 {term.description && (
                                   <div class="prose prose-sm prose-p:my-3">
                                     <a
-                                      href={buildUrl(`/docs/${props.type}/${props.data.id}/language/${term.id}`)}
+                                      href={buildUrl(`/docs/${props.collection}/${props.data.id}/language/${term.id}`)}
                                       class="show-more-text text-sm text-primary font-medium hover:underline"
                                     >
                                       Read more
@@ -213,7 +189,7 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                                   {term.description && (
                                     <div class="prose prose-sm prose-p:my-3">
                                       <a
-                                        href={buildUrl(`/docs/${props.type}/${subdomain.data.id}/language/${term.id}`)}
+                                        href={buildUrl(`/docs/${props.collection}/${subdomain.data.id}/language/${term.id}`)}
                                         class="show-more-text text-sm text-primary font-medium hover:underline"
                                       >
                                         Read more

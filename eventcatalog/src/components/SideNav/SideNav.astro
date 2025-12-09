@@ -1,37 +1,27 @@
 ---
 import type { HTMLAttributes } from 'astro/types';
-import config from '@config';
-
-// FlatView
-import { getResourcesForNavigation as getListViewResources } from './ListViewSideBar/utils';
-
-// TreeView
-import { SideNavTreeView } from './TreeView';
-import { getTreeView } from './TreeView/getTreeView';
-
-import ListViewSideBar from './ListViewSideBar';
 
 interface Props extends Omit<HTMLAttributes<'div'>, 'children'> {}
+import { getNestedSideBarData } from './NestedSideBar/sidebar-builder';
+import NestedSideBar from './NestedSideBar';
+import { ClientRouter } from 'astro:transitions';
 
-const currentPath = Astro.url.pathname;
-
-let props;
-
-const SIDENAV_TYPE = config?.docs?.sidebar?.type ?? 'LIST_VIEW';
-const SHOW_ORPHANED_MESSAGES = config?.docs?.sidebar?.showOrphanedMessages ?? true;
-
-if (SIDENAV_TYPE === 'LIST_VIEW') {
-  props = await getListViewResources({ currentPath });
-} else if (SIDENAV_TYPE === 'TREE_VIEW') {
-  props = getTreeView({ projectDir: process.env.PROJECT_DIR!, currentPath });
-}
+const props = await getNestedSideBarData();
 ---
 
 <div {...Astro.props}>
-  {
-    SIDENAV_TYPE === 'LIST_VIEW' && (
-      <ListViewSideBar resources={props} currentPath={currentPath} client:only showOrphanedMessages={SHOW_ORPHANED_MESSAGES} />
-    )
-  }
-  {SIDENAV_TYPE === 'TREE_VIEW' && <SideNavTreeView client:only transition:persist tree={props} />}
+  <ClientRouter />
+  <NestedSideBar client:only="react" />
 </div>
+
+<script is:inline define:vars={{ props }}>
+  window.sidebarData = props;
+</script>
+
+<script>
+  import { setSidebarData } from '@stores/sidebar-store';
+  const data = (window as any).sidebarData;
+  if (data) {
+    setSidebarData(data);
+  }
+</script>

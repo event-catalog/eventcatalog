@@ -1,4 +1,4 @@
-import { isSSR } from '@utils/feature';
+import { isSSR, isChangelogEnabled } from '@utils/feature';
 import { HybridPage } from '@utils/page-loaders/hybrid-page';
 import type { PageTypes } from '@types';
 
@@ -8,7 +8,7 @@ export class Page extends HybridPage {
   }
 
   static async getStaticPaths(): Promise<Array<{ params: any; props: any }>> {
-    if (isSSR()) {
+    if (isSSR() || !isChangelogEnabled()) {
       return [];
     }
 
@@ -36,7 +36,7 @@ export class Page extends HybridPage {
   protected static async fetchData(params: any) {
     const { type, id, version } = params;
 
-    if (!type || !id || !version) {
+    if (!type || !id || !version || !isChangelogEnabled()) {
       return null;
     }
 

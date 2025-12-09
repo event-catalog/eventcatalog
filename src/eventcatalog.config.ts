@@ -44,6 +44,13 @@ type TableConfiguration = {
   };
 };
 
+type PagesConfiguration = {
+  type: 'item' | 'group';
+  title: string;
+  icon?: string;
+  pages?: string[];
+};
+
 export interface Config {
   title: string;
   tagline: false;
@@ -75,6 +82,9 @@ export interface Config {
   mdxOptimize?: boolean;
   compress?: boolean;
   sidebar?: SideBarConfig[];
+  navigation?: {
+    pages: PagesConfiguration[];
+  };
   docs: {
     sidebar: {
       type?: 'TREE_VIEW' | 'LIST_VIEW';

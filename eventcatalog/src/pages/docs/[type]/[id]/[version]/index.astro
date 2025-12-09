@@ -1,26 +1,21 @@
 ---
+// External dependencies
+import { marked } from 'marked';
+
+import { render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import Footer from '@layouts/Footer.astro';
-import { marked } from 'marked';
 
 import components from '@components/MDX/components';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import SchemaViewer from '@components/MDX/SchemaViewer/SchemaViewerRoot.astro';
 import Admonition from '@components/MDX/Admonition';
-
-import { getSpecificationsForService } from '@utils/collections/services';
-
-import { resourceToCollectionMap, collectionToResourceMap } from '@utils/collections/util';
-
-// SideBars
-import ServiceSideBar from '@components/SideBars/ServiceSideBar.astro';
-import MessageSideBar from '@components/SideBars/MessageSideBar.astro';
-import DomainSideBar from '@components/SideBars/DomainSideBar.astro';
-import ChannelSideBar from '@components/SideBars/ChannelSideBar.astro';
-import FlowSideBar from '@components/SideBars/FlowSideBar.astro';
-import EntitySideBar from '@components/SideBars/EntitySideBar.astro';
-import ContainerSideBar from '@components/SideBars/ContainerSideBar.astro';
+import VersionList from '@components/Lists/VersionList.astro';
 import CopyAsMarkdown from '@components/CopyAsMarkdown';
+import FavoriteButton from '@components/FavoriteButton';
+import { shouldRenderSideBarSection } from '@components/SideNav/NestedSideBar/builders/shared';
 
 import {
   QueueListIcon,
@@ -33,21 +28,26 @@ import {
   ClockIcon,
 } from '@heroicons/react/24/outline';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
-import { Box, Boxes, SquarePenIcon, DatabaseIcon, DatabaseZapIcon, ShieldCheckIcon } from 'lucide-react';
-import type { CollectionTypes } from '@types';
+import { Box, Boxes, SquarePenIcon, DatabaseIcon, DatabaseZapIcon, ShieldCheckIcon, AlignLeft } from 'lucide-react';
 
-import { render } from 'astro:content';
-import type { CollectionEntry } from 'astro:content';
-
-import { getIcon } from '@utils/badges';
-import { getDeprecatedDetails } from '@utils/collections/util';
-import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
+import { getSpecificationsForService } from '@utils/collections/services';
+import { resourceToCollectionMap, collectionToResourceMap, getDeprecatedDetails } from '@utils/collections/util';
 import { getSchemasFromResource } from '@utils/collections/schemas';
-import { isEventCatalogChatEnabled, isMarkdownDownloadEnabled, isVisualiserEnabled } from '@utils/feature';
-
+import { getIcon } from '@utils/badges';
+import { buildUrl, buildEditUrlForResource } from '@utils/url-builder';
+import {
+  isEventCatalogChatEnabled,
+  isMarkdownDownloadEnabled,
+  isVisualiserEnabled,
+  isChangelogEnabled,
+  isRSSEnabled,
+} from '@utils/feature';
 import { getMDXComponentsByName } from '@utils/markdown';
 
+import type { CollectionTypes } from '@types';
+
 import config from '@config';
+
 import { Page } from './_index.data';
 
 export const prerender = Page.prerender;
@@ -56,7 +56,7 @@ export const getStaticPaths = Page.getStaticPaths;
 // Get data
 const props = await Page.getData(Astro);
 
-const { Content } = await render(props);
+const { Content, headings } = await render(props);
 
 const pageTitle = `${props.collection} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
 const contentBadges = props.data.badges || [];
@@ -259,6 +259,9 @@ let nodeGraphs = getMDXComponentsByName(props.body || '', 'NodeGraph') || [];
 // Get props for the node graph (when no id is passed, we assume its the current page)
 const nodeGraphPropsForPage = nodeGraphs.find((nodeGraph: any) => nodeGraph.id === undefined) || ({} as any);
 
+const shouldRenderVersionList =
+  shouldRenderSideBarSection(props, 'versions') && props.data.versions && props.data.versions.length > 1;
+
 // This will render the graph for this page
 nodeGraphs.push({
   id: props.data.id,
@@ -271,19 +274,31 @@ nodeGraphs.push({
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
-  <main class="flex sm:px-8 docs-layout h-full" {...pagefindAttributes}>
-    <div class="flex docs-layout w-full">
+  <main class="flex docs-layout h-full" {...pagefindAttributes}>
+    <div class="flex docs-layout w-full pl-16 pr-24">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
         <div class="border-b border-gray-200 md:pb-2">
           <div>
             <div class="flex justify-between items-center">
-              <h2
-                id="doc-page-header"
-                class={`text-2xl md:text-4xl font-bold text-black ${props.data.deprecated && hasDeprecated ? 'text-red-500' : ''}`}
-              >
-                {props.data.name}
-                <span class="">(v{props.data.version})</span>
-              </h2>
+              <div class="flex items-center gap-2">
+                <h2
+                  id="doc-page-header"
+                  class={`text-2xl md:text-4xl font-bold text-black ${props.data.deprecated && hasDeprecated ? 'text-red-500' : ''}`}
+                >
+                  {props.data.name}
+                  <span class="">(v{props.data.version})</span>
+                </h2>
+                <FavoriteButton
+                  client:load
+                  nodeKey={`${collectionToResourceMap[props.collection as keyof typeof collectionToResourceMap]}:${props.data.id}:${props.data.version}`}
+                  title={props.data.name}
+                  badge={collectionToResourceMap[props.collection as keyof typeof collectionToResourceMap]
+                    .charAt(0)
+                    .toUpperCase() + collectionToResourceMap[props.collection as keyof typeof collectionToResourceMap].slice(1)}
+                  href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}`)}
+                  size="md"
+                />
+              </div>
               <div class="hidden lg:block">
                 <CopyAsMarkdown
                   client:only="react"
@@ -291,6 +306,7 @@ nodeGraphs.push({
                   chatQuery={generatePromptForResource(props)}
                   chatEnabled={isEventCatalogChatEnabled()}
                   markdownDownloadEnabled={isMarkdownDownloadEnabled()}
+                  rssFeedEnabled={isRSSEnabled()}
                   editUrl={editUrl}
                 />
               </div>
@@ -475,185 +491,337 @@ nodeGraphs.push({
           }
         </div>
       </div>
-      <aside class="hidden lg:block sticky top-0 pb-10 w-96 overflow-y-auto py-2" data-pagefind-ignore>
-        <!-- @ts-ignore -->
-        {
-          (props?.collection === 'events' || props.collection === 'commands' || props.collection === 'queries') && (
-            <MessageSideBar message={props} />
-          )
-        }
-        {props?.collection === 'services' && <ServiceSideBar service={props} />}
-        {props?.collection === 'domains' && <DomainSideBar domain={props} />}
-        {props?.collection === 'channels' && <ChannelSideBar channel={props} />}
-        {props?.collection === 'flows' && <FlowSideBar flow={props} />}
-        {props?.collection === 'entities' && <EntitySideBar entity={props} />}
-        {props?.collection === 'containers' && <ContainerSideBar container={props} />}
+      <aside class="hidden lg:block sticky top-0 pb-10 w-80 overflow-y-auto bg-white py-2 flex-shrink-0">
+        <div class="py-4 mt-4 space-y-8">
+          {
+            headings.length > 0 && (
+              <div>
+                <h3 class="text-xs text-black font-semibold group-data-[hover]:text-black/80 capitalize flex items-center gap-2 mb-4">
+                  <AlignLeft className="w-4 h-4" />
+                  On this page
+                </h3>
+                <div class="space-y-8">
+                  <nav class="text-xs border-l border-gray-200">
+                    {headings.map((heading) => {
+                      const level = heading.depth > 2 ? heading.depth : 1;
+                      if (heading.depth > 3) {
+                        return null;
+                      }
+                      return (
+                        <a
+                          href={`#${heading.slug}`}
+                          class={`block py-1.5 pr-2.5 leading-5 text-gray-500 hover:border-gray-300 hover:text-gray-900 border-l-2 border-transparent -ml-px transition-all duration-200`}
+                          style={`padding-left: ${level * 0.75}rem`}
+                        >
+                          {heading.text}
+                        </a>
+                      );
+                    })}
+                  </nav>
+                </div>
+              </div>
+            )
+          }
+          {
+            shouldRenderVersionList && (
+              <VersionList
+                title={`Versions (${props.data.versions?.length})`}
+                versions={props.data.versions}
+                collectionItem={props}
+              />
+            )
+          }
+          <!-- Change log link -->
+          {
+            isChangelogEnabled() && shouldRenderSideBarSection(props, 'changelog') && (
+              <a
+                href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}/changelog`)}
+                class="text-xs text-gray-500 underline"
+              >
+                <span class="block">Read changelog &rarr;</span>
+              </a>
+            )
+          }
+        </div>
       </aside>
     </div>
-  </main>
 
-  <style is:global>
-    .docs-layout .prose {
-      max-width: none;
-      overflow: auto;
-    }
+    <style is:global>
+      .docs-layout .prose {
+        max-width: none;
+        overflow: auto;
+      }
 
-    .mermaid svg {
-      margin: 1em auto 2em;
-    }
+      .mermaid svg {
+        margin: 1em auto 2em;
+      }
 
-    /* Fix for architecture diagrams */
-    .mermaid[data-content*='architecture'] svg {
-      max-width: 350px !important;
-      margin: 0;
-      /* width: 100px !important; */
-    }
-  </style>
+      /* Fix for architecture diagrams */
+      .mermaid[data-content*='architecture'] svg {
+        max-width: 350px !important;
+        margin: 0;
+        /* width: 100px !important; */
+      }
+    </style>
 
-  <script define:vars={{ props, config }}>
-    // Fix to pass information to componets that are client side only
-    // and require catalog information
-    window.eventcatalog = {};
-    // @ts-ignore
-    window.eventcatalog[`${props.collection}-${props.data.id}`] = props.catalog;
+    <script define:vars={{ props, config }}>
+      // Fix to pass information to componets that are client side only
+      // and require catalog information
+      window.eventcatalog = {};
+      // @ts-ignore
+      window.eventcatalog[`${props.collection}-${props.data.id}`] = props.catalog;
 
-    window.eventcatalog.mermaid = config.mermaid;
-  </script>
+      window.eventcatalog.mermaid = config.mermaid;
+    </script>
 
-  <script>
-    // Listen for Astro transititions
-    document.addEventListener('astro:page-load', () => {
+    <script>
+      // Listen for Astro transititions
+      document.addEventListener('astro:page-load', () => {
+        const graphs = document.getElementsByClassName('mermaid');
+        if (document.getElementsByClassName('mermaid').length > 0) {
+          renderDiagrams(graphs);
+        }
+      });
+
+      /**
+       * Renders mermaid diagrams in the page
+       * @param {HTMLCollectionOf<HTMLElement>} graphs - The collection of mermaid graph elements
+       */
+      async function renderDiagrams(graphs: any) {
+        const { default: mermaid } = await import('mermaid');
+
+        if (window.eventcatalog.mermaid) {
+          const { icons } = await import('@iconify-json/logos');
+          const { iconPacks = [], enableSupportForElkLayout = false } = window.eventcatalog.mermaid ?? {};
+
+          if (iconPacks.length > 0) {
+            const iconPacksToRegister = iconPacks.map((name: any) => {
+              return {
+                name,
+                icons,
+              };
+            });
+
+            mermaid.registerIconPacks(iconPacksToRegister);
+          }
+
+          if (enableSupportForElkLayout) {
+            // @ts-ignore
+            const { default: elkLayouts } = await import('@mermaid-js/layout-elk/dist/mermaid-layout-elk.core.mjs');
+            mermaid.registerLayoutLoaders(elkLayouts);
+          }
+        }
+
+        mermaid.initialize({
+          // fontSize: 2,
+          flowchart: {
+            curve: 'linear',
+            rankSpacing: 0,
+            nodeSpacing: 0,
+          },
+          startOnLoad: false,
+          fontFamily: 'var(--sans-font)',
+          // @ts-ignore This works, but TS expects a enum for some reason
+          theme: 'light',
+          architecture: {
+            useMaxWidth: true,
+          },
+        });
+
+        for (const graph of graphs) {
+          const content = graph.getAttribute('data-content');
+          if (!content) continue;
+          let svg = document.createElement('svg');
+          const id = (svg.id = 'mermaid-' + Math.round(Math.random() * 100000));
+          graph.appendChild(svg);
+          mermaid.render(id, content).then((result) => {
+            graph.innerHTML = result.svg;
+          });
+        }
+      }
+
       const graphs = document.getElementsByClassName('mermaid');
       if (document.getElementsByClassName('mermaid').length > 0) {
         renderDiagrams(graphs);
       }
-    });
 
-    /**
-     * Renders mermaid diagrams in the page
-     * @param {HTMLCollectionOf<HTMLElement>} graphs - The collection of mermaid graph elements
-     */
-    async function renderDiagrams(graphs: any) {
-      const { default: mermaid } = await import('mermaid');
+      // Make renderDiagrams available globally for accordion component
+      window.renderDiagrams = renderDiagrams;
+    </script>
 
-      if (window.eventcatalog.mermaid) {
-        const { icons } = await import('@iconify-json/logos');
-        const { iconPacks = [], enableSupportForElkLayout = false } = window.eventcatalog.mermaid ?? {};
-
-        if (iconPacks.length > 0) {
-          const iconPacksToRegister = iconPacks.map((name: any) => {
-            return {
-              name,
-              icons,
-            };
-          });
-
-          mermaid.registerIconPacks(iconPacksToRegister);
-        }
-
-        if (enableSupportForElkLayout) {
-          // @ts-ignore
-          const { default: elkLayouts } = await import('@mermaid-js/layout-elk/dist/mermaid-layout-elk.core.mjs');
-          mermaid.registerLayoutLoaders(elkLayouts);
-        }
-      }
-
-      mermaid.initialize({
-        // fontSize: 2,
-        flowchart: {
-          curve: 'linear',
-          rankSpacing: 0,
-          nodeSpacing: 0,
-        },
-        startOnLoad: false,
-        fontFamily: 'var(--sans-font)',
-        // @ts-ignore This works, but TS expects a enum for some reason
-        theme: 'light',
-        architecture: {
-          useMaxWidth: true,
-        },
-      });
-
-      for (const graph of graphs) {
-        const content = graph.getAttribute('data-content');
-        if (!content) continue;
-        let svg = document.createElement('svg');
-        const id = (svg.id = 'mermaid-' + Math.round(Math.random() * 100000));
-        graph.appendChild(svg);
-        mermaid.render(id, content).then((result) => {
-          graph.innerHTML = result.svg;
+    <script>
+      import('pako').then(({ deflate }: any) => {
+        document.addEventListener('astro:page-load', () => {
+          const blocks = document.getElementsByClassName('plantuml');
+          if (blocks.length > 0) {
+            renderPlantUML(blocks, deflate);
+          }
         });
-      }
-    }
 
-    const graphs = document.getElementsByClassName('mermaid');
-    if (document.getElementsByClassName('mermaid').length > 0) {
-      renderDiagrams(graphs);
-    }
+        function renderPlantUML(blocks: any, deflate: any) {
+          for (const block of blocks) {
+            const content = block.getAttribute('data-content');
+            if (!content) continue;
 
-    // Make renderDiagrams available globally for accordion component
-    window.renderDiagrams = renderDiagrams;
-  </script>
-
-  <script>
-    import('pako').then(({ deflate }: any) => {
-      document.addEventListener('astro:page-load', () => {
-        const blocks = document.getElementsByClassName('plantuml');
-        if (blocks.length > 0) {
-          renderPlantUML(blocks, deflate);
+            const encoded = encodePlantUML(content, deflate);
+            const img = document.createElement('img');
+            img.src = `https://www.plantuml.com/plantuml/svg/~1${encoded}`;
+            img.alt = 'PlantUML diagram';
+            img.loading = 'lazy';
+            block.innerHTML = '';
+            // Add class to the img
+            img.classList.add('mx-auto');
+            block.appendChild(img);
+          }
         }
+
+        function encodePlantUML(text: any, deflate: any) {
+          const utf8encoded = new TextEncoder().encode(text);
+          const compressed = deflate(utf8encoded, { level: 9 });
+          return encode64(compressed);
+        }
+
+        const encode64 = (data: any) => {
+          const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
+          let str = '';
+          let i = 0;
+          while (i < data.length) {
+            let b1 = data[i++];
+            let b2 = i < data.length ? data[i++] : 0;
+            let b3 = i < data.length ? data[i++] : 0;
+
+            let c1 = b1 >> 2;
+            let c2 = ((b1 & 0x3) << 4) | (b2 >> 4);
+            let c3 = ((b2 & 0xf) << 2) | (b3 >> 6);
+            let c4 = b3 & 0x3f;
+
+            str += chars[c1] + chars[c2] + chars[c3] + chars[c4];
+          }
+          return str;
+        };
+
+        const graphs = document.getElementsByClassName('plantuml');
+        if (document.getElementsByClassName('plantuml').length > 0) {
+          renderPlantUML(graphs, deflate);
+        }
+
+        window.renderPlantUML = (graphs: any) => {
+          renderPlantUML(graphs, deflate);
+        };
       });
+    </script>
+    <script>
+      // @ts-nocheck
+      function setupObserver() {
+        try {
+          const observerOptions = {
+            rootMargin: '0px 0px -40% 0px',
+            threshold: 0.1,
+          };
 
-      function renderPlantUML(blocks: any, deflate: any) {
-        for (const block of blocks) {
-          const content = block.getAttribute('data-content');
-          if (!content) continue;
+          // Flag to temporarily disable observer after click
+          let observerPaused = false;
 
-          const encoded = encodePlantUML(content, deflate);
-          const img = document.createElement('img');
-          img.src = `https://www.plantuml.com/plantuml/svg/~1${encoded}`;
-          img.alt = 'PlantUML diagram';
-          img.loading = 'lazy';
-          block.innerHTML = '';
-          // Add class to the img
-          img.classList.add('mx-auto');
-          block.appendChild(img);
+          // Function to highlight a TOC item
+          function highlightTocItem(id) {
+            // Remove active class from all links
+            document.querySelectorAll('.active-toc-item').forEach((link) => {
+              link.classList.remove('active-toc-item', 'text-purple-600', 'font-medium', 'border-purple-600');
+              link.classList.add('text-gray-500', 'border-transparent');
+            });
+
+            // Add active class to current link
+            const tocLink = document.querySelector(`nav a[href="#${id}"]`);
+            if (tocLink) {
+              tocLink.classList.add('active-toc-item', 'text-purple-600', 'font-medium', 'border-purple-600');
+              tocLink.classList.remove('text-gray-500', 'border-transparent');
+
+              // Scroll the highlighted item into view with a small delay to ensure DOM updates first
+              setTimeout(() => {
+                tocLink.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+              }, 10);
+            }
+          }
+
+          // Set up the intersection observer for scrolling
+          const observer = new IntersectionObserver((entries) => {
+            // If observer is paused, don't process entries
+            if (observerPaused) return;
+
+            entries.forEach((entry) => {
+              try {
+                const id = entry.target.getAttribute('id');
+                if (entry.isIntersecting && id) {
+                  highlightTocItem(id);
+                }
+              } catch (entryError) {
+                console.error('Error processing intersection entry:', entryError);
+              }
+            });
+          }, observerOptions);
+
+          // Find all headings in the content area within the .prose container to observe
+          const prose = document.querySelector('.prose');
+          if (!prose) {
+            console.warn('No .prose container found for TOC highlighting');
+            return;
+          }
+
+          // First try to find headings with IDs
+          const headings = prose.querySelectorAll('h1[id], h2[id], h3[id]');
+
+          if (headings.length > 0) {
+            headings.forEach((heading) => {
+              observer.observe(heading);
+            });
+          } else {
+            // Fallback: If no headings with IDs found, attach IDs to them
+            const allHeadings = prose.querySelectorAll('h1, h2, h3');
+
+            allHeadings.forEach((heading) => {
+              // Only add ID if it doesn't exist
+              if (!heading.id) {
+                const text = heading.textContent || '';
+                const slug = text
+                  .toLowerCase()
+                  .replace(/[^\w\s-]/g, '')
+                  .replace(/\s+/g, '-');
+                heading.id = slug;
+              }
+              observer.observe(heading);
+            });
+          }
+
+          // Add click event listeners to all TOC links
+          const tocLinks = document.querySelectorAll('nav a[href^="#"]');
+          tocLinks.forEach((link) => {
+            link.addEventListener('click', (e) => {
+              // Get the ID from the href attribute
+              const hrefAttr = link.getAttribute('href');
+              if (!hrefAttr) return;
+
+              const id = hrefAttr.substring(1);
+
+              // Highlight the clicked item
+              highlightTocItem(id);
+
+              // Temporarily pause the observer to prevent immediate highlighting changes
+              observerPaused = true;
+
+              // Resume the observer after a delay (1.5 seconds)
+              setTimeout(() => {
+                observerPaused = false;
+              }, 500);
+            });
+          });
+        } catch (error) {
+          console.error('Error setting up TOC highlighting:', error);
         }
       }
 
-      function encodePlantUML(text: any, deflate: any) {
-        const utf8encoded = new TextEncoder().encode(text);
-        const compressed = deflate(utf8encoded, { level: 9 });
-        return encode64(compressed);
-      }
+      setupObserver();
 
-      const encode64 = (data: any) => {
-        const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
-        let str = '';
-        let i = 0;
-        while (i < data.length) {
-          let b1 = data[i++];
-          let b2 = i < data.length ? data[i++] : 0;
-          let b3 = i < data.length ? data[i++] : 0;
-
-          let c1 = b1 >> 2;
-          let c2 = ((b1 & 0x3) << 4) | (b2 >> 4);
-          let c3 = ((b2 & 0xf) << 2) | (b3 >> 6);
-          let c4 = b3 & 0x3f;
-
-          str += chars[c1] + chars[c2] + chars[c3] + chars[c4];
-        }
-        return str;
-      };
-
-      const graphs = document.getElementsByClassName('plantuml');
-      if (document.getElementsByClassName('plantuml').length > 0) {
-        renderPlantUML(graphs, deflate);
-      }
-
-      window.renderPlantUML = (graphs: any) => {
-        renderPlantUML(graphs, deflate);
-      };
-    });
-  </script>
+      document.addEventListener('astro:page-load', setupObserver);
+    </script>
+  </main>
 </VerticalSideBarLayout>

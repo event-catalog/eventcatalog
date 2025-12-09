@@ -19,24 +19,6 @@ badges:
     backgroundColor: yellow
     textColor: yellow
     icon: ShieldCheckIcon
-resourceGroups:
-  - id: related-resources
-    title: Core FlowMart Services
-    items:
-      - id: InventoryService
-        type: service
-      - id: OrdersService
-        type: service
-      - id: NotificationService
-        type: service
-      - id: ShippingService
-        type: service
-      - id: CustomerService
-        type: service
-      - id: PaymentService
-        type: service
-      - id: AnalyticsService
-        type: service
 attachments:
   - url: https://example.com/adr/001
     title: ADR-001 - Use Kafka for asynchronous messaging
@@ -53,6 +35,9 @@ attachments:
     description: The C4 diagram context of the E-Commerce system
     type: 'diagrams'
     icon: FileBoxIcon
+repository:
+  language: TypeScript
+  url: 'https://github.com/event-catalog/pretend-e-commerce-domain'
 ---
 
 import Footer from '@catalog/components/footer.astro';
@@ -204,13 +189,6 @@ Customers ||--o{ Subscription : subscribes
 
 ```
 
-## Target Architecture (Event Storming Results)
-
-Our target architecture was defined through collaborative event storming sessions with product, engineering, and business stakeholders. This represents our vision for FlowMart's commerce capabilities.
-
-<Miro boardId="uXjVIHCImos=/" moveToWidget="3074457347671667709" edit={false} />
-
-
 ### Order Processing Flow
 
 ```mermaid
@@ -245,17 +223,6 @@ Our subscription service powers FlowMart's popular "Subscribe & Save" feature:
 Secure, multi-provider payment processing with fraud detection:
 
 <Flow id="PaymentFlow" version="latest" includeKey={false} />
-
-## Core Services
-
-These services form the backbone of FlowMart's e-commerce operations:
-
-<ResourceGroupTable 
-    id="related-resources" 
-    limit={7} 
-    showOwners={true} 
-    description="Essential services powering our e-commerce platform" 
-/>
 
 ## Performance SLAs
 

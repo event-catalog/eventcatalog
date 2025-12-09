@@ -20,6 +20,8 @@ interface SchemaDetailsPanelProps {
   selectedVersion: string | null;
   onVersionChange: (version: string) => void;
   apiAccessEnabled?: boolean;
+  showOwners?: boolean;
+  showProducersConsumers?: boolean;
 }
 
 export default function SchemaDetailsPanel({
@@ -28,6 +30,8 @@ export default function SchemaDetailsPanel({
   selectedVersion,
   onVersionChange,
   apiAccessEnabled = false,
+  showOwners = true,
+  showProducersConsumers = true,
 }: SchemaDetailsPanelProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [schemaViewMode, setSchemaViewMode] = useState<'code' | 'schema' | 'diff'>('code');
@@ -167,7 +171,7 @@ export default function SchemaDetailsPanel({
       />
 
       {/* Producers and Consumers Section - Only show for messages (not services) */}
-      {message.collection !== 'services' && (
+      {message.collection !== 'services' && showProducersConsumers && (
         <ProducersConsumersSection
           message={message}
           isExpanded={producersConsumersExpanded}
@@ -176,7 +180,9 @@ export default function SchemaDetailsPanel({
       )}
 
       {/* Owners Section */}
-      <OwnersSection message={message} isExpanded={ownersExpanded} onToggle={() => setOwnersExpanded(!ownersExpanded)} />
+      {showOwners && (
+        <OwnersSection message={message} isExpanded={ownersExpanded} onToggle={() => setOwnersExpanded(!ownersExpanded)} />
+      )}
 
       {/* Schema Content - Takes full remaining height */}
       <div className="flex-1 overflow-hidden">

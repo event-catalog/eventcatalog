@@ -32,10 +32,7 @@ export class Page extends HybridPage {
           id: item.data.id,
           version: item.data.version,
         },
-        props: {
-          type: itemTypes[index],
-          ...item,
-        },
+        props: {},
       }))
     );
   }

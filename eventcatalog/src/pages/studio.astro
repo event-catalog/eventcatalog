@@ -1,12 +1,12 @@
 ---
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import { getEvents } from '@utils/events';
-import { getCommands } from '@utils/commands';
+import { getEvents } from '@utils/collections/events';
+import { getCommands } from '@utils/collections/commands';
 import { getServices } from '@utils/collections/services';
 import { BoltIcon, ServerIcon, RectangleGroupIcon } from '@heroicons/react/24/outline';
 import { SquareDashedMousePointerIcon, ArrowLeftRightIcon } from 'lucide-react';
 import StudioPageModal from '@components/Studio/StudioPageModal';
-import { getChannels } from '@utils/channels';
+import { getChannels } from '@utils/collections/channels';
 
 const [events, commands, services, channels] = await Promise.all([
   getEvents().catch(() => []),

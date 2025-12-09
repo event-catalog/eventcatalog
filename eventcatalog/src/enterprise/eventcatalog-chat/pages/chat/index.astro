@@ -5,10 +5,10 @@ import { getChatPromptsGroupedByCategory } from '@enterprise/eventcatalog-chat/u
 import config from '@config';
 import { Code } from 'astro-expressive-code/components';
 import { getDomains } from '@utils/collections/domains';
-import { getEvents } from '@utils/events';
-import { getCommands } from '@utils/commands';
+import { getEvents } from '@utils/collections/events';
+import { getCommands } from '@utils/collections/commands';
 import { getServices } from '@utils/collections/services';
-import { getQueries } from '@utils/queries';
+import { getQueries } from '@utils/collections/queries';
 
 const isEnabled = config.chat?.enabled || false;
 const chatConfig = config.chat || {};

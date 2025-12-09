@@ -2,9 +2,9 @@ import { getCollection, getEntry } from 'astro:content';
 import { generateIdForNode } from './utils/utils';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import { MarkerType } from '@xyflow/react';
-import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { getVersionFromCollection } from '@utils/collections/versions';
-import { getEntities, type Entity } from '@utils/entities';
+import { getEntities, type Entity } from '@utils/collections/entities';
 import { getDomains, type Domain } from '@utils/collections/domains';
 import { getServices, type Service } from '@utils/collections/services';
 
@@ -21,9 +21,8 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
   let nodes = [] as any,
     edges = [] as any;
 
-  const allDomains = await getDomains();
-  const allEntities = await getEntities();
-  const allServices = await getServices();
+  // 1. Fetch all collections in parallel
+  const [allDomains, allEntities, allServices] = await Promise.all([getDomains(), getEntities(), getServices()]);
 
   let resource = null;
 
@@ -65,14 +64,25 @@ export const getNodesAndEdges = async ({ id, version, entities, type = 'domains'
   const externalToDomain = Array.from(new Set<string>(listOfReferencedEntities as string[])) // Remove duplicates
     .filter((entityId: any) => !resourceEntities.some((domainEntity: any) => domainEntity.id === entityId));
 
+  // 2. Build optimized maps
+  // Only build domain map if we have domains to search
+  // Only build entity map if we have entities to search
+  const entityMap = createVersionedMap(allEntities);
+
   // Helper function to find which domain an entity belongs to
+  // Optimized to use direct iteration over domains (domains usually contain entity arrays)
+  // We can't easily map entity->domain without scanning domains first unless we build a reverse index.
+  // Given domains count is usually manageable, scanning is acceptable, OR we could build an index if needed.
+  // For now, let's keep the scan but make it efficient.
   const findEntityDomain = (entityId: string) => {
     return allDomains.find((domain) => domain.data.entities?.some((domainEntity: any) => domainEntity.data.id === entityId));
   };
 
   const addedExternalEntities = [];
+
   for (const entityId of externalToDomain) {
-    const externalEntity = getItemsFromCollectionByIdAndSemverOrLatest(allEntities, entityId as string, 'latest')[0] as Entity;
+    // 3. Use map lookup
+    const externalEntity = findInMap(entityMap, entityId as string, 'latest') as Entity;
 
     if (externalEntity) {
       const nodeId = generateIdForNode(externalEntity);

@@ -1,0 +1,29 @@
+---
+import DomainGrid from '@components/Grids/DomainGrid';
+import MessageGrid from '@components/Grids/MessageGrid';
+
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { Page } from './_index.data';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+// Get data
+const props = await Page.getData(Astro);
+let domain = props;
+
+const pageTitle = `${props.type} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
+
+const type = props.type;
+---
+
+<VerticalSideBarLayout title={pageTitle}>
+  <div class="bg-white min-h-screen">
+    <div class="mx-auto h-full">
+      <div class="px-6 py-6 h-full">
+        {type === 'domains' && <DomainGrid domain={domain} client:load />}
+        {type === 'services' && <MessageGrid service={props} client:load />}
+      </div>
+    </div>
+  </div>
+</VerticalSideBarLayout>

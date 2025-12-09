@@ -1,6 +1,6 @@
 import type { CollectionTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
-import { coerce, compare, eq, satisfies as satisfiesRange } from 'semver';
+import semver, { coerce, compare, eq, satisfies as satisfiesRange } from 'semver';
 
 export const getPreviousVersion = (version: string, versions: string[]) => {
   const index = versions.indexOf(version);
@@ -116,6 +116,7 @@ export const resourceToCollectionMap = {
   user: 'users',
   team: 'teams',
   container: 'containers',
+  entity: 'entities',
 } as const;
 
 export const collectionToResourceMap = {
@@ -129,6 +130,7 @@ export const collectionToResourceMap = {
   users: 'user',
   teams: 'team',
   containers: 'container',
+  entities: 'entity',
 } as const;
 
 export const getDeprecatedDetails = (item: CollectionEntry<CollectionTypes>) => {
@@ -164,4 +166,58 @@ export const removeContentFromCollection = (collection: CollectionEntry<Collecti
     body: undefined,
     catalog: undefined,
   }));
+};
+
+// --- OPTIMIZATION HELPERS ---
+
+/**
+ * Groups items by ID and sorts them by version (Newest first).
+ * This allows O(1) lookup for "latest" (index 0) and specific versions.
+ */
+export const createVersionedMap = <T extends { data: { id: string; version?: string } }>(items: T[]) => {
+  const map = new Map<string, T[]>();
+
+  for (const item of items) {
+    const id = item.data.id;
+    if (!map.has(id)) map.set(id, []);
+    map.get(id)!.push(item);
+  }
+
+  // Sort every entry so index [0] is always the latest version
+  for (const [key, list] of map.entries()) {
+    list.sort((a, b) => {
+      // specific version sorting logic (fallback to string compare if not valid semver)
+      const vA = a.data.version || '0.0.0';
+      const vB = b.data.version || '0.0.0';
+      return semver.valid(vB) && semver.valid(vA) ? semver.rcompare(vA, vB) : vB.localeCompare(vA);
+    });
+  }
+  return map;
+};
+
+/**
+ * Fast lookup helper.
+ * If version is provided, find it. If not, return the first (latest) item.
+ */
+export const findInMap = <T extends { data: { version?: string } }>(
+  map: Map<string, T[]>,
+  id: string,
+  version?: string
+): T | undefined => {
+  const items = map.get(id);
+  if (!items || items.length === 0) return undefined;
+
+  // If no version specified or 'latest', return the first item (which is sorted to be latest)
+  if (!version || version === 'latest') return items[0];
+
+  // Try exact match
+  const exactMatch = items.find((i) => i.data.version === version);
+  if (exactMatch) return exactMatch;
+
+  // Try semver match if not exact
+  if (semver.validRange(version)) {
+    return items.find((i) => semver.satisfies(i.data.version || '0.0.0', version));
+  }
+
+  return undefined;
 };

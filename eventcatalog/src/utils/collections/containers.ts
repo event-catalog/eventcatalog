@@ -1,16 +1,17 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
-import { getVersionForCollectionItem, satisfies } from './util';
+import { createVersionedMap, satisfies } from './util';
 import utils from '@eventcatalog/sdk';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
-
+const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 export type Entity = CollectionEntry<'containers'> & {
   catalog: {
     path: string;
     filePath: string;
     type: string;
+    publicPath: string;
   };
 };
 
@@ -19,54 +20,61 @@ interface Props {
 }
 
 // cache for build time
-let cachedEntities: Record<string, Entity[]> = {
-  allVersions: [],
-  currentVersions: [],
-};
+let memoryCache: Record<string, Entity[]> = {};
 
 export const getContainers = async ({ getAllVersions = true }: Props = {}): Promise<Entity[]> => {
+  // console.time('✅ New getContainers');
   const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
 
-  if (cachedEntities[cacheKey].length > 0) {
-    return cachedEntities[cacheKey];
+  if (memoryCache[cacheKey] && memoryCache[cacheKey].length > 0 && CACHE_ENABLED) {
+    // console.timeEnd('✅ New getContainers');
+    return memoryCache[cacheKey];
   }
 
-  const containers = await getCollection('containers', (container) => {
-    return (getAllVersions || !container.filePath?.includes('versioned')) && container.data.hidden !== true;
+  // 1. Fetch collections in parallel
+  const [allContainers, allServices] = await Promise.all([getCollection('containers'), getCollection('services')]);
+
+  // 2. Build optimized maps
+  const containerMap = createVersionedMap(allContainers);
+
+  // 3. Filter containers
+  const targetContainers = allContainers.filter((container) => {
+    if (container.data.hidden === true) return false;
+    if (!getAllVersions && container.filePath?.includes('versioned')) return false;
+    return true;
   });
 
-  const services = await getCollection('services');
+  const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
 
-  cachedEntities[cacheKey] = await Promise.all(
-    containers.map(async (container) => {
-      const { latestVersion, versions } = getVersionForCollectionItem(container, containers);
+  // 4. Enrich containers
+  const processedContainers = await Promise.all(
+    targetContainers.map(async (container) => {
+      // Version info
+      const containerVersions = containerMap.get(container.data.id) || [];
+      const latestVersion = containerVersions[0]?.data.version || container.data.version;
+      const versions = containerVersions.map((c) => c.data.version);
 
-      const servicesThatReferenceContainer = services.filter((service) => {
-        const references = [...(service.data.writesTo || []), ...(service.data.readsFrom || [])];
-        return references.some((item) => {
-          if (item.id != container.data.id) return false;
-          if (item.version == 'latest' || item.version == undefined) return container.data.version == latestVersion;
-          return satisfies(container.data.version, item.version);
-        });
-      });
-
-      const servicesThatWriteToContainer = services.filter((service) => {
+      // Find Services that write to this container
+      const servicesThatWriteToContainer = allServices.filter((service) => {
         return service.data?.writesTo?.some((item) => {
-          if (item.id != container.data.id) return false;
-          if (item.version == 'latest' || item.version == undefined) return container.data.version == latestVersion;
+          if (item.id !== container.data.id) return false;
+          if (item.version === 'latest' || item.version === undefined) return container.data.version === latestVersion;
           return satisfies(container.data.version, item.version);
         });
       });
 
-      const servicesThatReadFromContainer = services.filter((service) => {
+      // Find Services that read from this container
+      const servicesThatReadFromContainer = allServices.filter((service) => {
         return service.data?.readsFrom?.some((item) => {
-          if (item.id != container.data.id) return false;
-          if (item.version == 'latest' || item.version == undefined) return container.data.version == latestVersion;
+          if (item.id !== container.data.id) return false;
+          if (item.version === 'latest' || item.version === undefined) return container.data.version === latestVersion;
           return satisfies(container.data.version, item.version);
         });
       });
 
-      const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
+      // Combine references
+      const servicesThatReferenceContainer = [...new Set([...servicesThatWriteToContainer, ...servicesThatReadFromContainer])];
+
       const folderName = await getResourceFolderName(
         process.env.PROJECT_DIR ?? '',
         container.data.id,
@@ -102,10 +110,13 @@ export const getContainers = async ({ getAllVersions = true }: Props = {}): Prom
     })
   );
 
-  // order them by the name of the event
-  cachedEntities[cacheKey].sort((a, b) => {
+  // order them by the name of the container
+  processedContainers.sort((a, b) => {
     return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
   });
 
-  return cachedEntities[cacheKey];
+  memoryCache[cacheKey] = processedContainers;
+  // console.timeEnd('✅ New getContainers');
+
+  return processedContainers;
 };

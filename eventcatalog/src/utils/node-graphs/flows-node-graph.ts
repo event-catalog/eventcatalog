@@ -3,7 +3,7 @@ import dagre from 'dagre';
 import { createDagreGraph, calculatedNodes } from '@utils/node-graphs/utils/utils';
 import { MarkerType } from '@xyflow/react';
 import type { Node as NodeType } from '@xyflow/react';
-import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+import { createVersionedMap, findInMap } from '@utils/collections/util';
 
 type DagreGraph = any;
 
@@ -15,9 +15,8 @@ interface Props {
   renderAllEdges?: boolean;
 }
 
-const getServiceNode = (step: any, services: CollectionEntry<'services'>[]) => {
-  const servicesForVersion = getItemsFromCollectionByIdAndSemverOrLatest(services, step.service.id, step.service.version);
-  const service = servicesForVersion?.[0];
+const getServiceNode = (step: any, serviceMap: Map<string, any[]>) => {
+  const service = findInMap(serviceMap, step.service.id, step.service.version);
   return {
     ...step,
     type: service ? service.collection : 'step',
@@ -25,9 +24,8 @@ const getServiceNode = (step: any, services: CollectionEntry<'services'>[]) => {
   };
 };
 
-const getFlowNode = (step: any, flows: CollectionEntry<'flows'>[]) => {
-  const flowsForVersion = getItemsFromCollectionByIdAndSemverOrLatest(flows, step.flow.id, step.flow.version);
-  const flow = flowsForVersion?.[0];
+const getFlowNode = (step: any, flowMap: Map<string, any[]>) => {
+  const flow = findInMap(flowMap, step.flow.id, step.flow.version);
   return {
     ...step,
     type: flow ? flow.collection : 'step',
@@ -35,9 +33,8 @@ const getFlowNode = (step: any, flows: CollectionEntry<'flows'>[]) => {
   };
 };
 
-const getMessageNode = (step: any, messages: CollectionEntry<'events' | 'commands' | 'queries'>[]) => {
-  const messagesForVersion = getItemsFromCollectionByIdAndSemverOrLatest(messages, step.message.id, step.message.version);
-  const message = messagesForVersion[0];
+const getMessageNode = (step: any, messageMap: Map<string, any[]>) => {
+  const message = findInMap(messageMap, step.message.id, step.message.version);
   return {
     ...step,
     type: message ? message.collection : 'step',
@@ -50,7 +47,15 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   const nodes = [] as any,
     edges = [] as any;
 
-  const flows = await getCollection('flows');
+  // Fetch all collections in parallel
+  const [flows, events, commands, queries, services] = await Promise.all([
+    getCollection('flows'),
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+    getCollection('services'),
+  ]);
+
   const flow = flows.find((flow) => flow.data.id === id && flow.data.version === version);
 
   // Nothing found...
@@ -61,20 +66,19 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     };
   }
 
-  const events = await getCollection('events');
-  const commands = await getCollection('commands');
-  const queries = await getCollection('queries');
-  const services = await getCollection('services');
-
+  // Build maps for O(1) lookups
   const messages = [...events, ...commands, ...queries];
+  const messageMap = createVersionedMap(messages);
+  const serviceMap = createVersionedMap(services);
+  const flowMap = createVersionedMap(flows);
 
   const steps = flow?.data.steps || [];
 
   //  Hydrate the steps with information they may need.
   const hydratedSteps = steps.map((step: any) => {
-    if (step.service) return getServiceNode(step, services);
-    if (step.flow) return getFlowNode(step, flows);
-    if (step.message) return getMessageNode(step, messages);
+    if (step.service) return getServiceNode(step, serviceMap);
+    if (step.flow) return getFlowNode(step, flowMap);
+    if (step.message) return getMessageNode(step, messageMap);
     if (step.actor) return { ...step, type: 'actor', actor: step.actor };
     if (step.custom) return { ...step, type: 'custom', custom: step.custom };
     if (step.externalSystem) return { ...step, type: 'externalSystem', externalSystem: step.externalSystem };

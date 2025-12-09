@@ -1,0 +1,90 @@
+---
+import type { PageTypes } from '@types';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { Page } from './_index.data';
+import SchemaPageViewer from '@components/SchemaExplorer/SchemaPageViewer';
+import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
+import { sortVersioned } from '@utils/collections/util';
+import { isEventCatalogScaleEnabled } from '@utils/feature';
+import fs from 'fs';
+import path from 'path';
+import type { SchemaItem } from '@components/SchemaExplorer/types';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+// Get data
+const props = await Page.getData(Astro);
+const { type, data } = props as { type: PageTypes; data: any };
+const pageTitle = `${type} | ${data.name}`.replace(/^\w/, (c) => c.toUpperCase());
+
+const allItems = await pageDataLoader[type]();
+const versions = allItems.filter((item) => item.data.id === data.id);
+
+// Transform to SchemaItems
+const availableVersions = await Promise.all(
+  versions
+    .filter((message) => message.data.schemaPath)
+    .filter((message) => fs.existsSync(path.join(path.dirname(message.filePath ?? ''), message.data.schemaPath ?? '')))
+    .map(async (message) => {
+      try {
+        const schemaPath = message.data.schemaPath;
+        const fullSchemaPath = path.join(path.dirname(message.filePath ?? ''), schemaPath ?? '');
+
+        let schemaContent = '';
+        if (fs.existsSync(fullSchemaPath)) {
+          schemaContent = fs.readFileSync(fullSchemaPath, 'utf-8');
+        }
+
+        const schemaExtension = path.extname(schemaPath ?? '').slice(1);
+
+        return {
+          collection: message.collection,
+          data: {
+            id: message.data.id,
+            name: message.data.name,
+            version: message.data.version,
+            summary: message.data.summary,
+            schemaPath: message.data.schemaPath,
+            // @ts-ignore
+            producers: message.data.producers || [],
+            // @ts-ignore
+            consumers: message.data.consumers || [],
+          },
+          schemaContent,
+          schemaExtension,
+        } as SchemaItem;
+      } catch (error) {
+        console.error(`Error reading schema for ${message.data.id}:`, error);
+        return null;
+      }
+    })
+);
+
+const validVersions = availableVersions.filter((v): v is SchemaItem => v !== null);
+
+// Sort versions descending (newest first)
+const sortedVersions = sortVersioned(validVersions, (item) => item.data.version);
+
+const currentMessage = sortedVersions.find((v) => v.data.version === data.version);
+const apiAccessEnabled = isEventCatalogScaleEnabled();
+---
+
+<VerticalSideBarLayout title={pageTitle}>
+  <div class="h-[calc(100vh-4rem)] w-full overflow-hidden flex flex-col">
+    {
+      currentMessage ? (
+        <SchemaPageViewer
+          client:load
+          message={currentMessage}
+          availableVersions={sortedVersions}
+          apiAccessEnabled={apiAccessEnabled}
+          showOwners={false}
+          showProducersConsumers={false}
+        />
+      ) : (
+        <div class="p-8 flex items-center justify-center h-full text-gray-500">Schema not found or could not be loaded.</div>
+      )
+    }
+  </div>
+</VerticalSideBarLayout>

@@ -23,20 +23,27 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
 
 <nav
   id="eventcatalog-header"
-  class="fixed top-0 left-0 right-0 h-header bg-white border-b border-gray-100 py-3 font-bold text-xl bg-opacity-20 backdrop-blur-sm z-10"
+  class="fixed top-0 left-0 right-0 h-header bg-white/95 border-b border-gray-200 py-3 font-bold text-xl backdrop-blur-md z-10"
 >
   <div class="px-4 sm:px-4 lg:px-4">
     <div class="flex justify-between items-center">
       <div class="flex-shrink-0 flex items-center w-3/12">
-        <a href={buildUrl(catalog.landingPage || '/')} class="flex space-x-2 items-center">
-          {logo.src && <img alt={logo.alt} src={buildUrl(logo.src, true)} class="w-8 h-8" />}
-          {logo.text && <span class="hidden sm:inline-block text-[1em]">{logo.text}</span>}
+        <a href={buildUrl(catalog.landingPage || '/')} class="flex space-x-2 items-center group">
+          {
+            logo.src && (
+              <img alt={logo.alt} src={buildUrl(logo.src, true)} class="w-8 h-8 transition-transform group-hover:scale-105" />
+            )
+          }
+          {
+            logo.text && (
+              <span class="hidden sm:inline-block text-[1em] transition-colors group-hover:text-gray-600">{logo.text}</span>
+            )
+          }
         </a>
       </div>
 
       <div class="hidden lg:block flex-grow w-6/12 px-10">
-        <!-- Page find only works on static builds, disable for SSR builds for now -->
-        {!isSSR() && <Search />}
+        <Search />
       </div>
 
       <div class="hidden md:block w-3/12">
@@ -50,7 +57,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                 <button
                   id="profile-menu-button"
                   type="button"
-                  class="flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-full"
+                  class="flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 rounded-full"
                   aria-expanded="false"
                   aria-haspopup="true"
                 >
@@ -58,10 +65,10 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                     <img
                       src={session.user.image}
                       alt={session.user?.name || 'User'}
-                      class="h-8 w-8 rounded-full border-2 border-gray-200 hover:border-gray-300 transition-colors"
+                      class="h-9 w-9 rounded-full border-2 border-gray-200 hover:border-gray-400 transition-all shadow-sm"
                     />
                   ) : (
-                    <div class="h-8 w-8 rounded-full border-2 border-gray-200 hover:border-gray-300 transition-colors bg-gray-100 flex items-center justify-center text-sm font-medium text-gray-600">
+                    <div class="h-9 w-9 rounded-full border-2 border-gray-200 hover:border-gray-400 transition-all bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-600 shadow-sm">
                       {session.user?.name
                         ? session.user.name
                             .split(' ')
@@ -75,15 +82,15 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                 </button>
                 <div
                   id="profile-dropdown"
-                  class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100 overflow-hidden"
+                  class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-md py-1 z-50 border-2 border-gray-200 overflow-hidden"
                 >
-                  <div class="px-4 py-2 text-sm text-gray-700 border-b border-gray-100">
-                    <div class="font-medium">{session.user?.name || 'User'}</div>
-                    {session.user?.email && <div class="text-gray-500">{session.user.email}</div>}
+                  <div class="px-4 py-2 text-sm text-gray-700 border-b border-gray-200">
+                    <div class="font-semibold">{session.user?.name || 'User'}</div>
+                    {session.user?.email && <div class="text-gray-500 text-xs mt-0.5">{session.user.email}</div>}
                   </div>
                   <button
                     id="signout-btn"
-                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium"
                   >
                     Sign out
                   </button>
@@ -99,30 +106,48 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                 {isAuthEnabled() && (
                   <button
                     id="okta-signin-btn"
-                    class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    class="bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                   >
                     Sign In
                   </button>
                 )}
                 {showEventCatalogBranding() && (
-                  <ul class="flex space-x-8">
+                  <ul class="flex space-x-4">
                     <li>
-                      <a href="https://discord.com/invite/3rjaZMmrAm">
-                        <img src={buildUrl('/icons/discord.svg', true)} class="h-7 w-7" />
+                      <a
+                        href="https://discord.com/invite/3rjaZMmrAm"
+                        class="block p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
+                        <img
+                          src={buildUrl('/icons/discord.svg', true)}
+                          class="h-6 w-6 opacity-70 hover:opacity-100 transition-opacity"
+                        />
                       </a>
                     </li>
                     <li>
-                      <a href="https://github.com/event-catalog/eventcatalog">
-                        <img src={buildUrl('/icons/github.svg', true)} class="h-7 w-7" />
+                      <a
+                        href="https://github.com/event-catalog/eventcatalog"
+                        class="block p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
+                        <img
+                          src={buildUrl('/icons/github.svg', true)}
+                          class="h-6 w-6 opacity-70 hover:opacity-100 transition-opacity"
+                        />
                       </a>
                     </li>
                   </ul>
                 )}
                 {showCustomBranding() && !showEventCatalogBranding() && (
-                  <ul class="flex space-x-8">
+                  <ul class="flex space-x-4">
                     <li>
-                      <a href={repositoryUrl} class="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600">
-                        <img src={buildUrl('/icons/github.svg', true)} class="h-7 w-7" />
+                      <a
+                        href={repositoryUrl}
+                        class="block p-1.5 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none"
+                      >
+                        <img
+                          src={buildUrl('/icons/github.svg', true)}
+                          class="h-6 w-6 opacity-70 hover:opacity-100 transition-opacity"
+                        />
                       </a>
                     </li>
                   </ul>

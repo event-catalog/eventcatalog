@@ -7,12 +7,15 @@ export type ChangeLog = CollectionEntry<'changelogs'>;
 export const getChangeLogs = async (item: CollectionEntry<CollectionTypes>): Promise<ChangeLog[]> => {
   const { collection, data, filePath } = item;
 
+  const collectionDirectory = path.dirname(item?.filePath || '');
+  // Ensure the path follows <collectionDirectory>/versioned/<version>/changelog.mdx
+  // Pre-compile regex
+  const versionedPathPattern = new RegExp(`${collectionDirectory}/versioned/[^/]+/changelog\\.mdx$`);
+  const rootChangeLogPath = path.join(collectionDirectory, 'changelog.mdx');
+
   // Get all logs for collection type and filter by given collection
   const logs = await getCollection('changelogs', (log) => {
-    const collectionDirectory = path.dirname(item?.filePath || '');
-    const isRootChangeLog = path.join(collectionDirectory, 'changelog.mdx') === log.filePath;
-    // Ensure the path follows <collectionDirectory>/versioned/<version>/changelog.mdx
-    const versionedPathPattern = new RegExp(`${collectionDirectory}/versioned/[^/]+/changelog\\.mdx$`);
+    const isRootChangeLog = rootChangeLogPath === log.filePath;
     const isVersionedChangeLog = versionedPathPattern.test(log.filePath!);
     return log.id.includes(`${collection}/`) && (isRootChangeLog || isVersionedChangeLog);
   });
