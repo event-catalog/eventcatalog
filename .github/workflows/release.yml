@@ -2,8 +2,6 @@ name: Release
 on:
   push:
     branches:
-      - master
-      - next
       - main
 jobs:
   release:
@@ -12,7 +10,6 @@ jobs:
       pull-requests: write
       id-token: write
     runs-on: ubuntu-latest
-    if: github.repository == 'event-catalog/eventcatalog'
     steps:
       - uses: actions/checkout@v4
         with:
