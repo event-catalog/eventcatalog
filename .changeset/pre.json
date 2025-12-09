@@ -1,0 +1,8 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@eventcatalog/core": "2.65.1"
+  },
+  "changesets": []
+}
