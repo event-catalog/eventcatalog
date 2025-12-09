@@ -21,6 +21,8 @@ export const isEventCatalogScaleEnabled = () => process.env.EVENTCATALOG_SCALE =
 
 export const isPrivateRemoteSchemaEnabled = () => isEventCatalogScaleEnabled() || isEventCatalogStarterEnabled();
 
+export const isEmbedEnabled = () => process.env.ENABLE_EMBED === 'true';
+
 export const showEventCatalogBranding = () => {
   const override = process.env.EVENTCATALOG_SHOW_BRANDING;
   // if any value we return true

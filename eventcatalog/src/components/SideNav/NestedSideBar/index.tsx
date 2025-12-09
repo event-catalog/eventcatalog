@@ -42,13 +42,15 @@ type NavigationLevel = {
 
 export default function NestedSideBar() {
   const data = useStore(sidebarStore);
+  const favorites = useStore(favoritesStore);
 
   // Guard against undefined data (e.g., during hydration)
-  const roots = data?.roots ?? [];
-  const nodes = data?.nodes ?? {};
+  // Use useMemo to ensure stable references for roots and nodes
+  const roots = useMemo(() => data?.roots ?? [], [data?.roots]);
+  const nodes = useMemo(() => data?.nodes ?? {}, [data?.nodes]);
 
-  const [navigationStack, setNavigationStack] = useState<NavigationLevel[]>([
-    { key: null, entries: roots, title: 'Documentation' },
+  const [navigationStack, setNavigationStack] = useState<NavigationLevel[]>(() => [
+    { key: null, entries: [], title: 'Documentation' },
   ]);
   const [animationKey, setAnimationKey] = useState(0);
   const [slideDirection, setSlideDirection] = useState<'forward' | 'backward' | null>(null);
@@ -57,7 +59,6 @@ export default function NestedSideBar() {
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
   const [showPathPreview, setShowPathPreview] = useState(false);
   const [showFullPath, setShowFullPath] = useState(false);
-  const favorites = useStore(favoritesStore);
   const [isSearching, setIsSearching] = useState(false);
 
   // Build a lookup map for faster URL navigation
@@ -112,6 +113,21 @@ export default function NestedSideBar() {
       setCollapsedSections(saved);
     }
   }, []);
+
+  /**
+   * Update navigation stack when roots become available
+   */
+  useEffect(() => {
+    if (roots.length > 0) {
+      setNavigationStack((prevStack) => {
+        // Only update if the current stack has no entries (initial state)
+        if (prevStack.length === 1 && prevStack[0].entries.length === 0) {
+          return [{ key: null, entries: roots, title: 'Documentation' }];
+        }
+        return prevStack;
+      });
+    }
+  }, [roots]);
 
   /**
    * Populate the store with the data when the component mounts or data changes
@@ -300,43 +316,47 @@ export default function NestedSideBar() {
       const foundNodeKey = findNodeKeyByUrl(url);
 
       if (foundNodeKey) {
-        // Try to connect to current stack first
-        const connectedStack = tryConnectStack(foundNodeKey, navigationStack);
+        setNavigationStack((currentStack) => {
+          // Try to connect to current stack first
+          const connectedStack = tryConnectStack(foundNodeKey, currentStack);
 
-        if (connectedStack) {
-          setNavigationStack(connectedStack);
-          return true;
-        }
+          if (connectedStack) {
+            return connectedStack;
+          }
 
-        const foundNode = nodes[foundNodeKey];
-        if (foundNode && foundNode.pages && foundNode.pages.length > 0) {
-          // Fallback: Flattened navigation
-          setNavigationStack([
-            { key: null, entries: roots, title: 'Documentation' },
-            { key: foundNodeKey, entries: foundNode.pages, title: foundNode.title, badge: foundNode.badge },
-          ]);
-          return true;
-        }
+          const foundNode = nodes[foundNodeKey];
+          if (foundNode && foundNode.pages && foundNode.pages.length > 0) {
+            // Fallback: Flattened navigation
+            return [
+              { key: null, entries: roots, title: 'Documentation' },
+              { key: foundNodeKey, entries: foundNode.pages, title: foundNode.title, badge: foundNode.badge },
+            ];
+          }
+
+          return currentStack;
+        });
+        return true;
       } else if (url === '/' || url === '') {
         // Reset to root if we are on homepage
-        if (navigationStack.length > 1) {
-          setSlideDirection('backward');
-          setAnimationKey((prev) => prev + 1);
-        }
-        setNavigationStack([{ key: null, entries: roots, title: 'Documentation' }]);
+        setNavigationStack((currentStack) => {
+          if (currentStack.length > 1) {
+            setSlideDirection('backward');
+            setAnimationKey((prev) => prev + 1);
+          }
+          return [{ key: null, entries: roots, title: 'Documentation' }];
+        });
         return true;
       }
       return false;
     },
-    [findNodeKeyByUrl, tryConnectStack, navigationStack, nodes, roots]
+    [findNodeKeyByUrl, tryConnectStack, nodes, roots]
   );
 
   /**
    * Restore state from localStorage on mount, or navigate to URL
    */
   useEffect(() => {
-    if (!data || roots.length === 0) return;
-    if (isInitialized) return;
+    if (!data || roots.length === 0 || isInitialized) return;
 
     const currentUrl = window.location.pathname;
 
@@ -387,7 +407,7 @@ export default function NestedSideBar() {
     }
 
     setIsInitialized(true);
-  }, [data, roots, buildStackFromPath, isInitialized, findNodeKeyByUrl, tryConnectStack, nodes]);
+  }, [data, roots, nodes, isInitialized, buildStackFromPath, findNodeKeyByUrl, tryConnectStack]);
 
   /**
    * Save state whenever navigation changes

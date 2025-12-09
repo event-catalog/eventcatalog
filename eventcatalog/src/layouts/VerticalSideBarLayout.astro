@@ -3,11 +3,10 @@ interface Props {
   title: string;
   sidebar?: boolean;
   description?: string;
+  showNestedSideBar?: boolean;
 }
 
 import {
-  BookOpenText,
-  Workflow,
   TableProperties,
   House,
   BookUser,
@@ -17,7 +16,6 @@ import {
   Rocket,
   FileText,
   SquareDashedMousePointerIcon,
-  PackageSearch,
   FileJson,
 } from 'lucide-react';
 import Header from '../components/Header.astro';
@@ -41,6 +39,8 @@ import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/collections/queries';
 import { hasLandingPageForDocs } from '@utils/pages';
 
+import { isEventCatalogUpgradeEnabled, isEmbedEnabled } from '@utils/feature';
+
 const catalogHasDefaultLandingPageForDocs = await hasLandingPageForDocs();
 const customDocs = await getCollection('customPages');
 
@@ -61,8 +61,6 @@ if (!catalogHasDefaultLandingPageForDocs) {
     getFlows({ getAllVersions: false }),
   ]);
 }
-
-import { isEventCatalogUpgradeEnabled, isVisualiserEnabled } from '@utils/feature';
 
 // Try and load any custom styles if they exist
 try {
@@ -114,8 +112,6 @@ const navigationItems = [
       currentPath.includes('/architecture/') ||
       currentPath.includes('/visualiser') ||
       (currentPath.includes('/schemas') && !currentPath.includes('/schemas/explorer')),
-    sidebar: true,
-    hidden: false,
   },
   {
     id: '/discover',
@@ -126,19 +122,11 @@ const navigationItems = [
     sidebar: false,
   },
   {
-    id: '/schemas',
-    label: 'Schema Explorer',
-    icon: FileJson,
-    sidebar: true,
-    hidden: true,
-  },
-  {
     id: '/schemas/explorer',
     label: 'Schema Explorer',
     icon: FileJson,
     href: buildUrl('/schemas/explorer'),
     current: currentPath.includes('/schemas/explorer'),
-    sidebar: false,
   },
   {
     id: '/directory',
@@ -146,16 +134,6 @@ const navigationItems = [
     icon: Users,
     href: buildUrl('/directory/users'),
     current: currentPath.includes('/directory'),
-    sidebar: false,
-  },
-  {
-    id: '/architecture',
-    label: 'Architecture',
-    icon: BookUser,
-    href: buildUrl('/architecture/domains'),
-    current: currentPath.includes('/architecture/'),
-    sidebar: true,
-    hidden: true,
   },
 ].filter((item) => {
   const userSideBarOption = userSideBarConfiguration.find((config: { id: string; visible: boolean }) => config.id === item.id);
@@ -200,11 +178,9 @@ const premiumFeatures = [
 });
 
 const currentNavigationItem = [...navigationItems, ...studioNavigationItem, ...premiumFeatures].find((item) => item.current);
-const { title, description } = Astro.props;
+const { title, description, showNestedSideBar = true } = Astro.props;
 
-const showSideBarOnLoad = currentNavigationItem?.sidebar;
-
-const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
+const canPageBeEmbedded = isEmbedEnabled();
 ---
 
 <!doctype html>
@@ -365,13 +341,14 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
           </nav>
         </div>
 
-        <SideNav
-          id="sidebar"
-          class={`sidebar-transition h-content bg-white  border-r border-gray-100 w-[320px] ml-14 ${showSideBarOnLoad ? 'block' : 'hidden'}`}
-        />
+        {
+          showNestedSideBar && (
+            <SideNav id="sidebar" class={`sidebar-transition h-content bg-white  border-r border-gray-100 w-[320px] ml-14`} />
+          )
+        }
       </aside>
       <main
-        class={`sidebar-transition w-full max-h-content overflow-y-auto ${showSideBarOnLoad ? 'ml-0' : 'ml-14'}`}
+        class={`sidebar-transition w-full max-h-content overflow-y-auto ${showNestedSideBar ? 'ml-0' : 'ml-14'}`}
         id="content"
       >
         <slot />
@@ -396,7 +373,7 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
   </body>
 </html>
 <ClientRouter />
-<script define:vars={{ navigationItems, currentNavigationItem, showSideBarOnLoad, canPageBeEmbedded }}>
+<script define:vars={{ navigationItems, currentNavigationItem, canPageBeEmbedded }}>
   // Listen for Astro transititions
   document.addEventListener('astro:page-load', () => {
     document.dispatchEvent(new CustomEvent('contentLoaded'));
@@ -440,45 +417,6 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
       return;
     }
 
-    const sidebar = document.getElementById('sidebar');
-    const currentPath = window.location.pathname;
-
-    // Determine if we should show the sidebar based on current path
-    let shouldShowSidebar = false;
-
-    // Check each navigation item to see if it matches current path and has sidebar enabled
-    for (const item of navigationItems) {
-      if (!item.sidebar) continue; // Skip items that don't have sidebar
-
-      if (item.id === '/') {
-        // Home route - show sidebar for home, docs, architecture, visualiser, schemas (not explorer)
-        if (
-          currentPath === '/' ||
-          (currentPath.includes('/docs') && !currentPath.includes('/docs/custom')) ||
-          currentPath.includes('/architecture/') ||
-          currentPath.includes('/visualiser') ||
-          (currentPath.includes('/schemas') && !currentPath.includes('/schemas/explorer'))
-        ) {
-          shouldShowSidebar = true;
-          break;
-        }
-      } else if (currentPath.includes(item.id)) {
-        // Other routes - simple match
-        shouldShowSidebar = true;
-        break;
-      }
-    }
-
-    // Show or hide sidebar based on result
-    if (shouldShowSidebar) {
-      sidebar.style.display = 'block';
-      content.classList.remove('ml-14');
-    } else {
-      sidebar.style.display = 'none';
-      content.style.width = '100%';
-      content.classList.add('ml-14');
-    }
-
     const navItems = document.querySelectorAll('[data-role="nav-item"]');
 
     // Navigation items simply navigate to their href - no toggle logic
@@ -491,47 +429,6 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
           window.location.href = navItem.href;
         }
       });
-    });
-
-    function showSidebar() {
-      if (!sidebar || !content) return;
-      isOpen = true;
-      localStorage.setItem('sidebarState', 'open');
-      sidebar.style.display = 'block';
-      setTimeout(() => {
-        sidebar.style.transform = 'translateX(0)';
-        content.style.transform = 'translateX(0)';
-        content.classList.remove('ml-14');
-        content.style.width = 'calc(100% - 240px)';
-      }, 10);
-    }
-
-    function hideSidebar() {
-      if (!sidebar || !content) return;
-      isOpen = false;
-      sidebar.style.transform = 'translateX(-100%)';
-      content.style.transform = 'translateX(0px)';
-      content.style.width = '100%';
-      content.classList.add('ml-14');
-    }
-
-    if (sidebar) {
-      sidebar.addEventListener('transitionend', () => {
-        if (!isOpen && sidebar && content) {
-          sidebar.style.display = 'none';
-          content.style.transform = 'translateX(0px)';
-        }
-      });
-    }
-
-    // Listen for custom sidebar toggle event from React components
-    window.addEventListener('sidebarToggle', (event) => {
-      const { action } = event.detail;
-      if (action === 'hide') {
-        hideSidebar();
-      } else if (action === 'show') {
-        showSidebar();
-      }
     });
   });
 </script>
