@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.0
+
+### Major Changes
+
+- 1d1111d: feat(core): eventcatalog-v3 release
+
 ## 2.65.1
 
 ### Patch Changes
