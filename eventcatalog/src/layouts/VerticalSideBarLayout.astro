@@ -441,56 +441,54 @@ const canPageBeEmbedded = process.env.ENABLE_EMBED === 'true';
     }
 
     const sidebar = document.getElementById('sidebar');
-    const currentPath = window.location.href;
+    const currentPath = window.location.pathname;
 
-    // Hide the sidebar if the current navigation item is not a sidebar item
-    if (!currentNavigationItem?.sidebar) {
+    // Determine if we should show the sidebar based on current path
+    let shouldShowSidebar = false;
+
+    // Check each navigation item to see if it matches current path and has sidebar enabled
+    for (const item of navigationItems) {
+      if (!item.sidebar) continue; // Skip items that don't have sidebar
+
+      if (item.id === '/') {
+        // Home route - show sidebar for home, docs, architecture, visualiser, schemas (not explorer)
+        if (
+          currentPath === '/' ||
+          (currentPath.includes('/docs') && !currentPath.includes('/docs/custom')) ||
+          currentPath.includes('/architecture/') ||
+          currentPath.includes('/visualiser') ||
+          (currentPath.includes('/schemas') && !currentPath.includes('/schemas/explorer'))
+        ) {
+          shouldShowSidebar = true;
+          break;
+        }
+      } else if (currentPath.includes(item.id)) {
+        // Other routes - simple match
+        shouldShowSidebar = true;
+        break;
+      }
+    }
+
+    // Show or hide sidebar based on result
+    if (shouldShowSidebar) {
+      sidebar.style.display = 'block';
+      content.classList.remove('ml-14');
+    } else {
       sidebar.style.display = 'none';
       content.style.width = '100%';
       content.classList.add('ml-14');
-    } else {
-      sidebar.style.display = 'block';
     }
 
     const navItems = document.querySelectorAll('[data-role="nav-item"]');
-    let isOpen = showSideBarOnLoad;
 
+    // Navigation items simply navigate to their href - no toggle logic
     navItems.forEach((item) => {
       item.addEventListener('click', (e) => {
-        const currentPath = window.location.href;
-        const currentPathname = window.location.pathname;
         const id = item.getAttribute('id');
-
         const navItem = navigationItems.find((navItem) => navItem.id === id);
 
-        // Special handling for the home route
-        // If the ID is "/" we want to make sure we are exactly on the home page (or the href target)
-        // logic for other items uses .includes which works fine for sub-paths (e.g /discover)
-        // but for "/" it matches everything, so we need to be more specific here.
-        if (navItem.id === '/') {
-          const isSamePage =
-            currentPathname === navItem.href || currentPathname === navItem.href + '/' || currentPathname + '/' === navItem.href;
-          if (!isSamePage) {
-            window.location.href = navItem.href;
-            return;
-          }
-        }
-
-        if (!navItem.sidebar || !currentPath.includes(navItem.id) || currentPath.includes('/docs/custom')) {
+        if (navItem && navItem.href) {
           window.location.href = navItem.href;
-          return;
-        }
-
-        // not on the target page then just go to it.
-        if (!currentPath.includes(navItem.id)) return;
-
-        if (currentPath.includes(navItem.id)) {
-          e.preventDefault();
-          if (isOpen) {
-            hideSidebar();
-          } else {
-            showSidebar();
-          }
         }
       });
     });

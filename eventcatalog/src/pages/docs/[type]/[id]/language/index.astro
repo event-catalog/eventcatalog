@@ -121,7 +121,7 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                                 {term.description && (
                                   <div class="prose prose-sm prose-p:my-3">
                                     <a
-                                      href={buildUrl(`/docs/${props.type}/${props.data.id}/language/${term.id}`)}
+                                      href={buildUrl(`/docs/${props.collection}/${props.data.id}/language/${term.id}`)}
                                       class="show-more-text text-sm text-primary font-medium hover:underline"
                                     >
                                       Read more
@@ -189,7 +189,7 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                                   {term.description && (
                                     <div class="prose prose-sm prose-p:my-3">
                                       <a
-                                        href={buildUrl(`/docs/${props.type}/${subdomain.data.id}/language/${term.id}`)}
+                                        href={buildUrl(`/docs/${props.collection}/${subdomain.data.id}/language/${term.id}`)}
                                         class="show-more-text text-sm text-primary font-medium hover:underline"
                                       >
                                         Read more
