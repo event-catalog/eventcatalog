@@ -13,7 +13,7 @@ if (isAuthEnabled()) {
 }
 
 const logo = {
-  src: ('/' + (catalog?.logo?.src || 'logo.png')).replace(/^\/+/, '/'),
+  src: ('/' + (catalog?.logo?.src || '')).replace(/^\/+/, '/'),
   alt: catalog?.logo?.alt || 'Event Catalog',
   text: catalog?.logo?.text || 'EventCatalog',
 };
@@ -30,7 +30,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
       <div class="flex-shrink-0 flex items-center w-3/12">
         <a href={buildUrl(catalog.landingPage || '/')} class="flex space-x-2 items-center group">
           {
-            logo.src && (
+            logo.src && logo.src !== '/' && (
               <img alt={logo.alt} src={buildUrl(logo.src, true)} class="w-8 h-8 transition-transform group-hover:scale-105" />
             )
           }
@@ -42,7 +42,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
         </a>
       </div>
 
-      <div class="hidden lg:block flex-grow w-6/12 px-10">
+      <div class="hidden lg:block flex-grow -ml-1">
         <Search />
       </div>
 
@@ -118,10 +118,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                         href="https://discord.com/invite/3rjaZMmrAm"
                         class="block p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                       >
-                        <img
-                          src={buildUrl('/icons/discord.svg', true)}
-                          class="h-6 w-6 opacity-70 hover:opacity-100 transition-opacity"
-                        />
+                        <img src={buildUrl('/icons/discord.svg', true)} class="h-6 w-6  hover:opacity-100 transition-opacity" />
                       </a>
                     </li>
                     <li>
@@ -129,10 +126,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                         href="https://github.com/event-catalog/eventcatalog"
                         class="block p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
                       >
-                        <img
-                          src={buildUrl('/icons/github.svg', true)}
-                          class="h-6 w-6 opacity-70 hover:opacity-100 transition-opacity"
-                        />
+                        <img src={buildUrl('/icons/github.svg', true)} class="h-6 w-6  hover:opacity-100 transition-opacity" />
                       </a>
                     </li>
                   </ul>

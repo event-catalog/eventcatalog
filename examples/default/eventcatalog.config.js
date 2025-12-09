@@ -16,7 +16,7 @@ export default {
   // output: 'server',
   logo: {
     alt: 'FlowMart',
-    src: '/logo.png',
+    // src: '/logo.png',
     text: 'FlowMart',
   },
   base: '/',
