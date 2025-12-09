@@ -4,7 +4,5 @@
   "initialVersions": {
     "@eventcatalog/core": "2.65.1"
   },
-  "changesets": [
-    "late-zoos-scream"
-  ]
+  "changesets": ["late-zoos-scream"]
 }
