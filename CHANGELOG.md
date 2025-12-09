@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.1
+
+### Patch Changes
+
+- 35f760b: chore(core): updated styles for v3
+- ddc8af5: fix(core): fixed issues with nested sidebar state
+- 8ca5436: chore(core): fixing circular dep in JS
+
 ## 3.0.0-beta.0
 
 ### Major Changes
