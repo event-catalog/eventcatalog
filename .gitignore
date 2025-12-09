@@ -37,6 +37,8 @@ git-push.sh
 
 src/__tests__/example-catalog-dependencies/dependencies
 
+**/__tests__/catalog/
+
 eventcatalog/public/ai
 examples/default/public/ai
 **/[...auth].ts
