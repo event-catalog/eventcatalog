@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import $RefParser from "@apidevtools/json-schema-ref-parser";
 
 interface JSONSchemaViewerProps {
   schema: any;
@@ -100,107 +101,12 @@ function mergeAllOfSchemas(schemaWithProcessor: any): any {
   return mergedSchema;
 }
 
-function processSchema(schema: any, rootSchema?: any): any {
+async function processSchema(schema: any, rootSchema?: any): Promise<any> {
+
   if (!schema) return schema;
-
-  const root = rootSchema || schema;
-
-  // Handle $ref
-  if (schema.$ref) {
-    const refPath = schema.$ref;
-    let resolvedSchema = null;
-    let defName = '';
-
-    // Try draft-7 style first: #/definitions/
-    if (refPath.startsWith('#/definitions/')) {
-      defName = refPath.replace('#/definitions/', '');
-      if (root.definitions && root.definitions[defName]) {
-        resolvedSchema = root.definitions[defName];
-      }
-    }
-    // Try 2020-12 style: #/$defs/
-    else if (refPath.startsWith('#/$defs/')) {
-      defName = refPath.replace('#/$defs/', '');
-      if (root.$defs && root.$defs[defName]) {
-        resolvedSchema = root.$defs[defName];
-      }
-    }
-    // Try other common patterns
-    else if (refPath.startsWith('#/components/schemas/')) {
-      defName = refPath.replace('#/components/schemas/', '');
-      if (root.components && root.components.schemas && root.components.schemas[defName]) {
-        resolvedSchema = root.components.schemas[defName];
-      }
-    }
-
-    if (resolvedSchema) {
-      const processedSchema = processSchema(resolvedSchema, root);
-      return {
-        ...processedSchema,
-        _refPath: refPath,
-        _refName: defName,
-        _originalRef: schema.$ref,
-      };
-    }
-
-    return {
-      type: 'string',
-      description: `Reference to ${refPath} (definition not found in root schema)`,
-      title: defName || refPath.split('/').pop(),
-      _refPath: refPath,
-      _refName: defName,
-      _refNotFound: true,
-    };
-  }
-
-  if (schema.allOf) {
-    return mergeAllOfSchemas({ ...schema, processSchema: (s: any) => processSchema(s, root) });
-  }
-
-  if (schema.oneOf) {
-    const processedVariants = schema.oneOf.map((variant: any) => {
-      const processedVariant = processSchema(variant, root);
-      return {
-        title: processedVariant.title || variant.title || 'Unnamed Variant',
-        required: processedVariant.required || variant.required || [],
-        properties: processedVariant.properties || {},
-        ...processedVariant,
-      };
-    });
-
-    const allProperties: Record<string, any> = {};
-    processedVariants.forEach((variant: any) => {
-      if (variant.properties) {
-        Object.assign(allProperties, variant.properties);
-      }
-    });
-
-    return {
-      ...schema,
-      type: schema.type || 'object',
-      properties: {
-        ...(schema.properties || {}),
-        ...allProperties,
-      },
-      variants: processedVariants,
-    };
-  }
-
-  // Process nested schemas in properties
-  if (schema.properties) {
-    const processedProperties: Record<string, any> = {};
-    Object.entries(schema.properties).forEach(([key, prop]: [string, any]) => {
-      processedProperties[key] = processSchema(prop, root);
-    });
-    schema = { ...schema, properties: processedProperties };
-  }
-
-  // Process array items
-  if (schema.type === 'array' && schema.items) {
-    schema = { ...schema, items: processSchema(schema.items, root) };
-  }
-
-  return schema;
+  let dereferencedSchema = await $RefParser.dereference(schema);
+  return dereferencedSchema;
+  
 }
 
 // SchemaProperty component

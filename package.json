@@ -50,6 +50,7 @@
     "@ai-sdk/google": "^2.0.17",
     "@ai-sdk/openai": "^2.0.42",
     "@ai-sdk/react": "^2.0.60",
+    "@apidevtools/json-schema-ref-parser": "^15.1.3",
     "@astrojs/markdown-remark": "^6.3.9",
     "@astrojs/mdx": "^4.3.12",
     "@astrojs/node": "^9.5.1",
