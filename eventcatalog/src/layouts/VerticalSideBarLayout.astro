@@ -8,14 +8,14 @@ interface Props {
 
 import {
   TableProperties,
-  House,
   BotMessageSquare,
   Users,
+  BookOpen,
   Sparkles,
   Rocket,
   FileText,
   SquareDashedMousePointerIcon,
-  FileJson,
+  MailSearch,
 } from 'lucide-react';
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
@@ -102,8 +102,8 @@ const userSideBarConfiguration = config.sidebar || [];
 const navigationItems = [
   {
     id: '/',
-    label: 'Home',
-    icon: House,
+    label: 'Documentation',
+    icon: BookOpen,
     href: buildUrl(config.landingPage || '/'),
     current:
       currentPath === '/' ||
@@ -118,12 +118,11 @@ const navigationItems = [
     icon: TableProperties,
     href: buildUrl('/discover/events'),
     current: currentPath.includes('/discover/'),
-    sidebar: false,
   },
   {
     id: '/schemas/explorer',
     label: 'Schema Explorer',
-    icon: FileJson,
+    icon: MailSearch,
     href: buildUrl('/schemas/explorer'),
     current: currentPath.includes('/schemas/explorer'),
   },
@@ -146,7 +145,6 @@ const studioNavigationItem = [
     icon: SquareDashedMousePointerIcon,
     href: buildUrl('/studio'),
     current: currentPath.includes('/studio'),
-    sidebar: false,
   },
 ].filter((item) => {
   const userSideBarOption = userSideBarConfiguration.find((config: { id: string; visible: boolean }) => config.id === item.id);
@@ -160,7 +158,6 @@ const premiumFeatures = [
     icon: FileText,
     href: getDefaultUrl('docs/custom', '/docs/custom'),
     current: currentPath.includes('/docs/custom'),
-    sidebar: false,
     isPremium: true,
   },
   {
@@ -252,13 +249,11 @@ const canPageBeEmbedded = isEmbedEnabled();
                       data-role="nav-item"
                       href={item.href}
                       class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${
-                        item.current
-                          ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700'
-                          : 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-700 hover:text-white text-gray-700'
+                        item.current ? 'text-white bg-gray-900' : 'hover:bg-gray-800 hover:text-white text-gray-700'
                       }`}
                     >
                       <div class="has-tooltip">
-                        <span class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10">
+                        <span class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap">
                           {item.label}
                         </span>
                         <item.icon className="h-6 w-6" />
@@ -276,10 +271,10 @@ const canPageBeEmbedded = isEmbedEnabled();
                     id={studioNavigationItem[0].id}
                     data-role="nav-item"
                     href={studioNavigationItem[0].href}
-                    class={`p-1.5 inline-block pt-1 pb-1 mt-0 mb-0 transition-colors duration-200 rounded-lg relative ${studioNavigationItem[0].current ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700' : 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-700 hover:text-white text-gray-700'}`}
+                    class={`p-1.5 inline-block pt-1 pb-1 mt-0 mb-0 transition-colors duration-200 rounded-lg relative ${studioNavigationItem[0].current ? 'text-white bg-gray-900' : 'hover:bg-gray-800 hover:text-white text-gray-700'}`}
                   >
                     <div class="has-tooltip">
-                      <span class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10">
+                      <span class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap">
                         {studioNavigationItem[0].label}
                       </span>
                       <SquareDashedMousePointerIcon className="h-6 w-6" />
@@ -297,13 +292,11 @@ const canPageBeEmbedded = isEmbedEnabled();
                     data-role="nav-item"
                     href={item.href}
                     class={`p-1.5 inline-block transition-colors duration-200 rounded-lg mb-8 relative ${
-                      item.current
-                        ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700'
-                        : 'hover:bg-gradient-to-r hover:from-purple-500 hover:to-purple-700 hover:text-white text-gray-700'
+                      item.current ? 'text-white bg-gray-900' : 'hover:bg-gray-800 hover:text-white text-gray-700'
                     }`}
                   >
                     <div class="has-tooltip">
-                      <span class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-indigo-500 to-indigo-700 text-white ml-10 flex items-center gap-1">
+                      <span class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 flex items-center gap-1 whitespace-nowrap">
                         <Sparkles className="h-3 w-3" /> {item.label}
                       </span>
                       <item.icon className="h-6 w-6" />
@@ -323,10 +316,10 @@ const canPageBeEmbedded = isEmbedEnabled();
                     id="/pro"
                     data-role="nav-item"
                     href={buildUrl('/plans')}
-                    class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${currentPath.includes('/pro') ? 'text-white bg-gradient-to-b from-purple-500 to-purple-700' : 'bg-gradient-to-r from-purple-100 to-indigo-100 hover:from-purple-500 hover:to-purple-700 hover:text-white text-purple-700'}`}
+                    class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${currentPath.includes('/pro') ? 'text-white bg-gray-900' : 'bg-gray-200 hover:bg-gray-800 hover:text-white text-gray-700'}`}
                   >
                     <div class="has-tooltip">
-                      <span class="tooltip rounded shadow-lg p-1 text-xs bg-gradient-to-l from-purple-500 to-purple-700 text-white ml-10">
+                      <span class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap">
                         Upgrade EventCatalog
                       </span>
                       <Rocket className="h-6 w-6" />

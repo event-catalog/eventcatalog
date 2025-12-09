@@ -314,16 +314,6 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      {/* Compact Header */}
-      <div className="flex-shrink-0 border-b border-gray-200 pb-2 mb-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Schema Explorer</h1>
-          <p className="mt-0.5 text-xs text-gray-600">
-            {filteredMessages.length} schema{filteredMessages.length !== 1 ? 's' : ''} available
-          </p>
-        </div>
-      </div>
-
       {/* Split View */}
       <div className="flex-1 flex gap-4 overflow-hidden">
         {/* Left: Filters + Schema List */}

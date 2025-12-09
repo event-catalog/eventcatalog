@@ -275,7 +275,7 @@ nodeGraphs.push({
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
   <main class="flex docs-layout h-full" {...pagefindAttributes}>
-    <div class="flex docs-layout w-full pl-16 pr-24">
+    <div class="flex docs-layout w-full pl-16">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
         <div class="border-b border-gray-200 md:pb-2">
           <div>
@@ -286,7 +286,7 @@ nodeGraphs.push({
                   class={`text-2xl md:text-4xl font-bold text-black ${props.data.deprecated && hasDeprecated ? 'text-red-500' : ''}`}
                 >
                   {props.data.name}
-                  <span class="">(v{props.data.version})</span>
+                  {props.data.latestVersion !== props.data.version && <span>(v{props.data.version})</span>}
                 </h2>
                 <FavoriteButton
                   client:load
@@ -491,8 +491,8 @@ nodeGraphs.push({
           }
         </div>
       </div>
-      <aside class="hidden lg:block sticky top-0 pb-10 w-80 overflow-y-auto bg-white py-2 flex-shrink-0">
-        <div class="py-4 mt-4 space-y-8">
+      <aside class="hidden xl:block sticky top-0 pb-10 w-[280px] overflow-y-auto py-2 flex-shrink-0 pr-10">
+        <div class="mt-4 space-y-8">
           {
             headings.length > 0 && (
               <div>

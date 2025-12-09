@@ -770,10 +770,7 @@ export default function NestedSideBar() {
         <div className="flex items-center gap-2.5 min-w-0 flex-1 ">
           {IconComponent && (
             <span
-              className={cn(
-                'flex items-center justify-center w-5 h-5 flex-shrink-0',
-                isActive ? 'text-purple-600' : 'text-gray-500'
-              )}
+              className={cn('flex items-center justify-center w-5 h-5 flex-shrink-0', isActive ? 'text-black' : 'text-gray-500')}
             >
               <IconComponent className="w-4 h-4" />
             </span>
@@ -781,7 +778,7 @@ export default function NestedSideBar() {
           <span
             className={cn(
               'text-[13px] truncate',
-              isActive ? 'text-purple-600 font-medium' : 'text-gray-600 group-hover:text-gray-900'
+              isActive ? 'text-black font-medium' : 'text-gray-600 group-hover:text-gray-900'
             )}
           >
             {item.title}
@@ -802,7 +799,7 @@ export default function NestedSideBar() {
             </button>
           )}
           {itemHasChildren && (
-            <span className="flex items-center justify-center w-5 h-5 text-gray-400 group-hover:text-purple-500 group-hover:translate-x-0.5 transition-transform">
+            <span className="flex items-center justify-center w-5 h-5 text-gray-400 group-hover:text-black group-hover:translate-x-0.5 transition-transform">
               <ChevronRight className="w-4 h-4" />
             </span>
           )}
@@ -813,7 +810,7 @@ export default function NestedSideBar() {
     const baseClasses =
       'group flex items-center justify-between w-full px-3 py-1 rounded-lg cursor-pointer text-left transition-colors hover:bg-gray-100 active:bg-gray-200';
     const parentClasses = itemHasChildren ? 'font-medium' : '';
-    const activeClasses = isActive ? 'bg-purple-100 hover:bg-purple-100 border-l-4 border-purple-600 rounded-l-none' : '';
+    const activeClasses = isActive ? 'bg-gray-200 hover:bg-gray-200 border-l-4 border-black rounded-l-none' : '';
 
     // Leaf item with href → render as link
     if (item.href && !itemHasChildren) {
@@ -919,7 +916,7 @@ export default function NestedSideBar() {
                               className={cn(
                                 'flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors',
                                 !isCurrentLevel && 'hover:bg-gray-100 cursor-pointer',
-                                isCurrentLevel && 'bg-purple-50 cursor-default'
+                                isCurrentLevel && 'bg-gray-200 cursor-default'
                               )}
                               style={{ paddingLeft: `${displayIndex * 12 + 8}px` }}
                             >
@@ -929,10 +926,7 @@ export default function NestedSideBar() {
                                 <ChevronRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
                               )}
                               <span
-                                className={cn(
-                                  'text-sm truncate',
-                                  isCurrentLevel ? 'font-medium text-purple-700' : 'text-gray-600'
-                                )}
+                                className={cn('text-sm truncate', isCurrentLevel ? 'font-medium text-black' : 'text-gray-600')}
                               >
                                 {level.title}
                               </span>
@@ -1020,14 +1014,14 @@ export default function NestedSideBar() {
                         onClick={() => navigateToFavorite(fav)}
                         className={cn(
                           'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-amber-50 active:bg-amber-100',
-                          isActive && 'bg-purple-100 hover:bg-purple-100 border-l-4 border-purple-600 rounded-l-none'
+                          isActive && 'bg-gray-200 hover:bg-gray-200 border-l-4 border-black rounded-l-none'
                         )}
                       >
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
                           <span
                             className={cn(
                               'text-[14px] truncate',
-                              isActive ? 'text-purple-600 font-medium' : 'text-gray-600 group-hover:text-gray-900'
+                              isActive ? 'text-black font-medium' : 'text-gray-600 group-hover:text-gray-900'
                             )}
                           >
                             {fav.title}
@@ -1054,7 +1048,7 @@ export default function NestedSideBar() {
                             <Star className="w-3.5 h-3.5 fill-current" />
                           </button>
                           {node?.pages && node.pages.length > 0 && (
-                            <span className="flex items-center justify-center w-5 h-5 text-gray-400 group-hover:text-purple-500">
+                            <span className="flex items-center justify-center w-5 h-5 text-gray-400 group-hover:text-black">
                               <ChevronRight className="w-4 h-4" />
                             </span>
                           )}
