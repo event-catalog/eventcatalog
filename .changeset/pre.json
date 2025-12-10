@@ -4,10 +4,5 @@
   "initialVersions": {
     "@eventcatalog/core": "2.65.1"
   },
-  "changesets": [
-    "khaki-humans-wonder",
-    "late-zoos-scream",
-    "mighty-walls-watch",
-    "selfish-geese-wave"
-  ]
+  "changesets": ["khaki-humans-wonder", "late-zoos-scream", "mighty-walls-watch", "selfish-geese-wave"]
 }
