@@ -103,8 +103,13 @@ function mergeAllOfSchemas(schemaWithProcessor: any): any {
 
 async function processSchema(schema: any, rootSchema?: any): Promise<any> {
   if (!schema) return schema;
-  let returnSchema = await $RefParser.resolve(schema);
-  return returnSchema;
+
+  let dereferencedSchema = await $RefParser.dereference(schema, {
+    dereference: {
+      circular: 'ignore', // Don't allow circular $refs
+    },
+  });
+  return dereferencedSchema;
 }
 
 // SchemaProperty component
