@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import $RefParser from "@apidevtools/json-schema-ref-parser";
+import $RefParser from '@apidevtools/json-schema-ref-parser';
 
 interface JSONSchemaViewerProps {
   schema: any;
@@ -102,11 +102,9 @@ function mergeAllOfSchemas(schemaWithProcessor: any): any {
 }
 
 async function processSchema(schema: any, rootSchema?: any): Promise<any> {
-
   if (!schema) return schema;
   let dereferencedSchema = await $RefParser.dereference(schema);
   return dereferencedSchema;
-  
 }
 
 // SchemaProperty component
