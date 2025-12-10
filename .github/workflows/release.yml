@@ -9,6 +9,7 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
+      packages: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
