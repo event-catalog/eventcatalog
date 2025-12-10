@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.3
+
+### Patch Changes
+
+- 08f0c81: chore(core): updated cli logger
+
 ## 3.0.0-beta.2
 
 ### Patch Changes
