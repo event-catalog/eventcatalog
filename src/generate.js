@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { getEventCatalogConfigFile, cleanup } from './eventcatalog-config-file-utils.js';
+import { logger } from './utils/cli-logger';
 
 function getDefaultExport(importedModule) {
   if (importedModule === null || typeof importedModule !== 'object') {
@@ -24,7 +25,7 @@ export const generate = async (PROJECT_DIRECTORY) => {
     const { generators = [] } = config;
 
     if (!generators.length) {
-      console.log('No configured generators found, skipping generation');
+      logger.info('No configured generators found, skipping generation', 'generator');
       return;
     }
 
@@ -50,7 +51,8 @@ export const generate = async (PROJECT_DIRECTORY) => {
 
         // Use importedGenerator here
       } catch (error) {
-        console.error('Error loading plugin:', error);
+        logger.error('Error loading plugin:', 'generator');
+        console.error(error);
         await cleanup(PROJECT_DIRECTORY);
         return;
       }

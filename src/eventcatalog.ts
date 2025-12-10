@@ -16,6 +16,7 @@ import { isOutputServer, getProjectOutDir, isAuthEnabled } from './features';
 import updateNotifier from 'update-notifier';
 import dotenv from 'dotenv';
 import { runMigrations } from './migrations';
+import { logger } from './utils/cli-logger';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -115,7 +116,7 @@ const createAuthFileIfNotExists = async (hasRequiredLicense: boolean) => {
   // If auth is enabled, then we need to create the auth API file
   try {
     if (authEnabled && hasRequiredLicense && isSRR) {
-      console.log('Creating auth file');
+      logger.info('Creating auth file', 'auth');
       fs.writeFileSync(
         join(core, 'src/pages/api/[...auth].ts'),
         `import { AstroAuth } from 'auth-astro/server';
@@ -173,7 +174,12 @@ program
   .option('--force-recreate', 'Recreate the eventcatalog-core directory', false)
   .action(async (options, command: Command) => {
     // // Copy EventCatalog core over
-    console.log('Setting up EventCatalog....');
+    // // Copy EventCatalog core over
+    logger.welcome();
+    logger.info('Setting up EventCatalog...', 'eventcatalog');
+
+    const isServer = await isOutputServer();
+    logger.info(isServer ? 'EventCatalog is running in Server Mode' : 'EventCatalog is running in Static Mode', 'config');
 
     // Load any .env file in the project directory
     if (fs.existsSync(path.join(dir, '.env'))) {
@@ -181,9 +187,9 @@ program
     }
 
     if (options.debug) {
-      console.log('Debug mode enabled');
-      console.log('PROJECT_DIR', dir);
-      console.log('CATALOG_DIR', core);
+      logger.info('Debug mode enabled', 'debug');
+      logger.info(`PROJECT_DIR: ${dir}`, 'debug');
+      logger.info(`CATALOG_DIR: ${core}`, 'debug');
     }
 
     if (options.forceRecreate) clearCore();
@@ -257,7 +263,11 @@ program
   .command('build')
   .description('Run build of EventCatalog')
   .action(async (options, command: Command) => {
-    console.log('Building EventCatalog...');
+    logger.welcome();
+    logger.info('Building EventCatalog...', 'build');
+
+    const isServer = await isOutputServer();
+    logger.info(isServer ? 'EventCatalog is running in Server Mode' : 'EventCatalog is running in Static Mode', 'config');
 
     // Load any .env file in the project directory
     if (fs.existsSync(path.join(dir, '.env'))) {
@@ -381,7 +391,8 @@ program
   .command('preview')
   .description('Serves the contents of your eventcatalog build directory')
   .action(async (options, command: Command) => {
-    console.log('Starting preview of your build...');
+    logger.welcome();
+    logger.info('Starting preview of your build...', 'preview');
 
     // Load any .env file in the project directory
     if (fs.existsSync(path.join(dir, '.env'))) {
@@ -407,7 +418,8 @@ program
   .command('start')
   .description('Serves the contents of your eventcatalog build directory')
   .action(async (options, command: Command) => {
-    console.log('Starting preview of your build...');
+    logger.welcome();
+    logger.info('Starting preview of your build...', 'preview');
 
     // Load any .env file in the project directory
     if (fs.existsSync(path.join(dir, '.env'))) {
