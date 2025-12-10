@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.4
+
+### Patch Changes
+
+- c43115d: feat(core): added channel support in nav and search
+
 ## 3.0.0-beta.3
 
 ### Patch Changes
