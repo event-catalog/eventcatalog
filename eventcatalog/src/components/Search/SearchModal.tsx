@@ -20,6 +20,7 @@ import {
   ArrowUturnLeftIcon,
   StarIcon,
   Square2StackIcon,
+  ArrowsRightLeftIcon,
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid, CircleStackIcon } from '@heroicons/react/24/solid';
 import { useStore } from '@nanostores/react';
@@ -33,7 +34,7 @@ const typeIcons: any = {
   Command: ChatBubbleLeftIcon,
   Query: QueryIcon,
   Entity: CubeIcon,
-  Channel: QueueListIcon,
+  Channel: ArrowsRightLeftIcon,
   Team: UserGroupIcon,
   User: UserIcon,
   Language: BookOpenIcon,
@@ -68,8 +69,6 @@ function classNames(...classes: (string | boolean | undefined)[]) {
 
 // Helper to construct URL from key if href is missing
 const getUrlForItem = (node: any, key: string) => {
-  if (node.href) return node.href;
-
   const parts = key.split(':');
   if (parts.length < 2) return null; // Need at least type:id
 
@@ -83,8 +82,16 @@ const getUrlForItem = (node: any, key: string) => {
   // Only show items that have a version to avoid duplicates
   if (!version) return null;
 
+  // If node has href, use it, otherwise construct from key
+  if (node.href) return node.href;
+
   // Pluralize type for URL if needed
-  const pluralType = ['event', 'command', 'query', 'domain', 'service', 'flow', 'container'].includes(type) ? type + 's' : type; // users/teams already have href usually, but safe fallback
+  let pluralType = type;
+  if (['event', 'command', 'domain', 'service', 'flow', 'container', 'channel'].includes(type)) {
+    pluralType = type + 's';
+  } else if (type === 'query') {
+    pluralType = 'queries';
+  }
 
   return `/docs/${pluralType}/${id}/${version}`;
 };
@@ -171,6 +178,7 @@ export default function SearchModal() {
       Team: 0,
       Container: 0,
       Design: 0,
+      Channel: 0,
     };
 
     itemsToCount.forEach((item) => {
@@ -195,6 +203,7 @@ export default function SearchModal() {
     if (counts.Service > 0) dynamicFilters.push({ id: 'Service', name: `Services (${counts.Service})` });
     if (counts.Message > 0) dynamicFilters.push({ id: 'Message', name: `Messages (${counts.Message})` });
     if (counts.Container > 0) dynamicFilters.push({ id: 'Container', name: `Containers (${counts.Container})` });
+    if (counts.Channel > 0) dynamicFilters.push({ id: 'Channel', name: `Channels (${counts.Channel})` });
     if (counts.Design > 0) dynamicFilters.push({ id: 'Design', name: `Designs (${counts.Design})` });
     if (counts.Team > 0) dynamicFilters.push({ id: 'Team', name: `Teams & Users (${counts.Team})` });
 
@@ -224,7 +233,7 @@ export default function SearchModal() {
   const filteredItems = useMemo(() => {
     if (query === '') {
       // Show favorites when search is empty
-      if (favorites.length > 0) {
+      if (favorites.length > 0 && activeFilter === 'all') {
         return favorites
           .slice(0, 5)
           .map((fav) => {
@@ -375,14 +384,14 @@ export default function SearchModal() {
                                   <p className={classNames('text-sm font-medium', active ? 'text-gray-900' : 'text-gray-700')}>
                                     {item.name}
                                   </p>
-                                  <div className="flex items-start gap-2">
+                                  <div className="flex items-center gap-2">
                                     <p
                                       className={classNames('text-sm flex-shrink-0', active ? 'text-gray-700' : 'text-gray-500')}
                                     >
                                       {item.type}
                                     </p>
                                     {item.rawNode.summary && (
-                                      <p className={classNames('text-xs truncate', active ? 'text-gray-600' : 'text-gray-400')}>
+                                      <p className={classNames('text-sm truncate', active ? 'text-gray-600' : 'text-gray-400')}>
                                         • {item.rawNode.summary}
                                       </p>
                                     )}

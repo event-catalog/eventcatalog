@@ -14,6 +14,8 @@ import {
   Database,
   Waypoints,
   SquareMousePointer,
+  ListOrdered,
+  ArrowLeftRight,
 } from 'lucide-react';
 import type { NavNode } from './sidebar-builder';
 
@@ -28,6 +30,7 @@ const getBadgeClasses = (badge: string): string => {
     query: 'bg-purple-100 text-purple-700',
     message: 'bg-indigo-100 text-indigo-700',
     design: 'bg-teal-100 text-teal-700',
+    channel: 'bg-indigo-100 text-indigo-700',
   };
   return badgeColors[badge.toLowerCase()] || 'bg-gray-100 text-gray-600';
 };
@@ -77,6 +80,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
   };
 
   const filterTypes = [
+    { key: 'channel', label: 'Channels', badge: 'Channel', icon: ArrowLeftRight },
     { key: 'command', label: 'Commands', badge: 'Command', icon: MessageSquare },
     { key: 'container', label: 'Data Stores', badge: 'Container', icon: Database },
     { key: 'design', label: 'Designs', badge: 'Design', icon: SquareMousePointer },
