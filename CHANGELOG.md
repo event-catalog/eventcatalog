@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.2
+
+### Patch Changes
+
+- 6c33b1f: feat(core): visualizer now has presentation mode
+
 ## 3.0.0-beta.1
 
 ### Patch Changes
