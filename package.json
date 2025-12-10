@@ -1,5 +1,5 @@
 {
-  "name": "@nhsdigital/nhso-eventcatalog",
+  "name": "@nhsdigital/nhso-eventcatalog-core",
   "homepage": "https://github.com/NHSDigital/nhso-eventcatalog",
   "repository": {
     "type": "git",

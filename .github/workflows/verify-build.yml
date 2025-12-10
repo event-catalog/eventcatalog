@@ -33,7 +33,7 @@ jobs:
       - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
-          name: eventcatalog-core-package-artifact
+          name: nhso-eventcatalog-core-package-artifact
           path: package.tgz
 
   build-eventcatalog:
@@ -53,10 +53,10 @@ jobs:
       - name: Download package artifact
         uses: actions/download-artifact@v4
         with:
-          name: eventcatalog-core-package-artifact
-      - name: Install @eventcatalog-core
+          name: nhso-eventcatalog-core-package-artifact
+      - name: Install @nhsdigital/nhso-eventcatalog-core
         working-directory: examples/default/
         run: npm install ../../package.tgz
       - name: Build EventCatalog
         working-directory: examples/default/
-        run: npx eventcatalog build
+        run: npx nhso-eventcatalog build
