@@ -103,8 +103,8 @@ function mergeAllOfSchemas(schemaWithProcessor: any): any {
 
 async function processSchema(schema: any, rootSchema?: any): Promise<any> {
   if (!schema) return schema;
-  let dereferencedSchema = await $RefParser.dereference(schema);
-  return dereferencedSchema;
+  let returnSchema = await $RefParser.resolve(schema);
+  return returnSchema;
 }
 
 // SchemaProperty component
