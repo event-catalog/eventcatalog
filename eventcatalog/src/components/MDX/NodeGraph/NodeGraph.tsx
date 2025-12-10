@@ -19,7 +19,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { ExternalLink, HistoryIcon } from 'lucide-react';
 import { toPng } from 'html-to-image';
-import { DocumentArrowDownIcon } from '@heroicons/react/24/outline';
+import { DocumentArrowDownIcon, PresentationChartLineIcon } from '@heroicons/react/24/outline';
 // Nodes and edges
 import ServiceNode from './Nodes/Service';
 import FlowNode from './Nodes/Flow';
@@ -135,6 +135,7 @@ const NodeGraphBuilder = ({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [animateMessages, setAnimateMessages] = useState(false);
   const [activeStepIndex, setActiveStepIndex] = useState<number | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   // const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
 
   // Check if there are channels to determine if we need the visualizer functionality
@@ -348,6 +349,30 @@ const NodeGraphBuilder = ({
   const openStudioModal = () => {
     setIsStudioModalOpen(true);
   };
+
+  const toggleFullScreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      reactFlowWrapperRef.current?.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      setTimeout(() => {
+        fitView({ duration: 800 });
+      }, 100);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, [fitView]);
 
   const handleExportVisual = useCallback(() => {
     const imageWidth = 1024;
@@ -563,7 +588,7 @@ const NodeGraphBuilder = ({
   const isFlowVisualization = edges.some((edge: Edge) => edge.type === 'flow-edge');
 
   return (
-    <div ref={reactFlowWrapperRef} className="w-full h-full">
+    <div ref={reactFlowWrapperRef} className="w-full h-full bg-gray-50">
       <ReactFlow
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -583,7 +608,7 @@ const NodeGraphBuilder = ({
         <Panel position="top-center" className="w-full pr-6 ">
           <div className="flex space-x-2 justify-between items-center">
             <div className="flex space-x-2 ml-4">
-              <div>
+              <div className="relative group">
                 <button
                   onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                   className="py-2.5 px-3 bg-white rounded-md shadow-md hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
@@ -591,6 +616,23 @@ const NodeGraphBuilder = ({
                 >
                   <CogIcon className="h-5 w-5 text-gray-600" />
                 </button>
+                <div className="absolute top-full left-0 mt-2 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                  Settings
+                </div>
+              </div>
+              <div className="relative group">
+                <button
+                  onClick={toggleFullScreen}
+                  className={`py-2.5 px-3 bg-white rounded-md shadow-md hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 ${
+                    isFullscreen ? 'bg-purple-50 text-purple-600' : ''
+                  }`}
+                  aria-label={isFullscreen ? 'Exit presentation mode' : 'Enter presentation mode'}
+                >
+                  <PresentationChartLineIcon className={`h-5 w-5 ${isFullscreen ? 'text-purple-600' : 'text-gray-600'}`} />
+                </button>
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                  {isFullscreen ? 'Exit Presentation Mode' : 'Presentation Mode'}
+                </div>
               </div>
 
               {title && (
