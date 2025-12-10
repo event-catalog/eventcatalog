@@ -4,5 +4,12 @@
   "initialVersions": {
     "@eventcatalog/core": "2.65.1"
   },
-  "changesets": ["clever-turkeys-wink", "khaki-humans-wonder", "late-zoos-scream", "mighty-walls-watch", "selfish-geese-wave"]
+  "changesets": [
+    "clever-turkeys-wink",
+    "khaki-humans-wonder",
+    "late-zoos-scream",
+    "mighty-walls-watch",
+    "selfish-geese-wave",
+    "sweet-feet-reflect"
+  ]
 }
