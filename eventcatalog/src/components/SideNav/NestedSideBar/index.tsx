@@ -25,6 +25,7 @@ const getBadgeClasses = (badge: string): string => {
     query: 'bg-purple-100 text-purple-700',
     message: 'bg-indigo-100 text-indigo-700',
     design: 'bg-teal-100 text-teal-700',
+    channel: 'bg-indigo-100 text-indigo-700',
   };
   return badgeColors[badge.toLowerCase()] || 'bg-gray-100 text-gray-600';
 };
@@ -786,17 +787,17 @@ export default function NestedSideBar() {
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
           {canFavorite && (
-            <button
+            <div
               onClick={handleStarClick}
               className={cn(
-                'flex items-center justify-center w-5 h-5 rounded transition-colors',
+                'flex items-center justify-center w-5 h-5 rounded transition-colors cursor-pointer',
                 isFav
                   ? 'text-amber-400 hover:text-amber-500'
                   : 'text-gray-300 opacity-0 group-hover:opacity-100 hover:text-amber-400'
               )}
             >
               <Star className={cn('w-3.5 h-3.5', isFav && 'fill-current')} />
-            </button>
+            </div>
           )}
           {itemHasChildren && (
             <span className="flex items-center justify-center w-5 h-5 text-gray-400 group-hover:text-black group-hover:translate-x-0.5 transition-transform">
@@ -1038,15 +1039,15 @@ export default function NestedSideBar() {
                               {fav.badge}
                             </span>
                           )}
-                          <button
+                          <div
                             onClick={(e) => {
                               e.stopPropagation();
                               if (node) toggleFavorite(fav.nodeKey, node);
                             }}
-                            className="flex items-center justify-center w-5 h-5 text-amber-400 hover:text-amber-500 rounded transition-colors"
+                            className="flex items-center justify-center w-5 h-5 text-amber-400 hover:text-amber-500 rounded transition-colors cursor-pointer"
                           >
                             <Star className="w-3.5 h-3.5 fill-current" />
-                          </button>
+                          </div>
                           {node?.pages && node.pages.length > 0 && (
                             <span className="flex items-center justify-center w-5 h-5 text-gray-400 group-hover:text-black">
                               <ChevronRight className="w-4 h-4" />

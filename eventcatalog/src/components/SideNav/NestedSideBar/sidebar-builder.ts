@@ -15,6 +15,7 @@ import { buildContainerNode } from './builders/container';
 import { buildFlowNode } from './builders/flow';
 import config from '@config';
 import { getDesigns } from '@utils/collections/designs';
+import { getChannels } from '@utils/collections/channels';
 
 export type { NavigationData, NavNode, ChildRef };
 
@@ -29,16 +30,18 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     return memoryCache;
   }
 
-  const [domains, services, { events, commands, queries }, containers, flows, users, teams, designs] = await Promise.all([
-    getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
-    getServices({ getAllVersions: false }),
-    getMessages({ getAllVersions: false }),
-    getContainers({ getAllVersions: false }),
-    getFlows({ getAllVersions: false }),
-    getUsers(),
-    getTeams(),
-    getDesigns(),
-  ]);
+  const [domains, services, { events, commands, queries }, containers, flows, users, teams, designs, channels] =
+    await Promise.all([
+      getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
+      getServices({ getAllVersions: false }),
+      getMessages({ getAllVersions: false }),
+      getContainers({ getAllVersions: false }),
+      getFlows({ getAllVersions: false }),
+      getUsers(),
+      getTeams(),
+      getDesigns(),
+      getChannels({ getAllVersions: false }),
+    ]);
 
   // Calculate derived lists to avoid extra fetches
   const allSubDomainIds = new Set(domains.flatMap((d) => (d.data.domains || []).map((sd: any) => sd.data.id)));
@@ -178,6 +181,30 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode>
   );
 
+  const channelNodes = channels.reduce(
+    (acc, channel) => {
+      acc[`channel:${channel.data.id}:${channel.data.version}`] = {
+        type: 'item',
+        title: channel.data.name,
+        badge: 'Channel',
+        summary: channel.data.summary,
+        href: buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.version}`),
+      };
+
+      if (channel.data.latestVersion === channel.data.version) {
+        acc[`channel:${channel.data.id}`] = {
+          type: 'item',
+          title: channel.data.name,
+          badge: 'Channel',
+          summary: channel.data.summary,
+          href: buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.version}`),
+        };
+      }
+      return acc;
+    },
+    {} as Record<string, NavNode>
+  );
+
   const teamNodes = teams.reduce(
     (acc, team) => {
       acc[`team:${team.data.id}`] = {
@@ -273,6 +300,13 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     pages: users.map((user) => `user:${user.data.id}`),
   });
 
+  const channelList = createLeaf(channels, {
+    type: 'item',
+    title: 'Channels',
+    icon: 'ArrowRightLeft',
+    pages: channels.map((channel) => `channel:${channel.data.id}:${channel.data.version}`),
+  });
+
   const messagesChildren = ['list:events', 'list:commands', 'list:queries'].filter(
     (key, index) => [eventsList, commandsList, queriesList][index] !== undefined
   );
@@ -303,12 +337,22 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     'list:domains',
     'list:services',
     'list:messages',
+    'list:channels',
     'list:flows',
     'list:containers',
     'list:designs',
     'list:people',
   ];
-  const allChildrenNodes = [domainsList, servicesList, messagesList, flowsList, containersList, designsList, peopleList];
+  const allChildrenNodes = [
+    domainsList,
+    servicesList,
+    messagesList,
+    channelList,
+    flowsList,
+    containersList,
+    designsList,
+    peopleList,
+  ];
 
   const validAllChildren = allChildrenKeys.filter((_, idx) => allChildrenNodes[idx] !== undefined);
 
@@ -334,6 +378,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     ...(designsList ? { 'list:designs': designsList } : {}),
     ...(teamsList ? { 'list:teams': teamsList } : {}),
     ...(usersList ? { 'list:users': usersList } : {}),
+    ...(channelList ? { 'list:channels': channelList as NavNode } : {}),
     ...(peopleList ? { 'list:people': peopleList as NavNode } : {}),
     ...(allList ? { 'list:all': allList as NavNode } : {}),
   };
@@ -343,6 +388,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     ...domainNodes,
     ...serviceNodes,
     ...messageNodes,
+    ...channelNodes,
     ...containerNodes,
     ...flowNodes,
     ...userNodes,

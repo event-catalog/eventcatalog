@@ -87,6 +87,10 @@ vi.mock('astro:content', async (importOriginal) => {
         case 'flows':
           // NO SDK Support for flows yet, so we just mock it out for now
           return Promise.resolve([]);
+        case 'channels':
+          const { getChannels } = utils(CATALOG_FOLDER);
+          const channels = (await getChannels()) ?? [];
+          return Promise.resolve(channels.map((channel) => toAstroCollection(channel, 'channels')));
         default:
           return Promise.resolve([]);
       }
@@ -1957,6 +1961,34 @@ describe('getNestedSideBarData', () => {
           },
         ]);
       });
+    });
+  });
+
+  describe('channel navigation items', () => {
+    it('users can reference the latest version of a resource without passing in the version', async () => {
+      const { writeChannel } = utils(CATALOG_FOLDER);
+      await writeChannel({
+        id: 'PaymentChannel',
+        name: 'Payment Channel',
+        version: '0.0.1',
+        markdown: 'Payment Channel',
+      });
+      const navigationData = await getNestedSideBarData();
+      const channelNode = getNavigationConfigurationByKey('channel:PaymentChannel', navigationData);
+      expect(channelNode).toBeDefined();
+    });
+
+    it('users can reference the latest version of a resource passing in the version', async () => {
+      const { writeChannel } = utils(CATALOG_FOLDER);
+      await writeChannel({
+        id: 'PaymentChannel',
+        name: 'Payment Channel',
+        version: '0.0.1',
+        markdown: 'Payment Channel',
+      });
+      const navigationData = await getNestedSideBarData();
+      const channelNode = getNavigationConfigurationByKey('channel:PaymentChannel:0.0.1', navigationData);
+      expect(channelNode).toBeDefined();
     });
   });
 });
