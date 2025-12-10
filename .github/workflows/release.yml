@@ -27,6 +27,17 @@ jobs:
       - name: Install deps
         run: pnpm i
 
+      - name: Create .npmrc for GitHub Packages
+        run: |
+          cat <<EOF > ~/.npmrc
+          @nhsdigital:registry=https://npm.pkg.github.com
+          //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+          always-auth=true
+          registry=https://registry.npmjs.org/
+          EOF
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Release Pull Request or Publish to npm
         uses: changesets/action@master
         with:
