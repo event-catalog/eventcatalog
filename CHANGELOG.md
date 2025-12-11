@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.14
+
+### Patch Changes
+
+- 57d1496: chore(core): auth is now more explict opt in
+- c270a98: fix(core): problems with asyncapi loading in the DOM
+
 ## 3.0.0-beta.13
 
 ### Patch Changes
