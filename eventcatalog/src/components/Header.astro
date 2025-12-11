@@ -60,6 +60,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                   class="flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 rounded-full"
                   aria-expanded="false"
                   aria-haspopup="true"
+                  aria-label="User menu"
                 >
                   {session.user?.image && !session.user?.image?.includes('googleusercontent.com') ? (
                     <img
@@ -117,16 +118,28 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                       <a
                         href="https://discord.com/invite/3rjaZMmrAm"
                         class="block p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                        aria-label="Join our Discord community"
                       >
-                        <img src={buildUrl('/icons/discord.svg', true)} class="h-6 w-6  hover:opacity-100 transition-opacity" />
+                        <img
+                          src={buildUrl('/icons/discord.svg', true)}
+                          alt=""
+                          class="h-6 w-6  hover:opacity-100 transition-opacity"
+                          aria-hidden="true"
+                        />
                       </a>
                     </li>
                     <li>
                       <a
                         href="https://github.com/event-catalog/eventcatalog"
                         class="block p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                        aria-label="View EventCatalog on GitHub"
                       >
-                        <img src={buildUrl('/icons/github.svg', true)} class="h-6 w-6  hover:opacity-100 transition-opacity" />
+                        <img
+                          src={buildUrl('/icons/github.svg', true)}
+                          alt=""
+                          class="h-6 w-6  hover:opacity-100 transition-opacity"
+                          aria-hidden="true"
+                        />
                       </a>
                     </li>
                   </ul>
@@ -137,10 +150,13 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                       <a
                         href={repositoryUrl}
                         class="block p-1.5 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none"
+                        aria-label="View repository on GitHub"
                       >
                         <img
                           src={buildUrl('/icons/github.svg', true)}
+                          alt=""
                           class="h-6 w-6 opacity-70 hover:opacity-100 transition-opacity"
+                          aria-hidden="true"
                         />
                       </a>
                     </li>
