@@ -3,7 +3,7 @@ name: Redeploy EventCatalog Examples on core release
 on:
   push:
     tags:
-      - core@*
+      - 'v*'
 
 jobs:
   redeploy:
