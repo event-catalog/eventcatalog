@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.12
+
+### Patch Changes
+
+- 8ed1960: chore(core): removed unused icons on domain grid
+
 ## 3.0.0-beta.11
 
 ### Patch Changes
