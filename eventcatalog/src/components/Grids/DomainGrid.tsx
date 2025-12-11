@@ -11,7 +11,7 @@ import {
   ArrowsPointingOutIcon,
 } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
-import { BoxIcon, ArrowRight, ArrowLeft } from 'lucide-react';
+import { BoxIcon } from 'lucide-react';
 
 // ============================================
 // Types

@@ -5,10 +5,33 @@ on:
     types:
       - completed
 jobs:
-  redeploy:
+  redeploy-finance:
     runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_commit.message, 'Version Packages')
     steps:
       - name: Redeploy EventCatalog Finance Example Catalog
         run: curl -f -X POST "$VERCEL_DEPLOY_HOOK_URL"
         env:
           VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_FINANCE_EXAMPLE_CATALOG_URL }}
+  redeploy-healthcare:
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_commit.message, 'Version Packages')
+    steps:
+      - name: Redeploy EventCatalog Healthcare Example Catalog
+        run: curl -f -X POST "$VERCEL_DEPLOY_HOOK_URL"
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_HEALTHCARE_EXAMPLE_CATALOG_URL }}
+  redeploy-demo:
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_commit.message, 'Version Packages')
+    steps:
+      - name: Redeploy EventCatalog Demo (FlowMart) Example Catalog
+        run: curl -f -X POST "$VERCEL_DEPLOY_HOOK_URL"
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_DEMO_FLOWMART_CATALOG_URL }}
