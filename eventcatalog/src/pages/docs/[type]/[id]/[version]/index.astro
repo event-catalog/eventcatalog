@@ -71,17 +71,17 @@ const getContentBadges = () =>
 
 const getBadge = () => {
   if (props.collection === 'services') {
-    return [{ backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon, class: 'text-pink-400' }];
+    return [{ backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon, class: 'text-pink-600' }];
   }
   if (props.collection === 'events') {
-    return [{ backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: BoltIcon, class: 'text-orange-400' }];
+    return [{ backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: BoltIcon, class: 'text-orange-600' }];
   }
   if (props.collection === 'commands') {
-    return [{ backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: ChatBubbleLeftIcon, class: 'text-blue-400' }];
+    return [{ backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: ChatBubbleLeftIcon, class: 'text-blue-600' }];
   }
   if (props.collection === 'queries') {
     return [
-      { backgroundColor: 'green', textColor: 'green', content: 'Query', icon: MagnifyingGlassIcon, class: 'text-green-400' },
+      { backgroundColor: 'green', textColor: 'green', content: 'Query', icon: MagnifyingGlassIcon, class: 'text-green-600' },
     ];
   }
   if (props.collection === 'domains') {
@@ -91,7 +91,7 @@ const getBadge = () => {
         textColor: 'yellow',
         content: 'Domain',
         icon: RectangleGroupIcon,
-        class: 'text-yellow-400',
+        class: 'text-yellow-600',
       },
     ];
   }
