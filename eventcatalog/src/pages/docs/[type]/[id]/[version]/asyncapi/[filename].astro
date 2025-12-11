@@ -69,9 +69,21 @@ const pagefindAttributes =
 </VerticalSideBarLayout>
 
 <script is:inline src={js}></script>
-<script define:vars={{ schema: stringified, config }}>
-  const root = document.getElementById('asyncapi');
-  AsyncApiStandalone.hydrate({ schema, config }, root);
+<script is:inline define:vars={{ schema: stringified, config }}>
+  function initAsyncApi() {
+    const root = document.getElementById('asyncapi');
+    if (!root || root.dataset.initialized) return;
+
+    if (typeof AsyncApiStandalone !== 'undefined') {
+      AsyncApiStandalone.render({ schema, config }, root);
+      root.dataset.initialized = 'true';
+    } else {
+      setTimeout(initAsyncApi, 50);
+    }
+  }
+
+  document.addEventListener('astro:page-load', initAsyncApi);
+  initAsyncApi();
 </script>
 
 <style>

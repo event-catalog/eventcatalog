@@ -248,15 +248,19 @@ const canPageBeEmbedded = isEmbedEnabled();
                       id={item.id}
                       data-role="nav-item"
                       href={item.href}
+                      aria-label={item.label}
                       class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${
                         item.current ? 'text-white bg-gray-900' : 'hover:bg-gray-800 hover:text-white text-gray-700'
                       }`}
                     >
                       <div class="has-tooltip">
-                        <span class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap">
+                        <span
+                          class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap"
+                          aria-hidden="true"
+                        >
                           {item.label}
                         </span>
-                        <item.icon className="h-6 w-6" />
+                        <item.icon className="h-6 w-6" aria-hidden="true" />
                       </div>
                     </a>
                   );
@@ -271,13 +275,17 @@ const canPageBeEmbedded = isEmbedEnabled();
                     id={studioNavigationItem[0].id}
                     data-role="nav-item"
                     href={studioNavigationItem[0].href}
+                    aria-label={studioNavigationItem[0].label}
                     class={`p-1.5 inline-block pt-1 pb-1 mt-0 mb-0 transition-colors duration-200 rounded-lg relative ${studioNavigationItem[0].current ? 'text-white bg-gray-900' : 'hover:bg-gray-800 hover:text-white text-gray-700'}`}
                   >
                     <div class="has-tooltip">
-                      <span class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap">
+                      <span
+                        class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap"
+                        aria-hidden="true"
+                      >
                         {studioNavigationItem[0].label}
                       </span>
-                      <SquareDashedMousePointerIcon className="h-6 w-6" />
+                      <SquareDashedMousePointerIcon className="h-6 w-6" aria-hidden="true" />
                     </div>
                   </a>
                 )
@@ -291,17 +299,24 @@ const canPageBeEmbedded = isEmbedEnabled();
                     id={item.id}
                     data-role="nav-item"
                     href={item.href}
+                    aria-label={item.label}
                     class={`p-1.5 inline-block transition-colors duration-200 rounded-lg mb-8 relative ${
                       item.current ? 'text-white bg-gray-900' : 'hover:bg-gray-800 hover:text-white text-gray-700'
                     }`}
                   >
                     <div class="has-tooltip">
-                      <span class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 flex items-center gap-1 whitespace-nowrap">
-                        <Sparkles className="h-3 w-3" /> {item.label}
+                      <span
+                        class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 flex items-center gap-1 whitespace-nowrap"
+                        aria-hidden="true"
+                      >
+                        <Sparkles className="h-3 w-3" aria-hidden="true" /> {item.label}
                       </span>
-                      <item.icon className="h-6 w-6" />
-                      <div class="absolute -top-1 -right-1 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full p-0.5 shadow-lg">
-                        <Sparkles className="h-2 w-2 text-white" />
+                      <item.icon className="h-6 w-6" aria-hidden="true" />
+                      <div
+                        class="absolute -top-1 -right-1 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full p-0.5 shadow-lg"
+                        aria-hidden="true"
+                      >
+                        <Sparkles className="h-2 w-2 text-white" aria-hidden="true" />
                       </div>
                     </div>
                   </a>
@@ -316,13 +331,17 @@ const canPageBeEmbedded = isEmbedEnabled();
                     id="/pro"
                     data-role="nav-item"
                     href={buildUrl('/plans')}
+                    aria-label="Upgrade EventCatalog"
                     class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${currentPath.includes('/pro') ? 'text-white bg-gray-900' : 'bg-gray-200 hover:bg-gray-800 hover:text-white text-gray-700'}`}
                   >
                     <div class="has-tooltip">
-                      <span class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap">
+                      <span
+                        class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap"
+                        aria-hidden="true"
+                      >
                         Upgrade EventCatalog
                       </span>
-                      <Rocket className="h-6 w-6" />
+                      <Rocket className="h-6 w-6" aria-hidden="true" />
                     </div>
                   </a>
                 </div>
