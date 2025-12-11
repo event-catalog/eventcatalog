@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.8
+
+### Patch Changes
+
+- 507d14d: fix(core): fixed deployment of example catalogs on releases
+
 ## 3.0.0-beta.7
 
 ### Patch Changes
