@@ -1,12 +1,9 @@
 name: Redeploy EventCatalog Examples on core release
-
 on:
-  push:
-    tags:
-      - 'v*'
-  release:
-    types: [published]
-
+  workflow_run:
+    workflows: ["Release"]
+    types:
+      - completed
 jobs:
   redeploy:
     runs-on: ubuntu-latest
