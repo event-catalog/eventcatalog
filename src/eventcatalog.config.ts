@@ -51,6 +51,10 @@ type PagesConfiguration = {
   pages?: string[];
 };
 
+type AuthConfig = {
+  enabled: boolean;
+};
+
 export interface Config {
   title: string;
   tagline: false;
@@ -64,6 +68,7 @@ export interface Config {
   host?: string;
   trailingSlash?: boolean;
   output?: 'server' | 'static';
+  auth?: AuthConfig;
   rss?: {
     enabled: boolean;
     limit: number;
