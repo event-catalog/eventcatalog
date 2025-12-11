@@ -65,6 +65,12 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
           },
         ].filter(Boolean) as ChildRef[],
       },
+      renderSubDomains && {
+        type: 'group',
+        title: 'Subdomains',
+        icon: 'Boxes',
+        pages: subDomains.map((domain) => `domain:${(domain as any).data.id}:${(domain as any).data.version}`),
+      },
       hasFlows && {
         type: 'group',
         title: 'Flows',
@@ -81,12 +87,7 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
           href: buildUrl(`/docs/entities/${(entity as any).data.id}/${(entity as any).data.version}`),
         })),
       },
-      renderSubDomains && {
-        type: 'group',
-        title: 'Subdomains',
-        icon: 'Boxes',
-        pages: subDomains.map((domain) => `domain:${(domain as any).data.id}:${(domain as any).data.version}`),
-      },
+
       ...(hasResourceGroups ? buildResourceGroupSections(resourceGroups, context) : []),
       renderServices && {
         type: 'group',

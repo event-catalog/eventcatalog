@@ -41,9 +41,9 @@ export default function MessageGridV2({ service, embeded = false }: MessageGridV
   );
 
   return (
-    <div className={`rounded-xl overflow-hidden bg-pink-50 p-8 border-2 border-dashed border-pink-300`}>
+    <div className={`rounded-xl overflow-hidden bg-white p-8 border-2 border-dashed border-pink-300`}>
       {/* Service Title */}
-      <div className="flex items-center gap-2 mb-8">
+      {/* <div className="flex items-center gap-2 mb-8">
         <ServerIcon className="h-6 w-6 text-pink-500" />
         <h2 className="text-2xl font-semibold text-gray-900">{service.data.name}</h2>
         <div className="flex gap-2 ml-auto">
@@ -60,7 +60,7 @@ export default function MessageGridV2({ service, embeded = false }: MessageGridV
             Read documentation
           </a>
         </div>
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-3 gap-8 relative">
         {/* Left Column - Receives Messages & Reads From Containers */}
@@ -70,7 +70,7 @@ export default function MessageGridV2({ service, embeded = false }: MessageGridV
             <div className="mb-6">
               <h2 className={`font-semibold text-gray-900 flex items-center gap-2 ${embeded ? 'text-sm' : 'text-xl'}`}>
                 <ServerIcon className="h-5 w-5 text-blue-500" />
-                Receives ({receives.length})
+                Inbound Messages ({receives.length})
               </h2>
             </div>
             {receives.length > 0 ? (
@@ -124,7 +124,7 @@ export default function MessageGridV2({ service, embeded = false }: MessageGridV
         </div>
 
         {/* Service Information (Center) */}
-        <div className="bg-white border-2 border-pink-100 rounded-lg p-6 flex flex-col justify-center">
+        <div className="bg-pink-50 border-2 border-pink-100 rounded-lg p-6 flex flex-col justify-center">
           <div className="flex flex-col items-center gap-4">
             <ServerIcon className="h-12 w-12 text-pink-500" />
             <p className="text-xl font-semibold text-gray-900 text-center">{service.data.name}</p>
@@ -133,11 +133,11 @@ export default function MessageGridV2({ service, embeded = false }: MessageGridV
             <div className="w-full grid grid-cols-2 gap-3 mt-2">
               <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="text-2xl font-bold text-blue-600">{receives.length}</div>
-                <div className="text-xs text-gray-600 mt-1">Receives</div>
+                <div className="text-xs text-gray-600 mt-1">Inbound Messages</div>
               </div>
               <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
                 <div className="text-2xl font-bold text-green-600">{sends.length}</div>
-                <div className="text-xs text-gray-600 mt-1">Sends</div>
+                <div className="text-xs text-gray-600 mt-1">Outbound Messages</div>
               </div>
               {readsFrom.length > 0 && (
                 <div className="text-center p-3 bg-orange-50 rounded-lg border border-orange-200">
@@ -168,7 +168,7 @@ export default function MessageGridV2({ service, embeded = false }: MessageGridV
             <div className="mb-6">
               <h2 className={`font-semibold text-gray-900 flex items-center gap-2 ${embeded ? 'text-sm' : 'text-xl'}`}>
                 <ServerIcon className="h-5 w-5 text-emerald-500" />
-                Sends ({sends.length})
+                Outbound Messages ({sends.length})
               </h2>
             </div>
             {sends.length > 0 ? (

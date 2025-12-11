@@ -174,7 +174,7 @@ const topTiles = [
     description: 'Business domains defined',
     href: buildUrl('/discover/domains'),
     icon: RectangleGroupIcon,
-    bgColor: 'bg-yellow-100',
+    bgColor: 'bg-yellow-500',
     textColor: 'text-yellow-600',
     arrowColor: 'text-yellow-600',
   },
@@ -184,7 +184,7 @@ const topTiles = [
     description: 'Services documented in the catalog',
     href: buildUrl('/discover/services'),
     icon: ServerIcon,
-    bgColor: 'bg-pink-100',
+    bgColor: 'bg-pink-500',
     textColor: 'text-pink-600',
     arrowColor: 'text-pink-600',
   },
@@ -194,7 +194,7 @@ const topTiles = [
     description: 'Messages documented in the catalog',
     href: buildUrl('/discover/events'),
     icon: ChatBubbleLeftIcon,
-    bgColor: 'bg-blue-100',
+    bgColor: 'bg-blue-500',
     textColor: 'text-blue-600',
     arrowColor: 'text-blue-600',
   },
@@ -204,7 +204,7 @@ const topTiles = [
     description: 'Business flows documented',
     href: buildUrl('/discover/flows'),
     icon: Workflow,
-    bgColor: 'bg-purple-100',
+    bgColor: 'bg-purple-500',
     textColor: 'text-purple-600',
     arrowColor: 'text-purple-600',
   },
@@ -347,9 +347,7 @@ const quickActions = [
                 <div class="absolute inset-0 bg-gradient-to-br from-gray-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                 {/* Colored left border accent */}
-                <div
-                  class={`absolute left-0 top-0 bottom-0 w-1 ${tile.bgColor} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-                />
+                <div class={`absolute left-0 top-0 bottom-0 w-1 ${tile.bgColor} transition-opacity duration-300`} />
 
                 <div class="relative">
                   <div class="flex items-center justify-between mb-4">
