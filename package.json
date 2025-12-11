@@ -33,6 +33,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "start:catalog": "node scripts/start-catalog-locally.js",
+    "start:catalog:server": "node scripts/start-server-locally.js",
     "pagefind": "node scripts/pagefind.js",
     "preview:catalog": "node scripts/preview-catalog-locally.js",
     "generate:catalog": "node scripts/generate-catalog-locally.js",

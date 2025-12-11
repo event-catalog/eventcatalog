@@ -267,6 +267,7 @@ program
     logger.info('Building EventCatalog...', 'build');
 
     const isServer = await isOutputServer();
+
     logger.info(isServer ? 'EventCatalog is running in Server Mode' : 'EventCatalog is running in Static Mode', 'config');
 
     // Load any .env file in the project directory
@@ -433,6 +434,8 @@ program
     );
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
+
+    await copyServerFiles();
 
     const isServerOutput = await isOutputServer();
 
