@@ -1,5 +1,23 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.9
+
+### Patch Changes
+
+- 8db71c9: fix(core): fixed issue embedding pages on build
+
+## 3.0.0-beta.8
+
+### Patch Changes
+
+- 507d14d: fix(core): fixed deployment of example catalogs on releases
+
+## 3.0.0-beta.7
+
+### Patch Changes
+
+- 341279e: fix(core): fixed issue embedding pages on build
+
 ## 3.0.0-beta.6
 
 ### Patch Changes
