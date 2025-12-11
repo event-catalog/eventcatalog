@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import * as LucideIcons from 'lucide-react';
-import { ChevronRight, ChevronLeft, ChevronDown, Home, Star } from 'lucide-react';
+import { ChevronRight, ChevronLeft, ChevronDown, Home, Star, FileQuestion } from 'lucide-react';
 import type { NavigationData, NavNode, ChildRef } from './sidebar-builder';
 import SearchBar from './SearchBar';
 import { saveState, loadState, saveCollapsedSections, loadCollapsedSections } from './storage';
@@ -1061,7 +1061,20 @@ export default function NestedSideBar() {
               </div>
             )}
 
-            {renderEntries(currentLevel.entries)}
+            {/* Empty State */}
+            {currentLevel.entries.length === 0 && favorites.length === 0 && (
+              <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
+                <div className="mb-4 p-3 rounded-full bg-gray-100">
+                  <FileQuestion className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">Your catalog is empty</h3>
+                <p className="text-xs text-gray-500 leading-relaxed max-w-[240px]">
+                  Navigation will appear here when you add resources to your EventCatalog.
+                </p>
+              </div>
+            )}
+
+            {currentLevel.entries.length > 0 && renderEntries(currentLevel.entries)}
           </nav>
         </>
       )}
