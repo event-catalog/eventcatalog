@@ -55,7 +55,7 @@ export default function ecstudioWatcher() {
         // Also add the root directory to watch for new files
         server.watcher.add(rootDir);
         
-        console.log('Set up dynamic .ecstudio file watcher with content refresh');
+        // console.log('Set up dynamic .ecstudio file watcher with content refresh');
       },
     },
   };
