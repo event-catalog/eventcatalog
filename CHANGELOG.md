@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.15
+
+### Patch Changes
+
+- 5b4095e: fix(core): fixed accessibility issues
+
 ## 3.0.0-beta.14
 
 ### Patch Changes
