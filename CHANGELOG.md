@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.6
+
+### Patch Changes
+
+- 713c535: chore(core): updated logger for the ecstudio watcher
+- 2a32d7c: chore(core): added empty state to nested sidebar
+
 ## 3.0.0-beta.5
 
 ### Patch Changes
