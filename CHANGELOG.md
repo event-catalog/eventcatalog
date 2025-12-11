@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.5
+
+### Patch Changes
+
+- 525c809: chore(core): updated react-syntax-highlighter
+
 ## 3.0.0-beta.4
 
 ### Patch Changes
