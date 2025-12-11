@@ -51,9 +51,10 @@ export const isMarkdownDownloadEnabled = () => config?.llmsTxt?.enabled ?? false
 export const isLLMSTxtEnabled = () => (config?.llmsTxt?.enabled || isEventCatalogChatEnabled()) ?? false;
 
 export const isAuthEnabled = () => {
+  const isAuthEnabledInCatalog = config?.auth?.enabled ?? false;
   const directory = process.env.PROJECT_DIR || process.cwd();
-  const hasAuthConfig = fs.existsSync(join(directory, 'eventcatalog.auth.js'));
-  return (hasAuthConfig && isSSR() && isEventCatalogScaleEnabled()) || false;
+  const hasAuthConfigurationFile = fs.existsSync(join(directory, 'eventcatalog.auth.js'));
+  return (isAuthEnabledInCatalog && hasAuthConfigurationFile && isSSR() && isEventCatalogScaleEnabled()) || false;
 };
 
 export const isSSR = () => config?.output === 'server';
