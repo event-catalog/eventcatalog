@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.11
+
+### Patch Changes
+
+- 39fbd2f: feat(core): added support for titles on admonitions
+- dac4dc5: feat(core): updated homepage styles
+
 ## 3.0.0-beta.10
 
 ### Patch Changes
