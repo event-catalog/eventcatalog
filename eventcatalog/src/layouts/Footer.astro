@@ -9,24 +9,27 @@ const { className } = Astro.props;
     showEventCatalogBranding() && (
       <div class="flex justify-between items-center py-8 text-gray-500 text-sm font-light">
         <div class="flex space-x-5">
-          <a href="https://github.com/event-catalog/eventcatalog" target="_blank">
+          <a href="https://github.com/event-catalog/eventcatalog" target="_blank" aria-label="View EventCatalog on GitHub">
             <svg
               class="w-5 h-5 bg-gray-400 hover:bg-primary dark:hover:bg-gray-400"
               style={`mask-image: url("${buildUrl('/icons/github.svg', true)}"); mask-repeat: no-repeat; mask-position: center center;`}
+              aria-hidden="true"
             />
           </a>
-          <a href="https://x.com/event_catalog" target="_blank">
-            <span class="sr-only">x</span>
+          <a href="https://x.com/event_catalog" target="_blank" aria-label="Follow EventCatalog on X (Twitter)">
+            <span class="sr-only">X (Twitter)</span>
             <svg
               class="w-5 h-5 bg-gray-400 hover:bg-primary dark:hover:bg-gray-400"
               style={`mask-image: url("${buildUrl('/icons/x-twitter.svg', true)}"); mask-repeat: no-repeat; mask-position: center center;`}
+              aria-hidden="true"
             />
           </a>
-          <a href="https://www.youtube.com/@event-catalog" target="_blank">
-            <span class="sr-only">x</span>
+          <a href="https://www.youtube.com/@event-catalog" target="_blank" aria-label="Watch EventCatalog on YouTube">
+            <span class="sr-only">YouTube</span>
             <svg
               class="w-5 h-5 bg-gray-400 hover:bg-primary dark:hover:bg-gray-400"
               style={`mask-image: url("${buildUrl('/icons/youtube.svg', true)}"); mask-repeat: no-repeat; mask-position: center center;`}
+              aria-hidden="true"
             />
           </a>
         </div>

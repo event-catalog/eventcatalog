@@ -178,8 +178,9 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
               <button
                 onClick={clearSearch}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                aria-label="Clear search"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4" aria-hidden="true" />
               </button>
             )}
           </div>
@@ -193,8 +194,10 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
                   ? 'bg-purple-50 border-purple-200 text-purple-600'
                   : 'bg-gray-50 border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-100'
               )}
+              aria-label="Filter search results"
+              aria-expanded={showFilterDropdown}
             >
-              <SlidersHorizontal className="w-4 h-4" />
+              <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />
               {searchFilters.size > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-purple-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                   {searchFilters.size}
