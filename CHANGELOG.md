@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.9
+
+### Patch Changes
+
+- 8db71c9: fix(core): fixed issue embedding pages on build
+
 ## 3.0.0-beta.8
 
 ### Patch Changes
