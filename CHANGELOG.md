@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.13
+
+### Patch Changes
+
+- 0bc73d3: chore(core): auth is now more explict opt in
+- b8730a9: fix(core): mdx pages are added to teams and users
+
 ## 3.0.0-beta.12
 
 ### Patch Changes
