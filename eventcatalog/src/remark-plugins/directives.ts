@@ -30,7 +30,33 @@ export function remarkDirectives() {
           class: `rounded-lg p-4 my-4 ${blockTypes[node.name as keyof typeof blockTypes] || ''}`,
         };
 
-        // Create header div that will contain icon and type
+        // Check if there's a custom title (label) provided via :::note[Custom Title]
+        // In remark-directive, the label is stored in node.children as a paragraph node
+        // with data.directiveLabel = true
+        let titleChildren;
+        let contentChildren;
+
+        const firstChild = node.children && node.children.length > 0 ? node.children[0] : null;
+        const hasCustomTitle = firstChild && firstChild.data?.directiveLabel === true;
+
+        if (hasCustomTitle && firstChild) {
+          // Custom title was provided in the label - it contains markdown parsed as inline content
+          titleChildren = firstChild.children || [
+            { type: 'text', value: node.name.charAt(0).toUpperCase() + node.name.slice(1) },
+          ];
+          contentChildren = node.children.slice(1);
+        } else {
+          // No custom title, use default based on directive name
+          titleChildren = [
+            {
+              type: 'text',
+              value: node.name.charAt(0).toUpperCase() + node.name.slice(1),
+            },
+          ];
+          contentChildren = node.children;
+        }
+
+        // Create header div that will contain icon and title
         const headerNode = {
           type: 'element',
           data: {
@@ -70,7 +96,7 @@ export function remarkDirectives() {
                 },
               ],
             },
-            // Type label
+            // Title (with support for markdown)
             {
               type: 'element',
               data: {
@@ -79,12 +105,7 @@ export function remarkDirectives() {
                   class: '',
                 },
               },
-              children: [
-                {
-                  type: 'text',
-                  value: node.name.charAt(0).toUpperCase() + node.name.slice(1),
-                },
-              ],
+              children: titleChildren,
             },
           ],
         };
@@ -98,7 +119,7 @@ export function remarkDirectives() {
               class: 'prose prose-md w-full !max-w-none ',
             },
           },
-          children: node.children,
+          children: contentChildren,
         };
 
         // Replace node's children with header and content
