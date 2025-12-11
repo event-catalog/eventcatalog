@@ -15,7 +15,7 @@ try {
   if (!isSSR()) {
     // Tell user they need to build in SSR mode
     console.log(
-      '🔴 Found custom middleware.ts file. To use RBAC, you need to build in SSR mode, by setting output: "server" in your eventcatalog.config.js file.'
+      'Found custom middleware.ts file. To use RBAC, you need to build in SSR mode, by setting output: "server" in your eventcatalog.config.js file.'
     );
   } else {
     console.log('✅ Loaded custom RBAC middleware');
