@@ -279,13 +279,14 @@ program
     await copyServerFiles();
 
     // Check if backstage is enabled
-    const canEmbedPages = await isFeatureEnabled(
+    const isBackstagePluginEnabled = await isFeatureEnabled(
       '@eventcatalog/backstage-plugin-eventcatalog',
       process.env.EVENTCATALOG_LICENSE_KEY_BACKSTAGE
     );
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
-    const isServerOutput = await isOutputServer();
+
+    const canEmbedPages = isBackstagePluginEnabled || isEventCatalogScale;
 
     // Create the auth.config.ts file if it doesn't exist
     await createAuthFileIfNotExists(isEventCatalogScale);
