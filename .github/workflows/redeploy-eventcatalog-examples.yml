@@ -35,3 +35,13 @@ jobs:
         run: curl -f -X POST "$VERCEL_DEPLOY_HOOK_URL"
         env:
           VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_DEMO_FLOWMART_CATALOG_URL }}
+  redeploy-saas:
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_commit.message, 'Version Packages')
+    steps:
+      - name: Redeploy EventCatalog Demo (SaaS) Example Catalog
+        run: curl -f -X POST "$VERCEL_DEPLOY_HOOK_URL"
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_SAAS_EXAMPLE_CATALOG_URL }}
