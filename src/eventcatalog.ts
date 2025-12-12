@@ -138,6 +138,27 @@ const checkForUpdate = () => {
 
   if (!installedVersion) return;
 
+  // Check if user is on version < 3 and notify about V3
+  const majorVersion = parseInt(installedVersion.replace(/[^0-9.]/g, '').split('.')[0], 10);
+  if (majorVersion < 3) {
+    const v3Message = `🚀 EventCatalog V3 is now available in beta!
+
+You are currently on version ${installedVersion}.
+V3 brings exciting new features and improvements.
+
+Upgrade now: npm i @eventcatalog/core@beta`;
+    console.log(
+      boxen(v3Message, {
+        padding: 1,
+        margin: 1,
+        align: 'center',
+        borderColor: 'magenta',
+        borderStyle: 'round',
+      })
+    );
+    return;
+  }
+
   const pkg = { name: '@eventcatalog/core', version: installedVersion };
   const notifier = updateNotifier({ pkg, updateCheckInterval: 0 });
 

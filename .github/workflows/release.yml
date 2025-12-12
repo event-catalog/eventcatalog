@@ -5,6 +5,7 @@ on:
       - master
       - next
       - main
+      - release/v2
 jobs:
   release:
     permissions:
