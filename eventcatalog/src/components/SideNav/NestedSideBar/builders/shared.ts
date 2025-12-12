@@ -17,6 +17,7 @@ export type NavNode = {
   type: 'group' | 'item';
   title: string;
   icon?: string; // Lucide icon name
+  leftIcon?: string; // Path to SVG icon shown on the left of the label
   href?: string; // URL (for leaf items)
   external?: boolean; // If true, the item will open in a new tab
   pages?: ChildRef[]; // Can mix keys and inline nodes

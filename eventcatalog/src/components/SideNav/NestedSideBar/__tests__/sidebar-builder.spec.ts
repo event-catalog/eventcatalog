@@ -896,9 +896,24 @@ describe('getNestedSideBarData', () => {
         const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
         const apiContractsSection = getChildNodeByTitle('API & Contracts', serviceNode.pages ?? []);
         expect(apiContractsSection.pages).toEqual([
-          { type: 'item', title: 'OpenAPI (OpenAPI)', href: '/docs/services/ShippingService/0.0.1/spec/openapi' },
-          { type: 'item', title: 'AsyncAPI (AsyncAPI)', href: '/docs/services/ShippingService/0.0.1/asyncapi/asyncapi' },
-          { type: 'item', title: 'GraphQL (GraphQL)', href: '/docs/services/ShippingService/0.0.1/graphql/graphql' },
+          {
+            type: 'item',
+            title: 'OpenAPI',
+            leftIcon: '/icons/openapi-black.svg',
+            href: '/docs/services/ShippingService/0.0.1/spec/openapi',
+          },
+          {
+            type: 'item',
+            title: 'AsyncAPI',
+            leftIcon: '/icons/asyncapi-black.svg',
+            href: '/docs/services/ShippingService/0.0.1/asyncapi/asyncapi',
+          },
+          {
+            type: 'item',
+            title: 'GraphQL',
+            leftIcon: '/icons/graphql-black.svg',
+            href: '/docs/services/ShippingService/0.0.1/graphql/graphql',
+          },
         ]);
       });
     });
