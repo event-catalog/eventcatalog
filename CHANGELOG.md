@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.17
+
+### Patch Changes
+
+- c0372e5: feat(core): embedding visualizer can be embedded with animations
+
 ## 3.0.0-beta.16
 
 ### Patch Changes
