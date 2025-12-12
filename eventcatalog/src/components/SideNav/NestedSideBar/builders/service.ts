@@ -96,7 +96,7 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
           })),
           ...graphQLSpecifications.map((specification) => ({
             type: 'item',
-            title: `${specification.name} (GraphQL)`,
+            title: `${specification.name}`,
             leftIcon: '/icons/graphql-black.svg',
             href: buildUrl(
               `/docs/services/${service.data.id}/${service.data.version}/graphql/${specification.filenameWithoutExtension}`
