@@ -123,6 +123,16 @@ Interested in collaborating with us? Our offerings include dedicated support, pr
 
 Find more details on our [services page](https://eventcatalog.dev/services).
 
+# Looking for v2?
+
+You can find v2 on our [release/v2 branch](https://github.com/event-catalog/eventcatalog/tree/release/v2).
+
+We are currently working on `main` which is the current major version of EventCatalog.
+
+We are only applying patch fixes and security updates to `v2.x.x` going forward.
+
+If you would like to make a change to v2, please raise a pull request against the `release/v2` branch.
+
 # Looking for v1?
 
 - Documentation: https://v1.eventcatalog.dev
