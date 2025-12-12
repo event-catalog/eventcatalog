@@ -232,10 +232,21 @@ const NodeGraphBuilder = ({
   };
 
   // animate messages, between views
+  // URL parameter takes priority over localStorage
   useEffect(() => {
-    const storedAnimateMessages = localStorage.getItem('EventCatalog:animateMessages');
-    if (storedAnimateMessages !== null) {
-      setAnimateMessages(storedAnimateMessages === 'true');
+    const urlParams = new URLSearchParams(window.location.search);
+    const animateParam = urlParams.get('animate');
+
+    if (animateParam === 'true') {
+      setAnimateMessages(true);
+    } else if (animateParam === 'false') {
+      setAnimateMessages(false);
+    } else {
+      // Fall back to localStorage if no URL parameter
+      const storedAnimateMessages = localStorage.getItem('EventCatalog:animateMessages');
+      if (storedAnimateMessages !== null) {
+        setAnimateMessages(storedAnimateMessages === 'true');
+      }
     }
   }, []);
 
