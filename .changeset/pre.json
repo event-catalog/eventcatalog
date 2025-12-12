@@ -5,6 +5,7 @@
     "@eventcatalog/core": "2.65.1"
   },
   "changesets": [
+    "beige-nails-wonder",
     "clever-turkeys-wink",
     "curvy-clocks-complain",
     "cyan-readers-hear",
