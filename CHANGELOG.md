@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.18
+
+### Patch Changes
+
+- 1cc63fa: chore(core): added v3 beta message update
+
 ## 3.0.0-beta.17
 
 ### Patch Changes
