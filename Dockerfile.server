@@ -5,7 +5,7 @@
 
 # FOR DEVELOPMENT ONLY, DO NOT USE THIS FOR PRODUCTION
 
-FROM node:20-slim AS runtime
+FROM node:20.19.6-trixie-slim AS runtime
 WORKDIR /app
 
 # Install pnpm
