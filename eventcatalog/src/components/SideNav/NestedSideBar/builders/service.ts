@@ -80,14 +80,16 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
         pages: [
           ...openAPISpecifications.map((specification) => ({
             type: 'item',
-            title: `${specification.name} (OpenAPI)`,
+            title: `${specification.name}`,
+            leftIcon: '/icons/openapi-black.svg',
             href: buildUrl(
               `/docs/services/${service.data.id}/${service.data.version}/spec/${specification.filenameWithoutExtension}`
             ),
           })),
           ...asyncAPISpecifications.map((specification) => ({
             type: 'item',
-            title: `${specification.name} (AsyncAPI)`,
+            title: `${specification.name}`,
+            leftIcon: '/icons/asyncapi-black.svg',
             href: buildUrl(
               `/docs/services/${service.data.id}/${service.data.version}/asyncapi/${specification.filenameWithoutExtension}`
             ),
@@ -95,6 +97,7 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
           ...graphQLSpecifications.map((specification) => ({
             type: 'item',
             title: `${specification.name} (GraphQL)`,
+            leftIcon: '/icons/graphql-black.svg',
             href: buildUrl(
               `/docs/services/${service.data.id}/${service.data.version}/graphql/${specification.filenameWithoutExtension}`
             ),

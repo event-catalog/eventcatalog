@@ -776,6 +776,7 @@ export default function NestedSideBar() {
               <IconComponent className="w-4 h-4" />
             </span>
           )}
+          {item.leftIcon && <img src={item.leftIcon} alt="" className="w-4 h-4 flex-shrink-0" />}
           <span
             className={cn(
               'text-[13px] truncate',
