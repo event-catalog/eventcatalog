@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.16
+
+### Patch Changes
+
+- 786db2d: chore(core): added icons to spec files in sidebar
+
 ## 3.0.0-beta.15
 
 ### Patch Changes
