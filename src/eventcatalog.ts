@@ -72,64 +72,6 @@ const copyCore = () => {
   });
 };
 
-/**
- * EventCatalog has static and server output.
- *
- * Server output is used for things like EventCatalog Chat and using your own LLM through an API
- *
- * If this is the case, we need to copy the server files into the core directory
- * If static, no server files are needed or copied over
- */
-const copyServerFiles = async () => {
-  const isServerOutput = await isOutputServer();
-
-  // remove any server API if we have any
-  if (fs.existsSync(join(core, 'src/pages/api/server'))) {
-    fs.rmSync(join(core, 'src/pages/api/server'), { recursive: true });
-  }
-
-  if (!isServerOutput) {
-    // remove the chat API if it exists, this is only a SSR feature
-    // TODO: Make this more flexible and better in the future when we have more features like this.
-    if (fs.existsSync(join(core, 'src/pages/api/chat.ts'))) {
-      fs.rmSync(join(core, 'src/pages/api/chat.ts'));
-    }
-
-    // Auth requires SSR Mode
-    if (fs.existsSync(join(core, 'src/pages/api/[...auth].ts'))) {
-      fs.rmSync(join(core, 'src/pages/api/[...auth].ts'));
-    }
-
-    return;
-  }
-
-  // copy the server files into the core directory
-  fs.cpSync(join(eventCatalogDir, 'src/enterprise/eventcatalog-chat/pages/api'), join(core, 'src/pages/api'), {
-    recursive: true,
-  });
-};
-
-const createAuthFileIfNotExists = async (hasRequiredLicense: boolean) => {
-  const authEnabled = await isAuthEnabled();
-  const isSRR = await isOutputServer();
-
-  // If auth is enabled, then we need to create the auth API file
-  try {
-    if (authEnabled && hasRequiredLicense && isSRR) {
-      logger.info('Creating auth file', 'auth');
-      fs.writeFileSync(
-        join(core, 'src/pages/api/[...auth].ts'),
-        `import { AstroAuth } from 'auth-astro/server';
-export const prerender = false;
-export const { GET, POST } = AstroAuth();
-`
-      );
-    }
-  } catch (error) {
-    // silent for now
-  }
-};
-
 const clearCore = () => {
   if (fs.existsSync(core)) fs.rmSync(core, { recursive: true });
 };
@@ -227,9 +169,6 @@ program
     // Move files like public directory to the root of the eventcatalog-core directory
     await catalogToAstro(dir, core);
 
-    // Copy the server files into the core directory if we have server output
-    await copyServerFiles();
-
     // Check if backstage is enabled
     const canEmbedPages = await isFeatureEnabled(
       '@eventcatalog/backstage-plugin-eventcatalog',
@@ -237,9 +176,6 @@ program
     );
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
-
-    // Create the auth.config.ts file if it doesn't exist
-    await createAuthFileIfNotExists(isEventCatalogScale);
 
     // is there an eventcatalog update to install?
     checkForUpdate();
@@ -297,8 +233,6 @@ program
     }
 
     copyCore();
-    // Copy the server files into the core directory if we have server output
-    await copyServerFiles();
 
     // Check if backstage is enabled
     const isBackstagePluginEnabled = await isFeatureEnabled(
@@ -309,9 +243,6 @@ program
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
     const canEmbedPages = isBackstagePluginEnabled || isEventCatalogScale;
-
-    // Create the auth.config.ts file if it doesn't exist
-    await createAuthFileIfNotExists(isEventCatalogScale);
 
     await logBuild(dir, {
       isEventCatalogStarterEnabled: isEventCatalogStarter,
@@ -429,11 +360,6 @@ program
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
-    await copyServerFiles();
-
-    // Create the auth.config.ts file if it doesn't exist
-    await createAuthFileIfNotExists(isEventCatalogScale);
-
     previewCatalog({ command, canEmbedPages: canEmbedPages || isEventCatalogScale, isEventCatalogStarter, isEventCatalogScale });
   });
 
@@ -455,8 +381,6 @@ program
     );
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
-
-    await copyServerFiles();
 
     const isServerOutput = await isOutputServer();
 

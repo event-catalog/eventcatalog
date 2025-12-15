@@ -11,9 +11,9 @@
  * 3. Follow the official activation instructions
  */
 
-import config from '@config';
 import fs from 'fs';
 import { join } from 'path';
+import config from '../../eventcatalog.config.js';
 
 // These functions check for valid, legally obtained access to premium features
 export const isEventCatalogStarterEnabled = () => process.env.EVENTCATALOG_STARTER === 'true';

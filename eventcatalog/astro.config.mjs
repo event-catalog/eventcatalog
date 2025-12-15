@@ -20,11 +20,13 @@ import rehypeExpressiveCode from 'rehype-expressive-code'
 import config from './eventcatalog.config';
 import expressiveCode from 'astro-expressive-code';
 import ecstudioWatcher from './integrations/ecstudio-watcher.mjs';
+import eventCatalogIntegration from './integrations/eventcatalog-features.ts';
 
 const projectDirectory = process.env.PROJECT_DIR || process.cwd();
 const base = config.base || '/';
 const host = config.host || false;
 const compress = config.compress ?? false;
+
 
 const expressiveCodeConfig = {
   themes: ['andromeeda'],
@@ -89,6 +91,7 @@ export default defineConfig({
       CSS: false,
     }),
     ecstudioWatcher(),
+    eventCatalogIntegration(),
   ].filter(Boolean),
   vite: {
     define: {

@@ -7,7 +7,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Enterprise Collections
-import { chatPromptsSchema, customPagesSchema } from './enterprise/collections';
+import { customPagesSchema } from './enterprise/collections';
 
 export const projectDirBase = (() => {
   if (process.platform === 'win32') {
@@ -469,14 +469,6 @@ const customPages = defineCollection({
   schema: customPagesSchema,
 });
 
-const chatPrompts = defineCollection({
-  loader: glob({
-    pattern: ['chat-prompts/*.(md|mdx)', 'chat-prompts/**/*.@(md|mdx)'],
-    base: projectDirBase,
-  }),
-  schema: chatPromptsSchema,
-});
-
 const domains = defineCollection({
   loader: glob({
     pattern: [
@@ -722,7 +714,6 @@ export const collections = {
 
   // EventCatalog Pro Collections
   customPages,
-  chatPrompts,
 
   // EventCatalog Studio Collections
   designs,
