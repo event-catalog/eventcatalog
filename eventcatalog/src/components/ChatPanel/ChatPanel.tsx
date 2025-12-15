@@ -217,12 +217,12 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     (p) => p.type === 'text' && (p as { type: 'text'; text: string }).text.length > 0
   );
 
-  // Clear waiting state once assistant starts outputting
+  // Clear waiting state once assistant starts outputting or on error
   useEffect(() => {
-    if (assistantHasContent) {
+    if (assistantHasContent || status === 'error') {
       setIsWaitingForResponse(false);
     }
-  }, [assistantHasContent]);
+  }, [assistantHasContent, status]);
 
   const isStreaming = status === 'streaming' && assistantHasContent;
   const isThinking = isWaitingForResponse || ((status === 'submitted' || status === 'streaming') && !assistantHasContent);
@@ -523,11 +523,14 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                     </div>
                   )}
 
-                  {/* Error message */}
+                  {/* Error message as chat bubble */}
                   {status === 'error' && (
-                    <div className="flex justify-center">
-                      <div className="bg-red-50 text-red-600 rounded-lg px-4 py-2 text-sm">
-                        Something went wrong. Please try again.
+                    <div className="flex justify-start">
+                      <div className="w-full">
+                        <div className="flex items-start gap-2 text-red-600 text-sm">
+                          <span className="shrink-0">⚠️</span>
+                          <span>Something went wrong. Please try again.</span>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -747,10 +750,14 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                     </div>
                   )}
 
+                  {/* Error message as chat bubble */}
                   {status === 'error' && (
-                    <div className="flex justify-center">
-                      <div className="bg-red-50 text-red-600 rounded-lg px-4 py-2 text-sm">
-                        Something went wrong. Please try again.
+                    <div className="flex justify-start">
+                      <div className="w-full">
+                        <div className="flex items-start gap-2 text-red-600 text-sm">
+                          <span className="shrink-0">⚠️</span>
+                          <span>Something went wrong. Please try again.</span>
+                        </div>
                       </div>
                     </div>
                   )}

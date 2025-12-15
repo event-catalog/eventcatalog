@@ -1,0 +1,420 @@
+---
+import config from '@config';
+const { title, logo } = config;
+import { join } from 'node:path';
+import { isAuthEnabled, isSSR } from '@utils/feature';
+import { buildUrl } from '@utils/url-builder';
+
+const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
+
+let hasAuthConfigurationFile = false;
+let providers: string[] = [];
+
+try {
+  const authConfig = await import(/* @vite-ignore */ join(catalogDirectory, 'eventcatalog.auth.js'));
+  providers = Object.keys(authConfig.default.providers);
+  hasAuthConfigurationFile = true;
+} catch (error) {
+  hasAuthConfigurationFile = false;
+}
+
+// Check if we should show login (auth file exists, SSR enabled, auth enabled, and has providers)
+const shouldShowLogin = hasAuthConfigurationFile && isSSR() && isAuthEnabled() && providers.length > 0;
+
+// Check if configuration exists but no providers are set up
+const hasConfigButNoProviders = hasAuthConfigurationFile && isSSR() && isAuthEnabled() && providers.length === 0;
+
+// If we are not in SSR mode, redirect to home
+if (!isSSR() || !isAuthEnabled()) {
+  return Astro.redirect('/');
+}
+
+// If we are in SSR mode, check if the user is already logged in
+if (isSSR() && isAuthEnabled()) {
+  const { getSession } = await import(/* @vite-ignore */ 'auth-astro/server');
+  const session = await getSession(Astro.request);
+  if (session) {
+    return Astro.redirect('/');
+  }
+}
+
+// Provider configurations
+const providerConfig = {
+  github: {
+    name: 'GitHub',
+    bgColor: 'bg-gray-900',
+    hoverBg: 'hover:bg-gray-800',
+    textColor: 'text-white',
+    icon: `<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path>
+    </svg>`,
+  },
+  google: {
+    name: 'Google',
+    bgColor: 'bg-white',
+    hoverBg: 'hover:bg-gray-50',
+    textColor: 'text-gray-700',
+    border: true,
+    icon: `<svg class="w-5 h-5" viewBox="0 0 24 24">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+    </svg>`,
+  },
+  okta: {
+    name: 'Okta',
+    bgColor: 'bg-[#007DC1]',
+    hoverBg: 'hover:bg-[#006BA8]',
+    textColor: 'text-white',
+    icon: `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0C5.389 0 0 5.389 0 12s5.389 12 12 12 12-5.389 12-12S18.611 0 12 0zm0 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z"/>
+    </svg>`,
+  },
+  auth0: {
+    name: 'Auth0',
+    bgColor: 'bg-[#EB5424]',
+    hoverBg: 'hover:bg-[#D44B20]',
+    textColor: 'text-white',
+    icon: `<svg class="w-5 h-5" viewBox="0 0 16 16" fill="currentColor">
+      <path d="M12.549 1h-4.55l1.407 4.38h4.548l-3.68 2.61 1.406 4.405c2.37-1.725 3.143-4.336 2.274-7.016L12.55 1zM2.045 5.38h4.55L8 1H3.45L2.045 5.38c-.868 2.68-.094 5.29 2.275 7.015L5.725 7.99l-3.68-2.612zm2.275 7.015L8 15l3.68-2.605L8 9.745l-3.68 2.65z"/>
+    </svg>`,
+  },
+  entra: {
+    name: 'Microsoft',
+    bgColor: 'bg-white',
+    hoverBg: 'hover:bg-gray-50',
+    textColor: 'text-gray-700',
+    border: true,
+    icon: `<svg class="w-5 h-5" viewBox="0 0 21 21">
+      <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+      <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+      <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+      <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+    </svg>`,
+  },
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Sign In | {title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .login-bg {
+        background-color: #fafafa;
+        background-image:
+          linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+        position: relative;
+      }
+      .login-bg::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse 80% 50% at 50% 50%, transparent 0%, rgba(250, 250, 250, 0.9) 100%);
+        pointer-events: none;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      .float-animation {
+        animation: float 6s ease-in-out infinite;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen login-bg">
+    <div class="relative flex min-h-screen flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {
+        shouldShowLogin ? (
+          <div class="w-full max-w-md">
+            {/* Logo and Title */}
+            <div class="text-center mb-8">
+              {logo && logo.src && (
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-lg shadow-gray-200/50 mb-6 float-animation">
+                  <img alt={logo.alt} src={buildUrl(logo.src)} class="w-10 h-10" />
+                </div>
+              )}
+              <h1 class="text-3xl font-bold text-gray-900 mb-2">{title}</h1>
+              <p class="text-gray-600">Sign in to access your catalog</p>
+            </div>
+
+            {/* Login Card */}
+            <div class="glass-card rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-200/50 overflow-hidden">
+              {/* Purple accent bar */}
+              <div class="h-1 bg-gradient-to-r from-purple-500 via-purple-600 to-indigo-600" />
+
+              <div class="p-8">
+                <div class="space-y-3">
+                  {providers.map((provider) => {
+                    const cfg = providerConfig[provider as keyof typeof providerConfig];
+                    if (!cfg) return null;
+
+                    return (
+                      <button
+                        data-provider={provider}
+                        class={`provider-login-btn group relative flex w-full items-center justify-center rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-200 ${cfg.bgColor} ${cfg.hoverBg} ${cfg.textColor} hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]`}
+                      >
+                        <span class="absolute left-4" set:html={cfg.icon} />
+                        <span>Continue with {cfg.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer links */}
+            <div class="mt-8 text-center">
+              <p class="text-sm text-gray-500">
+                Need a different provider?{' '}
+                <a
+                  href="https://github.com/event-catalog/eventcatalog/issues"
+                  target="_blank"
+                  class="text-purple-600 hover:text-purple-700 font-medium hover:underline"
+                >
+                  Let us know
+                </a>
+              </p>
+            </div>
+          </div>
+        ) : hasConfigButNoProviders ? (
+          <div class="w-full max-w-2xl">
+            {/* Logo */}
+            {logo && (
+              <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-lg shadow-gray-200/50 mb-4">
+                  <img alt={logo.alt} src={logo.src} class="w-10 h-10" />
+                </div>
+              </div>
+            )}
+
+            <div class="glass-card rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-200/50 overflow-hidden">
+              <div class="h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500" />
+
+              <div class="p-8 md:p-10">
+                {/* Warning Icon */}
+                <div class="flex justify-center mb-6">
+                  <div class="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center">
+                    <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="text-center mb-8">
+                  <h2 class="text-2xl font-bold text-gray-900 mb-2">No Providers Configured</h2>
+                  <p class="text-gray-600">Authentication is enabled but no providers are set up in your configuration file.</p>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                  <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Setup Instructions</h3>
+                  <ol class="space-y-3">
+                    <li class="flex items-start gap-3">
+                      <span class="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-sm font-semibold">
+                        1
+                      </span>
+                      <span class="text-sm text-gray-700">
+                        Update your <code class="px-1.5 py-0.5 bg-gray-200 rounded text-xs font-mono">eventcatalog.auth.js</code>{' '}
+                        file
+                      </span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                      <span class="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-sm font-semibold">
+                        2
+                      </span>
+                      <span class="text-sm text-gray-700">Add at least one provider (GitHub, Google, Okta, etc.)</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                      <span class="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-sm font-semibold">
+                        3
+                      </span>
+                      <span class="text-sm text-gray-700">Restart your EventCatalog server</span>
+                    </li>
+                  </ol>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                  <a
+                    href="https://www.eventcatalog.dev/docs/development/authentication/introduction"
+                    target="_blank"
+                    class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-all hover:scale-105"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                      />
+                    </svg>
+                    View Documentation
+                  </a>
+                  <a
+                    href="/"
+                    class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-700 border-2 border-gray-200 rounded-xl font-medium hover:border-gray-300 hover:bg-gray-50 transition-all"
+                  >
+                    Go to Home
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div class="w-full max-w-2xl">
+            {/* Logo */}
+            {logo && (
+              <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-lg shadow-gray-200/50 mb-4">
+                  <img alt={logo.alt} src={logo.src} class="w-10 h-10" />
+                </div>
+              </div>
+            )}
+
+            <div class="glass-card rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-200/50 overflow-hidden">
+              <div class="h-1 bg-gradient-to-r from-gray-400 via-gray-500 to-gray-600" />
+
+              <div class="p-8 md:p-10">
+                {/* Info Icon */}
+                <div class="flex justify-center mb-6">
+                  <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center">
+                    <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="text-center mb-8">
+                  <h2 class="text-2xl font-bold text-gray-900 mb-2">Authentication Not Configured</h2>
+                  <p class="text-gray-600">
+                    {!hasAuthConfigurationFile
+                      ? 'No authentication configuration file found.'
+                      : 'Authentication is not properly enabled.'}
+                  </p>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                  <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Enable Authentication</h3>
+                  <ol class="space-y-3">
+                    {!hasAuthConfigurationFile && (
+                      <li class="flex items-start gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-sm font-semibold">
+                          1
+                        </span>
+                        <span class="text-sm text-gray-700">
+                          Create <code class="px-1.5 py-0.5 bg-gray-200 rounded text-xs font-mono">eventcatalog.auth.js</code> in
+                          your project root
+                        </span>
+                      </li>
+                    )}
+                    {!isSSR() && (
+                      <li class="flex items-start gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-sm font-semibold">
+                          {!hasAuthConfigurationFile ? '2' : '1'}
+                        </span>
+                        <span class="text-sm text-gray-700">
+                          Set <code class="px-1.5 py-0.5 bg-gray-200 rounded text-xs font-mono">output: 'server'</code> in your
+                          config
+                        </span>
+                      </li>
+                    )}
+                    {!isAuthEnabled() && (
+                      <li class="flex items-start gap-3">
+                        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-sm font-semibold">
+                          {!hasAuthConfigurationFile ? (!isSSR() ? '3' : '2') : !isSSR() ? '2' : '1'}
+                        </span>
+                        <span class="text-sm text-gray-700">
+                          Set <code class="px-1.5 py-0.5 bg-gray-200 rounded text-xs font-mono">auth: {'{ enabled: true }'}</code>{' '}
+                          in your config
+                        </span>
+                      </li>
+                    )}
+                  </ol>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                  <a
+                    href="https://www.eventcatalog.dev/docs/development/authentication/introduction"
+                    target="_blank"
+                    class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-all hover:scale-105"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                      />
+                    </svg>
+                    View Documentation
+                  </a>
+                  <a
+                    href="/"
+                    class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-700 border-2 border-gray-200 rounded-xl font-medium hover:border-gray-300 hover:bg-gray-50 transition-all"
+                  >
+                    Go to Home
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Footer */}
+      <div class="absolute bottom-6 text-center">
+        <p class="text-xs text-gray-400">
+          Powered by <a href="https://www.eventcatalog.dev" target="_blank" class="hover:text-gray-600 transition-colors"
+            >EventCatalog</a
+          >
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
+
+<script>
+  import { signIn } from 'auth-astro/client';
+
+  // Add event listeners to all provider login buttons
+  const providerButtons = document.querySelectorAll('.provider-login-btn');
+
+  providerButtons.forEach((button) => {
+    const provider = button.getAttribute('data-provider');
+    if (provider) {
+      let providerId = provider === 'entra' ? 'microsoft-entra-id' : provider;
+      button.addEventListener('click', () => signIn(providerId));
+    }
+  });
+</script>

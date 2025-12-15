@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { findMatchingRule, matchesPattern } from '../middleware-auth';
+import { findMatchingRule, matchesPattern } from '../enterprise/auth/middleware/middleware-auth';
 
 describe('middleware-auth', () => {
   describe('matchesPattern', () => {
