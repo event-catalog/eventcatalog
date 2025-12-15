@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.20
+
+### Patch Changes
+
+- 9ec4525: chore(core): refactored features into astro custom integrations
+
 ## 3.0.0-beta.19
 
 ### Patch Changes
