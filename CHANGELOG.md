@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.22
+
+### Patch Changes
+
+- fcd3e9c: chore(core): removed some redundant files
+
 ## 3.0.0-beta.21
 
 ### Patch Changes
