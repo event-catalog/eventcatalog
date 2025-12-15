@@ -2,10 +2,11 @@
 import catalog from '@utils/eventcatalog-config/catalog';
 import Search from '@components/Search/Search.astro';
 import { buildUrl } from '@utils/url-builder';
-import { showEventCatalogBranding, showCustomBranding } from '@utils/feature';
+import { showEventCatalogBranding, showCustomBranding, isEventCatalogChatEnabled } from '@utils/feature';
 import { getSession } from 'auth-astro/server';
 import { isAuthEnabled, isSSR } from '@utils/feature';
 import { EnvironmentDropdown } from './EnvironmentDropdown';
+import ChatPanelButton from './ChatPanel/ChatPanelButton';
 
 let session = null;
 if (isAuthEnabled()) {
@@ -42,8 +43,11 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
         </a>
       </div>
 
-      <div class="hidden lg:block flex-grow -ml-1">
-        <Search />
+      <div class="hidden lg:flex flex-grow -ml-1 items-center">
+        <div class="flex-grow max-w-xl">
+          <Search />
+        </div>
+        {isEventCatalogChatEnabled() && <ChatPanelButton client:load />}
       </div>
 
       <div class="hidden md:block w-3/12">

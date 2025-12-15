@@ -41,6 +41,7 @@ src/__tests__/example-catalog-dependencies/dependencies
 
 eventcatalog/public/ai
 examples/default/public/ai
+examples/default/eventcatalog.chat.js
 **/[...auth].ts
 
 dev-scripts/

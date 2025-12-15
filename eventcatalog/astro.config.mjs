@@ -119,7 +119,7 @@ export default defineConfig({
       }
     },
     ssr: {
-      external: ['eventcatalog.auth.js'],
+      external: ['eventcatalog.auth.js', 'eventcatalog.chat.js'],
     }
   }
 });
