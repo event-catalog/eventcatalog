@@ -107,8 +107,6 @@ export const getQueries = async ({ getAllVersions = true, hydrateServices = true
         },
         catalog: {
           path: path.join(query.collection, query.id.replace('/index.mdx', '')),
-          absoluteFilePath: path.join(PROJECT_DIR, query.collection, query.id.replace('/index.mdx', '/index.md')),
-          astroContentFilePath: path.join(process.cwd(), 'src', 'content', query.collection, query.id),
           filePath: path.join(process.cwd(), 'src', 'catalog-files', query.collection, query.id.replace('/index.mdx', '')),
           publicPath: path.join('/generated', query.collection, queryFolderName),
           type: 'event', // Kept as 'event' to match original file, though likely should be 'query'

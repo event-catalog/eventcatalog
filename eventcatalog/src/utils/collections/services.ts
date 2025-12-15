@@ -118,8 +118,6 @@ export const getServices = async ({ getAllVersions = true, returnBody = false }:
         catalog: {
           // TODO: avoid use string replace at path due to win32
           path: path.join(service.collection, service.id.replace('/index.mdx', '')),
-          absoluteFilePath: path.join(PROJECT_DIR, service.collection, service.id.replace('/index.mdx', '/index.md')),
-          astroContentFilePath: path.join(process.cwd(), 'src', 'content', service.collection, service.id),
           filePath: path.join(process.cwd(), 'src', 'catalog-files', service.collection, service.id.replace('/index.mdx', '')),
           // service will be MySerive-0.0.1 remove the version
           publicPath: path.join('/generated', service.collection, serviceFolderName),

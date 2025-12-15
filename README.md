@@ -1,12 +1,7 @@
 <div align="center">
 
-<h1>📖 EventCatalog</h1>
-<h3>The open source tool to help you discover and document your event-driven architectures</h3>
-
-[![MIT License][license-badge]][license]
-[![PRs Welcome][prs-badge]][prs]
-<img src="https://img.shields.io/github/actions/workflow/status/event-catalog/eventcatalog/verify-build.yml"/>
-[![](https://dcbadge.limes.pink/api/server/https://discord.gg/3rjaZMmrAm?style=flat)](https://discord.gg/3rjaZMmrAm) [<img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" height="20px" />](https://www.linkedin.com/in/david-boyne/) [![blog](https://img.shields.io/badge/blog-EDA--Visuals-brightgreen)](https://eda-visuals.boyney.io/?utm_source=event-catalog-gihub) 
+<!-- <h1>📖 EventCatalog</h1> -->
+<!-- <h3>The open source tool to help you discover and document your event-driven architectures</h3> -->
 
 
 
@@ -25,143 +20,81 @@
 
 <!-- <hr /> -->
 
-<!-- <img width="745" alt="Screenshot 2024-12-13 at 09 56 05" src="https://github.com/user-attachments/assets/f537ec1f-54ee-4de1-996c-c6b72191be39" /> -->
+
+
 <img width="745" alt="EventCatalog" src="./images/example.png" />
 
+<p align="center">
+  <br/>
+  <a href="https://eventcatalog.dev">EventCatalog</a> is a documentation tool for software architectures &mdash;
+  <br/>
+  bring discoverability to complex systems.
+  <br/><br/>
+</p>
 
+<div align="center">
 
-
-<h4>Features: Documentation for Event Driven Architectures, Integration with any broker, Generator from your OpenAPI and AsyncAPI documents, Docs and Code, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4>
-
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-67-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-
-[Read the Docs](https://www.eventcatalog.dev/docs/development/getting-started/introduction) | [View Demo](https://demo.eventcatalog.dev)
+[![main](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml/badge.svg)](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/event-catalog/eventcatalog/blob/main/LICENSE)
+[![npm version](https://badge.fury.io/js/@eventcatalog%2Fcore.svg)](https://badge.fury.io/js/@eventcatalog/core)
 
 </div>
 
-<hr/>
 
-# Core Features
+<!-- 
 
-- 📃 Document domains, services and messages ([demo](https://demo.eventcatalog.dev/docs))
-- 📊 Visualise your architecture ([demo](https://demo.eventcatalog.dev/visualiser/domains/Orders))
-- ⭐ Supports any Schema format (e.g Avro, JSON) ([demo](https://demo.eventcatalog.dev/docs/events/OrderConfirmed/0.0.1))
-- 🗂️ Document any code examples (Any code snippet)
-- 💅 Custom MDX components ([read more](https://eventcatalog.dev/docs/development/components/using-components))
-- 🗄️ Version domains, services and messages
-- ⭐ Discoverability feature (search, filter and more) ([demo](https://demo.eventcatalog.dev/discover/events))
-- ⭐ Document teams and users ([demo](https://demo.eventcatalog.dev/docs/teams/full-stack))
-- 🤖 Automate your catalogs with [generators](https://www.eventcatalog.dev/docs/development/plugins/plugin-overview) (e.g generate your catalogs from your [AsyncAPI](https://www.eventcatalog.dev/docs/asyncapi)/[OpenAPI](https://www.eventcatalog.dev/docs/openapi) documents)
-- 👨🏼‍💻 Follows [Docs as code](https://www.writethedocs.org/guide/docs-as-code/) principles
-- ⭐ And much more...
+[![MIT License][license-badge]][license]
+[![PRs Welcome][prs-badge]][prs]
+<img src="https://img.shields.io/github/actions/workflow/status/event-catalog/eventcatalog/verify-build.yml"/>
+[![](https://dcbadge.limes.pink/api/server/https://discord.gg/3rjaZMmrAm?style=flat)](https://discord.gg/3rjaZMmrAm) [<img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" height="20px" />](https://www.linkedin.com/in/david-boyne/) [![blog](https://img.shields.io/badge/blog-EDA--Visuals-brightgreen)](https://eda-visuals.boyney.io/?utm_source=event-catalog-gihub) 
+ -->
 
 
-# The problem
 
-Event-driven architectures are becoming more popular, giving us the ability to write decoupled architectures and use messages as away to communicate between domains/teams.
 
-When starting with event-driven architectures you may have a handful of services and messages. As this scales with your team and organization it becomes very hard to manage and govern this.
 
-Over a period of time more events are added to our domain, requirements change, and our architecture scales.
+<!-- 
 
-As more domains, services or messages get added to our architecture they can be hard for teams to discover and explore.
+<h4>Features: Documentation for Event Driven Architectures, Integration with any broker, Generator from your OpenAPI and AsyncAPI documents, Docs and Code, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4> -->
 
-Many teams ignore documentation and governance and end up in a [sea of complexity (watch the talk here)](https://www.youtube.com/watch?v=VLUvfIm9wnQ&t=1s) .
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+<!-- [![All Contributors](https://img.shields.io/badge/all_contributors-67-orange.svg?style=flat-square)](#contributors-) -->
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-**EventCatalog was built to help document your event-driven architectures and help your teams explore and understand events, schemas and much more.**
+<!-- [Read the Docs](https://www.eventcatalog.dev/docs/development/getting-started/introduction) | [View Demo](https://demo.eventcatalog.dev) -->
 
-Read more on these blogposts and videos:
+</div>
 
-- [Introducing EventCatalog v2 (2024)](https://eventcatalog.dev/blog/eventcatalog-v2)
-- [Introducing EventCatalog v1 (2022)](https://www.boyney.io/blog/2022-01-11-introducing-eventcatalog)
-- [Event-Driven Architecture: Beyond the Schema Registry (blog)](https://www.boyney.io/blog/2021-12-05-documenting-events)
-- [Complexity is the Gotcha of Event-driven Architecture (VIDEO) by David Boyne](https://www.youtube.com/watch?v=VLUvfIm9wnQ&t=1s)
+## Install
 
-# This solution
-
-Think of EventCatalog as a website generator that allows you to document your event architectures powered by markdown.
-
-EventCatalog is focused on discovery and documentation and allows you to:
-
-- Document Domains/Services/Messages/Schemas/Code Examples and more...
-- Visually shows relationships between upstream/downstream services using your Events
-- Allows you to version your documentation and supports changelogs
-- Add owners to domains,services and messages so your teams know who owns which parts of your domain
-- And much more...
-
-EventCatalog is technology agnostic, which means you can integrate your Catalog with any EDA technology of your choice and any schema formats.
-
-EventCatalog supports a [Plugin Architecture](https://github.com/event-catalog/generators) which lets you generate documentation from your systems including OpenAPI, AsyncAPI, Event Brokers and more.
-
-You can read more on [how it works on GitHub](https://github.com/event-catalog/eventcatalog)
-
-# Getting Started
-
-You should be able to get setup within minutes if you head over to our documentation to get started 👇
-
-➡️ [Get Started](https://www.eventcatalog.dev/docs/development/getting-started)
-
-Or run this command to build a new catalog
-
+The **recommended** way to install the latest version of EventCatalog is by running the command below:
 ```
 npx @eventcatalog/create-eventcatalog@latest my-catalog
 ```
 
-# Demo
+Looking for help? Start with our [Getting Started](https://www.eventcatalog.dev/docs/development/starting-a-new-project/installation) guide
 
-Here is an example of a Retail system using domains, services and messages.
+## Documentation
+Visit our [official documentation](https://www.eventcatalog.dev/docs/development/getting-started).
 
-[demo.eventcatalog.dev](https://demo.eventcatalog.dev)
+## Support
+Having trouble? Get help in the official [EventCatalog Discord](https://discord.gg/3rjaZMmrAm).
 
-You can see the markdown files that generated the website in the GitHub repo under [examples](/examples).
+## Demos
 
-# Enterprise support
+Here are some examples of EventCatalog in action:
 
-Interested in collaborating with us? Our offerings include dedicated support, priority assistance, feature development, custom integrations, and more.
-
-Find more details on our [services page](https://eventcatalog.dev/services).
-
-# Looking for v2?
-
-You can find v2 on our [release/v2 branch](https://github.com/event-catalog/eventcatalog/tree/release/v2).
-
-We are currently working on `main` which is the current major version of EventCatalog.
-
-We are only applying patch fixes and security updates to `v2.x.x` going forward.
-
-If you would like to make a change to v2, please raise a pull request against the `release/v2` branch.
-
-# Looking for v1?
-
-- Documentation: https://v1.eventcatalog.dev
-- Code: https://github.com/event-catalog/eventcatalog/tree/v1
-
-_Still using v1 of EventCatalog? We recommnded upgrading to the latest version. [Read more in the migration guide](https://eventcatalog.dev/docs/development/guides/upgrading-from-version-1)._
+- [Finance System](https://eventcatalog-examples-finance.vercel.app/)
+- [Healthcare System](https://eventcatalog-examples-healthcare.vercel.app/)
+- [E-Commerce System](https://demo.eventcatalog.dev/)
+- [SaaS System](https://eventcatalog-examples-saas.vercel.app/)
 
 
-# Contributing
+## Contributing
 
 If you have any questions, features or issues please raise any issue or pull requests you like. We will try my best to get back to you.
 
 You can find the [contributing guidelines here](https://eventcatalog.dev/docs/contributing/overview).
-
-## Running the project locally
-
-1. Clone the repo
-1. Install required dependencies `pnpm install`
-1. Run the command `pnpm run start:catalog`
-    - This will start the catalog found in `/examples` repo, locally on your machine
-
-[license-badge]: https://img.shields.io/github/license/event-catalog/eventcatalog.svg?color=yellow
-[license]: https://github.com/event-catalog/eventcatalog/blob/main/LICENSE
-[prs-badge]: https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square
-[prs]: http://makeapullrequest.com
-[github-watch-badge]: https://img.shields.io/github/watchers/event-catalog/eventcatalog.svg?style=social
-[github-watch]: https://github.com/event-catalog/eventcatalog/watchers
-[github-star-badge]: https://img.shields.io/github/stars/event-catalog/eventcatalog.svg?style=social
-[github-star]: https://github.com/event-catalog/eventcatalog/stargazers
 
 ## Contributors ✨
 

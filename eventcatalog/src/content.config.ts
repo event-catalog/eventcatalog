@@ -91,8 +91,6 @@ const changelogs = defineCollection({
     catalog: z
       .object({
         path: z.string(),
-        absoluteFilePath: z.string(),
-        astroContentFilePath: z.string(),
         filePath: z.string(),
         publicPath: z.string(),
         type: z.string(),
@@ -196,7 +194,6 @@ const baseSchema = z.object({
     .object({
       path: z.string(),
       filePath: z.string(),
-      astroContentFilePath: z.string(),
       publicPath: z.string(),
       type: z.string(),
     })

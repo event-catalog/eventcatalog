@@ -94,8 +94,6 @@ export const getContainers = async ({ getAllVersions = true }: Props = {}): Prom
         },
         catalog: {
           path: path.join(container.collection, container.id.replace('/index.mdx', '')),
-          absoluteFilePath: path.join(PROJECT_DIR, container.collection, container.id.replace('/index.mdx', '/index.md')),
-          astroContentFilePath: path.join(process.cwd(), 'src', 'content', container.collection, container.id),
           filePath: path.join(
             process.cwd(),
             'src',
