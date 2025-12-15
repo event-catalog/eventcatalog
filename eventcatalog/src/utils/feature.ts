@@ -39,9 +39,12 @@ export const showCustomBranding = () => {
 export const isChangelogEnabled = () => config?.changelog?.enabled ?? false;
 
 export const isCustomDocsEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
+
 export const isEventCatalogChatEnabled = () => {
   const isFeatureEnabledFromPlan = isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
-  return isFeatureEnabledFromPlan && config?.chat?.enabled && isSSR();
+  const directory = process.env.PROJECT_DIR || process.cwd();
+  const hasChatConfigurationFile = fs.existsSync(join(directory, 'eventcatalog.chat.js'));
+  return isFeatureEnabledFromPlan && hasChatConfigurationFile && isSSR();
 };
 
 export const isEventCatalogUpgradeEnabled = () => !isEventCatalogStarterEnabled() && !isEventCatalogScaleEnabled();

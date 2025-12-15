@@ -160,14 +160,6 @@ const premiumFeatures = [
     current: currentPath.includes('/docs/custom'),
     isPremium: true,
   },
-  {
-    id: '/chat',
-    label: 'EventCatalog Chat',
-    icon: BotMessageSquare,
-    href: buildUrl('/chat'),
-    current: currentPath.includes('/chat'),
-    isPremium: true,
-  },
 ].filter((item) => {
   const userSideBarOption = userSideBarConfiguration.find((config: { id: string; visible: boolean }) => config.id === item.id);
   return userSideBarOption ? userSideBarOption.visible : true;

@@ -227,6 +227,9 @@ importers:
       rehype-expressive-code:
         specifier: ^0.41.3
         version: 0.41.3
+      rehype-raw:
+        specifier: ^7.0.0
+        version: 7.0.0
       rehype-slug:
         specifier: ^6.0.0
         version: 6.0.0

@@ -34,7 +34,7 @@ Payment Cache is a Redis 7 cluster used for caching payment session data, rate l
 - **Frontend APIs** check payment session validity
 
 ### Key patterns and structure
-```redis
+```
 # Payment session keys (TTL: 15 minutes)
 payment:session:{session_id} -> {
   "customer_id": "uuid",

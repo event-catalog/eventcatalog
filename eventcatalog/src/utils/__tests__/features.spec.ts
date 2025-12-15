@@ -1,3 +1,4 @@
+import path from 'path';
 import {
   isEventCatalogStarterEnabled,
   isEventCatalogScaleEnabled,
@@ -12,6 +13,7 @@ import {
 } from '../feature';
 
 import config from '@config';
+import fs from 'fs';
 
 vi.mock('@config', () => ({
   default: {
@@ -30,6 +32,12 @@ describe('features', () => {
   beforeEach(() => {
     // Reset the environment before each test
     process.env = { ...originalEnv };
+
+    // Set the project directory to the examples/default directory
+    process.env.PROJECT_DIR = path.join(__dirname, 'catalog');
+
+    // Create the catalog directory if it doesn't exist
+    fs.mkdirSync(process.env.PROJECT_DIR, { recursive: true });
   });
 
   afterEach(() => {
@@ -107,26 +115,39 @@ describe('features', () => {
   });
 
   describe('isEventCatalogChatEnabled', () => {
-    it('should return true when EVENTCATALOG_STARTER is true, chat is enabled and isSSR', () => {
+    it('should return true when EVENTCATALOG_STARTER is true, the user has a eventcatalog.chat.js file and isSSR', () => {
+      // Create the fake file
+      fs.writeFileSync(
+        path.join(process.env.PROJECT_DIR || '', 'eventcatalog.chat.js'),
+        'export default () => { return { model: "o4-mini" }; }'
+      );
       process.env.EVENTCATALOG_STARTER = 'true';
-      config.chat.enabled = true;
       config.output = 'server';
       expect(isEventCatalogChatEnabled()).toBe(true);
+
+      // Remove the file
+      fs.rmSync(path.join(process.env.PROJECT_DIR || '', 'eventcatalog.chat.js'));
     });
 
-    it('should return true when EVENTCATALOG_SCALE is true, chat is enabled and isSSR', () => {
-      process.env.EVENTCATALOG_SCALE = 'true';
-      config.chat.enabled = true;
-      config.output = 'server';
-      expect(isEventCatalogChatEnabled()).toBe(true);
-    });
-
-    it('should return false when neither feature is enabled, chat is enabled and isSSR', () => {
-      delete process.env.EVENTCATALOG_STARTER;
-      delete process.env.EVENTCATALOG_SCALE;
-      config.chat.enabled = true;
+    // returns false when no file is found
+    it('should return false when no file is found', () => {
+      process.env.EVENTCATALOG_STARTER = 'true';
       config.output = 'server';
       expect(isEventCatalogChatEnabled()).toBe(false);
+    });
+
+    it('should return false when output is not server', () => {
+      fs.writeFileSync(
+        path.join(process.env.PROJECT_DIR || '', 'eventcatalog.chat.js'),
+        'export default () => { return { model: "o4-mini" }; }'
+      );
+      process.env.EVENTCATALOG_STARTER = 'true';
+      config.output = 'static';
+
+      expect(isEventCatalogChatEnabled()).toBe(false);
+
+      // Remove the file
+      fs.rmSync(path.join(process.env.PROJECT_DIR || '', 'eventcatalog.chat.js'));
     });
   });
 

@@ -628,9 +628,7 @@ describe('getNestedSideBarData', () => {
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
         const servicesInDomainSection = getChildNodeByTitle('Services In Domain', domainNode.pages ?? []);
 
-        console.log(domainNode);
-
-        // expect(servicesInDomainSection.pages).toEqual(['service:ShippingService:0.0.1']);
+        expect(servicesInDomainSection.pages).toEqual(['service:ShippingService:0.0.1']);
       });
     });
 
