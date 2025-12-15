@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.19
+
+### Patch Changes
+
+- de19451: feat(core): simplified eventcatalog chat
+- 7b1311b: chore(core): updated packages
+
 ## 3.0.0-beta.18
 
 ### Patch Changes
