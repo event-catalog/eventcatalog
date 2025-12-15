@@ -23,7 +23,7 @@ export default defineConfig({
   resolve: {
     conditions: ['import', 'module', 'node', 'default'],
     alias: {
-      'astro:content': path.resolve(__dirname, './__mocks__/astro-content.ts'),
+      'astro:content': path.resolve(__dirname, './src/__mocks__/astro-content.ts'),
       '@config': path.resolve(__dirname, 'eventcatalog/eventcatalog.config.js'),
       '@eventcatalog/sdk': path.resolve(__dirname, 'node_modules/@eventcatalog/sdk/dist/index.mjs'),
       '@eventcatalog': path.resolve(__dirname, 'eventcatalog/src/utils/eventcatalog-config/catalog.ts'),
