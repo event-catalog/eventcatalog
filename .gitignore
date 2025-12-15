@@ -45,7 +45,7 @@ examples/default/public/ai
 examples/default/eventcatalog.chat.js
 **/[...auth].ts
 
-
+.astro/
 
 dev-scripts/
 

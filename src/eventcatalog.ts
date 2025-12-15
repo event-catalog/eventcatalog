@@ -276,29 +276,6 @@ program
         stdio: 'inherit',
       }
     );
-
-    // Turn off Pagefind for v3; todo; remove pagefind code once we know thats what we want.
-    // if (!isServerOutput) {
-    //   const outDir = await getProjectOutDir();
-
-    //   const windowsCommand = `npx -y pagefind --site ${outDir}`;
-    //   const unixCommand = `npx -y pagefind --site ${outDir}`;
-    //   const pagefindCommand = process.platform === 'win32' ? windowsCommand : unixCommand;
-
-    //   // Build pagefind into the output directory for the final build version
-    //   execSync(
-    //     `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} ${pagefindCommand}`,
-    //     {
-    //       cwd: dir,
-    //       stdio: 'inherit',
-    //     }
-    //   );
-
-    //   // Copy the pagefind directory into the public directory for dev mode
-    //   if (fs.existsSync(join(dir, outDir, 'pagefind'))) {
-    //     fs.cpSync(join(dir, outDir, 'pagefind'), join(dir, 'public', 'pagefind'), { recursive: true });
-    //   }
-    // }
   });
 
 const previewCatalog = ({
