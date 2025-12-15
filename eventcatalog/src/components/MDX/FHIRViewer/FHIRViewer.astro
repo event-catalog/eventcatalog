@@ -1,0 +1,39 @@
+---
+
+// Props passed from MDX
+const {
+  definition,
+  src,
+  filePath,
+  id = "fhir-viewer",
+  title
+} = Astro.props;
+import fs from 'node:fs/promises';
+import { existsSync } from 'fs';
+import FHIRSchemaViewer from '@components/SchemaExplorer/FHIRSchemaViewer'; // <-- path to your React component
+import {resolveProjectPath, getAbsoluteFilePathForAstroFile } from '@utils/files';
+
+let schema;
+
+try {
+  const schemaPath = getAbsoluteFilePathForAstroFile(filePath, src);
+  const exists = existsSync(schemaPath);
+  if (exists) {
+    schema = await fs.readFile(schemaPath, 'utf-8');
+    schema = JSON.parse(schema);
+    if (!schema) {
+      throw new Error(`<FHIRViewer> needs either a "definition" object or a "src" JSON file path`);
+    }
+  }
+} catch (error) {
+    console.log('Failed to process schemas');
+    console.log(error);
+}
+---
+
+<div class="my-4">
+  <FHIRSchemaViewer
+    structureDefinition={schema}
+    title={title}
+  />
+</div>

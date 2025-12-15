@@ -106,9 +106,10 @@ async function processSchema(schema: any, rootSchema?: any): Promise<any> {
 
   let dereferencedSchema = await $RefParser.dereference(schema, {
     dereference: {
-      circular: 'ignore', // Don't allow circular $refs
+      circular: true, // Don't allow circular $refs
     },
   });
+  console.log(dereferencedSchema);
   return dereferencedSchema;
 }
 

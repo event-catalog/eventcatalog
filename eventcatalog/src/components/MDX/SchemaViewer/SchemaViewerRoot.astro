@@ -15,7 +15,6 @@ try {
   const absoluteFilePath = resolveProjectPath(filePath);
   const file = await fs.readFile(absoluteFilePath, 'utf-8');
   const schemaViewers = getMDXComponentsByName(file, 'SchemaViewer');
-
   // Loop around all the possible SchemaViewers in the file.
   const getAllComponents = schemaViewers.map(async (schemaViewerProps: any, index: number) => {
     const schemaPath = getAbsoluteFilePathForAstroFile(filePath, schemaViewerProps.file);

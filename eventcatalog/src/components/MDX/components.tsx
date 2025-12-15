@@ -27,6 +27,7 @@ import DrawIO from '@components/MDX/DrawIO/DrawIO.astro';
 import FigJam from '@components/MDX/FigJam/FigJam.astro';
 import Design from '@components/MDX/Design/Design.astro';
 import MermaidFileLoader from '@components/MDX/MermaidFileLoader/MermaidFileLoader.astro';
+import FHIRViewer from '@components/MDX/FHIRViewer/FHIRViewer.astro';
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
@@ -66,6 +67,7 @@ const components = (props: any) => {
     DrawIO: (mdxProp: any) => jsx(DrawIO, { ...props, ...mdxProp }),
     FigJam: (mdxProp: any) => jsx(FigJam, { ...props, ...mdxProp }),
     MermaidFileLoader: (mdxProp: any) => jsx(MermaidFileLoader, { ...props, ...mdxProp }),
+    FHIRViewer: (mdxProp: any) => jsx(FHIRViewer, { ...props, ...mdxProp }),
   };
 };
 
