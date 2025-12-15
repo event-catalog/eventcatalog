@@ -114,8 +114,6 @@ export const getEvents = async ({ getAllVersions = true, hydrateServices = true 
         },
         catalog: {
           path: path.join(event.collection, event.id.replace('/index.mdx', '')),
-          absoluteFilePath: path.join(PROJECT_DIR, event.collection, event.id.replace('/index.mdx', '/index.md')),
-          astroContentFilePath: path.join(process.cwd(), 'src', 'content', event.collection, event.id),
           filePath: path.join(process.cwd(), 'src', 'catalog-files', event.collection, event.id.replace('/index.mdx', '')),
           publicPath: path.join('/generated', event.collection, eventFolderName),
           type: 'event',

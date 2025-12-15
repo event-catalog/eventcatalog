@@ -94,8 +94,6 @@ export const getEntities = async ({ getAllVersions = true }: Props = {}): Promis
         },
         catalog: {
           path: path.join(entity.collection, entity.id.replace('/index.mdx', '')),
-          absoluteFilePath: path.join(PROJECT_DIR, entity.collection, entity.id.replace('/index.mdx', '/index.md')),
-          astroContentFilePath: path.join(process.cwd(), 'src', 'content', entity.collection, entity.id),
           filePath: path.join(process.cwd(), 'src', 'catalog-files', entity.collection, entity.id.replace('/index.mdx', '')),
           publicPath: path.join('/generated', entity.collection, entityFolderName),
           type: 'entity',
