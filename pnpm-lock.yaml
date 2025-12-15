@@ -8,15 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@ai-sdk/anthropic':
-        specifier: ^2.0.23
-        version: 2.0.25(zod@3.25.76)
-      '@ai-sdk/google':
-        specifier: ^2.0.17
-        version: 2.0.18(zod@3.25.76)
-      '@ai-sdk/openai':
-        specifier: ^2.0.42
-        version: 2.0.45(zod@3.25.76)
       '@ai-sdk/react':
         specifier: ^2.0.60
         version: 2.0.62(react@18.3.1)(zod@3.25.76)
@@ -348,26 +339,8 @@ importers:
 
 packages:
 
-  '@ai-sdk/anthropic@2.0.25':
-    resolution: {integrity: sha512-XuGg4Mk/hbbe34a27ElFbontKbQMi0lSIOw4iFpbzXowsvW/ld5tspFOcrjDrNcy+0z5iXSFVklwwQcNwe65SQ==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      zod: ^3.25.76 || ^4.1.8
-
   '@ai-sdk/gateway@1.0.35':
     resolution: {integrity: sha512-cdsXbeRRMi6QxbZscin69Asx2fi0d2TmmPngcPFUMpZbchGEBiJYVNvIfiALKFKXEq0l/w0xGNV3E13vroaleA==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      zod: ^3.25.76 || ^4.1.8
-
-  '@ai-sdk/google@2.0.18':
-    resolution: {integrity: sha512-ycGAqouueHjU0hB6JHYmUhXYCnN67PqI8+9jCv13MbuE0g+b9w78HiPuab5ResakY0cq3ynFDvbiu8jAGo1RZQ==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      zod: ^3.25.76 || ^4.1.8
-
-  '@ai-sdk/openai@2.0.45':
-    resolution: {integrity: sha512-9OsVWzW502UCYN1VS9D+1flwrF9GqFvpfybfb1iLIdvmCbXXKXpozhLyuAW82FY67hfiIlOsvlgT9UYtljlQmw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -7737,29 +7710,11 @@ packages:
 
 snapshots:
 
-  '@ai-sdk/anthropic@2.0.25(zod@3.25.76)':
-    dependencies:
-      '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.11(zod@3.25.76)
-      zod: 3.25.76
-
   '@ai-sdk/gateway@1.0.35(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@ai-sdk/provider-utils': 3.0.11(zod@3.25.76)
       '@vercel/oidc': 3.0.2
-      zod: 3.25.76
-
-  '@ai-sdk/google@2.0.18(zod@3.25.76)':
-    dependencies:
-      '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.11(zod@3.25.76)
-      zod: 3.25.76
-
-  '@ai-sdk/openai@2.0.45(zod@3.25.76)':
-    dependencies:
-      '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.11(zod@3.25.76)
       zod: 3.25.76
 
   '@ai-sdk/provider-utils@3.0.11(zod@3.25.76)':
