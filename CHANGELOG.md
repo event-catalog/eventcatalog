@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.65.3
+
+### Patch Changes
+
+- 32950d6: chore(core): added v3 message
+
 ## 2.65.2
 
 ### Patch Changes
