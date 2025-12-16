@@ -94,7 +94,6 @@
     "diff2html": "^3.4.48",
     "dotenv": "^16.5.0",
     "elkjs": "^0.10.0",
-    "fhir-react": "^1.0.2",
     "glob": "^10.5.0",
     "gray-matter": "^4.0.3",
     "html-to-image": "^1.11.11",
