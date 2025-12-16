@@ -1,126 +1,236 @@
-import React, { useMemo } from "react";
+import React, { useMemo } from 'react';
 
-import $RefParser from '@apidevtools/json-schema-ref-parser';
-import pkg from 'fhir-react';
-const {FhirResource, fhirVersions} = pkg;
 interface FHIRSchemaViewerProps {
   structureDefinition: any;
   title?: string;
 }
 
 interface FhirElementNode {
+  key: string;
   id: string;
   path: string;
   name: string;
   min: number;
   max: string;
-  types: string []
+  types: string[];
   sliceName?: string;
+
+  short?: string;
+  definition?: string;
+  comment?: string;
+  alias?: string[];
+  binding?: {
+    strength?: string;
+    valueSet?: string;
+  };
+  mapping?: {
+    identity: string;
+    map: string;
+  }[];
+
   children: FhirElementNode[];
 }
-
 /**
  * Take snapshot.element[] and transform the flat list
  * into a nested tree based on the element paths.
  */
 function buildElementTree(elements: any[]): FhirElementNode[] {
-  const nodeMap = new Map<string, FhirElementNode>();
   const roots: FhirElementNode[] = [];
-  console.log(elements.length);
-  // First pass: build nodes
-  elements.forEach((el: any) => {
-    const path = el.path;
-    const parts = path.split(".");
-    const name = el.sliceName ?? parts[parts.length - 1];
+  const stack: { depth: number; node: FhirElementNode }[] = [];
+
+  elements.forEach((el: any, index: number) => {
+    const depth = el.path.split('.').length;
+
     const node: FhirElementNode = {
-      id: el.id,                 // FHIR ID (with slice names)
-      path,                      // hierarchical path
-      name,                      // display name
+      key: `${index}`,
+      id: el.id,
+      path: el.path,
+      name: el.name,
       min: el.min ?? 0,
-      max: el.max ?? "1",
-      types: Array.isArray(el.type)
-        ? el.type.map((t: any) => t.code)
-        : [],
+      max: el.max ?? '1',
+      types: Array.isArray(el.type) ? el.type.map((t: any) => t.code) : [],
       sliceName: el.sliceName,
+
+      short: el.short,
+      definition: el.definition,
+      comment: el.comment,
+      alias: el.alias,
+      binding: el.binding
+        ? {
+            strength: el.binding.strength,
+            valueSet: el.binding.valueSet,
+          }
+        : undefined,
+      mapping: el.mapping,
+
       children: [],
     };
 
-    nodeMap.set(path, node);
-  });
-
-  // Second pass: connect nodes into a tree
-  elements.forEach((el: any) => {
-    const path = el.path;
-    const parts = path.split(".");
-    const parentPath = parts.slice(0, -1).join(".");
-
-    const node = nodeMap.get(path);
-
-    if (parentPath && nodeMap.has(parentPath)) {
-      nodeMap.get(parentPath)!.children.push(node!);
-    } else {
-      // no parent => top-level root
-      roots.push(node!);
+    // Pop stack until we find the correct parent depth
+    while (stack.length && stack[stack.length - 1].depth >= depth) {
+      stack.pop();
     }
+
+    if (stack.length === 0) {
+      roots.push(node);
+    } else {
+      stack[stack.length - 1].node.children.push(node);
+    }
+
+    stack.push({ depth, node });
   });
 
   return roots;
 }
-
 /**
  * Simple recursive UI renderer for FHIR element tree.
  */
-import { useState } from "react";
+import { useState } from 'react';
+
+function ElementDetails({ node }: { node: FhirElementNode }) {
+  return (
+    <div
+      style={{
+        marginTop: 6,
+        padding: '10px 14px',
+        background: '#f9fafb',
+        borderLeft: '3px solid #3b82f6',
+        fontSize: '0.85em',
+        borderRadius: 4,
+      }}
+    >
+      {node.short && (
+        <div>
+          <strong>Short description</strong>
+          <br />
+          {node.short}
+        </div>
+      )}
+
+      {node.alias?.length && (
+        <div style={{ marginTop: 6 }}>
+          <strong>Alternate names</strong>
+          <br />
+          {node.alias.join(', ')}
+        </div>
+      )}
+
+      {node.definition && (
+        <div style={{ marginTop: 6 }}>
+          <strong>Definition</strong>
+          <br />
+          {node.definition}
+        </div>
+      )}
+
+      {node.comment && (
+        <div style={{ marginTop: 6 }}>
+          <strong>Comments</strong>
+          <br />
+          {node.comment}
+        </div>
+      )}
+
+      {node.binding && (
+        <div style={{ marginTop: 6 }}>
+          <strong>Binding</strong>
+          <br />
+          {node.binding.strength} —{' '}
+          <a href={node.binding.valueSet} target="_blank" rel="noreferrer">
+            {node.binding.valueSet}
+          </a>
+        </div>
+      )}
+
+      {node.mapping?.length && (
+        <div style={{ marginTop: 6 }}>
+          <strong>Mappings</strong>
+          <ul style={{ marginLeft: 16 }}>
+            {node.mapping.map((m, i) => (
+              <li key={i}>
+                <strong>{m.identity}:</strong> {m.map}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function ElementNodeView({ node, depth }: { node: FhirElementNode; depth: number }) {
-  const [expanded, setExpanded] = useState(depth === 0); // root expanded by default
+  const [expanded, setExpanded] = useState(depth === 0);
+  const [selected, setSelected] = useState(false);
 
-  const hasChildren = node.children && node.children.length > 0;
+  const hasChildren = node.children.length > 0;
 
   return (
     <div style={{ marginLeft: depth * 18 }}>
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          cursor: hasChildren ? "pointer" : "default",
-          lineHeight: "1.5em",
+          display: 'flex',
+          alignItems: 'center',
+          cursor: 'pointer',
+          lineHeight: '1.6em',
+          padding: '2px 4px',
+          borderRadius: 4,
         }}
-        onClick={() => hasChildren && setExpanded(!expanded)}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = '#f3f4f6';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent';
+        }}
+        onClick={(e) => {
+          e.stopPropagation(); // 🔑 critical
+          setSelected(!selected);
+        }}
       >
-        {/* Expand / collapse triangle */}
         {hasChildren ? (
-          <span style={{ width: 14, display: "inline-block", fontSize: 12 }}>
-            {expanded ? "▼" : "▶"}
+          <span
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded(!expanded);
+            }}
+            style={{ width: 14, display: 'inline-block', fontSize: 12 }}
+          >
+            {expanded ? '▼' : '▶'}
           </span>
         ) : (
-          <span style={{ width: 14, display: "inline-block" }} />
+          <span style={{ width: 14 }} />
         )}
 
-        {/* Element path */}
-        <span style={{ fontWeight: depth === 0 ? "bold" : "normal" }}>
-          {node.path}
-        </span>
+        <span style={{ fontWeight: depth === 0 ? 'bold' : 'normal' }}>{node.path}</span>
 
-        {/* Min/max */}
         <span style={{ opacity: 0.6, marginLeft: 6 }}>
           ({node.min}..{node.max})
         </span>
 
-        {/* Type info */}
-        {(node.types?.length ?? 0) > 0 && (
-          <span style={{ marginLeft: 8, fontSize: "0.9em", opacity: 0.8 }}>
-            : {node.types!.join(" | ")}
+        {node.types.length > 0 && (
+          <span style={{ marginLeft: 8 }}>
+            :
+            {node.types.map((t, i) => (
+              <a
+                key={t}
+                href={`/fhir/datatypes/${t}`}
+                style={{
+                  marginLeft: 4,
+                  color: '#2563eb',
+                  textDecoration: 'none',
+                  fontSize: '0.9em',
+                }}
+              >
+                {t}
+                {i < node.types.length - 1 ? ' |' : ''}
+              </a>
+            ))}
           </span>
         )}
       </div>
 
-      {/* Child nodes */}
-      {expanded &&
-        hasChildren &&
-        node.children.map((child) => (
-          <ElementNodeView key={child.path} node={child} depth={depth + 1} />
-        ))}
+      {selected && <ElementDetails node={node} />}
+
+      {expanded && node.children.map((child) => <ElementNodeView key={child.key} node={child} depth={depth + 1} />)}
     </div>
   );
 }
@@ -128,29 +238,20 @@ function ElementNodeView({ node, depth }: { node: FhirElementNode; depth: number
  * Main viewer component.
  */
 export default function FHIRSchemaViewer({ structureDefinition, title }: FHIRSchemaViewerProps) {
-  
-  
   if (!structureDefinition) {
     return <div>No StructureDefinition provided.</div>;
   }
 
   return (
-    <div style={{ padding: "1rem", fontFamily: "Arial" }}>
-      <h3 style={{ marginBottom: "0.5rem" }}>
-        {title ?? structureDefinition.title ?? structureDefinition.name}
-      </h3>
+    <div style={{ padding: '1rem', fontFamily: 'Arial' }}>
+      <h3 style={{ marginBottom: '0.5rem' }}>{title ?? structureDefinition.title ?? structureDefinition.name}</h3>
 
-      <div style={{ fontSize: "0.9rem", color: "#555", marginBottom: "1rem" }}>
-        {structureDefinition.description}
-      </div>
+      <div style={{ fontSize: '0.9rem', color: '#555', marginBottom: '1rem' }}>{structureDefinition.description}</div>
 
       {/* Render root elements */}
-      
-    <FhirResource
-      fhirResource={structureDefinition}
-      fhirVersion={fhirVersions.R4}
-    />
-
+      {buildElementTree(structureDefinition.snapshot.element).map((rootNode) => (
+        <ElementNodeView key={rootNode.path} node={rootNode} depth={0} />
+      ))}
     </div>
   );
 }
