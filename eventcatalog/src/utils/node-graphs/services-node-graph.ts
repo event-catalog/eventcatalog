@@ -288,7 +288,7 @@ export const getNodesAndEdges = async ({
   const uniqueEdges = edges.reduce((acc: any[], edge: any) => {
     const existingEdge = acc.find((e: any) => e.id === edge.id);
     if (existingEdge) {
-      existingEdge.label = `${existingEdge.label} & ${edge.label}`;
+      // existingEdge.label = `${existingEdge.label} & ${edge.label}`;
       // Add the custom colors to the existing edge which can be an array of strings
       const value = Array.isArray(edge.data.customColor) ? edge.data.customColor : [edge.data.customColor];
       const existingValue = Array.isArray(existingEdge.data.customColor)
