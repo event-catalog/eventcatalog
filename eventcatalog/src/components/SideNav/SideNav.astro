@@ -25,3 +25,38 @@ const props = await getNestedSideBarData();
     setSidebarData(data);
   }
 </script>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const resizer = document.getElementById('sidebar-resizer');
+
+  if (sidebar && resizer) {
+    let isResizing = false;
+
+    resizer.addEventListener('mousedown', () => {
+      isResizing = true;
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+
+      const newWidth = Math.max(240, Math.min(600, e.clientX - 56));
+      sidebar.style.setProperty('--sidebar-width', `${newWidth}px`);
+      localStorage.setItem('eventcatalog-sidebar-width', newWidth);
+    });
+
+    document.addEventListener('mouseup', () => {
+      isResizing = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    });
+
+    // Restore saved width
+    const savedWidth = localStorage.getItem('eventcatalog-sidebar-width');
+    if (savedWidth) {
+      sidebar.style.setProperty('--sidebar-width', `${savedWidth}px`);
+    }
+  }
+</script>

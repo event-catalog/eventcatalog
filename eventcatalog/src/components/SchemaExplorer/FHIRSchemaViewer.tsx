@@ -1,3 +1,4 @@
+import path from 'path';
 import React, { useMemo } from 'react';
 
 interface FHIRSchemaViewerProps {
@@ -39,13 +40,14 @@ function buildElementTree(elements: any[]): FhirElementNode[] {
   const stack: { depth: number; node: FhirElementNode }[] = [];
 
   elements.forEach((el: any, index: number) => {
-    const depth = el.path.split('.').length;
+    const pathParts = el.path.split('.');
+    const depth = pathParts.length;
 
     const node: FhirElementNode = {
       key: `${index}`,
       id: el.id,
       path: el.path,
-      name: el.name,
+      name: el.sliceName ?? pathParts[pathParts.length - 1],
       min: el.min ?? 0,
       max: el.max ?? '1',
       types: Array.isArray(el.type) ? el.type.map((t: any) => t.code) : [],
@@ -200,7 +202,7 @@ function ElementNodeView({ node, depth }: { node: FhirElementNode; depth: number
           <span style={{ width: 14 }} />
         )}
 
-        <span style={{ fontWeight: depth === 0 ? 'bold' : 'normal' }}>{node.path}</span>
+        <span style={{ fontWeight: depth === 0 ? 'bold' : 'normal' }}>{node.name}</span>
 
         <span style={{ opacity: 0.6, marginLeft: 6 }}>
           ({node.min}..{node.max})
