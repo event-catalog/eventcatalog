@@ -1,7 +1,13 @@
 import type { CollectionEntry } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
 import type { NavNode, ChildRef } from './shared';
-import { buildQuickReferenceSection, buildOwnersSection, shouldRenderSideBarSection, buildRepositorySection } from './shared';
+import {
+  buildQuickReferenceSection,
+  buildOwnersSection,
+  shouldRenderSideBarSection,
+  buildRepositorySection,
+  buildAttachmentsSection,
+} from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
 export const buildContainerNode = (container: CollectionEntry<'containers'>, owners: any[]): NavNode => {
@@ -16,6 +22,8 @@ export const buildContainerNode = (container: CollectionEntry<'containers'>, own
   const renderVisualiser = isVisualiserEnabled();
 
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(container, 'owners');
+
+  const hasAttachments = container.data.attachments && container.data.attachments.length > 0;
 
   const renderRepository = container.data.repository && shouldRenderSideBarSection(container, 'repository');
 
@@ -61,6 +69,7 @@ export const buildContainerNode = (container: CollectionEntry<'containers'>, own
       },
       renderOwners && buildOwnersSection(owners),
       renderRepository && buildRepositorySection(container.data.repository as { url: string; language: string }),
+      hasAttachments && buildAttachmentsSection(container.data.attachments as any[]),
     ].filter(Boolean) as ChildRef[],
   };
 };

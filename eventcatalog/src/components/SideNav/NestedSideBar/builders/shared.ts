@@ -98,6 +98,19 @@ export const buildRepositorySection = (repository: { url: string; language: stri
   };
 };
 
+export const buildAttachmentsSection = (attachments: any[]): NavNode | null => {
+  if (!attachments) return null;
+  return {
+    type: 'group',
+    title: 'Attachments',
+    icon: 'File',
+    pages: attachments.map((attachment) => ({
+      type: 'item',
+      title: attachment.title,
+      href: attachment.url,
+    })),
+  };
+};
 export const buildResourceGroupSections = (resourceGroups: ResourceGroup[], context: ResourceGroupContext) => {
   return resourceGroups.map((resourceGroup) => buildResourceGroupSection(resourceGroup, context));
 };

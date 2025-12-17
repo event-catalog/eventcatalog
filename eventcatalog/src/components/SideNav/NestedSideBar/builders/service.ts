@@ -9,6 +9,7 @@ import {
   shouldRenderSideBarSection,
   buildResourceGroupSections,
   buildRepositorySection,
+  buildAttachmentsSection,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
@@ -28,6 +29,8 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
 
   const serviceFlows = service.data.flows || [];
   const hasFlows = serviceFlows.length > 0;
+
+  const hasAttachments = service.data.attachments && service.data.attachments.length > 0;
 
   const hasDataStores = dataStoresInService.length > 0;
   const resourceGroups = service.data.resourceGroups || [];
@@ -145,6 +148,7 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
       },
       renderOwners && buildOwnersSection(owners),
       renderRepository && buildRepositorySection(service.data.repository as { url: string; language: string }),
+      hasAttachments && buildAttachmentsSection(service.data.attachments as any[]),
     ].filter(Boolean) as ChildRef[],
   };
 };

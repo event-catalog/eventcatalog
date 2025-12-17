@@ -7,6 +7,7 @@ import {
   buildOwnersSection,
   shouldRenderSideBarSection,
   buildRepositorySection,
+  buildAttachmentsSection,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
@@ -30,6 +31,8 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(domain, 'owners');
 
   const renderVisualiser = isVisualiserEnabled();
+
+  const hasAttachments = domain.data.attachments && domain.data.attachments.length > 0;
 
   const renderRepository = domain.data.repository && shouldRenderSideBarSection(domain, 'repository');
   return {
@@ -62,6 +65,11 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
             type: 'item',
             title: 'Interaction Map',
             href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}`),
+          },
+          renderVisualiser && {
+            type: 'item',
+            title: 'Global Domain Map',
+            href: buildUrl(`/visualiser/domain-integrations`),
           },
         ].filter(Boolean) as ChildRef[],
       },
@@ -97,6 +105,7 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
       },
       renderOwners && buildOwnersSection(owners),
       renderRepository && buildRepositorySection(domain.data.repository as { url: string; language: string }),
+      hasAttachments && buildAttachmentsSection(domain.data.attachments as any[]),
     ].filter(Boolean) as ChildRef[],
   };
 };

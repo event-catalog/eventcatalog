@@ -282,7 +282,7 @@ describe('getNestedSideBarData', () => {
     });
 
     describe('Architecture & Design section', () => {
-      it('the architecture Diagram and visualizer links are always listed in the navigation item', async () => {
+      it('the architecture Diagram, global domain integration mapand visualizer links are always listed in the navigation item', async () => {
         const { writeDomain } = utils(CATALOG_FOLDER);
         await writeDomain({
           id: 'Shipping',
@@ -293,6 +293,11 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        expect(domainNode).toHaveNavigationLink({
+          type: 'item',
+          title: 'Global Domain Map',
+          href: '/visualiser/domain-integrations',
+        });
         expect(domainNode).toHaveNavigationLink({
           type: 'item',
           title: 'Interaction Map',
@@ -752,6 +757,51 @@ describe('getNestedSideBarData', () => {
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
         const codeSection = getChildNodeByTitle('Code', domainNode.pages ?? []);
         expect(codeSection).toBeDefined();
+      });
+    });
+
+    describe('attachments section', () => {
+      it('is not listed if the domain does not have any attachments', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+        });
+      });
+
+      it('lists the attachments if the domain has attachments configured', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          repository: {
+            url: 'https://github.com/eventcatalog/eventcatalog',
+            language: 'TypeScript',
+          },
+          attachments: [
+            {
+              url: 'https://example.com/attachment.pdf',
+              title: 'Attachment 1',
+              type: 'pdf',
+            },
+          ],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const attachmentsSection = getChildNodeByTitle('Attachments', domainNode.pages ?? []);
+        expect(attachmentsSection).toBeDefined();
+        expect(attachmentsSection.pages).toEqual([
+          {
+            type: 'item',
+            title: 'Attachment 1',
+            href: 'https://example.com/attachment.pdf',
+          },
+        ]);
       });
     });
   });
@@ -1280,6 +1330,47 @@ describe('getNestedSideBarData', () => {
         expect(repositorySection).toBeDefined();
       });
     });
+
+    describe('attachments section', () => {
+      it('is not listed if the service does not have any attachments', async () => {
+        const { writeService } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'Shipping',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+        });
+      });
+
+      it('lists the attachments if the service has attachments configured', async () => {
+        const { writeService } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+          attachments: [
+            {
+              url: 'https://example.com/attachment.pdf',
+              title: 'Attachment 1',
+              type: 'pdf',
+            },
+          ],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const attachmentsSection = getChildNodeByTitle('Attachments', serviceNode.pages ?? []);
+        expect(attachmentsSection).toBeDefined();
+        expect(attachmentsSection.pages).toEqual([
+          {
+            type: 'item',
+            title: 'Attachment 1',
+            href: 'https://example.com/attachment.pdf',
+          },
+        ]);
+      });
+    });
   });
 
   describe('message navigation items', () => {
@@ -1610,6 +1701,52 @@ describe('getNestedSideBarData', () => {
         const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
         const repositorySection = getChildNodeByTitle('Code', messageNode.pages ?? []);
         expect(repositorySection).toBeDefined();
+      });
+    });
+
+    describe('attachments section', () => {
+      it('is not listed if the message does not have any attachments', async () => {
+        const { writeEvent } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const attachmentsSection = getChildNodeByTitle('Attachments', messageNode.pages ?? []);
+        expect(attachmentsSection).toBeUndefined();
+      });
+
+      it('lists the attachments if the message has attachments configured', async () => {
+        const { writeEvent } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+          attachments: [
+            {
+              url: 'https://example.com/attachment.pdf',
+              title: 'Attachment 1',
+              type: 'pdf',
+            },
+          ],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
+        const attachmentsSection = getChildNodeByTitle('Attachments', messageNode.pages ?? []);
+        expect(attachmentsSection).toBeDefined();
+        expect(attachmentsSection.pages).toEqual([
+          {
+            type: 'item',
+            title: 'Attachment 1',
+            href: 'https://example.com/attachment.pdf',
+          },
+        ]);
       });
     });
   });
@@ -1971,6 +2108,56 @@ describe('getNestedSideBarData', () => {
             type: 'item',
             title: 'https://github.com/eventcatalog/eventcatalog',
             href: 'https://github.com/eventcatalog/eventcatalog',
+          },
+        ]);
+      });
+    });
+
+    describe('attachments section', () => {
+      it('is not listed if the container does not have any attachments', async () => {
+        const { writeDataStore } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const attachmentsSection = getChildNodeByTitle('Attachments', containerNode.pages ?? []);
+        expect(attachmentsSection).toBeUndefined();
+      });
+    });
+
+    describe('attachments section', () => {
+      it('lists the attachments if the container has attachments configured', async () => {
+        const { writeDataStore } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+          attachments: [
+            {
+              url: 'https://example.com/attachment.pdf',
+              title: 'Attachment 1',
+              type: 'pdf',
+            },
+          ],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const attachmentsSection = getChildNodeByTitle('Attachments', containerNode.pages ?? []);
+        expect(attachmentsSection).toBeDefined();
+        expect(attachmentsSection.pages).toEqual([
+          {
+            type: 'item',
+            title: 'Attachment 1',
+            href: 'https://example.com/attachment.pdf',
           },
         ]);
       });

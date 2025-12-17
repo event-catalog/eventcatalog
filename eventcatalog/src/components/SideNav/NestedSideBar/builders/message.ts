@@ -2,7 +2,13 @@ import type { CollectionEntry } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
 import { getSchemaFormatFromURL } from '@utils/collections/schemas';
 import type { NavNode, ChildRef } from './shared';
-import { buildQuickReferenceSection, buildOwnersSection, shouldRenderSideBarSection, buildRepositorySection } from './shared';
+import {
+  buildQuickReferenceSection,
+  buildOwnersSection,
+  shouldRenderSideBarSection,
+  buildRepositorySection,
+  buildAttachmentsSection,
+} from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
 export const buildMessageNode = (message: CollectionEntry<'events' | 'commands' | 'queries'>, owners: any[]): NavNode => {
@@ -24,6 +30,8 @@ export const buildMessageNode = (message: CollectionEntry<'events' | 'commands' 
 
   const hasSchema = message.data.schemaPath !== undefined;
   const renderVisualiser = isVisualiserEnabled();
+
+  const hasAttachments = message.data.attachments && message.data.attachments.length > 0;
 
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(message, 'owners');
 
@@ -79,6 +87,7 @@ export const buildMessageNode = (message: CollectionEntry<'events' | 'commands' 
       },
       renderOwners && buildOwnersSection(owners),
       renderRepository && buildRepositorySection(message.data.repository as { url: string; language: string }),
+      hasAttachments && buildAttachmentsSection(message.data.attachments as any[]),
     ].filter(Boolean) as ChildRef[],
   };
 };
