@@ -54,6 +54,9 @@ export const getSchemasFromResource = (resource: CollectionEntry<PageTypes>): Sc
     const openapiPath = Array.isArray(specifications)
       ? specifications.find((spec) => spec.type === 'openapi')?.path
       : specifications?.openapiPath;
+    const graphqlPath = Array.isArray(specifications)
+      ? specifications.find((spec) => spec.type === 'graphql')?.path
+      : specifications?.graphqlPath;
     // @ts-ignore
     let publicPath = resource?.catalog?.publicPath;
     const schemas = [];
@@ -77,6 +80,17 @@ export const getSchemasFromResource = (resource: CollectionEntry<PageTypes>): Sc
       } else {
         // The resource has the public path, so we can use it to build the URL
         schemas.push({ url: buildUrl(path.join(publicPath, openapiPath)), format: 'openapi' });
+      }
+    }
+
+    if (graphqlPath) {
+      if (!publicPath) {
+        // We try and get the absoulate file path from the resource
+        const absoluteFilePath = getAbsoluteFilePathForAstroFile(resource.filePath ?? '', graphqlPath ?? '');
+        schemas.push({ url: buildUrl(absoluteFilePath), format: 'graphql' });
+      } else {
+        // The resource has the public path, so we can use it to build the URL
+        schemas.push({ url: buildUrl(path.join(publicPath, graphqlPath)), format: 'graphql' });
       }
     }
 
