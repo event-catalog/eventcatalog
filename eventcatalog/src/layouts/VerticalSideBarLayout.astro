@@ -225,152 +225,154 @@ const canPageBeEmbedded = isEmbedEnabled();
     </style>
   </head>
   <body>
-    <Header />
-    <div class="flex">
-      <aside class="flex" id="eventcatalog-vertical-nav">
-        <div
-          class="fixed flex flex-col items-center w-14 h-screen py-3 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 z-20 shadow-md justify-between"
-        >
-          <nav class="flex flex-col h-[calc(100vh-70px)] justify-between">
-            <div class="flex flex-col items-center flex-1 space-y-6">
-              {
-                navigationItems.map((item) => {
-                  return (
+    <main id="eventcatalog-application" class="relative">
+      <Header />
+      <div class="flex">
+        <aside class="flex" id="eventcatalog-vertical-nav">
+          <div
+            class="fixed flex flex-col items-center w-14 h-screen py-3 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 z-20 shadow-md justify-between"
+          >
+            <nav class="flex flex-col h-[calc(100vh-70px)] justify-between">
+              <div class="flex flex-col items-center flex-1 space-y-6">
+                {
+                  navigationItems.map((item) => {
+                    return (
+                      <a
+                        id={item.id}
+                        data-role="nav-item"
+                        href={item.href}
+                        aria-label={item.label}
+                        class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${
+                          item.current ? 'text-white bg-gray-900' : 'hover:bg-gray-800 hover:text-white text-gray-700'
+                        }`}
+                      >
+                        <div class="has-tooltip">
+                          <span
+                            class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap"
+                            aria-hidden="true"
+                          >
+                            {item.label}
+                          </span>
+                          <item.icon className="h-6 w-6" aria-hidden="true" />
+                        </div>
+                      </a>
+                    );
+                  })
+                }
+
+                <hr class="w-8 border-t border-gray-200" />
+
+                {
+                  studioNavigationItem.length > 0 && (
                     <a
-                      id={item.id}
+                      id={studioNavigationItem[0].id}
                       data-role="nav-item"
-                      href={item.href}
-                      aria-label={item.label}
-                      class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${
-                        item.current ? 'text-white bg-gray-900' : 'hover:bg-gray-800 hover:text-white text-gray-700'
-                      }`}
+                      href={studioNavigationItem[0].href}
+                      aria-label={studioNavigationItem[0].label}
+                      class={`p-1.5 inline-block pt-1 pb-1 mt-0 mb-0 transition-colors duration-200 rounded-lg relative ${studioNavigationItem[0].current ? 'text-white bg-gray-900' : 'hover:bg-gray-800 hover:text-white text-gray-700'}`}
                     >
                       <div class="has-tooltip">
                         <span
                           class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap"
                           aria-hidden="true"
                         >
-                          {item.label}
+                          {studioNavigationItem[0].label}
                         </span>
-                        <item.icon className="h-6 w-6" aria-hidden="true" />
+                        <SquareDashedMousePointerIcon className="h-6 w-6" aria-hidden="true" />
                       </div>
                     </a>
-                  );
-                })
-              }
+                  )
+                }
 
-              <hr class="w-8 border-t border-gray-200" />
+                {studioNavigationItem.length > 0 && <hr class="w-8 border-t border-gray-200" />}
+
+                {
+                  premiumFeatures.map((item) => (
+                    <a
+                      id={item.id}
+                      data-role="nav-item"
+                      href={item.href}
+                      aria-label={item.label}
+                      class={`p-1.5 inline-block transition-colors duration-200 rounded-lg mb-8 relative ${
+                        item.current ? 'text-white bg-gray-900' : 'hover:bg-gray-800 hover:text-white text-gray-700'
+                      }`}
+                    >
+                      <div class="has-tooltip">
+                        <span
+                          class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 flex items-center gap-1 whitespace-nowrap"
+                          aria-hidden="true"
+                        >
+                          <Sparkles className="h-3 w-3" aria-hidden="true" /> {item.label}
+                        </span>
+                        <item.icon className="h-6 w-6" aria-hidden="true" />
+                        <div
+                          class="absolute -top-1 -right-1 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full p-0.5 shadow-lg"
+                          aria-hidden="true"
+                        >
+                          <Sparkles className="h-2 w-2 text-white" aria-hidden="true" />
+                        </div>
+                      </div>
+                    </a>
+                  ))
+                }
+              </div>
 
               {
-                studioNavigationItem.length > 0 && (
-                  <a
-                    id={studioNavigationItem[0].id}
-                    data-role="nav-item"
-                    href={studioNavigationItem[0].href}
-                    aria-label={studioNavigationItem[0].label}
-                    class={`p-1.5 inline-block pt-1 pb-1 mt-0 mb-0 transition-colors duration-200 rounded-lg relative ${studioNavigationItem[0].current ? 'text-white bg-gray-900' : 'hover:bg-gray-800 hover:text-white text-gray-700'}`}
-                  >
-                    <div class="has-tooltip">
-                      <span
-                        class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap"
-                        aria-hidden="true"
-                      >
-                        {studioNavigationItem[0].label}
-                      </span>
-                      <SquareDashedMousePointerIcon className="h-6 w-6" aria-hidden="true" />
-                    </div>
-                  </a>
+                isEventCatalogUpgradeEnabled() && (
+                  <div class="mb-4">
+                    <a
+                      id="/pro"
+                      data-role="nav-item"
+                      href={buildUrl('/plans')}
+                      aria-label="Upgrade EventCatalog"
+                      class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${currentPath.includes('/pro') ? 'text-white bg-gray-900' : 'bg-gray-200 hover:bg-gray-800 hover:text-white text-gray-700'}`}
+                    >
+                      <div class="has-tooltip">
+                        <span
+                          class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap"
+                          aria-hidden="true"
+                        >
+                          Upgrade EventCatalog
+                        </span>
+                        <Rocket className="h-6 w-6" aria-hidden="true" />
+                      </div>
+                    </a>
+                  </div>
                 )
               }
-
-              {studioNavigationItem.length > 0 && <hr class="w-8 border-t border-gray-200" />}
-
-              {
-                premiumFeatures.map((item) => (
-                  <a
-                    id={item.id}
-                    data-role="nav-item"
-                    href={item.href}
-                    aria-label={item.label}
-                    class={`p-1.5 inline-block transition-colors duration-200 rounded-lg mb-8 relative ${
-                      item.current ? 'text-white bg-gray-900' : 'hover:bg-gray-800 hover:text-white text-gray-700'
-                    }`}
-                  >
-                    <div class="has-tooltip">
-                      <span
-                        class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 flex items-center gap-1 whitespace-nowrap"
-                        aria-hidden="true"
-                      >
-                        <Sparkles className="h-3 w-3" aria-hidden="true" /> {item.label}
-                      </span>
-                      <item.icon className="h-6 w-6" aria-hidden="true" />
-                      <div
-                        class="absolute -top-1 -right-1 bg-gradient-to-r from-amber-400 to-amber-500 rounded-full p-0.5 shadow-lg"
-                        aria-hidden="true"
-                      >
-                        <Sparkles className="h-2 w-2 text-white" aria-hidden="true" />
-                      </div>
-                    </div>
-                  </a>
-                ))
-              }
-            </div>
-
-            {
-              isEventCatalogUpgradeEnabled() && (
-                <div class="mb-4">
-                  <a
-                    id="/pro"
-                    data-role="nav-item"
-                    href={buildUrl('/plans')}
-                    aria-label="Upgrade EventCatalog"
-                    class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${currentPath.includes('/pro') ? 'text-white bg-gray-900' : 'bg-gray-200 hover:bg-gray-800 hover:text-white text-gray-700'}`}
-                  >
-                    <div class="has-tooltip">
-                      <span
-                        class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap"
-                        aria-hidden="true"
-                      >
-                        Upgrade EventCatalog
-                      </span>
-                      <Rocket className="h-6 w-6" aria-hidden="true" />
-                    </div>
-                  </a>
-                </div>
-              )
-            }
-          </nav>
-        </div>
-
-        {
-          showNestedSideBar && (
-            <SideNav id="sidebar" class={`sidebar-transition h-content bg-white  border-r border-gray-100 w-[320px] ml-14`} />
-          )
-        }
-      </aside>
-      <main
-        class={`sidebar-transition w-full max-h-content overflow-y-auto ${showNestedSideBar ? 'ml-0' : 'ml-14'}`}
-        id="content"
-      >
-        <slot />
-      </main>
-
-      <!-- Create a overlay that tells people to purchase backstage plugin if they want to embed the page -->
-      <div class="absolute inset-0 bg-black items-center justify-center z-50 hidden" id="embed-overlay">
-        <div class="text-white text-center space-y-4">
-          <div>
-            <h1 class="text-2xl font-bold">EventCatalog Backstage Integration</h1>
-            <p class="text-md text-red-500">Missing license key for backstage integration.</p>
+            </nav>
           </div>
-          <div>
-            <p class="text-sm text-gray-500">Please configure the backstage plugin to embed this page into Backstage.</p>
-            <a href="https://www.eventcatalog.dev/integrations/backstage" class="text-blue-500 text-xs"
-              >Configure backstage plugin &rarr;</a
-            >
+
+          {
+            showNestedSideBar && (
+              <SideNav id="sidebar" class={`sidebar-transition h-content bg-white  border-r border-gray-100 w-[320px] ml-14`} />
+            )
+          }
+        </aside>
+        <main
+          class={`sidebar-transition w-full max-h-content overflow-y-auto ${showNestedSideBar ? 'ml-0' : 'ml-14'}`}
+          id="content"
+        >
+          <slot />
+        </main>
+
+        <!-- Create a overlay that tells people to purchase backstage plugin if they want to embed the page -->
+        <div class="absolute inset-0 bg-black items-center justify-center z-50 hidden" id="embed-overlay">
+          <div class="text-white text-center space-y-4">
+            <div>
+              <h1 class="text-2xl font-bold">EventCatalog Backstage Integration</h1>
+              <p class="text-md text-red-500">Missing license key for backstage integration.</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500">Please configure the backstage plugin to embed this page into Backstage.</p>
+              <a href="https://www.eventcatalog.dev/integrations/backstage" class="text-blue-500 text-xs"
+                >Configure backstage plugin &rarr;</a
+              >
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </main>
   </body>
 </html>
 <ClientRouter />
