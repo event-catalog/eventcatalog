@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.24
+
+### Patch Changes
+
+- d1e0979: feat(core): updated chat features
+
 ## 3.0.0-beta.23
 
 ### Patch Changes
