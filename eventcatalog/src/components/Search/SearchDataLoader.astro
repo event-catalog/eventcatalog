@@ -1,0 +1,25 @@
+---
+/**
+ * SearchDataLoader.astro
+ *
+ * This component loads the sidebar/search data independently of the sidebar UI.
+ * It ensures the search functionality works on all pages, even when the nested
+ * sidebar is not rendered (e.g., /discover pages).
+ */
+import { getNestedSideBarData } from '@stores/sidebar-store/state';
+
+const props = await getNestedSideBarData();
+---
+
+<script is:inline define:vars={{ props }}>
+  window.sidebarData = props;
+</script>
+
+<script>
+  import { setSidebarData } from '@stores/sidebar-store';
+
+  const data = (window as any).sidebarData;
+  if (data) {
+    setSidebarData(data);
+  }
+</script>
