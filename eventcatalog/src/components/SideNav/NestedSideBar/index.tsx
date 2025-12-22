@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import * as LucideIcons from 'lucide-react';
 import { ChevronRight, ChevronLeft, ChevronDown, Home, Star, FileQuestion } from 'lucide-react';
-import type { NavigationData, NavNode, ChildRef } from './sidebar-builder';
+import type { NavNode, ChildRef } from '@stores/sidebar-store/state';
 import SearchBar from './SearchBar';
 import { saveState, loadState, saveCollapsedSections, loadCollapsedSections } from './storage';
 import { useStore } from '@nanostores/react';

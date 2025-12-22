@@ -17,7 +17,7 @@ import {
   ListOrdered,
   ArrowLeftRight,
 } from 'lucide-react';
-import type { NavNode } from './sidebar-builder';
+import type { NavNode } from '@stores/sidebar-store/state';
 
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
 
