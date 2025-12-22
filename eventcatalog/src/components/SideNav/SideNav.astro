@@ -2,7 +2,7 @@
 import type { HTMLAttributes } from 'astro/types';
 
 interface Props extends Omit<HTMLAttributes<'div'>, 'children'> {}
-import { getNestedSideBarData } from './NestedSideBar/sidebar-builder';
+import { getNestedSideBarData } from '@stores/sidebar-store/state';
 import NestedSideBar from './NestedSideBar';
 import { ClientRouter } from 'astro:transitions';
 
