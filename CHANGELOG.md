@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.25
+
+### Patch Changes
+
+- f7ef380: feat(fix): fixed search throughout the application
+
 ## 3.0.0-beta.24
 
 ### Patch Changes
