@@ -2,26 +2,11 @@
 import type { HTMLAttributes } from 'astro/types';
 
 interface Props extends Omit<HTMLAttributes<'div'>, 'children'> {}
-import { getNestedSideBarData } from './NestedSideBar/sidebar-builder';
 import NestedSideBar from './NestedSideBar';
 import { ClientRouter } from 'astro:transitions';
-
-const props = await getNestedSideBarData();
 ---
 
 <div {...Astro.props}>
   <ClientRouter />
   <NestedSideBar client:only="react" />
 </div>
-
-<script is:inline define:vars={{ props }}>
-  window.sidebarData = props;
-</script>
-
-<script>
-  import { setSidebarData } from '@stores/sidebar-store';
-  const data = (window as any).sidebarData;
-  if (data) {
-    setSidebarData(data);
-  }
-</script>

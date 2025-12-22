@@ -20,6 +20,7 @@ import {
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
+import SearchDataLoader from '../components/Search/SearchDataLoader.astro';
 import config from '@config';
 import { getCollection } from 'astro:content';
 import '@fontsource/inter';
@@ -225,6 +226,8 @@ const canPageBeEmbedded = isEmbedEnabled();
     </style>
   </head>
   <body>
+    {/* Load search data even when sidebar is hidden */}
+    <SearchDataLoader />
     <main id="eventcatalog-application" class="relative">
       <Header />
       <div class="flex">

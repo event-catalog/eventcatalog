@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { getNestedSideBarData, type NavigationData, type NavNode } from '../sidebar-builder';
+import { getNestedSideBarData, type NavigationData, type NavNode } from '../state';
 import type { ContentCollectionKey } from 'astro:content';
 import utils from '@eventcatalog/sdk';
 import path from 'path';

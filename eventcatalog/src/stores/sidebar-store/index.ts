@@ -1,5 +1,5 @@
 import { atom } from 'nanostores';
-import type { NavigationData } from '../components/SideNav/NestedSideBar/sidebar-builder';
+import type { NavigationData } from './state';
 
 export const sidebarStore = atom<NavigationData | null>(null);
 
