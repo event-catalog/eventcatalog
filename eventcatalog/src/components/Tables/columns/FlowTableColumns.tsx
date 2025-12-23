@@ -14,25 +14,21 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     header: () => <span>{tableConfiguration.columns?.name?.label || 'Flow'}</span>,
     cell: (info) => {
       const flowRaw = info.row.original;
-      const color = 'teal';
       return (
-        <div className=" group ">
-          <a
-            href={buildUrl(`/docs/${flowRaw.collection}/${flowRaw.data.id}/${flowRaw.data.version}`)}
-            className={`group-hover:text-${color}-500 flex space-x-1 items-center`}
-          >
-            <div className={`flex items-center border border-gray-300 shadow-sm rounded-md group-hover:border-${color}-400`}>
-              <span className="flex items-center">
-                <span className={`bg-${color}-500 group-hover:bg-${color}-600 h-full rounded-tl rounded-bl p-1`}>
-                  <QueueListIcon className="h-4 w-4 text-white" />
-                </span>
-                <span className="leading-none px-2 group-hover:underline group-hover:text-primary font-light">
-                  {flowRaw.data.name} (v{flowRaw.data.version})
-                </span>
-              </span>
-            </div>
-          </a>
-        </div>
+        <a
+          href={buildUrl(`/docs/${flowRaw.collection}/${flowRaw.data.id}/${flowRaw.data.version}`)}
+          className="group inline-flex items-center"
+        >
+          <span className="inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-teal-300 hover:bg-teal-50 transition-colors">
+            <span className="flex items-center justify-center w-6 h-6 bg-teal-500 rounded-l-md">
+              <QueueListIcon className="h-3 w-3 text-white" />
+            </span>
+            <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">
+              {flowRaw.data.name}
+              <span className="text-gray-400 ml-1">v{flowRaw.data.version}</span>
+            </span>
+          </span>
+        </a>
       );
     },
     footer: (info) => info.column.id,
@@ -41,21 +37,17 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     },
     filterFn: filterByName,
   }),
-  columnHelper.accessor('data.version', {
-    id: 'version',
-    header: () => <span>{tableConfiguration.columns?.version?.label || 'Version'}</span>,
-    cell: (info) => {
-      const service = info.row.original;
-      return (
-        <div className="text-left font-light">{`v${info.getValue()} ${service.data.latestVersion === service.data.version ? '(latest)' : ''}`}</div>
-      );
-    },
-    footer: (info) => info.column.id,
-  }),
   columnHelper.accessor('data.summary', {
     id: 'summary',
     header: () => <span>{tableConfiguration.columns?.summary?.label || 'Summary'}</span>,
-    cell: (info) => <span className="font-light ">{info.renderValue()}</span>,
+    cell: (info) => {
+      const summary = info.renderValue() as string;
+      return (
+        <span className="text-sm text-gray-600 line-clamp-2" title={summary || ''}>
+          {summary}
+        </span>
+      );
+    },
     footer: (info) => info.column.id,
     meta: {
       showFilter: false,
@@ -67,14 +59,22 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     id: 'actions',
     header: () => <span>{tableConfiguration.columns?.actions?.label || 'Actions'}</span>,
     cell: (info) => {
-      const domain = info.row.original;
+      const item = info.row.original;
       return (
-        <a
-          className="hover:text-primary hover:underline px-4 font-light"
-          href={buildUrl(`/visualiser/${domain.collection}/${domain.data.id}/${domain.data.version}`)}
-        >
-          Visualiser &rarr;
-        </a>
+        <div className="flex items-center gap-2">
+          <a
+            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap"
+            href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
+          >
+            Docs
+          </a>
+          <a
+            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap"
+            href={buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`)}
+          >
+            Visualiser
+          </a>
+        </div>
       );
     },
     meta: {

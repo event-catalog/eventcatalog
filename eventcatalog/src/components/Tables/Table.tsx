@@ -11,6 +11,7 @@ import {
   type ColumnFiltersState,
 } from '@tanstack/react-table';
 import DebouncedInput from './DebouncedInput';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SearchX } from 'lucide-react';
 
 import { getColumnsByCollection } from './columns';
 import { useEffect, useMemo, useState } from 'react';
@@ -240,23 +241,26 @@ export const Table = <T extends TCollectionTypes>({
     },
   });
 
+  const totalResults = table.getPrePaginationRowModel().rows.length;
+  const hasResults = table.getRowModel().rows.length > 0;
+
   return (
     <div>
-      {/* <div className='text-right text-gray-400'>{table.getPrePaginationRowModel().rows.length} results</div> */}
-      <div className=" bg-gray-100/20 rounded-md border-2 border-gray-200 shadow-sm ">
-        <table className="min-w-full divide-y divide-gray-200 rounded-md ">
-          <thead className="bg-gray-200/50">
+      <div className="rounded-lg border border-gray-200 overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup, index) => (
-              <tr key={`${headerGroup}-${index}`} className="rounded-tl-lg">
+              <tr key={`${headerGroup}-${index}`}>
                 {headerGroup.headers.map((header) => (
-                  <th key={`${header.id}`} className="pl-4 pr-3 text-left text-sm font-semibold text-gray-800 sm:pl-0  ">
-                    <div className="flex flex-col justify-start px-2 py-2 space-y-2">
-                      <div className="text-md">
-                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                      </div>
-                      <div className="">
+                  <th
+                    key={`${header.id}`}
+                    className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                  >
+                    <div className="flex flex-col gap-2">
+                      <div>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</div>
+                      <div>
                         {header.column.columnDef.meta?.showFilter !== false && <Filter column={header.column} />}
-                        {header.column.columnDef.meta?.showFilter == false && <div className="h-10" />}
+                        {header.column.columnDef.meta?.showFilter == false && <div className="h-9" />}
                       </div>
                     </div>
                   </th>
@@ -265,80 +269,94 @@ export const Table = <T extends TCollectionTypes>({
             ))}
           </thead>
 
-          <tbody className="divide-y divide-gray-300 ">
-            {table.getRowModel().rows.map((row, index) => (
-              <tr key={`${row.id}-${index}`}>
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    className={` py-4 pl-4 pr-3 text-sm font-medium text-gray-900  ${cell.column.columnDef.meta?.className}`}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
+          <tbody className="bg-white divide-y divide-gray-100">
+            {hasResults ? (
+              table.getRowModel().rows.map((row, index) => (
+                <tr key={`${row.id}-${index}`} className="hover:bg-gray-50 transition-colors">
+                  {row.getVisibleCells().map((cell) => (
+                    <td
+                      key={cell.id}
+                      className={`px-4 py-3 text-sm text-gray-700 ${cell.column.columnDef.meta?.className || ''}`}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={table.getAllColumns().length} className="px-4 py-12 text-center">
+                  <div className="flex flex-col items-center justify-center text-gray-500">
+                    <SearchX className="w-10 h-10 text-gray-300 mb-3" />
+                    <p className="text-sm font-medium text-gray-600">No results found</p>
+                    <p className="text-xs text-gray-400 mt-1">Try adjusting your search or filters</p>
+                  </div>
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
-      <div>
-        <div className="h-8" />
-        <div className="flex items-center gap-2 justify-end px-4  ">
-          <button
-            className="relative inline-flex items-center rounded-l-md bg-white px-2 py-1 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            {'<<'}
-          </button>
-          <button
-            className="relative inline-flex items-center  bg-white px-2 py-1 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            {'<'}
-          </button>
-          <button
-            className="relative inline-flex items-center  bg-white px-2 py-1 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            {'>'}
-          </button>
-          <button
-            className="relative inline-flex items-center rounded-r-md bg-white px-2 py-1 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            {'>>'}
-          </button>
-          <span className="flex items-center gap-1">
-            <div>Page</div>
-            <strong>
-              {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-            </strong>
-          </span>
-          <span className="flex items-center gap-1">
-            | Go to page:
-            <input
-              type="number"
-              defaultValue={table.getState().pagination.pageIndex + 1}
-              onChange={(e) => {
-                const page = e.target.value ? Number(e.target.value) - 1 : 0;
-                table.setPageIndex(page);
-              }}
-              className="border border-gray-300 p-1 rounded w-16"
-            />
-          </span>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-between px-1 py-4">
+        <div className="text-sm text-gray-500">
+          {totalResults > 0 && (
+            <span>
+              Showing <span className="font-medium text-gray-700">{table.getRowModel().rows.length}</span> of{' '}
+              <span className="font-medium text-gray-700">{totalResults}</span> results
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center rounded-lg border border-gray-200 bg-white">
+            <button
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors rounded-l-lg"
+              onClick={() => table.setPageIndex(0)}
+              disabled={!table.getCanPreviousPage()}
+              title="First page"
+            >
+              <ChevronsLeft className="w-4 h-4" />
+            </button>
+            <button
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors border-l border-gray-200"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              title="Previous page"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="px-3 py-2 text-sm text-gray-600 border-l border-r border-gray-200 min-w-[100px] text-center">
+              Page <span className="font-medium">{table.getState().pagination.pageIndex + 1}</span> of{' '}
+              <span className="font-medium">{table.getPageCount() || 1}</span>
+            </span>
+            <button
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors border-r border-gray-200"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              title="Next page"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <button
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors rounded-r-lg"
+              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+              disabled={!table.getCanNextPage()}
+              title="Last page"
+            >
+              <ChevronsRight className="w-4 h-4" />
+            </button>
+          </div>
           <select
             value={table.getState().pagination.pageSize}
             onChange={(e) => {
               table.setPageSize(Number(e.target.value));
             }}
+            className="px-3 py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors"
           >
             {[10, 20, 30, 40, 50].map((pageSize) => (
               <option key={pageSize} value={pageSize}>
-                Show {pageSize}
+                {pageSize} per page
               </option>
             ))}
           </select>
@@ -394,6 +412,8 @@ function Filter<T extends TCollectionTypes>({ column }: { column: Column<TData<T
     return Array.from(column.getFacetedUniqueValues().keys()).sort().slice(0, 2000);
   }, [column.getFacetedUniqueValues(), filterVariant]);
 
+  const uniqueCount = column.getFacetedUniqueValues().size;
+
   return (
     <div>
       {/* Autocomplete suggestions from faceted values feature */}
@@ -406,11 +426,10 @@ function Filter<T extends TCollectionTypes>({ column }: { column: Column<TData<T
         type="text"
         value={(columnFilterValue ?? '') as string}
         onChange={(value) => column.setFilterValue(value)}
-        placeholder={`Search... ${!column?.columnDef?.meta?.filterVariant ? `(${column.getFacetedUniqueValues().size})` : ''}`}
-        className="w-full p-2 border shadow rounded"
+        placeholder={!column?.columnDef?.meta?.filterVariant ? `Search (${uniqueCount})...` : 'Search...'}
+        className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-300 transition-colors"
         list={column.id + 'list'}
       />
-      <div className="h-1" />
     </div>
   );
 }

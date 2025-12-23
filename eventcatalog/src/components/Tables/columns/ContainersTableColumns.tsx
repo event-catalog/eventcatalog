@@ -1,4 +1,5 @@
 import { createColumnHelper } from '@tanstack/react-table';
+import { useState } from 'react';
 import { filterByName } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';
 import { ServerIcon } from '@heroicons/react/24/solid';
@@ -15,25 +16,21 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     header: () => <span>{tableConfiguration.columns?.name?.label || 'Storage'}</span>,
     cell: (info) => {
       const containerRaw = info.row.original;
-      const color = 'blue';
       return (
-        <div className=" group ">
-          <a
-            href={buildUrl(`/docs/${containerRaw.collection}/${containerRaw.data.id}/${containerRaw.data.version}`)}
-            className={`group-hover:text-${color}-500 flex space-x-1 items-center`}
-          >
-            <div className={`flex items-center border border-gray-300 shadow-sm rounded-md group-hover:border-${color}-400`}>
-              <span className="flex items-center">
-                <span className={`bg-${color}-500 group-hover:bg-${color}-600 h-full rounded-tl rounded-bl p-1`}>
-                  <DatabaseIcon className="h-4 w-4 text-white" />
-                </span>
-                <span className="leading-none px-2 group-hover:underline group-hover:text-primary font-light">
-                  {containerRaw.data.name} (v{containerRaw.data.version})
-                </span>
-              </span>
-            </div>
-          </a>
-        </div>
+        <a
+          href={buildUrl(`/docs/${containerRaw.collection}/${containerRaw.data.id}/${containerRaw.data.version}`)}
+          className="group inline-flex items-center"
+        >
+          <span className="inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50 transition-colors">
+            <span className="flex items-center justify-center w-6 h-6 bg-blue-500 rounded-l-md">
+              <DatabaseIcon className="h-3 w-3 text-white" />
+            </span>
+            <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">
+              {containerRaw.data.name}
+              <span className="text-gray-400 ml-1">v{containerRaw.data.version}</span>
+            </span>
+          </span>
+        </a>
       );
     },
     footer: (info) => info.column.id,
@@ -45,7 +42,14 @@ export const columns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.summary', {
     id: 'summary',
     header: () => <span>{tableConfiguration.columns?.summary?.label || 'Summary'}</span>,
-    cell: (info) => <span className="font-light ">{info.renderValue()}</span>,
+    cell: (info) => {
+      const summary = info.renderValue() as string;
+      return (
+        <span className="text-sm text-gray-600 line-clamp-2" title={summary || ''}>
+          {summary}
+        </span>
+      );
+    },
     footer: (info) => info.column.id,
     meta: {
       showFilter: false,
@@ -61,32 +65,43 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     },
     cell: (info) => {
       const services = info.getValue();
+      const [isExpanded, setIsExpanded] = useState(false);
+
       if (services?.length === 0 || !services)
-        return <div className="font-light text-sm text-gray-400/60 text-left italic">No services documented</div>;
+        return (
+          <span className="inline-flex items-center px-2 py-1 text-xs text-gray-400 bg-gray-50 rounded-md border border-gray-100">
+            No services
+          </span>
+        );
+
+      const visibleItems = isExpanded ? services : services.slice(0, 4);
+      const hiddenCount = services.length - 4;
+
       return (
-        <ul className="">
-          {services.map((service, index) => {
-            return (
-              <li className="py-2 group flex items-center space-x-2" key={`${service.data.id}-${index}`}>
-                <a
-                  href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}`)}
-                  className="group-hover:text-primary flex space-x-1 items-center "
-                >
-                  <div className="flex items-center border border-gray-300 shadow-sm rounded-md">
-                    <span className="flex items-center">
-                      <span className="bg-pink-500 h-full rounded-tl rounded-bl p-1">
-                        <ServerIcon className="h-4 w-4 text-white" />
-                      </span>
-                      <span className="font-light leading-none px-2 group-hover:underline">
-                        {service.data.name} (v{service.data.version})
-                      </span>
-                    </span>{' '}
-                  </div>
-                </a>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="flex flex-col gap-1.5">
+          {visibleItems.map((service, index) => (
+            <a
+              key={`${service.data.id}-${index}`}
+              href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}`)}
+              className="group inline-flex items-center"
+            >
+              <span className="inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-pink-300 hover:bg-pink-50 transition-colors">
+                <span className="flex items-center justify-center w-6 h-6 bg-pink-500 rounded-l-md">
+                  <ServerIcon className="h-3 w-3 text-white" />
+                </span>
+                <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">
+                  {service.data.name}
+                  <span className="text-gray-400 ml-1">v{service.data.version}</span>
+                </span>
+              </span>
+            </a>
+          ))}
+          {hiddenCount > 0 && (
+            <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-gray-500 hover:text-gray-700 text-left">
+              {isExpanded ? 'Show less' : `+${hiddenCount} more`}
+            </button>
+          )}
+        </div>
       );
     },
     footer: (info) => info.column.id,
@@ -101,32 +116,43 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     },
     cell: (info) => {
       const services = info.getValue();
+      const [isExpanded, setIsExpanded] = useState(false);
+
       if (services?.length === 0 || !services)
-        return <div className="font-light text-sm text-gray-400/60 text-left italic">No services documented</div>;
+        return (
+          <span className="inline-flex items-center px-2 py-1 text-xs text-gray-400 bg-gray-50 rounded-md border border-gray-100">
+            No services
+          </span>
+        );
+
+      const visibleItems = isExpanded ? services : services.slice(0, 4);
+      const hiddenCount = services.length - 4;
+
       return (
-        <ul className="">
-          {services.map((service, index) => {
-            return (
-              <li className="py-2 group flex items-center space-x-2" key={`${service.data.id}-${index}`}>
-                <a
-                  href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}`)}
-                  className="group-hover:text-primary flex space-x-1 items-center "
-                >
-                  <div className="flex items-center border border-gray-300 shadow-sm rounded-md">
-                    <span className="flex items-center">
-                      <span className="bg-pink-500 h-full rounded-tl rounded-bl p-1">
-                        <ServerIcon className="h-4 w-4 text-white" />
-                      </span>
-                      <span className="font-light leading-none px-2 group-hover:underline">
-                        {service.data.name} (v{service.data.version})
-                      </span>
-                    </span>{' '}
-                  </div>
-                </a>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="flex flex-col gap-1.5">
+          {visibleItems.map((service, index) => (
+            <a
+              key={`${service.data.id}-${index}`}
+              href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}`)}
+              className="group inline-flex items-center"
+            >
+              <span className="inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-pink-300 hover:bg-pink-50 transition-colors">
+                <span className="flex items-center justify-center w-6 h-6 bg-pink-500 rounded-l-md">
+                  <ServerIcon className="h-3 w-3 text-white" />
+                </span>
+                <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">
+                  {service.data.name}
+                  <span className="text-gray-400 ml-1">v{service.data.version}</span>
+                </span>
+              </span>
+            </a>
+          ))}
+          {hiddenCount > 0 && (
+            <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-gray-500 hover:text-gray-700 text-left">
+              {isExpanded ? 'Show less' : `+${hiddenCount} more`}
+            </button>
+          )}
+        </div>
       );
     },
     footer: (info) => info.column.id,
@@ -136,14 +162,22 @@ export const columns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.name', {
     header: () => <span>{tableConfiguration.columns?.actions?.label || 'Actions'}</span>,
     cell: (info) => {
-      const container = info.row.original;
+      const item = info.row.original;
       return (
-        <a
-          className="hover:text-primary hover:underline px-4 font-light"
-          href={buildUrl(`/visualiser/${container.collection}/${container.data.id}/${container.data.version}`)}
-        >
-          Visualiser &rarr;
-        </a>
+        <div className="flex items-center gap-2">
+          <a
+            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap"
+            href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
+          >
+            Docs
+          </a>
+          <a
+            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap"
+            href={buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`)}
+          >
+            Visualiser
+          </a>
+        </div>
       );
     },
     id: 'actions',

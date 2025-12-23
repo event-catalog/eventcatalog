@@ -1,5 +1,6 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import { Tag } from 'lucide-react';
+import { useState } from 'react';
 import { filterByBadge } from '../filters/custom-filters';
 import type { TCollectionTypes, TData } from '../Table';
 import { getIcon } from '@utils/badges';
@@ -15,39 +16,43 @@ export const createBadgesColumn = <T extends { data: Pick<TData<U>['data'], 'bad
     cell: (info) => {
       const item = info.row.original;
       const badges = item.data.badges || [];
+      const [isExpanded, setIsExpanded] = useState(false);
 
       if (badges?.length === 0 || !badges)
-        return <div className="font-light text-sm text-gray-400/60 text-left italic">No badges documented</div>;
+        return (
+          <span className="inline-flex items-center px-2 py-1 text-xs text-gray-400 bg-gray-50 rounded-md border border-gray-100">
+            No badges
+          </span>
+        );
+
+      const visibleItems = isExpanded ? badges : badges.slice(0, 4);
+      const hiddenCount = badges.length - 4;
 
       return (
-        <ul>
-          {badges.map((badge, index) => {
+        <div className="flex flex-wrap gap-1.5 items-center">
+          {visibleItems.map((badge, index) => {
+            const IconComponent = badge.icon ? getIcon(badge.icon) : null;
             return (
-              <li key={`${badge.id}-${index}`} className="py-1 group font-light ">
-                <div className="group-hover:text-primary flex space-x-1 items-center ">
-                  <div className="flex items-center border border-gray-300 shadow-sm rounded-md">
-                    <span className="flex items-center">
-                      <span className={`bg-${badge.backgroundColor}-500 h-full rounded-tl rounded-bl p-1`}>
-                        {(() => {
-                          if (badge.icon) {
-                            const IconComponent = getIcon(badge.icon);
-                            return IconComponent ? (
-                              <IconComponent className="h-4 w-4 text-white" />
-                            ) : (
-                              <Tag className="h-4 w-4 text-white" />
-                            );
-                          }
-                          return <Tag className="h-4 w-4 text-white" />;
-                        })()}
-                      </span>
-                      <span className="leading-none px-2 group-hover:underline ">{badge.content}</span>
-                    </span>
-                  </div>
-                </div>
-              </li>
+              <span
+                key={`${badge.id}-${index}`}
+                className={`inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-${badge.backgroundColor}-300 hover:bg-${badge.backgroundColor}-50 transition-colors`}
+              >
+                <span className={`flex items-center justify-center w-6 h-6 bg-${badge.backgroundColor}-500 rounded-l-md`}>
+                  {IconComponent ? <IconComponent className="h-3 w-3 text-white" /> : <Tag className="h-3 w-3 text-white" />}
+                </span>
+                <span className="px-2 py-1 text-xs text-gray-700">{badge.content}</span>
+              </span>
             );
           })}
-        </ul>
+          {hiddenCount > 0 && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-100 transition-colors"
+            >
+              {isExpanded ? 'Show less' : `+${hiddenCount} more`}
+            </button>
+          )}
+        </div>
       );
     },
     meta: {
