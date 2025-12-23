@@ -15,25 +15,21 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     header: () => <span>{tableConfiguration.columns?.name?.label || 'Service'}</span>,
     cell: (info) => {
       const messageRaw = info.row.original;
-      const color = 'pink';
       return (
-        <div className="group font-light">
-          <a
-            href={buildUrl(`/docs/${messageRaw.collection}/${messageRaw.data.id}/${messageRaw.data.version}`)}
-            className={`group-hover:text-${color}-500 flex space-x-1 items-center`}
-          >
-            <div className={`flex items-center border border-gray-300 shadow-sm rounded-md group-hover:border-${color}-400`}>
-              <span className="flex items-center">
-                <span className={`bg-${color}-500 group-hover:bg-${color}-600 h-full rounded-tl rounded-bl p-1`}>
-                  <ServerIcon className="h-4 w-4 text-white" />
-                </span>
-                <span className="leading-none px-2 group-hover:underline group-hover:text-primary">
-                  {messageRaw.data.name} (v{messageRaw.data.version})
-                </span>
-              </span>
-            </div>
-          </a>
-        </div>
+        <a
+          href={buildUrl(`/docs/${messageRaw.collection}/${messageRaw.data.id}/${messageRaw.data.version}`)}
+          className="group inline-flex items-center"
+        >
+          <span className="inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-pink-300 hover:bg-pink-50 transition-colors">
+            <span className="flex items-center justify-center w-6 h-6 bg-pink-500 rounded-l-md">
+              <ServerIcon className="h-3 w-3 text-white" />
+            </span>
+            <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">
+              {messageRaw.data.name}
+              <span className="text-gray-400 ml-1">v{messageRaw.data.version}</span>
+            </span>
+          </span>
+        </a>
       );
     },
     meta: {
@@ -44,11 +40,16 @@ export const columns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.summary', {
     id: 'summary',
     header: () => <span>{tableConfiguration.columns?.summary?.label || 'Summary'}</span>,
-    cell: (info) => (
-      <span className="font-light ">
-        {info.renderValue()} {info.row.original.data.draft ? ' (Draft)' : ''}
-      </span>
-    ),
+    cell: (info) => {
+      const summary = info.renderValue() as string;
+      const isDraft = info.row.original.data.draft;
+      const displayText = `${summary || ''}${isDraft ? ' (Draft)' : ''}`;
+      return (
+        <span className="text-sm text-gray-600 line-clamp-2" title={displayText}>
+          {displayText}
+        </span>
+      );
+    },
     footer: (info) => info.column.id,
     meta: {
       showFilter: false,
@@ -64,9 +65,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     },
     cell: (info) => {
       const receives = info.getValue() || [];
-      const isExpandable = receives?.length > 10;
-      const isOpen = isExpandable ? receives?.length < 10 : true;
-      const [isExpanded, setIsExpanded] = useState(isOpen);
+      const [isExpanded, setIsExpanded] = useState(false);
 
       const receiversWithIcons = useMemo(
         () =>
@@ -80,37 +79,40 @@ export const columns = (tableConfiguration: TableConfiguration) => [
       );
 
       if (receives?.length === 0 || !receives)
-        return <div className="text-sm text-gray-400/80 text-left italic">Service receives no messages.</div>;
+        return (
+          <span className="inline-flex items-center px-2 py-1 text-xs text-gray-400 bg-gray-50 rounded-md border border-gray-100">
+            No messages
+          </span>
+        );
+
+      const visibleItems = isExpanded ? receiversWithIcons : receiversWithIcons.slice(0, 4);
+      const hiddenCount = receiversWithIcons.length - 4;
 
       return (
-        <div>
-          {isExpandable && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="mb-2 text-sm text-gray-600 hover:text-gray-900">
-              {isExpanded ? '▼' : '▶'} {receives.length} message{receives.length !== 1 ? 's' : ''}
+        <div className="flex flex-col gap-1.5">
+          {visibleItems.map((consumer, index: number) => (
+            <a
+              key={`${consumer.data.id}-${index}`}
+              href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
+              className="group inline-flex items-center"
+            >
+              <span
+                className={`inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-${consumer.color}-300 hover:bg-${consumer.color}-50 transition-colors`}
+              >
+                <span className={`flex items-center justify-center w-6 h-6 bg-${consumer.color}-500 rounded-l-md`}>
+                  <consumer.Icon className="h-3 w-3 text-white" />
+                </span>
+                <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">
+                  {consumer.data.name}
+                  <span className="text-gray-400 ml-1">v{consumer.data.version}</span>
+                </span>
+              </span>
+            </a>
+          ))}
+          {hiddenCount > 0 && (
+            <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-gray-500 hover:text-gray-700 text-left">
+              {isExpanded ? 'Show less' : `+${hiddenCount} more`}
             </button>
-          )}
-          {isExpanded && (
-            <ul>
-              {receiversWithIcons.map((consumer, index: number) => (
-                <li key={`${consumer.data.id}-${index}`} className="py-1 group font-light ">
-                  <a
-                    href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
-                    className="group-hover:text-primary flex space-x-1 items-center "
-                  >
-                    <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
-                      <span className="flex items-center">
-                        <span className={`bg-${consumer.color}-500 h-full rounded-tl rounded-bl p-1`}>
-                          <consumer.Icon className="h-4 w-4 text-white" />
-                        </span>
-                        <span className="leading-none px-2 group-hover:underline ">
-                          {consumer.data.name} (v{consumer.data.version})
-                        </span>
-                      </span>
-                    </div>
-                  </a>
-                </li>
-              ))}
-            </ul>
           )}
         </div>
       );
@@ -126,12 +128,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     },
     cell: (info) => {
       const sends = info.getValue() || [];
-      const isExpandable = sends?.length > 10;
-      const isOpen = isExpandable ? sends?.length < 10 : true;
-      const [isExpanded, setIsExpanded] = useState(isOpen);
-
-      if (sends?.length === 0 || !sends)
-        return <div className="text-sm text-gray-400/80 text-left italic">Service sends no messages.</div>;
+      const [isExpanded, setIsExpanded] = useState(false);
 
       const sendersWithIcons = useMemo(
         () =>
@@ -144,35 +141,41 @@ export const columns = (tableConfiguration: TableConfiguration) => [
         [sends]
       );
 
+      if (sends?.length === 0 || !sends)
+        return (
+          <span className="inline-flex items-center px-2 py-1 text-xs text-gray-400 bg-gray-50 rounded-md border border-gray-100">
+            No messages
+          </span>
+        );
+
+      const visibleItems = isExpanded ? sendersWithIcons : sendersWithIcons.slice(0, 4);
+      const hiddenCount = sendersWithIcons.length - 4;
+
       return (
-        <div>
-          {isExpandable && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="mb-2 text-sm text-gray-600 hover:text-gray-900">
-              {isExpanded ? '▼' : '▶'} {sends.length} message{sends.length !== 1 ? 's' : ''}
+        <div className="flex flex-col gap-1.5">
+          {visibleItems.map((sender, index) => (
+            <a
+              key={`${sender.data.id}-${index}`}
+              href={buildUrl(`/docs/${sender.collection}/${sender.data.id}/${sender.data.version}`)}
+              className="group inline-flex items-center"
+            >
+              <span
+                className={`inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-${sender.color}-300 hover:bg-${sender.color}-50 transition-colors`}
+              >
+                <span className={`flex items-center justify-center w-6 h-6 bg-${sender.color}-500 rounded-l-md`}>
+                  <sender.Icon className="h-3 w-3 text-white" />
+                </span>
+                <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">
+                  {sender.data.name}
+                  <span className="text-gray-400 ml-1">v{sender.data.version}</span>
+                </span>
+              </span>
+            </a>
+          ))}
+          {hiddenCount > 0 && (
+            <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-gray-500 hover:text-gray-700 text-left">
+              {isExpanded ? 'Show less' : `+${hiddenCount} more`}
             </button>
-          )}
-          {isExpanded && (
-            <ul>
-              {sendersWithIcons.map((sender, index) => (
-                <li key={`${sender.data.id}-${index}`} className="py-1 group font-light">
-                  <a
-                    href={buildUrl(`/docs/${sender.collection}/${sender.data.id}/${sender.data.version}`)}
-                    className="group-hover:text-primary flex space-x-1 items-center "
-                  >
-                    <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
-                      <span className="flex items-center">
-                        <span className={`bg-${sender.color}-500 h-full rounded-tl rounded-bl p-1`}>
-                          <sender.Icon className="h-4 w-4 text-white" />
-                        </span>
-                        <span className="leading-none px-2 group-hover:underline ">
-                          {sender.data.name} (v{sender.data.version})
-                        </span>
-                      </span>
-                    </div>
-                  </a>
-                </li>
-              ))}
-            </ul>
           )}
         </div>
       );
@@ -184,14 +187,22 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     id: 'actions',
     header: () => <span>{tableConfiguration.columns?.actions?.label || 'Actions'}</span>,
     cell: (info) => {
-      const domain = info.row.original;
+      const item = info.row.original;
       return (
-        <a
-          className="hover:text-primary hover:underline px-4 font-light"
-          href={buildUrl(`/visualiser/${domain.collection}/${domain.data.id}/${domain.data.version}`)}
-        >
-          Visualiser &rarr;
-        </a>
+        <div className="flex items-center gap-2">
+          <a
+            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap"
+            href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
+          >
+            Docs
+          </a>
+          <a
+            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap"
+            href={buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`)}
+          >
+            Visualiser
+          </a>
+        </div>
       );
     },
     meta: {

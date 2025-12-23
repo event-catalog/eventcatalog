@@ -1,5 +1,5 @@
 import { createColumnHelper } from '@tanstack/react-table';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { filterByName, filterCollectionByName } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';
 import type { TData } from '../Table';
@@ -10,28 +10,31 @@ import { ServerIcon, BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon } from '@
 import type { TableConfiguration } from '@types';
 const columnHelper = createColumnHelper<TData<CollectionUserTypes>>();
 
+const getMessageIconAndColor = (collection: string) => {
+  if (collection === 'events') return { Icon: BoltIcon, color: 'orange' };
+  if (collection === 'commands') return { Icon: ChatBubbleLeftIcon, color: 'blue' };
+  if (collection === 'queries') return { Icon: MagnifyingGlassIcon, color: 'green' };
+  return { Icon: ChatBubbleLeftIcon, color: 'gray' };
+};
+
 export const columns = (tableConfiguration: TableConfiguration) => [
   columnHelper.accessor('data.name', {
     id: 'name',
     header: () => <span>{tableConfiguration.columns?.name?.label || 'Name'}</span>,
     cell: (info) => {
-      const messageRaw = info.row.original;
-      const type = useMemo(() => messageRaw.collection.slice(0, -1), [messageRaw.collection]);
+      const user = info.row.original;
       return (
-        <div className=" group ">
-          <a
-            href={buildUrl(`/docs/${messageRaw.collection}/${messageRaw.data.id}`)}
-            className={`group-hover:text-gray-500 flex space-x-1 items-center`}
-          >
-            <div className={`flex items-center  rounded-md group-hover:border-gray-400`}>
-              <span className="flex items-center">
-                <span className="flex flex-col leading-none px-2 group-hover:underline group-hover:text-primary font-light">
-                  <span className="font-semibold">{messageRaw.data.name}</span>
-                </span>
-              </span>
-            </div>
-          </a>
-        </div>
+        <a href={buildUrl(`/docs/${user.collection}/${user.data.id}`)} className="group inline-flex items-center">
+          <span className="inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50 transition-colors">
+            <span className="flex items-center justify-center w-6 h-6 bg-purple-500 rounded-l-md">
+              <User className="h-3 w-3 text-white" />
+            </span>
+            <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">
+              {user.data.name}
+              {user.data.role && <span className="text-gray-400 ml-1">({user.data.role})</span>}
+            </span>
+          </span>
+        </a>
       );
     },
     meta: {
@@ -41,214 +44,114 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     filterFn: filterByName,
   }),
 
-  columnHelper.accessor('data.ownedEvents', {
-    id: 'ownedEvents',
-    header: () => <span>{tableConfiguration.columns?.ownedEvents?.label || 'Owned events'}</span>,
-    meta: {
-      filterVariant: 'collection',
-      collectionFilterKey: 'ownedEvents',
+  columnHelper.accessor(
+    (row) => {
+      const events = row.data.ownedEvents || [];
+      const commands = row.data.ownedCommands || [];
+      const queries = row.data.ownedQueries || [];
+      return [...events, ...commands, ...queries];
     },
-    cell: (info) => {
-      const events = info.getValue();
-      if (events?.length === 0 || !events)
-        return <div className="font-light text-sm text-gray-400/80 text-left italic">User owns no events</div>;
+    {
+      id: 'ownedMessages',
+      header: () => <span>{tableConfiguration.columns?.ownedMessages?.label || 'Owned messages'}</span>,
+      meta: {
+        showFilter: false,
+      },
+      cell: (info) => {
+        const messages = info.getValue() as Array<
+          CollectionEntry<'events'> | CollectionEntry<'commands'> | CollectionEntry<'queries'>
+        >;
+        const [isExpanded, setIsExpanded] = useState(false);
 
-      const isExpandable = events?.length > 10;
-      const isOpen = isExpandable ? events?.length < 10 : true;
-      const [isExpanded, setIsExpanded] = useState(isOpen);
+        if (messages?.length === 0 || !messages)
+          return (
+            <span className="inline-flex items-center px-2 py-1 text-xs text-gray-400 bg-gray-50 rounded-md border border-gray-100">
+              No messages
+            </span>
+          );
 
-      return (
-        <div>
-          {isExpandable && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="mb-2 text-sm text-gray-600 hover:text-gray-900">
-              {isExpanded ? '▼' : '▶'} {events.length} event{events.length !== 1 ? 's' : ''}
-            </button>
-          )}
-          {isExpanded && (
-            <ul>
-              {events.map((event: CollectionEntry<'events'>, index: number) => (
-                <li key={`${event.data.id}-${index}`} className="py-1 group font-light ">
-                  <a
-                    href={buildUrl(`/docs/${event.collection}/${event.data.id}/${event.data.version}`)}
-                    className="group-hover:text-primary flex space-x-1 items-center "
+        const visibleItems = isExpanded ? messages : messages.slice(0, 4);
+        const hiddenCount = messages.length - 4;
+
+        return (
+          <div className="flex flex-col gap-1.5">
+            {visibleItems.map((message, index: number) => {
+              const { Icon, color } = getMessageIconAndColor(message.collection);
+              return (
+                <a
+                  key={`${message.data.id}-${index}`}
+                  href={buildUrl(`/docs/${message.collection}/${message.data.id}/${message.data.version}`)}
+                  className="group inline-flex items-center"
+                >
+                  <span
+                    className={`inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-${color}-300 hover:bg-${color}-50 transition-colors`}
                   >
-                    <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
-                      <span className="flex items-center">
-                        <span className={`bg-orange-500 h-full rounded-tl rounded-bl p-1`}>
-                          <BoltIcon className="h-4 w-4 text-white" />
-                        </span>
-                        <span className="leading-none px-2 group-hover:underline ">
-                          {event.data.name} (v{event.data.version})
-                        </span>
-                      </span>
-                    </div>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      );
-    },
-    footer: (info) => info.column.id,
-    filterFn: filterCollectionByName('ownedEvents'),
-  }),
-
-  columnHelper.accessor('data.ownedCommands', {
-    id: 'ownedCommands',
-    header: () => <span>{tableConfiguration.columns?.ownedCommands?.label || 'Owned commands'}</span>,
-    meta: {
-      filterVariant: 'collection',
-      collectionFilterKey: 'ownedCommands',
-    },
-    cell: (info) => {
-      const commands = info.getValue();
-      if (commands?.length === 0 || !commands)
-        return <div className="font-light text-sm text-gray-400/60 text-left italic">User owns no commands</div>;
-
-      const isExpandable = commands?.length > 10;
-      const isOpen = isExpandable ? commands?.length < 10 : true;
-      const [isExpanded, setIsExpanded] = useState(isOpen);
-
-      return (
-        <div>
-          {isExpandable && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="mb-2 text-sm text-gray-600 hover:text-gray-900">
-              {isExpanded ? '▼' : '▶'} {commands.length} command{commands.length !== 1 ? 's' : ''}
-            </button>
-          )}
-          {isExpanded && (
-            <ul>
-              {commands.map((command: CollectionEntry<'commands'>, index: number) => (
-                <li key={`${command.data.id}-${index}`} className="py-1 group font-light ">
-                  <a
-                    href={buildUrl(`/docs/${command.collection}/${command.data.id}/${command.data.version}`)}
-                    className="group-hover:text-primary flex space-x-1 items-center "
-                  >
-                    <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
-                      <span className="flex items-center">
-                        <span className={`bg-blue-500 h-full rounded-tl rounded-bl p-1`}>
-                          <ChatBubbleLeftIcon className="h-4 w-4 text-white" />
-                        </span>
-                        <span className="leading-none px-2 group-hover:underline ">
-                          {command.data.name} (v{command.data.version})
-                        </span>
-                      </span>
-                    </div>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      );
-
-      // return commands.length;
-    },
-    footer: (info) => info.column.id,
-    filterFn: filterCollectionByName('ownedCommands'),
-  }),
-
-  columnHelper.accessor('data.ownedQueries', {
-    id: 'ownedQueries',
-    header: () => <span>{tableConfiguration.columns?.ownedQueries?.label || 'Owned queries'}</span>,
-    meta: {
-      filterVariant: 'collection',
-      collectionFilterKey: 'ownedQueries',
-    },
-    cell: (info) => {
-      const queries = info.getValue();
-      if (queries?.length === 0 || !queries)
-        return <div className="font-light text-sm text-gray-400/60 text-left italic">User owns no queries</div>;
-
-      const isExpandable = queries?.length > 10;
-      const isOpen = isExpandable ? queries?.length < 10 : true;
-      const [isExpanded, setIsExpanded] = useState(isOpen);
-
-      return (
-        <div>
-          {isExpandable && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="mb-2 text-sm text-gray-600 hover:text-gray-900">
-              {isExpanded ? '▼' : '▶'} {queries.length} query{queries.length !== 1 ? 's' : ''}
-            </button>
-          )}
-          {isExpanded && (
-            <ul>
-              {queries.map((query: CollectionEntry<'queries'>, index: number) => (
-                <li key={`${query.data.id}-${index}`} className="py-1 group font-light ">
-                  <a
-                    href={buildUrl(`/docs/${query.collection}/${query.data.id}/${query.data.version}`)}
-                    className="group-hover:text-primary flex space-x-1 items-center "
-                  >
-                    <div className={`flex items-center border border-gray-300 shadow-sm rounded-md h-full`}>
-                      <span className="flex items-center">
-                        <span className={`bg-green-500 flex rounded-tl rounded-bl p-1 h-full`}>
-                          <MagnifyingGlassIcon className="h-4 w-4 text-white" />
-                        </span>
-                        <span className="leading-none px-2 group-hover:underline ">
-                          {query.data.name} (v{query.data.version})
-                        </span>
-                      </span>
-                    </div>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      );
-
-      // return commands.length;
-    },
-    footer: (info) => info.column.id,
-    filterFn: filterCollectionByName('ownedCommands'),
-  }),
+                    <span className={`flex items-center justify-center w-6 h-6 bg-${color}-500 rounded-l-md`}>
+                      <Icon className="h-3 w-3 text-white" />
+                    </span>
+                    <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">
+                      {message.data.name}
+                      <span className="text-gray-400 ml-1">v{message.data.version}</span>
+                    </span>
+                  </span>
+                </a>
+              );
+            })}
+            {hiddenCount > 0 && (
+              <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-gray-500 hover:text-gray-700 text-left">
+                {isExpanded ? 'Show less' : `+${hiddenCount} more`}
+              </button>
+            )}
+          </div>
+        );
+      },
+    }
+  ),
 
   columnHelper.accessor('data.ownedServices', {
     id: 'ownedServices',
-    header: () => <span>{tableConfiguration.columns?.ownedServices?.label || 'Owned Services'}</span>,
+    header: () => <span>{tableConfiguration.columns?.ownedServices?.label || 'Owned services'}</span>,
     meta: {
       filterVariant: 'collection',
       collectionFilterKey: 'ownedServices',
     },
     cell: (info) => {
       const services = info.getValue();
-      if (services?.length === 0 || !services)
-        return <div className="font-light text-sm text-gray-400/80 text-left italic">User owns no services</div>;
+      const [isExpanded, setIsExpanded] = useState(false);
 
-      const isExpandable = services?.length > 10;
-      const isOpen = isExpandable ? services?.length < 10 : true;
-      const [isExpanded, setIsExpanded] = useState(isOpen);
+      if (services?.length === 0 || !services)
+        return (
+          <span className="inline-flex items-center px-2 py-1 text-xs text-gray-400 bg-gray-50 rounded-md border border-gray-100">
+            No services
+          </span>
+        );
+
+      const visibleItems = isExpanded ? services : services.slice(0, 4);
+      const hiddenCount = services.length - 4;
 
       return (
-        <div>
-          {isExpandable && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="mb-2 text-sm text-gray-600 hover:text-gray-900">
-              {isExpanded ? '▼' : '▶'} {services.length} service{services.length !== 1 ? 's' : ''}
+        <div className="flex flex-col gap-1.5">
+          {visibleItems.map((service: CollectionEntry<'services'>, index: number) => (
+            <a
+              key={`${service.data.id}-${index}`}
+              href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}`)}
+              className="group inline-flex items-center"
+            >
+              <span className="inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-pink-300 hover:bg-pink-50 transition-colors">
+                <span className="flex items-center justify-center w-6 h-6 bg-pink-500 rounded-l-md">
+                  <ServerIcon className="h-3 w-3 text-white" />
+                </span>
+                <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">
+                  {service.data.name}
+                  <span className="text-gray-400 ml-1">v{service.data.version}</span>
+                </span>
+              </span>
+            </a>
+          ))}
+          {hiddenCount > 0 && (
+            <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-gray-500 hover:text-gray-700 text-left">
+              {isExpanded ? 'Show less' : `+${hiddenCount} more`}
             </button>
-          )}
-          {isExpanded && (
-            <ul>
-              {services.map((service: CollectionEntry<'services'>, index: number) => (
-                <li key={`${service.data.id}-${index}`} className="py-1 group font-light ">
-                  <a
-                    href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}`)}
-                    className="group-hover:text-primary flex space-x-1 items-center "
-                  >
-                    <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
-                      <span className="flex items-center">
-                        <span className={`bg-green-500 h-full rounded-tl rounded-bl p-1`}>
-                          <ServerIcon className="h-4 w-4 text-white" />
-                        </span>
-                        <span className="leading-none px-2 group-hover:underline ">
-                          {service.data.name} (v{service.data.version})
-                        </span>
-                      </span>
-                    </div>
-                  </a>
-                </li>
-              ))}
-            </ul>
           )}
         </div>
       );
@@ -256,6 +159,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     footer: (info) => info.column.id,
     filterFn: filterCollectionByName('ownedServices'),
   }),
+
   columnHelper.accessor('data.associatedTeams', {
     id: 'associatedTeams',
     header: () => <span>{tableConfiguration.columns?.associatedTeams?.label || 'Teams'}</span>,
@@ -266,41 +170,38 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     },
     cell: (info) => {
       const teams = info.getValue();
-
-      const isExpandable = teams?.length > 10;
-      const isOpen = isExpandable ? teams?.length < 10 : true;
-      const [isExpanded, setIsExpanded] = useState(isOpen);
+      const [isExpanded, setIsExpanded] = useState(false);
 
       if (teams?.length === 0 || !teams)
-        return <div className="font-light text-sm text-gray-400/80 text-left italic">User is not associated with any teams</div>;
+        return (
+          <span className="inline-flex items-center px-2 py-1 text-xs text-gray-400 bg-gray-50 rounded-md border border-gray-100">
+            No teams
+          </span>
+        );
+
+      const visibleItems = isExpanded ? teams : teams.slice(0, 4);
+      const hiddenCount = teams.length - 4;
 
       return (
-        <div>
-          {isExpandable && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="mb-2 text-sm text-gray-600 hover:text-gray-900">
-              {isExpanded ? '▼' : '▶'} {teams.length} team{teams.length !== 1 ? 's' : ''}
+        <div className="flex flex-col gap-1.5">
+          {visibleItems.map((team: CollectionEntry<'teams'>, index: number) => (
+            <a
+              key={`${team.data.id}-${index}`}
+              href={buildUrl(`/docs/teams/${team.data.id}`)}
+              className="group inline-flex items-center"
+            >
+              <span className="inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-pink-300 hover:bg-pink-50 transition-colors">
+                <span className="flex items-center justify-center w-6 h-6 bg-pink-500 rounded-l-md">
+                  <Users className="h-3 w-3 text-white" />
+                </span>
+                <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">{team.data.name}</span>
+              </span>
+            </a>
+          ))}
+          {hiddenCount > 0 && (
+            <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-gray-500 hover:text-gray-700 text-left">
+              {isExpanded ? 'Show less' : `+${hiddenCount} more`}
             </button>
-          )}
-          {isExpanded && (
-            <ul>
-              {teams.map((team: CollectionEntry<'teams'>, index: number) => (
-                <li key={`${team.data.id}-${index}`} className="py-1 group font-light ">
-                  <a
-                    href={buildUrl(`/docs/teams/${team.data.id}`)}
-                    className="group-hover:text-primary flex space-x-1 items-center "
-                  >
-                    <div className={`flex items-center border border-gray-300 shadow-sm rounded-md`}>
-                      <span className="flex items-center">
-                        <span className={`bg-pink-500 h-full rounded-tl rounded-bl p-1`}>
-                          <Users className="h-4 w-4 text-white" />
-                        </span>
-                        <span className="leading-none px-2 group-hover:underline ">{team.data.name}</span>
-                      </span>
-                    </div>
-                  </a>
-                </li>
-              ))}
-            </ul>
           )}
         </div>
       );
@@ -308,16 +209,17 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     footer: (info) => info.column.id,
     filterFn: filterCollectionByName('associatedTeams'),
   }),
+
   columnHelper.accessor('data.name', {
     header: () => <span>{tableConfiguration.columns?.actions?.label || 'Actions'}</span>,
     cell: (info) => {
-      const domain = info.row.original;
+      const item = info.row.original;
       return (
         <a
-          className="hover:text-primary hover:underline px-4 font-light"
-          href={buildUrl(`/docs/${domain.collection}/${domain.data.id}`)}
+          className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap"
+          href={buildUrl(`/docs/${item.collection}/${item.data.id}`)}
         >
-          View &rarr;
+          View profile
         </a>
       );
     },

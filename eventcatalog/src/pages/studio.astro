@@ -3,8 +3,8 @@ import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { getEvents } from '@utils/collections/events';
 import { getCommands } from '@utils/collections/commands';
 import { getServices } from '@utils/collections/services';
-import { BoltIcon, ServerIcon, RectangleGroupIcon } from '@heroicons/react/24/outline';
-import { SquareDashedMousePointerIcon, ArrowLeftRightIcon } from 'lucide-react';
+import { BoltIcon, ServerIcon } from '@heroicons/react/24/outline';
+import { SquareDashedMousePointerIcon, ArrowLeftRightIcon, ExternalLink } from 'lucide-react';
 import StudioPageModal from '@components/Studio/StudioPageModal';
 import { getChannels } from '@utils/collections/channels';
 
@@ -20,6 +20,7 @@ const eventCount = events.length;
 const serviceCount = services.length;
 const commandCount = commands.length;
 const channelCount = channels.length;
+const totalResources = eventCount + serviceCount + channelCount + commandCount;
 
 // Get a few sample resources to display
 const sampleEvents = events.slice(0, 2);
@@ -32,6 +33,8 @@ const resourcesToShow = [
   ...sampleServices.map((service, index) => ({ type: 'service', data: service, index: index + 2 })),
   ...sampleChannels.map((channel, index) => ({ type: 'channel', data: channel, index: index + 4 })),
 ].slice(0, 5); // Max 5 resources
+
+const hasResources = resourcesToShow.length > 0;
 ---
 
 <!doctype html>
@@ -50,131 +53,180 @@ const resourcesToShow = [
           {/* Hero Section */}
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
             <div>
-              <div class="inline-flex items-center px-4 py-2 rounded-full bg-gray-100 text-gray-900 font-medium text-sm mb-6">
-                <SquareDashedMousePointerIcon className="w-4 h-4 mr-2" />
-                EventCatalog Studio
+              <div class="inline-flex items-center px-3 py-1.5 rounded-full bg-gray-100 text-gray-700 font-medium text-xs mb-6">
+                Visual Design Tool
               </div>
               <h1 class="text-4xl font-bold text-gray-900 tracking-tight mb-4">Turn your resources into designs</h1>
-              <p class="text-xl text-gray-600 mb-8">
+              <p class="text-lg text-gray-600 mb-8">
                 Transform your documented messages, services, and domains into architecture diagrams. Drag, drop, and design with
                 what you already have.
               </p>
-              <div class="flex flex-col sm:flex-row gap-4 mb-2">
+              <div class="flex flex-col sm:flex-row gap-3 mb-4">
                 <button
                   id="design-button"
                   class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-gray-900 hover:bg-gray-800 transition-colors duration-150"
                 >
                   <SquareDashedMousePointerIcon className="w-4 h-4 mr-2" />
-                  Open EventCatalog Studio
+                  Open Studio
                 </button>
+                <a
+                  href="https://www.eventcatalog.dev/docs/development/components/designs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-150"
+                >
+                  Learn more
+                  <ExternalLink className="w-4 h-4 ml-2" />
+                </a>
               </div>
 
-              <p class="text-sm text-gray-500 italic mb-6">
-                {eventCount + serviceCount + channelCount + commandCount} resources ready to design with
-              </p>
+              {
+                totalResources > 0 && (
+                  <p class="text-sm text-gray-500">
+                    <span class="font-medium text-gray-700">{totalResources}</span> resources available to design with
+                  </p>
+                )
+              }
             </div>
 
-            <div class="relative">
-              <div class="relative">
-                {/* Animation container */}
-                <div class="relative h-[400px] flex items-center justify-center">
-                  {/* Resource cards that animate in */}
-                  <div class="absolute left-0 top-1/2 -translate-y-1/2 space-y-3">
-                    {
-                      resourcesToShow.map((resource) => {
+            <div class="relative hidden lg:block">
+              {/* Animation container */}
+              <div class="relative h-[350px] flex items-center justify-center">
+                {/* Resource cards that animate in */}
+                {
+                  hasResources ? (
+                    <div class="absolute left-0 top-1/2 -translate-y-1/2 space-y-2.5">
+                      {resourcesToShow.map((resource) => {
                         if (resource.type === 'event') {
                           return (
                             <div
-                              class="animate-float-in flex items-center gap-2 text-sm text-gray-700 px-4 py-3 bg-orange-50 rounded-lg border border-orange-200 shadow-sm"
-                              style={`animation-delay: ${resource.index * 0.4}s;`}
+                              class="animate-float-in flex items-center gap-2 text-sm text-gray-700 px-4 py-2.5 bg-orange-50 rounded-lg border border-orange-200 shadow-sm"
+                              style={`animation-delay: ${resource.index * 0.3}s;`}
                             >
-                              <BoltIcon className="w-4 h-4 text-orange-600" />
-                              {resource.data.data.name}
+                              <BoltIcon className="w-4 h-4 text-orange-500" />
+                              <span class="truncate max-w-[140px]">{resource.data.data.name}</span>
                             </div>
                           );
                         } else if (resource.type === 'service') {
                           return (
                             <div
-                              class="animate-float-in flex items-center gap-2 text-sm text-gray-700 px-4 py-3 bg-pink-50 rounded-lg border border-pink-200 shadow-sm"
-                              style={`animation-delay: ${resource.index * 0.4}s;`}
+                              class="animate-float-in flex items-center gap-2 text-sm text-gray-700 px-4 py-2.5 bg-pink-50 rounded-lg border border-pink-200 shadow-sm"
+                              style={`animation-delay: ${resource.index * 0.3}s;`}
                             >
-                              <ServerIcon className="w-4 h-4 text-gray-600" />
-                              {resource.data.data.name}
+                              <ServerIcon className="w-4 h-4 text-pink-500" />
+                              <span class="truncate max-w-[140px]">{resource.data.data.name}</span>
                             </div>
                           );
                         } else if (resource.type === 'channel') {
                           return (
                             <div
-                              class="animate-float-in flex items-center gap-2 text-sm text-gray-700 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200 shadow-sm"
-                              style={`animation-delay: ${resource.index * 0.4}s;`}
+                              class="animate-float-in flex items-center gap-2 text-sm text-gray-700 px-4 py-2.5 bg-indigo-50 rounded-lg border border-indigo-200 shadow-sm"
+                              style={`animation-delay: ${resource.index * 0.3}s;`}
                             >
-                              <ArrowLeftRightIcon className="w-4 h-4 text-gray-600" />
-                              {resource.data.data.name}
+                              <ArrowLeftRightIcon className="w-4 h-4 text-indigo-500" />
+                              <span class="truncate max-w-[140px]">{resource.data.data.name}</span>
                             </div>
                           );
                         }
-                      })
-                    }
-                  </div>
+                      })}
+                    </div>
+                  ) : (
+                    <div class="absolute left-0 top-1/2 -translate-y-1/2 space-y-2.5">
+                      <div
+                        class="animate-float-in flex items-center gap-2 text-sm text-gray-400 px-4 py-2.5 bg-gray-50 rounded-lg border border-gray-200 border-dashed"
+                        style="animation-delay: 0s;"
+                      >
+                        <BoltIcon className="w-4 h-4" />
+                        <span>Your events</span>
+                      </div>
+                      <div
+                        class="animate-float-in flex items-center gap-2 text-sm text-gray-400 px-4 py-2.5 bg-gray-50 rounded-lg border border-gray-200 border-dashed"
+                        style="animation-delay: 0.3s;"
+                      >
+                        <ServerIcon className="w-4 h-4" />
+                        <span>Your services</span>
+                      </div>
+                      <div
+                        class="animate-float-in flex items-center gap-2 text-sm text-gray-400 px-4 py-2.5 bg-gray-50 rounded-lg border border-gray-200 border-dashed"
+                        style="animation-delay: 0.6s;"
+                      >
+                        <ArrowLeftRightIcon className="w-4 h-4" />
+                        <span>Your channels</span>
+                      </div>
+                    </div>
+                  )
+                }
 
-                  {/* Arrow indicator */}
-                  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse">
-                    <svg class="w-12 h-12 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                    </svg>
-                  </div>
+                {/* Arrow indicator */}
+                <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                  <svg class="w-10 h-10 text-gray-300 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                  </svg>
+                </div>
 
-                  {/* Design preview */}
-                  <div class="absolute right-0 top-1/2 -translate-y-1/2 animate-fade-in-scale" style="animation-delay: 2s;">
-                    <img
-                      src="/studio-bg.png"
-                      alt="Studio Design Preview"
-                      class="rounded-xl shadow-xl border border-gray-200 w-64 h-auto"
-                    />
-                  </div>
+                {/* Design preview */}
+                <div class="absolute right-0 top-1/2 -translate-y-1/2 animate-fade-in-scale" style="animation-delay: 1.5s;">
+                  <img
+                    src="/studio-bg.png"
+                    alt="Studio Design Preview"
+                    class="rounded-xl shadow-lg border border-gray-200 w-56 h-auto"
+                  />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Features Section */}
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-gray-900" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div
+              class="group bg-white rounded-xl p-6 border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200"
+            >
+              <div
+                class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-gray-200 transition-colors"
+              >
+                <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect width="8" height="8" x="3" y="3" rx="2"></rect>
                   <path d="M7 11v4a2 2 0 0 0 2 2h4"></path>
                   <rect width="8" height="8" x="13" y="13" rx="2"></rect>
                 </svg>
               </div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">Real Resources</h3>
-              <p class="text-gray-600">
-                Drag and drop messages, services, and domains from your catalog. No more copying names or keeping things manually
-                in sync.
+              <h3 class="text-base font-semibold text-gray-900 mb-2">Real Resources</h3>
+              <p class="text-sm text-gray-600 leading-relaxed">
+                Drag and drop messages, services, and domains from your catalog. No more copying names or keeping things in sync.
               </p>
             </div>
 
-            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-gray-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <div
+              class="group bg-white rounded-xl p-6 border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200"
+            >
+              <div
+                class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-gray-200 transition-colors"
+              >
+                <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                   <polyline points="17 21 17 13 7 13 7 21"></polyline>
                   <polyline points="7 3 7 8 15 8"></polyline>
                 </svg>
               </div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">Save & Version</h3>
-              <p class="text-gray-600">Save designs locally and store in Git. All designs and data is owned by you.</p>
+              <h3 class="text-base font-semibold text-gray-900 mb-2">Save & Version</h3>
+              <p class="text-sm text-gray-600 leading-relaxed">
+                Save designs locally and store in Git. All designs and data is owned by you.
+              </p>
             </div>
 
-            <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                <svg class="w-6 h-6 text-gray-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <div
+              class="group bg-white rounded-xl p-6 border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200"
+            >
+              <div
+                class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mb-4 group-hover:bg-gray-200 transition-colors"
+              >
+                <svg class="w-5 h-5 text-gray-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="16 18 22 12 16 6"></polyline>
                   <polyline points="8 6 2 12 8 18"></polyline>
                 </svg>
               </div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">Embed Anywhere</h3>
-              <p class="text-gray-600">
+              <h3 class="text-base font-semibold text-gray-900 mb-2">Embed Anywhere</h3>
+              <p class="text-sm text-gray-600 leading-relaxed">
                 Drop diagrams directly into documentation pages. One source of truth for your architecture.
               </p>
             </div>
@@ -201,7 +253,7 @@ const resourcesToShow = [
       @keyframes float-in {
         0% {
           opacity: 0;
-          transform: translateX(-30px);
+          transform: translateX(-20px);
         }
         100% {
           opacity: 1;
@@ -212,7 +264,7 @@ const resourcesToShow = [
       @keyframes fade-in-scale {
         0% {
           opacity: 0;
-          transform: translateY(-50%) scale(0.9);
+          transform: translateY(-50%) scale(0.95);
         }
         100% {
           opacity: 1;
@@ -221,12 +273,12 @@ const resourcesToShow = [
       }
 
       .animate-float-in {
-        animation: float-in 0.6s ease-out forwards;
+        animation: float-in 0.5s ease-out forwards;
         opacity: 0;
       }
 
       .animate-fade-in-scale {
-        animation: fade-in-scale 0.8s ease-out forwards;
+        animation: fade-in-scale 0.6s ease-out forwards;
         opacity: 0;
       }
     </style>

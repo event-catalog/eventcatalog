@@ -63,70 +63,81 @@ const pageTitle = `User | ${props.data.name}`;
   <main class="flex sm:px-8 docs-layout h-full" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
-        <div class="border-b border-gray-200 pb-4">
-          <div class="flex justify-start space-x-8">
-            <img src={props.data.avatarUrl} alt="Profile picture" class="shadow-md w-28 rounded-md" />
-            <div class="flex flex-col justify-between">
+        <div class="border-b border-gray-200 pb-6">
+          <div class="flex justify-start gap-6">
+            {
+              props.data.avatarUrl && (
+                <img
+                  src={props.data.avatarUrl}
+                  alt={`${props.data.name}'s profile picture`}
+                  class="w-20 h-20 rounded-full object-cover border-2 border-gray-100"
+                />
+              )
+            }
+            <div class="flex flex-col justify-center space-y-2">
               <div>
-                <h2 class="text-4xl font-bold">{props.data.name}</h2>
-                <span class="text-xl font-bold text-gray-500">{props.data.role}</span>
+                <h2 class="text-3xl font-bold text-gray-900">{props.data.name}</h2>
+                {props.data.role && <span class="text-base font-medium text-gray-500">{props.data.role}</span>}
               </div>
-              <div class="space-y-1">
+              <div class="flex flex-wrap gap-3">
                 {
                   props.data.email && (
-                    <div class="flex space-x-1 items-center text-xs text-gray-500 font-bold hover:underline hover:text-primary">
-                      <EnvelopeIcon className="w-4 h-4 text-purple-400" />
-                      <a href={`mailto:${props.data.email}`}>Email</a>
-                    </div>
+                    <a
+                      href={`mailto:${props.data.email}`}
+                      class="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      <EnvelopeIcon className="w-4 h-4 text-gray-400" />
+                      <span>Email</span>
+                    </a>
                   )
                 }
                 {
                   props.data.slackDirectMessageUrl && (
-                    <div class="flex space-x-1 items-center text-xs text-gray-500 font-bold hover:underline hover:text-primary">
-                      <img src={buildUrl('/slack-icon.svg', true)} class="w-4 h-3" />
-                      <a href={`${props.data.slackDirectMessageUrl}`}>Send DM on Slack</a>
-                    </div>
+                    <a
+                      href={props.data.slackDirectMessageUrl}
+                      class="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      <img src={buildUrl('/slack-icon.svg', true)} class="w-4 h-4" alt="Slack" />
+                      <span>Slack</span>
+                    </a>
                   )
                 }
                 {
                   props.data.msTeamsDirectMessageUrl && (
-                    <div class="flex space-x-1 items-center text-xs text-gray-500 font-bold hover:underline hover:text-primary">
-                      <img src={buildUrl('/icons/ms-teams.svg', true)} class="w-4 h-4" />
-                      <a href={`${props.data.msTeamsDirectMessageUrl}`} target="_blank" rel="noopener noreferrer">
-                        Send DM on Teams
-                      </a>
-                    </div>
+                    <a
+                      href={props.data.msTeamsDirectMessageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      <img src={buildUrl('/icons/ms-teams.svg', true)} class="w-4 h-4" alt="Teams" />
+                      <span>Teams</span>
+                    </a>
                   )
                 }
               </div>
             </div>
           </div>
         </div>
-        <div class="border-b border-gray-200" data-pagefind-ignore>
-          <div class="mx-auto max-w-7xl px-6 lg:px-8">
-            <div class="mx-auto max-w-2xl lg:max-w-none">
-              <dl
-                class="hidden lg:grid grid-cols-1 gap-0.5 overflow-hidden rounded-2xl text-center sm:grid-cols-4 lg:grid-cols-4"
-              >
-                <div class="flex flex-col p-8">
-                  <dt class="text-sm font-semibold leading-6 text-gray-600"># owned domains</dt>
-                  <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{ownedDomainsList.length}</dd>
-                </div>
-                <div class="flex flex-col p-8">
-                  <dt class="text-sm font-semibold leading-6 text-gray-600"># owned services</dt>
-                  <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{ownedServicesList.length}</dd>
-                </div>
-                <div class="flex flex-col p-8">
-                  <dt class="text-sm font-semibold leading-6 text-gray-600"># owned messages</dt>
-                  <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{ownedMessageList.length}</dd>
-                </div>
-                <div class="flex flex-col p-8">
-                  <dt class="text-sm font-semibold leading-6 text-gray-600"># teams joined</dt>
-                  <dd class="order-first text-3xl font-semibold tracking-tight text-gray-900">{associatedTeams.length}</dd>
-                </div>
-              </dl>
+        <div class="border-b border-gray-200 py-4" data-pagefind-ignore>
+          <dl class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="flex flex-col p-4 bg-gray-50 rounded-lg">
+              <dt class="text-xs font-medium text-gray-500">Domains</dt>
+              <dd class="text-2xl font-semibold text-gray-900 mt-1">{ownedDomainsList.length}</dd>
             </div>
-          </div>
+            <div class="flex flex-col p-4 bg-gray-50 rounded-lg">
+              <dt class="text-xs font-medium text-gray-500">Services</dt>
+              <dd class="text-2xl font-semibold text-gray-900 mt-1">{ownedServicesList.length}</dd>
+            </div>
+            <div class="flex flex-col p-4 bg-gray-50 rounded-lg">
+              <dt class="text-xs font-medium text-gray-500">Messages</dt>
+              <dd class="text-2xl font-semibold text-gray-900 mt-1">{ownedMessageList.length}</dd>
+            </div>
+            <div class="flex flex-col p-4 bg-gray-50 rounded-lg">
+              <dt class="text-xs font-medium text-gray-500">Teams</dt>
+              <dd class="text-2xl font-semibold text-gray-900 mt-1">{associatedTeams.length}</dd>
+            </div>
+          </dl>
         </div>
         <div class="prose prose-md py-4 w-full">
           <Content components={components(props)} />

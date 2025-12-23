@@ -200,7 +200,7 @@ const learnLinks = [
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           {
-            topTiles.map((tile) =>
+            topTiles.map((tile: any) =>
               tile.count > 0 ? (
                 <a
                   href={tile.href}

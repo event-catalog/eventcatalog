@@ -37,6 +37,12 @@ function mapToItem(i: any) {
           // @ts-ignore
           avatarUrl: d.data?.avatarUrl,
           // @ts-ignore
+          email: d.data?.email,
+          // @ts-ignore
+          slackDirectMessageUrl: d.data?.slackDirectMessageUrl,
+          // @ts-ignore
+          msTeamsDirectMessageUrl: d.data?.msTeamsDirectMessageUrl,
+          // @ts-ignore
           associatedTeams: d.data?.associatedTeams?.map(mapToItem) ?? [],
           // @ts-ignore
           ownedCommands: d.data?.ownedCommands?.map(mapToItem) ?? [],
