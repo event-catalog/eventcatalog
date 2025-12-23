@@ -26,12 +26,10 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto pt-6 pb-8 min-h-[50em]">
         {/* Title Section */}
-        <div class="relative border-b border-gray-200 mb-4 pb-4">
+        <div class="relative border-b border-gray-200 mb-6 pb-6">
           <div class="xl:flex xl:items-start xl:justify-between">
             <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-2">
-                <h1 class="text-xl font-bold leading-7 text-gray-900 sm:text-2xl xl:text-3xl">Ubiquitous Language</h1>
-              </div>
+              <h1 class="text-xl font-bold leading-7 text-gray-900 sm:text-2xl xl:text-3xl">Ubiquitous Language</h1>
               <p class="mt-2 text-sm text-gray-500">
                 Browse and discover ubiquitous language terms in the {props.data.name} domain{
                   subdomains.length > 0 ? ' and its subdomains' : ''
@@ -40,15 +38,15 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
             </div>
 
             <div class="mt-4 xl:mt-0 xl:ml-4 xl:flex-shrink-0">
-              <div class="relative w-full xl:w-96">
+              <div class="relative w-full xl:w-80">
                 <input
                   type="text"
                   id="searchInput"
-                  placeholder="Search terms across domains..."
-                  class="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm xl:px-5 xl:py-3.5 xl:pl-12"
+                  placeholder="Search terms..."
+                  class="w-full px-4 py-2.5 pl-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 text-sm bg-gray-50 focus:bg-white transition-colors"
                 />
-                <div class="absolute inset-y-0 left-0 pl-3 xl:pl-4 flex items-center pointer-events-none">
-                  <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       stroke-linecap="round"
                       stroke-linejoin="round"
@@ -58,9 +56,12 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                 </div>
               </div>
               <div class="mt-2 text-right">
-                <div class="text-sm text-gray-500" id="resultsCount">
+                <span
+                  class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-500 bg-gray-100 rounded-md"
+                  id="resultsCount"
+                >
                   {/* This will be updated by JavaScript */}
-                </div>
+                </span>
               </div>
             </div>
           </div>
@@ -68,8 +69,16 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
 
         {
           !ubiquitousLanguage && subdomains.length === 0 && (
-            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 my-4">
-              <p class="text-yellow-700">
+            <div class="flex flex-col items-center justify-center py-16 px-4">
+              <div class="flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                {(() => {
+                  const BookOpen = LucideIcons.BookOpen;
+                  //@ts-ignore
+                  return <BookOpen className="w-8 h-8 text-gray-400" />;
+                })()}
+              </div>
+              <h3 class="text-lg font-medium text-gray-900 mb-2">No ubiquitous language defined</h3>
+              <p class="text-sm text-gray-500 text-center max-w-md">
                 This domain does not have any defined ubiquitous language terms yet. Consider adding some terms to help establish
                 a common vocabulary for your domain.
               </p>
@@ -83,59 +92,96 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
               <div>
                 {/* Domain Language Section */}
                 {ubiquitousLanguage && (
-                  <div class="mb-8" data-domain-section="main">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
-                      {props.data.name} Domain Language
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" data-terms-grid="main">
+                  <div class="mb-10" data-domain-section="main">
+                    <div class="flex items-center justify-between mb-5">
+                      <div class="flex items-center gap-3">
+                        {/* <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-900">
+                          <RectangleGroupIcon className="w-4 h-4 text-white" />
+                        </div> */}
+                        <h3 class="text-xl font-semibold text-gray-900">
+                          {props.data.name} Domain Language
+                          <span class="ml-1 text-sm font-normal text-gray-500">
+                            ({ubiquitousLanguage?.data?.dictionary?.length || 0} terms)
+                          </span>
+                        </h3>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-terms-grid="main">
                       {ubiquitousLanguage?.data?.dictionary?.map((term) => (
-                        <div
-                          class={`term-card block bg-white border rounded-lg p-6 transition-all duration-300 ease-in-out hover:shadow-md hover:border-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-white min-h-[12em] ${duplicateTerms.has(term.name.toLowerCase()) ? 'border-orange-300 bg-orange-50' : 'border-gray-200'}`}
+                        <a
+                          href={buildUrl(`/docs/${props.collection}/${props.data.id}/language/${term.id}`)}
+                          class={`term-card group block bg-white border rounded-lg p-5 transition-all duration-200 hover:shadow-md hover:border-gray-400 hover:-translate-y-0.5 ${duplicateTerms.has(term.name.toLowerCase()) ? 'border-orange-300 bg-orange-50/50' : 'border-gray-200'}`}
                           data-domain="main"
                         >
-                          <div class="flex flex-col h-full space-y-8">
-                            {term.icon && (
-                              <div>
-                                {(() => {
-                                  const Icon = LucideIcons[term.icon as keyof typeof LucideIcons];
-                                  //@ts-ignore
-                                  return Icon ? <Icon className="w-6 h-6 text-primary" /> : null;
-                                })()}
-                              </div>
-                            )}
-                            <div>
-                              <h4
-                                class={`text-lg font-semibold transition-colors duration-300 ease-in-out group-hover:text-gray-300 ${duplicateTerms.has(term.name.toLowerCase()) ? 'text-orange-800' : 'text-gray-800'}`}
-                              >
-                                {term.name}
-                                {duplicateTerms.has(term.name.toLowerCase()) && (
-                                  <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
-                                    Duplicate
-                                  </span>
-                                )}
-                              </h4>
-                              <div class="term-content">
-                                <p class="summary-text text-gray-600 transition-colors duration-300 ease-in-out group-hover:text-gray-200 m-0 font-light text-sm mb-4">
-                                  {term.summary}
-                                </p>
-                                {term.description && (
-                                  <div class="prose prose-sm prose-p:my-3">
-                                    <a
-                                      href={buildUrl(`/docs/${props.collection}/${props.data.id}/language/${term.id}`)}
-                                      class="show-more-text text-sm text-primary font-medium hover:underline"
-                                    >
-                                      Read more
-                                    </a>
+                          <div class="flex flex-col h-full">
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                              <div class="flex items-center gap-2.5">
+                                {term.icon ? (
+                                  <div class="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 group-hover:bg-gray-200 transition-colors">
+                                    {(() => {
+                                      const Icon = LucideIcons[term.icon as keyof typeof LucideIcons];
+                                      //@ts-ignore
+                                      return Icon ? <Icon className="w-4 h-4 text-gray-700" /> : null;
+                                    })()}
+                                  </div>
+                                ) : (
+                                  <div class="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 group-hover:bg-gray-200 transition-colors">
+                                    {(() => {
+                                      const BookText = LucideIcons.BookText;
+                                      //@ts-ignore
+                                      return (
+                                        <BookText className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors" />
+                                      );
+                                    })()}
                                   </div>
                                 )}
+                                <h4
+                                  class={`text-base font-semibold group-hover:text-black transition-colors ${duplicateTerms.has(term.name.toLowerCase()) ? 'text-orange-800' : 'text-gray-900'}`}
+                                >
+                                  {term.name}
+                                </h4>
                               </div>
+                              {duplicateTerms.has(term.name.toLowerCase()) && (
+                                <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200">
+                                  Duplicate
+                                </span>
+                              )}
+                            </div>
+                            <p class="summary-text text-gray-600 text-sm leading-relaxed line-clamp-3 flex-grow mb-3">
+                              {term.summary}
+                            </p>
+                            <div class="pt-3 border-t border-gray-100">
+                              <span class="inline-flex items-center text-sm text-gray-600 font-medium group-hover:text-gray-900">
+                                View details
+                                <svg
+                                  class="ml-1 w-4 h-4 transition-transform group-hover:translate-x-0.5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                              </span>
                             </div>
                           </div>
-                        </div>
+                        </a>
                       ))}
                     </div>
-                    <div class="hidden domain-no-results text-center py-8 bg-gray-50 rounded-lg" data-domain-no-results="main">
-                      <h4 class="text-md font-medium text-gray-900">No matching terms in {props.data.name} domain</h4>
+                    <div
+                      class="hidden domain-no-results text-center py-12 bg-gray-50 rounded-lg border border-gray-200 border-dashed"
+                      data-domain-no-results="main"
+                    >
+                      <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-gray-100">
+                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                          />
+                        </svg>
+                      </div>
+                      <h4 class="text-base font-medium text-gray-900">No matching terms in {props.data.name}</h4>
                       <p class="mt-1 text-sm text-gray-500">Try adjusting your search terms.</p>
                     </div>
                   </div>
@@ -145,68 +191,105 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                 {subdomains
                   .filter((s) => s.ubiquitousLanguage)
                   .map(({ subdomain, ubiquitousLanguage: subdomainUL }) => (
-                    <div class="mb-8" data-domain-section={subdomain.data.id}>
-                      <div class="flex justify-between items-center mb-4 border-b border-gray-200 pb-2">
-                        <h3 class="text-xl font-semibold text-gray-900">{subdomain.data.name} Subdomain Language</h3>
+                    <div class="mb-10" data-domain-section={subdomain.data.id}>
+                      <div class="flex items-center justify-between mb-5">
+                        <div class="flex items-center gap-3">
+                          {/* <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-200">
+                            <RectangleGroupIcon className="w-4 h-4 text-gray-700" />
+                          </div> */}
+                          <h3 class="text-xl font-semibold text-gray-900">
+                            {subdomain.data.name} Domain Language
+                            <span class="ml-1 text-sm font-normal text-gray-500">
+                              ({subdomainUL?.data?.dictionary?.length || 0} terms)
+                            </span>
+                          </h3>
+                        </div>
                         <a
                           href={buildUrl(`/docs/domains/${subdomain.data.id}/${subdomain.data.version}`)}
-                          class="text-sm text-primary hover:underline font-medium"
+                          class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
                         >
-                          View Domain →
+                          View Domain
+                          <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                          </svg>
                         </a>
                       </div>
-                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4" data-terms-grid={subdomain.data.id}>
+                      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-terms-grid={subdomain.data.id}>
                         {subdomainUL?.data?.dictionary?.map((term) => (
-                          <div
-                            class={`term-card block bg-white border rounded-lg p-6 transition-all duration-300 ease-in-out hover:shadow-md hover:border-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary focus:ring-white min-h-[12em] ${duplicateTerms.has(term.name.toLowerCase()) ? 'border-orange-300 bg-orange-50' : 'border-gray-200'}`}
+                          <a
+                            href={buildUrl(`/docs/${props.collection}/${subdomain.data.id}/language/${term.id}`)}
+                            class={`term-card group block bg-white border rounded-lg p-5 transition-all duration-200 hover:shadow-md hover:border-gray-400 hover:-translate-y-0.5 ${duplicateTerms.has(term.name.toLowerCase()) ? 'border-orange-300 bg-orange-50/50' : 'border-gray-200'}`}
                             data-domain={subdomain.data.id}
                           >
-                            <div class="flex flex-col h-full space-y-8">
-                              {term.icon && (
-                                <div>
-                                  {(() => {
-                                    const Icon = LucideIcons[term.icon as keyof typeof LucideIcons];
-                                    //@ts-ignore
-                                    return Icon ? <Icon className="w-6 h-6 text-primary" /> : null;
-                                  })()}
-                                </div>
-                              )}
-                              <div>
-                                <h4
-                                  class={`text-lg font-semibold transition-colors duration-300 ease-in-out group-hover:text-gray-300 ${duplicateTerms.has(term.name.toLowerCase()) ? 'text-orange-800' : 'text-gray-800'}`}
-                                >
-                                  {term.name}
-                                  {duplicateTerms.has(term.name.toLowerCase()) && (
-                                    <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
-                                      Duplicate
-                                    </span>
-                                  )}
-                                </h4>
-                                <div class="term-content">
-                                  <p class="summary-text text-gray-600 transition-colors duration-300 ease-in-out group-hover:text-gray-200 m-0 font-light text-sm mb-4">
-                                    {term.summary}
-                                  </p>
-                                  {term.description && (
-                                    <div class="prose prose-sm prose-p:my-3">
-                                      <a
-                                        href={buildUrl(`/docs/${props.collection}/${subdomain.data.id}/language/${term.id}`)}
-                                        class="show-more-text text-sm text-primary font-medium hover:underline"
-                                      >
-                                        Read more
-                                      </a>
+                            <div class="flex flex-col h-full">
+                              <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="flex items-center gap-2.5">
+                                  {term.icon ? (
+                                    <div class="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 group-hover:bg-gray-200 transition-colors">
+                                      {(() => {
+                                        const Icon = LucideIcons[term.icon as keyof typeof LucideIcons];
+                                        //@ts-ignore
+                                        return Icon ? <Icon className="w-4 h-4 text-gray-700" /> : null;
+                                      })()}
+                                    </div>
+                                  ) : (
+                                    <div class="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 group-hover:bg-gray-200 transition-colors">
+                                      {(() => {
+                                        const BookText = LucideIcons.BookText;
+                                        //@ts-ignore
+                                        return (
+                                          <BookText className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors" />
+                                        );
+                                      })()}
                                     </div>
                                   )}
+                                  <h4
+                                    class={`text-base font-semibold group-hover:text-black transition-colors ${duplicateTerms.has(term.name.toLowerCase()) ? 'text-orange-800' : 'text-gray-900'}`}
+                                  >
+                                    {term.name}
+                                  </h4>
                                 </div>
+                                {duplicateTerms.has(term.name.toLowerCase()) && (
+                                  <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200">
+                                    Duplicate
+                                  </span>
+                                )}
+                              </div>
+                              <p class="summary-text text-gray-600 text-sm leading-relaxed line-clamp-3 flex-grow mb-3">
+                                {term.summary}
+                              </p>
+                              <div class="pt-3 border-t border-gray-100">
+                                <span class="inline-flex items-center text-sm text-gray-600 font-medium group-hover:text-gray-900">
+                                  View details
+                                  <svg
+                                    class="ml-1 w-4 h-4 transition-transform group-hover:translate-x-0.5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </span>
                               </div>
                             </div>
-                          </div>
+                          </a>
                         ))}
                       </div>
                       <div
-                        class="hidden domain-no-results text-center py-8 bg-gray-50 rounded-lg"
+                        class="hidden domain-no-results text-center py-12 bg-gray-50 rounded-lg border border-gray-200 border-dashed"
                         data-domain-no-results={subdomain.data.id}
                       >
-                        <h4 class="text-md font-medium text-gray-900">No matching terms in {subdomain.data.name} subdomain</h4>
+                        <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-gray-100">
+                          <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                            />
+                          </svg>
+                        </div>
+                        <h4 class="text-base font-medium text-gray-900">No matching terms in {subdomain.data.name}</h4>
                         <p class="mt-1 text-sm text-gray-500">Try adjusting your search terms.</p>
                       </div>
                     </div>
@@ -320,26 +403,9 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
   </script>
 
   <style is:global>
-    .term-card {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      min-height: 12em;
-    }
-
-    .summary-text {
-      opacity: 1;
-      max-height: unset;
-      display: block;
-    }
-
-    .description-text,
-    .term-card.expanded,
-    .term-card.expanded .show-more-text {
-      display: none;
-    }
-
     .term-card.highlighted {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 2px var(--color-primary);
+      border-color: #111827;
+      box-shadow: 0 0 0 2px #111827;
       animation: pulse 1s;
     }
 
@@ -347,12 +413,19 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
       0%,
       100% {
         transform: scale(1);
-        box-shadow: 0 0 0 2px var(--color-primary);
+        box-shadow: 0 0 0 2px #111827;
       }
       50% {
         transform: scale(1.01);
-        box-shadow: 0 0 0 4px var(--color-primary);
+        box-shadow: 0 0 0 4px #111827;
       }
+    }
+
+    .line-clamp-3 {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
   </style>
 </VerticalSideBarLayout>
