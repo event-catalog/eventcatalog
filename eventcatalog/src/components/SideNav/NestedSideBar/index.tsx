@@ -472,9 +472,36 @@ export default function NestedSideBar() {
   // Show loading state if no data yet
   if (!data || roots.length === 0) {
     return (
-      <aside className="w-[315px] h-screen flex flex-col bg-gray-50 border-r border-gray-200">
-        <div className="px-3 py-2 bg-white border-b border-gray-200">
-          <span className="text-sm font-semibold text-gray-900">Loading...</span>
+      <aside className="w-[315px] h-full flex flex-col font-sans">
+        {/* Search skeleton */}
+        <div className="px-3 py-3 border-b border-gray-200">
+          <div className="h-9 bg-gray-100 rounded-lg animate-pulse" />
+        </div>
+        {/* Content skeleton */}
+        <div className="p-3 space-y-3">
+          {/* Group header skeleton */}
+          <div className="flex items-center gap-2 px-2 py-1.5">
+            <div className="w-3.5 h-3.5 bg-gray-200 rounded animate-pulse" />
+            <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+          </div>
+          {/* Item skeletons */}
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex items-center gap-2.5 px-3 py-1.5 ml-3.5 border-l border-gray-100">
+              <div className="w-4 h-4 bg-gray-100 rounded animate-pulse" />
+              <div className="h-4 bg-gray-100 rounded animate-pulse" style={{ width: `${60 + ((i * 15) % 40)}%` }} />
+            </div>
+          ))}
+          {/* Second group skeleton */}
+          <div className="flex items-center gap-2 px-2 py-1.5 mt-4">
+            <div className="w-3.5 h-3.5 bg-gray-200 rounded animate-pulse" />
+            <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+          </div>
+          {[1, 2, 3].map((i) => (
+            <div key={`g2-${i}`} className="flex items-center gap-2.5 px-3 py-1.5 ml-3.5 border-l border-gray-100">
+              <div className="w-4 h-4 bg-gray-100 rounded animate-pulse" />
+              <div className="h-4 bg-gray-100 rounded animate-pulse" style={{ width: `${50 + ((i * 20) % 35)}%` }} />
+            </div>
+          ))}
         </div>
       </aside>
     );
@@ -698,32 +725,32 @@ export default function NestedSideBar() {
 
     const headerContent = (
       <>
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           {GroupIcon && (
-            <span className="mr-2 text-gray-900">
-              <GroupIcon className="w-3.5 h-3.5" />
+            <span className="flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-gray-600">
+              <GroupIcon className="w-3 h-3" />
             </span>
           )}
-          <span className="text-sm text-black font-semibold">{group.title}</span>
+          <span className="text-[13px] text-gray-900 font-semibold tracking-tight">{group.title}</span>
         </div>
         {canCollapse && <ChevronDown className={cn('w-4 h-4 text-gray-400 transition-transform', isCollapsed && '-rotate-90')} />}
       </>
     );
 
     return (
-      <div key={`group-${groupKey || index}`} className="mb-4 last:mb-2">
+      <div key={`group-${groupKey || index}`} className="mb-5 last:mb-2">
         {canCollapse ? (
           <button
             onClick={() => toggleSectionCollapse(groupId)}
-            className="flex items-center justify-between w-full px-2 py-1.5 pb-1.5 hover:bg-gray-100 rounded transition-colors cursor-pointer"
+            className="flex items-center justify-between w-full px-2 py-1.5 hover:bg-gray-50 rounded-md transition-colors cursor-pointer"
           >
             {headerContent}
           </button>
         ) : (
-          <div className="flex items-center justify-between px-2 py-1.5 pb-1.5">{headerContent}</div>
+          <div className="flex items-center justify-between px-2 py-1.5">{headerContent}</div>
         )}
         {!isCollapsed && (
-          <div className="flex flex-col gap-0.5 border-l ml-3.5 border-gray-100">
+          <div className="flex flex-col gap-0.5 border-l ml-4 mt-1 border-gray-200">
             {visibleChildren.map((childRef, childIndex) => {
               const child = resolveRef(childRef);
               if (!child) return null;
@@ -810,9 +837,9 @@ export default function NestedSideBar() {
     );
 
     const baseClasses =
-      'group flex items-center justify-between w-full px-3 py-1 rounded-lg cursor-pointer text-left transition-colors hover:bg-gray-100 active:bg-gray-200';
+      'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-gray-100 active:bg-gray-200';
     const parentClasses = itemHasChildren ? 'font-medium' : '';
-    const activeClasses = isActive ? 'bg-gray-200 hover:bg-gray-200 border-l-4 border-black rounded-l-none' : '';
+    const activeClasses = isActive ? 'bg-purple-50 hover:bg-purple-50 border-l-2 border-purple-600 rounded-l-none' : '';
 
     // Leaf item with href → render as link
     if (item.href && !itemHasChildren) {
@@ -1001,7 +1028,7 @@ export default function NestedSideBar() {
             {/* Favorites Section */}
             {favorites.length > 0 && isTopLevel && (
               <div className="mb-6">
-                <div className="flex items-center px-2 py-2 pb-2">
+                <div className="flex items-center px-2 py-1.5">
                   <Star className="w-3.5 h-3.5 mr-2 text-amber-400 fill-current" />
                   <span className="text-sm text-black font-semibold">Favorites</span>
                 </div>
@@ -1016,7 +1043,7 @@ export default function NestedSideBar() {
                         onClick={() => navigateToFavorite(fav)}
                         className={cn(
                           'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-amber-50 active:bg-amber-100',
-                          isActive && 'bg-gray-200 hover:bg-gray-200 border-l-4 border-black rounded-l-none'
+                          isActive && 'bg-purple-50 hover:bg-purple-50 border-l-2 border-purple-600 rounded-l-none'
                         )}
                       >
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
