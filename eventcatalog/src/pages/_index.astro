@@ -5,10 +5,9 @@ import {
   RectangleGroupIcon,
   ServerIcon,
   CodeBracketIcon,
-  CubeTransparentIcon,
   DocumentTextIcon,
-  SparklesIcon,
-  RocketLaunchIcon,
+  ArrowRightIcon,
+  PlusIcon,
 } from '@heroicons/react/24/outline';
 import config from '@config';
 
@@ -17,22 +16,7 @@ import { getDomains } from '@utils/collections/domains';
 import { getServices } from '@utils/collections/services';
 import { getFlows } from '@utils/collections/flows';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
-import {
-  BookOpenText,
-  Workflow,
-  TableProperties,
-  BookUser,
-  BotMessageSquare,
-  Zap,
-  Package,
-  GitBranch,
-  FileCode,
-  Puzzle,
-  Terminal,
-  BarChart3,
-  GitCompare,
-  Layers,
-} from 'lucide-react';
+import { BookOpenText, Workflow, TableProperties, BookUser, Zap, Terminal, Code2, FileJson } from 'lucide-react';
 
 const { commands = [], events = [], queries = [] } = await getMessages({ getAllVersions: false });
 const messages = [...events, ...queries, ...commands];
@@ -40,125 +24,8 @@ const domains = await getDomains({ getAllVersions: false });
 const services = await getServices({ getAllVersions: false });
 const flows = await getFlows({ getAllVersions: false });
 
-const gettingStartedItems = [
-  {
-    title: 'Add a New Message',
-    icon: ChatBubbleLeftIcon,
-    iconBg: 'blue',
-    description: 'Document a new message in your system with schemas, examples, and relationships.',
-    links: [
-      {
-        text: 'How to add a message',
-        href: 'https://www.eventcatalog.dev/docs/messages',
-      },
-      {
-        text: 'Versioning guide',
-        href: 'https://www.eventcatalog.dev/docs/development/guides/messages/events/versioning',
-      },
-      {
-        text: 'Adding schemas',
-        href: 'https://www.eventcatalog.dev/docs/development/guides/messages/events/adding-schemas',
-      },
-    ],
-  },
-  {
-    title: 'Document a Service',
-    icon: ServerIcon,
-    iconBg: 'green',
-    description: 'Add details about a service, including its events, APIs, and dependencies.',
-    links: [
-      {
-        text: 'How to add a service',
-        href: 'https://www.eventcatalog.dev/docs/services',
-      },
-      {
-        text: 'Service ownership',
-        href: 'https://www.eventcatalog.dev/docs/development/guides/services/owners',
-      },
-      {
-        text: 'Assign specifications to services',
-        href: 'https://www.eventcatalog.dev/docs/development/guides/services/adding-spec-files-to-services',
-      },
-    ],
-  },
-  {
-    title: 'Create a Domain',
-    icon: RectangleGroupIcon,
-    iconBg: 'purple',
-    description: 'Organize your services and events into logical business domains.',
-    links: [
-      {
-        text: 'How to add a domain',
-        href: 'https://www.eventcatalog.dev/docs/domains',
-      },
-      {
-        text: 'Adding services to domains',
-        href: 'https://www.eventcatalog.dev/docs/development/guides/domains/adding-services-to-domains',
-      },
-      {
-        text: 'Creating a ubiquitous language',
-        href: 'https://www.eventcatalog.dev/docs/development/guides/domains/adding-ubiquitous-language',
-      },
-    ],
-  },
-];
-
-const resourceCategories = [
-  {
-    title: 'Development Tools',
-    description: 'Powerful tools to enhance your workflow',
-    items: [
-      {
-        title: 'Generators & Plugins',
-        icon: Zap,
-        description: 'Automate documentation with generators for AsyncAPI, OpenAPI, and more',
-        href: 'https://www.eventcatalog.dev/integrations',
-        external: true,
-      },
-      {
-        title: 'CLI Tools',
-        icon: Terminal,
-        description: 'Command-line tools to build, preview, and manage your catalog',
-        href: 'https://www.eventcatalog.dev/docs/development/starting-a-new-project/installation',
-        external: true,
-      },
-      {
-        title: 'SDK & API',
-        icon: CodeBracketIcon,
-        description: 'Programmatic access to read and write catalog data',
-        href: 'https://www.eventcatalog.dev/api/sdk',
-        external: true,
-      },
-    ],
-  },
-  {
-    title: 'Architecture Resources',
-    description: 'Best practices and patterns',
-    items: [
-      {
-        title: 'Versioning Strategies',
-        icon: GitBranch,
-        description: 'Learn how to version your messages and services effectively',
-        href: 'https://www.eventcatalog.dev/docs/development/guides/messages/events/versioning',
-        external: true,
-      },
-      {
-        title: 'Schema Management',
-        icon: FileCode,
-        description: 'Best practices for managing schemas and specifications',
-        href: 'https://www.eventcatalog.dev/docs/development/guides/messages/events/adding-schemas',
-        external: true,
-      },
-      {
-        title: 'Domain Design',
-        icon: Layers,
-        description: 'Organize your architecture using domain-driven design principles',
-        href: 'https://www.eventcatalog.dev/docs/development/guides/domains/adding-services-to-domains',
-        external: true,
-      },
-    ],
-  },
-];
+// Check if catalog has content
+const hasContent = domains.length > 0 || services.length > 0 || messages.length > 0 || flows.length > 0;
 
 const getDefaultUrl = (route: string, defaultValue: string) => {
   if (domains.length > 0) return buildUrl(`/${route}/domains/${domains[0].data.id}/${domains[0].data.latestVersion}`);
@@ -171,527 +38,345 @@ const topTiles = [
   {
     title: 'Domains',
     count: domains.length,
-    description: 'Business domains defined',
+    description: 'Business domains',
     href: buildUrl('/discover/domains'),
     icon: RectangleGroupIcon,
     bgColor: 'bg-yellow-500',
+    borderColor: 'border-yellow-200',
     textColor: 'text-yellow-600',
-    arrowColor: 'text-yellow-600',
+    emptyText: 'No domains yet',
+    addHref: 'https://www.eventcatalog.dev/docs/domains',
   },
   {
     title: 'Services',
     count: services.length,
-    description: 'Services documented in the catalog',
+    description: 'Documented services',
     href: buildUrl('/discover/services'),
     icon: ServerIcon,
     bgColor: 'bg-pink-500',
+    borderColor: 'border-pink-200',
     textColor: 'text-pink-600',
-    arrowColor: 'text-pink-600',
+    emptyText: 'No services yet',
+    addHref: 'https://www.eventcatalog.dev/docs/services',
   },
   {
     title: 'Messages',
     count: messages.length,
-    description: 'Messages documented in the catalog',
+    description: 'Events, commands & queries',
     href: buildUrl('/discover/events'),
     icon: ChatBubbleLeftIcon,
     bgColor: 'bg-blue-500',
+    borderColor: 'border-blue-200',
     textColor: 'text-blue-600',
-    arrowColor: 'text-blue-600',
+    emptyText: 'No messages yet',
+    addHref: 'https://www.eventcatalog.dev/docs/messages',
   },
   {
     title: 'Flows',
     count: flows.length,
-    description: 'Business flows documented',
+    description: 'Business flows',
     href: buildUrl('/discover/flows'),
     icon: Workflow,
     bgColor: 'bg-purple-500',
+    borderColor: 'border-purple-200',
     textColor: 'text-purple-600',
-    arrowColor: 'text-purple-600',
+    emptyText: 'No flows yet',
+    addHref: 'https://www.eventcatalog.dev/docs/flows',
   },
 ];
 
 const quickActions = [
   {
     title: 'Documentation',
-    description: 'Read detailed documentation for all your messages, services, and domains',
+    description: 'Browse all documented resources',
     icon: BookOpenText,
     href: getDefaultUrl('docs', 'domains'),
-    gradient: 'from-blue-500 to-indigo-600',
-    iconBg: 'bg-blue-100',
+    iconBg: 'bg-blue-50',
     iconColor: 'text-blue-600',
+    hoverBorder: 'hover:border-blue-300',
   },
   {
     title: 'Visualizer',
-    description: 'Explore interactive diagrams and visualizations of your architecture',
+    description: 'Interactive architecture diagrams',
     icon: Workflow,
     href: getDefaultUrl('visualiser', 'domains'),
-    gradient: 'from-purple-500 to-pink-600',
-    iconBg: 'bg-purple-100',
+    iconBg: 'bg-purple-50',
     iconColor: 'text-purple-600',
+    hoverBorder: 'hover:border-purple-300',
   },
   {
     title: 'Discover',
-    description: 'Search and browse through all your events, commands, and queries',
+    description: 'Search and filter all resources',
     icon: TableProperties,
     href: buildUrl('/discover/events'),
-    gradient: 'from-teal-500 to-cyan-600',
-    iconBg: 'bg-teal-100',
+    iconBg: 'bg-teal-50',
     iconColor: 'text-teal-600',
+    hoverBorder: 'hover:border-teal-300',
   },
   {
-    title: 'AI Chat',
-    description: 'Ask questions about your architecture and get instant answers',
-    icon: BotMessageSquare,
-    href: buildUrl('/chat'),
-    gradient: 'from-green-500 to-emerald-600',
-    iconBg: 'bg-green-100',
-    iconColor: 'text-green-600',
+    title: 'Schema Explorer',
+    description: 'Browse and compare schemas',
+    icon: FileJson,
+    href: buildUrl('/schemas/explorer'),
+    iconBg: 'bg-amber-50',
+    iconColor: 'text-amber-600',
+    hoverBorder: 'hover:border-amber-300',
+  },
+];
+
+const learnLinks = [
+  {
+    title: 'Getting Started',
+    description: 'Set up your first catalog',
+    href: 'https://www.eventcatalog.dev/docs/development/getting-started/introduction',
+    icon: BookOpenText,
+  },
+  {
+    title: 'Generators & Plugins',
+    description: 'AsyncAPI, OpenAPI integrations',
+    href: 'https://www.eventcatalog.dev/integrations',
+    icon: Zap,
+  },
+  {
+    title: 'SDK & CLI',
+    description: 'Programmatic catalog access',
+    href: 'https://www.eventcatalog.dev/docs/sdk',
+    icon: Terminal,
   },
 ];
 ---
 
 <VerticalSideBarLayout title="EventCatalog">
-  <body class="min-h-screen bg-white font-inter">
-    <!-- Hero Section - Clean White Theme -->
+  <body class="min-h-screen bg-gray-50/50 font-inter">
+    <!-- Hero Section -->
     <div class="relative bg-white border-b border-gray-200">
-      <main class="container px-8 lg:px-8 mx-auto py-12 max-w-[85em]">
-        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 mb-6">
-          <div class="flex-1 max-w-2xl">
-            <h1 class="text-4xl md:text-5xl font-bold mb-4 text-gray-900 tracking-tight">
-              {config?.organizationName || 'EventCatalog'}
-            </h1>
-            <p class="text-base md:text-lg text-gray-600 leading-relaxed mb-6">
-              {
-                config.tagline ||
-                  'Comprehensive event-driven architecture documentation covering events, services, and domains. Explore, visualize, and understand your distributed systems.'
-              }
-            </p>
+      <main class="container px-6 lg:px-8 mx-auto py-10 max-w-[85em]">
+        <div class="max-w-3xl">
+          <h1 class="text-3xl md:text-4xl font-bold mb-3 text-gray-900 tracking-tight">
+            {config?.organizationName || 'EventCatalog'}
+          </h1>
+          <p class="text-base text-gray-600 leading-relaxed mb-6">
+            {
+              config.tagline ||
+                'Explore and understand your event-driven architecture. Browse documentation, visualize dependencies, and discover how your systems communicate.'
+            }
+          </p>
 
-            <!-- Quick Actions Buttons -->
-            <div class="flex flex-wrap gap-2.5">
-              <a
-                href={getDefaultUrl('docs', 'domains')}
-                class="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 hover:scale-105 transition-all shadow-md shadow-gray-900/20"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
-                Explore Catalog
-              </a>
-              <a
-                href={getDefaultUrl('visualiser', 'domains')}
-                class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 border border-gray-300 rounded-lg font-medium hover:border-gray-400 hover:scale-105 transition-all"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  ></path>
-                </svg>
-                View Architecture
-              </a>
-            </div>
-          </div>
-
-          <!-- Quick Search -->
-          <div class="lg:w-96">
-            <button
-              data-search-trigger
-              class="group flex items-center gap-3 w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
-              aria-label="Search events, services, and domains"
+          <!-- Primary CTAs -->
+          <div class="flex flex-wrap items-center gap-3">
+            <a
+              href={getDefaultUrl('docs', 'domains')}
+              class="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
             >
-              <svg
-                class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-              <span class="text-sm text-gray-500 group-hover:text-gray-700 transition-colors flex-1 text-left"
-                >Search events, services, domains...</span
-              >
-              <div class="flex items-center gap-1">
-                <kbd class="px-2 py-1 text-xs font-semibold text-gray-600 bg-gray-50 border border-gray-300 rounded">⌘</kbd>
-                <kbd class="px-2 py-1 text-xs font-semibold text-gray-600 bg-gray-50 border border-gray-300 rounded">K</kbd>
-              </div>
-            </button>
+              <BookOpenText className="w-4 h-4" />
+              Explore Docs
+            </a>
+            <a
+              href={getDefaultUrl('visualiser', 'domains')}
+              class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-colors"
+            >
+              <Workflow className="w-4 h-4" />
+              View Architecture
+            </a>
           </div>
         </div>
       </main>
     </div>
 
     <!-- Main Content -->
-    <main class="container px-8 lg:px-8 mx-auto py-10 max-w-[85em]">
+    <main class="container px-6 lg:px-8 mx-auto py-8 max-w-[85em]">
       <!-- Architecture Stats -->
-      <div class="mb-16">
-        <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-6">Architecture Overview</h2>
+      <section class="mb-10">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500">Your Catalog</h2>
+          {
+            hasContent && (
+              <a href={buildUrl('/discover/events')} class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
+                View all
+                <ArrowRightIcon className="w-3 h-3" />
+              </a>
+            )
+          }
+        </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           {
-            topTiles.map((tile, index) => (
-              <a
-                href={tile.href}
-                class="group relative bg-white p-6 rounded-xl border-2 border-gray-200 hover:border-gray-400 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
-                style={`animation-delay: ${index * 50}ms`}
-              >
-                {/* Subtle gradient on hover */}
-                <div class="absolute inset-0 bg-gradient-to-br from-gray-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                {/* Colored left border accent */}
-                <div class={`absolute left-0 top-0 bottom-0 w-1 ${tile.bgColor} transition-opacity duration-300`} />
-
-                <div class="relative">
-                  <div class="flex items-center justify-between mb-4">
-                    <div class="p-2.5 bg-gray-100 rounded-lg group-hover:bg-gray-200 transition-colors shadow-sm">
-                      <tile.icon className={`w-5 h-5 text-gray-600 group-hover:${tile.textColor} transition-colors`} />
+            topTiles.map((tile) =>
+              tile.count > 0 ? (
+                <a
+                  href={tile.href}
+                  class={`group relative bg-white p-5 rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all`}
+                >
+                  <div class={`absolute left-0 top-0 bottom-0 w-1 ${tile.bgColor} rounded-l-xl`} />
+                  <div class="flex items-start justify-between mb-3">
+                    <div class={`p-2 rounded-lg ${tile.iconBg || 'bg-gray-100'}`}>
+                      <tile.icon className={`w-4 h-4 ${tile.textColor}`} />
+                    </div>
+                    <ArrowRightIcon className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                  </div>
+                  <div class="text-2xl font-bold text-gray-900 mb-0.5">{tile.count}</div>
+                  <div class="text-sm text-gray-500">{tile.description}</div>
+                </a>
+              ) : (
+                <div class="relative bg-gray-50 p-5 rounded-xl border border-dashed border-gray-300">
+                  <div class={`absolute left-0 top-0 bottom-0 w-1 bg-gray-300 rounded-l-xl`} />
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="p-2 rounded-lg bg-gray-100">
+                      <tile.icon className="w-4 h-4 text-gray-400" />
                     </div>
                   </div>
-
-                  <div class="mb-1">
-                    <div class="text-3xl font-bold text-gray-900 mb-1">{tile.count}</div>
-                  </div>
-
-                  <div class="text-sm font-medium text-gray-600 mb-2">{tile.title}</div>
-
-                  <div class="flex items-center gap-1.5 text-xs font-medium text-gray-500 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                    <span class="group-hover:translate-x-0.5 transition-transform">View all</span>
-                    <svg
-                      class="w-3 h-3 group-hover:translate-x-0.5 transition-transform"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </div>
-              </a>
-            ))
-          }
-        </div>
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="mb-16">
-        <div class="flex items-center justify-between mb-6">
-          <div>
-            <h2 class="text-2xl font-bold text-gray-900">Quick Actions</h2>
-            <p class="text-sm text-gray-500 mt-1">Jump right into exploring your architecture</p>
-          </div>
-          <RocketLaunchIcon className="w-6 h-6 text-gray-400" />
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {
-            quickActions.map((action, index) => (
-              <a
-                href={action.href}
-                class="group relative bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden"
-                style={`animation-delay: ${index * 50}ms`}
-              >
-                {/* Animated gradient background */}
-                <div
-                  class={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}
-                />
-
-                {/* Shimmer effect on hover */}
-                <div class="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
-                <div class="relative p-6">
-                  <div
-                    class={`${action.iconBg} w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}
+                  <div class="text-sm font-medium text-gray-500 mb-2">{tile.emptyText}</div>
+                  <a
+                    href={tile.addHref}
+                    target="_blank"
+                    class="inline-flex items-center gap-1 text-xs font-medium text-gray-600 hover:text-gray-900"
                   >
-                    <action.icon className={`w-6 h-6 ${action.iconColor}`} />
-                  </div>
-                  <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 transition-all">
-                    {action.title}
-                  </h3>
-                  <p class="text-sm text-gray-600 leading-relaxed mb-4">{action.description}</p>
-                  <div
-                    class={`text-sm font-medium ${action.iconColor} flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all`}
-                  >
-                    <span class="group-hover:translate-x-1 transition-transform">Open</span>
-                    <svg
-                      class="w-4 h-4 group-hover:translate-x-1 transition-transform"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </div>
+                    <PlusIcon className="w-3 h-3" />
+                    Add {tile.title.toLowerCase()}
+                  </a>
                 </div>
-              </a>
-            ))
-          }
-        </div>
-      </div>
-
-      <!-- Additional Features -->
-      <div class="mb-16">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">More Features</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <a
-            href={buildUrl('/directory/users')}
-            class="group relative bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-xl hover:border-orange-200 transition-all duration-300 overflow-hidden"
-          >
-            <div
-              class="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-500"
-            >
-            </div>
-            <div class="relative flex items-start gap-4">
-              <div class="bg-orange-100 p-3 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-all">
-                <BookUser className="w-6 h-6 text-orange-600" />
-              </div>
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
-                  <h3 class="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
-                    Users & Teams Directory
-                  </h3>
-                  <span class="px-2 py-0.5 text-xs font-medium text-orange-600 bg-orange-50 rounded-full">Owners</span>
-                </div>
-                <p class="text-sm text-gray-600 mb-3">
-                  Discover who owns what. Find service and message ownership, contact information, and team structures.
-                </p>
-                <span class="text-sm font-medium text-orange-600 inline-flex items-center gap-1 group-hover:gap-2 transition-all">
-                  Browse directory
-                  <svg
-                    class="w-4 h-4 group-hover:translate-x-1 transition-transform"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                  </svg>
-                </span>
-              </div>
-            </div>
-          </a>
-
-          <a
-            href="https://www.eventcatalog.dev/docs/sdk"
-            target="_blank"
-            class="group relative bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-xl hover:border-indigo-200 transition-all duration-300 overflow-hidden"
-          >
-            <div
-              class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-500"
-            >
-            </div>
-            <div class="relative flex items-start gap-4">
-              <div class="bg-indigo-100 p-3 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-all">
-                <CodeBracketIcon className="w-6 h-6 text-indigo-600" />
-              </div>
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-2">
-                  <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">API & SDK</h3>
-                  <span class="px-2 py-0.5 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-full">Developer</span>
-                </div>
-                <p class="text-sm text-gray-600 mb-3">
-                  Programmatic access to read and write catalog data. Perfect for automation and integrations.
-                </p>
-                <span class="text-sm font-medium text-indigo-600 inline-flex items-center gap-1 group-hover:gap-2 transition-all">
-                  View API docs
-                  <svg
-                    class="w-4 h-4 group-hover:translate-x-1 transition-transform"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                  </svg>
-                </span>
-              </div>
-            </div>
-          </a>
-        </div>
-      </div>
-
-      <!-- Resources Section -->
-      <div class="mb-16">
-        <div class="flex items-center gap-3 mb-8">
-          <h2 class="text-2xl font-bold text-gray-900">Resources & Tools</h2>
-          <div class="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
-        </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {
-            resourceCategories.map((category) => (
-              <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-                <h3 class="text-xl font-bold text-gray-900 mb-2">{category.title}</h3>
-                <p class="text-sm text-gray-600 mb-6">{category.description}</p>
-                <div class="space-y-4">
-                  {category.items.map((item) => (
-                    <a
-                      href={item.href}
-                      target={item.external ? '_blank' : undefined}
-                      class="group flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors"
-                    >
-                      <div class="bg-gray-100 p-2.5 rounded-lg group-hover:bg-blue-100 transition-colors">
-                        <item.icon className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
-                      </div>
-                      <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-1">
-                          <h4 class="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{item.title}</h4>
-                          {item.external && (
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                        <p class="text-sm text-gray-600">{item.description}</p>
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            ))
-          }
-        </div>
-      </div>
-
-      <!-- Getting Started Section -->
-      <section class="mb-16">
-        <div class="mb-8">
-          <h2 class="text-2xl font-bold text-gray-900 mb-2">Getting Started</h2>
-          <p class="text-gray-600">
-            New to EventCatalog? Follow these guides to start documenting your event-driven architecture.
-          </p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {
-            gettingStartedItems.map((item) => (
-              <div class="bg-white rounded-xl shadow-sm border-2 border-gray-200 p-6 hover:border-gray-400 hover:shadow-md transition-all">
-                <div class="flex items-center gap-3 mb-4">
-                  <div class="p-2 bg-gray-100 rounded-lg shadow-sm">
-                    <item.icon className="w-5 h-5 text-gray-600" />
-                  </div>
-                  <h3 class="text-base font-semibold text-gray-900">{item.title}</h3>
-                </div>
-                <p class="text-gray-600 text-sm mb-5 leading-relaxed">{item.description}</p>
-                <div class="space-y-2">
-                  {item.links.map((link) => (
-                    <a
-                      href={link.href}
-                      target="_blank"
-                      class="group flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
-                    >
-                      <svg
-                        class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                      </svg>
-                      {link.text}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            ))
+              )
+            )
           }
         </div>
       </section>
 
-      <!-- Community Section -->
-      <section class="mb-8">
-        <div class="bg-white rounded-xl border-2 border-gray-200 shadow-sm p-8 md:p-10">
-          <div class="max-w-3xl">
-            <h2 class="text-2xl font-bold text-gray-900 mb-2">Join the Community</h2>
-            <p class="text-gray-600 mb-8">
-              Get help, share ideas, and connect with other EventCatalog users. We're here to help you succeed with event-driven
-              architecture.
-            </p>
+      <!-- Two Column Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+        <!-- Main Column -->
+        <div class="lg:col-span-2 space-y-8">
+          <!-- Quick Actions -->
+          <section>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Explore</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {
+                quickActions.map((action) => (
+                  <a
+                    href={action.href}
+                    class={`group flex items-start gap-4 bg-white p-5 rounded-xl border border-gray-200 ${action.hoverBorder} hover:shadow-sm transition-all`}
+                  >
+                    <div class={`${action.iconBg} p-3 rounded-xl`}>
+                      <action.icon className={`w-6 h-6 ${action.iconColor}`} />
+                    </div>
+                    <div class="flex-1 min-w-0 pt-0.5">
+                      <div class="font-semibold text-gray-900 group-hover:text-gray-700 mb-1">{action.title}</div>
+                      <div class="text-sm text-gray-500 leading-relaxed">{action.description}</div>
+                    </div>
+                  </a>
+                ))
+              }
+            </div>
+          </section>
 
-            <div class="flex flex-wrap gap-3">
+          <!-- Additional Links -->
+          <section class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <a
+              href={buildUrl('/directory/users')}
+              class="group flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-200 hover:border-orange-200 hover:shadow-sm transition-all"
+            >
+              <div class="bg-orange-50 p-2.5 rounded-lg">
+                <BookUser className="w-5 h-5 text-orange-600" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-medium text-gray-900 group-hover:text-orange-600 transition-colors">Team Directory</div>
+                <div class="text-sm text-gray-500 truncate">Ownership & contacts</div>
+              </div>
+            </a>
+            <a
+              href="https://www.eventcatalog.dev/docs/sdk"
+              target="_blank"
+              class="group flex items-center gap-4 bg-white p-4 rounded-xl border border-gray-200 hover:border-indigo-200 hover:shadow-sm transition-all"
+            >
+              <div class="bg-indigo-50 p-2.5 rounded-lg">
+                <Code2 className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-medium text-gray-900 group-hover:text-indigo-600 transition-colors">API & SDK</div>
+                <div class="text-sm text-gray-500 truncate">Programmatic access</div>
+              </div>
+            </a>
+          </section>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+          <!-- Learn More -->
+          <section class="bg-white rounded-xl border border-gray-200 p-5">
+            <h3 class="font-semibold text-gray-900 mb-4">Learn More</h3>
+            <div class="space-y-3">
+              {
+                learnLinks.map((link) => (
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    class="group flex items-start gap-3 text-sm hover:bg-gray-50 -mx-2 px-2 py-2 rounded-lg transition-colors"
+                  >
+                    <link.icon className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <div class="font-medium text-gray-700 group-hover:text-gray-900">{link.title}</div>
+                      <div class="text-gray-500">{link.description}</div>
+                    </div>
+                  </a>
+                ))
+              }
+            </div>
+          </section>
+
+          <!-- Community -->
+          <section class="bg-white rounded-xl border border-gray-200 p-5">
+            <h3 class="font-semibold text-gray-900 mb-4">Community</h3>
+            <div class="space-y-3">
               <a
                 href="https://discord.gg/3rjaZMmrAm"
                 target="_blank"
-                class="group inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-all shadow-sm"
+                class="group flex items-center gap-3 p-3 -mx-1 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"
-                  ></path>
-                </svg>
-                <span>Join Discord</span>
+                <div class="bg-indigo-100 p-2 rounded-lg">
+                  <svg class="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                      d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"
+                    ></path>
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-sm font-medium text-gray-900 group-hover:text-indigo-600">Join Discord</div>
+                  <div class="text-xs text-gray-500">Chat with the community</div>
+                </div>
               </a>
               <a
                 href="https://github.com/event-catalog/eventcatalog"
                 target="_blank"
-                class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 border border-gray-300 rounded-lg font-medium hover:border-gray-400 hover:bg-gray-50 transition-all"
+                class="group flex items-center gap-3 p-3 -mx-1 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    fill-rule="evenodd"
-                    d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-                    clip-rule="evenodd"></path>
-                </svg>
-                <span>Star on GitHub</span>
+                <div class="bg-gray-100 p-2 rounded-lg">
+                  <svg class="w-4 h-4 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                      fill-rule="evenodd"
+                      d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                      clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-sm font-medium text-gray-900 group-hover:text-gray-700">GitHub</div>
+                  <div class="text-xs text-gray-500">Star & contribute</div>
+                </div>
               </a>
               <a
                 href="https://www.eventcatalog.dev/docs"
                 target="_blank"
-                class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 border border-gray-300 rounded-lg font-medium hover:border-gray-400 hover:bg-gray-50 transition-all"
+                class="group flex items-center gap-3 p-3 -mx-1 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <DocumentTextIcon className="w-4 h-4" />
-                <span>Documentation</span>
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                </svg>
+                <div class="bg-blue-100 p-2 rounded-lg">
+                  <DocumentTextIcon className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <div class="text-sm font-medium text-gray-900 group-hover:text-blue-600">Documentation</div>
+                  <div class="text-xs text-gray-500">Guides & references</div>
+                </div>
               </a>
             </div>
-          </div>
+          </section>
         </div>
-      </section>
+      </div>
     </main>
   </body>
-
-  <script>
-    // Trigger header search when clicking the homepage search button
-    document.addEventListener('DOMContentLoaded', () => {
-      const searchTrigger = document.querySelector('[data-search-trigger]');
-      if (searchTrigger) {
-        searchTrigger.addEventListener('click', () => {
-          // Look for the header search button and click it
-          const headerSearchButton =
-            document.querySelector('[data-search-open]') ||
-            document.querySelector('button[aria-label*="search" i]') ||
-            document.querySelector('button[title*="search" i]');
-          if (headerSearchButton && headerSearchButton instanceof HTMLElement) {
-            headerSearchButton.click();
-          } else {
-            // Fallback: trigger keyboard shortcut
-            const event = new KeyboardEvent('keydown', {
-              key: 'k',
-              metaKey: true,
-              bubbles: true,
-            });
-            document.dispatchEvent(event);
-          }
-        });
-      }
-    });
-  </script>
 </VerticalSideBarLayout>
