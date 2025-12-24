@@ -17,6 +17,27 @@ interface MessageCollectionItem extends CollectionItem {
   collection: "commands" | "events" | "queries";
 }
 
+/**
+ * Helper function to match versions in message routing configuration.
+ * Handles 'latest', undefined, and specific versions.
+ *
+ * @param configVersion - The version specified in the routing configuration
+ * @param messageVersion - The version of the message being routed
+ * @returns true if the versions match according to EventCatalog's version matching rules
+ */
+export const versionMatches = (configVersion: string | undefined, messageVersion: string | undefined): boolean => {
+  // If config has no version or 'latest', it matches any message version
+  if (!configVersion || configVersion === 'latest') return true;
+
+  // If message has no version or 'latest', only match with config's 'latest' or undefined
+  if (!messageVersion || messageVersion === 'latest') {
+    return !configVersion || configVersion === 'latest';
+  }
+
+  // Both have specific versions - must match exactly
+  return configVersion === messageVersion;
+};
+
 export const generateIdForNode = (node: CollectionItem) => {
   return `${node.data.id}-${node.data.version}`;
 };

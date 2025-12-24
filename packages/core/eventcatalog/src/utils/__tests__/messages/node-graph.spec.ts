@@ -1408,6 +1408,123 @@ describe('Message NodeGraph', () => {
       });
     });
 
+    describe('when a service sends multiple versions of the same message to different version-specific channels', () => {
+      it('renders the correct version-specific channel for each message version', async () => {
+        const { writeService, writeEvent, getServices, writeChannel, getEvent, getChannels, getService } = utils(CATALOG_FOLDER);
+
+        // Create two versions of the same event
+        await writeEvent({
+          id: 'InventoryAdjusted',
+          name: 'Inventory Adjusted',
+          version: '0.0.1',
+          markdown: '## Inventory Adjusted v0.0.1',
+        });
+
+        await writeEvent({
+          id: 'InventoryAdjusted',
+          name: 'Inventory Adjusted',
+          version: '1.0.1',
+          markdown: '## Inventory Adjusted v1.0.1',
+        });
+
+        // Create two versions of the same channel (same ID, different versions)
+        await writeChannel({
+          id: 'inventory-adjusted-channel',
+          name: 'Inventory Adjusted Channel',
+          version: '0.0.1',
+          markdown: '## Channel v0.0.1',
+        });
+
+        await writeChannel({
+          id: 'inventory-adjusted-channel',
+          name: 'Inventory Adjusted Channel',
+          version: '1.0.1',
+          markdown: '## Channel v1.0.1',
+        });
+
+        // The producer sends v0.0.1 to channel v0.0.1, and v1.0.1 to channel v1.0.1
+        await writeService({
+          id: 'InventoryService',
+          name: 'Inventory Service',
+          version: '1.0.0',
+          markdown: '## Inventory Service',
+          sends: [
+            {
+              id: 'InventoryAdjusted',
+              version: '0.0.1',
+              to: [{ id: 'inventory-adjusted-channel', version: '0.0.1' }],
+            },
+            {
+              id: 'InventoryAdjusted',
+              version: '1.0.1',
+              to: [{ id: 'inventory-adjusted-channel', version: '1.0.1' }],
+            },
+          ],
+        });
+
+        const messageV101 = toAstroCollection(
+          await getEvent('InventoryAdjusted', '1.0.1'),
+          'events'
+        ) as unknown as CollectionEntry<CollectionMessageTypes>;
+
+        const services = await getServices().then(
+          (services) =>
+            services.map((service) => toAstroCollection(service, 'services')) as unknown as CollectionEntry<'services'>[]
+        );
+        const channels = await getChannels().then(
+          (channels) =>
+            channels.map((channel) => toAstroCollection(channel, 'channels')) as unknown as CollectionEntry<'channels'>[]
+        );
+
+        const source = toAstroCollection(
+          await getService('InventoryService'),
+          'services'
+        ) as unknown as CollectionEntry<'services'>;
+
+        const { nodes, edges } = await getNodesAndEdgesForProducedMessage({
+          message: messageV101,
+          services: services,
+          channels: channels,
+          currentNodes: [],
+          sourceChannels: [{ id: 'inventory-adjusted-channel', version: '1.0.1' }],
+          source,
+          currentEdges: [],
+        });
+
+        // The v1.0.1 message should route to v1.0.1 channel, NOT v0.0.1 channel
+        const expectedChannelNode = expect.objectContaining({
+          id: 'inventory-adjusted-channel-1.0.1',
+          sourcePosition: 'right',
+          targetPosition: 'left',
+          type: 'channels',
+        });
+
+        const expectedEdges = expect.arrayContaining([
+          // Producer to the message
+          expect.objectContaining({
+            id: 'InventoryService-1.0.0-InventoryAdjusted-1.0.1',
+            source: 'InventoryService-1.0.0',
+            target: 'InventoryAdjusted-1.0.1',
+          }),
+          // Message to the correct version-specific channel (v1.0.1, NOT v0.0.1)
+          expect.objectContaining({
+            id: 'InventoryAdjusted-1.0.1-inventory-adjusted-channel-1.0.1',
+            source: 'InventoryAdjusted-1.0.1',
+            target: 'inventory-adjusted-channel-1.0.1',
+          }),
+        ]);
+
+        expect(nodes).toEqual(expect.arrayContaining([expectedChannelNode]));
+        expect(edges).toEqual(expectedEdges);
+
+        // Verify the wrong channel version is NOT connected
+        const wrongChannelEdge = edges.find(
+          (edge: any) => edge.source === 'InventoryAdjusted-1.0.1' && edge.target === 'inventory-adjusted-channel-0.0.1'
+        );
+        expect(wrongChannelEdge).toBeUndefined();
+      });
+    });
+
     describe('when the message is produced by the producer and the producer defines a channel and the consumer also defines a channel but its a chain of channels', () => {
       it('renders the producer publishing the message to the channel and the consumer consuming the message from the channel chain', async () => {
         const { writeService, writeEvent, getServices, writeChannel, getEvent, getChannels, getService } = utils(CATALOG_FOLDER);
