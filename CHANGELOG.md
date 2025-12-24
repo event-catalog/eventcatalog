@@ -1,5 +1,16 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.26
+
+### Patch Changes
+
+- 80399f5: chore(core): updated ubi lang styles
+- 5525414: chore(core): removed md to mdx checks
+- 17c1abc: chore(core): updated tables styles
+- 4a17954: chore(core): updated sidebar styles
+- 5a7f45b: chore(core): updated the schema explorer UI
+- cd713b8: feat(core): updated default homepage
+
 ## 3.0.0-beta.25
 
 ### Patch Changes
