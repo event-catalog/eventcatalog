@@ -115,8 +115,8 @@ export default function SchemaContentViewer({
           padding: '0.75rem',
           paddingTop: '2.5rem',
           borderRadius: '0.5rem',
-          fontSize: '0.875rem',
-          lineHeight: '1.6',
+          fontSize: '0.75rem',
+          lineHeight: '1.5',
           height: '100%',
           overflow: 'auto',
         }}
