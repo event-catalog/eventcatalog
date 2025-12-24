@@ -11,6 +11,7 @@ import {
   getColorFromString,
   getEdgeLabelForMessageAsSource,
   getEdgeLabelForServiceAsTarget,
+  versionMatches,
 } from './utils/utils';
 import { MarkerType, type Node, type Edge } from '@xyflow/react';
 import {
@@ -102,7 +103,9 @@ const getNodesAndEdges = async ({
     });
 
     // Is the producer sending this message to a channel?
-    const producerConfigurationForMessage = producer.data.sends?.find((send) => send.id === message.data.id);
+    const producerConfigurationForMessage = producer.data.sends?.find(
+      (send) => send.id === message.data.id && versionMatches(send.version, message.data.version)
+    );
     const producerChannelConfiguration = producerConfigurationForMessage?.to ?? [];
 
     const producerHasChannels = producerChannelConfiguration?.length > 0;
@@ -195,7 +198,9 @@ const getNodesAndEdges = async ({
     });
 
     // Is the consumer receiving this message from a channel?
-    const consumerConfigurationForMessage = consumer.data.receives?.find((receive) => receive.id === message.data.id);
+    const consumerConfigurationForMessage = consumer.data.receives?.find(
+      (receive) => receive.id === message.data.id && versionMatches(receive.version, message.data.version)
+    );
     const consumerChannelConfiguration = consumerConfigurationForMessage?.from ?? [];
 
     const consumerHasChannels = consumerChannelConfiguration.length > 0;
@@ -238,9 +243,17 @@ const getNodesAndEdges = async ({
 
       // Can any of the consumer channels be linked to any of the producer channels?
       const producerChannels = producers
-        .map((producer) => producer.data.sends?.find((send) => send.id === message.data.id)?.to ?? [])
+        .map((producer) => {
+          const config = producer.data.sends?.find(
+            (send) => send.id === message.data.id && versionMatches(send.version, message.data.version)
+          );
+          return config?.to ?? [];
+        })
         .flat();
-      const consumerChannels = consumer.data.receives?.find((receive) => receive.id === message.data.id)?.from ?? [];
+      const consumerChannels =
+        consumer.data.receives?.find(
+          (receive) => receive.id === message.data.id && versionMatches(receive.version, message.data.version)
+        )?.from ?? [];
 
       for (const producerChannel of producerChannels) {
         const producerChannelValue = findInMap(
@@ -457,7 +470,9 @@ export const getNodesAndEdgesForConsumedMessage = ({
     })
   );
 
-  const targetMessageConfiguration = target.data.receives?.find((receive) => receive.id === message.data.id);
+  const targetMessageConfiguration = target.data.receives?.find(
+    (receive) => receive.id === message.data.id && versionMatches(receive.version, message.data.version)
+  );
   const channelsFromMessageToTarget = targetMessageConfiguration?.from ?? [];
   const hydratedChannelsFromMessageToTarget = channelsFromMessageToTarget
     .map((channel) => findInMap(map, channel.id, channel.version))
@@ -565,7 +580,9 @@ export const getNodesAndEdgesForConsumedMessage = ({
     );
 
     // Check if the producer is sending the message to a channel
-    const producerConfigurationForMessage = producer.data.sends?.find((send) => send.id === message.data.id);
+    const producerConfigurationForMessage = producer.data.sends?.find(
+      (send) => send.id === message.data.id && versionMatches(send.version, message.data.version)
+    );
     const producerChannelConfiguration = producerConfigurationForMessage?.to ?? [];
 
     const producerHasChannels = producerChannelConfiguration.length > 0;
@@ -775,7 +792,9 @@ export const getNodesAndEdgesForProducedMessage = ({
     })
   );
 
-  const sourceMessageConfiguration = source.data.sends?.find((send) => send.id === message.data.id);
+  const sourceMessageConfiguration = source.data.sends?.find(
+    (send) => send.id === message.data.id && versionMatches(send.version, message.data.version)
+  );
   const channelsFromSourceToMessage = sourceMessageConfiguration?.to ?? [];
 
   const hydratedChannelsFromSourceToMessage = channelsFromSourceToMessage
@@ -849,7 +868,9 @@ export const getNodesAndEdgesForProducedMessage = ({
     );
 
     // Check if the consumer is consuming the message from a channel
-    const consumerConfigurationForMessage = consumer.data.receives?.find((receive) => receive.id === message.data.id);
+    const consumerConfigurationForMessage = consumer.data.receives?.find(
+      (receive) => receive.id === message.data.id && versionMatches(receive.version, message.data.version)
+    );
     const consumerChannelConfiguration = consumerConfigurationForMessage?.from ?? [];
 
     const consumerHasChannels = consumerChannelConfiguration.length > 0;
