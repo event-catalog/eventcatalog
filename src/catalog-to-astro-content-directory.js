@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import os from 'node:os';
-import { verifyRequiredFieldsAreInCatalogConfigFile, addPropertyToFrontMatter } from './eventcatalog-config-file-utils.js';
+import { verifyRequiredFieldsAreInCatalogConfigFile } from './eventcatalog-config-file-utils.js';
 import { mapCatalogToAstro } from './map-catalog-to-astro.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -61,24 +61,4 @@ export const catalogToAstro = async (source, astroDir) => {
   }
 
   await copyFiles(source, astroDir);
-};
-
-export const checkAndConvertMdToMdx = async (source, astroDir) => {
-  const files = await glob(path.join(source, '**'), {
-    nodir: true,
-    windowsPathsNoEscape: os.platform() == 'win32',
-    ignore: ['node_modules/**', '**/dist/**', '**/README.md'],
-  });
-
-  // If we have any md files, log to the user
-  if (files.some((file) => file.endsWith('.md'))) {
-    console.log(`EventCatalog now requires all markdown files to be .mdx files. Converting all .md files to .mdx...`);
-  }
-
-  for (const file of files) {
-    if (file.endsWith('.md')) {
-      // Rename the file to .mdx
-      fs.renameSync(file, file.replace('.md', '.mdx'));
-    }
-  }
 };
