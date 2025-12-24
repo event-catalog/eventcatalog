@@ -1,8 +1,16 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { DocumentTextIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { DocumentTextIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import {
+  BoltIcon,
+  ChatBubbleLeftIcon,
+  MagnifyingGlassIcon as MagnifyingGlassSolidIcon,
+  CodeBracketIcon,
+} from '@heroicons/react/24/solid';
 import type { CollectionMessageTypes } from '@types';
+
+// Specification file types (OpenAPI, AsyncAPI, GraphQL)
+const SPEC_TYPES = ['openapi', 'asyncapi', 'graphql'];
 import semver from 'semver';
-import SchemaFilters from './SchemaFilters';
 import SchemaListItem from './SchemaListItem';
 import SchemaDetailsPanel from './SchemaDetailsPanel';
 import Pagination from './Pagination';
@@ -22,13 +30,20 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     }
     return '';
   });
-  const [selectedType, setSelectedType] = useState<'all' | CollectionMessageTypes | 'services'>(() => {
+  const [selectedTypes, setSelectedTypes] = useState<Set<CollectionMessageTypes | 'specifications'>>(() => {
     // Load from localStorage
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('schemaRegistrySelectedType');
-      return stored !== null ? (stored as 'all' | CollectionMessageTypes | 'services') : 'all';
+      const stored = localStorage.getItem('schemaRegistrySelectedTypes');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          return new Set(parsed);
+        } catch {
+          return new Set();
+        }
+      }
     }
-    return 'all';
+    return new Set();
   });
   const [selectedSchemaType, setSelectedSchemaType] = useState<'all' | string>(() => {
     // Load from localStorage
@@ -41,22 +56,9 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
   const [selectedMessage, setSelectedMessage] = useState<SchemaItem | null>(null);
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [filtersExpanded, setFiltersExpanded] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('schemaRegistryFiltersExpanded');
-      return stored !== null ? stored === 'true' : true;
-    }
-    return true;
-  });
-  const [isMounted, setIsMounted] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const selectedItemRef = useRef<HTMLButtonElement>(null);
   const ITEMS_PER_PAGE = 50;
-
-  // Set mounted state after hydration to prevent FOUC
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   // Function to update URL with query params
   const updateUrlParams = (message: SchemaItem) => {
@@ -138,9 +140,19 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
   const filteredMessages = useMemo(() => {
     let result = [...latestMessages];
 
-    // Filter by message type
-    if (selectedType !== 'all') {
-      result = result.filter((msg) => msg.collection === selectedType);
+    // Filter by message types (multi-select)
+    if (selectedTypes.size > 0) {
+      result = result.filter((msg) => {
+        // Check if message matches any selected collection type
+        if (selectedTypes.has(msg.collection as CollectionMessageTypes)) {
+          return true;
+        }
+        // Check if 'specifications' is selected and this is a spec file
+        if (selectedTypes.has('specifications') && SPEC_TYPES.includes(msg.schemaExtension?.toLowerCase() || '')) {
+          return true;
+        }
+        return false;
+      });
     }
 
     // Filter by schema type
@@ -167,7 +179,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     });
 
     return result;
-  }, [latestMessages, searchQuery, selectedType, selectedSchemaType]);
+  }, [latestMessages, searchQuery, selectedTypes, selectedSchemaType]);
 
   // Pagination
   const totalPages = Math.ceil(filteredMessages.length / ITEMS_PER_PAGE);
@@ -178,7 +190,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedType, selectedSchemaType]);
+  }, [searchQuery, selectedTypes, selectedSchemaType]);
 
   // Load from query string on mount
   useEffect(() => {
@@ -255,13 +267,6 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     return versionedMessage || versions[0];
   }, [selectedMessage, selectedVersion, messagesByIdAndVersions]);
 
-  // Save filter expanded state to localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('schemaRegistryFiltersExpanded', filtersExpanded.toString());
-    }
-  }, [filtersExpanded]);
-
   // Save filter states to localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -271,9 +276,9 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('schemaRegistrySelectedType', selectedType);
+      localStorage.setItem('schemaRegistrySelectedTypes', JSON.stringify(Array.from(selectedTypes)));
     }
-  }, [selectedType]);
+  }, [selectedTypes]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -312,32 +317,194 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     }
   };
 
+  // Calculate stats
+  const stats = useMemo(() => {
+    return {
+      total: latestMessages.length,
+      events: latestMessages.filter((m) => m.collection === 'events').length,
+      commands: latestMessages.filter((m) => m.collection === 'commands').length,
+      queries: latestMessages.filter((m) => m.collection === 'queries').length,
+      specifications: latestMessages.filter((m) => SPEC_TYPES.includes(m.schemaExtension?.toLowerCase() || '')).length,
+    };
+  }, [latestMessages]);
+
+  // Toggle type selection (multi-select)
+  const toggleType = (type: CollectionMessageTypes | 'specifications') => {
+    setSelectedTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
+  };
+
+  // Clear all type filters
+  const clearTypeFilters = () => {
+    setSelectedTypes(new Set());
+  };
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      {/* Split View */}
+      {/* Split View - Full Height */}
       <div className="flex-1 flex gap-4 overflow-hidden">
-        {/* Left: Filters + Schema List */}
-        <div className="w-1/3 flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden">
-          {/* Filters */}
-          <SchemaFilters
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedType={selectedType}
-            onTypeChange={setSelectedType}
-            selectedSchemaType={selectedSchemaType}
-            onSchemaTypeChange={setSelectedSchemaType}
-            schemaTypes={schemaTypes}
-            latestMessages={latestMessages}
-            filtersExpanded={filtersExpanded}
-            onToggleExpanded={() => setFiltersExpanded(!filtersExpanded)}
-            searchInputRef={searchInputRef}
-            isMounted={isMounted}
-          />
+        {/* Left: Schema List */}
+        <div className="w-[320px] flex-shrink-0 flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+          {/* Search Header */}
+          <div className="flex-shrink-0 p-3 border-b border-gray-200">
+            {/* Search + Format Filter Row */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                  <MagnifyingGlassIcon className="h-4 w-4 text-gray-400" />
+                </div>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search schemas..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-md border border-gray-200 bg-white py-2 pl-9 pr-8 text-sm placeholder:text-gray-400 focus:border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-300 transition-all"
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="absolute inset-y-0 right-0 flex items-center pr-2.5">
+                    <XMarkIcon className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  </button>
+                )}
+              </div>
+              {/* Format Dropdown */}
+              {schemaTypes.length > 1 && (
+                <select
+                  value={selectedSchemaType}
+                  onChange={(e) => setSelectedSchemaType(e.target.value)}
+                  className="flex-shrink-0 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-md px-2 py-2 focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 cursor-pointer hover:bg-gray-50 transition-colors"
+                >
+                  <option value="all">All formats</option>
+                  {schemaTypes.map((type) => {
+                    const labels: Record<string, string> = {
+                      json: 'JSON',
+                      asyncapi: 'AsyncAPI',
+                      openapi: 'OpenAPI',
+                      graphql: 'GraphQL',
+                      avro: 'Avro',
+                      proto: 'Protobuf',
+                    };
+                    return (
+                      <option key={type} value={type}>
+                        {labels[type] || type.charAt(0).toUpperCase() + type.slice(1)}
+                      </option>
+                    );
+                  })}
+                </select>
+              )}
+            </div>
+
+            {/* Type Filter - Multi-select chips */}
+            <div className="flex items-center gap-1 mt-2 flex-wrap">
+              {stats.events > 0 && (
+                <button
+                  onClick={() => toggleType('events')}
+                  className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all border ${
+                    selectedTypes.has('events')
+                      ? 'bg-orange-50 text-orange-700 border-orange-200'
+                      : 'text-gray-600 border-gray-200 hover:bg-gray-50'
+                  }`}
+                  title="Events"
+                >
+                  <BoltIcon className={`h-3.5 w-3.5 ${selectedTypes.has('events') ? 'text-orange-500' : 'text-orange-400'}`} />
+                  <span>Events</span>
+                  <span className={`tabular-nums ${selectedTypes.has('events') ? 'text-orange-500' : 'text-gray-400'}`}>
+                    {stats.events}
+                  </span>
+                </button>
+              )}
+              {stats.commands > 0 && (
+                <button
+                  onClick={() => toggleType('commands')}
+                  className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all border ${
+                    selectedTypes.has('commands')
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : 'text-gray-600 border-gray-200 hover:bg-gray-50'
+                  }`}
+                  title="Commands"
+                >
+                  <ChatBubbleLeftIcon
+                    className={`h-3.5 w-3.5 ${selectedTypes.has('commands') ? 'text-blue-500' : 'text-blue-400'}`}
+                  />
+                  <span>Commands</span>
+                  <span className={`tabular-nums ${selectedTypes.has('commands') ? 'text-blue-500' : 'text-gray-400'}`}>
+                    {stats.commands}
+                  </span>
+                </button>
+              )}
+              {stats.queries > 0 && (
+                <button
+                  onClick={() => toggleType('queries')}
+                  className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all border ${
+                    selectedTypes.has('queries')
+                      ? 'bg-green-50 text-green-700 border-green-200'
+                      : 'text-gray-600 border-gray-200 hover:bg-gray-50'
+                  }`}
+                  title="Queries"
+                >
+                  <MagnifyingGlassSolidIcon
+                    className={`h-3.5 w-3.5 ${selectedTypes.has('queries') ? 'text-green-500' : 'text-green-400'}`}
+                  />
+                  <span>Queries</span>
+                  <span className={`tabular-nums ${selectedTypes.has('queries') ? 'text-green-500' : 'text-gray-400'}`}>
+                    {stats.queries}
+                  </span>
+                </button>
+              )}
+              {stats.specifications > 0 && (
+                <button
+                  onClick={() => toggleType('specifications')}
+                  className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all border ${
+                    selectedTypes.has('specifications')
+                      ? 'bg-purple-50 text-purple-700 border-purple-200'
+                      : 'text-gray-600 border-gray-200 hover:bg-gray-50'
+                  }`}
+                  title="Specifications (OpenAPI, AsyncAPI, etc.)"
+                >
+                  <CodeBracketIcon
+                    className={`h-3.5 w-3.5 ${selectedTypes.has('specifications') ? 'text-purple-500' : 'text-purple-400'}`}
+                  />
+                  <span>Specs</span>
+                  <span className={`tabular-nums ${selectedTypes.has('specifications') ? 'text-purple-500' : 'text-gray-400'}`}>
+                    {stats.specifications}
+                  </span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Results Count Bar */}
+          <div className="flex-shrink-0 px-3 py-1.5 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+            <span className="text-xs text-gray-500">
+              {filteredMessages.length === stats.total
+                ? `${stats.total} schemas`
+                : `${filteredMessages.length} of ${stats.total} schemas`}
+            </span>
+            {(searchQuery || selectedTypes.size > 0 || selectedSchemaType !== 'all') && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  clearTypeFilters();
+                  setSelectedSchemaType('all');
+                }}
+                className="text-xs text-gray-500 hover:text-gray-700"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
 
           {/* Schema List - Independently Scrollable */}
           <div className="flex-1 overflow-y-auto">
             {paginatedMessages.length > 0 ? (
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y divide-gray-100">
                 {paginatedMessages.map((message) => {
                   // For services, also check spec type to determine if selected
                   const isSelected =
@@ -368,10 +535,26 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                 })}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                <FunnelIcon className="h-12 w-12 text-gray-400 mb-3" />
+              <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-3">
+                  <MagnifyingGlassIcon className="h-6 w-6 text-gray-400" />
+                </div>
                 <h3 className="text-sm font-semibold text-gray-900 mb-1">No schemas found</h3>
-                <p className="text-xs text-gray-500">Try adjusting your filters</p>
+                <p className="text-xs text-gray-500 mb-3 max-w-[200px]">
+                  {searchQuery ? `No results for "${searchQuery}"` : 'Try adjusting your filters'}
+                </p>
+                {(searchQuery || selectedTypes.size > 0 || selectedSchemaType !== 'all') && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      clearTypeFilters();
+                      setSelectedSchemaType('all');
+                    }}
+                    className="text-xs font-medium text-gray-600 hover:text-gray-900"
+                  >
+                    Clear filters
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -391,10 +574,15 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
               apiAccessEnabled={apiAccessEnabled}
             />
           ) : (
-            <div className="h-full flex items-center justify-center text-gray-500">
-              <div className="text-center">
-                <DocumentTextIcon className="h-12 w-12 mx-auto mb-3 text-gray-400" />
-                <p>Select a schema to view details</p>
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center max-w-xs">
+                <div className="flex items-center justify-center w-14 h-14 mx-auto mb-4 rounded-xl bg-gray-50 border border-gray-100">
+                  <DocumentTextIcon className="h-7 w-7 text-gray-400" />
+                </div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-1">Select a schema</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  Choose a schema from the list to view details, compare versions, and access raw code
+                </p>
               </div>
             </div>
           )}

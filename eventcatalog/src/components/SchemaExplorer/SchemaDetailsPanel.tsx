@@ -3,11 +3,11 @@ import * as Diff from 'diff';
 import { html } from 'diff2html';
 import 'diff2html/bundles/css/diff2html.min.css';
 import SchemaDetailsHeader from './SchemaDetailsHeader';
-import ApiAccessSection from './ApiAccessSection';
 import OwnersSection from './OwnersSection';
 import ProducersConsumersSection from './ProducersConsumersSection';
 import SchemaContentViewer from './SchemaContentViewer';
 import DiffViewer from './DiffViewer';
+import ApiContentViewer from './ApiContentViewer';
 import VersionHistoryModal from './VersionHistoryModal';
 import SchemaCodeModal from './SchemaCodeModal';
 import SchemaViewerModal from './SchemaViewerModal';
@@ -34,8 +34,7 @@ export default function SchemaDetailsPanel({
   showProducersConsumers = true,
 }: SchemaDetailsPanelProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [schemaViewMode, setSchemaViewMode] = useState<'code' | 'schema' | 'diff'>('code');
-  const [apiAccessExpanded, setApiAccessExpanded] = useState(false);
+  const [schemaViewMode, setSchemaViewMode] = useState<'code' | 'schema' | 'diff' | 'api'>('code');
   const [ownersExpanded, setOwnersExpanded] = useState(false);
   const [producersConsumersExpanded, setProducersConsumersExpanded] = useState(false);
   const [isDiffModalOpen, setIsDiffModalOpen] = useState(false);
@@ -160,16 +159,6 @@ export default function SchemaDetailsPanel({
         diffCount={allDiffs.length}
       />
 
-      {/* API Access Section - Always show, but content changes based on Scale access */}
-      <ApiAccessSection
-        message={message}
-        isExpanded={apiAccessExpanded}
-        onToggle={() => setApiAccessExpanded(!apiAccessExpanded)}
-        onCopy={handleCopyCustom}
-        copiedId={copiedId}
-        apiAccessEnabled={apiAccessEnabled}
-      />
-
       {/* Producers and Consumers Section - Only show for messages (not services) */}
       {message.collection !== 'services' && showProducersConsumers && (
         <ProducersConsumersSection
@@ -186,7 +175,9 @@ export default function SchemaDetailsPanel({
 
       {/* Schema Content - Takes full remaining height */}
       <div className="flex-1 overflow-hidden">
-        {schemaViewMode === 'diff' && allDiffs.length > 0 ? (
+        {schemaViewMode === 'api' ? (
+          <ApiContentViewer message={message} onCopy={handleCopyCustom} copiedId={copiedId} apiAccessEnabled={apiAccessEnabled} />
+        ) : schemaViewMode === 'diff' && allDiffs.length > 0 ? (
           <DiffViewer diffs={allDiffs} onOpenFullscreen={() => setIsDiffModalOpen(true)} apiAccessEnabled={apiAccessEnabled} />
         ) : (
           <SchemaContentViewer
