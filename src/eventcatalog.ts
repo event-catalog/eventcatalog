@@ -9,10 +9,10 @@ import { generate } from './generate';
 import logBuild from './analytics/log-build';
 import { VERSION } from './constants';
 import { watch } from './watcher';
-import { catalogToAstro, checkAndConvertMdToMdx } from './catalog-to-astro-content-directory';
+import { catalogToAstro } from './catalog-to-astro-content-directory';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
 import boxen from 'boxen';
-import { isOutputServer, getProjectOutDir, isAuthEnabled } from './features';
+import { isOutputServer } from './features';
 import updateNotifier from 'update-notifier';
 import dotenv from 'dotenv';
 import { runMigrations } from './migrations';
@@ -160,9 +160,6 @@ program
 
     await resolveCatalogDependencies(dir, core);
 
-    // We need to convert all the md files to mdx to use Astro Glob Loaders
-    await checkAndConvertMdToMdx(dir, core);
-
     // Run any migrations for the catalog
     await runMigrations(dir);
 
@@ -251,9 +248,6 @@ program
     });
 
     await resolveCatalogDependencies(dir, core);
-
-    // We need to convert all the md files to mdx to use Astro Glob Loaders
-    await checkAndConvertMdToMdx(dir, core);
 
     // Run any migrations for the catalog
     await runMigrations(dir);
