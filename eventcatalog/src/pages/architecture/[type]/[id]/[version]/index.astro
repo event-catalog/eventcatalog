@@ -1,6 +1,7 @@
 ---
 import DomainGrid from '@components/Grids/DomainGrid';
 import MessageGrid from '@components/Grids/MessageGrid';
+import { getSpecificationsForService } from '@utils/collections/services';
 
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { Page } from './_index.data';
@@ -15,15 +16,18 @@ let domain = props;
 const pageTitle = `${props.type} | ${props.data.name}`.replace(/^\w/, (c) => c.toUpperCase());
 
 const type = props.type;
+
+// Get specifications for services
+const specifications = type === 'services' ? getSpecificationsForService(props) : [];
 ---
 
 <VerticalSideBarLayout title={pageTitle}>
-  <div class="bg-white min-h-screen">
-    <div class="mx-auto h-full">
-      <div class="px-6 py-6 h-full">
+  <main class="flex docs-layout h-full">
+    <div class="flex docs-layout w-full pl-16">
+      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
         {type === 'domains' && <DomainGrid domain={domain} client:load />}
-        {type === 'services' && <MessageGrid service={props} client:load />}
+        {type === 'services' && <MessageGrid service={props} specifications={specifications} client:load />}
       </div>
     </div>
-  </div>
+  </main>
 </VerticalSideBarLayout>

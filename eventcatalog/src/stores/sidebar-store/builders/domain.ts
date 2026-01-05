@@ -52,7 +52,7 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
         pages: [
           {
             type: 'item',
-            title: 'Architecture Diagram',
+            title: 'Architecture Overview',
             href: buildUrl(`/architecture/domains/${domain.data.id}/${domain.data.version}`),
           },
           renderEntities &&
