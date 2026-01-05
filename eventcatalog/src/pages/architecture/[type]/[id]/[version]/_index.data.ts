@@ -2,6 +2,8 @@ import { isSSR } from '@utils/feature';
 import { HybridPage } from '@utils/page-loaders/hybrid-page';
 import type { PageTypes } from '@types';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
+import { getDomains } from '@utils/collections/domains';
+import { getServices } from '@utils/collections/services';
 
 /**
  * Documentation page class for all collection types with versioning
@@ -13,9 +15,13 @@ export class Page extends HybridPage {
     }
 
     const itemTypes: PageTypes[] = ['services', 'domains'];
-    const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
-    return allItems.flatMap((items, index) =>
+    const domains = await getDomains({ enrichServices: true });
+    const services = await getServices();
+
+    const pageData = [services, domains];
+
+    return pageData.flatMap((items, index) =>
       items.map((item) => ({
         params: {
           type: itemTypes[index],
