@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.27
+
+### Patch Changes
+
+- f49aade: feat(core): updated architecture overview pages
+
 ## 3.0.0-beta.26
 
 ### Patch Changes
