@@ -282,7 +282,7 @@ describe('getNestedSideBarData', () => {
     });
 
     describe('Architecture & Design section', () => {
-      it('the architecture Diagram, global domain integration mapand visualizer links are always listed in the navigation item', async () => {
+      it('the architecture overview, global domain integration mapand visualizer links are always listed in the navigation item', async () => {
         const { writeDomain } = utils(CATALOG_FOLDER);
         await writeDomain({
           id: 'Shipping',
@@ -305,7 +305,7 @@ describe('getNestedSideBarData', () => {
         });
         expect(domainNode).toHaveNavigationLink({
           type: 'item',
-          title: 'Architecture Diagram',
+          title: 'Architecture Overview',
           href: '/architecture/domains/Shipping/0.0.1',
         });
       });
@@ -841,7 +841,7 @@ describe('getNestedSideBarData', () => {
     });
 
     describe('Architecture & Design section', () => {
-      it('the architecture Diagram and visualizer links are always listed in the navigation item', async () => {
+      it('the architecture overview and visualizer links are always listed in the navigation item', async () => {
         const { writeService } = utils(CATALOG_FOLDER);
         await writeService({
           id: 'ShippingService',
@@ -854,7 +854,7 @@ describe('getNestedSideBarData', () => {
         const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
         expect(serviceNode).toHaveNavigationLink({
           type: 'item',
-          title: 'Architecture Diagram',
+          title: 'Architecture Overview',
           href: '/architecture/services/ShippingService/0.0.1',
         });
         expect(serviceNode).toHaveNavigationLink({

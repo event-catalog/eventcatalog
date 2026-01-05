@@ -8,10 +8,13 @@ import {
   CircleStackIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  ArrowsPointingOutIcon,
+  ArrowTopRightOnSquareIcon,
+  ArrowLongRightIcon,
+  ArrowLongLeftIcon,
 } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
 import { BoxIcon } from 'lucide-react';
+import { getSpecUrl, getSpecIcon, getSpecLabel, getServiceSpecifications } from './specification-utils';
 
 // ============================================
 // Types
@@ -32,14 +35,14 @@ const getMessageIcon = (collection: string) => {
     case 'commands':
       return { Icon: ChatBubbleLeftIcon, color: 'blue' };
     case 'queries':
-      return { Icon: MagnifyingGlassIcon, color: 'green' };
+      return { Icon: MagnifyingGlassIcon, color: 'emerald' };
     default:
       return { Icon: BoltIcon, color: 'gray' };
   }
 };
 
 // ============================================
-// Simple Sub-components
+// Sub-components
 // ============================================
 
 const EntityBadge = memo(({ entity }: { entity: any }) => {
@@ -49,10 +52,10 @@ const EntityBadge = memo(({ entity }: { entity: any }) => {
   return (
     <a
       href={buildUrl(`/docs/entities/${id}`)}
-      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 border border-purple-300 rounded-md text-xs font-medium hover:bg-purple-200 transition-colors"
+      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white border border-purple-200 rounded-lg text-xs font-medium text-purple-700 hover:bg-purple-50 hover:border-purple-300 transition-all shadow-sm"
     >
-      <BoxIcon className="h-3.5 w-3.5 text-purple-600" />
-      <span className="text-purple-800">{name}</span>
+      <BoxIcon className="h-3.5 w-3.5 text-purple-500" />
+      <span>{name}</span>
     </a>
   );
 });
@@ -68,155 +71,233 @@ const MessageBadge = memo(({ message }: { message: any }) => {
   return (
     <a
       href={buildUrl(`/docs/${collection}/${id}/${version}`)}
-      className="flex items-center gap-1.5 px-2 py-1 bg-white border border-gray-200 rounded text-[11px] font-medium hover:bg-gray-50 transition-colors"
+      className={`flex items-center gap-1.5 px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm`}
     >
-      <Icon className={`h-3 w-3 text-${color}-500`} />
-      <span className="text-gray-700 truncate max-w-[120px]">{name}</span>
+      <Icon className={`h-3.5 w-3.5 text-${color}-500 flex-shrink-0`} />
+      <span className="truncate max-w-[140px]">{name}</span>
     </a>
   );
 });
+
+const SpecificationBadge = memo(
+  ({ spec, serviceId, serviceVersion }: { spec: any; serviceId: string; serviceVersion: string }) => {
+    return (
+      <a
+        href={getSpecUrl(spec, serviceId, serviceVersion)}
+        className="inline-flex items-center gap-1.5 px-2 py-1.5 bg-white border border-indigo-200 rounded-lg text-xs font-medium text-indigo-700 hover:bg-indigo-50 hover:border-indigo-300 transition-all shadow-sm"
+      >
+        <img src={buildUrl(`/icons/${getSpecIcon(spec.type)}.svg`, true)} alt={`${spec.type} icon`} className="h-3.5 w-3.5" />
+        <span>{getSpecLabel(spec.type)}</span>
+      </a>
+    );
+  }
+);
 
 const ContainerBadge = memo(({ container, type }: { container: any; type: 'reads' | 'writes' }) => {
   const data = container?.data || container;
   const id = data?.id || container?.id;
   const name = data?.name || id;
   const version = data?.version;
-  const colorClass = type === 'reads' ? 'orange' : 'purple';
 
   return (
     <a
       href={buildUrl(`/docs/containers/${id}/${version}`)}
-      className={`inline-flex items-center gap-1.5 px-2 py-1 bg-${colorClass}-100 border border-${colorClass}-300 rounded text-[11px] font-medium hover:bg-${colorClass}-200 transition-colors`}
+      className={`inline-flex items-center gap-1.5 px-2 py-1.5 bg-white border rounded-lg text-xs font-medium transition-all shadow-sm ${
+        type === 'reads'
+          ? 'border-amber-200 text-amber-700 hover:bg-amber-50 hover:border-amber-300'
+          : 'border-violet-200 text-violet-700 hover:bg-violet-50 hover:border-violet-300'
+      }`}
     >
-      <CircleStackIcon className={`h-3 w-3 text-${colorClass}-600`} />
-      <span className={`text-${colorClass}-800`}>{name}</span>
+      <CircleStackIcon className={`h-3.5 w-3.5 ${type === 'reads' ? 'text-amber-500' : 'text-violet-500'}`} />
+      <span>{name}</span>
     </a>
   );
 });
 
 const ServiceCard = memo(({ service }: { service: any }) => {
   const data = service?.data || service;
+  const [isCollapsed, setIsCollapsed] = useState(true);
+
   if (!data?.id) return null;
 
   const receives = data.receives || [];
   const sends = data.sends || [];
   const readsFrom = data.readsFrom || [];
   const writesTo = data.writesTo || [];
+  const specifications = getServiceSpecifications(data);
   const hasMessages = receives.length > 0 || sends.length > 0;
   const hasContainers = readsFrom.length > 0 || writesTo.length > 0;
+  const hasSpecs = specifications.length > 0;
+  const hasContent = hasMessages || hasContainers || hasSpecs;
 
   return (
-    <div className="bg-white border-2 border-dashed border-pink-400 rounded-lg p-4">
-      {/* Service Header */}
-      <div className="flex items-center justify-between">
-        <a
-          href={buildUrl(`/architecture/services/${data.id}/${data.version}`)}
-          className="flex items-center gap-2 hover:underline"
-        >
-          <ServerIcon className="h-5 w-5 text-pink-500" />
-          <span className="font-semibold text-gray-900">{data.name || data.id}</span>
-          <span className="text-xs text-gray-500">v{data.version}</span>
-        </a>
-        <a
-          href={buildUrl(`/architecture/services/${data.id}/${data.version}`)}
-          className="p-1 hover:bg-pink-100 rounded-md transition-colors duration-200"
-          title="Expand service architecture"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <ArrowsPointingOutIcon className="h-4 w-4 text-gray-500 hover:text-pink-600" />
-        </a>
+    <div className="bg-white border border-pink-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+      {/* Service Header - Clickable */}
+      <div
+        onClick={() => hasContent && setIsCollapsed(!isCollapsed)}
+        className={`flex items-center justify-between px-4 py-3 ${hasContent ? 'cursor-pointer hover:bg-gray-50' : ''} transition-colors ${!isCollapsed && hasContent ? 'border-b border-gray-100' : ''}`}
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-center w-8 h-8 bg-pink-100 border border-pink-200 rounded-lg">
+            <ServerIcon className="h-4 w-4 text-pink-600" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-gray-900">{data.name || data.id}</span>
+              <span className="text-[11px] text-gray-400 font-medium bg-gray-100 px-1.5 py-0.5 rounded">v{data.version}</span>
+              {/* Show summary counts when collapsed */}
+              {isCollapsed && hasContent && (
+                <span className="text-[11px] text-gray-500 ml-2 flex items-center gap-2">
+                  {specifications.length > 0 && (
+                    <span>
+                      {specifications.length} spec{specifications.length > 1 ? 's' : ''}
+                    </span>
+                  )}
+                  {receives.length > 0 && <span>{receives.length} receives</span>}
+                  {sends.length > 0 && <span>{sends.length} sends</span>}
+                  {readsFrom.length > 0 && <span>{readsFrom.length} reads</span>}
+                  {writesTo.length > 0 && <span>{writesTo.length} writes</span>}
+                </span>
+              )}
+            </div>
+            {data.summary && <p className="text-xs text-gray-500 line-clamp-1 mt-0.5 max-w-md">{data.summary}</p>}
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          {hasContent && (
+            <div className="p-1.5 text-gray-400">
+              {isCollapsed ? <ChevronDownIcon className="h-4 w-4" /> : <ChevronUpIcon className="h-4 w-4" />}
+            </div>
+          )}
+          <a
+            href={buildUrl(`/architecture/services/${data.id}/${data.version}`)}
+            onClick={(e) => e.stopPropagation()}
+            className="p-1.5 text-gray-400 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
+            title="View service architecture"
+          >
+            <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+          </a>
+        </div>
       </div>
 
-      {data.summary && <p className="mt-2 text-sm text-gray-600 line-clamp-2">{data.summary}</p>}
-
-      {/* Message Flow Diagram */}
-      {hasMessages && (
-        <div className="mt-4 flex items-stretch gap-3">
-          {/* Receives (Inbound) */}
-          <div className="flex-1 bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="text-xs font-semibold text-blue-700 uppercase">Inbound Messages</span>
-              <span className="text-xs text-blue-500">({receives.length})</span>
-            </div>
-            {receives.length > 0 ? (
-              <div className="space-y-1.5">
-                {receives.slice(0, 4).map((msg: any, idx: number) => {
-                  const msgId = msg?.data?.id || msg?.id;
-                  return msgId ? <MessageBadge key={`${msgId}-${idx}`} message={msg} /> : null;
-                })}
-                {receives.length > 4 && <p className="text-[10px] text-gray-500 text-center">+{receives.length - 4} more</p>}
-              </div>
-            ) : (
-              <p className="text-[10px] text-gray-400 italic">No incoming messages</p>
-            )}
+      {/* Specifications */}
+      {!isCollapsed && hasSpecs && (
+        <div className="px-4 py-3 border-b border-gray-100">
+          <div className="flex items-center gap-1.5 mb-2">
+            <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Specifications</span>
+            <span className="text-[10px] text-white bg-indigo-500 px-1.5 py-0.5 rounded-full font-medium">
+              {specifications.length}
+            </span>
           </div>
-
-          {/* Service Icon (Center) */}
-          <div className="flex items-center">
-            <div className="bg-pink-100 border-2 border-pink-300 rounded-lg p-3">
-              <ServerIcon className="h-6 w-6 text-pink-500" />
-            </div>
+          <div className="flex flex-wrap gap-2">
+            {specifications.map((spec: any, idx: number) => (
+              <SpecificationBadge key={`${spec.type}-${idx}`} spec={spec} serviceId={data.id} serviceVersion={data.version} />
+            ))}
           </div>
+        </div>
+      )}
 
-          {/* Sends (Outbound) */}
-          <div className="flex-1 bg-green-50 border border-green-200 rounded-lg p-3">
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="text-xs font-semibold text-green-700 uppercase">Outbound Messages</span>
-              <span className="text-xs text-green-500">({sends.length})</span>
-            </div>
-            {sends.length > 0 ? (
-              <div className="space-y-1.5">
-                {sends.slice(0, 4).map((msg: any, idx: number) => {
-                  const msgId = msg?.data?.id || msg?.id;
-                  return msgId ? <MessageBadge key={`${msgId}-${idx}`} message={msg} /> : null;
-                })}
-                {sends.length > 4 && <p className="text-[10px] text-gray-500 text-center">+{sends.length - 4} more</p>}
+      {/* Message Flow */}
+      {!isCollapsed && hasMessages && (
+        <div className="p-4">
+          <div className="flex items-stretch gap-3">
+            {/* Inbound Messages */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-2">
+                <ArrowLongRightIcon className="h-4 w-4 text-blue-500" />
+                <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Receives</span>
+                <span className="text-[10px] text-white bg-blue-500 px-1.5 py-0.5 rounded-full font-medium">
+                  {receives.length}
+                </span>
               </div>
-            ) : (
-              <p className="text-[10px] text-gray-400 italic">No outgoing messages</p>
-            )}
+              {receives.length > 0 ? (
+                <div className="space-y-1.5">
+                  {receives.slice(0, 3).map((msg: any, idx: number) => {
+                    const msgId = msg?.data?.id || msg?.id;
+                    return msgId ? <MessageBadge key={`${msgId}-${idx}`} message={msg} /> : null;
+                  })}
+                  {receives.length > 3 && (
+                    <p className="text-[10px] text-gray-400 font-medium pl-2">+{receives.length - 3} more</p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-[11px] text-gray-400 italic pl-2">None</p>
+              )}
+            </div>
+
+            {/* Divider */}
+            <div className="flex items-center px-2">
+              <div className="w-px h-full bg-gradient-to-b from-transparent via-gray-200 to-transparent" />
+            </div>
+
+            {/* Outbound Messages */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-2">
+                <ArrowLongLeftIcon className="h-4 w-4 text-emerald-500 rotate-180" />
+                <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wide">Sends</span>
+                <span className="text-[10px] text-white bg-emerald-500 px-1.5 py-0.5 rounded-full font-medium">
+                  {sends.length}
+                </span>
+              </div>
+              {sends.length > 0 ? (
+                <div className="space-y-1.5">
+                  {sends.slice(0, 3).map((msg: any, idx: number) => {
+                    const msgId = msg?.data?.id || msg?.id;
+                    return msgId ? <MessageBadge key={`${msgId}-${idx}`} message={msg} /> : null;
+                  })}
+                  {sends.length > 3 && <p className="text-[10px] text-gray-400 font-medium pl-2">+{sends.length - 3} more</p>}
+                </div>
+              ) : (
+                <p className="text-[11px] text-gray-400 italic pl-2">None</p>
+              )}
+            </div>
           </div>
         </div>
       )}
 
       {/* Container Relationships */}
-      {hasContainers && (
-        <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 gap-4">
-          {/* Reads From */}
-          {readsFrom.length > 0 && (
-            <div>
-              <div className="flex items-center gap-1.5 mb-2">
-                <CircleStackIcon className="h-3.5 w-3.5 text-orange-500" />
-                <span className="text-xs font-semibold text-gray-700">Reads from</span>
+      {!isCollapsed && hasContainers && (
+        <div className={`px-4 pb-4 ${hasMessages ? 'pt-0' : 'pt-4'}`}>
+          {hasMessages && <div className="border-t border-gray-100 mb-4" />}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Reads From */}
+            {readsFrom.length > 0 && (
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <CircleStackIcon className="h-3.5 w-3.5 text-amber-500" />
+                  <span className="text-[11px] font-semibold text-gray-600">Reads from</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {readsFrom.slice(0, 2).map((container: any, idx: number) => {
+                    const containerId = container?.data?.id || container?.id;
+                    return containerId ? (
+                      <ContainerBadge key={`${containerId}-${idx}`} container={container} type="reads" />
+                    ) : null;
+                  })}
+                  {readsFrom.length > 2 && <span className="text-[10px] text-gray-400 self-center">+{readsFrom.length - 2}</span>}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {readsFrom.slice(0, 3).map((container: any, idx: number) => {
-                  const containerId = container?.data?.id || container?.id;
-                  return containerId ? <ContainerBadge key={`${containerId}-${idx}`} container={container} type="reads" /> : null;
-                })}
-                {readsFrom.length > 3 && <span className="text-[10px] text-gray-500">+{readsFrom.length - 3} more</span>}
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* Writes To */}
-          {writesTo.length > 0 && (
-            <div>
-              <div className="flex items-center gap-1.5 mb-2">
-                <CircleStackIcon className="h-3.5 w-3.5 text-purple-500" />
-                <span className="text-xs font-semibold text-gray-700">Writes to</span>
+            {/* Writes To */}
+            {writesTo.length > 0 && (
+              <div>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <CircleStackIcon className="h-3.5 w-3.5 text-violet-500" />
+                  <span className="text-[11px] font-semibold text-gray-600">Writes to</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {writesTo.slice(0, 2).map((container: any, idx: number) => {
+                    const containerId = container?.data?.id || container?.id;
+                    return containerId ? (
+                      <ContainerBadge key={`${containerId}-${idx}`} container={container} type="writes" />
+                    ) : null;
+                  })}
+                  {writesTo.length > 2 && <span className="text-[10px] text-gray-400 self-center">+{writesTo.length - 2}</span>}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {writesTo.slice(0, 3).map((container: any, idx: number) => {
-                  const containerId = container?.data?.id || container?.id;
-                  return containerId ? (
-                    <ContainerBadge key={`${containerId}-${idx}`} container={container} type="writes" />
-                  ) : null;
-                })}
-                {writesTo.length > 3 && <span className="text-[10px] text-gray-500">+{writesTo.length - 3} more</span>}
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -225,7 +306,7 @@ const ServiceCard = memo(({ service }: { service: any }) => {
 
 const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
   const data = subdomain?.data || subdomain;
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   if (!data?.id) return null;
 
@@ -233,39 +314,59 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
   const entities = data.entities || [];
 
   return (
-    <div className="bg-orange-50 border-2 border-orange-400 rounded-lg p-6">
-      {/* Subdomain Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <RectangleGroupIcon className="h-5 w-5 text-orange-500" />
-          <h3 className="text-lg font-semibold text-gray-900">{data.name || data.id}</h3>
-          <span className="text-xs text-gray-500">v{data.version}</span>
-          <span className="px-2 py-0.5 bg-orange-200 text-orange-800 text-xs rounded">Subdomain</span>
+    <div className="bg-white border border-orange-200 rounded-xl overflow-hidden shadow-sm">
+      {/* Subdomain Header - Clickable */}
+      <div
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className={`flex items-center justify-between px-5 py-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors ${!isCollapsed ? 'border-b border-gray-200' : ''}`}
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-9 h-9 bg-orange-100 border border-orange-200 rounded-lg">
+            <RectangleGroupIcon className="h-5 w-5 text-orange-600" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold text-gray-900">{data.name || data.id}</h3>
+              <span className="text-[11px] text-gray-500 font-medium bg-white px-1.5 py-0.5 rounded border border-gray-200">
+                v{data.version}
+              </span>
+              {/* Show counts when collapsed */}
+              {isCollapsed && (services.length > 0 || entities.length > 0) && (
+                <span className="text-[11px] text-gray-400 ml-1">
+                  {services.length > 0 && `${services.length} service${services.length > 1 ? 's' : ''}`}
+                  {services.length > 0 && entities.length > 0 && ', '}
+                  {entities.length > 0 && `${entities.length} entit${entities.length > 1 ? 'ies' : 'y'}`}
+                </span>
+              )}
+            </div>
+            <span className="text-[11px] text-gray-500 font-medium">Subdomain</span>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 hover:bg-orange-200 rounded-md transition-colors cursor-pointer text-gray-500 hover:text-gray-700"
-          >
+        <div className="flex items-center gap-1">
+          <div className="p-2 text-gray-400">
             {isCollapsed ? <ChevronDownIcon className="h-5 w-5" /> : <ChevronUpIcon className="h-5 w-5" />}
-          </button>
+          </div>
           <a
             href={buildUrl(`/architecture/domains/${data.id}/${data.version}`)}
-            className="p-1 hover:bg-orange-200 rounded-md transition-colors cursor-pointer text-gray-500 hover:text-gray-700"
-            title="Expand domain architecture"
             onClick={(e) => e.stopPropagation()}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg transition-colors"
+            title="View subdomain architecture"
           >
-            <ArrowsPointingOutIcon className="h-5 w-5" />
+            <ArrowTopRightOnSquareIcon className="h-5 w-5" />
           </a>
         </div>
       </div>
 
       {!isCollapsed && (
-        <>
+        <div className="p-5 space-y-5">
           {/* Subdomain Entities */}
           {entities.length > 0 && (
-            <div className="mb-4">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Entities</h4>
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <BoxIcon className="h-4 w-4 text-purple-600" />
+                <h4 className="text-sm font-bold text-gray-900">Entities</h4>
+                <span className="text-xs text-white bg-purple-500 px-2 py-0.5 rounded-full font-medium">{entities.length}</span>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {entities.map((entity: any) => {
                   const entityId = entity?.data?.id || entity?.id;
@@ -278,11 +379,14 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
           {/* Subdomain Services */}
           {services.length > 0 && (
             <div>
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Services</h4>
-              <div className="grid gap-4 xl:grid-cols-2">
+              <div className="flex items-center gap-2 mb-3">
+                <ServerIcon className="h-4 w-4 text-pink-600" />
+                <h4 className="text-sm font-bold text-gray-900">Services</h4>
+                <span className="text-xs text-white bg-pink-500 px-2 py-0.5 rounded-full font-medium">{services.length}</span>
+              </div>
+              <div className="space-y-3">
                 {services.map((service: any) => {
                   const serviceId = service?.data?.id || service?.id;
-                  // Ensure we pass the service down with its messages populated
                   return serviceId ? <ServiceCard key={serviceId} service={service} /> : null;
                 })}
               </div>
@@ -290,9 +394,9 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
           )}
 
           {entities.length === 0 && services.length === 0 && (
-            <p className="text-sm text-gray-500 italic">No entities or services in this subdomain</p>
+            <p className="text-sm text-gray-400 italic text-center py-4">No entities or services in this subdomain</p>
           )}
-        </>
+        </div>
       )}
     </div>
   );
@@ -304,7 +408,7 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
 
 export default function DomainGrid({ domain }: DomainGridProps) {
   const data = domain?.data;
-  if (!data) return <div>No domain data</div>;
+  if (!data) return <div className="text-gray-500">No domain data</div>;
 
   const subdomains = data.domains || [];
   const entities = data.entities || [];
@@ -333,79 +437,111 @@ export default function DomainGrid({ domain }: DomainGridProps) {
 
   return (
     <div className="space-y-6">
-      {/* Domain Container - Yellow */}
-      <div className="bg-yellow-50 border-2 border-yellow-400 rounded-xl p-6">
+      {/* Domain Container */}
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
         {/* Domain Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <RectangleGroupIcon className="h-7 w-7 text-yellow-600" />
-            <h1 className="text-2xl font-bold text-gray-900">{data.name || data.id}</h1>
-            <span className="px-2 py-0.5 bg-yellow-200 text-yellow-800 text-xs font-medium rounded">v{data.version}</span>
-            <span className="px-2 py-0.5 bg-yellow-300 text-yellow-900 text-xs font-medium rounded">Domain</span>
+        <div className="bg-gray-50/80 border-b border-gray-200 px-6 py-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center justify-center w-12 h-12 bg-amber-100 border border-amber-200 rounded-xl shadow-sm">
+                <RectangleGroupIcon className="h-6 w-6 text-amber-600" />
+              </div>
+              <div>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-xl font-bold text-gray-900">{data.name || data.id}</h1>
+                  <span className="text-xs text-gray-500 font-medium bg-white px-2 py-1 rounded-md border border-gray-200 shadow-sm">
+                    v{data.version}
+                  </span>
+                </div>
+                <span className="text-sm text-gray-500 font-medium">Domain</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <a
+                href={buildUrl(`/docs/domains/${data.id}/${data.version}`)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+              >
+                View docs
+                <ArrowTopRightOnSquareIcon className="h-4 w-4 text-gray-400" />
+              </a>
+              <a
+                href={buildUrl(`/visualiser/domains/${data.id}/${data.version}`)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-gray-800 border border-gray-900 rounded-lg hover:bg-gray-900 transition-all shadow-sm"
+              >
+                Visualizer
+                <ArrowTopRightOnSquareIcon className="h-4 w-4 text-gray-400" />
+              </a>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <a
-              href={buildUrl(`/docs/domains/${data.id}/${data.version}`)}
-              className="text-sm bg-white px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 transition-colors"
-            >
-              View docs
-            </a>
-            <a
-              href={buildUrl(`/visualiser/domains/${data.id}/${data.version}`)}
-              className="text-sm bg-white px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-50 transition-colors"
-            >
-              Visualizer
-            </a>
-          </div>
+
+          {data.summary && <p className="text-gray-600 mt-3 max-w-3xl">{data.summary}</p>}
         </div>
 
-        {data.summary && <p className="text-gray-600 mb-4">{data.summary}</p>}
-
-        {/* Domain Entities */}
-        {entities.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Entities</h3>
-            <div className="flex flex-wrap gap-2">
-              {entities.map((entity: any) => {
-                const entityId = entity?.data?.id || entity?.id;
-                return entityId ? <EntityBadge key={entityId} entity={entity} /> : null;
-              })}
+        {/* Domain Content */}
+        <div className="p-6 space-y-6">
+          {/* Domain Entities */}
+          {entities.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <BoxIcon className="h-4 w-4 text-purple-600" />
+                <h3 className="text-sm font-bold text-gray-900">Entities</h3>
+                <span className="text-xs text-white bg-purple-500 px-2 py-0.5 rounded-full font-medium">{entities.length}</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {entities.map((entity: any) => {
+                  const entityId = entity?.data?.id || entity?.id;
+                  return entityId ? <EntityBadge key={entityId} entity={entity} /> : null;
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Top-level Services (not in subdomains) */}
-        {topLevelServices.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Services</h3>
-            <div className="grid gap-4 xl:grid-cols-2">
-              {topLevelServices.map((service: any) => {
-                const serviceId = service?.data?.id || service?.id;
-                return serviceId ? <ServiceCard key={serviceId} service={service} /> : null;
-              })}
+          {/* Top-level Services */}
+          {topLevelServices.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <ServerIcon className="h-4 w-4 text-pink-600" />
+                <h3 className="text-sm font-bold text-gray-900">Services</h3>
+                <span className="text-xs text-white bg-pink-500 px-2 py-0.5 rounded-full font-medium">
+                  {topLevelServices.length}
+                </span>
+              </div>
+              <div className="space-y-3">
+                {topLevelServices.map((service: any) => {
+                  const serviceId = service?.data?.id || service?.id;
+                  return serviceId ? <ServiceCard key={serviceId} service={service} /> : null;
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Subdomains - nested inside domain */}
-        {subdomains.length > 0 && (
-          <div>
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Subdomains</h3>
-            <div className="space-y-4">
-              {subdomains.map((subdomain: any) => {
-                const subdomainId = subdomain?.data?.id || subdomain?.id;
-                return subdomainId ? <SubdomainSection key={subdomainId} subdomain={subdomain} /> : null;
-              })}
+          {/* Subdomains */}
+          {subdomains.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <RectangleGroupIcon className="h-4 w-4 text-orange-600" />
+                <h3 className="text-sm font-bold text-gray-900">Subdomains</h3>
+                <span className="text-xs text-white bg-orange-500 px-2 py-0.5 rounded-full font-medium">{subdomains.length}</span>
+              </div>
+              <div className="space-y-4">
+                {subdomains.map((subdomain: any) => {
+                  const subdomainId = subdomain?.data?.id || subdomain?.id;
+                  return subdomainId ? <SubdomainSection key={subdomainId} subdomain={subdomain} /> : null;
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Empty state */}
-        {entities.length === 0 && services.length === 0 && subdomains.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-500">This domain has no entities, services, or subdomains defined.</p>
-          </div>
-        )}
+          {/* Empty state */}
+          {entities.length === 0 && services.length === 0 && subdomains.length === 0 && (
+            <div className="text-center py-12">
+              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-2xl">
+                <RectangleGroupIcon className="h-8 w-8 text-gray-400" />
+              </div>
+              <p className="text-gray-500">This domain has no entities, services, or subdomains defined.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

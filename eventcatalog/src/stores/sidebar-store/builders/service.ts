@@ -60,7 +60,7 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
         pages: [
           {
             type: 'item',
-            title: 'Architecture Diagram',
+            title: 'Architecture Overview',
             href: buildUrl(`/architecture/services/${service.data.id}/${service.data.version}`),
           },
           renderVisualiser && {
