@@ -51,7 +51,7 @@ export const isEventCatalogUpgradeEnabled = () => !isEventCatalogStarterEnabled(
 export const isCustomLandingPageEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
 
 export const isMarkdownDownloadEnabled = () => config?.llmsTxt?.enabled ?? false;
-export const isLLMSTxtEnabled = () => (config?.llmsTxt?.enabled || isEventCatalogChatEnabled()) ?? false;
+export const isLLMSTxtEnabled = () => (config?.llmsTxt?.enabled || isEventCatalogChatEnabled()) ?? true;
 
 export const isAuthEnabled = () => {
   const isAuthEnabledInCatalog = config?.auth?.enabled ?? false;
