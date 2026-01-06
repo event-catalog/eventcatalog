@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.0.0-beta.28
+
+### Patch Changes
+
+- dfce0b7: chore(core): llms-txt is now enabled by default
+
 ## 3.0.0-beta.27
 
 ### Patch Changes
