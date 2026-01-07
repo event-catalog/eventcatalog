@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.1.0
+
+### Minor Changes
+
+- c518cf3: core(feat): added support for dark mode and custom themes
+
 ## 3.0.0
 
 ### Major Changes
