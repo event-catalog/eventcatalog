@@ -21,6 +21,8 @@ export default {
   },
   base: '/',
   trailingSlash: false,
+  // Theme: 'default' (purple/slate) or 'ocean' (blue/teal)
+  theme: 'forest',
   mermaid: {
     enableSupportForElkLayout: true,
     iconPacks: ['logos'],

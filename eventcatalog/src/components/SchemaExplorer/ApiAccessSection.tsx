@@ -42,7 +42,7 @@ export default function ApiAccessSection({
           <CommandLineIcon className="h-3.5 w-3.5 text-gray-700" />
           <span className="text-xs font-medium text-gray-700">API</span>
           {!apiAccessEnabled && (
-            <span className="inline-flex items-center gap-1 rounded bg-purple-50 px-1.5 py-0.5 text-[10px] font-medium text-purple-600 border border-purple-100">
+            <span className="inline-flex items-center gap-1 rounded bg-[rgb(var(--ec-accent-subtle))] px-1.5 py-0.5 text-[10px] font-medium text-[rgb(var(--ec-accent-text))] border border-[rgb(var(--ec-accent)/0.2)]">
               <LockClosedIcon className="h-2.5 w-2.5" />
               Scale
             </span>
@@ -119,7 +119,7 @@ export default function ApiAccessSection({
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between gap-3 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100 rounded-md px-3 py-2.5">
+            <div className="flex items-center justify-between gap-3 bg-[rgb(var(--ec-accent-subtle))] border border-[rgb(var(--ec-accent)/0.2)] rounded-md px-3 py-2.5">
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-gray-700">Access schemas via API</p>
                 <p className="text-[10px] text-gray-500 mt-0.5">CI/CD, automation & integrations</p>
@@ -128,7 +128,7 @@ export default function ApiAccessSection({
                 href="https://eventcatalog.cloud"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 transition-colors"
+                className="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium text-white bg-[rgb(var(--ec-accent))] rounded-md hover:bg-[rgb(var(--ec-accent-hover))] transition-colors"
               >
                 Try Scale
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

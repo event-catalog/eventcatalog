@@ -28,31 +28,44 @@ function startsWithProtocol(str: string) {
   <a
     href={startsWithProtocol(href) ? href : buildUrl(href)}
     target={openWindow ? '_blank' : '_self'}
-    class="block relative bg-white border border-gray-200 rounded-xl p-8 h-48 transition-all duration-300 ease-out hover:border-purple-300 hover:shadow-lg hover:shadow-purple-500/10 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 overflow-hidden"
+    class="tile-card block relative bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl p-8 h-48 transition-all duration-300 ease-out hover:border-[rgb(var(--ec-accent)/0.5)] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 overflow-hidden"
   >
     <!-- Icon centered in card with grid background -->
     <div class="relative h-full flex items-center justify-center">
       <!-- Squared paper grid behind icon -->
       <div
-        class="absolute inset-0 opacity-15"
-        style="background-image:
-        linear-gradient(rgba(147, 51, 234, 0.2) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(147, 51, 234, 0.2) 1px, transparent 1px);
-        background-size: 16px 16px;"
+        class="tile-grid absolute inset-0 opacity-15"
       >
       </div>
 
-      {IconComponent && <IconComponent className="relative w-16 h-16 text-purple-600 stroke-1" />}
+      {IconComponent && <IconComponent className="tile-icon relative w-16 h-16 stroke-1" />}
     </div>
   </a>
 
   <!-- Title and description outside card -->
   <div class="mt-4 space-y-0">
-    <h2 class="text-gray-900 text-lg font-semibold">
+    <h2 class="text-[rgb(var(--ec-page-text))] text-lg font-semibold">
       {title}
     </h2>
-    <p class="text-gray-600 text-sm leading-relaxed">
+    <p class="text-[rgb(var(--ec-page-text-muted))] text-sm leading-relaxed">
       {description}
     </p>
   </div>
 </div>
+
+<style>
+  .tile-card:hover {
+    box-shadow: 0 10px 15px -3px rgb(var(--ec-accent) / 0.1), 0 4px 6px -4px rgb(var(--ec-accent) / 0.1);
+  }
+
+  .tile-grid {
+    background-image:
+      linear-gradient(rgb(var(--ec-accent) / 0.2) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--ec-accent) / 0.2) 1px, transparent 1px);
+    background-size: 16px 16px;
+  }
+
+  .tile-icon {
+    color: rgb(var(--ec-accent));
+  }
+</style>

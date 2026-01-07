@@ -27,6 +27,18 @@ import '@fontsource/inter';
 import '@fontsource/inter/400.css'; // Specify weight
 import '@fontsource/inter/700.css'; // Specify weight
 
+// Theme CSS variables (must load before user styles)
+import '../styles/theme.css';
+
+// Theme files - imported so they're available, applied via data-catalog-theme attribute
+import '../styles/themes/ocean.css';
+import '../styles/themes/sapphire.css';
+import '../styles/themes/sunset.css';
+import '../styles/themes/forest.css';
+
+// Get configured theme (default, ocean, etc.)
+const catalogTheme = config.theme || 'default';
+
 import { ClientRouter } from 'astro:transitions';
 
 import { getCommands } from '@utils/collections/commands';
@@ -173,8 +185,35 @@ const canPageBeEmbedded = isEmbedEnabled();
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-catalog-theme={catalogTheme}>
   <head>
+    <!-- Inline script to prevent flash of wrong theme -->
+    <script is:inline define:vars={{ catalogTheme }}>
+      (function() {
+        function getSystemTheme() {
+          if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            return 'dark';
+          }
+          return 'light';
+        }
+
+        function applyTheme() {
+          // Check localStorage first, fall back to system preference
+          const stored = localStorage.getItem('eventcatalog-theme');
+          const theme = (stored === 'light' || stored === 'dark') ? stored : getSystemTheme();
+          document.documentElement.setAttribute('data-theme', theme);
+          // Also ensure catalog theme is set (for page transitions)
+          document.documentElement.setAttribute('data-catalog-theme', catalogTheme);
+        }
+
+        // Apply on initial load
+        applyTheme();
+
+        // Apply after Astro page transitions
+        document.addEventListener('astro:after-swap', applyTheme);
+        document.addEventListener('astro:page-load', applyTheme);
+      })();
+    </script>
     <SEO title={`EventCatalog | ${title}`} description={description} ogTitle={title} />
     <style is:global>
       .sidebar-transition {
@@ -233,7 +272,7 @@ const canPageBeEmbedded = isEmbedEnabled();
       <div class="flex">
         <aside class="flex" id="eventcatalog-vertical-nav">
           <div
-            class="fixed flex flex-col items-center w-14 h-screen py-3 bg-white bg-gradient-to-b from-white to-gray-100 border-r border-gray-200 z-20 shadow-md justify-between"
+            class="fixed flex flex-col items-center w-14 h-screen py-3 bg-[rgb(var(--ec-sidebar-bg))] bg-gradient-to-b from-[rgb(var(--ec-sidebar-bg))] to-[rgb(var(--ec-sidebar-bg-gradient))] border-r border-[rgb(var(--ec-sidebar-border))] z-20 shadow-md justify-between"
           >
             <nav class="flex flex-col h-[calc(100vh-70px)] justify-between">
               <div class="flex flex-col items-center flex-1 space-y-6">
@@ -246,7 +285,7 @@ const canPageBeEmbedded = isEmbedEnabled();
                         href={item.href}
                         aria-label={item.label}
                         class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${
-                          item.current ? 'text-white bg-gray-900' : 'hover:bg-gray-800 hover:text-white text-gray-700'
+                          item.current ? 'text-[rgb(var(--ec-sidebar-active-text))] bg-[rgb(var(--ec-sidebar-active-bg))]' : 'hover:bg-[rgb(var(--ec-sidebar-hover-bg))] hover:text-[rgb(var(--ec-sidebar-active-text))] text-[rgb(var(--ec-sidebar-text))]'
                         }`}
                       >
                         <div class="has-tooltip">
@@ -263,7 +302,7 @@ const canPageBeEmbedded = isEmbedEnabled();
                   })
                 }
 
-                <hr class="w-8 border-t border-gray-200" />
+                <hr class="w-8 border-t border-[rgb(var(--ec-sidebar-border))]" />
 
                 {
                   studioNavigationItem.length > 0 && (
@@ -272,7 +311,7 @@ const canPageBeEmbedded = isEmbedEnabled();
                       data-role="nav-item"
                       href={studioNavigationItem[0].href}
                       aria-label={studioNavigationItem[0].label}
-                      class={`p-1.5 inline-block pt-1 pb-1 mt-0 mb-0 transition-colors duration-200 rounded-lg relative ${studioNavigationItem[0].current ? 'text-white bg-gray-900' : 'hover:bg-gray-800 hover:text-white text-gray-700'}`}
+                      class={`p-1.5 inline-block pt-1 pb-1 mt-0 mb-0 transition-colors duration-200 rounded-lg relative ${studioNavigationItem[0].current ? 'text-[rgb(var(--ec-sidebar-active-text))] bg-[rgb(var(--ec-sidebar-active-bg))]' : 'hover:bg-[rgb(var(--ec-sidebar-hover-bg))] hover:text-[rgb(var(--ec-sidebar-active-text))] text-[rgb(var(--ec-sidebar-text))]'}`}
                     >
                       <div class="has-tooltip">
                         <span
@@ -287,7 +326,7 @@ const canPageBeEmbedded = isEmbedEnabled();
                   )
                 }
 
-                {studioNavigationItem.length > 0 && <hr class="w-8 border-t border-gray-200" />}
+                {studioNavigationItem.length > 0 && <hr class="w-8 border-t border-[rgb(var(--ec-sidebar-border))]" />}
 
                 {
                   premiumFeatures.map((item) => (
@@ -297,7 +336,7 @@ const canPageBeEmbedded = isEmbedEnabled();
                       href={item.href}
                       aria-label={item.label}
                       class={`p-1.5 inline-block transition-colors duration-200 rounded-lg mb-8 relative ${
-                        item.current ? 'text-white bg-gray-900' : 'hover:bg-gray-800 hover:text-white text-gray-700'
+                        item.current ? 'text-[rgb(var(--ec-sidebar-active-text))] bg-[rgb(var(--ec-sidebar-active-bg))]' : 'hover:bg-[rgb(var(--ec-sidebar-hover-bg))] hover:text-[rgb(var(--ec-sidebar-active-text))] text-[rgb(var(--ec-sidebar-text))]'
                       }`}
                     >
                       <div class="has-tooltip">
@@ -328,7 +367,7 @@ const canPageBeEmbedded = isEmbedEnabled();
                       data-role="nav-item"
                       href={buildUrl('/plans')}
                       aria-label="Upgrade EventCatalog"
-                      class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${currentPath.includes('/pro') ? 'text-white bg-gray-900' : 'bg-gray-200 hover:bg-gray-800 hover:text-white text-gray-700'}`}
+                      class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${currentPath.includes('/pro') ? 'text-[rgb(var(--ec-sidebar-active-text))] bg-[rgb(var(--ec-sidebar-active-bg))]' : 'bg-[rgb(var(--ec-sidebar-bg-gradient))] hover:bg-[rgb(var(--ec-sidebar-hover-bg))] hover:text-[rgb(var(--ec-sidebar-active-text))] text-[rgb(var(--ec-sidebar-text))]'}`}
                     >
                       <div class="has-tooltip">
                         <span
@@ -348,12 +387,12 @@ const canPageBeEmbedded = isEmbedEnabled();
 
           {
             showNestedSideBar && (
-              <SideNav id="sidebar" class={`sidebar-transition h-content bg-white  border-r border-gray-100 w-[320px] ml-14`} />
+              <SideNav id="sidebar" class={`sidebar-transition h-content bg-[rgb(var(--ec-sidebar-bg))] border-r border-[rgb(var(--ec-sidebar-border))] w-[320px] ml-14`} />
             )
           }
         </aside>
         <main
-          class={`sidebar-transition w-full max-h-content overflow-y-auto ${showNestedSideBar ? 'ml-0' : 'ml-14'}`}
+          class={`sidebar-transition w-full max-h-content overflow-y-auto bg-[rgb(var(--ec-page-bg))] ${showNestedSideBar ? 'ml-0' : 'ml-14'}`}
           id="content"
         >
           <slot />

@@ -1,0 +1,230 @@
+/**
+ * Sunset Theme for EventCatalog
+ *
+ * A warm, inviting theme inspired by golden sunsets.
+ * Rich oranges and ambers with a cozy, energetic feel.
+ */
+
+/* Sunset Light Mode */
+:root[data-catalog-theme="sunset"],
+:root[data-catalog-theme="sunset"][data-theme="light"] {
+  /* Header - clean white */
+  --ec-header-bg: 255 255 255; /* #ffffff */
+  --ec-header-text: 23 23 23; /* #171717 neutral-900 */
+  --ec-header-border: 229 229 229; /* #e5e5e5 neutral-200 */
+
+  /* Primary brand color - sunset orange */
+  --ec-primary: 249 115 22; /* #f97316 orange-500 */
+  --ec-primary-hover: 234 88 12; /* #ea580c orange-600 */
+
+  /* Accent colors - sunset orange */
+  --ec-accent: 249 115 22; /* #f97316 (orange-500) */
+  --ec-accent-hover: 234 88 12; /* #ea580c (orange-600) */
+  --ec-accent-subtle: 255 237 213; /* #ffedd5 (orange-100) */
+  --ec-accent-text: 154 52 18; /* #9a3412 (orange-800) */
+  --ec-accent-gradient-from: 249 115 22; /* #f97316 (orange-500) */
+  --ec-accent-gradient-to: 234 88 12; /* #ea580c (orange-600) */
+
+  /* Buttons */
+  --ec-button-bg: 234 88 12; /* #ea580c orange-600 */
+  --ec-button-bg-hover: 194 65 12; /* #c2410c orange-700 */
+  --ec-button-text: 255 255 255; /* #ffffff */
+
+  /* Dropdowns & menus */
+  --ec-dropdown-bg: 255 255 255; /* #ffffff */
+  --ec-dropdown-text: 64 64 64; /* #404040 neutral-700 */
+  --ec-dropdown-hover: 255 247 237; /* #fff7ed orange-50 */
+  --ec-dropdown-border: 229 229 229; /* #e5e5e5 neutral-200 */
+
+  /* Icons */
+  --ec-icon-color: 82 82 82; /* #525252 neutral-600 */
+  --ec-icon-hover: 234 88 12; /* #ea580c orange-600 */
+
+  /* Sidebar / Vertical Nav */
+  --ec-sidebar-bg: 255 255 255; /* #ffffff */
+  --ec-sidebar-bg-gradient: 255 247 237; /* #fff7ed orange-50 */
+  --ec-sidebar-border: 229 229 229; /* #e5e5e5 neutral-200 */
+  --ec-sidebar-text: 82 82 82; /* #525252 neutral-600 */
+  --ec-sidebar-active-bg: 234 88 12; /* #ea580c orange-600 */
+  --ec-sidebar-active-text: 255 255 255; /* #ffffff */
+  --ec-sidebar-hover-bg: 234 88 12; /* #ea580c orange-600 */
+
+  /* Nested sidebar content */
+  --ec-content-bg: 255 255 255; /* #ffffff */
+  --ec-content-text: 23 23 23; /* #171717 neutral-900 */
+  --ec-content-text-muted: 82 82 82; /* #525252 neutral-600 */
+  --ec-content-text-secondary: 115 115 115; /* #737373 neutral-500 */
+  --ec-content-border: 229 229 229; /* #e5e5e5 neutral-200 */
+  --ec-content-hover: 250 250 250; /* #fafafa neutral-50 */
+  --ec-content-active: 255 237 213; /* #ffedd5 orange-100 */
+
+  /* Input fields */
+  --ec-input-bg: 255 255 255; /* #ffffff */
+  --ec-input-border: 212 212 212; /* #d4d4d4 neutral-300 */
+  --ec-input-text: 23 23 23; /* #171717 neutral-900 */
+  --ec-input-placeholder: 163 163 163; /* #a3a3a3 neutral-400 */
+
+  /* Group headers */
+  --ec-group-icon-bg: 255 237 213; /* #ffedd5 orange-100 */
+  --ec-group-icon-text: 154 52 18; /* #9a3412 orange-800 */
+
+  /* Main content/docs area */
+  --ec-page-bg: 255 255 255; /* #ffffff */
+  --ec-page-text: 23 23 23; /* #171717 neutral-900 */
+  --ec-page-text-muted: 82 82 82; /* #525252 neutral-600 */
+  --ec-page-border: 229 229 229; /* #e5e5e5 neutral-200 */
+
+  /* Card/elevated surfaces */
+  --ec-card-bg: 255 255 255; /* #ffffff */
+
+  /* Code blocks */
+  --ec-code-bg: 250 250 250; /* #fafafa */
+
+  /* Badge colors - sunset theme */
+  --ec-badge-domain-bg: 254 249 195; /* yellow-100 */
+  --ec-badge-domain-text: 161 98 7; /* yellow-700 */
+  --ec-badge-service-bg: 252 231 243; /* pink-100 */
+  --ec-badge-service-text: 190 24 93; /* pink-700 */
+  --ec-badge-event-bg: 255 237 213; /* orange-100 */
+  --ec-badge-event-text: 154 52 18; /* orange-800 */
+  --ec-badge-command-bg: 219 234 254; /* blue-100 */
+  --ec-badge-command-text: 30 64 175; /* blue-800 */
+  --ec-badge-query-bg: 207 250 254; /* cyan-100 */
+  --ec-badge-query-text: 21 94 117; /* cyan-800 */
+  --ec-badge-message-bg: 224 231 255; /* indigo-100 */
+  --ec-badge-message-text: 67 56 202; /* indigo-700 */
+  --ec-badge-design-bg: 255 237 213; /* orange-100 */
+  --ec-badge-design-text: 234 88 12; /* orange-600 */
+  --ec-badge-channel-bg: 224 231 255; /* indigo-100 */
+  --ec-badge-channel-text: 67 56 202; /* indigo-700 */
+  --ec-badge-default-bg: 255 247 237; /* orange-50 */
+  --ec-badge-default-text: 82 82 82; /* neutral-600 */
+}
+
+/* Sunset Dark Mode */
+:root[data-catalog-theme="sunset"][data-theme="dark"] {
+  /* Header - warm dark */
+  --ec-header-bg: 23 23 23; /* #171717 neutral-900 */
+  --ec-header-text: 245 245 245; /* #f5f5f5 neutral-100 */
+  --ec-header-border: 38 38 38; /* #262626 neutral-800 */
+
+  /* Accent colors - sunset orange for dark */
+  --ec-accent: 251 146 60; /* #fb923c (orange-400) */
+  --ec-accent-hover: 249 115 22; /* #f97316 (orange-500) */
+  --ec-accent-subtle: 154 52 18 / 0.3; /* orange-800/30 */
+  --ec-accent-text: 253 186 116; /* #fdba74 (orange-300) */
+  --ec-accent-gradient-from: 251 146 60; /* #fb923c (orange-400) */
+  --ec-accent-gradient-to: 249 115 22; /* #f97316 (orange-500) */
+
+  /* Buttons */
+  --ec-button-bg: 249 115 22; /* #f97316 orange-500 */
+  --ec-button-bg-hover: 251 146 60; /* #fb923c orange-400 */
+  --ec-button-text: 255 255 255; /* #ffffff */
+
+  /* Dropdowns & menus */
+  --ec-dropdown-bg: 23 23 23; /* #171717 */
+  --ec-dropdown-text: 212 212 212; /* #d4d4d4 */
+  --ec-dropdown-hover: 38 38 38; /* #262626 */
+  --ec-dropdown-border: 64 64 64; /* #404040 */
+
+  /* Icons */
+  --ec-icon-color: 163 163 163; /* #a3a3a3 */
+  --ec-icon-hover: 253 186 116; /* #fdba74 orange-300 */
+
+  /* Sidebar / Vertical Nav */
+  --ec-sidebar-bg: 10 10 10; /* #0a0a0a neutral-950 */
+  --ec-sidebar-bg-gradient: 10 10 10; /* #0a0a0a */
+  --ec-sidebar-border: 38 38 38; /* #262626 */
+  --ec-sidebar-text: 163 163 163; /* #a3a3a3 */
+  --ec-sidebar-active-bg: 249 115 22; /* #f97316 orange-500 */
+  --ec-sidebar-active-text: 255 255 255; /* #ffffff */
+  --ec-sidebar-hover-bg: 38 38 38; /* #262626 */
+
+  /* Nested sidebar content */
+  --ec-content-bg: 10 10 10; /* #0a0a0a */
+  --ec-content-text: 245 245 245; /* #f5f5f5 */
+  --ec-content-text-muted: 163 163 163; /* #a3a3a3 */
+  --ec-content-text-secondary: 163 163 163; /* #a3a3a3 */
+  --ec-content-border: 38 38 38; /* #262626 */
+  --ec-content-hover: 23 23 23; /* #171717 */
+  --ec-content-active: 38 38 38; /* #262626 */
+
+  /* Input fields */
+  --ec-input-bg: 23 23 23; /* #171717 */
+  --ec-input-border: 64 64 64; /* #404040 */
+  --ec-input-text: 245 245 245; /* #f5f5f5 */
+  --ec-input-placeholder: 115 115 115; /* #737373 */
+
+  /* Group headers */
+  --ec-group-icon-bg: 38 38 38; /* #262626 */
+  --ec-group-icon-text: 253 186 116; /* #fdba74 orange-300 */
+
+  /* Main content/docs area */
+  --ec-page-bg: 10 10 10; /* #0a0a0a */
+  --ec-page-text: 245 245 245; /* #f5f5f5 */
+  --ec-page-text-muted: 163 163 163; /* #a3a3a3 */
+  --ec-page-border: 38 38 38; /* #262626 */
+
+  /* Card/elevated surfaces */
+  --ec-card-bg: 10 10 10; /* #0a0a0a */
+
+  /* Code blocks */
+  --ec-code-bg: 23 23 23; /* #171717 */
+
+  /* Badge colors - sunset dark */
+  --ec-badge-domain-bg: 113 63 18 / 0.3; /* yellow-900/30 */
+  --ec-badge-domain-text: 253 224 71; /* yellow-300 */
+  --ec-badge-service-bg: 131 24 67 / 0.3; /* pink-900/30 */
+  --ec-badge-service-text: 249 168 212; /* pink-300 */
+  --ec-badge-event-bg: 124 45 18 / 0.3; /* orange-900/30 */
+  --ec-badge-event-text: 253 186 116; /* orange-300 */
+  --ec-badge-command-bg: 30 64 175 / 0.3; /* blue-800/30 */
+  --ec-badge-command-text: 147 197 253; /* blue-300 */
+  --ec-badge-query-bg: 21 94 117 / 0.3; /* cyan-800/30 */
+  --ec-badge-query-text: 103 232 249; /* cyan-300 */
+  --ec-badge-message-bg: 49 46 129 / 0.3; /* indigo-900/30 */
+  --ec-badge-message-text: 165 180 252; /* indigo-300 */
+  --ec-badge-design-bg: 124 45 18 / 0.3; /* orange-900/30 */
+  --ec-badge-design-text: 253 186 116; /* orange-300 */
+  --ec-badge-channel-bg: 49 46 129 / 0.3; /* indigo-900/30 */
+  --ec-badge-channel-text: 165 180 252; /* indigo-300 */
+  --ec-badge-default-bg: 64 64 64 / 0.3; /* neutral-700/30 */
+  --ec-badge-default-text: 212 212 212; /* neutral-300 */
+}
+
+/* Sunset theme prose overrides */
+:root[data-catalog-theme="sunset"][data-theme="dark"] .prose {
+  --tw-prose-body: rgb(163 163 163); /* neutral-400 */
+  --tw-prose-headings: rgb(245 245 245); /* neutral-100 */
+  --tw-prose-lead: rgb(115 115 115); /* neutral-500 */
+  --tw-prose-links: rgb(251 146 60); /* orange-400 */
+  --tw-prose-bold: rgb(245 245 245); /* neutral-100 */
+  --tw-prose-counters: rgb(115 115 115); /* neutral-500 */
+  --tw-prose-bullets: rgb(82 82 82); /* neutral-600 */
+  --tw-prose-hr: rgb(38 38 38); /* neutral-800 */
+  --tw-prose-quotes: rgb(245 245 245); /* neutral-100 */
+  --tw-prose-quote-borders: rgb(64 64 64); /* neutral-700 */
+  --tw-prose-captions: rgb(115 115 115); /* neutral-500 */
+  --tw-prose-code: rgb(245 245 245); /* neutral-100 */
+  --tw-prose-pre-code: rgb(163 163 163); /* neutral-400 */
+  --tw-prose-pre-bg: rgb(23 23 23); /* neutral-900 */
+  --tw-prose-th-borders: rgb(64 64 64); /* neutral-700 */
+  --tw-prose-td-borders: rgb(38 38 38); /* neutral-800 */
+}
+
+:root[data-catalog-theme="sunset"][data-theme="dark"] .prose code {
+  background-color: rgb(38 38 38); /* neutral-800 */
+}
+
+:root[data-catalog-theme="sunset"][data-theme="dark"] .prose pre {
+  background-color: rgb(23 23 23); /* neutral-900 */
+  border: 1px solid rgb(38 38 38); /* neutral-800 */
+}
+
+:root[data-catalog-theme="sunset"][data-theme="dark"] .prose a {
+  color: rgb(251 146 60); /* orange-400 */
+}
+
+:root[data-catalog-theme="sunset"][data-theme="dark"] .prose a:hover {
+  color: rgb(253 186 116); /* orange-300 */
+}

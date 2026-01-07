@@ -20,13 +20,13 @@ export const columns = (tableConfiguration: TableConfiguration) => [
           href={buildUrl(`/docs/${messageRaw.collection}/${messageRaw.data.id}/${messageRaw.data.version}`)}
           className="group inline-flex items-center"
         >
-          <span className="inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-yellow-300 hover:bg-yellow-50 transition-colors">
+          <span className="inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-yellow-400 dark:hover:border-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-500/10 transition-colors">
             <span className="flex items-center justify-center w-6 h-6 bg-yellow-500 rounded-l-md">
               <RectangleGroupIcon className="h-3 w-3 text-white" />
             </span>
-            <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">
+            <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">
               {messageRaw.data.name}
-              <span className="text-gray-400 ml-1">v{messageRaw.data.version}</span>
+              <span className="text-[rgb(var(--ec-icon-color))] ml-1">v{messageRaw.data.version}</span>
             </span>
           </span>
         </a>
@@ -46,7 +46,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
       const isDraft = info.row.original.data.draft;
       const displayText = `${summary || ''}${isDraft ? ' (Draft)' : ''}`;
       return (
-        <span className="text-sm text-gray-600 line-clamp-2" title={displayText}>
+        <span className="text-sm text-[rgb(var(--ec-page-text-muted))] line-clamp-2" title={displayText}>
           {displayText}
         </span>
       );
@@ -70,7 +70,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
 
       if (services?.length === 0 || !services)
         return (
-          <span className="inline-flex items-center px-2 py-1 text-xs text-gray-400 bg-gray-50 rounded-md border border-gray-100">
+          <span className="inline-flex items-center px-2 py-1 text-xs text-[rgb(var(--ec-icon-color))] bg-[rgb(var(--ec-content-hover))] rounded-md border border-[rgb(var(--ec-page-border))]">
             No services
           </span>
         );
@@ -86,19 +86,19 @@ export const columns = (tableConfiguration: TableConfiguration) => [
               href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}`)}
               className="group inline-flex items-center"
             >
-              <span className="inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-pink-300 hover:bg-pink-50 transition-colors">
+              <span className="inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-pink-400 dark:hover:border-pink-500 hover:bg-pink-50 dark:hover:bg-pink-500/10 transition-colors">
                 <span className="flex items-center justify-center w-6 h-6 bg-pink-500 rounded-l-md">
                   <ServerIcon className="h-3 w-3 text-white" />
                 </span>
-                <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">
+                <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">
                   {service.data.name}
-                  <span className="text-gray-400 ml-1">v{service.data.version}</span>
+                  <span className="text-[rgb(var(--ec-icon-color))] ml-1">v{service.data.version}</span>
                 </span>
               </span>
             </a>
           ))}
           {hiddenCount > 0 && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-gray-500 hover:text-gray-700 text-left">
+            <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left">
               {isExpanded ? 'Show less' : `+${hiddenCount} more`}
             </button>
           )}
@@ -116,13 +116,13 @@ export const columns = (tableConfiguration: TableConfiguration) => [
       return (
         <div className="flex items-center gap-2">
           <a
-            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap"
+            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))] rounded-md hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] transition-colors whitespace-nowrap"
             href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
           >
             Docs
           </a>
           <a
-            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap"
+            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))] rounded-md hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] transition-colors whitespace-nowrap"
             href={buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`)}
           >
             Visualiser

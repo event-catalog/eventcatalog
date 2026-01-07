@@ -83,7 +83,7 @@ const badges = doc?.badges || [];
 <VerticalSideBarLayout title={doc.title || 'Documentation'} showNestedSideBar={false}>
   <div class="flex w-full" data-pagefind-body data-pagefind-meta={`title:${doc.title}`}>
     <!-- Left Sidebar Navigation -->
-    <aside class="sidebar-transition overflow-y-auto bg-white border-r border-gray-100 w-80 fixed top-16 bottom-0 z-10">
+    <aside class="sidebar-transition overflow-y-auto bg-[rgb(var(--ec-page-bg))] border-r border-[rgb(var(--ec-page-border))] w-80 fixed top-16 bottom-0 z-10">
       <CustomDocsNav />
     </aside>
 
@@ -92,10 +92,10 @@ const badges = doc?.badges || [];
       class="sidebar-transition w-full max-h-content ml-[22em] md:ml-[21em] lg:mr-2 2xl:mr-2 2xl:ml-[22em] pr-2 overflow-y-auto"
     >
       <div class="max-w-none mx-auto px-4 py-10">
-        <div class="border-b border-gray-200 flex justify-between items-start md:pb-6">
+        <div class="border-b border-[rgb(var(--ec-page-border))] flex justify-between items-start md:pb-6">
           <div>
-            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-black">{doc.title}</h2>
-            <p class="text-lg pt-2 text-gray-500 font-light">{doc.summary}</p>
+            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{doc.title}</h2>
+            <p class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{doc.summary}</p>
             {
               badges && (
                 <div class="flex flex-wrap pt-4">
@@ -148,16 +148,16 @@ const badges = doc?.badges || [];
         }
 
         <!-- Previous / Next Navigation -->
-        <div class="py-8 border-t border-gray-200 mt-8">
+        <div class="py-8 border-t border-[rgb(var(--ec-page-border))] mt-8">
           <div class="flex flex-col sm:flex-row justify-between w-full gap-4">
             {
               prev && (
                 <a
                   href={buildUrl(`/docs/custom/${prev.slug}`)}
-                  class="group flex flex-col border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:bg-gray-50 transition-colors w-full sm:w-1/2"
+                  class="group flex flex-col border border-[rgb(var(--ec-page-border))] rounded-lg p-4 hover:border-[rgb(var(--ec-content-text-muted))] hover:bg-[rgb(var(--ec-content-hover))] transition-colors w-full sm:w-1/2"
                 >
-                  <span class="text-sm text-gray-500 mb-1">Previous</span>
-                  <span class="font-medium group-hover:text-primary-600 transition-colors">{prev.label}</span>
+                  <span class="text-sm text-[rgb(var(--ec-page-text-muted))] mb-1">Previous</span>
+                  <span class="font-medium text-[rgb(var(--ec-page-text))] group-hover:text-primary-600 transition-colors">{prev.label}</span>
                 </a>
               )
             }
@@ -168,10 +168,10 @@ const badges = doc?.badges || [];
               next && (
                 <a
                   href={buildUrl(`/docs/custom/${next.slug}`)}
-                  class="group flex flex-col items-end text-right border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:bg-gray-50 transition-colors w-full sm:w-1/2"
+                  class="group flex flex-col items-end text-right border border-[rgb(var(--ec-page-border))] rounded-lg p-4 hover:border-[rgb(var(--ec-content-text-muted))] hover:bg-[rgb(var(--ec-content-hover))] transition-colors w-full sm:w-1/2"
                 >
-                  <span class="text-sm text-gray-500 mb-1">Next</span>
-                  <span class="font-medium group-hover:text-primary-600 transition-colors">{next.label}</span>
+                  <span class="text-sm text-[rgb(var(--ec-page-text-muted))] mb-1">Next</span>
+                  <span class="font-medium text-[rgb(var(--ec-page-text))] group-hover:text-primary-600 transition-colors">{next.label}</span>
                 </a>
               )
             }
@@ -182,7 +182,7 @@ const badges = doc?.badges || [];
 
     <!-- Right Sidebar TOC -->
     <aside
-      class="hidden lg:block sticky top-0 pb-10 w-80 overflow-y-auto border-l border-gray-100 bg-white p-6 flex-shrink-0 py-2"
+      class="hidden lg:block sticky top-0 pb-10 w-80 overflow-y-auto border-l border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-page-bg))] p-6 flex-shrink-0 py-2"
     >
       <div class="py-4">
         <div>
@@ -197,7 +197,7 @@ const badges = doc?.badges || [];
             )
           }
         </div>
-        <h3 class="text-sm text-black font-semibold group-data-[hover]:text-black/80 capitalize flex items-center gap-2">
+        <h3 class="text-sm text-[rgb(var(--ec-page-text))] font-semibold capitalize flex items-center gap-2">
           <AlignLeftIcon className="w-4 h-4" />
           On this page
         </h3>
@@ -210,7 +210,7 @@ const badges = doc?.badges || [];
               return (
                 <a
                   href={`#${heading.slug}`}
-                  class={`block text-[12px] py-0.5 ${heading.depth === 1 ? 'font-light' : ''} text-gray-400 hover:text-primary-600`}
+                  class={`block text-[12px] py-0.5 ${heading.depth === 1 ? 'font-light' : ''} text-[rgb(var(--ec-page-text-muted))] hover:text-primary-600`}
                   style={`padding-left: ${(heading.depth - 1) * 8}px`}
                 >
                   {heading.text}
@@ -234,6 +234,11 @@ const badges = doc?.badges || [];
     max-width: 350px !important;
     margin: 0;
     /* width: 100px !important; */
+  }
+
+  /* TOC active state - uses accent CSS variable */
+  .toc-active-text {
+    color: rgb(var(--ec-accent));
   }
 </style>
 
@@ -262,14 +267,14 @@ const badges = doc?.badges || [];
       function highlightTocItem(id: string) {
         // Remove active class from all links
         document.querySelectorAll('.active-toc-item').forEach((link) => {
-          link.classList.remove('active-toc-item', 'text-purple-600', 'font-light');
+          link.classList.remove('active-toc-item', 'toc-active-text', 'font-light');
           link.classList.add('text-gray-400');
         });
 
         // Add active class to current link
         const tocLink = document.querySelector(`nav a[href="#${id}"]`);
         if (tocLink) {
-          tocLink.classList.add('active-toc-item', 'text-purple-600', 'font-light');
+          tocLink.classList.add('active-toc-item', 'toc-active-text', 'font-light');
           tocLink.classList.remove('text-gray-400');
 
           // Scroll the highlighted item into view with a small delay to ensure DOM updates first
@@ -389,6 +394,9 @@ const badges = doc?.badges || [];
       }
     }
 
+    // Detect current theme from data-theme attribute
+    const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
+
     mermaid.initialize({
       // fontSize: 2,
       flowchart: {
@@ -399,7 +407,7 @@ const badges = doc?.badges || [];
       startOnLoad: false,
       fontFamily: 'var(--sans-font)',
       // @ts-ignore This works, but TS expects a enum for some reason
-      theme: 'light',
+      theme: currentTheme,
       architecture: {
         useMaxWidth: true,
       },

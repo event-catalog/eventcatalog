@@ -12,21 +12,24 @@ const { id, name, label, class: className, ...attrs } = Astro.props;
 
 <label for={id} class="relative block cursor-pointer select-none pl-5">
   <input id={id} name={name} type="checkbox" class="h-0 w-0 cursor-pointer appearance-none group" {...attrs} />
-  <span class="text-md text-gray-700">{label}</span>
+  <span class="text-md text-[rgb(var(--ec-page-text))]">{label}</span>
 </label>
 
 <style>
   input::before {
-    @apply absolute left-0 top-1/2 block h-4 w-4 -translate-y-1/2 rounded-[4px] border border-gray-300;
+    @apply absolute left-0 top-1/2 block h-4 w-4 -translate-y-1/2 rounded-[4px];
     content: '';
+    border: 1px solid rgb(var(--ec-page-border));
+    background-color: rgb(var(--ec-input-bg));
   }
 
   input:checked::before {
-    @apply bg-purple-600;
+    background-color: rgb(var(--ec-accent));
+    border-color: rgb(var(--ec-accent));
   }
 
   input:focus::before {
-    @apply outline outline-purple-300;
+    outline: 2px solid rgb(var(--ec-accent) / 0.3);
   }
 
   input:checked::after {

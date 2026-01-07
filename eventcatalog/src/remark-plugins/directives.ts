@@ -6,11 +6,11 @@ export function remarkDirectives() {
     visit(tree, (node) => {
       if (node.type === 'containerDirective') {
         const blockTypes = {
-          info: 'bg-blue-50 border-l-4 border-blue-500',
-          warning: 'bg-yellow-50 border-l-4 border-yellow-500',
-          danger: 'bg-red-50 border-l-4 border-red-500',
-          tip: 'bg-green-50 border-l-4 border-green-500',
-          note: 'bg-gray-50 border-l-4 border-gray-500',
+          info: 'bg-blue-50 dark:bg-blue-950/50 border-l-4 border-blue-500 text-blue-700 dark:text-blue-200',
+          warning: 'bg-yellow-50 dark:bg-yellow-950/50 border-l-4 border-yellow-500 text-yellow-700 dark:text-yellow-200',
+          danger: 'bg-red-50 dark:bg-red-950/50 border-l-4 border-red-500 text-red-700 dark:text-red-200',
+          tip: 'bg-green-50 dark:bg-green-950/50 border-l-4 border-green-500 text-green-700 dark:text-green-200',
+          note: 'bg-gray-50 dark:bg-gray-950/50 border-l-4 border-gray-500 text-gray-700 dark:text-gray-200',
         };
 
         // Lucide icon paths
@@ -116,7 +116,7 @@ export function remarkDirectives() {
           data: {
             hName: 'div',
             hProperties: {
-              class: 'prose prose-md w-full !max-w-none ',
+              class: 'prose prose-md dark:prose-invert w-full !max-w-none prose-p:my-1 prose-p:text-inherit',
             },
           },
           children: contentChildren,

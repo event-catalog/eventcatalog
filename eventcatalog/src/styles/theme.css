@@ -1,0 +1,255 @@
+/**
+ * EventCatalog Theme CSS Variables
+ *
+ * Override these variables in your eventcatalog.styles.css file to customize the theme.
+ * Example:
+ *   :root[data-theme="light"] {
+ *     --ec-header-bg: #1e293b;
+ *     --ec-primary: #3b82f6;
+ *   }
+ *
+ * Supported themes: light, dark (more can be added)
+ */
+
+/* Default/Light theme */
+:root,
+:root[data-theme="light"] {
+  /* Header */
+  --ec-header-bg: 255 255 255; /* #ffffff */
+  --ec-header-text: 15 23 42; /* #0f172a (slate-900) */
+  --ec-header-border: 226 232 240; /* #e2e8f0 (slate-200) */
+
+  /* Primary brand color */
+  --ec-primary: 168 85 247; /* #a855f7 */
+  --ec-primary-hover: 147 51 234; /* #9333ea */
+
+  /* Accent colors - used for selections, highlights, interactive elements */
+  --ec-accent: 168 85 247; /* #a855f7 (purple-500) */
+  --ec-accent-hover: 147 51 234; /* #9333ea (purple-600) */
+  --ec-accent-subtle: 243 232 255; /* #f3e8ff (purple-100) */
+  --ec-accent-text: 107 33 168; /* #6b21a8 (purple-800) */
+  --ec-accent-gradient-from: 168 85 247; /* #a855f7 (purple-500) */
+  --ec-accent-gradient-to: 126 34 206; /* #7e22ce (purple-700) */
+
+  /* Buttons */
+  --ec-button-bg: 15 23 42; /* #0f172a */
+  --ec-button-bg-hover: 30 41 59; /* #1e293b */
+  --ec-button-text: 255 255 255; /* #ffffff */
+
+  /* Dropdowns & menus */
+  --ec-dropdown-bg: 255 255 255; /* #ffffff */
+  --ec-dropdown-text: 51 65 85; /* #334155 (slate-700) */
+  --ec-dropdown-hover: 248 250 252; /* #f8fafc (slate-50) */
+  --ec-dropdown-border: 226 232 240; /* #e2e8f0 (slate-200) */
+
+  /* Icons */
+  --ec-icon-color: 100 116 139; /* #64748b (slate-500) */
+  --ec-icon-hover: 51 65 85; /* #334155 (slate-700) */
+
+  /* Sidebar / Vertical Nav (icon bar) */
+  --ec-sidebar-bg: 255 255 255; /* #ffffff */
+  --ec-sidebar-bg-gradient: 248 250 252; /* #f8fafc (slate-50) */
+  --ec-sidebar-border: 226 232 240; /* #e2e8f0 (slate-200) */
+  --ec-sidebar-text: 71 85 105; /* #475569 (slate-600) */
+  --ec-sidebar-active-bg: 15 23 42; /* #0f172a */
+  --ec-sidebar-active-text: 255 255 255; /* #ffffff */
+  --ec-sidebar-hover-bg: 15 23 42; /* #0f172a - black on hover like active */
+
+  /* Nested sidebar content */
+  --ec-content-bg: 255 255 255; /* #ffffff */
+  --ec-content-text: 15 23 42; /* #0f172a (slate-900) */
+  --ec-content-text-muted: 100 116 139; /* #64748b (slate-500) */
+  --ec-content-text-secondary: 71 85 105; /* #475569 (slate-600) */
+  --ec-content-border: 226 232 240; /* #e2e8f0 (slate-200) */
+  --ec-content-hover: 248 250 252; /* #f8fafc (slate-50) */
+  --ec-content-active: 245 243 255; /* #f5f3ff (violet-50) */
+
+  /* Input fields */
+  --ec-input-bg: 248 250 252; /* #f8fafc (slate-50) */
+  --ec-input-border: 226 232 240; /* #e2e8f0 (slate-200) */
+  --ec-input-text: 15 23 42; /* #0f172a */
+  --ec-input-placeholder: 148 163 184; /* #94a3b8 (slate-400) */
+
+  /* Group headers */
+  --ec-group-icon-bg: 241 245 249; /* #f1f5f9 (slate-100) */
+  --ec-group-icon-text: 71 85 105; /* #475569 (slate-600) */
+
+  /* Main content/docs area */
+  --ec-page-bg: 255 255 255; /* #ffffff */
+  --ec-page-text: 15 23 42; /* #0f172a */
+  --ec-page-text-muted: 100 116 139; /* #64748b */
+  --ec-page-border: 226 232 240; /* #e2e8f0 */
+
+  /* Card/elevated surfaces */
+  --ec-card-bg: 255 255 255; /* #ffffff */
+
+  /* Code blocks */
+  --ec-code-bg: 250 250 250; /* #fafafa - light for light mode */
+
+  /* Badge colors - light mode */
+  --ec-badge-domain-bg: 254 249 195; /* yellow-100 */
+  --ec-badge-domain-text: 161 98 7; /* yellow-700 */
+  --ec-badge-service-bg: 252 231 243; /* pink-100 */
+  --ec-badge-service-text: 190 24 93; /* pink-700 */
+  --ec-badge-event-bg: 254 243 199; /* amber-100 */
+  --ec-badge-event-text: 180 83 9; /* amber-700 */
+  --ec-badge-command-bg: 252 231 243; /* pink-100 */
+  --ec-badge-command-text: 190 24 93; /* pink-700 */
+  --ec-badge-query-bg: 243 232 255; /* purple-100 */
+  --ec-badge-query-text: 126 34 206; /* purple-700 */
+  --ec-badge-message-bg: 224 231 255; /* indigo-100 */
+  --ec-badge-message-text: 67 56 202; /* indigo-700 */
+  --ec-badge-design-bg: 204 251 241; /* teal-100 */
+  --ec-badge-design-text: 15 118 110; /* teal-700 */
+  --ec-badge-channel-bg: 224 231 255; /* indigo-100 */
+  --ec-badge-channel-text: 67 56 202; /* indigo-700 */
+  --ec-badge-default-bg: 243 244 246; /* gray-100 */
+  --ec-badge-default-text: 75 85 99; /* gray-600 */
+}
+
+/* Dark theme */
+:root[data-theme="dark"] {
+  /*
+   * Modern dark theme inspired by Mintlify
+   * Uses deep blacks with subtle cool undertones for a refined look
+   */
+
+  /* Header - deep black with cool border */
+  --ec-header-bg: 13 17 23; /* #0d1117 - GitHub dark bg */
+  --ec-header-text: 240 246 252; /* #f0f6fc - soft white */
+  --ec-header-border: 33 38 45; /* #21262d - subtle border */
+
+  /* Accent colors - used for selections, highlights, interactive elements */
+  --ec-accent: 192 132 252; /* #c084fc (purple-400) */
+  --ec-accent-hover: 168 85 247; /* #a855f7 (purple-500) */
+  --ec-accent-subtle: 88 28 135 / 0.3; /* purple-900/30 */
+  --ec-accent-text: 216 180 254; /* #d8b4fe (purple-300) */
+  --ec-accent-gradient-from: 192 132 252; /* #c084fc (purple-400) */
+  --ec-accent-gradient-to: 168 85 247; /* #a855f7 (purple-500) */
+
+  /* Buttons - dark elevated surface with light text */
+  --ec-button-bg: 48 54 61; /* #30363d - elevated dark */
+  --ec-button-bg-hover: 55 62 71; /* #373e47 - slightly lighter on hover */
+  --ec-button-text: 240 246 252; /* #f0f6fc - light text */
+
+  /* Dropdowns & menus - elevated surface */
+  --ec-dropdown-bg: 22 27 34; /* #161b22 - slightly elevated */
+  --ec-dropdown-text: 201 209 217; /* #c9d1d9 */
+  --ec-dropdown-hover: 33 38 45; /* #21262d */
+  --ec-dropdown-border: 48 54 61; /* #30363d */
+
+  /* Icons - muted gray that pops on hover */
+  --ec-icon-color: 139 148 158; /* #8b949e */
+  --ec-icon-hover: 240 246 252; /* #f0f6fc */
+
+  /* Sidebar / Vertical Nav (icon bar) - darkest surface */
+  --ec-sidebar-bg: 13 17 23; /* #0d1117 */
+  --ec-sidebar-bg-gradient: 22 27 34; /* #161b22 */
+  --ec-sidebar-border: 33 38 45; /* #21262d */
+  --ec-sidebar-text: 139 148 158; /* #8b949e */
+  --ec-sidebar-active-bg: 48 54 61; /* #30363d - subtle highlight */
+  --ec-sidebar-active-text: 240 246 252; /* #f0f6fc */
+  --ec-sidebar-hover-bg: 33 38 45; /* #21262d */
+
+  /* Nested sidebar content */
+  --ec-content-bg: 13 17 23; /* #0d1117 */
+  --ec-content-text: 201 209 217; /* #c9d1d9 - softer than pure white */
+  --ec-content-text-muted: 139 148 158; /* #8b949e */
+  --ec-content-text-secondary: 139 148 158; /* #8b949e - muted for sidebar children */
+  --ec-content-border: 33 38 45; /* #21262d */
+  --ec-content-hover: 22 27 34; /* #161b22 */
+  --ec-content-active: 33 38 45; /* #21262d */
+
+  /* Input fields - subtle inset look */
+  --ec-input-bg: 13 17 23; /* #0d1117 */
+  --ec-input-border: 48 54 61; /* #30363d */
+  --ec-input-text: 240 246 252; /* #f0f6fc */
+  --ec-input-placeholder: 110 118 129; /* #6e7681 */
+
+  /* Group headers */
+  --ec-group-icon-bg: 33 38 45; /* #21262d */
+  --ec-group-icon-text: 201 209 217; /* #c9d1d9 */
+
+  /* Main content/docs area - base dark surface */
+  --ec-page-bg: 13 17 23; /* #0d1117 */
+  --ec-page-text: 240 246 252; /* #f0f6fc */
+  --ec-page-text-muted: 139 148 158; /* #8b949e */
+  --ec-page-border: 33 38 45; /* #21262d */
+
+  /* Card/elevated surfaces - for depth */
+  --ec-card-bg: 22 27 34; /* #161b22 */
+
+  /* Code blocks */
+  --ec-code-bg: 22 27 34; /* #161b22 - elevated dark surface */
+
+  /* Badge colors - dark mode (subtle with good contrast) */
+  --ec-badge-domain-bg: 113 63 18 / 0.3; /* yellow-900/30 */
+  --ec-badge-domain-text: 253 224 71; /* yellow-300 */
+  --ec-badge-service-bg: 131 24 67 / 0.3; /* pink-900/30 */
+  --ec-badge-service-text: 249 168 212; /* pink-300 */
+  --ec-badge-event-bg: 120 53 15 / 0.3; /* amber-900/30 */
+  --ec-badge-event-text: 252 211 77; /* amber-300 */
+  --ec-badge-command-bg: 131 24 67 / 0.3; /* pink-900/30 */
+  --ec-badge-command-text: 249 168 212; /* pink-300 */
+  --ec-badge-query-bg: 88 28 135 / 0.3; /* purple-900/30 */
+  --ec-badge-query-text: 216 180 254; /* purple-300 */
+  --ec-badge-message-bg: 49 46 129 / 0.3; /* indigo-900/30 */
+  --ec-badge-message-text: 165 180 252; /* indigo-300 */
+  --ec-badge-design-bg: 17 94 89 / 0.3; /* teal-900/30 */
+  --ec-badge-design-text: 94 234 212; /* teal-300 */
+  --ec-badge-channel-bg: 49 46 129 / 0.3; /* indigo-900/30 */
+  --ec-badge-channel-text: 165 180 252; /* indigo-300 */
+  --ec-badge-default-bg: 63 63 70 / 0.3; /* zinc-700/30 */
+  --ec-badge-default-text: 212 212 216; /* zinc-300 */
+}
+
+/* Dark mode prose overrides for documentation content */
+:root[data-theme="dark"] .prose {
+  --tw-prose-body: rgb(139 148 158); /* #8b949e - muted body text */
+  --tw-prose-headings: rgb(201 209 217); /* #c9d1d9 - soft white headings */
+  --tw-prose-lead: rgb(110 118 129); /* #6e7681 */
+  --tw-prose-links: rgb(168 85 247); /* purple-500 */
+  --tw-prose-bold: rgb(201 209 217); /* #c9d1d9 */
+  --tw-prose-counters: rgb(110 118 129); /* #6e7681 */
+  --tw-prose-bullets: rgb(72 79 88); /* #484f58 */
+  --tw-prose-hr: rgb(33 38 45); /* #21262d */
+  --tw-prose-quotes: rgb(201 209 217); /* #c9d1d9 */
+  --tw-prose-quote-borders: rgb(48 54 61); /* #30363d */
+  --tw-prose-captions: rgb(110 118 129); /* #6e7681 */
+  --tw-prose-code: rgb(201 209 217); /* #c9d1d9 */
+  --tw-prose-pre-code: rgb(139 148 158); /* #8b949e */
+  --tw-prose-pre-bg: rgb(22 27 34); /* #161b22 */
+  --tw-prose-th-borders: rgb(48 54 61); /* #30363d */
+  --tw-prose-td-borders: rgb(33 38 45); /* #21262d */
+}
+
+:root[data-theme="dark"] .prose code {
+  background-color: rgb(33 38 45); /* #21262d */
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.375rem;
+}
+
+:root[data-theme="dark"] .prose pre {
+  background-color: rgb(22 27 34); /* #161b22 */
+  border: 1px solid rgb(33 38 45); /* #21262d */
+}
+
+:root[data-theme="dark"] .prose a {
+  color: rgb(168 85 247); /* purple-500 */
+}
+
+:root[data-theme="dark"] .prose a:hover {
+  color: rgb(192 132 252); /* purple-400 */
+}
+
+:root[data-theme="dark"] .prose strong {
+  color: rgb(240 246 252); /* #f0f6fc */
+}
+
+:root[data-theme="dark"] .prose table th {
+  color: rgb(240 246 252); /* #f0f6fc */
+}
+
+:root[data-theme="dark"] .prose table td {
+  border-color: rgb(33 38 45); /* #21262d */
+}

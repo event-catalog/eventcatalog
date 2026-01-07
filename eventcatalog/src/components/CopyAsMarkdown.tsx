@@ -27,17 +27,17 @@ const MenuItemContent = ({
   } else {
     // It must be an ElementType (component constructor like Lucide icon)
     const IconComponent = iconProp as React.ElementType;
-    iconElement = <IconComponent className="w-5 h-5 text-gray-500" />;
+    iconElement = <IconComponent className="w-5 h-5 text-[rgb(var(--ec-icon-color))]" />;
   }
 
   return (
     <div className="flex items-center gap-3 px-3 py-2 text-sm">
-      <div className="p-1 border border-gray-200 rounded">{iconElement}</div>
+      <div className="p-1 border border-[rgb(var(--ec-dropdown-border))] rounded">{iconElement}</div>
       <div className="flex-1">
-        <div className="font-medium text-gray-800">{title}</div>
-        <div className="text-xs text-gray-500">{description}</div>
+        <div className="font-medium text-[rgb(var(--ec-dropdown-text))]">{title}</div>
+        <div className="text-xs text-[rgb(var(--ec-content-text-muted))]">{description}</div>
       </div>
-      {external && <ExternalLink className="w-4 h-4 text-gray-400" />}
+      {external && <ExternalLink className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />}
     </div>
   );
 };
@@ -199,12 +199,12 @@ export function CopyPageMenu({
   return (
     <DropdownMenu.Root>
       {/* Container for the split button */}
-      <div className="inline-flex rounded-md shadow-sm border border-gray-300">
+      <div className="inline-flex rounded-md shadow-sm border border-[rgb(var(--ec-dropdown-border))]">
         {/* Left Button: Default Action */}
         <button
           type="button"
           onClick={handleDefaultAction}
-          className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white rounded-l-md hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="inline-flex items-center justify-center gap-1 px-3 py-1.5 text-sm font-medium text-[rgb(var(--ec-dropdown-text))] bg-[rgb(var(--ec-dropdown-bg))] rounded-l-md hover:bg-[rgb(var(--ec-dropdown-hover))] focus:z-10 focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ec-accent))]"
         >
           <defaultAction.icon className="w-4 h-4" />
           {buttonText}
@@ -213,7 +213,7 @@ export function CopyPageMenu({
         <DropdownMenu.Trigger asChild>
           <button
             type="button"
-            className="inline-flex items-center justify-center px-1.5 py-1.5 text-sm font-medium text-gray-500 bg-white rounded-r-md border-l border-gray-300 hover:bg-gray-50 focus:z-10 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="inline-flex items-center justify-center px-1.5 py-1.5 text-sm font-medium text-[rgb(var(--ec-icon-color))] bg-[rgb(var(--ec-dropdown-bg))] rounded-r-md border-l border-[rgb(var(--ec-dropdown-border))] hover:bg-[rgb(var(--ec-dropdown-hover))] focus:z-10 focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ec-accent))]"
             aria-label="More options"
           >
             <ChevronDownIcon className="w-4 h-4" />
@@ -223,13 +223,13 @@ export function CopyPageMenu({
 
       {/* Adjust styling for the content dropdown */}
       <DropdownMenu.Content
-        className="w-72 bg-white rounded-lg shadow-lg border border-gray-200 mt-1 py-1"
+        className="w-72 bg-[rgb(var(--ec-dropdown-bg))] rounded-lg shadow-lg border border-[rgb(var(--ec-dropdown-border))] mt-1 py-1"
         sideOffset={5}
         align="end"
       >
         {availableActions.copyMarkdown && (
           <DropdownMenu.Item
-            className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+            className="cursor-pointer hover:bg-[rgb(var(--ec-dropdown-hover))] focus:outline-none focus:bg-[rgb(var(--ec-dropdown-hover))]"
             onSelect={() => copyMarkdownToClipboard()}
           >
             <MenuItemContent icon={Copy} title="Copy page" description="Copy page as Markdown for LLMs" />
@@ -238,7 +238,7 @@ export function CopyPageMenu({
 
         {availableActions.editPage && (
           <DropdownMenu.Item
-            className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+            className="cursor-pointer hover:bg-[rgb(var(--ec-dropdown-hover))] focus:outline-none focus:bg-[rgb(var(--ec-dropdown-hover))]"
             onSelect={() => window.open(editUrl, '_blank')}
           >
             <MenuItemContent
@@ -275,7 +275,7 @@ export function CopyPageMenu({
             return (
               <DropdownMenu.Item
                 key={schema.url}
-                className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+                className="cursor-pointer hover:bg-[rgb(var(--ec-dropdown-hover))] focus:outline-none focus:bg-[rgb(var(--ec-dropdown-hover))]"
                 onSelect={() => copySchemaToClipboard(schema)}
               >
                 <MenuItemContent icon={Icon} title={title} description={`Copy ${type} to clipboard`} />
@@ -285,7 +285,7 @@ export function CopyPageMenu({
 
         {availableActions.viewMarkdown && (
           <DropdownMenu.Item
-            className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+            className="cursor-pointer hover:bg-[rgb(var(--ec-dropdown-hover))] focus:outline-none focus:bg-[rgb(var(--ec-dropdown-hover))]"
             onSelect={() => window.open(markdownUrl, '_blank')}
           >
             <MenuItemContent
@@ -299,7 +299,7 @@ export function CopyPageMenu({
 
         {availableActions.rssFeed && (
           <DropdownMenu.Item
-            className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+            className="cursor-pointer hover:bg-[rgb(var(--ec-dropdown-hover))] focus:outline-none focus:bg-[rgb(var(--ec-dropdown-hover))]"
             onSelect={() => window.open(buildUrl(`/rss/all/rss.xml`), '_blank')}
           >
             <MenuItemContent icon={RssIcon} title="RSS Feed" description="View this page as RSS feed" external={true} />
@@ -307,7 +307,7 @@ export function CopyPageMenu({
         )}
         {availableActions.chat && (
           <DropdownMenu.Item
-            className="cursor-pointer hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
+            className="cursor-pointer hover:bg-[rgb(var(--ec-dropdown-hover))] focus:outline-none focus:bg-[rgb(var(--ec-dropdown-hover))]"
             onSelect={() => window.open(buildUrl(`/chat`) + `?query=${chatQuery}`)}
           >
             <MenuItemContent

@@ -12,7 +12,7 @@ const ChatPanelButton = () => {
         className="flex items-center gap-1.5 px-4 py-1.5 rounded-md bg-white hover:bg-gray-50 ring-1 ring-inset ring-gray-300 shadow-sm transition-colors text-sm ml-[-1px]"
         aria-label="Open AI Assistant"
       >
-        <BookOpen size={14} className="text-purple-500" />
+        <BookOpen size={14} className="text-[rgb(var(--ec-accent))]" />
         <span className="font-light text-gray-600">Ask</span>
       </button>
 

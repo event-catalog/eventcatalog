@@ -46,21 +46,21 @@ const typeIcons: any = {
 };
 
 const typeColors: any = {
-  Domain: 'text-orange-500 bg-orange-50 ring-orange-200',
-  Service: 'text-pink-500 bg-pink-50 ring-pink-200',
-  Event: 'text-orange-500 bg-orange-50 ring-orange-200',
-  Command: 'text-blue-500 bg-blue-50 ring-blue-200',
-  Query: 'text-green-500 bg-green-50 ring-green-200',
-  Entity: 'text-purple-500 bg-purple-50 ring-purple-200',
-  Channel: 'text-indigo-500 bg-indigo-50 ring-indigo-200',
-  Team: 'text-teal-500 bg-teal-50 ring-teal-200',
-  User: 'text-cyan-500 bg-cyan-50 ring-cyan-200',
-  Language: 'text-amber-500 bg-amber-50 ring-amber-200',
-  OpenAPI: 'text-emerald-500 bg-emerald-50 ring-emerald-200',
-  AsyncAPI: 'text-violet-500 bg-violet-50 ring-violet-200',
-  Design: 'text-gray-500 bg-gray-50 ring-gray-200',
-  Container: 'text-indigo-500 bg-indigo-50 ring-indigo-200',
-  default: 'text-gray-500 bg-gray-50 ring-gray-200',
+  Domain: 'text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 ring-orange-200 dark:ring-orange-500/30',
+  Service: 'text-pink-500 dark:text-pink-400 bg-pink-50 dark:bg-pink-500/10 ring-pink-200 dark:ring-pink-500/30',
+  Event: 'text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 ring-orange-200 dark:ring-orange-500/30',
+  Command: 'text-blue-500 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 ring-blue-200 dark:ring-blue-500/30',
+  Query: 'text-green-500 dark:text-green-400 bg-green-50 dark:bg-green-500/10 ring-green-200 dark:ring-green-500/30',
+  Entity: 'text-purple-500 dark:text-purple-400 bg-purple-50 dark:bg-purple-500/10 ring-purple-200 dark:ring-purple-500/30',
+  Channel: 'text-indigo-500 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 ring-indigo-200 dark:ring-indigo-500/30',
+  Team: 'text-teal-500 dark:text-teal-400 bg-teal-50 dark:bg-teal-500/10 ring-teal-200 dark:ring-teal-500/30',
+  User: 'text-cyan-500 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-500/10 ring-cyan-200 dark:ring-cyan-500/30',
+  Language: 'text-amber-500 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 ring-amber-200 dark:ring-amber-500/30',
+  OpenAPI: 'text-emerald-500 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 ring-emerald-200 dark:ring-emerald-500/30',
+  AsyncAPI: 'text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 ring-violet-200 dark:ring-violet-500/30',
+  Design: 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
+  Container: 'text-indigo-500 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 ring-indigo-200 dark:ring-indigo-500/30',
+  default: 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
 };
 
 function classNames(...classes: (string | boolean | undefined)[]) {
@@ -294,7 +294,7 @@ export default function SearchModal() {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-25 transition-opacity backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-black/40 dark:bg-black/60 transition-opacity backdrop-blur-sm" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto p-4 sm:p-6 md:p-20">
@@ -307,7 +307,7 @@ export default function SearchModal() {
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-95"
           >
-            <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-gray-100 overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black ring-opacity-5 transition-all">
+            <Dialog.Panel className="mx-auto max-w-2xl transform divide-y divide-[rgb(var(--ec-page-border))] overflow-hidden rounded-xl bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] shadow-2xl ring-1 ring-black/10 dark:ring-white/10 transition-all">
               <Combobox
                 onChange={(item: any) => {
                   if (item?.url) {
@@ -316,14 +316,14 @@ export default function SearchModal() {
                   }
                 }}
               >
-                <div className="relative border-b border-gray-100">
+                <div className="relative border-b border-[rgb(var(--ec-page-border))]">
                   <MagnifyingGlassIcon
-                    className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-gray-400"
+                    className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-[rgb(var(--ec-icon-color))]"
                     aria-hidden="true"
                   />
                   <Combobox.Input
                     ref={inputRef}
-                    className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm focus:outline-none"
+                    className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-[rgb(var(--ec-page-text))] placeholder:text-[rgb(var(--ec-icon-color))] focus:ring-0 sm:text-sm focus:outline-none"
                     placeholder="Search..."
                     onChange={(event) => setQuery(event.target.value)}
                     value={query}
@@ -333,14 +333,14 @@ export default function SearchModal() {
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto no-scrollbar border-b border-gray-100">
+                <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto no-scrollbar border-b border-[rgb(var(--ec-page-border))]">
                   {filters.map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveFilter(tab.id)}
                       className={classNames(
                         'px-3 py-1 text-xs font-medium rounded-full transition-colors whitespace-nowrap',
-                        activeFilter === tab.id ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        activeFilter === tab.id ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent-text))]' : 'bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-active))]'
                       )}
                     >
                       {tab.name}
@@ -352,7 +352,7 @@ export default function SearchModal() {
                   <>
                     {query === '' && favorites.length > 0 && (
                       <div className="px-6 pt-3 pb-2">
-                        <p className="text-xs text-gray-500">Favourites</p>
+                        <p className="text-xs text-[rgb(var(--ec-page-text-muted))]">Favourites</p>
                       </div>
                     )}
                     <Combobox.Options static className="max-h-96 scroll-py-3 overflow-y-auto p-3">
@@ -367,7 +367,7 @@ export default function SearchModal() {
                             key={item.id}
                             value={item}
                             className={({ active }) =>
-                              classNames('flex cursor-default select-none rounded-xl p-3 group', active && 'bg-gray-100')
+                              classNames('flex cursor-default select-none rounded-xl p-3 group', active && 'bg-[rgb(var(--ec-content-active))]')
                             }
                           >
                             {({ active }) => (
@@ -381,17 +381,17 @@ export default function SearchModal() {
                                   <Icon className="h-6 w-6" aria-hidden="true" />
                                 </div>
                                 <div className="ml-4 flex-auto min-w-0">
-                                  <p className={classNames('text-sm font-medium', active ? 'text-gray-900' : 'text-gray-700')}>
+                                  <p className={classNames('text-sm font-medium', active ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text))]')}>
                                     {item.name}
                                   </p>
                                   <div className="flex items-center gap-2">
                                     <p
-                                      className={classNames('text-sm flex-shrink-0', active ? 'text-gray-700' : 'text-gray-500')}
+                                      className={classNames('text-sm flex-shrink-0', active ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text-muted))]')}
                                     >
                                       {item.type}
                                     </p>
                                     {item.rawNode.summary && (
-                                      <p className={classNames('text-sm truncate', active ? 'text-gray-600' : 'text-gray-400')}>
+                                      <p className={classNames('text-sm truncate', active ? 'text-[rgb(var(--ec-page-text-muted))]' : 'text-[rgb(var(--ec-icon-color))]')}>
                                         • {item.rawNode.summary}
                                       </p>
                                     )}
@@ -408,12 +408,12 @@ export default function SearchModal() {
                                       'p-1 rounded-md transition-colors mr-2',
                                       isFavorite
                                         ? 'text-amber-400 hover:text-amber-500'
-                                        : 'text-gray-300 opacity-0 group-hover:opacity-100 hover:text-amber-400'
+                                        : 'text-[rgb(var(--ec-icon-color))] opacity-0 group-hover:opacity-100 hover:text-amber-400'
                                     )}
                                   >
                                     {isFavorite ? <StarIconSolid className="h-5 w-5" /> : <StarIcon className="h-5 w-5" />}
                                   </button>
-                                  {active && <ArrowRightIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />}
+                                  {active && <ArrowRightIcon className="h-5 w-5 text-[rgb(var(--ec-icon-color))]" aria-hidden="true" />}
                                 </div>
                               </>
                             )}
@@ -426,22 +426,22 @@ export default function SearchModal() {
 
                 {query !== '' && filteredItems.length === 0 && (
                   <div className="py-14 px-6 text-center text-sm sm:px-14">
-                    <ExclamationCircleIcon type="outline" name="exclamation-circle" className="mx-auto h-6 w-6 text-gray-400" />
-                    <p className="mt-4 font-semibold text-gray-900">No results found</p>
-                    <p className="mt-2 text-gray-500">No components found for this search term. Please try again.</p>
+                    <ExclamationCircleIcon type="outline" name="exclamation-circle" className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))]" />
+                    <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">No results found</p>
+                    <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">No components found for this search term. Please try again.</p>
                   </div>
                 )}
 
                 {query === '' && filteredItems.length === 0 && (
                   <div className="py-14 px-6 text-center text-sm sm:px-14">
-                    <MagnifyingGlassIcon className="mx-auto h-6 w-6 text-gray-400" />
-                    <p className="mt-4 font-semibold text-gray-900">Search for anything</p>
-                    <p className="mt-2 text-gray-500">Search for domains, services, events, commands, queries and more.</p>
+                    <MagnifyingGlassIcon className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))]" />
+                    <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">Search for anything</p>
+                    <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">Search for domains, services, events, commands, queries and more.</p>
                   </div>
                 )}
 
                 {/* Footer */}
-                <div className="flex flex-wrap items-center bg-gray-50 py-2.5 px-4 text-xs text-gray-500 border-t border-gray-100">
+                <div className="flex flex-wrap items-center bg-[rgb(var(--ec-content-hover))] py-2.5 px-4 text-xs text-[rgb(var(--ec-page-text-muted))] border-t border-[rgb(var(--ec-page-border))]">
                   <div className="flex items-center mr-4">
                     <ArrowUturnLeftIcon className="h-3 w-3 mr-1" />
                     to select

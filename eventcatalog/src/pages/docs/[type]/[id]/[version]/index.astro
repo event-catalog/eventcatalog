@@ -71,17 +71,17 @@ const getContentBadges = () =>
 
 const getBadge = () => {
   if (props.collection === 'services') {
-    return [{ backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon, class: 'text-pink-600' }];
+    return [{ backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon }];
   }
   if (props.collection === 'events') {
-    return [{ backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: BoltIcon, class: 'text-orange-600' }];
+    return [{ backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: BoltIcon }];
   }
   if (props.collection === 'commands') {
-    return [{ backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: ChatBubbleLeftIcon, class: 'text-blue-600' }];
+    return [{ backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: ChatBubbleLeftIcon }];
   }
   if (props.collection === 'queries') {
     return [
-      { backgroundColor: 'green', textColor: 'green', content: 'Query', icon: MagnifyingGlassIcon, class: 'text-green-600' },
+      { backgroundColor: 'green', textColor: 'green', content: 'Query', icon: MagnifyingGlassIcon },
     ];
   }
   if (props.collection === 'domains') {
@@ -91,24 +91,23 @@ const getBadge = () => {
         textColor: 'yellow',
         content: 'Domain',
         icon: RectangleGroupIcon,
-        class: 'text-yellow-600',
       },
     ];
   }
 
   if (props.collection === 'flows') {
-    return [{ backgroundColor: 'teal', textColor: 'teal', content: 'Flow', icon: QueueListIcon, class: 'text-gray' }];
+    return [{ backgroundColor: 'teal', textColor: 'teal', content: 'Flow', icon: QueueListIcon }];
   }
 
   if (props.collection === 'channels') {
-    return [{ backgroundColor: 'teal', textColor: 'teal', content: 'Channel', icon: ArrowsRightLeftIcon, class: 'text-gray' }];
+    return [{ backgroundColor: 'teal', textColor: 'teal', content: 'Channel', icon: ArrowsRightLeftIcon }];
   }
 
   if (props.collection === 'containers') {
     const badges = [];
     const content = props.data.container_type?.charAt(0).toUpperCase() + props.data.container_type?.slice(1) || 'Database';
 
-    badges.push({ backgroundColor: 'blue', textColor: 'blue', content: content, icon: DatabaseIcon, class: 'text-gray' });
+    badges.push({ backgroundColor: 'blue', textColor: 'blue', content: content, icon: DatabaseIcon });
 
     if (props.data?.technology) {
       badges.push({
@@ -182,7 +181,7 @@ const getSpecificationBadges = () => {
         textColor: 'gray',
         content: spec.name || 'OpenAPI Spec',
         iconURL: buildUrl('/icons/openapi.svg', true),
-        class: 'text-black hover:underline',
+        class: 'text-[rgb(var(--ec-page-text))] hover:underline',
         id: 'open-api-badge',
         url: buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}/spec/${spec.filenameWithoutExtension}`),
       });
@@ -196,7 +195,7 @@ const getSpecificationBadges = () => {
         textColor: 'gray',
         content: spec.name || 'AsyncAPI Spec',
         iconURL: buildUrl('/icons/asyncapi.svg', true),
-        class: 'text-black hover:underline',
+        class: 'text-[rgb(var(--ec-page-text))] hover:underline',
         id: 'asyncapi-badge',
         url: buildUrl(
           `/docs/${props.collection}/${props.data.id}/${props.data.version}/asyncapi/${spec.filenameWithoutExtension}`
@@ -212,7 +211,7 @@ const getSpecificationBadges = () => {
         textColor: 'gray',
         content: spec.name || 'GraphQL Spec',
         iconURL: buildUrl('/icons/graphql.svg', true),
-        class: 'text-black hover:underline',
+        class: 'text-[rgb(var(--ec-page-text))] hover:underline',
         id: 'graphql-badge',
         url: buildUrl(
           `/docs/${props.collection}/${props.data.id}/${props.data.version}/graphql/${spec.filenameWithoutExtension}`
@@ -274,16 +273,16 @@ nodeGraphs.push({
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
-  <main class="flex docs-layout h-full" {...pagefindAttributes}>
+  <main class="flex docs-layout h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
     <div class="flex docs-layout w-full pl-16">
-      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
-        <div class="border-b border-gray-200 md:pb-2">
+      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8 bg-[rgb(var(--ec-page-bg))]">
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-2">
           <div>
             <div class="flex justify-between items-center">
               <div class="flex items-center gap-2">
                 <h2
                   id="doc-page-header"
-                  class={`text-2xl md:text-4xl font-bold text-black ${props.data.deprecated && hasDeprecated ? 'text-red-500' : ''}`}
+                  class={`text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))] ${props.data.deprecated && hasDeprecated ? 'text-red-500' : ''}`}
                 >
                   {props.data.name}
                   {props.data.latestVersion !== props.data.version && <span>(v{props.data.version})</span>}
@@ -345,7 +344,7 @@ nodeGraphs.push({
               )
             }
 
-            <h2 class="text-lg pt-2 text-gray-500 font-light">{props.data.summary}</h2>
+            <h2 class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</h2>
             {
               badges && (
                 <div class="flex flex-wrap gap-3 py-4">
@@ -356,17 +355,19 @@ nodeGraphs.push({
                           id={badge.id || ''}
                           class={`
                             inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
-                            bg-${badge.backgroundColor || 'white'}-50 border border-${badge.backgroundColor || 'gray'}-200
-                            text-${badge.textColor || 'gray'}-700 shadow-sm
-                            hover:bg-${badge.backgroundColor || 'purple'}-100 hover:border-${badge.backgroundColor || 'purple'}-300
-                            hover:shadow-md hover:text-${badge.textColor || 'purple'}-800
+                            bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))]
+                            text-[rgb(var(--ec-page-text))]
+                            shadow-sm
+                            hover:bg-[rgb(var(--ec-accent-subtle))]
+                            hover:border-[rgb(var(--ec-accent)/0.4)]
+                            hover:shadow-md hover:text-[rgb(var(--ec-accent-text))]
                             transition-all duration-200 ease-out
                             ${badge.class ? badge.class : ''}
                           `}
                         >
                           {badge.icon && (
                             <badge.icon
-                              className={`w-4 h-4 flex-shrink-0 text-${badge.textColor || 'gray'}-600 group-hover:text-${badge.textColor || 'purple'}-700 transition-colors duration-200`}
+                              className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-accent))] transition-colors duration-200"
                             />
                           )}
                           {badge.iconURL && (
@@ -376,7 +377,7 @@ nodeGraphs.push({
                               alt=""
                             />
                           )}
-                          <span class={`group-hover:text-${badge.textColor || 'purple'}-800 transition-colors duration-200`}>
+                          <span class="group-hover:text-[rgb(var(--ec-accent-text))] transition-colors duration-200">
                             {badge.content}
                           </span>
                         </span>
@@ -407,10 +408,10 @@ nodeGraphs.push({
         <div data-pagefind-ignore>
           {
             props.data.version !== props.data.latestVersion && (
-              <div class="rounded-md bg-gradient-to-r from-purple-50 to-purple-100 p-4 not-prose my-4">
+              <div class="rounded-md bg-[rgb(var(--ec-accent-subtle))] p-4 not-prose my-4">
                 <div class="flex">
                   <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-purple-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <svg class="h-5 w-5 text-[rgb(var(--ec-accent))]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                       <path
                         fill-rule="evenodd"
                         d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
@@ -419,8 +420,8 @@ nodeGraphs.push({
                     </svg>
                   </div>
                   <div class="ml-3">
-                    <h3 class="text-sm font-medium text-purple-800">New version found</h3>
-                    <div class="mt-2 text-sm text-purple-700">
+                    <h3 class="text-sm font-medium text-[rgb(var(--ec-accent-text))]">New version found</h3>
+                    <div class="mt-2 text-sm text-[rgb(var(--ec-accent-text))]">
                       <p>
                         You are looking at a previous version of the {props.collection.slice(0, props.collection.length - 1)}{' '}
                         <strong>{props.data.name}</strong>.{' '}
@@ -482,7 +483,7 @@ nodeGraphs.push({
           {
             editUrl && (
               <div class="flex justify-end">
-                <a href={editUrl} class="text-sm text-gray-700 hover:text-gray-700 border border-gray-200 rounded-md p-2">
+                <a href={editUrl} class="text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] border border-[rgb(var(--ec-page-border))] rounded-md p-2">
                   <SquarePenIcon className="w-4 h-4 inline-block mr-1" />
                   Edit this page
                 </a>
@@ -493,18 +494,18 @@ nodeGraphs.push({
       </div>
       <aside
         id="eventcatalog-docs-sidebar"
-        class="hidden xl:block sticky top-0 pb-10 w-[280px] overflow-y-auto py-2 flex-shrink-0 pr-10"
+        class="hidden xl:block sticky top-0 pb-10 w-[280px] overflow-y-auto py-2 flex-shrink-0 pr-10 bg-[rgb(var(--ec-page-bg))]"
       >
         <div class="mt-4 space-y-8">
           {
             headings.length > 0 && (
               <div>
-                <h3 class="text-xs text-black font-semibold group-data-[hover]:text-black/80 capitalize flex items-center gap-2 mb-4">
+                <h3 class="text-xs text-[rgb(var(--ec-page-text))] font-semibold group-data-[hover]:text-[rgb(var(--ec-page-text))]/80 capitalize flex items-center gap-2 mb-4">
                   <AlignLeft className="w-4 h-4" />
                   On this page
                 </h3>
                 <div class="space-y-8">
-                  <nav class="text-xs border-l border-gray-200">
+                  <nav class="text-xs border-l border-[rgb(var(--ec-page-border))]">
                     {headings.map((heading) => {
                       const level = heading.depth > 2 ? heading.depth : 1;
                       if (heading.depth > 3) {
@@ -513,7 +514,7 @@ nodeGraphs.push({
                       return (
                         <a
                           href={`#${heading.slug}`}
-                          class={`block py-1.5 pr-2.5 leading-5 text-gray-500 hover:border-gray-300 hover:text-gray-900 border-l-2 border-transparent -ml-px transition-all duration-200`}
+                          class={`block py-1.5 pr-2.5 leading-5 text-[rgb(var(--ec-page-text-muted))] hover:border-[rgb(var(--ec-page-border))] hover:text-[rgb(var(--ec-page-text))] border-l-2 border-transparent -ml-px transition-all duration-200`}
                           style={`padding-left: ${level * 0.75}rem`}
                         >
                           {heading.text}
@@ -539,7 +540,7 @@ nodeGraphs.push({
             isChangelogEnabled() && shouldRenderSideBarSection(props, 'changelog') && (
               <a
                 href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.latestVersion}/changelog`)}
-                class="text-xs text-gray-500 underline"
+                class="text-xs text-[rgb(var(--ec-page-text-muted))] underline hover:text-[rgb(var(--ec-page-text))]"
               >
                 <span class="block">Read changelog &rarr;</span>
               </a>
@@ -564,6 +565,14 @@ nodeGraphs.push({
         max-width: 350px !important;
         margin: 0;
         /* width: 100px !important; */
+      }
+
+      /* TOC active state styles using accent variables */
+      .toc-active-text {
+        color: rgb(var(--ec-accent));
+      }
+      .toc-active-border {
+        border-color: rgb(var(--ec-accent));
       }
     </style>
 
@@ -615,6 +624,9 @@ nodeGraphs.push({
           }
         }
 
+        // Detect current theme from data-theme attribute
+        const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
+
         mermaid.initialize({
           // fontSize: 2,
           flowchart: {
@@ -625,7 +637,7 @@ nodeGraphs.push({
           startOnLoad: false,
           fontFamily: 'var(--sans-font)',
           // @ts-ignore This works, but TS expects a enum for some reason
-          theme: 'light',
+          theme: currentTheme,
           architecture: {
             useMaxWidth: true,
           },
@@ -729,15 +741,15 @@ nodeGraphs.push({
           function highlightTocItem(id) {
             // Remove active class from all links
             document.querySelectorAll('.active-toc-item').forEach((link) => {
-              link.classList.remove('active-toc-item', 'text-purple-600', 'font-medium', 'border-purple-600');
-              link.classList.add('text-gray-500', 'border-transparent');
+              link.classList.remove('active-toc-item', 'toc-active-text', 'font-medium', 'toc-active-border');
+              link.classList.add('border-transparent');
             });
 
             // Add active class to current link
             const tocLink = document.querySelector(`nav a[href="#${id}"]`);
             if (tocLink) {
-              tocLink.classList.add('active-toc-item', 'text-purple-600', 'font-medium', 'border-purple-600');
-              tocLink.classList.remove('text-gray-500', 'border-transparent');
+              tocLink.classList.add('active-toc-item', 'toc-active-text', 'font-medium', 'toc-active-border');
+              tocLink.classList.remove('border-transparent');
 
               // Scroll the highlighted item into view with a small delay to ensure DOM updates first
               setTimeout(() => {

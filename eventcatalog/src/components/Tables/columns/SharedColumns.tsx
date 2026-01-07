@@ -20,7 +20,7 @@ export const createBadgesColumn = <T extends { data: Pick<TData<U>['data'], 'bad
 
       if (badges?.length === 0 || !badges)
         return (
-          <span className="inline-flex items-center px-2 py-1 text-xs text-gray-400 bg-gray-50 rounded-md border border-gray-100">
+          <span className="inline-flex items-center px-2 py-1 text-xs text-[rgb(var(--ec-icon-color))] bg-[rgb(var(--ec-content-hover))] rounded-md border border-[rgb(var(--ec-page-border))]">
             No badges
           </span>
         );
@@ -35,19 +35,19 @@ export const createBadgesColumn = <T extends { data: Pick<TData<U>['data'], 'bad
             return (
               <span
                 key={`${badge.id}-${index}`}
-                className={`inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-${badge.backgroundColor}-300 hover:bg-${badge.backgroundColor}-50 transition-colors`}
+                className="inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent-subtle))] transition-colors"
               >
                 <span className={`flex items-center justify-center w-6 h-6 bg-${badge.backgroundColor}-500 rounded-l-md`}>
                   {IconComponent ? <IconComponent className="h-3 w-3 text-white" /> : <Tag className="h-3 w-3 text-white" />}
                 </span>
-                <span className="px-2 py-1 text-xs text-gray-700">{badge.content}</span>
+                <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))]">{badge.content}</span>
               </span>
             );
           })}
           {hiddenCount > 0 && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded hover:bg-gray-100 transition-colors"
+              className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] px-2 py-1 rounded hover:bg-[rgb(var(--ec-content-hover))] transition-colors"
             >
               {isExpanded ? 'Show less' : `+${hiddenCount} more`}
             </button>

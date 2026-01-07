@@ -12,7 +12,7 @@ declare global {
 
 export default function Example({ title, children }: any) {
   return (
-    <div className="border border-gray-200 rounded-md px-4 shadow-sm py-2 accordion">
+    <div className="border border-[rgb(var(--ec-page-border))] rounded-md px-4 shadow-sm py-2 accordion bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]">
       <Disclosure as="div" key={title} className="">
         {({ open }) => {
           useEffect(() => {
@@ -30,7 +30,7 @@ export default function Example({ title, children }: any) {
 
           return (
             <div>
-              <DisclosureButton className="flex w-full items-start justify-between text-left text-gray-900">
+              <DisclosureButton className="flex w-full items-start justify-between text-left text-[rgb(var(--ec-page-text))]">
                 <span className="text-base font-semibold leading-7">{title}</span>
                 <span className="ml-6 flex h-7 items-center">
                   {open ? (
@@ -41,7 +41,7 @@ export default function Example({ title, children }: any) {
                 </span>
               </DisclosureButton>
               <DisclosurePanel as="dd" className="pr-12 py-4 prose prose-sm max-w-none">
-                <div className="text-base leading-7 text-gray-600">{children}</div>
+                <div className="text-base leading-7 text-[rgb(var(--ec-page-text-muted))]">{children}</div>
               </DisclosurePanel>
             </div>
           );

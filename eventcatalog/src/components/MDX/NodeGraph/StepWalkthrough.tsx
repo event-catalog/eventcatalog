@@ -224,7 +224,7 @@ export default function StepWalkthrough({
           <select
             value={selectedPathIndex}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handlePathSelection(parseInt(e.target.value))}
-            className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-[rgb(var(--ec-accent))]"
           >
             {availablePaths.map((path, index) => {
               // @ts-ignore
@@ -256,7 +256,7 @@ export default function StepWalkthrough({
             <div className="flex-1"></div>
             <button
               onClick={handleNextStep}
-              className="flex items-center justify-center px-6 py-2 text-xs font-medium bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
+              className="flex items-center justify-center px-6 py-2 text-xs font-medium bg-[rgb(var(--ec-accent))] text-white rounded-md hover:bg-[rgb(var(--ec-accent-hover))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 transition-colors"
             >
               Start
             </button>
@@ -266,7 +266,7 @@ export default function StepWalkthrough({
           <>
             <button
               onClick={handlePreviousStep}
-              className="flex items-center justify-center px-4 py-2 text-xs font-medium bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
+              className="flex items-center justify-center px-4 py-2 text-xs font-medium bg-[rgb(var(--ec-accent))] text-white rounded-md hover:bg-[rgb(var(--ec-accent-hover))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 transition-colors"
             >
               <ChevronLeftIcon className="w-4 h-4 mr-1" />
               Previous
@@ -275,7 +275,7 @@ export default function StepWalkthrough({
             {availablePaths.length > 0 ? (
               <button
                 onClick={handleNextStep}
-                className="flex items-center justify-center px-4 py-2 text-xs font-medium bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
+                className="flex items-center justify-center px-4 py-2 text-xs font-medium bg-[rgb(var(--ec-accent))] text-white rounded-md hover:bg-[rgb(var(--ec-accent-hover))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 transition-colors"
               >
                 Next
                 <ChevronRightIcon className="w-4 h-4 ml-1" />

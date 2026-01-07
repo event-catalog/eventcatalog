@@ -351,14 +351,14 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
       {/* Split View - Full Height */}
       <div className="flex-1 flex gap-4 overflow-hidden">
         {/* Left: Schema List */}
-        <div className="w-[320px] flex-shrink-0 flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+        <div className="w-[320px] flex-shrink-0 flex flex-col bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg overflow-hidden shadow-sm">
           {/* Search Header */}
-          <div className="flex-shrink-0 p-3 border-b border-gray-200">
+          <div className="flex-shrink-0 p-3 border-b border-[rgb(var(--ec-page-border))]">
             {/* Search + Format Filter Row */}
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <MagnifyingGlassIcon className="h-4 w-4 text-gray-400" />
+                  <MagnifyingGlassIcon className="h-4 w-4 text-[rgb(var(--ec-icon-color))]" />
                 </div>
                 <input
                   ref={searchInputRef}
@@ -366,11 +366,11 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                   placeholder="Search schemas..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-md border border-gray-200 bg-white py-2 pl-9 pr-8 text-sm placeholder:text-gray-400 focus:border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-300 transition-all"
+                  className="w-full rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-input-bg))] py-2 pl-9 pr-8 text-sm text-[rgb(var(--ec-page-text))] placeholder:text-[rgb(var(--ec-icon-color))] focus:border-[rgb(var(--ec-accent))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)] transition-all"
                 />
                 {searchQuery && (
                   <button onClick={() => setSearchQuery('')} className="absolute inset-y-0 right-0 flex items-center pr-2.5">
-                    <XMarkIcon className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                    <XMarkIcon className="h-4 w-4 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))]" />
                   </button>
                 )}
               </div>
@@ -379,7 +379,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                 <select
                   value={selectedSchemaType}
                   onChange={(e) => setSelectedSchemaType(e.target.value)}
-                  className="flex-shrink-0 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-md px-2 py-2 focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 cursor-pointer hover:bg-gray-50 transition-colors"
+                  className="flex-shrink-0 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-input-bg))] border border-[rgb(var(--ec-page-border))] rounded-md px-2 py-2 focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ec-accent)/0.3)] focus:border-[rgb(var(--ec-accent))] cursor-pointer hover:bg-[rgb(var(--ec-content-hover))] transition-colors"
                 >
                   <option value="all">All formats</option>
                   {schemaTypes.map((type) => {
@@ -408,14 +408,14 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                   onClick={() => toggleType('events')}
                   className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all border ${
                     selectedTypes.has('events')
-                      ? 'bg-orange-50 text-orange-700 border-orange-200'
-                      : 'text-gray-600 border-gray-200 hover:bg-gray-50'
+                      ? 'bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-500/30'
+                      : 'text-[rgb(var(--ec-page-text-muted))] border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))]'
                   }`}
                   title="Events"
                 >
                   <BoltIcon className={`h-3.5 w-3.5 ${selectedTypes.has('events') ? 'text-orange-500' : 'text-orange-400'}`} />
                   <span>Events</span>
-                  <span className={`tabular-nums ${selectedTypes.has('events') ? 'text-orange-500' : 'text-gray-400'}`}>
+                  <span className={`tabular-nums ${selectedTypes.has('events') ? 'text-orange-500' : 'text-[rgb(var(--ec-icon-color))]'}`}>
                     {stats.events}
                   </span>
                 </button>
@@ -425,8 +425,8 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                   onClick={() => toggleType('commands')}
                   className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all border ${
                     selectedTypes.has('commands')
-                      ? 'bg-blue-50 text-blue-700 border-blue-200'
-                      : 'text-gray-600 border-gray-200 hover:bg-gray-50'
+                      ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/30'
+                      : 'text-[rgb(var(--ec-page-text-muted))] border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))]'
                   }`}
                   title="Commands"
                 >
@@ -434,7 +434,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                     className={`h-3.5 w-3.5 ${selectedTypes.has('commands') ? 'text-blue-500' : 'text-blue-400'}`}
                   />
                   <span>Commands</span>
-                  <span className={`tabular-nums ${selectedTypes.has('commands') ? 'text-blue-500' : 'text-gray-400'}`}>
+                  <span className={`tabular-nums ${selectedTypes.has('commands') ? 'text-blue-500' : 'text-[rgb(var(--ec-icon-color))]'}`}>
                     {stats.commands}
                   </span>
                 </button>
@@ -444,8 +444,8 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                   onClick={() => toggleType('queries')}
                   className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all border ${
                     selectedTypes.has('queries')
-                      ? 'bg-green-50 text-green-700 border-green-200'
-                      : 'text-gray-600 border-gray-200 hover:bg-gray-50'
+                      ? 'bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-300 border-green-200 dark:border-green-500/30'
+                      : 'text-[rgb(var(--ec-page-text-muted))] border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))]'
                   }`}
                   title="Queries"
                 >
@@ -453,7 +453,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                     className={`h-3.5 w-3.5 ${selectedTypes.has('queries') ? 'text-green-500' : 'text-green-400'}`}
                   />
                   <span>Queries</span>
-                  <span className={`tabular-nums ${selectedTypes.has('queries') ? 'text-green-500' : 'text-gray-400'}`}>
+                  <span className={`tabular-nums ${selectedTypes.has('queries') ? 'text-green-500' : 'text-[rgb(var(--ec-icon-color))]'}`}>
                     {stats.queries}
                   </span>
                 </button>
@@ -463,16 +463,16 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                   onClick={() => toggleType('specifications')}
                   className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all border ${
                     selectedTypes.has('specifications')
-                      ? 'bg-purple-50 text-purple-700 border-purple-200'
-                      : 'text-gray-600 border-gray-200 hover:bg-gray-50'
+                      ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent-text))] border-[rgb(var(--ec-accent)/0.3)]'
+                      : 'text-[rgb(var(--ec-page-text-muted))] border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))]'
                   }`}
                   title="Specifications (OpenAPI, AsyncAPI, etc.)"
                 >
                   <CodeBracketIcon
-                    className={`h-3.5 w-3.5 ${selectedTypes.has('specifications') ? 'text-purple-500' : 'text-purple-400'}`}
+                    className={`h-3.5 w-3.5 ${selectedTypes.has('specifications') ? 'text-[rgb(var(--ec-accent))]' : 'text-[rgb(var(--ec-accent)/0.7)]'}`}
                   />
                   <span>Specs</span>
-                  <span className={`tabular-nums ${selectedTypes.has('specifications') ? 'text-purple-500' : 'text-gray-400'}`}>
+                  <span className={`tabular-nums ${selectedTypes.has('specifications') ? 'text-[rgb(var(--ec-accent))]' : 'text-[rgb(var(--ec-icon-color))]'}`}>
                     {stats.specifications}
                   </span>
                 </button>
@@ -481,8 +481,8 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
           </div>
 
           {/* Results Count Bar */}
-          <div className="flex-shrink-0 px-3 py-1.5 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
-            <span className="text-xs text-gray-500">
+          <div className="flex-shrink-0 px-3 py-1.5 bg-[rgb(var(--ec-content-hover))] border-b border-[rgb(var(--ec-page-border))] flex items-center justify-between">
+            <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">
               {filteredMessages.length === stats.total
                 ? `${stats.total} schemas`
                 : `${filteredMessages.length} of ${stats.total} schemas`}
@@ -494,7 +494,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                   clearTypeFilters();
                   setSelectedSchemaType('all');
                 }}
-                className="text-xs text-gray-500 hover:text-gray-700"
+                className="text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
               >
                 Clear filters
               </button>
@@ -504,7 +504,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
           {/* Schema List - Independently Scrollable */}
           <div className="flex-1 overflow-y-auto">
             {paginatedMessages.length > 0 ? (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-[rgb(var(--ec-page-border))]">
                 {paginatedMessages.map((message) => {
                   // For services, also check spec type to determine if selected
                   const isSelected =
@@ -536,11 +536,11 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-3">
-                  <MagnifyingGlassIcon className="h-6 w-6 text-gray-400" />
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-[rgb(var(--ec-content-hover))] mb-3">
+                  <MagnifyingGlassIcon className="h-6 w-6 text-[rgb(var(--ec-icon-color))]" />
                 </div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-1">No schemas found</h3>
-                <p className="text-xs text-gray-500 mb-3 max-w-[200px]">
+                <h3 className="text-sm font-semibold text-[rgb(var(--ec-page-text))] mb-1">No schemas found</h3>
+                <p className="text-xs text-[rgb(var(--ec-page-text-muted))] mb-3 max-w-[200px]">
                   {searchQuery ? `No results for "${searchQuery}"` : 'Try adjusting your filters'}
                 </p>
                 {(searchQuery || selectedTypes.size > 0 || selectedSchemaType !== 'all') && (
@@ -550,7 +550,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                       clearTypeFilters();
                       setSelectedSchemaType('all');
                     }}
-                    className="text-xs font-medium text-gray-600 hover:text-gray-900"
+                    className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
                   >
                     Clear filters
                   </button>
@@ -564,7 +564,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
         </div>
 
         {/* Right: Schema Details */}
-        <div className="flex-1 bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="flex-1 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg overflow-hidden">
           {displayMessage ? (
             <SchemaDetailsPanel
               message={displayMessage}
@@ -576,11 +576,11 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center max-w-xs">
-                <div className="flex items-center justify-center w-14 h-14 mx-auto mb-4 rounded-xl bg-gray-50 border border-gray-100">
-                  <DocumentTextIcon className="h-7 w-7 text-gray-400" />
+                <div className="flex items-center justify-center w-14 h-14 mx-auto mb-4 rounded-xl bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))]">
+                  <DocumentTextIcon className="h-7 w-7 text-[rgb(var(--ec-icon-color))]" />
                 </div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-1">Select a schema</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">
+                <h3 className="text-sm font-semibold text-[rgb(var(--ec-page-text))] mb-1">Select a schema</h3>
+                <p className="text-sm text-[rgb(var(--ec-page-text-muted))] leading-relaxed">
                   Choose a schema from the list to view details, compare versions, and access raw code
                 </p>
               </div>

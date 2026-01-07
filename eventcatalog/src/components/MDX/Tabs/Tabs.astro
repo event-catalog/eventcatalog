@@ -32,8 +32,8 @@ const tabItems: TabItem[] = await Promise.all(
 const tabsId = Math.random().toString(36).substring(2, 9);
 ---
 
-<div class="bg-white text-gray-800 pb-10 not-prose" data-tabs-container={tabsId}>
-  {title && <h2 class="text-2xl font-bold text-gray-800 mb-6">{title}</h2>}
+<div class="bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text))] pb-10 not-prose" data-tabs-container={tabsId}>
+  {title && <h2 class="text-2xl font-bold text-[rgb(var(--ec-page-text))] mb-6">{title}</h2>}
 
   {/* Tab List */}
   <div class="">
@@ -41,7 +41,7 @@ const tabsId = Math.random().toString(36).substring(2, 9);
       {
         tabItems.map((item) => (
           <button
-            class="whitespace-nowrap py-4 px-1 border-b-2 px-6 font-bold text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-100 focus:outline-none"
+            class="whitespace-nowrap py-4 px-1 border-b-2 px-6 font-bold text-sm border-transparent text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] hover:border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] focus:outline-none tab-button"
             data-tab={item.id}
             aria-selected="false"
           >
@@ -70,22 +70,19 @@ const tabsId = Math.random().toString(36).substring(2, 9);
     const panels: NodeListOf<HTMLElement> = container.querySelectorAll('[data-tab-content]');
 
     // Show first tab by default
-    tabs[0]?.classList.add('text-purple-600', 'border-purple-600');
-    tabs[0]?.classList.remove('text-gray-500', 'border-transparent');
+    tabs[0]?.classList.add('tab-active');
     panels[0]?.classList.remove('hidden');
 
     tabs.forEach((tab: HTMLButtonElement) => {
       tab.addEventListener('click', () => {
         // Remove active states
         tabs.forEach((t: HTMLButtonElement) => {
-          t.classList.remove('text-purple-600', 'border-purple-600');
-          t.classList.add('text-gray-500', 'border-transparent');
+          t.classList.remove('tab-active');
         });
         panels.forEach((p: HTMLElement) => p.classList.add('hidden'));
 
         // Set active states
-        tab.classList.remove('text-gray-500', 'border-transparent');
-        tab.classList.add('text-purple-600', 'border-purple-600');
+        tab.classList.add('tab-active');
 
         // Show corresponding panel
         const tabId = tab.getAttribute('data-tab');
@@ -103,3 +100,10 @@ const tabsId = Math.random().toString(36).substring(2, 9);
     });
   });
 </script>
+
+<style is:global>
+  .tab-button.tab-active {
+    color: rgb(var(--ec-accent));
+    border-color: rgb(var(--ec-accent));
+  }
+</style>

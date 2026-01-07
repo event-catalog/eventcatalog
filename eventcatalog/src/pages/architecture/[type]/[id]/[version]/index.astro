@@ -22,9 +22,9 @@ const specifications = type === 'services' ? getSpecificationsForService(props) 
 ---
 
 <VerticalSideBarLayout title={pageTitle}>
-  <main class="flex docs-layout h-full">
+  <main class="flex docs-layout h-full bg-[rgb(var(--ec-page-bg))]">
     <div class="flex docs-layout w-full pl-16">
-      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
+      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8 bg-[rgb(var(--ec-page-bg))]">
         {type === 'domains' && <DomainGrid domain={domain} client:load />}
         {type === 'services' && <MessageGrid service={props} specifications={specifications} client:load />}
       </div>

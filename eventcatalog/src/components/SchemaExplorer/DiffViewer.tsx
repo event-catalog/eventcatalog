@@ -55,12 +55,12 @@ export default function DiffViewer({ diffs, onOpenFullscreen, apiAccessEnabled =
           ))}
         </div>
       ) : (
-        <div className="bg-white border border-purple-200 rounded-lg p-8">
+        <div className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-accent)/0.3)] rounded-lg p-8">
           <div className="flex flex-col items-center text-center max-w-md mx-auto">
             <div className="flex-shrink-0 mb-4">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-16 w-16 text-purple-600"
+                className="h-16 w-16 text-[rgb(var(--ec-accent))]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -82,7 +82,7 @@ export default function DiffViewer({ diffs, onOpenFullscreen, apiAccessEnabled =
               href="https://eventcatalog.cloud"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[rgb(var(--ec-accent))] rounded-md hover:bg-[rgb(var(--ec-accent-hover))] transition-colors"
             >
               Start 14-day free trial
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

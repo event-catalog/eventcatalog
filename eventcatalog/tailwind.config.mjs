@@ -6,6 +6,7 @@ const theme = config.theme || {};
 
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: ['selector', '[data-theme="dark"]'],
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
   theme: {
     extend: {
@@ -56,6 +57,15 @@ export default {
     { pattern: /from-.*-(100|200|300|400|500|600|700)/ },
     { pattern: /to-.*-(100|200|300|400|500|600|700)/ },
     { pattern: /text-.*-(400|500|800)/ },
+    // Dark mode variants for dynamic colors
+    { pattern: /dark:bg-.*-500\/10/ },
+    { pattern: /dark:bg-.*-500\/20/ },
+    { pattern: /dark:border-.*-500\/30/ },
+    { pattern: /dark:text-.*-400/ },
+    { pattern: /dark:text-.*-300/ },
+    { pattern: /dark:hover:border-.*-500/ },
+    { pattern: /dark:group-hover:text-.*-400/ },
+    { pattern: /dark:ring-.*-500\/30/ },
     'border-blue-200',
     'border-green-300',
     'bg-blue-600',

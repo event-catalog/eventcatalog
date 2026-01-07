@@ -107,10 +107,10 @@ const tabs = [
 ---
 
 <VerticalSideBarLayout title={`Explore | ${title}`} showNestedSideBar={false}>
-  <main class="ml-0">
+  <main class="ml-0 bg-[rgb(var(--ec-page-bg))]">
     <div id="discover-collection-tabs">
       <div class="hidden sm:block">
-        <div class="border-b border-gray-200">
+        <div class="border-b border-[rgb(var(--ec-page-border))]">
           <nav class="flex space-x-8 -mb-0.5 pl-6" aria-label="Tabs">
             {
               tabs
@@ -118,11 +118,16 @@ const tabs = [
                 .map((tab) => (
                   <a
                     href={tab.href}
-                    class={` text-black  group inline-flex items-center py-4 px-1 text-sm font-light ${tab.isActive ? `border-${tab.activeColor}-500 border-b-[2px] text-${tab.activeColor}-500` : 'opacity-80'} ${!tab.enabled ? 'disabled' : ''}`}
+                    class:list={[
+                      'group inline-flex items-center py-4 px-1 text-sm font-light text-[rgb(var(--ec-page-text))]',
+                      tab.isActive && 'border-b-[2px] border-[rgb(var(--ec-accent))] text-[rgb(var(--ec-accent))]',
+                      !tab.isActive && 'opacity-70 hover:opacity-100',
+                      !tab.enabled && 'disabled'
+                    ]}
                     aria-current="page"
                   >
                     <tab.icon
-                      className={`w-6 h-6 -ml-0.5 mr-2  ${tab.isActive ? `text-${tab.activeColor}-500` : 'text-gray-500'}`}
+                      className={`w-6 h-6 -ml-0.5 mr-2 ${tab.isActive ? 'text-[rgb(var(--ec-accent))]' : 'text-[rgb(var(--ec-icon-color))]'}`}
                     />
                     <span>{tab.label}</span>
                   </a>
@@ -138,14 +143,14 @@ const tabs = [
       <div>
         <div class="sm:flex sm:items-end py-4 pb-4" id="discover-title">
           <div class="sm:flex-auto space-y-2">
-            <h1 class="text-4xl font-semibold text-gray-900 capitalize">{title}</h1>
-            <p class="text-md text-gray-700">{subtitle}</p>
+            <h1 class="text-4xl font-semibold text-[rgb(var(--ec-page-text))] capitalize">{title}</h1>
+            <p class="text-md text-[rgb(var(--ec-page-text-muted))]">{subtitle}</p>
           </div>
           <div class="flex gap-4">
-            <div class="p-4 border border-gray-200 rounded-md">
+            <div class="p-4 border border-[rgb(var(--ec-page-border))] rounded-md bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]">
               <Checkbox id={checkboxLatestId} name={checkboxLatestId} label="Show latest version only" checked />
             </div>
-            <div class="p-4 border border-gray-200 rounded-md">
+            <div class="p-4 border border-[rgb(var(--ec-page-border))] rounded-md bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]">
               <Checkbox id={checkboxDraftsId} name={checkboxDraftsId} label="Show drafts only" />
             </div>
           </div>

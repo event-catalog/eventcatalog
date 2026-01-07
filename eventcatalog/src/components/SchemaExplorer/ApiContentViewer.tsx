@@ -26,8 +26,8 @@ export default function ApiContentViewer({ message, onCopy, copiedId, apiAccessE
     return (
       <div className="h-full flex items-center justify-center p-8">
         <div className="max-w-md text-center">
-          <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 border border-purple-200">
-            <LockClosedIcon className="h-8 w-8 text-purple-600" />
+          <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-2xl bg-[rgb(var(--ec-accent-subtle))] border border-[rgb(var(--ec-accent)/0.3)]">
+            <LockClosedIcon className="h-8 w-8 text-[rgb(var(--ec-accent))]" />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">API Access</h3>
           <p className="text-sm text-gray-600 mb-6">
@@ -38,7 +38,7 @@ export default function ApiContentViewer({ message, onCopy, copiedId, apiAccessE
             href="https://eventcatalog.cloud"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[rgb(var(--ec-accent))] rounded-lg hover:bg-[rgb(var(--ec-accent-hover))] transition-colors"
           >
             Upgrade to Scale
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

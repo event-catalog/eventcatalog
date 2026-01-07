@@ -22,15 +22,15 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
-  <main class="flex sm:px-6 docs-layout h-full" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
+  <main class="flex sm:px-6 docs-layout h-full bg-[rgb(var(--ec-page-bg))]" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto pt-6 pb-8 min-h-[50em]">
         {/* Title Section */}
-        <div class="relative border-b border-gray-200 mb-6 pb-6">
+        <div class="relative border-b border-[rgb(var(--ec-page-border))] mb-6 pb-6">
           <div class="xl:flex xl:items-start xl:justify-between">
             <div class="min-w-0 flex-1">
-              <h1 class="text-xl font-bold leading-7 text-gray-900 sm:text-2xl xl:text-3xl">Ubiquitous Language</h1>
-              <p class="mt-2 text-sm text-gray-500">
+              <h1 class="text-xl font-bold leading-7 text-[rgb(var(--ec-page-text))] sm:text-2xl xl:text-3xl">Ubiquitous Language</h1>
+              <p class="mt-2 text-sm text-[rgb(var(--ec-page-text-muted))]">
                 Browse and discover ubiquitous language terms in the {props.data.name} domain{
                   subdomains.length > 0 ? ' and its subdomains' : ''
                 }
@@ -43,10 +43,10 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                   type="text"
                   id="searchInput"
                   placeholder="Search terms..."
-                  class="w-full px-4 py-2.5 pl-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 text-sm bg-gray-50 focus:bg-white transition-colors"
+                  class="w-full px-4 py-2.5 pl-10 border border-[rgb(var(--ec-input-border))] rounded-lg focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-[rgb(var(--ec-accent))] text-sm bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-input-placeholder))] transition-colors"
                 />
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="h-4 w-4 text-[rgb(var(--ec-icon-color))]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       stroke-linecap="round"
                       stroke-linejoin="round"
@@ -57,7 +57,7 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
               </div>
               <div class="mt-2 text-right">
                 <span
-                  class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-500 bg-gray-100 rounded-md"
+                  class="inline-flex items-center px-2 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-md"
                   id="resultsCount"
                 >
                   {/* This will be updated by JavaScript */}
@@ -70,15 +70,15 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
         {
           !ubiquitousLanguage && subdomains.length === 0 && (
             <div class="flex flex-col items-center justify-center py-16 px-4">
-              <div class="flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+              <div class="flex items-center justify-center w-16 h-16 rounded-full bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] mb-4">
                 {(() => {
                   const BookOpen = LucideIcons.BookOpen;
                   //@ts-ignore
-                  return <BookOpen className="w-8 h-8 text-gray-400" />;
+                  return <BookOpen className="w-8 h-8 text-[rgb(var(--ec-icon-color))]" />;
                 })()}
               </div>
-              <h3 class="text-lg font-medium text-gray-900 mb-2">No ubiquitous language defined</h3>
-              <p class="text-sm text-gray-500 text-center max-w-md">
+              <h3 class="text-lg font-medium text-[rgb(var(--ec-page-text))] mb-2">No ubiquitous language defined</h3>
+              <p class="text-sm text-[rgb(var(--ec-page-text-muted))] text-center max-w-md">
                 This domain does not have any defined ubiquitous language terms yet. Consider adding some terms to help establish
                 a common vocabulary for your domain.
               </p>
@@ -98,9 +98,9 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                         {/* <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-900">
                           <RectangleGroupIcon className="w-4 h-4 text-white" />
                         </div> */}
-                        <h3 class="text-xl font-semibold text-gray-900">
+                        <h3 class="text-xl font-semibold text-[rgb(var(--ec-page-text))]">
                           {props.data.name} Domain Language
-                          <span class="ml-1 text-sm font-normal text-gray-500">
+                          <span class="ml-1 text-sm font-normal text-[rgb(var(--ec-page-text-muted))]">
                             ({ubiquitousLanguage?.data?.dictionary?.length || 0} terms)
                           </span>
                         </h3>
@@ -110,48 +110,48 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                       {ubiquitousLanguage?.data?.dictionary?.map((term) => (
                         <a
                           href={buildUrl(`/docs/${props.collection}/${props.data.id}/language/${term.id}`)}
-                          class={`term-card group block bg-white border rounded-lg p-5 transition-all duration-200 hover:shadow-md hover:border-gray-400 hover:-translate-y-0.5 ${duplicateTerms.has(term.name.toLowerCase()) ? 'border-orange-300 bg-orange-50/50' : 'border-gray-200'}`}
+                          class={`term-card group block bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border rounded-lg p-5 transition-all duration-200 hover:shadow-md hover:border-[rgb(var(--ec-accent)/0.5)] hover:-translate-y-0.5 ${duplicateTerms.has(term.name.toLowerCase()) ? 'border-orange-500/50 dark:border-orange-500/30' : 'border-[rgb(var(--ec-page-border))]'}`}
                           data-domain="main"
                         >
                           <div class="flex flex-col h-full">
                             <div class="flex items-start justify-between gap-3 mb-3">
                               <div class="flex items-center gap-2.5">
                                 {term.icon ? (
-                                  <div class="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 group-hover:bg-gray-200 transition-colors">
+                                  <div class="flex items-center justify-center w-8 h-8 rounded-md bg-[rgb(var(--ec-content-hover))] group-hover:bg-[rgb(var(--ec-sidebar-hover-bg))] transition-colors">
                                     {(() => {
                                       const Icon = LucideIcons[term.icon as keyof typeof LucideIcons];
                                       //@ts-ignore
-                                      return Icon ? <Icon className="w-4 h-4 text-gray-700" /> : null;
+                                      return Icon ? <Icon className="w-4 h-4 text-[rgb(var(--ec-page-text))]" /> : null;
                                     })()}
                                   </div>
                                 ) : (
-                                  <div class="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 group-hover:bg-gray-200 transition-colors">
+                                  <div class="flex items-center justify-center w-8 h-8 rounded-md bg-[rgb(var(--ec-content-hover))] group-hover:bg-[rgb(var(--ec-sidebar-hover-bg))] transition-colors">
                                     {(() => {
                                       const BookText = LucideIcons.BookText;
                                       //@ts-ignore
                                       return (
-                                        <BookText className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors" />
+                                        <BookText className="w-4 h-4 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-icon-hover))] transition-colors" />
                                       );
                                     })()}
                                   </div>
                                 )}
                                 <h4
-                                  class={`text-base font-semibold group-hover:text-black transition-colors ${duplicateTerms.has(term.name.toLowerCase()) ? 'text-orange-800' : 'text-gray-900'}`}
+                                  class={`text-base font-semibold group-hover:text-[rgb(var(--ec-icon-hover))] transition-colors ${duplicateTerms.has(term.name.toLowerCase()) ? 'text-orange-500 dark:text-orange-400' : 'text-[rgb(var(--ec-page-text))]'}`}
                                 >
                                   {term.name}
                                 </h4>
                               </div>
                               {duplicateTerms.has(term.name.toLowerCase()) && (
-                                <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200">
+                                <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-500/10 text-orange-500 dark:text-orange-400 border border-orange-500/20">
                                   Duplicate
                                 </span>
                               )}
                             </div>
-                            <p class="summary-text text-gray-600 text-sm leading-relaxed line-clamp-3 flex-grow mb-3">
+                            <p class="summary-text text-[rgb(var(--ec-page-text-muted))] text-sm leading-relaxed line-clamp-3 flex-grow mb-3">
                               {term.summary}
                             </p>
-                            <div class="pt-3 border-t border-gray-100">
-                              <span class="inline-flex items-center text-sm text-gray-600 font-medium group-hover:text-gray-900">
+                            <div class="pt-3 border-t border-[rgb(var(--ec-page-border))]">
+                              <span class="inline-flex items-center text-sm text-[rgb(var(--ec-page-text-muted))] font-medium group-hover:text-[rgb(var(--ec-page-text))]">
                                 View details
                                 <svg
                                   class="ml-1 w-4 h-4 transition-transform group-hover:translate-x-0.5"
@@ -168,11 +168,11 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                       ))}
                     </div>
                     <div
-                      class="hidden domain-no-results text-center py-12 bg-gray-50 rounded-lg border border-gray-200 border-dashed"
+                      class="hidden domain-no-results text-center py-12 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] rounded-lg border border-[rgb(var(--ec-page-border))] border-dashed"
                       data-domain-no-results="main"
                     >
-                      <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-gray-100">
-                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-[rgb(var(--ec-content-hover))]">
+                        <svg class="w-6 h-6 text-[rgb(var(--ec-icon-color))]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
@@ -181,8 +181,8 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                           />
                         </svg>
                       </div>
-                      <h4 class="text-base font-medium text-gray-900">No matching terms in {props.data.name}</h4>
-                      <p class="mt-1 text-sm text-gray-500">Try adjusting your search terms.</p>
+                      <h4 class="text-base font-medium text-[rgb(var(--ec-page-text))]">No matching terms in {props.data.name}</h4>
+                      <p class="mt-1 text-sm text-[rgb(var(--ec-page-text-muted))]">Try adjusting your search terms.</p>
                     </div>
                   </div>
                 )}
@@ -197,16 +197,16 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                           {/* <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-200">
                             <RectangleGroupIcon className="w-4 h-4 text-gray-700" />
                           </div> */}
-                          <h3 class="text-xl font-semibold text-gray-900">
+                          <h3 class="text-xl font-semibold text-[rgb(var(--ec-page-text))]">
                             {subdomain.data.name} Domain Language
-                            <span class="ml-1 text-sm font-normal text-gray-500">
+                            <span class="ml-1 text-sm font-normal text-[rgb(var(--ec-page-text-muted))]">
                               ({subdomainUL?.data?.dictionary?.length || 0} terms)
                             </span>
                           </h3>
                         </div>
                         <a
                           href={buildUrl(`/docs/domains/${subdomain.data.id}/${subdomain.data.version}`)}
-                          class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                          class="inline-flex items-center text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] font-medium transition-colors"
                         >
                           View Domain
                           <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,48 +218,48 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                         {subdomainUL?.data?.dictionary?.map((term) => (
                           <a
                             href={buildUrl(`/docs/${props.collection}/${subdomain.data.id}/language/${term.id}`)}
-                            class={`term-card group block bg-white border rounded-lg p-5 transition-all duration-200 hover:shadow-md hover:border-gray-400 hover:-translate-y-0.5 ${duplicateTerms.has(term.name.toLowerCase()) ? 'border-orange-300 bg-orange-50/50' : 'border-gray-200'}`}
+                            class={`term-card group block bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border rounded-lg p-5 transition-all duration-200 hover:shadow-md hover:border-[rgb(var(--ec-accent)/0.5)] hover:-translate-y-0.5 ${duplicateTerms.has(term.name.toLowerCase()) ? 'border-orange-500/50 dark:border-orange-500/30' : 'border-[rgb(var(--ec-page-border))]'}`}
                             data-domain={subdomain.data.id}
                           >
                             <div class="flex flex-col h-full">
                               <div class="flex items-start justify-between gap-3 mb-3">
                                 <div class="flex items-center gap-2.5">
                                   {term.icon ? (
-                                    <div class="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 group-hover:bg-gray-200 transition-colors">
+                                    <div class="flex items-center justify-center w-8 h-8 rounded-md bg-[rgb(var(--ec-content-hover))] group-hover:bg-[rgb(var(--ec-sidebar-hover-bg))] transition-colors">
                                       {(() => {
                                         const Icon = LucideIcons[term.icon as keyof typeof LucideIcons];
                                         //@ts-ignore
-                                        return Icon ? <Icon className="w-4 h-4 text-gray-700" /> : null;
+                                        return Icon ? <Icon className="w-4 h-4 text-[rgb(var(--ec-page-text))]" /> : null;
                                       })()}
                                     </div>
                                   ) : (
-                                    <div class="flex items-center justify-center w-8 h-8 rounded-md bg-gray-100 group-hover:bg-gray-200 transition-colors">
+                                    <div class="flex items-center justify-center w-8 h-8 rounded-md bg-[rgb(var(--ec-content-hover))] group-hover:bg-[rgb(var(--ec-sidebar-hover-bg))] transition-colors">
                                       {(() => {
                                         const BookText = LucideIcons.BookText;
                                         //@ts-ignore
                                         return (
-                                          <BookText className="w-4 h-4 text-gray-500 group-hover:text-gray-700 transition-colors" />
+                                          <BookText className="w-4 h-4 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-icon-hover))] transition-colors" />
                                         );
                                       })()}
                                     </div>
                                   )}
                                   <h4
-                                    class={`text-base font-semibold group-hover:text-black transition-colors ${duplicateTerms.has(term.name.toLowerCase()) ? 'text-orange-800' : 'text-gray-900'}`}
+                                    class={`text-base font-semibold group-hover:text-[rgb(var(--ec-icon-hover))] transition-colors ${duplicateTerms.has(term.name.toLowerCase()) ? 'text-orange-500 dark:text-orange-400' : 'text-[rgb(var(--ec-page-text))]'}`}
                                   >
                                     {term.name}
                                   </h4>
                                 </div>
                                 {duplicateTerms.has(term.name.toLowerCase()) && (
-                                  <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200">
+                                  <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-500/10 text-orange-500 dark:text-orange-400 border border-orange-500/20">
                                     Duplicate
                                   </span>
                                 )}
                               </div>
-                              <p class="summary-text text-gray-600 text-sm leading-relaxed line-clamp-3 flex-grow mb-3">
+                              <p class="summary-text text-[rgb(var(--ec-page-text-muted))] text-sm leading-relaxed line-clamp-3 flex-grow mb-3">
                                 {term.summary}
                               </p>
-                              <div class="pt-3 border-t border-gray-100">
-                                <span class="inline-flex items-center text-sm text-gray-600 font-medium group-hover:text-gray-900">
+                              <div class="pt-3 border-t border-[rgb(var(--ec-page-border))]">
+                                <span class="inline-flex items-center text-sm text-[rgb(var(--ec-page-text-muted))] font-medium group-hover:text-[rgb(var(--ec-page-text))]">
                                   View details
                                   <svg
                                     class="ml-1 w-4 h-4 transition-transform group-hover:translate-x-0.5"
@@ -276,11 +276,11 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                         ))}
                       </div>
                       <div
-                        class="hidden domain-no-results text-center py-12 bg-gray-50 rounded-lg border border-gray-200 border-dashed"
+                        class="hidden domain-no-results text-center py-12 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] rounded-lg border border-[rgb(var(--ec-page-border))] border-dashed"
                         data-domain-no-results={subdomain.data.id}
                       >
-                        <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-gray-100">
-                          <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-[rgb(var(--ec-content-hover))]">
+                          <svg class="w-6 h-6 text-[rgb(var(--ec-icon-color))]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                               stroke-linecap="round"
                               stroke-linejoin="round"
@@ -289,8 +289,8 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                             />
                           </svg>
                         </div>
-                        <h4 class="text-base font-medium text-gray-900">No matching terms in {subdomain.data.name}</h4>
-                        <p class="mt-1 text-sm text-gray-500">Try adjusting your search terms.</p>
+                        <h4 class="text-base font-medium text-[rgb(var(--ec-page-text))]">No matching terms in {subdomain.data.name}</h4>
+                        <p class="mt-1 text-sm text-[rgb(var(--ec-page-text-muted))]">Try adjusting your search terms.</p>
                       </div>
                     </div>
                   ))}

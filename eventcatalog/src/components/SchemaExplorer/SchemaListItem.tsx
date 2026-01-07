@@ -25,26 +25,26 @@ export default function SchemaListItem({ message, isSelected, versions, onClick,
       ref={itemRef}
       onClick={onClick}
       className={`w-full text-left px-3 py-2 transition-all duration-75 group border-l-2 ${
-        isSelected ? `bg-${color}-50 border-l-${color}-500` : 'hover:bg-gray-50 border-l-transparent'
+        isSelected ? `bg-${color}-50 dark:bg-${color}-500/10 border-l-${color}-500` : 'hover:bg-[rgb(var(--ec-content-hover))] border-l-transparent'
       }`}
     >
       <div className="flex items-center gap-2.5">
         {/* Collection Icon */}
         <div
           className={`flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-md ${
-            isSelected ? `bg-${color}-100` : `bg-${color}-100/60`
+            isSelected ? `bg-${color}-100 dark:bg-${color}-500/20` : `bg-${color}-100/60 dark:bg-${color}-500/10`
           }`}
         >
-          <Icon className={`h-3.5 w-3.5 text-${color}-600`} />
+          <Icon className={`h-3.5 w-3.5 text-${color}-600 dark:text-${color}-400`} />
         </div>
 
         <div className="flex-1 min-w-0">
           {/* Name row with version */}
           <div className="flex items-center gap-1.5">
-            <span className={`text-[13px] font-semibold truncate ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>
+            <span className={`text-[13px] font-semibold truncate ${isSelected ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text))]'}`}>
               {message.data.name}
             </span>
-            <span className={`text-[10px] tabular-nums flex-shrink-0 ${isSelected ? 'text-gray-500' : 'text-gray-400'}`}>
+            <span className={`text-[10px] tabular-nums flex-shrink-0 ${isSelected ? 'text-[rgb(var(--ec-page-text-muted))]' : 'text-[rgb(var(--ec-icon-color))]'}`}>
               v{message.data.version}
             </span>
           </div>
@@ -52,7 +52,7 @@ export default function SchemaListItem({ message, isSelected, versions, onClick,
           {/* Meta row */}
           <div className="flex items-center gap-1.5 mt-0.5">
             {/* Schema Format */}
-            <span className={`inline-flex items-center gap-1 text-[10px] ${isSelected ? 'text-gray-600' : 'text-gray-500'}`}>
+            <span className={`inline-flex items-center gap-1 text-[10px] ${isSelected ? 'text-[rgb(var(--ec-page-text-muted))]' : 'text-[rgb(var(--ec-page-text-muted))]'}`}>
               {hasSchemaIcon && (
                 <img src={buildUrl(`/icons/${iconName}.svg`, true)} alt={`${ext} icon`} className="h-3 w-3 opacity-70" />
               )}
@@ -61,7 +61,7 @@ export default function SchemaListItem({ message, isSelected, versions, onClick,
 
             {/* Versions count */}
             {hasMultipleVersions && (
-              <span className={`text-[10px] ${isSelected ? 'text-gray-500' : 'text-gray-400'}`}>· {versions.length}v</span>
+              <span className={`text-[10px] ${isSelected ? 'text-[rgb(var(--ec-page-text-muted))]' : 'text-[rgb(var(--ec-icon-color))]'}`}>· {versions.length}v</span>
             )}
           </div>
         </div>

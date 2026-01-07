@@ -487,17 +487,17 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
           <div className="flex-none border-b border-gray-100 shrink-0 pb-1">
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center space-x-2">
-                <div className="p-1.5 bg-purple-50 rounded-md">
-                  <BookOpen size={14} className="text-purple-600" />
+                <div className="p-1.5 bg-[rgb(var(--ec-accent-subtle))] rounded-md">
+                  <BookOpen size={14} className="text-[rgb(var(--ec-accent))]" />
                 </div>
-                <span className="font-medium text-gray-900 text-sm">EventCatalog Assistant</span>
+                <span className="font-medium text-[rgb(var(--ec-page-text))] text-sm">EventCatalog Assistant</span>
               </div>
               <div className="flex items-center space-x-1">
                 {tools.length > 0 && (
                   <Popover.Root>
                     <Popover.Trigger asChild>
                       <button
-                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="p-2 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
                         aria-label="View available tools"
                         title="Available tools"
                       >
@@ -506,34 +506,34 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                     </Popover.Trigger>
                     <Popover.Portal>
                       <Popover.Content
-                        className="w-72 bg-white rounded-lg shadow-lg border border-gray-200 p-3 z-[250]"
+                        className="w-72 bg-[rgb(var(--ec-dropdown-bg))] rounded-lg shadow-lg border border-[rgb(var(--ec-dropdown-border))] p-3 z-[250]"
                         sideOffset={5}
                         align="end"
                       >
-                        <div className="text-[10px] font-medium text-gray-500 mb-2">Available Tools ({sortedTools.length})</div>
-                        <div className="max-h-64 overflow-y-auto divide-y divide-gray-100">
+                        <div className="text-[10px] font-medium text-[rgb(var(--ec-page-text-muted))] mb-2">Available Tools ({sortedTools.length})</div>
+                        <div className="max-h-64 overflow-y-auto divide-y divide-[rgb(var(--ec-page-border))]">
                           {sortedTools.map((tool) => (
                             <div key={tool.name} className="py-1.5 first:pt-0 last:pb-0">
                               <div className="flex items-center gap-1.5">
-                                <span className="text-[11px] font-medium text-gray-700">{tool.name}</span>
+                                <span className="text-[11px] font-medium text-[rgb(var(--ec-dropdown-text))]">{tool.name}</span>
                                 {tool.isCustom && (
-                                  <span className="px-1.5 py-0.5 text-[9px] font-medium bg-purple-100 text-purple-700 rounded">
+                                  <span className="px-1.5 py-0.5 text-[9px] font-medium bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent-text))] rounded">
                                     Custom
                                   </span>
                                 )}
                               </div>
-                              <div className="text-[10px] text-gray-500 mt-0.5">{tool.description}</div>
+                              <div className="text-[10px] text-[rgb(var(--ec-page-text-muted))] mt-0.5">{tool.description}</div>
                             </div>
                           ))}
                         </div>
-                        <Popover.Arrow className="fill-white" />
+                        <Popover.Arrow className="fill-[rgb(var(--ec-dropdown-bg))]" />
                       </Popover.Content>
                     </Popover.Portal>
                   </Popover.Root>
                 )}
                 <button
                   onClick={() => setIsFullscreen(true)}
-                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
                   aria-label="Expand to fullscreen"
                   title="Expand"
                 >
@@ -542,7 +542,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                 {hasMessages && (
                   <button
                     onClick={() => setMessages([])}
-                    className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="p-2 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
                     aria-label="Clear chat"
                     title="Clear chat"
                   >
@@ -551,7 +551,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                 )}
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
                   aria-label="Close chat panel"
                 >
                   <X size={18} />
@@ -561,8 +561,8 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
             {/* Thinking indicator */}
             {isThinking && (
               <div className="px-4 pb-2 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse" />
-                <span className="text-xs text-gray-500">Thinking...</span>
+                <div className="w-1.5 h-1.5 bg-[rgb(var(--ec-accent-subtle))]0 rounded-full animate-pulse" />
+                <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">Thinking...</span>
               </div>
             )}
           </div>
@@ -581,20 +581,20 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                   >
                     {/* Animated Icon */}
                     <div className="relative mb-5">
-                      <div className="absolute inset-0 bg-purple-400/20 rounded-2xl blur-xl animate-pulse" />
-                      <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                      <div className="absolute inset-0 bg-[rgb(var(--ec-accent)/0.2)] rounded-2xl blur-xl animate-pulse" />
+                      <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-[rgb(var(--ec-accent-gradient-from))] to-[rgb(var(--ec-accent-gradient-to))] flex items-center justify-center shadow-lg">
                         <BookOpen size={26} className="text-white" strokeWidth={1.5} />
-                        <Sparkles size={10} className="text-purple-200 absolute -top-1 -right-1 animate-pulse" />
+                        <Sparkles size={10} className="text-[rgb(var(--ec-accent)/0.4)] absolute -top-1 -right-1 animate-pulse" />
                       </div>
                     </div>
-                    <h2 className="text-base font-medium text-gray-900 mb-1">{getGreeting()}</h2>
-                    <p className="text-sm text-gray-500 text-center">Ask me anything about your catalog.</p>
+                    <h2 className="text-base font-medium text-[rgb(var(--ec-page-text))] mb-1">{getGreeting()}</h2>
+                    <p className="text-sm text-[rgb(var(--ec-page-text-muted))] text-center">Ask me anything about your catalog.</p>
                   </div>
 
                   {/* Suggested questions */}
                   <div className="space-y-1.5 mt-4">
                     <p
-                      className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2"
+                      className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wide mb-2"
                       style={isOpen ? fadeInStyles.questionsLabel : undefined}
                     >
                       Example questions
@@ -603,7 +603,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                       <button
                         key={index}
                         onClick={() => handleSuggestedAction(question.prompt)}
-                        className="w-full text-left px-3 py-2.5 text-sm text-gray-700 bg-gray-100 hover:bg-purple-50 hover:text-purple-700 border border-gray-200 hover:border-purple-200 rounded-lg transition-colors"
+                        className="w-full text-left px-3 py-2.5 text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] hover:bg-[rgb(var(--ec-accent-subtle))] hover:text-[rgb(var(--ec-accent-text))] border border-[rgb(var(--ec-page-border))] hover:border-[rgb(var(--ec-accent)/0.3)] rounded-lg transition-colors"
                         style={isOpen ? fadeInStyles.getQuestionStyle(index) : undefined}
                       >
                         {question.label}
@@ -619,11 +619,11 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                     return (
                       <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         {message.role === 'user' ? (
-                          <div className="max-w-[85%] rounded-2xl rounded-br-md px-4 py-2.5 bg-purple-600 text-white">
+                          <div className="max-w-[85%] rounded-2xl rounded-br-md px-4 py-2.5 bg-[rgb(var(--ec-accent))] text-white">
                             <p className="text-sm whitespace-pre-wrap">{content}</p>
                           </div>
                         ) : (
-                          <div className="w-full text-gray-700">
+                          <div className="w-full text-[rgb(var(--ec-page-text))]">
                             <div className="prose prose-sm max-w-none prose-p:my-2 prose-p:font-normal prose-p:text-[13px] prose-headings:my-3 prose-headings:font-medium prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-li:text-[13px] prose-li:font-normal text-[13px] font-light">
                               <ReactMarkdown
                                 components={{
@@ -632,7 +632,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                                       {...props}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-purple-600 hover:text-purple-800 underline"
+                                      className="text-[rgb(var(--ec-accent))] hover:text-[rgb(var(--ec-accent-hover))] underline"
                                     />
                                   ),
                                   code: ({ children, className, ...props }) => {
@@ -643,7 +643,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
 
                                     return isInline ? (
                                       <code
-                                        className="px-1 py-0.5 rounded text-xs font-mono bg-gray-100 text-gray-800"
+                                        className="px-1 py-0.5 rounded text-xs font-mono bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text))]"
                                         {...props}
                                       >
                                         {children}
@@ -688,9 +688,9 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
             </div>
 
             {/* Input area (Fixed at bottom) */}
-            <div className="flex-none px-4 py-3 border-t border-gray-100" key={isOpen ? 'input-open' : 'input-closed'}>
+            <div className="flex-none px-4 py-3 border-t border-[rgb(var(--ec-page-border))]" key={isOpen ? 'input-open' : 'input-closed'}>
               <form onSubmit={handleSubmit}>
-                <div className="relative bg-gray-50 rounded-lg border-2 border-gray-200 focus-within:border-purple-300 focus-within:bg-white transition-all">
+                <div className="relative bg-[rgb(var(--ec-input-bg))] rounded-lg border-2 border-[rgb(var(--ec-input-border))] focus-within:border-[rgb(var(--ec-accent)/0.5)] transition-all">
                   <input
                     ref={inputRef}
                     type="text"
@@ -704,14 +704,14 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                     }}
                     placeholder="Ask a question..."
                     disabled={isLoading}
-                    className="w-full px-3 py-2.5 pr-14 bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none text-sm disabled:opacity-50 rounded-lg"
+                    className="w-full px-3 py-2.5 pr-14 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-none text-sm disabled:opacity-50 rounded-lg"
                   />
                   <div className="absolute right-1.5 top-1/2 -translate-y-1/2 z-10">
                     {isStreaming ? (
                       <button
                         type="button"
                         onClick={() => stop()}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                        className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-colors"
                         aria-label="Stop generating"
                       >
                         <Square size={12} fill="currentColor" />
@@ -720,7 +720,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                       <button
                         type="submit"
                         disabled={!inputValue.trim() || isLoading}
-                        className="px-2.5 py-1 bg-purple-600 text-white text-xs font-medium rounded-md hover:bg-purple-700 disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
+                        className="px-2.5 py-1 bg-[rgb(var(--ec-accent))] text-white text-xs font-medium rounded-md hover:bg-[rgb(var(--ec-accent-hover))] disabled:bg-[rgb(var(--ec-content-hover))] disabled:text-[rgb(var(--ec-icon-color))] transition-colors"
                         aria-label="Send message"
                       >
                         Send
@@ -729,7 +729,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                   </div>
                 </div>
               </form>
-              <p className="text-[9px] text-gray-400 mt-2 text-center">AI can make mistakes. Verify important info.</p>
+              <p className="text-[9px] text-[rgb(var(--ec-icon-color))] mt-2 text-center">AI can make mistakes. Verify important info.</p>
             </div>
           </div>
         </div>
@@ -747,22 +747,22 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
         }}
       >
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-[300]" />
-          <Dialog.Content className="fixed inset-y-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl md:inset-y-8 rounded-xl bg-white shadow-2xl z-[301] flex flex-col overflow-hidden focus:outline-none border border-gray-200">
+          <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[300]" />
+          <Dialog.Content className="fixed inset-y-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl md:inset-y-8 rounded-xl bg-[rgb(var(--ec-page-bg))] shadow-2xl z-[301] flex flex-col overflow-hidden focus:outline-none border border-[rgb(var(--ec-page-border))]">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 flex-shrink-0">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-[rgb(var(--ec-page-border))] flex-shrink-0">
               <div className="flex items-center space-x-2.5">
-                <div className="p-1.5 bg-purple-50 rounded-lg">
-                  <BookOpen size={18} className="text-purple-600" />
+                <div className="p-1.5 bg-[rgb(var(--ec-accent-subtle))] rounded-lg">
+                  <BookOpen size={18} className="text-[rgb(var(--ec-accent))]" />
                 </div>
-                <Dialog.Title className="text-base font-medium text-gray-900">Ask AI</Dialog.Title>
+                <Dialog.Title className="text-base font-medium text-[rgb(var(--ec-page-text))]">Ask AI</Dialog.Title>
               </div>
               <div className="flex items-center space-x-2">
                 {tools.length > 0 && (
                   <Popover.Root>
                     <Popover.Trigger asChild>
                       <button
-                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="p-2 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
                         aria-label="View available tools"
                         title="Available tools"
                       >
@@ -771,28 +771,28 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                     </Popover.Trigger>
                     <Popover.Portal>
                       <Popover.Content
-                        className="w-80 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-[350]"
+                        className="w-80 bg-[rgb(var(--ec-dropdown-bg))] rounded-lg shadow-lg border border-[rgb(var(--ec-dropdown-border))] p-4 z-[350]"
                         sideOffset={5}
                         align="end"
                         style={{ maxHeight: 'calc(100vh - 200px)' }}
                       >
-                        <div className="text-[11px] font-medium text-gray-500 mb-2">Available Tools ({sortedTools.length})</div>
-                        <div className="overflow-y-auto divide-y divide-gray-100" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+                        <div className="text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] mb-2">Available Tools ({sortedTools.length})</div>
+                        <div className="overflow-y-auto divide-y divide-[rgb(var(--ec-page-border))]" style={{ maxHeight: 'calc(100vh - 280px)' }}>
                           {sortedTools.map((tool) => (
                             <div key={tool.name} className="py-2 first:pt-0 last:pb-0">
                               <div className="flex items-center gap-1.5">
-                                <span className="text-xs font-medium text-gray-700">{tool.name}</span>
+                                <span className="text-xs font-medium text-[rgb(var(--ec-dropdown-text))]">{tool.name}</span>
                                 {tool.isCustom && (
-                                  <span className="px-1.5 py-0.5 text-[9px] font-medium bg-purple-100 text-purple-700 rounded">
+                                  <span className="px-1.5 py-0.5 text-[9px] font-medium bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent-text))] rounded">
                                     Custom
                                   </span>
                                 )}
                               </div>
-                              <div className="text-[11px] text-gray-500 mt-0.5">{tool.description}</div>
+                              <div className="text-[11px] text-[rgb(var(--ec-page-text-muted))] mt-0.5">{tool.description}</div>
                             </div>
                           ))}
                         </div>
-                        <Popover.Arrow className="fill-white" />
+                        <Popover.Arrow className="fill-[rgb(var(--ec-dropdown-bg))]" />
                       </Popover.Content>
                     </Popover.Portal>
                   </Popover.Root>
@@ -800,7 +800,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                 {hasMessages && (
                   <button
                     onClick={() => setMessages([])}
-                    className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="p-2 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
                     aria-label="Clear chat"
                     title="Clear chat"
                   >
@@ -809,7 +809,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                 )}
                 <button
                   onClick={() => setIsFullscreen(false)}
-                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
                   aria-label="Exit fullscreen"
                   title="Exit fullscreen"
                 >
@@ -820,7 +820,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                     setIsFullscreen(false);
                     onClose();
                   }}
-                  className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
                   aria-label="Close"
                 >
                   <X size={18} />
@@ -830,9 +830,9 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
 
             {/* Thinking indicator */}
             {isThinking && (
-              <div className="px-5 py-2 flex items-center gap-2 border-b border-gray-100">
-                <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse" />
-                <span className="text-sm text-gray-500">Thinking...</span>
+              <div className="px-5 py-2 flex items-center gap-2 border-b border-[rgb(var(--ec-page-border))]">
+                <div className="w-1.5 h-1.5 bg-[rgb(var(--ec-accent-subtle))]0 rounded-full animate-pulse" />
+                <span className="text-sm text-[rgb(var(--ec-page-text-muted))]">Thinking...</span>
               </div>
             )}
 
@@ -843,14 +843,14 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                 <div className="flex flex-col h-full justify-center items-center">
                   {/* Animated Icon */}
                   <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-purple-400/20 rounded-2xl blur-xl animate-pulse" />
-                    <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                    <div className="absolute inset-0 bg-[rgb(var(--ec-accent)/0.2)] rounded-2xl blur-xl animate-pulse" />
+                    <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-[rgb(var(--ec-accent-gradient-from))] to-[rgb(var(--ec-accent-gradient-to))] flex items-center justify-center shadow-lg">
                       <BookOpen size={30} className="text-white" strokeWidth={1.5} />
-                      <Sparkles size={12} className="text-purple-200 absolute -top-1 -right-1 animate-pulse" />
+                      <Sparkles size={12} className="text-[rgb(var(--ec-accent)/0.4)] absolute -top-1 -right-1 animate-pulse" />
                     </div>
                   </div>
-                  <h2 className="text-xl font-medium text-gray-900 mb-1">{getGreeting()}</h2>
-                  <p className="text-gray-500 text-center mb-8">Ask me anything about your catalog.</p>
+                  <h2 className="text-xl font-medium text-[rgb(var(--ec-page-text))] mb-1">{getGreeting()}</h2>
+                  <p className="text-[rgb(var(--ec-page-text-muted))] text-center mb-8">Ask me anything about your catalog.</p>
 
                   {/* Suggested questions */}
                   <div className="grid grid-cols-2 gap-2 max-w-lg">
@@ -858,7 +858,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                       <button
                         key={index}
                         onClick={() => handleSuggestedAction(question.prompt)}
-                        className="px-4 py-2.5 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left"
+                        className="px-4 py-2.5 text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] hover:bg-[rgb(var(--ec-accent-subtle))] hover:text-[rgb(var(--ec-accent-text))] rounded-lg transition-colors text-left"
                       >
                         {question.label}
                       </button>
@@ -873,11 +873,11 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                     return (
                       <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         {message.role === 'user' ? (
-                          <div className="max-w-[75%] rounded-2xl rounded-br-md px-4 py-2.5 bg-purple-600 text-white">
+                          <div className="max-w-[75%] rounded-2xl rounded-br-md px-4 py-2.5 bg-[rgb(var(--ec-accent))] text-white">
                             <p className="text-sm whitespace-pre-wrap">{content}</p>
                           </div>
                         ) : (
-                          <div className="w-full text-gray-700">
+                          <div className="w-full text-[rgb(var(--ec-page-text))]">
                             <div className="prose prose-sm max-w-none">
                               <ReactMarkdown
                                 components={{
@@ -886,7 +886,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                                       {...props}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-purple-600 hover:text-purple-800 underline"
+                                      className="text-[rgb(var(--ec-accent))] hover:text-[rgb(var(--ec-accent-hover))] underline"
                                     />
                                   ),
                                   code: ({ children, className, ...props }) => {
@@ -897,7 +897,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
 
                                     return isInline ? (
                                       <code
-                                        className="px-1.5 py-0.5 rounded text-sm font-mono bg-gray-100 text-gray-800"
+                                        className="px-1.5 py-0.5 rounded text-sm font-mono bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text))]"
                                         {...props}
                                       >
                                         {children}
@@ -941,9 +941,9 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
             </div>
 
             {/* Modal Input area */}
-            <div className="flex-shrink-0 px-5 py-4 border-t border-gray-100">
+            <div className="flex-shrink-0 px-5 py-4 border-t border-[rgb(var(--ec-page-border))]">
               <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-                <div className="relative bg-gray-50 rounded-lg border border-gray-200 focus-within:border-purple-300 focus-within:bg-white transition-all">
+                <div className="relative bg-[rgb(var(--ec-input-bg))] rounded-lg border border-[rgb(var(--ec-input-border))] focus-within:border-[rgb(var(--ec-accent)/0.5)] transition-all">
                   <input
                     ref={modalInputRef}
                     type="text"
@@ -957,14 +957,14 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                     }}
                     placeholder="Ask a question..."
                     disabled={isLoading}
-                    className="w-full px-4 py-3 pr-16 bg-transparent text-gray-900 placeholder-gray-400 focus:outline-none text-sm disabled:opacity-50 rounded-lg"
+                    className="w-full px-4 py-3 pr-16 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-none text-sm disabled:opacity-50 rounded-lg"
                   />
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
                     {isStreaming ? (
                       <button
                         type="button"
                         onClick={() => stop()}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                        className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-colors"
                         aria-label="Stop generating"
                       >
                         <Square size={14} fill="currentColor" />
@@ -973,7 +973,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                       <button
                         type="submit"
                         disabled={!inputValue.trim() || isLoading}
-                        className="px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                        className="px-3 py-1.5 bg-[rgb(var(--ec-accent))] text-white text-sm font-medium rounded-md hover:bg-[rgb(var(--ec-accent-hover))] disabled:bg-[rgb(var(--ec-content-hover))] disabled:text-[rgb(var(--ec-icon-color))] disabled:cursor-not-allowed transition-colors"
                         aria-label="Send message"
                       >
                         Send
@@ -982,7 +982,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                   </div>
                 </div>
               </form>
-              <p className="text-xs text-gray-400 mt-2 text-center">AI can make mistakes. Verify important info.</p>
+              <p className="text-xs text-[rgb(var(--ec-icon-color))] mt-2 text-center">AI can make mistakes. Verify important info.</p>
             </div>
           </Dialog.Content>
         </Dialog.Portal>
