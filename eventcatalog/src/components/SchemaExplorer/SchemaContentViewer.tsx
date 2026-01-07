@@ -1,11 +1,13 @@
 import { ClipboardDocumentIcon, ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneLight as syntaxHighlighterStyle } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import { oneLight } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { buildUrl } from '@utils/url-builder';
 import JSONSchemaViewer from './JSONSchemaViewer';
 import AvroSchemaViewer from './AvroSchemaViewer';
 import { getLanguageForHighlight } from './utils';
 import type { SchemaItem } from './types';
+import { useState, useEffect } from 'react';
 
 interface SchemaContentViewerProps {
   message: SchemaItem;
@@ -28,9 +30,34 @@ export default function SchemaContentViewer({
   showRequired = false,
   onOpenFullscreen,
 }: SchemaContentViewerProps) {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    // Check initial theme
+    const checkTheme = () => {
+      const theme = document.documentElement.getAttribute('data-theme');
+      setIsDarkMode(theme === 'dark');
+    };
+
+    checkTheme();
+
+    // Watch for theme changes
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'data-theme') {
+          checkTheme();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    return () => observer.disconnect();
+  }, []);
+
   if (!message.schemaContent) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-500">
+      <div className="flex items-center justify-center h-full text-[rgb(var(--ec-page-text-muted))]">
         <p className="text-sm">No schema content available</p>
       </div>
     );
@@ -47,7 +74,7 @@ export default function SchemaContentViewer({
   }
 
   return (
-    <div className="h-full overflow-auto p-3 relative bg-white border border-gray-200 rounded-lg">
+    <div className="h-full overflow-auto p-3 relative bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg">
       <div className="absolute top-5 right-5 z-10 flex items-center gap-2">
         {message.collection === 'services' &&
           (() => {
@@ -67,7 +94,7 @@ export default function SchemaContentViewer({
             return (
               <a
                 href={specUrl}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] rounded-md transition-colors shadow-sm"
                 title="View full specification"
               >
                 <svg
@@ -91,7 +118,7 @@ export default function SchemaContentViewer({
         {onOpenFullscreen && (
           <button
             onClick={onOpenFullscreen}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] rounded-md transition-colors shadow-sm"
             title="Open in fullscreen"
           >
             <ArrowsPointingOutIcon className="h-3.5 w-3.5" />
@@ -100,7 +127,7 @@ export default function SchemaContentViewer({
         )}
         <button
           onClick={onCopy}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-md transition-colors shadow-sm"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] rounded-md transition-colors shadow-sm"
           title="Copy code"
         >
           <ClipboardDocumentIcon className="h-3.5 w-3.5" />
@@ -109,7 +136,7 @@ export default function SchemaContentViewer({
       </div>
       <SyntaxHighlighter
         language={getLanguageForHighlight(message.schemaExtension)}
-        style={syntaxHighlighterStyle}
+        style={isDarkMode ? oneDark : oneLight}
         customStyle={{
           margin: 0,
           padding: '0.75rem',
@@ -119,8 +146,8 @@ export default function SchemaContentViewer({
           lineHeight: '1.5',
           height: '100%',
           overflow: 'auto',
+          background: 'rgb(var(--ec-code-bg))',
         }}
-        className="bg-white border border-gray-200 rounded-lg"
         showLineNumbers={true}
         wrapLines={true}
         wrapLongLines={true}

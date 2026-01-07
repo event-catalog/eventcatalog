@@ -24,25 +24,25 @@ marked.setOptions({
 
 const badges = [
   {
-    backgroundColor: 'yellow',
-    textColor: 'yellow',
     content: props.domain.name,
     icon: RectangleGroupIcon,
-    class: 'text-yellow-400',
-    href: buildUrl(`/docs/${props.type}/${props.domainId}`),
   },
 ];
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={ubiquitousLanguage.summary}>
-  <main class="flex sm:px-8 docs-layout h-full max-w-7xl" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
+  <main
+    class="flex sm:px-8 docs-layout h-full max-w-7xl bg-[rgb(var(--ec-page-bg))]"
+    data-pagefind-body
+    data-pagefind-meta={`title:${pageTitle}`}
+  >
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8 min-h-[50em]">
         {/* Breadcrumb */}
-        <nav class="mb-4 flex items-center space-x-2 text-sm text-gray-500" aria-label="Breadcrumb">
+        <nav class="mb-4 flex items-center space-x-2 text-sm text-[rgb(var(--ec-page-text-muted))]" aria-label="Breadcrumb">
           <a
             href={buildUrl(`/docs/${props.type}/${props.domainId}/${props.domain.latestVersion}`)}
-            class="hover:text-gray-700 hover:underline flex items-center gap-2"
+            class="hover:text-[rgb(var(--ec-page-text))] hover:underline flex items-center gap-2"
           >
             <RectangleGroupIcon className="h-4 w-4" />
             {props.domain.name}
@@ -52,7 +52,7 @@ const badges = [
           </svg>
           <a
             href={buildUrl(`/docs/${props.type}/${props.domainId}/language`)}
-            class="hover:text-gray-700 hover:underline flex items-center gap-2"
+            class="hover:text-[rgb(var(--ec-page-text))] hover:underline flex items-center gap-2"
           >
             {
               (() => {
@@ -66,31 +66,30 @@ const badges = [
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
           </svg>
-          <span class="text-gray-900">{ubiquitousLanguage.name}</span>
+          <span class="text-[rgb(var(--ec-page-text))]">{ubiquitousLanguage.name}</span>
         </nav>
 
-        <div class="border-b border-gray-200 flex justify-between items-start md:pb-2">
+        <div class="border-b border-[rgb(var(--ec-page-border))] flex justify-between items-start md:pb-2">
           <div>
-            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-black">
+            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">
               {ubiquitousLanguage.name}
             </h2>
-            <p class="text-lg pt-2 text-gray-500 font-light">{ubiquitousLanguage.summary}</p>
-            <!-- Add bage -->
+            <p class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{ubiquitousLanguage.summary}</p>
+            <!-- Add badge -->
             {
               badges && (
-                <div class="flex flex-wrap py-2 pt-4">
+                <div class="flex flex-wrap gap-3 py-4">
                   {badges.map((badge: any) => {
                     return (
-                      <a href={badge.href || '#'} class="pb-2">
-                        <span
-                          id={badge.id || ''}
-                          class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2  bg-gradient-to-b  from-${badge.backgroundColor}-100 to-${badge.backgroundColor}-200 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}
-                        >
-                          {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
-                          {badge.iconURL && <img src={badge.iconURL} class="w-5 h-5 inline-block " />}
-                          <span>{badge.content}</span>
-                        </span>
-                      </a>
+                      <span
+                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
+                          bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))]
+                          text-[rgb(var(--ec-page-text))] shadow-sm"
+                      >
+                        {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" />}
+                        {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
+                        <span>{badge.content}</span>
+                      </span>
                     );
                   })}
                 </div>

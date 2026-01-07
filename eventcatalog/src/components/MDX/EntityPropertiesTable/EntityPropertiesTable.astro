@@ -41,8 +41,8 @@ const isComponentEnabled = collection === 'entities';
 {
   isComponentEnabled && properties && properties.length > 0 ? (
     <div class="overflow-x-auto relative not-prose">
-      <table class="w-full text-sm text-left text-gray-500 border border-gray-200 rounded-lg shadow-sm">
-        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+      <table class="w-full text-sm text-left text-[rgb(var(--ec-page-text-muted))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-sm">
+        <thead class="text-xs text-[rgb(var(--ec-page-text))] uppercase bg-[rgb(var(--ec-content-hover))]">
           <tr>
             <th scope="col" class="py-3 px-6">
               Name
@@ -60,25 +60,26 @@ const isComponentEnabled = collection === 'entities';
         </thead>
         <tbody>
           {properties.map((prop) => (
-            <tr class="bg-white border-b hover:bg-gray-50 align-top">
-              <td class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap">
-                <code class="text-sm bg-gray-100 rounded px-1 py-0.5">{prop.name}</code>
+            <tr class="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border-b border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] align-top">
+              <td class="py-4 px-6 font-medium text-[rgb(var(--ec-page-text))] whitespace-nowrap">
+                <code class="text-sm bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5">{prop.name}</code>
               </td>
-              <td class="py-4 px-6">
+              <td class="py-4 px-6 text-[rgb(var(--ec-page-text-muted))]">
                 {prop.type === 'array' && prop.items ? (
                   <span>
-                    array&lt;<code class="text-sm bg-gray-100 rounded px-1 py-0.5">{prop.items.type}</code>&gt;
+                    array&lt;<code class="text-sm bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5">{prop.items.type}</code>
+                    &gt;
                   </span>
                 ) : (
-                  <code class="text-sm bg-gray-100 rounded px-1 py-0.5">{prop.type}</code>
+                  <code class="text-sm bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5">{prop.type}</code>
                 )}
                 {prop.enum && (
-                  <div class="text-xs text-gray-500 mt-2">
+                  <div class="text-xs text-[rgb(var(--ec-page-text-muted))] mt-2">
                     <span class="font-semibold block mb-1">Enum:</span>
                     <ul class="list-disc list-inside ml-2 space-y-1">
                       {prop.enum.map((enumValue: string) => (
                         <li>
-                          <code class="text-xs bg-gray-100 rounded px-1 py-0.5">{enumValue}</code>
+                          <code class="text-xs bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5">{enumValue}</code>
                         </li>
                       ))}
                     </ul>
@@ -87,12 +88,18 @@ const isComponentEnabled = collection === 'entities';
               </td>
               <td class="py-4 px-6">
                 {prop.required ? (
-                  <span class="bg-purple-100 text-purple-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">Required</span>
+                  <span class="bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent-text))] text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                    Required
+                  </span>
                 ) : (
-                  <span class="bg-gray-100 text-gray-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">Optional</span>
+                  <span class="bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))] text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                    Optional
+                  </span>
                 )}
               </td>
-              <td class="py-4 px-6">{prop.description || <span class="text-gray-400 italic">No description provided.</span>}</td>
+              <td class="py-4 px-6 text-[rgb(var(--ec-page-text-muted))]">
+                {prop.description || <span class="text-[rgb(var(--ec-icon-color))] italic">No description provided.</span>}
+              </td>
             </tr>
           ))}
         </tbody>

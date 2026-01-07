@@ -3,8 +3,8 @@ const { Tile, Tiles, Flow, NodeGraph, Admonition, EntityMap } = Astro.props.comp
 ---
 
 <div class="p-8 pt-2 max-w-8xl mx-auto">
-  <h1 class="text-4xl font-bold text-gray-800 mb-4">Welcome to FlowMart's EventCatalog</h1>
-  <p class="text-lg text-gray-600 mb-8">Explore the events, services, and domains that power the FlowMart ecosystem. This catalog provides a centralized place to discover and understand our asynchronous architecture.</p>
+  <h1 class="text-4xl font-bold text-[rgb(var(--ec-page-text))] mb-4">Welcome to FlowMart's EventCatalog</h1>
+  <p class="text-lg text-[rgb(var(--ec-page-text-muted))] mb-8">Explore the events, services, and domains that power the FlowMart ecosystem. This catalog provides a centralized place to discover and understand our asynchronous architecture.</p>
 
   <!-- This is a demo -->
    <Admonition type="info" title="Demo application">
@@ -12,65 +12,65 @@ const { Tile, Tiles, Flow, NodeGraph, Admonition, EntityMap } = Astro.props.comp
     <p>Using EventCatalog, we documented their systems (domains, services, events, commands, flows) and how they fit together.</p>
    </Admonition>
 
-  <div class="grid grid-cols-2 gap-4 border-b border-gray-200 pb-8 pt-4">
+  <div class="grid grid-cols-2 gap-4 border-b border-[rgb(var(--ec-page-border))] pb-8 pt-4">
     <div class="col-span-1">
-      <h2 class="text-2xl font-semibold text-gray-700 mb-2">E-Commerce Domain</h2>
-      <p class="text-gray-500 mb-2">The core domain of FlowMart, responsible for all e-commerce operations.</p>
+      <h2 class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mb-2">E-Commerce Domain</h2>
+      <p class="text-[rgb(var(--ec-page-text-muted))] mb-2">The core domain of FlowMart, responsible for all e-commerce operations.</p>
       <NodeGraph id="E-Commerce" version="1.0.0" type="domain" />
     </div>
     <div class="col-span-1">
-      <h2 class="text-2xl font-semibold text-gray-700 mb-2">Orders Domain</h2>
-      <p class="text-gray-500 mb-2">The sub-domain responsible for all orders.</p>
+      <h2 class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mb-2">Orders Domain</h2>
+      <p class="text-[rgb(var(--ec-page-text-muted))] mb-2">The sub-domain responsible for all orders.</p>
       <NodeGraph id="Orders" version="0.0.3" type="domain" />
     </div>
     <div class="col-span-1">
-      <h2 class="text-2xl font-semibold text-gray-700 mb-2">Payment Domain</h2>
-      <p class="text-gray-500 mb-2">The sub-domain responsible for all payments.</p>
+      <h2 class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mb-2">Payment Domain</h2>
+      <p class="text-[rgb(var(--ec-page-text-muted))] mb-2">The sub-domain responsible for all payments.</p>
       <NodeGraph id="Payment" version="0.0.1" type="domain" />
     </div>
     <div class="col-span-1">
-      <h2 class="text-2xl font-semibold text-gray-700 mb-2">Payment Entity Map</h2>
-      <p class="text-gray-500 mb-2">The entity map for the payment domain.</p>
+      <h2 class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mb-2">Payment Entity Map</h2>
+      <p class="text-[rgb(var(--ec-page-text-muted))] mb-2">The entity map for the payment domain.</p>
       <EntityMap id="Payment" version="0.0.1" title="Payment Entity Map" />
     </div>
     <div class="col-span-1">
-      <h2 class="text-2xl font-semibold text-gray-700 mb-2">Subscription Domain</h2>
-      <p class="text-gray-500 mb-2">The sub-domain responsible for all subscriptions.</p>
+      <h2 class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mb-2">Subscription Domain</h2>
+      <p class="text-[rgb(var(--ec-page-text-muted))] mb-2">The sub-domain responsible for all subscriptions.</p>
       <NodeGraph id="Subscriptions" version="0.0.1" type="domain" />
     </div>
     <div class="col-span-1">
-      <h2 class="text-2xl font-semibold text-gray-700 mb-2">Subscription Entity Map</h2>
-      <p class="text-gray-500 mb-2">The entity map for the subscription domain.</p>
+      <h2 class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mb-2">Subscription Entity Map</h2>
+      <p class="text-[rgb(var(--ec-page-text-muted))] mb-2">The entity map for the subscription domain.</p>
       <EntityMap id="Subscriptions" version="0.0.1" title="Subscription Entity Map" />
     </div>
   </div>
 
-  <div class="bg-blue-50 p-6 rounded-lg shadow-md mb-12">
-    <h2 class="text-2xl font-semibold text-blue-800 mb-3">Discover Our Architecture</h2>
-    <p class="text-gray-700 mb-4">
+  <div class="bg-blue-50 dark:bg-blue-500/10 p-6 rounded-lg shadow-md mb-12 border border-blue-200 dark:border-blue-500/30">
+    <h2 class="text-2xl font-semibold text-blue-800 dark:text-blue-300 mb-3">Discover Our Architecture</h2>
+    <p class="text-[rgb(var(--ec-page-text))] mb-4">
       Navigate through our Domains to understand the different business capabilities, explore Services to see the microservices involved, and dive into Events and Commands to see how they communicate.
     </p>
-    <p class="text-gray-700">
+    <p class="text-[rgb(var(--ec-page-text))]">
       Use the search bar above or browse the sections in the sidebar to get started.
     </p>
   </div>
 
-  <div class="grid grid-cols-2 gap-4 border-b border-gray-200 pb-8">
+  <div class="grid grid-cols-2 gap-4 border-b border-[rgb(var(--ec-page-border))] pb-8">
     <div class="col-span-1">
-      <h2 class="text-2xl font-semibold text-gray-700 mb-2">Cancel Subscription Flow</h2>
-      <p class="text-gray-500 mb-2">This flow is triggered when a user cancels their subscription.</p>
+      <h2 class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mb-2">Cancel Subscription Flow</h2>
+      <p class="text-[rgb(var(--ec-page-text-muted))] mb-2">This flow is triggered when a user cancels their subscription.</p>
       <Flow id="CancelSubscription" version="latest" includeKey={false} />
     </div>
     <div class="col-span-1">
-      <h2 class="text-2xl font-semibold text-gray-700 mb-2">Payment Flow</h2>
-      <p class="text-gray-500 mb-2">This flow documents how a payment is processed at FlowMart.</p>
+      <h2 class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mb-2">Payment Flow</h2>
+      <p class="text-[rgb(var(--ec-page-text-muted))] mb-2">This flow documents how a payment is processed at FlowMart.</p>
       <Flow id="PaymentFlow" version="latest" includeKey={false} />
     </div>
   </div>
 
-  <div class="border-b border-gray-200 pb-8 py-4">
-  <h2 class="text-3xl font-semibold text-gray-700 py-4">Quick Links</h2>
-  <p class="text-gray-700 mb-4">Learn how to get started with EventCatalog, create domains, services, events, and commands.</p>
+  <div class="border-b border-[rgb(var(--ec-page-border))] pb-8 py-4">
+  <h2 class="text-3xl font-semibold text-[rgb(var(--ec-page-text))] py-4">Quick Links</h2>
+  <p class="text-[rgb(var(--ec-page-text))] mb-4">Learn how to get started with EventCatalog, create domains, services, events, and commands.</p>
   <Tiles columns={3}>
     <Tile icon="BookOpenIcon" href="https://eventcatalog.dev/docs/development/getting-started/introduction" title="Getting started with EventCatalog" description="How to get started with EventCatalog" />
     <Tile icon="RectangleGroupIcon" href="https://eventcatalog.dev/docs/development/guides/domains/adding-domains" title="Creating domains" description="Learn how to create domains in your event catalog" />
@@ -82,9 +82,9 @@ const { Tile, Tiles, Flow, NodeGraph, Admonition, EntityMap } = Astro.props.comp
 </div>
 
   <div class="pb-8 py-4">
-    <h2 class="text-3xl font-semibold text-gray-700 mb-6 pt-4">Join the community</h2>
+    <h2 class="text-3xl font-semibold text-[rgb(var(--ec-page-text))] mb-6 pt-4">Join the community</h2>
 
-    <p class="text-gray-700 mb-4">Our project and community is growing fast. We have over 1000+ members in our <a href="https://discord.gg/3rjaZMmrAm" class="text-blue-500 hover:text-blue-600">Discord community</a>.</p>
+    <p class="text-[rgb(var(--ec-page-text))] mb-4">Our project and community is growing fast. We have over 1000+ members in our <a href="https://discord.gg/3rjaZMmrAm" class="text-blue-500 hover:text-blue-400">Discord community</a>.</p>
 
     <Tiles columns={2}>
       <Tile icon="UserGroupIcon" iconColor="text-green-500" href="https://discord.gg/3rjaZMmrAm" title="Join the Discord community" description="Join the community to get help and support" />

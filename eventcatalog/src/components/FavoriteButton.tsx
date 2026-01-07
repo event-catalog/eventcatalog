@@ -43,7 +43,7 @@ export default function FavoriteButton({ nodeKey, title, badge, href, size = 'md
     <button
       onClick={handleToggleFavorite}
       className={`p-2 rounded-md transition-colors ${
-        isFavorite ? 'text-amber-400 hover:text-amber-500' : 'text-gray-300 hover:text-amber-400'
+        isFavorite ? 'text-amber-400 hover:text-amber-500' : 'text-[rgb(var(--ec-icon-color))] hover:text-amber-400'
       }`}
       aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
       title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}

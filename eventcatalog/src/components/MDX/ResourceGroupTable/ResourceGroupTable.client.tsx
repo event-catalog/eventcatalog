@@ -37,35 +37,35 @@ const ResourceRow = memo(
     const owners = resource.owners || [];
 
     return (
-      <tr className="group hover:bg-gray-100">
-        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 relative">
+      <tr className="group hover:bg-[rgb(var(--ec-content-hover))]">
+        <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-[rgb(var(--ec-page-text))] sm:pl-6 relative">
           <a href={url} className="absolute inset-0 z-10" aria-label={`View details for ${resource.name}`} />
           <div className="flex items-center gap-2 relative">
             <Icon className={`h-5 w-5 text-${color}-500`} />
-            <span className="group-hover:text-blue-600 break-all">{resource.name}</span>
+            <span className="group-hover:text-[rgb(var(--ec-accent))] break-all">{resource.name}</span>
           </div>
         </td>
-        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 relative">
+        <td className="whitespace-nowrap px-3 py-4 text-sm text-[rgb(var(--ec-page-text-muted))] relative">
           <a href={url} className="absolute inset-0 z-10" aria-hidden="true" />
           <span>v{resource.version}</span>
         </td>
-        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 relative">
+        <td className="whitespace-nowrap px-3 py-4 text-sm text-[rgb(var(--ec-page-text-muted))] relative">
           <a href={url} className="absolute inset-0 z-10" aria-hidden="true" />
           <span>{type}</span>
         </td>
-        <td className="px-3 py-4 text-sm text-gray-500 relative">
+        <td className="px-3 py-4 text-sm text-[rgb(var(--ec-page-text-muted))] relative">
           <a href={url} className="absolute inset-0 z-10" aria-hidden="true" />
           <span className="line-clamp-2 break-words">{resource.summary || resource.description || '-'}</span>
         </td>
         {showTags && (
-          <td className="px-3 py-4 text-sm text-gray-500 relative">
+          <td className="px-3 py-4 text-sm text-[rgb(var(--ec-page-text-muted))] relative">
             <a href={url} className="absolute inset-0 z-10" aria-hidden="true" />
             <div className="flex flex-wrap gap-1">
               {tags.length > 0
                 ? tags.map((tag, index) => (
                     <span
                       key={`${tag}-${index}`}
-                      className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10"
+                      className="inline-flex items-center rounded-md bg-[rgb(var(--ec-content-hover))] px-2 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] ring-1 ring-inset ring-[rgb(var(--ec-page-border))]"
                     >
                       {tag}
                     </span>
@@ -75,14 +75,14 @@ const ResourceRow = memo(
           </td>
         )}
         {showOwners && (
-          <td className="px-3 py-4 text-sm text-gray-500 relative">
+          <td className="px-3 py-4 text-sm text-[rgb(var(--ec-page-text-muted))] relative">
             <a href={url} className="absolute inset-0 z-10" aria-hidden="true" />
             <div className="flex flex-wrap gap-1">
               {owners.length > 0
                 ? owners.map((owner, index) => (
                     <span
                       key={`${owner.id || owner.name}-${index}`}
-                      className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10"
+                      className="inline-flex items-center rounded-md bg-[rgb(var(--ec-content-hover))] px-2 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] ring-1 ring-inset ring-[rgb(var(--ec-page-border))]"
                     >
                       {owner.name || owner.id}
                     </span>
@@ -119,8 +119,8 @@ const FilterButton = memo(
       }}
       className={`px-3 py-1 rounded-md text-sm font-medium ${
         typeFilter === type
-          ? 'bg-black text-white border border-gray-200 hover:bg-gray-900'
-          : 'bg-white text-black border border-gray-200 hover:bg-gray-100'
+          ? 'bg-[rgb(var(--ec-button-bg))] text-[rgb(var(--ec-button-text))] border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-button-bg-hover))]'
+          : 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))]'
       }`}
     >
       {label} ({count})
@@ -217,13 +217,13 @@ const ResourceGroupTable = (props: ResourceGroupTableProps) => {
 
   return (
     <div className="mx-auto not-prose py-4 space-y-4 my-4">
-      {title && <h2 className="text-2xl font-semibold">{title}</h2>}
-      <div className="flow-root bg-white border-gray-200 border p-4 pb-2 rounded-lg text-gray-900">
+      {title && <h2 className="text-2xl font-semibold text-[rgb(var(--ec-page-text))]">{title}</h2>}
+      <div className="flow-root bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border-[rgb(var(--ec-page-border))] border p-4 pb-2 rounded-lg text-[rgb(var(--ec-page-text))]">
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">
             {subtitle} ({searchTerm || typeFilter ? `${filteredResources.length}/${resources.length}` : resources.length})
           </h2>
-          <span className="text-sm text-gray-700">{description}</span>
+          <span className="text-sm text-[rgb(var(--ec-page-text-muted))]">{description}</span>
 
           {/* Type filter buttons - only shown if there are filter options */}
           {filterButtons.length > 0 && (
@@ -244,7 +244,12 @@ const ResourceGroupTable = (props: ResourceGroupTableProps) => {
 
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <svg
+                className="h-5 w-5 text-[rgb(var(--ec-icon-color))]"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
                 <path
                   fillRule="evenodd"
                   d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
@@ -260,7 +265,7 @@ const ResourceGroupTable = (props: ResourceGroupTableProps) => {
                 setCurrentPage(1); // Reset to first page when searching
               }}
               placeholder="Search by name, type, description, or tags..."
-              className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+              className="block w-full rounded-md border-0 py-1.5 pl-10 pr-10 bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] ring-1 ring-inset ring-[rgb(var(--ec-input-border))] placeholder:text-[rgb(var(--ec-input-placeholder))] focus:ring-2 focus:ring-inset focus:ring-[rgb(var(--ec-accent))] sm:text-sm sm:leading-6"
             />
             {searchTerm && (
               <button
@@ -271,7 +276,11 @@ const ResourceGroupTable = (props: ResourceGroupTableProps) => {
                 className="absolute inset-y-0 right-0 flex items-center pr-3"
                 aria-label="Clear search"
               >
-                <svg className="h-5 w-5 text-gray-400 hover:text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                <svg
+                  className="h-5 w-5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-icon-hover))]"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
                   <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
                 </svg>
               </button>
@@ -281,40 +290,52 @@ const ResourceGroupTable = (props: ResourceGroupTableProps) => {
         <div className="overflow-x-auto">
           <div className="inline-block min-w-full py-2 align-middle">
             <div className="max-w-full overflow-hidden">
-              <table className="min-w-full table-fixed divide-y divide-gray-300 rounded-sm bg-white">
+              <table className="min-w-full table-fixed divide-y divide-[rgb(var(--ec-page-border))] rounded-sm bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))]">
                 <thead>
                   <tr>
                     <th
                       scope="col"
-                      className={`${showTags || showOwners ? 'w-1/5' : 'w-1/4'} py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6`}
+                      className={`${showTags || showOwners ? 'w-1/5' : 'w-1/4'} py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-[rgb(var(--ec-page-text))] sm:pl-6`}
                     >
                       Name
                     </th>
-                    <th scope="col" className="w-[100px] px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    <th
+                      scope="col"
+                      className="w-[100px] px-3 py-3.5 text-left text-sm font-semibold text-[rgb(var(--ec-page-text))]"
+                    >
                       Version
                     </th>
-                    <th scope="col" className="w-[100px] py-3.5 pl-3.5 pr-3 text-left text-sm font-semibold text-gray-900">
+                    <th
+                      scope="col"
+                      className="w-[100px] py-3.5 pl-3.5 pr-3 text-left text-sm font-semibold text-[rgb(var(--ec-page-text))]"
+                    >
                       Type
                     </th>
                     <th
                       scope="col"
-                      className={`${showTags && showOwners ? 'w-1/4' : showTags || showOwners ? 'w-1/3' : 'w-1/2'} px-3 py-3.5 text-left text-sm font-semibold text-gray-900`}
+                      className={`${showTags && showOwners ? 'w-1/4' : showTags || showOwners ? 'w-1/3' : 'w-1/2'} px-3 py-3.5 text-left text-sm font-semibold text-[rgb(var(--ec-page-text))]`}
                     >
                       Description
                     </th>
                     {showTags && (
-                      <th scope="col" className="w-1/6 px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th
+                        scope="col"
+                        className="w-1/6 px-3 py-3.5 text-left text-sm font-semibold text-[rgb(var(--ec-page-text))]"
+                      >
                         Tags
                       </th>
                     )}
                     {showOwners && (
-                      <th scope="col" className="w-1/6 px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      <th
+                        scope="col"
+                        className="w-1/6 px-3 py-3.5 text-left text-sm font-semibold text-[rgb(var(--ec-page-text))]"
+                      >
                         Owners
                       </th>
                     )}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-[rgb(var(--ec-page-border))]">
                   {paginatedResources.length > 0 ? (
                     paginatedResources.map((resource) => (
                       <ResourceRow
@@ -328,7 +349,7 @@ const ResourceGroupTable = (props: ResourceGroupTableProps) => {
                     <tr>
                       <td
                         colSpan={showTags && showOwners ? 6 : showTags || showOwners ? 5 : 4}
-                        className="text-center py-4 text-sm text-gray-500"
+                        className="text-center py-4 text-sm text-[rgb(var(--ec-page-text-muted))]"
                       >
                         No resources found
                       </td>
@@ -340,26 +361,26 @@ const ResourceGroupTable = (props: ResourceGroupTableProps) => {
           </div>
         </div>
         {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 -mt-2">
+          <div className="flex items-center justify-between border-t border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] px-4 py-3 sm:px-6 -mt-2">
             <div className="flex flex-1 justify-between sm:hidden">
               <button
                 onClick={() => setCurrentPage(currentPage - 1)}
                 disabled={currentPage === 1}
-                className={`relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${currentPage === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-50'}`}
+                className={`relative inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] px-4 py-2 text-sm font-medium ${currentPage === 1 ? 'text-[rgb(var(--ec-icon-color))]' : 'text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))]'}`}
               >
                 Previous
               </button>
               <button
                 onClick={() => setCurrentPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${currentPage === totalPages ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-50'}`}
+                className={`relative ml-3 inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] px-4 py-2 text-sm font-medium ${currentPage === totalPages ? 'text-[rgb(var(--ec-icon-color))]' : 'text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))]'}`}
               >
                 Next
               </button>
             </div>
             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-[rgb(var(--ec-page-text-muted))]">
                   Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
                   <span className="font-medium">{Math.min(startIndex + itemsPerPage, filteredResources.length)}</span> of{' '}
                   <span className="font-medium">{filteredResources.length}</span> results
@@ -370,7 +391,7 @@ const ResourceGroupTable = (props: ResourceGroupTableProps) => {
                   <button
                     onClick={() => setCurrentPage(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className={`relative inline-flex items-center rounded-l-md px-2 py-2 ${currentPage === 1 ? 'text-gray-300' : 'text-gray-400 hover:bg-gray-50'} ring-1 ring-inset ring-gray-300`}
+                    className={`relative inline-flex items-center rounded-l-md px-2 py-2 ${currentPage === 1 ? 'text-[rgb(var(--ec-icon-color))]' : 'text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-hover))]'} ring-1 ring-inset ring-[rgb(var(--ec-page-border))]`}
                   >
                     <span className="sr-only">Previous</span>
                     <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -384,7 +405,7 @@ const ResourceGroupTable = (props: ResourceGroupTableProps) => {
                   <button
                     onClick={() => setCurrentPage(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className={`relative inline-flex items-center rounded-r-md px-2 py-2 ${currentPage === totalPages ? 'text-gray-300' : 'text-gray-400 hover:bg-gray-50'} ring-1 ring-inset ring-gray-300`}
+                    className={`relative inline-flex items-center rounded-r-md px-2 py-2 ${currentPage === totalPages ? 'text-[rgb(var(--ec-icon-color))]' : 'text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-hover))]'} ring-1 ring-inset ring-[rgb(var(--ec-page-border))]`}
                   >
                     <span className="sr-only">Next</span>
                     <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">

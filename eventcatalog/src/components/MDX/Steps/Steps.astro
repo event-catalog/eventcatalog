@@ -19,9 +19,9 @@ function splitByLi(html: string) {
 const data = splitByLi(html);
 ---
 
-<div class="bg-white text-gray-800 py-10 pb-0 font-sans not-prose">
-  {title && <h2 class="text-2xl font-bold text-gray-800 mb-6">{title}</h2>}
-  <ol class="relative border-l border-gray-200 ml-3">
+<div class="bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text))] py-10 pb-0 font-sans not-prose">
+  {title && <h2 class="text-2xl font-bold text-[rgb(var(--ec-page-text))] mb-6">{title}</h2>}
+  <ol class="relative border-l border-[rgb(var(--ec-page-border))] ml-3">
     {data.map((item: any) => <Fragment set:html={item} />)}
   </ol>
 </div>

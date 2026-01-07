@@ -52,9 +52,9 @@ const EntityBadge = memo(({ entity }: { entity: any }) => {
   return (
     <a
       href={buildUrl(`/docs/entities/${id}`)}
-      className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+      className="inline-flex items-center gap-2 px-3 py-2 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg text-sm font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-accent)/0.5)] transition-all shadow-sm"
     >
-      <BoxIcon className="h-4 w-4 text-purple-500" />
+      <BoxIcon className="h-4 w-4 text-[rgb(var(--ec-accent))]" />
       <span>{name}</span>
     </a>
   );
@@ -78,11 +78,11 @@ const MessageLink = memo(({ message }: { message: any }) => {
   return (
     <a
       href={buildUrl(`/docs/${collection}/${id}/${version}`)}
-      className="flex items-center gap-2 py-1.5 text-sm text-gray-700 hover:text-gray-900 transition-colors group"
+      className="flex items-center gap-2 py-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors group"
     >
       <Icon className={`h-4 w-4 flex-shrink-0 ${iconStyles[color]}`} />
       <span className="group-hover:underline">{name}</span>
-      <span className="text-xs text-gray-400">v{version}</span>
+      <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{version}</span>
     </a>
   );
 });
@@ -92,7 +92,7 @@ const SpecificationBadge = memo(
     return (
       <a
         href={getSpecUrl(spec, serviceId, serviceVersion)}
-        className="inline-flex items-center gap-1.5 px-2 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+        className="inline-flex items-center gap-1.5 px-2 py-1.5 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg text-xs font-medium text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-accent)/0.5)] transition-all shadow-sm"
       >
         <img src={buildUrl(`/icons/${getSpecIcon(spec.type)}.svg`, true)} alt={`${spec.type} icon`} className="h-3.5 w-3.5" />
         <span>{getSpecLabel(spec.type)}</span>
@@ -110,7 +110,7 @@ const ContainerLink = memo(({ container, type }: { container: any; type: 'reads'
   return (
     <a
       href={buildUrl(`/docs/containers/${id}/${version}`)}
-      className="flex items-center gap-2 py-1.5 text-sm text-gray-700 hover:text-gray-900 transition-colors group"
+      className="flex items-center gap-2 py-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors group"
     >
       <CircleStackIcon className={`h-4 w-4 ${type === 'reads' ? 'text-amber-500' : 'text-violet-500'}`} />
       <span className="group-hover:underline">{name}</span>
@@ -149,8 +149,8 @@ const SearchableBox = memo(
         <div className="flex items-center gap-2 mb-2">
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <Icon className={`h-4 w-4 ${iconColor}`} />
-            <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">{title}</h4>
-            <span className="text-[10px] text-gray-400 font-medium">({items.length})</span>
+            <h4 className="text-xs font-semibold text-[rgb(var(--ec-page-text))] uppercase tracking-wide">{title}</h4>
+            <span className="text-[10px] text-[rgb(var(--ec-icon-color))] font-medium">({items.length})</span>
           </div>
           {items.length > 0 && (
             <input
@@ -158,7 +158,7 @@ const SearchableBox = memo(
               placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 px-2 py-0.5 text-xs border border-gray-200 rounded focus:outline-none focus:border-gray-300"
+              className="flex-1 px-2 py-0.5 text-xs border border-[rgb(var(--ec-input-border))] rounded focus:outline-none focus:border-[rgb(var(--ec-accent))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))]"
               onClick={(e) => e.stopPropagation()}
             />
           )}
@@ -168,11 +168,11 @@ const SearchableBox = memo(
             {filteredItems.length > 0 ? (
               filteredItems.map((item, idx) => renderItem(item, idx))
             ) : (
-              <p className="text-xs text-gray-400 italic">No matches</p>
+              <p className="text-xs text-[rgb(var(--ec-icon-color))] italic">No matches</p>
             )}
           </div>
         ) : (
-          <p className="text-xs text-gray-300">{emptyText}</p>
+          <p className="text-xs text-[rgb(var(--ec-icon-color))]">{emptyText}</p>
         )}
       </div>
     );
@@ -186,7 +186,7 @@ const ServiceExpandedContent = memo(
     const hasContainers = readsFrom.length > 0 || writesTo.length > 0;
 
     return (
-      <div className="border-t border-gray-100 px-4 py-3 space-y-4">
+      <div className="border-t border-[rgb(var(--ec-page-border))] px-4 py-3 space-y-4">
         {/* Messages Row */}
         {hasMessages && (
           <div className="grid grid-cols-2 gap-x-6">
@@ -215,7 +215,7 @@ const ServiceExpandedContent = memo(
 
         {/* Data Row */}
         {hasContainers && (
-          <div className="grid grid-cols-2 gap-x-6 pt-3 border-t border-gray-100">
+          <div className="grid grid-cols-2 gap-x-6 pt-3 border-t border-[rgb(var(--ec-page-border))]">
             <SearchableBox
               title="Reads"
               icon={CircleStackIcon}
@@ -260,22 +260,26 @@ const ServiceCard = memo(({ service }: { service: any }) => {
   const hasContent = hasMessages || hasContainers;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl shadow-sm hover:shadow-md transition-shadow">
       {/* Service Header */}
       <div
         onClick={() => hasContent && setIsCollapsed(!isCollapsed)}
-        className={`flex items-center justify-between px-4 py-3 ${hasContent ? 'cursor-pointer hover:bg-gray-50' : ''} transition-colors`}
+        className={`flex items-center justify-between px-4 py-3 ${hasContent ? 'cursor-pointer hover:bg-[rgb(var(--ec-content-hover))]' : ''} transition-colors`}
       >
         <div className="flex items-center gap-2.5">
-          <div className="flex items-center justify-center w-8 h-8 bg-pink-100 rounded-lg">
-            <ServerIcon className="h-4 w-4 text-pink-600" />
+          <div className="flex items-center justify-center w-8 h-8 bg-pink-100 dark:bg-pink-500/20 rounded-lg">
+            <ServerIcon className="h-4 w-4 text-pink-600 dark:text-pink-400" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-gray-900">{data.name || data.id}</span>
-              <span className="text-[11px] text-gray-500 font-medium bg-gray-100 px-1.5 py-0.5 rounded">v{data.version}</span>
+              <span className="font-semibold text-[rgb(var(--ec-page-text))]">{data.name || data.id}</span>
+              <span className="text-[11px] text-[rgb(var(--ec-page-text-muted))] font-medium bg-[rgb(var(--ec-content-hover))] px-1.5 py-0.5 rounded">
+                v{data.version}
+              </span>
             </div>
-            {data.summary && <p className="text-xs text-gray-500 line-clamp-1 mt-0.5 max-w-md">{data.summary}</p>}
+            {data.summary && (
+              <p className="text-xs text-[rgb(var(--ec-page-text-muted))] line-clamp-1 mt-0.5 max-w-md">{data.summary}</p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -287,7 +291,7 @@ const ServiceCard = memo(({ service }: { service: any }) => {
                   key={`${spec.type}-${idx}`}
                   href={getSpecUrl(spec, data.id, data.version)}
                   onClick={(e) => e.stopPropagation()}
-                  className="flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs text-gray-600 hover:text-gray-900 transition-colors"
+                  className="flex items-center gap-1 px-2 py-1 bg-[rgb(var(--ec-content-hover))] hover:bg-[rgb(var(--ec-sidebar-hover-bg))] rounded text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
                   title={getSpecLabel(spec.type)}
                 >
                   <img src={buildUrl(`/icons/${getSpecIcon(spec.type)}.svg`, true)} alt="" className="h-3.5 w-3.5" />
@@ -297,14 +301,14 @@ const ServiceCard = memo(({ service }: { service: any }) => {
             </div>
           )}
           {hasContent && (
-            <div className="p-1.5 text-gray-400">
+            <div className="p-1.5 text-[rgb(var(--ec-icon-color))]">
               {isCollapsed ? <ChevronDownIcon className="h-4 w-4" /> : <ChevronUpIcon className="h-4 w-4" />}
             </div>
           )}
           <a
             href={buildUrl(`/architecture/services/${data.id}/${data.version}`)}
             onClick={(e) => e.stopPropagation()}
-            className="p-1.5 text-gray-400 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
+            className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-pink-500 hover:bg-pink-500/10 rounded-lg transition-colors"
             title="View service architecture"
           >
             <ArrowTopRightOnSquareIcon className="h-4 w-4" />
@@ -330,42 +334,42 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
   const entities = data.entities || [];
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl overflow-hidden shadow-sm">
       {/* Subdomain Header - Clickable */}
       <div
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className={`flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50 transition-colors ${!isCollapsed ? 'border-b border-gray-200' : ''}`}
+        className={`flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-[rgb(var(--ec-content-hover))] transition-colors ${!isCollapsed ? 'border-b border-[rgb(var(--ec-page-border))]' : ''}`}
       >
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-9 h-9 bg-orange-100 rounded-lg">
-            <RectangleGroupIcon className="h-5 w-5 text-orange-600" />
+          <div className="flex items-center justify-center w-9 h-9 bg-orange-100 dark:bg-orange-500/20 rounded-lg">
+            <RectangleGroupIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold text-gray-900">{data.name || data.id}</h3>
-              <span className="text-[11px] text-gray-500 font-medium bg-white px-1.5 py-0.5 rounded border border-gray-200">
+              <h3 className="text-base font-semibold text-[rgb(var(--ec-page-text))]">{data.name || data.id}</h3>
+              <span className="text-[11px] text-[rgb(var(--ec-page-text-muted))] font-medium bg-[rgb(var(--ec-content-hover))] px-1.5 py-0.5 rounded border border-[rgb(var(--ec-page-border))]">
                 v{data.version}
               </span>
               {/* Show counts when collapsed */}
               {isCollapsed && (services.length > 0 || entities.length > 0) && (
-                <span className="text-[11px] text-gray-400 ml-1">
+                <span className="text-[11px] text-[rgb(var(--ec-icon-color))] ml-1">
                   {services.length > 0 && `${services.length} service${services.length > 1 ? 's' : ''}`}
                   {services.length > 0 && entities.length > 0 && ', '}
                   {entities.length > 0 && `${entities.length} entit${entities.length > 1 ? 'ies' : 'y'}`}
                 </span>
               )}
             </div>
-            <span className="text-[11px] text-gray-500 font-medium">Subdomain</span>
+            <span className="text-[11px] text-[rgb(var(--ec-page-text-muted))] font-medium">Subdomain</span>
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <div className="p-2 text-gray-400">
+          <div className="p-2 text-[rgb(var(--ec-icon-color))]">
             {isCollapsed ? <ChevronDownIcon className="h-5 w-5" /> : <ChevronUpIcon className="h-5 w-5" />}
           </div>
           <a
             href={buildUrl(`/architecture/domains/${data.id}/${data.version}`)}
             onClick={(e) => e.stopPropagation()}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg transition-colors"
+            className="p-2 text-[rgb(var(--ec-icon-color))] hover:text-orange-500 hover:bg-orange-500/10 rounded-lg transition-colors"
             title="View subdomain architecture"
           >
             <ArrowTopRightOnSquareIcon className="h-5 w-5" />
@@ -379,9 +383,11 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
           {entities.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <BoxIcon className="h-4 w-4 text-purple-600" />
-                <h4 className="text-sm font-semibold text-gray-700">Entities</h4>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full font-medium">{entities.length}</span>
+                <BoxIcon className="h-4 w-4 text-[rgb(var(--ec-accent))]" />
+                <h4 className="text-sm font-semibold text-[rgb(var(--ec-page-text))]">Entities</h4>
+                <span className="text-xs text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-full font-medium">
+                  {entities.length}
+                </span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {entities.map((entity: any) => {
@@ -396,9 +402,11 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
           {services.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <ServerIcon className="h-4 w-4 text-pink-600" />
-                <h4 className="text-sm font-semibold text-gray-700">Services</h4>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full font-medium">{services.length}</span>
+                <ServerIcon className="h-4 w-4 text-pink-600 dark:text-pink-400" />
+                <h4 className="text-sm font-semibold text-[rgb(var(--ec-page-text))]">Services</h4>
+                <span className="text-xs text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-full font-medium">
+                  {services.length}
+                </span>
               </div>
               <div className="space-y-3">
                 {services.map((service: any) => {
@@ -410,7 +418,9 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
           )}
 
           {entities.length === 0 && services.length === 0 && (
-            <p className="text-sm text-gray-400 italic text-center py-4">No entities or services in this subdomain</p>
+            <p className="text-sm text-[rgb(var(--ec-icon-color))] italic text-center py-4">
+              No entities or services in this subdomain
+            </p>
           )}
         </div>
       )}
@@ -424,7 +434,7 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
 
 export default function DomainGrid({ domain }: DomainGridProps) {
   const data = domain?.data;
-  if (!data) return <div className="text-gray-500">No domain data</div>;
+  if (!data) return <div className="text-[rgb(var(--ec-page-text-muted))]">No domain data</div>;
 
   const subdomains = data.domains || [];
   const entities = data.entities || [];
@@ -454,26 +464,26 @@ export default function DomainGrid({ domain }: DomainGridProps) {
   return (
     <div className="w-full">
       {/* Domain Header - Doc style */}
-      <div className="border-b border-gray-200 md:pb-4">
+      <div className="border-b border-[rgb(var(--ec-page-border))] md:pb-4">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-2xl md:text-4xl font-bold text-black">{data.name || data.id}</h2>
-            {data.summary && <p className="text-lg pt-2 text-gray-500 font-light">{data.summary}</p>}
+            <h2 className="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{data.name || data.id}</h2>
+            {data.summary && <p className="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{data.summary}</p>}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <a
               href={buildUrl(`/docs/domains/${data.id}/${data.version}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg hover:bg-[rgb(var(--ec-content-hover))] hover:border-[rgb(var(--ec-page-text-muted))] transition-all"
             >
               View docs
-              <ArrowTopRightOnSquareIcon className="h-4 w-4 text-gray-400" />
+              <ArrowTopRightOnSquareIcon className="h-4 w-4 text-[rgb(var(--ec-icon-color))]" />
             </a>
             <a
               href={buildUrl(`/visualiser/domains/${data.id}/${data.version}`)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-900 transition-all"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-zinc-800 dark:bg-zinc-700 rounded-lg hover:bg-zinc-900 dark:hover:bg-zinc-600 transition-all"
             >
               Visualizer
-              <ArrowTopRightOnSquareIcon className="h-4 w-4 text-gray-400" />
+              <ArrowTopRightOnSquareIcon className="h-4 w-4 text-zinc-400" />
             </a>
           </div>
         </div>
@@ -485,9 +495,11 @@ export default function DomainGrid({ domain }: DomainGridProps) {
         {entities.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <BoxIcon className="h-5 w-5 text-purple-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Entities</h3>
-              <span className="text-sm text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full font-medium">{entities.length}</span>
+              <BoxIcon className="h-5 w-5 text-[rgb(var(--ec-accent))]" />
+              <h3 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">Entities</h3>
+              <span className="text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2.5 py-0.5 rounded-full font-medium">
+                {entities.length}
+              </span>
             </div>
             <div className="flex flex-wrap gap-2">
               {entities.map((entity: any) => {
@@ -502,9 +514,9 @@ export default function DomainGrid({ domain }: DomainGridProps) {
         {topLevelServices.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <ServerIcon className="h-5 w-5 text-pink-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Services</h3>
-              <span className="text-sm text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full font-medium">
+              <ServerIcon className="h-5 w-5 text-pink-600 dark:text-pink-400" />
+              <h3 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">Services</h3>
+              <span className="text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2.5 py-0.5 rounded-full font-medium">
                 {topLevelServices.length}
               </span>
             </div>
@@ -521,9 +533,9 @@ export default function DomainGrid({ domain }: DomainGridProps) {
         {subdomains.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <RectangleGroupIcon className="h-5 w-5 text-orange-600" />
-              <h3 className="text-lg font-semibold text-gray-900">Subdomains</h3>
-              <span className="text-sm text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-full font-medium">
+              <RectangleGroupIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              <h3 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">Subdomains</h3>
+              <span className="text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2.5 py-0.5 rounded-full font-medium">
                 {subdomains.length}
               </span>
             </div>
@@ -539,10 +551,10 @@ export default function DomainGrid({ domain }: DomainGridProps) {
         {/* Empty state */}
         {entities.length === 0 && services.length === 0 && subdomains.length === 0 && (
           <div className="text-center py-12">
-            <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-2xl">
-              <RectangleGroupIcon className="h-8 w-8 text-gray-400" />
+            <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-[rgb(var(--ec-content-hover))] rounded-2xl">
+              <RectangleGroupIcon className="h-8 w-8 text-[rgb(var(--ec-icon-color))]" />
             </div>
-            <p className="text-gray-500">This domain has no entities, services, or subdomains defined.</p>
+            <p className="text-[rgb(var(--ec-page-text-muted))]">This domain has no entities, services, or subdomains defined.</p>
           </div>
         )}
       </div>

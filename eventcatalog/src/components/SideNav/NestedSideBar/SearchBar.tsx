@@ -27,7 +27,7 @@ const getBadgeClasses = (badge: string): string => {
     service: 'bg-green-100 text-green-700',
     event: 'bg-amber-100 text-amber-700',
     command: 'bg-pink-100 text-pink-700',
-    query: 'bg-purple-100 text-purple-700',
+    query: 'bg-green-100 text-green-700',
     message: 'bg-indigo-100 text-indigo-700',
     design: 'bg-teal-100 text-teal-700',
     channel: 'bg-indigo-100 text-indigo-700',
@@ -163,21 +163,21 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
   return (
     <>
       {/* Search Input */}
-      <div className="px-3 py-2 bg-white border-b border-gray-200">
+      <div className="px-3 py-2 bg-[rgb(var(--ec-content-bg))] border-b border-[rgb(var(--ec-content-border))]">
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--ec-input-placeholder))]" />
             <input
               type="text"
               placeholder="Search resources..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-gray-400"
+              className="w-full pl-9 pr-8 py-2 text-sm bg-[rgb(var(--ec-input-bg))] border border-[rgb(var(--ec-input-border))] rounded-lg focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-transparent text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-input-placeholder))]"
             />
             {searchQuery && (
               <button
                 onClick={clearSearch}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-icon-hover))]"
                 aria-label="Clear search"
               >
                 <X className="w-4 h-4" aria-hidden="true" />
@@ -191,15 +191,15 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
               className={cn(
                 'flex items-center justify-center w-10 h-10 rounded-lg border transition-colors',
                 searchFilters.size > 0
-                  ? 'bg-purple-50 border-purple-200 text-purple-600'
-                  : 'bg-gray-50 border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                  ? 'bg-[rgb(var(--ec-accent)/0.1)] border-[rgb(var(--ec-accent)/0.3)] text-[rgb(var(--ec-accent))]'
+                  : 'bg-[rgb(var(--ec-input-bg))] border-[rgb(var(--ec-input-border))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-icon-hover))] hover:bg-[rgb(var(--ec-content-hover))]'
               )}
               aria-label="Filter search results"
               aria-expanded={showFilterDropdown}
             >
               <SlidersHorizontal className="w-4 h-4" aria-hidden="true" />
               {searchFilters.size > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-purple-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-[rgb(var(--ec-accent))] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                   {searchFilters.size}
                 </span>
               )}
@@ -209,9 +209,11 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
             {showFilterDropdown && (
               <>
                 <div className="fixed inset-0 z-20" onClick={() => setShowFilterDropdown(false)} />
-                <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-30">
+                <div className="absolute right-0 top-full mt-1 w-48 bg-[rgb(var(--ec-dropdown-bg))] rounded-lg shadow-lg border border-[rgb(var(--ec-dropdown-border))] z-30">
                   <div className="p-2">
-                    <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wide px-2 py-1">Filter by type</div>
+                    <div className="text-[10px] font-medium text-[rgb(var(--ec-content-text-muted))] uppercase tracking-wide px-2 py-1">
+                      Filter by type
+                    </div>
                     <div className="flex flex-col gap-0.5 mt-1">
                       {filterTypes.map((filter) => {
                         const isActive = searchFilters.has(filter.key);
@@ -222,27 +224,29 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
                             onClick={() => toggleSearchFilter(filter.key)}
                             className={cn(
                               'flex items-center justify-between px-2 py-1.5 rounded text-sm transition-colors',
-                              isActive ? 'bg-purple-50 text-purple-700' : 'text-gray-600 hover:bg-gray-100'
+                              isActive
+                                ? 'bg-[rgb(var(--ec-accent)/0.1)] text-[rgb(var(--ec-accent))]'
+                                : 'text-[rgb(var(--ec-dropdown-text))] hover:bg-[rgb(var(--ec-dropdown-hover))]'
                             )}
                           >
                             <span className="flex items-center gap-2">
                               <Icon className="w-3 h-3" />
                               {filter.label}
                             </span>
-                            {isActive && <span className="text-purple-600">✓</span>}
+                            {isActive && <span className="text-[rgb(var(--ec-accent))]">✓</span>}
                           </button>
                         );
                       })}
                     </div>
                     {searchFilters.size > 0 && (
                       <>
-                        <div className="border-t border-gray-100 my-2" />
+                        <div className="border-t border-[rgb(var(--ec-content-border))] my-2" />
                         <button
                           onClick={() => {
                             setSearchFilters(new Set());
                             setShowFilterDropdown(false);
                           }}
-                          className="w-full px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded text-left"
+                          className="w-full px-2 py-1.5 text-sm text-[rgb(var(--ec-content-text-muted))] hover:text-[rgb(var(--ec-content-text))] hover:bg-[rgb(var(--ec-dropdown-hover))] rounded text-left"
                         >
                           Reset filters
                         </button>
@@ -258,9 +262,9 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
 
       {/* Search Results */}
       {showSearchResults && (
-        <div className="flex-1 overflow-y-auto bg-white border-b border-gray-200">
+        <div className="flex-1 overflow-y-auto bg-[rgb(var(--ec-content-bg))] border-b border-[rgb(var(--ec-content-border))]">
           <div className="px-3 py-2">
-            <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-2">
+            <div className="text-[10px] font-medium text-[rgb(var(--ec-content-text-muted))] uppercase tracking-wide mb-2">
               {results.length > 0 ? `${results.length} result${results.length > 1 ? 's' : ''}` : 'No results'}
             </div>
             {results.length > 0 && (
@@ -269,11 +273,15 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
                   <button
                     key={nodeKey}
                     onClick={() => handleSelectResult(nodeKey, node)}
-                    className="group flex items-center justify-between w-full px-3 py-2 rounded-lg cursor-pointer text-left transition-colors hover:bg-gray-100"
+                    className="group flex items-center justify-between w-full px-3 py-2 rounded-lg cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))]"
                   >
                     <div className="flex flex-col min-w-0 flex-1">
-                      <span className="text-sm text-gray-900 truncate">{node.title}</span>
-                      {matchType === 'id' && <span className="text-xs text-gray-400 truncate">ID: {nodeKey.split(':')[2]}</span>}
+                      <span className="text-sm text-[rgb(var(--ec-content-text))] truncate">{node.title}</span>
+                      {matchType === 'id' && (
+                        <span className="text-xs text-[rgb(var(--ec-content-text-muted))] truncate">
+                          ID: {nodeKey.split(':')[2]}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {node.badge && (
@@ -287,7 +295,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
                         </span>
                       )}
                       {node.pages && node.pages.length > 0 && (
-                        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-purple-500" />
+                        <ChevronRight className="w-4 h-4 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-accent))]" />
                       )}
                     </div>
                   </button>
@@ -295,7 +303,9 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
               </div>
             )}
             {results.length === 0 && searchQuery.trim() && (
-              <div className="text-sm text-gray-500 py-4 text-center">No resources found for "{searchQuery}"</div>
+              <div className="text-sm text-[rgb(var(--ec-content-text-muted))] py-4 text-center">
+                No resources found for "{searchQuery}"
+              </div>
             )}
           </div>
         </div>

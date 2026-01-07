@@ -114,14 +114,14 @@ const AvroField = ({ field, level, expand, showRequired }: AvroFieldProps) => {
   }, [expand]);
 
   return (
-    <div className={`avro-field-container mb-2 border-l border-gray-200 ${indentClass}`}>
+    <div className={`avro-field-container mb-2 border-l border-[rgb(var(--ec-page-border))] ${indentClass}`}>
       <div className="flex space-x-2">
         {/* Collapse/Expand button */}
         <div className="flex-shrink-0 w-4 pt-0.5">
           {hasNested ? (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="avro-field-toggle text-gray-500 hover:text-gray-700 w-4 text-center"
+              className="avro-field-toggle text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] w-4 text-center"
               aria-expanded={isExpanded}
             >
               <span className="font-mono text-xs">{isExpanded ? '▼' : '▶'}</span>
@@ -132,19 +132,21 @@ const AvroField = ({ field, level, expand, showRequired }: AvroFieldProps) => {
         {/* Field details */}
         <div className="flex-grow min-w-0">
           <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
-            <span className="avro-field-name font-semibold text-gray-800 text-sm">{field.name}</span>
-            <span className="text-purple-600 font-mono text-xs">{formatAvroType(field.type)}</span>
-            {showRequired && isRequired && <span className="text-red-600 text-xs ml-auto flex-shrink-0">required</span>}
+            <span className="avro-field-name font-semibold text-[rgb(var(--ec-page-text))] text-sm">{field.name}</span>
+            <span className="text-[rgb(var(--ec-accent))] font-mono text-xs">{formatAvroType(field.type)}</span>
+            {showRequired && isRequired && (
+              <span className="text-red-600 dark:text-red-400 text-xs ml-auto flex-shrink-0">required</span>
+            )}
           </div>
 
-          {field.doc && <p className="text-gray-600 text-xs mt-1">{field.doc}</p>}
+          {field.doc && <p className="text-[rgb(var(--ec-page-text-muted))] text-xs mt-1">{field.doc}</p>}
 
           {/* Show enum values if present */}
           {field.type?.type === 'enum' && field.type.symbols && (
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1">
               Values:{' '}
               {field.type.symbols.map((s: string) => (
-                <code key={s} className="bg-gray-100 px-1 rounded mx-0.5">
+                <code key={s} className="bg-[rgb(var(--ec-content-hover))] px-1 rounded mx-0.5 text-[rgb(var(--ec-page-text))]">
                   {s}
                 </code>
               ))}
@@ -303,7 +305,7 @@ export default function AvroSchemaViewer({
 
   if (!schema || schema.type !== 'record') {
     return (
-      <div className="flex items-center justify-center p-8 text-gray-500">
+      <div className="flex items-center justify-center p-8 text-[rgb(var(--ec-page-text-muted))]">
         <p className="text-sm">Invalid Avro schema format</p>
       </div>
     );
@@ -318,12 +320,12 @@ export default function AvroSchemaViewer({
 
   return (
     <div
-      className={`${heightClass} ${overflowClass} flex flex-col bg-white border border-gray-100 rounded-md shadow-sm`}
+      className={`${heightClass} ${overflowClass} flex flex-col bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-md shadow-sm`}
       style={containerStyle}
     >
       {/* Toolbar */}
       {searchBool && (
-        <div className="flex-shrink-0 bg-white pt-4 px-4 pb-3 border-b border-gray-100 shadow-sm">
+        <div className="flex-shrink-0 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] pt-4 px-4 pb-3 border-b border-[rgb(var(--ec-page-border))] shadow-sm">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
               <input
@@ -332,7 +334,7 @@ export default function AvroSchemaViewer({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search fields..."
-                className="w-full px-3 py-1.5 pr-20 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-1.5 pr-20 text-sm border border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-input-placeholder))] rounded-md focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-transparent"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -348,7 +350,7 @@ export default function AvroSchemaViewer({
                 <button
                   onClick={handlePrevMatch}
                   disabled={currentMatches.length === 0 || currentMatchIndex <= 0}
-                  className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="p-1 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Previous match"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -358,7 +360,7 @@ export default function AvroSchemaViewer({
                 <button
                   onClick={handleNextMatch}
                   disabled={currentMatches.length === 0 || currentMatchIndex >= currentMatches.length - 1}
-                  className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="p-1 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Next match"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -371,7 +373,7 @@ export default function AvroSchemaViewer({
               {onOpenFullscreen && (
                 <button
                   onClick={onOpenFullscreen}
-                  className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
                   title="Open in fullscreen"
                 >
                   <svg
@@ -392,23 +394,23 @@ export default function AvroSchemaViewer({
               )}
               <button
                 onClick={handleExpandAll}
-                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
               >
                 Expand All
               </button>
               <button
                 onClick={handleCollapseAll}
-                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
               >
                 Collapse All
               </button>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-[rgb(var(--ec-page-text-muted))]">
                 {totalFields} {totalFields === 1 ? 'field' : 'fields'}
               </div>
             </div>
           </div>
           {searchQuery && (
-            <div className="mt-2 text-xs text-gray-600">
+            <div className="mt-2 text-xs text-[rgb(var(--ec-page-text-muted))]">
               {currentMatches.length > 0
                 ? `${currentMatchIndex + 1} of ${currentMatches.length} ${currentMatches.length === 1 ? 'match' : 'matches'}`
                 : 'No fields found'}
@@ -420,11 +422,13 @@ export default function AvroSchemaViewer({
       {/* Schema info */}
       <div className="px-4 pt-4">
         <div className="flex items-baseline gap-2 mb-2">
-          <span className="text-sm font-medium text-gray-600">Record:</span>
-          <span className="font-mono text-sm text-blue-600">{schema.name}</span>
-          {schema.namespace && <span className="font-mono text-xs text-gray-500">({schema.namespace})</span>}
+          <span className="text-sm font-medium text-[rgb(var(--ec-page-text-muted))]">Record:</span>
+          <span className="font-mono text-sm text-blue-600 dark:text-blue-400">{schema.name}</span>
+          {schema.namespace && (
+            <span className="font-mono text-xs text-[rgb(var(--ec-page-text-muted))]">({schema.namespace})</span>
+          )}
         </div>
-        {schema.doc && <p className="text-gray-600 text-xs mb-4">{schema.doc}</p>}
+        {schema.doc && <p className="text-[rgb(var(--ec-page-text-muted))] text-xs mb-4">{schema.doc}</p>}
       </div>
 
       {/* Fields */}
@@ -434,14 +438,14 @@ export default function AvroSchemaViewer({
             <AvroField key={field.name} field={field} level={0} expand={expandAll} showRequired={showRequiredBool} />
           ))
         ) : (
-          <div className="text-center py-8 text-gray-400">
+          <div className="text-center py-8 text-[rgb(var(--ec-icon-color))]">
             <p className="text-sm">No fields defined</p>
           </div>
         )}
 
         {searchQuery && currentMatches.length === 0 && (
           <div className="text-center py-8">
-            <div className="text-gray-400 text-sm">
+            <div className="text-[rgb(var(--ec-icon-color))] text-sm">
               <svg className="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"

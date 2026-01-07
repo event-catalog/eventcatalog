@@ -25,11 +25,13 @@ export const columns = (tableConfiguration: TableConfiguration) => [
       const team = info.row.original;
       return (
         <a href={buildUrl(`/docs/${team.collection}/${team.data.id}`)} className="group inline-flex items-center">
-          <span className="inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-pink-300 hover:bg-pink-50 transition-colors">
+          <span className="inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-pink-400 dark:hover:border-pink-500 hover:bg-pink-50 dark:hover:bg-pink-500/10 transition-colors">
             <span className="flex items-center justify-center w-6 h-6 bg-pink-500 rounded-l-md">
               <Users className="h-3 w-3 text-white" />
             </span>
-            <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">{team.data.name}</span>
+            <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">
+              {team.data.name}
+            </span>
           </span>
         </a>
       );
@@ -62,7 +64,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
 
         if (messages?.length === 0 || !messages)
           return (
-            <span className="inline-flex items-center px-2 py-1 text-xs text-gray-400 bg-gray-50 rounded-md border border-gray-100">
+            <span className="inline-flex items-center px-2 py-1 text-xs text-[rgb(var(--ec-icon-color))] bg-[rgb(var(--ec-content-hover))] rounded-md border border-[rgb(var(--ec-page-border))]">
               No messages
             </span>
           );
@@ -81,21 +83,24 @@ export const columns = (tableConfiguration: TableConfiguration) => [
                   className="group inline-flex items-center"
                 >
                   <span
-                    className={`inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-${color}-300 hover:bg-${color}-50 transition-colors`}
+                    className={`inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-${color}-400 dark:hover:border-${color}-500 hover:bg-${color}-50 dark:hover:bg-${color}-500/10 transition-colors`}
                   >
                     <span className={`flex items-center justify-center w-6 h-6 bg-${color}-500 rounded-l-md`}>
                       <Icon className="h-3 w-3 text-white" />
                     </span>
-                    <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">
+                    <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">
                       {message.data.name}
-                      <span className="text-gray-400 ml-1">v{message.data.version}</span>
+                      <span className="text-[rgb(var(--ec-icon-color))] ml-1">v{message.data.version}</span>
                     </span>
                   </span>
                 </a>
               );
             })}
             {hiddenCount > 0 && (
-              <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-gray-500 hover:text-gray-700 text-left">
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left"
+              >
                 {isExpanded ? 'Show less' : `+${hiddenCount} more`}
               </button>
             )}
@@ -118,7 +123,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
 
       if (services?.length === 0 || !services)
         return (
-          <span className="inline-flex items-center px-2 py-1 text-xs text-gray-400 bg-gray-50 rounded-md border border-gray-100">
+          <span className="inline-flex items-center px-2 py-1 text-xs text-[rgb(var(--ec-icon-color))] bg-[rgb(var(--ec-content-hover))] rounded-md border border-[rgb(var(--ec-page-border))]">
             No services
           </span>
         );
@@ -134,19 +139,22 @@ export const columns = (tableConfiguration: TableConfiguration) => [
               href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}`)}
               className="group inline-flex items-center"
             >
-              <span className="inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-pink-300 hover:bg-pink-50 transition-colors">
+              <span className="inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-pink-400 dark:hover:border-pink-500 hover:bg-pink-50 dark:hover:bg-pink-500/10 transition-colors">
                 <span className="flex items-center justify-center w-6 h-6 bg-pink-500 rounded-l-md">
                   <ServerIcon className="h-3 w-3 text-white" />
                 </span>
-                <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">
+                <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">
                   {service.data.name}
-                  <span className="text-gray-400 ml-1">v{service.data.version}</span>
+                  <span className="text-[rgb(var(--ec-icon-color))] ml-1">v{service.data.version}</span>
                 </span>
               </span>
             </a>
           ))}
           {hiddenCount > 0 && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-gray-500 hover:text-gray-700 text-left">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left"
+            >
               {isExpanded ? 'Show less' : `+${hiddenCount} more`}
             </button>
           )}
@@ -163,7 +171,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
       const item = info.row.original;
       return (
         <a
-          className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap"
+          className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))] rounded-md hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] transition-colors whitespace-nowrap"
           href={buildUrl(`/docs/${item.collection}/${item.data.id}`)}
         >
           View team

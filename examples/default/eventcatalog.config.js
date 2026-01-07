@@ -21,6 +21,8 @@ export default {
   },
   base: '/',
   trailingSlash: false,
+  // Theme: 'default', 'ocean', 'sapphire', 'sunset', 'forest', or custom (defined in eventcatalog.styles.css)
+  theme: 'default',
   mermaid: {
     enableSupportForElkLayout: true,
     iconPacks: ['logos'],
@@ -28,9 +30,6 @@ export default {
   rss: {
     enabled: true,
     limit: 15,
-  },
-  llmsTxt: {
-    enabled: true,
   },
   navigation: {
     pages: [

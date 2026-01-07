@@ -68,6 +68,13 @@ export interface Config {
   host?: string;
   trailingSlash?: boolean;
   output?: 'server' | 'static';
+  /**
+   * Theme for the catalog UI.
+   * - 'default': Default purple/slate theme
+   * - 'ocean': Deep blue/teal ocean-inspired theme
+   * @default 'default'
+   */
+  theme?: 'default' | 'ocean';
   auth?: AuthConfig;
   rss?: {
     enabled: boolean;

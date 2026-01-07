@@ -225,7 +225,7 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
   const indentationClass = `pl-${level * 3}`;
 
   return (
-    <div className={`property-container mb-1.5 border-l border-gray-100 relative ${indentationClass}`}>
+    <div className={`property-container mb-1.5 border-l border-[rgb(var(--ec-page-border))] relative ${indentationClass}`}>
       <div className="flex items-start space-x-1.5">
         {isCollapsible ? (
           <button
@@ -233,7 +233,7 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
             aria-expanded={isExpanded}
             aria-controls={contentId}
             onClick={() => setIsExpanded(!isExpanded)}
-            className="property-toggle text-gray-500 hover:text-gray-700 pt-0.5 focus:outline-none w-3 text-center flex-shrink-0"
+            className="property-toggle text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] pt-0.5 focus:outline-none w-3 text-center flex-shrink-0"
           >
             <span className={`icon-collapsed font-mono text-xs ${isExpanded ? 'hidden' : ''}`}>&gt;</span>
             <span className={`icon-expanded font-mono text-xs ${!isExpanded ? 'hidden' : ''}`}>v</span>
@@ -245,13 +245,15 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
         <div className="flex-grow">
           <div className="flex justify-between items-baseline">
             <div>
-              <span className="font-semibold text-gray-800 text-sm">{name}</span>
-              <span className="ml-1.5 text-purple-600 font-mono text-xs">
+              <span className="font-semibold text-[rgb(var(--ec-page-text))] text-sm">{name}</span>
+              <span className="ml-1.5 text-[rgb(var(--ec-accent))] font-mono text-xs">
                 {details.type}
                 {details.type === 'array' && details.items?.type ? `[${details.items.type}]` : ''}
                 {details.format ? `<${details.format}>` : ''}
-                {details._refPath && <span className="text-blue-600 ml-1">→ {details._refName || details._refPath}</span>}
-                {details._refNotFound && <span className="text-red-600 ml-1">❌ ref not found</span>}
+                {details._refPath && (
+                  <span className="text-blue-600 dark:text-blue-400 ml-1">→ {details._refName || details._refPath}</span>
+                )}
+                {details._refNotFound && <span className="text-red-600 dark:text-red-400 ml-1">❌ ref not found</span>}
                 {details.const !== undefined && (
                   <span>
                     constant: <code>{details.const}</code>
@@ -259,38 +261,53 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
                 )}
               </span>
             </div>
-            {isRequired && <span className="text-red-600 text-xs ml-3 flex-shrink-0">required</span>}
+            {isRequired && <span className="text-red-600 dark:text-red-400 text-xs ml-3 flex-shrink-0">required</span>}
           </div>
 
-          {details.description && <p className="text-gray-500 text-xs mt-0.5">{details.description}</p>}
+          {details.description && <p className="text-[rgb(var(--ec-page-text-muted))] text-xs mt-0.5">{details.description}</p>}
           {details.title && details.title !== details.description && (
-            <p className="text-gray-500 text-xs mt-0.5 italic">Title: {details.title}</p>
+            <p className="text-[rgb(var(--ec-page-text-muted))] text-xs mt-0.5 italic">Title: {details.title}</p>
           )}
 
-          <div className="text-xs text-gray-500 mt-0.5 space-y-0">
+          <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-0.5 space-y-0">
             {details.pattern && (
               <div>
-                Match pattern: <code className="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">{details.pattern}</code>
+                Match pattern:{' '}
+                <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                  {details.pattern}
+                </code>
               </div>
             )}
             {details.minimum !== undefined && (
               <div>
-                Minimum: <code className="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">{details.minimum}</code>
+                Minimum:{' '}
+                <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                  {details.minimum}
+                </code>
               </div>
             )}
             {details.maximum !== undefined && (
               <div>
-                Maximum: <code className="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">{details.maximum}</code>
+                Maximum:{' '}
+                <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                  {details.maximum}
+                </code>
               </div>
             )}
             {details.minLength !== undefined && (
               <div>
-                Min length: <code className="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">{details.minLength}</code>
+                Min length:{' '}
+                <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                  {details.minLength}
+                </code>
               </div>
             )}
             {details.maxLength !== undefined && (
               <div>
-                Max length: <code className="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">{details.maxLength}</code>
+                Max length:{' '}
+                <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                  {details.maxLength}
+                </code>
               </div>
             )}
             {details.enum && (
@@ -299,7 +316,9 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
                 {details.enum.map((val: any, idx: number) => (
                   <span key={idx} className="text-xs">
                     {' '}
-                    <code className="bg-gray-100 px-1 rounded text-gray-800 font-thin py-0.5">{val}</code>
+                    <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                      {val}
+                    </code>
                   </span>
                 ))}
               </div>
@@ -322,8 +341,8 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
                 ))}
 
               {hasArrayItemProperties && (
-                <div className="mt-1 border-l border-dashed border-gray-400 pl-3 ml-1.5">
-                  <span className="text-xs italic text-gray-500 block mb-1">Item Details:</span>
+                <div className="mt-1 border-l border-dashed border-[rgb(var(--ec-page-border))] pl-3 ml-1.5">
+                  <span className="text-xs italic text-[rgb(var(--ec-page-text-muted))] block mb-1">Item Details:</span>
                   {details.items.properties &&
                     Object.entries(details.items.properties).map(([itemPropName, itemPropDetails]: [string, any]) => (
                       <SchemaProperty
@@ -337,7 +356,7 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
                       />
                     ))}
                   {(details.items.allOf || details.items.oneOf || details.items.$ref) && !details.items.properties && (
-                    <div className="text-xs text-gray-500 mt-1">
+                    <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1">
                       Complex array item schema detected. The properties should be processed by the parent SchemaViewer.
                     </div>
                   )}
@@ -514,7 +533,7 @@ export default function JSONSchemaViewer({
 
   if (!schema) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-500 p-8">
+      <div className="flex items-center justify-center h-full text-[rgb(var(--ec-page-text-muted))] p-8">
         <p className="text-sm">Unable to parse JSON schema</p>
       </div>
     );
@@ -534,12 +553,12 @@ export default function JSONSchemaViewer({
   return (
     <div
       id={id}
-      className={`${heightClass} ${overflowClass} flex flex-col bg-white border border-gray-100 rounded-md shadow-sm`}
+      className={`${heightClass} ${overflowClass} flex flex-col bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-md shadow-sm`}
       style={containerStyle}
     >
       {/* Toolbar */}
       {searchBool && (
-        <div className="flex-shrink-0 bg-white pt-4 px-4 mb-4 pb-3 border-b border-gray-100 shadow-sm">
+        <div className="flex-shrink-0 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] pt-4 px-4 mb-4 pb-3 border-b border-[rgb(var(--ec-page-border))] shadow-sm">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 relative">
               <input
@@ -548,7 +567,7 @@ export default function JSONSchemaViewer({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search properties..."
-                className="w-full px-3 py-1.5 pr-20 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-1.5 pr-20 text-sm border border-[rgb(var(--ec-input-border))] rounded-md bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-input-placeholder))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-transparent"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -564,7 +583,7 @@ export default function JSONSchemaViewer({
                 <button
                   onClick={handlePrevMatch}
                   disabled={currentMatches.length === 0 || currentMatchIndex <= 0}
-                  className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="p-1 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Previous match"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -574,7 +593,7 @@ export default function JSONSchemaViewer({
                 <button
                   onClick={handleNextMatch}
                   disabled={currentMatches.length === 0 || currentMatchIndex >= currentMatches.length - 1}
-                  className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="p-1 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Next match"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -587,7 +606,7 @@ export default function JSONSchemaViewer({
               {onOpenFullscreen && (
                 <button
                   onClick={onOpenFullscreen}
-                  className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
                   title="Open in fullscreen"
                 >
                   <svg
@@ -608,23 +627,23 @@ export default function JSONSchemaViewer({
               )}
               <button
                 onClick={handleExpandAll}
-                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
               >
                 Expand All
               </button>
               <button
                 onClick={handleCollapseAll}
-                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="px-3 py-1.5 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-content-hover))] rounded-md hover:bg-[rgb(var(--ec-content-active))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
               >
                 Collapse All
               </button>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-[rgb(var(--ec-page-text-muted))]">
                 {totalProperties} {totalProperties === 1 ? 'property' : 'properties'}
               </div>
             </div>
           </div>
           {searchQuery && (
-            <div className="mt-2 text-xs text-gray-600">
+            <div className="mt-2 text-xs text-[rgb(var(--ec-page-text-muted))]">
               {currentMatches.length > 0
                 ? `${currentMatchIndex + 1} of ${currentMatches.length} ${currentMatches.length === 1 ? 'match' : 'matches'}`
                 : 'No properties found'}
@@ -636,26 +655,26 @@ export default function JSONSchemaViewer({
       {/* Content */}
       <div className="flex-1 px-4 pb-4 overflow-auto">
         {isRootArray && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-md">
             <div className="flex items-center space-x-2">
-              <span className="text-blue-600 font-medium text-sm">Array Schema</span>
-              <span className="text-blue-500 font-mono text-xs">array[object]</span>
+              <span className="text-blue-600 dark:text-blue-400 font-medium text-sm">Array Schema</span>
+              <span className="text-blue-500 dark:text-blue-400 font-mono text-xs">array[object]</span>
             </div>
-            <p className="text-blue-700 text-xs mt-1">
+            <p className="text-blue-700 dark:text-blue-300 text-xs mt-1">
               This schema defines an array of objects. Each item in the array has the properties shown below.
             </p>
           </div>
         )}
-        {description && <p className="text-gray-600 text-xs mb-5">{description}</p>}
+        {description && <p className="text-[rgb(var(--ec-page-text-muted))] text-xs mb-5">{description}</p>}
 
         {variants && (
           <div className="mb-4">
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">(one of)</span>
+              <span className="text-sm text-[rgb(var(--ec-page-text-muted))]">(one of)</span>
               <select
                 value={selectedVariantIndex}
                 onChange={(e) => setSelectedVariantIndex(parseInt(e.target.value))}
-                className="form-select text-sm border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="form-select text-sm border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] rounded-md shadow-sm focus:border-[rgb(var(--ec-accent))] focus:ring focus:ring-[rgb(var(--ec-accent)/0.2)]"
               >
                 {variants.map((variant: any, index: number) => (
                   <option key={index} value={index}>
@@ -683,16 +702,16 @@ export default function JSONSchemaViewer({
             ))}
           </div>
         ) : !isRootArray ? (
-          <p className="text-gray-500 text-sm">Schema does not contain any properties.</p>
+          <p className="text-[rgb(var(--ec-page-text-muted))] text-sm">Schema does not contain any properties.</p>
         ) : (
           <div className="text-center py-8">
-            <div className="text-gray-500 text-sm">
+            <div className="text-[rgb(var(--ec-page-text-muted))] text-sm">
               <p>
                 This array contains items of type:{' '}
-                <span className="font-mono text-blue-600">{processedSchema.items?.type || 'unknown'}</span>
+                <span className="font-mono text-blue-600 dark:text-blue-400">{processedSchema.items?.type || 'unknown'}</span>
               </p>
               {processedSchema.items?.description && (
-                <p className="text-xs mt-2 text-gray-600">{processedSchema.items.description}</p>
+                <p className="text-xs mt-2 text-[rgb(var(--ec-page-text-muted))]">{processedSchema.items.description}</p>
               )}
             </div>
           </div>
@@ -700,7 +719,7 @@ export default function JSONSchemaViewer({
 
         {searchQuery && currentMatches.length === 0 && (
           <div className="text-center py-8">
-            <div className="text-gray-400 text-sm">
+            <div className="text-[rgb(var(--ec-page-text-muted))] text-sm">
               <svg className="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"

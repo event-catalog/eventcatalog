@@ -7,6 +7,7 @@ import { getSession } from 'auth-astro/server';
 import { isAuthEnabled, isSSR } from '@utils/feature';
 import { EnvironmentDropdown } from './EnvironmentDropdown';
 import ChatPanelButton from './ChatPanel/ChatPanelButton';
+import ThemeToggle from './ThemeToggle';
 
 let session = null;
 if (isAuthEnabled()) {
@@ -24,7 +25,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
 
 <nav
   id="eventcatalog-header"
-  class="fixed top-0 left-0 right-0 h-header bg-white/95 border-b border-gray-200 py-3 font-bold text-xl backdrop-blur-md z-10"
+  class="fixed top-0 left-0 right-0 h-header bg-[rgb(var(--ec-header-bg))] border-b border-[rgb(var(--ec-header-border))] py-3 font-bold text-xl z-10 text-[rgb(var(--ec-header-text))]"
 >
   <div class="px-4 sm:px-4 lg:px-4">
     <div class="flex justify-between items-center">
@@ -57,6 +58,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
               {catalog.environments && catalog.environments.length > 0 && (
                 <EnvironmentDropdown environments={catalog.environments} client:load />
               )}
+              <ThemeToggle client:load />
               <div class="relative">
                 <button
                   id="profile-menu-button"
@@ -87,15 +89,17 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                 </button>
                 <div
                   id="profile-dropdown"
-                  class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-md py-1 z-50 border-2 border-gray-200 overflow-hidden"
+                  class="hidden absolute right-0 mt-2 w-48 bg-[rgb(var(--ec-dropdown-bg))] rounded-lg shadow-md py-1 z-50 border-2 border-[rgb(var(--ec-dropdown-border))] overflow-hidden"
                 >
-                  <div class="px-4 py-2 text-sm text-gray-700 border-b border-gray-200">
+                  <div class="px-4 py-2 text-sm text-[rgb(var(--ec-dropdown-text))] border-b border-[rgb(var(--ec-dropdown-border))]">
                     <div class="font-semibold">{session.user?.name || 'User'}</div>
-                    {session.user?.email && <div class="text-gray-500 text-xs mt-0.5">{session.user.email}</div>}
+                    {session.user?.email && (
+                      <div class="text-[rgb(var(--ec-icon-color))] text-xs mt-0.5">{session.user.email}</div>
+                    )}
                   </div>
                   <button
                     id="signout-btn"
-                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                    class="block w-full text-left px-4 py-2 text-sm text-[rgb(var(--ec-dropdown-text))] hover:bg-[rgb(var(--ec-dropdown-hover))] transition-colors font-medium"
                   >
                     Sign out
                   </button>
@@ -111,17 +115,18 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                 {isAuthEnabled() && (
                   <button
                     id="okta-signin-btn"
-                    class="bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                    class="bg-[rgb(var(--ec-button-bg))] hover:bg-[rgb(var(--ec-button-bg-hover))] text-[rgb(var(--ec-button-text))] text-sm font-medium px-4 py-2 rounded-lg transition-all shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                   >
                     Sign In
                   </button>
                 )}
+                <ThemeToggle client:load />
                 {showEventCatalogBranding() && (
                   <ul class="flex space-x-4">
                     <li>
                       <a
                         href="https://discord.com/invite/3rjaZMmrAm"
-                        class="block p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                        class="block p-1.5 rounded-lg hover:bg-[rgb(var(--ec-dropdown-hover))] transition-colors"
                         aria-label="Join our Discord community"
                       >
                         <img
@@ -135,7 +140,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                     <li>
                       <a
                         href="https://github.com/event-catalog/eventcatalog"
-                        class="block p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                        class="block p-1.5 rounded-lg hover:bg-[rgb(var(--ec-dropdown-hover))] transition-colors"
                         aria-label="View EventCatalog on GitHub"
                       >
                         <img
@@ -153,7 +158,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                     <li>
                       <a
                         href={repositoryUrl}
-                        class="block p-1.5 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none"
+                        class="block p-1.5 rounded-lg hover:bg-[rgb(var(--ec-dropdown-hover))] transition-colors focus:outline-none"
                         aria-label="View repository on GitHub"
                       >
                         <img
@@ -176,7 +181,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
         <button
           id="menu-toggle"
           type="button"
-          class="text-gray-500 hover:text-gray-600 focus:outline-none focus:text-gray-600"
+          class="text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-icon-hover))] focus:outline-none focus:text-[rgb(var(--ec-icon-hover))]"
           aria-label="Toggle menu"
         >
           <svg viewBox="0 0 24 24" class="h-6 w-6 fill-current">

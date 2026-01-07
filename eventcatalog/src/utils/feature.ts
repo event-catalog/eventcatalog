@@ -63,3 +63,7 @@ export const isAuthEnabled = () => {
 export const isSSR = () => config?.output === 'server';
 export const isRSSEnabled = () => config?.rss?.enabled ?? false;
 export const isVisualiserEnabled = () => config?.visualiser?.enabled ?? true;
+
+export const isCustomStylesEnabled = () => {
+  return isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
+};

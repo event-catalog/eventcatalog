@@ -622,7 +622,7 @@ const NodeGraphBuilder = ({
               <div className="relative group">
                 <button
                   onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                  className="py-2.5 px-3 bg-white rounded-md shadow-md hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  className="py-2.5 px-3 bg-white rounded-md shadow-md hover:bg-[rgb(var(--ec-accent-subtle))] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))]"
                   aria-label="Open settings"
                 >
                   <CogIcon className="h-5 w-5 text-gray-600" />
@@ -634,12 +634,14 @@ const NodeGraphBuilder = ({
               <div className="relative group">
                 <button
                   onClick={toggleFullScreen}
-                  className={`py-2.5 px-3 bg-white rounded-md shadow-md hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 ${
-                    isFullscreen ? 'bg-purple-50 text-purple-600' : ''
+                  className={`py-2.5 px-3 bg-white rounded-md shadow-md hover:bg-[rgb(var(--ec-accent-subtle))] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))] ${
+                    isFullscreen ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent))]' : ''
                   }`}
                   aria-label={isFullscreen ? 'Exit presentation mode' : 'Enter presentation mode'}
                 >
-                  <PresentationChartLineIcon className={`h-5 w-5 ${isFullscreen ? 'text-purple-600' : 'text-gray-600'}`} />
+                  <PresentationChartLineIcon
+                    className={`h-5 w-5 ${isFullscreen ? 'text-[rgb(var(--ec-accent))]' : 'text-gray-600'}`}
+                  />
                 </button>
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                   {isFullscreen ? 'Exit Presentation Mode' : 'Presentation Mode'}
@@ -667,7 +669,7 @@ const NodeGraphBuilder = ({
                 <select
                   value={links.find((link) => window.location.href.includes(link.url))?.url || links[0].url}
                   onChange={(e) => navigate(e.target.value)}
-                  className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-white rounded-md border border-gray-200 hover:bg-gray-100/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-white rounded-md border border-gray-200 hover:bg-gray-100/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))]"
                   style={{ minWidth: 120, height: '26px' }}
                 >
                   {links.map((link) => (
@@ -699,8 +701,8 @@ const NodeGraphBuilder = ({
                     id="message-animation-toggle"
                     onClick={toggleAnimateMessages}
                     className={`${
-                      animateMessages ? 'bg-purple-600' : 'bg-gray-200'
-                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
+                      animateMessages ? 'bg-[rgb(var(--ec-accent))]' : 'bg-gray-200'
+                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2`}
                   >
                     <span
                       className={`${
@@ -721,8 +723,8 @@ const NodeGraphBuilder = ({
                       id="hide-channels-toggle"
                       onClick={toggleChannelsVisibility}
                       className={`${
-                        hideChannels ? 'bg-purple-600' : 'bg-gray-200'
-                      } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2`}
+                        hideChannels ? 'bg-[rgb(var(--ec-accent))]' : 'bg-gray-200'
+                      } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2`}
                     >
                       <span
                         className={`${
@@ -737,7 +739,7 @@ const NodeGraphBuilder = ({
               <div className="pt-4 border-t border-gray-200 space-y-2">
                 <button
                   onClick={openStudioModal}
-                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-black hover:bg-gray-800 text-white text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-black hover:bg-gray-800 text-white text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -751,7 +753,7 @@ const NodeGraphBuilder = ({
                 </button>
                 <button
                   onClick={handleExportVisual}
-                  className="w-full flex items-center justify-center border border-gray-200 space-x-2 px-4 py-2 bg-white text-gray-800 text-sm font-medium rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                  className="w-full flex items-center justify-center border border-gray-200 space-x-2 px-4 py-2 bg-white text-gray-800 text-sm font-medium rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2"
                 >
                   <DocumentArrowDownIcon className="w-4 h-4" />
                   <span>Export as png</span>
@@ -780,7 +782,7 @@ const NodeGraphBuilder = ({
                 {Object.entries(legend).map(([key, { count, colorClass, groupId }]) => (
                   <li
                     key={key}
-                    className="flex space-x-2 items-center text-[10px] cursor-pointer hover:text-purple-600 hover:underline"
+                    className="flex space-x-2 items-center text-[10px] cursor-pointer hover:text-[rgb(var(--ec-accent))] hover:underline"
                     onClick={() => handleLegendClick(key, groupId)}
                   >
                     <span className={`w-2 h-2 block ${colorClass}`} />

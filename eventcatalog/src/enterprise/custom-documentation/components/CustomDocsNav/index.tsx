@@ -197,31 +197,31 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
   const hasNoResults = debouncedSearchTerm && filteredSidebarItems.length === 0;
 
   return (
-    <nav ref={navRef} className="h-full text-gray-800 pt-4 overflow-y-auto">
-      <div className="mb-2 px-3 bg-white z-10">
+    <nav ref={navRef} className="h-full text-[rgb(var(--ec-page-text))] pt-4 overflow-y-auto">
+      <div className="mb-2 px-3 bg-[rgb(var(--ec-page-bg))] z-10">
         <div className="flex gap-2">
           <input
             type="text"
             value={searchTerm}
             onChange={handleSearchChange}
             placeholder="Quick search..."
-            className="flex-1 p-2 px-2 text-sm rounded-md border border-gray-200 h-[30px]"
+            className="flex-1 p-2 px-2 text-sm rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] placeholder:text-[rgb(var(--ec-input-placeholder))] h-[30px]"
           />
           <button
             onClick={toggleExpandCollapse}
             title={isExpanded ? 'Collapse All' : 'Expand All'}
-            className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-200 h-[30px] flex items-center justify-center"
+            className="px-2 py-1 bg-[rgb(var(--ec-content-hover))] hover:bg-[rgb(var(--ec-content-active))] rounded-md border border-[rgb(var(--ec-page-border))] h-[30px] flex items-center justify-center"
           >
             {isExpanded ? (
-              <ChevronDoubleUpIcon className="h-4 w-4 text-gray-600" />
+              <ChevronDoubleUpIcon className="h-4 w-4 text-[rgb(var(--ec-icon-color))]" />
             ) : (
-              <ChevronDoubleDownIcon className="h-4 w-4 text-gray-600" />
+              <ChevronDoubleDownIcon className="h-4 w-4 text-[rgb(var(--ec-icon-color))]" />
             )}
           </button>
         </div>
       </div>
 
-      <div className="space-y-2 divide-y divide-gray-100/40 pb-4">
+      <div className="space-y-2 divide-y divide-[rgb(var(--ec-page-border))] pb-4">
         {hasNoResults ? (
           <NoResultsFound searchTerm={debouncedSearchTerm} />
         ) : (
@@ -231,7 +231,7 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
                 {section.items ? (
                   <div className="flex items-center">
                     <button
-                      className="p-1 hover:bg-gray-100 rounded-md flex-shrink-0"
+                      className="p-1 hover:bg-[rgb(var(--ec-content-hover))] rounded-md flex-shrink-0"
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleGroupCollapse(`section-${index}`);
@@ -248,14 +248,14 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
                           stroke="currentColor"
                           aria-hidden="true"
                           data-slot="icon"
-                          className="h-3 w-3 text-gray-500"
+                          className="h-3 w-3 text-[rgb(var(--ec-icon-color))]"
                         >
                           <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
                         </svg>
                       </div>
                     </button>
                     <button
-                      className="flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md hover:bg-purple-50 min-w-0 flex-1"
+                      className="flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md hover:bg-[rgb(var(--ec-content-hover))] min-w-0 flex-1"
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleGroupCollapse(`section-${index}`);
@@ -264,7 +264,11 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
                       <span className="truncate">{section.label}</span>
                       {section.badge && section?.badge?.text && (
                         <span
-                          className={`text-${section.badge.color || 'purple'}-600 ml-2 text-[10px] font-medium bg-${section.badge.color || 'purple'}-50 px-2 py-0.5 rounded uppercase`}
+                          className={
+                            section.badge.color
+                              ? `text-${section.badge.color}-600 dark:text-${section.badge.color}-400 ml-2 text-[10px] font-medium bg-${section.badge.color}-50 dark:bg-${section.badge.color}-500/20 px-2 py-0.5 rounded uppercase`
+                              : `text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase`
+                          }
                         >
                           {section.badge.text}
                         </span>
@@ -275,7 +279,7 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
                   <div className="flex items-center">
                     <span className="flex-grow flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md">
                       <span className="truncate">{section.label}</span>
-                      <span className="text-purple-600 ml-2 text-[10px] font-medium bg-purple-50 px-2 py-0.5 rounded uppercase">
+                      <span className="text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase">
                         Section
                       </span>
                     </span>
@@ -288,7 +292,7 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
                       collapsedGroups[`section-${index}`] ? 'h-0' : 'h-auto'
                     }`}
                   >
-                    <div className="space-y-0.5 border-gray-200/80 border-l pl-4 ml-[9px] mt-1">
+                    <div className="space-y-0.5 border-[rgb(var(--ec-page-border))] border-l pl-4 ml-[9px] mt-1">
                       {section.items.map((item: SidebarItem, itemIndex: number) => (
                         <NestedItem
                           key={`item-${index}-${itemIndex}`}
@@ -309,8 +313,8 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
                     href={buildUrl(`/docs/custom/${section.slug}`)}
                     className={`flex items-center px-2 py-1.5 text-xs ${
                       currentPath.endsWith(`/${section.slug}`)
-                        ? 'bg-purple-100 text-purple-900 font-medium'
-                        : 'text-gray-600 hover:bg-purple-100'
+                        ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-page-text))] font-semibold'
+                        : 'text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-hover))]'
                     } rounded-md ml-6`}
                     data-active={currentPath.endsWith(`/${section.slug}`)}
                   >

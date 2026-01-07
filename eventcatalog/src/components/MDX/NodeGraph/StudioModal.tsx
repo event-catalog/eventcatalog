@@ -55,7 +55,7 @@ const StudioModal: React.FC<StudioModalProps> = ({ isOpen, onClose }) => {
             Import your diagram into{' '}
             <a
               href="https://eventcatalog.studio"
-              className="text-purple-600 hover:text-purple-700 underline"
+              className="text-[rgb(var(--ec-accent))] hover:text-[rgb(var(--ec-accent-hover))] underline"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -90,7 +90,7 @@ const StudioModal: React.FC<StudioModalProps> = ({ isOpen, onClose }) => {
               </button>
             </div>
 
-            <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+            <div className="bg-[rgb(var(--ec-accent-subtle))] rounded-lg p-4 border border-[rgb(var(--ec-accent)/0.3)]">
               <h4 className="text-sm font-bold text-gray-900 mb-2">Step 2: Open EventCatalog Studio</h4>
               <p className="text-xs text-gray-600 mb-3">
                 Go to EventCatalog Studio and import your design using the "Import from EventCatalog" button.
@@ -98,7 +98,7 @@ const StudioModal: React.FC<StudioModalProps> = ({ isOpen, onClose }) => {
 
               <button
                 onClick={handleOpenStudio}
-                className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors"
+                className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-[rgb(var(--ec-accent))] text-white text-sm font-medium rounded-md hover:bg-[rgb(var(--ec-accent-hover))] transition-colors"
               >
                 <ExternalLinkIcon className="w-4 h-4" />
                 <span>Open EventCatalog Studio</span>
@@ -113,7 +113,7 @@ const StudioModal: React.FC<StudioModalProps> = ({ isOpen, onClose }) => {
             <Dialog.Close asChild>
               <button
                 type="button"
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 transition-colors"
                 onClick={onClose}
               >
                 Close

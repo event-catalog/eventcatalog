@@ -19,13 +19,13 @@ export const columns = (tableConfiguration: TableConfiguration) => [
           href={buildUrl(`/docs/${flowRaw.collection}/${flowRaw.data.id}/${flowRaw.data.version}`)}
           className="group inline-flex items-center"
         >
-          <span className="inline-flex items-center rounded-md border border-gray-200 bg-white hover:border-teal-300 hover:bg-teal-50 transition-colors">
+          <span className="inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-teal-400 dark:hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-teal-500/10 transition-colors">
             <span className="flex items-center justify-center w-6 h-6 bg-teal-500 rounded-l-md">
               <QueueListIcon className="h-3 w-3 text-white" />
             </span>
-            <span className="px-2 py-1 text-xs text-gray-700 group-hover:text-gray-900">
+            <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">
               {flowRaw.data.name}
-              <span className="text-gray-400 ml-1">v{flowRaw.data.version}</span>
+              <span className="text-[rgb(var(--ec-icon-color))] ml-1">v{flowRaw.data.version}</span>
             </span>
           </span>
         </a>
@@ -43,7 +43,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     cell: (info) => {
       const summary = info.renderValue() as string;
       return (
-        <span className="text-sm text-gray-600 line-clamp-2" title={summary || ''}>
+        <span className="text-sm text-[rgb(var(--ec-page-text-muted))] line-clamp-2" title={summary || ''}>
           {summary}
         </span>
       );
@@ -63,13 +63,13 @@ export const columns = (tableConfiguration: TableConfiguration) => [
       return (
         <div className="flex items-center gap-2">
           <a
-            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap"
+            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))] rounded-md hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] transition-colors whitespace-nowrap"
             href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
           >
             Docs
           </a>
           <a
-            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-md hover:bg-gray-100 hover:text-gray-900 transition-colors whitespace-nowrap"
+            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))] rounded-md hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] transition-colors whitespace-nowrap"
             href={buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`)}
           >
             Visualiser

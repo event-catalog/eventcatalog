@@ -19,8 +19,8 @@ export const mermaid: RemarkPlugin<[]> = () => (tree) => {
     node.type = 'html';
     node.value = `
     <div class="mermaid-block pb-4">
-      <div class="mermaid border border-gray-200 rounded-lg p-1" data-content="${escapeHtml(node.value)}">
-        <p>Loading graph...</p>
+      <div class="mermaid border border-[rgb(var(--ec-page-border))] rounded-lg p-1" data-content="${escapeHtml(node.value)}">
+        <p class="text-[rgb(var(--ec-page-text-muted))]">Loading graph...</p>
       </div>
     </div>
     `;

@@ -1,0 +1,230 @@
+/**
+ * Forest Theme for EventCatalog
+ *
+ * A natural, grounded theme inspired by deep forest greens.
+ * Dark, rich greens with an earthy, calming presence.
+ */
+
+/* Forest Light Mode */
+:root[data-catalog-theme="forest"],
+:root[data-catalog-theme="forest"][data-theme="light"] {
+  /* Header - clean white */
+  --ec-header-bg: 255 255 255; /* #ffffff */
+  --ec-header-text: 20 20 20; /* #141414 */
+  --ec-header-border: 229 231 235; /* #e5e7eb gray-200 */
+
+  /* Primary brand color - deep forest green */
+  --ec-primary: 22 101 52; /* #166534 green-800 */
+  --ec-primary-hover: 20 83 45; /* #14532d green-900 */
+
+  /* Accent colors - deep forest green */
+  --ec-accent: 22 101 52; /* #166534 (green-800) */
+  --ec-accent-hover: 20 83 45; /* #14532d (green-900) */
+  --ec-accent-subtle: 220 252 231; /* #dcfce7 (green-100) */
+  --ec-accent-text: 20 83 45; /* #14532d (green-900) */
+  --ec-accent-gradient-from: 22 101 52; /* #166534 (green-800) */
+  --ec-accent-gradient-to: 20 83 45; /* #14532d (green-900) */
+
+  /* Buttons */
+  --ec-button-bg: 22 101 52; /* #166534 green-800 */
+  --ec-button-bg-hover: 20 83 45; /* #14532d green-900 */
+  --ec-button-text: 255 255 255; /* #ffffff */
+
+  /* Dropdowns & menus */
+  --ec-dropdown-bg: 255 255 255; /* #ffffff */
+  --ec-dropdown-text: 55 65 81; /* #374151 gray-700 */
+  --ec-dropdown-hover: 240 253 244; /* #f0fdf4 green-50 */
+  --ec-dropdown-border: 229 231 235; /* #e5e7eb gray-200 */
+
+  /* Icons */
+  --ec-icon-color: 75 85 99; /* #4b5563 gray-600 */
+  --ec-icon-hover: 22 101 52; /* #166534 green-800 */
+
+  /* Sidebar / Vertical Nav */
+  --ec-sidebar-bg: 255 255 255; /* #ffffff */
+  --ec-sidebar-bg-gradient: 240 253 244; /* #f0fdf4 green-50 */
+  --ec-sidebar-border: 229 231 235; /* #e5e7eb gray-200 */
+  --ec-sidebar-text: 75 85 99; /* #4b5563 gray-600 */
+  --ec-sidebar-active-bg: 22 101 52; /* #166534 green-800 */
+  --ec-sidebar-active-text: 255 255 255; /* #ffffff */
+  --ec-sidebar-hover-bg: 22 101 52; /* #166534 green-800 */
+
+  /* Nested sidebar content */
+  --ec-content-bg: 255 255 255; /* #ffffff */
+  --ec-content-text: 17 24 39; /* #111827 gray-900 */
+  --ec-content-text-muted: 75 85 99; /* #4b5563 gray-600 */
+  --ec-content-text-secondary: 107 114 128; /* #6b7280 gray-500 */
+  --ec-content-border: 229 231 235; /* #e5e7eb gray-200 */
+  --ec-content-hover: 249 250 251; /* #f9fafb gray-50 */
+  --ec-content-active: 220 252 231; /* #dcfce7 green-100 */
+
+  /* Input fields */
+  --ec-input-bg: 255 255 255; /* #ffffff */
+  --ec-input-border: 209 213 219; /* #d1d5db gray-300 */
+  --ec-input-text: 17 24 39; /* #111827 gray-900 */
+  --ec-input-placeholder: 156 163 175; /* #9ca3af gray-400 */
+
+  /* Group headers */
+  --ec-group-icon-bg: 220 252 231; /* #dcfce7 green-100 */
+  --ec-group-icon-text: 20 83 45; /* #14532d green-900 */
+
+  /* Main content/docs area */
+  --ec-page-bg: 255 255 255; /* #ffffff */
+  --ec-page-text: 17 24 39; /* #111827 gray-900 */
+  --ec-page-text-muted: 75 85 99; /* #4b5563 gray-600 */
+  --ec-page-border: 229 231 235; /* #e5e7eb gray-200 */
+
+  /* Card/elevated surfaces */
+  --ec-card-bg: 255 255 255; /* #ffffff */
+
+  /* Code blocks */
+  --ec-code-bg: 250 250 250; /* #fafafa */
+
+  /* Badge colors - forest theme */
+  --ec-badge-domain-bg: 254 249 195; /* yellow-100 */
+  --ec-badge-domain-text: 161 98 7; /* yellow-700 */
+  --ec-badge-service-bg: 252 231 243; /* pink-100 */
+  --ec-badge-service-text: 190 24 93; /* pink-700 */
+  --ec-badge-event-bg: 254 243 199; /* amber-100 */
+  --ec-badge-event-text: 180 83 9; /* amber-700 */
+  --ec-badge-command-bg: 220 252 231; /* green-100 */
+  --ec-badge-command-text: 20 83 45; /* green-900 */
+  --ec-badge-query-bg: 207 250 254; /* cyan-100 */
+  --ec-badge-query-text: 21 94 117; /* cyan-800 */
+  --ec-badge-message-bg: 224 231 255; /* indigo-100 */
+  --ec-badge-message-text: 67 56 202; /* indigo-700 */
+  --ec-badge-design-bg: 220 252 231; /* green-100 */
+  --ec-badge-design-text: 22 101 52; /* green-800 */
+  --ec-badge-channel-bg: 224 231 255; /* indigo-100 */
+  --ec-badge-channel-text: 67 56 202; /* indigo-700 */
+  --ec-badge-default-bg: 240 253 244; /* green-50 */
+  --ec-badge-default-text: 75 85 99; /* gray-600 */
+}
+
+/* Forest Dark Mode */
+:root[data-catalog-theme="forest"][data-theme="dark"] {
+  /* Header - deep forest dark */
+  --ec-header-bg: 17 24 39; /* #111827 gray-900 */
+  --ec-header-text: 243 244 246; /* #f3f4f6 gray-100 */
+  --ec-header-border: 31 41 55; /* #1f2937 gray-800 */
+
+  /* Accent colors - muted forest green for dark */
+  --ec-accent: 74 222 128; /* #4ade80 (green-400) */
+  --ec-accent-hover: 34 197 94; /* #22c55e (green-500) */
+  --ec-accent-subtle: 20 83 45 / 0.3; /* green-900/30 */
+  --ec-accent-text: 134 239 172; /* #86efac (green-300) */
+  --ec-accent-gradient-from: 74 222 128; /* #4ade80 (green-400) */
+  --ec-accent-gradient-to: 34 197 94; /* #22c55e (green-500) */
+
+  /* Buttons */
+  --ec-button-bg: 22 101 52; /* #166534 green-800 */
+  --ec-button-bg-hover: 34 197 94; /* #22c55e green-500 */
+  --ec-button-text: 255 255 255; /* #ffffff */
+
+  /* Dropdowns & menus */
+  --ec-dropdown-bg: 17 24 39; /* #111827 */
+  --ec-dropdown-text: 209 213 219; /* #d1d5db */
+  --ec-dropdown-hover: 31 41 55; /* #1f2937 */
+  --ec-dropdown-border: 55 65 81; /* #374151 */
+
+  /* Icons */
+  --ec-icon-color: 156 163 175; /* #9ca3af */
+  --ec-icon-hover: 134 239 172; /* #86efac green-300 */
+
+  /* Sidebar / Vertical Nav */
+  --ec-sidebar-bg: 3 7 18; /* #030712 gray-950 */
+  --ec-sidebar-bg-gradient: 3 7 18; /* #030712 */
+  --ec-sidebar-border: 31 41 55; /* #1f2937 */
+  --ec-sidebar-text: 156 163 175; /* #9ca3af */
+  --ec-sidebar-active-bg: 22 101 52; /* #166534 green-800 */
+  --ec-sidebar-active-text: 255 255 255; /* #ffffff */
+  --ec-sidebar-hover-bg: 31 41 55; /* #1f2937 */
+
+  /* Nested sidebar content */
+  --ec-content-bg: 3 7 18; /* #030712 */
+  --ec-content-text: 243 244 246; /* #f3f4f6 */
+  --ec-content-text-muted: 156 163 175; /* #9ca3af */
+  --ec-content-text-secondary: 156 163 175; /* #9ca3af */
+  --ec-content-border: 31 41 55; /* #1f2937 */
+  --ec-content-hover: 17 24 39; /* #111827 */
+  --ec-content-active: 31 41 55; /* #1f2937 */
+
+  /* Input fields */
+  --ec-input-bg: 17 24 39; /* #111827 */
+  --ec-input-border: 55 65 81; /* #374151 */
+  --ec-input-text: 243 244 246; /* #f3f4f6 */
+  --ec-input-placeholder: 107 114 128; /* #6b7280 */
+
+  /* Group headers */
+  --ec-group-icon-bg: 31 41 55; /* #1f2937 */
+  --ec-group-icon-text: 134 239 172; /* #86efac green-300 */
+
+  /* Main content/docs area */
+  --ec-page-bg: 3 7 18; /* #030712 */
+  --ec-page-text: 243 244 246; /* #f3f4f6 */
+  --ec-page-text-muted: 156 163 175; /* #9ca3af */
+  --ec-page-border: 31 41 55; /* #1f2937 */
+
+  /* Card/elevated surfaces */
+  --ec-card-bg: 3 7 18; /* #030712 */
+
+  /* Code blocks */
+  --ec-code-bg: 17 24 39; /* #111827 */
+
+  /* Badge colors - forest dark */
+  --ec-badge-domain-bg: 113 63 18 / 0.3; /* yellow-900/30 */
+  --ec-badge-domain-text: 253 224 71; /* yellow-300 */
+  --ec-badge-service-bg: 131 24 67 / 0.3; /* pink-900/30 */
+  --ec-badge-service-text: 249 168 212; /* pink-300 */
+  --ec-badge-event-bg: 120 53 15 / 0.3; /* amber-900/30 */
+  --ec-badge-event-text: 252 211 77; /* amber-300 */
+  --ec-badge-command-bg: 20 83 45 / 0.3; /* green-900/30 */
+  --ec-badge-command-text: 134 239 172; /* green-300 */
+  --ec-badge-query-bg: 21 94 117 / 0.3; /* cyan-800/30 */
+  --ec-badge-query-text: 103 232 249; /* cyan-300 */
+  --ec-badge-message-bg: 49 46 129 / 0.3; /* indigo-900/30 */
+  --ec-badge-message-text: 165 180 252; /* indigo-300 */
+  --ec-badge-design-bg: 20 83 45 / 0.3; /* green-900/30 */
+  --ec-badge-design-text: 134 239 172; /* green-300 */
+  --ec-badge-channel-bg: 49 46 129 / 0.3; /* indigo-900/30 */
+  --ec-badge-channel-text: 165 180 252; /* indigo-300 */
+  --ec-badge-default-bg: 55 65 81 / 0.3; /* gray-700/30 */
+  --ec-badge-default-text: 209 213 219; /* gray-300 */
+}
+
+/* Forest theme prose overrides */
+:root[data-catalog-theme="forest"][data-theme="dark"] .prose {
+  --tw-prose-body: rgb(156 163 175); /* gray-400 */
+  --tw-prose-headings: rgb(243 244 246); /* gray-100 */
+  --tw-prose-lead: rgb(107 114 128); /* gray-500 */
+  --tw-prose-links: rgb(74 222 128); /* green-400 */
+  --tw-prose-bold: rgb(243 244 246); /* gray-100 */
+  --tw-prose-counters: rgb(107 114 128); /* gray-500 */
+  --tw-prose-bullets: rgb(75 85 99); /* gray-600 */
+  --tw-prose-hr: rgb(31 41 55); /* gray-800 */
+  --tw-prose-quotes: rgb(243 244 246); /* gray-100 */
+  --tw-prose-quote-borders: rgb(55 65 81); /* gray-700 */
+  --tw-prose-captions: rgb(107 114 128); /* gray-500 */
+  --tw-prose-code: rgb(243 244 246); /* gray-100 */
+  --tw-prose-pre-code: rgb(156 163 175); /* gray-400 */
+  --tw-prose-pre-bg: rgb(17 24 39); /* gray-900 */
+  --tw-prose-th-borders: rgb(55 65 81); /* gray-700 */
+  --tw-prose-td-borders: rgb(31 41 55); /* gray-800 */
+}
+
+:root[data-catalog-theme="forest"][data-theme="dark"] .prose code {
+  background-color: rgb(31 41 55); /* gray-800 */
+}
+
+:root[data-catalog-theme="forest"][data-theme="dark"] .prose pre {
+  background-color: rgb(17 24 39); /* gray-900 */
+  border: 1px solid rgb(31 41 55); /* gray-800 */
+}
+
+:root[data-catalog-theme="forest"][data-theme="dark"] .prose a {
+  color: rgb(74 222 128); /* green-400 */
+}
+
+:root[data-catalog-theme="forest"][data-theme="dark"] .prose a:hover {
+  color: rgb(134 239 172); /* green-300 */
+}

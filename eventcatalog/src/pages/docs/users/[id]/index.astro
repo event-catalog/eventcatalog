@@ -63,30 +63,34 @@ const pageTitle = `User | ${props.data.name}`;
   <main class="flex sm:px-8 docs-layout h-full" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8">
-        <div class="border-b border-gray-200 pb-6">
+        <div class="border-b border-[rgb(var(--ec-page-border))] pb-6">
           <div class="flex justify-start gap-6">
             {
               props.data.avatarUrl && (
                 <img
                   src={props.data.avatarUrl}
                   alt={`${props.data.name}'s profile picture`}
-                  class="w-20 h-20 rounded-full object-cover border-2 border-gray-100"
+                  class="w-20 h-20 rounded-full object-cover border-2 border-[rgb(var(--ec-page-border))]"
                 />
               )
             }
             <div class="flex flex-col justify-center space-y-2">
               <div>
-                <h2 class="text-3xl font-bold text-gray-900">{props.data.name}</h2>
-                {props.data.role && <span class="text-base font-medium text-gray-500">{props.data.role}</span>}
+                <h2 class="text-3xl font-bold text-[rgb(var(--ec-page-text))]">{props.data.name}</h2>
+                {
+                  props.data.role && (
+                    <span class="text-base font-medium text-[rgb(var(--ec-page-text-muted))]">{props.data.role}</span>
+                  )
+                }
               </div>
               <div class="flex flex-wrap gap-3">
                 {
                   props.data.email && (
                     <a
                       href={`mailto:${props.data.email}`}
-                      class="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                      class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
                     >
-                      <EnvelopeIcon className="w-4 h-4 text-gray-400" />
+                      <EnvelopeIcon className="w-4 h-4 text-[rgb(var(--ec-icon-color))]" />
                       <span>Email</span>
                     </a>
                   )
@@ -95,7 +99,7 @@ const pageTitle = `User | ${props.data.name}`;
                   props.data.slackDirectMessageUrl && (
                     <a
                       href={props.data.slackDirectMessageUrl}
-                      class="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                      class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
                     >
                       <img src={buildUrl('/slack-icon.svg', true)} class="w-4 h-4" alt="Slack" />
                       <span>Slack</span>
@@ -108,7 +112,7 @@ const pageTitle = `User | ${props.data.name}`;
                       href={props.data.msTeamsDirectMessageUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      class="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                      class="inline-flex items-center gap-1.5 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
                     >
                       <img src={buildUrl('/icons/ms-teams.svg', true)} class="w-4 h-4" alt="Teams" />
                       <span>Teams</span>
@@ -119,23 +123,23 @@ const pageTitle = `User | ${props.data.name}`;
             </div>
           </div>
         </div>
-        <div class="border-b border-gray-200 py-4" data-pagefind-ignore>
+        <div class="border-b border-[rgb(var(--ec-page-border))] py-4" data-pagefind-ignore>
           <dl class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div class="flex flex-col p-4 bg-gray-50 rounded-lg">
-              <dt class="text-xs font-medium text-gray-500">Domains</dt>
-              <dd class="text-2xl font-semibold text-gray-900 mt-1">{ownedDomainsList.length}</dd>
+            <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
+              <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Domains</dt>
+              <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{ownedDomainsList.length}</dd>
             </div>
-            <div class="flex flex-col p-4 bg-gray-50 rounded-lg">
-              <dt class="text-xs font-medium text-gray-500">Services</dt>
-              <dd class="text-2xl font-semibold text-gray-900 mt-1">{ownedServicesList.length}</dd>
+            <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
+              <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Services</dt>
+              <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{ownedServicesList.length}</dd>
             </div>
-            <div class="flex flex-col p-4 bg-gray-50 rounded-lg">
-              <dt class="text-xs font-medium text-gray-500">Messages</dt>
-              <dd class="text-2xl font-semibold text-gray-900 mt-1">{ownedMessageList.length}</dd>
+            <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
+              <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Messages</dt>
+              <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{ownedMessageList.length}</dd>
             </div>
-            <div class="flex flex-col p-4 bg-gray-50 rounded-lg">
-              <dt class="text-xs font-medium text-gray-500">Teams</dt>
-              <dd class="text-2xl font-semibold text-gray-900 mt-1">{associatedTeams.length}</dd>
+            <div class="flex flex-col p-4 bg-[rgb(var(--ec-content-hover))] rounded-lg">
+              <dt class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">Teams</dt>
+              <dd class="text-2xl font-semibold text-[rgb(var(--ec-page-text))] mt-1">{associatedTeams.length}</dd>
             </div>
           </dl>
         </div>

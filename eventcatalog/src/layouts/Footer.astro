@@ -4,14 +4,14 @@ import { showEventCatalogBranding } from '@utils/feature';
 const { className } = Astro.props;
 ---
 
-<footer class={`relative py-4 space-y-8 border-t border-gray-300 ${className}`}>
+<footer class={`relative py-4 space-y-8 border-t border-[rgb(var(--ec-page-border))] ${className}`}>
   {
     showEventCatalogBranding() && (
-      <div class="flex justify-between items-center py-8 text-gray-500 text-sm font-light">
+      <div class="flex justify-between items-center py-8 text-[rgb(var(--ec-page-text-muted))] text-sm font-light">
         <div class="flex space-x-5">
           <a href="https://github.com/event-catalog/eventcatalog" target="_blank" aria-label="View EventCatalog on GitHub">
             <svg
-              class="w-5 h-5 bg-gray-400 hover:bg-primary dark:hover:bg-gray-400"
+              class="w-5 h-5 bg-[rgb(var(--ec-icon-color))] hover:bg-[rgb(var(--ec-accent))]"
               style={`mask-image: url("${buildUrl('/icons/github.svg', true)}"); mask-repeat: no-repeat; mask-position: center center;`}
               aria-hidden="true"
             />
@@ -19,7 +19,7 @@ const { className } = Astro.props;
           <a href="https://x.com/event_catalog" target="_blank" aria-label="Follow EventCatalog on X (Twitter)">
             <span class="sr-only">X (Twitter)</span>
             <svg
-              class="w-5 h-5 bg-gray-400 hover:bg-primary dark:hover:bg-gray-400"
+              class="w-5 h-5 bg-[rgb(var(--ec-icon-color))] hover:bg-[rgb(var(--ec-accent))]"
               style={`mask-image: url("${buildUrl('/icons/x-twitter.svg', true)}"); mask-repeat: no-repeat; mask-position: center center;`}
               aria-hidden="true"
             />
@@ -27,7 +27,7 @@ const { className } = Astro.props;
           <a href="https://www.youtube.com/@event-catalog" target="_blank" aria-label="Watch EventCatalog on YouTube">
             <span class="sr-only">YouTube</span>
             <svg
-              class="w-5 h-5 bg-gray-400 hover:bg-primary dark:hover:bg-gray-400"
+              class="w-5 h-5 bg-[rgb(var(--ec-icon-color))] hover:bg-[rgb(var(--ec-accent))]"
               style={`mask-image: url("${buildUrl('/icons/youtube.svg', true)}"); mask-repeat: no-repeat; mask-position: center center;`}
               aria-hidden="true"
             />
@@ -35,7 +35,7 @@ const { className } = Astro.props;
         </div>
         <a
           target="_blank"
-          class="hover:text-primary hover:underline text-gray-400 font-light not-prose"
+          class="hover:text-[rgb(var(--ec-accent))] hover:underline text-[rgb(var(--ec-icon-color))] font-light not-prose"
           href="https://eventcatalog.dev"
         >
           Powered by EventCatalog

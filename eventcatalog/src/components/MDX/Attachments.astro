@@ -83,16 +83,16 @@ const sortedGroups = Object.entries(groupedAttachments).sort(([a], [b]) => {
 <section class="not-prose my-8">
   {title && <h3 class="flex items-center gap-2 text-3xl font-bold mb-4">{title}</h3>}
 
-  {description && <p class="text-gray-600 mb-6 prose prose-md">{description}</p>}
+  {description && <p class="text-[rgb(var(--ec-page-text-muted))] mb-6 prose prose-md">{description}</p>}
 
   {
     normalizedAttachments.length === 0 ? (
-      <div class="text-gray-500 text-sm italic">No attachments available.</div>
+      <div class="text-[rgb(var(--ec-page-text-muted))] text-sm italic">No attachments available.</div>
     ) : (
       <div class="space-y-6">
         {sortedGroups.map(([groupType, groupAttachments], index) => (
           <div>
-            <h4 class="text-sm font-medium text-gray-900 mb-3 uppercase tracking-wider">
+            <h4 class="text-sm font-medium text-[rgb(var(--ec-page-text))] mb-3 uppercase tracking-wider">
               {groupType} ({groupAttachments.length})
             </h4>
             <div class={`grid grid-cols-1 ${columns === 1 ? '' : `md:grid-cols-${Math.min(columns, 3)}`} gap-4`}>
@@ -105,34 +105,38 @@ const sortedGroups = Object.entries(groupedAttachments).sort(([a], [b]) => {
                     href={attachment.url}
                     target={isExternal ? '_blank' : '_self'}
                     rel={isExternal ? 'noopener noreferrer' : undefined}
-                    class="group block bg-white border border-gray-200 rounded-lg p-4 transition-all duration-200 hover:shadow-md hover:border-purple-300 hover:bg-purple-50/30 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+                    class="group block bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-lg p-4 transition-all duration-200 hover:shadow-md hover:border-[rgb(var(--ec-accent)/0.5)] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2"
                   >
                     <div class="flex items-start gap-3">
-                      <div class="flex-shrink-0 p-2 bg-gray-100 rounded-lg group-hover:bg-purple-100 transition-colors duration-200">
-                        {IconComponent && <IconComponent className="w-5 h-5 text-gray-600 group-hover:text-purple-600" />}
+                      <div class="flex-shrink-0 p-2 bg-[rgb(var(--ec-content-hover))] rounded-lg group-hover:bg-[rgb(var(--ec-accent-subtle))] transition-colors duration-200">
+                        {IconComponent && (
+                          <IconComponent className="w-5 h-5 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-accent))]" />
+                        )}
                       </div>
 
                       <div class="flex-grow min-w-0">
                         <div class="flex items-center gap-2">
-                          <h5 class="text-sm font-medium text-gray-900 group-hover:text-purple-900 truncate">
+                          <h5 class="text-sm font-medium text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))] truncate">
                             {attachment.title || 'Attachment'}
                           </h5>
                           {isExternal && (
-                            <Icons.ArrowTopRightOnSquareIcon className="w-3 h-3 text-gray-400 group-hover:text-purple-500 flex-shrink-0" />
+                            <Icons.ArrowTopRightOnSquareIcon className="w-3 h-3 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-accent))] flex-shrink-0" />
                           )}
                         </div>
 
                         {attachment.summary && (
-                          <p class="mt-1 text-xs text-gray-600 group-hover:text-purple-700 line-clamp-2">{attachment.summary}</p>
+                          <p class="mt-1 text-xs text-[rgb(var(--ec-page-text-muted))] group-hover:text-[rgb(var(--ec-accent-text))] line-clamp-2">
+                            {attachment.summary}
+                          </p>
                         )}
 
                         {attachment.description && (
-                          <p class="mt-1 text-xs text-gray-600 group-hover:text-purple-700 line-clamp-2">
+                          <p class="mt-1 text-xs text-[rgb(var(--ec-page-text-muted))] group-hover:text-[rgb(var(--ec-accent-text))] line-clamp-2">
                             {attachment.description}
                           </p>
                         )}
 
-                        <div class="mt-2 text-xs text-gray-400 group-hover:text-purple-500 truncate">
+                        <div class="mt-2 text-xs text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-accent))] truncate">
                           {attachment.url.replace(/^https?:\/\//, '')}
                         </div>
                       </div>

@@ -214,7 +214,7 @@ const VisualiserSearch = forwardRef<VisualiserSearchRef, VisualiserSearchProps>(
             onChange={handleSearchChange}
             onKeyDown={handleSearchKeyDown}
             onFocus={handleSearchFocus}
-            className="w-full px-4 py-2 pr-10 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="w-full px-4 py-2 pr-10 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-transparent"
           />
           {searchQuery && (
             <button
@@ -238,7 +238,7 @@ const VisualiserSearch = forwardRef<VisualiserSearchRef, VisualiserSearchProps>(
                   key={node.id}
                   onClick={() => handleSuggestionClick(node)}
                   className={`px-4 py-2 cursor-pointer flex items-center justify-between hover:bg-gray-100 ${
-                    index === selectedSuggestionIndex ? 'bg-purple-50' : ''
+                    index === selectedSuggestionIndex ? 'bg-[rgb(var(--ec-accent-subtle))]' : ''
                   }`}
                 >
                   <span className="text-sm font-medium text-gray-900">{nodeName}</span>

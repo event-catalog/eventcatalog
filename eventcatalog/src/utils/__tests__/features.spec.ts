@@ -10,6 +10,7 @@ import {
   showEventCatalogBranding,
   showCustomBranding,
   isPrivateRemoteSchemaEnabled,
+  isCustomStylesEnabled,
 } from '../feature';
 
 import config from '@config';
@@ -246,6 +247,24 @@ describe('features', () => {
     it('should return false when EVENTCATALOG_SHOW_BRANDING is true', () => {
       process.env.EVENTCATALOG_SHOW_BRANDING = 'true';
       expect(showCustomBranding()).toBe(false);
+    });
+  });
+
+  describe('isCustomStylesEnabled', () => {
+    it('should return true when EVENTCATALOG_STARTER is true', () => {
+      process.env.EVENTCATALOG_STARTER = 'true';
+      expect(isCustomStylesEnabled()).toBe(true);
+    });
+
+    it('should return true when EVENTCATALOG_SCALE is true', () => {
+      process.env.EVENTCATALOG_SCALE = 'true';
+      expect(isCustomStylesEnabled()).toBe(true);
+    });
+
+    it('should return false when neither feature is enabled', () => {
+      delete process.env.EVENTCATALOG_STARTER;
+      delete process.env.EVENTCATALOG_SCALE;
+      expect(isCustomStylesEnabled()).toBe(false);
     });
   });
 });

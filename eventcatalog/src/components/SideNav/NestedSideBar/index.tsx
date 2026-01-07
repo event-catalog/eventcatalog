@@ -13,21 +13,21 @@ import { favoritesStore, toggleFavorite as toggleFavoriteAction, type FavoriteIt
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
 
 // ============================================
-// Badge color mapping
+// Badge color mapping (uses CSS variables from theme.css)
 // ============================================
 
 const getBadgeClasses = (badge: string): string => {
   const badgeColors: Record<string, string> = {
-    domain: 'bg-blue-100 text-blue-700',
-    service: 'bg-green-100 text-green-700',
-    event: 'bg-amber-100 text-amber-700',
-    command: 'bg-pink-100 text-pink-700',
-    query: 'bg-purple-100 text-purple-700',
-    message: 'bg-indigo-100 text-indigo-700',
-    design: 'bg-teal-100 text-teal-700',
-    channel: 'bg-indigo-100 text-indigo-700',
+    domain: 'bg-[rgb(var(--ec-badge-domain-bg))] text-[rgb(var(--ec-badge-domain-text))]',
+    service: 'bg-[rgb(var(--ec-badge-service-bg))] text-[rgb(var(--ec-badge-service-text))]',
+    event: 'bg-[rgb(var(--ec-badge-event-bg))] text-[rgb(var(--ec-badge-event-text))]',
+    command: 'bg-[rgb(var(--ec-badge-command-bg))] text-[rgb(var(--ec-badge-command-text))]',
+    query: 'bg-[rgb(var(--ec-badge-query-bg))] text-[rgb(var(--ec-badge-query-text))]',
+    message: 'bg-[rgb(var(--ec-badge-message-bg))] text-[rgb(var(--ec-badge-message-text))]',
+    design: 'bg-[rgb(var(--ec-badge-design-bg))] text-[rgb(var(--ec-badge-design-text))]',
+    channel: 'bg-[rgb(var(--ec-badge-channel-bg))] text-[rgb(var(--ec-badge-channel-text))]',
   };
-  return badgeColors[badge.toLowerCase()] || 'bg-gray-100 text-gray-600';
+  return badgeColors[badge.toLowerCase()] || 'bg-[rgb(var(--ec-badge-default-bg))] text-[rgb(var(--ec-badge-default-text))]';
 };
 
 // ============================================
@@ -474,32 +474,41 @@ export default function NestedSideBar() {
     return (
       <aside className="w-[315px] h-full flex flex-col font-sans">
         {/* Search skeleton */}
-        <div className="px-3 py-3 border-b border-gray-200">
-          <div className="h-9 bg-gray-100 rounded-lg animate-pulse" />
+        <div className="px-3 py-3 border-b border-[rgb(var(--ec-content-border))]">
+          <div className="h-9 bg-[rgb(var(--ec-content-hover))] rounded-lg animate-pulse" />
         </div>
         {/* Content skeleton */}
         <div className="p-3 space-y-3">
           {/* Group header skeleton */}
           <div className="flex items-center gap-2 px-2 py-1.5">
-            <div className="w-3.5 h-3.5 bg-gray-200 rounded animate-pulse" />
-            <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+            <div className="w-3.5 h-3.5 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse" />
+            <div className="h-4 w-24 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse" />
           </div>
           {/* Item skeletons */}
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex items-center gap-2.5 px-3 py-1.5 ml-3.5 border-l border-gray-100">
-              <div className="w-4 h-4 bg-gray-100 rounded animate-pulse" />
-              <div className="h-4 bg-gray-100 rounded animate-pulse" style={{ width: `${60 + ((i * 15) % 40)}%` }} />
+            <div key={i} className="flex items-center gap-2.5 px-3 py-1.5 ml-3.5 border-l border-[rgb(var(--ec-content-border))]">
+              <div className="w-4 h-4 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse" />
+              <div
+                className="h-4 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse"
+                style={{ width: `${60 + ((i * 15) % 40)}%` }}
+              />
             </div>
           ))}
           {/* Second group skeleton */}
           <div className="flex items-center gap-2 px-2 py-1.5 mt-4">
-            <div className="w-3.5 h-3.5 bg-gray-200 rounded animate-pulse" />
-            <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+            <div className="w-3.5 h-3.5 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse" />
+            <div className="h-4 w-20 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse" />
           </div>
           {[1, 2, 3].map((i) => (
-            <div key={`g2-${i}`} className="flex items-center gap-2.5 px-3 py-1.5 ml-3.5 border-l border-gray-100">
-              <div className="w-4 h-4 bg-gray-100 rounded animate-pulse" />
-              <div className="h-4 bg-gray-100 rounded animate-pulse" style={{ width: `${50 + ((i * 20) % 35)}%` }} />
+            <div
+              key={`g2-${i}`}
+              className="flex items-center gap-2.5 px-3 py-1.5 ml-3.5 border-l border-[rgb(var(--ec-content-border))]"
+            >
+              <div className="w-4 h-4 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse" />
+              <div
+                className="h-4 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse"
+                style={{ width: `${50 + ((i * 20) % 35)}%` }}
+              />
             </div>
           ))}
         </div>
@@ -727,13 +736,17 @@ export default function NestedSideBar() {
       <>
         <div className="flex items-center gap-2">
           {GroupIcon && (
-            <span className="flex items-center justify-center w-5 h-5 rounded bg-gray-100 text-gray-600">
+            <span className="flex items-center justify-center w-5 h-5 rounded bg-[rgb(var(--ec-group-icon-bg))] text-[rgb(var(--ec-group-icon-text))]">
               <GroupIcon className="w-3 h-3" />
             </span>
           )}
-          <span className="text-[13px] text-gray-900 font-semibold tracking-tight">{group.title}</span>
+          <span className="text-[13px] text-[rgb(var(--ec-content-text))] font-semibold tracking-tight">{group.title}</span>
         </div>
-        {canCollapse && <ChevronDown className={cn('w-4 h-4 text-gray-400 transition-transform', isCollapsed && '-rotate-90')} />}
+        {canCollapse && (
+          <ChevronDown
+            className={cn('w-4 h-4 text-[rgb(var(--ec-icon-color))] transition-transform', isCollapsed && '-rotate-90')}
+          />
+        )}
       </>
     );
 
@@ -742,7 +755,7 @@ export default function NestedSideBar() {
         {canCollapse ? (
           <button
             onClick={() => toggleSectionCollapse(groupId)}
-            className="flex items-center justify-between w-full px-2 py-1.5 hover:bg-gray-50 rounded-md transition-colors cursor-pointer"
+            className="flex items-center justify-between w-full px-2 py-1.5 hover:bg-[rgb(var(--ec-content-hover))] rounded-md transition-colors cursor-pointer"
           >
             {headerContent}
           </button>
@@ -750,7 +763,7 @@ export default function NestedSideBar() {
           <div className="flex items-center justify-between px-2 py-1.5">{headerContent}</div>
         )}
         {!isCollapsed && (
-          <div className="flex flex-col gap-0.5 border-l ml-4 mt-1 border-gray-200">
+          <div className="flex flex-col gap-0.5 border-l ml-4 mt-1 border-[rgb(var(--ec-content-border))]">
             {visibleChildren.map((childRef, childIndex) => {
               const child = resolveRef(childRef);
               if (!child) return null;
@@ -762,7 +775,10 @@ export default function NestedSideBar() {
                 if (!hasVisibleChildren(child)) return null;
 
                 return (
-                  <div key={`nested-group-${childKey || childIndex}`} className="ml-3 mt-1.5 pl-3 border-l border-gray-200">
+                  <div
+                    key={`nested-group-${childKey || childIndex}`}
+                    className="ml-3 mt-1.5 pl-3 border-l border-[rgb(var(--ec-content-border))]"
+                  >
                     {renderGroup(child, childKey, childIndex)}
                   </div>
                 );
@@ -798,7 +814,10 @@ export default function NestedSideBar() {
         <div className="flex items-center gap-2.5 min-w-0 flex-1 ">
           {IconComponent && (
             <span
-              className={cn('flex items-center justify-center w-5 h-5 flex-shrink-0', isActive ? 'text-black' : 'text-gray-500')}
+              className={cn(
+                'flex items-center justify-center w-5 h-5 flex-shrink-0',
+                isActive ? 'text-[rgb(var(--ec-content-text))]' : 'text-[rgb(var(--ec-content-text-muted))]'
+              )}
             >
               <IconComponent className="w-4 h-4" />
             </span>
@@ -807,7 +826,9 @@ export default function NestedSideBar() {
           <span
             className={cn(
               'text-[13px] truncate',
-              isActive ? 'text-black font-medium' : 'text-gray-600 group-hover:text-gray-900'
+              isActive
+                ? 'text-[rgb(var(--ec-content-text))] font-medium'
+                : 'text-[rgb(var(--ec-content-text-secondary))] group-hover:text-[rgb(var(--ec-content-text))]'
             )}
           >
             {item.title}
@@ -821,14 +842,14 @@ export default function NestedSideBar() {
                 'flex items-center justify-center w-5 h-5 rounded transition-colors cursor-pointer',
                 isFav
                   ? 'text-amber-400 hover:text-amber-500'
-                  : 'text-gray-300 opacity-0 group-hover:opacity-100 hover:text-amber-400'
+                  : 'text-[rgb(var(--ec-content-text-muted))] opacity-0 group-hover:opacity-100 hover:text-amber-400'
               )}
             >
               <Star className={cn('w-3.5 h-3.5', isFav && 'fill-current')} />
             </div>
           )}
           {itemHasChildren && (
-            <span className="flex items-center justify-center w-5 h-5 text-gray-400 group-hover:text-black group-hover:translate-x-0.5 transition-transform">
+            <span className="flex items-center justify-center w-5 h-5 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-content-text))] group-hover:translate-x-0.5 transition-transform">
               <ChevronRight className="w-4 h-4" />
             </span>
           )}
@@ -837,9 +858,11 @@ export default function NestedSideBar() {
     );
 
     const baseClasses =
-      'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-gray-100 active:bg-gray-200';
+      'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))] active:bg-[rgb(var(--ec-content-hover))]';
     const parentClasses = itemHasChildren ? 'font-medium' : '';
-    const activeClasses = isActive ? 'bg-purple-50 hover:bg-purple-50 border-l-2 border-purple-600 rounded-l-none' : '';
+    const activeClasses = isActive
+      ? 'bg-[rgb(var(--ec-content-active))] hover:bg-[rgb(var(--ec-content-active))] border-l-2 border-[rgb(var(--ec-accent))] rounded-l-none'
+      : '';
 
     // Leaf item with href → render as link
     if (item.href && !itemHasChildren) {
@@ -884,7 +907,7 @@ export default function NestedSideBar() {
         <>
           {!isTopLevel && (
             <div
-              className="px-3 py-2 bg-white border-b border-gray-200 sticky top-0 z-10"
+              className="px-3 py-2 bg-[rgb(var(--ec-content-bg))] border-b border-[rgb(var(--ec-content-border))] sticky top-0 z-10"
               onMouseEnter={() => !isTopLevel && setShowPathPreview(true)}
               onMouseLeave={() => {
                 setShowPathPreview(false);
@@ -896,20 +919,20 @@ export default function NestedSideBar() {
                 disabled={isTopLevel}
                 className={cn(
                   'flex items-center gap-2 w-full px-2 py-1.5 -mx-2 rounded-md transition-colors',
-                  !isTopLevel && 'hover:bg-gray-100 cursor-pointer',
+                  !isTopLevel && 'hover:bg-[rgb(var(--ec-content-hover))] cursor-pointer',
                   isTopLevel && 'cursor-default'
                 )}
               >
                 <span
                   className={cn(
-                    'flex items-center justify-center w-5 h-5 text-gray-500 transition-all',
+                    'flex items-center justify-center w-5 h-5 text-[rgb(var(--ec-icon-color))] transition-all',
                     isTopLevel && 'opacity-0',
                     !isTopLevel && 'group-hover:-translate-x-0.5'
                   )}
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </span>
-                <span className="text-sm font-semibold text-gray-900 truncate">{currentLevel.title}</span>
+                <span className="text-sm font-semibold text-[rgb(var(--ec-content-text))] truncate">{currentLevel.title}</span>
                 {currentLevel.badge && (
                   <span
                     className={cn(
@@ -924,9 +947,11 @@ export default function NestedSideBar() {
 
               {/* Path Preview Dropdown */}
               {showPathPreview && navigationStack.length > 1 && (
-                <div className="absolute left-0 right-0 top-full bg-white border-b border-gray-200 shadow-lg z-20">
+                <div className="absolute left-0 right-0 top-full bg-[rgb(var(--ec-content-bg))] border-b border-[rgb(var(--ec-content-border))] shadow-lg z-20">
                   <div className="px-3 py-2">
-                    <div className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-2">Navigation Path</div>
+                    <div className="text-[10px] font-medium text-[rgb(var(--ec-content-text-muted))] uppercase tracking-wide mb-2">
+                      Navigation Path
+                    </div>
                     <div className="flex flex-col gap-0.5">
                       {(() => {
                         const SHOW_FIRST = 2; // Show first N items
@@ -944,18 +969,23 @@ export default function NestedSideBar() {
                               disabled={isCurrentLevel}
                               className={cn(
                                 'flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors',
-                                !isCurrentLevel && 'hover:bg-gray-100 cursor-pointer',
-                                isCurrentLevel && 'bg-gray-200 cursor-default'
+                                !isCurrentLevel && 'hover:bg-[rgb(var(--ec-content-hover))] cursor-pointer',
+                                isCurrentLevel && 'bg-[rgb(var(--ec-content-hover))] cursor-default'
                               )}
                               style={{ paddingLeft: `${displayIndex * 12 + 8}px` }}
                             >
                               {index === 0 ? (
-                                <Home className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                <Home className="w-3.5 h-3.5 text-[rgb(var(--ec-icon-color))] flex-shrink-0" />
                               ) : (
-                                <ChevronRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                                <ChevronRight className="w-3.5 h-3.5 text-[rgb(var(--ec-content-text-muted))] flex-shrink-0" />
                               )}
                               <span
-                                className={cn('text-sm truncate', isCurrentLevel ? 'font-medium text-black' : 'text-gray-600')}
+                                className={cn(
+                                  'text-sm truncate',
+                                  isCurrentLevel
+                                    ? 'font-medium text-[rgb(var(--ec-content-text))]'
+                                    : 'text-[rgb(var(--ec-content-text-secondary))]'
+                                )}
                               >
                                 {level.title}
                               </span>
@@ -985,16 +1015,16 @@ export default function NestedSideBar() {
                                   e.stopPropagation();
                                   setShowFullPath(true);
                                 }}
-                                className="flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors hover:bg-gray-100 cursor-pointer"
+                                className="flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))] cursor-pointer"
                                 style={{ paddingLeft: `${SHOW_FIRST * 12 + 8}px` }}
                               >
-                                <span className="flex items-center justify-center w-3.5 h-3.5 text-gray-400">
+                                <span className="flex items-center justify-center w-3.5 h-3.5 text-[rgb(var(--ec-icon-color))]">
                                   <span className="text-xs">•••</span>
                                 </span>
-                                <span className="text-sm text-gray-500">
+                                <span className="text-sm text-[rgb(var(--ec-content-text-muted))]">
                                   {hiddenCount} more level{hiddenCount > 1 ? 's' : ''}
                                 </span>
-                                <ChevronDown className="w-3.5 h-3.5 text-gray-400 ml-auto" />
+                                <ChevronDown className="w-3.5 h-3.5 text-[rgb(var(--ec-icon-color))] ml-auto" />
                               </button>
 
                               {/* Last N items */}
@@ -1022,7 +1052,7 @@ export default function NestedSideBar() {
             className={cn('flex-1 overflow-y-auto overflow-x-hidden p-3', getAnimationClass())}
             style={{
               scrollbarWidth: 'thin',
-              scrollbarColor: '#e5e7eb transparent',
+              scrollbarColor: 'rgb(var(--ec-content-border)) transparent',
             }}
           >
             {/* Favorites Section */}
@@ -1030,7 +1060,7 @@ export default function NestedSideBar() {
               <div className="mb-6">
                 <div className="flex items-center px-2 py-1.5">
                   <Star className="w-3.5 h-3.5 mr-2 text-amber-400 fill-current" />
-                  <span className="text-sm text-black font-semibold">Favorites</span>
+                  <span className="text-sm text-[rgb(var(--ec-content-text))] font-semibold">Favorites</span>
                 </div>
                 <div className="flex flex-col gap-0.5 border-l ml-3.5 border-amber-200">
                   {favorites.map((fav, index) => {
@@ -1042,15 +1072,18 @@ export default function NestedSideBar() {
                         key={`fav-${index}`}
                         onClick={() => navigateToFavorite(fav)}
                         className={cn(
-                          'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-amber-50 active:bg-amber-100',
-                          isActive && 'bg-purple-50 hover:bg-purple-50 border-l-2 border-purple-600 rounded-l-none'
+                          'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-amber-500/10 active:bg-amber-500/20',
+                          isActive &&
+                            'bg-[rgb(var(--ec-content-active))] hover:bg-[rgb(var(--ec-content-active))] border-l-2 border-[rgb(var(--ec-accent))] rounded-l-none'
                         )}
                       >
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
                           <span
                             className={cn(
                               'text-[14px] truncate',
-                              isActive ? 'text-black font-medium' : 'text-gray-600 group-hover:text-gray-900'
+                              isActive
+                                ? 'text-[rgb(var(--ec-content-text))] font-medium'
+                                : 'text-[rgb(var(--ec-content-text-secondary))] group-hover:text-[rgb(var(--ec-content-text))]'
                             )}
                           >
                             {fav.title}
@@ -1077,7 +1110,7 @@ export default function NestedSideBar() {
                             <Star className="w-3.5 h-3.5 fill-current" />
                           </div>
                           {node?.pages && node.pages.length > 0 && (
-                            <span className="flex items-center justify-center w-5 h-5 text-gray-400 group-hover:text-black">
+                            <span className="flex items-center justify-center w-5 h-5 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-content-text))]">
                               <ChevronRight className="w-4 h-4" />
                             </span>
                           )}
@@ -1092,11 +1125,11 @@ export default function NestedSideBar() {
             {/* Empty State */}
             {currentLevel.entries.length === 0 && favorites.length === 0 && (
               <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-                <div className="mb-4 p-3 rounded-full bg-gray-100">
-                  <FileQuestion className="w-8 h-8 text-gray-400" />
+                <div className="mb-4 p-3 rounded-full bg-[rgb(var(--ec-group-icon-bg))]">
+                  <FileQuestion className="w-8 h-8 text-[rgb(var(--ec-icon-color))]" />
                 </div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-2">Your catalog is empty</h3>
-                <p className="text-xs text-gray-500 leading-relaxed max-w-[240px]">
+                <h3 className="text-sm font-semibold text-[rgb(var(--ec-content-text))] mb-2">Your catalog is empty</h3>
+                <p className="text-xs text-[rgb(var(--ec-content-text-muted))] leading-relaxed max-w-[240px]">
                   Navigation will appear here when you add resources to your EventCatalog.
                 </p>
               </div>
