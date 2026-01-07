@@ -1,5 +1,55 @@
 # @eventcatalog/core
 
+## 3.0.0
+
+### Major Changes
+
+- 1d1111d: feat(core): eventcatalog-v3 release
+- bf6fe18: chore(core): release of v3
+
+### Patch Changes
+
+- 786db2d: chore(core): added icons to spec files in sidebar
+- f49aade: feat(core): updated architecture overview pages
+- 80399f5: chore(core): updated ubi lang styles
+- 6c33b1f: feat(core): visualizer now has presentation mode
+- d1e0979: feat(core): updated chat features
+- c5592f1: fix(core): fixed issue embedding pages on build
+- 39fbd2f: feat(core): added support for titles on admonitions
+- 5525414: chore(core): removed md to mdx checks
+- 8db71c9: fix(core): fixed issue embedding pages on build
+- 507d14d: fix(core): fixed deployment of example catalogs on releases
+- 341279e: fix(core): fixed issue embedding pages on build
+- 713c535: chore(core): updated logger for the ecstudio watcher
+- de19451: feat(core): simplified eventcatalog chat
+- c43115d: feat(core): added channel support in nav and search
+- 8ed1960: chore(core): removed unused icons on domain grid
+- 17c1abc: chore(core): updated tables styles
+- 0bc73d3: chore(core): auth is now more explict opt in
+- f7ef380: feat(fix): fixed search throughout the application
+- 35f760b: chore(core): updated styles for v3
+- 1a0bc7d: chore(core): removed some redundant files
+- 9ec4525: chore(core): refactored features into astro custom integrations
+- 2a32d7c: chore(core): added empty state to nested sidebar
+- fcd3e9c: chore(core): removed some redundant files
+- ddc8af5: fix(core): fixed issues with nested sidebar state
+- dfce0b7: chore(core): llms-txt is now enabled by default
+- 4a17954: chore(core): updated sidebar styles
+- 1cc63fa: chore(core): added v3 beta message update
+- 7b1311b: chore(core): updated packages
+- 8ca5436: chore(core): fixing circular dep in JS
+- 57d1496: chore(core): auth is now more explict opt in
+- b8730a9: fix(core): mdx pages are added to teams and users
+- 5a7f45b: chore(core): updated the schema explorer UI
+- 08f0c81: chore(core): updated cli logger
+- dac4dc5: feat(core): updated homepage styles
+- aff2f92: fix(core): removed duplicated edge labels
+- cd713b8: feat(core): updated default homepage
+- 5b4095e: fix(core): fixed accessibility issues
+- c0372e5: feat(core): embedding visualizer can be embedded with animations
+- 525c809: chore(core): updated react-syntax-highlighter
+- c270a98: fix(core): problems with asyncapi loading in the DOM
+
 ## 3.0.0-beta.28
 
 ### Patch Changes
