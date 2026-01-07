@@ -13,7 +13,9 @@ const ChannelParameters = (data: CollectionEntry<'channels'>['data']) => {
           {data.address && (
             <div>
               <span className="font-semibold">Address:</span>{' '}
-              <code className="bg-[rgb(var(--ec-content-hover))] p-1 rounded text-[rgb(var(--ec-page-text))]">{data.address}</code>
+              <code className="bg-[rgb(var(--ec-content-hover))] p-1 rounded text-[rgb(var(--ec-page-text))]">
+                {data.address}
+              </code>
             </div>
           )}
           {data.protocols && data.protocols.length > 0 && (
@@ -52,7 +54,9 @@ const ChannelParameters = (data: CollectionEntry<'channels'>['data']) => {
             <tbody>
               {Object.entries(data.parameters).map(([param, details]) => (
                 <tr className="hover:bg-[rgb(var(--ec-content-hover))]" key={param}>
-                  <td className="py-2 px-4 border-b border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text))]">{param}</td>
+                  <td className="py-2 px-4 border-b border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text))]">
+                    {param}
+                  </td>
                   <td className="py-2 px-4 border-b border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))]">
                     {details.description}
                   </td>

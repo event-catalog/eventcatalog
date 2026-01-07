@@ -415,7 +415,9 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                 >
                   <BoltIcon className={`h-3.5 w-3.5 ${selectedTypes.has('events') ? 'text-orange-500' : 'text-orange-400'}`} />
                   <span>Events</span>
-                  <span className={`tabular-nums ${selectedTypes.has('events') ? 'text-orange-500' : 'text-[rgb(var(--ec-icon-color))]'}`}>
+                  <span
+                    className={`tabular-nums ${selectedTypes.has('events') ? 'text-orange-500' : 'text-[rgb(var(--ec-icon-color))]'}`}
+                  >
                     {stats.events}
                   </span>
                 </button>
@@ -434,7 +436,9 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                     className={`h-3.5 w-3.5 ${selectedTypes.has('commands') ? 'text-blue-500' : 'text-blue-400'}`}
                   />
                   <span>Commands</span>
-                  <span className={`tabular-nums ${selectedTypes.has('commands') ? 'text-blue-500' : 'text-[rgb(var(--ec-icon-color))]'}`}>
+                  <span
+                    className={`tabular-nums ${selectedTypes.has('commands') ? 'text-blue-500' : 'text-[rgb(var(--ec-icon-color))]'}`}
+                  >
                     {stats.commands}
                   </span>
                 </button>
@@ -453,7 +457,9 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                     className={`h-3.5 w-3.5 ${selectedTypes.has('queries') ? 'text-green-500' : 'text-green-400'}`}
                   />
                   <span>Queries</span>
-                  <span className={`tabular-nums ${selectedTypes.has('queries') ? 'text-green-500' : 'text-[rgb(var(--ec-icon-color))]'}`}>
+                  <span
+                    className={`tabular-nums ${selectedTypes.has('queries') ? 'text-green-500' : 'text-[rgb(var(--ec-icon-color))]'}`}
+                  >
                     {stats.queries}
                   </span>
                 </button>
@@ -472,7 +478,9 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                     className={`h-3.5 w-3.5 ${selectedTypes.has('specifications') ? 'text-[rgb(var(--ec-accent))]' : 'text-[rgb(var(--ec-accent)/0.7)]'}`}
                   />
                   <span>Specs</span>
-                  <span className={`tabular-nums ${selectedTypes.has('specifications') ? 'text-[rgb(var(--ec-accent))]' : 'text-[rgb(var(--ec-icon-color))]'}`}>
+                  <span
+                    className={`tabular-nums ${selectedTypes.has('specifications') ? 'text-[rgb(var(--ec-accent))]' : 'text-[rgb(var(--ec-icon-color))]'}`}
+                  >
                     {stats.specifications}
                   </span>
                 </button>

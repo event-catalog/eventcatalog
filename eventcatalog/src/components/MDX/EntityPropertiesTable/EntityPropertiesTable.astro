@@ -67,7 +67,8 @@ const isComponentEnabled = collection === 'entities';
               <td class="py-4 px-6 text-[rgb(var(--ec-page-text-muted))]">
                 {prop.type === 'array' && prop.items ? (
                   <span>
-                    array&lt;<code class="text-sm bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5">{prop.items.type}</code>&gt;
+                    array&lt;<code class="text-sm bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5">{prop.items.type}</code>
+                    &gt;
                   </span>
                 ) : (
                   <code class="text-sm bg-[rgb(var(--ec-content-hover))] rounded px-1 py-0.5">{prop.type}</code>
@@ -87,12 +88,18 @@ const isComponentEnabled = collection === 'entities';
               </td>
               <td class="py-4 px-6">
                 {prop.required ? (
-                  <span class="bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent-text))] text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">Required</span>
+                  <span class="bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent-text))] text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                    Required
+                  </span>
                 ) : (
-                  <span class="bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))] text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">Optional</span>
+                  <span class="bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))] text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">
+                    Optional
+                  </span>
                 )}
               </td>
-              <td class="py-4 px-6 text-[rgb(var(--ec-page-text-muted))]">{prop.description || <span class="text-[rgb(var(--ec-icon-color))] italic">No description provided.</span>}</td>
+              <td class="py-4 px-6 text-[rgb(var(--ec-page-text-muted))]">
+                {prop.description || <span class="text-[rgb(var(--ec-icon-color))] italic">No description provided.</span>}
+              </td>
             </tr>
           ))}
         </tbody>

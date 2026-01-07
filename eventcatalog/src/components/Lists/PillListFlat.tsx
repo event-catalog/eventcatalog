@@ -66,10 +66,7 @@ const PillList = ({ title, pills, emptyMessage, color = 'gray', limit = 10, ...p
     const PillIcon = item.icon ? (icons as any)[item.icon] : null;
 
     return (
-      <li
-        className="pill-item has-tooltip rounded-md text-[rgb(var(--ec-page-text-muted))] group px-1 w-full"
-        key={item.href}
-      >
+      <li className="pill-item has-tooltip rounded-md text-[rgb(var(--ec-page-text-muted))] group px-1 w-full" key={item.href}>
         <a className={`leading-3`} href={href} target={item.target ?? '_self'}>
           <span className="space-x-2 flex items-center">
             {Icon && !PillIcon && <Icon className="h-4 w-4 shrink-0" />}
@@ -94,7 +91,10 @@ const PillList = ({ title, pills, emptyMessage, color = 'gray', limit = 10, ...p
       <div className="mx-auto w-full max-w-lg divide-y divide-[rgb(var(--ec-page-border))] rounded-xl">
         <Disclosure as="div" className="" defaultOpen={pills.length <= limit}>
           <DisclosureButton className="group flex w-full items-center justify-start space-x-4">
-            <span className="text-sm text-[rgb(var(--ec-page-text))] font-semibold group-data-[hover]:opacity-80 capitalize"> {title} </span>
+            <span className="text-sm text-[rgb(var(--ec-page-text))] font-semibold group-data-[hover]:opacity-80 capitalize">
+              {' '}
+              {title}{' '}
+            </span>
             <ChevronDownIcon className="size-5 ml-2 fill-[rgb(var(--ec-icon-color))] group-data-[hover]:opacity-80 group-data-[open]:rotate-180" />
           </DisclosureButton>
           <DisclosurePanel className="mt-2 text-sm/5 text-[rgb(var(--ec-page-text-muted))]">

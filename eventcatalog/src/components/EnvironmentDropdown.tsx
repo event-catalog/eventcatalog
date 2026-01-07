@@ -104,20 +104,28 @@ export const EnvironmentDropdown: React.FC<EnvironmentDropdownProps> = ({ enviro
                 window.location.href = targetUrl.toString();
               }}
               className={`block px-4 py-3 text-sm transition-colors border-b border-[rgb(var(--ec-dropdown-border)/0.3)] last:border-b-0 ${
-                isCurrentEnv ? 'bg-[rgb(var(--ec-accent)/0.1)] text-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent)/0.2)]' : 'text-[rgb(var(--ec-dropdown-text))] hover:bg-[rgb(var(--ec-dropdown-hover))]'
+                isCurrentEnv
+                  ? 'bg-[rgb(var(--ec-accent)/0.1)] text-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent)/0.2)]'
+                  : 'text-[rgb(var(--ec-dropdown-text))] hover:bg-[rgb(var(--ec-dropdown-hover))]'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div>
                   <div className={`font-medium ${isCurrentEnv ? 'text-[rgb(var(--ec-accent))]' : ''}`}>{env.name}</div>
                   {env.description && (
-                    <div className={`text-xs font-light mt-1 ${isCurrentEnv ? 'text-[rgb(var(--ec-accent)/0.8)]' : 'text-[rgb(var(--ec-icon-color))]'}`}>
+                    <div
+                      className={`text-xs font-light mt-1 ${isCurrentEnv ? 'text-[rgb(var(--ec-accent)/0.8)]' : 'text-[rgb(var(--ec-icon-color))]'}`}
+                    >
                       {env.description}
                     </div>
                   )}
                 </div>
                 {isCurrentEnv && (
-                  <svg className="w-4 h-4 text-[rgb(var(--ec-accent))] flex-shrink-0 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                  <svg
+                    className="w-4 h-4 text-[rgb(var(--ec-accent))] flex-shrink-0 ml-2"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"

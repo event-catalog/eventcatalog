@@ -77,7 +77,11 @@ const pageTitle = `Team | ${props.data.name}`;
                 </span>
                 <h2 class="text-3xl font-bold text-[rgb(var(--ec-page-text))]">{props.data.name}</h2>
               </div>
-              {props.data.summary && <p class="text-base text-[rgb(var(--ec-page-text-muted))] max-w-2xl">{props.data.summary}</p>}
+              {
+                props.data.summary && (
+                  <p class="text-base text-[rgb(var(--ec-page-text-muted))] max-w-2xl">{props.data.summary}</p>
+                )
+              }
               <div class="flex flex-wrap gap-3 pt-1">
                 {
                   props.data.email && (

@@ -59,9 +59,11 @@ const NestedItem: React.FC<NestedItemProps> = ({
             <span className="truncate">{item.label}</span>
             {item.badge && item?.badge?.text && (
               <span
-                className={item.badge.color
-                  ? `text-${item.badge.color}-600 dark:text-${item.badge.color}-400 ml-2 text-[10px] font-medium bg-${item.badge.color}-50 dark:bg-${item.badge.color}-500/20 px-2 py-0.5 rounded uppercase`
-                  : `text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase`}
+                className={
+                  item.badge.color
+                    ? `text-${item.badge.color}-600 dark:text-${item.badge.color}-400 ml-2 text-[10px] font-medium bg-${item.badge.color}-50 dark:bg-${item.badge.color}-500/20 px-2 py-0.5 rounded uppercase`
+                    : `text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase`
+                }
               >
                 {item.badge.text}
               </span>
@@ -133,9 +135,11 @@ const NestedItem: React.FC<NestedItemProps> = ({
       </span>
       {item.badge && item?.badge?.text && (
         <span
-          className={item.badge.color
-            ? `text-${item.badge.color}-600 dark:text-${item.badge.color}-400 ml-2 text-[10px] font-medium bg-${item.badge.color}-50 dark:bg-${item.badge.color}-500/20 px-2 py-0.5 rounded uppercase`
-            : `text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase`}
+          className={
+            item.badge.color
+              ? `text-${item.badge.color}-600 dark:text-${item.badge.color}-400 ml-2 text-[10px] font-medium bg-${item.badge.color}-50 dark:bg-${item.badge.color}-500/20 px-2 py-0.5 rounded uppercase`
+              : `text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase`
+          }
         >
           {item.badge.text}
         </span>

@@ -101,7 +101,9 @@ export default function SchemaDetailsHeader({
                   </span>
                 </div>
                 {/* Summary */}
-                {message.data.summary && <p className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1.5 line-clamp-1">{message.data.summary}</p>}
+                {message.data.summary && (
+                  <p className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1.5 line-clamp-1">{message.data.summary}</p>
+                )}
               </div>
             </div>
           </div>
@@ -124,7 +126,9 @@ export default function SchemaDetailsHeader({
           <button
             onClick={() => onViewModeChange('code')}
             className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-all ${
-              schemaViewMode === 'code' ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-sm' : 'text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
+              schemaViewMode === 'code'
+                ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-sm'
+                : 'text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
             }`}
             title="View raw code"
           >
@@ -135,7 +139,9 @@ export default function SchemaDetailsHeader({
             <button
               onClick={() => onViewModeChange('schema')}
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-all ${
-                schemaViewMode === 'schema' ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-sm' : 'text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
+                schemaViewMode === 'schema'
+                  ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-sm'
+                  : 'text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
               }`}
               title="View as schema"
             >
@@ -147,7 +153,9 @@ export default function SchemaDetailsHeader({
             <button
               onClick={() => onViewModeChange('diff')}
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-all ${
-                schemaViewMode === 'diff' ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-sm' : 'text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
+                schemaViewMode === 'diff'
+                  ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-sm'
+                  : 'text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
               }`}
               title="View version diffs"
             >
@@ -155,7 +163,9 @@ export default function SchemaDetailsHeader({
               History
               <span
                 className={`ml-0.5 px-1 py-0.5 rounded text-[10px] tabular-nums ${
-                  schemaViewMode === 'diff' ? 'bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))]' : 'bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-icon-color))]'
+                  schemaViewMode === 'diff'
+                    ? 'bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))]'
+                    : 'bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-icon-color))]'
                 }`}
               >
                 {diffCount}
@@ -165,7 +175,9 @@ export default function SchemaDetailsHeader({
           <button
             onClick={() => onViewModeChange('api')}
             className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded transition-all ${
-              schemaViewMode === 'api' ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-sm' : 'text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
+              schemaViewMode === 'api'
+                ? 'bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] text-[rgb(var(--ec-page-text))] shadow-sm'
+                : 'text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]'
             }`}
             title="API access"
           >

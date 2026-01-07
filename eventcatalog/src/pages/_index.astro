@@ -91,9 +91,8 @@ const quickActions = [
     description: 'Browse all documented resources',
     icon: BookOpenText,
     href: getDefaultUrl('docs', 'domains'),
-    iconBg: 'bg-blue-50',
-    iconColor: 'text-blue-600',
-    hoverBorder: 'hover:border-blue-300',
+    iconBg: 'bg-blue-50 dark:bg-blue-500/10',
+    iconColor: 'text-blue-600 dark:text-blue-400',
   },
   {
     title: 'Visualizer',
@@ -102,46 +101,39 @@ const quickActions = [
     href: getDefaultUrl('visualiser', 'domains'),
     iconBg: 'bg-[rgb(var(--ec-accent-subtle))]',
     iconColor: 'text-[rgb(var(--ec-accent))]',
-    hoverBorder: 'hover:border-[rgb(var(--ec-accent))]',
   },
   {
     title: 'Discover',
     description: 'Search and filter all resources',
     icon: TableProperties,
     href: buildUrl('/discover/events'),
-    iconBg: 'bg-teal-50',
-    iconColor: 'text-teal-600',
-    hoverBorder: 'hover:border-teal-300',
+    iconBg: 'bg-teal-50 dark:bg-teal-500/10',
+    iconColor: 'text-teal-600 dark:text-teal-400',
   },
   {
     title: 'Schema Explorer',
     description: 'Browse and compare schemas',
     icon: FileJson,
     href: buildUrl('/schemas/explorer'),
-    iconBg: 'bg-amber-50',
-    iconColor: 'text-amber-600',
-    hoverBorder: 'hover:border-amber-300',
-  },
-];
-
-const learnLinks = [
-  {
-    title: 'Getting Started',
-    description: 'Set up your first catalog',
-    href: 'https://www.eventcatalog.dev/docs/development/getting-started/introduction',
-    icon: BookOpenText,
+    iconBg: 'bg-amber-50 dark:bg-amber-500/10',
+    iconColor: 'text-amber-600 dark:text-amber-400',
   },
   {
-    title: 'Generators & Plugins',
-    description: 'AsyncAPI, OpenAPI integrations',
-    href: 'https://www.eventcatalog.dev/integrations',
-    icon: Zap,
+    title: 'Team Directory',
+    description: 'Ownership & contacts',
+    icon: BookUser,
+    href: buildUrl('/directory/users'),
+    iconBg: 'bg-orange-50 dark:bg-orange-500/10',
+    iconColor: 'text-orange-600 dark:text-orange-400',
   },
   {
-    title: 'SDK & CLI',
-    description: 'Programmatic catalog access',
+    title: 'API & SDK',
+    description: 'Programmatic access',
+    icon: Code2,
     href: 'https://www.eventcatalog.dev/docs/sdk',
-    icon: Terminal,
+    iconBg: 'bg-indigo-50 dark:bg-indigo-500/10',
+    iconColor: 'text-indigo-600 dark:text-indigo-400',
+    external: true,
   },
 ];
 ---
@@ -191,7 +183,10 @@ const learnLinks = [
           <h2 class="text-sm font-semibold uppercase tracking-wider text-[rgb(var(--ec-page-text-muted))]">Your Catalog</h2>
           {
             hasContent && (
-              <a href={buildUrl('/discover/events')} class="text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] flex items-center gap-1">
+              <a
+                href={buildUrl('/discover/events')}
+                class="text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] flex items-center gap-1"
+              >
                 View all
                 <ArrowRightIcon className="w-3 h-3" />
               </a>
@@ -204,7 +199,7 @@ const learnLinks = [
               tile.count > 0 ? (
                 <a
                   href={tile.href}
-                  class={`group relative bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] p-5 rounded-xl border border-[rgb(var(--ec-page-border))] hover:border-[rgb(var(--ec-accent))] hover:shadow-sm transition-all`}
+                  class={`group relative bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] p-5 rounded-xl border border-[rgb(var(--ec-page-border))] hover:border-t-[rgb(var(--ec-accent))] hover:border-r-[rgb(var(--ec-accent))] hover:border-b-[rgb(var(--ec-accent))] hover:shadow-sm transition-all`}
                 >
                   <div class={`absolute left-0 top-0 bottom-0 w-1 ${tile.bgColor} rounded-l-xl`} />
                   <div class="flex items-start justify-between mb-3">
@@ -240,143 +235,104 @@ const learnLinks = [
         </div>
       </section>
 
-      <!-- Two Column Layout -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-        <!-- Main Column -->
-        <div class="lg:col-span-2 space-y-8">
-          <!-- Quick Actions -->
-          <section>
-            <h2 class="text-lg font-semibold text-[rgb(var(--ec-page-text))] mb-4">Explore</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {
-                quickActions.map((action) => (
-                  <a
-                    href={action.href}
-                    class={`group flex items-start gap-4 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] p-5 rounded-xl border border-[rgb(var(--ec-page-border))] hover:border-[rgb(var(--ec-accent))] hover:shadow-sm transition-all`}
-                  >
-                    <div class={`${action.iconBg} dark:bg-opacity-20 p-3 rounded-xl`}>
-                      <action.icon className={`w-6 h-6 ${action.iconColor}`} />
-                    </div>
-                    <div class="flex-1 min-w-0 pt-0.5">
-                      <div class="font-semibold text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))] mb-1">{action.title}</div>
-                      <div class="text-sm text-[rgb(var(--ec-page-text-muted))] leading-relaxed">{action.description}</div>
-                    </div>
-                  </a>
-                ))
-              }
-            </div>
-          </section>
+      <!-- Explore Section - Full Width -->
+      <section class="mb-10">
+        <h2 class="text-lg font-semibold text-[rgb(var(--ec-page-text))] mb-4">Explore</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {
+            quickActions.map((action: any) => (
+              <a
+                href={action.href}
+                target={action.external ? '_blank' : undefined}
+                class="group flex items-start gap-4 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] p-5 rounded-xl border border-[rgb(var(--ec-page-border))] hover:border-[rgb(var(--ec-accent))] hover:shadow-sm transition-all"
+              >
+                <div class={`${action.iconBg} p-3 rounded-xl flex-shrink-0`}>
+                  <action.icon className={`w-5 h-5 ${action.iconColor}`} />
+                </div>
+                <div class="flex-1 min-w-0 pt-0.5">
+                  <div class="font-semibold text-[rgb(var(--ec-page-text))] mb-1 flex items-center gap-1.5">
+                    {action.title}
+                    {action.external && (
+                      <svg
+                        class="w-3.5 h-3.5 text-[rgb(var(--ec-icon-color))]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  <div class="text-sm text-[rgb(var(--ec-page-text-muted))] leading-relaxed">{action.description}</div>
+                </div>
+              </a>
+            ))
+          }
+        </div>
+      </section>
 
-          <!-- Additional Links -->
-          <section class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <!-- Resources & Community - Compact Footer Style -->
+      <section class="border-t border-[rgb(var(--ec-page-border))] pt-8 pb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
             <a
-              href={buildUrl('/directory/users')}
-              class="group flex items-center gap-4 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] p-4 rounded-xl border border-[rgb(var(--ec-page-border))] hover:border-orange-400 dark:hover:border-orange-500 hover:shadow-sm transition-all"
-            >
-              <div class="bg-orange-50 dark:bg-orange-500/10 p-2.5 rounded-lg">
-                <BookUser className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="font-medium text-[rgb(var(--ec-page-text))] group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">Team Directory</div>
-                <div class="text-sm text-[rgb(var(--ec-page-text-muted))] truncate">Ownership & contacts</div>
-              </div>
-            </a>
-            <a
-              href="https://www.eventcatalog.dev/docs/sdk"
+              href="https://www.eventcatalog.dev/docs/development/getting-started/introduction"
               target="_blank"
-              class="group flex items-center gap-4 bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] p-4 rounded-xl border border-[rgb(var(--ec-page-border))] hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-sm transition-all"
+              class="text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
             >
-              <div class="bg-indigo-50 dark:bg-indigo-500/10 p-2.5 rounded-lg">
-                <Code2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="font-medium text-[rgb(var(--ec-page-text))] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">API & SDK</div>
-                <div class="text-sm text-[rgb(var(--ec-page-text-muted))] truncate">Programmatic access</div>
-              </div>
+              Getting Started
             </a>
-          </section>
+            <a
+              href="https://www.eventcatalog.dev/integrations"
+              target="_blank"
+              class="text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
+            >
+              Integrations
+            </a>
+            <a
+              href="https://www.eventcatalog.dev/docs"
+              target="_blank"
+              class="text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
+            >
+              Documentation
+            </a>
+          </div>
+          <div class="flex items-center gap-4">
+            <a
+              href="https://discord.gg/3rjaZMmrAm"
+              target="_blank"
+              class="flex items-center gap-2 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
+              title="Join Discord"
+            >
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"
+                ></path>
+              </svg>
+              <span class="hidden sm:inline">Discord</span>
+            </a>
+            <a
+              href="https://github.com/event-catalog/eventcatalog"
+              target="_blank"
+              class="flex items-center gap-2 text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
+              title="GitHub"
+            >
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  fill-rule="evenodd"
+                  d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                  clip-rule="evenodd"></path>
+              </svg>
+              <span class="hidden sm:inline">GitHub</span>
+            </a>
+          </div>
         </div>
-
-        <!-- Sidebar -->
-        <div class="space-y-6">
-          <!-- Learn More -->
-          <section class="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] rounded-xl border border-[rgb(var(--ec-page-border))] p-5">
-            <h3 class="font-semibold text-[rgb(var(--ec-page-text))] mb-4">Learn More</h3>
-            <div class="space-y-3">
-              {
-                learnLinks.map((link) => (
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    class="group flex items-start gap-3 text-sm hover:bg-[rgb(var(--ec-content-hover))] -mx-2 px-2 py-2 rounded-lg transition-colors"
-                  >
-                    <link.icon className="w-4 h-4 text-[rgb(var(--ec-icon-color))] mt-0.5 flex-shrink-0" />
-                    <div>
-                      <div class="font-medium text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">{link.title}</div>
-                      <div class="text-[rgb(var(--ec-page-text-muted))]">{link.description}</div>
-                    </div>
-                  </a>
-                ))
-              }
-            </div>
-          </section>
-
-          <!-- Community -->
-          <section class="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] rounded-xl border border-[rgb(var(--ec-page-border))] p-5">
-            <h3 class="font-semibold text-[rgb(var(--ec-page-text))] mb-4">Community</h3>
-            <div class="space-y-3">
-              <a
-                href="https://discord.gg/3rjaZMmrAm"
-                target="_blank"
-                class="group flex items-center gap-3 p-3 -mx-1 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] transition-colors"
-              >
-                <div class="bg-indigo-100 dark:bg-indigo-500/20 p-2 rounded-lg">
-                  <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
-                    <path
-                      d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"
-                    ></path>
-                  </svg>
-                </div>
-                <div>
-                  <div class="text-sm font-medium text-[rgb(var(--ec-page-text))] group-hover:text-indigo-600 dark:group-hover:text-indigo-400">Join Discord</div>
-                  <div class="text-xs text-[rgb(var(--ec-page-text-muted))]">Chat with the community</div>
-                </div>
-              </a>
-              <a
-                href="https://github.com/event-catalog/eventcatalog"
-                target="_blank"
-                class="group flex items-center gap-3 p-3 -mx-1 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] transition-colors"
-              >
-                <div class="bg-[rgb(var(--ec-content-hover))] p-2 rounded-lg">
-                  <svg class="w-4 h-4 text-[rgb(var(--ec-page-text))]" fill="currentColor" viewBox="0 0 24 24">
-                    <path
-                      fill-rule="evenodd"
-                      d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-                      clip-rule="evenodd"></path>
-                  </svg>
-                </div>
-                <div>
-                  <div class="text-sm font-medium text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">GitHub</div>
-                  <div class="text-xs text-[rgb(var(--ec-page-text-muted))]">Star & contribute</div>
-                </div>
-              </a>
-              <a
-                href="https://www.eventcatalog.dev/docs"
-                target="_blank"
-                class="group flex items-center gap-3 p-3 -mx-1 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] transition-colors"
-              >
-                <div class="bg-blue-100 dark:bg-blue-500/20 p-2 rounded-lg">
-                  <DocumentTextIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div>
-                  <div class="text-sm font-medium text-[rgb(var(--ec-page-text))] group-hover:text-blue-600 dark:group-hover:text-blue-400">Documentation</div>
-                  <div class="text-xs text-[rgb(var(--ec-page-text-muted))]">Guides & references</div>
-                </div>
-              </a>
-            </div>
-          </section>
-        </div>
-      </div>
+      </section>
     </main>
   </div>
 </VerticalSideBarLayout>

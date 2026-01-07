@@ -77,7 +77,11 @@ const pageTitle = `User | ${props.data.name}`;
             <div class="flex flex-col justify-center space-y-2">
               <div>
                 <h2 class="text-3xl font-bold text-[rgb(var(--ec-page-text))]">{props.data.name}</h2>
-                {props.data.role && <span class="text-base font-medium text-[rgb(var(--ec-page-text-muted))]">{props.data.role}</span>}
+                {
+                  props.data.role && (
+                    <span class="text-base font-medium text-[rgb(var(--ec-page-text-muted))]">{props.data.role}</span>
+                  )
+                }
               </div>
               <div class="flex flex-wrap gap-3">
                 {

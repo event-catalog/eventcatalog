@@ -33,10 +33,7 @@ function startsWithProtocol(str: string) {
     <!-- Icon centered in card with grid background -->
     <div class="relative h-full flex items-center justify-center">
       <!-- Squared paper grid behind icon -->
-      <div
-        class="tile-grid absolute inset-0 opacity-15"
-      >
-      </div>
+      <div class="tile-grid absolute inset-0 opacity-15"></div>
 
       {IconComponent && <IconComponent className="tile-icon relative w-16 h-16 stroke-1" />}
     </div>
@@ -55,7 +52,9 @@ function startsWithProtocol(str: string) {
 
 <style>
   .tile-card:hover {
-    box-shadow: 0 10px 15px -3px rgb(var(--ec-accent) / 0.1), 0 4px 6px -4px rgb(var(--ec-accent) / 0.1);
+    box-shadow:
+      0 10px 15px -3px rgb(var(--ec-accent) / 0.1),
+      0 4px 6px -4px rgb(var(--ec-accent) / 0.1);
   }
 
   .tile-grid {

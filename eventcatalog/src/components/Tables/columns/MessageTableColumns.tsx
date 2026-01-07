@@ -117,7 +117,10 @@ export const columns = (tableConfiguration: TableConfiguration) => [
             </a>
           ))}
           {hiddenCount > 0 && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left"
+            >
               {isExpanded ? 'Show less' : `+${hiddenCount} more`}
             </button>
           )}
@@ -168,7 +171,10 @@ export const columns = (tableConfiguration: TableConfiguration) => [
             </a>
           ))}
           {hiddenCount > 0 && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left"
+            >
               {isExpanded ? 'Show less' : `+${hiddenCount} more`}
             </button>
           )}

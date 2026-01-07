@@ -56,7 +56,8 @@ const typeColors: any = {
   Team: 'text-teal-500 dark:text-teal-400 bg-teal-50 dark:bg-teal-500/10 ring-teal-200 dark:ring-teal-500/30',
   User: 'text-cyan-500 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-500/10 ring-cyan-200 dark:ring-cyan-500/30',
   Language: 'text-amber-500 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 ring-amber-200 dark:ring-amber-500/30',
-  OpenAPI: 'text-emerald-500 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 ring-emerald-200 dark:ring-emerald-500/30',
+  OpenAPI:
+    'text-emerald-500 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 ring-emerald-200 dark:ring-emerald-500/30',
   AsyncAPI: 'text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 ring-violet-200 dark:ring-violet-500/30',
   Design: 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
   Container: 'text-indigo-500 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 ring-indigo-200 dark:ring-indigo-500/30',
@@ -340,7 +341,9 @@ export default function SearchModal() {
                       onClick={() => setActiveFilter(tab.id)}
                       className={classNames(
                         'px-3 py-1 text-xs font-medium rounded-full transition-colors whitespace-nowrap',
-                        activeFilter === tab.id ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent-text))]' : 'bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-active))]'
+                        activeFilter === tab.id
+                          ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent-text))]'
+                          : 'bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-active))]'
                       )}
                     >
                       {tab.name}
@@ -367,7 +370,10 @@ export default function SearchModal() {
                             key={item.id}
                             value={item}
                             className={({ active }) =>
-                              classNames('flex cursor-default select-none rounded-xl p-3 group', active && 'bg-[rgb(var(--ec-content-active))]')
+                              classNames(
+                                'flex cursor-default select-none rounded-xl p-3 group',
+                                active && 'bg-[rgb(var(--ec-content-active))]'
+                              )
                             }
                           >
                             {({ active }) => (
@@ -381,17 +387,30 @@ export default function SearchModal() {
                                   <Icon className="h-6 w-6" aria-hidden="true" />
                                 </div>
                                 <div className="ml-4 flex-auto min-w-0">
-                                  <p className={classNames('text-sm font-medium', active ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text))]')}>
+                                  <p
+                                    className={classNames(
+                                      'text-sm font-medium',
+                                      active ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text))]'
+                                    )}
+                                  >
                                     {item.name}
                                   </p>
                                   <div className="flex items-center gap-2">
                                     <p
-                                      className={classNames('text-sm flex-shrink-0', active ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text-muted))]')}
+                                      className={classNames(
+                                        'text-sm flex-shrink-0',
+                                        active ? 'text-[rgb(var(--ec-page-text))]' : 'text-[rgb(var(--ec-page-text-muted))]'
+                                      )}
                                     >
                                       {item.type}
                                     </p>
                                     {item.rawNode.summary && (
-                                      <p className={classNames('text-sm truncate', active ? 'text-[rgb(var(--ec-page-text-muted))]' : 'text-[rgb(var(--ec-icon-color))]')}>
+                                      <p
+                                        className={classNames(
+                                          'text-sm truncate',
+                                          active ? 'text-[rgb(var(--ec-page-text-muted))]' : 'text-[rgb(var(--ec-icon-color))]'
+                                        )}
+                                      >
                                         • {item.rawNode.summary}
                                       </p>
                                     )}
@@ -413,7 +432,9 @@ export default function SearchModal() {
                                   >
                                     {isFavorite ? <StarIconSolid className="h-5 w-5" /> : <StarIcon className="h-5 w-5" />}
                                   </button>
-                                  {active && <ArrowRightIcon className="h-5 w-5 text-[rgb(var(--ec-icon-color))]" aria-hidden="true" />}
+                                  {active && (
+                                    <ArrowRightIcon className="h-5 w-5 text-[rgb(var(--ec-icon-color))]" aria-hidden="true" />
+                                  )}
                                 </div>
                               </>
                             )}
@@ -426,9 +447,15 @@ export default function SearchModal() {
 
                 {query !== '' && filteredItems.length === 0 && (
                   <div className="py-14 px-6 text-center text-sm sm:px-14">
-                    <ExclamationCircleIcon type="outline" name="exclamation-circle" className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))]" />
+                    <ExclamationCircleIcon
+                      type="outline"
+                      name="exclamation-circle"
+                      className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))]"
+                    />
                     <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">No results found</p>
-                    <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">No components found for this search term. Please try again.</p>
+                    <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">
+                      No components found for this search term. Please try again.
+                    </p>
                   </div>
                 )}
 
@@ -436,7 +463,9 @@ export default function SearchModal() {
                   <div className="py-14 px-6 text-center text-sm sm:px-14">
                     <MagnifyingGlassIcon className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))]" />
                     <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">Search for anything</p>
-                    <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">Search for domains, services, events, commands, queries and more.</p>
+                    <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">
+                      Search for domains, services, events, commands, queries and more.
+                    </p>
                   </div>
                 )}
 

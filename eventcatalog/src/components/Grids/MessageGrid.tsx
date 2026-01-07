@@ -59,12 +59,16 @@ const MessageCard = memo(({ message, compact = false }: { message: any; compact?
           >
             {message.data.name}
           </h3>
-          <span className={`text-[10px] text-${color}-600 dark:text-${color}-400 font-medium bg-${color}-50 dark:bg-${color}-500/20 px-1.5 py-0.5 rounded flex-shrink-0`}>
+          <span
+            className={`text-[10px] text-${color}-600 dark:text-${color}-400 font-medium bg-${color}-50 dark:bg-${color}-500/20 px-1.5 py-0.5 rounded flex-shrink-0`}
+          >
             v{message.data.version}
           </span>
         </div>
         {message.data.summary && (
-          <p className={`text-[rgb(var(--ec-page-text-muted))] line-clamp-2 ${compact ? 'text-xs mt-1' : 'text-sm mt-2'}`}>{message.data.summary}</p>
+          <p className={`text-[rgb(var(--ec-page-text-muted))] line-clamp-2 ${compact ? 'text-xs mt-1' : 'text-sm mt-2'}`}>
+            {message.data.summary}
+          </p>
         )}
       </div>
     </a>
@@ -79,19 +83,27 @@ const ContainerCard = memo(({ container, type }: { container: any; type: 'reads'
     <a
       href={buildUrl(`/docs/containers/${container.data.id}/${container.data.version}`)}
       className={`group block bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border rounded-lg shadow-sm hover:shadow-md transition-all ${
-        type === 'reads' ? 'border-amber-200 dark:border-amber-500/30 hover:border-amber-300 dark:hover:border-amber-500/50' : 'border-violet-200 dark:border-violet-500/30 hover:border-violet-300 dark:hover:border-violet-500/50'
+        type === 'reads'
+          ? 'border-amber-200 dark:border-amber-500/30 hover:border-amber-300 dark:hover:border-amber-500/50'
+          : 'border-violet-200 dark:border-violet-500/30 hover:border-violet-300 dark:hover:border-violet-500/50'
       }`}
     >
       <div className="p-3">
         <div className="flex items-center gap-2">
-          <div className={`flex items-center justify-center w-7 h-7 bg-${colorClass}-100 dark:bg-${colorClass}-500/20 rounded-md`}>
+          <div
+            className={`flex items-center justify-center w-7 h-7 bg-${colorClass}-100 dark:bg-${colorClass}-500/20 rounded-md`}
+          >
             <CircleStackIcon className={`h-4 w-4 text-${colorClass}-600 dark:text-${colorClass}-400`} />
           </div>
-          <h3 className={`font-semibold text-[rgb(var(--ec-page-text))] text-sm group-hover:text-${colorClass}-600 dark:group-hover:text-${colorClass}-400 transition-colors truncate`}>
+          <h3
+            className={`font-semibold text-[rgb(var(--ec-page-text))] text-sm group-hover:text-${colorClass}-600 dark:group-hover:text-${colorClass}-400 transition-colors truncate`}
+          >
             {container.data.name}
           </h3>
         </div>
-        {container.data.summary && <p className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1.5 line-clamp-2">{container.data.summary}</p>}
+        {container.data.summary && (
+          <p className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1.5 line-clamp-2">{container.data.summary}</p>
+        )}
       </div>
     </a>
   );
@@ -109,7 +121,9 @@ const SpecificationCard = memo(
       >
         <img src={buildUrl(`/icons/${getSpecIcon(spec.type)}.svg`, true)} alt={`${spec.type} icon`} className="h-6 w-6" />
         <div className="flex-1 min-w-0">
-          <h3 className={`font-semibold text-[rgb(var(--ec-page-text))] text-sm group-hover:text-${color}-600 dark:group-hover:text-${color}-400 transition-colors truncate`}>
+          <h3
+            className={`font-semibold text-[rgb(var(--ec-page-text))] text-sm group-hover:text-${color}-600 dark:group-hover:text-${color}-400 transition-colors truncate`}
+          >
             {spec.name || spec.filename}
           </h3>
           <p className="text-xs text-[rgb(var(--ec-page-text-muted))]">{getSpecLabel(spec.type)}</p>
@@ -150,7 +164,9 @@ const CollapsibleMessageSection = memo(
               <Icon className={`h-4 w-4 text-${color}-600 dark:text-${color}-400`} />
             </div>
             <h2 className="text-base font-bold text-[rgb(var(--ec-page-text))]">{title}</h2>
-            <span className="text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-full font-medium">{messages.length}</span>
+            <span className="text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-full font-medium">
+              {messages.length}
+            </span>
           </div>
           <div className="text-[rgb(var(--ec-icon-color))]">
             {isCollapsed ? <ChevronDownIcon className="h-5 w-5" /> : <ChevronUpIcon className="h-5 w-5" />}
@@ -192,7 +208,9 @@ const CollapsibleContainerSection = memo(
               <CircleStackIcon className={`h-4 w-4 text-${color}-600 dark:text-${color}-400`} />
             </div>
             <h2 className="text-base font-bold text-[rgb(var(--ec-page-text))]">{title}</h2>
-            <span className="text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-full font-medium">{containers.length}</span>
+            <span className="text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-full font-medium">
+              {containers.length}
+            </span>
           </div>
           <div className="text-[rgb(var(--ec-icon-color))]">
             {isCollapsed ? <ChevronDownIcon className="h-5 w-5" /> : <ChevronUpIcon className="h-5 w-5" />}
@@ -225,7 +243,9 @@ export default function MessageGridV2({ service, embeded = false, specifications
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{service.data.name}</h2>
-            {service.data.summary && <p className="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{service.data.summary}</p>}
+            {service.data.summary && (
+              <p className="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{service.data.summary}</p>
+            )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <a

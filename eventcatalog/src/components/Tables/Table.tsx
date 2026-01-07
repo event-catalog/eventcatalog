@@ -327,7 +327,8 @@ export const Table = <T extends TCollectionTypes>({
               <ChevronLeft className="w-4 h-4" />
             </button>
             <span className="px-3 py-2 text-sm text-[rgb(var(--ec-page-text-muted))] border-l border-r border-[rgb(var(--ec-page-border))] min-w-[100px] text-center">
-              Page <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getState().pagination.pageIndex + 1}</span> of{' '}
+              Page{' '}
+              <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getState().pagination.pageIndex + 1}</span> of{' '}
               <span className="font-medium text-[rgb(var(--ec-page-text))]">{table.getPageCount() || 1}</span>
             </span>
             <button

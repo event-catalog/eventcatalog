@@ -127,10 +127,10 @@
   --ec-accent-gradient-from: 192 132 252; /* #c084fc (purple-400) */
   --ec-accent-gradient-to: 168 85 247; /* #a855f7 (purple-500) */
 
-  /* Buttons - dark elevated surface with light text */
-  --ec-button-bg: 48 54 61; /* #30363d - elevated dark */
-  --ec-button-bg-hover: 55 62 71; /* #373e47 - slightly lighter on hover */
-  --ec-button-text: 240 246 252; /* #f0f6fc - light text */
+  /* Buttons - accent color for better visibility */
+  --ec-button-bg: 147 51 234; /* #9333ea - purple-600 */
+  --ec-button-bg-hover: 168 85 247; /* #a855f7 - purple-500 */
+  --ec-button-text: 255 255 255; /* #ffffff - white text */
 
   /* Dropdowns & menus - elevated surface */
   --ec-dropdown-bg: 22 27 34; /* #161b22 - slightly elevated */

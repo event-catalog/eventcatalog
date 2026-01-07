@@ -250,7 +250,9 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
                 {details.type}
                 {details.type === 'array' && details.items?.type ? `[${details.items.type}]` : ''}
                 {details.format ? `<${details.format}>` : ''}
-                {details._refPath && <span className="text-blue-600 dark:text-blue-400 ml-1">→ {details._refName || details._refPath}</span>}
+                {details._refPath && (
+                  <span className="text-blue-600 dark:text-blue-400 ml-1">→ {details._refName || details._refPath}</span>
+                )}
                 {details._refNotFound && <span className="text-red-600 dark:text-red-400 ml-1">❌ ref not found</span>}
                 {details.const !== undefined && (
                   <span>
@@ -270,27 +272,42 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
           <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-0.5 space-y-0">
             {details.pattern && (
               <div>
-                Match pattern: <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">{details.pattern}</code>
+                Match pattern:{' '}
+                <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                  {details.pattern}
+                </code>
               </div>
             )}
             {details.minimum !== undefined && (
               <div>
-                Minimum: <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">{details.minimum}</code>
+                Minimum:{' '}
+                <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                  {details.minimum}
+                </code>
               </div>
             )}
             {details.maximum !== undefined && (
               <div>
-                Maximum: <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">{details.maximum}</code>
+                Maximum:{' '}
+                <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                  {details.maximum}
+                </code>
               </div>
             )}
             {details.minLength !== undefined && (
               <div>
-                Min length: <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">{details.minLength}</code>
+                Min length:{' '}
+                <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                  {details.minLength}
+                </code>
               </div>
             )}
             {details.maxLength !== undefined && (
               <div>
-                Max length: <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">{details.maxLength}</code>
+                Max length:{' '}
+                <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                  {details.maxLength}
+                </code>
               </div>
             )}
             {details.enum && (
@@ -299,7 +316,9 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
                 {details.enum.map((val: any, idx: number) => (
                   <span key={idx} className="text-xs">
                     {' '}
-                    <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">{val}</code>
+                    <code className="bg-[rgb(var(--ec-content-hover))] px-1 rounded text-[rgb(var(--ec-page-text))] font-thin py-0.5">
+                      {val}
+                    </code>
                   </span>
                 ))}
               </div>

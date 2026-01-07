@@ -273,9 +273,13 @@ const ServiceCard = memo(({ service }: { service: any }) => {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-semibold text-[rgb(var(--ec-page-text))]">{data.name || data.id}</span>
-              <span className="text-[11px] text-[rgb(var(--ec-page-text-muted))] font-medium bg-[rgb(var(--ec-content-hover))] px-1.5 py-0.5 rounded">v{data.version}</span>
+              <span className="text-[11px] text-[rgb(var(--ec-page-text-muted))] font-medium bg-[rgb(var(--ec-content-hover))] px-1.5 py-0.5 rounded">
+                v{data.version}
+              </span>
             </div>
-            {data.summary && <p className="text-xs text-[rgb(var(--ec-page-text-muted))] line-clamp-1 mt-0.5 max-w-md">{data.summary}</p>}
+            {data.summary && (
+              <p className="text-xs text-[rgb(var(--ec-page-text-muted))] line-clamp-1 mt-0.5 max-w-md">{data.summary}</p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -381,7 +385,9 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
               <div className="flex items-center gap-2 mb-3">
                 <BoxIcon className="h-4 w-4 text-[rgb(var(--ec-accent))]" />
                 <h4 className="text-sm font-semibold text-[rgb(var(--ec-page-text))]">Entities</h4>
-                <span className="text-xs text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-full font-medium">{entities.length}</span>
+                <span className="text-xs text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-full font-medium">
+                  {entities.length}
+                </span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {entities.map((entity: any) => {
@@ -398,7 +404,9 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
               <div className="flex items-center gap-2 mb-3">
                 <ServerIcon className="h-4 w-4 text-pink-600 dark:text-pink-400" />
                 <h4 className="text-sm font-semibold text-[rgb(var(--ec-page-text))]">Services</h4>
-                <span className="text-xs text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-full font-medium">{services.length}</span>
+                <span className="text-xs text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-full font-medium">
+                  {services.length}
+                </span>
               </div>
               <div className="space-y-3">
                 {services.map((service: any) => {
@@ -410,7 +418,9 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
           )}
 
           {entities.length === 0 && services.length === 0 && (
-            <p className="text-sm text-[rgb(var(--ec-icon-color))] italic text-center py-4">No entities or services in this subdomain</p>
+            <p className="text-sm text-[rgb(var(--ec-icon-color))] italic text-center py-4">
+              No entities or services in this subdomain
+            </p>
           )}
         </div>
       )}
@@ -487,7 +497,9 @@ export default function DomainGrid({ domain }: DomainGridProps) {
             <div className="flex items-center gap-2 mb-4">
               <BoxIcon className="h-5 w-5 text-[rgb(var(--ec-accent))]" />
               <h3 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">Entities</h3>
-              <span className="text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2.5 py-0.5 rounded-full font-medium">{entities.length}</span>
+              <span className="text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2.5 py-0.5 rounded-full font-medium">
+                {entities.length}
+              </span>
             </div>
             <div className="flex flex-wrap gap-2">
               {entities.map((entity: any) => {

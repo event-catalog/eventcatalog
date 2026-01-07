@@ -211,7 +211,9 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
                 <div className="fixed inset-0 z-20" onClick={() => setShowFilterDropdown(false)} />
                 <div className="absolute right-0 top-full mt-1 w-48 bg-[rgb(var(--ec-dropdown-bg))] rounded-lg shadow-lg border border-[rgb(var(--ec-dropdown-border))] z-30">
                   <div className="p-2">
-                    <div className="text-[10px] font-medium text-[rgb(var(--ec-content-text-muted))] uppercase tracking-wide px-2 py-1">Filter by type</div>
+                    <div className="text-[10px] font-medium text-[rgb(var(--ec-content-text-muted))] uppercase tracking-wide px-2 py-1">
+                      Filter by type
+                    </div>
                     <div className="flex flex-col gap-0.5 mt-1">
                       {filterTypes.map((filter) => {
                         const isActive = searchFilters.has(filter.key);
@@ -222,7 +224,9 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
                             onClick={() => toggleSearchFilter(filter.key)}
                             className={cn(
                               'flex items-center justify-between px-2 py-1.5 rounded text-sm transition-colors',
-                              isActive ? 'bg-[rgb(var(--ec-accent)/0.1)] text-[rgb(var(--ec-accent))]' : 'text-[rgb(var(--ec-dropdown-text))] hover:bg-[rgb(var(--ec-dropdown-hover))]'
+                              isActive
+                                ? 'bg-[rgb(var(--ec-accent)/0.1)] text-[rgb(var(--ec-accent))]'
+                                : 'text-[rgb(var(--ec-dropdown-text))] hover:bg-[rgb(var(--ec-dropdown-hover))]'
                             )}
                           >
                             <span className="flex items-center gap-2">
@@ -273,7 +277,11 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
                   >
                     <div className="flex flex-col min-w-0 flex-1">
                       <span className="text-sm text-[rgb(var(--ec-content-text))] truncate">{node.title}</span>
-                      {matchType === 'id' && <span className="text-xs text-[rgb(var(--ec-content-text-muted))] truncate">ID: {nodeKey.split(':')[2]}</span>}
+                      {matchType === 'id' && (
+                        <span className="text-xs text-[rgb(var(--ec-content-text-muted))] truncate">
+                          ID: {nodeKey.split(':')[2]}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {node.badge && (
@@ -295,7 +303,9 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
               </div>
             )}
             {results.length === 0 && searchQuery.trim() && (
-              <div className="text-sm text-[rgb(var(--ec-content-text-muted))] py-4 text-center">No resources found for "{searchQuery}"</div>
+              <div className="text-sm text-[rgb(var(--ec-content-text-muted))] py-4 text-center">
+                No resources found for "{searchQuery}"
+              </div>
             )}
           </div>
         </div>

@@ -109,7 +109,9 @@ const sortedGroups = Object.entries(groupedAttachments).sort(([a], [b]) => {
                   >
                     <div class="flex items-start gap-3">
                       <div class="flex-shrink-0 p-2 bg-[rgb(var(--ec-content-hover))] rounded-lg group-hover:bg-[rgb(var(--ec-accent-subtle))] transition-colors duration-200">
-                        {IconComponent && <IconComponent className="w-5 h-5 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-accent))]" />}
+                        {IconComponent && (
+                          <IconComponent className="w-5 h-5 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-accent))]" />
+                        )}
                       </div>
 
                       <div class="flex-grow min-w-0">
@@ -123,7 +125,9 @@ const sortedGroups = Object.entries(groupedAttachments).sort(([a], [b]) => {
                         </div>
 
                         {attachment.summary && (
-                          <p class="mt-1 text-xs text-[rgb(var(--ec-page-text-muted))] group-hover:text-[rgb(var(--ec-accent-text))] line-clamp-2">{attachment.summary}</p>
+                          <p class="mt-1 text-xs text-[rgb(var(--ec-page-text-muted))] group-hover:text-[rgb(var(--ec-accent-text))] line-clamp-2">
+                            {attachment.summary}
+                          </p>
                         )}
 
                         {attachment.description && (

@@ -15,7 +15,9 @@ const currentPath = Astro.url.pathname;
 ---
 
 <div class="space-y-2 pb-4">
-  <span class="text-xs text-[rgb(var(--ec-page-text))] font-semibold group-data-[hover]:text-[rgb(var(--ec-page-text))]/80 capitalize">
+  <span
+    class="text-xs text-[rgb(var(--ec-page-text))] font-semibold group-data-[hover]:text-[rgb(var(--ec-page-text))]/80 capitalize"
+  >
     {title || `Versions (${collectionItem.data.versions?.length})`}
   </span>
   <ul role="list" class="space-y-2">
@@ -30,7 +32,9 @@ const currentPath = Astro.url.pathname;
             >
               {/* {Icon && <Icon class={`h-4 w-4`} />} */}
               <HistoryIcon className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))] group-hover:text-white" strokeWidth={1} />
-              <span class={`font-light text-xs text-[rgb(var(--ec-page-text))] group-hover:text-white ${isCurrent ? 'underline ' : ''}`}>
+              <span
+                class={`font-light text-xs text-[rgb(var(--ec-page-text))] group-hover:text-white ${isCurrent ? 'underline ' : ''}`}
+              >
                 {version === collectionItem.data.latestVersion ? `v${version} (latest)` : `v${version}`}
               </span>
             </a>

@@ -21,7 +21,10 @@ const OwnersList = ({ title, owners, emptyMessage }: Props) => {
       <div className="mx-auto w-full max-w-lg divide-y divide-[rgb(var(--ec-page-border))] rounded-xl">
         <Disclosure as="div" className="" defaultOpen={owners.length <= 5}>
           <DisclosureButton className="group flex w-full items-center justify-start space-x-4">
-            <span className="text-sm text-[rgb(var(--ec-page-text))] font-semibold group-data-[hover]:opacity-80 capitalize"> {title} </span>
+            <span className="text-sm text-[rgb(var(--ec-page-text))] font-semibold group-data-[hover]:opacity-80 capitalize">
+              {' '}
+              {title}{' '}
+            </span>
             <ChevronDownIcon className="size-5 fill-[rgb(var(--ec-icon-color))] group-data-[hover]:opacity-80 group-data-[open]:rotate-180" />
           </DisclosureButton>
           <DisclosurePanel className="mt-2 text-sm/5 text-[rgb(var(--ec-page-text-muted))]">
@@ -37,7 +40,10 @@ const OwnersList = ({ title, owners, emptyMessage }: Props) => {
                         <UserIcon className="h-4 w-4 text-[rgb(var(--ec-page-text))] group-hover:text-white" strokeWidth={1} />
                       )}
                       {item.type === 'teams' && (
-                        <UserGroupIcon className="h-4 w-4 text-[rgb(var(--ec-page-text))] group-hover:text-white" strokeWidth={1} />
+                        <UserGroupIcon
+                          className="h-4 w-4 text-[rgb(var(--ec-page-text))] group-hover:text-white"
+                          strokeWidth={1}
+                        />
                       )}
                       <span className="font-light text-sm truncate">{item.label}</span>
                       {item.label.length > 24 && (

@@ -37,7 +37,11 @@ export default function ProducersConsumersSection({ message, isExpanded, onToggl
             {totalCount} services
           </span>
         </div>
-        {isExpanded ? <ChevronUpIcon className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))]" /> : <ChevronDownIcon className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))]" />}
+        {isExpanded ? (
+          <ChevronUpIcon className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))]" />
+        ) : (
+          <ChevronDownIcon className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))]" />
+        )}
       </button>
 
       {isExpanded && (

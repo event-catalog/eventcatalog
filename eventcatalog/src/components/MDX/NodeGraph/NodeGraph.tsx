@@ -639,7 +639,9 @@ const NodeGraphBuilder = ({
                   }`}
                   aria-label={isFullscreen ? 'Exit presentation mode' : 'Enter presentation mode'}
                 >
-                  <PresentationChartLineIcon className={`h-5 w-5 ${isFullscreen ? 'text-[rgb(var(--ec-accent))]' : 'text-gray-600'}`} />
+                  <PresentationChartLineIcon
+                    className={`h-5 w-5 ${isFullscreen ? 'text-[rgb(var(--ec-accent))]' : 'text-gray-600'}`}
+                  />
                 </button>
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                   {isFullscreen ? 'Exit Presentation Mode' : 'Presentation Mode'}

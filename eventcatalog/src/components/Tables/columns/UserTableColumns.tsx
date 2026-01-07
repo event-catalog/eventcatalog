@@ -98,7 +98,10 @@ export const columns = (tableConfiguration: TableConfiguration) => [
               );
             })}
             {hiddenCount > 0 && (
-              <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left">
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left"
+              >
                 {isExpanded ? 'Show less' : `+${hiddenCount} more`}
               </button>
             )}
@@ -149,7 +152,10 @@ export const columns = (tableConfiguration: TableConfiguration) => [
             </a>
           ))}
           {hiddenCount > 0 && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left"
+            >
               {isExpanded ? 'Show less' : `+${hiddenCount} more`}
             </button>
           )}
@@ -194,12 +200,17 @@ export const columns = (tableConfiguration: TableConfiguration) => [
                 <span className="flex items-center justify-center w-6 h-6 bg-pink-500 rounded-l-md">
                   <Users className="h-3 w-3 text-white" />
                 </span>
-                <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">{team.data.name}</span>
+                <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">
+                  {team.data.name}
+                </span>
               </span>
             </a>
           ))}
           {hiddenCount > 0 && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left"
+            >
               {isExpanded ? 'Show less' : `+${hiddenCount} more`}
             </button>
           )}

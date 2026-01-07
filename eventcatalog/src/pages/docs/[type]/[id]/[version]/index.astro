@@ -80,9 +80,7 @@ const getBadge = () => {
     return [{ backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: ChatBubbleLeftIcon }];
   }
   if (props.collection === 'queries') {
-    return [
-      { backgroundColor: 'green', textColor: 'green', content: 'Query', icon: MagnifyingGlassIcon },
-    ];
+    return [{ backgroundColor: 'green', textColor: 'green', content: 'Query', icon: MagnifyingGlassIcon }];
   }
   if (props.collection === 'domains') {
     return [
@@ -350,38 +348,20 @@ nodeGraphs.push({
                 <div class="flex flex-wrap gap-3 py-4">
                   {badges.map((badge: any) => {
                     return (
-                      <a href={badge.url || '#'} class="group transition-all duration-200 hover:scale-105">
-                        <span
-                          id={badge.id || ''}
-                          class={`
-                            inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
-                            bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))]
-                            text-[rgb(var(--ec-page-text))]
-                            shadow-sm
-                            hover:bg-[rgb(var(--ec-accent-subtle))]
-                            hover:border-[rgb(var(--ec-accent)/0.4)]
-                            hover:shadow-md hover:text-[rgb(var(--ec-accent-text))]
-                            transition-all duration-200 ease-out
-                            ${badge.class ? badge.class : ''}
-                          `}
-                        >
-                          {badge.icon && (
-                            <badge.icon
-                              className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-accent))] transition-colors duration-200"
-                            />
-                          )}
-                          {badge.iconURL && (
-                            <img
-                              src={badge.iconURL}
-                              class="w-4 h-4 flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity duration-200"
-                              alt=""
-                            />
-                          )}
-                          <span class="group-hover:text-[rgb(var(--ec-accent-text))] transition-colors duration-200">
-                            {badge.content}
-                          </span>
-                        </span>
-                      </a>
+                      <span
+                        id={badge.id || ''}
+                        class={`
+                          inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
+                          bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))]
+                          text-[rgb(var(--ec-page-text))]
+                          shadow-sm
+                          ${badge.class ? badge.class : ''}
+                        `}
+                      >
+                        {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" />}
+                        {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
+                        <span>{badge.content}</span>
+                      </span>
                     );
                   })}
                 </div>
@@ -483,7 +463,10 @@ nodeGraphs.push({
           {
             editUrl && (
               <div class="flex justify-end">
-                <a href={editUrl} class="text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] border border-[rgb(var(--ec-page-border))] rounded-md p-2">
+                <a
+                  href={editUrl}
+                  class="text-sm text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] border border-[rgb(var(--ec-page-border))] rounded-md p-2"
+                >
                   <SquarePenIcon className="w-4 h-4 inline-block mr-1" />
                   Edit this page
                 </a>
@@ -625,7 +608,25 @@ nodeGraphs.push({
         }
 
         // Detect current theme from data-theme attribute
-        const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
+        const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+        const currentTheme = isDarkMode ? 'dark' : 'default';
+
+        // Custom theme variables for better readability in dark mode
+        const darkThemeVariables = {
+          // Sequence diagram - improve text contrast
+          signalColor: '#f0f6fc',
+          signalTextColor: '#f0f6fc',
+          actorTextColor: '#0d1117',
+          actorBkg: '#f0f6fc',
+          actorBorder: '#484f58',
+          actorLineColor: '#6b7280',
+          // General text colors
+          primaryTextColor: '#f0f6fc',
+          secondaryTextColor: '#c9d1d9',
+          tertiaryTextColor: '#f0f6fc',
+          // Line colors
+          lineColor: '#6b7280',
+        };
 
         mermaid.initialize({
           // fontSize: 2,
@@ -638,6 +639,7 @@ nodeGraphs.push({
           fontFamily: 'var(--sans-font)',
           // @ts-ignore This works, but TS expects a enum for some reason
           theme: currentTheme,
+          themeVariables: isDarkMode ? darkThemeVariables : undefined,
           architecture: {
             useMaxWidth: true,
           },

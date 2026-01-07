@@ -264,9 +264,11 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
                       <span className="truncate">{section.label}</span>
                       {section.badge && section?.badge?.text && (
                         <span
-                          className={section.badge.color
-                            ? `text-${section.badge.color}-600 dark:text-${section.badge.color}-400 ml-2 text-[10px] font-medium bg-${section.badge.color}-50 dark:bg-${section.badge.color}-500/20 px-2 py-0.5 rounded uppercase`
-                            : `text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase`}
+                          className={
+                            section.badge.color
+                              ? `text-${section.badge.color}-600 dark:text-${section.badge.color}-400 ml-2 text-[10px] font-medium bg-${section.badge.color}-50 dark:bg-${section.badge.color}-500/20 px-2 py-0.5 rounded uppercase`
+                              : `text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase`
+                          }
                         >
                           {section.badge.text}
                         </span>

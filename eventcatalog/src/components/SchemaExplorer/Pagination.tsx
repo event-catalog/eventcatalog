@@ -37,7 +37,9 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
                 key={pageNum}
                 onClick={() => onPageChange(pageNum)}
                 className={`w-6 h-6 text-[11px] font-medium rounded transition-all tabular-nums ${
-                  currentPage === pageNum ? 'bg-[rgb(var(--ec-accent))] text-white' : 'text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))]'
+                  currentPage === pageNum
+                    ? 'bg-[rgb(var(--ec-accent))] text-white'
+                    : 'text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))]'
                 }`}
               >
                 {pageNum}

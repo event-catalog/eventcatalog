@@ -93,7 +93,9 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                 >
                   <div class="px-4 py-2 text-sm text-[rgb(var(--ec-dropdown-text))] border-b border-[rgb(var(--ec-dropdown-border))]">
                     <div class="font-semibold">{session.user?.name || 'User'}</div>
-                    {session.user?.email && <div class="text-[rgb(var(--ec-icon-color))] text-xs mt-0.5">{session.user.email}</div>}
+                    {session.user?.email && (
+                      <div class="text-[rgb(var(--ec-icon-color))] text-xs mt-0.5">{session.user.email}</div>
+                    )}
                   </div>
                   <button
                     id="signout-btn"

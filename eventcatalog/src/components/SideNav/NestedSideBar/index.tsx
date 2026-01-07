@@ -488,7 +488,10 @@ export default function NestedSideBar() {
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="flex items-center gap-2.5 px-3 py-1.5 ml-3.5 border-l border-[rgb(var(--ec-content-border))]">
               <div className="w-4 h-4 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse" />
-              <div className="h-4 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse" style={{ width: `${60 + ((i * 15) % 40)}%` }} />
+              <div
+                className="h-4 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse"
+                style={{ width: `${60 + ((i * 15) % 40)}%` }}
+              />
             </div>
           ))}
           {/* Second group skeleton */}
@@ -497,9 +500,15 @@ export default function NestedSideBar() {
             <div className="h-4 w-20 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse" />
           </div>
           {[1, 2, 3].map((i) => (
-            <div key={`g2-${i}`} className="flex items-center gap-2.5 px-3 py-1.5 ml-3.5 border-l border-[rgb(var(--ec-content-border))]">
+            <div
+              key={`g2-${i}`}
+              className="flex items-center gap-2.5 px-3 py-1.5 ml-3.5 border-l border-[rgb(var(--ec-content-border))]"
+            >
               <div className="w-4 h-4 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse" />
-              <div className="h-4 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse" style={{ width: `${50 + ((i * 20) % 35)}%` }} />
+              <div
+                className="h-4 bg-[rgb(var(--ec-content-hover))] rounded animate-pulse"
+                style={{ width: `${50 + ((i * 20) % 35)}%` }}
+              />
             </div>
           ))}
         </div>
@@ -733,7 +742,11 @@ export default function NestedSideBar() {
           )}
           <span className="text-[13px] text-[rgb(var(--ec-content-text))] font-semibold tracking-tight">{group.title}</span>
         </div>
-        {canCollapse && <ChevronDown className={cn('w-4 h-4 text-[rgb(var(--ec-icon-color))] transition-transform', isCollapsed && '-rotate-90')} />}
+        {canCollapse && (
+          <ChevronDown
+            className={cn('w-4 h-4 text-[rgb(var(--ec-icon-color))] transition-transform', isCollapsed && '-rotate-90')}
+          />
+        )}
       </>
     );
 
@@ -762,7 +775,10 @@ export default function NestedSideBar() {
                 if (!hasVisibleChildren(child)) return null;
 
                 return (
-                  <div key={`nested-group-${childKey || childIndex}`} className="ml-3 mt-1.5 pl-3 border-l border-[rgb(var(--ec-content-border))]">
+                  <div
+                    key={`nested-group-${childKey || childIndex}`}
+                    className="ml-3 mt-1.5 pl-3 border-l border-[rgb(var(--ec-content-border))]"
+                  >
                     {renderGroup(child, childKey, childIndex)}
                   </div>
                 );
@@ -798,7 +814,10 @@ export default function NestedSideBar() {
         <div className="flex items-center gap-2.5 min-w-0 flex-1 ">
           {IconComponent && (
             <span
-              className={cn('flex items-center justify-center w-5 h-5 flex-shrink-0', isActive ? 'text-[rgb(var(--ec-content-text))]' : 'text-[rgb(var(--ec-content-text-muted))]')}
+              className={cn(
+                'flex items-center justify-center w-5 h-5 flex-shrink-0',
+                isActive ? 'text-[rgb(var(--ec-content-text))]' : 'text-[rgb(var(--ec-content-text-muted))]'
+              )}
             >
               <IconComponent className="w-4 h-4" />
             </span>
@@ -807,7 +826,9 @@ export default function NestedSideBar() {
           <span
             className={cn(
               'text-[13px] truncate',
-              isActive ? 'text-[rgb(var(--ec-content-text))] font-medium' : 'text-[rgb(var(--ec-content-text-secondary))] group-hover:text-[rgb(var(--ec-content-text))]'
+              isActive
+                ? 'text-[rgb(var(--ec-content-text))] font-medium'
+                : 'text-[rgb(var(--ec-content-text-secondary))] group-hover:text-[rgb(var(--ec-content-text))]'
             )}
           >
             {item.title}
@@ -839,7 +860,9 @@ export default function NestedSideBar() {
     const baseClasses =
       'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))] active:bg-[rgb(var(--ec-content-hover))]';
     const parentClasses = itemHasChildren ? 'font-medium' : '';
-    const activeClasses = isActive ? 'bg-[rgb(var(--ec-content-active))] hover:bg-[rgb(var(--ec-content-active))] border-l-2 border-[rgb(var(--ec-accent))] rounded-l-none' : '';
+    const activeClasses = isActive
+      ? 'bg-[rgb(var(--ec-content-active))] hover:bg-[rgb(var(--ec-content-active))] border-l-2 border-[rgb(var(--ec-accent))] rounded-l-none'
+      : '';
 
     // Leaf item with href → render as link
     if (item.href && !itemHasChildren) {
@@ -926,7 +949,9 @@ export default function NestedSideBar() {
               {showPathPreview && navigationStack.length > 1 && (
                 <div className="absolute left-0 right-0 top-full bg-[rgb(var(--ec-content-bg))] border-b border-[rgb(var(--ec-content-border))] shadow-lg z-20">
                   <div className="px-3 py-2">
-                    <div className="text-[10px] font-medium text-[rgb(var(--ec-content-text-muted))] uppercase tracking-wide mb-2">Navigation Path</div>
+                    <div className="text-[10px] font-medium text-[rgb(var(--ec-content-text-muted))] uppercase tracking-wide mb-2">
+                      Navigation Path
+                    </div>
                     <div className="flex flex-col gap-0.5">
                       {(() => {
                         const SHOW_FIRST = 2; // Show first N items
@@ -955,7 +980,12 @@ export default function NestedSideBar() {
                                 <ChevronRight className="w-3.5 h-3.5 text-[rgb(var(--ec-content-text-muted))] flex-shrink-0" />
                               )}
                               <span
-                                className={cn('text-sm truncate', isCurrentLevel ? 'font-medium text-[rgb(var(--ec-content-text))]' : 'text-[rgb(var(--ec-content-text-secondary))]')}
+                                className={cn(
+                                  'text-sm truncate',
+                                  isCurrentLevel
+                                    ? 'font-medium text-[rgb(var(--ec-content-text))]'
+                                    : 'text-[rgb(var(--ec-content-text-secondary))]'
+                                )}
                               >
                                 {level.title}
                               </span>
@@ -1043,14 +1073,17 @@ export default function NestedSideBar() {
                         onClick={() => navigateToFavorite(fav)}
                         className={cn(
                           'group flex items-center justify-between w-full px-3 py-1.5 rounded-lg cursor-pointer text-left transition-colors hover:bg-amber-500/10 active:bg-amber-500/20',
-                          isActive && 'bg-[rgb(var(--ec-content-active))] hover:bg-[rgb(var(--ec-content-active))] border-l-2 border-[rgb(var(--ec-accent))] rounded-l-none'
+                          isActive &&
+                            'bg-[rgb(var(--ec-content-active))] hover:bg-[rgb(var(--ec-content-active))] border-l-2 border-[rgb(var(--ec-accent))] rounded-l-none'
                         )}
                       >
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
                           <span
                             className={cn(
                               'text-[14px] truncate',
-                              isActive ? 'text-[rgb(var(--ec-content-text))] font-medium' : 'text-[rgb(var(--ec-content-text-secondary))] group-hover:text-[rgb(var(--ec-content-text))]'
+                              isActive
+                                ? 'text-[rgb(var(--ec-content-text))] font-medium'
+                                : 'text-[rgb(var(--ec-content-text-secondary))] group-hover:text-[rgb(var(--ec-content-text))]'
                             )}
                           >
                             {fav.title}

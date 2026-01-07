@@ -83,7 +83,9 @@ const badges = doc?.badges || [];
 <VerticalSideBarLayout title={doc.title || 'Documentation'} showNestedSideBar={false}>
   <div class="flex w-full" data-pagefind-body data-pagefind-meta={`title:${doc.title}`}>
     <!-- Left Sidebar Navigation -->
-    <aside class="sidebar-transition overflow-y-auto bg-[rgb(var(--ec-page-bg))] border-r border-[rgb(var(--ec-page-border))] w-80 fixed top-16 bottom-0 z-10">
+    <aside
+      class="sidebar-transition overflow-y-auto bg-[rgb(var(--ec-page-bg))] border-r border-[rgb(var(--ec-page-border))] w-80 fixed top-16 bottom-0 z-10"
+    >
       <CustomDocsNav />
     </aside>
 
@@ -157,7 +159,9 @@ const badges = doc?.badges || [];
                   class="group flex flex-col border border-[rgb(var(--ec-page-border))] rounded-lg p-4 hover:border-[rgb(var(--ec-content-text-muted))] hover:bg-[rgb(var(--ec-content-hover))] transition-colors w-full sm:w-1/2"
                 >
                   <span class="text-sm text-[rgb(var(--ec-page-text-muted))] mb-1">Previous</span>
-                  <span class="font-medium text-[rgb(var(--ec-page-text))] group-hover:text-primary-600 transition-colors">{prev.label}</span>
+                  <span class="font-medium text-[rgb(var(--ec-page-text))] group-hover:text-primary-600 transition-colors">
+                    {prev.label}
+                  </span>
                 </a>
               )
             }
@@ -171,7 +175,9 @@ const badges = doc?.badges || [];
                   class="group flex flex-col items-end text-right border border-[rgb(var(--ec-page-border))] rounded-lg p-4 hover:border-[rgb(var(--ec-content-text-muted))] hover:bg-[rgb(var(--ec-content-hover))] transition-colors w-full sm:w-1/2"
                 >
                   <span class="text-sm text-[rgb(var(--ec-page-text-muted))] mb-1">Next</span>
-                  <span class="font-medium text-[rgb(var(--ec-page-text))] group-hover:text-primary-600 transition-colors">{next.label}</span>
+                  <span class="font-medium text-[rgb(var(--ec-page-text))] group-hover:text-primary-600 transition-colors">
+                    {next.label}
+                  </span>
                 </a>
               )
             }
@@ -395,7 +401,25 @@ const badges = doc?.badges || [];
     }
 
     // Detect current theme from data-theme attribute
-    const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
+    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+    const currentTheme = isDarkMode ? 'dark' : 'default';
+
+    // Custom theme variables for better readability in dark mode
+    const darkThemeVariables = {
+      // Sequence diagram - improve text contrast
+      signalColor: '#f0f6fc',
+      signalTextColor: '#f0f6fc',
+      actorTextColor: '#0d1117',
+      actorBkg: '#f0f6fc',
+      actorBorder: '#484f58',
+      actorLineColor: '#6b7280',
+      // General text colors
+      primaryTextColor: '#f0f6fc',
+      secondaryTextColor: '#c9d1d9',
+      tertiaryTextColor: '#f0f6fc',
+      // Line colors
+      lineColor: '#6b7280',
+    };
 
     mermaid.initialize({
       // fontSize: 2,
@@ -408,6 +432,7 @@ const badges = doc?.badges || [];
       fontFamily: 'var(--sans-font)',
       // @ts-ignore This works, but TS expects a enum for some reason
       theme: currentTheme,
+      themeVariables: isDarkMode ? darkThemeVariables : undefined,
       architecture: {
         useMaxWidth: true,
       },

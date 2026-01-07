@@ -22,14 +22,20 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
 ---
 
 <VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
-  <main class="flex sm:px-6 docs-layout h-full bg-[rgb(var(--ec-page-bg))]" data-pagefind-body data-pagefind-meta={`title:${pageTitle}`}>
+  <main
+    class="flex sm:px-6 docs-layout h-full bg-[rgb(var(--ec-page-bg))]"
+    data-pagefind-body
+    data-pagefind-meta={`title:${pageTitle}`}
+  >
     <div class="flex docs-layout w-full">
       <div class="w-full lg:mr-2 pr-8 overflow-y-auto pt-6 pb-8 min-h-[50em]">
         {/* Title Section */}
         <div class="relative border-b border-[rgb(var(--ec-page-border))] mb-6 pb-6">
           <div class="xl:flex xl:items-start xl:justify-between">
             <div class="min-w-0 flex-1">
-              <h1 class="text-xl font-bold leading-7 text-[rgb(var(--ec-page-text))] sm:text-2xl xl:text-3xl">Ubiquitous Language</h1>
+              <h1 class="text-xl font-bold leading-7 text-[rgb(var(--ec-page-text))] sm:text-2xl xl:text-3xl">
+                Ubiquitous Language
+              </h1>
               <p class="mt-2 text-sm text-[rgb(var(--ec-page-text-muted))]">
                 Browse and discover ubiquitous language terms in the {props.data.name} domain{
                   subdomains.length > 0 ? ' and its subdomains' : ''
@@ -117,21 +123,19 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                             <div class="flex items-start justify-between gap-3 mb-3">
                               <div class="flex items-center gap-2.5">
                                 {term.icon ? (
-                                  <div class="flex items-center justify-center w-8 h-8 rounded-md bg-[rgb(var(--ec-content-hover))] group-hover:bg-[rgb(var(--ec-sidebar-hover-bg))] transition-colors">
+                                  <div class="flex items-center justify-center w-8 h-8 rounded-md bg-[rgb(var(--ec-accent-subtle))] transition-colors">
                                     {(() => {
                                       const Icon = LucideIcons[term.icon as keyof typeof LucideIcons];
                                       //@ts-ignore
-                                      return Icon ? <Icon className="w-4 h-4 text-[rgb(var(--ec-page-text))]" /> : null;
+                                      return Icon ? <Icon className="w-4 h-4 text-[rgb(var(--ec-accent))]" /> : null;
                                     })()}
                                   </div>
                                 ) : (
-                                  <div class="flex items-center justify-center w-8 h-8 rounded-md bg-[rgb(var(--ec-content-hover))] group-hover:bg-[rgb(var(--ec-sidebar-hover-bg))] transition-colors">
+                                  <div class="flex items-center justify-center w-8 h-8 rounded-md bg-[rgb(var(--ec-accent-subtle))] transition-colors">
                                     {(() => {
                                       const BookText = LucideIcons.BookText;
                                       //@ts-ignore
-                                      return (
-                                        <BookText className="w-4 h-4 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-icon-hover))] transition-colors" />
-                                      );
+                                      return <BookText className="w-4 h-4 text-[rgb(var(--ec-accent))]" />;
                                     })()}
                                   </div>
                                 )}
@@ -172,7 +176,12 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                       data-domain-no-results="main"
                     >
                       <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-[rgb(var(--ec-content-hover))]">
-                        <svg class="w-6 h-6 text-[rgb(var(--ec-icon-color))]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg
+                          class="w-6 h-6 text-[rgb(var(--ec-icon-color))]"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
                           <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
@@ -181,7 +190,9 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                           />
                         </svg>
                       </div>
-                      <h4 class="text-base font-medium text-[rgb(var(--ec-page-text))]">No matching terms in {props.data.name}</h4>
+                      <h4 class="text-base font-medium text-[rgb(var(--ec-page-text))]">
+                        No matching terms in {props.data.name}
+                      </h4>
                       <p class="mt-1 text-sm text-[rgb(var(--ec-page-text-muted))]">Try adjusting your search terms.</p>
                     </div>
                   </div>
@@ -225,21 +236,19 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                               <div class="flex items-start justify-between gap-3 mb-3">
                                 <div class="flex items-center gap-2.5">
                                   {term.icon ? (
-                                    <div class="flex items-center justify-center w-8 h-8 rounded-md bg-[rgb(var(--ec-content-hover))] group-hover:bg-[rgb(var(--ec-sidebar-hover-bg))] transition-colors">
+                                    <div class="flex items-center justify-center w-8 h-8 rounded-md bg-[rgb(var(--ec-accent-subtle))] transition-colors">
                                       {(() => {
                                         const Icon = LucideIcons[term.icon as keyof typeof LucideIcons];
                                         //@ts-ignore
-                                        return Icon ? <Icon className="w-4 h-4 text-[rgb(var(--ec-page-text))]" /> : null;
+                                        return Icon ? <Icon className="w-4 h-4 text-[rgb(var(--ec-accent))]" /> : null;
                                       })()}
                                     </div>
                                   ) : (
-                                    <div class="flex items-center justify-center w-8 h-8 rounded-md bg-[rgb(var(--ec-content-hover))] group-hover:bg-[rgb(var(--ec-sidebar-hover-bg))] transition-colors">
+                                    <div class="flex items-center justify-center w-8 h-8 rounded-md bg-[rgb(var(--ec-accent-subtle))] transition-colors">
                                       {(() => {
                                         const BookText = LucideIcons.BookText;
                                         //@ts-ignore
-                                        return (
-                                          <BookText className="w-4 h-4 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-icon-hover))] transition-colors" />
-                                        );
+                                        return <BookText className="w-4 h-4 text-[rgb(var(--ec-accent))]" />;
                                       })()}
                                     </div>
                                   )}
@@ -280,7 +289,12 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                         data-domain-no-results={subdomain.data.id}
                       >
                         <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-[rgb(var(--ec-content-hover))]">
-                          <svg class="w-6 h-6 text-[rgb(var(--ec-icon-color))]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg
+                            class="w-6 h-6 text-[rgb(var(--ec-icon-color))]"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
                             <path
                               stroke-linecap="round"
                               stroke-linejoin="round"
@@ -289,7 +303,9 @@ const { subdomains, duplicateTerms } = ubiquitousLanguageData;
                             />
                           </svg>
                         </div>
-                        <h4 class="text-base font-medium text-[rgb(var(--ec-page-text))]">No matching terms in {subdomain.data.name}</h4>
+                        <h4 class="text-base font-medium text-[rgb(var(--ec-page-text))]">
+                          No matching terms in {subdomain.data.name}
+                        </h4>
                         <p class="mt-1 text-sm text-[rgb(var(--ec-page-text-muted))]">Try adjusting your search terms.</p>
                       </div>
                     </div>

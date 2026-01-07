@@ -51,7 +51,7 @@ import { buildUrl } from '@utils/url-builder';
 import { getQueries } from '@utils/collections/queries';
 import { hasLandingPageForDocs } from '@utils/pages';
 
-import { isEventCatalogUpgradeEnabled, isEmbedEnabled } from '@utils/feature';
+import { isEventCatalogUpgradeEnabled, isEmbedEnabled, isCustomStylesEnabled } from '@utils/feature';
 
 const catalogHasDefaultLandingPageForDocs = await hasLandingPageForDocs();
 const customDocs = await getCollection('customPages');
@@ -75,9 +75,11 @@ if (!catalogHasDefaultLandingPageForDocs) {
 }
 
 // Try and load any custom styles if they exist
-try {
-  await import('../../eventcatalog.styles.css');
-} catch (error) {}
+if (isCustomStylesEnabled()) {
+  try {
+    await import('../../eventcatalog.styles.css');
+  } catch (error) {}
+}
 
 const currentPath = Astro.url.pathname;
 
@@ -189,7 +191,7 @@ const canPageBeEmbedded = isEmbedEnabled();
   <head>
     <!-- Inline script to prevent flash of wrong theme -->
     <script is:inline define:vars={{ catalogTheme }}>
-      (function() {
+      (function () {
         function getSystemTheme() {
           if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             return 'dark';
@@ -200,7 +202,7 @@ const canPageBeEmbedded = isEmbedEnabled();
         function applyTheme() {
           // Check localStorage first, fall back to system preference
           const stored = localStorage.getItem('eventcatalog-theme');
-          const theme = (stored === 'light' || stored === 'dark') ? stored : getSystemTheme();
+          const theme = stored === 'light' || stored === 'dark' ? stored : getSystemTheme();
           document.documentElement.setAttribute('data-theme', theme);
           // Also ensure catalog theme is set (for page transitions)
           document.documentElement.setAttribute('data-catalog-theme', catalogTheme);
@@ -285,7 +287,9 @@ const canPageBeEmbedded = isEmbedEnabled();
                         href={item.href}
                         aria-label={item.label}
                         class={`p-1.5 inline-block transition-colors duration-200 rounded-lg ${
-                          item.current ? 'text-[rgb(var(--ec-sidebar-active-text))] bg-[rgb(var(--ec-sidebar-active-bg))]' : 'hover:bg-[rgb(var(--ec-sidebar-hover-bg))] hover:text-[rgb(var(--ec-sidebar-active-text))] text-[rgb(var(--ec-sidebar-text))]'
+                          item.current
+                            ? 'text-[rgb(var(--ec-sidebar-active-text))] bg-[rgb(var(--ec-sidebar-active-bg))]'
+                            : 'hover:bg-[rgb(var(--ec-sidebar-hover-bg))] hover:text-[rgb(var(--ec-sidebar-active-text))] text-[rgb(var(--ec-sidebar-text))]'
                         }`}
                       >
                         <div class="has-tooltip">
@@ -336,7 +340,9 @@ const canPageBeEmbedded = isEmbedEnabled();
                       href={item.href}
                       aria-label={item.label}
                       class={`p-1.5 inline-block transition-colors duration-200 rounded-lg mb-8 relative ${
-                        item.current ? 'text-[rgb(var(--ec-sidebar-active-text))] bg-[rgb(var(--ec-sidebar-active-bg))]' : 'hover:bg-[rgb(var(--ec-sidebar-hover-bg))] hover:text-[rgb(var(--ec-sidebar-active-text))] text-[rgb(var(--ec-sidebar-text))]'
+                        item.current
+                          ? 'text-[rgb(var(--ec-sidebar-active-text))] bg-[rgb(var(--ec-sidebar-active-bg))]'
+                          : 'hover:bg-[rgb(var(--ec-sidebar-hover-bg))] hover:text-[rgb(var(--ec-sidebar-active-text))] text-[rgb(var(--ec-sidebar-text))]'
                       }`}
                     >
                       <div class="has-tooltip">
@@ -387,7 +393,10 @@ const canPageBeEmbedded = isEmbedEnabled();
 
           {
             showNestedSideBar && (
-              <SideNav id="sidebar" class={`sidebar-transition h-content bg-[rgb(var(--ec-sidebar-bg))] border-r border-[rgb(var(--ec-sidebar-border))] w-[320px] ml-14`} />
+              <SideNav
+                id="sidebar"
+                class={`sidebar-transition h-content bg-[rgb(var(--ec-sidebar-bg))] border-r border-[rgb(var(--ec-sidebar-border))] w-[320px] ml-14`}
+              />
             )
           }
         </aside>

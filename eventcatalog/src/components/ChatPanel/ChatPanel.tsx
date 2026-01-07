@@ -510,7 +510,9 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                         sideOffset={5}
                         align="end"
                       >
-                        <div className="text-[10px] font-medium text-[rgb(var(--ec-page-text-muted))] mb-2">Available Tools ({sortedTools.length})</div>
+                        <div className="text-[10px] font-medium text-[rgb(var(--ec-page-text-muted))] mb-2">
+                          Available Tools ({sortedTools.length})
+                        </div>
                         <div className="max-h-64 overflow-y-auto divide-y divide-[rgb(var(--ec-page-border))]">
                           {sortedTools.map((tool) => (
                             <div key={tool.name} className="py-1.5 first:pt-0 last:pb-0">
@@ -588,7 +590,9 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                       </div>
                     </div>
                     <h2 className="text-base font-medium text-[rgb(var(--ec-page-text))] mb-1">{getGreeting()}</h2>
-                    <p className="text-sm text-[rgb(var(--ec-page-text-muted))] text-center">Ask me anything about your catalog.</p>
+                    <p className="text-sm text-[rgb(var(--ec-page-text-muted))] text-center">
+                      Ask me anything about your catalog.
+                    </p>
                   </div>
 
                   {/* Suggested questions */}
@@ -688,7 +692,10 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
             </div>
 
             {/* Input area (Fixed at bottom) */}
-            <div className="flex-none px-4 py-3 border-t border-[rgb(var(--ec-page-border))]" key={isOpen ? 'input-open' : 'input-closed'}>
+            <div
+              className="flex-none px-4 py-3 border-t border-[rgb(var(--ec-page-border))]"
+              key={isOpen ? 'input-open' : 'input-closed'}
+            >
               <form onSubmit={handleSubmit}>
                 <div className="relative bg-[rgb(var(--ec-input-bg))] rounded-lg border-2 border-[rgb(var(--ec-input-border))] focus-within:border-[rgb(var(--ec-accent)/0.5)] transition-all">
                   <input
@@ -729,7 +736,9 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                   </div>
                 </div>
               </form>
-              <p className="text-[9px] text-[rgb(var(--ec-icon-color))] mt-2 text-center">AI can make mistakes. Verify important info.</p>
+              <p className="text-[9px] text-[rgb(var(--ec-icon-color))] mt-2 text-center">
+                AI can make mistakes. Verify important info.
+              </p>
             </div>
           </div>
         </div>
@@ -776,8 +785,13 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                         align="end"
                         style={{ maxHeight: 'calc(100vh - 200px)' }}
                       >
-                        <div className="text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] mb-2">Available Tools ({sortedTools.length})</div>
-                        <div className="overflow-y-auto divide-y divide-[rgb(var(--ec-page-border))]" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+                        <div className="text-[11px] font-medium text-[rgb(var(--ec-page-text-muted))] mb-2">
+                          Available Tools ({sortedTools.length})
+                        </div>
+                        <div
+                          className="overflow-y-auto divide-y divide-[rgb(var(--ec-page-border))]"
+                          style={{ maxHeight: 'calc(100vh - 280px)' }}
+                        >
                           {sortedTools.map((tool) => (
                             <div key={tool.name} className="py-2 first:pt-0 last:pb-0">
                               <div className="flex items-center gap-1.5">
@@ -982,7 +996,9 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                   </div>
                 </div>
               </form>
-              <p className="text-xs text-[rgb(var(--ec-icon-color))] mt-2 text-center">AI can make mistakes. Verify important info.</p>
+              <p className="text-xs text-[rgb(var(--ec-icon-color))] mt-2 text-center">
+                AI can make mistakes. Verify important info.
+              </p>
             </div>
           </Dialog.Content>
         </Dialog.Portal>
