@@ -28,7 +28,10 @@ try {
   model = await providerConfiguration.default();
   modelConfiguration = providerConfiguration.configuration || defaultConfiguration;
   hasChatConfiguration = true;
-  extendedTools = providerConfiguration.tools || {};
+
+  if (isEventCatalogScaleEnabled()) {
+    extendedTools = providerConfiguration.tools || {};
+  }
 } catch (error) {
   console.error('[Chat] Error loading chat configuration', error);
   hasChatConfiguration = false;
@@ -111,12 +114,14 @@ When responding:
 5. Don't provide code examples unless specifically requested.
 6. When you refer to a resource in EventCatalog, try and create a link to the resource in the response
     - Example, if you return a message in the text, rather than than just the id or version you should return a markdown link to the resource e.g [MyEvent - 1.0.0](/docs/events/MyEvent/1.0.0)
-    - NEVER return "latest" in the markdown link, always use the specific version
+    - CRITICAL: NEVER use "latest" in any URL or link. Always use the actual semantic version number (e.g., 1.0.0, 2.1.3). The word "latest" is not a valid version and will result in broken links.
     - The link options are:
         - If you want to get the documentation for a resource use the /docs/ prefix (e.g /docs/{collection}/{id}/{version})
         - If you want to let the user know they can visualize a resource use the /visualiser/ prefix (e.g /visualiser/{collection}/{id}/{version})
         - If you want to let the user know they can see the architecture of a resource use the /architecture/ prefix (e.g /architecture/{collection}/{id}/{version})
+    - If you don't know the version, use the getResource tool to fetch the resource and get the actual version number before creating the link.
 7. When you return a schema, use code blocks to render the schema to the user too, for example if the schema is in JSON format use \`\`\`json and if the schema is in YAML format use \`\`\`yaml
+8. IMPORTANT: After answering each question, ALWAYS use the suggestFollowUpQuestions tool to suggest 2-3 relevant follow-up questions the user might want to ask next. These should be contextual to the conversation and help the user explore related topics.
 
 If you have additional context, use it to answer the question.`;
 
@@ -171,7 +176,7 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
     const result = await streamText({
       model,
       system: getBaseSystemPrompt(referrer ?? ''),
-      messages: convertToModelMessages(messages) as ModelMessage[],
+      messages: await convertToModelMessages(messages),
       temperature: modelConfiguration?.temperature ?? 0.7,
       stopWhen: stepCountIs(5),
       // maxTokens: 4000, // Increased to handle large tool results
@@ -318,6 +323,22 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
             }
 
             return [];
+          },
+        }),
+        suggestFollowUpQuestions: tool({
+          description:
+            'Use this tool after answering a question to suggest 2-3 relevant follow-up questions the user might want to ask. These will be displayed as clickable suggestions.',
+          inputSchema: z.object({
+            questions: z
+              .array(z.string())
+              .min(1)
+              .max(3)
+              .describe('Array of 2-3 follow-up questions relevant to the conversation'),
+          }),
+          execute: async ({ questions }) => {
+            // This tool doesn't need to do anything - it just returns the questions
+            // which will be captured by the UI
+            return { suggestions: questions };
           },
         }),
         ...extendedTools,
