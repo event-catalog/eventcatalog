@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.2.2
+
+### Patch Changes
+
+- d1b2172: fix(core): changelog theme styles
+
 ## 3.2.1
 
 ### Patch Changes
