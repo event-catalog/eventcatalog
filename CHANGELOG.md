@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.2.1
+
+### Patch Changes
+
+- c8e2c5c: feat(core): added support for icepanel diagrams
+
 ## 3.2.0
 
 ### Minor Changes
