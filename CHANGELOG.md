@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.2.0
+
+### Minor Changes
+
+- 31c0bfe: feat(core): added ability to add custom tools to AI assistant
+
 ## 3.1.0
 
 ### Minor Changes
