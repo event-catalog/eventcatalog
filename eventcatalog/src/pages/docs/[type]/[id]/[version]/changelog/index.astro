@@ -73,31 +73,25 @@ const logList = await Promise.all(logListPromise);
 
 const getBadge = () => {
   if (props.collection === 'services') {
-    return { backgroundColor: 'pink', textColor: 'pink', content: 'Service', icon: ServerIcon, class: 'text-pink-600' };
+    return { badgeType: 'service', content: 'Service', icon: ServerIcon };
   }
   if (props.collection === 'events') {
-    return { backgroundColor: 'orange', textColor: 'orange', content: 'Event', icon: BoltIcon, class: 'text-orange-600' };
+    return { badgeType: 'event', content: 'Event', icon: BoltIcon };
   }
   if (props.collection === 'commands') {
-    return { backgroundColor: 'blue', textColor: 'blue', content: 'Command', icon: ChatBubbleLeftIcon, class: 'text-blue-600' };
+    return { badgeType: 'command', content: 'Command', icon: ChatBubbleLeftIcon };
   }
   if (props.collection === 'queries') {
-    return { backgroundColor: 'green', textColor: 'green', content: 'Query', icon: MagnifyingGlassIcon, class: 'text-green-600' };
+    return { badgeType: 'query', content: 'Query', icon: MagnifyingGlassIcon };
   }
   if (props.collection === 'domains') {
-    return {
-      backgroundColor: 'yellow',
-      textColor: 'yellow',
-      content: 'Domain',
-      icon: RectangleGroupIcon,
-      class: 'text-yellow-600',
-    };
+    return { badgeType: 'domain', content: 'Domain', icon: RectangleGroupIcon };
   }
   if (props.collection === 'containers') {
-    return { backgroundColor: 'blue', textColor: 'blue', content: 'Container', icon: DatabaseIcon, class: 'text-blue-600' };
+    return { badgeType: 'default', content: 'Container', icon: DatabaseIcon };
   }
   if (props.collection === 'flows') {
-    return { backgroundColor: 'teal', textColor: 'teal', content: 'Flow', icon: QueueListIcon, class: 'text-teal-600' };
+    return { badgeType: 'design', content: 'Flow', icon: QueueListIcon };
   }
 };
 
@@ -112,7 +106,7 @@ const badges = [getBadge()];
           <div>
             <a
               href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}`)}
-              class="text-sm font-medium text-gray-500 hover:text-gray-700"
+              class="text-sm font-medium text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
             >
               {props.data.name}
             </a>
@@ -120,12 +114,17 @@ const badges = [getBadge()];
         </li>
         <li>
           <div class="flex items-center">
-            <svg fill="currentColor" viewBox="0 0 20 20" aria-hidden="true" class="h-5 w-5 flex-shrink-0 text-gray-300">
+            <svg
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              aria-hidden="true"
+              class="h-5 w-5 flex-shrink-0 text-[rgb(var(--ec-page-border))]"
+            >
               <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z"></path>
             </svg>
             <a
               href={buildUrl(`/docs/${props.collection}/${props.data.id}/${props.data.version}`)}
-              class="text-sm font-medium text-gray-500 hover:text-gray-700"
+              class="text-sm font-medium text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
             >
               Changelog
             </a>
@@ -133,18 +132,19 @@ const badges = [getBadge()];
         </li>
       </ol>
     </nav>
-    <div class="border-b border-gray-200 flex justify-between items-start py-4 w-full">
+    <div class="border-b border-[rgb(var(--ec-page-border))] flex justify-between items-start py-4 w-full">
       <div>
-        <h2 class="text-2xl md:text-4xl font-bold">{props.data.name} (Changelog)</h2>
-        <h2 class="text-lg pt-2 text-gray-500 font-light">{props.data.summary}</h2>
+        <h2 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{props.data.name} (Changelog)</h2>
+        <h2 class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</h2>
         {
           badges && (
             <div class="flex flex-wrap py-2 pt-4">
               {badges.map((badge: any) => (
                 <span
-                  class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2 bg-${badge.backgroundColor}-100 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}
+                  class="text-sm font-medium px-2 py-1 rounded-md mr-2 space-x-1 flex items-center"
+                  style={`background-color: rgb(var(--ec-badge-${badge.badgeType}-bg)); color: rgb(var(--ec-badge-${badge.badgeType}-text));`}
                 >
-                  {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
+                  {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1" />}
                   <span>{badge.content}</span>
                 </span>
               ))}
@@ -155,7 +155,7 @@ const badges = [getBadge()];
     </div>
     {
       logList.length === 0 && (
-        <div class="py-4 text-gray-400 prose prose-md">
+        <div class="py-4 text-[rgb(var(--ec-page-text-muted))] prose prose-md">
           <p>No changelogs found.</p>
         </div>
       )
@@ -167,25 +167,22 @@ const badges = [getBadge()];
             <li>
               <div class="relative pb-8">
                 {index !== logList.length - 1 ? (
-                  <span aria-hidden="true" class="absolute left-6 top-4 -ml-px h-full w-0.5 bg-gray-200" />
+                  <span aria-hidden="true" class="absolute left-6 top-4 -ml-px h-full w-0.5 bg-[rgb(var(--ec-page-border))]" />
                 ) : null}
                 <div class="relative flex space-x-3">
                   <div>
                     <a
                       href={buildUrl(`${log.url}/${log.version}`)}
-                      class={
-                        'bg-primary hover:bg-primary/80 text-white flex h-8 w-14 items-center justify-center rounded-full ring-8 ring-white'
-                      }
+                      class="bg-primary hover:bg-primary/80 text-white flex h-8 w-14 items-center justify-center rounded-full ring-8 ring-[rgb(var(--ec-page-bg))]"
                     >
                       {log.version}
-                      {/* <DocumentTextIcon aria-hidden="true" className="h-5 w-5 text-white" /> */}
                     </a>
                   </div>
                 </div>
                 <div class="pl-[70px] py-2 -mt-10">
                   {log.createdAt && (
                     <div class="pb-2">
-                      <h3 class="text-2xl text-gray-800 font-bold">
+                      <h3 class="text-2xl text-[rgb(var(--ec-page-text))] font-bold">
                         <span>
                           {log.createdAt.toISOString().split('T')[0]} {`${log.isLatest ? '(latest)' : ''}`}
                         </span>
@@ -195,10 +192,8 @@ const badges = [getBadge()];
                   {log.badges && (
                     <div class="flex flex-wrap">
                       {log.badges.map((badge: any) => (
-                        <span
-                          class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2 bg-${badge.backgroundColor}-100 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}
-                        >
-                          {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
+                        <span class="text-sm font-medium px-2 py-1 rounded-md mr-2 space-x-1 flex items-center bg-[rgb(var(--ec-badge-default-bg))] text-[rgb(var(--ec-badge-default-text))]">
+                          {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1" />}
                           <span>{badge.content}</span>
                         </span>
                       ))}
@@ -207,7 +202,7 @@ const badges = [getBadge()];
                   <div class="prose prose-md !max-w-none py-2">
                     <log.Content components={mdxComponents(props)} />
                   </div>
-                  {log.diffs && log.diffs.map((diff) => <div id="diff-container" set:html={diff} />)}
+                  {log.diffs && log.diffs.map((diff) => <div class="bg-white rounded-lg p-2 my-2" set:html={diff} />)}
                 </div>
               </div>
             </li>
