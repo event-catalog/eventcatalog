@@ -1,10 +1,10 @@
-import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
-import { X, Sparkles, Square, Trash2, BookOpen, Copy, Check, Maximize2, Minimize2, Wrench } from 'lucide-react';
+import { useEffect, useRef, useCallback, useState, useMemo, memo } from 'react';
+import { X, Square, Trash2, BookOpen, Copy, Check, Maximize2, Minimize2, Wrench, ChevronDown, MessageSquare } from 'lucide-react';
 import { useChat } from '@ai-sdk/react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism';
-import { lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Popover from '@radix-ui/react-popover';
 
@@ -14,15 +14,65 @@ interface ToolMetadata {
   isCustom?: boolean;
 }
 
-// Code block component with copy functionality
-const CodeBlock = ({ language, children }: { language: string; children: string }) => {
+// CSS keyframes - defined once outside component to avoid re-injection
+const CHAT_PANEL_STYLES = `
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes focusIn {
+    from {
+      box-shadow: 0 0 0 0 rgba(168, 85, 247, 0);
+      border-color: #e5e7eb;
+    }
+    to {
+      box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+      border-color: #c084fc;
+    }
+  }
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 8px rgba(147, 51, 234, 0.3); }
+    50% { box-shadow: 0 0 16px rgba(147, 51, 234, 0.5); }
+  }
+`;
+
+// Stable style object for syntax highlighter
+const CODE_BLOCK_STYLE = {
+  margin: 0,
+  borderRadius: '0.375rem',
+  fontSize: '12px',
+  padding: '1rem',
+};
+
+// Code block component with copy functionality - memoized
+const CodeBlock = memo(({ language, children }: { language: string; children: string }) => {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(children);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(children);
+      setCopied(true);
+    } catch {
+      // Clipboard API can fail in some contexts
+    }
+  }, [children]);
+
+  // Clear copied state after 2 seconds with proper cleanup
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [copied]);
 
   return (
     <div className="relative group my-2">
@@ -33,21 +83,13 @@ const CodeBlock = ({ language, children }: { language: string; children: string 
       >
         {copied ? <Check size={14} /> : <Copy size={14} />}
       </button>
-      <SyntaxHighlighter
-        language={language}
-        style={oneDark}
-        customStyle={{
-          margin: 0,
-          borderRadius: '0.375rem',
-          fontSize: '12px',
-          padding: '1rem',
-        }}
-      >
+      <SyntaxHighlighter language={language} style={oneDark} customStyle={CODE_BLOCK_STYLE}>
         {children}
       </SyntaxHighlighter>
     </div>
   );
-};
+});
+CodeBlock.displayName = 'CodeBlock';
 
 // Get time-based greeting
 const getGreeting = () => {
@@ -111,9 +153,12 @@ const suggestedQuestionsConfig: QuestionConfig[] = [
     pattern: /^\/docs\/services\/.+/,
     questions: [
       { label: 'Who owns this service?', prompt: 'Who owns this service and how do I contact them?' },
-      { label: 'What does this depend on?', prompt: 'What are the upstream and downstream dependencies of this service?' },
-      { label: 'How do I integrate with this?', prompt: 'How do I integrate with this service?' },
-      { label: 'What messages does this publish?', prompt: 'What messages does this service produce?' },
+      {
+        label: 'What does this service depend on?',
+        prompt: 'What are the upstream and downstream dependencies of this service?',
+      },
+      { label: 'How do I integrate with this service?', prompt: 'How do I integrate with this service?' },
+      { label: 'What messages are published and consumed?', prompt: 'What messages does this service produce and consume?' },
     ],
   },
   // Domains page
@@ -229,37 +274,176 @@ const fadeInStyles = {
   inputFocus: {
     animation: 'focusIn 0.6s ease-out 1.4s both',
   },
+  // Follow-up suggestions animate with staggered fade-in-up
+  getFollowUpStyle: (index: number) => ({
+    animation: `fadeInUp 0.4s ease-out ${index * 0.1}s both`,
+  }),
+};
+
+// Preprocess markdown to fix common formatting issues
+const preprocessMarkdown = (text: string): string => {
+  // Add newlines before headings if they're directly after text (no newline)
+  // This fixes cases like "some text.## Heading" → "some text.\n\n## Heading"
+  return text.replace(/([^\n])(#{1,6}\s)/g, '$1\n\n$2');
 };
 
 // Helper to extract text content from message parts
 const getMessageContent = (message: { parts?: Array<{ type: string; text?: string }> }): string => {
   if (!message.parts) return '';
-  return message.parts
+  const rawContent = message.parts
     .filter((part): part is { type: 'text'; text: string } => part.type === 'text' && typeof part.text === 'string')
     .map((part) => part.text)
     .join('');
+  return preprocessMarkdown(rawContent);
 };
 
-// Skeleton loading component
-const SkeletonLoader = () => (
+// Helper to extract follow-up suggestions from message parts
+const getFollowUpSuggestions = (message: { parts?: Array<any> }): string[] => {
+  if (!message.parts) return [];
+
+  for (const part of message.parts) {
+    // AI SDK format: type is "tool-{toolName}" and result is in "output"
+    if (part.type === 'tool-suggestFollowUpQuestions' && part.state === 'output-available') {
+      const suggestions = part.output?.suggestions;
+      if (suggestions && Array.isArray(suggestions)) {
+        return suggestions;
+      }
+    }
+  }
+  return [];
+};
+
+// Helper to extract currently running tools from message parts
+const getRunningTools = (message: { parts?: Array<any> }): string[] => {
+  if (!message.parts) return [];
+
+  const runningTools: string[] = [];
+  for (const part of message.parts) {
+    // Tool parts have type like "tool-{toolName}" and state indicates progress
+    if (part.type?.startsWith('tool-') && part.state !== 'output-available') {
+      // Extract tool name from type (e.g., "tool-getServiceHealth" -> "getServiceHealth")
+      const toolName = part.type.replace('tool-', '');
+      // Skip the follow-up suggestions tool as it's internal
+      if (toolName !== 'suggestFollowUpQuestions') {
+        runningTools.push(toolName);
+      }
+    }
+  }
+  return runningTools;
+};
+
+// Helper to extract completed tools from message parts (for showing after completion)
+const getCompletedTools = (message: { parts?: Array<any> }): string[] => {
+  if (!message.parts) return [];
+
+  const completedTools: string[] = [];
+  for (const part of message.parts) {
+    // Tool parts have type like "tool-{toolName}" and state 'output-available' when done
+    if (part.type?.startsWith('tool-') && part.state === 'output-available') {
+      const toolName = part.type.replace('tool-', '');
+      // Skip internal tools
+      if (toolName !== 'suggestFollowUpQuestions') {
+        completedTools.push(toolName);
+      }
+    }
+  }
+  return completedTools;
+};
+
+// Skeleton loading component - memoized since it never changes
+const SkeletonLoader = memo(() => (
   <div className="animate-pulse space-y-3">
-    <div className="h-4 bg-gray-200 rounded w-[90%]" />
-    <div className="h-4 bg-gray-200 rounded w-[75%]" />
-    <div className="h-4 bg-gray-200 rounded w-[85%]" />
-    <div className="h-4 bg-gray-200 rounded w-[60%]" />
+    <div className="h-4 bg-[rgb(var(--ec-content-hover))] rounded w-[90%]" />
+    <div className="h-4 bg-[rgb(var(--ec-content-hover))] rounded w-[75%]" />
+    <div className="h-4 bg-[rgb(var(--ec-content-hover))] rounded w-[85%]" />
+    <div className="h-4 bg-[rgb(var(--ec-content-hover))] rounded w-[60%]" />
   </div>
-);
+));
+SkeletonLoader.displayName = 'SkeletonLoader';
+
+// Memoized markdown components to prevent re-renders
+const markdownComponents = {
+  a: ({ ...props }: any) => (
+    <a
+      {...props}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-[rgb(var(--ec-accent))] hover:text-[rgb(var(--ec-accent-hover))] underline"
+    />
+  ),
+  code: ({ children, className, ...props }: any) => {
+    const isInline = !className;
+    const match = /language-(\w+)/.exec(className || '');
+    const language = match ? match[1] : 'text';
+    const codeString = String(children).replace(/\n$/, '');
+
+    return isInline ? (
+      <code
+        className="px-1 py-0.5 rounded text-xs font-mono bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text))]"
+        {...props}
+      >
+        {children}
+      </code>
+    ) : (
+      <CodeBlock language={language}>{codeString}</CodeBlock>
+    );
+  },
+  table: ({ ...props }: any) => (
+    <div className="overflow-x-auto my-3">
+      <table className="min-w-full text-xs border-collapse border border-[rgb(var(--ec-page-border))]" {...props} />
+    </div>
+  ),
+  thead: ({ ...props }: any) => <thead className="bg-[rgb(var(--ec-content-hover))]" {...props} />,
+  th: ({ ...props }: any) => (
+    <th
+      className="px-3 py-2 text-left font-medium text-[rgb(var(--ec-page-text))] border border-[rgb(var(--ec-page-border))]"
+      {...props}
+    />
+  ),
+  td: ({ ...props }: any) => (
+    <td className="px-3 py-2 text-[rgb(var(--ec-page-text-muted))] border border-[rgb(var(--ec-page-border))]" {...props} />
+  ),
+};
+
+// Modal version with slightly different code styling
+const modalMarkdownComponents = {
+  ...markdownComponents,
+  code: ({ children, className, ...props }: any) => {
+    const isInline = !className;
+    const match = /language-(\w+)/.exec(className || '');
+    const language = match ? match[1] : 'text';
+    const codeString = String(children).replace(/\n$/, '');
+
+    return isInline ? (
+      <code
+        className="px-1.5 py-0.5 rounded text-sm font-mono bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text))]"
+        {...props}
+      >
+        {children}
+      </code>
+    ) : (
+      <CodeBlock language={language}>{codeString}</CodeBlock>
+    );
+  },
+  table: ({ ...props }: any) => (
+    <div className="overflow-x-auto my-3">
+      <table className="min-w-full text-sm border-collapse border border-[rgb(var(--ec-page-border))]" {...props} />
+    </div>
+  ),
+};
 
 const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const modalInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const modalMessagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState('');
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [pathname, setPathname] = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [tools, setTools] = useState<ToolMetadata[]>([]);
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   // Sort tools with custom ones first
   const sortedTools = useMemo(() => {
@@ -291,19 +475,55 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     setPathname(window.location.pathname + window.location.search);
   }, [isOpen]);
 
-  const suggestedQuestions = getSuggestedQuestions(pathname);
+  // Memoize suggested questions to avoid recalculating on every render
+  const suggestedQuestions = useMemo(() => getSuggestedQuestions(pathname), [pathname]);
 
-  const { messages, sendMessage, stop, status, setMessages, error } = useChat({
-    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
-  });
+  // Memoize page context to avoid recalculating on every render
+  const pageContext = useMemo(() => {
+    const match = pathname.match(
+      /^\/(docs|visualiser|architecture)\/(events|services|commands|queries|flows|domains|channels|entities|containers)\/([^/]+)(?:\/([^/]+))?/
+    );
+    if (match) {
+      const [, , collection, id, version] = match;
+      const collectionNames: Record<string, string> = {
+        events: 'Event',
+        services: 'Service',
+        commands: 'Command',
+        queries: 'Query',
+        flows: 'Flow',
+        domains: 'Domain',
+        channels: 'Channel',
+        entities: 'Entity',
+        containers: 'Container',
+      };
+      return {
+        type: collectionNames[collection] || collection,
+        name: id,
+        version: version || 'latest',
+      };
+    }
+    return null;
+  }, [pathname]);
+
+  // Handle scroll to detect if user scrolled up
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    const isNearBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 100;
+    setShowScrollButton(!isNearBottom);
+  }, []);
+
+  const { messages, sendMessage, stop, status, setMessages, error } = useChat();
 
   // Extract user-friendly error message
   const errorMessage = error?.message || 'Something went wrong. Please try again.';
 
+  // Memoize last assistant message to avoid array operations on every render
+  const lastAssistantMessage = useMemo(() => messages.findLast((m) => m.role === 'assistant'), [messages]);
+
   // Check if the assistant has started outputting content
-  const lastAssistantMessage = [...messages].reverse().find((m) => m.role === 'assistant');
-  const assistantHasContent = lastAssistantMessage?.parts?.some(
-    (p) => p.type === 'text' && (p as { type: 'text'; text: string }).text.length > 0
+  const assistantHasContent = useMemo(
+    () => lastAssistantMessage?.parts?.some((p) => p.type === 'text' && (p as { type: 'text'; text: string }).text.length > 0),
+    [lastAssistantMessage]
   );
 
   // Clear waiting state once assistant starts outputting or on error
@@ -314,8 +534,12 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   }, [assistantHasContent, status]);
 
   const isStreaming = status === 'streaming' && assistantHasContent;
-  const isThinking = isWaitingForResponse || ((status === 'submitted' || status === 'streaming') && !assistantHasContent);
+  const isThinking =
+    isWaitingForResponse || (messages.length > 0 && (status === 'submitted' || status === 'streaming') && !assistantHasContent);
   const isLoading = isThinking || isStreaming;
+
+  // Get currently running tools from the last assistant message
+  const runningTools = useMemo(() => (lastAssistantMessage ? getRunningTools(lastAssistantMessage) : []), [lastAssistantMessage]);
 
   // Scroll to bottom when new messages arrive
   const scrollToBottom = useCallback(() => {
@@ -423,9 +647,9 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
     [submitMessage]
   );
 
-  // Handle textarea enter key
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  // Handle input enter key
+  const handleInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         submitMessage(inputValue);
@@ -445,59 +669,41 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
 
   const hasMessages = messages.length > 0;
 
+  // Memoize greeting - only changes when hour changes (effectively stable during session)
+  const greeting = useMemo(() => getGreeting(), []);
+
   return (
     <>
-      {/* Keyframes for fade-in animation */}
-      <style>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-        @keyframes focusIn {
-          from {
-            box-shadow: 0 0 0 0 rgba(168, 85, 247, 0);
-            border-color: #e5e7eb;
-          }
-          to {
-            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
-            border-color: #c084fc;
-          }
-        }
-        @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 0 8px rgba(147, 51, 234, 0.3); }
-          50% { box-shadow: 0 0 16px rgba(147, 51, 234, 0.5); }
-        }
-      `}</style>
+      {/* Keyframes for fade-in animation - using constant to avoid re-injection */}
+      <style>{CHAT_PANEL_STYLES}</style>
 
       {/* Panel - hidden when fullscreen modal is open */}
       {!isFullscreen && (
         <div
-          className="fixed top-0 right-0 h-[100vh] z-[200] bg-white border-l border-gray-200 flex flex-col overflow-hidden"
+          className="fixed top-0 right-0 h-[100vh] z-[200] border-l border-[rgb(var(--ec-page-border))] flex flex-col overflow-hidden"
           style={{
             width: `${PANEL_WIDTH}px`,
             transform: isOpen ? 'translateX(0)' : `translateX(${PANEL_WIDTH}px)`,
             transition: 'transform 800ms cubic-bezier(0.16, 1, 0.3, 1)',
+            background: `
+              radial-gradient(ellipse 100% 40% at 50% 100%, rgb(var(--ec-accent) / 0.15) 0%, transparent 100%),
+              rgb(var(--ec-page-bg))
+            `,
           }}
         >
           {/* Header */}
-          <div className="flex-none border-b border-gray-100 shrink-0 pb-1">
+          <div className="flex-none shrink-0 pb-1">
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center space-x-2">
-                <div className="p-1.5 bg-[rgb(var(--ec-accent-subtle))] rounded-md">
-                  <BookOpen size={14} className="text-[rgb(var(--ec-accent))]" />
-                </div>
-                <span className="font-medium text-[rgb(var(--ec-page-text))] text-sm">EventCatalog Assistant</span>
+                <BookOpen size={16} className="text-[rgb(var(--ec-accent))]" />
+                <span className="font-medium text-[rgb(var(--ec-header-text))] text-sm">EventCatalog Assistant</span>
               </div>
               <div className="flex items-center space-x-1">
                 {tools.length > 0 && (
                   <Popover.Root>
                     <Popover.Trigger asChild>
                       <button
-                        className="p-2 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
+                        className="p-2 rounded-lg hover:bg-[rgb(var(--ec-header-border))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-header-text))] transition-colors"
                         aria-label="View available tools"
                         title="Available tools"
                       >
@@ -535,7 +741,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                 )}
                 <button
                   onClick={() => setIsFullscreen(true)}
-                  className="p-2 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
+                  className="p-2 rounded-lg hover:bg-[rgb(var(--ec-header-border))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-header-text))] transition-colors"
                   aria-label="Expand to fullscreen"
                   title="Expand"
                 >
@@ -544,7 +750,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                 {hasMessages && (
                   <button
                     onClick={() => setMessages([])}
-                    className="p-2 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
+                    className="p-2 rounded-lg hover:bg-[rgb(var(--ec-header-border))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-header-text))] transition-colors"
                     aria-label="Clear chat"
                     title="Clear chat"
                   >
@@ -553,7 +759,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                 )}
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-lg hover:bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
+                  className="p-2 rounded-lg hover:bg-[rgb(var(--ec-header-border))] text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-header-text))] transition-colors"
                   aria-label="Close chat panel"
                 >
                   <X size={18} />
@@ -563,8 +769,16 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
             {/* Thinking indicator */}
             {isThinking && (
               <div className="px-4 pb-2 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-[rgb(var(--ec-accent-subtle))]0 rounded-full animate-pulse" />
-                <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">Thinking...</span>
+                <div className="w-1.5 h-1.5 bg-[rgb(var(--ec-accent))] rounded-full animate-pulse" />
+                <span className="text-xs text-[rgb(var(--ec-icon-color))]">
+                  {runningTools.length > 0 ? (
+                    <>
+                      Using <span className="font-medium text-[rgb(var(--ec-accent))]">{runningTools[0]}</span>...
+                    </>
+                  ) : (
+                    'Thinking...'
+                  )}
+                </span>
               </div>
             )}
           </div>
@@ -572,42 +786,34 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
           {/* Content */}
           <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden" key={isOpen ? 'content-open' : 'content-closed'}>
             {/* Messages or Welcome area */}
-            <div className="flex-1 overflow-y-auto px-4 scrollbar-hide">
+            <div ref={messagesContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-5 scrollbar-hide">
               {!hasMessages ? (
-                /* Welcome area */
-                <div className="flex flex-col h-full justify-between pt-4 pb-2">
-                  {/* Center content */}
+                /* Welcome area - Clean GitBook-inspired design */
+                <div className="flex flex-col h-full py-6">
+                  {/* Greeting section - centered */}
                   <div
-                    className="flex-1 flex flex-col items-center justify-center"
+                    className="flex-1 flex flex-col items-center justify-center text-center"
                     style={isOpen ? fadeInStyles.welcome : undefined}
                   >
-                    {/* Animated Icon */}
-                    <div className="relative mb-5">
-                      <div className="absolute inset-0 bg-[rgb(var(--ec-accent)/0.2)] rounded-2xl blur-xl animate-pulse" />
-                      <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-[rgb(var(--ec-accent-gradient-from))] to-[rgb(var(--ec-accent-gradient-to))] flex items-center justify-center shadow-lg">
-                        <BookOpen size={26} className="text-white" strokeWidth={1.5} />
-                        <Sparkles size={10} className="text-[rgb(var(--ec-accent)/0.4)] absolute -top-1 -right-1 animate-pulse" />
+                    {/* Icon with circular background */}
+                    <div className="relative mb-6">
+                      <div className="w-32 h-32 rounded-full bg-[rgb(var(--ec-accent)/0.15)] flex items-center justify-center">
+                        <MessageSquare size={56} className="text-[rgb(var(--ec-accent))]" strokeWidth={1.5} />
                       </div>
                     </div>
-                    <h2 className="text-base font-medium text-[rgb(var(--ec-page-text))] mb-1">{getGreeting()}</h2>
-                    <p className="text-sm text-[rgb(var(--ec-page-text-muted))] text-center">
-                      Ask me anything about your catalog.
+                    <h2 className="text-lg font-semibold text-[rgb(var(--ec-accent))] mb-1">{greeting}</h2>
+                    <p className="text-sm font-normal text-[rgb(var(--ec-content-text))]">
+                      I'm here to help with your architecture
                     </p>
                   </div>
 
-                  {/* Suggested questions */}
-                  <div className="space-y-1.5 mt-4">
-                    <p
-                      className="text-xs font-medium text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wide mb-2"
-                      style={isOpen ? fadeInStyles.questionsLabel : undefined}
-                    >
-                      Example questions
-                    </p>
+                  {/* Suggested questions - pill style */}
+                  <div className="flex-none space-y-2">
                     {suggestedQuestions.map((question, index) => (
                       <button
                         key={index}
                         onClick={() => handleSuggestedAction(question.prompt)}
-                        className="w-full text-left px-3 py-2.5 text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] hover:bg-[rgb(var(--ec-accent-subtle))] hover:text-[rgb(var(--ec-accent-text))] border border-[rgb(var(--ec-page-border))] hover:border-[rgb(var(--ec-accent)/0.3)] rounded-lg transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-page-text)/0.05)] hover:bg-[rgb(var(--ec-accent)/0.15)] rounded-full transition-all duration-200"
                         style={isOpen ? fadeInStyles.getQuestionStyle(index) : undefined}
                       >
                         {question.label}
@@ -618,50 +824,58 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
               ) : (
                 /* Messages area */
                 <div className="py-4 space-y-4">
-                  {messages.map((message) => {
+                  {messages.map((message, messageIndex) => {
                     const content = getMessageContent(message);
+                    const followUpSuggestions = message.role === 'assistant' ? getFollowUpSuggestions(message) : [];
+                    const completedTools = message.role === 'assistant' ? getCompletedTools(message) : [];
+                    const isLastMessage = messageIndex === messages.length - 1;
                     return (
-                      <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div key={message.id} className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
                         {message.role === 'user' ? (
-                          <div className="max-w-[85%] rounded-2xl rounded-br-md px-4 py-2.5 bg-[rgb(var(--ec-accent))] text-white">
-                            <p className="text-sm whitespace-pre-wrap">{content}</p>
+                          <div className="max-w-[85%] rounded-2xl rounded-br-md px-4 py-2.5 bg-[rgb(var(--ec-page-text)/0.05)]">
+                            <p className="text-sm font-normal whitespace-pre-wrap text-[rgb(var(--ec-page-text))]">{content}</p>
                           </div>
                         ) : (
-                          <div className="w-full text-[rgb(var(--ec-page-text))]">
-                            <div className="prose prose-sm max-w-none prose-p:my-2 prose-p:font-normal prose-p:text-[13px] prose-headings:my-3 prose-headings:font-medium prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-li:text-[13px] prose-li:font-normal text-[13px] font-light">
-                              <ReactMarkdown
-                                components={{
-                                  a: ({ ...props }) => (
-                                    <a
-                                      {...props}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-[rgb(var(--ec-accent))] hover:text-[rgb(var(--ec-accent-hover))] underline"
-                                    />
-                                  ),
-                                  code: ({ children, className, ...props }) => {
-                                    const isInline = !className;
-                                    const match = /language-(\w+)/.exec(className || '');
-                                    const language = match ? match[1] : 'text';
-                                    const codeString = String(children).replace(/\n$/, '');
-
-                                    return isInline ? (
-                                      <code
-                                        className="px-1 py-0.5 rounded text-xs font-mono bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text))]"
-                                        {...props}
-                                      >
-                                        {children}
-                                      </code>
-                                    ) : (
-                                      <CodeBlock language={language}>{codeString}</CodeBlock>
-                                    );
-                                  },
-                                }}
-                              >
-                                {content}
-                              </ReactMarkdown>
+                          <>
+                            {/* Tools used indicator */}
+                            {completedTools.length > 0 && (
+                              <div className="flex items-center gap-1.5 mb-2">
+                                <Wrench size={10} className="text-[rgb(var(--ec-icon-color))]" />
+                                <span className="text-[10px] text-[rgb(var(--ec-icon-color))]">
+                                  Used{' '}
+                                  {completedTools.slice(0, 2).map((tool, i) => (
+                                    <span key={tool}>
+                                      <span className="font-medium text-[rgb(var(--ec-accent))]">{tool}</span>
+                                      {i < Math.min(completedTools.length, 2) - 1 && ', '}
+                                    </span>
+                                  ))}
+                                  {completedTools.length > 2 && <span> +{completedTools.length - 2} more</span>}
+                                </span>
+                              </div>
+                            )}
+                            <div className="w-full text-[rgb(var(--ec-content-text))]">
+                              <div className="prose prose-sm max-w-none prose-p:my-2 prose-p:font-normal prose-p:text-[13px] prose-p:text-[rgb(var(--ec-content-text))] prose-headings:my-2 prose-headings:font-semibold prose-headings:text-[rgb(var(--ec-page-text))] prose-h1:text-base prose-h2:text-sm prose-h3:text-[13px] prose-h4:text-[13px] prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-li:text-[13px] prose-li:font-normal prose-li:text-[rgb(var(--ec-content-text))] text-[13px] font-light">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                                  {content}
+                                </ReactMarkdown>
+                              </div>
                             </div>
-                          </div>
+                            {/* Follow-up suggestions - only show for last assistant message when not loading */}
+                            {isLastMessage && followUpSuggestions.length > 0 && !isLoading && (
+                              <div className="flex flex-wrap gap-2 mt-3 w-full">
+                                {followUpSuggestions.map((suggestion, index) => (
+                                  <button
+                                    key={index}
+                                    onClick={() => handleSuggestedAction(suggestion)}
+                                    className="px-4 py-2.5 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-page-text)/0.05)] hover:bg-[rgb(var(--ec-accent)/0.15)] rounded-full transition-all duration-200 text-left"
+                                    style={fadeInStyles.getFollowUpStyle(index)}
+                                  >
+                                    {suggestion}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     );
@@ -691,43 +905,46 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
               )}
             </div>
 
+            {/* Scroll to bottom button */}
+            {hasMessages && showScrollButton && (
+              <button
+                onClick={scrollToBottom}
+                className="absolute bottom-24 right-4 flex items-center gap-1.5 px-3 py-1.5 bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text-muted))] text-xs font-medium rounded-full shadow-lg border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))] transition-all z-10"
+              >
+                <ChevronDown size={14} />
+                <span>Scroll to bottom</span>
+              </button>
+            )}
+
             {/* Input area (Fixed at bottom) */}
-            <div
-              className="flex-none px-4 py-3 border-t border-[rgb(var(--ec-page-border))]"
-              key={isOpen ? 'input-open' : 'input-closed'}
-            >
+            <div className="flex-none px-4 py-3" key={isOpen ? 'input-open' : 'input-closed'}>
               <form onSubmit={handleSubmit}>
-                <div className="relative bg-[rgb(var(--ec-input-bg))] rounded-lg border-2 border-[rgb(var(--ec-input-border))] focus-within:border-[rgb(var(--ec-accent)/0.5)] transition-all">
+                <div className="relative bg-[rgb(var(--ec-page-bg)/0.5)] backdrop-blur-sm rounded-xl border border-[rgb(var(--ec-accent)/0.3)] focus-within:border-[rgb(var(--ec-accent)/0.5)] focus-within:ring-2 focus-within:ring-[rgb(var(--ec-accent)/0.1)] transition-all">
                   <input
                     ref={inputRef}
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        submitMessage(inputValue);
-                      }
-                    }}
-                    placeholder="Ask a question..."
+                    onKeyDown={handleInputKeyDown}
+                    placeholder="Ask, search, or explain..."
                     disabled={isLoading}
-                    className="w-full px-3 py-2.5 pr-14 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-none text-sm disabled:opacity-50 rounded-lg"
+                    className="w-full px-4 py-3 pr-16 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-none text-sm disabled:opacity-50 rounded-xl"
                   />
-                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2 z-10">
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
                     {isStreaming ? (
                       <button
                         type="button"
                         onClick={() => stop()}
-                        className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-colors"
+                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                         aria-label="Stop generating"
                       >
-                        <Square size={12} fill="currentColor" />
+                        <Square size={14} fill="currentColor" />
                       </button>
                     ) : (
                       <button
                         type="submit"
                         disabled={!inputValue.trim() || isLoading}
-                        className="px-2.5 py-1 bg-[rgb(var(--ec-accent))] text-white text-xs font-medium rounded-md hover:bg-[rgb(var(--ec-accent-hover))] disabled:bg-[rgb(var(--ec-content-hover))] disabled:text-[rgb(var(--ec-icon-color))] transition-colors"
+                        className="px-3 py-1.5 bg-[rgb(var(--ec-accent))] text-white text-xs font-medium rounded-lg hover:bg-[rgb(var(--ec-accent-hover))] disabled:bg-transparent disabled:text-[rgb(var(--ec-icon-color))] transition-colors"
                         aria-label="Send message"
                       >
                         Send
@@ -736,9 +953,19 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                   </div>
                 </div>
               </form>
-              <p className="text-[9px] text-[rgb(var(--ec-icon-color))] mt-2 text-center">
-                AI can make mistakes. Verify important info.
-              </p>
+              {/* Context indicator */}
+              <div className="flex items-center justify-center gap-1.5 mt-2">
+                {pageContext ? (
+                  <span className="text-[10px] text-[rgb(var(--ec-icon-color))] flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--ec-accent))]" />
+                    Based on {pageContext.type}: {pageContext.name}
+                  </span>
+                ) : (
+                  <span className="text-[10px] text-[rgb(var(--ec-icon-color))]">
+                    AI can make mistakes. Verify important info.
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -757,7 +984,15 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
       >
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[300]" />
-          <Dialog.Content className="fixed inset-y-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl md:inset-y-8 rounded-xl bg-[rgb(var(--ec-page-bg))] shadow-2xl z-[301] flex flex-col overflow-hidden focus:outline-none border border-[rgb(var(--ec-page-border))]">
+          <Dialog.Content
+            className="fixed inset-y-4 left-1/2 -translate-x-1/2 w-[95%] max-w-4xl md:inset-y-8 rounded-xl shadow-2xl z-[301] flex flex-col overflow-hidden focus:outline-none border border-[rgb(var(--ec-page-border))]"
+            style={{
+              background: `
+                radial-gradient(ellipse 100% 40% at 50% 100%, rgb(var(--ec-accent) / 0.15) 0%, transparent 100%),
+                rgb(var(--ec-page-bg))
+              `,
+            }}
+          >
             {/* Modal Header */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-[rgb(var(--ec-page-border))] flex-shrink-0">
               <div className="flex items-center space-x-2.5">
@@ -845,34 +1080,45 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
             {/* Thinking indicator */}
             {isThinking && (
               <div className="px-5 py-2 flex items-center gap-2 border-b border-[rgb(var(--ec-page-border))]">
-                <div className="w-1.5 h-1.5 bg-[rgb(var(--ec-accent-subtle))]0 rounded-full animate-pulse" />
-                <span className="text-sm text-[rgb(var(--ec-page-text-muted))]">Thinking...</span>
+                <div className="w-1.5 h-1.5 bg-[rgb(var(--ec-accent))] rounded-full animate-pulse" />
+                <span className="text-sm text-[rgb(var(--ec-page-text-muted))]">
+                  {runningTools.length > 0 ? (
+                    <>
+                      Using <span className="font-medium text-[rgb(var(--ec-accent))]">{runningTools[0]}</span>...
+                    </>
+                  ) : (
+                    'Thinking...'
+                  )}
+                </span>
               </div>
             )}
 
             {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto px-5 py-4">
+            <div className="flex-1 overflow-y-auto px-6 py-6">
               {!hasMessages ? (
-                /* Welcome area */
-                <div className="flex flex-col h-full justify-center items-center">
-                  {/* Animated Icon */}
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-[rgb(var(--ec-accent)/0.2)] rounded-2xl blur-xl animate-pulse" />
-                    <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-[rgb(var(--ec-accent-gradient-from))] to-[rgb(var(--ec-accent-gradient-to))] flex items-center justify-center shadow-lg">
-                      <BookOpen size={30} className="text-white" strokeWidth={1.5} />
-                      <Sparkles size={12} className="text-[rgb(var(--ec-accent)/0.4)] absolute -top-1 -right-1 animate-pulse" />
+                /* Welcome area - Clean design */
+                <div className="flex flex-col h-full max-w-2xl mx-auto">
+                  {/* Greeting section - centered */}
+                  <div className="flex-1 flex flex-col justify-center items-center text-center">
+                    {/* Icon with circular background */}
+                    <div className="relative mb-8">
+                      <div className="w-40 h-40 rounded-full bg-[rgb(var(--ec-accent)/0.15)] flex items-center justify-center">
+                        <MessageSquare size={72} className="text-[rgb(var(--ec-accent))]" strokeWidth={1.5} />
+                      </div>
                     </div>
+                    <h2 className="text-2xl font-semibold text-[rgb(var(--ec-accent))] mb-2">{greeting}</h2>
+                    <p className="font-normal text-[rgb(var(--ec-content-text))] text-center">
+                      I'm here to help with your architecture
+                    </p>
                   </div>
-                  <h2 className="text-xl font-medium text-[rgb(var(--ec-page-text))] mb-1">{getGreeting()}</h2>
-                  <p className="text-[rgb(var(--ec-page-text-muted))] text-center mb-8">Ask me anything about your catalog.</p>
 
-                  {/* Suggested questions */}
-                  <div className="grid grid-cols-2 gap-2 max-w-lg">
+                  {/* Suggested questions - pill style */}
+                  <div className="flex-none grid grid-cols-2 gap-2">
                     {suggestedQuestions.map((question, index) => (
                       <button
                         key={index}
                         onClick={() => handleSuggestedAction(question.prompt)}
-                        className="px-4 py-2.5 text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] hover:bg-[rgb(var(--ec-accent-subtle))] hover:text-[rgb(var(--ec-accent-text))] rounded-lg transition-colors text-left"
+                        className="px-4 py-2.5 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-page-text)/0.05)] hover:bg-[rgb(var(--ec-accent)/0.15)] rounded-full transition-all duration-200 text-left"
                       >
                         {question.label}
                       </button>
@@ -882,50 +1128,58 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
               ) : (
                 /* Messages area */
                 <div className="max-w-3xl mx-auto space-y-4">
-                  {messages.map((message) => {
+                  {messages.map((message, messageIndex) => {
                     const content = getMessageContent(message);
+                    const followUpSuggestions = message.role === 'assistant' ? getFollowUpSuggestions(message) : [];
+                    const completedTools = message.role === 'assistant' ? getCompletedTools(message) : [];
+                    const isLastMessage = messageIndex === messages.length - 1;
                     return (
-                      <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div key={message.id} className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
                         {message.role === 'user' ? (
-                          <div className="max-w-[75%] rounded-2xl rounded-br-md px-4 py-2.5 bg-[rgb(var(--ec-accent))] text-white">
-                            <p className="text-sm whitespace-pre-wrap">{content}</p>
+                          <div className="max-w-[75%] rounded-2xl rounded-br-md px-4 py-2.5 bg-[rgb(var(--ec-page-text)/0.05)]">
+                            <p className="text-sm font-normal whitespace-pre-wrap text-[rgb(var(--ec-page-text))]">{content}</p>
                           </div>
                         ) : (
-                          <div className="w-full text-[rgb(var(--ec-page-text))]">
-                            <div className="prose prose-sm max-w-none">
-                              <ReactMarkdown
-                                components={{
-                                  a: ({ ...props }) => (
-                                    <a
-                                      {...props}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-[rgb(var(--ec-accent))] hover:text-[rgb(var(--ec-accent-hover))] underline"
-                                    />
-                                  ),
-                                  code: ({ children, className, ...props }) => {
-                                    const isInline = !className;
-                                    const match = /language-(\w+)/.exec(className || '');
-                                    const language = match ? match[1] : 'text';
-                                    const codeString = String(children).replace(/\n$/, '');
-
-                                    return isInline ? (
-                                      <code
-                                        className="px-1.5 py-0.5 rounded text-sm font-mono bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text))]"
-                                        {...props}
-                                      >
-                                        {children}
-                                      </code>
-                                    ) : (
-                                      <CodeBlock language={language}>{codeString}</CodeBlock>
-                                    );
-                                  },
-                                }}
-                              >
-                                {content}
-                              </ReactMarkdown>
+                          <>
+                            {/* Tools used indicator */}
+                            {completedTools.length > 0 && (
+                              <div className="flex items-center gap-1.5 mb-2">
+                                <Wrench size={12} className="text-[rgb(var(--ec-icon-color))]" />
+                                <span className="text-[11px] text-[rgb(var(--ec-icon-color))]">
+                                  Used{' '}
+                                  {completedTools.slice(0, 3).map((tool, i) => (
+                                    <span key={tool}>
+                                      <span className="font-medium text-[rgb(var(--ec-accent))]">{tool}</span>
+                                      {i < Math.min(completedTools.length, 3) - 1 && ', '}
+                                    </span>
+                                  ))}
+                                  {completedTools.length > 3 && <span> +{completedTools.length - 3} more</span>}
+                                </span>
+                              </div>
+                            )}
+                            <div className="w-full text-[rgb(var(--ec-content-text))]">
+                              <div className="prose prose-sm max-w-none prose-p:text-[rgb(var(--ec-content-text))] prose-headings:my-2 prose-headings:font-semibold prose-headings:text-[rgb(var(--ec-page-text))] prose-h1:text-lg prose-h2:text-base prose-h3:text-sm prose-h4:text-sm prose-li:text-[rgb(var(--ec-content-text))]">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]} components={modalMarkdownComponents}>
+                                  {content}
+                                </ReactMarkdown>
+                              </div>
                             </div>
-                          </div>
+                            {/* Follow-up suggestions - only show for last assistant message when not loading */}
+                            {isLastMessage && followUpSuggestions.length > 0 && !isLoading && (
+                              <div className="flex flex-wrap gap-2 mt-3 w-full">
+                                {followUpSuggestions.map((suggestion, index) => (
+                                  <button
+                                    key={index}
+                                    onClick={() => handleSuggestedAction(suggestion)}
+                                    className="px-4 py-2.5 text-xs text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-page-text)/0.05)] hover:bg-[rgb(var(--ec-accent)/0.15)] rounded-full transition-all duration-200 text-left"
+                                    style={fadeInStyles.getFollowUpStyle(index)}
+                                  >
+                                    {suggestion}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     );
@@ -955,30 +1209,25 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
             </div>
 
             {/* Modal Input area */}
-            <div className="flex-shrink-0 px-5 py-4 border-t border-[rgb(var(--ec-page-border))]">
+            <div className="flex-shrink-0 px-6 py-4">
               <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-                <div className="relative bg-[rgb(var(--ec-input-bg))] rounded-lg border border-[rgb(var(--ec-input-border))] focus-within:border-[rgb(var(--ec-accent)/0.5)] transition-all">
+                <div className="relative bg-[rgb(var(--ec-page-bg)/0.5)] backdrop-blur-sm rounded-xl border border-[rgb(var(--ec-accent)/0.3)] focus-within:border-[rgb(var(--ec-accent)/0.5)] focus-within:ring-2 focus-within:ring-[rgb(var(--ec-accent)/0.1)] transition-all">
                   <input
                     ref={modalInputRef}
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        submitMessage(inputValue);
-                      }
-                    }}
-                    placeholder="Ask a question..."
+                    onKeyDown={handleInputKeyDown}
+                    placeholder="Ask, search, or explain..."
                     disabled={isLoading}
-                    className="w-full px-4 py-3 pr-16 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-none text-sm disabled:opacity-50 rounded-lg"
+                    className="w-full px-4 py-3.5 pr-20 bg-transparent text-[rgb(var(--ec-input-text))] placeholder-[rgb(var(--ec-input-placeholder))] focus:outline-none text-sm disabled:opacity-50 rounded-xl"
                   />
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 z-10">
                     {isStreaming ? (
                       <button
                         type="button"
                         onClick={() => stop()}
-                        className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-md transition-colors"
+                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                         aria-label="Stop generating"
                       >
                         <Square size={14} fill="currentColor" />
@@ -987,7 +1236,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                       <button
                         type="submit"
                         disabled={!inputValue.trim() || isLoading}
-                        className="px-3 py-1.5 bg-[rgb(var(--ec-accent))] text-white text-sm font-medium rounded-md hover:bg-[rgb(var(--ec-accent-hover))] disabled:bg-[rgb(var(--ec-content-hover))] disabled:text-[rgb(var(--ec-icon-color))] disabled:cursor-not-allowed transition-colors"
+                        className="px-4 py-2 bg-[rgb(var(--ec-accent))] text-white text-sm font-medium rounded-lg hover:bg-[rgb(var(--ec-accent-hover))] disabled:bg-transparent disabled:text-[rgb(var(--ec-icon-color))] disabled:cursor-not-allowed transition-colors"
                         aria-label="Send message"
                       >
                         Send
@@ -996,9 +1245,17 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
                   </div>
                 </div>
               </form>
-              <p className="text-xs text-[rgb(var(--ec-icon-color))] mt-2 text-center">
-                AI can make mistakes. Verify important info.
-              </p>
+              {/* Context indicator */}
+              <div className="flex items-center justify-center gap-1.5 mt-3 max-w-3xl mx-auto">
+                {pageContext ? (
+                  <span className="text-xs text-[rgb(var(--ec-icon-color))] flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--ec-accent))]" />
+                    Based on {pageContext.type}: {pageContext.name}
+                  </span>
+                ) : (
+                  <span className="text-xs text-[rgb(var(--ec-icon-color))]">AI can make mistakes. Verify important info.</span>
+                )}
+              </div>
             </div>
           </Dialog.Content>
         </Dialog.Portal>
