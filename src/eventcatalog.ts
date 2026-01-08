@@ -17,6 +17,7 @@ import updateNotifier from 'update-notifier';
 import dotenv from 'dotenv';
 import { runMigrations } from './migrations';
 import { logger } from './utils/cli-logger';
+import { getPackageExecutor } from './utils/package-executor';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const program = new Command().version(VERSION);
 
@@ -181,14 +182,15 @@ program
     try {
       watchUnsub = await watch(dir, core);
 
+      const executor = await getPackageExecutor();
       const { result } = concurrently(
         [
           {
             name: 'astro',
             command:
               process.platform === 'win32'
-                ? `npx astro dev ${command.args.join(' ').trim()} 2>&1 | findstr /V /C:"[glob-loader]" /C:"The collection" /C:"[router]"`
-                : `npx astro dev ${command.args.join(' ').trim()} 2>&1 | grep -v -e "\\[glob-loader\\]" -e "The collection.*does not exist" -e "\\[router\\]"`,
+                ? `${executor} astro dev ${command.args.join(' ').trim()} 2>&1 | findstr /V /C:"[glob-loader]" /C:"The collection" /C:"[router]"`
+                : `${executor} astro dev ${command.args.join(' ').trim()} 2>&1 | grep -v -e "\\[glob-loader\\]" -e "The collection.*does not exist" -e "\\[router\\]"`,
             cwd: core,
             env: {
               PROJECT_DIR: dir,
@@ -256,10 +258,12 @@ program
 
     checkForUpdate();
 
+    const executor = await getPackageExecutor();
+
     // Ignore any "Empty collection" messages, it's OK to have them
-    const windowsCommand = `npx astro build ${command.args.join(' ').trim()} | findstr /V "The collection"`;
-    // const unixCommand = `bash -c "set -o pipefail; npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v -e "\\[router\\]" -e "The collection.*does not exist"`;
-    const unixCommand = `bash -c "set -o pipefail; npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v -e \\"\\\\[router\\\\]\\" -e \\"The collection.*does not exist\\""`;
+    const windowsCommand = `${executor} astro build ${command.args.join(' ').trim()} | findstr /V "The collection"`;
+    // const unixCommand = `bash -c "set -o pipefail; ${executor} astro build ${command.args.join(' ').trim()} 2>&1 | grep -v -e "\\[router\\]" -e "The collection.*does not exist"`;
+    const unixCommand = `bash -c "set -o pipefail; ${executor} astro build ${command.args.join(' ').trim()} 2>&1 | grep -v -e \\"\\\\[router\\\\]\\" -e \\"The collection.*does not exist\\""`;
 
     const buildCommand = process.platform === 'win32' ? windowsCommand : unixCommand;
 
@@ -277,14 +281,16 @@ const previewCatalog = ({
   canEmbedPages = false,
   isEventCatalogStarter = false,
   isEventCatalogScale = false,
+  executor,
 }: {
   command: Command;
   canEmbedPages: boolean;
   isEventCatalogStarter: boolean;
   isEventCatalogScale: boolean;
+  executor: string;
 }) => {
   execSync(
-    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} npx astro preview ${command.args.join(' ').trim()}`,
+    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} ${executor} astro preview ${command.args.join(' ').trim()}`,
     {
       cwd: core,
       stdio: 'inherit',
@@ -331,7 +337,8 @@ program
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
-    previewCatalog({ command, canEmbedPages: canEmbedPages || isEventCatalogScale, isEventCatalogStarter, isEventCatalogScale });
+    const executor = await getPackageExecutor();
+    previewCatalog({ command, canEmbedPages: canEmbedPages || isEventCatalogScale, isEventCatalogStarter, isEventCatalogScale, executor });
   });
 
 program
@@ -355,6 +362,7 @@ program
 
     const isServerOutput = await isOutputServer();
 
+    const executor = await getPackageExecutor();
     if (isServerOutput) {
       startServerCatalog({
         command,
@@ -368,6 +376,7 @@ program
         canEmbedPages: canEmbedPages || isEventCatalogScale,
         isEventCatalogStarter,
         isEventCatalogScale,
+        executor,
       });
     }
   });
