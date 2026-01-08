@@ -1,0 +1,77 @@
+---
+import Admonition from '@components/MDX/Admonition';
+import { buildUrl, buildUrlWithParams } from '@utils/url-builder';
+import type { CollectionEntry } from 'astro:content';
+import { ExpandIcon } from 'lucide-react';
+
+interface Props {
+  title?: string;
+  description?: string;
+  height?: string;
+  width?: string;
+  url: string;
+}
+
+const { title, description, height = '600', width = '100%', url, ...eventCatalogResource } = Astro.props;
+
+const resource = eventCatalogResource as CollectionEntry<'services'>;
+
+// Validate that the URL is from IcePanel
+const isValidIcePanelUrl = url?.startsWith('https://s.icepanel.io/') || url?.startsWith('https://icepanel.io/');
+
+const backUrl = resource.collection
+  ? buildUrl(`/docs/${resource.collection}/${resource.data.id}/${resource.data.version}#${title}-icepanel-title`)
+  : undefined;
+
+const fullScreenParams = {
+  url: url,
+  title: title,
+  back: backUrl,
+};
+
+const openFullScreenUrl = buildUrlWithParams(`/icepanel`, fullScreenParams);
+---
+
+{
+  !url && (
+    <Admonition type="warning">
+      <div>
+        <span class="block font-bold">{`<IcePanel/>`} failed to load</span>
+        <span class="block">Please provide a url to use the IcePanel component.</span>
+      </div>
+    </Admonition>
+  )
+}
+
+{
+  url && !isValidIcePanelUrl && (
+    <Admonition type="warning">
+      <div>
+        <span class="block font-bold">{`<IcePanel/>`} invalid URL</span>
+        <span class="block">Please provide a valid IcePanel URL (e.g., https://s.icepanel.io/...).</span>
+      </div>
+    </Admonition>
+  )
+}
+
+{
+  url && isValidIcePanelUrl && (
+    <div>
+      {title && (
+        <h3 id={`${title}-icepanel-title`} class="text-3xl font-bold">
+          {title}
+        </h3>
+      )}
+      {description && <p class="text-[rgb(var(--ec-page-text-muted))] mb-3">{description}</p>}
+      <div class="relative">
+        <iframe class="rounded-2xl border-none" src={url} width={width} height={height} title={title || 'IcePanel Diagram'} />
+        <a
+          href={openFullScreenUrl}
+          class="absolute bottom-[15px] right-5 bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle))] px-4 py-2 rounded-md transition-colors"
+        >
+          <ExpandIcon className="w-5 h-5" />
+        </a>
+      </div>
+    </div>
+  )
+}

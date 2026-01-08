@@ -25,6 +25,7 @@ import Miro from '@components/MDX/Miro/Miro.astro';
 import Lucid from '@components/MDX/Lucid/Lucid.astro';
 import DrawIO from '@components/MDX/DrawIO/DrawIO.astro';
 import FigJam from '@components/MDX/FigJam/FigJam.astro';
+import IcePanel from '@components/MDX/IcePanel/IcePanel.astro';
 import Design from '@components/MDX/Design/Design.astro';
 import MermaidFileLoader from '@components/MDX/MermaidFileLoader/MermaidFileLoader.astro';
 //  Portals: required for server/client components
@@ -65,6 +66,7 @@ const components = (props: any) => {
     Lucid: (mdxProp: any) => jsx(Lucid, { ...props, ...mdxProp }),
     DrawIO: (mdxProp: any) => jsx(DrawIO, { ...props, ...mdxProp }),
     FigJam: (mdxProp: any) => jsx(FigJam, { ...props, ...mdxProp }),
+    IcePanel: (mdxProp: any) => jsx(IcePanel, { ...props, ...mdxProp }),
     MermaidFileLoader: (mdxProp: any) => jsx(MermaidFileLoader, { ...props, ...mdxProp }),
   };
 };
