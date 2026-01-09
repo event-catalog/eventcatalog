@@ -303,10 +303,11 @@ const startServerCatalog = ({
   isEventCatalogStarter: boolean;
   isEventCatalogScale: boolean;
 }) => {
+  const serverEntryPath = path.join(dir, 'dist', 'server', 'entry.mjs');
   execSync(
-    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} node ./dist/server/entry.mjs`,
+    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} node "${serverEntryPath}"`,
     {
-      cwd: dir,
+      cwd: core,
       stdio: 'inherit',
     }
   );
