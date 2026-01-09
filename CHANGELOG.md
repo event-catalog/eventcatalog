@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.3.1
+
+### Patch Changes
+
+- 1bd23c3: fix(core): fixed schema explorer in srr mode on start
+
 ## 3.3.0
 
 ### Minor Changes
