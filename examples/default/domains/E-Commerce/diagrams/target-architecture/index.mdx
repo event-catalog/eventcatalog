@@ -1,0 +1,110 @@
+---
+id: target-architecture
+name: Target Architecture
+version: 1.0.0
+summary: Target state microservices architecture we are migrating towards
+---
+
+```mermaid
+graph TB
+    subgraph "Clients"
+        WebApp[Web Application]
+        MobileApp[Mobile App]
+        AdminPanel[Admin Dashboard]
+    end
+
+    subgraph "API Gateway"
+        Gateway[Kong API Gateway]
+        RateLimit[Rate Limiter]
+        Auth[Auth Service]
+    end
+
+    subgraph "Core Services"
+        OrderService[Order Service]
+        InventoryService[Inventory Service]
+        PaymentService[Payment Service]
+        NotificationService[Notification Service]
+        UserService[User Service]
+        SearchService[Search Service]
+    end
+
+    subgraph "Event Streaming"
+        Kafka[Apache Kafka]
+    end
+
+    subgraph "Data Stores"
+        OrderDB[(Orders DB)]
+        InventoryDB[(Inventory DB)]
+        PaymentDB[(Payments DB)]
+        UserDB[(Users DB)]
+        Redis[(Redis Cache)]
+        Elasticsearch[(Elasticsearch)]
+    end
+
+    subgraph "Observability"
+        Prometheus[Prometheus]
+        Grafana[Grafana]
+        Jaeger[Distributed Tracing]
+    end
+
+    WebApp --> Gateway
+    MobileApp --> Gateway
+    AdminPanel --> Gateway
+
+    Gateway --> RateLimit
+    RateLimit --> Auth
+    Auth --> OrderService
+    Auth --> InventoryService
+    Auth --> PaymentService
+    Auth --> UserService
+    Auth --> SearchService
+
+    OrderService --> Kafka
+    InventoryService --> Kafka
+    PaymentService --> Kafka
+    NotificationService --> Kafka
+    UserService --> Kafka
+
+    OrderService --> OrderDB
+    InventoryService --> InventoryDB
+    PaymentService --> PaymentDB
+    UserService --> UserDB
+    SearchService --> Elasticsearch
+
+    OrderService --> Redis
+    InventoryService --> Redis
+
+    OrderService --> Prometheus
+    InventoryService --> Prometheus
+    PaymentService --> Prometheus
+```
+
+## Target State (v1.0.0)
+
+This is our **target architecture** - the event-driven microservices platform we are actively migrating towards.
+
+### Key Improvements
+
+- **Independent deployments**: Each service deploys independently, enabling daily releases
+- **Team autonomy**: Domain teams own their services end-to-end
+- **Horizontal scaling**: Scale individual services based on demand
+- **Resilience**: Service failures are isolated, no single point of failure
+- **Event-driven**: Kafka enables loose coupling and async processing
+
+### Migration Progress
+
+| Service | Status | Target Date |
+|---------|--------|-------------|
+| User Service | Live | Completed |
+| Order Service | Live | Completed |
+| Payment Service | In Progress | Q1 2025 |
+| Inventory Service | Planned | Q2 2025 |
+| Notification Service | Planned | Q2 2025 |
+| Search Service | Planned | Q3 2025 |
+
+### Expected Outcomes
+
+- **10x faster deployments** - From weekly to multiple times per day
+- **99.9% availability** - Up from 99.5% with the monolith
+- **50% cost reduction** - Through efficient auto-scaling
+- **Team velocity** - 3x improvement in feature delivery

@@ -11,6 +11,7 @@ import {
   showCustomBranding,
   isPrivateRemoteSchemaEnabled,
   isCustomStylesEnabled,
+  isDiagramComparisonEnabled,
 } from '../feature';
 
 import config from '@config';
@@ -265,6 +266,29 @@ describe('features', () => {
       delete process.env.EVENTCATALOG_STARTER;
       delete process.env.EVENTCATALOG_SCALE;
       expect(isCustomStylesEnabled()).toBe(false);
+    });
+  });
+
+  describe('isDiagramComparisonEnabled', () => {
+    it('should return true when EVENTCATALOG_SCALE is true', () => {
+      process.env.EVENTCATALOG_SCALE = 'true';
+      expect(isDiagramComparisonEnabled()).toBe(true);
+    });
+
+    it('should return false when EVENTCATALOG_SCALE is not true', () => {
+      process.env.EVENTCATALOG_SCALE = 'false';
+      expect(isDiagramComparisonEnabled()).toBe(false);
+    });
+
+    it('should return false when EVENTCATALOG_SCALE is not set', () => {
+      delete process.env.EVENTCATALOG_SCALE;
+      expect(isDiagramComparisonEnabled()).toBe(false);
+    });
+
+    it('should return false when only EVENTCATALOG_STARTER is true (Scale only feature)', () => {
+      process.env.EVENTCATALOG_STARTER = 'true';
+      delete process.env.EVENTCATALOG_SCALE;
+      expect(isDiagramComparisonEnabled()).toBe(false);
     });
   });
 });

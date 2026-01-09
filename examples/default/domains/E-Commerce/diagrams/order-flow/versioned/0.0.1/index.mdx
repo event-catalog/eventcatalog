@@ -1,0 +1,51 @@
+---
+id: order-flow
+name: Order Processing Flow
+version: 0.0.1
+summary: Sequence diagram showing the original synchronous order processing flow
+---
+
+```plantuml
+@startuml
+!theme plain
+
+title Order Processing Flow (Legacy)
+
+actor Customer
+participant "Web App" as Web
+participant "Monolith" as Backend
+database "Database" as DB
+
+== Place Order ==
+
+Customer -> Web: Add items to cart
+Customer -> Web: Checkout
+Web -> Backend: POST /orders
+
+Backend -> DB: Check stock
+DB --> Backend: Stock available
+
+Backend -> DB: Create order record
+Backend -> DB: Deduct inventory
+Backend -> DB: Process payment
+
+Backend --> Web: Order confirmed
+Web --> Customer: Show confirmation
+
+== Send Email (Sync) ==
+
+Backend -> Backend: Send confirmation email
+note right: Blocking operation\nSlows down response
+
+@enduml
+```
+
+## V0.0.1 - Legacy Synchronous Flow
+
+The original order processing was fully synchronous:
+
+- **Single monolith**: All logic in one application
+- **Shared database**: Single database for all data
+- **Blocking operations**: Email sent synchronously, slowing response
+- **No event streaming**: Direct database updates only
+- **Limited scalability**: Could not handle high traffic

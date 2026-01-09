@@ -54,6 +54,7 @@ export type ResourceGroupContext = {
   queries: CollectionEntry<'queries'>[];
   flows: CollectionEntry<'flows'>[];
   containers: CollectionEntry<'containers'>[];
+  diagrams: CollectionEntry<'diagrams'>[];
 };
 
 export const buildQuickReferenceSection = (items: { title: string; href: string }[]): NavNode => ({
@@ -157,4 +158,23 @@ export const shouldRenderSideBarSection = (resource: any, section: string) => {
     return true;
   }
   return resource.data.detailsPanel[section]?.visible ?? true;
+};
+
+export const buildDiagramNavItems = (
+  diagrams: Array<{ id: string; version?: string }> | undefined,
+  allDiagrams: CollectionEntry<'diagrams'>[]
+): NavNode[] => {
+  if (!diagrams || diagrams.length === 0) return [];
+
+  return diagrams.map((ref) => {
+    const diagram = allDiagrams.find(
+      (d) => d.data.id === ref.id && (ref.version === 'latest' || !ref.version || d.data.version === ref.version)
+    );
+    const version = diagram?.data.version || ref.version || 'latest';
+    return {
+      type: 'item' as const,
+      title: diagram?.data.name || ref.id,
+      href: buildUrl(`/diagrams/${ref.id}/${version}`),
+    };
+  });
 };

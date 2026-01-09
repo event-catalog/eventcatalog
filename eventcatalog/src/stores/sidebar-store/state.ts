@@ -6,6 +6,7 @@ import { getOwner } from '@utils/collections/owners';
 import { getFlows } from '@utils/collections/flows';
 import { getUsers } from '@utils/collections/users';
 import { getTeams } from '@utils/collections/teams';
+import { getDiagrams } from '@utils/collections/diagrams';
 import { buildUrl } from '@utils/url-builder';
 import type { NavigationData, NavNode, ChildRef } from './builders/shared';
 import { buildDomainNode } from './builders/domain';
@@ -30,7 +31,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     return memoryCache;
   }
 
-  const [domains, services, { events, commands, queries }, containers, flows, users, teams, designs, channels] =
+  const [domains, services, { events, commands, queries }, containers, flows, users, teams, designs, channels, diagrams] =
     await Promise.all([
       getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
       getServices({ getAllVersions: false }),
@@ -41,6 +42,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       getTeams(),
       getDesigns(),
       getChannels({ getAllVersions: false }),
+      getDiagrams({ getAllVersions: false }),
     ]);
 
   // Calculate derived lists to avoid extra fetches
@@ -57,6 +59,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     queries,
     flows,
     containers,
+    diagrams,
   };
 
   // Process all domains with their owners first (async)
@@ -136,9 +139,9 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     (acc, { message, owners }) => {
       const type = pluralizeMessageType(message as any);
 
-      acc[`${type}:${message.data.id}:${message.data.version}`] = buildMessageNode(message, owners);
+      acc[`${type}:${message.data.id}:${message.data.version}`] = buildMessageNode(message, owners, context);
       if (message.data.latestVersion === message.data.version) {
-        acc[`${type}:${message.data.id}`] = buildMessageNode(message, owners);
+        acc[`${type}:${message.data.id}`] = buildMessageNode(message, owners, context);
       }
       return acc;
     },
@@ -147,9 +150,9 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const containerNodes = containerWithOwners.reduce(
     (acc, { container, owners }) => {
-      acc[`container:${container.data.id}:${container.data.version}`] = buildContainerNode(container, owners);
+      acc[`container:${container.data.id}:${container.data.version}`] = buildContainerNode(container, owners, context);
       if (container.data.latestVersion === container.data.version) {
-        acc[`container:${container.data.id}`] = buildContainerNode(container, owners);
+        acc[`container:${container.data.id}`] = buildContainerNode(container, owners, context);
       }
       return acc;
     },
@@ -383,6 +386,25 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     ...(allList ? { 'list:all': allList as NavNode } : {}),
   };
 
+  // System-level views (only show if visualiser is enabled and there are domains)
+  const systemNode: Record<string, NavNode> = {};
+  const visualiserEnabled = config?.visualiser?.enabled !== false;
+
+  if (visualiserEnabled && domains.length > 0) {
+    systemNode['list:system'] = {
+      type: 'group',
+      title: 'System',
+      icon: 'Globe',
+      pages: [
+        {
+          type: 'item',
+          title: 'Domain Map',
+          href: buildUrl('/visualiser/domain-integrations'),
+        },
+      ],
+    };
+  }
+
   const allGeneratedNodes = {
     ...rootDomainsNodes,
     ...domainNodes,
@@ -394,11 +416,17 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     ...userNodes,
     ...teamNodes,
     ...designNodes,
+    ...systemNode,
     ...allNodes,
   };
 
   // only filter if child is string
-  const rootNavigationConfig = config?.navigation?.pages || ['list:top-level-domains', 'list:all'];
+  const defaultPages = ['list:top-level-domains', 'list:all'];
+  // Add system section if it exists
+  if (systemNode['list:system']) {
+    defaultPages.push('list:system');
+  }
+  const rootNavigationConfig = config?.navigation?.pages || defaultPages;
 
   const navigationConfig = {
     roots: rootNavigationConfig,

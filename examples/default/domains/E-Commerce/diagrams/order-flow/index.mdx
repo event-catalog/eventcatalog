@@ -1,0 +1,69 @@
+---
+id: order-flow
+name: Order Processing Flow
+version: 1.0.0
+summary: Sequence diagram showing the complete order processing flow
+---
+
+```plantuml
+@startuml
+!theme plain
+
+title Order Processing Flow
+
+actor Customer
+participant "Web App" as Web
+participant "API Gateway" as Gateway
+participant "Order Service" as Order
+participant "Inventory Service" as Inventory
+participant "Payment Service" as Payment
+participant "Notification Service" as Notify
+queue "Kafka" as Kafka
+
+== Place Order ==
+
+Customer -> Web: Add items to cart
+Customer -> Web: Checkout
+Web -> Gateway: POST /orders
+Gateway -> Order: Create order
+
+Order -> Inventory: Check stock availability
+Inventory --> Order: Stock confirmed
+
+Order -> Payment: Process payment
+Payment -> Payment: Validate card
+Payment -> Payment: Charge customer
+Payment --> Order: Payment successful
+
+Order -> Kafka: Publish OrderCreated event
+
+== Async Processing ==
+
+Kafka -> Inventory: OrderCreated
+Inventory -> Inventory: Reserve stock
+Inventory -> Kafka: Publish InventoryReserved
+
+Kafka -> Notify: OrderCreated
+Notify -> Customer: Send confirmation email
+
+Order --> Gateway: Order confirmed
+Gateway --> Web: 201 Created
+Web --> Customer: Show confirmation
+
+== Order Fulfillment ==
+
+Kafka -> Notify: InventoryReserved
+Notify -> Customer: Send shipping update
+
+@enduml
+```
+
+## Order Processing Flow
+
+This sequence diagram illustrates the complete order processing flow in the e-commerce system:
+
+1. **Customer Interaction**: Customer adds items and proceeds to checkout
+2. **Synchronous Validation**: Stock and payment are validated before confirming
+3. **Event Publishing**: OrderCreated event triggers async processing
+4. **Parallel Processing**: Inventory reservation and notifications happen concurrently
+5. **Customer Communication**: Email notifications at each stage

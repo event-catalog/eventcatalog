@@ -87,6 +87,9 @@ vi.mock('astro:content', async (importOriginal) => {
         case 'flows':
           // NO SDK Support for flows yet, so we just mock it out for now
           return Promise.resolve([]);
+        case 'diagrams':
+          // NO SDK Support for diagrams yet, so we just mock it out for now
+          return Promise.resolve([]);
         case 'channels':
           const { getChannels } = utils(CATALOG_FOLDER);
           const channels = (await getChannels()) ?? [];
@@ -281,8 +284,8 @@ describe('getNestedSideBarData', () => {
       });
     });
 
-    describe('Architecture & Design section', () => {
-      it('the architecture overview, global domain integration mapand visualizer links are always listed in the navigation item', async () => {
+    describe('Architecture section', () => {
+      it('the overview and map links are always listed in the navigation item', async () => {
         const { writeDomain } = utils(CATALOG_FOLDER);
         await writeDomain({
           id: 'Shipping',
@@ -295,17 +298,12 @@ describe('getNestedSideBarData', () => {
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
         expect(domainNode).toHaveNavigationLink({
           type: 'item',
-          title: 'Global Domain Map',
-          href: '/visualiser/domain-integrations',
-        });
-        expect(domainNode).toHaveNavigationLink({
-          type: 'item',
-          title: 'Interaction Map',
+          title: 'Map',
           href: '/visualiser/domains/Shipping/0.0.1',
         });
         expect(domainNode).toHaveNavigationLink({
           type: 'item',
-          title: 'Architecture Overview',
+          title: 'Overview',
           href: '/architecture/domains/Shipping/0.0.1',
         });
       });
@@ -326,7 +324,7 @@ describe('getNestedSideBarData', () => {
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
         expect(domainNode).not.toHaveNavigationLink({
           type: 'item',
-          title: 'Interaction Map',
+          title: 'Map',
           href: '/visualiser/domains/Shipping/0.0.1',
         });
 
@@ -357,6 +355,42 @@ describe('getNestedSideBarData', () => {
           title: 'Entity Map',
           href: '/visualiser/domains/Shipping/0.0.1/entity-map',
         });
+      });
+
+      it('lists a Diagrams section if the domain has diagrams', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          diagrams: [{ id: 'system-architecture', version: '1.0.0' }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const diagramsSection = getChildNodeByTitle('Diagrams', domainNode.pages ?? []);
+
+        expect(diagramsSection).toBeDefined();
+        expect(diagramsSection.pages).toEqual([
+          { type: 'item', title: 'system-architecture', href: '/diagrams/system-architecture/1.0.0' },
+        ]);
+      });
+
+      it('does not list a Diagrams section if the domain does not have any diagrams', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const diagramsSection = getChildNodeByTitle('Diagrams', domainNode.pages ?? []);
+
+        expect(diagramsSection).toBeUndefined();
       });
     });
 
@@ -840,7 +874,7 @@ describe('getNestedSideBarData', () => {
       });
     });
 
-    describe('Architecture & Design section', () => {
+    describe('Architecture section', () => {
       it('the architecture overview and visualizer links are always listed in the navigation item', async () => {
         const { writeService } = utils(CATALOG_FOLDER);
         await writeService({
@@ -854,17 +888,17 @@ describe('getNestedSideBarData', () => {
         const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
         expect(serviceNode).toHaveNavigationLink({
           type: 'item',
-          title: 'Architecture Overview',
+          title: 'Overview',
           href: '/architecture/services/ShippingService/0.0.1',
         });
         expect(serviceNode).toHaveNavigationLink({
           type: 'item',
-          title: 'Interaction Map',
+          title: 'Map',
           href: '/visualiser/services/ShippingService/0.0.1',
         });
       });
 
-      it('the interaction map link is not displayed if the visualizer is turned off in the catalog configuration', async () => {
+      it('the map link is not displayed if the visualizer is turned off in the catalog configuration', async () => {
         // Globally set the visualizer to be disabled in the EventCatalog configuration
         config.visualiser.enabled = false;
 
@@ -880,12 +914,48 @@ describe('getNestedSideBarData', () => {
         const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
         expect(serviceNode).not.toHaveNavigationLink({
           type: 'item',
-          title: 'Interaction Map',
+          title: 'Map',
           href: '/visualiser/services/ShippingService/0.0.1',
         });
 
         // Turn it back on
         config.visualiser.enabled = true;
+      });
+
+      it('lists a Diagrams section if the service has diagrams', async () => {
+        const { writeService } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+          diagrams: [{ id: 'service-architecture', version: '1.0.0' }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const diagramsSection = getChildNodeByTitle('Diagrams', serviceNode.pages ?? []);
+
+        expect(diagramsSection).toBeDefined();
+        expect(diagramsSection.pages).toEqual([
+          { type: 'item', title: 'service-architecture', href: '/diagrams/service-architecture/1.0.0' },
+        ]);
+      });
+
+      it('does not list a Diagrams section if the service does not have any diagrams', async () => {
+        const { writeService } = utils(CATALOG_FOLDER);
+        await writeService({
+          id: 'ShippingService',
+          name: 'ShippingService',
+          version: '0.0.1',
+          markdown: 'ShippingService',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const serviceNode = getNavigationConfigurationByKey('service:ShippingService:0.0.1', navigationData);
+        const diagramsSection = getChildNodeByTitle('Diagrams', serviceNode.pages ?? []);
+
+        expect(diagramsSection).toBeUndefined();
       });
     });
 
@@ -1421,7 +1491,7 @@ describe('getNestedSideBarData', () => {
         const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
         expect(messageNode).toHaveNavigationLink({
           type: 'item',
-          title: 'Interaction Map',
+          title: 'Map',
           href: '/visualiser/events/PaymentProcessed/0.0.1',
         });
       });
@@ -1442,7 +1512,7 @@ describe('getNestedSideBarData', () => {
         const messageNode = getNavigationConfigurationByKey('event:PaymentProcessed:0.0.1', navigationData);
         expect(messageNode).not.toHaveNavigationLink({
           type: 'item',
-          title: 'Interaction Map',
+          title: 'Map',
           href: '/visualiser/events/PaymentProcessed/0.0.1',
         });
 
@@ -1802,7 +1872,7 @@ describe('getNestedSideBarData', () => {
         const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
         expect(containerNode).toHaveNavigationLink({
           type: 'item',
-          title: 'Interaction Map',
+          title: 'Map',
           href: '/visualiser/containers/PaymentDataStore/0.0.1',
         });
       });
@@ -1824,7 +1894,7 @@ describe('getNestedSideBarData', () => {
         const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
         expect(containerNode).not.toHaveNavigationLink({
           type: 'item',
-          title: 'Interaction Map',
+          title: 'Map',
           href: '/visualiser/containers/PaymentDataStore/0.0.1',
         });
 
@@ -2189,6 +2259,51 @@ describe('getNestedSideBarData', () => {
       const navigationData = await getNestedSideBarData();
       const channelNode = getNavigationConfigurationByKey('channel:PaymentChannel:0.0.1', navigationData);
       expect(channelNode).toBeDefined();
+    });
+  });
+
+  describe('system navigation items', () => {
+    it('shows the System section with Domain Map when domains exist', async () => {
+      const { writeDomain } = utils(CATALOG_FOLDER);
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const systemNode = navigationData.nodes['list:system'];
+
+      expect(systemNode).toBeDefined();
+      expect(systemNode.title).toBe('System');
+      expect(systemNode.pages).toEqual([
+        {
+          type: 'item',
+          title: 'Domain Map',
+          href: '/visualiser/domain-integrations',
+        },
+      ]);
+    });
+
+    it('does not show the System section when visualizer is disabled', async () => {
+      config.visualiser.enabled = false;
+
+      const { writeDomain } = utils(CATALOG_FOLDER);
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+      });
+
+      const navigationData = await getNestedSideBarData();
+      const systemNode = navigationData.nodes['list:system'];
+
+      expect(systemNode).toBeUndefined();
+
+      // Turn it back on
+      config.visualiser.enabled = true;
     });
   });
 });

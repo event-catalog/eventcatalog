@@ -191,7 +191,18 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
             'Use this tool to get events, services, commands, queries, flows, domains, channels, entities from EventCatalog',
           inputSchema: z.object({
             collection: z
-              .enum(['events', 'services', 'commands', 'queries', 'flows', 'domains', 'channels', 'entities', 'containers'])
+              .enum([
+                'events',
+                'services',
+                'commands',
+                'queries',
+                'flows',
+                'domains',
+                'channels',
+                'entities',
+                'containers',
+                'diagrams',
+              ])
               .describe('The collection to get the events from'),
           }),
           execute: async ({ collection }) => {
@@ -207,7 +218,18 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
           description: 'Use this tool to get a specific resource from EventCatalog by its id and version',
           inputSchema: z.object({
             collection: z
-              .enum(['events', 'services', 'commands', 'queries', 'flows', 'domains', 'channels', 'entities', 'containers'])
+              .enum([
+                'events',
+                'services',
+                'commands',
+                'queries',
+                'flows',
+                'domains',
+                'channels',
+                'entities',
+                'containers',
+                'diagrams',
+              ])
               .describe('The collection to get the events from'),
             id: z.string().describe('The id of the resource to get'),
             version: z.string().describe('The version of the resource to get'),

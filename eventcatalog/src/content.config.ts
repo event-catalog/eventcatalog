@@ -187,6 +187,7 @@ const baseSchema = z.object({
       ])
     )
     .optional(),
+  diagrams: z.array(pointer).optional(),
   // Used by eventcatalog
   versions: z.array(z.string()).optional(),
   latestVersion: z.string().optional(),
@@ -691,6 +692,20 @@ const designs = defineCollection({
   }),
 });
 
+const diagrams = defineCollection({
+  loader: glob({
+    pattern: ['**/diagrams/**/index.(md|mdx)', '**/diagrams/**/versioned/*/index.(md|mdx)'],
+    base: projectDirBase,
+    generateId: ({ data }) => `${data.id}-${data.version}`,
+  }),
+  schema: z.object({
+    id: z.string(),
+    name: z.string(),
+    version: z.string(),
+    summary: z.string().optional(),
+  }),
+});
+
 export const collections = {
   events,
   commands,
@@ -714,4 +729,7 @@ export const collections = {
 
   // EventCatalog Studio Collections
   designs,
+
+  // Diagrams Collection
+  diagrams,
 };

@@ -1,7 +1,7 @@
 import type { CollectionEntry } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
 import { getSpecificationsForService } from '@utils/collections/services';
-import type { NavNode, ChildRef } from './shared';
+import type { NavNode, ChildRef, ResourceGroupContext } from './shared';
 import {
   uniqueBy,
   buildQuickReferenceSection,
@@ -10,11 +10,12 @@ import {
   buildResourceGroupSections,
   buildRepositorySection,
   buildAttachmentsSection,
+  buildDiagramNavItems,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
 
-export const buildServiceNode = (service: CollectionEntry<'services'>, owners: any[], context: any): NavNode => {
+export const buildServiceNode = (service: CollectionEntry<'services'>, owners: any[], context: ResourceGroupContext): NavNode => {
   const sendsMessages = service.data.sends || [];
   const receivesMessages = service.data.receives || [];
   const serviceEntities = service.data.entities || [];
@@ -44,6 +45,11 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(service, 'owners');
   const renderRepository = service.data.repository && shouldRenderSideBarSection(service, 'repository');
 
+  // Diagrams
+  const serviceDiagrams = service.data.diagrams || [];
+  const diagramNavItems = buildDiagramNavItems(serviceDiagrams, context.diagrams);
+  const hasDiagrams = diagramNavItems.length > 0;
+
   return {
     type: 'item',
     title: service.data.name,
@@ -55,17 +61,17 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
       ]),
       {
         type: 'group',
-        title: 'Architecture & Design',
+        title: 'Architecture',
         icon: 'Workflow',
         pages: [
           {
             type: 'item',
-            title: 'Architecture Overview',
+            title: 'Overview',
             href: buildUrl(`/architecture/services/${service.data.id}/${service.data.version}`),
           },
           renderVisualiser && {
             type: 'item',
-            title: 'Interaction Map',
+            title: 'Map',
             href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}`),
           },
           renderVisualiser &&
@@ -74,7 +80,13 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
               title: 'Data Map',
               href: buildUrl(`/visualiser/services/${service.data.id}/${service.data.version}/data`),
             },
-        ],
+        ].filter(Boolean) as ChildRef[],
+      },
+      hasDiagrams && {
+        type: 'group',
+        title: 'Diagrams',
+        icon: 'FileImage',
+        pages: diagramNavItems,
       },
       renderSpecifications && {
         type: 'group',
