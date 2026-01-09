@@ -8,6 +8,7 @@ import {
   shouldRenderSideBarSection,
   buildRepositorySection,
   buildAttachmentsSection,
+  buildDiagramNavItems,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
@@ -35,6 +36,12 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
   const hasAttachments = domain.data.attachments && domain.data.attachments.length > 0;
 
   const renderRepository = domain.data.repository && shouldRenderSideBarSection(domain, 'repository');
+
+  // Diagrams
+  const domainDiagrams = domain.data.diagrams || [];
+  const diagramNavItems = buildDiagramNavItems(domainDiagrams, context.diagrams);
+  const hasDiagrams = diagramNavItems.length > 0;
+
   return {
     type: 'item',
     title: domain.data.name,
@@ -47,13 +54,18 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
       ]),
       {
         type: 'group',
-        title: 'Architecture & Design',
+        title: 'Architecture',
         icon: 'Workflow',
         pages: [
           {
             type: 'item',
-            title: 'Architecture Overview',
+            title: 'Overview',
             href: buildUrl(`/architecture/domains/${domain.data.id}/${domain.data.version}`),
+          },
+          renderVisualiser && {
+            type: 'item',
+            title: 'Map',
+            href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}`),
           },
           renderEntities &&
             renderVisualiser && {
@@ -61,17 +73,13 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
               title: 'Entity Map',
               href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}/entity-map`),
             },
-          renderVisualiser && {
-            type: 'item',
-            title: 'Interaction Map',
-            href: buildUrl(`/visualiser/domains/${domain.data.id}/${domain.data.version}`),
-          },
-          renderVisualiser && {
-            type: 'item',
-            title: 'Global Domain Map',
-            href: buildUrl(`/visualiser/domain-integrations`),
-          },
         ].filter(Boolean) as ChildRef[],
+      },
+      hasDiagrams && {
+        type: 'group',
+        title: 'Diagrams',
+        icon: 'FileImage',
+        pages: diagramNavItems,
       },
       renderSubDomains && {
         type: 'group',

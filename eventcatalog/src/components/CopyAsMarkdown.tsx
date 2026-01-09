@@ -49,6 +49,8 @@ export function CopyPageMenu({
   editUrl,
   markdownDownloadEnabled = false,
   rssFeedEnabled = false,
+  preferChatAsDefault = false,
+  chatButtonText = 'Ask',
 }: {
   schemas: Schema[];
   chatQuery?: string;
@@ -56,6 +58,8 @@ export function CopyPageMenu({
   editUrl: string;
   markdownDownloadEnabled: boolean;
   rssFeedEnabled: boolean;
+  preferChatAsDefault?: boolean;
+  chatButtonText?: string;
 }) {
   // Define available actions
   const availableActions = {
@@ -81,6 +85,14 @@ export function CopyPageMenu({
 
   // Determine the default action based on what's available
   const getDefaultAction = () => {
+    // If chat is preferred and available, make it the default
+    if (preferChatAsDefault && availableActions.chat) {
+      return {
+        type: 'chat',
+        text: chatButtonText,
+        icon: MessageCircleQuestion,
+      };
+    }
     if (availableActions.copyMarkdown) {
       return {
         type: 'copyMarkdown',
@@ -112,7 +124,7 @@ export function CopyPageMenu({
     if (availableActions.chat) {
       return {
         type: 'chat',
-        text: 'Open Chat',
+        text: chatButtonText,
         icon: MessageCircleQuestion,
       };
     }
@@ -187,7 +199,8 @@ export function CopyPageMenu({
         window.open(markdownUrl, '_blank');
         break;
       case 'chat':
-        window.open(buildUrl(`/chat?query=${chatQuery}`));
+        // Dispatch custom event to open chat panel instead of navigating
+        window.dispatchEvent(new CustomEvent('eventcatalog:open-chat'));
         break;
     }
   };
@@ -227,26 +240,28 @@ export function CopyPageMenu({
         sideOffset={5}
         align="end"
       >
+        {availableActions.chat && (
+          <>
+            <DropdownMenu.Item
+              className="cursor-pointer hover:bg-[rgb(var(--ec-dropdown-hover))] focus:outline-none focus:bg-[rgb(var(--ec-dropdown-hover))]"
+              onSelect={() => window.dispatchEvent(new CustomEvent('eventcatalog:open-chat'))}
+            >
+              <MenuItemContent
+                icon={MessageCircleQuestion}
+                title="EventCatalog Assistant"
+                description="Ask questions about this page"
+              />
+            </DropdownMenu.Item>
+            <DropdownMenu.Separator className="h-px my-1 bg-[rgb(var(--ec-dropdown-border))]" />
+          </>
+        )}
+
         {availableActions.copyMarkdown && (
           <DropdownMenu.Item
             className="cursor-pointer hover:bg-[rgb(var(--ec-dropdown-hover))] focus:outline-none focus:bg-[rgb(var(--ec-dropdown-hover))]"
             onSelect={() => copyMarkdownToClipboard()}
           >
             <MenuItemContent icon={Copy} title="Copy page" description="Copy page as Markdown for LLMs" />
-          </DropdownMenu.Item>
-        )}
-
-        {availableActions.editPage && (
-          <DropdownMenu.Item
-            className="cursor-pointer hover:bg-[rgb(var(--ec-dropdown-hover))] focus:outline-none focus:bg-[rgb(var(--ec-dropdown-hover))]"
-            onSelect={() => window.open(editUrl, '_blank')}
-          >
-            <MenuItemContent
-              icon={PenSquareIcon}
-              title="Edit page"
-              description="Edit the contents of this page"
-              external={true}
-            />
           </DropdownMenu.Item>
         )}
 
@@ -305,18 +320,22 @@ export function CopyPageMenu({
             <MenuItemContent icon={RssIcon} title="RSS Feed" description="View this page as RSS feed" external={true} />
           </DropdownMenu.Item>
         )}
-        {availableActions.chat && (
-          <DropdownMenu.Item
-            className="cursor-pointer hover:bg-[rgb(var(--ec-dropdown-hover))] focus:outline-none focus:bg-[rgb(var(--ec-dropdown-hover))]"
-            onSelect={() => window.open(buildUrl(`/chat`) + `?query=${chatQuery}`)}
-          >
-            <MenuItemContent
-              icon={MessageCircleQuestion}
-              title="Open in EventCatalog Chat"
-              description="Ask questions about this page"
-              external={true}
-            />
-          </DropdownMenu.Item>
+
+        {availableActions.editPage && (
+          <>
+            <DropdownMenu.Separator className="h-px my-1 bg-[rgb(var(--ec-dropdown-border))]" />
+            <DropdownMenu.Item
+              className="cursor-pointer hover:bg-[rgb(var(--ec-dropdown-hover))] focus:outline-none focus:bg-[rgb(var(--ec-dropdown-hover))]"
+              onSelect={() => window.open(editUrl, '_blank')}
+            >
+              <MenuItemContent
+                icon={PenSquareIcon}
+                title="Edit page"
+                description="Edit the contents of this page"
+                external={true}
+              />
+            </DropdownMenu.Item>
+          </>
         )}
       </DropdownMenu.Content>
     </DropdownMenu.Root>

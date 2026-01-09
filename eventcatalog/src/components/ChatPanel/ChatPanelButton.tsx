@@ -1,9 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BookOpen } from 'lucide-react';
 import ChatPanel from './ChatPanel';
 
 const ChatPanelButton = () => {
   const [isOpen, setIsOpen] = useState(false);
+
+  // Listen for custom event to open chat panel from other components
+  useEffect(() => {
+    const handleOpenChat = () => {
+      setIsOpen(true);
+    };
+
+    window.addEventListener('eventcatalog:open-chat', handleOpenChat);
+    return () => window.removeEventListener('eventcatalog:open-chat', handleOpenChat);
+  }, []);
 
   return (
     <>

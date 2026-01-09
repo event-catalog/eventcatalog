@@ -1,17 +1,22 @@
 import type { CollectionEntry } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
 import { getSchemaFormatFromURL } from '@utils/collections/schemas';
-import type { NavNode, ChildRef } from './shared';
+import type { NavNode, ChildRef, ResourceGroupContext } from './shared';
 import {
   buildQuickReferenceSection,
   buildOwnersSection,
   shouldRenderSideBarSection,
   buildRepositorySection,
   buildAttachmentsSection,
+  buildDiagramNavItems,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
-export const buildMessageNode = (message: CollectionEntry<'events' | 'commands' | 'queries'>, owners: any[]): NavNode => {
+export const buildMessageNode = (
+  message: CollectionEntry<'events' | 'commands' | 'queries'>,
+  owners: any[],
+  context: ResourceGroupContext
+): NavNode => {
   const producers = message.data.producers || [];
   const consumers = message.data.consumers || [];
   const collection = message.collection;
@@ -35,6 +40,11 @@ export const buildMessageNode = (message: CollectionEntry<'events' | 'commands' 
 
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(message, 'owners');
 
+  // Diagrams
+  const messageDiagrams = message.data.diagrams || [];
+  const diagramNavItems = buildDiagramNavItems(messageDiagrams, context.diagrams);
+  const hasDiagrams = diagramNavItems.length > 0;
+
   return {
     type: 'item',
     title: message.data.name,
@@ -49,15 +59,21 @@ export const buildMessageNode = (message: CollectionEntry<'events' | 'commands' 
       ]),
       renderVisualiser && {
         type: 'group',
-        title: 'Architecture & Design',
+        title: 'Architecture',
         icon: 'Workflow',
         pages: [
           {
             type: 'item',
-            title: 'Interaction Map',
+            title: 'Map',
             href: buildUrl(`/visualiser/${collection}/${message.data.id}/${message.data.version}`),
           },
         ],
+      },
+      hasDiagrams && {
+        type: 'group',
+        title: 'Diagrams',
+        icon: 'FileImage',
+        pages: diagramNavItems,
       },
       hasSchema && {
         type: 'group',

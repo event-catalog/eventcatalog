@@ -14,7 +14,7 @@ export const buildFlowNode = (flow: CollectionEntry<'flows'>): NavNode => {
       buildQuickReferenceSection([{ title: 'Overview', href: buildUrl(`/docs/flows/${flow.data.id}/${flow.data.version}`) }]),
       {
         type: 'group',
-        title: 'Architecture & Design',
+        title: 'Architecture',
         icon: 'Workflow',
         pages: [
           {

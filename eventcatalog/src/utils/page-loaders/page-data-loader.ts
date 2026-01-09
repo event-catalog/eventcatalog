@@ -7,6 +7,7 @@ import { getServices } from '@utils/collections/services';
 import { getFlows } from '@utils/collections/flows';
 import { getEntities } from '@utils/collections/entities';
 import { getContainers } from '@utils/collections/containers';
+import { getDiagrams } from '@utils/collections/diagrams';
 import type { CollectionEntry } from 'astro:content';
 
 export const pageDataLoader: Record<PageTypes, () => Promise<CollectionEntry<CollectionTypes>[]>> = {
@@ -19,4 +20,5 @@ export const pageDataLoader: Record<PageTypes, () => Promise<CollectionEntry<Col
   flows: getFlows,
   entities: getEntities,
   containers: getContainers,
+  diagrams: getDiagrams,
 };

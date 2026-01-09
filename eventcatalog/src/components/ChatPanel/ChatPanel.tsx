@@ -171,6 +171,15 @@ const suggestedQuestionsConfig: QuestionConfig[] = [
       { label: 'Who owns this domain?', prompt: 'Who owns this domain and how do I contact them?' },
     ],
   },
+  // Designs page
+  {
+    pattern: /^\/diagrams\/.+/,
+    questions: [
+      { label: 'Tell me more about this diagram?', prompt: 'Tell me more about this diagram?' },
+      { label: 'Help me understand this diagram', prompt: 'Help me understand this diagram' },
+      { label: 'What is the context of this diagram?', prompt: 'What is the context of this diagram, what is it related to?' },
+    ],
+  },
   // Match /schemas with specType=graphql as query parameter
   {
     pattern: /^\/schemas.*[?&]specType=graphql/,

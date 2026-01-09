@@ -1,0 +1,70 @@
+---
+id: target-architecture
+name: Target Architecture
+version: 0.0.1
+summary: Current state of our e-commerce platform architecture
+---
+
+```mermaid
+graph TB
+    subgraph "Clients"
+        Web[Web App]
+        Mobile[Mobile App]
+    end
+
+    subgraph "Monolith"
+        API[REST API]
+        Orders[Orders Module]
+        Inventory[Inventory Module]
+        Payments[Payments Module]
+        Users[Users Module]
+        Notifications[Email Module]
+    end
+
+    subgraph "Shared Database"
+        DB[(PostgreSQL)]
+    end
+
+    subgraph "External"
+        Stripe[Stripe API]
+        SMTP[SMTP Server]
+    end
+
+    Web --> API
+    Mobile --> API
+
+    API --> Orders
+    API --> Inventory
+    API --> Payments
+    API --> Users
+
+    Orders --> DB
+    Inventory --> DB
+    Payments --> DB
+    Users --> DB
+
+    Payments --> Stripe
+    Notifications --> SMTP
+    Orders --> Notifications
+```
+
+## Current State (v0.0.1)
+
+This represents our **current production architecture** - a monolithic application that has served us well but is reaching its limits.
+
+### Pain Points
+
+- **Deployment bottleneck**: Any change requires full application deployment
+- **Scaling limitations**: Cannot scale individual components independently
+- **Database contention**: Single database becoming a bottleneck
+- **Team dependencies**: Teams step on each other's toes
+- **Reliability concerns**: One module failure affects entire system
+
+### Key Metrics
+
+| Metric | Current | Target |
+|--------|---------|--------|
+| Deploy frequency | Weekly | Daily |
+| Lead time | 2 weeks | < 1 day |
+| MTTR | 4 hours | < 15 min |
+| Change failure rate | 15% | < 5% |

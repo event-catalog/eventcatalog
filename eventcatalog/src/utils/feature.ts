@@ -50,8 +50,8 @@ export const isEventCatalogChatEnabled = () => {
 export const isEventCatalogUpgradeEnabled = () => !isEventCatalogStarterEnabled() && !isEventCatalogScaleEnabled();
 export const isCustomLandingPageEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
 
-export const isMarkdownDownloadEnabled = () => config?.llmsTxt?.enabled ?? false;
-export const isLLMSTxtEnabled = () => (config?.llmsTxt?.enabled || isEventCatalogChatEnabled()) ?? true;
+export const isMarkdownDownloadEnabled = () => config?.llmsTxt?.enabled ?? true;
+export const isLLMSTxtEnabled = () => config?.llmsTxt?.enabled ?? true;
 
 export const isAuthEnabled = () => {
   const isAuthEnabledInCatalog = config?.auth?.enabled ?? false;
@@ -67,3 +67,5 @@ export const isVisualiserEnabled = () => config?.visualiser?.enabled ?? true;
 export const isCustomStylesEnabled = () => {
   return isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
 };
+
+export const isDiagramComparisonEnabled = () => isEventCatalogScaleEnabled();

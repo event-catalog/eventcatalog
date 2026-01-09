@@ -21,7 +21,7 @@ badges:
     textColor: yellow
     icon: ShieldCheckIcon
 attachments:
-  - url: https://example.com/adr/001
+  - url: https://example.com/adr/001 
     title: ADR-001 - Use Kafka for asynchronous messaging
     description: Learn more about why we chose Kafka for asynchronous messaging in this architecture decision record.
     type: 'architecture-decisions'
@@ -39,13 +39,14 @@ attachments:
 repository:
   language: TypeScript
   url: 'https://github.com/event-catalog/pretend-e-commerce-domain'
+diagrams:
+  - id: target-architecture
+  - id: order-flow
 ---
 
 import Footer from '@catalog/components/footer.astro';
 
 The E-Commerce domain is the core business domain of FlowMart, our modern digital marketplace. This domain orchestrates all critical business operations from product discovery to order fulfillment, handling millions of transactions monthly across our global customer base.
-
-<IcePanel url="https://s.icepanel.io/5OKxXHfTnxxlso/dZkN" title="IcePanel Diagram" description="Here you can find the IcePanel diagram for the E-Commerce domain." />
 
 <Tiles>
     <Tile 

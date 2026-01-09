@@ -1,0 +1,411 @@
+---
+import { render } from 'astro:content';
+import { ClientRouter } from 'astro:transitions';
+import VisualiserLayout from '@layouts/VisualiserLayout.astro';
+import components from '@components/MDX/components';
+import config from '@config';
+import { buildUrl } from '@utils/url-builder';
+import { ChevronDown, GitCompare, X, Rocket } from 'lucide-react';
+import CopyAsMarkdown from '@components/CopyAsMarkdown';
+import { isLLMSTxtEnabled, isEventCatalogChatEnabled, isDiagramComparisonEnabled } from '@utils/feature';
+
+import { Page } from './_index.data';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+const props = await Page.getData(Astro);
+const { Content } = await render(props);
+
+const pageTitle = `Diagram | ${props.data.name}`;
+const currentVersion = props.data.version;
+const allVersions = props.allVersions || [currentVersion];
+const hasMultipleVersions = allVersions.length > 1;
+const scaleEnabled = isDiagramComparisonEnabled();
+const chatEnabled = isEventCatalogChatEnabled();
+const markdownDownloadEnabled = isLLMSTxtEnabled();
+const chatQuery = `Tell me about the "${props.data.name}" diagram (version ${props.data.version})`;
+---
+
+<VisualiserLayout title={pageTitle} description={props.data.summary}>
+  <div class="diagram-page min-h-[calc(100vh-64px)] bg-[rgb(var(--ec-page-bg))]">
+    <header class="diagram-header border-b border-[rgb(var(--ec-page-border))]">
+      <div class="px-6 py-6 flex items-center justify-between gap-4">
+        <div class="min-w-0">
+          <div class="flex items-center gap-3">
+            <h1 class="text-2xl md:text-2xl font-bold text-[rgb(var(--ec-page-text))] truncate">
+              {props.data.name}
+            </h1>
+            {
+              hasMultipleVersions ? (
+                <div class="relative flex-shrink-0">
+                  <select
+                    id="version-select"
+                    class="appearance-none text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-transparent border border-[rgb(var(--ec-page-border))] rounded-md pl-2 pr-6 py-1 cursor-pointer hover:border-[rgb(var(--ec-accent))] transition-colors"
+                  >
+                    {allVersions.map((version: string) => (
+                      <option value={buildUrl(`/diagrams/${props.data.id}/${version}`)} selected={version === currentVersion}>
+                        v{version}
+                        {version === props.data.latestVersion ? ' (latest)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[rgb(var(--ec-icon-color))] pointer-events-none" />
+                </div>
+              ) : (
+                <span class="text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">v{currentVersion}</span>
+              )
+            }
+          </div>
+          {props.data.summary && <p class="mt-1 text-sm text-[rgb(var(--ec-page-text-muted))]">{props.data.summary}</p>}
+        </div>
+
+        <div class="flex items-center gap-2">
+          {
+            hasMultipleVersions && (
+              <button
+                id="compare-btn"
+                type="button"
+                data-scale-enabled={scaleEnabled}
+                class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[rgb(var(--ec-dropdown-text))] bg-[rgb(var(--ec-dropdown-bg))] border border-[rgb(var(--ec-dropdown-border))] rounded-md shadow-sm hover:bg-[rgb(var(--ec-dropdown-hover))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ec-accent))] transition-colors"
+              >
+                <GitCompare className="w-4 h-4" />
+                Compare diagram versions
+              </button>
+            )
+          }
+          <CopyAsMarkdown
+            client:only="react"
+            schemas={[]}
+            chatQuery={chatQuery}
+            chatEnabled={chatEnabled}
+            editUrl=""
+            markdownDownloadEnabled={markdownDownloadEnabled}
+            rssFeedEnabled={false}
+            preferChatAsDefault={chatEnabled}
+            chatButtonText="Ask about this diagram"
+          />
+        </div>
+      </div>
+    </header>
+
+    <main class="diagram-content p-6">
+      <article
+        class="diagram-article prose prose-lg max-w-none dark:prose-invert prose-headings:text-[rgb(var(--ec-page-text))] prose-p:text-[rgb(var(--ec-page-text))] prose-strong:text-[rgb(var(--ec-page-text))] prose-code:text-[rgb(var(--ec-page-text))]"
+      >
+        <Content components={components(props)} />
+      </article>
+    </main>
+  </div>
+
+  {/* Upgrade modal - shown when Scale is not enabled */}
+  {
+    hasMultipleVersions && !scaleEnabled && (
+      <div
+        id="upgrade-modal"
+        class="hidden fixed inset-0 z-50 bg-[rgb(var(--ec-page-bg)/0.8)] backdrop-blur-sm flex items-center justify-center"
+      >
+        <div class="bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg p-8 max-w-md mx-4 shadow-xl">
+          <div class="flex flex-col items-center text-center">
+            <div class="flex-shrink-0 mb-4 p-3 bg-[rgb(var(--ec-accent-subtle))] rounded-full">
+              <Rocket className="w-10 h-10 text-[rgb(var(--ec-accent))]" />
+            </div>
+            <h4 class="text-xl font-semibold text-[rgb(var(--ec-page-text))] mb-2">Upgrade to Scale</h4>
+            <p class="text-sm text-[rgb(var(--ec-page-text-muted))] mb-6">
+              Compare diagram versions side-by-side. Track changes across versions and maintain better documentation governance
+              with visual comparisons.
+            </p>
+            <div class="flex items-center gap-3">
+              <a
+                href="https://eventcatalog.cloud"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[rgb(var(--ec-button-text))] bg-[rgb(var(--ec-accent))] rounded-md hover:opacity-90 transition-opacity"
+              >
+                Start 14-day free trial
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
+                </svg>
+              </a>
+              <button
+                id="upgrade-close-btn"
+                type="button"
+                class="px-4 py-2 text-sm font-medium text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
+              >
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  {/* Compare modal - shown when Scale is enabled */}
+  {
+    hasMultipleVersions && scaleEnabled && (
+      <div id="compare-modal" class="hidden fixed inset-0 z-50 bg-[rgb(var(--ec-page-bg))]">
+        <div class="flex items-center justify-between px-6 py-3 border-b border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))]">
+          <h2 class="text-sm font-semibold text-[rgb(var(--ec-page-text))]">Compare: {props.data.name}</h2>
+          <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-[rgb(var(--ec-page-text-muted))]">Left:</span>
+              <select
+                id="compare-left-version"
+                class="appearance-none text-xs font-medium text-[rgb(var(--ec-input-text))] bg-[rgb(var(--ec-input-bg))] border border-[rgb(var(--ec-input-border))] rounded-md pl-2 pr-2 py-1 cursor-pointer"
+              >
+                {allVersions.map((version: string, index: number) => (
+                  <option value={version} selected={index === 1 || allVersions.length === 1}>
+                    v{version}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-[rgb(var(--ec-page-text-muted))]">Right:</span>
+              <select
+                id="compare-right-version"
+                class="appearance-none text-xs font-medium text-[rgb(var(--ec-input-text))] bg-[rgb(var(--ec-input-bg))] border border-[rgb(var(--ec-input-border))] rounded-md pl-2 pr-2 py-1 cursor-pointer"
+              >
+                {allVersions.map((version: string, index: number) => (
+                  <option value={version} selected={index === 0}>
+                    v{version}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              id="compare-close-btn"
+              type="button"
+              class="p-1.5 hover:bg-[rgb(var(--ec-content-hover))] rounded-md text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-icon-hover))]"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        <div class="flex h-[calc(100vh-57px)]">
+          <div class="flex-1 border-r border-[rgb(var(--ec-page-border))]">
+            <iframe id="compare-left-frame" class="w-full h-full border-0" />
+          </div>
+          <div class="flex-1">
+            <iframe id="compare-right-frame" class="w-full h-full border-0" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  <ClientRouter />
+</VisualiserLayout>
+
+<script is:inline define:vars={{ config, baseUrl: import.meta.env.BASE_URL }}>
+  window.eventcatalog = window.eventcatalog || {};
+  window.eventcatalog.mermaid = config?.mermaid;
+  window.eventcatalog.baseUrl = baseUrl;
+</script>
+
+<script>
+  function initDiagramPage() {
+    // Version selector
+    const versionSelect = document.getElementById('version-select') as HTMLSelectElement;
+    if (versionSelect) {
+      versionSelect.onchange = () => {
+        window.location.href = versionSelect.value;
+      };
+    }
+
+    // Compare modal (Scale) and Upgrade modal (non-Scale)
+    const compareBtn = document.getElementById('compare-btn') as HTMLButtonElement;
+    const compareModal = document.getElementById('compare-modal');
+    const upgradeModal = document.getElementById('upgrade-modal');
+    const compareCloseBtn = document.getElementById('compare-close-btn');
+    const upgradeCloseBtn = document.getElementById('upgrade-close-btn');
+    const leftVersionSelect = document.getElementById('compare-left-version') as HTMLSelectElement;
+    const rightVersionSelect = document.getElementById('compare-right-version') as HTMLSelectElement;
+    const leftFrame = document.getElementById('compare-left-frame') as HTMLIFrameElement;
+    const rightFrame = document.getElementById('compare-right-frame') as HTMLIFrameElement;
+
+    function buildCompareUrl(version: string) {
+      // Parse diagramId from current URL: /diagrams/{id}/{version}
+      const pathParts = window.location.pathname.split('/');
+      const diagramsIndex = pathParts.indexOf('diagrams');
+      const diagramId = diagramsIndex !== -1 ? pathParts[diagramsIndex + 1] : '';
+      const baseUrl = (window as any).eventcatalog?.baseUrl || '/';
+      const base = baseUrl === '/' ? '' : baseUrl;
+      return `${window.location.origin}${base}/diagrams/${diagramId}/${version}/embed`;
+    }
+
+    function openCompareModal() {
+      if (!compareModal) return;
+      compareModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      if (leftFrame && leftVersionSelect) {
+        leftFrame.src = buildCompareUrl(leftVersionSelect.value);
+      }
+      if (rightFrame && rightVersionSelect) {
+        rightFrame.src = buildCompareUrl(rightVersionSelect.value);
+      }
+    }
+
+    function closeCompareModal() {
+      if (!compareModal) return;
+      compareModal.classList.add('hidden');
+      document.body.style.overflow = '';
+      if (leftFrame) leftFrame.src = '';
+      if (rightFrame) rightFrame.src = '';
+    }
+
+    function openUpgradeModal() {
+      if (!upgradeModal) return;
+      upgradeModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeUpgradeModal() {
+      if (!upgradeModal) return;
+      upgradeModal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    // Handle compare button click - check if Scale is enabled
+    if (compareBtn) {
+      compareBtn.onclick = () => {
+        const scaleEnabled = compareBtn.dataset.scaleEnabled === 'true';
+        if (scaleEnabled) {
+          openCompareModal();
+        } else {
+          openUpgradeModal();
+        }
+      };
+    }
+
+    if (compareCloseBtn) compareCloseBtn.onclick = closeCompareModal;
+    if (upgradeCloseBtn) upgradeCloseBtn.onclick = closeUpgradeModal;
+
+    // Close upgrade modal when clicking outside the card
+    if (upgradeModal) {
+      upgradeModal.onclick = (e) => {
+        if (e.target === upgradeModal) {
+          closeUpgradeModal();
+        }
+      };
+    }
+
+    if (leftVersionSelect) {
+      leftVersionSelect.onchange = () => {
+        if (leftFrame) leftFrame.src = buildCompareUrl(leftVersionSelect.value);
+      };
+    }
+    if (rightVersionSelect) {
+      rightVersionSelect.onchange = () => {
+        if (rightFrame) rightFrame.src = buildCompareUrl(rightVersionSelect.value);
+      };
+    }
+
+    document.onkeydown = (e) => {
+      if (e.key === 'Escape') {
+        if (compareModal && !compareModal.classList.contains('hidden')) {
+          closeCompareModal();
+        }
+        if (upgradeModal && !upgradeModal.classList.contains('hidden')) {
+          closeUpgradeModal();
+        }
+      }
+    };
+
+    // Mermaid
+    renderMermaidDiagrams();
+  }
+
+  async function renderMermaidDiagrams() {
+    const graphs = document.getElementsByClassName('mermaid');
+    if (graphs.length === 0) return;
+
+    const { default: mermaid } = await import('mermaid');
+    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: isDarkMode ? 'dark' : 'default',
+      fontFamily: 'var(--sans-font)',
+    });
+
+    for (const graph of graphs) {
+      const content = graph.getAttribute('data-content');
+      if (!content) continue;
+      const id = 'mermaid-' + Math.round(Math.random() * 100000);
+      try {
+        const result = await mermaid.render(id, content);
+        graph.innerHTML = result.svg;
+      } catch (e) {
+        console.error('Mermaid error:', e);
+      }
+    }
+  }
+
+  // Run immediately and on page transitions
+  initDiagramPage();
+  document.addEventListener('astro:page-load', initDiagramPage);
+</script>
+
+<script>
+  import('pako').then(({ deflate }: any) => {
+    document.addEventListener('astro:page-load', () => {
+      const blocks = document.getElementsByClassName('plantuml');
+      if (blocks.length > 0) {
+        renderPlantUML(blocks, deflate);
+      }
+    });
+
+    function renderPlantUML(blocks: any, deflate: any) {
+      for (const block of blocks) {
+        const content = block.getAttribute('data-content');
+        if (!content) continue;
+
+        const encoded = encodePlantUML(content, deflate);
+        const img = document.createElement('img');
+        img.src = `https://www.plantuml.com/plantuml/svg/~1${encoded}`;
+        img.alt = 'PlantUML diagram';
+        img.loading = 'lazy';
+        block.innerHTML = '';
+        img.classList.add('mx-auto');
+        block.appendChild(img);
+      }
+    }
+
+    function encodePlantUML(text: any, deflate: any) {
+      const data = new TextEncoder().encode(text);
+      const compressed = deflate(data, { level: 9, to: 'Uint8Array' });
+      return encode64(compressed);
+    }
+
+    function encode64(data: any) {
+      const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
+      let str = '';
+      const len = data.length;
+      for (let i = 0; i < len; i += 3) {
+        const b1 = data[i];
+        const b2 = i + 1 < len ? data[i + 1] : 0;
+        const b3 = i + 2 < len ? data[i + 2] : 0;
+
+        let c1 = b1 >> 2;
+        let c2 = ((b1 & 0x3) << 4) | (b2 >> 4);
+        let c3 = ((b2 & 0xf) << 2) | (b3 >> 6);
+        let c4 = b3 & 0x3f;
+
+        str += chars[c1] + chars[c2] + chars[c3] + chars[c4];
+      }
+      return str;
+    }
+
+    const graphs = document.getElementsByClassName('plantuml');
+    if (graphs.length > 0) {
+      renderPlantUML(graphs, deflate);
+    }
+  });
+</script>

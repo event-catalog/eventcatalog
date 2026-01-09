@@ -117,6 +117,7 @@ export const resourceToCollectionMap = {
   team: 'teams',
   container: 'containers',
   entity: 'entities',
+  diagram: 'diagrams',
 } as const;
 
 export const collectionToResourceMap = {
@@ -131,6 +132,7 @@ export const collectionToResourceMap = {
   teams: 'team',
   containers: 'container',
   entities: 'entity',
+  diagrams: 'diagram',
 } as const;
 
 export const getDeprecatedDetails = (item: CollectionEntry<CollectionTypes>) => {

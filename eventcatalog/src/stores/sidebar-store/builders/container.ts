@@ -1,16 +1,21 @@
 import type { CollectionEntry } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
-import type { NavNode, ChildRef } from './shared';
+import type { NavNode, ChildRef, ResourceGroupContext } from './shared';
 import {
   buildQuickReferenceSection,
   buildOwnersSection,
   shouldRenderSideBarSection,
   buildRepositorySection,
   buildAttachmentsSection,
+  buildDiagramNavItems,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
-export const buildContainerNode = (container: CollectionEntry<'containers'>, owners: any[]): NavNode => {
+export const buildContainerNode = (
+  container: CollectionEntry<'containers'>,
+  owners: any[],
+  context: ResourceGroupContext
+): NavNode => {
   const servicesWritingToContainer = container.data.servicesThatWriteToContainer || [];
   const servicesReadingFromContainer = container.data.servicesThatReadFromContainer || [];
 
@@ -27,6 +32,11 @@ export const buildContainerNode = (container: CollectionEntry<'containers'>, own
 
   const renderRepository = container.data.repository && shouldRenderSideBarSection(container, 'repository');
 
+  // Diagrams
+  const containerDiagrams = container.data.diagrams || [];
+  const diagramNavItems = buildDiagramNavItems(containerDiagrams, context.diagrams);
+  const hasDiagrams = diagramNavItems.length > 0;
+
   return {
     type: 'item',
     title: container.data.name,
@@ -41,15 +51,21 @@ export const buildContainerNode = (container: CollectionEntry<'containers'>, own
       ]),
       renderVisualiser && {
         type: 'group',
-        title: 'Architecture & Design',
+        title: 'Architecture',
         icon: 'Workflow',
         pages: [
           {
             type: 'item',
-            title: 'Interaction Map',
+            title: 'Map',
             href: buildUrl(`/visualiser/containers/${container.data.id}/${container.data.version}`),
           },
         ],
+      },
+      hasDiagrams && {
+        type: 'group',
+        title: 'Diagrams',
+        icon: 'FileImage',
+        pages: diagramNavItems,
       },
       renderServicesWritingToContainer && {
         type: 'group',

@@ -6,12 +6,13 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import config from '@config';
 import fs from 'fs';
+import { isLLMSTxtEnabled } from '@utils/feature';
 
 const users = await getCollection('users');
 
 export async function getStaticPaths() {
   // Just return empty array if LLMs are not enabled
-  if (!config.llmsTxt?.enabled) {
+  if (!isLLMSTxtEnabled()) {
     return [];
   }
 
@@ -23,7 +24,7 @@ export async function getStaticPaths() {
 
 export const GET: APIRoute = async ({ params, props }) => {
   // Just return empty array if LLMs are not enabled
-  if (!config.llmsTxt?.enabled) {
+  if (!isLLMSTxtEnabled()) {
     return new Response('llms.txt is not enabled for this Catalog.', { status: 404 });
   }
 
