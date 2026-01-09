@@ -4,6 +4,8 @@ import OpenAPISpec from './_OpenAPI.tsx';
 
 import { DocumentMinusIcon } from '@heroicons/react/24/outline';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import CopyAsMarkdown from '@components/CopyAsMarkdown';
+import { isEventCatalogChatEnabled } from '@utils/feature';
 import './_styles.css';
 import { Page } from './_[filename].data.ts';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
@@ -26,6 +28,10 @@ let content = '';
 
 // Capitalize the first letter of a string
 const pageTitle = `${collection} | ${data.name} | OpenAPI Spec`.replace(/^\w/, (c) => c.toUpperCase());
+
+// Chat configuration
+const chatEnabled = isEventCatalogChatEnabled();
+const chatQuery = `Tell me about the OpenAPI specification for "${data.name}" (version ${data.version})`;
 
 // Index only the latest version
 const pagefindAttributes =
@@ -57,13 +63,28 @@ if (isRemote) {
         </p>
       </div>
     ) : (
-      <div {...pagefindAttributes}>
+      <div {...pagefindAttributes} class="relative">
         {
           // Currently, Pagefind does not index metadata (such as the title),
           // so we need to ensure it is included as text on the page.
           // https://github.com/CloudCannon/pagefind/issues/437
         }
         <h2 class="hidden">{pageTitle}</h2>
+        {chatEnabled && (
+          <div class="absolute top-3 right-14 z-10">
+            <CopyAsMarkdown
+              client:only="react"
+              schemas={[]}
+              chatQuery={chatQuery}
+              chatEnabled={chatEnabled}
+              editUrl=""
+              markdownDownloadEnabled={false}
+              rssFeedEnabled={false}
+              preferChatAsDefault={true}
+              chatButtonText="Ask about this specification"
+            />
+          </div>
+        )}
         <OpenAPISpec client:only="react" spec={content} />
       </div>
     )

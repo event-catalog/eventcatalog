@@ -698,12 +698,14 @@ const diagrams = defineCollection({
     base: projectDirBase,
     generateId: ({ data }) => `${data.id}-${data.version}`,
   }),
-  schema: z.object({
-    id: z.string(),
-    name: z.string(),
-    version: z.string(),
-    summary: z.string().optional(),
-  }),
+  schema: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      version: z.string(),
+      summary: z.string().optional(),
+    })
+    .merge(baseSchema),
 });
 
 export const collections = {
