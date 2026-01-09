@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.3.0
+
+### Minor Changes
+
+- a4645bf: feat(core): added new resource type diagrams
+
 ## 3.2.2
 
 ### Patch Changes
