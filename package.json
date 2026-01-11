@@ -44,6 +44,7 @@
     "lint:catalog": "pnpm dlx @eventcatalog/linter examples/default"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.9",
     "@ai-sdk/react": "^3.0.17",
     "@astrojs/markdown-remark": "^6.3.10",
     "@astrojs/mdx": "^4.3.13",
@@ -65,6 +66,7 @@
     "@heroicons/react": "^2.1.3",
     "@iconify-json/logos": "^1.2.4",
     "@mermaid-js/layout-elk": "^0.2.0",
+    "@modelcontextprotocol/sdk": "^1.25.2",
     "@nanostores/react": "^1.0.0",
     "@parcel/watcher": "^2.4.1",
     "@radix-ui/react-context-menu": "^2.2.6",
@@ -96,6 +98,7 @@
     "elkjs": "^0.10.0",
     "glob": "^10.5.0",
     "gray-matter": "^4.0.3",
+    "hono": "^4.11.3",
     "html-to-image": "^1.11.11",
     "js-yaml": "^4.1.1",
     "jsonpath": "^1.1.1",

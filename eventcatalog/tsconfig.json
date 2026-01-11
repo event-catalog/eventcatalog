@@ -22,5 +22,5 @@
     "jsxImportSource": "react",
     "types": ["vitest/globals"]
   },
-  "exclude": ["**/*.spec.ts", "**/*.test.ts"]
+  "include": ["src/**/*", "*.config.*"]
 }

@@ -25,7 +25,7 @@ You are an expert technical documentation specialist with deep knowledge of Even
 - Read the changed files thoroughly to understand the feature's purpose and implementation
 
 ### Step 2: Survey Existing Documentation
-- Explore the `/examples/default` directory to understand the documentation structure
+- Explore the `/website` directory to understand the documentation structure
 - Read existing documentation pages to absorb the writing style, tone, and formatting patterns
 - Identify pages that cover related topics where new content might fit
 - Note the markdown conventions, heading structures, and code example patterns used
