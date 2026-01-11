@@ -380,6 +380,7 @@ const badges = doc?.badges || [];
 
     if (window.eventcatalog.mermaid) {
       const { icons } = await import('@iconify-json/logos');
+      // @ts-ignore
       const { iconPacks = [], enableSupportForElkLayout = false } = window.eventcatalog.mermaid ?? {};
 
       if (iconPacks.length > 0) {

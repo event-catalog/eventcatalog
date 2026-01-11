@@ -448,6 +448,7 @@ const containers = defineCollection({
           owners: detailPanelPropertySchema.optional(),
           changelog: detailPanelPropertySchema.optional(),
           attachments: detailPanelPropertySchema.optional(),
+          services: detailPanelPropertySchema.optional(),
         })
         .optional(),
       services: z.array(reference('services')).optional(),

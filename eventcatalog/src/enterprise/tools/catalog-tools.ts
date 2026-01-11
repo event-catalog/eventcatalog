@@ -6,6 +6,7 @@ import { getCollection, getEntry } from 'astro:content';
 import { z } from 'zod';
 import { getSchemasFromResource } from '@utils/collections/schemas';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+import { getUbiquitousLanguageWithSubdomains } from '@utils/collections/domains';
 import fs from 'node:fs';
 
 // ============================================
@@ -111,15 +112,27 @@ export const resourceCollectionSchema = z.enum([
 // ============================================
 
 /**
- * Get resources from a collection with optional pagination
+ * Get resources from a collection with optional pagination and search
  */
-export async function getResources(params: { collection: string; cursor?: string }) {
+export async function getResources(params: { collection: string; cursor?: string; search?: string }) {
   const resources = await getCollection(params.collection as any);
-  const allResults = resources.map((resource: any) => ({
+  let allResults = resources.map((resource: any) => ({
     id: resource.data.id,
     version: resource.data.version,
     name: resource.data.name,
+    summary: resource.data.summary,
   }));
+
+  // Apply search filter if provided
+  if (params.search) {
+    const searchTerm = params.search.toLowerCase().trim();
+    allResults = allResults.filter(
+      (resource) =>
+        resource.id?.toLowerCase().includes(searchTerm) ||
+        resource.name?.toLowerCase().includes(searchTerm) ||
+        resource.summary?.toLowerCase().includes(searchTerm)
+    );
+  }
 
   const paginatedResult = paginate(allResults, params.cursor);
 
@@ -570,12 +583,88 @@ export async function findMessageBySchemaId(params: {
 }
 
 // ============================================
+// Ubiquitous Language (DDD)
+// ============================================
+
+/**
+ * Get ubiquitous language terms for a domain (including subdomains)
+ * Returns the domain's language/glossary if defined
+ */
+export async function explainUbiquitousLanguageTerms(params: { domainId: string; domainVersion?: string }) {
+  const domains = await getCollection('domains');
+
+  // Use the existing utility to find the domain by id and version (or latest)
+  const matches = getItemsFromCollectionByIdAndSemverOrLatest(domains, params.domainId, params.domainVersion);
+  const domain = matches[0];
+
+  if (!domain) {
+    return {
+      error: `Domain not found: ${params.domainId}${params.domainVersion ? ` (version ${params.domainVersion})` : ''}`,
+    };
+  }
+
+  // Get ubiquitous language including subdomains
+  const ubiquitousLanguageData = await getUbiquitousLanguageWithSubdomains(domain as any);
+  const { domain: domainUL, subdomains, duplicateTerms } = ubiquitousLanguageData;
+
+  // Extract terms from domain's ubiquitous language
+  const domainTerms =
+    domainUL?.data?.dictionary?.map((term: any) => ({
+      term: term.name,
+      description: term.summary,
+      icon: term.icon,
+      domainId: params.domainId,
+      domainName: (domain.data as any).name || params.domainId,
+      isDuplicate: duplicateTerms.has(term.name.toLowerCase()),
+    })) || [];
+
+  // Extract terms from subdomains
+  const subdomainTerms = subdomains.flatMap(({ subdomain, ubiquitousLanguage }) => {
+    if (!ubiquitousLanguage?.data?.dictionary) return [];
+    return ubiquitousLanguage.data.dictionary.map((term: any) => ({
+      term: term.name,
+      description: term.summary,
+      icon: term.icon,
+      domainId: (subdomain.data as any).id,
+      domainName: (subdomain.data as any).name || (subdomain.data as any).id,
+      isSubdomain: true,
+      isDuplicate: duplicateTerms.has(term.name.toLowerCase()),
+    }));
+  });
+
+  const allTerms = [...domainTerms, ...subdomainTerms];
+
+  if (allTerms.length === 0) {
+    return {
+      domainId: params.domainId,
+      domainVersion: (domain.data as any).version,
+      domainName: (domain.data as any).name || params.domainId,
+      message: 'No ubiquitous language terms defined for this domain or its subdomains',
+      terms: [],
+      subdomainCount: subdomains.length,
+    };
+  }
+
+  return {
+    domainId: params.domainId,
+    domainVersion: (domain.data as any).version,
+    domainName: (domain.data as any).name || params.domainId,
+    terms: allTerms,
+    totalCount: allTerms.length,
+    domainTermCount: domainTerms.length,
+    subdomainTermCount: subdomainTerms.length,
+    subdomainCount: subdomains.length,
+    duplicateTerms: Array.from(duplicateTerms),
+  };
+}
+
+// ============================================
 // Tool metadata (descriptions)
 // ============================================
 
 export const toolDescriptions = {
   getResources:
-    'Use this tool to get events, services, commands, queries, flows, domains, channels, entities from EventCatalog. Supports pagination via cursor.',
+    'Use this tool to get events, services, commands, queries, flows, domains, channels, entities from EventCatalog. Supports pagination via cursor and filtering by search term (searches name, id, and summary).',
   getResource: 'Use this tool to get a specific resource from EventCatalog by its id and version',
   getMessagesProducedOrConsumedByResource:
     'Use this tool to get the messages produced or consumed by a resource by its id and version. Look at the `sends` and `receives` properties to get the messages produced or consumed by the resource',
@@ -596,4 +685,6 @@ export const toolDescriptions = {
   getUser: 'Use this tool to get a specific user by their id. Returns user details including role and contact info.',
   findMessageBySchemaId:
     'Use this tool when a user shares a schema file (Avro, JSON Schema, Protobuf) and wants to find it in EventCatalog. Look for "x-eventcatalog-id" and "x-eventcatalog-version" in the schema - these may be properties in the schema OR in comments (e.g. // x-eventcatalog-id: OrderCreated). Pass the id as messageId. If version exists, pass it as messageVersion, otherwise omit it to get the latest version. Returns the message resource along with its producers and consumers.',
+  explainUbiquitousLanguageTerms:
+    'Use this tool to explain ubiquitous language terms from Domain-Driven Design for a specific domain. Returns the glossary of terms defined for the domain and its subdomains, including duplicate term detection.',
 };

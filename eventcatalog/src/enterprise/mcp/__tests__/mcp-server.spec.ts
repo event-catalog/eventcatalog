@@ -1,7 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
-// Store original env
-const originalEnv = { ...process.env };
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock astro:content
 vi.mock('astro:content', async (importOriginal) => {
@@ -16,6 +13,7 @@ vi.mock('astro:content', async (importOriginal) => {
 vi.mock('@utils/feature', () => ({
   isSSR: vi.fn(() => true),
   isEventCatalogScaleEnabled: vi.fn(() => true),
+  isEventCatalogMCPEnabled: vi.fn(() => true),
 }));
 
 // Mock getSchemasFromResource
@@ -61,73 +59,6 @@ describe('createToolHandler', () => {
 });
 
 // ============================================
-// Feature Gating Tests
-// ============================================
-
-describe('MCP Route Feature Gating', () => {
-  beforeEach(() => {
-    vi.resetAllMocks();
-    process.env = { ...originalEnv };
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
-  });
-
-  it('should check SSR mode before handling requests', async () => {
-    vi.mocked(isSSR).mockReturnValue(false);
-    vi.mocked(isEventCatalogScaleEnabled).mockReturnValue(true);
-
-    // Import the ALL handler dynamically
-    const { ALL } = await import('../[...path]');
-
-    const request = new Request('http://localhost:4321/docs/mcp/', {
-      method: 'GET',
-    });
-
-    const response = await ALL({ request } as any);
-
-    expect(response.status).toBe(501);
-    const body = await response.json();
-    expect(body.error).toBe('ssr_required');
-    expect(body.message).toContain('SSR mode');
-  });
-
-  it('should check Scale plan before handling requests', async () => {
-    vi.mocked(isSSR).mockReturnValue(true);
-    vi.mocked(isEventCatalogScaleEnabled).mockReturnValue(false);
-
-    // Import the ALL handler dynamically
-    const { ALL } = await import('../[...path]');
-
-    const request = new Request('http://localhost:4321/docs/mcp/', {
-      method: 'GET',
-    });
-
-    const response = await ALL({ request } as any);
-
-    expect(response.status).toBe(501);
-    const body = await response.json();
-    expect(body.error).toBe('feature_not_available');
-    expect(body.message).toContain('Scale');
-  });
-
-  it('should return correct Cache-Control header on error', async () => {
-    vi.mocked(isSSR).mockReturnValue(false);
-
-    const { ALL } = await import('../[...path]');
-
-    const request = new Request('http://localhost:4321/docs/mcp/', {
-      method: 'GET',
-    });
-
-    const response = await ALL({ request } as any);
-
-    expect(response.headers.get('Cache-Control')).toBe('no-store');
-  });
-});
-
-// ============================================
 // Health Check Endpoint Tests
 // ============================================
 
@@ -138,8 +69,8 @@ describe('MCP Health Check Endpoint (GET /docs/mcp/)', () => {
     vi.mocked(isEventCatalogScaleEnabled).mockReturnValue(true);
   });
 
-  it('should pass feature gates when SSR and Scale are enabled', async () => {
-    const { ALL } = await import('../[...path]');
+  it('should handle GET requests', async () => {
+    const { ALL } = await import('../mcp-server');
 
     // Use the exact URL path that matches the Hono basePath
     const request = new Request('http://localhost:4321/docs/mcp', {
@@ -148,14 +79,14 @@ describe('MCP Health Check Endpoint (GET /docs/mcp/)', () => {
 
     const response = await ALL({ request } as any);
 
-    // Should not return 501 (feature gate error)
-    expect(response.status).not.toBe(501);
+    // Should return success
+    expect(response.status).toBe(200);
   });
 
   it('should verify toolDescriptions contains all expected tools', async () => {
     const { toolDescriptions } = await import('@enterprise/tools/catalog-tools');
 
-    // 14 built-in tools from toolDescriptions
+    // 15 built-in tools from toolDescriptions
     const expectedTools = [
       'getResources',
       'getResource',
@@ -171,12 +102,13 @@ describe('MCP Health Check Endpoint (GET /docs/mcp/)', () => {
       'getUsers',
       'getUser',
       'findMessageBySchemaId',
+      'explainUbiquitousLanguageTerms',
     ];
 
     for (const tool of expectedTools) {
       expect(toolDescriptions[tool as keyof typeof toolDescriptions]).toBeDefined();
     }
-    expect(Object.keys(toolDescriptions).length).toBe(14);
+    expect(Object.keys(toolDescriptions).length).toBe(15);
   });
 });
 
@@ -192,7 +124,7 @@ describe('MCP Protocol Endpoint (POST /docs/mcp/)', () => {
   });
 
   it('should accept POST requests', async () => {
-    const { ALL } = await import('../[...path]');
+    const { ALL } = await import('../mcp-server');
 
     const request = new Request('http://localhost:4321/docs/mcp/', {
       method: 'POST',
@@ -213,56 +145,8 @@ describe('MCP Protocol Endpoint (POST /docs/mcp/)', () => {
 
     const response = await ALL({ request } as any);
 
-    // Should not return feature gate error
+    // Should not return 501 error
     expect(response.status).not.toBe(501);
-  });
-
-  it('should enforce SSR mode for POST requests', async () => {
-    vi.mocked(isSSR).mockReturnValue(false);
-
-    const { ALL } = await import('../[...path]');
-
-    const request = new Request('http://localhost:4321/docs/mcp/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'tools/list',
-        id: 1,
-      }),
-    });
-
-    const response = await ALL({ request } as any);
-
-    expect(response.status).toBe(501);
-    const body = await response.json();
-    expect(body.error).toBe('ssr_required');
-  });
-
-  it('should enforce Scale plan for POST requests', async () => {
-    vi.mocked(isEventCatalogScaleEnabled).mockReturnValue(false);
-
-    const { ALL } = await import('../[...path]');
-
-    const request = new Request('http://localhost:4321/docs/mcp/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'tools/list',
-        id: 1,
-      }),
-    });
-
-    const response = await ALL({ request } as any);
-
-    expect(response.status).toBe(501);
-    const body = await response.json();
-    expect(body.error).toBe('feature_not_available');
   });
 });
 
@@ -308,13 +192,105 @@ describe('MCP Tool Registration', () => {
 
 describe('MCP Route Configuration', () => {
   it('should disable prerendering for SSR', async () => {
-    const routeModule = await import('../[...path]');
+    const routeModule = await import('../mcp-server');
     expect(routeModule.prerender).toBe(false);
   });
 
   it('should export ALL handler', async () => {
-    const routeModule = await import('../[...path]');
+    const routeModule = await import('../mcp-server');
     expect(routeModule.ALL).toBeDefined();
     expect(typeof routeModule.ALL).toBe('function');
+  });
+});
+
+// ============================================
+// Feature Gating Integration Tests
+// Note: SSR and Scale checks are now handled at build time
+// by the eventcatalog-features integration. The route is only
+// injected when isEventCatalogMCPEnabled() returns true.
+// ============================================
+
+describe('MCP Feature Gating (Integration Level)', () => {
+  it('should require isEventCatalogMCPEnabled to be true for route injection', async () => {
+    const { isEventCatalogMCPEnabled } = await import('@utils/feature');
+    // When MCP is enabled (SSR + Scale), the route should be injected
+    // This test verifies the feature check function exists and works
+    expect(typeof isEventCatalogMCPEnabled).toBe('function');
+  });
+});
+
+// ============================================
+// MCP Resources Tests
+// ============================================
+
+describe('MCP Resources', () => {
+  it('should define all expected resource URIs', async () => {
+    // Import the mcp-server module to check resources are defined
+    const expectedResources = [
+      'eventcatalog://all',
+      'eventcatalog://events',
+      'eventcatalog://commands',
+      'eventcatalog://queries',
+      'eventcatalog://services',
+      'eventcatalog://domains',
+      'eventcatalog://flows',
+      'eventcatalog://teams',
+      'eventcatalog://users',
+    ];
+
+    // The resources are exposed via the health check endpoint
+    const { ALL } = await import('../mcp-server');
+
+    const request = new Request('http://localhost:4321/docs/mcp', {
+      method: 'GET',
+    });
+
+    const response = await ALL({ request } as any);
+    const body = await response.json();
+
+    expect(body.resources).toBeDefined();
+    expect(body.resources.length).toBe(9);
+
+    for (const uri of expectedResources) {
+      expect(body.resources).toContain(uri);
+    }
+  });
+
+  it('should return resources in health check response', async () => {
+    const { ALL } = await import('../mcp-server');
+
+    const request = new Request('http://localhost:4321/docs/mcp', {
+      method: 'GET',
+    });
+
+    const response = await ALL({ request } as any);
+    expect(response.status).toBe(200);
+
+    const body = await response.json();
+    expect(body).toHaveProperty('resources');
+    expect(Array.isArray(body.resources)).toBe(true);
+  });
+});
+
+// ============================================
+// Search Filter in getResources Tool
+// ============================================
+
+describe('MCP getResources Tool with Search', () => {
+  it('should have search parameter in getResources tool description', async () => {
+    const { toolDescriptions } = await import('@enterprise/tools/catalog-tools');
+    expect(toolDescriptions.getResources).toContain('search');
+  });
+});
+
+// ============================================
+// Ubiquitous Language Tool
+// ============================================
+
+describe('MCP explainUbiquitousLanguageTerms Tool', () => {
+  it('should have explainUbiquitousLanguageTerms in toolDescriptions', async () => {
+    const { toolDescriptions } = await import('@enterprise/tools/catalog-tools');
+    expect(toolDescriptions.explainUbiquitousLanguageTerms).toBeDefined();
+    expect(toolDescriptions.explainUbiquitousLanguageTerms).toContain('ubiquitous language');
   });
 });

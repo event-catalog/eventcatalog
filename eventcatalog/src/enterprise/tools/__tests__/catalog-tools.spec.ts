@@ -39,6 +39,57 @@ vi.mock('@utils/collections/util', () => ({
   }),
 }));
 
+// Mock getUbiquitousLanguageWithSubdomains
+vi.mock('@utils/collections/domains', () => ({
+  getUbiquitousLanguageWithSubdomains: vi.fn((domain) => {
+    // Return mock ubiquitous language data based on domain
+    if (domain.data.id === 'OrderDomain') {
+      return Promise.resolve({
+        domain: {
+          data: {
+            dictionary: [
+              { id: 'order', name: 'Order', summary: 'A request to purchase goods or services', icon: 'ShoppingCart' },
+              {
+                id: 'line-item',
+                name: 'Line Item',
+                summary: 'An individual product or service within an order',
+                icon: 'Package',
+              },
+              { id: 'customer', name: 'Customer', summary: 'A person or entity placing an order' },
+            ],
+          },
+        },
+        subdomains: [
+          {
+            subdomain: { data: { id: 'FulfillmentSubdomain', name: 'Fulfillment Subdomain' } },
+            ubiquitousLanguage: {
+              data: {
+                dictionary: [
+                  { id: 'shipment', name: 'Shipment', summary: 'A package sent to fulfill an order', icon: 'Truck' },
+                  { id: 'customer', name: 'Customer', summary: 'Duplicate term - recipient of a shipment' },
+                ],
+              },
+            },
+          },
+        ],
+        duplicateTerms: new Set(['customer']),
+      });
+    }
+    if (domain.data.id === 'EmptyDomain') {
+      return Promise.resolve({
+        domain: null,
+        subdomains: [],
+        duplicateTerms: new Set(),
+      });
+    }
+    return Promise.resolve({
+      domain: null,
+      subdomains: [],
+      duplicateTerms: new Set(),
+    });
+  }),
+}));
+
 // Mock fs for schema reading
 vi.mock('node:fs', () => ({
   default: {
@@ -65,6 +116,7 @@ import {
   getUsers,
   getUser,
   findMessageBySchemaId,
+  explainUbiquitousLanguageTerms,
 } from '../catalog-tools';
 import { getSchemasFromResource } from '@utils/collections/schemas';
 
@@ -825,6 +877,159 @@ describe('getUser', () => {
     expect('error' in result).toBe(true);
     if ('error' in result) {
       expect(result.error).toContain('not found');
+    }
+  });
+});
+
+// ============================================
+// Search Filter Tests
+// ============================================
+
+describe('getResources with search filter', () => {
+  it('filters resources by name', async () => {
+    const result = await getResources({ collection: 'events', search: 'Order' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      // Should match OrderCreated events (both versions)
+      expect(result.resources.length).toBeGreaterThan(0);
+      expect(
+        result.resources.every((r: any) => r.name?.toLowerCase().includes('order') || r.id?.toLowerCase().includes('order'))
+      ).toBe(true);
+    }
+  });
+
+  it('filters resources by id', async () => {
+    const result = await getResources({ collection: 'events', search: 'Payment' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resources.length).toBeGreaterThan(0);
+      expect(result.resources.some((r: any) => r.id === 'PaymentProcessed')).toBe(true);
+    }
+  });
+
+  it('filters resources by summary', async () => {
+    const result = await getResources({ collection: 'events', search: 'inventory' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resources.length).toBeGreaterThan(0);
+      expect(result.resources.some((r: any) => r.id === 'InventoryUpdated')).toBe(true);
+    }
+  });
+
+  it('returns empty when no match found', async () => {
+    const result = await getResources({ collection: 'events', search: 'nonexistent' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.resources.length).toBe(0);
+      expect(result.totalCount).toBe(0);
+    }
+  });
+
+  it('is case-insensitive', async () => {
+    const resultLower = await getResources({ collection: 'events', search: 'order' });
+    const resultUpper = await getResources({ collection: 'events', search: 'ORDER' });
+    expect('error' in resultLower).toBe(false);
+    expect('error' in resultUpper).toBe(false);
+    if (!('error' in resultLower) && !('error' in resultUpper)) {
+      expect(resultLower.totalCount).toBe(resultUpper.totalCount);
+    }
+  });
+
+  it('returns all resources when search is empty', async () => {
+    const resultWithSearch = await getResources({ collection: 'events', search: '' });
+    const resultWithoutSearch = await getResources({ collection: 'events' });
+    expect('error' in resultWithSearch).toBe(false);
+    expect('error' in resultWithoutSearch).toBe(false);
+    if (!('error' in resultWithSearch) && !('error' in resultWithoutSearch)) {
+      expect(resultWithSearch.totalCount).toBe(resultWithoutSearch.totalCount);
+    }
+  });
+
+  it('includes summary in returned resources', async () => {
+    const result = await getResources({ collection: 'events' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result) && result.resources.length > 0) {
+      expect(result.resources[0]).toHaveProperty('summary');
+    }
+  });
+});
+
+// ============================================
+// Ubiquitous Language Tests
+// ============================================
+
+describe('explainUbiquitousLanguageTerms', () => {
+  it('returns terms for a domain with ubiquitous language', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'OrderDomain' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.domainId).toBe('OrderDomain');
+      expect(result.terms.length).toBeGreaterThan(0);
+      expect(result.totalCount).toBeGreaterThan(0);
+    }
+  });
+
+  it('includes domain terms', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'OrderDomain' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.domainTermCount).toBe(3);
+      expect(result.terms.some((t: any) => t.term === 'Order')).toBe(true);
+      expect(result.terms.some((t: any) => t.term === 'Line Item')).toBe(true);
+    }
+  });
+
+  it('includes subdomain terms', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'OrderDomain' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.subdomainTermCount).toBe(2);
+      expect(result.terms.some((t: any) => t.term === 'Shipment' && t.isSubdomain === true)).toBe(true);
+    }
+  });
+
+  it('detects duplicate terms', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'OrderDomain' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.duplicateTerms).toContain('customer');
+      expect(result.terms.filter((t: any) => t.term === 'Customer' && t.isDuplicate === true).length).toBe(2);
+    }
+  });
+
+  it('includes term metadata (icon, description)', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'OrderDomain' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      const orderTerm = result.terms.find((t: any) => t.term === 'Order');
+      expect(orderTerm).toBeDefined();
+      expect(orderTerm.description).toBeDefined();
+      expect(orderTerm.icon).toBe('ShoppingCart');
+    }
+  });
+
+  it('returns message when no terms defined', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'EmptyDomain' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.message).toContain('No ubiquitous language terms');
+      expect(result.terms.length).toBe(0);
+    }
+  });
+
+  it('returns error when domain not found', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'NonExistent' });
+    expect('error' in result).toBe(true);
+    if ('error' in result) {
+      expect(result.error).toContain('not found');
+    }
+  });
+
+  it('returns subdomain count', async () => {
+    const result = await explainUbiquitousLanguageTerms({ domainId: 'OrderDomain' });
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) {
+      expect(result.subdomainCount).toBe(1);
     }
   });
 });

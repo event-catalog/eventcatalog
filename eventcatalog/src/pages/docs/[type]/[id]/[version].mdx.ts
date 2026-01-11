@@ -45,14 +45,10 @@ export async function getStaticPaths() {
 }
 
 export const GET: APIRoute = async ({ params, props }) => {
-  console.log('props', props);
-
   // Just return empty array if LLMs are not enabled
   if (!isLLMSTxtEnabled()) {
     return new Response('llms.txt is not enabled for this Catalog.', { status: 404 });
   }
-
-  console.log('params', params);
 
   if (isSSR()) {
     const { getResourcePath } = utils(process.env.PROJECT_DIR ?? '');

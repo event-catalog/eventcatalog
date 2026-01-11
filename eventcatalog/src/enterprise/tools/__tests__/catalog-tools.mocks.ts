@@ -205,13 +205,14 @@ export const mockFlows = [
 ];
 
 // ============================================
-// Mock Domains
+// Mock Domains (with subdomains for ubiquitous language testing)
 // ============================================
 export const mockDomains = [
   {
     id: 'OrderDomain-1.0.0',
     slug: 'domains/OrderDomain',
     collection: 'domains',
+    filePath: '/domains/OrderDomain/index.mdx',
     body: 'Order domain description',
     data: {
       id: 'OrderDomain',
@@ -219,6 +220,101 @@ export const mockDomains = [
       version: '1.0.0',
       summary: 'Order management domain',
       owners: ['order-team'],
+      // Subdomains reference
+      domains: [
+        {
+          data: {
+            id: 'FulfillmentSubdomain',
+            name: 'Fulfillment Subdomain',
+            version: '1.0.0',
+          },
+          filePath: '/domains/OrderDomain/FulfillmentSubdomain/index.mdx',
+        },
+      ],
+    },
+  },
+  {
+    id: 'FulfillmentSubdomain-1.0.0',
+    slug: 'domains/FulfillmentSubdomain',
+    collection: 'domains',
+    filePath: '/domains/OrderDomain/FulfillmentSubdomain/index.mdx',
+    body: 'Fulfillment subdomain description',
+    data: {
+      id: 'FulfillmentSubdomain',
+      name: 'Fulfillment Subdomain',
+      version: '1.0.0',
+      summary: 'Handles order fulfillment',
+      owners: ['order-team'],
+    },
+  },
+  {
+    id: 'EmptyDomain-1.0.0',
+    slug: 'domains/EmptyDomain',
+    collection: 'domains',
+    filePath: '/domains/EmptyDomain/index.mdx',
+    body: 'Empty domain description',
+    data: {
+      id: 'EmptyDomain',
+      name: 'Empty Domain',
+      version: '1.0.0',
+      summary: 'Domain with no ubiquitous language',
+      owners: [],
+    },
+  },
+];
+
+// ============================================
+// Mock Ubiquitous Languages
+// ============================================
+export const mockUbiquitousLanguages = [
+  {
+    id: 'OrderDomain-language',
+    slug: 'ubiquitousLanguages/OrderDomain',
+    collection: 'ubiquitousLanguages',
+    filePath: '/domains/OrderDomain/language.mdx',
+    body: 'Order domain ubiquitous language',
+    data: {
+      dictionary: [
+        {
+          id: 'order',
+          name: 'Order',
+          summary: 'A request to purchase goods or services',
+          icon: 'ShoppingCart',
+        },
+        {
+          id: 'line-item',
+          name: 'Line Item',
+          summary: 'An individual product or service within an order',
+          icon: 'Package',
+        },
+        {
+          id: 'customer',
+          name: 'Customer',
+          summary: 'A person or entity placing an order',
+        },
+      ],
+    },
+  },
+  {
+    id: 'FulfillmentSubdomain-language',
+    slug: 'ubiquitousLanguages/FulfillmentSubdomain',
+    collection: 'ubiquitousLanguages',
+    filePath: '/domains/OrderDomain/FulfillmentSubdomain/language.mdx',
+    body: 'Fulfillment subdomain ubiquitous language',
+    data: {
+      dictionary: [
+        {
+          id: 'shipment',
+          name: 'Shipment',
+          summary: 'A package sent to fulfill an order',
+          icon: 'Truck',
+        },
+        {
+          id: 'customer',
+          name: 'Customer',
+          summary: 'Duplicate term - recipient of a shipment',
+        },
+      ],
     },
   },
 ];
@@ -407,4 +503,5 @@ export const mockCollections: Record<string, any[]> = {
   diagrams: mockDiagrams,
   teams: mockTeams,
   users: mockUsers,
+  ubiquitousLanguages: mockUbiquitousLanguages,
 };

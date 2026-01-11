@@ -4,7 +4,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { z } from 'zod';
 import { join } from 'node:path';
-import { isEventCatalogScaleEnabled, isSSR } from '@utils/feature';
+import { isEventCatalogScaleEnabled } from '@utils/feature';
 import {
   getResources,
   getResource,
@@ -20,11 +20,13 @@ import {
   getUsers,
   getUser,
   findMessageBySchemaId,
+  explainUbiquitousLanguageTerms,
   collectionSchema,
   resourceCollectionSchema,
   messageCollectionSchema,
   toolDescriptions,
 } from '@enterprise/tools/catalog-tools';
+import { getCollection } from 'astro:content';
 
 const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
 
@@ -83,6 +85,7 @@ function createMcpServer() {
       inputSchema: z.object({
         collection: collectionSchema.describe('The collection to get the resources from'),
         cursor: z.string().optional().describe('Pagination cursor from previous response'),
+        search: z.string().optional().describe('Search term to filter resources by name, id, or summary (case-insensitive)'),
       }),
     },
     createToolHandler(getResources, 'Failed to get resources')
@@ -263,6 +266,18 @@ function createMcpServer() {
     createToolHandler(findMessageBySchemaId, 'Failed to find message')
   );
 
+  server.registerTool(
+    'explainUbiquitousLanguageTerms',
+    {
+      description: toolDescriptions.explainUbiquitousLanguageTerms,
+      inputSchema: z.object({
+        domainId: z.string().describe('The id of the domain to get ubiquitous language terms for'),
+        domainVersion: z.string().optional().describe('The version of the domain. If not provided, uses the latest version.'),
+      }),
+    },
+    createToolHandler(explainUbiquitousLanguageTerms, 'Failed to get ubiquitous language terms')
+  );
+
   // Register extended tools from user configuration
   for (const [toolName, toolConfig] of Object.entries(extendedTools)) {
     if (!toolConfig || typeof toolConfig !== 'object') continue;
@@ -281,7 +296,7 @@ function createMcpServer() {
         description: description || `Custom tool: ${toolName}`,
         inputSchema: parameters || z.object({}),
       },
-      async (params) => {
+      async (params: any) => {
         try {
           const result = await execute(params);
           return {
@@ -293,6 +308,105 @@ function createMcpServer() {
             isError: true,
           };
         }
+      }
+    );
+  }
+
+  // ============================================
+  // Register MCP Resources
+  // ============================================
+
+  const resourceDefinitions = [
+    {
+      name: 'All Resources in EventCatalog',
+      uri: 'eventcatalog://all',
+      description: 'All messages, domains and services in EventCatalog',
+      collections: ['events', 'commands', 'queries', 'services', 'domains', 'flows', 'channels', 'entities'] as const,
+    },
+    {
+      name: 'All Events in EventCatalog',
+      uri: 'eventcatalog://events',
+      description: 'All events in EventCatalog',
+      collections: ['events'] as const,
+    },
+    {
+      name: 'All Commands in EventCatalog',
+      uri: 'eventcatalog://commands',
+      description: 'All commands in EventCatalog',
+      collections: ['commands'] as const,
+    },
+    {
+      name: 'All Queries in EventCatalog',
+      uri: 'eventcatalog://queries',
+      description: 'All queries in EventCatalog',
+      collections: ['queries'] as const,
+    },
+    {
+      name: 'All Services in EventCatalog',
+      uri: 'eventcatalog://services',
+      description: 'All services in EventCatalog',
+      collections: ['services'] as const,
+    },
+    {
+      name: 'All Domains in EventCatalog',
+      uri: 'eventcatalog://domains',
+      description: 'All domains in EventCatalog',
+      collections: ['domains'] as const,
+    },
+    {
+      name: 'All Flows in EventCatalog',
+      uri: 'eventcatalog://flows',
+      description: 'All flows in EventCatalog',
+      collections: ['flows'] as const,
+    },
+    {
+      name: 'All Teams in EventCatalog',
+      uri: 'eventcatalog://teams',
+      description: 'All teams in EventCatalog',
+      collections: ['teams'] as const,
+    },
+    {
+      name: 'All Users in EventCatalog',
+      uri: 'eventcatalog://users',
+      description: 'All users in EventCatalog',
+      collections: ['users'] as const,
+    },
+  ];
+
+  for (const resource of resourceDefinitions) {
+    server.registerResource(
+      resource.name,
+      resource.uri,
+      { description: resource.description, mimeType: 'application/json' },
+      async (uri) => {
+        const allResources: any[] = [];
+
+        for (const collectionName of resource.collections) {
+          try {
+            const items = await getCollection(collectionName as any);
+            for (const item of items) {
+              allResources.push({
+                type: collectionName,
+                id: (item.data as any).id,
+                version: (item.data as any).version,
+                name: (item.data as any).name || (item.data as any).id,
+                summary: (item.data as any).summary,
+              });
+            }
+          } catch {
+            // Collection might not exist, skip it
+          }
+        }
+
+        return {
+          contents: [
+            {
+              uri: uri.href,
+              text: JSON.stringify({ resources: allResources }, null, 2),
+              mimeType: 'application/json',
+            },
+          ],
+        };
       }
     );
   }
@@ -317,6 +431,19 @@ const app = new Hono().basePath('/docs/mcp');
 // Built-in tool names derived from toolDescriptions
 const builtInTools = Object.keys(toolDescriptions);
 
+// MCP Resource URIs
+const mcpResources = [
+  'eventcatalog://all',
+  'eventcatalog://events',
+  'eventcatalog://commands',
+  'eventcatalog://queries',
+  'eventcatalog://services',
+  'eventcatalog://domains',
+  'eventcatalog://flows',
+  'eventcatalog://teams',
+  'eventcatalog://users',
+];
+
 // Health check endpoint
 app.get('/', async (c) => {
   return c.json({
@@ -325,6 +452,7 @@ app.get('/', async (c) => {
     status: 'running',
     tools: [...builtInTools, ...extendedToolNames],
     extendedTools: extendedToolNames.length > 0 ? extendedToolNames : undefined,
+    resources: mcpResources,
   });
 });
 
@@ -356,42 +484,9 @@ app.post('/', async (c) => {
 });
 
 // Astro API route handler - delegates all requests to Hono
+// Note: SSR and Scale plan checks are handled at build time by the integration
+// This route is only injected when isEventCatalogMCPEnabled() returns true
 export const ALL: APIRoute = async ({ request }) => {
-  // Check if SSR mode is enabled
-  if (!isSSR()) {
-    return new Response(
-      JSON.stringify({
-        error: 'ssr_required',
-        message: 'MCP Server requires SSR mode. Set output: "server" in your eventcatalog.config.js',
-      }),
-      {
-        status: 501,
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-store',
-        },
-      }
-    );
-  }
-
-  // Check if Scale plan is enabled
-  if (!isEventCatalogScaleEnabled()) {
-    return new Response(
-      JSON.stringify({
-        error: 'feature_not_available',
-        message:
-          'MCP Server is only available with EventCatalog Scale. Visit https://eventcatalog.dev/pricing for more information.',
-      }),
-      {
-        status: 501,
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-store',
-        },
-      }
-    );
-  }
-
   return app.fetch(request);
 };
 
