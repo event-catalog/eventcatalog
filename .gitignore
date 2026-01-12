@@ -50,3 +50,6 @@ examples/default/eventcatalog.chat.js
 dev-scripts/
 
 examples/e-commerce
+
+.claude/agents/eventcatalog-blog-writer.md
+pr-descriptions/

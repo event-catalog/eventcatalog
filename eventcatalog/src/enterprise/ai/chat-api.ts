@@ -4,8 +4,16 @@ import { join } from 'node:path';
 import { isEventCatalogScaleEnabled } from '@utils/feature';
 import { z, getCollection, getEntry } from 'astro:content';
 import { getConsumersOfMessage, getProducersOfMessage } from '@utils/collections/services';
-import { getSchemasFromResource } from '@utils/collections/schemas';
-import fs from 'fs';
+import {
+  getResources as getResourcesImpl,
+  getResource as getResourceImpl,
+  getMessagesProducedOrConsumedByResource as getMessagesImpl,
+  getSchemaForResource as getSchemaImpl,
+  collectionSchema,
+  resourceCollectionSchema,
+  messageCollectionSchema,
+  toolDescriptions,
+} from '@enterprise/tools/catalog-tools';
 
 const catalogDirectory = process.env.PROJECT_DIR || process.cwd();
 
@@ -187,64 +195,31 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
       // tools: tools,
       tools: {
         getResources: tool({
-          description:
-            'Use this tool to get events, services, commands, queries, flows, domains, channels, entities from EventCatalog',
+          description: toolDescriptions.getResources,
           inputSchema: z.object({
-            collection: z
-              .enum([
-                'events',
-                'services',
-                'commands',
-                'queries',
-                'flows',
-                'domains',
-                'channels',
-                'entities',
-                'containers',
-                'diagrams',
-              ])
-              .describe('The collection to get the events from'),
+            collection: collectionSchema.describe('The collection to get the resources from'),
           }),
           execute: async ({ collection }) => {
-            const resources = await getCollection(collection as any);
-            return resources.map((resource: any) => ({
-              id: resource.data.id,
-              version: resource.data.version,
-              name: resource.data.name,
-            }));
+            const result = await getResourcesImpl({ collection });
+            if ('error' in result) return result;
+            return result.resources;
           },
         }),
         getResource: tool({
-          description: 'Use this tool to get a specific resource from EventCatalog by its id and version',
+          description: toolDescriptions.getResource,
           inputSchema: z.object({
-            collection: z
-              .enum([
-                'events',
-                'services',
-                'commands',
-                'queries',
-                'flows',
-                'domains',
-                'channels',
-                'entities',
-                'containers',
-                'diagrams',
-              ])
-              .describe('The collection to get the events from'),
+            collection: collectionSchema.describe('The collection to get the resource from'),
             id: z.string().describe('The id of the resource to get'),
             version: z.string().describe('The version of the resource to get'),
           }),
           execute: async ({ collection, id, version }) => {
-            const resource = await getEntry(collection as any, `${id}-${version}`);
-            return resource;
+            return await getResourceImpl({ collection, id, version });
           },
         }),
         getProducersAndConsumersFromSchema: tool({
           description: 'Use this tool to get the producers and consumers for a schema by its id and version',
           inputSchema: z.object({
-            collection: z
-              .enum(['events', 'commands', 'queries'])
-              .describe('The collection to get the producers and consumers from'),
+            collection: messageCollectionSchema.describe('The collection to get the producers and consumers from'),
             id: z.string().describe('The id of the message to get the producers and consumers for'),
             version: z.string().describe('The version of the message to get the producers and consumers for'),
           }),
@@ -259,24 +234,16 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
           },
         }),
         getMessagesProducedOrConsumedByResource: tool({
-          description:
-            'Use this tool to get the messages produced or consumed by a resource by its id and version. Look at the `sends` and `receives` properties to get the messages produced or consumed by the resource',
+          description: toolDescriptions.getMessagesProducedOrConsumedByResource,
           inputSchema: z.object({
             resourceId: z.string().describe('The id of the resource to get the messages produced or consumed for'),
             resourceVersion: z.string().describe('The version of the resource to get the messages produced or consumed for'),
-            resourceCollection: z
-              .enum(['services', 'events', 'commands', 'queries', 'flows', 'domains', 'channels', 'entities'])
+            resourceCollection: resourceCollectionSchema
               .describe('The collection of the resource to get the messages produced or consumed for')
               .default('services'),
           }),
           execute: async ({ resourceId, resourceVersion, resourceCollection }) => {
-            const resource = await getEntry(resourceCollection as any, `${resourceId}-${resourceVersion}`);
-            if (!resource) {
-              return {
-                error: `Resource not found with id ${resourceId} and version ${resourceVersion} and collection ${resourceCollection}`,
-              };
-            }
-            return resource;
+            return await getMessagesImpl({ resourceId, resourceVersion, resourceCollection });
           },
         }),
         getProducerAndConsumerForMessage: tool({
@@ -284,8 +251,7 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
           inputSchema: z.object({
             messageId: z.string().describe('The id of the message to get the producers and consumers for'),
             messageVersion: z.string().describe('The version of the message to get the producers and consumers for'),
-            messageCollection: z
-              .enum(['events', 'commands', 'queries'])
+            messageCollection: messageCollectionSchema
               .describe('The collection of the message to get the producers and consumers for')
               .default('events'),
           }),
@@ -301,8 +267,7 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
           inputSchema: z.object({
             messageId: z.string().describe('The id of the message to get the consumers for'),
             messageVersion: z.string().describe('The version of the message to get the consumers for'),
-            messageCollection: z
-              .enum(['events', 'commands', 'queries'])
+            messageCollection: messageCollectionSchema
               .describe('The collection of the message to get the consumers for')
               .default('events'),
           }),
@@ -314,37 +279,16 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
           },
         }),
         getSchemaForResource: tool({
-          description:
-            'Use this tool to get the schema or specifications (openapi or asyncapi or graphql) for a resource by its id and version, you will use code blocks to render the schema to the user too',
+          description: toolDescriptions.getSchemaForResource,
           inputSchema: z.object({
             resourceId: z.string().describe('The id of the resource to get the schema for'),
             resourceVersion: z.string().describe('The version of the resource to get the schema for'),
-            resourceCollection: z
-              .enum(['services', 'events', 'commands', 'queries', 'flows', 'domains', 'channels', 'entities'])
+            resourceCollection: resourceCollectionSchema
               .describe('The collection of the resource to get the schema for')
               .default('services'),
           }),
           execute: async ({ resourceId, resourceVersion, resourceCollection }) => {
-            const resource = await getEntry(resourceCollection as any, `${resourceId}-${resourceVersion}`);
-
-            if (!resource) {
-              return {
-                error: `Resource not found with id ${resourceId} and version ${resourceVersion} and collection ${resourceCollection}`,
-              };
-            }
-
-            const schema = await getSchemasFromResource(resource);
-
-            // If we have any schemas back then read them and return them
-            if (schema.length > 0) {
-              return schema.map((schemaItem) => ({
-                url: schemaItem.url,
-                format: schemaItem.format,
-                code: fs.readFileSync(schemaItem.url, 'utf-8'),
-              }));
-            }
-
-            return [];
+            return await getSchemaImpl({ resourceId, resourceVersion, resourceCollection });
           },
         }),
         suggestFollowUpQuestions: tool({

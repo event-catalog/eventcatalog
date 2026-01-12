@@ -1675,11 +1675,6 @@ describe('getNestedSideBarData', () => {
           name: 'Payment Processed',
           version: '0.0.1',
           markdown: 'Payment Processed',
-          detailsPanel: {
-            owners: {
-              visible: false,
-            },
-          },
         });
         await writeUser({
           id: 'John Doe',
@@ -1929,6 +1924,7 @@ describe('getNestedSideBarData', () => {
           markdown: 'Payment DataStore',
           container_type: 'database',
           detailsPanel: {
+            // @ts-ignore
             services: {
               visible: false,
             },
@@ -1999,6 +1995,7 @@ describe('getNestedSideBarData', () => {
           markdown: 'Payment DataStore',
           container_type: 'database',
           detailsPanel: {
+            // @ts-ignore
             services: {
               visible: false,
             },

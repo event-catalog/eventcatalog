@@ -5,6 +5,7 @@ import {
   isAuthEnabled,
   isEventCatalogScaleEnabled,
   isEventCatalogStarterEnabled,
+  isEventCatalogMCPEnabled,
 } from '../src/utils/feature';
 
 const catalogDirectory = process.env.CATALOG_DIR || process.cwd();
@@ -48,6 +49,14 @@ export default function eventCatalogIntegration(): AstroIntegration {
           params.injectRoute({
             pattern: '/api/chat',
             entrypoint: path.join(catalogDirectory, 'src/enterprise/ai/chat-api.ts'),
+          });
+        }
+
+        // Handle routes for MCP Server (requires SSR + Scale)
+        if (isEventCatalogMCPEnabled()) {
+          params.injectRoute({
+            pattern: '/docs/mcp/[...path]',
+            entrypoint: path.join(catalogDirectory, 'src/enterprise/mcp/mcp-server.ts'),
           });
         }
 

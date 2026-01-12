@@ -2,40 +2,158 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Build, Lint, and Test Commands
+## Project Overview
 
-- **Build**: `pnpm run verify-build:catalog`
-- **Test**: `pnpm run test`
-- **Format and lint code**: `pnpm run format`
-- **Start the catalog**: `pnpm run start:catalog`
+EventCatalog is an open-source documentation tool for Event-Driven Architectures. It helps teams document events, commands, queries, services, domains, and flows in a discoverable catalog. Built with Astro, React, and TypeScript.
 
-## Code Style Guidelines
+## Quick Reference Commands
 
-### TypeScript
-
-- Strict typing with TypeScript
-- ES modules with explicit imports/exports
-- Error handling with proper type guards
+| Task | Command |
+|------|---------|
+| Start dev server | `pnpm run start:catalog` |
+| Start SSR server | `pnpm run start:catalog:server` |
+| Build | `pnpm run verify-build:catalog` |
+| Test (all) | `pnpm run test` |
+| Test (single file) | `pnpm run test path/to/file.test.ts` |
+| Test (watch mode) | `pnpm run test --watch` |
+| Format code | `pnpm run format` |
+| E2E tests | `pnpm run test:e2e` |
 
 ## Project Structure
 
-- `/eventcatalog` - The EventCatalog codebase
-- `/examples/default` - An example of how users use EventCatalog. This is the default example that is used when you run `pnpm run start:catalog`
-- `/scripts` - Scripts to help with the development of the EventCatalog
+```
+/eventcatalog           # Main application source
+  /src
+    /components         # React and Astro components
+    /pages              # Astro pages and API routes
+    /enterprise         # Scale plan features (AI Chat, MCP Server)
+    /utils              # Shared utilities
+      /collections      # Astro content collection helpers
+    /layouts            # Page layouts
+    /styles             # CSS and theme files
+    /types              # TypeScript type definitions
+    /stores             # Nanostores state management
+    /content            # Content collection definitions
+    /__tests__          # Unit tests (colocated with source)
+/examples
+  /default              # Default example catalog (used by start:catalog)
+  /e-commerce           # E-commerce example
+/scripts                # Build and development scripts
+```
 
-Run linting and formatting before submitting changes. Follow existing patterns when adding new code.
+## Tech Stack
+
+- **Framework**: Astro 5 with React islands
+- **Styling**: Tailwind CSS with CSS variables for theming
+- **State**: Nanostores
+- **Testing**: Vitest (unit), Playwright (E2E)
+- **Content**: Astro Content Collections with Zod schemas
+- **AI Features**: Vercel AI SDK, MCP Protocol
+
+## Code Conventions
+
+### Imports
+
+```typescript
+// Use node: prefix for Node.js built-ins
+import fs from 'node:fs';
+import path from 'node:path';
+
+// Use path aliases
+import { getCollection } from 'astro:content';
+import { myUtil } from '@utils/my-util';
+import { MyComponent } from '@components/MyComponent';
+```
+
+### TypeScript
+
+- Strict typing enabled
+- Use `as const` for literal types
+- Prefer type guards over type assertions
+- Use Zod for runtime validation (especially in API routes)
+
+### Astro Content Collections
+
+Resources are stored in content collections. Key collections:
+- `events`, `commands`, `queries` (messages)
+- `services`, `domains`, `flows`, `channels`, `entities`
+- `teams`, `users` (non-versioned)
+
+```typescript
+// Getting collections
+import { getCollection, getEntry } from 'astro:content';
+
+const events = await getCollection('events');
+const event = await getEntry('events', 'OrderCreated-1.0.0');
+```
+
+### Versioning
+
+Most resources are versioned. Entry IDs follow the pattern: `{id}-{version}` (e.g., `OrderCreated-1.0.0`).
+
+```typescript
+// Use existing utilities for version handling
+import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+```
+
+### Error Handling
+
+For API routes and tools, return error objects instead of throwing:
+
+```typescript
+if (!resource) {
+  return { error: `Resource not found: ${id}` };
+}
+```
+
+### Pagination
+
+Use cursor-based pagination with the `paginate()` helper from `@enterprise/tools/catalog-tools`:
+
+```typescript
+import { paginate } from '@enterprise/tools/catalog-tools';
+
+const result = paginate(items, cursor, pageSize);
+if ('error' in result) return result;
+```
+
+## Feature Flags
+
+Check feature availability before using enterprise features:
+
+```typescript
+import { isEventCatalogScaleEnabled, isSSR } from '@utils/feature';
+
+if (!isEventCatalogScaleEnabled()) {
+  return { error: 'Feature requires Scale plan' };
+}
+```
+
+## Testing
+
+- Tests are colocated in `__tests__` directories
+- Test files use `.test.ts` or `.test.tsx` extension
+- Example catalogs for testing: `src/__tests__/example-catalog/`
+
+```bash
+# Run specific test file
+pnpm run test eventcatalog/src/utils/__tests__/my-util.test.ts
+
+# Run tests matching pattern
+pnpm run test -t "getResources"
+```
 
 ## Theming Guidelines
 
-EventCatalog uses CSS variables for theming to support light/dark mode and custom themes. When writing new features or components:
+EventCatalog uses CSS variables for theming to support light/dark mode and custom themes.
 
 ### Use CSS Variables Instead of Hardcoded Colors
 
 ```astro
-<!-- ✅ Correct - uses CSS variables -->
+<!-- Correct - uses CSS variables -->
 <div class="bg-[rgb(var(--ec-page-bg))] text-[rgb(var(--ec-page-text))]">
 
-<!-- ❌ Incorrect - hardcoded colors -->
+<!-- Incorrect - hardcoded colors -->
 <div class="bg-white text-gray-900 dark:bg-gray-900 dark:text-white">
 ```
 
@@ -62,12 +180,46 @@ EventCatalog uses CSS variables for theming to support light/dark mode and custo
 ### Theme Files
 
 - Base theme: `eventcatalog/src/styles/theme.css`
-- Additional themes: `eventcatalog/src/styles/themes/*.css` (ocean, sapphire, sunset, forest)
+- Additional themes: `eventcatalog/src/styles/themes/*.css`
 
 ### Key Points
 
 1. Variables use RGB values without `rgb()` wrapper for Tailwind opacity support
-2. Use the syntax `[rgb(var(--ec-variable))]` in Tailwind classes
-3. For opacity, use `[rgb(var(--ec-variable)/0.5)]`
-4. Dark mode is handled automatically via `data-theme="dark"` attribute
-5. Never use `dark:` Tailwind variants for theme colors - the CSS variables handle this
+2. Use syntax `[rgb(var(--ec-variable))]` in Tailwind classes
+3. For opacity: `[rgb(var(--ec-variable)/0.5)]`
+4. Dark mode handled via `data-theme="dark"` attribute
+5. Never use `dark:` Tailwind variants for theme colors
+
+## Common Patterns
+
+### API Routes with Hono
+
+For complex API routes, use Hono inside Astro API routes:
+
+```typescript
+import type { APIRoute } from 'astro';
+import { Hono } from 'hono';
+
+const app = new Hono().basePath('/api/my-route');
+
+app.get('/', async (c) => {
+  return c.json({ message: 'Hello' });
+});
+
+export const ALL: APIRoute = async ({ request }) => {
+  return app.fetch(request);
+};
+
+export const prerender = false;
+```
+
+### Shared Tool Implementations
+
+When building features used by both AI Chat and MCP Server, add shared logic to `@enterprise/tools/catalog-tools.ts`.
+
+## Development Tips
+
+- The example catalog at `/examples/default` is used when running `pnpm run start:catalog`
+- SSR mode is required for AI Chat and MCP Server features
+- Use `DISABLE_EVENTCATALOG_CACHE=true` env var to disable caching during development
+- Run `pnpm run format` before committing changes
