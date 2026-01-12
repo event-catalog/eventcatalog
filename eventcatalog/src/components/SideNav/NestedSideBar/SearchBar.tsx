@@ -18,22 +18,9 @@ import {
   ArrowLeftRight,
 } from 'lucide-react';
 import type { NavNode } from '@stores/sidebar-store/state';
+import { getBadgeClasses } from './utils';
 
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
-
-const getBadgeClasses = (badge: string): string => {
-  const badgeColors: Record<string, string> = {
-    domain: 'bg-blue-100 text-blue-700',
-    service: 'bg-green-100 text-green-700',
-    event: 'bg-amber-100 text-amber-700',
-    command: 'bg-pink-100 text-pink-700',
-    query: 'bg-green-100 text-green-700',
-    message: 'bg-indigo-100 text-indigo-700',
-    design: 'bg-teal-100 text-teal-700',
-    channel: 'bg-indigo-100 text-indigo-700',
-  };
-  return badgeColors[badge.toLowerCase()] || 'bg-gray-100 text-gray-600';
-};
 
 type SearchResult = {
   nodeKey: string;
@@ -53,8 +40,15 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
   // Pre-process searchable nodes to avoid iterating object on every render
+  // Filter out unversioned keys (e.g., "domain:OrderService") to avoid duplicates with versioned keys (e.g., "domain:OrderService:1.0.0")
   const searchableNodes = useMemo(() => {
-    return Object.entries(nodes).filter(([_, node]) => node.type !== 'group');
+    return Object.entries(nodes).filter(([key, node]) => {
+      if (node.type === 'group') return false;
+      // Only include versioned keys (those with 3+ parts like "type:id:version")
+      // Unversioned keys (2 parts like "type:id") are aliases to latest version and would cause duplicates
+      const keyParts = key.split(':');
+      return keyParts.length >= 3;
+    });
   }, [nodes]);
 
   // Get available badges from nodes
@@ -118,6 +112,7 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
       Container: 'container',
       Flow: 'flow',
       Design: 'design',
+      Channel: 'channel',
     };
 
     // Use the memoized array instead of Object.entries(nodes)
@@ -159,6 +154,23 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
 
   const results = searchResults();
   const showSearchResults = searchQuery.trim().length > 0;
+
+  // Group results by type (badge), sorted alphabetically
+  const groupedResults = useMemo(() => {
+    const groups: Record<string, SearchResult[]> = {};
+
+    for (const result of results) {
+      const badge = result.node.badge || 'Other';
+      if (!groups[badge]) {
+        groups[badge] = [];
+      }
+      groups[badge].push(result);
+    }
+
+    return Object.entries(groups)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([type, typeResults]) => ({ type, results: typeResults }));
+  }, [results]);
 
   return (
     <>
@@ -267,38 +279,45 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
             <div className="text-[10px] font-medium text-[rgb(var(--ec-content-text-muted))] uppercase tracking-wide mb-2">
               {results.length > 0 ? `${results.length} result${results.length > 1 ? 's' : ''}` : 'No results'}
             </div>
-            {results.length > 0 && (
-              <div className="flex flex-col gap-0.5">
-                {results.map(({ nodeKey, node, matchType }) => (
-                  <button
-                    key={nodeKey}
-                    onClick={() => handleSelectResult(nodeKey, node)}
-                    className="group flex items-center justify-between w-full px-3 py-2 rounded-lg cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))]"
-                  >
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className="text-sm text-[rgb(var(--ec-content-text))] truncate">{node.title}</span>
-                      {matchType === 'id' && (
-                        <span className="text-xs text-[rgb(var(--ec-content-text-muted))] truncate">
-                          ID: {nodeKey.split(':')[2]}
-                        </span>
-                      )}
+            {groupedResults.length > 0 && (
+              <div className="flex flex-col gap-3">
+                {groupedResults.map(({ type, results: typeResults }) => (
+                  <div key={type}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span
+                        className={cn(
+                          'px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide rounded',
+                          getBadgeClasses(type)
+                        )}
+                      >
+                        {type}
+                      </span>
+                      <span className="text-[10px] text-[rgb(var(--ec-content-text-muted))]">({typeResults.length})</span>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      {node.badge && (
-                        <span
-                          className={cn(
-                            'px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide rounded',
-                            getBadgeClasses(node.badge)
-                          )}
+                    <div className="flex flex-col gap-0.5">
+                      {typeResults.map(({ nodeKey, node, matchType }) => (
+                        <button
+                          key={nodeKey}
+                          onClick={() => handleSelectResult(nodeKey, node)}
+                          className="group flex items-center justify-between w-full px-3 py-2 rounded-lg cursor-pointer text-left transition-colors hover:bg-[rgb(var(--ec-content-hover))]"
                         >
-                          {node.badge}
-                        </span>
-                      )}
-                      {node.pages && node.pages.length > 0 && (
-                        <ChevronRight className="w-4 h-4 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-accent))]" />
-                      )}
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <span className="text-sm text-[rgb(var(--ec-content-text))] truncate">{node.title}</span>
+                            {matchType === 'id' && (
+                              <span className="text-xs text-[rgb(var(--ec-content-text-muted))] truncate">
+                                ID: {nodeKey.split(':')[2]}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {node.pages && node.pages.length > 0 && (
+                              <ChevronRight className="w-4 h-4 text-[rgb(var(--ec-icon-color))] group-hover:text-[rgb(var(--ec-accent))]" />
+                            )}
+                          </div>
+                        </button>
+                      ))}
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             )}
