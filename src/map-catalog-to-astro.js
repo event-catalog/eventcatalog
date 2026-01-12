@@ -71,6 +71,8 @@ function isCatalogRelated(filePath) {
     [
       'eventcatalog.config.js', // config file at root
       'eventcatalog.styles.css', // custom styles file at root
+      'eventcatalog.chat.js', // chat configuration file at root
+      'eventcatalog.auth.js', // auth configuration file at root
       'components', // custom components
       'snippets', // custom snippets
       'public', // public assets
