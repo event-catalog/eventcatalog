@@ -14,7 +14,7 @@
  */
 
 // Constants
-const EVENTCATALOG_AVATAR_URL = 'https://avatars.githubusercontent.com/u/106890076?s=200&v=4';
+const EVENTCATALOG_AVATAR_URL = 'https://avatars.githubusercontent.com/u/171661582?s=96&v=4';
 
 // Environment variables
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
@@ -65,8 +65,8 @@ function parseReleaseNotes(body) {
       // Clean up changeset formatting thoroughly
       // Remove markdown links like [abc123](url)
       content = content.replace(/\[[a-f0-9]+\]\([^)]*\)/g, '');
-      // Remove PR references like (#123)
-      content = content.replace(/\s*\(#\d+\)/g, '');
+      // Convert PR references like (#123) to GitHub links
+      content = content.replace(/\(#(\d+)\)/g, '([#$1](https://github.com/event-catalog/eventcatalog/pull/$1))');
       // Remove standalone commit hashes
       content = content.replace(/\b[a-f0-9]{7,40}\b/g, '');
       // Remove package prefixes like @eventcatalog/core:
@@ -142,7 +142,7 @@ function buildDiscordPayload(releaseTag, releaseBody, releaseUrl) {
   }
 
   return {
-    username: 'EventCatalog',
+    username: 'EventCatalog Release Bot',
     avatar_url: EVENTCATALOG_AVATAR_URL,
     content: content,
   };
