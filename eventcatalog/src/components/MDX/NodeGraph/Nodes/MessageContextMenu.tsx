@@ -33,7 +33,7 @@ export default function MessageContextMenu(data: Data) {
           {schemaPath && (
             <ContextMenu.Item asChild>
               <a
-                href={buildUrl(`/generated/${messageType}/${id}/schema.json`)}
+                href={buildUrl(`/generated/${messageType}/${id}/${schemaPath}`)}
                 download={`${name}(${version})-${schemaPath}`}
                 className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
                 target="_blank"
