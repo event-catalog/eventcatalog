@@ -26,6 +26,7 @@ import { StarIcon as StarIconSolid, CircleStackIcon } from '@heroicons/react/24/
 import { useStore } from '@nanostores/react';
 import { sidebarStore } from '../../stores/sidebar-store';
 import { favoritesStore, toggleFavorite as toggleFavoriteAction } from '../../stores/favorites-store';
+import { buildUrl } from '@utils/url-builder';
 
 const typeIcons: any = {
   Domain: RectangleGroupIcon,
@@ -94,7 +95,7 @@ const getUrlForItem = (node: any, key: string) => {
     pluralType = 'queries';
   }
 
-  return `/docs/${pluralType}/${id}/${version}`;
+  return buildUrl(`/docs/${pluralType}/${id}/${version}`);
 };
 
 export default function SearchModal() {
