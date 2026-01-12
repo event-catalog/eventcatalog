@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 3.5.0
+
+### Minor Changes
+
+- 672bcd8: Fixed duplicate search results in sidebar by filtering out unversioned node keys. Added grouping of search results by type with alphabetical sorting. Extracted shared `getBadgeClasses` utility for consistent theming using CSS variables. Added missing Channel type to filter mapping.
+
+### Patch Changes
+
+- d3ce092: Fixed search results not respecting base path and trailing slash configuration. Search result URLs now correctly include the configured base path and trailing slash settings.
+
 ## 3.4.2
 
 ### Patch Changes
