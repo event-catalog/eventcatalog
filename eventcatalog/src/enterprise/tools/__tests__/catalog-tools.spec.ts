@@ -1003,8 +1003,8 @@ describe('explainUbiquitousLanguageTerms', () => {
     if (!('error' in result)) {
       const orderTerm = result.terms.find((t: any) => t.term === 'Order');
       expect(orderTerm).toBeDefined();
-      expect(orderTerm.description).toBeDefined();
-      expect(orderTerm.icon).toBe('ShoppingCart');
+      expect(orderTerm?.description).toBeDefined();
+      expect(orderTerm?.icon).toBe('ShoppingCart');
     }
   });
 

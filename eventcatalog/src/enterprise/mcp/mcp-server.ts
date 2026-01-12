@@ -354,6 +354,24 @@ function createMcpServer() {
       collections: ['domains'] as const,
     },
     {
+      name: 'All Diagrams in EventCatalog',
+      uri: 'eventcatalog://diagrams',
+      description: 'All diagrams in EventCatalog',
+      collections: ['diagrams'] as const,
+    },
+    {
+      name: 'All Channels in EventCatalog',
+      uri: 'eventcatalog://channels',
+      description: 'All channels in EventCatalog',
+      collections: ['channels'] as const,
+    },
+    {
+      name: 'All Containers  in EventCatalog',
+      uri: 'eventcatalog://containers',
+      description: 'All containers in EventCatalog',
+      collections: ['containers'] as const,
+    },
+    {
       name: 'All Flows in EventCatalog',
       uri: 'eventcatalog://flows',
       description: 'All flows in EventCatalog',
@@ -387,10 +405,10 @@ function createMcpServer() {
             for (const item of items) {
               allResources.push({
                 type: collectionName,
-                id: (item.data as any).id,
-                version: (item.data as any).version,
-                name: (item.data as any).name || (item.data as any).id,
-                summary: (item.data as any).summary,
+                id: (item as any).data.id,
+                version: (item as any).data.version,
+                name: (item as any).data.name || (item as any).data.id,
+                summary: (item as any).data.summary,
               });
             }
           } catch {

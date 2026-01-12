@@ -1924,6 +1924,7 @@ describe('getNestedSideBarData', () => {
           markdown: 'Payment DataStore',
           container_type: 'database',
           detailsPanel: {
+            // @ts-ignore
             services: {
               visible: false,
             },
@@ -1994,6 +1995,7 @@ describe('getNestedSideBarData', () => {
           markdown: 'Payment DataStore',
           container_type: 'database',
           detailsPanel: {
+            // @ts-ignore
             services: {
               visible: false,
             },
