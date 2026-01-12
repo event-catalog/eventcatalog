@@ -33,6 +33,9 @@ const diagramId = props.data.id;
         --ec-page-text-muted: 100 116 139;
         --ec-page-border: 226 232 240;
         --ec-content-hover: 241 245 249;
+        --ec-card-bg: 255 255 255;
+        --ec-icon-color: 100 116 139;
+        --ec-icon-hover: 15 23 42;
       }
 
       :root[data-theme='dark'] {
@@ -41,6 +44,9 @@ const diagramId = props.data.id;
         --ec-page-text-muted: 139 148 158;
         --ec-page-border: 33 38 45;
         --ec-content-hover: 33 38 45;
+        --ec-card-bg: 22 27 34;
+        --ec-icon-color: 139 148 158;
+        --ec-icon-hover: 240 246 252;
       }
 
       body {
@@ -64,6 +70,16 @@ const diagramId = props.data.id;
       .mermaid svg {
         margin: 0 auto;
         display: block;
+      }
+
+      /* Zoom controls styling - must stay as CSS since svg-pan-zoom injects them */
+      .svg-pan-zoom-control {
+        fill: rgb(var(--ec-page-text-muted)) !important;
+        cursor: pointer;
+      }
+
+      .svg-pan-zoom-control:hover {
+        fill: rgb(var(--ec-page-text)) !important;
       }
 
       /* Prose styles */
@@ -185,6 +201,356 @@ const diagramId = props.data.id;
         goToBtn.href = `${base}/diagrams/${diagramId}/${version}`;
       }
 
+      // Store zoom instances for cleanup
+      const zoomInstances = new Map();
+
+      function createZoomControls(onZoomIn, onZoomOut, onFitView) {
+        // Detect dark mode
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+        // Use explicit colors based on theme
+        const bgColor = isDark ? '#161b22' : '#ffffff';
+        const borderColor = isDark ? '#30363d' : '#e2e8f0';
+        const iconColor = isDark ? '#8b949e' : '#64748b';
+        const iconHoverColor = isDark ? '#f0f6fc' : '#0f172a';
+        const hoverBgColor = isDark ? '#21262d' : '#f1f5f9';
+
+        const controls = document.createElement('div');
+        controls.className = 'mermaid-zoom-controls';
+        controls.style.cssText = `
+          position: absolute;
+          bottom: 12px;
+          left: 12px;
+          display: flex;
+          flex-direction: column;
+          background: ${bgColor};
+          border-radius: 6px;
+          box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+          border: 1px solid ${borderColor};
+          overflow: hidden;
+          z-index: 10;
+        `;
+
+        const createButton = (svg, title, onClick, isLast = false) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.title = title;
+          btn.innerHTML = svg;
+          btn.onclick = onClick;
+          btn.style.cssText = `
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 26px;
+            height: 26px;
+            padding: 0;
+            margin: 0;
+            border: none;
+            background: ${bgColor};
+            color: ${iconColor};
+            cursor: pointer;
+            transition: background-color 0.15s, color 0.15s;
+            line-height: 1;
+            ${!isLast ? `border-bottom: 1px solid ${borderColor};` : ''}
+          `;
+          // Ensure SVG is properly centered
+          const svgEl = btn.querySelector('svg');
+          if (svgEl) {
+            svgEl.style.display = 'block';
+          }
+          btn.onmouseenter = () => {
+            btn.style.backgroundColor = hoverBgColor;
+            btn.style.color = iconHoverColor;
+          };
+          btn.onmouseleave = () => {
+            btn.style.backgroundColor = bgColor;
+            btn.style.color = iconColor;
+          };
+          return btn;
+        };
+
+        const plusSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+        const minusSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+        const fitSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>`;
+
+        controls.appendChild(createButton(plusSvg, 'Zoom in', onZoomIn));
+        controls.appendChild(createButton(minusSvg, 'Zoom out', onZoomOut));
+        controls.appendChild(createButton(fitSvg, 'Fit view', onFitView, true));
+
+        return controls;
+      }
+
+      // Icons for toolbar
+      const ICONS = {
+        presentation: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605"></path></svg>`,
+        copy: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.25 7.5V6.108c0-1.135.845-2.098 1.976-2.192.373-.03.748-.057 1.123-.08M15.75 18H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08M15.75 18.75v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5A3.375 3.375 0 006.375 7.5H5.25m11.9-3.664A2.251 2.251 0 0015 2.25h-1.5a2.251 2.251 0 00-2.15 1.586m5.8 0c.065.21.1.433.1.664v.75h-6V4.5c0-.231.035-.454.1-.664M6.75 7.5H4.875c-.621 0-1.125.504-1.125 1.125v12c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V16.5a9 9 0 00-9-9z"></path></svg>`,
+        check: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+      };
+
+      function createToolbarButton(icon, tooltipText, onClick, tooltipPosition = 'bottom') {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const bgColor = isDark ? '#161b22' : '#ffffff';
+        const iconColor = isDark ? '#8b949e' : '#64748b';
+        const iconHoverColor = isDark ? '#f0f6fc' : '#0f172a';
+        const hoverBgColor = isDark ? '#21262d' : '#f1f5f9';
+
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'position: relative;';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.innerHTML = icon;
+        btn.style.cssText = `
+          all: unset;
+          box-sizing: border-box;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 40px;
+          height: 40px;
+          min-width: 40px;
+          min-height: 40px;
+          padding: 0;
+          margin: 0;
+          border: none;
+          border-radius: 6px;
+          background: ${bgColor};
+          color: ${iconColor};
+          cursor: pointer;
+          transition: background-color 0.15s, color 0.15s;
+          box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        `;
+
+        const svgEl = btn.querySelector('svg');
+        if (svgEl) svgEl.style.cssText = 'display: block; width: 20px; height: 20px;';
+
+        btn.onmouseenter = () => {
+          btn.style.backgroundColor = hoverBgColor;
+          btn.style.color = iconHoverColor;
+        };
+        btn.onmouseleave = () => {
+          btn.style.backgroundColor = bgColor;
+          btn.style.color = iconColor;
+        };
+        btn.onclick = onClick;
+
+        const tooltip = document.createElement('div');
+        tooltip.textContent = tooltipText;
+
+        // Position tooltip based on tooltipPosition parameter
+        let tooltipStyles = `
+          position: absolute;
+          padding: 4px 8px;
+          background: #1f2937;
+          color: white;
+          font-size: 12px;
+          border-radius: 4px;
+          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+          white-space: nowrap;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.15s;
+          z-index: 50;
+        `;
+
+        if (tooltipPosition === 'right') {
+          tooltipStyles += `
+            top: 50%;
+            left: 100%;
+            transform: translateY(-50%);
+            margin-left: 8px;
+          `;
+        } else if (tooltipPosition === 'left') {
+          tooltipStyles += `
+            top: 50%;
+            right: 100%;
+            transform: translateY(-50%);
+            margin-right: 8px;
+          `;
+        } else {
+          // Default: bottom
+          tooltipStyles += `
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+          `;
+        }
+
+        tooltip.style.cssText = tooltipStyles;
+
+        wrapper.onmouseenter = () => (tooltip.style.opacity = '1');
+        wrapper.onmouseleave = () => (tooltip.style.opacity = '0');
+
+        wrapper.appendChild(btn);
+        wrapper.appendChild(tooltip);
+        return { wrapper, btn, tooltip, iconColor };
+      }
+
+      function createFullscreenButton(onClick) {
+        const { wrapper } = createToolbarButton(ICONS.presentation, 'Presentation Mode', onClick, 'right');
+        wrapper.style.cssText = 'position: absolute; top: 12px; left: 12px; z-index: 10;';
+        return wrapper;
+      }
+
+      function createCopyButton(onCopy) {
+        const copy = createToolbarButton(
+          ICONS.copy,
+          'Copy diagram code',
+          () => {
+            onCopy();
+            copy.btn.innerHTML = ICONS.check;
+            copy.btn.style.color = '#10b981';
+            copy.tooltip.textContent = 'Copied!';
+            const svgEl = copy.btn.querySelector('svg');
+            if (svgEl) svgEl.style.cssText = 'display: block; width: 20px; height: 20px;';
+
+            setTimeout(() => {
+              copy.btn.innerHTML = ICONS.copy;
+              copy.btn.style.color = copy.iconColor;
+              copy.tooltip.textContent = 'Copy diagram code';
+              const svgEl = copy.btn.querySelector('svg');
+              if (svgEl) svgEl.style.cssText = 'display: block; width: 20px; height: 20px;';
+            }, 2000);
+          },
+          'left'
+        );
+        copy.wrapper.style.cssText = 'position: absolute; top: 12px; right: 12px; z-index: 10;';
+        return copy.wrapper;
+      }
+
+      function toggleFullscreen(container) {
+        if (!document.fullscreenElement) {
+          container.requestFullscreen().catch((err) => console.warn('Fullscreen error:', err));
+        } else {
+          document.exitFullscreen();
+        }
+      }
+
+      async function initMermaidZoom(svgElement, container, id, diagramContent) {
+        const { default: svgPanZoom } = await import('https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.2/+esm');
+
+        // Get the natural dimensions from viewBox or getBBox
+        let width, height;
+        const viewBox = svgElement.getAttribute('viewBox');
+        if (viewBox) {
+          const parts = viewBox.split(/[\s,]+/).map(Number);
+          width = parts[2];
+          height = parts[3];
+        } else {
+          const bbox = svgElement.getBBox();
+          width = bbox.width;
+          height = bbox.height;
+          if (width > 0 && height > 0) {
+            svgElement.setAttribute('viewBox', `${bbox.x} ${bbox.y} ${width} ${height}`);
+          }
+        }
+
+        // Set container height based on SVG aspect ratio, capped for usability
+        if (width > 0 && height > 0) {
+          const containerWidth = container.clientWidth || 800;
+          const aspectRatio = height / width;
+          const calculatedHeight = Math.min(Math.max(containerWidth * aspectRatio, 200), 500);
+          container.style.height = `${calculatedHeight}px`;
+        }
+
+        // SVG needs to fill the container for svg-pan-zoom
+        svgElement.style.width = '100%';
+        svgElement.style.height = '100%';
+        svgElement.removeAttribute('height');
+        svgElement.removeAttribute('width');
+
+        try {
+          const instance = svgPanZoom(svgElement, {
+            zoomEnabled: true,
+            controlIconsEnabled: false,
+            fit: true,
+            center: true,
+            minZoom: 0.5,
+            maxZoom: 10,
+            zoomScaleSensitivity: 0.15,
+            dblClickZoomEnabled: true,
+            mouseWheelZoomEnabled: false, // Disabled to avoid hijacking page scroll
+            preventMouseEventsDefault: true,
+            panEnabled: true,
+          });
+
+          zoomInstances.set(id, instance);
+
+          // Update cursor during pan
+          container.addEventListener('mousedown', () => {
+            container.style.cursor = 'grabbing';
+          });
+          container.addEventListener('mouseup', () => {
+            container.style.cursor = 'grab';
+          });
+          container.addEventListener('mouseleave', () => {
+            container.style.cursor = 'grab';
+          });
+
+          // Add custom controls
+          const controls = createZoomControls(
+            () => instance.zoomIn(),
+            () => instance.zoomOut(),
+            () => {
+              instance.fit();
+              instance.center();
+            }
+          );
+          container.appendChild(controls);
+
+          // Add fullscreen button (top-left)
+          const fullscreenBtn = createFullscreenButton(() => toggleFullscreen(container));
+          container.appendChild(fullscreenBtn);
+
+          // Add copy button (top-right) if diagram content is available
+          if (diagramContent) {
+            const copyBtn = createCopyButton(() => {
+              navigator.clipboard.writeText(diagramContent).catch((err) => {
+                console.warn('Failed to copy:', err);
+              });
+            });
+            container.appendChild(copyBtn);
+          }
+
+          // Handle fullscreen changes
+          document.addEventListener('fullscreenchange', () => {
+            const isFullscreen = document.fullscreenElement === container;
+            if (isFullscreen) {
+              instance.enableMouseWheelZoom();
+              const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+              container.style.background = isDark ? '#0d1117' : '#ffffff';
+            } else {
+              instance.disableMouseWheelZoom();
+              container.style.background = '';
+            }
+            setTimeout(() => {
+              if (container.clientWidth > 0 && container.clientHeight > 0) {
+                try {
+                  instance.resize();
+                  instance.fit();
+                  instance.center();
+                } catch (e) {}
+              }
+            }, 100);
+          });
+
+          // Resize handler for responsiveness
+          const resizeObserver = new ResizeObserver(() => {
+            if (container.clientWidth > 0 && container.clientHeight > 0) {
+              try {
+                instance.resize();
+                instance.fit();
+                instance.center();
+              } catch (e) {}
+            }
+          });
+          resizeObserver.observe(container);
+        } catch (e) {
+          console.warn('Failed to initialize zoom on mermaid diagram:', e);
+        }
+      }
+
       async function renderMermaid() {
         const graphs = document.getElementsByClassName('mermaid');
         if (graphs.length === 0) return;
@@ -204,7 +570,24 @@ const diagramId = props.data.id;
           const id = 'mermaid-' + Math.round(Math.random() * 100000);
           try {
             const result = await mermaid.render(id, content);
-            graph.innerHTML = result.svg;
+
+            // Create zoom container with inline styles (no Tailwind in embed)
+            const container = document.createElement('div');
+            container.style.cssText =
+              'position: relative; width: 100%; min-height: 200px; overflow: hidden; margin: 1em 0; cursor: grab;';
+
+            // Insert the rendered SVG
+            container.innerHTML = result.svg;
+
+            // Replace the graph content with the container
+            graph.innerHTML = '';
+            graph.appendChild(container);
+
+            // Initialize zoom on the SVG
+            const svgElement = container.querySelector('svg');
+            if (svgElement) {
+              await initMermaidZoom(svgElement, container, id, content);
+            }
           } catch (e) {
             console.error('Mermaid render error:', e);
           }
@@ -213,12 +596,13 @@ const diagramId = props.data.id;
 
       renderMermaid();
 
-      // PlantUML rendering
+      // PlantUML rendering with zoom
       async function renderPlantUML() {
         const blocks = document.getElementsByClassName('plantuml');
         if (blocks.length === 0) return;
 
         const { deflate } = await import('https://cdn.jsdelivr.net/npm/pako@2.1.0/+esm');
+        const { default: svgPanZoom } = await import('https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.2/+esm');
 
         function encode64(data) {
           const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
@@ -250,14 +634,42 @@ const diagramId = props.data.id;
           if (!content) continue;
 
           const encoded = encodePlantUML(content);
-          const img = document.createElement('img');
-          img.src = `https://www.plantuml.com/plantuml/svg/~1${encoded}`;
-          img.alt = 'PlantUML diagram';
-          img.loading = 'lazy';
-          img.style.margin = '0 auto';
-          img.style.display = 'block';
-          block.innerHTML = '';
-          block.appendChild(img);
+          const svgUrl = `https://www.plantuml.com/plantuml/svg/~1${encoded}`;
+          const id = 'plantuml-' + Math.round(Math.random() * 100000);
+
+          try {
+            // Fetch SVG content for zoom support
+            const response = await fetch(svgUrl);
+            if (!response.ok) throw new Error('Fetch failed');
+
+            const svgText = await response.text();
+
+            // Create zoom container
+            const container = document.createElement('div');
+            container.style.cssText =
+              'position: relative; width: 100%; min-height: 200px; overflow: hidden; margin: 1em 0; cursor: grab;';
+            container.innerHTML = svgText;
+
+            block.innerHTML = '';
+            block.appendChild(container);
+
+            // Initialize zoom
+            const svgElement = container.querySelector('svg');
+            if (svgElement) {
+              await initMermaidZoom(svgElement, container, id, content);
+            }
+          } catch (e) {
+            // Fallback to img
+            console.warn('PlantUML fetch failed:', e);
+            const img = document.createElement('img');
+            img.src = svgUrl;
+            img.alt = 'PlantUML diagram';
+            img.loading = 'lazy';
+            img.style.margin = '0 auto';
+            img.style.display = 'block';
+            block.innerHTML = '';
+            block.appendChild(img);
+          }
         }
       }
 
