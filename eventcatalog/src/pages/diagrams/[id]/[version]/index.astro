@@ -210,6 +210,8 @@ const chatQuery = `Tell me about the "${props.data.name}" diagram (version ${pro
 </script>
 
 <script>
+  import { destroyZoomInstances, renderMermaidWithZoom } from '@utils/mermaid-zoom';
+
   function initDiagramPage() {
     // Version selector
     const versionSelect = document.getElementById('version-select') as HTMLSelectElement;
@@ -231,7 +233,6 @@ const chatQuery = `Tell me about the "${props.data.name}" diagram (version ${pro
     const rightFrame = document.getElementById('compare-right-frame') as HTMLIFrameElement;
 
     function buildCompareUrl(version: string) {
-      // Parse diagramId from current URL: /diagrams/{id}/{version}
       const pathParts = window.location.pathname.split('/');
       const diagramsIndex = pathParts.indexOf('diagrams');
       const diagramId = diagramsIndex !== -1 ? pathParts[diagramsIndex + 1] : '';
@@ -244,12 +245,8 @@ const chatQuery = `Tell me about the "${props.data.name}" diagram (version ${pro
       if (!compareModal) return;
       compareModal.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
-      if (leftFrame && leftVersionSelect) {
-        leftFrame.src = buildCompareUrl(leftVersionSelect.value);
-      }
-      if (rightFrame && rightVersionSelect) {
-        rightFrame.src = buildCompareUrl(rightVersionSelect.value);
-      }
+      if (leftFrame && leftVersionSelect) leftFrame.src = buildCompareUrl(leftVersionSelect.value);
+      if (rightFrame && rightVersionSelect) rightFrame.src = buildCompareUrl(rightVersionSelect.value);
     }
 
     function closeCompareModal() {
@@ -272,27 +269,19 @@ const chatQuery = `Tell me about the "${props.data.name}" diagram (version ${pro
       document.body.style.overflow = '';
     }
 
-    // Handle compare button click - check if Scale is enabled
     if (compareBtn) {
       compareBtn.onclick = () => {
         const scaleEnabled = compareBtn.dataset.scaleEnabled === 'true';
-        if (scaleEnabled) {
-          openCompareModal();
-        } else {
-          openUpgradeModal();
-        }
+        scaleEnabled ? openCompareModal() : openUpgradeModal();
       };
     }
 
     if (compareCloseBtn) compareCloseBtn.onclick = closeCompareModal;
     if (upgradeCloseBtn) upgradeCloseBtn.onclick = closeUpgradeModal;
 
-    // Close upgrade modal when clicking outside the card
     if (upgradeModal) {
       upgradeModal.onclick = (e) => {
-        if (e.target === upgradeModal) {
-          closeUpgradeModal();
-        }
+        if (e.target === upgradeModal) closeUpgradeModal();
       };
     }
 
@@ -309,42 +298,16 @@ const chatQuery = `Tell me about the "${props.data.name}" diagram (version ${pro
 
     document.onkeydown = (e) => {
       if (e.key === 'Escape') {
-        if (compareModal && !compareModal.classList.contains('hidden')) {
-          closeCompareModal();
-        }
-        if (upgradeModal && !upgradeModal.classList.contains('hidden')) {
-          closeUpgradeModal();
-        }
+        if (compareModal && !compareModal.classList.contains('hidden')) closeCompareModal();
+        if (upgradeModal && !upgradeModal.classList.contains('hidden')) closeUpgradeModal();
       }
     };
 
-    // Mermaid
-    renderMermaidDiagrams();
-  }
-
-  async function renderMermaidDiagrams() {
+    // Render Mermaid diagrams with zoom
+    destroyZoomInstances();
     const graphs = document.getElementsByClassName('mermaid');
-    if (graphs.length === 0) return;
-
-    const { default: mermaid } = await import('mermaid');
-    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
-
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: isDarkMode ? 'dark' : 'default',
-      fontFamily: 'var(--sans-font)',
-    });
-
-    for (const graph of graphs) {
-      const content = graph.getAttribute('data-content');
-      if (!content) continue;
-      const id = 'mermaid-' + Math.round(Math.random() * 100000);
-      try {
-        const result = await mermaid.render(id, content);
-        graph.innerHTML = result.svg;
-      } catch (e) {
-        console.error('Mermaid error:', e);
-      }
+    if (graphs.length > 0) {
+      renderMermaidWithZoom(graphs, window.eventcatalog?.mermaid);
     }
   }
 
@@ -354,58 +317,16 @@ const chatQuery = `Tell me about the "${props.data.name}" diagram (version ${pro
 </script>
 
 <script>
-  import('pako').then(({ deflate }: any) => {
-    document.addEventListener('astro:page-load', () => {
-      const blocks = document.getElementsByClassName('plantuml');
-      if (blocks.length > 0) {
-        renderPlantUML(blocks, deflate);
-      }
-    });
+  import { renderPlantUMLWithZoom } from '@utils/mermaid-zoom';
 
-    function renderPlantUML(blocks: any, deflate: any) {
-      for (const block of blocks) {
-        const content = block.getAttribute('data-content');
-        if (!content) continue;
-
-        const encoded = encodePlantUML(content, deflate);
-        const img = document.createElement('img');
-        img.src = `https://www.plantuml.com/plantuml/svg/~1${encoded}`;
-        img.alt = 'PlantUML diagram';
-        img.loading = 'lazy';
-        block.innerHTML = '';
-        img.classList.add('mx-auto');
-        block.appendChild(img);
-      }
+  function initPlantUML() {
+    const blocks = document.getElementsByClassName('plantuml');
+    if (blocks.length > 0) {
+      renderPlantUMLWithZoom(blocks);
     }
+  }
 
-    function encodePlantUML(text: any, deflate: any) {
-      const data = new TextEncoder().encode(text);
-      const compressed = deflate(data, { level: 9, to: 'Uint8Array' });
-      return encode64(compressed);
-    }
-
-    function encode64(data: any) {
-      const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
-      let str = '';
-      const len = data.length;
-      for (let i = 0; i < len; i += 3) {
-        const b1 = data[i];
-        const b2 = i + 1 < len ? data[i + 1] : 0;
-        const b3 = i + 2 < len ? data[i + 2] : 0;
-
-        let c1 = b1 >> 2;
-        let c2 = ((b1 & 0x3) << 4) | (b2 >> 4);
-        let c3 = ((b2 & 0xf) << 2) | (b3 >> 6);
-        let c4 = b3 & 0x3f;
-
-        str += chars[c1] + chars[c2] + chars[c3] + chars[c4];
-      }
-      return str;
-    }
-
-    const graphs = document.getElementsByClassName('plantuml');
-    if (graphs.length > 0) {
-      renderPlantUML(graphs, deflate);
-    }
-  });
+  // Run on initial load and page transitions
+  initPlantUML();
+  document.addEventListener('astro:page-load', initPlantUML);
 </script>

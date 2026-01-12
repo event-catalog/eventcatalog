@@ -368,157 +368,35 @@ const badges = doc?.badges || [];
 
   setupObserver();
 
-  document.addEventListener('astro:page-load', () => {
-    const graphs = document.getElementsByClassName('mermaid');
-    if (document.getElementsByClassName('mermaid').length > 0) {
-      renderDiagrams(graphs);
-    }
-  });
-
-  async function renderDiagrams(graphs: any) {
-    const { default: mermaid } = await import('mermaid');
-
-    if (window.eventcatalog.mermaid) {
-      const { icons } = await import('@iconify-json/logos');
-      // @ts-ignore
-      const { iconPacks = [], enableSupportForElkLayout = false } = window.eventcatalog.mermaid ?? {};
-
-      if (iconPacks.length > 0) {
-        const iconPacksToRegister = iconPacks.map((name: string) => {
-          return {
-            name,
-            icons,
-          };
-        });
-
-        mermaid.registerIconPacks(iconPacksToRegister);
-      }
-
-      if (enableSupportForElkLayout) {
-        // @ts-ignore
-        const { default: elkLayouts } = await import('@mermaid-js/layout-elk/dist/mermaid-layout-elk.core.mjs');
-        mermaid.registerLayoutLoaders(elkLayouts);
-      }
-    }
-
-    // Detect current theme from data-theme attribute
-    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
-    const currentTheme = isDarkMode ? 'dark' : 'default';
-
-    // Custom theme variables for better readability in dark mode
-    const darkThemeVariables = {
-      // Sequence diagram - improve text contrast
-      signalColor: '#f0f6fc',
-      signalTextColor: '#f0f6fc',
-      actorTextColor: '#0d1117',
-      actorBkg: '#f0f6fc',
-      actorBorder: '#484f58',
-      actorLineColor: '#6b7280',
-      // General text colors
-      primaryTextColor: '#f0f6fc',
-      secondaryTextColor: '#c9d1d9',
-      tertiaryTextColor: '#f0f6fc',
-      // Line colors
-      lineColor: '#6b7280',
-    };
-
-    mermaid.initialize({
-      // fontSize: 2,
-      flowchart: {
-        curve: 'linear',
-        rankSpacing: 0,
-        nodeSpacing: 0,
-      },
-      startOnLoad: false,
-      fontFamily: 'var(--sans-font)',
-      // @ts-ignore This works, but TS expects a enum for some reason
-      theme: currentTheme,
-      themeVariables: isDarkMode ? darkThemeVariables : undefined,
-      architecture: {
-        useMaxWidth: true,
-      },
-    });
-
-    for (const graph of graphs) {
-      const content = graph.getAttribute('data-content');
-      if (!content) continue;
-      let svg = document.createElement('svg');
-      const id = (svg.id = 'mermaid-' + Math.round(Math.random() * 100000));
-      graph.appendChild(svg);
-      mermaid.render(id, content).then((result) => {
-        graph.innerHTML = result.svg;
-      });
-    }
-  }
-
-  const graphs = document.getElementsByClassName('mermaid');
-  if (document.getElementsByClassName('mermaid').length > 0) {
-    renderDiagrams(graphs);
-  }
-
-  // Make renderDiagrams available globally for accordion component
-  window.renderDiagrams = renderDiagrams;
-
   document.addEventListener('astro:page-load', setupObserver);
 </script>
 
 <script>
-  import('pako').then(({ deflate }: any) => {
-    document.addEventListener('astro:page-load', () => {
-      const blocks = document.getElementsByClassName('plantuml');
-      if (blocks.length > 0) {
-        renderPlantUML(blocks, deflate);
-      }
-    });
+  import { destroyZoomInstances, renderMermaidWithZoom, renderPlantUMLWithZoom } from '@utils/mermaid-zoom';
 
-    function renderPlantUML(blocks: any, deflate: any) {
-      for (const block of blocks) {
-        const content = block.getAttribute('data-content');
-        if (!content) continue;
+  function initDiagrams() {
+    destroyZoomInstances();
 
-        const encoded = encodePlantUML(content, deflate);
-        const img = document.createElement('img');
-        img.src = `https://www.plantuml.com/plantuml/svg/~1${encoded}`;
-        img.alt = 'PlantUML diagram';
-        img.loading = 'lazy';
-        block.innerHTML = '';
-        img.classList.add('mx-auto');
-        block.appendChild(img);
-      }
+    const mermaidGraphs = document.getElementsByClassName('mermaid');
+    if (mermaidGraphs.length > 0) {
+      renderMermaidWithZoom(mermaidGraphs, window.eventcatalog?.mermaid);
     }
 
-    function encodePlantUML(text: any, deflate: any) {
-      const utf8encoded = new TextEncoder().encode(text);
-      const compressed = deflate(utf8encoded, { level: 9 });
-      return encode64(compressed);
+    const plantumlBlocks = document.getElementsByClassName('plantuml');
+    if (plantumlBlocks.length > 0) {
+      renderPlantUMLWithZoom(plantumlBlocks);
     }
+  }
 
-    const encode64 = (data: any) => {
-      const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
-      let str = '';
-      let i = 0;
-      while (i < data.length) {
-        let b1 = data[i++];
-        let b2 = i < data.length ? data[i++] : 0;
-        let b3 = i < data.length ? data[i++] : 0;
+  // Run on initial load and page transitions
+  initDiagrams();
+  document.addEventListener('astro:page-load', initDiagrams);
 
-        let c1 = b1 >> 2;
-        let c2 = ((b1 & 0x3) << 4) | (b2 >> 4);
-        let c3 = ((b2 & 0xf) << 2) | (b3 >> 6);
-        let c4 = b3 & 0x3f;
-
-        str += chars[c1] + chars[c2] + chars[c3] + chars[c4];
-      }
-      return str;
-    };
-
-    const graphs = document.getElementsByClassName('plantuml');
-    if (document.getElementsByClassName('plantuml').length > 0) {
-      renderPlantUML(graphs, deflate);
-    }
-
-    window.renderPlantUML = (graphs: any) => {
-      renderPlantUML(graphs, deflate);
-    };
-  });
+  // Make available globally for accordion component
+  window.renderDiagrams = (graphs: HTMLCollectionOf<Element>) => {
+    renderMermaidWithZoom(graphs, window.eventcatalog?.mermaid);
+  };
+  window.renderPlantUML = (blocks: HTMLCollectionOf<Element>) => {
+    renderPlantUMLWithZoom(blocks);
+  };
 </script>

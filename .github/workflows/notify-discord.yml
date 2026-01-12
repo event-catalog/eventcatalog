@@ -1,8 +1,10 @@
 name: discord
 
 on:
-  release:
-    types: [released] # fires when a draft release is published
+  workflow_run:
+    workflows: ["Release"]
+    types:
+      - completed
 
 jobs:
   notify:
