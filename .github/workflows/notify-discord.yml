@@ -1,14 +1,49 @@
-name: discord
+name: Discord Release Notification
 
 on:
-  release:
-    types: [published]
+  workflow_run:
+    workflows: ['Release']
+    types:
+      - completed
 
 jobs:
   notify:
     runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_commit.message, 'Version Packages')
     steps:
-      - name: Send nicely-formatted embed to Discord
-        uses: SethCohen/github-releases-to-discord@v1
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          webhook_url: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+          node-version: '20'
+
+      - name: Get latest release info
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Fetch the latest release from GitHub API
+          RELEASE_JSON=$(gh api repos/${{ github.repository }}/releases/latest)
+
+          # Extract fields
+          echo "tag=$(echo "$RELEASE_JSON" | jq -r '.tag_name')" >> $GITHUB_OUTPUT
+          echo "name=$(echo "$RELEASE_JSON" | jq -r '.name')" >> $GITHUB_OUTPUT
+          echo "url=$(echo "$RELEASE_JSON" | jq -r '.html_url')" >> $GITHUB_OUTPUT
+
+          # Body needs special handling for multiline
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$RELEASE_JSON" | jq -r '.body' >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Send Discord notification
+        run: node scripts/notify-discord-release.js
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          RELEASE_NAME: ${{ steps.release.outputs.name }}
+          RELEASE_BODY: ${{ steps.release.outputs.body }}
+          RELEASE_URL: ${{ steps.release.outputs.url }}
