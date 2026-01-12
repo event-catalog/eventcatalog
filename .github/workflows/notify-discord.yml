@@ -1,10 +1,8 @@
 name: discord
 
 on:
-  workflow_run:
-    workflows: ["Release"]
-    types:
-      - completed
+  release:
+    types: [published]
 
 jobs:
   notify:
