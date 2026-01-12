@@ -62,11 +62,15 @@ function parseReleaseNotes(body) {
     if (trimmed.startsWith('-') || trimmed.startsWith('*')) {
       let content = trimmed.slice(1).trim();
 
+      // Extract PR/issue numbers before cleaning
+      const prMatches = content.match(/#(\d+)/g) || [];
+      const prNumbers = [...new Set(prMatches.map((m) => m.slice(1)))]; // Remove # and dedupe
+
       // Clean up changeset formatting thoroughly
-      // Remove markdown links like [abc123](url)
-      content = content.replace(/\[[a-f0-9]+\]\([^)]*\)/g, '');
-      // Convert PR references like (#123) to GitHub links
-      content = content.replace(/\(#(\d+)\)/g, '([#$1](https://github.com/event-catalog/eventcatalog/pull/$1))');
+      // Remove markdown links like [abc123](url) or [#123](url)
+      content = content.replace(/\[[^\]]*\]\([^)]*\)/g, '');
+      // Remove PR references like (#123)
+      content = content.replace(/\(#\d+\)/g, '');
       // Remove standalone commit hashes
       content = content.replace(/\b[a-f0-9]{7,40}\b/g, '');
       // Remove package prefixes like @eventcatalog/core: or just leading colons
@@ -74,6 +78,12 @@ function parseReleaseNotes(body) {
       content = content.replace(/^:\s*/, '');
       // Clean up extra whitespace
       content = content.replace(/\s+/g, ' ').trim();
+
+      // Append PR links at the end if found
+      if (prNumbers.length > 0) {
+        const prLinks = prNumbers.map((n) => `[#${n}](https://github.com/event-catalog/eventcatalog/pull/${n})`).join(' ');
+        content = `${content} (${prLinks})`;
+      }
 
       // Skip empty or too short after cleanup
       if (!content || content.length < 3) continue;
