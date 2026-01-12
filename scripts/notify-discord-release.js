@@ -46,9 +46,8 @@ function parseReleaseNotes(body) {
   for (const line of lines) {
     const trimmed = line.trim();
 
-    // Skip empty lines and headers we don't need
-    if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('##')) {
-      // Check for section headers
+    // Check for section headers (### Minor Changes, ### Patch Changes, etc.)
+    if (trimmed.startsWith('#')) {
       const lowerLine = trimmed.toLowerCase();
       if (lowerLine.includes('minor') || lowerLine.includes('feature')) {
         currentSection = 'features';
@@ -58,31 +57,37 @@ function parseReleaseNotes(body) {
       continue;
     }
 
+    // Skip empty lines
+    if (!trimmed) continue;
+
     // Process bullet points
     if (trimmed.startsWith('-') || trimmed.startsWith('*')) {
       let content = trimmed.slice(1).trim();
 
-      // Clean up changeset formatting
-      // Remove commit hashes and PR links for cleaner output
-      content = content.replace(/\s*\[[a-f0-9]+\]\(.*?\)/g, '');
+      // Clean up changeset formatting thoroughly
+      // Remove markdown links like [abc123](url)
+      content = content.replace(/\[[a-f0-9]+\]\([^)]*\)/g, '');
+      // Remove PR references like (#123)
       content = content.replace(/\s*\(#\d+\)/g, '');
+      // Remove standalone commit hashes
+      content = content.replace(/\b[a-f0-9]{7,40}\b/g, '');
+      // Remove package prefixes like @eventcatalog/core:
+      content = content.replace(/@eventcatalog\/\w+:\s*/g, '');
+      // Clean up extra whitespace
+      content = content.replace(/\s+/g, ' ').trim();
 
-      // Skip empty after cleanup
-      if (!content) continue;
+      // Skip empty or too short after cleanup
+      if (!content || content.length < 3) continue;
 
-      // Categorize based on content if not already categorized
+      // Categorize based on current section (determined by headers)
+      // Also check content for keywords as fallback
       const lowerContent = content.toLowerCase();
-      if (lowerContent.includes('fix') || lowerContent.includes('bug')) {
+      if (currentSection === 'fixes' || lowerContent.startsWith('fix') || lowerContent.includes('bug fix')) {
         sections.fixes.push(content);
-      } else if (
-        lowerContent.includes('add') ||
-        lowerContent.includes('feat') ||
-        lowerContent.includes('new') ||
-        lowerContent.includes('support')
-      ) {
+      } else if (currentSection === 'features' || lowerContent.startsWith('add') || lowerContent.startsWith('feat')) {
         sections.features.push(content);
       } else {
-        sections[currentSection].push(content);
+        sections.other.push(content);
       }
     }
   }
@@ -92,20 +97,21 @@ function parseReleaseNotes(body) {
 
 /**
  * Format sections into Discord-friendly text
+ * Uses Discord's underline formatting (__text__) for clean headers
  */
 function formatSections(sections) {
   const parts = [];
 
   if (sections.features.length > 0) {
-    parts.push(`**✨ New Features & Improvements**\n${sections.features.map((f) => `• ${f}`).join('\n')}`);
+    parts.push(`__New Features__\n${sections.features.map((f) => `• ${f}`).join('\n')}`);
   }
 
   if (sections.fixes.length > 0) {
-    parts.push(`**🐛 Bug Fixes**\n${sections.fixes.map((f) => `• ${f}`).join('\n')}`);
+    parts.push(`__Bug Fixes__\n${sections.fixes.map((f) => `• ${f}`).join('\n')}`);
   }
 
-  if (sections.other.length > 0 && !sections.features.length && !sections.fixes.length) {
-    parts.push(`**📝 Changes**\n${sections.other.map((f) => `• ${f}`).join('\n')}`);
+  if (sections.other.length > 0) {
+    parts.push(`__Other Changes__\n${sections.other.map((f) => `• ${f}`).join('\n')}`);
   }
 
   return parts.join('\n\n');
@@ -133,31 +139,20 @@ function buildDiscordPayload(releaseTag, releaseBody, releaseUrl) {
   }
 
   const embed = {
-    title: `🚀 EventCatalog ${version} Released!`,
+    title: `EventCatalog v${version}`,
     description: description,
     url: releaseUrl,
     color: EVENTCATALOG_BRAND_COLOR,
-    thumbnail: {
-      url: EVENTCATALOG_AVATAR_URL,
-    },
-    fields: [
-      {
-        name: '📦 Install / Update',
-        value: '```bash\nnpm install @eventcatalog/core@latest\n```',
-        inline: false,
-      },
-    ],
     footer: {
-      text: 'EventCatalog • Documentation for Event-Driven Architectures',
+      text: 'EventCatalog',
       icon_url: EVENTCATALOG_AVATAR_URL,
     },
     timestamp: new Date().toISOString(),
   };
 
   return {
-    username: 'EventCatalog Releases',
+    username: 'EventCatalog',
     avatar_url: EVENTCATALOG_AVATAR_URL,
-    content: '**A new version of EventCatalog has been released!** 🎉',
     embeds: [embed],
   };
 }
