@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.4.0
+
+### Minor Changes
+
+- 5162696: feat(core): add mcp server and shared catalog tools
+
 ## 3.3.1
 
 ### Patch Changes
