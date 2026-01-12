@@ -188,6 +188,17 @@ const diagramId = props.data.id;
     </div>
 
     <script is:inline define:vars={{ config, baseUrl: import.meta.env.BASE_URL }}>
+      /**
+       * IMPORTANT: Diagram zoom functionality is intentionally duplicated here from mermaid-zoom.ts.
+       *
+       * This embed page is designed to be loaded in iframes and must be fully self-contained.
+       * It uses CDN imports (e.g., https://cdn.jsdelivr.net/npm/mermaid@10) instead of npm
+       * package imports to ensure isolation from the parent application's build process.
+       *
+       * If you need to update the zoom controls or diagram rendering logic, please update
+       * both this file AND eventcatalog/src/utils/mermaid-zoom.ts to keep them in sync.
+       */
+
       window.eventcatalog = { mermaid: config?.mermaid };
 
       // Set the go-to-diagram link by parsing URL: /diagrams/{id}/{version}/embed

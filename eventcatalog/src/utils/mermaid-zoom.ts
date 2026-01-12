@@ -1,16 +1,29 @@
 /**
  * Diagram Zoom Utility
  * Provides pan/zoom functionality for Mermaid and PlantUML diagrams with React Flow-style controls
+ *
+ * NOTE: A standalone version of this code also exists in the embed page at:
+ * src/pages/diagrams/[id]/[version]/embed.astro
+ *
+ * The embed page uses CDN imports for isolation in iframes. If you update this file,
+ * please also update the embed page to keep the zoom functionality in sync.
  */
 
 // Store zoom instances for cleanup
 const zoomInstances = new Map<string, any>();
 const resizeObservers = new Map<string, ResizeObserver>();
+const fullscreenHandlers = new Map<string, () => void>();
+
+// Abort flag for cancelling in-progress renders during cleanup
+let renderingAborted = false;
 
 /**
  * Destroys all zoom instances and cleans up observers
  */
 export function destroyZoomInstances(): void {
+  // Set abort flag to cancel any in-progress renders
+  renderingAborted = true;
+
   zoomInstances.forEach((instance) => {
     try {
       instance.destroy();
@@ -24,21 +37,40 @@ export function destroyZoomInstances(): void {
     observer.disconnect();
   });
   resizeObservers.clear();
+
+  // Clean up fullscreen event listeners
+  fullscreenHandlers.forEach((handler) => {
+    document.removeEventListener('fullscreenchange', handler);
+  });
+  fullscreenHandlers.clear();
 }
 
 /**
- * Gets theme colors based on current mode
+ * Gets an RGB color string from a CSS variable
+ * CSS variables store RGB values as "R G B" format, so we convert to "rgb(R, G, B)"
+ */
+function getCssVariableColor(variableName: string, fallback: string): string {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+  if (value) {
+    // Convert "R G B" format to "rgb(R, G, B)"
+    return `rgb(${value.split(' ').join(', ')})`;
+  }
+  return fallback;
+}
+
+/**
+ * Gets theme colors based on current mode using CSS variables
  */
 function getThemeColors() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   return {
     isDark,
-    bgColor: isDark ? '#161b22' : '#ffffff',
-    borderColor: isDark ? '#30363d' : '#e2e8f0',
-    iconColor: isDark ? '#8b949e' : '#64748b',
-    iconHoverColor: isDark ? '#f0f6fc' : '#0f172a',
-    hoverBgColor: isDark ? '#21262d' : '#f1f5f9',
-    overlayBg: isDark ? '#0d1117' : '#ffffff',
+    bgColor: getCssVariableColor('--ec-card-bg', isDark ? '#161b22' : '#ffffff'),
+    borderColor: getCssVariableColor('--ec-page-border', isDark ? '#30363d' : '#e2e8f0'),
+    iconColor: getCssVariableColor('--ec-icon-color', isDark ? '#8b949e' : '#64748b'),
+    iconHoverColor: getCssVariableColor('--ec-icon-hover', isDark ? '#f0f6fc' : '#0f172a'),
+    hoverBgColor: getCssVariableColor('--ec-content-hover', isDark ? '#21262d' : '#f1f5f9'),
+    overlayBg: getCssVariableColor('--ec-page-bg', isDark ? '#0d1117' : '#ffffff'),
   };
 }
 
@@ -335,7 +367,7 @@ export function createZoomContainer(): HTMLElement {
     width: 100%;
     min-height: 200px;
     overflow: hidden;
-    margin: 0rem 0;
+    margin: 0;
     cursor: grab;
   `;
   return container;
@@ -379,7 +411,8 @@ export async function initMermaidZoom(
   // If viewBox didn't give us dimensions, try getBBox
   if (width <= 0 || height <= 0) {
     try {
-      const bbox = svgElement.getBBox();
+      // Cast to SVGGraphicsElement which has getBBox method
+      const bbox = (svgElement as unknown as SVGGraphicsElement).getBBox();
       width = bbox.width;
       height = bbox.height;
       if (width > 0 && height > 0 && !viewBox) {
@@ -495,6 +528,7 @@ export async function initMermaidZoom(
       }, 100);
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
+    fullscreenHandlers.set(id, handleFullscreenChange);
 
     // Resize handler for responsiveness
     const resizeObserver = new ResizeObserver(() => {
@@ -521,6 +555,9 @@ export async function initMermaidZoom(
  */
 export async function renderMermaidWithZoom(graphs: HTMLCollectionOf<Element>, mermaidConfig?: any): Promise<void> {
   if (graphs.length === 0) return;
+
+  // Reset abort flag at the start of rendering
+  renderingAborted = false;
 
   const { default: mermaid } = await import('mermaid');
 
@@ -581,6 +618,9 @@ export async function renderMermaidWithZoom(graphs: HTMLCollectionOf<Element>, m
   const graphsArray = Array.from(graphs);
 
   for (const graph of graphsArray) {
+    // Check if rendering was aborted (e.g., user navigated away)
+    if (renderingAborted) return;
+
     const content = graph.getAttribute('data-content');
     if (!content) continue;
 
@@ -588,6 +628,9 @@ export async function renderMermaidWithZoom(graphs: HTMLCollectionOf<Element>, m
 
     try {
       const result = await mermaid.render(id, content);
+
+      // Check again after async operation
+      if (renderingAborted) return;
 
       // Create zoom container
       const container = createZoomContainer();
@@ -642,6 +685,10 @@ function encodePlantUML(text: string, deflate: (data: Uint8Array, options: any) 
 export async function renderPlantUMLWithZoom(blocks: HTMLCollectionOf<Element>): Promise<void> {
   if (blocks.length === 0) return;
 
+  // Reset abort flag at the start of rendering (only if not already rendering mermaid)
+  // Note: renderMermaidWithZoom also resets this flag, so we check if it's currently aborted
+  if (renderingAborted) renderingAborted = false;
+
   // Dynamic import pako for compression
   const { deflate } = await import('pako');
 
@@ -649,6 +696,9 @@ export async function renderPlantUMLWithZoom(blocks: HTMLCollectionOf<Element>):
   const blocksArray = Array.from(blocks);
 
   for (const block of blocksArray) {
+    // Check if rendering was aborted (e.g., user navigated away)
+    if (renderingAborted) return;
+
     const content = block.getAttribute('data-content');
     if (!content) continue;
 
@@ -659,11 +709,18 @@ export async function renderPlantUMLWithZoom(blocks: HTMLCollectionOf<Element>):
     try {
       // Fetch SVG content so we can use svg-pan-zoom
       const response = await fetch(svgUrl);
+
+      // Check again after async operation
+      if (renderingAborted) return;
+
       if (!response.ok) {
         throw new Error(`Failed to fetch PlantUML diagram: ${response.status}`);
       }
 
       const svgText = await response.text();
+
+      // Check again after async operation
+      if (renderingAborted) return;
 
       // Create zoom container
       const container = createZoomContainer();

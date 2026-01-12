@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { z } from 'zod';
@@ -396,7 +396,7 @@ function createMcpServer() {
       resource.name,
       resource.uri,
       { description: resource.description, mimeType: 'application/json' },
-      async (uri) => {
+      async (uri: URL) => {
         const allResources: any[] = [];
 
         for (const collectionName of resource.collections) {
@@ -463,7 +463,7 @@ const mcpResources = [
 ];
 
 // Health check endpoint
-app.get('/', async (c) => {
+app.get('/', async (c: Context) => {
   return c.json({
     name: 'EventCatalog MCP Server',
     version: '1.0.0',
@@ -475,7 +475,7 @@ app.get('/', async (c) => {
 });
 
 // MCP protocol endpoint - handles POST requests for MCP protocol
-app.post('/', async (c) => {
+app.post('/', async (c: Context) => {
   try {
     // Connect server to transport if not already connected
     if (!isConnected) {
