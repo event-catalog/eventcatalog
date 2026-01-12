@@ -79,10 +79,10 @@ function parseReleaseNotes(body) {
       // Clean up extra whitespace
       content = content.replace(/\s+/g, ' ').trim();
 
-      // Append PR links at the end if found
+      // Append PR links at the end if found (use angle brackets for Discord auto-linking)
       if (prNumbers.length > 0) {
-        const prLinks = prNumbers.map((n) => `[#${n}](https://github.com/event-catalog/eventcatalog/pull/${n})`).join(' ');
-        content = `${content} (${prLinks})`;
+        const prLinks = prNumbers.map((n) => `<https://github.com/event-catalog/eventcatalog/pull/${n}>`).join(' ');
+        content = `${content}\n${prLinks}`;
       }
 
       // Skip empty or too short after cleanup
@@ -112,15 +112,15 @@ function formatSections(sections) {
   const parts = [];
 
   if (sections.features.length > 0) {
-    parts.push(`__New Features__\n${sections.features.map((f) => `• ${f}`).join('\n')}`);
+    parts.push(`__New Features__\n${sections.features.map((f) => `• ${f}`).join('\n\n')}`);
   }
 
   if (sections.fixes.length > 0) {
-    parts.push(`__Bug Fixes__\n${sections.fixes.map((f) => `• ${f}`).join('\n')}`);
+    parts.push(`__Bug Fixes__\n${sections.fixes.map((f) => `• ${f}`).join('\n\n')}`);
   }
 
   if (sections.other.length > 0) {
-    parts.push(`__Other Changes__\n${sections.other.map((f) => `• ${f}`).join('\n')}`);
+    parts.push(`__Other Changes__\n${sections.other.map((f) => `• ${f}`).join('\n\n')}`);
   }
 
   return parts.join('\n\n');
