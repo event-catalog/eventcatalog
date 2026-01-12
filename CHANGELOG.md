@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.4.2
+
+### Patch Changes
+
+- be85edd: Fix React Rules of Hooks violation in NestedSideBar by moving isFavorited hook before early returns
+
 ## 3.4.1
 
 ### Patch Changes
