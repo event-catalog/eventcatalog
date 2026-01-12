@@ -34,5 +34,6 @@ jobs:
         uses: changesets/action@master
         with:
           publish: pnpm run release
+          createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
