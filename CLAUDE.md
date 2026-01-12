@@ -223,3 +223,4 @@ When building features used by both AI Chat and MCP Server, add shared logic to 
 - SSR mode is required for AI Chat and MCP Server features
 - Use `DISABLE_EVENTCATALOG_CACHE=true` env var to disable caching during development
 - Run `pnpm run format` before committing changes
+- Never verify the build, the developer will do this themselves.
