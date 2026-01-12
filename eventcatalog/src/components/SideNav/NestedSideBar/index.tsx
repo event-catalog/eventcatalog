@@ -469,6 +469,18 @@ export default function NestedSideBar() {
     };
   }, [isInitialized, findAndNavigateToUrl, currentPath]);
 
+  /**
+   * Check if a node is favorited
+   * Note: This hook must be defined before any early returns to comply with Rules of Hooks
+   */
+  const isFavorited = useCallback(
+    (nodeKey: string | null): boolean => {
+      if (!nodeKey) return false;
+      return favorites.some((fav) => fav.nodeKey === nodeKey);
+    },
+    [favorites]
+  );
+
   // Show loading state if no data yet
   if (!data || roots.length === 0) {
     return (
@@ -582,17 +594,6 @@ export default function NestedSideBar() {
       setShowFullPath(false);
     }
   };
-
-  /**
-   * Check if a node is favorited
-   */
-  const isFavorited = useCallback(
-    (nodeKey: string | null): boolean => {
-      if (!nodeKey) return false;
-      return favorites.some((fav) => fav.nodeKey === nodeKey);
-    },
-    [favorites]
-  );
 
   /**
    * Toggle favorite status for a node
