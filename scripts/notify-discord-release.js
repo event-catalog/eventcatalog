@@ -69,8 +69,9 @@ function parseReleaseNotes(body) {
       content = content.replace(/\(#(\d+)\)/g, '([#$1](https://github.com/event-catalog/eventcatalog/pull/$1))');
       // Remove standalone commit hashes
       content = content.replace(/\b[a-f0-9]{7,40}\b/g, '');
-      // Remove package prefixes like @eventcatalog/core:
-      content = content.replace(/@eventcatalog\/\w+:\s*/g, '');
+      // Remove package prefixes like @eventcatalog/core: or just leading colons
+      content = content.replace(/@[\w-]+\/[\w-]+:\s*/g, '');
+      content = content.replace(/^:\s*/, '');
       // Clean up extra whitespace
       content = content.replace(/\s+/g, ' ').trim();
 
