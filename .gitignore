@@ -53,3 +53,4 @@ examples/e-commerce
 
 .claude/agents/eventcatalog-blog-writer.md
 pr-descriptions/
+.claude/commands/ship.md
