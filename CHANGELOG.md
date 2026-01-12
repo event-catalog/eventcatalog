@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.4.1
+
+### Patch Changes
+
+- c1a349f: feat(core): add interactive controls to mermaid and plantuml
+
 ## 3.4.0
 
 ### Minor Changes
