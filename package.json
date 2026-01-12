@@ -44,7 +44,6 @@
     "lint:catalog": "pnpm dlx @eventcatalog/linter examples/default"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^3.0.9",
     "@ai-sdk/react": "^3.0.17",
     "@astrojs/markdown-remark": "^6.3.10",
     "@astrojs/mdx": "^4.3.13",
