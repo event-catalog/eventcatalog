@@ -14,9 +14,7 @@
  */
 
 // Constants
-const EVENTCATALOG_BRAND_COLOR = 0x7c3aed; // Purple
 const EVENTCATALOG_AVATAR_URL = 'https://avatars.githubusercontent.com/u/106890076?s=200&v=4';
-const MAX_DESCRIPTION_LENGTH = 3800; // Discord limit is 4096, leave buffer for truncation message
 
 // Environment variables
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
@@ -126,34 +124,27 @@ function extractVersion(tag) {
 }
 
 /**
- * Build the Discord embed payload
+ * Build the Discord payload as plain text (no embed box)
  */
 function buildDiscordPayload(releaseTag, releaseBody, releaseUrl) {
   const version = extractVersion(releaseTag);
   const sections = parseReleaseNotes(releaseBody);
   const formattedChanges = formatSections(sections);
 
-  let description = formattedChanges || 'Check the release notes for details.';
-  if (description.length > MAX_DESCRIPTION_LENGTH) {
-    description = description.slice(0, MAX_DESCRIPTION_LENGTH) + '\n\n*... and more. See full release notes.*';
-  }
+  let content = `**EventCatalog v${version}**\n\n`;
+  content += formattedChanges || 'Check the release notes for details.';
+  content += `\n\n<${releaseUrl}>`;
 
-  const embed = {
-    title: `EventCatalog v${version}`,
-    description: description,
-    url: releaseUrl,
-    color: EVENTCATALOG_BRAND_COLOR,
-    footer: {
-      text: 'EventCatalog',
-      icon_url: EVENTCATALOG_AVATAR_URL,
-    },
-    timestamp: new Date().toISOString(),
-  };
+  // Discord message limit is 2000 characters
+  if (content.length > 1900) {
+    const truncatedChanges = formattedChanges.slice(0, 1500);
+    content = `**EventCatalog v${version}**\n\n${truncatedChanges}\n\n*... and more*\n\n<${releaseUrl}>`;
+  }
 
   return {
     username: 'EventCatalog',
     avatar_url: EVENTCATALOG_AVATAR_URL,
-    embeds: [embed],
+    content: content,
   };
 }
 
