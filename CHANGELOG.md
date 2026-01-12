@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.5.1
+
+### Patch Changes
+
+- 3177b34: Fix Avro schema file downloads in context menu by using actual schema filename from schemaPath instead of hardcoded 'schema.json'
+
 ## 3.5.0
 
 ### Minor Changes
