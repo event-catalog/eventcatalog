@@ -9,6 +9,67 @@ vi.mock('astro:content', async (importOriginal) => {
   };
 });
 
+// Mock hono - using regular functions instead of vi.fn() to avoid being reset by resetAllMocks
+vi.mock('hono', () => {
+  const createMockApp = () => {
+    const mockFetch = async (request: Request) => {
+      if (request.method === 'GET') {
+        return new Response(
+          JSON.stringify({
+            status: 'healthy',
+            tools: [],
+            resources: [
+              'eventcatalog://all',
+              'eventcatalog://events',
+              'eventcatalog://commands',
+              'eventcatalog://queries',
+              'eventcatalog://services',
+              'eventcatalog://domains',
+              'eventcatalog://flows',
+              'eventcatalog://teams',
+              'eventcatalog://users',
+            ],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      return new Response(JSON.stringify({ jsonrpc: '2.0', result: {} }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    };
+    const mockApp: any = {
+      fetch: mockFetch,
+    };
+    // All chaining methods return the same mockApp - using regular functions to avoid reset
+    mockApp.basePath = () => mockApp;
+    mockApp.get = () => mockApp;
+    mockApp.post = () => mockApp;
+    mockApp.all = () => mockApp;
+    return mockApp;
+  };
+  return {
+    Hono: function () {
+      return createMockApp();
+    },
+  };
+});
+
+// Mock @modelcontextprotocol/sdk
+vi.mock('@modelcontextprotocol/sdk/server/mcp.js', () => ({
+  McpServer: vi.fn().mockImplementation(() => ({
+    tool: vi.fn(),
+    resource: vi.fn(),
+    connect: vi.fn(),
+    registerTool: vi.fn(),
+    registerResource: vi.fn(),
+  })),
+}));
+
+vi.mock('@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js', () => ({
+  WebStandardStreamableHTTPServerTransport: vi.fn().mockImplementation(() => ({})),
+}));
+
 // Mock the feature utilities
 vi.mock('@utils/feature', () => ({
   isSSR: vi.fn(() => true),

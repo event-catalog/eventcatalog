@@ -817,6 +817,106 @@ describe('Message NodeGraph', () => {
 
         expect(edges).toEqual(expectedEdges);
       });
+
+      it('when the producer defines a channel version that does not exist, the message is connected directly from the producer to the message (not reversed)', async () => {
+        const { writeService, writeEvent, getServices, writeChannel, getEvent, getChannels, getService } = utils(CATALOG_FOLDER);
+
+        // The message itself
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: '## Payment Processed',
+        });
+
+        // The producer with a channel version that doesn't exist
+        await writeService({
+          id: 'PaymentService',
+          name: 'Payment Service',
+          version: '1.0.0',
+          markdown: '## Payment Service',
+          sends: [
+            {
+              id: 'PaymentProcessed',
+              version: '0.0.1',
+              to: [{ id: 'SQSChannel', version: '99.0.0' }], // Version 99.0.0 does not exist
+            },
+          ],
+        });
+
+        // The channel exists but with a different version
+        await writeChannel({
+          id: 'SQSChannel',
+          name: 'SQS Channel',
+          version: '1.0.0',
+          markdown: '## SQS Channel',
+        });
+
+        const message = toAstroCollection(
+          await getEvent('PaymentProcessed'),
+          'events'
+        ) as unknown as CollectionEntry<CollectionMessageTypes>;
+        const services = await getServices().then(
+          (services) =>
+            services.map((service) => toAstroCollection(service, 'services')) as unknown as CollectionEntry<'services'>[]
+        );
+        const channels = await getChannels().then(
+          (channels) =>
+            channels.map((channel) => toAstroCollection(channel, 'channels')) as unknown as CollectionEntry<'channels'>[]
+        );
+
+        const source = toAstroCollection(
+          await getService('PaymentService'),
+          'services'
+        ) as unknown as CollectionEntry<'services'>;
+
+        const { nodes, edges } = await getNodesAndEdgesForProducedMessage({
+          message,
+          services: services,
+          channels: channels,
+          currentNodes: [],
+          sourceChannels: [{ id: 'SQSChannel', version: '99.0.0' }], // Non-existent version
+          source,
+          currentEdges: [],
+        });
+
+        const expectedProducerNode = expect.objectContaining({
+          id: 'PaymentService-1.0.0',
+          sourcePosition: 'right',
+          targetPosition: 'left',
+          type: 'services',
+        });
+
+        const expectedMessageNode = expect.objectContaining({
+          id: 'PaymentProcessed-0.0.1',
+          sourcePosition: 'right',
+          targetPosition: 'left',
+          type: 'events',
+        });
+
+        // The edge should go from producer to message (not reversed)
+        const expectedEdges = expect.arrayContaining([
+          expect.objectContaining({
+            id: 'PaymentService-1.0.0-PaymentProcessed-0.0.1',
+            source: 'PaymentService-1.0.0',
+            target: 'PaymentProcessed-0.0.1',
+            label: 'publishes \nevent',
+          }),
+        ]);
+
+        // Should NOT contain a reversed edge (message -> producer)
+        const reversedEdge = edges.find(
+          (edge: any) => edge.source === 'PaymentProcessed-0.0.1' && edge.target === 'PaymentService-1.0.0'
+        );
+        expect(reversedEdge).toBeUndefined();
+
+        // No channel nodes should be created since the version doesn't exist
+        const channelNodes = nodes.filter((node: any) => node.type === 'channels');
+        expect(channelNodes).toHaveLength(0);
+
+        expect(nodes).toEqual(expect.arrayContaining([expectedProducerNode, expectedMessageNode]));
+        expect(edges).toEqual(expectedEdges);
+      });
     });
 
     describe('when the message is produced by the producer without a channel, but the consumer defines a channel', () => {
