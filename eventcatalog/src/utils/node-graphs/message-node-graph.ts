@@ -788,13 +788,13 @@ export const getNodesAndEdgesForProducedMessage = ({
       const channel = findInMap(map, sourceChannel.id, sourceChannel.version) as CollectionEntry<'channels'>;
 
       if (!channel) {
-        // No channel found, we just connect the message to the source directly
+        // No channel found, we just connect the source directly to the message
         edges.push(
           createEdge({
-            id: generatedIdForEdge(message, source),
-            source: messageId,
-            target: generateIdForNode(source),
-            label: getEdgeLabelForMessageAsSource(message),
+            id: generatedIdForEdge(source, message),
+            source: generateIdForNode(source),
+            target: messageId,
+            label: getEdgeLabelForServiceAsTarget(message),
             data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
           })
         );
