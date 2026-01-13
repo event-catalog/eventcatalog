@@ -29,7 +29,7 @@ type SearchResult = {
 };
 
 type Props = {
-  nodes: Record<string, NavNode>;
+  nodes: Record<string, NavNode | string>;
   onSelectResult: (nodeKey: string, node: NavNode) => void;
   onSearchChange?: (isSearching: boolean) => void;
 };
@@ -41,14 +41,20 @@ export default function SearchBar({ nodes, onSelectResult, onSearchChange }: Pro
 
   // Pre-process searchable nodes to avoid iterating object on every render
   // Filter out unversioned keys (e.g., "domain:OrderService") to avoid duplicates with versioned keys (e.g., "domain:OrderService:1.0.0")
-  const searchableNodes = useMemo(() => {
-    return Object.entries(nodes).filter(([key, node]) => {
-      if (node.type === 'group') return false;
+  const searchableNodes = useMemo((): Array<[string, NavNode]> => {
+    const result: Array<[string, NavNode]> = [];
+    for (const [key, node] of Object.entries(nodes)) {
+      // Skip string references (unversioned aliases that point to versioned keys)
+      if (typeof node === 'string') continue;
+      if (node.type === 'group') continue;
       // Only include versioned keys (those with 3+ parts like "type:id:version")
       // Unversioned keys (2 parts like "type:id") are aliases to latest version and would cause duplicates
       const keyParts = key.split(':');
-      return keyParts.length >= 3;
-    });
+      if (keyParts.length >= 3) {
+        result.push([key, node]);
+      }
+    }
+    return result;
   }, [nodes]);
 
   // Get available badges from nodes

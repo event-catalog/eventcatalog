@@ -31,7 +31,7 @@ export type NavNode = {
  */
 export type NavigationData = {
   roots: ChildRef[]; // What to show at top level
-  nodes: Record<string, NavNode>; // Flat map of all nodes by key
+  nodes: Record<string, NavNode | string>; // Flat map of nodes by key, strings are references to other keys (e.g., unversioned aliases)
 };
 
 export const uniqueBy = <T>(array: T[], key: keyof T): T[] => {

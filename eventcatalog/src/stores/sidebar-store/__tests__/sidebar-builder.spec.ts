@@ -2270,7 +2270,7 @@ describe('getNestedSideBarData', () => {
       });
 
       const navigationData = await getNestedSideBarData();
-      const systemNode = navigationData.nodes['list:system'];
+      const systemNode = navigationData.nodes['list:system'] as NavNode;
 
       expect(systemNode).toBeDefined();
       expect(systemNode.title).toBe('System');
