@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.5.2
+
+### Patch Changes
+
+- caaf899: Fix visualizer showing incorrect "subscribed by" edge when producer references non-existent channel version
+
 ## 3.5.1
 
 ### Patch Changes
