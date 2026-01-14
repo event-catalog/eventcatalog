@@ -19,4 +19,12 @@ receives:
       - id: registrations-domain-eventbus
 ---
 
-This is a registration service that sends a registration event.
+## Overview
+
+The Registration Service handles user registration and authentication operations. It is part of the [[domain|Orders]] domain and works with the [[entity|Customer]] entity.
+
+The service publishes [[event|UserSignedUpEvent]] and [[event|UserForgotPasswordEvent]] events to notify other services of user registration activity. It receives [[event|DeliveryFailed]] events to handle failed email delivery scenarios.
+
+<NodeGraph />
+
+<MessageTable format="all" />

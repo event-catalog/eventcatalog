@@ -72,7 +72,7 @@ The **recommended** way to install the latest version of EventCatalog is by runn
 npx @eventcatalog/create-eventcatalog@latest my-catalog
 ```
 
-Looking for help? Start with our [Getting Started](https://www.eventcatalog.dev/docs/development/starting-a-new-project/installation) guide
+Looking for help? Start with our [Getting Started](https://www.eventcatalog.dev/docs/development/getting-started/installation) guide
 
 ## Documentation
 Visit our [official documentation](https://www.eventcatalog.dev/docs/development/getting-started).

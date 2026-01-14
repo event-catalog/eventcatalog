@@ -58,7 +58,9 @@ import Footer from '@catalog/components/footer.astro';
 
 ## Overview
 
-The Inventory Service is a critical component of the system responsible for managing product stock levels, tracking inventory movements, and ensuring product availability. It interacts with other services to maintain accurate inventory records and supports operations such as order fulfillment, restocking, and inventory audits.
+The Inventory Service is a critical component of the system responsible for managing product stock levels, tracking inventory movements, and ensuring product availability. It works closely with the [[service|OrdersService]] and is part of the [[domain|Orders]] domain.
+
+The service receives events like [[event|OrderConfirmed]] and [[event|OrderAmended]], and publishes [[event|InventoryAdjusted]] and [[event|OutOfStock]] to notify other services of inventory changes.
 
 <Tiles >
     <Tile icon="DocumentIcon" href={`/docs/services/${frontmatter.id}/${frontmatter.version}/changelog`}  title="View the changelog" description="Want to know the history of this service? View the change logs" />

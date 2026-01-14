@@ -30,26 +30,26 @@ badges:
 
 ## Overview
 
-The Payment Domain encompasses all services and components related to handling financial transactions within the system. It is responsible for managing payments, transactions, billing, fraud detection, and financial records. The domain ensures secure, reliable, and efficient processing of all payment-related activities.
+The Payment Domain encompasses all services and components related to handling financial transactions within the system. It is part of the [[domain|E-Commerce]] domain and manages entities like [[entity|Payment]], [[entity|Transaction]], and [[entity|Invoice]]. The domain ensures secure, reliable, and efficient processing of all payment-related activities.
 
 ## Services
 
 ### PaymentService
-Core payment orchestration service that coordinates payment workflows and maintains payment state.
+The [[service|PaymentService]] is the core payment orchestration service that coordinates payment workflows and maintains payment state. It publishes [[event|PaymentProcessed]] events.
 
 ### FraudDetectionService
-Analyzes transactions in real-time to detect fraudulent activity using machine learning models and rule-based systems.
+The [[service|FraudDetectionService]] analyzes transactions in real-time to detect fraudulent activity using machine learning models and rule-based systems. It publishes [[event|FraudDetected]] and [[event|FraudCheckCompleted]] events.
 
 ### PaymentGatewayService
-Manages integrations with external payment processors (Stripe, PayPal, etc.) and provides a unified interface for payment operations.
+The [[service|PaymentGatewayService]] manages integrations with external payment processors (Stripe, PayPal, etc.) and handles the [[command|ProcessPayment]] command.
 
 ## Cross-Domain Integration
 
 The Payment domain integrates with:
 
-- **Subscriptions Domain**: Processes recurring payments for subscriptions
-- **Orders Domain**: Handles payments for customer orders
-- **Inventory Domain**: Updates based on successful payments
+- **[[domain|Subscriptions]]**: Processes recurring payments for subscriptions
+- **[[domain|Orders]]**: Handles payments for customer orders via the [[flow|PaymentFlow]]
+- **Inventory**: Updates based on successful payments
 
 ## Bounded context
 

@@ -27,7 +27,9 @@ import Footer from '@catalog/components/footer.astro'
 
 ## Overview
 
-The Payment Gateway Service acts as an abstraction layer between our payment system and external payment processors. It handles the complexity of integrating with multiple payment providers and provides a unified interface for payment operations.
+The Payment Gateway Service acts as an abstraction layer between our payment system and external payment processors. It is part of the [[domain|Payment]] domain and works alongside the [[service|PaymentService]] and [[service|FraudDetectionService]].
+
+The service receives [[command|ProcessPayment]] and [[event|FraudCheckCompleted]] events, and publishes [[event|PaymentFailed]] when transactions fail. It handles the complexity of integrating with multiple payment providers and provides a unified interface for payment operations.
 
 <NodeGraph />
 

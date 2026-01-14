@@ -49,7 +49,9 @@ import Footer from '@catalog/components/footer.astro';
 
 ## Overview
 
-The Orders Service is responsible for managing customer orders within the system. It handles order creation, updating, status tracking, and interactions with other services such as Inventory, Payment, and Notification services to ensure smooth order processing and fulfillment.
+The Orders Service is responsible for managing customer orders within the system. It handles order creation, updating, status tracking, and interactions with other services such as [[service|InventoryService]], [[service|PaymentService]], and [[service|NotificationService]] to ensure smooth order processing and fulfillment.
+
+This service is part of the [[domain|Orders]] domain and works with the [[entity|Order]] entity.
 
 
 
@@ -65,9 +67,9 @@ The Orders Service is responsible for managing customer orders within the system
 | Feature | Description |
 |---------|-------------|
 | Order Management | Handles order creation, updates, and status tracking |
-| Inventory Integration | Validates and processes inventory for incoming orders |
+| Inventory Integration | Validates and processes inventory, receives [[event|InventoryAdjusted]] |
 | Payment Processing | Integrates with payment gateways to handle payment transactions |
-| Notification Integration | Sends notifications to users and other services |
+| Event Publishing | Publishes [[event|OrderAmended]], [[event|OrderCancelled]], and [[event|OrderConfirmed]] events |
 
 ## Architecture diagram 
 

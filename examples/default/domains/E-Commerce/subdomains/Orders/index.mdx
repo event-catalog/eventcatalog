@@ -33,7 +33,9 @@ import Footer from '@catalog/components/footer.astro';
 Please ensure all services are **updated** to the latest version for compatibility and performance improvements.
 :::
 
-The Orders domain handles all operations related to customer orders, from creation to fulfillment. This documentation provides an overview of the events and services involved in the Orders domain, helping developers and stakeholders understand the event-driven architecture
+The Orders domain handles all operations related to customer orders, from creation to fulfillment. This domain is part of the larger [[domain|E-Commerce]] domain and includes key services like [[service|OrdersService]], [[service|InventoryService]], and [[service|NotificationService]].
+
+Core entities include [[entity|Order]], [[entity|OrderItem]], and [[entity|Customer]]. This documentation provides an overview of the events and services involved, helping developers and stakeholders understand the event-driven architecture.
 
 <Tiles >
     <Tile icon="UserGroupIcon" href="/docs/teams/full-stack" title="Contact the team" description="Any questions? Feel free to contact the owners" />
@@ -74,12 +76,12 @@ sequenceDiagram
 ## Flows
 
 ### Cancel Subscription flow
-Documented flow when a user cancels their subscription.
+The [[flow|CancelSubscription]] documents the process when a user cancels their subscription. This flow involves the [[service|SubscriptionService]] and [[service|BillingService]].
 
 <Flow id="CancelSubscription" version="latest" includeKey={false} />
 
 ### Payment processing flow
-Documented flow when a user makes a payment within the order domain
+The [[flow|PaymentFlow]] documents the payment process within the order domain, utilizing the [[service|PaymentService]] and [[service|FraudDetectionService]].
 
 <Flow id="PaymentFlow" version="latest" includeKey={false} />
 

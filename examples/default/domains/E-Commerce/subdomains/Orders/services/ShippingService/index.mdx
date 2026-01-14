@@ -38,7 +38,9 @@ import Footer from '@catalog/components/footer.astro';
 
 ## Overview
 
-The Shipping Service is responsible for managing shipping within the system. It handles order creation, updating, status tracking, and interactions with other services such as Inventory, Payment, and Notification services to ensure smooth order processing and fulfillment.
+The Shipping Service is responsible for managing shipping within the system. It is part of the [[domain|Orders]] domain and handles order fulfillment and delivery tracking.
+
+The service receives [[event|PaymentProcessed]] from the [[service|PaymentService]] and publishes shipping lifecycle events including [[event|ShipmentCreated]], [[event|ShipmentDispatched]], [[event|ShipmentInTransit]], and [[event|ShipmentDelivered]]. It interacts with the [[service|OrdersService]], [[service|InventoryService]], and [[service|NotificationService]] to ensure smooth order processing and fulfillment.
 
 <Tiles >
     <Tile icon="BoltIcon" href={`/visualiser/services/${frontmatter.id}/${frontmatter.version}`} title={`Sends ${frontmatter.sends.length} messages`} description="This service sends messages to downstream consumers" />

@@ -42,7 +42,9 @@ import Footer from '@catalog/components/footer.astro'
 
 ## Overview
 
-The Billing Service is responsible for managing all billing-related operations for subscriptions. It calculates billing cycles, generates invoices, and coordinates with payment services to ensure timely payment collection.
+The Billing Service is responsible for managing all billing-related operations for subscriptions. It is part of the [[domain|Subscriptions]] domain and works with the [[entity|BillingProfile]] entity.
+
+The service receives [[event|PaymentProcessed]] and publishes [[event|InvoiceGenerated]] and [[event|SubscriptionPaymentDue]] events. It coordinates with the [[service|PaymentService]] to ensure timely payment collection and participates in the [[flow|SubscriptionRenewed]] and [[flow|CancelSubscription]] flows.
 
 ## Key Features
 
