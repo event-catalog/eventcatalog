@@ -43,7 +43,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     cell: (info) => {
       const summary = info.renderValue() as string;
       return (
-        <span className="text-sm text-[rgb(var(--ec-page-text-muted))] line-clamp-2" title={summary || ''}>
+        <span className="text-sm text-[rgb(var(--ec-icon-color))] line-clamp-2" title={summary || ''}>
           {summary}
         </span>
       );

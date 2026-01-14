@@ -64,7 +64,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
       const isDraft = info.row.original.data.draft;
       const displayText = `${summary || ''}${isDraft ? ' (Draft)' : ''}`;
       return (
-        <span className="text-sm text-[rgb(var(--ec-page-text-muted))] line-clamp-2" title={displayText}>
+        <span className="text-sm text-[rgb(var(--ec-icon-color))] line-clamp-2" title={displayText}>
           {displayText}
         </span>
       );

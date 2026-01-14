@@ -1,7 +1,21 @@
 ---
-import type { CollectionEntry } from 'astro:content';
-import type { CollectionTypes } from '@types';
-import DiscoverLayout, { type Props as DiscoverLayoutProps } from '@layouts/DiscoverLayout.astro';
+import { QueueListIcon, RectangleGroupIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import ServerIcon from '@heroicons/react/24/outline/ServerIcon';
+import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
+import { DatabaseIcon } from 'lucide-react';
+import { getCommands } from '@utils/collections/commands';
+import { getDomains, getDomainsForService } from '@utils/collections/domains';
+import { getFlows } from '@utils/collections/flows';
+import { getEvents } from '@utils/collections/events';
+import { getServices } from '@utils/collections/services';
+import { getQueries } from '@utils/collections/queries';
+import { getContainers } from '@utils/collections/containers';
+import { getUsers } from '@utils/collections/users';
+import { getTeams } from '@utils/collections/teams';
+import { buildUrl } from '@utils/url-builder';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { DiscoverTable, type DiscoverTableData, type CollectionType } from '@components/Tables/Discover';
+import config from '@config';
 import { Page } from './_index.data';
 
 export const prerender = Page.prerender;
@@ -9,12 +23,165 @@ export const getStaticPaths = Page.getStaticPaths;
 
 const { type, data } = await Page.getData(Astro);
 
-let title = `${type} (${data.length})`;
+// Fetch all collections for tabs
+const events = await getEvents();
+const queries = await getQueries();
+const commands = await getCommands();
+const services = await getServices();
+const domains = await getDomains({ getAllVersions: false });
+const flows = await getFlows();
+const containers = await getContainers();
+const users = await getUsers();
+const teams = await getTeams();
 
-if (type === 'containers') {
-  title = `Data (${data.length})`;
-}
+// Create lookup maps for users and teams
+const userMap = new Map(users.map((u) => [u.data.id, u]));
+const teamMap = new Map(teams.map((t) => [t.data.id, t]));
 
+// Type configuration for property options
+const typeConfig: Record<
+  string,
+  {
+    label: string;
+    propertyOptions: Array<{ id: string; label: string }>;
+  }
+> = {
+  events: {
+    label: 'Events',
+    propertyOptions: [
+      { id: 'hasProducers', label: 'Has Producers' },
+      { id: 'hasConsumers', label: 'Has Consumers' },
+      { id: 'hasOwners', label: 'Has Owners' },
+      { id: 'isDeprecated', label: 'Is Deprecated' },
+    ],
+  },
+  commands: {
+    label: 'Commands',
+    propertyOptions: [
+      { id: 'hasProducers', label: 'Has Producers' },
+      { id: 'hasConsumers', label: 'Has Consumers' },
+      { id: 'hasOwners', label: 'Has Owners' },
+      { id: 'isDeprecated', label: 'Is Deprecated' },
+    ],
+  },
+  queries: {
+    label: 'Queries',
+    propertyOptions: [
+      { id: 'hasProducers', label: 'Has Producers' },
+      { id: 'hasConsumers', label: 'Has Consumers' },
+      { id: 'hasOwners', label: 'Has Owners' },
+      { id: 'isDeprecated', label: 'Is Deprecated' },
+    ],
+  },
+  domains: {
+    label: 'Domains',
+    propertyOptions: [
+      { id: 'hasServices', label: 'Has Services' },
+      { id: 'hasOwners', label: 'Has Owners' },
+      { id: 'isSubdomain', label: 'Is Subdomain' },
+      { id: 'isDeprecated', label: 'Is Deprecated' },
+    ],
+  },
+  services: {
+    label: 'Services',
+    propertyOptions: [
+      { id: 'hasSpecifications', label: 'Has Specifications' },
+      { id: 'hasOwners', label: 'Has Owners' },
+      { id: 'hasRepository', label: 'Has Repository' },
+      { id: 'hasDataDependencies', label: 'Has Data Dependencies' },
+      { id: 'isDeprecated', label: 'Is Deprecated' },
+    ],
+  },
+  flows: {
+    label: 'Flows',
+    propertyOptions: [
+      { id: 'hasOwners', label: 'Has Owners' },
+      { id: 'isDeprecated', label: 'Is Deprecated' },
+    ],
+  },
+  containers: {
+    label: 'Data',
+    propertyOptions: [
+      { id: 'hasOwners', label: 'Has Owners' },
+      { id: 'hasWriters', label: 'Has Writers' },
+      { id: 'hasReaders', label: 'Has Readers' },
+      { id: 'isDeprecated', label: 'Is Deprecated' },
+    ],
+  },
+};
+
+const currentTypeConfig = typeConfig[type] || typeConfig.events;
+
+// @ts-ignore
+const tableConfiguration = config[type as keyof typeof config]?.tableConfiguration ?? { columns: {} };
+
+const tabs = [
+  {
+    label: `Domains (${domains.length})`,
+    href: buildUrl('/discover/domains'),
+    isActive: type === 'domains',
+    icon: RectangleGroupIcon,
+    activeColor: 'yellow',
+    enabled: domains.length > 0,
+    visible: domains.length > 0,
+  },
+  {
+    label: `Services (${services.length})`,
+    href: buildUrl('/discover/services'),
+    isActive: type === 'services',
+    icon: ServerIcon,
+    activeColor: 'pink',
+    enabled: services.length > 0,
+    visible: services.length > 0,
+  },
+  {
+    label: `Data (${containers.length})`,
+    href: buildUrl('/discover/containers'),
+    isActive: type === 'containers',
+    icon: DatabaseIcon,
+    activeColor: 'blue',
+    enabled: containers.length > 0,
+    visible: containers.length > 0,
+  },
+  {
+    label: `Events (${events.length})`,
+    href: buildUrl('/discover/events'),
+    isActive: type === 'events',
+    icon: BoltIcon,
+    activeColor: 'orange',
+    enabled: events.length > 0,
+    visible: events.length > 0,
+  },
+  {
+    label: `Queries (${queries.length})`,
+    href: buildUrl('/discover/queries'),
+    isActive: type === 'queries',
+    icon: MagnifyingGlassIcon,
+    activeColor: 'green',
+    enabled: queries.length > 0,
+    visible: queries.length > 0,
+  },
+  {
+    label: `Commands (${commands.length})`,
+    href: buildUrl('/discover/commands'),
+    isActive: type === 'commands',
+    icon: ChatBubbleLeftIcon,
+    activeColor: 'blue',
+    enabled: commands.length > 0,
+    visible: commands.length > 0,
+  },
+  {
+    label: `Flows (${flows.length})`,
+    href: buildUrl('/discover/flows'),
+    isActive: type === 'flows',
+    icon: QueueListIcon,
+    activeColor: 'teal',
+    enabled: flows.length > 0,
+    visible: flows.length > 0,
+  },
+];
+
+// Map data to match the expected structure for the table
 function mapToItem(i: any) {
   return {
     collection: i.collection,
@@ -25,39 +192,191 @@ function mapToItem(i: any) {
     },
   };
 }
+
+// Helper to map owner references with type detection
+function mapOwner(o: any) {
+  if (!o) return null;
+  const id = typeof o === 'string' ? o : o.data?.id || o.id || o;
+
+  // Look up in users first, then teams
+  const user = userMap.get(id);
+  if (user) {
+    return { id, name: user.data.name || id, type: 'user' as const };
+  }
+
+  const team = teamMap.get(id);
+  if (team) {
+    return { id, name: team.data.name || id, type: 'team' as const };
+  }
+
+  // Fallback if not found in either
+  const name = typeof o === 'string' ? o : o.data?.name || o.name || id;
+  return { id, name, type: 'user' as const };
+}
+
+// Helper to check if service has specifications
+function hasSpecifications(service: any): boolean {
+  const specs = service.data?.specifications;
+  if (!specs) return false;
+  if (Array.isArray(specs)) return specs.length > 0;
+  return !!(specs.openapiPath || specs.asyncapiPath || specs.graphqlPath);
+}
+
+// Build a Set of subdomain IDs (domains that are nested within other domains)
+const allSubdomainIds = new Set(
+  domains.flatMap((d: any) => (d.data?.domains || []).map((sd: any) => sd.data?.id || sd.id)).filter(Boolean)
+);
+
+// For services, enrich with domain information
+const enrichedData =
+  type === 'services'
+    ? await Promise.all(
+        data.map(async (service: any) => {
+          const serviceDomains = await getDomainsForService(service);
+          return {
+            ...service,
+            enrichedDomains: serviceDomains.map((d: any) => ({
+              id: d.data.id,
+              name: d.data.name,
+              version: d.data.version,
+            })),
+          };
+        })
+      )
+    : data;
+
+const tableData = enrichedData.map((d: any) => ({
+  collection: d.collection,
+  owners: (d.data?.owners || []).map(mapOwner).filter(Boolean),
+  hasOwners: (d.data?.owners || []).length > 0,
+  hasServices: type === 'domains' ? (d.data?.services || []).length > 0 : false,
+  isSubdomain: type === 'domains' ? allSubdomainIds.has(d.data.id) : false,
+  // Service-specific properties
+  domains: type === 'services' ? d.enrichedDomains : undefined,
+  hasSpecifications: type === 'services' ? hasSpecifications(d) : false,
+  hasRepository: type === 'services' ? !!d.data?.repository?.url : false,
+  hasDataDependencies: type === 'services' ? (d.data?.writesTo || []).length > 0 || (d.data?.readsFrom || []).length > 0 : false,
+  isDeprecated: d.data?.deprecated === true || (typeof d.data?.deprecated === 'object' && d.data?.deprecated !== null),
+  data: {
+    id: d.data.id,
+    name: d.data.name,
+    summary: d.data?.summary,
+    version: d.data.version,
+    latestVersion: d.data?.latestVersion,
+    draft: d.data?.draft,
+    badges: d.data?.badges,
+    producers: d.data?.producers?.map(mapToItem) ?? [],
+    consumers: d.data?.consumers?.map(mapToItem) ?? [],
+    receives: d.data?.receives?.map(mapToItem) ?? [],
+    sends: d.data?.sends?.map(mapToItem) ?? [],
+    services: d.data?.services?.map(mapToItem) ?? [],
+    servicesThatWriteToContainer: d.data?.servicesThatWriteToContainer?.map(mapToItem) ?? [],
+    servicesThatReadFromContainer: d.data?.servicesThatReadFromContainer?.map(mapToItem) ?? [],
+  },
+}));
+
+// Get unique owners from all items
+const uniqueOwners = Array.from(new Map(tableData.flatMap((d: any) => d.owners || []).map((o: any) => [o.id, o])).values()).sort(
+  (a: any, b: any) => a.name.localeCompare(b.name)
+);
+
+// Get unique producers (services) for message types
+// Check for duplicate names and add version if needed
+const servicesByName = new Map<string, typeof services>();
+services.forEach((s) => {
+  const name = s.data.name;
+  if (!servicesByName.has(name)) servicesByName.set(name, []);
+  servicesByName.get(name)!.push(s);
+});
+
+const uniqueProducers = services
+  .map((s) => {
+    const hasDuplicateName = (servicesByName.get(s.data.name)?.length ?? 0) > 1;
+    const isLatest = s.data.version === s.data.latestVersion;
+    const versionLabel = isLatest ? 'latest' : `v${s.data.version}`;
+    return {
+      id: s.data.id,
+      name: hasDuplicateName ? `${s.data.name} (${versionLabel})` : s.data.name,
+    };
+  })
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+// Show producers/consumers filter only for events, commands, queries
+const showProducersFilter = ['events', 'commands', 'queries'].includes(type);
+const showConsumersFilter = ['events', 'commands', 'queries'].includes(type);
+
+// Consumers are the same services list
+const uniqueConsumers = uniqueProducers;
+
+// Get unique domains for the services filter
+const uniqueDomains = domains.map((d) => ({
+  id: d.data.id,
+  name: d.data.name,
+  version: d.data.version,
+}));
+
+// Show domains filter only for services
+const showDomainsFilter = type === 'services';
+
+const title = `${currentTypeConfig.label} (${data.length})`;
 ---
 
-<DiscoverLayout
-  title={title}
-  subtitle={`Find, filter and search for any ${type} in your system.`}
-  data={data.map(
-    (d: CollectionEntry<CollectionTypes>) =>
-      ({
-        collection: d.collection,
-        data: {
-          id: d.data.id,
-          name: d.data.name,
-          summary: d.data?.summary,
-          version: d.data.version,
-          latestVersion: d.data?.latestVersion,
-          draft: d.data?.draft,
-          badges: d.data?.badges,
-          // @ts-ignore
-          consumers: d.data?.consumers?.map(mapToItem) ?? [],
-          // @ts-ignore
-          producers: d.data?.producers?.map(mapToItem) ?? [],
-          // @ts-ignore
-          receives: d.data?.receives?.map(mapToItem) ?? [],
-          // @ts-ignore
-          sends: d.data?.sends?.map(mapToItem) ?? [],
-          // @ts-ignore
-          services: d.data?.services?.map(mapToItem) ?? [],
-          // @ts-ignore
-          servicesThatWriteToContainer: d.data?.servicesThatWriteToContainer?.map(mapToItem) ?? [],
-          // @ts-ignore
-          servicesThatReadFromContainer: d.data?.servicesThatReadFromContainer?.map(mapToItem) ?? [],
-        },
-      }) as DiscoverLayoutProps<typeof type>['data'][0]
-  )}
-  type={type}
-/>
+<VerticalSideBarLayout title={`Explore | ${title}`} showNestedSideBar={false}>
+  <main class="ml-0 bg-[rgb(var(--ec-page-bg))] min-h-content">
+    <div id="discover-collection-tabs">
+      <div class="hidden sm:block">
+        <div class="border-b border-[rgb(var(--ec-page-border))]">
+          <nav class="flex space-x-8 -mb-0.5 pl-6" aria-label="Tabs">
+            {
+              tabs
+                .filter((tab) => tab.visible)
+                .map((tab) => (
+                  <a
+                    href={tab.href}
+                    class:list={[
+                      'group inline-flex items-center py-4 px-1 text-sm font-light text-[rgb(var(--ec-page-text))]',
+                      tab.isActive && 'border-b-[2px] border-[rgb(var(--ec-accent))] text-[rgb(var(--ec-accent))]',
+                      !tab.isActive && 'opacity-70 hover:opacity-100',
+                      !tab.enabled && 'disabled',
+                    ]}
+                    aria-current="page"
+                  >
+                    <tab.icon
+                      className={`w-6 h-6 -ml-0.5 mr-2 ${tab.isActive ? 'text-[rgb(var(--ec-accent))]' : 'text-[rgb(var(--ec-icon-color))]'}`}
+                    />
+                    <span>{tab.label}</span>
+                  </a>
+                ))
+            }
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <div class="py-4 px-6 md:pr-10">
+      <DiscoverTable
+        data={tableData as DiscoverTableData[]}
+        collectionType={type as CollectionType}
+        collectionLabel={currentTypeConfig.label}
+        domains={uniqueDomains}
+        owners={uniqueOwners as Array<{ id: string; name: string; type?: 'user' | 'team' }>}
+        producers={uniqueProducers}
+        consumers={uniqueConsumers}
+        propertyOptions={currentTypeConfig.propertyOptions}
+        tableConfiguration={tableConfiguration}
+        showDomainsFilter={showDomainsFilter}
+        showProducersFilter={showProducersFilter}
+        showConsumersFilter={showConsumersFilter}
+        client:only="react"
+      />
+    </div>
+  </main>
+</VerticalSideBarLayout>
+
+<style>
+  a.disabled {
+    pointer-events: none;
+    cursor: default;
+    opacity: 0.25;
+  }
+</style>
