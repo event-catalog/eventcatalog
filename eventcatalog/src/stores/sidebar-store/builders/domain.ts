@@ -11,6 +11,7 @@ import {
   buildDiagramNavItems,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
+import { pluralizeMessageType } from '@utils/collections/messages';
 
 export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[], context: ResourceGroupContext): NavNode => {
   const servicesInDomain = domain.data.services || [];
@@ -36,6 +37,11 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
   const hasAttachments = domain.data.attachments && domain.data.attachments.length > 0;
 
   const renderRepository = domain.data.repository && shouldRenderSideBarSection(domain, 'repository');
+
+  // Domain-level messages (sends/receives)
+  const sendsMessages = domain.data.sends || [];
+  const receivesMessages = domain.data.receives || [];
+  const renderMessages = shouldRenderSideBarSection(domain, 'messages');
 
   // Diagrams
   const domainDiagrams = domain.data.diagrams || [];
@@ -111,6 +117,24 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
         icon: 'Server',
         pages: servicesInDomain.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
       },
+      sendsMessages.length > 0 &&
+        renderMessages && {
+          type: 'group',
+          title: 'Domain Events',
+          icon: 'Mail',
+          pages: sendsMessages.map(
+            (message) => `${pluralizeMessageType(message as any)}:${(message as any).data.id}:${(message as any).data.version}`
+          ),
+        },
+      receivesMessages.length > 0 &&
+        renderMessages && {
+          type: 'group',
+          title: 'External Events',
+          icon: 'Mail',
+          pages: receivesMessages.map(
+            (receive) => `${pluralizeMessageType(receive as any)}:${(receive as any).data.id}:${(receive as any).data.version}`
+          ),
+        },
       renderOwners && buildOwnersSection(owners),
       renderRepository && buildRepositorySection(domain.data.repository as { url: string; language: string }),
       hasAttachments && buildAttachmentsSection(domain.data.attachments as any[]),

@@ -159,6 +159,8 @@ if (!isEventCatalogScaleEnabled()) {
 - Test files use `.test.ts` or `.test.tsx` extension
 - Example catalogs for testing: `src/__tests__/example-catalog/`
 
+Dont run tests in watch mode.
+
 ```bash
 # Run specific test file
 pnpm run test eventcatalog/src/utils/__tests__/my-util.test.ts

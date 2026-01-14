@@ -41,7 +41,13 @@ repository:
   url: 'https://github.com/event-catalog/pretend-e-commerce-domain'
 diagrams:
   - id: target-architecture
-  - id: order-flow
+sends:
+  - id: PaymentComplete
+  - id: UserSubscriptionStarted
+  - id: UserSubscriptionCancelled
+receives:
+  - id: PaymentInitiated
+  - id: FraudDetected
 ---
 
 import Footer from '@catalog/components/footer.astro';

@@ -838,6 +838,148 @@ describe('getNestedSideBarData', () => {
         ]);
       });
     });
+
+    describe('domain events section (sends)', () => {
+      it('is not listed if the domain does not send any messages', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const domainEventsSection = getChildNodeByTitle('Domain Events', domainNode.pages ?? []);
+        expect(domainEventsSection).toBeUndefined();
+      });
+
+      it('is not listed if the domain is configured not to render the section', async () => {
+        const { writeDomain, writeEvent } = utils(CATALOG_FOLDER);
+
+        await writeEvent({
+          id: 'OrderShipped',
+          name: 'Order Shipped',
+          version: '0.0.1',
+          markdown: 'Order Shipped',
+        });
+
+        // @ts-ignore - SDK update required to support sends/receives on domains
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          detailsPanel: {
+            messages: {
+              visible: false,
+            },
+          },
+          sends: [{ id: 'OrderShipped', version: '0.0.1' }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const domainEventsSection = getChildNodeByTitle('Domain Events', domainNode.pages ?? []);
+        expect(domainEventsSection).toBeUndefined();
+      });
+
+      it('lists the messages that the domain sends if the domain sends messages', async () => {
+        const { writeDomain, writeEvent } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'OrderShipped',
+          name: 'Order Shipped',
+          version: '0.0.1',
+          markdown: 'Order Shipped',
+        });
+
+        // @ts-ignore - SDK update required to support sends/receives on domains
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          sends: [{ id: 'OrderShipped', version: '0.0.1' }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const domainEventsSection = getChildNodeByTitle('Domain Events', domainNode.pages ?? []);
+        expect(domainEventsSection.pages).toEqual(['event:OrderShipped:0.0.1']);
+      });
+    });
+
+    describe('external events section (receives)', () => {
+      it('is not listed if the domain does not receive any messages', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const externalEventsSection = getChildNodeByTitle('External Events', domainNode.pages ?? []);
+        expect(externalEventsSection).toBeUndefined();
+      });
+
+      it('is not listed if the domain is configured not to render the section', async () => {
+        const { writeDomain, writeEvent } = utils(CATALOG_FOLDER);
+
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+        });
+
+        // @ts-ignore - SDK update required to support sends/receives on domains
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          detailsPanel: {
+            messages: {
+              visible: false,
+            },
+          },
+          receives: [{ id: 'PaymentProcessed', version: '0.0.1' }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const externalEventsSection = getChildNodeByTitle('External Events', domainNode.pages ?? []);
+        expect(externalEventsSection).toBeUndefined();
+      });
+
+      it('lists the messages that the domain receives if the domain receives messages', async () => {
+        const { writeDomain, writeEvent } = utils(CATALOG_FOLDER);
+        await writeEvent({
+          id: 'PaymentProcessed',
+          name: 'Payment Processed',
+          version: '0.0.1',
+          markdown: 'Payment Processed',
+        });
+
+        // @ts-ignore - SDK update required to support sends/receives on domains
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          receives: [{ id: 'PaymentProcessed', version: '0.0.1' }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const externalEventsSection = getChildNodeByTitle('External Events', domainNode.pages ?? []);
+        expect(externalEventsSection.pages).toEqual(['event:PaymentProcessed:0.0.1']);
+      });
+    });
   });
 
   describe('service navigation items', () => {
