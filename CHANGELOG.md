@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 3.6.2
+
+### Patch Changes
+
+- d4d09e8: Fix type errors in ResourceRef and SearchModal components, add type check script
+- 66d5769: Default to teams page in directory navigation when no users are defined
+
 ## 3.6.1
 
 ### Patch Changes
