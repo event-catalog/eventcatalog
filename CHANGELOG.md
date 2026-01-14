@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 3.6.1
+
+### Patch Changes
+
+- 971adf4: chore(core): bumped hono version up
+- cbf9071: fix sidebar favorites removal for deleted nodes and add theme support to plans and custom docs pages
+- e6b54fb: Add inline resource references with wiki-style syntax and hover tooltips. Use `[[type|ResourceName]]` syntax to create interactive links that display resource details on hover.
+
 ## 3.6.0
 
 ### Minor Changes
