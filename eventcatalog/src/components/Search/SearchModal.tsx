@@ -25,6 +25,7 @@ import {
 import { StarIcon as StarIconSolid, CircleStackIcon } from '@heroicons/react/24/solid';
 import { useStore } from '@nanostores/react';
 import { sidebarStore } from '../../stores/sidebar-store';
+import type { NavNode } from '../../stores/sidebar-store/state';
 import { favoritesStore, toggleFavorite as toggleFavoriteAction } from '../../stores/favorites-store';
 import { buildUrl } from '@utils/url-builder';
 

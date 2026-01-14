@@ -41,7 +41,8 @@
     "release": "changeset publish",
     "format": "prettier --config .prettierrc --write \"**/*.{js,jsx,ts,tsx,json,astro}\"",
     "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json,astro}\"",
-    "lint:catalog": "pnpm dlx @eventcatalog/linter examples/default"
+    "lint:catalog": "pnpm dlx @eventcatalog/linter examples/default",
+    "check": "node scripts/check-types.js"
   },
   "dependencies": {
     "@ai-sdk/react": "^3.0.17",

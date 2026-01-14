@@ -96,7 +96,7 @@ try {
     throw new Error(`Unknown resource type: ${type}`);
   }
 
-  const resourcesCollection = await getCollection(collection as any);
+  const resourcesCollection = (await getCollection(collection as any)) as { data: { id: string; version: string } }[];
   const resources = getItemsFromCollectionByIdAndSemverOrLatest(resourcesCollection, resourceId, version);
 
   if (resources.length === 0) {
@@ -153,7 +153,7 @@ const resolveMessage = async (msg: any): Promise<{ version: string | null; colle
   const collections = ['events', 'commands', 'queries'];
   for (const col of collections) {
     try {
-      const items = await getCollection(col as any);
+      const items = (await getCollection(col as any)) as { data: { id: string; version: string } }[];
       const found = getItemsFromCollectionByIdAndSemverOrLatest(items, msg.id);
       if (found.length > 0 && found[0].data.version && found[0].data.version !== 'latest') {
         return { version: found[0].data.version, collection: col };
