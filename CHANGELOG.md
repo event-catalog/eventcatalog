@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 3.6.0
+
+### Minor Changes
+
+- ac114f0: Add new Discover page with enhanced table filtering and tabbed navigation for browsing catalog resources
+
+### Patch Changes
+
+- 6d7dff5: fix(sidebar): reduce build size with node references and static json api
+
 ## 3.5.2
 
 ### Patch Changes
