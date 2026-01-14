@@ -60,3 +60,8 @@ jobs:
       - name: Build EventCatalog
         working-directory: examples/default/
         run: npx eventcatalog build
+      - name: Check build size
+        if: matrix.os == 'ubuntu-latest'
+        run: node scripts/check-build-size.js
+        env:
+          SIZE_THRESHOLD: 5
