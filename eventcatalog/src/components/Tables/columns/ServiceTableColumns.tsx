@@ -1,10 +1,12 @@
-import { ServerIcon } from '@heroicons/react/24/solid';
+import { ServerIcon, DocumentTextIcon, MapIcon } from '@heroicons/react/24/solid';
+import { ArrowDownIcon, ArrowUpIcon } from '@heroicons/react/24/outline';
 import { createColumnHelper } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { filterByName, filterCollectionByName } from '../filters/custom-filters';
 import { buildUrl } from '@utils/url-builder';
 import { getColorAndIconForCollection } from '@utils/collections/icons';
 import { createBadgesColumn } from './SharedColumns';
+import FavoriteButton from '@components/FavoriteButton';
 import type { TData } from '../Table';
 import type { TableConfiguration } from '@types';
 const columnHelper = createColumnHelper<TData<'services'>>();
@@ -14,21 +16,18 @@ export const columns = (tableConfiguration: TableConfiguration) => [
     id: 'name',
     header: () => <span>{tableConfiguration.columns?.name?.label || 'Service'}</span>,
     cell: (info) => {
-      const messageRaw = info.row.original;
+      const service = info.row.original;
+      const isLatestVersion = service.data.version === service.data.latestVersion;
       return (
         <a
-          href={buildUrl(`/docs/${messageRaw.collection}/${messageRaw.data.id}/${messageRaw.data.version}`)}
-          className="group inline-flex items-center"
+          href={buildUrl(`/docs/${service.collection}/${service.data.id}/${service.data.version}`)}
+          className="group inline-flex items-center gap-2 hover:text-[rgb(var(--ec-accent))] transition-colors"
         >
-          <span className="inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-pink-400 dark:hover:border-pink-500 hover:bg-pink-50 dark:hover:bg-pink-500/10 transition-colors">
-            <span className="flex items-center justify-center w-6 h-6 bg-pink-500 rounded-l-md">
-              <ServerIcon className="h-3 w-3 text-white" />
-            </span>
-            <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">
-              {messageRaw.data.name}
-              <span className="text-[rgb(var(--ec-icon-color))] ml-1">v{messageRaw.data.version}</span>
-            </span>
+          <ServerIcon className="h-4 w-4 text-pink-500 flex-shrink-0" />
+          <span className="text-sm font-medium text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))]">
+            {service.data.name}
           </span>
+          {!isLatestVersion && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{service.data.version}</span>}
         </a>
       );
     },
@@ -45,7 +44,7 @@ export const columns = (tableConfiguration: TableConfiguration) => [
       const isDraft = info.row.original.data.draft;
       const displayText = `${summary || ''}${isDraft ? ' (Draft)' : ''}`;
       return (
-        <span className="text-sm text-[rgb(var(--ec-page-text-muted))] line-clamp-2" title={displayText}>
+        <span className="text-sm text-[rgb(var(--ec-icon-color))] line-clamp-2" title={displayText}>
           {displayText}
         </span>
       );
@@ -58,7 +57,12 @@ export const columns = (tableConfiguration: TableConfiguration) => [
   }),
   columnHelper.accessor('data.receives', {
     id: 'receives',
-    header: () => <span>Receives</span>,
+    header: () => (
+      <span className="flex items-center gap-1">
+        <ArrowDownIcon className="w-3.5 h-3.5" />
+        Receives
+      </span>
+    ),
     meta: {
       filterVariant: 'collection',
       collectionFilterKey: 'receives',
@@ -78,41 +82,29 @@ export const columns = (tableConfiguration: TableConfiguration) => [
         [receives]
       );
 
-      if (receives?.length === 0 || !receives)
-        return (
-          <span className="inline-flex items-center px-2 py-1 text-xs text-[rgb(var(--ec-icon-color))] bg-[rgb(var(--ec-content-hover))] rounded-md border border-[rgb(var(--ec-page-border))]">
-            No messages
-          </span>
-        );
+      if (receives?.length === 0 || !receives) return <span className="text-xs text-[rgb(var(--ec-icon-color))]">-</span>;
 
-      const visibleItems = isExpanded ? receiversWithIcons : receiversWithIcons.slice(0, 4);
-      const hiddenCount = receiversWithIcons.length - 4;
+      const visibleItems = isExpanded ? receiversWithIcons : receiversWithIcons.slice(0, 3);
+      const hiddenCount = receiversWithIcons.length - 3;
 
       return (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1">
           {visibleItems.map((consumer, index: number) => (
             <a
               key={`${consumer.data.id}-${index}`}
               href={buildUrl(`/docs/${consumer.collection}/${consumer.data.id}/${consumer.data.version}`)}
-              className="group inline-flex items-center"
+              className="group inline-flex items-center gap-1.5 text-xs hover:text-[rgb(var(--ec-accent))] transition-colors"
             >
-              <span
-                className={`inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-${consumer.color}-400 dark:hover:border-${consumer.color}-500 hover:bg-${consumer.color}-50 dark:hover:bg-${consumer.color}-500/10 transition-colors`}
-              >
-                <span className={`flex items-center justify-center w-6 h-6 bg-${consumer.color}-500 rounded-l-md`}>
-                  <consumer.Icon className="h-3 w-3 text-white" />
-                </span>
-                <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">
-                  {consumer.data.name}
-                  <span className="text-[rgb(var(--ec-icon-color))] ml-1">v{consumer.data.version}</span>
-                </span>
+              <consumer.Icon className={`h-3.5 w-3.5 text-${consumer.color}-500 flex-shrink-0`} />
+              <span className="truncate max-w-[120px]" title={consumer.data.name}>
+                {consumer.data.name}
               </span>
             </a>
           ))}
           {hiddenCount > 0 && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left"
+              className="text-xs text-[rgb(var(--ec-accent))] hover:underline text-left"
             >
               {isExpanded ? 'Show less' : `+${hiddenCount} more`}
             </button>
@@ -124,7 +116,12 @@ export const columns = (tableConfiguration: TableConfiguration) => [
   }),
   columnHelper.accessor('data.sends', {
     id: 'sends',
-    header: () => <span>Sends</span>,
+    header: () => (
+      <span className="flex items-center gap-1">
+        <ArrowUpIcon className="w-3.5 h-3.5" />
+        Sends
+      </span>
+    ),
     meta: {
       filterVariant: 'collection',
       collectionFilterKey: 'sends',
@@ -144,41 +141,29 @@ export const columns = (tableConfiguration: TableConfiguration) => [
         [sends]
       );
 
-      if (sends?.length === 0 || !sends)
-        return (
-          <span className="inline-flex items-center px-2 py-1 text-xs text-[rgb(var(--ec-icon-color))] bg-[rgb(var(--ec-content-hover))] rounded-md border border-[rgb(var(--ec-page-border))]">
-            No messages
-          </span>
-        );
+      if (sends?.length === 0 || !sends) return <span className="text-xs text-[rgb(var(--ec-icon-color))]">-</span>;
 
-      const visibleItems = isExpanded ? sendersWithIcons : sendersWithIcons.slice(0, 4);
-      const hiddenCount = sendersWithIcons.length - 4;
+      const visibleItems = isExpanded ? sendersWithIcons : sendersWithIcons.slice(0, 3);
+      const hiddenCount = sendersWithIcons.length - 3;
 
       return (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1">
           {visibleItems.map((sender, index) => (
             <a
               key={`${sender.data.id}-${index}`}
               href={buildUrl(`/docs/${sender.collection}/${sender.data.id}/${sender.data.version}`)}
-              className="group inline-flex items-center"
+              className="group inline-flex items-center gap-1.5 text-xs hover:text-[rgb(var(--ec-accent))] transition-colors"
             >
-              <span
-                className={`inline-flex items-center rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] hover:border-${sender.color}-400 dark:hover:border-${sender.color}-500 hover:bg-${sender.color}-50 dark:hover:bg-${sender.color}-500/10 transition-colors`}
-              >
-                <span className={`flex items-center justify-center w-6 h-6 bg-${sender.color}-500 rounded-l-md`}>
-                  <sender.Icon className="h-3 w-3 text-white" />
-                </span>
-                <span className="px-2 py-1 text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-page-text))]">
-                  {sender.data.name}
-                  <span className="text-[rgb(var(--ec-icon-color))] ml-1">v{sender.data.version}</span>
-                </span>
+              <sender.Icon className={`h-3.5 w-3.5 text-${sender.color}-500 flex-shrink-0`} />
+              <span className="truncate max-w-[120px]" title={sender.data.name}>
+                {sender.data.name}
               </span>
             </a>
           ))}
           {hiddenCount > 0 && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="text-xs text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] text-left"
+              className="text-xs text-[rgb(var(--ec-accent))] hover:underline text-left"
             >
               {isExpanded ? 'Show less' : `+${hiddenCount} more`}
             </button>
@@ -191,23 +176,28 @@ export const columns = (tableConfiguration: TableConfiguration) => [
   createBadgesColumn(columnHelper, tableConfiguration),
   columnHelper.accessor('data.name', {
     id: 'actions',
-    header: () => <span>{tableConfiguration.columns?.actions?.label || 'Actions'}</span>,
+    header: () => <span></span>,
     cell: (info) => {
       const item = info.row.original;
+      const href = buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`);
+      const nodeKey = `${item.collection}-${item.data.id}-${item.data.version}`;
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-0.5">
           <a
-            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))] rounded-md hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] transition-colors whitespace-nowrap"
-            href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
+            className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent)/0.1)] rounded-md transition-colors"
+            href={href}
+            title="View documentation"
           >
-            Docs
+            <DocumentTextIcon className="w-4 h-4" />
           </a>
           <a
-            className="inline-flex items-center px-2.5 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))] rounded-md hover:bg-[rgb(var(--ec-content-hover))] hover:text-[rgb(var(--ec-page-text))] transition-colors whitespace-nowrap"
+            className="p-1.5 text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-accent))] hover:bg-[rgb(var(--ec-accent)/0.1)] rounded-md transition-colors"
             href={buildUrl(`/visualiser/${item.collection}/${item.data.id}/${item.data.version}`)}
+            title="View in visualiser"
           >
-            Visualiser
+            <MapIcon className="w-4 h-4" />
           </a>
+          <FavoriteButton nodeKey={nodeKey} title={item.data.name} badge="Service" href={href} size="sm" />
         </div>
       );
     },

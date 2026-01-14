@@ -10,13 +10,15 @@ export class Page extends HybridPage {
 
   static async getStaticPaths(): Promise<Array<{ params: any; props: any }>> {
     const { getFlows } = await import('@utils/collections/flows');
+    const { getServices } = await import('@utils/collections/services');
 
     const loaders = {
       ...pageDataLoader,
       flows: getFlows,
+      services: getServices,
     };
 
-    const itemTypes = ['events', 'commands', 'queries', 'services', 'domains', 'flows', 'containers'] as const;
+    const itemTypes = ['events', 'commands', 'queries', 'domains', 'services', 'flows', 'containers'] as const;
     const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
 
     return allItems.flatMap((items, index) => ({
@@ -38,10 +40,12 @@ export class Page extends HybridPage {
     }
 
     const { getFlows } = await import('@utils/collections/flows');
+    const { getServices } = await import('@utils/collections/services');
 
     const loaders = {
       ...pageDataLoader,
       flows: getFlows,
+      services: getServices,
     };
 
     // @ts-ignore

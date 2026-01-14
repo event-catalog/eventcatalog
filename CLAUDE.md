@@ -79,6 +79,28 @@ Resources are stored in content collections. Key collections:
 - `services`, `domains`, `flows`, `channels`, `entities`
 - `teams`, `users` (non-versioned)
 
+The whole astro collection schemas are in the `eventcatalog/src/content.config.ts` file.
+
+
+### Getting collection information
+
+We prefer to use the utility classes we have to get collection for example:
+
+```
+import { getEvents } from '@utils/collections/events';
+import { getCommands } from '@utils/collections/commands';
+import { getQueries } from '@utils/collections/queries';
+import { getServices } from '@utils/collections/services';
+import { getDomains } from '@utils/collections/domains';
+import { getFlows } from '@utils/collections/flows';
+import { getChannels } from '@utils/collections/channels';
+import { getEntities } from '@utils/collections/entities';
+import { getTeams } from '@utils/collections/teams';
+import { getUsers } from '@utils/collections/users';
+```
+
+Where you cant do that though you may use the `getCollection` and `getEntry` functions from the `astro:content` package.
+
 ```typescript
 // Getting collections
 import { getCollection, getEntry } from 'astro:content';
@@ -90,6 +112,8 @@ const event = await getEntry('events', 'OrderCreated-1.0.0');
 ### Versioning
 
 Most resources are versioned. Entry IDs follow the pattern: `{id}-{version}` (e.g., `OrderCreated-1.0.0`).
+
+When you need to get specific version or latest version you need to use the `getItemsFromCollectionByIdAndSemverOrLatest` utility function.
 
 ```typescript
 // Use existing utilities for version handling

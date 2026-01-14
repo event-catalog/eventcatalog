@@ -86,7 +86,7 @@ export const EnvironmentDropdown: React.FC<EnvironmentDropdownProps> = ({ enviro
         </svg>
       </button>
       <div
-        className={`${isOpen ? '' : 'hidden'} absolute right-0 mt-2 w-64 bg-[rgb(var(--ec-dropdown-bg))] rounded-md shadow-lg py-1 z-50 border border-[rgb(var(--ec-dropdown-border))] overflow-hidden z-20`}
+        className={`${isOpen ? '' : 'hidden'} absolute right-0 mt-2 w-64 bg-[rgb(var(--ec-dropdown-bg))] rounded-md shadow-lg py-1 border border-[rgb(var(--ec-dropdown-border))] overflow-hidden z-[100]`}
       >
         {environments.map((env) => {
           const isCurrentEnv = currentEnvironment?.name === env.name;
