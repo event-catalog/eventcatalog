@@ -52,9 +52,16 @@ import { getQueries } from '@utils/collections/queries';
 import { hasLandingPageForDocs } from '@utils/pages';
 
 import { isEventCatalogUpgradeEnabled, isEmbedEnabled, isCustomStylesEnabled } from '@utils/feature';
+import { getUsers } from '@utils/collections/users';
+import { getTeams } from '@utils/collections/teams';
 
 const catalogHasDefaultLandingPageForDocs = await hasLandingPageForDocs();
 const customDocs = await getCollection('customPages');
+
+// Get users and teams for directory navigation
+const users = await getUsers();
+const teams = await getTeams();
+const directoryDefaultUrl = users.length > 0 ? '/directory/users' : teams.length > 0 ? '/directory/teams' : '/directory/users';
 
 let events: any[] = [];
 let commands: any[] = [];
@@ -145,7 +152,7 @@ const navigationItems = [
     id: '/directory',
     label: 'Users & Teams',
     icon: Users,
-    href: buildUrl('/directory/users'),
+    href: buildUrl(directoryDefaultUrl),
     current: currentPath.includes('/directory'),
   },
 ].filter((item) => {
