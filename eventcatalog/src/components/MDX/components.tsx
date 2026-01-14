@@ -20,6 +20,7 @@ import EntityPropertiesTable from '@components/MDX/EntityPropertiesTable/EntityP
 import Tabs from '@components/MDX/Tabs/Tabs.astro';
 import TabItem from '@components/MDX/Tabs/TabItem.astro';
 import ResourceLink from '@components/MDX/ResourceLink/ResourceLink.astro';
+import ResourceRef from '@components/MDX/ResourceRef/ResourceRef.astro';
 import Link from '@components/MDX/Link/Link.astro';
 import Miro from '@components/MDX/Miro/Miro.astro';
 import Lucid from '@components/MDX/Lucid/Lucid.astro';
@@ -54,6 +55,7 @@ const components = (props: any) => {
     OpenAPI,
     ResourceGroupTable: (mdxProp: any) => jsx(ResourceGroupTable, { ...props, ...mdxProp }),
     ResourceLink: (mdxProp: any) => jsx(ResourceLink, { ...props, ...mdxProp }),
+    ResourceRef: (mdxProp: any) => jsx(ResourceRef, { ...props, ...mdxProp }),
     Schema: (mdxProp: any) => jsx(Schema, { ...props, ...mdxProp }),
     SchemaViewer: (mdxProp: any) => SchemaViewerPortal({ ...props.data, ...mdxProp }),
     Step,

@@ -23,7 +23,9 @@ flows:
 
 ## Overview
 
-The Subscriptions Domain is responsible for managing all aspects of subscription-based services within our e-commerce platform. This includes subscription lifecycle management, recurring billing, plan management, and integration with payment systems.
+The Subscriptions Domain is responsible for managing all aspects of subscription-based services within our e-commerce platform. It is part of the [[domain|E-Commerce]] domain and manages entities like [[entity|BillingProfile]] and [[entity|SubscriptionPeriod]].
+
+This domain orchestrates the [[flow|CancelSubscription]] and [[flow|SubscriptionRenewed]] flows for subscription lifecycle management.
 
 ## Core Capabilities
 
@@ -36,15 +38,14 @@ The Subscriptions Domain is responsible for managing all aspects of subscription
 ## Services
 
 ### BillingService
-Handles billing cycle calculations, invoice generation, and payment scheduling. Coordinates with the Payment domain for processing recurring payments.
-
+The [[service|BillingService]] handles billing cycle calculations, invoice generation, and payment scheduling. It coordinates with the [[domain|Payment]] domain and [[service|PaymentService]] for processing recurring payments.
 
 ## Cross-Domain Integration
 
 The Subscriptions domain integrates closely with:
 
-- **Payment Domain**: For processing recurring payments and handling payment failures
-- **Orders Domain**: For managing subscription-based product orders
+- **[[domain|Payment]]**: For processing recurring payments via [[service|PaymentService]]
+- **[[domain|Orders]]**: For managing subscription-based product orders
 - **Customer Domain**: For customer account and profile management
 
 ## Domain Events

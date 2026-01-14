@@ -77,17 +77,17 @@ The E-Commerce domain is the core business domain of FlowMart, our modern digita
 
 ## Domain Overview
 
-The E-Commerce domain encapsulates all the core business logic for the FlowMart e-commerce platform. It is built on event-driven microservices architecture.
+The E-Commerce domain encapsulates all the core business logic for the FlowMart e-commerce platform. It is built on event-driven microservices architecture with key services like [[service|OrdersService]], [[service|InventoryService]], and [[service|PaymentService]].
 
 <NodeGraph mode="full" search="false" legend="false" />
 
 FlowMart's E-Commerce domain is built on event-driven microservices architecture, enabling:
-- Real-time inventory management across multiple warehouses
-- Seamless payment processing with multiple providers
-- Smart order routing and fulfillment
-- Personalized customer notifications
-- Subscription-based shopping experiences
-- Advanced fraud detection and prevention
+- Real-time inventory management via [[service|InventoryService]] across multiple warehouses
+- Seamless payment processing with [[service|PaymentService]] and [[service|PaymentGatewayService]]
+- Smart order routing and fulfillment through [[service|OrdersService]]
+- Personalized customer notifications via [[service|NotificationService]]
+- Subscription-based shopping experiences managed by [[service|SubscriptionService]]
+- Advanced fraud detection via [[service|FraudDetectionService]]
 
 ## Core Domains for E-Commerce
 
@@ -109,9 +109,9 @@ The E-Commerce domain is built on the following sub domains:
 
 ### FlowMart E-Commerce Database Schema
 
-This diagram represents the core relational data model behind FlowMart, a fictional event-driven e-commerce platform. It captures the main business entities and their relationships, including customers, orders, products, inventory events, and payments.
+This diagram represents the core relational data model behind FlowMart. It captures the main business entities and their relationships, including the [[entity|Customer]], [[entity|Order]], [[entity|Payment]], and [[entity|Transaction]] entities.
 
-The schema is designed to support a distributed microservices architecture with event-sourced patterns, enabling services like OrderService, InventoryService, and PaymentService to operate independently while maintaining data consistency through asynchronous events.
+The schema is designed to support a distributed microservices architecture with event-sourced patterns, enabling services like [[service|OrdersService]], [[service|InventoryService]], and [[service|PaymentService]] to operate independently while maintaining data consistency through asynchronous events.
 
 ```plantuml
 @startuml
@@ -218,13 +218,15 @@ sequenceDiagram
 
 ## Key Business Flows
 
+For a visual overview of our target state, see the [[diagram|target-architecture]] diagram.
+
 ### Subscription Management
-Our subscription service powers FlowMart's popular "Subscribe & Save" feature:
+Our [[service|SubscriptionService]] powers FlowMart's popular "Subscribe & Save" feature. The [[flow|CancelSubscription]] handles subscription cancellations:
 
 <Flow id="CancelSubscription" version="latest" includeKey={false} mode="full" walkthrough={false} search={false} />
 
 ### Payment Processing
-Secure, multi-provider payment processing with fraud detection:
+Secure, multi-provider payment processing with fraud detection via [[service|FraudDetectionService]]. The [[flow|PaymentFlow]] orchestrates the complete payment journey:
 
 <Flow id="PaymentFlow" version="latest" includeKey={false} />
 

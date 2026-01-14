@@ -32,7 +32,9 @@ repository:
   url: 'https://github.com/event-catalog/pretend-shipping-service'
 ---
 
-The Payment Service is a crucial component of our system that handles all payment-related operations. It processes payments, manages transactions, and communicates with other services through events. Using an event-driven architecture, it ensures that all actions are asynchronous, decoupled, and scalable.
+The Payment Service is a crucial component of our system that handles all payment-related operations. It processes payments, manages the [[entity|Transaction]] and [[entity|Payment]] entities, and communicates with other services through events.
+
+This service is part of the [[domain|Payment]] domain. It receives the [[event|PaymentInitiated]] event and publishes [[event|PaymentProcessed]] when complete. Using an event-driven architecture, it ensures that all actions are asynchronous, decoupled, and scalable.
 
 ### Core features
 

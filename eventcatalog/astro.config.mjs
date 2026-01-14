@@ -9,6 +9,7 @@ import { plantuml } from "./src/remark-plugins/plantuml"
 import { join } from 'node:path';
 import remarkDirective from 'remark-directive';
 import { remarkDirectives } from "./src/remark-plugins/directives"
+import { remarkResourceRef } from "./src/remark-plugins/resource-ref"
 import node from '@astrojs/node';
 import remarkComment from 'remark-comment'
 import rehypeSlug from 'rehype-slug';
@@ -70,7 +71,7 @@ export default defineConfig({
     mdx({
       // https://docs.astro.build/en/guides/integrations-guide/mdx/#optimize
       optimize: config.mdxOptimize || false,
-      remarkPlugins: [remarkDirective, remarkDirectives, remarkComment, mermaid, plantuml],
+      remarkPlugins: [remarkDirective, remarkDirectives, remarkComment, mermaid, plantuml, remarkResourceRef],
       rehypePlugins: [
         [rehypeExpressiveCode, {
             ...expressiveCodeConfig,

@@ -194,6 +194,9 @@ importers:
       marked:
         specifier: ^15.0.6
         version: 15.0.12
+      mdast-util-find-and-replace:
+        specifier: ^3.0.2
+        version: 3.0.2
       mermaid:
         specifier: ^11.12.1
         version: 11.12.1
@@ -8856,7 +8859,7 @@ snapshots:
       postcss: 8.5.6
       postcss-nested: 6.2.0(postcss@8.5.6)
       unist-util-visit: 5.0.0
-      unist-util-visit-parents: 6.0.1
+      unist-util-visit-parents: 6.0.2
 
   '@expressive-code/plugin-frames@0.41.3':
     dependencies:
@@ -13699,7 +13702,7 @@ snapshots:
       mdast-util-to-markdown: 2.1.2
       parse-entities: 4.0.2
       stringify-entities: 4.0.4
-      unist-util-visit-parents: 6.0.1
+      unist-util-visit-parents: 6.0.2
     transitivePeerDependencies:
       - supports-color
 

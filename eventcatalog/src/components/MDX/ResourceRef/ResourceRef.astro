@@ -1,0 +1,477 @@
+---
+/**
+ * Inline resource reference component with hover tooltip.
+ *
+ * Usage via remark plugin:
+ * [[service|OrderService]] -> Links to OrderService with tooltip
+ * [[Order]] -> Shorthand, defaults to entity type
+ */
+import { buildUrl } from '@utils/url-builder';
+import {
+  getItemsFromCollectionByIdAndSemverOrLatest,
+  resourceToCollectionMap,
+  getDeprecatedDetails,
+} from '@utils/collections/util';
+import { getCollection } from 'astro:content';
+import { getServiceSpecifications, getSpecUrl, getSpecLabel } from '@components/Grids/specification-utils';
+
+interface Props {
+  type:
+    | 'entity'
+    | 'service'
+    | 'event'
+    | 'command'
+    | 'query'
+    | 'domain'
+    | 'flow'
+    | 'channel'
+    | 'diagram'
+    | 'container'
+    | 'user'
+    | 'team';
+  version?: string;
+}
+
+const { type = 'entity', version } = Astro.props;
+
+// Get resource ID from slot content
+const slotContent = await Astro.slots.render('default');
+const resourceId = slotContent.trim();
+
+// Map type to collection name
+const collection = resourceToCollectionMap[type as keyof typeof resourceToCollectionMap];
+
+// Type-specific styling using CSS variables from theme.css
+// Maps to --ec-badge-{type}-text variables for consistency
+const typeStyles: Record<string, { borderColor: string; label: string }> = {
+  entity: { borderColor: 'var(--ec-badge-query-text)', label: 'Entity' }, // purple
+  service: { borderColor: 'var(--ec-badge-service-text)', label: 'Service' }, // pink
+  event: { borderColor: 'var(--ec-badge-event-text)', label: 'Event' }, // amber/orange
+  command: { borderColor: 'var(--ec-badge-command-text)', label: 'Command' }, // pink
+  query: { borderColor: 'var(--ec-badge-query-text)', label: 'Query' }, // purple
+  domain: { borderColor: 'var(--ec-badge-domain-text)', label: 'Domain' }, // yellow
+  flow: { borderColor: 'var(--ec-badge-design-text)', label: 'Flow' }, // teal
+  channel: { borderColor: 'var(--ec-badge-channel-text)', label: 'Channel' }, // indigo
+  diagram: { borderColor: 'var(--ec-badge-default-text)', label: 'Diagram' }, // gray
+  container: { borderColor: 'var(--ec-badge-default-text)', label: 'Container' }, // gray
+  user: { borderColor: 'var(--ec-badge-default-text)', label: 'User' }, // gray
+  team: { borderColor: 'var(--ec-badge-default-text)', label: 'Team' }, // gray
+};
+
+// SVG icons for each type (from heroicons outline)
+const typeIcons: Record<string, string> = {
+  entity:
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />', // Box/cube
+  service:
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />', // Server
+  event:
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />', // Bolt
+  command:
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />', // ChatBubble
+  query:
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />', // MagnifyingGlass
+  domain:
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-8.25zM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-2.25z" />', // RectangleGroup
+  flow: '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />', // QueueList
+  channel:
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />', // ArrowsRightLeft
+  diagram:
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />', // Map
+  container:
+    '<path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />', // Database
+  user: '<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />', // User
+  team: '<path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />', // UserGroup
+};
+
+const style = typeStyles[type] || typeStyles.entity;
+const iconPath = typeIcons[type] || typeIcons.entity;
+
+let resource: any = null;
+let href = '#';
+let hasError = false;
+let errorMessage = '';
+
+try {
+  if (!collection) {
+    throw new Error(`Unknown resource type: ${type}`);
+  }
+
+  const resourcesCollection = await getCollection(collection as any);
+  const resources = getItemsFromCollectionByIdAndSemverOrLatest(resourcesCollection, resourceId, version);
+
+  if (resources.length === 0) {
+    throw new Error(`Resource not found: ${resourceId}`);
+  }
+
+  resource = resources[0];
+  // Diagrams use /diagrams/ path, other resources use /docs/{collection}/
+  href =
+    type === 'diagram'
+      ? buildUrl(`/diagrams/${resourceId}/${resource.data.version}`)
+      : buildUrl(`/docs/${collection}/${resourceId}/${resource.data.version}`);
+} catch (error) {
+  hasError = true;
+  errorMessage = error instanceof Error ? error.message : 'Unknown error';
+}
+
+// Truncate summary if too long
+const maxSummaryLength = 120;
+const summary = resource?.data?.summary || '';
+const truncatedSummary = summary.length > maxSummaryLength ? summary.slice(0, maxSummaryLength) + '...' : summary;
+
+// Only these types have visualizers
+const hasVisualizer = ['domain', 'service', 'event', 'query', 'command', 'container'].includes(type);
+
+// Check deprecation status
+const deprecation = resource ? getDeprecatedDetails(resource) : null;
+const isDeprecated = deprecation?.isMarkedAsDeprecated || false;
+
+// Get owners (first 2)
+const owners = resource?.data?.owners?.slice(0, 2) || [];
+
+// Check if message type has a schema
+const isMessageType = ['event', 'command', 'query'].includes(type);
+const hasSchema = isMessageType && resource?.data?.schemaPath;
+
+// Check if resource has a repository URL
+const repositoryUrl = resource?.data?.repository?.url;
+
+// For services: get messages (sends/receives) with resolved versions
+const maxMessages = 3;
+const sends = resource?.data?.sends || [];
+const receives = resource?.data?.receives || [];
+const isService = type === 'service';
+
+// Helper to resolve message version and collection - use specified version or fetch from collection
+const resolveMessage = async (msg: any): Promise<{ version: string | null; collection: string | null }> => {
+  // If version is specified and not "latest", use it (assume event as default collection)
+  if (msg.version && msg.version !== 'latest') {
+    return { version: msg.version, collection: 'events' };
+  }
+
+  // Try to find the message in events, commands, or queries collections
+  const collections = ['events', 'commands', 'queries'];
+  for (const col of collections) {
+    try {
+      const items = await getCollection(col as any);
+      const found = getItemsFromCollectionByIdAndSemverOrLatest(items, msg.id);
+      if (found.length > 0 && found[0].data.version && found[0].data.version !== 'latest') {
+        return { version: found[0].data.version, collection: col };
+      }
+    } catch (e) {
+      // Collection might not exist or item not found, continue
+    }
+  }
+  return { version: null, collection: null };
+};
+
+// Resolve versions and collections for messages to show
+const sendsWithVersions = await Promise.all(
+  sends.slice(0, maxMessages).map(async (msg: any) => {
+    const resolved = await resolveMessage(msg);
+    return { ...msg, resolvedVersion: resolved.version, resolvedCollection: resolved.collection };
+  })
+);
+const receivesWithVersions = await Promise.all(
+  receives.slice(0, maxMessages).map(async (msg: any) => {
+    const resolved = await resolveMessage(msg);
+    return { ...msg, resolvedVersion: resolved.version, resolvedCollection: resolved.collection };
+  })
+);
+
+// Get specifications for services
+const specifications = isService ? getServiceSpecifications(resource?.data) : [];
+const hasSpecifications = specifications.length > 0;
+
+// Generate unique ID for this instance
+const tooltipId = `ref-tooltip-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<span class="resource-ref-wrapper inline">
+  {
+    hasError ? (
+      <span
+        class="text-[rgb(var(--ec-page-text-muted))] underline decoration-wavy decoration-red-400/50 underline-offset-2 cursor-help"
+        title={`Resource not found: ${resourceId}`}
+      >
+        {resourceId}
+      </span>
+    ) : (
+      <>
+        <a
+          href={href}
+          class:list={[
+            'resource-ref-trigger underline decoration-dotted hover:decoration-solid underline-offset-2 font-medium transition-colors',
+            isDeprecated
+              ? 'text-amber-600 decoration-amber-500/50'
+              : 'text-[rgb(var(--ec-accent))] hover:text-[rgb(var(--ec-accent-hover))]',
+          ]}
+          data-tooltip-id={tooltipId}
+        >
+          {resource?.data?.name || resourceId}
+          {isDeprecated && ' (deprecated)'}
+        </a>
+        <span
+          id={tooltipId}
+          class="resource-ref-tooltip fixed w-80 bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] border-l-[3px] rounded-r-lg rounded-l-none shadow-lg shadow-black/8 z-[9999] text-left overflow-hidden opacity-0 pointer-events-none transition-all duration-150 scale-95 origin-top-left"
+          style={`border-left-color: rgb(${style.borderColor});`}
+        >
+          {/* Deprecation banner */}
+          {isDeprecated && (
+            <span class="flex items-center gap-1.5 px-3 py-1.5 bg-[rgb(var(--ec-badge-event-bg))] text-[rgb(var(--ec-badge-event-text))] text-xs font-medium">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+              Deprecated
+            </span>
+          )}
+
+          <span class="block p-3">
+            {/* Header: Name with icon top-right */}
+            <span class="flex justify-between items-start mb-2">
+              <span class="flex flex-col">
+                <span class="flex items-baseline gap-2">
+                  <span class="font-semibold text-[rgb(var(--ec-page-text))] text-[0.95rem] leading-tight">
+                    {resource?.data?.name || resourceId}
+                  </span>
+                  <span class="text-[0.65rem] text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wide">{style.label}</span>
+                </span>
+                <span class="text-[0.7rem] font-mono text-[rgb(var(--ec-page-text-muted))] mt-0.5">
+                  v{resource?.data?.version}
+                </span>
+              </span>
+              <svg
+                class="w-5 h-5 flex-shrink-0"
+                style={`color: rgb(${style.borderColor});`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.5"
+                set:html={iconPath}
+              />
+            </span>
+
+            {/* Summary */}
+            {truncatedSummary && (
+              <span class="block text-[rgb(var(--ec-page-text-muted))] text-[0.8rem] leading-relaxed mb-3">
+                {truncatedSummary}
+              </span>
+            )}
+
+            {/* Metadata */}
+            {(isService && (sends.length > 0 || receives.length > 0)) || hasSpecifications || owners.length > 0 ? (
+              <span class="block text-[0.7rem] mb-3 space-y-1">
+                {isService && sends.length > 0 && (
+                  <span class="flex items-baseline gap-2">
+                    <span class="text-[rgb(var(--ec-page-text-muted))]">Publishes</span>
+                    <span class="font-mono text-[rgb(var(--ec-page-text))]">
+                      {sendsWithVersions.slice(0, 2).map((msg: any, idx: number) => (
+                        <>
+                          {msg.resolvedVersion && msg.resolvedCollection ? (
+                            <a
+                              href={buildUrl(`/docs/${msg.resolvedCollection}/${msg.id}/${msg.resolvedVersion}`)}
+                              class="hover:underline hover:text-[rgb(var(--ec-accent))]"
+                            >
+                              {msg.id}
+                            </a>
+                          ) : (
+                            <span class="text-[rgb(var(--ec-page-text-muted))]">{msg.id}</span>
+                          )}
+                          {idx < Math.min(sendsWithVersions.length, 2) - 1 && ', '}
+                        </>
+                      ))}
+                      {sends.length > 2 && <span class="text-[rgb(var(--ec-page-text-muted))]"> +{sends.length - 2}</span>}
+                    </span>
+                  </span>
+                )}
+                {isService && receives.length > 0 && (
+                  <span class="flex items-baseline gap-2">
+                    <span class="text-[rgb(var(--ec-page-text-muted))]">Subscribes</span>
+                    <span class="font-mono text-[rgb(var(--ec-page-text))]">
+                      {receivesWithVersions.slice(0, 2).map((msg: any, idx: number) => (
+                        <>
+                          {msg.resolvedVersion && msg.resolvedCollection ? (
+                            <a
+                              href={buildUrl(`/docs/${msg.resolvedCollection}/${msg.id}/${msg.resolvedVersion}`)}
+                              class="hover:underline hover:text-[rgb(var(--ec-accent))]"
+                            >
+                              {msg.id}
+                            </a>
+                          ) : (
+                            <span class="text-[rgb(var(--ec-page-text-muted))]">{msg.id}</span>
+                          )}
+                          {idx < Math.min(receivesWithVersions.length, 2) - 1 && ', '}
+                        </>
+                      ))}
+                      {receives.length > 2 && <span class="text-[rgb(var(--ec-page-text-muted))]"> +{receives.length - 2}</span>}
+                    </span>
+                  </span>
+                )}
+                {hasSpecifications && (
+                  <span class="flex items-baseline gap-2">
+                    <span class="text-[rgb(var(--ec-page-text-muted))]">APIs</span>
+                    <span class="font-mono text-[rgb(var(--ec-page-text))]">
+                      {specifications.map((spec: any, idx: number) => (
+                        <>
+                          <a
+                            href={getSpecUrl(spec, resourceId, resource?.data?.version)}
+                            class="hover:underline hover:text-[rgb(var(--ec-accent))]"
+                          >
+                            {getSpecLabel(spec.type)}
+                          </a>
+                          {idx < specifications.length - 1 && ', '}
+                        </>
+                      ))}
+                    </span>
+                  </span>
+                )}
+                {owners.length > 0 && (
+                  <span class="flex items-baseline gap-2">
+                    <span class="text-[rgb(var(--ec-page-text-muted))]">Owner</span>
+                    <span class="font-mono text-[rgb(var(--ec-page-text))]">
+                      {owners.map((o: any, idx: number) => {
+                        const ownerId = typeof o === 'string' ? o : o.id;
+                        return (
+                          <>
+                            <a
+                              href={buildUrl(`/docs/users/${ownerId}`)}
+                              class="hover:underline hover:text-[rgb(var(--ec-accent))]"
+                            >
+                              {ownerId}
+                            </a>
+                            {idx < owners.length - 1 && ', '}
+                          </>
+                        );
+                      })}
+                    </span>
+                  </span>
+                )}
+              </span>
+            ) : null}
+
+            {/* Actions */}
+            <span class="flex items-center justify-between pt-2 border-t border-[rgb(var(--ec-page-border))] text-[0.7rem]">
+              <span class="flex items-center gap-3">
+                {type === 'flow' && (
+                  <a
+                    href={buildUrl(`/visualiser/${collection}/${resourceId}/${resource?.data?.version}`)}
+                    class="text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
+                  >
+                    View flow
+                  </a>
+                )}
+                {hasSchema && (
+                  <a
+                    href={buildUrl(`/schemas/${collection}/${resourceId}/${resource?.data?.version}`)}
+                    class="text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
+                  >
+                    Schema
+                  </a>
+                )}
+                {hasVisualizer && type !== 'flow' && (
+                  <a
+                    href={buildUrl(`/visualiser/${collection}/${resourceId}/${resource?.data?.version}`)}
+                    class="text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
+                  >
+                    Map
+                  </a>
+                )}
+                {repositoryUrl && (
+                  <a
+                    href={repositoryUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]"
+                  >
+                    Repo
+                  </a>
+                )}
+              </span>
+              <a href={href} class="text-[rgb(var(--ec-accent))] hover:underline font-medium">
+                {type === 'diagram' ? 'View diagram' : 'View docs'}
+              </a>
+            </span>
+          </span>
+        </span>
+      </>
+    )
+  }
+</span>
+
+<script>
+  // Initialize all resource ref tooltips
+  function initResourceRefTooltips() {
+    const triggers = document.querySelectorAll('.resource-ref-trigger');
+
+    triggers.forEach((trigger) => {
+      const tooltipId = trigger.getAttribute('data-tooltip-id');
+      if (!tooltipId) return;
+
+      const tooltip = document.getElementById(tooltipId);
+      if (!tooltip) return;
+
+      let hideTimeout: ReturnType<typeof setTimeout>;
+
+      const showTooltip = () => {
+        clearTimeout(hideTimeout);
+
+        // Get trigger position
+        const rect = trigger.getBoundingClientRect();
+        const tooltipWidth = 320; // w-80 = 20rem = 320px
+        const padding = 16;
+
+        // Calculate left position - try to align with trigger, but keep within viewport
+        let left = rect.left;
+
+        // If tooltip would overflow right edge, align to right edge of viewport
+        if (left + tooltipWidth > window.innerWidth - padding) {
+          left = window.innerWidth - tooltipWidth - padding;
+        }
+
+        // If tooltip would overflow left edge, align to left edge
+        if (left < padding) {
+          left = padding;
+        }
+
+        // Position below the trigger
+        const top = rect.bottom + 8;
+
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+        tooltip.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+        tooltip.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+      };
+
+      const hideTooltip = () => {
+        hideTimeout = setTimeout(() => {
+          tooltip.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+          tooltip.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+        }, 100);
+      };
+
+      const keepTooltipOpen = () => {
+        clearTimeout(hideTimeout);
+      };
+
+      // Trigger events
+      trigger.addEventListener('mouseenter', showTooltip);
+      trigger.addEventListener('mouseleave', hideTooltip);
+      trigger.addEventListener('focus', showTooltip);
+      trigger.addEventListener('blur', hideTooltip);
+
+      // Tooltip events - keep open when hovering tooltip
+      tooltip.addEventListener('mouseenter', keepTooltipOpen);
+      tooltip.addEventListener('mouseleave', hideTooltip);
+    });
+  }
+
+  // Run on initial load
+  initResourceRefTooltips();
+
+  // Re-run after Astro page transitions
+  document.addEventListener('astro:page-load', initResourceRefTooltips);
+</script>
