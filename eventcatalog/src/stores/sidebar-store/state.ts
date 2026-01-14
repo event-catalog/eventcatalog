@@ -115,48 +115,55 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const domainNodes = domainsWithOwners.reduce(
     (acc, { domain, owners }) => {
-      acc[`domain:${domain.data.id}:${domain.data.version}`] = buildDomainNode(domain, owners, context);
+      const versionedKey = `domain:${domain.data.id}:${domain.data.version}`;
+      acc[versionedKey] = buildDomainNode(domain, owners, context);
       if (domain.data.latestVersion === domain.data.version) {
-        acc[`domain:${domain.data.id}`] = buildDomainNode(domain, owners, context);
+        // Store reference to versioned key instead of duplicating the full node
+        acc[`domain:${domain.data.id}`] = versionedKey;
       }
       return acc;
     },
-    {} as Record<string, NavNode>
+    {} as Record<string, NavNode | string>
   );
 
   const serviceNodes = servicesWithOwners.reduce(
     (acc, { service, owners }) => {
-      acc[`service:${service.data.id}:${service.data.version}`] = buildServiceNode(service, owners, context);
+      const versionedKey = `service:${service.data.id}:${service.data.version}`;
+      acc[versionedKey] = buildServiceNode(service, owners, context);
       if (service.data.latestVersion === service.data.version) {
-        acc[`service:${service.data.id}`] = buildServiceNode(service, owners, context);
+        // Store reference to versioned key instead of duplicating the full node
+        acc[`service:${service.data.id}`] = versionedKey;
       }
       return acc;
     },
-    {} as Record<string, NavNode>
+    {} as Record<string, NavNode | string>
   );
 
   const messageNodes = messagesWithOwners.reduce(
     (acc, { message, owners }) => {
       const type = pluralizeMessageType(message as any);
-
-      acc[`${type}:${message.data.id}:${message.data.version}`] = buildMessageNode(message, owners, context);
+      const versionedKey = `${type}:${message.data.id}:${message.data.version}`;
+      acc[versionedKey] = buildMessageNode(message, owners, context);
       if (message.data.latestVersion === message.data.version) {
-        acc[`${type}:${message.data.id}`] = buildMessageNode(message, owners, context);
+        // Store reference to versioned key instead of duplicating the full node
+        acc[`${type}:${message.data.id}`] = versionedKey;
       }
       return acc;
     },
-    {} as Record<string, NavNode>
+    {} as Record<string, NavNode | string>
   );
 
   const containerNodes = containerWithOwners.reduce(
     (acc, { container, owners }) => {
-      acc[`container:${container.data.id}:${container.data.version}`] = buildContainerNode(container, owners, context);
+      const versionedKey = `container:${container.data.id}:${container.data.version}`;
+      acc[versionedKey] = buildContainerNode(container, owners, context);
       if (container.data.latestVersion === container.data.version) {
-        acc[`container:${container.data.id}`] = buildContainerNode(container, owners, context);
+        // Store reference to versioned key instead of duplicating the full node
+        acc[`container:${container.data.id}`] = versionedKey;
       }
       return acc;
     },
-    {} as Record<string, NavNode>
+    {} as Record<string, NavNode | string>
   );
 
   const designNodes = designs.reduce(
@@ -186,7 +193,8 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const channelNodes = channels.reduce(
     (acc, channel) => {
-      acc[`channel:${channel.data.id}:${channel.data.version}`] = {
+      const versionedKey = `channel:${channel.data.id}:${channel.data.version}`;
+      acc[versionedKey] = {
         type: 'item',
         title: channel.data.name,
         badge: 'Channel',
@@ -195,17 +203,12 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       };
 
       if (channel.data.latestVersion === channel.data.version) {
-        acc[`channel:${channel.data.id}`] = {
-          type: 'item',
-          title: channel.data.name,
-          badge: 'Channel',
-          summary: channel.data.summary,
-          href: buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.version}`),
-        };
+        // Store reference to versioned key instead of duplicating the full node
+        acc[`channel:${channel.data.id}`] = versionedKey;
       }
       return acc;
     },
-    {} as Record<string, NavNode>
+    {} as Record<string, NavNode | string>
   );
 
   const teamNodes = teams.reduce(

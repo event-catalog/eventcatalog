@@ -5,21 +5,33 @@
  * This component loads the sidebar/search data independently of the sidebar UI.
  * It ensures the search functionality works on all pages, even when the nested
  * sidebar is not rendered (e.g., /discover pages).
+ *
+ * The data is fetched from a static JSON file (/api/sidebar-data.json) instead of
+ * being embedded inline in every HTML page. This significantly reduces build size
+ * for large catalogs.
  */
-import { getNestedSideBarData } from '@stores/sidebar-store/state';
-
-const props = await getNestedSideBarData();
 ---
 
-<script is:inline define:vars={{ props }}>
-  window.sidebarData = props;
-</script>
-
 <script>
-  import { setSidebarData } from '@stores/sidebar-store';
+  import { setSidebarData, sidebarStore } from '@stores/sidebar-store';
+  import { buildUrl } from '@utils/url-builder';
 
-  const data = (window as any).sidebarData;
-  if (data) {
-    setSidebarData(data);
+  // Only fetch if we haven't already loaded the data
+  if (!sidebarStore.get()) {
+    const apiUrl = buildUrl('/api/sidebar-data.json', true);
+
+    fetch(apiUrl)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch sidebar data: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setSidebarData(data);
+      })
+      .catch((error) => {
+        console.error('Error loading sidebar data:', error);
+      });
   }
 </script>

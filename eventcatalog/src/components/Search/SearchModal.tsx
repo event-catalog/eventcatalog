@@ -135,6 +135,9 @@ export default function SearchModal() {
     // Extract all items from nodes
     const allItems = Object.entries(data.nodes)
       .map(([key, node]) => {
+        // Skip reference entries (string values that point to other keys)
+        if (typeof node === 'string') return null;
+
         const url = getUrlForItem(node, key);
         if (!url) return null;
 
@@ -232,6 +235,18 @@ export default function SearchModal() {
     });
   };
 
+  // Helper to resolve a node, following references if needed
+  const resolveNode = (key: string) => {
+    if (!data?.nodes) return null;
+    const node = data.nodes[key];
+    if (!node) return null;
+    // If it's a string reference, follow it
+    if (typeof node === 'string') {
+      return data.nodes[node] as NavNode | undefined;
+    }
+    return node;
+  };
+
   const filteredItems = useMemo(() => {
     if (query === '') {
       // Show favorites when search is empty
@@ -239,8 +254,8 @@ export default function SearchModal() {
         return favorites
           .slice(0, 5)
           .map((fav) => {
-            const node = data?.nodes[fav.nodeKey];
-            if (!node) return null;
+            const node = resolveNode(fav.nodeKey);
+            if (!node || typeof node === 'string') return null;
             const url = getUrlForItem(node, fav.nodeKey);
             if (!url) return null;
 

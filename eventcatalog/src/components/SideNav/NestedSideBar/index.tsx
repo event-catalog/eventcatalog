@@ -50,10 +50,14 @@ export default function NestedSideBar() {
   const nodeLookup = useMemo(() => {
     const lookup = new Map<string, string>();
 
-    Object.keys(nodes).forEach((key) => {
+    Object.entries(nodes).forEach(([key, value]) => {
+      // Skip keys that are references (string values pointing to other keys)
+      // These are unversioned aliases like "domain:E-Commerce" -> "domain:E-Commerce:1.0.0"
+      if (typeof value === 'string') return;
+
       // Key formats:
       // - "type:id:version" (e.g., "service:OrdersService:0.0.3")
-      // - "type:id" (e.g., "service:OrdersService", "user:john", "team:backend")
+      // - "type:id" (e.g., "user:john", "team:backend") - non-versioned resources
       // - "list:name" (e.g., "list:domains") - skip these
       const parts = key.split(':');
 
@@ -124,11 +128,18 @@ export default function NestedSideBar() {
 
   /**
    * Resolve a child reference to a NavNode
+   * Handles both direct keys and string references (unversioned aliases pointing to versioned keys)
    */
   const resolveRef = useCallback(
     (ref: ChildRef): NavNode | null => {
       if (typeof ref === 'string') {
-        return nodes[ref] ?? null;
+        const node = nodes[ref];
+        if (!node) return null;
+        // If node is a string, it's a reference to another key (e.g., unversioned alias)
+        if (typeof node === 'string') {
+          return (nodes[node] as NavNode) ?? null;
+        }
+        return node;
       }
       return ref;
     },
@@ -151,7 +162,7 @@ export default function NestedSideBar() {
       const stack: NavigationLevel[] = [{ key: null, entries: roots, title: 'Documentation' }];
 
       for (const key of path) {
-        const node = nodes[key];
+        const node = resolveRef(key);
         if (node && node.pages) {
           stack.push({
             key,
@@ -167,7 +178,7 @@ export default function NestedSideBar() {
 
       return stack;
     },
-    [roots, nodes]
+    [roots, resolveRef]
   );
 
   /**
@@ -250,7 +261,7 @@ export default function NestedSideBar() {
    */
   const tryConnectStack = useCallback(
     (targetKey: string, currentStack: NavigationLevel[]): NavigationLevel[] | null => {
-      const targetNode = nodes[targetKey];
+      const targetNode = resolveRef(targetKey);
       if (!targetNode) return null;
 
       // 1. Check if we are already at this level (or above)
@@ -262,7 +273,7 @@ export default function NestedSideBar() {
 
       // 2. Check if it's a child of the current last level
       const lastLevel = currentStack[currentStack.length - 1];
-      const lastNode = lastLevel.key ? nodes[lastLevel.key] : null;
+      const lastNode = lastLevel.key ? resolveRef(lastLevel.key) : null;
 
       // If root level (key=null), we check against roots
       const parentChildren = lastLevel.key === null ? roots : lastNode?.pages;
@@ -289,7 +300,7 @@ export default function NestedSideBar() {
 
       return null;
     },
-    [nodes, roots]
+    [resolveRef, roots]
   );
 
   /**
@@ -308,7 +319,7 @@ export default function NestedSideBar() {
             return connectedStack;
           }
 
-          const foundNode = nodes[foundNodeKey];
+          const foundNode = resolveRef(foundNodeKey);
           if (foundNode && foundNode.pages && foundNode.pages.length > 0) {
             // Fallback: Flattened navigation
             return [
@@ -333,7 +344,7 @@ export default function NestedSideBar() {
       }
       return false;
     },
-    [findNodeKeyByUrl, tryConnectStack, nodes, roots]
+    [findNodeKeyByUrl, tryConnectStack, resolveRef, roots]
   );
 
   /**
@@ -374,7 +385,7 @@ export default function NestedSideBar() {
 
     // 2. If no valid stack from step 1, try just the target (flattened)
     if (!finalStack && targetKey) {
-      const targetNode = nodes[targetKey];
+      const targetNode = resolveRef(targetKey);
       if (targetNode && targetNode.pages && targetNode.pages.length > 0) {
         finalStack = [
           { key: null, entries: roots, title: 'Documentation' },
@@ -391,7 +402,7 @@ export default function NestedSideBar() {
     }
 
     setIsInitialized(true);
-  }, [data, roots, nodes, isInitialized, buildStackFromPath, findNodeKeyByUrl, tryConnectStack]);
+  }, [data, roots, isInitialized, buildStackFromPath, findNodeKeyByUrl, tryConnectStack, resolveRef]);
 
   /**
    * Save state whenever navigation changes
@@ -600,7 +611,7 @@ export default function NestedSideBar() {
    */
   const navigateToFavorite = (favorite: FavoriteItem) => {
     // If it has an href and no children, just navigate to the URL
-    const node = nodes[favorite.nodeKey];
+    const node = resolveRef(favorite.nodeKey);
     if (favorite.href && (!node?.pages || node.pages.length === 0)) {
       window.location.href = favorite.href;
       return;
@@ -1048,7 +1059,7 @@ export default function NestedSideBar() {
                 </div>
                 <div className="flex flex-col gap-0.5 border-l ml-3.5 border-amber-200">
                   {favorites.map((fav, index) => {
-                    const node = nodes[fav.nodeKey];
+                    const node = resolveRef(fav.nodeKey);
                     const isActive = fav.href && currentPath === fav.href;
 
                     return (
