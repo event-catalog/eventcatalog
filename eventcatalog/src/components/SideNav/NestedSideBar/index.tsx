@@ -8,7 +8,12 @@ import SearchBar from './SearchBar';
 import { saveState, loadState, saveCollapsedSections, loadCollapsedSections } from './storage';
 import { useStore } from '@nanostores/react';
 import { sidebarStore } from '@stores/sidebar-store';
-import { favoritesStore, toggleFavorite as toggleFavoriteAction, type FavoriteItem } from '@stores/favorites-store';
+import {
+  favoritesStore,
+  toggleFavorite as toggleFavoriteAction,
+  removeFavorite as removeFavoriteAction,
+  type FavoriteItem,
+} from '@stores/favorites-store';
 import { getBadgeClasses } from './utils';
 
 const cn = (...classes: (string | false | undefined)[]) => classes.filter(Boolean).join(' ');
@@ -1098,7 +1103,12 @@ export default function NestedSideBar() {
                           <div
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (node) toggleFavorite(fav.nodeKey, node);
+                              if (node) {
+                                toggleFavorite(fav.nodeKey, node);
+                              } else {
+                                // Node no longer exists, remove directly using nodeKey
+                                removeFavoriteAction(fav.nodeKey);
+                              }
                             }}
                             className="flex items-center justify-center w-5 h-5 text-amber-400 hover:text-amber-500 rounded transition-colors cursor-pointer"
                           >
