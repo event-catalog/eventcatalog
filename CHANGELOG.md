@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.7.0
+
+### Minor Changes
+
+- 4cbd86f: Add sends and receives properties to domains, allowing domains to directly document event flows without requiring services as intermediaries
+
 ## 3.6.2
 
 ### Patch Changes
