@@ -79,35 +79,21 @@ export const getDomains = async ({
     return memoryCache[cacheKey];
   }
 
-  // 1. Fetch collections
-  const collectionsToFetch: any[] = [
+  // 1. Fetch collections (always fetch messages to hydrate domain-level sends/receives)
+  const [allDomains, allServices, allEntities, allFlows, allEvents, allCommands, allQueries, allContainers] = await Promise.all([
     getCollection('domains'),
     getCollection('services'),
     getCollection('entities'),
     getCollection('flows'),
-  ];
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+    getCollection('containers'),
+  ]);
 
-  if (enrichServices) {
-    collectionsToFetch.push(
-      getCollection('events'),
-      getCollection('commands'),
-      getCollection('queries'),
-      getCollection('containers')
-    );
-  }
-
-  const results = await Promise.all(collectionsToFetch);
-  const [allDomains, allServices, allEntities, allFlows] = results;
-
-  let messageMap = new Map();
-  let containerMap = new Map();
-
-  if (enrichServices) {
-    const [, , , , allEvents, allCommands, allQueries, allContainers] = results;
-    const allMessages = [...allEvents, ...allCommands, ...allQueries];
-    messageMap = createVersionedMap(allMessages);
-    containerMap = createVersionedMap(allContainers);
-  }
+  const allMessages = [...allEvents, ...allCommands, ...allQueries];
+  const messageMap = createVersionedMap(allMessages);
+  const containerMap = createVersionedMap(allContainers);
 
   // 2. Build optimized maps
   const domainMap = createVersionedMap(allDomains);
@@ -192,6 +178,15 @@ export const getDomains = async ({
         ? [...(hydratedMainServices as any), ...(hydratedSubdomainServices as any)]
         : (hydratedMainServices as any);
 
+      // Hydrate domain-level sends and receives
+      const domainSends = (domain.data.sends || [])
+        .map((m: { id: string; version: string | undefined }) => findInMap(messageMap, m.id, m.version))
+        .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
+
+      const domainReceives = (domain.data.receives || [])
+        .map((m: { id: string; version: string | undefined }) => findInMap(messageMap, m.id, m.version))
+        .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
+
       // Calculate folder paths
       const folderName = await getResourceFolderName(
         process.env.PROJECT_DIR ?? '',
@@ -208,6 +203,8 @@ export const getDomains = async ({
           domains: subDomains as any,
           entities: entities as any,
           flows: flows as any,
+          sends: domainSends as any,
+          receives: domainReceives as any,
           latestVersion,
           versions,
         },
@@ -249,20 +246,43 @@ export const getMessagesForDomain = async (
   const allMessages = [...events, ...commands, ...queries];
   const messageMap = createVersionedMap(allMessages);
 
-  const sends = services.flatMap((service) => service.data.sends || []);
-  const receives = services.flatMap((service) => service.data.receives || []);
+  // Get service-level sends/receives
+  const serviceSends = services.flatMap((service) => service.data.sends || []);
+  const serviceReceives = services.flatMap((service) => service.data.receives || []);
 
-  const sendsMessages = sends
-    .map((send) => findInMap(messageMap, send.id, send.version))
+  // Get domain-level sends/receives (already hydrated if domain came from getDomains)
+  const domainSends = domain.data.sends || [];
+  const domainReceives = domain.data.receives || [];
+
+  // Combine and deduplicate - domain-level messages take priority
+  const allSends = [...domainSends, ...serviceSends];
+  const allReceives = [...domainReceives, ...serviceReceives];
+
+  const sendsMessages = allSends
+    .map((send: any) => {
+      // If already hydrated (has data property), return as-is
+      if (send.data) return send;
+      // Otherwise, resolve from map
+      return findInMap(messageMap, send.id, send.version);
+    })
     .filter((msg): msg is CollectionEntry<CollectionMessageTypes> => !!msg);
 
-  const receivesMessages = receives
-    .map((receive) => findInMap(messageMap, receive.id, receive.version))
+  const receivesMessages = allReceives
+    .map((receive: any) => {
+      // If already hydrated (has data property), return as-is
+      if (receive.data) return receive;
+      // Otherwise, resolve from map
+      return findInMap(messageMap, receive.id, receive.version);
+    })
     .filter((msg): msg is CollectionEntry<CollectionMessageTypes> => !!msg);
+
+  // Deduplicate by id and version
+  const uniqueSends = Array.from(new Map(sendsMessages.map((msg) => [`${msg.data.id}-${msg.data.version}`, msg])).values());
+  const uniqueReceives = Array.from(new Map(receivesMessages.map((msg) => [`${msg.data.id}-${msg.data.version}`, msg])).values());
 
   return {
-    sends: sendsMessages,
-    receives: receivesMessages,
+    sends: uniqueSends,
+    receives: uniqueReceives,
   };
 };
 

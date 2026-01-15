@@ -490,6 +490,8 @@ const domains = defineCollection({
       domains: z.array(pointer).optional(),
       entities: z.array(pointer).optional(),
       flows: z.array(pointer).optional(),
+      sends: z.array(sendsPointer).optional(),
+      receives: z.array(receivesPointer).optional(),
       detailsPanel: z
         .object({
           parentDomains: detailPanelPropertySchema.optional(),
