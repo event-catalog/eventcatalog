@@ -1,0 +1,78 @@
+---
+import ActionsConsoleTrigger from './ActionsConsoleTrigger.tsx';
+import { isEventCatalogActionsEnabled } from '@utils/feature';
+import {
+  loadActionsConfiguration,
+  getActionsForCollection,
+  getAllActionMetadata,
+  getActionMetadata,
+} from '@enterprise/actions/load-actions';
+import type { ActionContext, ActionMetadata } from '@enterprise/actions/action-types';
+
+interface Props {
+  // Props from MDX component registration (spread from collection entry)
+  data?: {
+    id?: string;
+    version?: string;
+  };
+  collection?: string;
+  // Which actions to show: "all", specific action names (comma-separated or array), or undefined/empty for none
+  actions?: string | string[];
+}
+
+const { data, collection, actions: actionsProp } = Astro.props;
+
+// Load actions configuration
+await loadActionsConfiguration();
+
+// Determine actions enabled status
+const actionsEnabled = isEventCatalogActionsEnabled();
+
+// Build context from the page data
+const context: ActionContext = {
+  resourceId: data?.id || '',
+  resourceVersion: data?.version || '',
+  resourceType: collection || '',
+  pageUrl: Astro.url.pathname,
+};
+
+// Determine which actions to show based on the actions prop
+let filteredActions: ActionMetadata[] = [];
+
+if (actionsEnabled) {
+  if (actionsProp === 'all') {
+    // Show all actions (optionally filtered by collection visibility)
+    filteredActions = collection ? getActionsForCollection(collection) : getAllActionMetadata();
+  } else if (actionsProp) {
+    // Parse action names from string or array
+    const actionNames: string[] = Array.isArray(actionsProp)
+      ? actionsProp
+      : actionsProp
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+    // Get metadata for each specified action
+    filteredActions = actionNames
+      .map((name) => getActionMetadata(name))
+      .filter((action): action is ActionMetadata => action !== null);
+  }
+  // If actionsProp is undefined/empty, filteredActions remains empty (default: none)
+}
+---
+
+{
+  actionsEnabled && (
+    <div class="not-prose my-4">
+      <ActionsConsoleTrigger client:load context={context} actions={filteredActions} />
+    </div>
+  )
+}
+
+{
+  !actionsEnabled && (
+    <div class="not-prose my-4 text-sm text-gray-500 italic">
+      Actions Console requires a valid license and eventcatalog.actions.js configuration.
+    </div>
+  )
+}

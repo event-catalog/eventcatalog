@@ -1,0 +1,59 @@
+---
+import Action from './Action.tsx';
+import { isEventCatalogActionsEnabled } from '@utils/feature';
+import { loadActionsConfiguration, getActionMetadata } from '@enterprise/actions/load-actions';
+import type { ActionContext, ActionIconName, ActionVariant, ResultDisplay } from '@enterprise/actions/action-types';
+
+interface Props {
+  name: string;
+  label?: string;
+  input?: Record<string, unknown>;
+  // Props from MDX component registration (spread from collection entry)
+  data?: {
+    id?: string;
+    version?: string;
+  };
+  collection?: string;
+}
+
+const { name, label, input, data, collection } = Astro.props;
+
+// Load actions configuration
+await loadActionsConfiguration();
+
+// Get action metadata
+const actionMetadata = getActionMetadata(name);
+
+// Determine actions enabled status
+const actionsEnabled = isEventCatalogActionsEnabled();
+
+// Build context from the page data
+// data contains id, version; collection is a separate prop
+const context: ActionContext = {
+  resourceId: data?.id || '',
+  resourceVersion: data?.version || '',
+  resourceType: collection || '',
+  pageUrl: Astro.url.pathname,
+};
+
+// Get action properties from metadata
+const actionLabel = actionMetadata?.label || name;
+const actionIcon = actionMetadata?.icon as ActionIconName | undefined;
+const actionVariant = actionMetadata?.variant as ActionVariant | undefined;
+const actionResultDisplay = actionMetadata?.resultDisplay as ResultDisplay | undefined;
+---
+
+<div class="not-prose inline-block">
+  <Action
+    client:load
+    name={name}
+    label={label}
+    input={input}
+    context={context}
+    actionLabel={actionLabel}
+    actionIcon={actionIcon}
+    actionVariant={actionVariant}
+    actionResultDisplay={actionResultDisplay}
+    actionsEnabled={actionsEnabled}
+  />
+</div>

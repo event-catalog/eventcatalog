@@ -6,6 +6,7 @@ import {
   isEventCatalogScaleEnabled,
   isEventCatalogStarterEnabled,
   isEventCatalogMCPEnabled,
+  isEventCatalogActionsEnabled,
 } from '../src/utils/feature';
 
 const catalogDirectory = process.env.CATALOG_DIR || process.cwd();
@@ -57,6 +58,14 @@ export default function eventCatalogIntegration(): AstroIntegration {
           params.injectRoute({
             pattern: '/docs/mcp/[...path]',
             entrypoint: path.join(catalogDirectory, 'src/enterprise/mcp/mcp-server.ts'),
+          });
+        }
+
+        // Handle routes for Actions (requires SSR + Starter/Scale + eventcatalog.actions.js)
+        if (isEventCatalogActionsEnabled()) {
+          params.injectRoute({
+            pattern: '/api/actions/[...path]',
+            entrypoint: path.join(catalogDirectory, 'src/enterprise/actions/actions-api.ts'),
           });
         }
 

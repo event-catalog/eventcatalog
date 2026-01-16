@@ -29,6 +29,9 @@ import FigJam from '@components/MDX/FigJam/FigJam.astro';
 import IcePanel from '@components/MDX/IcePanel/IcePanel.astro';
 import Design from '@components/MDX/Design/Design.astro';
 import MermaidFileLoader from '@components/MDX/MermaidFileLoader/MermaidFileLoader.astro';
+import Action from '@components/MDX/Action/Action.astro';
+import ActionGroup from '@components/MDX/Action/ActionGroup.astro';
+import ActionsConsole from '@components/MDX/Action/ActionsConsole.astro';
 //  Portals: required for server/client components
 import NodeGraphPortal from '@components/MDX/NodeGraph/NodeGraphPortal';
 import SchemaViewerPortal from '@components/MDX/SchemaViewer/SchemaViewerPortal';
@@ -70,6 +73,9 @@ const components = (props: any) => {
     FigJam: (mdxProp: any) => jsx(FigJam, { ...props, ...mdxProp }),
     IcePanel: (mdxProp: any) => jsx(IcePanel, { ...props, ...mdxProp }),
     MermaidFileLoader: (mdxProp: any) => jsx(MermaidFileLoader, { ...props, ...mdxProp }),
+    Action: (mdxProp: any) => jsx(Action, { ...props, ...mdxProp }),
+    ActionGroup,
+    ActionsConsole: (mdxProp: any) => jsx(ActionsConsole, { ...props, ...mdxProp }),
   };
 };
 

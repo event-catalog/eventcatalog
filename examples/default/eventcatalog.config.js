@@ -13,7 +13,7 @@ export default {
   editUrl: 'https://github.com/event-catalog/eventcatalog/edit/main',
   port: 3000,
   outDir: 'dist',
-  // output: 'server',
+  output: 'server',
   logo: {
     alt: 'FlowMart',
     // src: '/logo.png',

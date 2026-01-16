@@ -8,6 +8,8 @@ import { isAuthEnabled, isSSR } from '@utils/feature';
 import { EnvironmentDropdown } from './EnvironmentDropdown';
 import ChatPanelButton from './ChatPanel/ChatPanelButton';
 import ThemeToggle from './ThemeToggle';
+import { ActionGlobals } from './MDX/Action';
+import { isEventCatalogActionsEnabled } from '@utils/feature';
 
 let session = null;
 if (isAuthEnabled()) {
@@ -210,6 +212,8 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
     </div>
   </div>
 </nav>
+
+{isEventCatalogActionsEnabled() && <ActionGlobals client:load />}
 
 <div id="eventcatalog-header-spacer" class="h-header"></div>
 <!-- Spacer to prevent content from being hidden under the fixed header -->

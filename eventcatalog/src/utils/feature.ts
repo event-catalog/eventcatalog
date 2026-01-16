@@ -71,3 +71,10 @@ export const isCustomStylesEnabled = () => {
 export const isDiagramComparisonEnabled = () => isEventCatalogScaleEnabled();
 
 export const isEventCatalogMCPEnabled = () => isEventCatalogScaleEnabled() && isSSR();
+
+export const isEventCatalogActionsEnabled = () => {
+  const isFeatureEnabledFromPlan = isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
+  const directory = process.env.PROJECT_DIR || process.cwd();
+  const hasActionsConfigurationFile = fs.existsSync(join(directory, 'eventcatalog.actions.js'));
+  return isFeatureEnabledFromPlan && hasActionsConfigurationFile && isSSR();
+};
