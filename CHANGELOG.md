@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.7.2
+
+### Patch Changes
+
+- d1bb4db: Extract shared specification processing utilities to reduce code duplication
+
 ## 3.7.1
 
 ### Patch Changes
