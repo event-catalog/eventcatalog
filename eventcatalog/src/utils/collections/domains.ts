@@ -4,7 +4,7 @@ import path from 'path';
 import type { CollectionMessageTypes } from '@types';
 import type { Service } from './types';
 import utils from '@eventcatalog/sdk';
-import { createVersionedMap, findInMap } from '@utils/collections/util';
+import { createVersionedMap, findInMap, processSpecifications } from '@utils/collections/util';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
@@ -382,4 +382,8 @@ export const getDomainsForService = async (service: Service): Promise<Domain[]> 
 
 export const domainHasEntities = (domain: Domain): boolean => {
   return (domain.data.entities && domain.data.entities.length > 0) || false;
+};
+
+export const getSpecificationsForDomain = (domain: Domain) => {
+  return processSpecifications(domain.data.specifications as any);
 };

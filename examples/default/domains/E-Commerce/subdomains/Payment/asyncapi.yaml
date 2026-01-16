@@ -1,0 +1,131 @@
+asyncapi: 3.0.0
+info:
+  title: Payment Domain Events API
+  version: 0.0.1
+  description: |
+    AsyncAPI specification for the Payment Domain events.
+    This domain handles all payment-related events including payment processing,
+    fraud detection, and transaction management.
+
+channels:
+  paymentProcessed:
+    address: payment/processed
+    messages:
+      paymentProcessed:
+        $ref: '#/components/messages/PaymentProcessed'
+  paymentFailed:
+    address: payment/failed
+    messages:
+      paymentFailed:
+        $ref: '#/components/messages/PaymentFailed'
+  fraudDetected:
+    address: payment/fraud-detected
+    messages:
+      fraudDetected:
+        $ref: '#/components/messages/FraudDetected'
+
+operations:
+  onPaymentProcessed:
+    action: receive
+    channel:
+      $ref: '#/channels/paymentProcessed'
+  onPaymentFailed:
+    action: receive
+    channel:
+      $ref: '#/channels/paymentFailed'
+  onFraudDetected:
+    action: receive
+    channel:
+      $ref: '#/channels/fraudDetected'
+
+components:
+  messages:
+    PaymentProcessed:
+      name: PaymentProcessed
+      title: Payment Processed
+      summary: Event emitted when a payment has been successfully processed
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          paymentId:
+            type: string
+            format: uuid
+            description: Unique identifier for the payment
+          orderId:
+            type: string
+            format: uuid
+            description: Associated order identifier
+          amount:
+            type: number
+            format: float
+            description: Payment amount
+          currency:
+            type: string
+            description: Currency code (ISO 4217)
+          status:
+            type: string
+            enum: [completed, pending, refunded]
+          processedAt:
+            type: string
+            format: date-time
+        required:
+          - paymentId
+          - orderId
+          - amount
+          - currency
+          - status
+          - processedAt
+
+    PaymentFailed:
+      name: PaymentFailed
+      title: Payment Failed
+      summary: Event emitted when a payment has failed
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          paymentId:
+            type: string
+            format: uuid
+          orderId:
+            type: string
+            format: uuid
+          errorCode:
+            type: string
+          errorMessage:
+            type: string
+          failedAt:
+            type: string
+            format: date-time
+        required:
+          - paymentId
+          - errorCode
+          - failedAt
+
+    FraudDetected:
+      name: FraudDetected
+      title: Fraud Detected
+      summary: Event emitted when fraudulent activity is detected
+      contentType: application/json
+      payload:
+        type: object
+        properties:
+          transactionId:
+            type: string
+            format: uuid
+          riskScore:
+            type: number
+            minimum: 0
+            maximum: 100
+          riskFactors:
+            type: array
+            items:
+              type: string
+          detectedAt:
+            type: string
+            format: date-time
+        required:
+          - transactionId
+          - riskScore
+          - detectedAt

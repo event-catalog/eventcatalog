@@ -839,6 +839,85 @@ describe('getNestedSideBarData', () => {
       });
     });
 
+    describe('API & Contracts section (domain)', () => {
+      it('is not listed if the domain does not have any specifications', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const apiContractsSection = getChildNodeByTitle('API & Contracts', domainNode.pages ?? []);
+        expect(apiContractsSection).toBeUndefined();
+      });
+
+      it('is not listed if the domain is configured not to render the section', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        // SDK update required to support specifications on domains
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          detailsPanel: {
+            specifications: {
+              visible: false,
+            },
+          } as any,
+          specifications: [{ type: 'openapi', path: 'openapi.yaml', name: 'OpenAPI' }],
+        } as any);
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const apiContractsSection = getChildNodeByTitle('API & Contracts', domainNode.pages ?? []);
+        expect(apiContractsSection).toBeUndefined();
+      });
+
+      it('lists the specifications that the domain has if the domain has specifications', async () => {
+        const { writeDomain } = utils(CATALOG_FOLDER);
+        // SDK update required to support specifications on domains
+        await writeDomain({
+          id: 'Shipping',
+          name: 'Shipping',
+          version: '0.0.1',
+          markdown: 'Shipping',
+          specifications: [
+            { type: 'openapi', path: 'openapi.yaml', name: 'OpenAPI' },
+            { type: 'asyncapi', path: 'asyncapi.yaml', name: 'AsyncAPI' },
+            { type: 'graphql', path: 'graphql.yaml', name: 'GraphQL' },
+          ],
+        } as any);
+
+        const navigationData = await getNestedSideBarData();
+        const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+        const apiContractsSection = getChildNodeByTitle('API & Contracts', domainNode.pages ?? []);
+        expect(apiContractsSection.pages).toEqual([
+          {
+            type: 'item',
+            title: 'OpenAPI',
+            leftIcon: '/icons/openapi-black.svg',
+            href: '/docs/domains/Shipping/0.0.1/spec/openapi',
+          },
+          {
+            type: 'item',
+            title: 'AsyncAPI',
+            leftIcon: '/icons/asyncapi-black.svg',
+            href: '/docs/domains/Shipping/0.0.1/asyncapi/asyncapi',
+          },
+          {
+            type: 'item',
+            title: 'GraphQL',
+            leftIcon: '/icons/graphql-black.svg',
+            href: '/docs/domains/Shipping/0.0.1/graphql/graphql',
+          },
+        ]);
+      });
+    });
+
     describe('domain events section (sends)', () => {
       it('is not listed if the domain does not send any messages', async () => {
         const { writeDomain } = utils(CATALOG_FOLDER);
@@ -865,7 +944,7 @@ describe('getNestedSideBarData', () => {
           markdown: 'Order Shipped',
         });
 
-        // @ts-ignore - SDK update required to support sends/receives on domains
+        // SDK update required to support sends/receives on domains
         await writeDomain({
           id: 'Shipping',
           name: 'Shipping',
@@ -877,7 +956,7 @@ describe('getNestedSideBarData', () => {
             },
           },
           sends: [{ id: 'OrderShipped', version: '0.0.1' }],
-        });
+        } as any);
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
@@ -894,14 +973,14 @@ describe('getNestedSideBarData', () => {
           markdown: 'Order Shipped',
         });
 
-        // @ts-ignore - SDK update required to support sends/receives on domains
+        // SDK update required to support sends/receives on domains
         await writeDomain({
           id: 'Shipping',
           name: 'Shipping',
           version: '0.0.1',
           markdown: 'Shipping',
           sends: [{ id: 'OrderShipped', version: '0.0.1' }],
-        });
+        } as any);
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
@@ -936,7 +1015,7 @@ describe('getNestedSideBarData', () => {
           markdown: 'Payment Processed',
         });
 
-        // @ts-ignore - SDK update required to support sends/receives on domains
+        // SDK update required to support sends/receives on domains
         await writeDomain({
           id: 'Shipping',
           name: 'Shipping',
@@ -948,7 +1027,7 @@ describe('getNestedSideBarData', () => {
             },
           },
           receives: [{ id: 'PaymentProcessed', version: '0.0.1' }],
-        });
+        } as any);
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
@@ -965,14 +1044,14 @@ describe('getNestedSideBarData', () => {
           markdown: 'Payment Processed',
         });
 
-        // @ts-ignore - SDK update required to support sends/receives on domains
+        // SDK update required to support sends/receives on domains
         await writeDomain({
           id: 'Shipping',
           name: 'Shipping',
           version: '0.0.1',
           markdown: 'Shipping',
           receives: [{ id: 'PaymentProcessed', version: '0.0.1' }],
-        });
+        } as any);
 
         const navigationData = await getNestedSideBarData();
         const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);

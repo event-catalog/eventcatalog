@@ -6,7 +6,7 @@ import type { CollectionMessageTypes, CollectionTypes } from '@types';
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 import utils, { type Domain } from '@eventcatalog/sdk';
 import { getDomains, getDomainsForService } from './domains';
-import { createVersionedMap, findInMap } from '@utils/collections/util';
+import { createVersionedMap, findInMap, processSpecifications } from '@utils/collections/util';
 
 export type Service = CollectionEntry<'services'>;
 
@@ -174,31 +174,7 @@ export const getConsumersOfMessage = (services: Service[], message: CollectionEn
 };
 
 export const getSpecificationsForService = (service: CollectionEntry<CollectionTypes>) => {
-  const specifications = Array.isArray(service.data.specifications) ? service.data.specifications : [];
-
-  if (service.data.specifications && !Array.isArray(service.data.specifications)) {
-    if (service.data.specifications.asyncapiPath) {
-      specifications.push({
-        type: 'asyncapi',
-        path: service.data.specifications.asyncapiPath,
-        name: 'AsyncAPI',
-      });
-    }
-    if (service.data.specifications.openapiPath) {
-      specifications.push({
-        type: 'openapi',
-        path: service.data.specifications.openapiPath,
-        name: 'OpenAPI',
-      });
-    }
-  }
-
-  return specifications.map((spec) => ({
-    ...spec,
-    name: spec.name || (spec.type === 'asyncapi' ? 'AsyncAPI' : 'OpenAPI'),
-    filename: path.basename(spec.path),
-    filenameWithoutExtension: path.basename(spec.path, path.extname(spec.path)),
-  }));
+  return processSpecifications(service.data.specifications as any);
 };
 // Get services for channel
 export const getProducersAndConsumersForChannel = async (channel: CollectionEntry<'channels'>) => {
