@@ -12,6 +12,7 @@ import {
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
+import { getSpecificationsForDomain } from '@utils/collections/domains';
 
 export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[], context: ResourceGroupContext): NavNode => {
   const servicesInDomain = domain.data.services || [];
@@ -47,6 +48,14 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
   const domainDiagrams = domain.data.diagrams || [];
   const diagramNavItems = buildDiagramNavItems(domainDiagrams, context.diagrams);
   const hasDiagrams = diagramNavItems.length > 0;
+
+  // Specifications
+  const specifications = getSpecificationsForDomain(domain);
+  const hasSpecifications = specifications.length > 0;
+  const openAPISpecifications = specifications.filter((specification) => specification.type === 'openapi');
+  const asyncAPISpecifications = specifications.filter((specification) => specification.type === 'asyncapi');
+  const graphQLSpecifications = specifications.filter((specification) => specification.type === 'graphql');
+  const renderSpecifications = hasSpecifications && shouldRenderSideBarSection(domain, 'specifications');
 
   return {
     type: 'item',
@@ -86,6 +95,37 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
         title: 'Diagrams',
         icon: 'FileImage',
         pages: diagramNavItems,
+      },
+      renderSpecifications && {
+        type: 'group',
+        title: 'API & Contracts',
+        icon: 'FileCode',
+        pages: [
+          ...openAPISpecifications.map((specification) => ({
+            type: 'item',
+            title: specification.name,
+            leftIcon: '/icons/openapi-black.svg',
+            href: buildUrl(
+              `/docs/domains/${domain.data.id}/${domain.data.version}/spec/${specification.filenameWithoutExtension}`
+            ),
+          })),
+          ...asyncAPISpecifications.map((specification) => ({
+            type: 'item',
+            title: specification.name,
+            leftIcon: '/icons/asyncapi-black.svg',
+            href: buildUrl(
+              `/docs/domains/${domain.data.id}/${domain.data.version}/asyncapi/${specification.filenameWithoutExtension}`
+            ),
+          })),
+          ...graphQLSpecifications.map((specification) => ({
+            type: 'item',
+            title: specification.name,
+            leftIcon: '/icons/graphql-black.svg',
+            href: buildUrl(
+              `/docs/domains/${domain.data.id}/${domain.data.version}/graphql/${specification.filenameWithoutExtension}`
+            ),
+          })),
+        ],
       },
       renderSubDomains && {
         type: 'group',

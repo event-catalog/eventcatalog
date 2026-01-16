@@ -4,6 +4,7 @@ import { getEvents } from '@utils/collections/events';
 import { getCommands } from '@utils/collections/commands';
 import { getQueries } from '@utils/collections/queries';
 import { getServices, getSpecificationsForService } from '@utils/collections/services';
+import { getDomains, getSpecificationsForDomain } from '@utils/collections/domains';
 import { getOwner } from '@utils/collections/owners';
 import { buildUrl } from '@utils/url-builder';
 import { resourceFileExists, readResourceFile } from '@utils/resource-files';
@@ -133,7 +134,58 @@ async function fetchAllSchemas() {
   // Flatten and filter out null values
   const flatServicesWithSpecs = servicesWithSpecs.flat().filter((service) => service !== null);
 
-  return [...messagesWithSchemas, ...flatServicesWithSpecs];
+  // Fetch all domains
+  const domains = await getDomains({ getAllVersions: true });
+
+  // Filter domains with specifications and read spec content - only keep essential data
+  const domainsWithSpecs = await Promise.all(
+    domains.map(async (domain) => {
+      try {
+        const specifications = getSpecificationsForDomain(domain);
+
+        if (specifications.length === 0) {
+          return null;
+        }
+
+        return await Promise.all(
+          specifications.map(async (spec) => {
+            if (!resourceFileExists(domain, spec.path)) {
+              return null;
+            }
+
+            const schemaContent = readResourceFile(domain, spec.path) ?? '';
+            const schemaExtension = spec.type;
+            const enrichedOwners = await enrichOwners(domain.data.owners || []);
+
+            return {
+              collection: 'domains',
+              data: {
+                id: `${domain.data.id}`,
+                name: `${domain.data.name} - ${spec.name}`,
+                version: domain.data.version,
+                summary: domain.data.summary,
+                schemaPath: spec.path,
+                owners: enrichedOwners,
+              },
+              schemaContent,
+              schemaExtension,
+              specType: spec.type,
+              specName: spec.name,
+              specFilenameWithoutExtension: spec.filenameWithoutExtension,
+            };
+          })
+        );
+      } catch (error) {
+        console.error(`Error reading specifications for domain ${domain.data.id}:`, error);
+        return null;
+      }
+    })
+  );
+
+  // Flatten and filter out null values for domains
+  const flatDomainsWithSpecs = domainsWithSpecs.flat().filter((domain) => domain !== null);
+
+  return [...messagesWithSchemas, ...flatServicesWithSpecs, ...flatDomainsWithSpecs];
 }
 
 export class Page extends HybridPage {

@@ -6,6 +6,13 @@ summary: |
   Domain that contains payment related services and messages for processing financial transactions.
 owners:
     - dboyne
+specifications:
+  - type: asyncapi
+    path: asyncapi.yaml
+    name: Payment Events API
+  - type: openapi
+    path: openapi.yaml
+    name: Payment REST API
 services:
   - id: PaymentService
     version: 0.0.1

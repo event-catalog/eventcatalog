@@ -1,6 +1,70 @@
 import type { CollectionTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
 import semver, { coerce, compare, eq, satisfies as satisfiesRange } from 'semver';
+import path from 'node:path';
+
+// --- SPECIFICATION HELPERS ---
+
+export type SpecificationType = 'asyncapi' | 'openapi' | 'graphql';
+
+export interface SpecificationInput {
+  type: SpecificationType;
+  path: string;
+  name?: string;
+}
+
+export interface ProcessedSpecification {
+  type: SpecificationType;
+  path: string;
+  name: string;
+  filename: string;
+  filenameWithoutExtension: string;
+}
+
+export const getDefaultSpecificationName = (type: string): string => {
+  switch (type) {
+    case 'asyncapi':
+      return 'AsyncAPI';
+    case 'openapi':
+      return 'OpenAPI';
+    case 'graphql':
+      return 'GraphQL';
+    default:
+      return 'Specification';
+  }
+};
+
+interface LegacySpecificationFormat {
+  asyncapiPath?: string;
+  openapiPath?: string;
+  graphqlPath?: string;
+}
+
+export const processSpecifications = (
+  specifications: SpecificationInput[] | LegacySpecificationFormat | undefined
+): ProcessedSpecification[] => {
+  const specs: SpecificationInput[] = Array.isArray(specifications) ? [...specifications] : [];
+
+  // Handle legacy object format
+  if (specifications && !Array.isArray(specifications)) {
+    if (specifications.asyncapiPath) {
+      specs.push({ type: 'asyncapi', path: specifications.asyncapiPath, name: 'AsyncAPI' });
+    }
+    if (specifications.openapiPath) {
+      specs.push({ type: 'openapi', path: specifications.openapiPath, name: 'OpenAPI' });
+    }
+    if (specifications.graphqlPath) {
+      specs.push({ type: 'graphql', path: specifications.graphqlPath, name: 'GraphQL' });
+    }
+  }
+
+  return specs.map((spec) => ({
+    ...spec,
+    name: spec.name || getDefaultSpecificationName(spec.type),
+    filename: path.basename(spec.path),
+    filenameWithoutExtension: path.basename(spec.path, path.extname(spec.path)),
+  }));
+};
 
 export const getPreviousVersion = (version: string, versions: string[]) => {
   const index = versions.indexOf(version);
