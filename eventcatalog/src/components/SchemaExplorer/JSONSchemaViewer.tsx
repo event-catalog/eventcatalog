@@ -157,32 +157,32 @@ function processSchema(schema: any, rootSchema?: any): any {
     return mergeAllOfSchemas({ ...schema, processSchema: (s: any) => processSchema(s, root) });
   }
 
-  if (schema.oneOf) {
-    const processedVariants = schema.oneOf.map((variant: any) => {
+  if (schema.oneOf || schema.anyOf) {
+    const variantsArray = schema.oneOf || schema.anyOf;
+    const variantType = schema.oneOf ? 'oneOf' : 'anyOf';
+
+    const processedVariants = variantsArray.map((variant: any, index: number) => {
       const processedVariant = processSchema(variant, root);
       return {
-        title: processedVariant.title || variant.title || 'Unnamed Variant',
+        title: processedVariant.title || variant.title || processedVariant.$id || `Option ${index + 1}`,
+        description: processedVariant.description || variant.description,
         required: processedVariant.required || variant.required || [],
         properties: processedVariant.properties || {},
+        type: processedVariant.type || variant.type || 'object',
         ...processedVariant,
       };
-    });
-
-    const allProperties: Record<string, any> = {};
-    processedVariants.forEach((variant: any) => {
-      if (variant.properties) {
-        Object.assign(allProperties, variant.properties);
-      }
     });
 
     return {
       ...schema,
       type: schema.type || 'object',
-      properties: {
-        ...(schema.properties || {}),
-        ...allProperties,
-      },
+      properties: schema.properties
+        ? Object.fromEntries(
+            Object.entries(schema.properties).map(([key, prop]: [string, any]) => [key, processSchema(prop, root)])
+          )
+        : {},
       variants: processedVariants,
+      variantType,
     };
   }
 
@@ -203,9 +203,66 @@ function processSchema(schema: any, rootSchema?: any): any {
   return schema;
 }
 
+// NestedVariantSelector component for handling variants within array items
+const NestedVariantSelector = ({
+  variants,
+  variantType,
+  level,
+  expand,
+}: {
+  variants: any[];
+  variantType?: string;
+  level: number;
+  expand: boolean;
+}) => {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const selectedVariant = variants[selectedIndex];
+
+  return (
+    <div className="mt-2">
+      <div className="p-2 bg-[rgb(var(--ec-accent-subtle,var(--ec-content-hover)))] border border-[rgb(var(--ec-page-border))] rounded-md">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <span className="text-xs font-medium text-[rgb(var(--ec-page-text))]">
+            {variantType === 'anyOf' ? 'Any of' : 'One of'} {variants.length} options:
+          </span>
+          <select
+            value={selectedIndex}
+            onChange={(e) => setSelectedIndex(parseInt(e.target.value))}
+            className="form-select text-xs border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] rounded-md shadow-sm focus:border-[rgb(var(--ec-accent))] focus:ring focus:ring-[rgb(var(--ec-accent)/0.2)] py-1"
+          >
+            {variants.map((variant: any, index: number) => (
+              <option key={index} value={index}>
+                {variant.title}
+              </option>
+            ))}
+          </select>
+        </div>
+        {selectedVariant?.description && (
+          <p className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1">{selectedVariant.description}</p>
+        )}
+      </div>
+      {selectedVariant?.properties && (
+        <div className="mt-2">
+          {Object.entries(selectedVariant.properties).map(([propName, propDetails]: [string, any]) => (
+            <SchemaProperty
+              key={`${selectedIndex}-${propName}`}
+              name={propName}
+              details={propDetails}
+              isRequired={selectedVariant.required?.includes(propName) ?? false}
+              level={level}
+              expand={expand}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // SchemaProperty component
 const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, expand }: SchemaPropertyProps) => {
   const [isExpanded, setIsExpanded] = useState(expand);
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const contentId = useRef(`prop-${name}-${level}-${Math.random().toString(36).substring(2, 7)}`).current;
 
   useEffect(() => {
@@ -219,8 +276,11 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
     ((details.items.type === 'object' && details.items.properties) ||
       details.items.allOf ||
       details.items.oneOf ||
+      details.items.anyOf ||
+      details.items.variants ||
       details.items.$ref);
-  const isCollapsible = hasNestedProperties || hasArrayItemProperties;
+  const hasVariants = details.variants && details.variants.length > 0;
+  const isCollapsible = hasNestedProperties || hasArrayItemProperties || hasVariants;
 
   const indentationClass = `pl-${level * 3}`;
 
@@ -247,7 +307,7 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
             <div>
               <span className="font-semibold text-[rgb(var(--ec-page-text))] text-sm">{name}</span>
               <span className="ml-1.5 text-[rgb(var(--ec-accent))] font-mono text-xs">
-                {details.type}
+                {hasVariants ? (details.variantType === 'anyOf' ? 'anyOf' : 'oneOf') : details.type}
                 {details.type === 'array' && details.items?.type ? `[${details.items.type}]` : ''}
                 {details.format ? `<${details.format}>` : ''}
                 {details._refPath && (
@@ -325,9 +385,53 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
             )}
           </div>
 
-          {(hasNestedProperties || hasArrayItems) && (
+          {(hasNestedProperties || hasArrayItems || hasVariants) && (
             <div id={contentId} className={`nested-content mt-1 ${isCollapsible && !isExpanded ? 'hidden' : ''}`}>
+              {hasVariants && (
+                <div className="mt-2 mb-2 p-2 bg-[rgb(var(--ec-accent-subtle,var(--ec-content-hover)))] border border-[rgb(var(--ec-page-border))] rounded-md">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <span className="text-xs font-medium text-[rgb(var(--ec-page-text))]">
+                      {details.variantType === 'anyOf' ? 'Any of' : 'One of'} {details.variants.length} options:
+                    </span>
+                    <select
+                      value={selectedVariantIndex}
+                      onChange={(e) => setSelectedVariantIndex(parseInt(e.target.value))}
+                      className="form-select text-xs border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] rounded-md shadow-sm focus:border-[rgb(var(--ec-accent))] focus:ring focus:ring-[rgb(var(--ec-accent)/0.2)] py-1"
+                    >
+                      {details.variants.map((variant: any, index: number) => (
+                        <option key={index} value={index}>
+                          {variant.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {details.variants[selectedVariantIndex]?.description && (
+                    <p className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1">
+                      {details.variants[selectedVariantIndex].description}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {hasVariants && details.variants[selectedVariantIndex]?.properties && (
+                <div className="mt-1">
+                  {Object.entries(details.variants[selectedVariantIndex].properties).map(
+                    ([nestedName, nestedDetails]: [string, any]) => (
+                      <SchemaProperty
+                        key={`${selectedVariantIndex}-${nestedName}`}
+                        name={nestedName}
+                        details={nestedDetails}
+                        isRequired={details.variants[selectedVariantIndex]?.required?.includes(nestedName) ?? false}
+                        level={level + 1}
+                        expand={expand}
+                      />
+                    )
+                  )}
+                </div>
+              )}
+
               {hasNestedProperties &&
+                !hasVariants &&
                 details.properties &&
                 Object.entries(details.properties).map(([nestedName, nestedDetails]: [string, any]) => (
                   <SchemaProperty
@@ -355,11 +459,21 @@ const SchemaProperty = ({ name, details, isRequired, level, isListItem = false, 
                         expand={expand}
                       />
                     ))}
-                  {(details.items.allOf || details.items.oneOf || details.items.$ref) && !details.items.properties && (
-                    <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1">
-                      Complex array item schema detected. The properties should be processed by the parent SchemaViewer.
-                    </div>
+                  {details.items.variants && details.items.variants.length > 0 && (
+                    <NestedVariantSelector
+                      variants={details.items.variants}
+                      variantType={details.items.variantType}
+                      level={level + 1}
+                      expand={expand}
+                    />
                   )}
+                  {(details.items.allOf || details.items.oneOf || details.items.anyOf || details.items.$ref) &&
+                    !details.items.properties &&
+                    !details.items.variants && (
+                      <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1">
+                        Complex array item schema detected. The properties should be processed by the parent SchemaViewer.
+                      </div>
+                    )}
                 </div>
               )}
             </div>
@@ -421,7 +535,7 @@ export default function JSONSchemaViewer({
     return { displaySchema: display, isRootArray: isArray };
   }, [processedSchema]);
 
-  const { description, properties, required = [], variants } = displaySchema;
+  const { description, properties, required = [], variants, variantType } = displaySchema;
   const totalProperties = useMemo(() => countProperties(displaySchema), [displaySchema]);
 
   // Search functionality
@@ -667,14 +781,16 @@ export default function JSONSchemaViewer({
         )}
         {description && <p className="text-[rgb(var(--ec-page-text-muted))] text-xs mb-5">{description}</p>}
 
-        {variants && (
-          <div className="mb-4">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-[rgb(var(--ec-page-text-muted))]">(one of)</span>
+        {variants && variants.length > 0 && (
+          <div className="mb-4 p-3 bg-[rgb(var(--ec-accent-subtle,var(--ec-content-hover)))] border border-[rgb(var(--ec-page-border))] rounded-md">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <span className="text-sm font-medium text-[rgb(var(--ec-page-text))]">
+                {variantType === 'anyOf' ? 'Any of' : 'One of'} {variants.length} options:
+              </span>
               <select
                 value={selectedVariantIndex}
                 onChange={(e) => setSelectedVariantIndex(parseInt(e.target.value))}
-                className="form-select text-sm border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] rounded-md shadow-sm focus:border-[rgb(var(--ec-accent))] focus:ring focus:ring-[rgb(var(--ec-accent)/0.2)]"
+                className="form-select text-sm border-[rgb(var(--ec-input-border))] bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] rounded-md shadow-sm focus:border-[rgb(var(--ec-accent))] focus:ring focus:ring-[rgb(var(--ec-accent)/0.2)] flex-1 sm:flex-initial"
               >
                 {variants.map((variant: any, index: number) => (
                   <option key={index} value={index}>
@@ -683,27 +799,41 @@ export default function JSONSchemaViewer({
                 ))}
               </select>
             </div>
+            {variants[selectedVariantIndex]?.description && (
+              <p className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-2">{variants[selectedVariantIndex].description}</p>
+            )}
           </div>
         )}
 
-        {properties ? (
-          <div ref={propertiesContainerRef}>
-            {Object.entries(properties).map(([name, details]: [string, any]) => (
-              <SchemaProperty
-                key={name}
-                name={name}
-                details={details}
-                isRequired={
-                  variants ? variants[selectedVariantIndex]?.required?.includes(name) || false : required.includes(name)
-                }
-                level={0}
-                expand={expandAll}
-              />
-            ))}
-          </div>
-        ) : !isRootArray ? (
-          <p className="text-[rgb(var(--ec-page-text-muted))] text-sm">Schema does not contain any properties.</p>
-        ) : (
+        {(() => {
+          // Determine which properties to display
+          const propsToDisplay =
+            variants && variants.length > 0 && variants[selectedVariantIndex]?.properties
+              ? { ...properties, ...variants[selectedVariantIndex].properties }
+              : properties;
+          const requiredProps = variants && variants.length > 0 ? variants[selectedVariantIndex]?.required || [] : required;
+
+          if (propsToDisplay && Object.keys(propsToDisplay).length > 0) {
+            return (
+              <div ref={propertiesContainerRef}>
+                {Object.entries(propsToDisplay).map(([name, details]: [string, any]) => (
+                  <SchemaProperty
+                    key={`${selectedVariantIndex}-${name}`}
+                    name={name}
+                    details={details}
+                    isRequired={requiredProps.includes(name)}
+                    level={0}
+                    expand={expandAll}
+                  />
+                ))}
+              </div>
+            );
+          } else if (!isRootArray) {
+            return <p className="text-[rgb(var(--ec-page-text-muted))] text-sm">Schema does not contain any properties.</p>;
+          }
+          return null;
+        })()}
+        {!properties && !variants && isRootArray && (
           <div className="text-center py-8">
             <div className="text-[rgb(var(--ec-page-text-muted))] text-sm">
               <p>

@@ -17,6 +17,213 @@
         "format": "uuid",
         "description": "The unique identifier of the warehouse where the inventory is being added."
       },
+      "source": {
+        "description": "The source of the inventory being added (tests anyOf).",
+        "anyOf": [
+          {
+            "title": "Purchase Order",
+            "type": "object",
+            "description": "Inventory received from a purchase order",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["purchase_order"]
+              },
+              "purchaseOrderId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The purchase order ID"
+              },
+              "supplierId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The supplier ID"
+              },
+              "receivedDate": {
+                "type": "string",
+                "format": "date",
+                "description": "Date the goods were received"
+              }
+            },
+            "required": ["type", "purchaseOrderId", "supplierId"]
+          },
+          {
+            "title": "Transfer",
+            "type": "object",
+            "description": "Inventory transferred from another warehouse",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["transfer"]
+              },
+              "sourceWarehouseId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The warehouse transferring the inventory"
+              },
+              "transferId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The transfer request ID"
+              }
+            },
+            "required": ["type", "sourceWarehouseId", "transferId"]
+          },
+          {
+            "title": "Return",
+            "type": "object",
+            "description": "Inventory returned by a customer",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["return"]
+              },
+              "orderId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The original order ID"
+              },
+              "returnId": {
+                "type": "string",
+                "format": "uuid",
+                "description": "The return request ID"
+              },
+              "condition": {
+                "type": "string",
+                "enum": ["new", "refurbished", "damaged"],
+                "description": "Condition of the returned item"
+              }
+            },
+            "required": ["type", "orderId", "returnId", "condition"]
+          }
+        ]
+      },
+      "priority": {
+        "description": "The priority level for processing this inventory (tests oneOf).",
+        "oneOf": [
+          {
+            "title": "Standard Priority",
+            "type": "object",
+            "description": "Normal processing priority",
+            "properties": {
+              "level": {
+                "type": "string",
+                "enum": ["standard"]
+              },
+              "expectedProcessingDays": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 7,
+                "description": "Expected days to process"
+              }
+            },
+            "required": ["level"]
+          },
+          {
+            "title": "Express Priority",
+            "type": "object",
+            "description": "Expedited processing",
+            "properties": {
+              "level": {
+                "type": "string",
+                "enum": ["express"]
+              },
+              "guaranteedByDate": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Guaranteed processing completion date"
+              },
+              "rushFee": {
+                "type": "number",
+                "description": "Additional fee for rush processing"
+              }
+            },
+            "required": ["level", "guaranteedByDate"]
+          }
+        ]
+      },
+      "qualityChecks": {
+        "type": "array",
+        "description": "List of quality checks performed (tests anyOf in array items).",
+        "items": {
+          "anyOf": [
+            {
+              "title": "Visual Inspection",
+              "type": "object",
+              "description": "Manual visual inspection",
+              "properties": {
+                "checkType": {
+                  "type": "string",
+                  "enum": ["visual"]
+                },
+                "inspectorId": {
+                  "type": "string",
+                  "description": "ID of the inspector"
+                },
+                "passed": {
+                  "type": "boolean"
+                },
+                "notes": {
+                  "type": "string",
+                  "description": "Inspector notes"
+                }
+              },
+              "required": ["checkType", "inspectorId", "passed"]
+            },
+            {
+              "title": "Automated Scan",
+              "type": "object",
+              "description": "Automated barcode/QR scan",
+              "properties": {
+                "checkType": {
+                  "type": "string",
+                  "enum": ["automated_scan"]
+                },
+                "scannerId": {
+                  "type": "string",
+                  "description": "ID of the scanning device"
+                },
+                "barcodeMatch": {
+                  "type": "boolean",
+                  "description": "Whether barcode matched expected"
+                },
+                "scanTimestamp": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": ["checkType", "scannerId", "barcodeMatch"]
+            },
+            {
+              "title": "Weight Check",
+              "type": "object",
+              "description": "Weight verification check",
+              "properties": {
+                "checkType": {
+                  "type": "string",
+                  "enum": ["weight"]
+                },
+                "expectedWeight": {
+                  "type": "number",
+                  "description": "Expected weight in kg"
+                },
+                "actualWeight": {
+                  "type": "number",
+                  "description": "Actual measured weight in kg"
+                },
+                "tolerancePercent": {
+                  "type": "number",
+                  "description": "Allowed tolerance percentage"
+                },
+                "withinTolerance": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["checkType", "expectedWeight", "actualWeight", "withinTolerance"]
+            }
+          ]
+        }
+      },
       "timestamp": {
         "type": "string",
         "format": "date-time",
@@ -26,4 +233,3 @@
     "required": ["productId", "quantity", "warehouseId", "timestamp"],
     "additionalProperties": false
   }
-  
