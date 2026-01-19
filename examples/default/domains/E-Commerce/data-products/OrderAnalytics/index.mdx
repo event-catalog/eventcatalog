@@ -17,9 +17,11 @@ inputs:
   - id: PaymentProcessed
   - id: FraudDetectionService
   - id: payment-cache
+  - id: payment-domain-eventbus
 outputs:
   - id: OrderMetricsCalculated
   - id: NotificationService
+  - id: orders-domain-eventbus
   - id: orders-db
   - id: payments-db
 ---

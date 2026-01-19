@@ -62,19 +62,25 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
   const messageMap = createVersionedMap(messages);
   const containerMap = createVersionedMap(containers);
   const serviceMap = createVersionedMap(services);
+  const channelMap = createVersionedMap(channels);
 
   const inputsRaw = dataProduct?.data.inputs || [];
   const outputsRaw = dataProduct?.data.outputs || [];
 
   const resourceMap = mergeMaps<
-    CollectionEntry<CollectionMessageTypes> | CollectionEntry<'services'> | CollectionEntry<'containers'>
-  >(messageMap, serviceMap, containerMap);
+    | CollectionEntry<CollectionMessageTypes>
+    | CollectionEntry<'services'>
+    | CollectionEntry<'containers'>
+    | CollectionEntry<'channels'>
+  >(messageMap, serviceMap, containerMap, channelMap);
 
-  // Process inputs - messages, containers, services (etc)
+  // Process inputs - messages, containers, services, channels (etc)
   inputsRaw.forEach((inputConfig) => {
     let inputResource = findInMap(resourceMap, inputConfig.id, inputConfig.version) as
       | CollectionEntry<CollectionMessageTypes>
-      | CollectionEntry<'services'>;
+      | CollectionEntry<'services'>
+      | CollectionEntry<'containers'>
+      | CollectionEntry<'channels'>;
 
     const existingNode = nodes.find((n: any) => n.id === generateIdForNode(inputResource));
 
@@ -245,13 +251,14 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     type: 'data-products',
   });
 
-  // Process outputs - messages, services, containers that the data product produces
+  // Process outputs - messages, services, containers, channels that the data product produces
   outputsRaw.forEach((outputConfig) => {
-    // Find the output resource (can be message, service, or container)
+    // Find the output resource (can be message, service, container, or channel)
     const outputResource = findInMap(resourceMap, outputConfig.id, outputConfig.version) as
       | CollectionEntry<CollectionMessageTypes>
       | CollectionEntry<'services'>
-      | CollectionEntry<'containers'>;
+      | CollectionEntry<'containers'>
+      | CollectionEntry<'channels'>;
 
     if (!outputResource) return;
 

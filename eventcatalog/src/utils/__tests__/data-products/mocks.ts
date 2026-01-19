@@ -177,6 +177,9 @@ export const mockDataProducts = [
         {
           id: 'OrderDatabase',
         },
+        {
+          id: 'EmailChannel',
+        },
       ],
       outputs: [
         {
@@ -188,6 +191,9 @@ export const mockDataProducts = [
         },
         {
           id: 'PaymentDatabase',
+        },
+        {
+          id: 'OrderChannel',
         },
       ],
     },

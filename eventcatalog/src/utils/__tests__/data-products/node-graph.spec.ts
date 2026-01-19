@@ -194,6 +194,52 @@ describe('Data Products NodeGraph', () => {
 
         expect(edges).toEqual(expectedEdges);
       });
+
+      it('should return nodes and edges for channels that are a direct input to the data product', async () => {
+        const { nodes, edges } = await getNodesAndEdges({ id: 'OrderDataProduct', version: '1.0.0' });
+
+        // The middle node itself, the data product
+        const expectedDataProductNode = {
+          id: 'OrderDataProduct-1.0.0',
+          sourcePosition: 'right',
+          targetPosition: 'left',
+          data: { mode: 'simple', dataProduct: { ...mockDataProducts[0].data } },
+          position: { x: expect.any(Number), y: expect.any(Number) },
+          type: 'data-products',
+        };
+
+        // The Channel as an input to the data product (EmailChannel is mockChannels[0])
+        const expectedInputNode = {
+          id: 'EmailChannel-1.0.0',
+          type: 'channels',
+          sourcePosition: 'right',
+          targetPosition: 'left',
+          data: { mode: 'simple', channel: { ...mockChannels[0].data } },
+          position: { x: expect.any(Number), y: expect.any(Number) },
+        };
+
+        const expectedEdges = expect.arrayContaining([
+          // The channel directly to the data product
+          expect.objectContaining({
+            label: 'input',
+            id: 'EmailChannel-1.0.0-OrderDataProduct-1.0.0',
+            source: 'EmailChannel-1.0.0',
+            target: 'OrderDataProduct-1.0.0',
+          }),
+        ]);
+
+        expect(nodes).toEqual(
+          expect.arrayContaining([
+            // Nodes on the left (inputs)
+            expect.objectContaining(expectedInputNode),
+
+            // The data product node itself
+            expect.objectContaining(expectedDataProductNode),
+          ])
+        );
+
+        expect(edges).toEqual(expectedEdges);
+      });
     });
 
     describe('output (output ports)', () => {
@@ -320,6 +366,52 @@ describe('Data Products NodeGraph', () => {
             id: 'OrderDataProduct-1.0.0-PaymentDatabase-1.0.0',
             source: 'OrderDataProduct-1.0.0',
             target: 'PaymentDatabase-1.0.0',
+          }),
+        ]);
+
+        expect(nodes).toEqual(
+          expect.arrayContaining([
+            // Nodes on the right (outputs)
+            expect.objectContaining(expectedOutputNode),
+
+            // The data product node itself
+            expect.objectContaining(expectedDataProductNode),
+          ])
+        );
+
+        expect(edges).toEqual(expectedEdges);
+      });
+
+      it('should return nodes and edges for channels that are a direct output from the data product', async () => {
+        const { nodes, edges } = await getNodesAndEdges({ id: 'OrderDataProduct', version: '1.0.0' });
+
+        // The middle node itself, the data product
+        const expectedDataProductNode = {
+          id: 'OrderDataProduct-1.0.0',
+          sourcePosition: 'right',
+          targetPosition: 'left',
+          data: { mode: 'simple', dataProduct: { ...mockDataProducts[0].data } },
+          position: { x: expect.any(Number), y: expect.any(Number) },
+          type: 'data-products',
+        };
+
+        // The Channel as an output from the data product (OrderChannel is mockChannels[1])
+        const expectedOutputNode = {
+          id: 'OrderChannel-1.0.0',
+          type: 'channels',
+          sourcePosition: 'right',
+          targetPosition: 'left',
+          data: { mode: 'simple', channel: { ...mockChannels[1].data } },
+          position: { x: expect.any(Number), y: expect.any(Number) },
+        };
+
+        const expectedEdges = expect.arrayContaining([
+          // The data product directly to the channel
+          expect.objectContaining({
+            label: 'output',
+            id: 'OrderDataProduct-1.0.0-OrderChannel-1.0.0',
+            source: 'OrderDataProduct-1.0.0',
+            target: 'OrderChannel-1.0.0',
           }),
         ]);
 
