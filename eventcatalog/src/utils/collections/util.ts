@@ -198,7 +198,7 @@ export const collectionToResourceMap = {
   containers: 'container',
   entities: 'entity',
   diagrams: 'diagram',
-  'data-products': 'data-products',
+  'data-products': 'data-product',
 } as const;
 
 export const getDeprecatedDetails = (item: CollectionEntry<CollectionTypes>) => {
