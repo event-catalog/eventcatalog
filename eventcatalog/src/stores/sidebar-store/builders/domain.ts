@@ -18,6 +18,9 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
   const servicesInDomain = domain.data.services || [];
   const renderServices = servicesInDomain.length > 0 && shouldRenderSideBarSection(domain, 'services');
 
+  const dataProductsInDomain = domain.data['data-products'] || [];
+  const renderDataProducts = dataProductsInDomain.length > 0 && shouldRenderSideBarSection(domain, 'data-products');
+
   const subDomains = domain.data.domains || [];
   const renderSubDomains = subDomains.length > 0 && shouldRenderSideBarSection(domain, 'subdomains');
 
@@ -156,6 +159,14 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
         title: 'Services In Domain',
         icon: 'Server',
         pages: servicesInDomain.map((service) => `service:${(service as any).data.id}:${(service as any).data.version}`),
+      },
+      renderDataProducts && {
+        type: 'group',
+        title: 'Data Products',
+        icon: 'Package',
+        pages: dataProductsInDomain.map(
+          (dataProduct) => `data-product:${(dataProduct as any).data.id}:${(dataProduct as any).data.version}`
+        ),
       },
       sendsMessages.length > 0 &&
         renderMessages && {

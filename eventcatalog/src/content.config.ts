@@ -362,6 +362,22 @@ const queries = defineCollection({
     .merge(baseSchema),
 });
 
+const dataProducts = defineCollection({
+  loader: glob({
+    pattern: ['**/data-products/*/index.(md|mdx)', '**/data-products/*/versioned/*/index.(md|mdx)'],
+    base: projectDirBase,
+    generateId: ({ data }) => {
+      return `${data.id}-${data.version}`;
+    },
+  }),
+  schema: z
+    .object({
+      inputs: z.array(pointer).optional(),
+      outputs: z.array(pointer).optional(),
+    })
+    .merge(baseSchema),
+});
+
 const services = defineCollection({
   loader: glob({
     pattern: [
@@ -489,6 +505,7 @@ const domains = defineCollection({
       services: z.array(pointer).optional(),
       domains: z.array(pointer).optional(),
       entities: z.array(pointer).optional(),
+      'data-products': z.array(pointer).optional(),
       flows: z.array(pointer).optional(),
       sends: z.array(sendsPointer).optional(),
       receives: z.array(receivesPointer).optional(),
@@ -724,6 +741,9 @@ export const collections = {
   pages,
   changelogs,
   containers,
+
+  // Data Product Collections
+  'data-products': dataProducts,
 
   // DDD Collections
   ubiquitousLanguages,

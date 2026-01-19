@@ -20,7 +20,16 @@ export class Page extends HybridPage {
       flows: getFlows,
     };
 
-    const itemTypes: PageTypesWithFlows[] = ['events', 'commands', 'queries', 'services', 'domains', 'flows', 'containers'];
+    const itemTypes: PageTypesWithFlows[] = [
+      'events',
+      'commands',
+      'queries',
+      'services',
+      'domains',
+      'flows',
+      'containers',
+      'data-products',
+    ];
     const allItems = await Promise.all(itemTypes.map((type) => loaders[type]()));
 
     return allItems.flatMap((items, index) =>

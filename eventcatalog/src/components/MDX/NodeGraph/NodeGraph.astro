@@ -13,6 +13,7 @@ import {
 import { getNodesAndEdges as getNodesAndEdgesForDomainEntityMap } from '@utils/node-graphs/domain-entity-map';
 import { getDomainsCanvasData } from '@utils/node-graphs/domains-canvas';
 import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs/flows-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForDataProduct } from '@utils/node-graphs/data-products-node-graph';
 import { buildUrl } from '@utils/url-builder';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
@@ -61,6 +62,7 @@ const getNodesAndEdgesFunctions = {
   domains: getNodesAndEdgesForDomain,
   flows: getNodesAndEdgesForFlows,
   containers: getNodesAndEdgesForContainer,
+  'data-products': getNodesAndEdgesForDataProduct,
 };
 
 let links: { label: string; url: string }[] = [];

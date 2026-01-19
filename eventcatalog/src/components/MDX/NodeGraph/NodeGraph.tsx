@@ -39,6 +39,7 @@ import DataNode from './Nodes/Data';
 import ViewNode from './Nodes/View';
 import ActorNode from './Nodes/Actor';
 import ExternalSystemNode2 from './Nodes/ExternalSystem2';
+import DataProductNode from './Nodes/DataProduct';
 import { Note as NoteNode } from '@eventcatalog/visualizer';
 
 import type { CollectionEntry } from 'astro:content';
@@ -118,6 +119,8 @@ const NodeGraphBuilder = ({
         data: DataNode,
         view: ViewNode,
         actor: ActorNode,
+        'data-product': DataProductNode,
+        'data-products': DataProductNode,
         note: (props: any) => <NoteNode {...props} readOnly={true} />,
       }) as unknown as NodeTypes,
     []
@@ -462,6 +465,7 @@ const NodeGraphBuilder = ({
       actor: 'bg-yellow-500',
       step: 'bg-gray-700',
       data: 'bg-blue-600',
+      'data-products': 'bg-indigo-600',
     };
 
     let legendForDomains: { [key: string]: { count: number; colorClass: string; groupId: string } } = {};

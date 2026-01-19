@@ -7,6 +7,7 @@ import { getFlows } from '@utils/collections/flows';
 import { getUsers } from '@utils/collections/users';
 import { getTeams } from '@utils/collections/teams';
 import { getDiagrams } from '@utils/collections/diagrams';
+import { getDataProducts } from '@utils/collections/data-products';
 import { buildUrl } from '@utils/url-builder';
 import type { NavigationData, NavNode, ChildRef } from './builders/shared';
 import { buildDomainNode } from './builders/domain';
@@ -14,6 +15,7 @@ import { buildServiceNode } from './builders/service';
 import { buildMessageNode } from './builders/message';
 import { buildContainerNode } from './builders/container';
 import { buildFlowNode } from './builders/flow';
+import { buildDataProductNode } from './builders/data-product';
 import config from '@config';
 import { getDesigns } from '@utils/collections/designs';
 import { getChannels } from '@utils/collections/channels';
@@ -31,19 +33,31 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     return memoryCache;
   }
 
-  const [domains, services, { events, commands, queries }, containers, flows, users, teams, designs, channels, diagrams] =
-    await Promise.all([
-      getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
-      getServices({ getAllVersions: false }),
-      getMessages({ getAllVersions: false }),
-      getContainers({ getAllVersions: false }),
-      getFlows({ getAllVersions: false }),
-      getUsers(),
-      getTeams(),
-      getDesigns(),
-      getChannels({ getAllVersions: false }),
-      getDiagrams({ getAllVersions: false }),
-    ]);
+  const [
+    domains,
+    services,
+    { events, commands, queries },
+    containers,
+    flows,
+    users,
+    teams,
+    designs,
+    channels,
+    diagrams,
+    dataProducts,
+  ] = await Promise.all([
+    getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
+    getServices({ getAllVersions: false }),
+    getMessages({ getAllVersions: false }),
+    getContainers({ getAllVersions: false }),
+    getFlows({ getAllVersions: false }),
+    getUsers(),
+    getTeams(),
+    getDesigns(),
+    getChannels({ getAllVersions: false }),
+    getDiagrams({ getAllVersions: false }),
+    getDataProducts({ getAllVersions: false }),
+  ]);
 
   // Calculate derived lists to avoid extra fetches
   const allSubDomainIds = new Set(domains.flatMap((d) => (d.data.domains || []).map((sd: any) => sd.data.id)));
@@ -60,6 +74,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     flows,
     containers,
     diagrams,
+    dataProducts,
   };
 
   // Process all domains with their owners first (async)
@@ -160,6 +175,26 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       if (container.data.latestVersion === container.data.version) {
         // Store reference to versioned key instead of duplicating the full node
         acc[`container:${container.data.id}`] = versionedKey;
+      }
+      return acc;
+    },
+    {} as Record<string, NavNode | string>
+  );
+
+  // Get owners for data products
+  const dataProductWithOwners = await Promise.all(
+    dataProducts.map(async (dataProduct) => {
+      const owners = await Promise.all((dataProduct.data.owners || []).map((owner) => getOwner(owner)));
+      return { dataProduct, owners: owners.filter((o) => o !== undefined) };
+    })
+  );
+
+  const dataProductNodes = dataProductWithOwners.reduce(
+    (acc, { dataProduct, owners }) => {
+      const versionedKey = `data-product:${dataProduct.data.id}:${dataProduct.data.version}`;
+      acc[versionedKey] = buildDataProductNode(dataProduct, owners);
+      if (dataProduct.data.latestVersion === dataProduct.data.version) {
+        acc[`data-product:${dataProduct.data.id}`] = versionedKey;
       }
       return acc;
     },
@@ -285,6 +320,13 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     pages: containers.map((container) => `container:${container.data.id}:${container.data.version}`),
   });
 
+  const dataProductsList = createLeaf(dataProducts, {
+    type: 'item',
+    title: 'Data Products',
+    icon: 'Package',
+    pages: dataProducts.map((dataProduct) => `data-product:${dataProduct.data.id}:${dataProduct.data.version}`),
+  });
+
   const designsList = createLeaf(designs, {
     type: 'item',
     title: 'Designs',
@@ -346,6 +388,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     'list:channels',
     'list:flows',
     'list:containers',
+    'list:data-products',
     'list:designs',
     'list:people',
   ];
@@ -356,6 +399,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     channelList,
     flowsList,
     containersList,
+    dataProductsList,
     designsList,
     peopleList,
   ];
@@ -381,6 +425,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     ...(messagesList ? { 'list:messages': messagesList as NavNode } : {}),
     ...(flowsList ? { 'list:flows': flowsList } : {}),
     ...(containersList ? { 'list:containers': containersList } : {}),
+    ...(dataProductsList ? { 'list:data-products': dataProductsList } : {}),
     ...(designsList ? { 'list:designs': designsList } : {}),
     ...(teamsList ? { 'list:teams': teamsList } : {}),
     ...(usersList ? { 'list:users': usersList } : {}),
@@ -415,6 +460,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     ...messageNodes,
     ...channelNodes,
     ...containerNodes,
+    ...dataProductNodes,
     ...flowNodes,
     ...userNodes,
     ...teamNodes,

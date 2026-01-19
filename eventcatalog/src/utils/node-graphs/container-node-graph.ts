@@ -67,7 +67,7 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
     }
   });
 
-  // The message itself
+  // The container itself
   nodes.push({
     id: generateIdForNode(container),
     sourcePosition: 'right',

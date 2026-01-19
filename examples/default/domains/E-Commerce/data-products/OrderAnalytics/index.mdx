@@ -1,0 +1,107 @@
+---
+id: order-analytics
+name: Order Analytics
+version: 1.0.0
+summary: Aggregated order metrics and KPIs for business intelligence, reporting dashboards, and downstream analytics systems.
+owners:
+  - dboyne
+badges:
+  - content: Analytics
+    backgroundColor: purple
+    textColor: purple
+  - content: dbt
+    backgroundColor: orange
+    textColor: orange
+inputs:
+  - id: OrderConfirmed
+  - id: PaymentProcessed
+  - id: FraudDetectionService
+  - id: payment-cache
+outputs:
+  - id: orders-db
+  - id: payments-db
+---
+
+The Order Analytics data product transforms raw order and payment events into aggregated metrics optimized for reporting and business intelligence.
+
+<NodeGraph />
+
+## Overview
+
+This data product consumes order lifecycle events and produces denormalized, query-optimized tables for analytics workloads. It serves as the single source of truth for order-related KPIs across the organization.
+
+## Input Events
+
+| Event | Description | Volume |
+|-------|-------------|--------|
+| OrderConfirmed | Triggered when order is validated | ~50k/day |
+| PaymentProcessed | Payment completion status | ~48k/day |
+
+## Output Tables
+
+### `fact_orders`
+
+The primary fact table containing one row per order with pre-computed metrics.
+
+```sql
+CREATE TABLE fact_orders (
+  order_id          VARCHAR PRIMARY KEY,
+  customer_id       VARCHAR NOT NULL,
+  order_date        DATE NOT NULL,
+  order_timestamp   TIMESTAMP NOT NULL,
+  status            VARCHAR(20),
+  item_count        INTEGER,
+  gross_amount      DECIMAL(12,2),
+  discount_amount   DECIMAL(12,2),
+  net_amount        DECIMAL(12,2),
+  currency          CHAR(3),
+  payment_method    VARCHAR(50),
+  shipping_method   VARCHAR(50),
+  region            VARCHAR(50),
+  -- Pre-aggregated flags for filtering
+  is_first_order    BOOLEAN,
+  is_repeat_customer BOOLEAN,
+  -- Timestamps
+  created_at        TIMESTAMP DEFAULT NOW(),
+  updated_at        TIMESTAMP DEFAULT NOW()
+);
+```
+
+### `agg_daily_sales`
+
+Pre-aggregated daily sales metrics for dashboard performance.
+
+```sql
+CREATE TABLE agg_daily_sales (
+  date_key          DATE PRIMARY KEY,
+  total_orders      INTEGER,
+  total_revenue     DECIMAL(14,2),
+  avg_order_value   DECIMAL(10,2),
+  unique_customers  INTEGER,
+  new_customers     INTEGER,
+  repeat_customers  INTEGER,
+  refund_count      INTEGER,
+  refund_amount     DECIMAL(12,2)
+);
+```
+
+## SLAs
+
+| Metric | Target |
+|--------|--------|
+| Data Freshness | < 15 minutes |
+| Availability | 99.9% |
+| Daily Aggregation | Complete by 00:30 UTC |
+
+## Lineage
+
+```
+OrderConfirmed ──┬──► fact_orders ──► agg_daily_sales
+PaymentProcessed ─┘
+```
+
+## Access Patterns
+
+- **BI Tools**: Connect via read replica connection string
+- **dbt**: Downstream models reference `ref('fact_orders')`
+- **Airflow**: Daily aggregation DAG runs at 00:15 UTC

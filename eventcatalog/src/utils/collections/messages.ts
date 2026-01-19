@@ -40,3 +40,7 @@ export const getMessages = async ({ getAllVersions = true, hydrateServices = tru
     queries,
   };
 };
+
+export const isCollectionAMessage = (collection: string): boolean => {
+  return ['events', 'commands', 'queries'].includes(collection);
+};

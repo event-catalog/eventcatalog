@@ -22,6 +22,7 @@ export class Page extends HybridPage {
       'channels',
       'entities',
       'containers',
+      'data-products',
     ];
     const allItems = await Promise.all(itemTypes.map((type) => pageDataLoader[type]()));
 
