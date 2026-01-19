@@ -1,0 +1,38 @@
+---
+id: OrderMetricsCalculated
+name: Order Metrics Calculated
+version: 1.0.0
+summary: Emitted when order analytics data product completes daily metric calculations, signaling downstream consumers that fresh data is available.
+owners:
+  - dboyne
+badges:
+  - content: Analytics
+    backgroundColor: purple
+    textColor: purple
+---
+
+The `OrderMetricsCalculated` event is emitted by the Order Analytics data product after completing its daily aggregation pipeline. This event signals to downstream consumers that fresh metrics are available for consumption.
+
+## Payload
+
+```json
+{
+  "calculationId": "calc-2024-01-15-001",
+  "calculationDate": "2024-01-15",
+  "completedAt": "2024-01-15T00:28:45Z",
+  "metrics": {
+    "totalOrders": 52341,
+    "totalRevenue": 1234567.89,
+    "averageOrderValue": 23.59,
+    "uniqueCustomers": 41203
+  },
+  "tablesUpdated": ["fact_orders", "agg_daily_sales"],
+  "recordsProcessed": 52341
+}
+```
+
+## Use Cases
+
+- **Dashboard refresh**: BI dashboards subscribe to trigger cache invalidation
+- **Alerting**: Anomaly detection services check for unusual metrics
+- **Downstream pipelines**: Other data products wait for this signal before running

@@ -196,6 +196,147 @@ describe('Data Products NodeGraph', () => {
       });
     });
 
+    describe('output (output ports)', () => {
+      it('should return nodes and edges for output messages from the data product', async () => {
+        const { nodes, edges } = await getNodesAndEdges({ id: 'OrderDataProduct', version: '1.0.0' });
+
+        // The middle node itself, the data product
+        const expectedDataProductNode = {
+          id: 'OrderDataProduct-1.0.0',
+          sourcePosition: 'right',
+          targetPosition: 'left',
+          data: { mode: 'simple', dataProduct: { ...mockDataProducts[0].data } },
+          position: { x: expect.any(Number), y: expect.any(Number) },
+          type: 'data-products',
+        };
+
+        // An Event as an output from the data product
+        const expectedOutputNode = {
+          id: 'OrderAnalyticsEvent-1.0.0',
+          type: 'events',
+          sourcePosition: 'right',
+          targetPosition: 'left',
+          data: { mode: 'simple', message: { ...mockEvents[13].data } },
+          position: { x: expect.any(Number), y: expect.any(Number) },
+        };
+
+        const expectedEdges = expect.arrayContaining([
+          // The data product to the output message
+          expect.objectContaining({
+            label: 'output',
+            animated: false,
+            id: 'OrderDataProduct-1.0.0-OrderAnalyticsEvent-1.0.0',
+            source: 'OrderDataProduct-1.0.0',
+            target: 'OrderAnalyticsEvent-1.0.0',
+          }),
+        ]);
+
+        expect(nodes).toEqual(
+          expect.arrayContaining([
+            // The data product node itself
+            expect.objectContaining(expectedDataProductNode),
+
+            // Nodes on the right (outputs)
+            expect.objectContaining(expectedOutputNode),
+          ])
+        );
+
+        expect(edges).toEqual(expectedEdges);
+      });
+
+      it('should return nodes and edges for services that are a direct output from the data product', async () => {
+        const { nodes, edges } = await getNodesAndEdges({ id: 'OrderDataProduct', version: '1.0.0' });
+
+        // The middle node itself, the data product
+        const expectedDataProductNode = {
+          id: 'OrderDataProduct-1.0.0',
+          sourcePosition: 'right',
+          targetPosition: 'left',
+          data: { mode: 'simple', dataProduct: { ...mockDataProducts[0].data } },
+          position: { x: expect.any(Number), y: expect.any(Number) },
+          type: 'data-products',
+        };
+
+        // The Service as an output from the data product (ReportingService is mockServices[5])
+        const expectedOutputNode = {
+          id: 'ReportingService-1.0.0',
+          type: 'services',
+          sourcePosition: 'right',
+          targetPosition: 'left',
+          data: { mode: 'simple', service: { ...mockServices[5].data } },
+          position: { x: expect.any(Number), y: expect.any(Number) },
+        };
+
+        const expectedEdges = expect.arrayContaining([
+          // The data product directly to the service
+          expect.objectContaining({
+            label: 'output',
+            id: 'OrderDataProduct-1.0.0-ReportingService-1.0.0',
+            source: 'OrderDataProduct-1.0.0',
+            target: 'ReportingService-1.0.0',
+          }),
+        ]);
+
+        expect(nodes).toEqual(
+          expect.arrayContaining([
+            // Nodes on the right (outputs)
+            expect.objectContaining(expectedOutputNode),
+
+            // The data product node itself
+            expect.objectContaining(expectedDataProductNode),
+          ])
+        );
+
+        expect(edges).toEqual(expectedEdges);
+      });
+
+      it('should return nodes and edges for containers that are a direct output from the data product', async () => {
+        const { nodes, edges } = await getNodesAndEdges({ id: 'OrderDataProduct', version: '1.0.0' });
+
+        // The middle node itself, the data product
+        const expectedDataProductNode = {
+          id: 'OrderDataProduct-1.0.0',
+          sourcePosition: 'right',
+          targetPosition: 'left',
+          data: { mode: 'simple', dataProduct: { ...mockDataProducts[0].data } },
+          position: { x: expect.any(Number), y: expect.any(Number) },
+          type: 'data-products',
+        };
+
+        // The Container as an output from the data product (PaymentDatabase is mockContainers[1])
+        const expectedOutputNode = {
+          id: 'PaymentDatabase-1.0.0',
+          sourcePosition: 'right',
+          targetPosition: 'left',
+          data: { mode: 'simple', data: { ...mockContainers[1].data } },
+          position: { x: expect.any(Number), y: expect.any(Number) },
+          type: 'data' as any,
+        };
+
+        const expectedEdges = expect.arrayContaining([
+          // The data product directly to the container
+          expect.objectContaining({
+            label: 'output',
+            id: 'OrderDataProduct-1.0.0-PaymentDatabase-1.0.0',
+            source: 'OrderDataProduct-1.0.0',
+            target: 'PaymentDatabase-1.0.0',
+          }),
+        ]);
+
+        expect(nodes).toEqual(
+          expect.arrayContaining([
+            // Nodes on the right (outputs)
+            expect.objectContaining(expectedOutputNode),
+
+            // The data product node itself
+            expect.objectContaining(expectedDataProductNode),
+          ])
+        );
+
+        expect(edges).toEqual(expectedEdges);
+      });
+    });
+
     // it('if a message is sent and received by the same service it will render a custom edge', async () => {
     //   const { nodes, edges } = await getNodesAndEdges({ id: 'NotificationsService', version: '1.0.0' });
 

@@ -12,8 +12,7 @@ import {
 import { findInMap, createVersionedMap, mergeMaps, collectionToResourceMap } from '@utils/collections/util';
 import { MarkerType } from '@xyflow/react';
 import { getMessages, isCollectionAMessage } from '@utils/collections/messages';
-import { getProducersOfMessage, getServices } from '@utils/collections/services';
-import { getContainers } from '@utils/collections/containers';
+import { getProducersOfMessage } from '@utils/collections/services';
 import type { CollectionMessageTypes } from '@types';
 import { getNodesAndEdgesForProducedMessage } from './message-node-graph';
 
@@ -246,95 +245,51 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     type: 'data-products',
   });
 
-  // // Process outputs - messages or containers that the data product produces
-  // outputsRaw.forEach((outputConfig) => {
-  //   const toServices = outputConfig.to || [];
+  // Process outputs - messages, services, containers that the data product produces
+  outputsRaw.forEach((outputConfig) => {
+    // Find the output resource (can be message, service, or container)
+    const outputResource = findInMap(resourceMap, outputConfig.id, outputConfig.version) as
+      | CollectionEntry<CollectionMessageTypes>
+      | CollectionEntry<'services'>
+      | CollectionEntry<'containers'>;
 
-  //   // Try to find in messages first, then containers (auto-detect type)
-  //   let resource = findInMap(messageMap, outputConfig.id, outputConfig.version);
-  //   let isContainer = false;
+    if (!outputResource) return;
 
-  //   if (!resource) {
-  //     resource = findInMap(containerMap, outputConfig.id, outputConfig.version);
-  //     isContainer = !!resource;
-  //   }
+    // Add the node if it doesn't exist
+    const existingNode = nodes.find((n: any) => n.id === generateIdForNode(outputResource));
+    if (!existingNode) {
+      const nodeDataKey = getNodePropertyFromCollectionType(outputResource?.collection);
 
-  //   if (!resource) return;
+      nodes.push({
+        id: generateIdForNode(outputResource),
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: { mode, [nodeDataKey]: { ...outputResource?.data } },
+        type: (outputResource?.collection as any) === 'containers' ? 'data' : outputResource?.collection,
+      });
+    }
 
-  //   // Add the node (message or container)
-  //   const existingNode = nodes.find((n: any) => n.id === generateIdForNode(resource));
-  //   if (!existingNode) {
-  //     if (isContainer) {
-  //       nodes.push({
-  //         id: generateIdForNode(resource),
-  //         sourcePosition: 'right',
-  //         targetPosition: 'left',
-  //         data: { mode, data: { ...resource.data } },
-  //         type: 'data',
-  //       });
-  //     } else {
-  //       nodes.push({
-  //         id: generateIdForNode(resource),
-  //         sourcePosition: 'right',
-  //         targetPosition: 'left',
-  //         data: { mode, message: { ...resource.data } },
-  //         type: resource.collection,
-  //       });
-  //     }
-  //   }
-
-  //   // Add edge from data product to resource
-  //   edges.push(
-  //     createEdge({
-  //       id: generatedIdForEdge(dataProduct, resource),
-  //       source: generateIdForNode(dataProduct),
-  //       target: generateIdForNode(resource),
-  //       label: 'output',
-  //       type: 'multiline',
-  //       markerEnd: {
-  //         type: MarkerType.ArrowClosed,
-  //         color: '#666',
-  //         width: 40,
-  //         height: 40,
-  //       },
-  //     })
-  //   );
-
-  //   // If there are target services specified, add them
-  //   toServices.forEach((toService) => {
-  //     const service = findInMap(serviceMap, toService.id, toService.version);
-  //     if (service) {
-  //       // Check if node already exists
-  //       const existingServiceNode = nodes.find((n: any) => n.id === generateIdForNode(service));
-  //       if (!existingServiceNode) {
-  //         nodes.push({
-  //           id: generateIdForNode(service),
-  //           sourcePosition: 'right',
-  //           targetPosition: 'left',
-  //           data: { mode, service: { ...service.data } },
-  //           type: 'services',
-  //         });
-  //       }
-
-  //       // Add edge from resource to service
-  //       edges.push(
-  //         createEdge({
-  //           id: generatedIdForEdge(resource, service),
-  //           source: generateIdForNode(resource),
-  //           target: generateIdForNode(service),
-  //           label: 'consumes',
-  //           type: 'multiline',
-  //           markerEnd: {
-  //             type: MarkerType.ArrowClosed,
-  //             color: '#666',
-  //             width: 40,
-  //             height: 40,
-  //           },
-  //         })
-  //       );
-  //     }
-  //   });
-  // });
+    // Add edge from data product to the output resource
+    edges.push(
+      createEdge({
+        id: generatedIdForEdge(dataProduct, outputResource),
+        source: generateIdForNode(dataProduct),
+        target: generateIdForNode(outputResource),
+        label: 'output',
+        type: 'animated',
+        data: {
+          customColor: getColorFromString(outputResource.data.id),
+          rootSourceAndTarget: { source: dataProduct, target: outputResource },
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: '#666',
+          width: 40,
+          height: 40,
+        },
+      })
+    );
+  });
 
   nodes.forEach((node: any) => {
     flow.setNode(node.id, { width: 150, height: 100 });

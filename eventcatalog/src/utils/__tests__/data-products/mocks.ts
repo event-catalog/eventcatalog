@@ -130,6 +130,32 @@ export const mockServices = [
       ],
     },
   },
+  // Service that consumes OrderAnalyticsEvent (for testing data product outputs)
+  {
+    id: 'services/Analytics/AnalyticsService/index.mdx',
+    slug: 'services/Analytics/AnalyticsService',
+    collection: 'services',
+    data: {
+      id: 'AnalyticsService',
+      version: '1.0.0',
+      receives: [
+        {
+          id: 'OrderAnalyticsEvent',
+          version: '1.0.0',
+        },
+      ],
+    },
+  },
+  // Service as direct output from data product
+  {
+    id: 'services/Reporting/ReportingService/index.mdx',
+    slug: 'services/Reporting/ReportingService',
+    collection: 'services',
+    data: {
+      id: 'ReportingService',
+      version: '1.0.0',
+    },
+  },
 ];
 
 export const mockDataProducts = [
@@ -154,8 +180,14 @@ export const mockDataProducts = [
       ],
       outputs: [
         {
-          id: 'OrderCreatedEvent',
-          version: '0.0.1',
+          id: 'OrderAnalyticsEvent',
+          version: '1.0.0',
+        },
+        {
+          id: 'ReportingService',
+        },
+        {
+          id: 'PaymentDatabase',
         },
       ],
     },
@@ -283,6 +315,15 @@ export const mockEvents = [
           version: '1.0.0',
         },
       ],
+    },
+  },
+  // 13 - Event for data product output testing
+  {
+    slug: 'OrderAnalyticsEvent',
+    collection: 'events',
+    data: {
+      id: 'OrderAnalyticsEvent',
+      version: '1.0.0',
     },
   },
 ];
