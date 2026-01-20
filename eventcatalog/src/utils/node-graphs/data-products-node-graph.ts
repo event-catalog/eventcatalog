@@ -120,38 +120,6 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
       }
     }
 
-    // // Try to find in messages first, then containers (auto-detect type)
-    // let isContainer = false;
-
-    // if (!resource) {
-    //   resource = findInMap(containerMap, inputConfig.id, inputConfig.version);
-    //   isContainer = !!resource;
-    // }
-
-    // if (!resource) return;
-
-    // // Add the node (message or container)
-    // const existingNode = nodes.find((n: any) => n.id === generateIdForNode(resource));
-    // if (!existingNode) {
-    //   if (isContainer) {
-    //     nodes.push({
-    //       id: generateIdForNode(resource),
-    //       sourcePosition: 'right',
-    //       targetPosition: 'left',
-    //       data: { mode, data: { ...resource.data } },
-    //       type: 'data',
-    //     });
-    //   } else {
-    //     nodes.push({
-    //       id: generateIdForNode(resource),
-    //       sourcePosition: 'right',
-    //       targetPosition: 'left',
-    //       data: { mode, message: { ...resource.data } },
-    //       type: resource.collection,
-    //     });
-    //   }
-    // }
-
     // Add edge from resource to data product
     edges.push(
       createEdge({
@@ -172,74 +140,6 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         },
       })
     );
-
-    // // If there are source services specified in the config, add them
-    // fromServices.forEach((fromService) => {
-    //   const service = findInMap(serviceMap, fromService.id, fromService.version);
-    //   if (service) {
-    //     // Check if node already exists
-    //     const existingServiceNode = nodes.find((n: any) => n.id === generateIdForNode(service));
-    //     if (!existingServiceNode) {
-    //       nodes.push({
-    //         id: generateIdForNode(service),
-    //         sourcePosition: 'right',
-    //         targetPosition: 'left',
-    //         data: { mode, service: { ...service.data } },
-    //         type: 'services',
-    //       });
-    //     }
-
-    //     // Add edge from service to resource
-    //     edges.push(
-    //       createEdge({
-    //         id: generatedIdForEdge(service, resource),
-    //         source: generateIdForNode(service),
-    //         target: generateIdForNode(resource),
-    //         label: 'publishes',
-    //         type: 'multiline',
-    //         markerEnd: {
-    //           type: MarkerType.ArrowClosed,
-    //           color: '#666',
-    //           width: 40,
-    //           height: 40,
-    //         },
-    //       })
-    //     );
-    //   }
-    // });
-
-    // // For messages, use the hydrated producers field
-    // if (!isContainer) {
-    //   const producers = (resource.data as any).producers || [];
-    //   producers.forEach((producer: any) => {
-    //     const existingServiceNode = nodes.find((n: any) => n.id === generateIdForNode(producer));
-    //     if (!existingServiceNode) {
-    //       nodes.push({
-    //         id: generateIdForNode(producer),
-    //         sourcePosition: 'right',
-    //         targetPosition: 'left',
-    //         data: { mode, service: { ...producer.data } },
-    //         type: 'services',
-    //       });
-    //     }
-
-    //     edges.push(
-    //       createEdge({
-    //         id: generatedIdForEdge(producer, resource),
-    //         source: generateIdForNode(producer),
-    //         target: generateIdForNode(resource),
-    //         label: 'publishes',
-    //         type: 'multiline',
-    //         markerEnd: {
-    //           type: MarkerType.ArrowClosed,
-    //           color: '#666',
-    //           width: 40,
-    //           height: 40,
-    //         },
-    //       })
-    //     );
-    //   });
-    // }
   });
 
   // The data product itself

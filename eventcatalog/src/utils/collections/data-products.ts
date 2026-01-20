@@ -1,7 +1,6 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
-import utils from '@eventcatalog/sdk';
 import { createVersionedMap, satisfies } from './util';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();

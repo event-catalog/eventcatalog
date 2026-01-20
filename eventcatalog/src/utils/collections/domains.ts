@@ -140,11 +140,17 @@ export const getDomains = async ({
               .filter((s: any) => !!s);
           }
 
+          // Hydrate data products for the subdomain
+          const subdomainDataProducts = (subDomain.data['data-products'] || [])
+            .map((dp: { id: string; version: string | undefined }) => findInMap(dataProductMap, dp.id, dp.version))
+            .filter((dp: any) => !!dp);
+
           return {
             ...subDomain,
             data: {
               ...subDomain.data,
               services: hydratedServices as any,
+              'data-products': subdomainDataProducts as any,
             },
           };
         });

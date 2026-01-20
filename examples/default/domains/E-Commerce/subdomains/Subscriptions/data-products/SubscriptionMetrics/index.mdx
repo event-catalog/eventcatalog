@@ -1,0 +1,220 @@
+---
+id: subscription-metrics
+name: Subscription Metrics
+version: 1.0.0
+summary: SaaS and subscription business metrics including MRR, ARR, churn rates, cohort retention, and customer lifetime value calculations.
+owners:
+  - subscriptions-management
+badges:
+  - content: Analytics
+    backgroundColor: purple
+    textColor: purple
+  - content: Finance
+    backgroundColor: green
+    textColor: green
+  - content: SaaS Metrics
+    backgroundColor: blue
+    textColor: blue
+inputs:
+  - id: UserSubscriptionStarted
+  - id: UserSubscriptionCancelled
+  - id: SubscriptionPaymentDue
+  - id: InvoiceGenerated
+  - id: BillingService
+  - id: subscriptions-db
+outputs:
+  - id: NotificationService
+  - id: domain-eventbus
+  - id: subscription-analytics-db
+    contract:
+      path: subscription-metrics-odcs.yaml
+      name: Subscription Metrics ODCS
+      type: odcs
+---
+
+The Subscription Metrics data product provides comprehensive SaaS business intelligence including revenue metrics, retention analysis, and customer lifetime value calculations.
+
+<NodeGraph />
+
+## Overview
+
+This data product consumes subscription lifecycle events from [[service|SubscriptionService]] and [[service|BillingService]] to produce the key metrics that drive subscription business decisions.
+
+## Key Metrics
+
+| Metric | Description | Update Frequency |
+|--------|-------------|------------------|
+| MRR (Monthly Recurring Revenue) | Total monthly recurring revenue | Real-time |
+| ARR (Annual Recurring Revenue) | MRR × 12 annualized | Real-time |
+| Net MRR Change | New + Expansion - Contraction - Churn | Daily |
+| Churn Rate | Percentage of customers lost | Monthly |
+| Retention Rate | Percentage of customers retained | Monthly |
+| LTV (Lifetime Value) | Predicted total customer value | Weekly |
+| CAC Payback Period | Months to recover acquisition cost | Monthly |
+
+## Input Events
+
+| Event | Source | Volume |
+|-------|--------|--------|
+| [[event\|UserSubscriptionStarted]] | [[service\|SubscriptionService]] | ~5k/day |
+| [[event\|UserSubscriptionCancelled]] | [[service\|SubscriptionService]] | ~500/day |
+| [[event\|SubscriptionPaymentDue]] | [[service\|BillingService]] | ~8k/day |
+| [[event\|InvoiceGenerated]] | [[service\|BillingService]] | ~8k/day |
+
+## Output Tables
+
+### `fact_subscriptions`
+
+Subscription-level data with lifecycle tracking.
+
+```sql
+CREATE TABLE fact_subscriptions (
+  subscription_id       VARCHAR PRIMARY KEY,
+  customer_id           VARCHAR NOT NULL,
+  plan_id               VARCHAR NOT NULL,
+  plan_name             VARCHAR(100),
+
+  -- Lifecycle dates
+  started_at            TIMESTAMP NOT NULL,
+  trial_ends_at         TIMESTAMP,
+  cancelled_at          TIMESTAMP,
+  ended_at              TIMESTAMP,
+  next_billing_date     DATE,
+
+  -- Revenue
+  mrr                   DECIMAL(10,2) NOT NULL,
+  currency              CHAR(3) DEFAULT 'USD',
+  billing_interval      VARCHAR(20),
+
+  -- Status
+  status                VARCHAR(20),
+  cancellation_reason   VARCHAR(100),
+  is_trial              BOOLEAN DEFAULT FALSE,
+  is_active             BOOLEAN DEFAULT TRUE,
+
+  -- Dimensions
+  acquisition_channel   VARCHAR(50),
+  initial_plan          VARCHAR(50),
+  current_plan          VARCHAR(50),
+  plan_changes_count    INTEGER DEFAULT 0,
+
+  created_at            TIMESTAMP DEFAULT NOW(),
+  updated_at            TIMESTAMP DEFAULT NOW()
+);
+```
+
+### `agg_mrr_daily`
+
+Daily MRR metrics with movement breakdown.
+
+```sql
+CREATE TABLE agg_mrr_daily (
+  date_key              DATE PRIMARY KEY,
+
+  -- MRR Components
+  total_mrr             DECIMAL(14,2),
+  new_mrr               DECIMAL(14,2),
+  expansion_mrr         DECIMAL(14,2),
+  contraction_mrr       DECIMAL(14,2),
+  churned_mrr           DECIMAL(14,2),
+  reactivation_mrr      DECIMAL(14,2),
+  net_mrr_change        DECIMAL(14,2),
+
+  -- Subscriber counts
+  total_subscribers     INTEGER,
+  new_subscribers       INTEGER,
+  churned_subscribers   INTEGER,
+  net_subscriber_change INTEGER,
+
+  -- Rates
+  gross_churn_rate      DECIMAL(5,2),
+  net_churn_rate        DECIMAL(5,2),
+  expansion_rate        DECIMAL(5,2),
+
+  -- Calculated
+  arr                   DECIMAL(16,2),
+  avg_revenue_per_user  DECIMAL(10,2)
+);
+```
+
+### `agg_cohort_retention`
+
+Monthly cohort retention analysis.
+
+```sql
+CREATE TABLE agg_cohort_retention (
+  cohort_month          DATE,
+  months_since_start    INTEGER,
+
+  PRIMARY KEY (cohort_month, months_since_start),
+
+  cohort_size           INTEGER,
+  retained_count        INTEGER,
+  retention_rate        DECIMAL(5,2),
+
+  cohort_mrr_start      DECIMAL(12,2),
+  cohort_mrr_current    DECIMAL(12,2),
+  revenue_retention     DECIMAL(5,2)
+);
+```
+
+### `dim_customers_ltv`
+
+Customer lifetime value calculations.
+
+```sql
+CREATE TABLE dim_customers_ltv (
+  customer_id           VARCHAR PRIMARY KEY,
+
+  -- Historical metrics
+  first_subscription_date DATE,
+  total_months_subscribed INTEGER,
+  total_revenue         DECIMAL(14,2),
+  total_invoices        INTEGER,
+
+  -- Current state
+  current_mrr           DECIMAL(10,2),
+  current_plan          VARCHAR(50),
+  is_active             BOOLEAN,
+
+  -- Predictions
+  predicted_ltv         DECIMAL(14,2),
+  predicted_lifespan_months INTEGER,
+  churn_probability     DECIMAL(5,2),
+
+  -- Segmentation
+  ltv_segment           VARCHAR(20),
+  health_score          INTEGER,
+
+  updated_at            TIMESTAMP DEFAULT NOW()
+);
+```
+
+## SLAs
+
+| Metric | Target |
+|--------|--------|
+| MRR Data Freshness | < 1 hour |
+| Cohort Analysis | Daily by 06:00 UTC |
+| LTV Recalculation | Weekly |
+| Availability | 99.9% |
+
+## Use Cases
+
+- **Finance**: Revenue recognition and forecasting
+- **Product**: Plan optimization and pricing analysis
+- **Customer Success**: At-risk customer identification
+- **Executive**: Board reporting and investor updates
+
+## Cohort Analysis Example
+
+```sql
+SELECT
+  cohort_month,
+  months_since_start,
+  retention_rate,
+  revenue_retention
+FROM agg_cohort_retention
+WHERE cohort_month >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '12 months')
+ORDER BY cohort_month, months_since_start;
+```

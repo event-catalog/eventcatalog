@@ -1,0 +1,134 @@
+---
+id: order-fulfillment-metrics
+name: Order Fulfillment Metrics
+version: 1.0.0
+summary: Real-time and historical order fulfillment KPIs including processing times, shipping performance, and delivery success rates.
+owners:
+  - dboyne
+  - full-stack
+badges:
+  - content: Analytics
+    backgroundColor: purple
+    textColor: purple
+  - content: Snowflake
+    backgroundColor: blue
+    textColor: blue
+inputs:
+  - id: OrderConfirmed
+  - id: ShipmentCreated
+  - id: ShipmentDispatched
+  - id: ShipmentDelivered
+  - id: ShipmentInTransit
+  - id: OrderCancelled
+  - id: InventoryService
+  - id: orders-db
+outputs:
+  - id: NotificationService
+  - id: orders-domain-eventbus
+  - id: fulfillment-metrics-db
+    contract:
+      path: fulfillment-fact-table.json
+      name: Fulfillment Fact Table
+      type: json-schema
+---
+
+The Order Fulfillment Metrics data product provides comprehensive analytics on order processing and delivery performance across all fulfillment centers.
+
+<NodeGraph />
+
+## Overview
+
+This data product consumes order lifecycle events from [[service|OrdersService]], [[service|ShippingService]], and [[service|InventoryService]] to produce denormalized fact tables optimized for fulfillment analytics and operational reporting.
+
+## Key Metrics
+
+| Metric | Description | Update Frequency |
+|--------|-------------|------------------|
+| Order-to-Ship Time | Time from order confirmation to shipment dispatch | Real-time |
+| Ship-to-Deliver Time | Time from dispatch to successful delivery | Real-time |
+| Fulfillment Rate | Percentage of orders fulfilled within SLA | Hourly |
+| Cancellation Rate | Percentage of orders cancelled before shipment | Hourly |
+| On-Time Delivery Rate | Percentage of deliveries within promised window | Daily |
+
+## Input Events
+
+| Event | Source | Volume |
+|-------|--------|--------|
+| [[event\|OrderConfirmed]] | [[service\|OrdersService]] | ~50k/day |
+| [[event\|ShipmentCreated]] | [[service\|ShippingService]] | ~48k/day |
+| [[event\|ShipmentDispatched]] | [[service\|ShippingService]] | ~47k/day |
+| [[event\|ShipmentDelivered]] | [[service\|ShippingService]] | ~45k/day |
+| [[event\|OrderCancelled]] | [[service\|OrdersService]] | ~2k/day |
+
+## Output Tables
+
+### `fact_order_fulfillment`
+
+Primary fact table with one row per order tracking the complete fulfillment journey.
+
+```sql
+CREATE TABLE fact_order_fulfillment (
+  order_id              VARCHAR PRIMARY KEY,
+  customer_id           VARCHAR NOT NULL,
+  order_date            TIMESTAMP NOT NULL,
+  confirmation_time     TIMESTAMP,
+  shipment_created_time TIMESTAMP,
+  dispatch_time         TIMESTAMP,
+  delivery_time         TIMESTAMP,
+
+  -- Calculated metrics
+  order_to_ship_minutes INTEGER,
+  ship_to_deliver_hours DECIMAL(6,2),
+  total_fulfillment_hours DECIMAL(6,2),
+
+  -- Dimensions
+  fulfillment_center    VARCHAR(50),
+  shipping_method       VARCHAR(50),
+  carrier               VARCHAR(50),
+  destination_region    VARCHAR(50),
+
+  -- Status flags
+  is_delivered          BOOLEAN DEFAULT FALSE,
+  is_cancelled          BOOLEAN DEFAULT FALSE,
+  is_on_time            BOOLEAN,
+  met_sla               BOOLEAN,
+
+  created_at            TIMESTAMP DEFAULT NOW(),
+  updated_at            TIMESTAMP DEFAULT NOW()
+);
+```
+
+### `agg_fulfillment_hourly`
+
+Pre-aggregated hourly metrics for dashboard performance.
+
+```sql
+CREATE TABLE agg_fulfillment_hourly (
+  hour_key              TIMESTAMP PRIMARY KEY,
+  fulfillment_center    VARCHAR(50),
+
+  total_orders          INTEGER,
+  orders_shipped        INTEGER,
+  orders_delivered      INTEGER,
+  orders_cancelled      INTEGER,
+
+  avg_order_to_ship_min DECIMAL(8,2),
+  avg_ship_to_deliver_hr DECIMAL(8,2),
+  on_time_delivery_pct  DECIMAL(5,2),
+  sla_compliance_pct    DECIMAL(5,2)
+);
+```
+
+## SLAs
+
+| Metric | Target |
+|--------|--------|
+| Data Freshness | < 5 minutes |
+| Availability | 99.9% |
+| Query Latency (p95) | < 2 seconds |
+
+## Access Patterns
+
+- **Operations Dashboard**: Real-time fulfillment monitoring
+- **BI Tools**: Connect via Snowflake read replica
+- **Alerting**: Automated alerts when SLA compliance drops below threshold
