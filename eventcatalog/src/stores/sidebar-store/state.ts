@@ -189,10 +189,19 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     })
   );
 
+  const dataProductContext = {
+    events,
+    commands,
+    queries,
+    services,
+    containers,
+    channels,
+  };
+
   const dataProductNodes = dataProductWithOwners.reduce(
     (acc, { dataProduct, owners }) => {
       const versionedKey = `data-product:${dataProduct.data.id}:${dataProduct.data.version}`;
-      acc[versionedKey] = buildDataProductNode(dataProduct, owners);
+      acc[versionedKey] = buildDataProductNode(dataProduct, owners, dataProductContext);
       if (dataProduct.data.latestVersion === dataProduct.data.version) {
         acc[`data-product:${dataProduct.data.id}`] = versionedKey;
       }

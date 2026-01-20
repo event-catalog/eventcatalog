@@ -11,6 +11,7 @@ export const mockDomains = [
       services: [{ id: 'LocationService', version: '0.0.1' }],
       domains: [{ id: 'Checkout', version: '0.0.1' }],
       entities: [{ id: 'Shipment', version: '0.0.1' }],
+      'data-products': [{ id: 'ShippingAnalytics', version: '1.0.0' }],
     },
   },
   {
@@ -203,6 +204,30 @@ export const mockEvents = [
     data: {
       id: 'PaymentFailed',
       version: '2.0.0',
+    },
+  },
+  // ShippingMetricsCalculated - output from data product
+  {
+    id: 'events/ShippingMetricsCalculated/index.mdx',
+    slug: 'events/ShippingMetricsCalculated',
+    collection: 'events',
+    data: {
+      id: 'ShippingMetricsCalculated',
+      version: '1.0.0',
+    },
+  },
+];
+
+export const mockDataProducts = [
+  {
+    id: 'data-products/ShippingAnalytics/index.mdx',
+    slug: 'data-products/ShippingAnalytics',
+    collection: 'data-products',
+    data: {
+      id: 'ShippingAnalytics',
+      version: '1.0.0',
+      inputs: [{ id: 'OrderPlaced', version: '0.0.1' }],
+      outputs: [{ id: 'ShippingMetricsCalculated', version: '1.0.0' }],
     },
   },
 ];
