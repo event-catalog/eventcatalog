@@ -18,11 +18,22 @@ export const buildContainerNode = (
 ): NavNode => {
   const servicesWritingToContainer = container.data.servicesThatWriteToContainer || [];
   const servicesReadingFromContainer = container.data.servicesThatReadFromContainer || [];
+  const dataProductsWritingToContainer = (container.data as any).dataProductsThatWriteToContainer || [];
+  const dataProductsReadingFromContainer = (container.data as any).dataProductsThatReadFromContainer || [];
 
-  const renderServicesWritingToContainer =
-    servicesWritingToContainer.length > 0 && shouldRenderSideBarSection(container, 'services');
-  const renderServicesReadingFromContainer =
-    servicesReadingFromContainer.length > 0 && shouldRenderSideBarSection(container, 'services');
+  // Combine writes: services + data products
+  const allWrites = [
+    ...servicesWritingToContainer.map((s: any) => `service:${s.data.id}:${s.data.version}`),
+    ...dataProductsWritingToContainer.map((dp: any) => `data-product:${dp.data.id}:${dp.data.version}`),
+  ];
+  const renderWrites = allWrites.length > 0 && shouldRenderSideBarSection(container, 'services');
+
+  // Combine reads: services + data products
+  const allReads = [
+    ...servicesReadingFromContainer.map((s: any) => `service:${s.data.id}:${s.data.version}`),
+    ...dataProductsReadingFromContainer.map((dp: any) => `data-product:${dp.data.id}:${dp.data.version}`),
+  ];
+  const renderReads = allReads.length > 0 && shouldRenderSideBarSection(container, 'services');
 
   const renderVisualiser = isVisualiserEnabled();
 
@@ -67,21 +78,17 @@ export const buildContainerNode = (
         icon: 'FileImage',
         pages: diagramNavItems,
       },
-      renderServicesWritingToContainer && {
+      renderWrites && {
         type: 'group',
-        title: 'Services (Writes)',
-        icon: 'Server',
-        pages: servicesWritingToContainer.map(
-          (service) => `service:${(service as any).data.id}:${(service as any).data.version}`
-        ),
+        title: 'Writes',
+        icon: 'ArrowUpFromLine',
+        pages: allWrites,
       },
-      renderServicesReadingFromContainer && {
+      renderReads && {
         type: 'group',
-        title: 'Services (Reads)',
-        icon: 'Server',
-        pages: servicesReadingFromContainer.map(
-          (service) => `service:${(service as any).data.id}:${(service as any).data.version}`
-        ),
+        title: 'Reads',
+        icon: 'ArrowDownToLine',
+        pages: allReads,
       },
       renderOwners && buildOwnersSection(owners),
       renderRepository && buildRepositorySection(container.data.repository as { url: string; language: string }),

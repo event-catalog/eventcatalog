@@ -37,9 +37,14 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
 
   const servicesThatWriteToContainer = (container.data.servicesThatWriteToContainer as CollectionEntry<'services'>[]) || [];
   const servicesThatReadFromContainer = (container.data.servicesThatReadFromContainer as CollectionEntry<'services'>[]) || [];
+  const dataProductsThatWriteToContainer =
+    (container.data.dataProductsThatWriteToContainer as CollectionEntry<'data-products'>[]) || [];
+  const dataProductsThatReadFromContainer =
+    (container.data.dataProductsThatReadFromContainer as CollectionEntry<'data-products'>[]) || [];
 
-  // Track nodes that are bth sent and received
+  // Track nodes that are both sent and received
   const bothSentAndReceived = findMatchingNodes(servicesThatWriteToContainer, servicesThatReadFromContainer);
+  const dataProductsBothSentAndReceived = findMatchingNodes(dataProductsThatWriteToContainer, dataProductsThatReadFromContainer);
 
   servicesThatWriteToContainer.forEach((service) => {
     nodes.push({
@@ -58,6 +63,33 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
         target: generateIdForNode(container),
         label: 'writes to',
         data: { service },
+        animated: false,
+        type: 'default',
+        style: {
+          strokeWidth: 1,
+        },
+      });
+    }
+  });
+
+  // Data products that write to the container
+  dataProductsThatWriteToContainer.forEach((dataProduct) => {
+    nodes.push({
+      id: generateIdForNode(dataProduct),
+      type: 'data-products',
+      sourcePosition: 'right',
+      targetPosition: 'left',
+      data: { mode, dataProduct: { ...dataProduct.data } },
+      position: { x: 250, y: 0 },
+    });
+
+    if (!dataProductsBothSentAndReceived.includes(dataProduct)) {
+      edges.push({
+        id: generatedIdForEdge(dataProduct, container),
+        source: generateIdForNode(dataProduct),
+        target: generateIdForNode(container),
+        label: 'writes to',
+        data: { dataProduct },
         animated: false,
         type: 'default',
         style: {
@@ -114,13 +146,69 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
     }
   });
 
-  // Handle messages that are both sent and received
+  // Data products that read from the container
+  dataProductsThatReadFromContainer.forEach((dataProduct) => {
+    nodes.push({
+      id: generateIdForNode(dataProduct),
+      sourcePosition: 'left',
+      targetPosition: 'right',
+      data: { title: dataProduct?.data.id, mode, dataProduct: { ...dataProduct.data } },
+      position: { x: 0, y: 0 },
+      type: 'data-products',
+    });
+
+    if (!dataProductsBothSentAndReceived.includes(dataProduct)) {
+      edges.push(
+        createEdge({
+          id: generatedIdForEdge(dataProduct, container),
+          source: generateIdForNode(container),
+          target: generateIdForNode(dataProduct),
+          label: `reads from \n (${container.data.technology})`,
+          data: { dataProduct },
+          type: 'multiline',
+          markerStart: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          markerEnd: undefined,
+        })
+      );
+    }
+  });
+
+  // Handle services that are both sent and received
   bothSentAndReceived.forEach((_service) => {
     if (container) {
       edges.push(
         createEdge({
           id: generatedIdForEdge(container, _service) + '-both',
           source: generateIdForNode(_service),
+          target: generateIdForNode(container),
+          label: `read and writes to \n (${container.data.technology})`,
+          type: 'multiline',
+          markerStart: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 40,
+            height: 40,
+          },
+        })
+      );
+    }
+  });
+
+  // Handle data products that both read and write
+  dataProductsBothSentAndReceived.forEach((_dataProduct) => {
+    if (container) {
+      edges.push(
+        createEdge({
+          id: generatedIdForEdge(container, _dataProduct) + '-both',
+          source: generateIdForNode(_dataProduct),
           target: generateIdForNode(container),
           label: `read and writes to \n (${container.data.technology})`,
           type: 'multiline',

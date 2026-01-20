@@ -94,6 +94,10 @@ vi.mock('astro:content', async (importOriginal) => {
           const { getChannels } = utils(CATALOG_FOLDER);
           const channels = (await getChannels()) ?? [];
           return Promise.resolve(channels.map((channel) => toAstroCollection(channel, 'channels')));
+re;        case 'data-products':
+          const { getDataProducts } = utils(CATALOG_FOLDER);
+          const dataProducts = (await getDataProducts()) ?? [];
+          return Promise.resolve(dataProducts.map((dataProduct) => toAstroCollection(dataProduct, 'data-products')));
         default:
           return Promise.resolve([]);
       }
@@ -2119,8 +2123,8 @@ describe('getNestedSideBarData', () => {
       });
     });
 
-    describe('services (writes) section', () => {
-      it('is not listed if the container does not have any services that write to it', async () => {
+    describe('writes section', () => {
+      it('is not listed if the container does not have any services or data products that write to it', async () => {
         const { writeDataStore } = utils(CATALOG_FOLDER);
         await writeDataStore({
           id: 'PaymentDataStore',
@@ -2132,8 +2136,8 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
-        const servicesSection = getChildNodeByTitle('Services (Writes)', containerNode.pages ?? []);
-        expect(servicesSection).toBeUndefined();
+        const writesSection = getChildNodeByTitle('Writes', containerNode.pages ?? []);
+        expect(writesSection).toBeUndefined();
       });
 
       it('is not listed if the container is configured not to render the section', async () => {
@@ -2161,11 +2165,11 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
-        const servicesSection = getChildNodeByTitle('Services (Writes)', containerNode.pages ?? []);
-        expect(servicesSection).toBeUndefined();
+        const writesSection = getChildNodeByTitle('Writes', containerNode.pages ?? []);
+        expect(writesSection).toBeUndefined();
       });
 
-      it('lists the services that write to the container if the container has services that write to it', async () => {
+      it('lists the services that write to the container', async () => {
         const { writeDataStore, writeService } = utils(CATALOG_FOLDER);
         await writeDataStore({
           id: 'PaymentDataStore',
@@ -2185,13 +2189,70 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
-        const servicesSection = getChildNodeByTitle('Services (Writes)', containerNode.pages ?? []);
-        expect(servicesSection.pages).toEqual(['service:PaymentService:0.0.1']);
+        const writesSection = getChildNodeByTitle('Writes', containerNode.pages ?? []);
+        expect(writesSection.pages).toContain('service:PaymentService:0.0.1');
+      });
+
+      it('lists the data products that write to the container (have it as output)', async () => {
+        const { writeDataStore, writeDataProduct } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+        });
+
+        await writeDataProduct({
+          id: 'PaymentPipeline',
+          name: 'Payment Pipeline',
+          version: '0.0.1',
+          markdown: 'Payment Pipeline',
+          outputs: [{ id: 'PaymentDataStore', version: '0.0.1' }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const writesSection = getChildNodeByTitle('Writes', containerNode.pages ?? []);
+        expect(writesSection.pages).toContain('data-product:PaymentPipeline:0.0.1');
+      });
+
+      it('lists both services and data products that write to the container', async () => {
+        const { writeDataStore, writeService, writeDataProduct } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+        });
+
+        await writeService({
+          id: 'PaymentService',
+          name: 'Payment Service',
+          version: '0.0.1',
+          markdown: 'Payment Service',
+          writesTo: [{ id: 'PaymentDataStore', version: '0.0.1' }],
+        });
+
+        await writeDataProduct({
+          id: 'PaymentPipeline',
+          name: 'Payment Pipeline',
+          version: '0.0.1',
+          markdown: 'Payment Pipeline',
+          outputs: [{ id: 'PaymentDataStore', version: '0.0.1' }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const writesSection = getChildNodeByTitle('Writes', containerNode.pages ?? []);
+        expect(writesSection.pages).toContain('service:PaymentService:0.0.1');
+        expect(writesSection.pages).toContain('data-product:PaymentPipeline:0.0.1');
       });
     });
 
-    describe('services (reads) section', () => {
-      it('is not listed if the container does not have any services that read from it', async () => {
+    describe('reads section', () => {
+      it('is not listed if the container does not have any services or data products that read from it', async () => {
         const { writeDataStore } = utils(CATALOG_FOLDER);
         await writeDataStore({
           id: 'PaymentDataStore',
@@ -2203,8 +2264,8 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
-        const servicesSection = getChildNodeByTitle('Services (Reads)', containerNode.pages ?? []);
-        expect(servicesSection).toBeUndefined();
+        const readsSection = getChildNodeByTitle('Reads', containerNode.pages ?? []);
+        expect(readsSection).toBeUndefined();
       });
 
       it('is not listed if the container is configured not to render the section', async () => {
@@ -2232,11 +2293,11 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
-        const servicesSection = getChildNodeByTitle('Services (Reads)', containerNode.pages ?? []);
-        expect(servicesSection).toBeUndefined();
+        const readsSection = getChildNodeByTitle('Reads', containerNode.pages ?? []);
+        expect(readsSection).toBeUndefined();
       });
 
-      it('lists the services that read from the container if the container has services that read from it', async () => {
+      it('lists the services that read from the container', async () => {
         const { writeDataStore, writeService } = utils(CATALOG_FOLDER);
         await writeDataStore({
           id: 'PaymentDataStore',
@@ -2256,8 +2317,65 @@ describe('getNestedSideBarData', () => {
 
         const navigationData = await getNestedSideBarData();
         const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
-        const servicesSection = getChildNodeByTitle('Services (Reads)', containerNode.pages ?? []);
-        expect(servicesSection.pages).toEqual(['service:PaymentService:0.0.1']);
+        const readsSection = getChildNodeByTitle('Reads', containerNode.pages ?? []);
+        expect(readsSection.pages).toContain('service:PaymentService:0.0.1');
+      });
+
+      it('lists the data products that read from the container (have it as input)', async () => {
+        const { writeDataStore, writeDataProduct } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+        });
+
+        await writeDataProduct({
+          id: 'PaymentAnalytics',
+          name: 'Payment Analytics',
+          version: '0.0.1',
+          markdown: 'Payment Analytics',
+          inputs: [{ id: 'PaymentDataStore', version: '0.0.1' }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const readsSection = getChildNodeByTitle('Reads', containerNode.pages ?? []);
+        expect(readsSection.pages).toContain('data-product:PaymentAnalytics:0.0.1');
+      });
+
+      it('lists both services and data products that read from the container', async () => {
+        const { writeDataStore, writeService, writeDataProduct } = utils(CATALOG_FOLDER);
+        await writeDataStore({
+          id: 'PaymentDataStore',
+          name: 'Payment DataStore',
+          version: '0.0.1',
+          markdown: 'Payment DataStore',
+          container_type: 'database',
+        });
+
+        await writeService({
+          id: 'PaymentService',
+          name: 'Payment Service',
+          version: '0.0.1',
+          markdown: 'Payment Service',
+          readsFrom: [{ id: 'PaymentDataStore', version: '0.0.1' }],
+        });
+
+        await writeDataProduct({
+          id: 'PaymentAnalytics',
+          name: 'Payment Analytics',
+          version: '0.0.1',
+          markdown: 'Payment Analytics',
+          inputs: [{ id: 'PaymentDataStore', version: '0.0.1' }],
+        });
+
+        const navigationData = await getNestedSideBarData();
+        const containerNode = getNavigationConfigurationByKey('container:PaymentDataStore:0.0.1', navigationData);
+        const readsSection = getChildNodeByTitle('Reads', containerNode.pages ?? []);
+        expect(readsSection.pages).toContain('service:PaymentService:0.0.1');
+        expect(readsSection.pages).toContain('data-product:PaymentAnalytics:0.0.1');
       });
     });
 

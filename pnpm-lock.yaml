@@ -51,8 +51,8 @@ importers:
         specifier: ^0.0.2
         version: 0.0.2
       '@eventcatalog/sdk':
-        specifier: ^2.10.0
-        version: 2.10.0(@types/node@20.19.19)
+        specifier: ^2.11.0
+        version: 2.11.0(@types/node@20.19.19)
       '@eventcatalog/visualizer':
         specifier: ^0.0.6
         version: 0.0.6(@types/react@18.3.26)(immer@9.0.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1125,8 +1125,8 @@ packages:
     engines: {node: '>=16.0.0'}
     hasBin: true
 
-  '@eventcatalog/sdk@2.10.0':
-    resolution: {integrity: sha512-uN5yC6f1vV1L9/IYaeI3t0o6mWg40ym6JbwQcf05ioG9i6uS9oKe9X0YgulcyRZm+nE/tt0zxKwlKcX+vUyD5Q==}
+  '@eventcatalog/sdk@2.11.0':
+    resolution: {integrity: sha512-F6Ac9xBaCPH5IUSVPsM9T5NrBkCm3Quwy5/D/NLFT7+lo8pXVQKt3ugrTSD6OvqDlJ4oR0lF8ukMwLcsxpTB7A==}
 
   '@eventcatalog/visualizer@0.0.6':
     resolution: {integrity: sha512-WjosTnIYMBgOjhHfZZhXxIOyVm+usoObaX8aJhOTwPnt2zv3I97V0ArWBAIqZhPJHfA9LPBpIQWQQy+fp37svA==}
@@ -8780,7 +8780,7 @@ snapshots:
 
   '@eventcatalog/generator-ai@1.2.0(@langchain/core@0.3.78(@opentelemetry/api@1.9.0)(openai@4.104.0(ws@8.18.3)(zod@3.25.76)))(@opentelemetry/api@1.9.0)(@types/node@20.19.19)(axios@1.12.2)(ws@8.18.3)(zod@3.25.76)':
     dependencies:
-      '@eventcatalog/sdk': 2.10.0(@types/node@20.19.19)
+      '@eventcatalog/sdk': 2.11.0(@types/node@20.19.19)
       '@huggingface/transformers': 3.7.5
       chalk: 4.1.2
       fs-extra: 11.3.2
@@ -8834,7 +8834,7 @@ snapshots:
       semver: 7.7.3
       zod: 3.25.76
 
-  '@eventcatalog/sdk@2.10.0(@types/node@20.19.19)':
+  '@eventcatalog/sdk@2.11.0(@types/node@20.19.19)':
     dependencies:
       '@changesets/cli': 2.29.8(@types/node@20.19.19)
       fs-extra: 11.3.2

@@ -483,6 +483,8 @@ const containers = defineCollection({
 
       servicesThatWriteToContainer: z.array(reference('services')).optional(),
       servicesThatReadFromContainer: z.array(reference('services')).optional(),
+      dataProductsThatWriteToContainer: z.array(reference('data-products')).optional(),
+      dataProductsThatReadFromContainer: z.array(reference('data-products')).optional(),
     })
     .merge(baseSchema),
 });

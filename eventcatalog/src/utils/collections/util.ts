@@ -158,8 +158,8 @@ export const getItemsFromCollectionByIdAndSemverOrLatest = <T extends { data: { 
 };
 
 export const findMatchingNodes = (
-  nodesA: CollectionEntry<'events' | 'commands' | 'queries' | 'services' | 'containers'>[],
-  nodesB: CollectionEntry<'events' | 'commands' | 'queries' | 'services' | 'containers'>[]
+  nodesA: CollectionEntry<'events' | 'commands' | 'queries' | 'services' | 'containers' | 'data-products'>[],
+  nodesB: CollectionEntry<'events' | 'commands' | 'queries' | 'services' | 'containers' | 'data-products'>[]
 ) => {
   // Track messages that are both sent and received
   return nodesA.filter((nodeA) => {
