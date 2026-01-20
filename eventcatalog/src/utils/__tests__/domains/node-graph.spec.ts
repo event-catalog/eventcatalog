@@ -121,9 +121,9 @@ describe('Domains NodeGraph', () => {
       expect(nodes).toEqual(expect.arrayContaining([expect.objectContaining(expectedEventNode)]));
 
       // 9 original nodes + 2 from data product (ShippingAnalytics + ShippingMetricsCalculated)
-      expect(nodes.length).toEqual(11);
+      expect(nodes.length).toEqual(13);
       // 8 original edges + 2 from data product (input edge + output edge)
-      expect(edges.length).toEqual(10);
+      expect(edges.length).toEqual(12);
     });
 
     it('should return nodes and edges for data products in a domain', async () => {

@@ -158,3 +158,39 @@ export const mockChannels = [
     },
   },
 ];
+
+export const mockDataProducts = [
+  {
+    id: 'PaymentAnalytics-1.0.0',
+    collection: 'data-products',
+    data: {
+      id: 'PaymentAnalytics',
+      name: 'Payment Analytics',
+      version: '1.0.0',
+      inputs: [{ id: 'PaymentProcessed', version: '0.0.1' }],
+      outputs: [],
+    },
+  },
+  {
+    id: 'OrderDataPipeline-1.0.0',
+    collection: 'data-products',
+    data: {
+      id: 'OrderDataPipeline',
+      name: 'Order Data Pipeline',
+      version: '1.0.0',
+      inputs: [],
+      outputs: [{ id: 'PaymentProcessed', version: '0.0.1' }],
+    },
+  },
+  {
+    id: 'DataProductWithLatestVersion-1.0.0',
+    collection: 'data-products',
+    data: {
+      id: 'DataProductWithLatestVersion',
+      name: 'Data Product With Latest Version',
+      version: '1.0.0',
+      inputs: [{ id: 'PaymentProcessed', version: 'latest' }],
+      outputs: [{ id: 'PaymentProcessed', version: 'latest' }],
+    },
+  },
+];

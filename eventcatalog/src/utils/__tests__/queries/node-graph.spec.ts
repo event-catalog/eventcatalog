@@ -1,12 +1,11 @@
 import { MarkerType } from '@xyflow/react';
 import { getNodesAndEdgesForQueries as getNodesAndEdges } from '../../node-graphs/message-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockQueries, mockServices, mockChannels } from './mocks';
+import { mockQueries, mockServices, mockChannels, mockDataProducts } from './mocks';
 
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
-    // this will only affect "foo" outside of the original module
     getCollection: (key: string) => {
       if (key === 'services') {
         return Promise.resolve(mockServices);
@@ -16,6 +15,9 @@ vi.mock('astro:content', async (importOriginal) => {
       }
       if (key === 'channels') {
         return Promise.resolve(mockChannels);
+      }
+      if (key === 'data-products') {
+        return Promise.resolve(mockDataProducts);
       }
       return Promise.resolve([]);
     },
@@ -357,6 +359,117 @@ describe('Queries NodeGraph', () => {
       );
 
       expect(edges).toEqual(expectedEdges);
+    });
+
+    describe('data products', () => {
+      it('should render data product as a consumer when it has the query as an input', async () => {
+        const { nodes, edges } = await getNodesAndEdges({ id: 'GetLatestOrder', version: '0.0.1' });
+
+        const expectedDataProductConsumerNode = {
+          id: 'OrderAnalytics-1.0.0',
+          type: 'data-products',
+          sourcePosition: 'right',
+          targetPosition: 'left',
+          data: {
+            title: 'OrderAnalytics',
+            mode: 'simple',
+            dataProduct: expect.objectContaining({
+              id: 'OrderAnalytics',
+              version: '1.0.0',
+            }),
+          },
+          position: { x: expect.any(Number), y: expect.any(Number) },
+        };
+
+        expect(nodes).toEqual(expect.arrayContaining([expect.objectContaining(expectedDataProductConsumerNode)]));
+
+        expect(edges).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: 'GetLatestOrder-0.0.1-OrderAnalytics-1.0.0',
+              source: 'GetLatestOrder-0.0.1',
+              target: 'OrderAnalytics-1.0.0',
+              label: 'consumed by',
+            }),
+          ])
+        );
+      });
+
+      it('should render data product as a producer when it has the query as an output', async () => {
+        const { nodes, edges } = await getNodesAndEdges({ id: 'GetLatestOrder', version: '0.0.1' });
+
+        const expectedDataProductProducerNode = {
+          id: 'OrderDataPipeline-1.0.0',
+          type: 'data-products',
+          sourcePosition: 'right',
+          targetPosition: 'left',
+          data: {
+            mode: 'simple',
+            dataProduct: expect.objectContaining({
+              id: 'OrderDataPipeline',
+              version: '1.0.0',
+            }),
+          },
+          position: { x: expect.any(Number), y: expect.any(Number) },
+        };
+
+        expect(nodes).toEqual(expect.arrayContaining([expect.objectContaining(expectedDataProductProducerNode)]));
+
+        expect(edges).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: 'OrderDataPipeline-1.0.0-GetLatestOrder-0.0.1',
+              source: 'OrderDataPipeline-1.0.0',
+              target: 'GetLatestOrder-0.0.1',
+              label: 'produces',
+            }),
+          ])
+        );
+      });
+
+      it('should render both services and data products as producers and consumers', async () => {
+        const { nodes } = await getNodesAndEdges({ id: 'GetLatestOrder', version: '0.0.1' });
+
+        // Should have service producer
+        expect(nodes).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: 'OrderService-0.0.1',
+              type: 'services',
+            }),
+          ])
+        );
+
+        // Should have service consumer
+        expect(nodes).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: 'PaymentService-0.0.1',
+              type: 'services',
+            }),
+          ])
+        );
+
+        // Should have data product producer
+        expect(nodes).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: 'OrderDataPipeline-1.0.0',
+              type: 'data-products',
+            }),
+          ])
+        );
+
+        // Should have data product consumer
+        expect(nodes).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: 'OrderAnalytics-1.0.0',
+              type: 'data-products',
+            }),
+          ])
+        );
+      });
     });
   });
 });
