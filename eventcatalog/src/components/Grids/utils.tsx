@@ -1,4 +1,11 @@
-import { BoltIcon, ChatBubbleLeftIcon, MagnifyingGlassIcon, EnvelopeIcon, ServerIcon } from '@heroicons/react/24/outline';
+import {
+  BoltIcon,
+  ChatBubbleLeftIcon,
+  MagnifyingGlassIcon,
+  EnvelopeIcon,
+  ServerIcon,
+  DocumentCheckIcon,
+} from '@heroicons/react/24/outline';
 import type { CollectionMessageTypes, CollectionTypes } from '@types';
 
 export const getCollectionStyles = (collection: CollectionMessageTypes | CollectionTypes) => {
@@ -11,6 +18,8 @@ export const getCollectionStyles = (collection: CollectionMessageTypes | Collect
       return { color: 'green', Icon: MagnifyingGlassIcon };
     case 'services':
       return { color: 'pink', Icon: ServerIcon };
+    case 'data-products':
+      return { color: 'purple', Icon: DocumentCheckIcon };
     default:
       return { color: 'gray', Icon: EnvelopeIcon };
   }

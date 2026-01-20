@@ -356,6 +356,110 @@ describe('buildDataProductNode', () => {
     });
   });
 
+  describe('data contracts (Data Contracts section)', () => {
+    it('renders Data Contracts section when outputs have contract field', () => {
+      const dataProduct = createMockDataProduct({
+        outputs: [
+          {
+            id: 'OrdersDB',
+            version: '1.0.0',
+            contract: { path: 'fact-orders-contract.json', name: 'Fact Orders Contract', type: 'json-schema' },
+          },
+          {
+            id: 'PaymentsDB',
+            version: '1.0.0',
+            contract: { path: 'payments-schema.json', name: 'Payments Schema', type: 'avro' },
+          },
+        ],
+      }) as any;
+
+      const context = {
+        ...emptyContext,
+        containers: [createMockContainer('OrdersDB', '1.0.0'), createMockContainer('PaymentsDB', '1.0.0')],
+      };
+
+      const result = buildDataProductNode(dataProduct, [], context);
+      const apiContractsSection = result.pages?.find((p: any) => p.title === 'Data Contracts');
+
+      expect(apiContractsSection).toBeDefined();
+      expect(apiContractsSection?.icon).toBe('FileCheck');
+      expect(apiContractsSection?.pages).toHaveLength(2);
+      expect(apiContractsSection?.pages[0]).toMatchObject({
+        type: 'item',
+        title: 'Fact Orders Contract (JSON)',
+        summary: 'Type: json-schema',
+        href: '/schemas/data-products/TestDataProduct/1.0.0?contract=fact-orders-contract.json',
+      });
+      expect(apiContractsSection?.pages[1]).toMatchObject({
+        type: 'item',
+        title: 'Payments Schema (JSON)',
+        summary: 'Type: avro',
+        href: '/schemas/data-products/TestDataProduct/1.0.0?contract=payments-schema.json',
+      });
+    });
+
+    it('does not render Data Contracts section when no outputs have contract field', () => {
+      const dataProduct = createMockDataProduct({
+        outputs: [{ id: 'OrdersDB', version: '1.0.0' }],
+      });
+
+      const context = {
+        ...emptyContext,
+        containers: [createMockContainer('OrdersDB', '1.0.0')],
+      };
+
+      const result = buildDataProductNode(dataProduct, [], context);
+      const apiContractsSection = result.pages?.find((p: any) => p.title === 'Data Contracts');
+
+      expect(apiContractsSection).toBeUndefined();
+    });
+
+    it('only includes outputs that have contract field in Data Contracts section', () => {
+      const dataProduct = createMockDataProduct({
+        outputs: [
+          { id: 'OrdersDB', version: '1.0.0', contract: { path: 'orders-contract.json', name: 'Orders Contract' } },
+          { id: 'PaymentsDB', version: '1.0.0' }, // No contract
+        ],
+      }) as any;
+
+      const context = {
+        ...emptyContext,
+        containers: [createMockContainer('OrdersDB', '1.0.0'), createMockContainer('PaymentsDB', '1.0.0')],
+      };
+
+      const result = buildDataProductNode(dataProduct, [], context);
+      const apiContractsSection = result.pages?.find((p: any) => p.title === 'Data Contracts');
+
+      expect(apiContractsSection).toBeDefined();
+      expect(apiContractsSection?.pages).toHaveLength(1);
+      expect(apiContractsSection?.pages[0]).toMatchObject({
+        type: 'item',
+        title: 'Orders Contract (JSON)',
+        href: '/schemas/data-products/TestDataProduct/1.0.0?contract=orders-contract.json',
+      });
+    });
+
+    it('renders contract without summary when type is not provided', () => {
+      const dataProduct = createMockDataProduct({
+        outputs: [{ id: 'OrdersDB', version: '1.0.0', contract: { path: 'orders-contract.json', name: 'Orders Contract' } }],
+      }) as any;
+
+      const context = {
+        ...emptyContext,
+        containers: [createMockContainer('OrdersDB', '1.0.0')],
+      };
+
+      const result = buildDataProductNode(dataProduct, [], context);
+      const apiContractsSection = result.pages?.find((p: any) => p.title === 'Data Contracts');
+
+      expect(apiContractsSection?.pages[0]).toMatchObject({
+        type: 'item',
+        title: 'Orders Contract (JSON)',
+        summary: undefined,
+      });
+    });
+  });
+
   describe('owners', () => {
     it('includes Owners section when owners are provided', () => {
       const dataProduct = createMockDataProduct({ owners: ['user1'] });

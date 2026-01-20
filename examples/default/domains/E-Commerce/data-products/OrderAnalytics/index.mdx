@@ -23,16 +23,22 @@ outputs:
   - id: NotificationService
   - id: orders-domain-eventbus
   - id: orders-db
+    contract:
+      path: fact-orders-contract.json
+      name: Fact Orders Contract
+      type: json-schema
   - id: payments-db
-  - id: fact-orders-contract
-data-contracts:
-  - id: fact-orders-contract
-  - id: daily-sales-contract
+    contract:
+      path: daily-sales-odcs.yaml
+      name: Daily Sales ODCS
+      type: odcs
 ---
 
 The Order Analytics data product transforms raw order and payment events into aggregated metrics optimized for reporting and business intelligence.
 
 <NodeGraph />
+
+<SchemaViewer file="fact-orders-contract.json" />
 
 ## Overview
 

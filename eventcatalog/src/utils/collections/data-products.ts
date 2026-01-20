@@ -54,6 +54,8 @@ export const getDataProducts = async ({ getAllVersions = true }: Props = {}): Pr
         })
       );
 
+      const dataProductFolderName = dataProduct.id.replace('/index.mdx', '');
+
       return {
         ...dataProduct,
         data: {
@@ -63,15 +65,9 @@ export const getDataProducts = async ({ getAllVersions = true }: Props = {}): Pr
           domains: domainsThatReferenceDataProduct,
         },
         catalog: {
-          path: path.join(dataProduct.collection, dataProduct.id.replace('/index.mdx', '')),
-          filePath: path.join(
-            process.cwd(),
-            'src',
-            'catalog-files',
-            dataProduct.collection,
-            dataProduct.id.replace('/index.mdx', '')
-          ),
-          publicPath: '', //path.join('/generated', dataProduct.collection, dataProductFolderName),
+          path: path.join(dataProduct.collection, dataProductFolderName),
+          filePath: path.join(process.cwd(), 'src', 'catalog-files', dataProduct.collection, dataProductFolderName),
+          publicPath: path.join('/generated', dataProduct.collection, dataProductFolderName),
           type: 'dataProduct',
         },
       };

@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fact Orders Contract",
+  "description": "Schema contract for the fact_orders table - the primary fact table containing one row per order with pre-computed metrics.",
+  "type": "object",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "description": "Unique identifier for the order"
+    },
+    "customer_id": {
+      "type": "string",
+      "description": "Reference to the customer who placed the order"
+    },
+    "order_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the order was placed"
+    },
+    "order_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Exact timestamp when the order was placed"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "confirmed", "shipped", "delivered", "cancelled", "refunded"],
+      "description": "Current status of the order"
+    },
+    "item_count": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of items in the order"
+    },
+    "gross_amount": {
+      "type": "number",
+      "description": "Total amount before discounts"
+    },
+    "discount_amount": {
+      "type": "number",
+      "description": "Total discount applied"
+    },
+    "net_amount": {
+      "type": "number",
+      "description": "Final amount after discounts"
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "ISO 4217 currency code"
+    },
+    "payment_method": {
+      "type": "string",
+      "description": "Method used for payment"
+    },
+    "shipping_method": {
+      "type": "string",
+      "description": "Shipping method selected"
+    },
+    "region": {
+      "type": "string",
+      "description": "Geographic region for the order"
+    },
+    "is_first_order": {
+      "type": "boolean",
+      "description": "Whether this is the customer's first order"
+    },
+    "is_repeat_customer": {
+      "type": "boolean",
+      "description": "Whether the customer has ordered before"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Record creation timestamp"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Record last update timestamp"
+    }
+  },
+  "required": ["order_id", "customer_id", "order_date", "order_timestamp", "net_amount", "currency"]
+}

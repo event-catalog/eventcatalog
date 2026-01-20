@@ -5,6 +5,7 @@ import {
   ChatBubbleLeftIcon,
   MagnifyingGlassIcon as MagnifyingGlassSolidIcon,
   CodeBracketIcon,
+  DocumentCheckIcon,
 } from '@heroicons/react/24/solid';
 import type { CollectionMessageTypes } from '@types';
 
@@ -30,7 +31,7 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
     }
     return '';
   });
-  const [selectedTypes, setSelectedTypes] = useState<Set<CollectionMessageTypes | 'specifications'>>(() => {
+  const [selectedTypes, setSelectedTypes] = useState<Set<CollectionMessageTypes | 'specifications' | 'data-contracts'>>(() => {
     // Load from localStorage
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('schemaRegistrySelectedTypes');
@@ -149,6 +150,10 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
         }
         // Check if 'specifications' is selected and this is a spec file
         if (selectedTypes.has('specifications') && SPEC_TYPES.includes(msg.schemaExtension?.toLowerCase() || '')) {
+          return true;
+        }
+        // Check if 'data-contracts' is selected and this is a data product contract
+        if (selectedTypes.has('data-contracts') && msg.collection === 'data-products') {
           return true;
         }
         return false;
@@ -325,11 +330,12 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
       commands: latestMessages.filter((m) => m.collection === 'commands').length,
       queries: latestMessages.filter((m) => m.collection === 'queries').length,
       specifications: latestMessages.filter((m) => SPEC_TYPES.includes(m.schemaExtension?.toLowerCase() || '')).length,
+      dataContracts: latestMessages.filter((m) => m.collection === 'data-products').length,
     };
   }, [latestMessages]);
 
   // Toggle type selection (multi-select)
-  const toggleType = (type: CollectionMessageTypes | 'specifications') => {
+  const toggleType = (type: CollectionMessageTypes | 'specifications' | 'data-contracts') => {
     setSelectedTypes((prev) => {
       const next = new Set(prev);
       if (next.has(type)) {
@@ -482,6 +488,27 @@ export default function SchemaExplorer({ schemas, apiAccessEnabled = false }: Sc
                     className={`tabular-nums ${selectedTypes.has('specifications') ? 'text-[rgb(var(--ec-accent))]' : 'text-[rgb(var(--ec-icon-color))]'}`}
                   >
                     {stats.specifications}
+                  </span>
+                </button>
+              )}
+              {stats.dataContracts > 0 && (
+                <button
+                  onClick={() => toggleType('data-contracts')}
+                  className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all border ${
+                    selectedTypes.has('data-contracts')
+                      ? 'bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-500/30'
+                      : 'text-[rgb(var(--ec-page-text-muted))] border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-content-hover))]'
+                  }`}
+                  title="Data Contracts from Data Products"
+                >
+                  <DocumentCheckIcon
+                    className={`h-3.5 w-3.5 ${selectedTypes.has('data-contracts') ? 'text-purple-500' : 'text-purple-400'}`}
+                  />
+                  <span>Data Contracts</span>
+                  <span
+                    className={`tabular-nums ${selectedTypes.has('data-contracts') ? 'text-purple-500' : 'text-[rgb(var(--ec-icon-color))]'}`}
+                  >
+                    {stats.dataContracts}
                   </span>
                 </button>
               )}

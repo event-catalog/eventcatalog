@@ -4,6 +4,7 @@ import type { NavNode, ChildRef } from './shared';
 import { buildQuickReferenceSection, buildOwnersSection, shouldRenderSideBarSection } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 import { getItemsFromCollectionByIdAndSemverOrLatest, sortVersioned } from '@utils/collections/util';
+import { getSchemaFormatFromURL } from '@utils/collections/schemas';
 
 interface DataProductContext {
   events: CollectionEntry<'events'>[];
@@ -72,6 +73,18 @@ export const buildDataProductNode = (
   const resolvedInputs = inputs.map((input) => resolvePointerToRef(input, context)).filter(Boolean) as string[];
   const resolvedOutputs = outputs.map((output) => resolvePointerToRef(output, context)).filter(Boolean) as string[];
 
+  // Extract data contracts from outputs that have a contract field
+  const dataContracts = outputs
+    .filter((output) => output.contract)
+    .map((output) => ({
+      type: 'item' as const,
+      title: `${output.contract!.name} (${getSchemaFormatFromURL(output.contract!.path).toUpperCase()})`,
+      summary: output.contract!.type ? `Type: ${output.contract!.type}` : undefined,
+      href: buildUrl(
+        `/schemas/data-products/${dataProduct.data.id}/${dataProduct.data.version}?contract=${encodeURIComponent(output.contract!.path)}`
+      ),
+    }));
+
   return {
     type: 'item',
     title: dataProduct.data.name,
@@ -104,6 +117,12 @@ export const buildDataProductNode = (
         title: 'Outputs',
         icon: 'ArrowUpFromLine',
         pages: resolvedOutputs,
+      },
+      dataContracts.length > 0 && {
+        type: 'group',
+        title: 'Data Contracts',
+        icon: 'FileCheck',
+        pages: dataContracts,
       },
       renderOwners && buildOwnersSection(owners),
     ].filter(Boolean) as ChildRef[],

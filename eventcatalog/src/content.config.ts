@@ -362,6 +362,18 @@ const queries = defineCollection({
     .merge(baseSchema),
 });
 
+const dataProductOutputPointer = z.object({
+  id: z.string(),
+  version: z.string().optional().default('latest'),
+  contract: z
+    .object({
+      path: z.string(),
+      name: z.string(),
+      type: z.string().optional(),
+    })
+    .optional(),
+});
+
 const dataProducts = defineCollection({
   loader: glob({
     pattern: ['**/data-products/*/index.(md|mdx)', '**/data-products/*/versioned/*/index.(md|mdx)'],
@@ -373,7 +385,7 @@ const dataProducts = defineCollection({
   schema: z
     .object({
       inputs: z.array(pointer).optional(),
-      outputs: z.array(pointer).optional(),
+      outputs: z.array(dataProductOutputPointer).optional(),
     })
     .merge(baseSchema),
 });

@@ -28,8 +28,8 @@ export class Page extends HybridPage {
     // We only care about any item that has data.schemaPath
     const itemsWithSchema = allItems.flatMap((items) => items.filter((item) => item.data.schemaPath));
 
-    // return allItems.flatMap((items, index) =>
-    return itemsWithSchema.map((item, index) => ({
+    // Generate paths for messages with schemas
+    const messagePaths = itemsWithSchema.map((item) => ({
       params: {
         type: item.collection,
         id: item.data.id,
@@ -42,7 +42,31 @@ export class Page extends HybridPage {
         body: undefined,
       },
     }));
-    // );
+
+    // Generate paths for data products with contracts
+    const dataProducts = await pageDataLoader['data-products']();
+    const dataProductPaths = dataProducts.flatMap((dataProduct) => {
+      const outputs = (dataProduct.data as any).outputs || [];
+      const outputsWithContracts = outputs.filter((output: any) => output.contract);
+
+      return outputsWithContracts.map((output: any) => ({
+        params: {
+          type: 'data-products',
+          id: dataProduct.data.id,
+          version: dataProduct.data.version,
+        },
+        props: {
+          type: 'data-products',
+          ...dataProduct,
+          contractPath: output.contract.path,
+          contractName: output.contract.name,
+          contractType: output.contract.type,
+          body: undefined,
+        },
+      }));
+    });
+
+    return [...messagePaths, ...dataProductPaths];
   }
 
   protected static async fetchData(params: any) {
