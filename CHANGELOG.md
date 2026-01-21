@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.8.0
+
+### Minor Changes
+
+- 05f0e2e: feat(core): added Data Products collection support
+
 ## 3.7.2
 
 ### Patch Changes
