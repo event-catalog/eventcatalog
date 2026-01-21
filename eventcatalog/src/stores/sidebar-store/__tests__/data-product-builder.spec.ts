@@ -68,7 +68,7 @@ const createMockContainer = (id: string, version: string): CollectionEntry<'cont
     id: `containers/${id}/index.mdx`,
     slug: `containers/${id}`,
     collection: 'containers',
-    data: { id, version, name: id },
+    data: { id, version, name: id, container_type: 'database', authoritative: true },
   }) as CollectionEntry<'containers'>;
 
 const createMockChannel = (id: string, version: string): CollectionEntry<'channels'> =>
@@ -106,9 +106,9 @@ describe('buildDataProductNode', () => {
       const dataProduct = createMockDataProduct();
       const result = buildDataProductNode(dataProduct, [], emptyContext);
 
-      const quickRef = result.pages?.find((p: any) => p.title === 'Quick Reference');
+      const quickRef = (result.pages as any[])?.find((p: any) => p.title === 'Quick Reference');
       expect(quickRef).toBeDefined();
-      expect(quickRef?.pages).toContainEqual({
+      expect((quickRef as any)?.pages).toContainEqual({
         type: 'item',
         title: 'Overview',
         href: '/docs/data-products/TestDataProduct/1.0.0',
@@ -119,9 +119,9 @@ describe('buildDataProductNode', () => {
       const dataProduct = createMockDataProduct();
       const result = buildDataProductNode(dataProduct, [], emptyContext);
 
-      const archSection = result.pages?.find((p: any) => p.title === 'Architecture');
+      const archSection = (result.pages as any[])?.find((p: any) => p.title === 'Architecture');
       expect(archSection).toBeDefined();
-      expect(archSection?.pages).toContainEqual({
+      expect((archSection as any)?.pages).toContainEqual({
         type: 'item',
         title: 'Map',
         href: '/visualiser/data-products/TestDataProduct/1.0.0',
@@ -140,10 +140,10 @@ describe('buildDataProductNode', () => {
       };
 
       const result = buildDataProductNode(dataProduct, [], context);
-      const inputsSection = result.pages?.find((p: any) => p.title === 'Inputs');
+      const inputsSection = (result.pages as any[])?.find((p: any) => p.title === 'Inputs');
 
       expect(inputsSection).toBeDefined();
-      expect(inputsSection?.pages).toContain('events:OrderCreated:1.0.0');
+      expect((inputsSection as any)?.pages).toContain('events:OrderCreated:1.0.0');
     });
 
     it('resolves command inputs with plural key (commands:)', () => {
@@ -156,10 +156,10 @@ describe('buildDataProductNode', () => {
       };
 
       const result = buildDataProductNode(dataProduct, [], context);
-      const inputsSection = result.pages?.find((p: any) => p.title === 'Inputs');
+      const inputsSection = (result.pages as any[])?.find((p: any) => p.title === 'Inputs');
 
       expect(inputsSection).toBeDefined();
-      expect(inputsSection?.pages).toContain('commands:CreateOrder:1.0.0');
+      expect((inputsSection as any)?.pages).toContain('commands:CreateOrder:1.0.0');
     });
 
     it('resolves query inputs with plural key (queries:)', () => {
@@ -172,10 +172,10 @@ describe('buildDataProductNode', () => {
       };
 
       const result = buildDataProductNode(dataProduct, [], context);
-      const inputsSection = result.pages?.find((p: any) => p.title === 'Inputs');
+      const inputsSection = (result.pages as any[])?.find((p: any) => p.title === 'Inputs');
 
       expect(inputsSection).toBeDefined();
-      expect(inputsSection?.pages).toContain('queries:GetOrder:1.0.0');
+      expect((inputsSection as any)?.pages).toContain('queries:GetOrder:1.0.0');
     });
 
     it('resolves service inputs with singular key (service:)', () => {
@@ -188,10 +188,10 @@ describe('buildDataProductNode', () => {
       };
 
       const result = buildDataProductNode(dataProduct, [], context);
-      const inputsSection = result.pages?.find((p: any) => p.title === 'Inputs');
+      const inputsSection = (result.pages as any[])?.find((p: any) => p.title === 'Inputs');
 
       expect(inputsSection).toBeDefined();
-      expect(inputsSection?.pages).toContain('service:OrderService:1.0.0');
+      expect((inputsSection as any)?.pages).toContain('service:OrderService:1.0.0');
     });
 
     it('resolves container inputs with singular key (container:)', () => {
@@ -204,10 +204,10 @@ describe('buildDataProductNode', () => {
       };
 
       const result = buildDataProductNode(dataProduct, [], context);
-      const inputsSection = result.pages?.find((p: any) => p.title === 'Inputs');
+      const inputsSection = (result.pages as any[])?.find((p: any) => p.title === 'Inputs');
 
       expect(inputsSection).toBeDefined();
-      expect(inputsSection?.pages).toContain('container:OrderDatabase:1.0.0');
+      expect((inputsSection as any)?.pages).toContain('container:OrderDatabase:1.0.0');
     });
 
     it('resolves channel inputs with singular key (channel:)', () => {
@@ -220,15 +220,15 @@ describe('buildDataProductNode', () => {
       };
 
       const result = buildDataProductNode(dataProduct, [], context);
-      const inputsSection = result.pages?.find((p: any) => p.title === 'Inputs');
+      const inputsSection = (result.pages as any[])?.find((p: any) => p.title === 'Inputs');
 
       expect(inputsSection).toBeDefined();
-      expect(inputsSection?.pages).toContain('channel:OrderChannel:1.0.0');
+      expect((inputsSection as any)?.pages).toContain('channel:OrderChannel:1.0.0');
     });
 
     it('resolves to latest version in collection when no version specified', () => {
       const dataProduct = createMockDataProduct({
-        inputs: [{ id: 'OrderCreated' }], // No version specified
+        inputs: [{ id: 'OrderCreated', version: 'latest' }], // No explicit version specified, using latest
       });
       const context = {
         ...emptyContext,
@@ -236,10 +236,10 @@ describe('buildDataProductNode', () => {
       };
 
       const result = buildDataProductNode(dataProduct, [], context);
-      const inputsSection = result.pages?.find((p: any) => p.title === 'Inputs');
+      const inputsSection = (result.pages as any[])?.find((p: any) => p.title === 'Inputs');
 
       // Should resolve to the latest version (2.0.0) in the collection
-      expect(inputsSection?.pages).toContain('events:OrderCreated:2.0.0');
+      expect((inputsSection as any)?.pages).toContain('events:OrderCreated:2.0.0');
     });
 
     it('resolves semver ranges to matching version', () => {
@@ -256,10 +256,10 @@ describe('buildDataProductNode', () => {
       };
 
       const result = buildDataProductNode(dataProduct, [], context);
-      const inputsSection = result.pages?.find((p: any) => p.title === 'Inputs');
+      const inputsSection = (result.pages as any[])?.find((p: any) => p.title === 'Inputs');
 
       // ^1.0.0 should match 1.2.3 (highest in range)
-      expect(inputsSection?.pages).toContain('events:OrderCreated:1.2.3');
+      expect((inputsSection as any)?.pages).toContain('events:OrderCreated:1.2.3');
     });
 
     it('skips unknown resources (not in any collection)', () => {
@@ -268,7 +268,7 @@ describe('buildDataProductNode', () => {
       });
 
       const result = buildDataProductNode(dataProduct, [], emptyContext);
-      const inputsSection = result.pages?.find((p: any) => p.title === 'Inputs');
+      const inputsSection = (result.pages as any[])?.find((p: any) => p.title === 'Inputs');
 
       // Inputs section should not exist since all inputs are unknown
       expect(inputsSection).toBeUndefined();
@@ -278,7 +278,7 @@ describe('buildDataProductNode', () => {
       const dataProduct = createMockDataProduct({ inputs: [] });
       const result = buildDataProductNode(dataProduct, [], emptyContext);
 
-      const inputsSection = result.pages?.find((p: any) => p.title === 'Inputs');
+      const inputsSection = (result.pages as any[])?.find((p: any) => p.title === 'Inputs');
       expect(inputsSection).toBeUndefined();
     });
   });
@@ -294,10 +294,10 @@ describe('buildDataProductNode', () => {
       };
 
       const result = buildDataProductNode(dataProduct, [], context);
-      const outputsSection = result.pages?.find((p: any) => p.title === 'Outputs');
+      const outputsSection = (result.pages as any[])?.find((p: any) => p.title === 'Outputs');
 
       expect(outputsSection).toBeDefined();
-      expect(outputsSection?.pages).toContain('events:OrderAnalytics:1.0.0');
+      expect((outputsSection as any)?.pages).toContain('events:OrderAnalytics:1.0.0');
     });
 
     it('resolves service outputs with singular key (service:)', () => {
@@ -310,17 +310,17 @@ describe('buildDataProductNode', () => {
       };
 
       const result = buildDataProductNode(dataProduct, [], context);
-      const outputsSection = result.pages?.find((p: any) => p.title === 'Outputs');
+      const outputsSection = (result.pages as any[])?.find((p: any) => p.title === 'Outputs');
 
       expect(outputsSection).toBeDefined();
-      expect(outputsSection?.pages).toContain('service:ReportingService:1.0.0');
+      expect((outputsSection as any)?.pages).toContain('service:ReportingService:1.0.0');
     });
 
     it('does not render Outputs section when no outputs are defined', () => {
       const dataProduct = createMockDataProduct({ outputs: [] });
       const result = buildDataProductNode(dataProduct, [], emptyContext);
 
-      const outputsSection = result.pages?.find((p: any) => p.title === 'Outputs');
+      const outputsSection = (result.pages as any[])?.find((p: any) => p.title === 'Outputs');
       expect(outputsSection).toBeUndefined();
     });
   });
@@ -328,7 +328,11 @@ describe('buildDataProductNode', () => {
   describe('mixed inputs and outputs', () => {
     it('correctly resolves multiple inputs and outputs of different types', () => {
       const dataProduct = createMockDataProduct({
-        inputs: [{ id: 'OrderCreated', version: '1.0.0' }, { id: 'PaymentService', version: '2.0.0' }, { id: 'OrderDatabase' }],
+        inputs: [
+          { id: 'OrderCreated', version: '1.0.0' },
+          { id: 'PaymentService', version: '2.0.0' },
+          { id: 'OrderDatabase', version: '1.0.0' },
+        ],
         outputs: [
           { id: 'OrderAnalytics', version: '1.0.0' },
           { id: 'OrderChannel', version: '1.0.0' },
@@ -344,13 +348,13 @@ describe('buildDataProductNode', () => {
 
       const result = buildDataProductNode(dataProduct, [], context);
 
-      const inputsSection = result.pages?.find((p: any) => p.title === 'Inputs');
-      expect(inputsSection?.pages).toEqual(
+      const inputsSection = (result.pages as any[])?.find((p: any) => p.title === 'Inputs');
+      expect((inputsSection as any)?.pages).toEqual(
         expect.arrayContaining(['events:OrderCreated:1.0.0', 'service:PaymentService:2.0.0', 'container:OrderDatabase:1.0.0'])
       );
 
-      const outputsSection = result.pages?.find((p: any) => p.title === 'Outputs');
-      expect(outputsSection?.pages).toEqual(
+      const outputsSection = (result.pages as any[])?.find((p: any) => p.title === 'Outputs');
+      expect((outputsSection as any)?.pages).toEqual(
         expect.arrayContaining(['events:OrderAnalytics:1.0.0', 'channel:OrderChannel:1.0.0'])
       );
     });
@@ -379,18 +383,18 @@ describe('buildDataProductNode', () => {
       };
 
       const result = buildDataProductNode(dataProduct, [], context);
-      const apiContractsSection = result.pages?.find((p: any) => p.title === 'Data Contracts');
+      const apiContractsSection = (result.pages as any[])?.find((p: any) => p.title === 'Data Contracts');
 
       expect(apiContractsSection).toBeDefined();
-      expect(apiContractsSection?.icon).toBe('FileCheck');
-      expect(apiContractsSection?.pages).toHaveLength(2);
-      expect(apiContractsSection?.pages[0]).toMatchObject({
+      expect((apiContractsSection as any)?.icon).toBe('FileCheck');
+      expect((apiContractsSection as any)?.pages).toHaveLength(2);
+      expect((apiContractsSection as any)?.pages[0]).toMatchObject({
         type: 'item',
         title: 'Fact Orders Contract (JSON)',
         summary: 'Type: json-schema',
         href: '/schemas/data-products/TestDataProduct/1.0.0?contract=fact-orders-contract.json',
       });
-      expect(apiContractsSection?.pages[1]).toMatchObject({
+      expect((apiContractsSection as any)?.pages[1]).toMatchObject({
         type: 'item',
         title: 'Payments Schema (JSON)',
         summary: 'Type: avro',
@@ -428,11 +432,11 @@ describe('buildDataProductNode', () => {
       };
 
       const result = buildDataProductNode(dataProduct, [], context);
-      const apiContractsSection = result.pages?.find((p: any) => p.title === 'Data Contracts');
+      const apiContractsSection = (result.pages as any[])?.find((p: any) => p.title === 'Data Contracts');
 
       expect(apiContractsSection).toBeDefined();
-      expect(apiContractsSection?.pages).toHaveLength(1);
-      expect(apiContractsSection?.pages[0]).toMatchObject({
+      expect((apiContractsSection as any)?.pages).toHaveLength(1);
+      expect((apiContractsSection as any)?.pages[0]).toMatchObject({
         type: 'item',
         title: 'Orders Contract (JSON)',
         href: '/schemas/data-products/TestDataProduct/1.0.0?contract=orders-contract.json',
@@ -452,7 +456,7 @@ describe('buildDataProductNode', () => {
       const result = buildDataProductNode(dataProduct, [], context);
       const apiContractsSection = result.pages?.find((p: any) => p.title === 'Data Contracts');
 
-      expect(apiContractsSection?.pages[0]).toMatchObject({
+      expect((apiContractsSection as any)?.pages[0]).toMatchObject({
         type: 'item',
         title: 'Orders Contract (JSON)',
         summary: undefined,
@@ -462,11 +466,11 @@ describe('buildDataProductNode', () => {
 
   describe('owners', () => {
     it('includes Owners section when owners are provided', () => {
-      const dataProduct = createMockDataProduct({ owners: ['user1'] });
+      const dataProduct = createMockDataProduct({ owners: [{ id: 'user1' }] });
       const owners = [{ id: 'user1', data: { id: 'user1', name: 'User One' }, collection: 'users' }];
 
       const result = buildDataProductNode(dataProduct, owners as any, emptyContext);
-      const ownersSection = result.pages?.find((p: any) => p.title === 'Owners');
+      const ownersSection = (result.pages as any[])?.find((p: any) => p.title === 'Owners');
 
       expect(ownersSection).toBeDefined();
     });
@@ -475,7 +479,7 @@ describe('buildDataProductNode', () => {
       const dataProduct = createMockDataProduct();
       const result = buildDataProductNode(dataProduct, [], emptyContext);
 
-      const ownersSection = result.pages?.find((p: any) => p.title === 'Owners');
+      const ownersSection = (result.pages as any[])?.find((p: any) => p.title === 'Owners');
       expect(ownersSection).toBeUndefined();
     });
   });
