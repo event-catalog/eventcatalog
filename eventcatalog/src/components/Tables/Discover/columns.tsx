@@ -9,6 +9,7 @@ import {
   QueueListIcon,
   DocumentTextIcon,
   MapIcon,
+  CubeIcon,
 } from '@heroicons/react/24/solid';
 import { ArrowDownIcon, ArrowUpIcon } from '@heroicons/react/24/outline';
 import { DatabaseIcon } from 'lucide-react';
@@ -30,6 +31,7 @@ const colorClasses: Record<string, string> = {
   purple: 'text-purple-500',
   red: 'text-red-500',
   gray: 'text-gray-500',
+  cyan: 'text-cyan-500',
 };
 
 // Reusable tooltip wrapper component
@@ -541,6 +543,64 @@ export const getContainerColumns = (tableConfiguration: TableConfiguration) => [
 ];
 
 // ============================================================================
+// DATA PRODUCT COLUMNS
+// ============================================================================
+export const getDataProductColumns = (tableConfiguration: TableConfiguration) => [
+  columnHelper.accessor('data.name', {
+    id: 'name',
+    header: () => <span>{tableConfiguration?.columns?.name?.label || 'Data Product'}</span>,
+    cell: (info) => {
+      const item = info.row.original;
+      const isLatestVersion = item.data.version === item.data.latestVersion;
+      return (
+        <a
+          href={buildUrl(`/docs/${item.collection}/${item.data.id}/${item.data.version}`)}
+          className="group inline-flex items-center gap-2 hover:text-[rgb(var(--ec-accent))] transition-colors"
+        >
+          <CubeIcon className="h-4 w-4 text-cyan-500 flex-shrink-0" />
+          <span className="text-sm font-semibold text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent))]">
+            {item.data.name}
+          </span>
+          {!isLatestVersion && <span className="text-xs text-[rgb(var(--ec-icon-color))]">v{item.data.version}</span>}
+        </a>
+      );
+    },
+    meta: {
+      filterVariant: 'name',
+    },
+  }),
+  createSummaryColumn(tableConfiguration),
+  columnHelper.accessor('data.inputs', {
+    id: 'inputs',
+    header: () => (
+      <span className="flex items-center gap-1">
+        <ArrowDownIcon className="w-3.5 h-3.5" />
+        Inputs
+      </span>
+    ),
+    cell: (info) => <CollectionListCell items={info.getValue()} />,
+    meta: {
+      showFilter: false,
+    },
+  }),
+  columnHelper.accessor('data.outputs', {
+    id: 'outputs',
+    header: () => (
+      <span className="flex items-center gap-1">
+        <ArrowUpIcon className="w-3.5 h-3.5" />
+        Outputs
+      </span>
+    ),
+    cell: (info) => <CollectionListCell items={info.getValue()} />,
+    meta: {
+      showFilter: false,
+    },
+  }),
+  createBadgesColumn(tableConfiguration),
+  createActionsColumn('data-products', tableConfiguration),
+];
+
+// ============================================================================
 // COLUMN GETTER BY COLLECTION TYPE
 // ============================================================================
 export const getDiscoverColumns = (collectionType: CollectionType, tableConfiguration: TableConfiguration) => {
@@ -559,6 +619,8 @@ export const getDiscoverColumns = (collectionType: CollectionType, tableConfigur
       return getFlowColumns(tableConfiguration);
     case 'containers':
       return getContainerColumns(tableConfiguration);
+    case 'data-products':
+      return getDataProductColumns(tableConfiguration);
     default:
       return [];
   }

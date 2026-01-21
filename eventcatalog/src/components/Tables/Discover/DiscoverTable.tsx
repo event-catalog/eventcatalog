@@ -18,7 +18,15 @@ import { FilterDropdown, CheckboxItem } from './FilterComponents';
 import DebouncedInput from '../DebouncedInput';
 import { getDiscoverColumns } from './columns';
 
-export type CollectionType = 'events' | 'commands' | 'queries' | 'services' | 'domains' | 'flows' | 'containers';
+export type CollectionType =
+  | 'events'
+  | 'commands'
+  | 'queries'
+  | 'services'
+  | 'domains'
+  | 'flows'
+  | 'containers'
+  | 'data-products';
 
 export interface DiscoverTableData {
   collection: string;
@@ -29,6 +37,8 @@ export interface DiscoverTableData {
   hasRepository?: boolean;
   isDeprecated?: boolean;
   hasDataDependencies?: boolean;
+  hasInputs?: boolean;
+  hasOutputs?: boolean;
   data: {
     id: string;
     name: string;
@@ -49,6 +59,8 @@ export interface DiscoverTableData {
     services?: Array<any>;
     servicesThatWriteToContainer?: Array<any>;
     servicesThatReadFromContainer?: Array<any>;
+    inputs?: Array<any>;
+    outputs?: Array<any>;
   };
 }
 
@@ -231,6 +243,16 @@ export function DiscoverTable<T extends DiscoverTableData>({
           if (prop === 'hasReaders') {
             const readers = row.data.servicesThatReadFromContainer || [];
             if (readers.length === 0) return false;
+          }
+
+          // Data-product-specific checks
+          if (prop === 'hasInputs') {
+            const inputs = row.data.inputs || [];
+            if (inputs.length === 0) return false;
+          }
+          if (prop === 'hasOutputs') {
+            const outputs = row.data.outputs || [];
+            if (outputs.length === 0) return false;
           }
         }
       }

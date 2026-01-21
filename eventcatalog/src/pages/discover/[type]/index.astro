@@ -1,5 +1,5 @@
 ---
-import { QueueListIcon, RectangleGroupIcon, BoltIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import { QueueListIcon, RectangleGroupIcon, BoltIcon, ChatBubbleLeftIcon, CubeIcon } from '@heroicons/react/24/outline';
 import ServerIcon from '@heroicons/react/24/outline/ServerIcon';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import { DatabaseIcon } from 'lucide-react';
@@ -10,8 +10,10 @@ import { getEvents } from '@utils/collections/events';
 import { getServices } from '@utils/collections/services';
 import { getQueries } from '@utils/collections/queries';
 import { getContainers } from '@utils/collections/containers';
+import { getDataProducts } from '@utils/collections/data-products';
 import { getUsers } from '@utils/collections/users';
 import { getTeams } from '@utils/collections/teams';
+import { getChannels } from '@utils/collections/channels';
 import { buildUrl } from '@utils/url-builder';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { DiscoverTable, type DiscoverTableData, type CollectionType } from '@components/Tables/Discover';
@@ -31,6 +33,8 @@ const services = await getServices();
 const domains = await getDomains({ getAllVersions: false });
 const flows = await getFlows();
 const containers = await getContainers();
+const dataProducts = await getDataProducts();
+const channels = await getChannels();
 const users = await getUsers();
 const teams = await getTeams();
 
@@ -108,6 +112,15 @@ const typeConfig: Record<
       { id: 'isDeprecated', label: 'Is Deprecated' },
     ],
   },
+  'data-products': {
+    label: 'Data Products',
+    propertyOptions: [
+      { id: 'hasOwners', label: 'Has Owners' },
+      { id: 'hasInputs', label: 'Has Inputs' },
+      { id: 'hasOutputs', label: 'Has Outputs' },
+      { id: 'isDeprecated', label: 'Is Deprecated' },
+    ],
+  },
 };
 
 const currentTypeConfig = typeConfig[type] || typeConfig.events;
@@ -142,6 +155,15 @@ const tabs = [
     activeColor: 'blue',
     enabled: containers.length > 0,
     visible: containers.length > 0,
+  },
+  {
+    label: `Data Products (${dataProducts.length})`,
+    href: buildUrl('/discover/data-products'),
+    isActive: type === 'data-products',
+    icon: CubeIcon,
+    activeColor: 'cyan',
+    enabled: dataProducts.length > 0,
+    visible: dataProducts.length > 0,
   },
   {
     label: `Events (${events.length})`,
@@ -222,6 +244,35 @@ function hasSpecifications(service: any): boolean {
   return !!(specs.openapiPath || specs.asyncapiPath || specs.graphqlPath);
 }
 
+// Build lookup maps for all collections (for resolving data product inputs/outputs)
+const allCollections = [
+  ...services.map((s) => ({ ...s, collection: 'services' })),
+  ...containers.map((c) => ({ ...c, collection: 'containers' })),
+  ...channels.map((c) => ({ ...c, collection: 'channels' })),
+  ...events.map((e) => ({ ...e, collection: 'events' })),
+  ...commands.map((c) => ({ ...c, collection: 'commands' })),
+  ...queries.map((q) => ({ ...q, collection: 'queries' })),
+  ...dataProducts.map((dp) => ({ ...dp, collection: 'data-products' })),
+];
+
+// Create a map for quick lookup by id
+const collectionItemMap = new Map(allCollections.map((item) => [item.data.id, item]));
+
+// Helper to resolve a pointer to a collection item
+function resolvePointer(pointer: { id: string; version?: string }) {
+  if (!pointer?.id) return null;
+  const item = collectionItemMap.get(pointer.id);
+  if (!item) return null;
+  return {
+    collection: item.collection,
+    data: {
+      id: item.data.id,
+      name: item.data.name,
+      version: item.data.version,
+    },
+  };
+}
+
 // Build a Set of subdomain IDs (domains that are nested within other domains)
 const allSubdomainIds = new Set(
   domains.flatMap((d: any) => (d.data?.domains || []).map((sd: any) => sd.data?.id || sd.id)).filter(Boolean)
@@ -256,6 +307,9 @@ const tableData = enrichedData.map((d: any) => ({
   hasSpecifications: type === 'services' ? hasSpecifications(d) : false,
   hasRepository: type === 'services' ? !!d.data?.repository?.url : false,
   hasDataDependencies: type === 'services' ? (d.data?.writesTo || []).length > 0 || (d.data?.readsFrom || []).length > 0 : false,
+  // Data-product-specific properties
+  hasInputs: type === 'data-products' ? (d.data?.inputs || []).length > 0 : false,
+  hasOutputs: type === 'data-products' ? (d.data?.outputs || []).length > 0 : false,
   isDeprecated: d.data?.deprecated === true || (typeof d.data?.deprecated === 'object' && d.data?.deprecated !== null),
   data: {
     id: d.data.id,
@@ -272,6 +326,8 @@ const tableData = enrichedData.map((d: any) => ({
     services: d.data?.services?.map(mapToItem) ?? [],
     servicesThatWriteToContainer: d.data?.servicesThatWriteToContainer?.map(mapToItem) ?? [],
     servicesThatReadFromContainer: d.data?.servicesThatReadFromContainer?.map(mapToItem) ?? [],
+    inputs: d.data?.inputs?.map(resolvePointer).filter(Boolean) ?? [],
+    outputs: d.data?.outputs?.map(resolvePointer).filter(Boolean) ?? [],
   },
 }));
 
