@@ -168,3 +168,30 @@ export const mockChannels = [
     },
   },
 ];
+
+export const mockDataProducts = [
+  {
+    id: 'OrderAnalytics-1.0.0',
+    slug: 'OrderAnalytics',
+    collection: 'data-products',
+    data: {
+      id: 'OrderAnalytics',
+      name: 'Order Analytics',
+      version: '1.0.0',
+      inputs: [{ id: 'AdjustOrder', version: '0.0.1' }],
+      outputs: [],
+    },
+  },
+  {
+    id: 'OrderDataPipeline-1.0.0',
+    slug: 'OrderDataPipeline',
+    collection: 'data-products',
+    data: {
+      id: 'OrderDataPipeline',
+      name: 'Order Data Pipeline',
+      version: '1.0.0',
+      inputs: [],
+      outputs: [{ id: 'AdjustOrder', version: '0.0.1' }],
+    },
+  },
+];

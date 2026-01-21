@@ -1,6 +1,6 @@
 import { getNodesAndEdges } from '../../node-graphs/container-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockContainers, mockServices } from './mocks';
+import { mockContainers, mockServices, mockDataProducts } from './mocks';
 
 vi.mock('@utils/collections/containers', async (importOriginal) => {
   return {
@@ -101,6 +101,89 @@ describe('Containers NodeGraph', () => {
 
       expect(nodes).toEqual([]);
       expect(edges).toEqual([]);
+    });
+
+    describe('data products', () => {
+      it('should render data product nodes that write to the container', async () => {
+        const { nodes, edges } = await getNodesAndEdges({ id: 'AnalyticsDatabase', version: '1.0.0' });
+
+        // Check for data product that writes to container
+        const dataProductWriteNode = nodes.find((n: any) => n.id === 'OrderDataPipeline-1.0.0');
+        expect(dataProductWriteNode).toBeDefined();
+        expect(dataProductWriteNode.type).toBe('data-products');
+        expect(dataProductWriteNode.data.dataProduct).toEqual(
+          expect.objectContaining({
+            id: 'OrderDataPipeline',
+            version: '1.0.0',
+          })
+        );
+
+        // Check for the edge
+        const writeEdge = edges.find(
+          (e: any) => e.source === 'OrderDataPipeline-1.0.0' && e.target === 'AnalyticsDatabase-1.0.0'
+        );
+        expect(writeEdge).toBeDefined();
+        expect(writeEdge.label).toBe('writes to');
+      });
+
+      it('should render data product nodes that read from the container', async () => {
+        const { nodes, edges } = await getNodesAndEdges({ id: 'AnalyticsDatabase', version: '1.0.0' });
+
+        // Check for data product that reads from container
+        const dataProductReadNode = nodes.find((n: any) => n.id === 'OrderAnalytics-1.0.0');
+        expect(dataProductReadNode).toBeDefined();
+        expect(dataProductReadNode.type).toBe('data-products');
+        expect(dataProductReadNode.data.dataProduct).toEqual(
+          expect.objectContaining({
+            id: 'OrderAnalytics',
+            version: '1.0.0',
+          })
+        );
+
+        // Check for the edge
+        const readEdge = edges.find((e: any) => e.source === 'AnalyticsDatabase-1.0.0' && e.target === 'OrderAnalytics-1.0.0');
+        expect(readEdge).toBeDefined();
+        expect(readEdge.label).toContain('reads from');
+      });
+
+      it('should render both services and data products on the same container', async () => {
+        const { nodes, edges } = await getNodesAndEdges({ id: 'SharedDatabase', version: '1.0.0' });
+
+        // Check for service that writes
+        const serviceNode = nodes.find((n: any) => n.id === 'PaymentService-0.0.1');
+        expect(serviceNode).toBeDefined();
+
+        // Check for data product that reads
+        const dataProductNode = nodes.find((n: any) => n.id === 'OrderAnalytics-1.0.0');
+        expect(dataProductNode).toBeDefined();
+        expect(dataProductNode.type).toBe('data-products');
+
+        // Check edges
+        const serviceWriteEdge = edges.find(
+          (e: any) => e.source === 'PaymentService-0.0.1' && e.target === 'SharedDatabase-1.0.0'
+        );
+        expect(serviceWriteEdge).toBeDefined();
+
+        const dataProductReadEdge = edges.find(
+          (e: any) => e.source === 'SharedDatabase-1.0.0' && e.target === 'OrderAnalytics-1.0.0'
+        );
+        expect(dataProductReadEdge).toBeDefined();
+      });
+
+      it('should render a data product that both reads and writes with a bidirectional edge', async () => {
+        const { nodes, edges } = await getNodesAndEdges({ id: 'DataProductBothRW', version: '1.0.0' });
+
+        // Check for data product node (should only appear once despite being in both lists)
+        const dataProductNodes = nodes.filter((n: any) => n.id === 'OrderDataPipeline-1.0.0');
+        expect(dataProductNodes.length).toBeGreaterThanOrEqual(1);
+
+        // Check for the bidirectional edge
+        const bothEdge = edges.find((e: any) => e.id.includes('-both'));
+        expect(bothEdge).toBeDefined();
+        expect(bothEdge.label).toContain('read and writes to');
+        expect(bothEdge.markerStart).toBeDefined();
+        expect(bothEdge.markerEnd).toBeDefined();
+      });
     });
   });
 });

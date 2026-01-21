@@ -1,0 +1,227 @@
+apiVersion: v3.1.0
+kind: DataContract
+id: subscription-metrics
+version: 1.0.0
+status: active
+
+name: Subscription Metrics
+domain: Subscriptions
+dataProduct: Subscription Metrics
+tenant: finance-analytics
+
+tags:
+  - saas
+  - mrr
+  - retention
+  - ltv
+  - finance
+
+description:
+  purpose: SaaS business metrics for revenue tracking, churn analysis, and customer lifetime value calculations.
+  limitations: LTV predictions are based on historical patterns and may not account for recent market changes.
+  usage: Primary source for subscription KPIs, board reporting, and revenue forecasting.
+
+schema:
+  - id: fact_subscriptions
+    name: fact_subscriptions
+    physicalName: ANALYTICS.SUBSCRIPTIONS.FACT_SUBSCRIPTIONS
+    physicalType: table
+    description: Subscription-level data with complete lifecycle tracking and revenue attribution.
+    tags:
+      - fact
+      - subscription
+      - revenue
+    properties:
+      - id: subscription_id
+        name: subscription_id
+        logicalType: string
+        physicalType: VARCHAR
+        description: Unique identifier for the subscription
+        primaryKey: true
+        primaryKeyPosition: 1
+        required: true
+
+      - id: customer_id
+        name: customer_id
+        logicalType: string
+        physicalType: VARCHAR
+        description: Customer identifier
+        required: true
+
+      - id: plan_id
+        name: plan_id
+        logicalType: string
+        physicalType: VARCHAR
+        description: Subscription plan identifier
+        required: true
+
+      - id: mrr
+        name: mrr
+        logicalType: number
+        physicalType: DECIMAL(10,2)
+        description: Monthly recurring revenue for this subscription
+        required: true
+        tags:
+          - metric
+          - revenue
+
+      - id: started_at
+        name: started_at
+        logicalType: timestamp
+        physicalType: TIMESTAMP
+        description: When the subscription started
+        required: true
+
+      - id: cancelled_at
+        name: cancelled_at
+        logicalType: timestamp
+        physicalType: TIMESTAMP
+        description: When the subscription was cancelled (null if active)
+        required: false
+
+      - id: status
+        name: status
+        logicalType: string
+        physicalType: VARCHAR(20)
+        description: Current subscription status
+        required: true
+        tags:
+          - dimension
+
+  - id: agg_mrr_daily
+    name: agg_mrr_daily
+    physicalName: ANALYTICS.SUBSCRIPTIONS.AGG_MRR_DAILY
+    physicalType: table
+    description: Daily aggregated MRR metrics with movement breakdown (new, expansion, contraction, churn).
+    dataGranularityDescription: One row per day with MRR component breakdown
+    tags:
+      - aggregate
+      - mrr
+      - daily
+    properties:
+      - id: date_key
+        name: date_key
+        logicalType: date
+        physicalType: DATE
+        description: The calendar date for this aggregation
+        primaryKey: true
+        primaryKeyPosition: 1
+        required: true
+
+      - id: total_mrr
+        name: total_mrr
+        logicalType: number
+        physicalType: DECIMAL(14,2)
+        description: Total MRR at end of day
+        required: true
+        tags:
+          - metric
+          - kpi
+
+      - id: new_mrr
+        name: new_mrr
+        logicalType: number
+        physicalType: DECIMAL(14,2)
+        description: MRR from new subscriptions
+        required: true
+
+      - id: churned_mrr
+        name: churned_mrr
+        logicalType: number
+        physicalType: DECIMAL(14,2)
+        description: MRR lost from cancelled subscriptions
+        required: true
+
+      - id: net_mrr_change
+        name: net_mrr_change
+        logicalType: number
+        physicalType: DECIMAL(14,2)
+        description: Net change in MRR (new + expansion - contraction - churn)
+        required: true
+        tags:
+          - metric
+          - kpi
+
+      - id: gross_churn_rate
+        name: gross_churn_rate
+        logicalType: number
+        physicalType: DECIMAL(5,2)
+        description: Percentage of MRR lost to churn
+        required: true
+        tags:
+          - metric
+          - rate
+
+slaProperties:
+  - property: latency
+    value: 60
+    unit: minutes
+    description: MRR data available within 1 hour of subscription events
+
+  - property: frequency
+    value: hourly
+    description: Fact table updated hourly, aggregates updated daily
+
+  - property: availability
+    value: 99.9
+    unit: percent
+    description: Target availability for analytics queries
+
+  - property: retention
+    value: 7
+    unit: years
+    description: Historical subscription data retained for trend analysis
+
+quality:
+  - id: mrr_balance
+    name: MRR Balance Check
+    type: sql
+    query: |
+      SELECT ABS(
+        SUM(CASE WHEN is_active THEN mrr ELSE 0 END) -
+        (SELECT total_mrr FROM agg_mrr_daily WHERE date_key = CURRENT_DATE - 1)
+      )
+    mustBeLessThan: 1
+    dimension: accuracy
+    description: Active subscription MRR must match daily aggregate
+
+  - id: no_orphan_subscriptions
+    name: No Orphan Subscriptions
+    type: library
+    metric: missingValues
+    mustBe: 0
+    unit: rows
+    dimension: completeness
+    description: All subscriptions must have a valid customer_id
+
+team:
+  - username: finance-analytics-lead
+    role: Data Product Owner
+    dateAdded: "2024-01-01"
+
+  - username: revenue-ops
+    role: Consumer
+    dateAdded: "2024-01-15"
+
+  - username: customer-success
+    role: Consumer
+    dateAdded: "2024-02-01"
+
+roles:
+  - role: analyst
+    access: read
+    firstLevelApprovers: finance-analytics-lead
+    description: Read access for revenue and retention analysis
+
+  - role: data-engineer
+    access: read-write
+    firstLevelApprovers: finance-analytics-lead
+    secondLevelApprovers: data-platform-lead
+    description: Full access for pipeline maintenance
+
+support:
+  - channel: slack
+    url: https://company.slack.com/channels/subscription-analytics
+
+  - channel: email
+    url: mailto:subscription-analytics@company.com

@@ -97,6 +97,8 @@
   --ec-badge-design-text: 234 88 12; /* orange-600 */
   --ec-badge-channel-bg: 224 231 255; /* indigo-100 */
   --ec-badge-channel-text: 67 56 202; /* indigo-700 */
+  --ec-badge-data-product-bg: 219 234 254; /* blue-100 */
+  --ec-badge-data-product-text: 30 64 175; /* blue-800 */
   --ec-badge-default-bg: 255 247 237; /* orange-50 */
   --ec-badge-default-text: 82 82 82; /* neutral-600 */
 }
@@ -188,6 +190,8 @@
   --ec-badge-design-text: 253 186 116; /* orange-300 */
   --ec-badge-channel-bg: 49 46 129 / 0.3; /* indigo-900/30 */
   --ec-badge-channel-text: 165 180 252; /* indigo-300 */
+  --ec-badge-data-product-bg: 30 64 175 / 0.3; /* blue-800/30 */
+  --ec-badge-data-product-text: 147 197 253; /* blue-300 */
   --ec-badge-default-bg: 64 64 64 / 0.3; /* neutral-700/30 */
   --ec-badge-default-text: 212 212 212; /* neutral-300 */
 }

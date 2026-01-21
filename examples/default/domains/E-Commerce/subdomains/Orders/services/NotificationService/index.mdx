@@ -21,6 +21,7 @@ receives:
   - id: OutOfStock
     from:
       - id: notifications-queue
+  - id: OrderMetricsCalculated
 readsFrom:
   - id: notifications-queue
     version: 0.0.1

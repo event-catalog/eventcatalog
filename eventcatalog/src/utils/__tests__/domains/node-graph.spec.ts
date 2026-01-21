@@ -1,6 +1,6 @@
 import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
-import { mockDomains, mockServices, mockEvents, mockCommands } from './mocks';
+import { mockDomains, mockServices, mockEvents, mockCommands, mockDataProducts } from './mocks';
 import { getNodesAndEdges } from '@utils/node-graphs/domains-node-graph';
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -17,6 +17,12 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockEvents);
         case 'commands':
           return Promise.resolve(mockCommands);
+        case 'data-products':
+          return Promise.resolve(mockDataProducts);
+        case 'queries':
+        case 'containers':
+        case 'channels':
+          return Promise.resolve([]);
         default:
           return Promise.resolve([]);
       }
@@ -114,8 +120,59 @@ describe('Domains NodeGraph', () => {
 
       expect(nodes).toEqual(expect.arrayContaining([expect.objectContaining(expectedEventNode)]));
 
-      expect(nodes.length).toEqual(9);
-      expect(edges.length).toEqual(8);
+      // 9 original nodes + 2 from data product (ShippingAnalytics + ShippingMetricsCalculated)
+      expect(nodes.length).toEqual(13);
+      // 8 original edges + 2 from data product (input edge + output edge)
+      expect(edges.length).toEqual(12);
+    });
+
+    it('should return nodes and edges for data products in a domain', async () => {
+      // @ts-ignore
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Shipping', version: '0.0.1' });
+
+      // Expect the data product node to be rendered (no group property since it's the top-level domain)
+      const expectedDataProductNode = {
+        id: 'ShippingAnalytics-1.0.0',
+        type: 'data-products',
+        sourcePosition: 'right',
+        targetPosition: 'left',
+        data: expect.objectContaining({
+          mode: 'simple',
+          dataProduct: expect.objectContaining({
+            id: 'ShippingAnalytics',
+            version: '1.0.0',
+          }),
+        }),
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
+      // Expect the output event from the data product to be rendered
+      const expectedOutputEventNode = {
+        id: 'ShippingMetricsCalculated-1.0.0',
+        type: 'events',
+        data: expect.objectContaining({
+          mode: 'simple',
+          message: expect.objectContaining({
+            id: 'ShippingMetricsCalculated',
+            version: '1.0.0',
+          }),
+        }),
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
+      expect(nodes).toEqual(expect.arrayContaining([expect.objectContaining(expectedDataProductNode)]));
+      expect(nodes).toEqual(expect.arrayContaining([expect.objectContaining(expectedOutputEventNode)]));
+
+      // Verify edges exist between data product and its inputs/outputs
+      const dataProductInputEdge = edges.find(
+        (e: any) => e.source === 'OrderPlaced-0.0.1' && e.target === 'ShippingAnalytics-1.0.0'
+      );
+      const dataProductOutputEdge = edges.find(
+        (e: any) => e.source === 'ShippingAnalytics-1.0.0' && e.target === 'ShippingMetricsCalculated-1.0.0'
+      );
+
+      expect(dataProductInputEdge).toBeDefined();
+      expect(dataProductOutputEdge).toBeDefined();
     });
 
     // it.only('should return nodes and edges for a given domain with services using semver range or latest version (version undefind)', async () => {

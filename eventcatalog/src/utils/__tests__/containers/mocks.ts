@@ -36,6 +36,27 @@ export const mockServices = [
   },
 ];
 
+export const mockDataProducts = [
+  {
+    slug: 'OrderAnalytics',
+    collection: 'data-products',
+    data: {
+      id: 'OrderAnalytics',
+      name: 'Order Analytics',
+      version: '1.0.0',
+    },
+  },
+  {
+    slug: 'OrderDataPipeline',
+    collection: 'data-products',
+    data: {
+      id: 'OrderDataPipeline',
+      name: 'Order Data Pipeline',
+      version: '1.0.0',
+    },
+  },
+];
+
 export const mockContainers = [
   {
     id: 'OrderDatabase',
@@ -60,6 +81,112 @@ export const mockContainers = [
           data: {
             id: 'SubscriptionService',
             version: '0.0.1',
+          },
+        },
+      ],
+      dataProductsThatWriteToContainer: [],
+      dataProductsThatReadFromContainer: [],
+    },
+  },
+  {
+    id: 'AnalyticsDatabase',
+    collection: 'containers',
+    data: {
+      id: 'AnalyticsDatabase',
+      version: '1.0.0',
+      technology: 'PostgreSQL',
+      servicesThatWriteToContainer: [],
+      servicesThatReadFromContainer: [],
+      dataProductsThatWriteToContainer: [
+        {
+          id: 'OrderDataPipeline',
+          collection: 'data-products',
+          version: '1.0.0',
+          data: {
+            id: 'OrderDataPipeline',
+            name: 'Order Data Pipeline',
+            version: '1.0.0',
+          },
+        },
+      ],
+      dataProductsThatReadFromContainer: [
+        {
+          id: 'OrderAnalytics',
+          collection: 'data-products',
+          version: '1.0.0',
+          data: {
+            id: 'OrderAnalytics',
+            name: 'Order Analytics',
+            version: '1.0.0',
+          },
+        },
+      ],
+    },
+  },
+  {
+    id: 'SharedDatabase',
+    collection: 'containers',
+    data: {
+      id: 'SharedDatabase',
+      version: '1.0.0',
+      technology: 'MySQL',
+      servicesThatWriteToContainer: [
+        {
+          id: 'PaymentService',
+          collection: 'services',
+          version: '0.0.1',
+          data: {
+            id: 'PaymentService',
+            version: '0.0.1',
+          },
+        },
+      ],
+      servicesThatReadFromContainer: [],
+      dataProductsThatWriteToContainer: [],
+      dataProductsThatReadFromContainer: [
+        {
+          id: 'OrderAnalytics',
+          collection: 'data-products',
+          version: '1.0.0',
+          data: {
+            id: 'OrderAnalytics',
+            name: 'Order Analytics',
+            version: '1.0.0',
+          },
+        },
+      ],
+    },
+  },
+  {
+    id: 'DataProductBothRW',
+    collection: 'containers',
+    data: {
+      id: 'DataProductBothRW',
+      version: '1.0.0',
+      technology: 'MongoDB',
+      servicesThatWriteToContainer: [],
+      servicesThatReadFromContainer: [],
+      dataProductsThatWriteToContainer: [
+        {
+          id: 'OrderDataPipeline',
+          collection: 'data-products',
+          version: '1.0.0',
+          data: {
+            id: 'OrderDataPipeline',
+            name: 'Order Data Pipeline',
+            version: '1.0.0',
+          },
+        },
+      ],
+      dataProductsThatReadFromContainer: [
+        {
+          id: 'OrderDataPipeline',
+          collection: 'data-products',
+          version: '1.0.0',
+          data: {
+            id: 'OrderDataPipeline',
+            name: 'Order Data Pipeline',
+            version: '1.0.0',
           },
         },
       ],

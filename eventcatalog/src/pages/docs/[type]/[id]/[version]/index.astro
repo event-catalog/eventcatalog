@@ -28,7 +28,7 @@ import {
   ClockIcon,
 } from '@heroicons/react/24/outline';
 import { ArrowsRightLeftIcon } from '@heroicons/react/20/solid';
-import { Box, Boxes, SquarePenIcon, DatabaseIcon, DatabaseZapIcon, ShieldCheckIcon, AlignLeft } from 'lucide-react';
+import { Box, Boxes, SquarePenIcon, DatabaseIcon, DatabaseZapIcon, ShieldCheckIcon, AlignLeft, Package } from 'lucide-react';
 
 import { getSpecificationsForService } from '@utils/collections/services';
 import { resourceToCollectionMap, collectionToResourceMap, getDeprecatedDetails } from '@utils/collections/util';
@@ -158,6 +158,10 @@ const getBadge = () => {
       });
     }
     return entityBadges;
+  }
+
+  if (props.collection === 'data-products') {
+    return [{ backgroundColor: 'indigo', textColor: 'indigo', content: 'Data Product', icon: Package }];
   }
 
   return [{ backgroundColor: 'teal', textColor: 'teal', content: '', icon: QueueListIcon, class: 'text-gray' }];

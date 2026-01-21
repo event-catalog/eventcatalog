@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fulfillment Fact Table",
+  "description": "Schema for the fact_order_fulfillment table containing order fulfillment metrics",
+  "type": "object",
+  "required": ["order_id", "customer_id", "order_date"],
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "description": "Unique identifier for the order"
+    },
+    "customer_id": {
+      "type": "string",
+      "description": "Customer identifier"
+    },
+    "order_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when order was placed"
+    },
+    "confirmation_time": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Timestamp when order was confirmed"
+    },
+    "shipment_created_time": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Timestamp when shipment was created"
+    },
+    "dispatch_time": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Timestamp when order was dispatched"
+    },
+    "delivery_time": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Timestamp when order was delivered"
+    },
+    "order_to_ship_minutes": {
+      "type": ["integer", "null"],
+      "description": "Minutes from order to shipment creation"
+    },
+    "ship_to_deliver_hours": {
+      "type": ["number", "null"],
+      "description": "Hours from dispatch to delivery"
+    },
+    "total_fulfillment_hours": {
+      "type": ["number", "null"],
+      "description": "Total hours from order to delivery"
+    },
+    "fulfillment_center": {
+      "type": ["string", "null"],
+      "description": "Fulfillment center that processed the order"
+    },
+    "shipping_method": {
+      "type": ["string", "null"],
+      "enum": ["standard", "express", "overnight", "same_day"],
+      "description": "Shipping method selected"
+    },
+    "carrier": {
+      "type": ["string", "null"],
+      "description": "Shipping carrier (UPS, FedEx, USPS, etc.)"
+    },
+    "destination_region": {
+      "type": ["string", "null"],
+      "description": "Geographic region of delivery address"
+    },
+    "is_delivered": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether order has been delivered"
+    },
+    "is_cancelled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether order was cancelled"
+    },
+    "is_on_time": {
+      "type": ["boolean", "null"],
+      "description": "Whether delivery was within promised window"
+    },
+    "met_sla": {
+      "type": ["boolean", "null"],
+      "description": "Whether fulfillment met SLA requirements"
+    }
+  }
+}

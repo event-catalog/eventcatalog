@@ -158,8 +158,8 @@ export const getItemsFromCollectionByIdAndSemverOrLatest = <T extends { data: { 
 };
 
 export const findMatchingNodes = (
-  nodesA: CollectionEntry<'events' | 'commands' | 'queries' | 'services' | 'containers'>[],
-  nodesB: CollectionEntry<'events' | 'commands' | 'queries' | 'services' | 'containers'>[]
+  nodesA: CollectionEntry<'events' | 'commands' | 'queries' | 'services' | 'containers' | 'data-products'>[],
+  nodesB: CollectionEntry<'events' | 'commands' | 'queries' | 'services' | 'containers' | 'data-products'>[]
 ) => {
   // Track messages that are both sent and received
   return nodesA.filter((nodeA) => {
@@ -182,6 +182,7 @@ export const resourceToCollectionMap = {
   container: 'containers',
   entity: 'entities',
   diagram: 'diagrams',
+  'data-product': 'data-products',
 } as const;
 
 export const collectionToResourceMap = {
@@ -197,6 +198,7 @@ export const collectionToResourceMap = {
   containers: 'container',
   entities: 'entity',
   diagrams: 'diagram',
+  'data-products': 'data-product',
 } as const;
 
 export const getDeprecatedDetails = (item: CollectionEntry<CollectionTypes>) => {
@@ -259,6 +261,13 @@ export const createVersionedMap = <T extends { data: { id: string; version?: str
     });
   }
   return map;
+};
+
+// Merge as many given maps as you want
+export const mergeMaps = <T>(...maps: Map<string, T[]>[]): Map<string, T[]> => {
+  return maps.reduce((acc, map) => {
+    return new Map([...acc, ...map]);
+  }, new Map<string, T[]>());
 };
 
 /**

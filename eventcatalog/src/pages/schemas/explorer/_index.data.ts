@@ -5,6 +5,7 @@ import { getCommands } from '@utils/collections/commands';
 import { getQueries } from '@utils/collections/queries';
 import { getServices, getSpecificationsForService } from '@utils/collections/services';
 import { getDomains, getSpecificationsForDomain } from '@utils/collections/domains';
+import { getDataProducts } from '@utils/collections/data-products';
 import { getOwner } from '@utils/collections/owners';
 import { buildUrl } from '@utils/url-builder';
 import { resourceFileExists, readResourceFile } from '@utils/resource-files';
@@ -185,7 +186,60 @@ async function fetchAllSchemas() {
   // Flatten and filter out null values for domains
   const flatDomainsWithSpecs = domainsWithSpecs.flat().filter((domain) => domain !== null);
 
-  return [...messagesWithSchemas, ...flatServicesWithSpecs, ...flatDomainsWithSpecs];
+  // Fetch all data products and extract contracts from outputs
+  const dataProducts = await getDataProducts({ getAllVersions: true });
+
+  // Filter data products with contracts in outputs and read contract content
+  const dataProductsWithContracts = await Promise.all(
+    dataProducts.map(async (dataProduct) => {
+      try {
+        const outputs = dataProduct.data.outputs || [];
+        const outputsWithContracts = outputs.filter((output) => output.contract);
+
+        if (outputsWithContracts.length === 0) {
+          return null;
+        }
+
+        return await Promise.all(
+          outputsWithContracts.map(async (output) => {
+            const contract = output.contract!;
+            if (!resourceFileExists(dataProduct, contract.path)) {
+              return null;
+            }
+
+            const schemaContent = readResourceFile(dataProduct, contract.path) ?? '';
+            const schemaExtension = path.extname(contract.path).slice(1) || 'json';
+            const enrichedOwners = await enrichOwners(dataProduct.data.owners || []);
+
+            return {
+              collection: 'data-products',
+              data: {
+                id: `${dataProduct.data.id}__${contract.path}`,
+                name: contract.name,
+                version: dataProduct.data.version,
+                summary: `Data contract for ${dataProduct.data.name}`,
+                schemaPath: contract.path,
+                owners: enrichedOwners,
+              },
+              schemaContent,
+              schemaExtension,
+              contractType: contract.type,
+              dataProductId: dataProduct.data.id,
+              dataProductVersion: dataProduct.data.version,
+            };
+          })
+        );
+      } catch (error) {
+        console.error(`Error reading contracts for data product ${dataProduct.data.id}:`, error);
+        return null;
+      }
+    })
+  );
+
+  // Flatten and filter out null values for data product contracts
+  const flatDataProductContracts = dataProductsWithContracts.flat().filter((contract) => contract !== null);
+
+  return [...messagesWithSchemas, ...flatServicesWithSpecs, ...flatDomainsWithSpecs, ...flatDataProductContracts];
 }
 
 export class Page extends HybridPage {

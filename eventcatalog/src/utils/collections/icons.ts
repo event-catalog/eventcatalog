@@ -10,6 +10,7 @@ import {
   ArrowsRightLeftIcon,
   VariableIcon,
   MapIcon,
+  CubeIcon,
 } from '@heroicons/react/24/outline';
 import { BookText, Box, DatabaseIcon } from 'lucide-react';
 
@@ -43,6 +44,8 @@ export const getIconForCollection = (collection: string) => {
       return Box;
     case 'containers':
       return DatabaseIcon;
+    case 'data-products':
+      return CubeIcon;
     default:
       return ServerIcon;
   }
@@ -74,6 +77,8 @@ export const getColorAndIconForCollection = (collection: string) => {
       return { color: 'yellow', Icon: icon };
     case 'services':
       return { color: 'pink', Icon: icon };
+    case 'data-products':
+      return { color: 'cyan', Icon: icon };
     default:
       return { color: 'gray', Icon: icon };
   }

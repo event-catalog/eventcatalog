@@ -171,6 +171,17 @@ const suggestedQuestionsConfig: QuestionConfig[] = [
       { label: 'Who owns this domain?', prompt: 'Who owns this domain and how do I contact them?' },
     ],
   },
+  // Data Products page
+  {
+    pattern: /^\/(docs|visualiser)\/data-products\/.+/,
+    questions: [
+      { label: 'What are the inputs and outputs?', prompt: 'What are the inputs and outputs of this data product?' },
+      { label: 'Show me the data contracts', prompt: 'What are the data contracts for this data product?' },
+      { label: 'Is this data product production ready?', prompt: 'Is this data product production ready?' },
+      { label: 'What is the quality & SLA of this product?', prompt: 'What is the quality & SLA of this product?' },
+      { label: 'Who owns this data product?', prompt: 'Who owns this data product and how do I contact them?' },
+    ],
+  },
   // Designs page
   {
     pattern: /^\/diagrams\/.+/,
@@ -490,7 +501,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
   // Memoize page context to avoid recalculating on every render
   const pageContext = useMemo(() => {
     const match = pathname.match(
-      /^\/(docs|visualiser|architecture)\/(events|services|commands|queries|flows|domains|channels|entities|containers)\/([^/]+)(?:\/([^/]+))?/
+      /^\/(docs|visualiser|architecture)\/(events|services|commands|queries|flows|domains|channels|entities|containers|data-products)\/([^/]+)(?:\/([^/]+))?/
     );
     if (match) {
       const [, , collection, id, version] = match;
@@ -504,6 +515,7 @@ const ChatPanel = ({ isOpen, onClose }: ChatPanelProps) => {
         channels: 'Channel',
         entities: 'Entity',
         containers: 'Container',
+        'data-products': 'Data Product',
       };
       return {
         type: collectionNames[collection] || collection,

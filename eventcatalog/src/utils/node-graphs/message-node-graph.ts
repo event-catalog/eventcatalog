@@ -84,25 +84,55 @@ const getNodesAndEdges = async ({
     type: message.collection,
   });
 
-  const producers = (message.data.producers as CollectionEntry<'services'>[]) || [];
-  const consumers = (message.data.consumers as CollectionEntry<'services'>[]) || [];
+  const producers = (message.data.producers as (CollectionEntry<'services'> | CollectionEntry<'data-products'>)[]) || [];
+  const consumers = (message.data.consumers as (CollectionEntry<'services'> | CollectionEntry<'data-products'>)[]) || [];
 
-  // Track nodes that are both sent and received
-  const bothSentAndReceived = findMatchingNodes(producers, consumers);
+  // Track nodes that are both sent and received (only for services)
+  const serviceProducers = producers.filter((p) => p.collection === 'services') as CollectionEntry<'services'>[];
+  const serviceConsumers = consumers.filter((c) => c.collection === 'services') as CollectionEntry<'services'>[];
+  const bothSentAndReceived = findMatchingNodes(serviceProducers, serviceConsumers);
 
   for (const producer of producers) {
-    // Create the producer node
+    const isDataProduct = producer.collection === 'data-products';
+
+    // Create the producer node with appropriate data structure
     nodes.push({
       id: generateIdForNode(producer),
-      type: producer?.collection,
+      type: isDataProduct ? 'data-products' : producer?.collection,
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: { mode, service: { ...producer.data } },
+      data: isDataProduct ? { mode, dataProduct: { ...producer.data } } : { mode, service: { ...producer.data } },
       position: { x: 250, y: 0 },
     });
 
+    // Data products don't have channel configuration, so connect directly to the message
+    if (isDataProduct) {
+      const rootSourceAndTarget = {
+        source: { id: generateIdForNode(producer), collection: producer.collection },
+        target: { id: generateIdForNode(message), collection: message.collection },
+      };
+
+      edges.push({
+        id: generatedIdForEdge(producer, message),
+        source: generateIdForNode(producer),
+        target: generateIdForNode(message),
+        label: 'produces',
+        data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
+        animated: false,
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 40,
+          height: 40,
+        },
+      });
+      continue;
+    }
+
+    // Service-specific channel handling
+    const serviceProducer = producer as CollectionEntry<'services'>;
+
     // Is the producer sending this message to a channel?
-    const producerConfigurationForMessage = producer.data.sends?.find((send) => send.id === message.data.id);
+    const producerConfigurationForMessage = serviceProducer.data.sends?.find((send) => send.id === message.data.id);
     const producerChannelConfiguration = producerConfigurationForMessage?.to ?? [];
 
     const producerHasChannels = producerChannelConfiguration?.length > 0;
@@ -184,18 +214,44 @@ const getNodesAndEdges = async ({
 
   // The messages the service sends
   for (const consumer of consumers) {
-    // Render the consumer node
+    const isDataProduct = consumer.collection === 'data-products';
+
+    // Render the consumer node with appropriate data structure
     nodes.push({
       id: generateIdForNode(consumer),
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: { title: consumer?.data.id, mode, service: { ...consumer.data } },
+      data: isDataProduct
+        ? { title: consumer?.data.id, mode, dataProduct: { ...consumer.data } }
+        : { title: consumer?.data.id, mode, service: { ...consumer.data } },
       position: { x: 0, y: 0 },
-      type: consumer?.collection,
+      type: isDataProduct ? 'data-products' : consumer?.collection,
     });
 
+    // Data products don't have channel configuration, so connect directly from the message
+    if (isDataProduct) {
+      const rootSourceAndTarget = {
+        source: { id: generateIdForNode(message), collection: message.collection },
+        target: { id: generateIdForNode(consumer), collection: consumer.collection },
+      };
+
+      edges.push(
+        createEdge({
+          id: generatedIdForEdge(message, consumer),
+          source: generateIdForNode(message),
+          target: generateIdForNode(consumer),
+          label: 'consumed by',
+          data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
+        })
+      );
+      continue;
+    }
+
+    // Service-specific channel handling
+    const serviceConsumer = consumer as CollectionEntry<'services'>;
+
     // Is the consumer receiving this message from a channel?
-    const consumerConfigurationForMessage = consumer.data.receives?.find((receive) => receive.id === message.data.id);
+    const consumerConfigurationForMessage = serviceConsumer.data.receives?.find((receive) => receive.id === message.data.id);
     const consumerChannelConfiguration = consumerConfigurationForMessage?.from ?? [];
 
     const consumerHasChannels = consumerChannelConfiguration.length > 0;
@@ -237,10 +293,11 @@ const getNodesAndEdges = async ({
       }
 
       // Can any of the consumer channels be linked to any of the producer channels?
-      const producerChannels = producers
+      // Only consider service producers for channel linking (data products don't have sends/receives)
+      const producerChannels = serviceProducers
         .map((producer) => producer.data.sends?.find((send) => send.id === message.data.id)?.to ?? [])
         .flat();
-      const consumerChannels = consumer.data.receives?.find((receive) => receive.id === message.data.id)?.from ?? [];
+      const consumerChannels = serviceConsumer.data.receives?.find((receive) => receive.id === message.data.id)?.from ?? [];
 
       for (const producerChannel of producerChannels) {
         const producerChannelValue = findInMap(
@@ -376,8 +433,7 @@ export const getNodesAndEdgesForQueries = async ({
   mode = 'simple',
   channelRenderMode = 'flat',
 }: Props) => {
-  const queries = await getQueries();
-  const channels = await getChannels();
+  const [queries, channels] = await Promise.all([getQueries(), getChannels()]);
   return getNodesAndEdges({ id, version, defaultFlow, mode, channelRenderMode, collection: queries, channels });
 };
 
@@ -388,8 +444,7 @@ export const getNodesAndEdgesForCommands = async ({
   mode = 'simple',
   channelRenderMode = 'flat',
 }: Props) => {
-  const commands = await getCommands();
-  const channels = await getChannels();
+  const [commands, channels] = await Promise.all([getCommands(), getChannels()]);
   return getNodesAndEdges({ id, version, defaultFlow, mode, channelRenderMode, collection: commands, channels });
 };
 
@@ -400,8 +455,7 @@ export const getNodesAndEdgesForEvents = async ({
   mode = 'simple',
   channelRenderMode = 'flat',
 }: Props) => {
-  const events = await getEvents();
-  const channels = await getChannels();
+  const [events, channels] = await Promise.all([getEvents(), getChannels()]);
   return getNodesAndEdges({ id, version, defaultFlow, mode, channelRenderMode, collection: events, channels });
 };
 

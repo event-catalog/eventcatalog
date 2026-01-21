@@ -32,7 +32,11 @@ export const getContainers = async ({ getAllVersions = true }: Props = {}): Prom
   }
 
   // 1. Fetch collections in parallel
-  const [allContainers, allServices] = await Promise.all([getCollection('containers'), getCollection('services')]);
+  const [allContainers, allServices, allDataProducts] = await Promise.all([
+    getCollection('containers'),
+    getCollection('services'),
+    getCollection('data-products'),
+  ]);
 
   // 2. Build optimized maps
   const containerMap = createVersionedMap(allContainers);
@@ -72,6 +76,24 @@ export const getContainers = async ({ getAllVersions = true }: Props = {}): Prom
         });
       });
 
+      // Find Data Products that write to this container (have it in outputs)
+      const dataProductsThatWriteToContainer = allDataProducts.filter((dataProduct) => {
+        return dataProduct.data?.outputs?.some((item) => {
+          if (item.id !== container.data.id) return false;
+          if (item.version === 'latest' || item.version === undefined) return container.data.version === latestVersion;
+          return satisfies(container.data.version, item.version);
+        });
+      });
+
+      // Find Data Products that read from this container (have it in inputs)
+      const dataProductsThatReadFromContainer = allDataProducts.filter((dataProduct) => {
+        return dataProduct.data?.inputs?.some((item) => {
+          if (item.id !== container.data.id) return false;
+          if (item.version === 'latest' || item.version === undefined) return container.data.version === latestVersion;
+          return satisfies(container.data.version, item.version);
+        });
+      });
+
       // Combine references
       const servicesThatReferenceContainer = [...new Set([...servicesThatWriteToContainer, ...servicesThatReadFromContainer])];
 
@@ -91,6 +113,8 @@ export const getContainers = async ({ getAllVersions = true }: Props = {}): Prom
           services: servicesThatReferenceContainer,
           servicesThatWriteToContainer,
           servicesThatReadFromContainer,
+          dataProductsThatWriteToContainer,
+          dataProductsThatReadFromContainer,
         },
         catalog: {
           path: path.join(container.collection, container.id.replace('/index.mdx', '')),

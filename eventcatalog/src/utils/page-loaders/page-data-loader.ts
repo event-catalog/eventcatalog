@@ -9,6 +9,7 @@ import { getEntities } from '@utils/collections/entities';
 import { getContainers } from '@utils/collections/containers';
 import { getDiagrams } from '@utils/collections/diagrams';
 import type { CollectionEntry } from 'astro:content';
+import { getDataProducts } from '@utils/collections/data-products';
 
 export const pageDataLoader: Record<PageTypes, () => Promise<CollectionEntry<CollectionTypes>[]>> = {
   events: getEvents,
@@ -21,4 +22,5 @@ export const pageDataLoader: Record<PageTypes, () => Promise<CollectionEntry<Col
   entities: getEntities,
   containers: getContainers,
   diagrams: getDiagrams,
+  'data-products': getDataProducts,
 };

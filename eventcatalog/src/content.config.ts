@@ -362,6 +362,34 @@ const queries = defineCollection({
     .merge(baseSchema),
 });
 
+const dataProductOutputPointer = z.object({
+  id: z.string(),
+  version: z.string().optional().default('latest'),
+  contract: z
+    .object({
+      path: z.string(),
+      name: z.string(),
+      type: z.string().optional(),
+    })
+    .optional(),
+});
+
+const dataProducts = defineCollection({
+  loader: glob({
+    pattern: ['**/data-products/*/index.(md|mdx)', '**/data-products/*/versioned/*/index.(md|mdx)'],
+    base: projectDirBase,
+    generateId: ({ data }) => {
+      return `${data.id}-${data.version}`;
+    },
+  }),
+  schema: z
+    .object({
+      inputs: z.array(pointer).optional(),
+      outputs: z.array(dataProductOutputPointer).optional(),
+    })
+    .merge(baseSchema),
+});
+
 const services = defineCollection({
   loader: glob({
     pattern: [
@@ -455,6 +483,8 @@ const containers = defineCollection({
 
       servicesThatWriteToContainer: z.array(reference('services')).optional(),
       servicesThatReadFromContainer: z.array(reference('services')).optional(),
+      dataProductsThatWriteToContainer: z.array(reference('data-products')).optional(),
+      dataProductsThatReadFromContainer: z.array(reference('data-products')).optional(),
     })
     .merge(baseSchema),
 });
@@ -489,6 +519,7 @@ const domains = defineCollection({
       services: z.array(pointer).optional(),
       domains: z.array(pointer).optional(),
       entities: z.array(pointer).optional(),
+      'data-products': z.array(pointer).optional(),
       flows: z.array(pointer).optional(),
       sends: z.array(sendsPointer).optional(),
       receives: z.array(receivesPointer).optional(),
@@ -724,6 +755,9 @@ export const collections = {
   pages,
   changelogs,
   containers,
+
+  // Data Product Collections
+  'data-products': dataProducts,
 
   // DDD Collections
   ubiquitousLanguages,

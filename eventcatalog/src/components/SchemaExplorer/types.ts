@@ -18,7 +18,7 @@ export interface Owner {
 }
 
 export interface SchemaItem {
-  collection: CollectionMessageTypes | 'services';
+  collection: CollectionMessageTypes | 'services' | 'data-products';
   data: {
     id: string;
     name: string;
@@ -34,6 +34,10 @@ export interface SchemaItem {
   specType?: string;
   specName?: string;
   specFilenameWithoutExtension?: string;
+  // For data contracts
+  contractType?: string;
+  dataProductId?: string;
+  dataProductVersion?: string;
 }
 
 export interface VersionDiff {

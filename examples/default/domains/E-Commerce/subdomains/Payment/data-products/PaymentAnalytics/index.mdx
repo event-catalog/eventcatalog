@@ -1,0 +1,185 @@
+---
+id: payment-analytics
+name: Payment Analytics
+version: 1.0.0
+summary: Comprehensive payment performance metrics including success rates, failure analysis, revenue attribution, and fraud detection insights.
+owners:
+  - dboyne
+badges:
+  - content: Analytics
+    backgroundColor: purple
+    textColor: purple
+  - content: Finance
+    backgroundColor: green
+    textColor: green
+  - content: dbt
+    backgroundColor: orange
+    textColor: orange
+inputs:
+  - id: PaymentInitiated
+  - id: PaymentProcessed
+  - id: PaymentFailed
+  - id: FraudCheckCompleted
+  - id: RiskScoreCalculated
+  - id: PaymentService
+  - id: FraudDetectionService
+  - id: payments-db
+  - id: payment-cache
+outputs:
+  - id: NotificationService
+  - id: payment-domain-eventbus
+  - id: payment-analytics-db
+    contract:
+      path: payment-metrics-contract.json
+      name: Payment Metrics Contract
+      type: json-schema
+---
+
+The Payment Analytics data product provides comprehensive visibility into payment performance, revenue metrics, and fraud detection effectiveness across all payment channels.
+
+<NodeGraph />
+
+## Overview
+
+This data product consumes payment lifecycle events from [[service|PaymentService]], [[service|FraudDetectionService]], and [[service|PaymentGatewayService]] to produce analytics-ready datasets for finance, risk, and operations teams.
+
+## Key Metrics
+
+| Metric | Description | Granularity |
+|--------|-------------|-------------|
+| Payment Success Rate | Percentage of successful transactions | Real-time |
+| Authorization Rate | Percentage of authorizations approved | Hourly |
+| Fraud Detection Rate | Percentage of fraudulent transactions caught | Daily |
+| False Positive Rate | Legitimate transactions flagged as fraud | Daily |
+| Revenue by Channel | Gross revenue by payment method | Hourly |
+| Chargeback Rate | Percentage of transactions disputed | Weekly |
+
+## Input Events
+
+| Event | Source | Volume |
+|-------|--------|--------|
+| [[event\|PaymentInitiated]] | [[service\|PaymentService]] | ~60k/day |
+| [[event\|PaymentProcessed]] | [[service\|PaymentService]] | ~55k/day |
+| [[event\|PaymentFailed]] | [[service\|PaymentGatewayService]] | ~5k/day |
+| [[event\|FraudCheckCompleted]] | [[service\|FraudDetectionService]] | ~60k/day |
+| [[event\|RiskScoreCalculated]] | [[service\|FraudDetectionService]] | ~60k/day |
+
+## Output Tables
+
+### `fact_payments`
+
+Transaction-level payment data with fraud scores and outcomes.
+
+```sql
+CREATE TABLE fact_payments (
+  payment_id            VARCHAR PRIMARY KEY,
+  order_id              VARCHAR NOT NULL,
+  customer_id           VARCHAR NOT NULL,
+  payment_timestamp     TIMESTAMP NOT NULL,
+
+  -- Amount details
+  gross_amount          DECIMAL(14,2) NOT NULL,
+  currency              CHAR(3) NOT NULL,
+  net_amount            DECIMAL(14,2),
+  fee_amount            DECIMAL(10,2),
+
+  -- Payment method
+  payment_method        VARCHAR(50),
+  card_brand            VARCHAR(20),
+  card_last_four        CHAR(4),
+  is_recurring          BOOLEAN DEFAULT FALSE,
+
+  -- Processing details
+  gateway               VARCHAR(50),
+  authorization_code    VARCHAR(50),
+  processor_response    VARCHAR(100),
+
+  -- Status
+  status                VARCHAR(20),
+  failure_reason        VARCHAR(100),
+
+  -- Fraud analysis
+  risk_score            DECIMAL(5,2),
+  fraud_check_result    VARCHAR(20),
+  is_flagged_fraud      BOOLEAN DEFAULT FALSE,
+  is_confirmed_fraud    BOOLEAN DEFAULT FALSE,
+
+  -- Timestamps
+  processed_at          TIMESTAMP,
+  settled_at            TIMESTAMP,
+  created_at            TIMESTAMP DEFAULT NOW()
+);
+```
+
+### `agg_payment_metrics_hourly`
+
+Pre-aggregated payment metrics for real-time dashboards.
+
+```sql
+CREATE TABLE agg_payment_metrics_hourly (
+  hour_key              TIMESTAMP,
+  payment_method        VARCHAR(50),
+  gateway               VARCHAR(50),
+  currency              CHAR(3),
+
+  PRIMARY KEY (hour_key, payment_method, gateway, currency),
+
+  -- Volume metrics
+  total_transactions    INTEGER,
+  successful_transactions INTEGER,
+  failed_transactions   INTEGER,
+
+  -- Amount metrics
+  gross_revenue         DECIMAL(16,2),
+  net_revenue           DECIMAL(16,2),
+  total_fees            DECIMAL(14,2),
+  avg_transaction_value DECIMAL(10,2),
+
+  -- Rate metrics
+  success_rate          DECIMAL(5,2),
+  authorization_rate    DECIMAL(5,2),
+
+  -- Fraud metrics
+  flagged_count         INTEGER,
+  confirmed_fraud_count INTEGER,
+  avg_risk_score        DECIMAL(5,2)
+);
+```
+
+### `dim_failure_reasons`
+
+Dimension table for payment failure analysis.
+
+```sql
+CREATE TABLE dim_failure_reasons (
+  failure_code          VARCHAR(50) PRIMARY KEY,
+  failure_category      VARCHAR(50),
+  failure_description   TEXT,
+  is_retryable          BOOLEAN,
+  recommended_action    TEXT
+);
+```
+
+## SLAs
+
+| Metric | Target |
+|--------|--------|
+| Data Freshness | < 2 minutes |
+| Availability | 99.99% |
+| Query Latency (p95) | < 500ms |
+
+## Use Cases
+
+- **Finance**: Daily revenue reconciliation and reporting
+- **Risk**: Fraud pattern analysis and model tuning
+- **Operations**: Payment gateway health monitoring
+- **Product**: Checkout conversion optimization
+
+## Lineage
+
+```
+PaymentInitiated ──┬──► fact_payments ──► agg_payment_metrics_hourly
+PaymentProcessed ──┤                  └──► dim_failure_reasons
+PaymentFailed ─────┤
+FraudCheckCompleted┘
+```

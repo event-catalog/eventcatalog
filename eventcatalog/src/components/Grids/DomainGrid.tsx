@@ -11,6 +11,7 @@ import {
   ArrowTopRightOnSquareIcon,
   ArrowLongRightIcon,
   ArrowLongLeftIcon,
+  CubeIcon,
 } from '@heroicons/react/24/outline';
 import { buildUrl } from '@utils/url-builder';
 import { BoxIcon } from 'lucide-react';
@@ -324,6 +325,43 @@ const ServiceCard = memo(({ service }: { service: any }) => {
   );
 });
 
+const DataProductCard = memo(({ dataProduct }: { dataProduct: any }) => {
+  const data = dataProduct?.data || dataProduct;
+
+  if (!data?.id) return null;
+
+  const href = buildUrl(`/docs/data-products/${data.id}/${data.version}`);
+
+  return (
+    <a
+      href={href}
+      className="block bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl shadow-sm hover:shadow-md hover:border-[rgb(var(--ec-accent)/0.5)] transition-all"
+    >
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center justify-center w-8 h-8 bg-purple-100 dark:bg-purple-500/20 rounded-lg">
+            <CubeIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-[rgb(var(--ec-page-text))]">{data.name || data.id}</span>
+              <span className="text-[11px] text-[rgb(var(--ec-page-text-muted))] font-medium bg-[rgb(var(--ec-content-hover))] px-1.5 py-0.5 rounded">
+                v{data.version}
+              </span>
+            </div>
+            {data.summary && (
+              <p className="text-xs text-[rgb(var(--ec-page-text-muted))] line-clamp-1 mt-0.5 max-w-md">{data.summary}</p>
+            )}
+          </div>
+        </div>
+        <div className="p-1.5 text-[rgb(var(--ec-icon-color))]">
+          <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+        </div>
+      </div>
+    </a>
+  );
+});
+
 const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
   const data = subdomain?.data || subdomain;
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -332,6 +370,7 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
 
   const services = data.services || [];
   const entities = data.entities || [];
+  const dataProducts = data['data-products'] || [];
 
   return (
     <div className="bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-xl overflow-hidden shadow-sm">
@@ -351,11 +390,13 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
                 v{data.version}
               </span>
               {/* Show counts when collapsed */}
-              {isCollapsed && (services.length > 0 || entities.length > 0) && (
+              {isCollapsed && (services.length > 0 || entities.length > 0 || dataProducts.length > 0) && (
                 <span className="text-[11px] text-[rgb(var(--ec-icon-color))] ml-1">
                   {services.length > 0 && `${services.length} service${services.length > 1 ? 's' : ''}`}
-                  {services.length > 0 && entities.length > 0 && ', '}
+                  {services.length > 0 && (entities.length > 0 || dataProducts.length > 0) && ', '}
                   {entities.length > 0 && `${entities.length} entit${entities.length > 1 ? 'ies' : 'y'}`}
+                  {entities.length > 0 && dataProducts.length > 0 && ', '}
+                  {dataProducts.length > 0 && `${dataProducts.length} data product${dataProducts.length > 1 ? 's' : ''}`}
                 </span>
               )}
             </div>
@@ -417,9 +458,28 @@ const SubdomainSection = memo(({ subdomain }: { subdomain: any }) => {
             </div>
           )}
 
-          {entities.length === 0 && services.length === 0 && (
+          {/* Subdomain Data Products */}
+          {dataProducts.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <CubeIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <h4 className="text-sm font-semibold text-[rgb(var(--ec-page-text))]">Data Products</h4>
+                <span className="text-xs text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 rounded-full font-medium">
+                  {dataProducts.length}
+                </span>
+              </div>
+              <div className="space-y-3">
+                {dataProducts.map((dataProduct: any) => {
+                  const dataProductId = dataProduct?.data?.id || dataProduct?.id;
+                  return dataProductId ? <DataProductCard key={dataProductId} dataProduct={dataProduct} /> : null;
+                })}
+              </div>
+            </div>
+          )}
+
+          {entities.length === 0 && services.length === 0 && dataProducts.length === 0 && (
             <p className="text-sm text-[rgb(var(--ec-icon-color))] italic text-center py-4">
-              No entities or services in this subdomain
+              No entities, services, or data products in this subdomain
             </p>
           )}
         </div>
@@ -439,6 +499,7 @@ export default function DomainGrid({ domain }: DomainGridProps) {
   const subdomains = data.domains || [];
   const entities = data.entities || [];
   const services = data.services || [];
+  const dataProducts = data['data-products'] || [];
 
   // Get services that are NOT in any subdomain
   const subdomainServiceIds = useMemo(
@@ -452,6 +513,18 @@ export default function DomainGrid({ domain }: DomainGridProps) {
     [subdomains]
   );
 
+  // Get data products that are NOT in any subdomain
+  const subdomainDataProductIds = useMemo(
+    () =>
+      new Set(
+        subdomains.flatMap((sd: any) => {
+          const sdData = sd?.data || sd;
+          return (sdData?.['data-products'] || []).map((dp: any) => dp?.data?.id || dp?.id);
+        })
+      ),
+    [subdomains]
+  );
+
   const topLevelServices = useMemo(
     () =>
       services.filter((s: any) => {
@@ -459,6 +532,15 @@ export default function DomainGrid({ domain }: DomainGridProps) {
         return sId && !subdomainServiceIds.has(sId);
       }),
     [services, subdomainServiceIds]
+  );
+
+  const topLevelDataProducts = useMemo(
+    () =>
+      dataProducts.filter((dp: any) => {
+        const dpId = dp?.data?.id || dp?.id;
+        return dpId && !subdomainDataProductIds.has(dpId);
+      }),
+    [dataProducts, subdomainDataProductIds]
   );
 
   return (
@@ -548,13 +630,34 @@ export default function DomainGrid({ domain }: DomainGridProps) {
           </div>
         )}
 
+        {/* Top-level Data Products */}
+        {topLevelDataProducts.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <CubeIcon className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <h3 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">Data Products</h3>
+              <span className="text-sm text-[rgb(var(--ec-page-text-muted))] bg-[rgb(var(--ec-content-hover))] px-2.5 py-0.5 rounded-full font-medium">
+                {topLevelDataProducts.length}
+              </span>
+            </div>
+            <div className="space-y-3">
+              {topLevelDataProducts.map((dataProduct: any) => {
+                const dataProductId = dataProduct?.data?.id || dataProduct?.id;
+                return dataProductId ? <DataProductCard key={dataProductId} dataProduct={dataProduct} /> : null;
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Empty state */}
-        {entities.length === 0 && services.length === 0 && subdomains.length === 0 && (
+        {entities.length === 0 && services.length === 0 && dataProducts.length === 0 && subdomains.length === 0 && (
           <div className="text-center py-12">
             <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-[rgb(var(--ec-content-hover))] rounded-2xl">
               <RectangleGroupIcon className="h-8 w-8 text-[rgb(var(--ec-icon-color))]" />
             </div>
-            <p className="text-[rgb(var(--ec-page-text-muted))]">This domain has no entities, services, or subdomains defined.</p>
+            <p className="text-[rgb(var(--ec-page-text-muted))]">
+              This domain has no entities, services, data products, or subdomains defined.
+            </p>
           </div>
         )}
       </div>

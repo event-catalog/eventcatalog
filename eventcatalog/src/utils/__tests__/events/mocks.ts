@@ -181,4 +181,52 @@ export const mockEvents = [
       version: '1.0.0',
     },
   },
+  {
+    id: 'DataProductEvent',
+    slug: 'DataProductEvent',
+    collection: 'events',
+    data: {
+      id: 'DataProductEvent',
+      version: '1.0.0',
+    },
+  },
+];
+
+export const mockDataProducts = [
+  {
+    id: 'OrderAnalytics-1.0.0',
+    slug: 'OrderAnalytics',
+    collection: 'data-products',
+    data: {
+      id: 'OrderAnalytics',
+      name: 'Order Analytics',
+      version: '1.0.0',
+      inputs: [{ id: 'OrderCreatedEvent', version: '0.0.1' }],
+      outputs: [],
+    },
+  },
+  {
+    id: 'OrderDataPipeline-1.0.0',
+    slug: 'OrderDataPipeline',
+    collection: 'data-products',
+    data: {
+      id: 'OrderDataPipeline',
+      name: 'Order Data Pipeline',
+      version: '1.0.0',
+      inputs: [],
+      outputs: [{ id: 'OrderCreatedEvent', version: '0.0.1' }],
+    },
+  },
+  {
+    id: 'DataProductProducerConsumer-1.0.0',
+    slug: 'DataProductProducerConsumer',
+    collection: 'data-products',
+    data: {
+      id: 'DataProductProducerConsumer',
+      name: 'Data Product Producer Consumer',
+      version: '1.0.0',
+      inputs: [{ id: 'DataProductEvent', version: '1.0.0' }],
+      outputs: [{ id: 'DataProductEvent', version: '1.0.0' }],
+    },
+  },
 ];

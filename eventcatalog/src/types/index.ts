@@ -8,7 +8,8 @@ export type CollectionTypes =
   | 'channels'
   | 'entities'
   | 'containers'
-  | 'diagrams';
+  | 'diagrams'
+  | 'data-products';
 export type CollectionMessageTypes = 'commands' | 'events' | 'queries';
 export type CollectionUserTypes = 'users';
 export type PageTypes =
@@ -21,7 +22,8 @@ export type PageTypes =
   | 'flows'
   | 'entities'
   | 'containers'
-  | 'diagrams';
+  | 'diagrams'
+  | 'data-products';
 
 export type TableConfiguration = {
   columns: {

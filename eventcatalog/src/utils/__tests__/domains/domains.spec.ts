@@ -1,6 +1,6 @@
 import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
-import { mockDomains, mockServices, mockEvents, mockCommands, mockUbiquitousLanguages } from './mocks';
+import { mockDomains, mockServices, mockEvents, mockCommands, mockUbiquitousLanguages, mockDataProducts } from './mocks';
 import {
   domainHasEntities,
   getDomains,
@@ -25,6 +25,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockEvents);
         case 'commands':
           return Promise.resolve(mockCommands);
+        case 'data-products':
+          return Promise.resolve(mockDataProducts);
         case 'ubiquitousLanguages':
           let result = mockUbiquitousLanguages;
           if (filter) {
@@ -249,6 +251,50 @@ describe('Domains', () => {
     it('should return false if the domain has no entities', async () => {
       const domains = await getDomains();
       expect(domainHasEntities(domains[1])).toBe(false);
+    });
+  });
+
+  describe('data products', () => {
+    it('should hydrate data products for the main domain', async () => {
+      const domains = await getDomains();
+      const shippingDomain = domains.find((d) => d.data.id === 'Shipping');
+
+      expect(shippingDomain).toBeDefined();
+      const dataProducts = shippingDomain!.data['data-products'] as any[];
+      expect(dataProducts).toBeDefined();
+      expect(dataProducts.length).toBe(1);
+      expect(dataProducts[0].data.id).toBe('ShippingAnalytics');
+      expect(dataProducts[0].data.version).toBe('1.0.0');
+    });
+
+    it('should hydrate data products for subdomains', async () => {
+      const domains = await getDomains();
+      const shippingDomain = domains.find((d) => d.data.id === 'Shipping');
+
+      expect(shippingDomain).toBeDefined();
+      const subdomains = shippingDomain!.data.domains as any[];
+      expect(subdomains).toBeDefined();
+      expect(subdomains.length).toBeGreaterThan(0);
+
+      // Checkout is a subdomain of Shipping with data products
+      const checkoutSubdomain = subdomains.find((sd: any) => sd.data.id === 'Checkout');
+      expect(checkoutSubdomain).toBeDefined();
+
+      const subdomainDataProducts = checkoutSubdomain.data['data-products'] as any[];
+      expect(subdomainDataProducts).toBeDefined();
+      expect(subdomainDataProducts.length).toBe(1);
+      expect(subdomainDataProducts[0].data.id).toBe('CheckoutAnalytics');
+      expect(subdomainDataProducts[0].data.version).toBe('1.0.0');
+      expect(subdomainDataProducts[0].data.name).toBe('Checkout Analytics');
+    });
+
+    it('should return empty array when domain has no data products', async () => {
+      const domains = await getDomains();
+      const notificationDomain = domains.find((d) => d.data.id === 'Notification');
+
+      expect(notificationDomain).toBeDefined();
+      const dataProducts = notificationDomain!.data['data-products'] as any[];
+      expect(dataProducts).toEqual([]);
     });
   });
 });

@@ -6,8 +6,8 @@ import SchemaPageViewer from '@components/SchemaExplorer/SchemaPageViewer';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { sortVersioned } from '@utils/collections/util';
 import { isEventCatalogScaleEnabled } from '@utils/feature';
-import fs from 'fs';
-import path from 'path';
+import { resourceFileExists, readResourceFile } from '@utils/resource-files';
+import path from 'node:path';
 import type { SchemaItem } from '@components/SchemaExplorer/types';
 
 export const prerender = Page.prerender;
@@ -16,27 +16,76 @@ export const getStaticPaths = Page.getStaticPaths;
 // Get data
 const props = await Page.getData(Astro);
 const { type, data } = props as { type: PageTypes; data: any };
-const pageTitle = `${type} | ${data.name}`.replace(/^\w/, (c) => c.toUpperCase());
 
-const allItems = await pageDataLoader[type]();
-const versions = allItems.filter((item) => item.data.id === data.id);
+// Check if this is a data product with a contract
+const isDataProduct = type === 'data-products';
+// Try query param first (SSR mode), then fall back to props (static mode)
+const contractPath = Astro.url.searchParams.get('contract') || (props as any).contractPath;
 
-// Transform to SchemaItems
-const availableVersions = await Promise.all(
-  versions
-    .filter((message) => message.data.schemaPath)
-    .filter((message) => fs.existsSync(path.join(path.dirname(message.filePath ?? ''), message.data.schemaPath ?? '')))
-    .map(async (message) => {
+let currentMessage: SchemaItem | null = null;
+let sortedVersions: SchemaItem[] = [];
+let pageTitle = `${type} | ${data.name}`.replace(/^\w/, (c) => c.toUpperCase());
+
+if (isDataProduct && contractPath) {
+  // Handle data product contracts
+  const allDataProducts = await pageDataLoader['data-products']();
+  const dataProductVersions = allDataProducts.filter((item) => item.data.id === data.id);
+
+  // Find contracts across all versions
+  const contractVersions = dataProductVersions
+    .map((dataProduct) => {
+      const outputs = (dataProduct.data as any).outputs || [];
+      const matchingOutput = outputs.find((output: any) => output.contract?.path === contractPath);
+
+      if (!matchingOutput) return null;
+
+      if (!resourceFileExists(dataProduct, contractPath)) return null;
+
       try {
-        const schemaPath = message.data.schemaPath;
-        const fullSchemaPath = path.join(path.dirname(message.filePath ?? ''), schemaPath ?? '');
+        const schemaContent = readResourceFile(dataProduct, contractPath) ?? '';
+        const schemaExtension = path.extname(contractPath).slice(1);
 
-        let schemaContent = '';
-        if (fs.existsSync(fullSchemaPath)) {
-          schemaContent = fs.readFileSync(fullSchemaPath, 'utf-8');
-        }
+        return {
+          collection: 'data-products',
+          data: {
+            id: dataProduct.data.id,
+            name: matchingOutput.contract.name,
+            version: dataProduct.data.version,
+            summary: `Data contract for ${dataProduct.data.name}`,
+            schemaPath: contractPath,
+          },
+          schemaContent,
+          schemaExtension,
+          contractType: matchingOutput.contract.type,
+          dataProductId: dataProduct.data.id,
+          dataProductVersion: dataProduct.data.version,
+        } as SchemaItem;
+      } catch (error) {
+        console.error(`Error reading contract for ${dataProduct.data.id}:`, error);
+        return null;
+      }
+    })
+    .filter((v): v is SchemaItem => v !== null);
 
-        const schemaExtension = path.extname(schemaPath ?? '').slice(1);
+  sortedVersions = sortVersioned(contractVersions, (item) => item.data.version);
+  currentMessage = sortedVersions.find((v) => v.data.version === data.version) ?? null;
+
+  if (currentMessage) {
+    pageTitle = `Data Contract | ${currentMessage.data.name}`;
+  }
+} else {
+  // Handle regular messages (events, commands, queries)
+  const allItems = await pageDataLoader[type]();
+  const versions = allItems.filter((item) => item.data.id === data.id);
+
+  // Transform to SchemaItems
+  const availableVersions = versions
+    .filter((message) => message.data.schemaPath && resourceFileExists(message, message.data.schemaPath))
+    .map((message) => {
+      try {
+        const schemaPath = message.data.schemaPath ?? '';
+        const schemaContent = readResourceFile(message, schemaPath) ?? '';
+        const schemaExtension = path.extname(schemaPath).slice(1);
 
         return {
           collection: message.collection,
@@ -59,14 +108,12 @@ const availableVersions = await Promise.all(
         return null;
       }
     })
-);
+    .filter((v): v is SchemaItem => v !== null);
 
-const validVersions = availableVersions.filter((v): v is SchemaItem => v !== null);
+  sortedVersions = sortVersioned(availableVersions, (item) => item.data.version);
+  currentMessage = sortedVersions.find((v) => v.data.version === data.version) ?? null;
+}
 
-// Sort versions descending (newest first)
-const sortedVersions = sortVersioned(validVersions, (item) => item.data.version);
-
-const currentMessage = sortedVersions.find((v) => v.data.version === data.version);
 const apiAccessEnabled = isEventCatalogScaleEnabled();
 ---
 
@@ -83,7 +130,9 @@ const apiAccessEnabled = isEventCatalogScaleEnabled();
           showProducersConsumers={false}
         />
       ) : (
-        <div class="p-8 flex items-center justify-center h-full text-gray-500">Schema not found or could not be loaded.</div>
+        <div class="p-8 flex items-center justify-center h-full text-[rgb(var(--ec-page-text-muted))]">
+          Schema not found or could not be loaded.
+        </div>
       )
     }
   </div>

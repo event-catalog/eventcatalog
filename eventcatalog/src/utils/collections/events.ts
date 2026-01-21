@@ -1,7 +1,8 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
-import { createVersionedMap, findInMap, satisfies } from './util';
+import { createVersionedMap } from './util';
+import { hydrateProducersAndConsumers } from './messages';
 import utils from '@eventcatalog/sdk';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
@@ -35,10 +36,11 @@ export const getEvents = async ({ getAllVersions = true, hydrateServices = true 
   }
 
   // 1. Fetch collections in parallel
-  const [allEvents, allServices, allChannels] = await Promise.all([
+  const [allEvents, allServices, allChannels, allDataProducts] = await Promise.all([
     getCollection('events'),
     getCollection('services'),
     getCollection('channels'),
+    getCollection('data-products'),
   ]);
 
   // 2. Build optimized maps
@@ -64,33 +66,13 @@ export const getEvents = async ({ getAllVersions = true, hydrateServices = true 
       const latestVersion = eventVersions[0]?.data.version || event.data.version;
       const versions = eventVersions.map((e) => e.data.version);
 
-      // Find Producers (Services that send this event)
-      const producers = allServices
-        .filter((service) =>
-          service.data.sends?.some((item) => {
-            if (item.id !== event.data.id) return false;
-            if (item.version === 'latest' || item.version === undefined) return event.data.version === latestVersion;
-            return satisfies(event.data.version, item.version);
-          })
-        )
-        .map((service) => {
-          if (!hydrateServices) return { id: service.data.id, version: service.data.version };
-          return service;
-        });
-
-      // Find Consumers (Services that receive this event)
-      const consumers = allServices
-        .filter((service) =>
-          service.data.receives?.some((item) => {
-            if (item.id !== event.data.id) return false;
-            if (item.version === 'latest' || item.version === undefined) return event.data.version === latestVersion;
-            return satisfies(event.data.version, item.version);
-          })
-        )
-        .map((service) => {
-          if (!hydrateServices) return { id: service.data.id, version: service.data.version };
-          return service;
-        });
+      // Find producers and consumers (services + data products)
+      const { producers, consumers } = hydrateProducersAndConsumers({
+        message: { data: { ...event.data, latestVersion } },
+        services: allServices,
+        dataProducts: allDataProducts,
+        hydrate: hydrateServices,
+      });
 
       // Find Channels
       const messageChannels = event.data.channels || [];

@@ -80,16 +80,18 @@ export const getDomains = async ({
   }
 
   // 1. Fetch collections (always fetch messages to hydrate domain-level sends/receives)
-  const [allDomains, allServices, allEntities, allFlows, allEvents, allCommands, allQueries, allContainers] = await Promise.all([
-    getCollection('domains'),
-    getCollection('services'),
-    getCollection('entities'),
-    getCollection('flows'),
-    getCollection('events'),
-    getCollection('commands'),
-    getCollection('queries'),
-    getCollection('containers'),
-  ]);
+  const [allDomains, allServices, allEntities, allFlows, allEvents, allCommands, allQueries, allContainers, allDataProducts] =
+    await Promise.all([
+      getCollection('domains'),
+      getCollection('services'),
+      getCollection('entities'),
+      getCollection('flows'),
+      getCollection('events'),
+      getCollection('commands'),
+      getCollection('queries'),
+      getCollection('containers'),
+      getCollection('data-products'),
+    ]);
 
   const allMessages = [...allEvents, ...allCommands, ...allQueries];
   const messageMap = createVersionedMap(allMessages);
@@ -100,6 +102,7 @@ export const getDomains = async ({
   const serviceMap = createVersionedMap(allServices);
   const entityMap = createVersionedMap(allEntities);
   const flowMap = createVersionedMap(allFlows);
+  const dataProductMap = createVersionedMap(allDataProducts);
 
   // 3. Filter the domains we actually want to process/return
   const targetDomains = allDomains.filter((domain: Domain) => {
@@ -137,11 +140,17 @@ export const getDomains = async ({
               .filter((s: any) => !!s);
           }
 
+          // Hydrate data products for the subdomain
+          const subdomainDataProducts = (subDomain.data['data-products'] || [])
+            .map((dp: { id: string; version: string | undefined }) => findInMap(dataProductMap, dp.id, dp.version))
+            .filter((dp: any) => !!dp);
+
           return {
             ...subDomain,
             data: {
               ...subDomain.data,
               services: hydratedServices as any,
+              'data-products': subdomainDataProducts as any,
             },
           };
         });
@@ -157,6 +166,14 @@ export const getDomains = async ({
       const flows = flowsInDomain
         .map((flow: { id: string; version: string | undefined }) => findInMap(flowMap, flow.id, flow.version))
         .filter((f): f is CollectionEntry<'flows'> => !!f);
+
+      // Resolve Data Products
+      const dataProductsInDomain = domain.data['data-products'] || [];
+      const dataProducts = dataProductsInDomain
+        .map((dataProduct: { id: string; version: string | undefined }) =>
+          findInMap(dataProductMap, dataProduct.id, dataProduct.version)
+        )
+        .filter((dp): dp is CollectionEntry<'data-products'> => !!dp);
 
       // Resolve Services for Main Domain
       const servicesInDomain = domain.data.services || [];
@@ -203,6 +220,7 @@ export const getDomains = async ({
           domains: subDomains as any,
           entities: entities as any,
           flows: flows as any,
+          'data-products': dataProducts as any,
           sends: domainSends as any,
           receives: domainReceives as any,
           latestVersion,

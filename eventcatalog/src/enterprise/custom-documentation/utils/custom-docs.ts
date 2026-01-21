@@ -210,6 +210,6 @@ export const getAdjacentPages = async (slug: string): Promise<AdjacentPages> => 
 };
 
 export const getNavigationItems = async (): Promise<SidebarItem[]> => {
-  const configuredSidebar = config.customDocs.sidebar;
+  const configuredSidebar = config.customDocs?.sidebar || [];
   return processSidebarItems(configuredSidebar as SideBarConfigurationItem[]);
 };

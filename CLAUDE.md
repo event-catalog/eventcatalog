@@ -250,3 +250,8 @@ When building features used by both AI Chat and MCP Server, add shared logic to 
 - Use `DISABLE_EVENTCATALOG_CACHE=true` env var to disable caching during development
 - Run `pnpm run format` before committing changes
 - Never verify the build, the developer will do this themselves.
+
+## Plan Mode
+
+- Make the plan extremely concise. Sacrifice grammar for the sake of concision.
+- At the end of each plan, give me a list of unresolved questions to answer, if any.

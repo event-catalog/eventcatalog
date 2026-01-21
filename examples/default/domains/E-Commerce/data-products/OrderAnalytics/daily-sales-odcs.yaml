@@ -1,0 +1,218 @@
+apiVersion: v3.1.0
+kind: DataContract
+id: daily-sales-aggregation
+version: 1.0.0
+status: active
+
+name: Daily Sales Aggregation
+domain: E-Commerce
+dataProduct: Order Analytics
+tenant: analytics-team
+
+tags:
+  - analytics
+  - sales
+  - daily
+  - kpi
+
+description:
+  purpose: Pre-aggregated daily sales metrics for dashboard performance and executive reporting.
+  limitations: Data is aggregated at day granularity; hourly breakdowns not available.
+  usage: Connect via BI tools or query directly for daily KPIs.
+
+schema:
+  - id: agg_daily_sales
+    name: agg_daily_sales
+    physicalName: ANALYTICS.ORDER_ANALYTICS.AGG_DAILY_SALES
+    physicalType: table
+    description: Daily aggregated sales metrics including revenue, order counts, and customer segmentation.
+    tags:
+      - analytics
+      - sales
+      - daily
+      - kpi
+    properties:
+      - id: date_key
+        name: date_key
+        logicalType: date
+        physicalType: DATE
+        description: The calendar date for this aggregation row.
+        primaryKey: true
+        primaryKeyPosition: 1
+        required: true
+        tags:
+          - dimension
+          - date
+
+      - id: total_orders
+        name: total_orders
+        logicalType: integer
+        physicalType: INTEGER
+        description: Total number of orders placed on this date.
+        required: true
+        tags:
+          - metric
+          - count
+
+      - id: total_revenue
+        name: total_revenue
+        logicalType: number
+        physicalType: DECIMAL(14,2)
+        description: Sum of net order amounts in USD.
+        required: true
+        tags:
+          - metric
+          - currency
+
+      - id: avg_order_value
+        name: avg_order_value
+        logicalType: number
+        physicalType: DECIMAL(10,2)
+        description: Average order value (total_revenue / total_orders).
+        required: true
+        tags:
+          - metric
+          - derived
+
+      - id: unique_customers
+        name: unique_customers
+        logicalType: integer
+        physicalType: INTEGER
+        description: Count of distinct customers who placed orders.
+        required: true
+        tags:
+          - metric
+          - count
+
+      - id: new_customers
+        name: new_customers
+        logicalType: integer
+        physicalType: INTEGER
+        description: Customers making their first-ever order on this date.
+        required: true
+        tags:
+          - metric
+          - count
+
+      - id: repeat_customers
+        name: repeat_customers
+        logicalType: integer
+        physicalType: INTEGER
+        description: Customers who have ordered before.
+        required: true
+        tags:
+          - metric
+          - count
+
+      - id: refund_count
+        name: refund_count
+        logicalType: integer
+        physicalType: INTEGER
+        description: Number of refunds processed on this date.
+        required: false
+        tags:
+          - metric
+          - count
+
+      - id: refund_amount
+        name: refund_amount
+        logicalType: number
+        physicalType: DECIMAL(12,2)
+        description: Total refund amount in USD.
+        required: false
+        tags:
+          - metric
+          - currency
+
+slaProperties:
+  - property: latency
+    value: 30
+    unit: minutes
+    description: Data available within 30 minutes of midnight UTC.
+
+  - property: generalAvailability
+    value: "2024-01-01"
+    description: Generally available since January 2024.
+
+  - property: retention
+    value: 7
+    unit: years
+    description: Historical data retained for 7 years.
+
+  - property: frequency
+    value: daily
+    description: Updated once per day at 00:30 UTC.
+
+  - property: availability
+    value: 99.9
+    unit: percent
+    description: Target availability SLA.
+
+quality:
+  - id: completeness_check
+    name: Completeness Check
+    type: library
+    metric: missingValues
+    mustBe: 0
+    unit: rows
+    dimension: completeness
+    description: All dates since launch must have a record.
+
+  - id: accuracy_check
+    name: Order Count Accuracy
+    type: sql
+    query: |
+      SELECT ABS(a.total_orders - f.order_count)
+      FROM agg_daily_sales a
+      JOIN (SELECT order_date, COUNT(*) as order_count FROM fact_orders GROUP BY order_date) f
+      ON a.date_key = f.order_date
+    mustBe: 0
+    dimension: accuracy
+    description: Total orders must match sum from fact_orders.
+
+  - id: freshness_check
+    name: Data Freshness
+    type: library
+    metric: freshness
+    mustBeLessThan: 2
+    unit: days
+    dimension: timeliness
+    description: Most recent date should be yesterday or today.
+
+team:
+  - username: analytics-lead
+    role: Data Product Owner
+    dateAdded: "2024-01-01"
+
+  - username: bi-team
+    role: Consumer
+    dateAdded: "2024-01-15"
+
+  - username: finance-team
+    role: Consumer
+    dateAdded: "2024-02-01"
+
+roles:
+  - role: analyst
+    access: read
+    firstLevelApprovers: analytics-lead
+    description: Read access for BI and reporting.
+
+  - role: engineer
+    access: read-write
+    firstLevelApprovers: analytics-lead
+    secondLevelApprovers: data-platform-lead
+    description: Full access for data engineering team.
+
+support:
+  - channel: email
+    url: mailto:analytics-team@company.com
+
+  - channel: issues
+    url: https://github.com/company/data-products/issues
+
+customProperties:
+  sourcePlatform: Snowflake
+  sourceSystem: Order Analytics Pipeline
+  project: order-analytics
+  contractCreatedTs: "2024-01-01T00:00:00Z"
