@@ -9,6 +9,8 @@ import {
   getResource as getResourceImpl,
   getMessagesProducedOrConsumedByResource as getMessagesImpl,
   getSchemaForResource as getSchemaImpl,
+  getDataProductInputs as getDataProductInputsImpl,
+  getDataProductOutputs as getDataProductOutputsImpl,
   collectionSchema,
   resourceCollectionSchema,
   messageCollectionSchema,
@@ -57,6 +59,8 @@ const builtInToolsMetadata = [
   { name: 'getProducerAndConsumerForMessage', description: 'Get the producers and consumers for a message' },
   { name: 'getConsumersOfMessage', description: 'Get the consumers for a message' },
   { name: 'getSchemaForResource', description: 'Get the schema or specifications (OpenAPI, AsyncAPI, GraphQL) for a resource' },
+  { name: 'getDataProductInputs', description: 'Get the inputs (resources consumed) for a data product' },
+  { name: 'getDataProductOutputs', description: 'Get the outputs (resources produced) for a data product with data contracts' },
 ];
 
 // Get extended tools metadata from user configuration
@@ -94,6 +98,8 @@ There are many different resource types in EventCatalog, including:
   - example docs url: /docs/entities/MyEntity/1.0.0
 - Containers (collection name 'containers') (at the moment these are data stores (databases))
   - example docs url: /docs/containers/MyContainer/1.0.0
+- Data Products (collection name 'data-products') (data products that have inputs and outputs, and may have data contracts)
+  - example docs url: /docs/data-products/MyDataProduct/1.0.0
 
 The user will ask you some questions about the software architecture catalog, you should use the tools provided to you to get the information they need.
 
@@ -289,6 +295,26 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
           }),
           execute: async ({ resourceId, resourceVersion, resourceCollection }) => {
             return await getSchemaImpl({ resourceId, resourceVersion, resourceCollection });
+          },
+        }),
+        getDataProductInputs: tool({
+          description: toolDescriptions.getDataProductInputs,
+          inputSchema: z.object({
+            dataProductId: z.string().describe('The id of the data product to get the inputs for'),
+            dataProductVersion: z.string().describe('The version of the data product to get the inputs for'),
+          }),
+          execute: async ({ dataProductId, dataProductVersion }) => {
+            return await getDataProductInputsImpl({ dataProductId, dataProductVersion });
+          },
+        }),
+        getDataProductOutputs: tool({
+          description: toolDescriptions.getDataProductOutputs,
+          inputSchema: z.object({
+            dataProductId: z.string().describe('The id of the data product to get the outputs for'),
+            dataProductVersion: z.string().describe('The version of the data product to get the outputs for'),
+          }),
+          execute: async ({ dataProductId, dataProductVersion }) => {
+            return await getDataProductOutputsImpl({ dataProductId, dataProductVersion });
           },
         }),
         suggestFollowUpQuestions: tool({

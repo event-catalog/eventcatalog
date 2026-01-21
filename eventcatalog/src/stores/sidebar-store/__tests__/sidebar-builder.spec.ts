@@ -94,7 +94,7 @@ vi.mock('astro:content', async (importOriginal) => {
           const { getChannels } = utils(CATALOG_FOLDER);
           const channels = (await getChannels()) ?? [];
           return Promise.resolve(channels.map((channel) => toAstroCollection(channel, 'channels')));
-re;        case 'data-products':
+        case 'data-products':
           const { getDataProducts } = utils(CATALOG_FOLDER);
           const dataProducts = (await getDataProducts()) ?? [];
           return Promise.resolve(dataProducts.map((dataProduct) => toAstroCollection(dataProduct, 'data-products')));

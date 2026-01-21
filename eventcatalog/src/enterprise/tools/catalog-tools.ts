@@ -4,9 +4,10 @@
  */
 import { getCollection, getEntry } from 'astro:content';
 import { z } from 'zod';
-import { getSchemasFromResource } from '@utils/collections/schemas';
+import { getSchemasFromResource, getSchemaFormatFromURL } from '@utils/collections/schemas';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
 import { getUbiquitousLanguageWithSubdomains } from '@utils/collections/domains';
+import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import fs from 'node:fs';
 
 // ============================================
@@ -92,6 +93,7 @@ export const collectionSchema = z.enum([
   'entities',
   'containers',
   'diagrams',
+  'data-products',
 ]);
 
 export const messageCollectionSchema = z.enum(['events', 'commands', 'queries']);
@@ -105,6 +107,7 @@ export const resourceCollectionSchema = z.enum([
   'domains',
   'channels',
   'entities',
+  'data-products',
 ]);
 
 // ============================================
@@ -208,7 +211,17 @@ export async function getSchemaForResource(params: { resourceId: string; resourc
  * Find all resources owned by a specific team or user
  */
 export async function findResourcesByOwner(params: { ownerId: string }) {
-  const collectionsToSearch = ['events', 'commands', 'queries', 'services', 'domains', 'flows', 'channels', 'entities'] as const;
+  const collectionsToSearch = [
+    'events',
+    'commands',
+    'queries',
+    'services',
+    'domains',
+    'flows',
+    'channels',
+    'entities',
+    'data-products',
+  ] as const;
 
   const results: Array<{ collection: string; id: string; version?: string; name: string }> = [];
 
@@ -659,6 +672,156 @@ export async function explainUbiquitousLanguageTerms(params: { domainId: string;
 }
 
 // ============================================
+// Data Product tools
+// ============================================
+
+/**
+ * Get the inputs (resources consumed) for a data product
+ * Returns fully hydrated input resources
+ */
+export async function getDataProductInputs(params: { dataProductId: string; dataProductVersion: string }) {
+  const dataProduct = await getEntry('data-products', `${params.dataProductId}-${params.dataProductVersion}`);
+
+  if (!dataProduct) {
+    return {
+      error: `Data product not found: ${params.dataProductId}-${params.dataProductVersion}`,
+    };
+  }
+
+  const inputPointers = (dataProduct.data as any).inputs || [];
+
+  if (inputPointers.length === 0) {
+    return {
+      dataProductId: params.dataProductId,
+      dataProductVersion: params.dataProductVersion,
+      message: 'No inputs found for this data product',
+      inputs: [],
+    };
+  }
+
+  // Fetch all collections that can be inputs (messages, channels, containers, services)
+  const [allEvents, allCommands, allQueries, allChannels, allContainers, allServices] = await Promise.all([
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+    getCollection('channels'),
+    getCollection('containers'),
+    getCollection('services'),
+  ]);
+
+  const allResources = [...allEvents, ...allCommands, ...allQueries, ...allChannels, ...allContainers, ...allServices];
+
+  // Hydrate inputs by finding matching resources
+  const hydratedInputs = inputPointers
+    .map((pointer: { id: string; version?: string }) => {
+      const matches = getItemsFromCollectionByIdAndSemverOrLatest(allResources, pointer.id, pointer.version);
+      const resource = matches[0];
+      if (!resource) return null;
+
+      return {
+        id: (resource.data as any).id,
+        version: (resource.data as any).version,
+        name: (resource.data as any).name || (resource.data as any).id,
+        summary: (resource.data as any).summary,
+        collection: resource.collection,
+      };
+    })
+    .filter(Boolean);
+
+  return {
+    dataProductId: params.dataProductId,
+    dataProductVersion: params.dataProductVersion,
+    dataProductName: (dataProduct.data as any).name || params.dataProductId,
+    inputs: hydratedInputs,
+    totalCount: hydratedInputs.length,
+  };
+}
+
+/**
+ * Get the outputs (resources produced) for a data product
+ * Returns fully hydrated output resources with their contracts
+ */
+export async function getDataProductOutputs(params: { dataProductId: string; dataProductVersion: string }) {
+  const dataProduct = await getEntry('data-products', `${params.dataProductId}-${params.dataProductVersion}`);
+
+  if (!dataProduct) {
+    return {
+      error: `Data product not found: ${params.dataProductId}-${params.dataProductVersion}`,
+    };
+  }
+
+  const outputPointers = (dataProduct.data as any).outputs || [];
+
+  if (outputPointers.length === 0) {
+    return {
+      dataProductId: params.dataProductId,
+      dataProductVersion: params.dataProductVersion,
+      message: 'No outputs found for this data product',
+      outputs: [],
+    };
+  }
+
+  // Fetch all collections that can be outputs (messages, channels, containers, services)
+  const [allEvents, allCommands, allQueries, allChannels, allContainers, allServices] = await Promise.all([
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
+    getCollection('channels'),
+    getCollection('containers'),
+    getCollection('services'),
+  ]);
+
+  const allResources = [...allEvents, ...allCommands, ...allQueries, ...allChannels, ...allContainers, ...allServices];
+
+  // Hydrate outputs by finding matching resources and including contract info
+  const hydratedOutputs = outputPointers
+    .map((pointer: { id: string; version?: string; contract?: { path: string; name: string; type?: string } }) => {
+      const matches = getItemsFromCollectionByIdAndSemverOrLatest(allResources, pointer.id, pointer.version);
+      const resource = matches[0];
+      if (!resource) return null;
+
+      const result: any = {
+        id: (resource.data as any).id,
+        version: (resource.data as any).version,
+        name: (resource.data as any).name || (resource.data as any).id,
+        summary: (resource.data as any).summary,
+        collection: resource.collection,
+      };
+
+      // Include contract information if present
+      if (pointer.contract) {
+        const absoluteContractPath = getAbsoluteFilePathForAstroFile(dataProduct.filePath ?? '', pointer.contract.path);
+        let contractContent: string | null = null;
+
+        try {
+          contractContent = fs.readFileSync(absoluteContractPath, 'utf-8');
+        } catch {
+          // File may not be accessible
+        }
+
+        result.contract = {
+          name: pointer.contract.name,
+          path: pointer.contract.path,
+          format: getSchemaFormatFromURL(pointer.contract.path),
+          type: pointer.contract.type,
+          content: contractContent,
+        };
+      }
+
+      return result;
+    })
+    .filter(Boolean);
+
+  return {
+    dataProductId: params.dataProductId,
+    dataProductVersion: params.dataProductVersion,
+    dataProductName: (dataProduct.data as any).name || params.dataProductId,
+    outputs: hydratedOutputs,
+    totalCount: hydratedOutputs.length,
+  };
+}
+
+// ============================================
 // Tool metadata (descriptions)
 // ============================================
 
@@ -687,4 +850,8 @@ export const toolDescriptions = {
     'Use this tool when a user shares a schema file (Avro, JSON Schema, Protobuf) and wants to find it in EventCatalog. Look for "x-eventcatalog-id" and "x-eventcatalog-version" in the schema - these may be properties in the schema OR in comments (e.g. // x-eventcatalog-id: OrderCreated). Pass the id as messageId. If version exists, pass it as messageVersion, otherwise omit it to get the latest version. Returns the message resource along with its producers and consumers.',
   explainUbiquitousLanguageTerms:
     'Use this tool to explain ubiquitous language terms from Domain-Driven Design for a specific domain. Returns the glossary of terms defined for the domain and its subdomains, including duplicate term detection.',
+  getDataProductInputs:
+    'Use this tool to get the inputs (resources consumed) for a data product. Returns fully hydrated input resources with their id, version, name, summary, and collection type.',
+  getDataProductOutputs:
+    'Use this tool to get the outputs (resources produced) for a data product. Returns fully hydrated output resources with their id, version, name, summary, collection type, and data contracts (if defined). Data contracts include the contract name, path, format, type, and content.',
 };
