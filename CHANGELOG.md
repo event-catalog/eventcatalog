@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 2.65.4
+
+### Patch Changes
+
+- b1fcd0a: fix(core): fixed issue with custom docs
+
 ## 2.65.3
 
 ### Patch Changes
