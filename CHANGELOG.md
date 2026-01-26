@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.8.2
+
+### Patch Changes
+
+- dcdebdc: fix(core): fixed issue with custom docs on windows
+
 ## 3.8.1
 
 ### Patch Changes
