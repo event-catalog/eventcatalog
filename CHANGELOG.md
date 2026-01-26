@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 3.9.0
+
+### Minor Changes
+
+- 0c69558: Add mermaid export support for NodeGraph visualizations with view mode switching and shareable URLs
+
+### Patch Changes
+
+- 8f92272: Fix containers collection glob pattern to support nested directories
+
 ## 3.8.2
 
 ### Patch Changes
