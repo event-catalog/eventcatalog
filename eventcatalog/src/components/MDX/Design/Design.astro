@@ -5,7 +5,9 @@ import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import Admonition from '@components/MDX/Admonition';
 import NodeGraph from '../NodeGraph/NodeGraph';
 
-import { isVisualiserEnabled } from '@utils/feature';
+import { isVisualiserEnabled, isEventCatalogChatEnabled } from '@utils/feature';
+
+const isChatEnabled = isEventCatalogChatEnabled();
 
 let design: any;
 let id = 'design';
@@ -57,6 +59,7 @@ try {
           designId={design.id || id}
           client:only="react"
           showSearch={search}
+          isChatEnabled={isChatEnabled}
         />
       </div>
     </div>

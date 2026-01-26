@@ -166,12 +166,13 @@ describe('MCP Health Check Endpoint (GET /docs/mcp/)', () => {
       'explainUbiquitousLanguageTerms',
       'getDataProductInputs',
       'getDataProductOutputs',
+      'getArchitectureDiagramAsMermaid',
     ];
 
     for (const tool of expectedTools) {
       expect(toolDescriptions[tool as keyof typeof toolDescriptions]).toBeDefined();
     }
-    expect(Object.keys(toolDescriptions).length).toBe(17);
+    expect(Object.keys(toolDescriptions).length).toBe(18);
   });
 });
 

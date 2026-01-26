@@ -4,7 +4,9 @@ import { getNodesAndEdges } from '@utils/node-graphs/flows-node-graph';
 import Admonition from '@components/MDX/Admonition';
 import NodeGraph from '../NodeGraph/NodeGraph';
 import { getVersionFromCollection } from '@utils/collections/versions';
-import { isVisualiserEnabled } from '@utils/feature';
+import { isVisualiserEnabled, isEventCatalogChatEnabled } from '@utils/feature';
+
+const isChatEnabled = isEventCatalogChatEnabled();
 
 const { id, version = 'latest', maxHeight, includeKey = true, mode = 'simple', walkthrough = true, search = true } = Astro.props;
 
@@ -57,6 +59,7 @@ const { nodes, edges } = await getNodesAndEdges({
     client:only="react"
     showFlowWalkthrough={walkthrough}
     showSearch={search}
+    isChatEnabled={isChatEnabled}
   />
 </div>
 

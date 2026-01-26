@@ -19,6 +19,9 @@ import { getVersionFromCollection } from '@utils/collections/versions';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { getNodesAndEdges as getNodesAndEdgesForContainer } from '@utils/node-graphs/container-node-graph';
 import config from '@config';
+import { isEventCatalogChatEnabled } from '@utils/feature';
+
+const isChatEnabled = isEventCatalogChatEnabled();
 
 interface Props {
   id: string;
@@ -154,6 +157,7 @@ if (collection === 'services-containers') {
     showSearch={showSearch}
     includeKey={showLegend}
     zoomOnScroll={zoomOnScroll}
+    isChatEnabled={isChatEnabled}
   />
 </div>
 

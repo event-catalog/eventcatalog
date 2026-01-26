@@ -6,6 +6,7 @@ import {
   ConnectionLineType,
   Controls,
   Panel,
+  MiniMap,
   ReactFlowProvider,
   useNodesState,
   useEdgesState,
@@ -17,7 +18,24 @@ import {
   type NodeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { ExternalLink, HistoryIcon } from 'lucide-react';
+import {
+  ExternalLink,
+  HistoryIcon,
+  CheckIcon,
+  ClipboardIcon,
+  ChevronDownIcon,
+  MoreVertical,
+  Zap,
+  EyeOff,
+  Code,
+  Share2,
+  Search,
+  Grid3x3,
+  Maximize2,
+  Map,
+  Sparkles,
+} from 'lucide-react';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { toPng } from 'html-to-image';
 import { DocumentArrowDownIcon, PresentationChartLineIcon } from '@heroicons/react/24/outline';
 // Nodes and edges
@@ -47,11 +65,15 @@ import { navigate } from 'astro:transitions/client';
 import type { CollectionTypes } from '@types';
 import { buildUrl } from '@utils/url-builder';
 import ChannelNode from './Nodes/Channel';
-import { CogIcon } from '@heroicons/react/20/solid';
 import { useEventCatalogVisualiser } from 'src/hooks/eventcatalog-visualizer';
 import VisualiserSearch, { type VisualiserSearchRef } from './VisualiserSearch';
 import StepWalkthrough from './StepWalkthrough';
 import StudioModal from './StudioModal';
+import MermaidView from './MermaidView';
+import VisualizerDropdownContent from './VisualizerDropdownContent';
+import { convertToMermaid } from '@utils/node-graphs/export-mermaid';
+import { copyToClipboard } from '@utils/clipboard';
+
 interface Props {
   nodes: any;
   edges: any;
@@ -70,6 +92,7 @@ interface Props {
   designId?: string;
   isStudioModalOpen?: boolean;
   setIsStudioModalOpen?: (isOpen: boolean) => void;
+  isChatEnabled?: boolean;
 }
 
 const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
@@ -91,6 +114,7 @@ const NodeGraphBuilder = ({
   zoomOnScroll = false,
   isStudioModalOpen,
   setIsStudioModalOpen = () => {},
+  isChatEnabled = false,
 }: Props) => {
   const nodeTypes = useMemo(
     () =>
@@ -135,10 +159,14 @@ const NodeGraphBuilder = ({
   );
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [animateMessages, setAnimateMessages] = useState(false);
   const [activeStepIndex, setActiveStepIndex] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [mermaidCode, setMermaidCode] = useState('');
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shareUrlCopySuccess, setShareUrlCopySuccess] = useState(false);
+  const [isMermaidView, setIsMermaidView] = useState(false);
+  const [showMinimap, setShowMinimap] = useState(false);
   // const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
 
   // Check if there are channels to determine if we need the visualizer functionality
@@ -234,6 +262,11 @@ const NodeGraphBuilder = ({
     localStorage.setItem('EventCatalog:animateMessages', JSON.stringify(!animateMessages));
   };
 
+  // Handle fit to view
+  const handleFitView = useCallback(() => {
+    fitView({ duration: 400, padding: 0.2 });
+  }, [fitView]);
+
   // animate messages, between views
   // URL parameter takes priority over localStorage
   useEffect(() => {
@@ -269,6 +302,17 @@ const NodeGraphBuilder = ({
       fitView({ duration: 800 });
     }, 150);
   }, []);
+
+  // Generate mermaid code from nodes and edges
+  useEffect(() => {
+    try {
+      const code = convertToMermaid(nodes, edges, { includeStyles: true, direction: 'LR' });
+      setMermaidCode(code);
+    } catch (error) {
+      console.error('Error generating mermaid code:', error);
+      setMermaidCode('');
+    }
+  }, [nodes, edges]);
 
   // Handle scroll wheel events to forward to page when no modifier keys are pressed
   // Only when zoomOnScroll is disabled
@@ -335,7 +379,6 @@ const NodeGraphBuilder = ({
   }, [zoomOnScroll]);
 
   const handlePaneClick = useCallback(() => {
-    setIsSettingsOpen(false);
     searchRef.current?.hideSuggestions();
     resetNodesAndEdges();
     fitView({ duration: 800 });
@@ -363,6 +406,21 @@ const NodeGraphBuilder = ({
   const openStudioModal = () => {
     setIsStudioModalOpen(true);
   };
+
+  const openChat = useCallback(() => {
+    window.dispatchEvent(new CustomEvent('eventcatalog:open-chat'));
+  }, []);
+
+  const handleCopyArchitectureCode = useCallback(async () => {
+    await copyToClipboard(mermaidCode);
+  }, [mermaidCode]);
+
+  const handleCopyShareUrl = useCallback(async () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    await copyToClipboard(url);
+    setShareUrlCopySuccess(true);
+    setTimeout(() => setShareUrlCopySuccess(false), 2000);
+  }, []);
 
   const toggleFullScreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -396,8 +454,7 @@ const NodeGraphBuilder = ({
     const height = imageHeight > nodesBounds.height ? imageHeight : nodesBounds.height;
     const viewport = getViewportForBounds(nodesBounds, width, height, 0.5, 2, 0);
 
-    // Hide settings panel and controls during export
-    setIsSettingsOpen(false);
+    // Hide controls during export
     const controls = document.querySelector('.react-flow__controls') as HTMLElement;
     if (controls) controls.style.display = 'none';
 
@@ -603,204 +660,288 @@ const NodeGraphBuilder = ({
   const isFlowVisualization = edges.some((edge: Edge) => edge.type === 'flow-edge');
 
   return (
-    <div ref={reactFlowWrapperRef} className="w-full h-full bg-gray-50">
-      <ReactFlow
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        minZoom={0.07}
-        nodes={nodes}
-        edges={edges}
-        fitView
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        connectionLineType={ConnectionLineType.SmoothStep}
-        nodeOrigin={[0.1, 0.1]}
-        onNodeClick={handleNodeClick}
-        onPaneClick={handlePaneClick}
-        zoomOnScroll={zoomOnScroll}
-        className="relative"
-      >
-        <Panel position="top-center" className="w-full pr-6 ">
-          <div className="flex space-x-2 justify-between items-center">
+    <div ref={reactFlowWrapperRef} className="w-full h-full bg-gray-50 flex flex-col">
+      {isMermaidView ? (
+        <>
+          {/* Menu Bar for Mermaid View */}
+          <div className="w-full pr-6 flex space-x-2 justify-between items-center bg-[rgb(var(--ec-page-bg))] border-b border-[rgb(var(--ec-page-border))] p-4">
             <div className="flex space-x-2 ml-4">
-              <div className="relative group">
-                <button
-                  onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                  className="py-2.5 px-3 bg-white rounded-md shadow-md hover:bg-[rgb(var(--ec-accent-subtle))] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))]"
-                  aria-label="Open settings"
-                >
-                  <CogIcon className="h-5 w-5 text-gray-600" />
-                </button>
-                <div className="absolute top-full left-0 mt-2 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                  Settings
-                </div>
-              </div>
-              <div className="relative group">
-                <button
-                  onClick={toggleFullScreen}
-                  className={`py-2.5 px-3 bg-white rounded-md shadow-md hover:bg-[rgb(var(--ec-accent-subtle))] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))] ${
-                    isFullscreen ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-accent))]' : ''
-                  }`}
-                  aria-label={isFullscreen ? 'Exit presentation mode' : 'Enter presentation mode'}
-                >
-                  <PresentationChartLineIcon
-                    className={`h-5 w-5 ${isFullscreen ? 'text-[rgb(var(--ec-accent))]' : 'text-gray-600'}`}
-                  />
-                </button>
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-                  {isFullscreen ? 'Exit Presentation Mode' : 'Presentation Mode'}
-                </div>
-              </div>
-
-              {title && (
-                <span className="block shadow-sm bg-white text-xl z-10 text-black px-4 py-1.5 border-gray-200 rounded-md border opacity-80">
-                  {title}
-                </span>
-              )}
+              {/* Settings Dropdown Menu */}
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger asChild>
+                  <button
+                    className="py-2.5 px-4 bg-[rgb(var(--ec-page-bg))] hover:bg-[rgb(var(--ec-accent-subtle)/0.4)] border border-[rgb(var(--ec-page-border))] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))] flex items-center gap-3 transition-all duration-200 hover:border-[rgb(var(--ec-accent)/0.3)] group whitespace-nowrap"
+                    aria-label="Open menu"
+                  >
+                    {title && (
+                      <span className="text-base font-medium text-[rgb(var(--ec-page-text))] leading-tight">{title}</span>
+                    )}
+                    <MoreVertical className="h-5 w-5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0 group-hover:text-[rgb(var(--ec-accent))] transition-colors duration-150" />
+                  </button>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Portal>
+                  <DropdownMenu.Content
+                    className="min-w-56 bg-[rgb(var(--ec-page-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-200"
+                    sideOffset={0}
+                    align="end"
+                    alignOffset={-180}
+                  >
+                    <DropdownMenu.Arrow className="fill-[rgb(var(--ec-page-bg))] stroke-[rgb(var(--ec-page-border))] stroke-1" />
+                    <VisualizerDropdownContent
+                      isMermaidView={isMermaidView}
+                      setIsMermaidView={setIsMermaidView}
+                      animateMessages={animateMessages}
+                      toggleAnimateMessages={toggleAnimateMessages}
+                      hideChannels={hideChannels}
+                      toggleChannelsVisibility={toggleChannelsVisibility}
+                      hasChannels={hasChannels}
+                      showMinimap={showMinimap}
+                      setShowMinimap={setShowMinimap}
+                      handleFitView={handleFitView}
+                      searchRef={searchRef}
+                      isChatEnabled={isChatEnabled}
+                      openChat={openChat}
+                      handleCopyArchitectureCode={handleCopyArchitectureCode}
+                      handleExportVisual={handleExportVisual}
+                      setIsShareModalOpen={setIsShareModalOpen}
+                      toggleFullScreen={toggleFullScreen}
+                      openStudioModal={openStudioModal}
+                    />
+                  </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Root>
             </div>
             {mode === 'full' && showSearch && (
-              <div className="flex justify-end space-x-2 w-96">
-                <VisualiserSearch ref={searchRef} nodes={nodes} onNodeSelect={handleNodeSelect} onClear={handleSearchClear} />
+              <div className="flex justify-end items-center gap-2">
+                {!isMermaidView && (
+                  <div className="w-96">
+                    <VisualiserSearch ref={searchRef} nodes={nodes} onNodeSelect={handleNodeSelect} onClear={handleSearchClear} />
+                  </div>
+                )}
               </div>
             )}
           </div>
-          {links.length > 0 && (
-            <div className="flex justify-end mt-3">
-              <div className="relative flex items-center -mt-1">
-                <span className="absolute left-2 pointer-events-none flex items-center h-full">
-                  <HistoryIcon className="h-4 w-4 text-gray-600" />
-                </span>
-                <select
-                  value={links.find((link) => window.location.href.includes(link.url))?.url || links[0].url}
-                  onChange={(e) => navigate(e.target.value)}
-                  className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-white rounded-md border border-gray-200 hover:bg-gray-100/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))]"
-                  style={{ minWidth: 120, height: '26px' }}
-                >
-                  {links.map((link) => (
-                    <option key={link.url} value={link.url}>
-                      {link.label}
-                    </option>
-                  ))}
-                </select>
-                <span className="absolute right-2 pointer-events-none">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </span>
-              </div>
-            </div>
-          )}
-        </Panel>
-
-        {isSettingsOpen && (
-          <div className="absolute top-[68px] left-5 w-72 p-4 bg-white rounded-lg shadow-lg z-30 border border-gray-200">
-            <h3 className="text-lg font-semibold mb-4">Visualizer Settings</h3>
-            <div className="space-y-4 ">
-              <div>
-                <div className="flex items-center justify-between">
-                  <label htmlFor="message-animation-toggle" className="text-sm font-medium text-gray-700">
-                    Simulate Messages
-                  </label>
-                  <button
-                    id="message-animation-toggle"
-                    onClick={toggleAnimateMessages}
-                    className={`${
-                      animateMessages ? 'bg-[rgb(var(--ec-accent))]' : 'bg-gray-200'
-                    } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2`}
-                  >
-                    <span
-                      className={`${
-                        animateMessages ? 'translate-x-6' : 'translate-x-1'
-                      } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-                    />
-                  </button>
-                </div>
-                <p className="text-[10px] text-gray-500">Animate events, queries and commands.</p>
-              </div>
-              {hasChannels && (
-                <div>
-                  <div className="flex items-center justify-between">
-                    <label htmlFor="hide-channels-toggle" className="text-sm font-medium text-gray-700">
-                      Hide Channels
-                    </label>
+          {/* Mermaid View */}
+          <div className="flex-1 overflow-hidden">
+            <MermaidView nodes={nodes} edges={edges} />
+          </div>
+        </>
+      ) : (
+        <ReactFlow
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          minZoom={0.07}
+          nodes={nodes}
+          edges={edges}
+          fitView
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          connectionLineType={ConnectionLineType.SmoothStep}
+          nodeOrigin={[0.1, 0.1]}
+          onNodeClick={handleNodeClick}
+          onPaneClick={handlePaneClick}
+          zoomOnScroll={zoomOnScroll}
+          className="relative"
+        >
+          <Panel position="top-center" className="w-full pr-6 ">
+            <div className="flex space-x-2 justify-between items-center">
+              <div className="flex space-x-2 ml-4">
+                {/* Settings Dropdown Menu */}
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger asChild>
                     <button
-                      id="hide-channels-toggle"
-                      onClick={toggleChannelsVisibility}
-                      className={`${
-                        hideChannels ? 'bg-[rgb(var(--ec-accent))]' : 'bg-gray-200'
-                      } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2`}
+                      className="py-2.5 px-4 bg-[rgb(var(--ec-page-bg))] hover:bg-[rgb(var(--ec-accent-subtle)/0.4)] border border-[rgb(var(--ec-page-border))] rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))] flex items-center gap-3 transition-all duration-200 hover:border-[rgb(var(--ec-accent)/0.3)] group whitespace-nowrap"
+                      aria-label="Open menu"
                     >
-                      <span
-                        className={`${
-                          hideChannels ? 'translate-x-6' : 'translate-x-1'
-                        } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-                      />
+                      {title && (
+                        <span className="text-base font-medium text-[rgb(var(--ec-page-text))] leading-tight">{title}</span>
+                      )}
+                      <MoreVertical className="h-5 w-5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0 group-hover:text-[rgb(var(--ec-accent))] transition-colors duration-150" />
                     </button>
-                  </div>
-                  <p className="text-[10px] text-gray-500">Show or hide channels in the visualizer.</p>
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Portal>
+                    <DropdownMenu.Content
+                      className="min-w-56 bg-[rgb(var(--ec-page-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-200"
+                      sideOffset={0}
+                      align="end"
+                      alignOffset={-180}
+                    >
+                      <DropdownMenu.Arrow className="fill-[rgb(var(--ec-page-bg))] stroke-[rgb(var(--ec-page-border))] stroke-1" />
+                      <VisualizerDropdownContent
+                        isMermaidView={isMermaidView}
+                        setIsMermaidView={setIsMermaidView}
+                        animateMessages={animateMessages}
+                        toggleAnimateMessages={toggleAnimateMessages}
+                        hideChannels={hideChannels}
+                        toggleChannelsVisibility={toggleChannelsVisibility}
+                        hasChannels={hasChannels}
+                        showMinimap={showMinimap}
+                        setShowMinimap={setShowMinimap}
+                        handleFitView={handleFitView}
+                        searchRef={searchRef}
+                        isChatEnabled={isChatEnabled}
+                        openChat={openChat}
+                        handleCopyArchitectureCode={handleCopyArchitectureCode}
+                        handleExportVisual={handleExportVisual}
+                        setIsShareModalOpen={setIsShareModalOpen}
+                        toggleFullScreen={toggleFullScreen}
+                        openStudioModal={openStudioModal}
+                      />
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Portal>
+                </DropdownMenu.Root>
+              </div>
+              {mode === 'full' && showSearch && (
+                <div className="flex justify-end items-center gap-2">
+                  {!isMermaidView && (
+                    <div className="w-96">
+                      <VisualiserSearch
+                        ref={searchRef}
+                        nodes={nodes}
+                        onNodeSelect={handleNodeSelect}
+                        onClear={handleSearchClear}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
-              <div className="pt-4 border-t border-gray-200 space-y-2">
-                <button
-                  onClick={openStudioModal}
-                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-black hover:bg-gray-800 text-white text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                    />
-                  </svg>
-                  <span>Open in EventCatalog Studio</span>
-                </button>
-                <button
-                  onClick={handleExportVisual}
-                  className="w-full flex items-center justify-center border border-gray-200 space-x-2 px-4 py-2 bg-white text-gray-800 text-sm font-medium rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:ring-offset-2"
-                >
-                  <DocumentArrowDownIcon className="w-4 h-4" />
-                  <span>Export as png</span>
-                </button>
+            </div>
+            {links.length > 0 && (
+              <div className="flex justify-end mt-3">
+                <div className="relative flex items-center -mt-1">
+                  <span className="absolute left-2 pointer-events-none flex items-center h-full">
+                    <HistoryIcon className="h-4 w-4 text-gray-600" />
+                  </span>
+                  <select
+                    value={links.find((link) => window.location.href.includes(link.url))?.url || links[0].url}
+                    onChange={(e) => navigate(e.target.value)}
+                    className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-white rounded-md border border-gray-200 hover:bg-gray-100/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))]"
+                    style={{ minWidth: 120, height: '26px' }}
+                  >
+                    {links.map((link) => (
+                      <option key={link.url} value={link.url}>
+                        {link.label}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="absolute right-2 pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </span>
+                </div>
               </div>
+            )}
+          </Panel>
+
+          {includeBackground && <Background color="#bbb" gap={16} />}
+          {includeBackground && <Controls />}
+          {showMinimap && (
+            <MiniMap
+              nodeStrokeWidth={3}
+              zoomable
+              pannable
+              style={{
+                backgroundColor: 'rgb(var(--ec-page-bg))',
+                border: '1px solid rgb(var(--ec-page-border))',
+                borderRadius: '8px',
+              }}
+            />
+          )}
+          {isFlowVisualization && showFlowWalkthrough && (
+            <Panel position="bottom-left">
+              <StepWalkthrough
+                nodes={nodes}
+                edges={edges}
+                isFlowVisualization={isFlowVisualization}
+                onStepChange={handleStepChange}
+                mode={mode}
+              />
+            </Panel>
+          )}
+          {includeKey && (
+            <Panel position="bottom-right" style={showMinimap ? { marginRight: '230px' } : undefined}>
+              <div className=" bg-white font-light px-4 text-[12px] shadow-md py-1 rounded-md">
+                <ul className="m-0 p-0 ">
+                  {Object.entries(legend).map(([key, { count, colorClass, groupId }]) => (
+                    <li
+                      key={key}
+                      className="flex space-x-2 items-center text-[10px] cursor-pointer hover:text-[rgb(var(--ec-accent))] hover:underline"
+                      onClick={() => handleLegendClick(key, groupId)}
+                    >
+                      <span className={`w-2 h-2 block ${colorClass}`} />
+                      <span className="block capitalize">
+                        {key} ({count})
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Panel>
+          )}
+        </ReactFlow>
+      )}
+      <StudioModal isOpen={isStudioModalOpen || false} onClose={() => setIsStudioModalOpen(false)} />
+
+      {/* Share Link Modal */}
+      {isShareModalOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/20 z-40"
+            onClick={() => setIsShareModalOpen(false)}
+            style={{ animation: 'fadeIn 150ms ease-out' }}
+          />
+          <div
+            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[rgb(var(--ec-page-bg))] rounded-lg shadow-xl z-50 w-full max-w-md p-6 border border-[rgb(var(--ec-page-border))]"
+            style={{ animation: 'slideInCenter 250ms ease-out' }}
+          >
+            <style>{`
+              @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+              @keyframes slideInCenter {
+                from { opacity: 0; transform: translate(-50%, -48%); }
+                to { opacity: 1; transform: translate(-50%, -50%); }
+              }
+            `}</style>
+
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">Share Link</h3>
+              <button
+                onClick={() => setIsShareModalOpen(false)}
+                className="text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] transition-colors"
+                aria-label="Close modal"
+              >
+                <ExternalLink className="w-5 h-5 rotate-180" />
+              </button>
+            </div>
+
+            <p className="text-sm text-[rgb(var(--ec-page-text-muted))] mb-4">
+              Share this link with your team to let them view this visualization.
+            </p>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                readOnly
+                value={typeof window !== 'undefined' ? window.location.href : ''}
+                className="flex-1 px-3 py-2.5 bg-[rgb(var(--ec-input-bg))] border border-[rgb(var(--ec-input-border))] rounded-md text-[rgb(var(--ec-input-text))] text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))]"
+              />
+              <button
+                onClick={handleCopyShareUrl}
+                className={`px-4 py-2.5 rounded-md font-medium transition-all duration-200 flex items-center gap-2 ${
+                  shareUrlCopySuccess ? 'bg-green-500 text-white' : 'bg-[rgb(var(--ec-accent))] text-white hover:opacity-90'
+                }`}
+                aria-label={shareUrlCopySuccess ? 'Copied!' : 'Copy link'}
+              >
+                {shareUrlCopySuccess ? <CheckIcon className="w-4 h-4" /> : <ClipboardIcon className="w-4 h-4" />}
+                <span>{shareUrlCopySuccess ? 'Copied!' : 'Copy'}</span>
+              </button>
             </div>
           </div>
-        )}
-        {includeBackground && <Background color="#bbb" gap={16} />}
-        {includeBackground && <Controls />}
-        {isFlowVisualization && showFlowWalkthrough && (
-          <Panel position="bottom-left">
-            <StepWalkthrough
-              nodes={nodes}
-              edges={edges}
-              isFlowVisualization={isFlowVisualization}
-              onStepChange={handleStepChange}
-              mode={mode}
-            />
-          </Panel>
-        )}
-        {includeKey && (
-          <Panel position="bottom-right">
-            <div className=" bg-white font-light px-4 text-[12px] shadow-md py-1 rounded-md">
-              <ul className="m-0 p-0 ">
-                {Object.entries(legend).map(([key, { count, colorClass, groupId }]) => (
-                  <li
-                    key={key}
-                    className="flex space-x-2 items-center text-[10px] cursor-pointer hover:text-[rgb(var(--ec-accent))] hover:underline"
-                    onClick={() => handleLegendClick(key, groupId)}
-                  >
-                    <span className={`w-2 h-2 block ${colorClass}`} />
-                    <span className="block capitalize">
-                      {key} ({count})
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </Panel>
-        )}
-      </ReactFlow>
-      <StudioModal isOpen={isStudioModalOpen || false} onClose={() => setIsStudioModalOpen(false)} />
+        </>
+      )}
     </div>
   );
 };
@@ -823,6 +964,7 @@ interface NodeGraphProps {
   showSearch?: boolean;
   zoomOnScroll?: boolean;
   designId?: string;
+  isChatEnabled?: boolean;
 }
 
 const NodeGraph = ({
@@ -843,6 +985,7 @@ const NodeGraph = ({
   showSearch = true,
   zoomOnScroll = false,
   designId,
+  isChatEnabled = false,
 }: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
   const [showFooter, setShowFooter] = useState(true);
@@ -888,6 +1031,7 @@ const NodeGraph = ({
             designId={designId || id}
             isStudioModalOpen={isStudioModalOpen}
             setIsStudioModalOpen={setIsStudioModalOpen}
+            isChatEnabled={isChatEnabled}
           />
 
           {showFooter && (

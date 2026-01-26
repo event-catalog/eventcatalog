@@ -171,6 +171,55 @@ const suggestedQuestionsConfig: QuestionConfig[] = [
       { label: 'Who owns this domain?', prompt: 'Who owns this domain and how do I contact them?' },
     ],
   },
+  // Business Flows / Workflows (must be before general visualiser pattern)
+  {
+    pattern: /^\/(docs|visualiser)\/flows\/.+/,
+    questions: [
+      {
+        label: 'Walk me through this workflow',
+        prompt:
+          'Get the architecture diagram for this flow and walk me through each step of this business workflow. Explain what happens at each stage.',
+      },
+      {
+        label: 'What services are involved?',
+        prompt:
+          'Using the architecture diagram, list all the services involved in this workflow and explain their role in the process.',
+      },
+      {
+        label: 'What events does this trigger?',
+        prompt: 'What events are produced during this workflow? When are they triggered and who consumes them?',
+      },
+      {
+        label: 'What can go wrong?',
+        prompt:
+          'Analyze this workflow and identify potential failure points. What happens if a step fails? Are there retry mechanisms or compensating actions?',
+      },
+    ],
+  },
+  // Visualizer page (/visualiser/*) - general fallback for other visualiser pages
+  {
+    pattern: /^\/visualiser\/.+/,
+    questions: [
+      {
+        label: 'Explain this architecture',
+        prompt:
+          'Get the architecture diagram for this resource and explain what I am looking at. Describe the key components and how they connect.',
+      },
+      {
+        label: 'What are the dependencies?',
+        prompt: 'Using the architecture diagram, show me what this resource depends on and what depends on it.',
+      },
+      {
+        label: 'How does data flow here?',
+        prompt: 'Get the architecture diagram and explain how data flows through this part of the system.',
+      },
+      {
+        label: 'What would break if this changes?',
+        prompt:
+          'Analyze the architecture diagram to identify what services or components would be affected if this resource changes.',
+      },
+    ],
+  },
   // Data Products page
   {
     pattern: /^\/(docs|visualiser)\/data-products\/.+/,
@@ -182,6 +231,7 @@ const suggestedQuestionsConfig: QuestionConfig[] = [
       { label: 'Who owns this data product?', prompt: 'Who owns this data product and how do I contact them?' },
     ],
   },
+
   // Designs page
   {
     pattern: /^\/diagrams\/.+/,
