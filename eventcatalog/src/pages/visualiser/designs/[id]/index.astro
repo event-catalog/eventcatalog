@@ -2,8 +2,11 @@
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph';
 import { ClientRouter } from 'astro:transitions';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import { isEventCatalogChatEnabled } from '@utils/feature';
 
 import { Page } from './_index.data';
+
+const isChatEnabled = isEventCatalogChatEnabled();
 
 export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
@@ -25,6 +28,7 @@ const { data } = props;
       client:only="react"
       mode="full"
       linkTo="visualiser"
+      isChatEnabled={isChatEnabled}
     />
   </div>
   <ClientRouter />

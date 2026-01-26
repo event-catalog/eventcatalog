@@ -9,6 +9,18 @@ import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/
 import { getUbiquitousLanguageWithSubdomains } from '@utils/collections/domains';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import fs from 'node:fs';
+import { getNodesAndEdges as getNodesAndEdgesForService } from '@utils/node-graphs/services-node-graph';
+import {
+  getNodesAndEdgesForCommands,
+  getNodesAndEdgesForEvents,
+  getNodesAndEdgesForQueries,
+} from '@utils/node-graphs/message-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForDomain } from '@utils/node-graphs/domains-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs/flows-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForDataProduct } from '@utils/node-graphs/data-products-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForContainer } from '@utils/node-graphs/container-node-graph';
+import { convertToMermaid } from '@utils/node-graphs/export-mermaid';
+import config from '@config';
 
 // ============================================
 // Pagination utilities
@@ -107,6 +119,17 @@ export const resourceCollectionSchema = z.enum([
   'domains',
   'channels',
   'entities',
+  'data-products',
+]);
+
+export const visualiserCollectionSchema = z.enum([
+  'events',
+  'commands',
+  'queries',
+  'services',
+  'domains',
+  'flows',
+  'containers',
   'data-products',
 ]);
 
@@ -822,6 +845,77 @@ export async function getDataProductOutputs(params: { dataProductId: string; dat
 }
 
 // ============================================
+// Architecture Diagram (Mermaid) tools
+// ============================================
+
+const getNodesAndEdgesFunctions = {
+  services: getNodesAndEdgesForService,
+  events: getNodesAndEdgesForEvents,
+  commands: getNodesAndEdgesForCommands,
+  queries: getNodesAndEdgesForQueries,
+  domains: getNodesAndEdgesForDomain,
+  flows: getNodesAndEdgesForFlows,
+  containers: getNodesAndEdgesForContainer,
+  'data-products': getNodesAndEdgesForDataProduct,
+};
+
+/**
+ * Get the architecture diagram for a resource as Mermaid code
+ * Returns flowchart syntax that can be rendered or used for understanding architecture
+ */
+export async function getArchitectureDiagramAsMermaid(params: {
+  resourceId: string;
+  resourceVersion: string;
+  resourceCollection: string;
+}) {
+  const { resourceId, resourceVersion, resourceCollection } = params;
+
+  // Validate the collection is supported for visualisation
+  if (!(resourceCollection in getNodesAndEdgesFunctions)) {
+    return {
+      error: `Collection '${resourceCollection}' does not support architecture diagrams. Supported collections: ${Object.keys(getNodesAndEdgesFunctions).join(', ')}`,
+    };
+  }
+
+  try {
+    // Get nodes and edges for this resource
+    const { nodes, edges } = await getNodesAndEdgesFunctions[resourceCollection as keyof typeof getNodesAndEdgesFunctions]({
+      id: resourceId,
+      version: resourceVersion,
+      mode: 'full',
+      channelRenderMode: config.visualiser?.channels?.renderMode === 'single' ? 'single' : 'flat',
+    });
+
+    if (!nodes || nodes.length === 0) {
+      return {
+        error: `No diagram data available for ${resourceCollection}/${resourceId} (v${resourceVersion})`,
+      };
+    }
+
+    // Convert to mermaid
+    const mermaidCode = convertToMermaid(nodes, edges, {
+      includeStyles: true,
+      direction: 'LR',
+    });
+
+    return {
+      resourceId,
+      resourceVersion,
+      resourceCollection,
+      mermaidCode,
+      nodeCount: nodes.length,
+      edgeCount: edges.length,
+      visualiserUrl: `/visualiser/${resourceCollection}/${resourceId}/${resourceVersion}`,
+    };
+  } catch (error) {
+    console.error('Error generating mermaid diagram:', error);
+    return {
+      error: `Failed to generate diagram for ${resourceCollection}/${resourceId} (v${resourceVersion})`,
+    };
+  }
+}
+
+// ============================================
 // Tool metadata (descriptions)
 // ============================================
 
@@ -854,4 +948,6 @@ export const toolDescriptions = {
     'Use this tool to get the inputs (resources consumed) for a data product. Returns fully hydrated input resources with their id, version, name, summary, and collection type.',
   getDataProductOutputs:
     'Use this tool to get the outputs (resources produced) for a data product. Returns fully hydrated output resources with their id, version, name, summary, collection type, and data contracts (if defined). Data contracts include the contract name, path, format, type, and content.',
+  getArchitectureDiagramAsMermaid:
+    'Use this tool to get the architecture diagram for a resource as Mermaid flowchart code. This shows how the resource connects to other resources (services, events, channels, etc.) in the architecture. The mermaid code can be rendered to visualize the architecture or used to understand relationships. Supported collections: events, commands, queries, services, domains, flows, containers, data-products.',
 };

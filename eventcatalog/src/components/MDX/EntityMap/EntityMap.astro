@@ -5,6 +5,9 @@ import Admonition from '@components/MDX/Admonition';
 import NodeGraph from '../NodeGraph/NodeGraph';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { getServices } from '@utils/collections/services';
+import { isEventCatalogChatEnabled } from '@utils/feature';
+
+const isChatEnabled = isEventCatalogChatEnabled();
 
 const { id, version = 'latest', maxHeight, includeKey = true, entities, collection = 'domains', ...rest } = Astro.props;
 let resource = null;
@@ -71,6 +74,7 @@ const { nodes, edges } = await getNodesAndEdges({
     footerLabel={`Entity Map - ${resource?.data?.name} - v(${resource?.data?.version})`}
     client:only="react"
     portalId={`${id}-entity-map-portal`}
+    isChatEnabled={isChatEnabled}
   />
 </div>
 

@@ -11,9 +11,11 @@ import {
   getSchemaForResource as getSchemaImpl,
   getDataProductInputs as getDataProductInputsImpl,
   getDataProductOutputs as getDataProductOutputsImpl,
+  getArchitectureDiagramAsMermaid as getArchitectureDiagramImpl,
   collectionSchema,
   resourceCollectionSchema,
   messageCollectionSchema,
+  visualiserCollectionSchema,
   toolDescriptions,
 } from '@enterprise/tools/catalog-tools';
 
@@ -61,6 +63,7 @@ const builtInToolsMetadata = [
   { name: 'getSchemaForResource', description: 'Get the schema or specifications (OpenAPI, AsyncAPI, GraphQL) for a resource' },
   { name: 'getDataProductInputs', description: 'Get the inputs (resources consumed) for a data product' },
   { name: 'getDataProductOutputs', description: 'Get the outputs (resources produced) for a data product with data contracts' },
+  { name: 'getArchitectureDiagramAsMermaid', description: 'Get the architecture diagram for a resource as Mermaid code' },
 ];
 
 // Get extended tools metadata from user configuration
@@ -111,6 +114,11 @@ You may be able to get the resource from the URL
     - (e.g /architecture/services/MyService/1.0.0) in this case the id is MyService and the version is 1.0.0 and collection is services.
 
 The referer URL is: ${referrer}
+
+IMPORTANT: When the user is on a visualiser page (/visualiser/*) or asks about architecture, dependencies, data flow, or connections:
+- Use the getArchitectureDiagramAsMermaid tool to fetch the architecture diagram
+- The mermaid code shows all the connections between resources (services, events, channels, etc.)
+- Use this to provide accurate, contextual answers about the architecture
 
 Sometimes the user will be on the specification page (openapi, asyncapi, graphql) for a resource too 
 - /docs/services/OrdersService/0.0.3/asyncapi/order-service-asyncapi -> id: OrdersService, version: 0.0.3, collection: services, schema (specification): asyncapi
@@ -315,6 +323,21 @@ export const POST = async ({ request }: APIContext<{ question: string; messages:
           }),
           execute: async ({ dataProductId, dataProductVersion }) => {
             return await getDataProductOutputsImpl({ dataProductId, dataProductVersion });
+          },
+        }),
+        getArchitectureDiagramAsMermaid: tool({
+          description: toolDescriptions.getArchitectureDiagramAsMermaid,
+          inputSchema: z.object({
+            resourceId: z.string().describe('The id of the resource to get the architecture diagram for'),
+            resourceVersion: z.string().describe('The version of the resource to get the architecture diagram for'),
+            resourceCollection: visualiserCollectionSchema
+              .describe(
+                'The collection of the resource (events, commands, queries, services, domains, flows, containers, data-products)'
+              )
+              .default('services'),
+          }),
+          execute: async ({ resourceId, resourceVersion, resourceCollection }) => {
+            return await getArchitectureDiagramImpl({ resourceId, resourceVersion, resourceCollection });
           },
         }),
         suggestFollowUpQuestions: tool({
