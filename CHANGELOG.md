@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 3.8.1
+
+### Patch Changes
+
+- 732d7f6: Fix type errors in data product builder test file by adding proper type casting and missing required fields
+- 732d7f6: fix(sidebar): resolve typescript type errors in data product builder tests
+
 ## 3.8.0
 
 ### Minor Changes
