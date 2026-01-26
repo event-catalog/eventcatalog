@@ -63,7 +63,7 @@ sidebar.forEach((section: SidebarSection) => {
   }
 });
 
-const { prev, next } = await getAdjacentPages(currentSlug.replace());
+const { prev, next } = await getAdjacentPages(currentSlug);
 
 const ownersRaw = doc?.owners || [];
 const owners = await Promise.all<ReturnType<typeof getOwner>>(ownersRaw.map(getOwner));
