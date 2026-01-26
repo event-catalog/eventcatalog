@@ -453,7 +453,7 @@ const dataClassificationEnum = z.enum(['public', 'internal', 'confidential', 're
 
 const containers = defineCollection({
   loader: glob({
-    pattern: ['**/containers/*/index.(md|mdx)', '**/containers/*/versioned/*/index.(md|mdx)'],
+    pattern: ['**/containers/**/index.(md|mdx)', '**/containers/**/versioned/*/index.(md|mdx)'],
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
