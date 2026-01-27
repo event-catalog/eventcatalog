@@ -1,5 +1,6 @@
 import { getEventCatalogConfigFile, verifyRequiredFieldsAreInCatalogConfigFile } from '../eventcatalog-config-file-utils.js';
 import { raiseEvent } from './analytics.js';
+import { countResources, serializeCounts } from './count-resources.js';
 
 const getFeatures = async (configFile) => {
   return {
@@ -36,6 +37,7 @@ const main = async (projectDir, { isEventCatalogStarterEnabled, isEventCatalogSc
     }
 
     const features = await getFeatures(configFile);
+    const resourceCounts = await countResources(projectDir);
 
     await raiseEvent({
       command: 'build',
@@ -45,6 +47,7 @@ const main = async (projectDir, { isEventCatalogStarterEnabled, isEventCatalogSc
       features: Object.keys(features)
         .map((feature) => `${feature}:${features[feature]}`)
         .join(','),
+      resources: serializeCounts(resourceCounts),
     });
   } catch (error) {
     // Just swallow the error
