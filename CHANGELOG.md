@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.9.1
+
+### Patch Changes
+
+- 9d0042b: Add configurable maxTextSize for mermaid diagrams to allow rendering larger diagrams
+
 ## 3.9.0
 
 ### Minor Changes
