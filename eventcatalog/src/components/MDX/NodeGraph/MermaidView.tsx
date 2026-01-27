@@ -7,9 +7,10 @@ import { copyToClipboard } from '@utils/clipboard';
 interface MermaidViewProps {
   nodes: Node[];
   edges: Edge[];
+  maxTextSize?: number;
 }
 
-const MermaidView = ({ nodes, edges }: MermaidViewProps) => {
+const MermaidView = ({ nodes, edges, maxTextSize = 100000 }: MermaidViewProps) => {
   const [copySuccess, setCopySuccess] = useState(false);
   const [mermaidCode, setMermaidCode] = useState('');
   const [previewSvg, setPreviewSvg] = useState<string | null>(null);
@@ -42,6 +43,7 @@ const MermaidView = ({ nodes, edges }: MermaidViewProps) => {
         const currentTheme = isDarkMode ? 'dark' : 'default';
 
         mermaid.initialize({
+          maxTextSize: maxTextSize,
           startOnLoad: false,
           theme: currentTheme,
           flowchart: {

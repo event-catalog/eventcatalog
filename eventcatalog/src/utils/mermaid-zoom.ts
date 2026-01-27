@@ -600,6 +600,7 @@ export async function renderMermaidWithZoom(graphs: HTMLCollectionOf<Element>, m
   };
 
   mermaid.initialize({
+    maxTextSize: mermaidConfig?.maxTextSize || 100000,
     flowchart: {
       curve: 'linear',
       rankSpacing: 0,
