@@ -110,6 +110,7 @@ export interface Config {
     domains?: ResourceDependency[];
   };
   mermaid?: {
+    maxTextSize?: number;
     iconPacks?: string[];
   };
   chat?: {

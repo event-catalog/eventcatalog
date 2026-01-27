@@ -570,6 +570,7 @@ const diagramId = props.data.id;
         const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
 
         mermaid.initialize({
+          maxTextSize: window.eventcatalog?.mermaid?.maxTextSize || 100000,
           startOnLoad: false,
           theme: isDarkMode ? 'dark' : 'default',
           fontFamily: 'system-ui, -apple-system, sans-serif',

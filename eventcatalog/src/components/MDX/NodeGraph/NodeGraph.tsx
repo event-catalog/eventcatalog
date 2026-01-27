@@ -18,23 +18,7 @@ import {
   type NodeTypes,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import {
-  ExternalLink,
-  HistoryIcon,
-  CheckIcon,
-  ClipboardIcon,
-  ChevronDownIcon,
-  MoreVertical,
-  Zap,
-  EyeOff,
-  Code,
-  Share2,
-  Search,
-  Grid3x3,
-  Maximize2,
-  Map,
-  Sparkles,
-} from 'lucide-react';
+import { ExternalLink, HistoryIcon, CheckIcon, ClipboardIcon, MoreVertical } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { toPng } from 'html-to-image';
 import { DocumentArrowDownIcon, PresentationChartLineIcon } from '@heroicons/react/24/outline';
@@ -93,6 +77,7 @@ interface Props {
   isStudioModalOpen?: boolean;
   setIsStudioModalOpen?: (isOpen: boolean) => void;
   isChatEnabled?: boolean;
+  maxTextSize?: number;
 }
 
 const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
@@ -115,6 +100,7 @@ const NodeGraphBuilder = ({
   isStudioModalOpen,
   setIsStudioModalOpen = () => {},
   isChatEnabled = false,
+  maxTextSize,
 }: Props) => {
   const nodeTypes = useMemo(
     () =>
@@ -723,7 +709,7 @@ const NodeGraphBuilder = ({
           </div>
           {/* Mermaid View */}
           <div className="flex-1 overflow-hidden">
-            <MermaidView nodes={nodes} edges={edges} />
+            <MermaidView nodes={nodes} edges={edges} maxTextSize={maxTextSize} />
           </div>
         </>
       ) : (
@@ -965,6 +951,7 @@ interface NodeGraphProps {
   zoomOnScroll?: boolean;
   designId?: string;
   isChatEnabled?: boolean;
+  maxTextSize?: number;
 }
 
 const NodeGraph = ({
@@ -986,6 +973,7 @@ const NodeGraph = ({
   zoomOnScroll = false,
   designId,
   isChatEnabled = false,
+  maxTextSize,
 }: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
   const [showFooter, setShowFooter] = useState(true);
@@ -1032,6 +1020,7 @@ const NodeGraph = ({
             isStudioModalOpen={isStudioModalOpen}
             setIsStudioModalOpen={setIsStudioModalOpen}
             isChatEnabled={isChatEnabled}
+            maxTextSize={maxTextSize}
           />
 
           {showFooter && (
