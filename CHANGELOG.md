@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.10.0
+
+### Minor Changes
+
+- 3c573c4: Add resource counting to build telemetry (events, services, domains, etc.)
+
 ## 3.9.1
 
 ### Patch Changes
