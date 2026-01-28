@@ -150,8 +150,8 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
       diff:
-        specifier: ^7.0.0
-        version: 7.0.0
+        specifier: ^8.0.3
+        version: 8.0.3
       diff2html:
         specifier: ^3.4.48
         version: 3.4.52
