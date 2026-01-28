@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 3.10.1
+
+### Patch Changes
+
+- caea0ec: Update diff package from v7 to v8.0.3
+- 6dd86e3: chore(core): updated astro
+- 9e758f6: update hono dependency from 4.11.4 to 4.11.7
+
 ## 3.10.0
 
 ### Minor Changes
