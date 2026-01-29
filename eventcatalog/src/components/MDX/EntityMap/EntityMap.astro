@@ -5,7 +5,8 @@ import Admonition from '@components/MDX/Admonition';
 import NodeGraph from '../NodeGraph/NodeGraph';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { getServices } from '@utils/collections/services';
-import { isEventCatalogChatEnabled } from '@utils/feature';
+import { isEventCatalogChatEnabled, isDevMode } from '@utils/feature';
+import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
 
 const isChatEnabled = isEventCatalogChatEnabled();
 
@@ -38,6 +39,11 @@ const { nodes, edges } = await getNodesAndEdges({
   ...(entities ? { entities } : {}), // Pass entities if provided
   type: collection,
 });
+
+// Load and apply saved layout if it exists
+const resourceKey = buildResourceKey(collection, resourceId, resource?.data?.version);
+const savedLayout = await loadSavedLayout(resourceKey);
+const nodesWithLayout = applyLayoutToNodes(nodes as any[], savedLayout);
 ---
 
 {
@@ -66,7 +72,7 @@ const { nodes, edges } = await getNodesAndEdges({
 <div>
   <NodeGraph
     id={id}
-    nodes={nodes}
+    nodes={nodesWithLayout}
     edges={edges}
     linkTo={'visualiser'}
     mode="simple"
@@ -75,6 +81,8 @@ const { nodes, edges } = await getNodesAndEdges({
     client:only="react"
     portalId={`${id}-entity-map-portal`}
     isChatEnabled={isChatEnabled}
+    isDevMode={isDevMode()}
+    resourceKey={resourceKey}
   />
 </div>
 

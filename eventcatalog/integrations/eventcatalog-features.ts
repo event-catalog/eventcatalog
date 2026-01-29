@@ -6,6 +6,7 @@ import {
   isEventCatalogScaleEnabled,
   isEventCatalogStarterEnabled,
   isEventCatalogMCPEnabled,
+  isDevMode,
 } from '../src/utils/feature';
 
 const catalogDirectory = process.env.CATALOG_DIR || process.cwd();
@@ -70,6 +71,18 @@ export default function eventCatalogIntegration(): AstroIntegration {
           params.injectRoute({
             pattern: '/plans',
             entrypoint: path.join(catalogDirectory, 'src/enterprise/plans/index.astro'),
+          });
+        }
+
+        // Dev-only routes for visualizer layout persistence
+        if (isDevMode()) {
+          params.injectRoute({
+            pattern: '/api/dev/visualizer-layout/save',
+            entrypoint: path.join(catalogDirectory, 'src/enterprise/visualizer-layout/save.ts'),
+          });
+          params.injectRoute({
+            pattern: '/api/dev/visualizer-layout/reset',
+            entrypoint: path.join(catalogDirectory, 'src/enterprise/visualizer-layout/reset.ts'),
           });
         }
       },

@@ -1,6 +1,20 @@
-import React, { type RefObject } from 'react';
+import React, { type RefObject, useState } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { Code, Share2, Search, Grid3x3, Maximize2, Map, Sparkles, Zap, EyeOff, ExternalLink } from 'lucide-react';
+import {
+  Code,
+  Share2,
+  Search,
+  Grid3x3,
+  Maximize2,
+  Map,
+  Sparkles,
+  Zap,
+  EyeOff,
+  ExternalLink,
+  Save,
+  RotateCcw,
+  Loader2,
+} from 'lucide-react';
 import { DocumentArrowDownIcon, PresentationChartLineIcon } from '@heroicons/react/24/outline';
 import type { VisualiserSearchRef } from './VisualiserSearch';
 
@@ -23,6 +37,9 @@ interface VisualizerDropdownContentProps {
   setIsShareModalOpen: (value: boolean) => void;
   toggleFullScreen: () => void;
   openStudioModal: () => void;
+  isDevMode?: boolean;
+  onSaveLayout?: () => Promise<boolean>;
+  onResetLayout?: () => Promise<boolean>;
 }
 
 const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> = ({
@@ -44,7 +61,33 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> = ({
   setIsShareModalOpen,
   toggleFullScreen,
   openStudioModal,
+  isDevMode = false,
+  onSaveLayout,
+  onResetLayout,
 }) => {
+  const [layoutStatus, setLayoutStatus] = useState<'idle' | 'saving' | 'resetting'>('idle');
+
+  const handleSaveLayout = async () => {
+    if (!onSaveLayout) return;
+    setLayoutStatus('saving');
+    await onSaveLayout();
+    setLayoutStatus('idle');
+  };
+
+  const handleResetLayout = async () => {
+    if (!onResetLayout) return;
+    if (!window.confirm('Reset layout to auto-positioning? This will delete your saved layout.')) {
+      return;
+    }
+    setLayoutStatus('resetting');
+    const success = await onResetLayout();
+    if (success) {
+      window.location.reload();
+    } else {
+      setLayoutStatus('idle');
+    }
+  };
+
   return (
     <>
       {/* Canvas Settings Submenu */}
@@ -156,6 +199,52 @@ const VisualizerDropdownContent: React.FC<VisualizerDropdownContentProps> = ({
           </DropdownMenu.SubContent>
         </DropdownMenu.Portal>
       </DropdownMenu.Sub>
+
+      {/* Dev Mode: Layout Submenu */}
+      {isDevMode && onSaveLayout && (
+        <DropdownMenu.Sub>
+          <DropdownMenu.SubTrigger className="flex items-center px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer transition-colors gap-2 outline-none">
+            <Save className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+            <span className="flex-1 font-normal">Layout</span>
+            <span className="text-[10px] text-amber-600 font-medium">DEV</span>
+            <svg className="w-3 h-3 text-[rgb(var(--ec-page-text-muted))]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </DropdownMenu.SubTrigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.SubContent
+              className="min-w-[180px] bg-[rgb(var(--ec-card-bg))] rounded-lg shadow-xl border border-[rgb(var(--ec-page-border))] py-1.5 z-[60]"
+              sideOffset={8}
+              alignOffset={-8}
+            >
+              <DropdownMenu.Item
+                onClick={handleSaveLayout}
+                disabled={layoutStatus !== 'idle'}
+                className="px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {layoutStatus === 'saving' ? (
+                  <Loader2 className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0 animate-spin" />
+                ) : (
+                  <Save className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+                )}
+                <span className="flex-1 font-normal">{layoutStatus === 'saving' ? 'Saving...' : 'Save Layout'}</span>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item
+                onClick={handleResetLayout}
+                disabled={layoutStatus !== 'idle'}
+                className="px-3 py-2 text-xs text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-accent-subtle)/0.3)] cursor-pointer flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {layoutStatus === 'resetting' ? (
+                  <Loader2 className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0 animate-spin" />
+                ) : (
+                  <RotateCcw className="w-3.5 h-3.5 text-[rgb(var(--ec-page-text-muted))] flex-shrink-0" />
+                )}
+                <span className="flex-1 font-normal">{layoutStatus === 'resetting' ? 'Resetting...' : 'Reset Layout'}</span>
+              </DropdownMenu.Item>
+            </DropdownMenu.SubContent>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Sub>
+      )}
 
       {/* Ask AI */}
       {isChatEnabled && (

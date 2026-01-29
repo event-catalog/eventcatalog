@@ -19,7 +19,8 @@ import { getVersionFromCollection } from '@utils/collections/versions';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { getNodesAndEdges as getNodesAndEdgesForContainer } from '@utils/node-graphs/container-node-graph';
 import config from '@config';
-import { isEventCatalogChatEnabled } from '@utils/feature';
+import { isEventCatalogChatEnabled, isDevMode } from '@utils/feature';
+import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
 
 const isChatEnabled = isEventCatalogChatEnabled();
 
@@ -139,12 +140,17 @@ if (collection === 'services-containers') {
   nodes = fetchedNodes;
   edges = fetchedEdges;
 }
+
+// Load and apply saved layout if it exists (dev mode feature)
+const resourceKey = buildResourceKey(collection, id, version);
+const savedLayout = await loadSavedLayout(resourceKey);
+const nodesWithLayout = applyLayoutToNodes(nodes as any[], savedLayout);
 ---
 
 <div>
   <NodeGraphNew
     id={id}
-    nodes={nodes}
+    nodes={nodesWithLayout}
     edges={edges}
     title={title}
     hrefLabel={href?.label}
@@ -159,6 +165,8 @@ if (collection === 'services-containers') {
     zoomOnScroll={zoomOnScroll}
     isChatEnabled={isChatEnabled}
     maxTextSize={config.mermaid?.maxTextSize}
+    isDevMode={isDevMode()}
+    resourceKey={resourceKey}
   />
 </div>
 

@@ -5,7 +5,8 @@ import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import Admonition from '@components/MDX/Admonition';
 import NodeGraph from '../NodeGraph/NodeGraph';
 
-import { isVisualiserEnabled, isEventCatalogChatEnabled } from '@utils/feature';
+import { isVisualiserEnabled, isEventCatalogChatEnabled, isDevMode } from '@utils/feature';
+import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
 
 const isChatEnabled = isEventCatalogChatEnabled();
 
@@ -21,6 +22,11 @@ try {
 } catch (error) {
   console.error(`Error reading design file: ${error}`);
 }
+
+// Load and apply saved layout if it exists
+const resourceKey = design ? buildResourceKey('designs', design.id || id) : '';
+const savedLayout = resourceKey ? await loadSavedLayout(resourceKey) : null;
+const nodesWithLayout = design ? applyLayoutToNodes(design.nodes || [], savedLayout) : ([] as any[]);
 ---
 
 {
@@ -51,7 +57,7 @@ try {
         <NodeGraph
           id={id}
           title={title ?? design.name}
-          nodes={design.nodes || []}
+          nodes={nodesWithLayout}
           edges={design.edges || []}
           hrefLabel={isVisualiserEnabled() ? 'View in visualizer' : undefined}
           href={isVisualiserEnabled() ? `/visualiser/designs/${design.id}` : undefined}
@@ -60,6 +66,8 @@ try {
           client:only="react"
           showSearch={search}
           isChatEnabled={isChatEnabled}
+          isDevMode={isDevMode()}
+          resourceKey={resourceKey}
         />
       </div>
     </div>

@@ -12,6 +12,7 @@ import {
   useEdgesState,
   type Edge,
   type Node,
+  type NodeChange,
   useReactFlow,
   getNodesBounds,
   getViewportForBounds,
@@ -58,6 +59,9 @@ import VisualizerDropdownContent from './VisualizerDropdownContent';
 import { convertToMermaid } from '@utils/node-graphs/export-mermaid';
 import { copyToClipboard } from '@utils/clipboard';
 
+// Minimum pixel change to detect layout modifications (avoids floating point comparison issues)
+const POSITION_CHANGE_THRESHOLD = 1;
+
 interface Props {
   nodes: any;
   edges: any;
@@ -78,6 +82,8 @@ interface Props {
   setIsStudioModalOpen?: (isOpen: boolean) => void;
   isChatEnabled?: boolean;
   maxTextSize?: number;
+  isDevMode?: boolean;
+  resourceKey?: string;
 }
 
 const getVisualiserUrlForCollection = (collectionItem: CollectionEntry<CollectionTypes>) => {
@@ -101,6 +107,8 @@ const NodeGraphBuilder = ({
   setIsStudioModalOpen = () => {},
   isChatEnabled = false,
   maxTextSize,
+  isDevMode = false,
+  resourceKey,
 }: Props) => {
   const nodeTypes = useMemo(
     () =>
@@ -153,6 +161,9 @@ const NodeGraphBuilder = ({
   const [shareUrlCopySuccess, setShareUrlCopySuccess] = useState(false);
   const [isMermaidView, setIsMermaidView] = useState(false);
   const [showMinimap, setShowMinimap] = useState(false);
+  const [hasLayoutChanges, setHasLayoutChanges] = useState(false);
+  const [isSavingLayout, setIsSavingLayout] = useState(false);
+  const initialPositionsRef = useRef<Record<string, { x: number; y: number }>>({});
   // const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
 
   // Check if there are channels to determine if we need the visualizer functionality
@@ -168,6 +179,49 @@ const NodeGraphBuilder = ({
   const searchRef = useRef<VisualiserSearchRef>(null);
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
   const scrollableContainerRef = useRef<HTMLElement | null>(null);
+
+  // Store initial node positions for change detection (dev mode only)
+  useEffect(() => {
+    if (isDevMode && initialNodes.length > 0) {
+      const positions: Record<string, { x: number; y: number }> = {};
+      initialNodes.forEach((node: Node) => {
+        positions[node.id] = { x: node.position.x, y: node.position.y };
+      });
+      initialPositionsRef.current = positions;
+    }
+  }, [isDevMode, initialNodes]);
+
+  // Detect layout changes by comparing current positions to initial positions
+  const checkForLayoutChanges = useCallback(() => {
+    if (!isDevMode) return;
+    const initial = initialPositionsRef.current;
+    if (Object.keys(initial).length === 0) return;
+
+    const hasChanges = nodes.some((node) => {
+      const initialPos = initial[node.id];
+      return (
+        initialPos &&
+        (Math.abs(node.position.x - initialPos.x) > POSITION_CHANGE_THRESHOLD ||
+          Math.abs(node.position.y - initialPos.y) > POSITION_CHANGE_THRESHOLD)
+      );
+    });
+
+    setHasLayoutChanges(hasChanges);
+  }, [isDevMode, nodes]);
+
+  // Wrap onNodesChange to detect layout changes after node drag
+  const handleNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      onNodesChange(changes);
+      // Check for position changes after drag ends
+      const hasDragEnd = changes.some((change) => change.type === 'position' && !change.dragging);
+      if (hasDragEnd) {
+        // Use setTimeout to ensure state is updated
+        setTimeout(checkForLayoutChanges, 0);
+      }
+    },
+    [onNodesChange, checkForLayoutChanges]
+  );
 
   const resetNodesAndEdges = useCallback(() => {
     setNodes((nds) =>
@@ -396,6 +450,63 @@ const NodeGraphBuilder = ({
   const openChat = useCallback(() => {
     window.dispatchEvent(new CustomEvent('eventcatalog:open-chat'));
   }, []);
+
+  // Layout persistence handlers (dev mode only)
+  const handleSaveLayout = useCallback(async (): Promise<boolean> => {
+    if (!resourceKey) return false;
+
+    const positions: Record<string, { x: number; y: number }> = {};
+    nodes.forEach((node) => {
+      positions[node.id] = {
+        x: node.position.x,
+        y: node.position.y,
+      };
+    });
+
+    try {
+      const response = await fetch('/api/dev/visualizer-layout/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resourceKey, positions }),
+      });
+      const result = await response.json();
+      return result.success === true;
+    } catch {
+      return false;
+    }
+  }, [nodes, resourceKey]);
+
+  const handleResetLayout = useCallback(async (): Promise<boolean> => {
+    if (!resourceKey) return false;
+
+    try {
+      const response = await fetch('/api/dev/visualizer-layout/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resourceKey }),
+      });
+      const result = await response.json();
+      return result.success === true;
+    } catch {
+      return false;
+    }
+  }, [resourceKey]);
+
+  // Quick save handler for the change detection UI
+  const handleQuickSaveLayout = useCallback(async () => {
+    setIsSavingLayout(true);
+    const success = await handleSaveLayout();
+    setIsSavingLayout(false);
+    if (success) {
+      // Update initial positions to current positions after save
+      const positions: Record<string, { x: number; y: number }> = {};
+      nodes.forEach((node) => {
+        positions[node.id] = { x: node.position.x, y: node.position.y };
+      });
+      initialPositionsRef.current = positions;
+      setHasLayoutChanges(false);
+    }
+  }, [handleSaveLayout, nodes]);
 
   const handleCopyArchitectureCode = useCallback(async () => {
     await copyToClipboard(mermaidCode);
@@ -692,6 +803,9 @@ const NodeGraphBuilder = ({
                       setIsShareModalOpen={setIsShareModalOpen}
                       toggleFullScreen={toggleFullScreen}
                       openStudioModal={openStudioModal}
+                      isDevMode={isDevMode}
+                      onSaveLayout={handleSaveLayout}
+                      onResetLayout={handleResetLayout}
                     />
                   </DropdownMenu.Content>
                 </DropdownMenu.Portal>
@@ -720,7 +834,7 @@ const NodeGraphBuilder = ({
           nodes={nodes}
           edges={edges}
           fitView
-          onNodesChange={onNodesChange}
+          onNodesChange={handleNodesChange}
           onEdgesChange={onEdgesChange}
           connectionLineType={ConnectionLineType.SmoothStep}
           nodeOrigin={[0.1, 0.1]}
@@ -772,6 +886,9 @@ const NodeGraphBuilder = ({
                         setIsShareModalOpen={setIsShareModalOpen}
                         toggleFullScreen={toggleFullScreen}
                         openStudioModal={openStudioModal}
+                        isDevMode={isDevMode}
+                        onSaveLayout={handleSaveLayout}
+                        onResetLayout={handleResetLayout}
                       />
                     </DropdownMenu.Content>
                   </DropdownMenu.Portal>
@@ -843,6 +960,28 @@ const NodeGraphBuilder = ({
                 onStepChange={handleStepChange}
                 mode={mode}
               />
+            </Panel>
+          )}
+          {/* Dev Mode: Layout change indicator */}
+          {isDevMode && hasLayoutChanges && (
+            <Panel
+              position="bottom-left"
+              style={
+                isFlowVisualization && showFlowWalkthrough
+                  ? { marginBottom: '20px', marginLeft: '410px' }
+                  : { marginLeft: '60px' }
+              }
+            >
+              <div className="bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-md px-3 py-2 flex items-center gap-3">
+                <span className="text-xs text-[rgb(var(--ec-page-text-muted))]">Layout changed</span>
+                <button
+                  onClick={handleQuickSaveLayout}
+                  disabled={isSavingLayout}
+                  className="text-xs font-medium text-[rgb(var(--ec-accent-text))] bg-[rgb(var(--ec-accent-subtle))] hover:bg-[rgb(var(--ec-accent-subtle)/0.7)] px-2 py-1 rounded transition-colors disabled:opacity-50"
+                >
+                  {isSavingLayout ? 'Saving...' : 'Save'}
+                </button>
+              </div>
             </Panel>
           )}
           {includeKey && (
@@ -952,6 +1091,8 @@ interface NodeGraphProps {
   designId?: string;
   isChatEnabled?: boolean;
   maxTextSize?: number;
+  isDevMode?: boolean;
+  resourceKey?: string;
 }
 
 const NodeGraph = ({
@@ -974,6 +1115,8 @@ const NodeGraph = ({
   designId,
   isChatEnabled = false,
   maxTextSize,
+  isDevMode = false,
+  resourceKey,
 }: NodeGraphProps) => {
   const [elem, setElem] = useState(null);
   const [showFooter, setShowFooter] = useState(true);
@@ -1021,6 +1164,8 @@ const NodeGraph = ({
             setIsStudioModalOpen={setIsStudioModalOpen}
             isChatEnabled={isChatEnabled}
             maxTextSize={maxTextSize}
+            isDevMode={isDevMode}
+            resourceKey={resourceKey}
           />
 
           {showFooter && (
