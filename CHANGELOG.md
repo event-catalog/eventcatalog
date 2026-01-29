@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.10.2
+
+### Patch Changes
+
+- 11963f0: Add config option to disable /api/catalog endpoint during static builds to reduce memory usage for large catalogs (fixes #2050)
+
 ## 3.10.1
 
 ### Patch Changes
