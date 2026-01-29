@@ -2,18 +2,20 @@ import type { APIRoute } from 'astro';
 import utils from '@eventcatalog/sdk';
 import config from '@config';
 
-/**
- * Route the will dump the whole catalog as JSON (without markdown)
- * Experimental API
- * @param param0
- * @returns
- */
-export const GET: APIRoute = async ({ params, request }) => {
-  const isFullCatalogAPIEnabled = config.api?.fullCatalogAPIEnabled ?? true;
+const isFullCatalogAPIEnabled = config.api?.fullCatalogAPIEnabled ?? true;
 
+/**
+ * Route that dumps the whole catalog as JSON (without markdown)
+ * Experimental API
+ *
+ * Can be disabled via eventcatalog.config.js:
+ * api: { fullCatalogAPIEnabled: false }
+ */
+export const GET: APIRoute = async () => {
   if (!isFullCatalogAPIEnabled) {
     return new Response(JSON.stringify({ error: 'Full catalog API is not enabled' }), {
       status: 404,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
@@ -26,3 +28,7 @@ export const GET: APIRoute = async ({ params, request }) => {
     },
   });
 };
+
+// Only prerender if the API is enabled - this avoids loading all catalog data during build
+// when the feature is disabled, saving memory for large catalogs
+export const prerender = isFullCatalogAPIEnabled;
