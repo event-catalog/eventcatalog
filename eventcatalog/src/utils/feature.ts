@@ -71,3 +71,5 @@ export const isCustomStylesEnabled = () => {
 export const isDiagramComparisonEnabled = () => isEventCatalogScaleEnabled();
 
 export const isEventCatalogMCPEnabled = () => isEventCatalogScaleEnabled() && isSSR();
+
+export const isDevMode = () => process.env.EVENTCATALOG_DEV_MODE === 'true';

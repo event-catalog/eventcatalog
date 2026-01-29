@@ -196,6 +196,7 @@ program
               ENABLE_EMBED: canEmbedPages || isEventCatalogScale,
               EVENTCATALOG_STARTER: isEventCatalogStarter,
               EVENTCATALOG_SCALE: isEventCatalogScale,
+              EVENTCATALOG_DEV_MODE: 'true',
               NODE_NO_WARNINGS: '1',
             },
           },

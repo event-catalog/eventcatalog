@@ -4,7 +4,8 @@ import { getNodesAndEdges } from '@utils/node-graphs/flows-node-graph';
 import Admonition from '@components/MDX/Admonition';
 import NodeGraph from '../NodeGraph/NodeGraph';
 import { getVersionFromCollection } from '@utils/collections/versions';
-import { isVisualiserEnabled, isEventCatalogChatEnabled } from '@utils/feature';
+import { isVisualiserEnabled, isEventCatalogChatEnabled, isDevMode } from '@utils/feature';
+import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
 
 const isChatEnabled = isEventCatalogChatEnabled();
 
@@ -22,6 +23,11 @@ const { nodes, edges } = await getNodesAndEdges({
   version: flow.data.version,
   mode: mode,
 });
+
+// Load and apply saved layout if it exists
+const resourceKey = buildResourceKey('flows', id, flow.data.version);
+const savedLayout = await loadSavedLayout(resourceKey);
+const nodesWithLayout = applyLayoutToNodes(nodes, savedLayout);
 ---
 
 {
@@ -49,7 +55,7 @@ const { nodes, edges } = await getNodesAndEdges({
 <div>
   <NodeGraph
     id={id}
-    nodes={nodes}
+    nodes={nodesWithLayout}
     edges={edges}
     hrefLabel={'View in visualizer'}
     href={isVisualiserEnabled() ? `/visualiser/flows/${id}/${version}` : undefined}
@@ -60,6 +66,8 @@ const { nodes, edges } = await getNodesAndEdges({
     showFlowWalkthrough={walkthrough}
     showSearch={search}
     isChatEnabled={isChatEnabled}
+    isDevMode={isDevMode()}
+    resourceKey={resourceKey}
   />
 </div>
 
