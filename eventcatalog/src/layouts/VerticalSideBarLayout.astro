@@ -277,7 +277,9 @@ const canPageBeEmbedded = isEmbedEnabled();
     {/* Load search data even when sidebar is hidden */}
     <SearchDataLoader />
     <main id="eventcatalog-application" class="relative">
-      <Header />
+      <div transition:persist="site-header">
+        <Header />
+      </div>
       <div class="flex">
         <aside class="flex" id="eventcatalog-vertical-nav">
           <div
