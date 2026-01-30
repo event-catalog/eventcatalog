@@ -4,7 +4,10 @@ import { showEventCatalogBranding } from '@utils/feature';
 const { className } = Astro.props;
 ---
 
-<footer class={`relative py-4 space-y-8 border-t border-[rgb(var(--ec-page-border))] ${className}`}>
+<footer
+  transition:persist="site-footer"
+  class={`relative py-4 space-y-8 border-t border-[rgb(var(--ec-page-border))] ${className}`}
+>
   {
     showEventCatalogBranding() && (
       <div class="flex justify-between items-center py-8 text-[rgb(var(--ec-page-text-muted))] text-sm font-light">
