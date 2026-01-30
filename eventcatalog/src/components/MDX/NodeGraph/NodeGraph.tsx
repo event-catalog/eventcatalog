@@ -54,6 +54,7 @@ import { useEventCatalogVisualiser } from 'src/hooks/eventcatalog-visualizer';
 import VisualiserSearch, { type VisualiserSearchRef } from './VisualiserSearch';
 import StepWalkthrough from './StepWalkthrough';
 import StudioModal from './StudioModal';
+import FocusModeModal from './FocusModeModal';
 import MermaidView from './MermaidView';
 import VisualizerDropdownContent from './VisualizerDropdownContent';
 import { convertToMermaid } from '@utils/node-graphs/export-mermaid';
@@ -165,6 +166,8 @@ const NodeGraphBuilder = ({
   const [isSavingLayout, setIsSavingLayout] = useState(false);
   const initialPositionsRef = useRef<Record<string, { x: number; y: number }>>({});
   // const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
+  const [focusModeOpen, setFocusModeOpen] = useState(false);
+  const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
 
   // Check if there are channels to determine if we need the visualizer functionality
   const hasChannels = useMemo(() => initialNodes.some((node: any) => node.type === 'channels'), [initialNodes]);
@@ -251,50 +254,16 @@ const NodeGraphBuilder = ({
         return;
       }
 
-      resetNodesAndEdges();
+      // Disable focus mode for flow and entity visualizations
+      const isFlow = edges.some((edge: Edge) => edge.type === 'flow-edge');
+      const isEntityVisualizer = nodes.some((n: Node) => n.type === 'entities');
+      if (isFlow || isEntityVisualizer) return;
 
-      const connectedNodeIds = new Set<string>();
-      connectedNodeIds.add(node.id);
-
-      const updatedEdges = edges.map((edge) => {
-        if (edge.source === node.id || edge.target === node.id) {
-          connectedNodeIds.add(edge.source);
-          connectedNodeIds.add(edge.target);
-          return {
-            ...edge,
-            data: { ...edge.data, opacity: 1, animated: animateMessages },
-            style: { ...edge.style, opacity: 1 },
-            labelStyle: { ...edge.labelStyle, opacity: 1 },
-            animated: true,
-          };
-        }
-        return {
-          ...edge,
-          data: { ...edge.data, opacity: 0.1, animated: animateMessages },
-          style: { ...edge.style, opacity: 0.1 },
-          labelStyle: { ...edge.labelStyle, opacity: 0.1 },
-          animated: animateMessages,
-        };
-      });
-
-      const updatedNodes = nodes.map((n) => {
-        if (connectedNodeIds.has(n.id)) {
-          return { ...n, style: { ...n.style, opacity: 1 } };
-        }
-        return { ...n, style: { ...n.style, opacity: 0.1 } };
-      });
-
-      setNodes(updatedNodes);
-      setEdges(updatedEdges);
-
-      // Fit the clicked node and its connected nodes into view
-      fitView({
-        padding: 0.2,
-        duration: 800,
-        nodes: updatedNodes.filter((n) => connectedNodeIds.has(n.id)),
-      });
+      // Open focus mode modal
+      setFocusedNodeId(node.id);
+      setFocusModeOpen(true);
     },
-    [nodes, edges, setNodes, setEdges, resetNodesAndEdges, fitView]
+    [linksToVisualiser, edges, nodes]
   );
 
   const toggleAnimateMessages = () => {
@@ -1007,6 +976,15 @@ const NodeGraphBuilder = ({
         </ReactFlow>
       )}
       <StudioModal isOpen={isStudioModalOpen || false} onClose={() => setIsStudioModalOpen(false)} />
+      <FocusModeModal
+        isOpen={focusModeOpen}
+        onClose={() => setFocusModeOpen(false)}
+        initialNodeId={focusedNodeId}
+        nodes={nodes}
+        edges={edges}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+      />
 
       {/* Share Link Modal */}
       {isShareModalOpen && (
