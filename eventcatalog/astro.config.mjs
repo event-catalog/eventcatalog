@@ -14,6 +14,8 @@ import node from '@astrojs/node';
 import remarkComment from 'remark-comment'
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import { LikeC4VitePlugin } from 'likec4/vite-plugin'
+import { likeC4ProjectRegistry } from './src/plugins/likec4-project-registry'
 
 import rehypeExpressiveCode from 'rehype-expressive-code'
 
@@ -124,6 +126,12 @@ export default defineConfig({
     },
     ssr: {
       external: ['eventcatalog.auth.js', 'eventcatalog.chat.js'],
-    }
+    },
+    plugins: [
+      LikeC4VitePlugin({
+        workspace: projectDirectory,
+      }),
+      likeC4ProjectRegistry(projectDirectory),
+    ],
   }
 });

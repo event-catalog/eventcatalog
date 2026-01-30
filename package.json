@@ -138,6 +138,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.6",
     "@changesets/cli": "^2.27.5",
+    "@likec4/icons": "^1.46.4",
     "@playwright/test": "^1.48.1",
     "@types/dagre": "^0.7.52",
     "@types/diff": "^5.2.2",
@@ -155,6 +156,7 @@
     "@types/shelljs": "^0.8.15",
     "@types/update-notifier": "^6.0.8",
     "@types/uuid": "^10.0.0",
+    "likec4": "^1.48.0",
     "prettier": "^3.3.3",
     "prettier-plugin-astro": "^0.14.1",
     "tsup": "^8.1.0",
