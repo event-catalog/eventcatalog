@@ -57,7 +57,10 @@ export default function ServiceNode(props: ServiceNode) {
         </div>
       </ContextMenu.Trigger>
       <ContextMenu.Portal>
-        <ContextMenu.Content className="min-w-[220px] bg-white rounded-md p-1 shadow-md border border-gray-200">
+        <ContextMenu.Content
+          className="min-w-[220px] bg-white rounded-md p-1 shadow-md border border-gray-200"
+          onClick={(e) => e.stopPropagation()}
+        >
           <ContextMenu.Item
             asChild
             className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"

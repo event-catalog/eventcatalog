@@ -81,6 +81,19 @@ const AnimatedMessageEdge = ({
       {/* <g className={`z-30 ${opacity === 1 ? 'opacity-100' : 'opacity-10'}`}>
       </g> */}
       <g>
+        {/* Background rect for label */}
+        {label && (
+          <rect
+            x={labelX - 30}
+            y={labelY - lines.length * 6}
+            width={60}
+            height={lines.length * 14}
+            fill="white"
+            fillOpacity={0.3}
+            rx={4}
+            ry={4}
+          />
+        )}
         {/* Text element */}
         <text x={labelX} y={labelY} textAnchor="middle" dominantBaseline="middle" fontSize="10px" pointerEvents="none">
           {lines.map((line, i) => (

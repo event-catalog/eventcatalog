@@ -44,10 +44,20 @@ export default {
           '0%': { transform: 'translateX(100%)' },
           '100%': { transform: 'translateX(-100%)' },
         },
+        overlayShow: {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        contentShow: {
+          from: { opacity: '0', transform: 'scale(0.96)' },
+          to: { opacity: '1', transform: 'scale(1)' },
+        },
       },
       animation: {
         'progress-bar': 'progress-bar 2s linear infinite',
         'progress-bar-reverse': 'progress-bar-reverse 2s linear infinite',
+        overlayShow: 'overlayShow 200ms ease-out',
+        contentShow: 'contentShow 200ms ease-out',
       },
     },
   },
