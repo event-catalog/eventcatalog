@@ -1898,5 +1898,49 @@ describe('Message NodeGraph', () => {
         expect(consumersV200).toHaveLength(0);
       });
     });
+
+    describe('should_match_service_receiving_multiple_versions_of_same_message', () => {
+      it('getConsumersOfMessage returns service for each version it explicitly receives', async () => {
+        // Create a service that receives two specific versions of the same message
+        const multiVersionConsumerService = {
+          collection: 'services',
+          id: 'MultiVersionConsumer',
+          data: {
+            id: 'MultiVersionConsumer',
+            name: 'Multi-Version Consumer Service',
+            version: '1.0.0',
+            receives: [
+              { id: 'PaymentProcessed', version: '1.0.0' },
+              { id: 'PaymentProcessed', version: '1.2.3' },
+            ],
+          },
+        };
+
+        // Get PaymentProcessed events
+        const events = mockEvents.filter((e) => e.data.id === 'PaymentProcessed');
+        const v100 = events.find((e) => e.data.version === '1.0.0') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v123 = events.find((e) => e.data.version === '1.2.3') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v125 = events.find((e) => e.data.version === '1.2.5') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v200 = events.find((e) => e.data.version === '2.0.0') as unknown as CollectionEntry<CollectionMessageTypes>;
+
+        const allServices = [multiVersionConsumerService as unknown as CollectionEntry<'services'>];
+
+        // Should match both explicitly listed versions
+        const consumersV100 = getConsumersOfMessage(allServices as any, v100);
+        expect(consumersV100).toHaveLength(1);
+        expect(consumersV100[0].data.id).toBe('MultiVersionConsumer');
+
+        const consumersV123 = getConsumersOfMessage(allServices as any, v123);
+        expect(consumersV123).toHaveLength(1);
+        expect(consumersV123[0].data.id).toBe('MultiVersionConsumer');
+
+        // Should NOT match versions that aren't explicitly listed
+        const consumersV125 = getConsumersOfMessage(allServices as any, v125);
+        expect(consumersV125).toHaveLength(0);
+
+        const consumersV200 = getConsumersOfMessage(allServices as any, v200);
+        expect(consumersV200).toHaveLength(0);
+      });
+    });
   });
 });
