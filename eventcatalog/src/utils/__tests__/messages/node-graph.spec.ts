@@ -9,6 +9,8 @@ import {
   mockServiceWithTildeRange,
   mockServiceWithXPattern,
   mockServiceWithXPatternMinor,
+  mockServiceWithCaretRangeAndChannel,
+  mockServiceWithXPatternAndChannel,
 } from './mocks';
 import type { CollectionMessageTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
@@ -1847,6 +1849,53 @@ describe('Message NodeGraph', () => {
 
         // 1.2.x should NOT match 1.9.9 (different minor version)
         expect(producersV199).toHaveLength(0);
+      });
+    });
+
+    describe('should_match_service_with_semver_pattern_and_channel_configuration', () => {
+      it('getProducersOfMessage returns service with ^1.0.0 and channel when message matches pattern', async () => {
+        // Get PaymentProcessed events
+        const events = mockEvents.filter((e) => e.data.id === 'PaymentProcessed');
+        const v123 = events.find((e) => e.data.version === '1.2.3') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v200 = events.find((e) => e.data.version === '2.0.0') as unknown as CollectionEntry<CollectionMessageTypes>;
+
+        const service = mockServiceWithCaretRangeAndChannel as unknown as CollectionEntry<'services'>;
+        const allServices = [service];
+
+        // Service with ^1.0.0 + channel should match 1.2.3
+        const producersV123 = getProducersOfMessage(allServices as any, v123);
+        expect(producersV123).toHaveLength(1);
+        expect(producersV123[0].data.id).toBe('OrderServiceWithChannel');
+        expect(producersV123[0].data.sends?.[0].to).toEqual([{ id: 'SNSChannel', version: '1.0.0' }]);
+
+        // Service with ^1.0.0 + channel should NOT match 2.0.0
+        const producersV200 = getProducersOfMessage(allServices as any, v200);
+        expect(producersV200).toHaveLength(0);
+      });
+
+      it('getConsumersOfMessage returns service with 1.x and channel when message matches pattern', async () => {
+        // Get PaymentProcessed events
+        const events = mockEvents.filter((e) => e.data.id === 'PaymentProcessed');
+        const v100 = events.find((e) => e.data.version === '1.0.0') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v199 = events.find((e) => e.data.version === '1.9.9') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v200 = events.find((e) => e.data.version === '2.0.0') as unknown as CollectionEntry<CollectionMessageTypes>;
+
+        const service = mockServiceWithXPatternAndChannel as unknown as CollectionEntry<'services'>;
+        const allServices = [service];
+
+        // Service with 1.x + channel should match 1.0.0 and 1.9.9
+        const consumersV100 = getConsumersOfMessage(allServices as any, v100);
+        expect(consumersV100).toHaveLength(1);
+        expect(consumersV100[0].data.id).toBe('ConsumerServiceWithChannel');
+        expect(consumersV100[0].data.receives?.[0].from).toEqual([{ id: 'SQSChannel', version: '1.0.0' }]);
+
+        const consumersV199 = getConsumersOfMessage(allServices as any, v199);
+        expect(consumersV199).toHaveLength(1);
+        expect(consumersV199[0].data.id).toBe('ConsumerServiceWithChannel');
+
+        // Service with 1.x + channel should NOT match 2.0.0
+        const consumersV200 = getConsumersOfMessage(allServices as any, v200);
+        expect(consumersV200).toHaveLength(0);
       });
     });
   });
