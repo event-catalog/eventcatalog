@@ -1,11 +1,18 @@
 import { getNodesAndEdgesForConsumedMessage, getNodesAndEdgesForProducedMessage } from '../../node-graphs/message-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockEvents, mockServices, mockChannels } from './mocks';
+import {
+  mockEvents,
+  mockServices,
+  mockChannels,
+  mockServiceWithCaretRangeSends,
+  mockServiceWithCaretRangeReceives,
+} from './mocks';
 import type { CollectionMessageTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
 import utils from '@eventcatalog/sdk';
 import path from 'path';
 import fs from 'fs';
+import { getProducersOfMessage, getConsumersOfMessage } from '@utils/collections/services';
 
 const CATALOG_FOLDER = path.join(__dirname, 'catalog');
 
@@ -1687,6 +1694,72 @@ describe('Message NodeGraph', () => {
         );
 
         expect(edges).toEqual(expectedEdges);
+      });
+    });
+  });
+
+  describe('Semver Pattern Matching in Graph Generation', () => {
+    describe('should_match_service_with_caret_range_to_compatible_message_versions_when_producing', () => {
+      it('getProducersOfMessage returns service for messages matching ^1.0.0 pattern but not 2.0.0', async () => {
+        // Get PaymentProcessed events at versions 1.0.0, 1.2.3, 1.9.9, 2.0.0
+        const events = mockEvents.filter((e) => e.data.id === 'PaymentProcessed');
+        const v100 = events.find((e) => e.data.version === '1.0.0') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v123 = events.find((e) => e.data.version === '1.2.3') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v199 = events.find((e) => e.data.version === '1.9.9') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v200 = events.find((e) => e.data.version === '2.0.0') as unknown as CollectionEntry<CollectionMessageTypes>;
+
+        const service = mockServiceWithCaretRangeSends as unknown as CollectionEntry<'services'>;
+        const allServices = [service];
+
+        // ^1.0.0 should match 1.0.0, 1.2.3, and 1.9.9
+        const producersV100 = getProducersOfMessage(allServices as any, v100);
+        const producersV123 = getProducersOfMessage(allServices as any, v123);
+        const producersV199 = getProducersOfMessage(allServices as any, v199);
+        const producersV200 = getProducersOfMessage(allServices as any, v200);
+
+        expect(producersV100).toHaveLength(1);
+        expect(producersV100[0].data.id).toBe('OrderProcessingService');
+
+        expect(producersV123).toHaveLength(1);
+        expect(producersV123[0].data.id).toBe('OrderProcessingService');
+
+        expect(producersV199).toHaveLength(1);
+        expect(producersV199[0].data.id).toBe('OrderProcessingService');
+
+        // ^1.0.0 should NOT match 2.0.0
+        expect(producersV200).toHaveLength(0);
+      });
+    });
+
+    describe('should_match_service_with_caret_range_when_receiving_messages', () => {
+      it('getConsumersOfMessage returns service for messages matching ^1.0.0 pattern but not 2.0.0', async () => {
+        // Get PaymentProcessed events at versions 1.0.0, 1.2.3, 1.9.9, 2.0.0
+        const events = mockEvents.filter((e) => e.data.id === 'PaymentProcessed');
+        const v100 = events.find((e) => e.data.version === '1.0.0') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v123 = events.find((e) => e.data.version === '1.2.3') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v199 = events.find((e) => e.data.version === '1.9.9') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v200 = events.find((e) => e.data.version === '2.0.0') as unknown as CollectionEntry<CollectionMessageTypes>;
+
+        const service = mockServiceWithCaretRangeReceives as unknown as CollectionEntry<'services'>;
+        const allServices = [service];
+
+        // ^1.0.0 should match 1.0.0, 1.2.3, and 1.9.9
+        const consumersV100 = getConsumersOfMessage(allServices as any, v100);
+        const consumersV123 = getConsumersOfMessage(allServices as any, v123);
+        const consumersV199 = getConsumersOfMessage(allServices as any, v199);
+        const consumersV200 = getConsumersOfMessage(allServices as any, v200);
+
+        expect(consumersV100).toHaveLength(1);
+        expect(consumersV100[0].data.id).toBe('InventoryService');
+
+        expect(consumersV123).toHaveLength(1);
+        expect(consumersV123[0].data.id).toBe('InventoryService');
+
+        expect(consumersV199).toHaveLength(1);
+        expect(consumersV199[0].data.id).toBe('InventoryService');
+
+        // ^1.0.0 should NOT match 2.0.0
+        expect(consumersV200).toHaveLength(0);
       });
     });
   });
