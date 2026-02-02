@@ -298,3 +298,41 @@ export const findInMap = <T extends { data: { version?: string } }>(
 
   return undefined;
 };
+
+/**
+ * Matches a specific version against a version range pattern.
+ * Supports exact versions, semver ranges, x-patterns, and 'latest'.
+ *
+ * @param version - The specific version to check (e.g., "1.2.3")
+ * @param rangePattern - The pattern to match against (e.g., "^1.0.0", "1.x", "latest")
+ * @returns true if version matches the rangePattern
+ */
+export const versionMatches = (version: string, rangePattern: string): boolean => {
+  // Handle 'latest' keyword
+  if (rangePattern === 'latest') return true;
+
+  // Try exact match first
+  if (version === rangePattern) return true;
+
+  // Try semver range matching
+  try {
+    if (semver.validRange(rangePattern)) {
+      return semver.satisfies(version, rangePattern);
+    }
+  } catch (error) {
+    // Invalid semver, fall through
+  }
+
+  // Handle x-patterns like 1.x, 1.2.x
+  if (rangePattern.includes('.x')) {
+    const prefix = rangePattern.replace(/\.x/g, '');
+    // Check if version starts with the prefix and has a valid boundary
+    // (next character must be '.' or end of string)
+    if (version.startsWith(prefix)) {
+      const nextChar = version[prefix.length];
+      return nextChar === '.' || nextChar === undefined;
+    }
+  }
+
+  return false;
+};
