@@ -6,6 +6,9 @@ import {
   mockChannels,
   mockServiceWithCaretRangeSends,
   mockServiceWithCaretRangeReceives,
+  mockServiceWithTildeRange,
+  mockServiceWithXPattern,
+  mockServiceWithXPatternMinor,
 } from './mocks';
 import type { CollectionMessageTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
@@ -1760,6 +1763,90 @@ describe('Message NodeGraph', () => {
 
         // ^1.0.0 should NOT match 2.0.0
         expect(consumersV200).toHaveLength(0);
+      });
+    });
+
+    describe('should_match_service_with_tilde_range_to_compatible_message_versions', () => {
+      it('getConsumersOfMessage returns service for messages matching ~1.2.0 pattern', async () => {
+        // Get PaymentProcessed events at versions 1.2.3, 1.2.5, 1.9.9
+        const events = mockEvents.filter((e) => e.data.id === 'PaymentProcessed');
+        const v123 = events.find((e) => e.data.version === '1.2.3') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v125 = events.find((e) => e.data.version === '1.2.5') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v199 = events.find((e) => e.data.version === '1.9.9') as unknown as CollectionEntry<CollectionMessageTypes>;
+
+        const service = mockServiceWithTildeRange as unknown as CollectionEntry<'services'>;
+        const allServices = [service];
+
+        // ~1.2.0 should match 1.2.3 and 1.2.5
+        const consumersV123 = getConsumersOfMessage(allServices as any, v123);
+        const consumersV125 = getConsumersOfMessage(allServices as any, v125);
+        const consumersV199 = getConsumersOfMessage(allServices as any, v199);
+
+        expect(consumersV123).toHaveLength(1);
+        expect(consumersV123[0].data.id).toBe('NotificationService');
+
+        expect(consumersV125).toHaveLength(1);
+        expect(consumersV125[0].data.id).toBe('NotificationService');
+
+        // ~1.2.0 should NOT match 1.9.9 (different minor version)
+        expect(consumersV199).toHaveLength(0);
+      });
+    });
+
+    describe('should_match_service_with_x_pattern_to_compatible_message_versions', () => {
+      it('getConsumersOfMessage returns service for messages matching 1.x pattern', async () => {
+        // Get PaymentProcessed events
+        const events = mockEvents.filter((e) => e.data.id === 'PaymentProcessed');
+        const v100 = events.find((e) => e.data.version === '1.0.0') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v123 = events.find((e) => e.data.version === '1.2.3') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v199 = events.find((e) => e.data.version === '1.9.9') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v200 = events.find((e) => e.data.version === '2.0.0') as unknown as CollectionEntry<CollectionMessageTypes>;
+
+        const service = mockServiceWithXPattern as unknown as CollectionEntry<'services'>;
+        const allServices = [service];
+
+        // 1.x should match 1.0.0, 1.2.3, and 1.9.9
+        const consumersV100 = getConsumersOfMessage(allServices as any, v100);
+        const consumersV123 = getConsumersOfMessage(allServices as any, v123);
+        const consumersV199 = getConsumersOfMessage(allServices as any, v199);
+        const consumersV200 = getConsumersOfMessage(allServices as any, v200);
+
+        expect(consumersV100).toHaveLength(1);
+        expect(consumersV100[0].data.id).toBe('AnalyticsService');
+
+        expect(consumersV123).toHaveLength(1);
+        expect(consumersV123[0].data.id).toBe('AnalyticsService');
+
+        expect(consumersV199).toHaveLength(1);
+        expect(consumersV199[0].data.id).toBe('AnalyticsService');
+
+        // 1.x should NOT match 2.0.0
+        expect(consumersV200).toHaveLength(0);
+      });
+
+      it('getProducersOfMessage returns service for messages matching 1.2.x pattern with correct boundaries', async () => {
+        // Get PaymentProcessed events
+        const events = mockEvents.filter((e) => e.data.id === 'PaymentProcessed');
+        const v123 = events.find((e) => e.data.version === '1.2.3') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v125 = events.find((e) => e.data.version === '1.2.5') as unknown as CollectionEntry<CollectionMessageTypes>;
+        const v199 = events.find((e) => e.data.version === '1.9.9') as unknown as CollectionEntry<CollectionMessageTypes>;
+
+        const service = mockServiceWithXPatternMinor as unknown as CollectionEntry<'services'>;
+        const allServices = [service];
+
+        // 1.2.x should match 1.2.3 and 1.2.5
+        const producersV123 = getProducersOfMessage(allServices as any, v123);
+        const producersV125 = getProducersOfMessage(allServices as any, v125);
+        const producersV199 = getProducersOfMessage(allServices as any, v199);
+
+        expect(producersV123).toHaveLength(1);
+        expect(producersV123[0].data.id).toBe('AuditService');
+
+        expect(producersV125).toHaveLength(1);
+        expect(producersV125[0].data.id).toBe('AuditService');
+
+        // 1.2.x should NOT match 1.9.9 (different minor version)
+        expect(producersV199).toHaveLength(0);
       });
     });
   });
