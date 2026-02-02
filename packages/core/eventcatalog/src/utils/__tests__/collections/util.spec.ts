@@ -5,6 +5,7 @@ import {
   processSpecifications,
   satisfies,
   sortStringVersions,
+  versionMatches,
 } from '@utils/collections/util';
 import type { CollectionEntry } from 'astro:content';
 import { describe, it, expect } from 'vitest';
@@ -108,6 +109,146 @@ describe('Collections - utils', () => {
           },
         },
       ]);
+    });
+  });
+
+  describe('versionMatches', () => {
+    describe('should_match_exact_versions', () => {
+      it('matches when version equals rangePattern exactly', () => {
+        expect(versionMatches('1.0.0', '1.0.0')).toBe(true);
+        expect(versionMatches('2.5.3', '2.5.3')).toBe(true);
+        expect(versionMatches('0.0.1', '0.0.1')).toBe(true);
+      });
+    });
+
+    describe('should_match_when_range_has_caret_and_version_satisfies', () => {
+      it('matches version 1.2.3 with rangePattern ^1.0.0', () => {
+        expect(versionMatches('1.2.3', '^1.0.0')).toBe(true);
+      });
+
+      it('matches version 1.0.0 with rangePattern ^1.0.0', () => {
+        expect(versionMatches('1.0.0', '^1.0.0')).toBe(true);
+      });
+
+      it('matches version 1.9.9 with rangePattern ^1.0.0', () => {
+        expect(versionMatches('1.9.9', '^1.0.0')).toBe(true);
+      });
+    });
+
+    describe('should_match_when_range_has_tilde_and_version_satisfies', () => {
+      it('matches version 1.2.5 with rangePattern ~1.2.0', () => {
+        expect(versionMatches('1.2.5', '~1.2.0')).toBe(true);
+      });
+
+      it('matches version 1.2.0 with rangePattern ~1.2.0', () => {
+        expect(versionMatches('1.2.0', '~1.2.0')).toBe(true);
+      });
+
+      it('does not match version 1.3.0 with rangePattern ~1.2.0', () => {
+        expect(versionMatches('1.3.0', '~1.2.0')).toBe(false);
+      });
+    });
+
+    describe('should_not_match_when_version_does_not_satisfy_range', () => {
+      it('does not match version 1.0.0 with rangePattern ^2.0.0', () => {
+        expect(versionMatches('1.0.0', '^2.0.0')).toBe(false);
+      });
+
+      it('does not match version 3.0.0 with rangePattern ^2.0.0', () => {
+        expect(versionMatches('3.0.0', '^2.0.0')).toBe(false);
+      });
+
+      it('does not match version 0.9.9 with rangePattern ^1.0.0', () => {
+        expect(versionMatches('0.9.9', '^1.0.0')).toBe(false);
+      });
+    });
+
+    describe('should_handle_complex_semver_ranges', () => {
+      it('matches version 1.5.0 with rangePattern >=1.0.0 <2.0.0', () => {
+        expect(versionMatches('1.5.0', '>=1.0.0 <2.0.0')).toBe(true);
+      });
+
+      it('matches version 1.0.0 with rangePattern >=1.0.0 <2.0.0', () => {
+        expect(versionMatches('1.0.0', '>=1.0.0 <2.0.0')).toBe(true);
+      });
+
+      it('does not match version 2.0.0 with rangePattern >=1.0.0 <2.0.0', () => {
+        expect(versionMatches('2.0.0', '>=1.0.0 <2.0.0')).toBe(false);
+      });
+
+      it('does not match version 0.9.9 with rangePattern >=1.0.0 <2.0.0', () => {
+        expect(versionMatches('0.9.9', '>=1.0.0 <2.0.0')).toBe(false);
+      });
+    });
+
+    describe('should_return_false_when_version_is_invalid_semver', () => {
+      it('returns false for invalid version with valid rangePattern', () => {
+        expect(versionMatches('not-a-version', '^1.0.0')).toBe(false);
+      });
+
+      it('returns false for invalid version with exact rangePattern', () => {
+        expect(versionMatches('invalid', '1.0.0')).toBe(false);
+      });
+    });
+
+    describe('should_handle_latest_keyword', () => {
+      it('matches any version when rangePattern is latest', () => {
+        expect(versionMatches('1.0.0', 'latest')).toBe(true);
+        expect(versionMatches('2.5.3', 'latest')).toBe(true);
+        expect(versionMatches('0.0.1', 'latest')).toBe(true);
+        expect(versionMatches('99.99.99', 'latest')).toBe(true);
+      });
+    });
+
+    describe('should_match_when_range_has_single_x_pattern', () => {
+      it('matches versions with major version 1 against rangePattern 1.x', () => {
+        expect(versionMatches('1.0.0', '1.x')).toBe(true);
+        expect(versionMatches('1.2.3', '1.x')).toBe(true);
+        expect(versionMatches('1.99.99', '1.x')).toBe(true);
+      });
+
+      it('does not match versions with different major version', () => {
+        expect(versionMatches('2.0.0', '1.x')).toBe(false);
+        expect(versionMatches('0.9.9', '1.x')).toBe(false);
+      });
+    });
+
+    describe('should_match_when_range_has_double_x_pattern', () => {
+      it('matches versions with major.minor 1.2 against rangePattern 1.2.x', () => {
+        expect(versionMatches('1.2.0', '1.2.x')).toBe(true);
+        expect(versionMatches('1.2.5', '1.2.x')).toBe(true);
+        expect(versionMatches('1.2.99', '1.2.x')).toBe(true);
+      });
+
+      it('does not match versions with different major.minor', () => {
+        expect(versionMatches('1.3.0', '1.2.x')).toBe(false);
+        expect(versionMatches('2.2.0', '1.2.x')).toBe(false);
+      });
+    });
+
+    describe('should_not_match_when_x_pattern_differs', () => {
+      it('does not match when major version differs', () => {
+        expect(versionMatches('1.0.0', '2.x')).toBe(false);
+        expect(versionMatches('3.0.0', '2.x')).toBe(false);
+      });
+    });
+
+    describe('should_not_match_when_prefix_matches_but_boundary_incorrect', () => {
+      it('does not match 1.20.0 with rangePattern 1.2.x', () => {
+        expect(versionMatches('1.20.0', '1.2.x')).toBe(false);
+      });
+
+      it('does not match 10.0.0 with rangePattern 1.x', () => {
+        expect(versionMatches('10.0.0', '1.x')).toBe(false);
+      });
+    });
+
+    describe('should_handle_x_at_major_version', () => {
+      it('matches version 2.0.0 with rangePattern 2.x', () => {
+        expect(versionMatches('2.0.0', '2.x')).toBe(true);
+        expect(versionMatches('2.1.0', '2.x')).toBe(true);
+        expect(versionMatches('2.99.99', '2.x')).toBe(true);
+      });
     });
   });
 });
