@@ -314,12 +314,33 @@ const getNodesAndEdges = async ({
           (receive) => receive.id === message.data.id && versionMatches(receive.version, message.data.version)
         )?.from ?? [];
 
+      // Optimization: Pre-resolve all channel values once to avoid redundant findAllInMap calls
+      // This eliminates O(N×M) redundant lookups when the same channel patterns appear multiple times
+      // (e.g., when multiple producers send to the same shared event bus channel)
+      const producerChannelValuesCache = new Map<string, CollectionEntry<'channels'>[]>();
       for (const producerChannel of producerChannels) {
-        const producerChannelValues = findAllInMap(channelMap, producerChannel.id, producerChannel.version);
+        const cacheKey = `${producerChannel.id}:${producerChannel.version ?? 'undefined'}`;
+        if (!producerChannelValuesCache.has(cacheKey)) {
+          producerChannelValuesCache.set(cacheKey, findAllInMap(channelMap, producerChannel.id, producerChannel.version));
+        }
+      }
+
+      const consumerChannelValuesCache = new Map<string, CollectionEntry<'channels'>[]>();
+      for (const consumerChannelConfig of consumerChannels) {
+        const cacheKey = `${consumerChannelConfig.id}:${consumerChannelConfig.version ?? 'undefined'}`;
+        if (!consumerChannelValuesCache.has(cacheKey)) {
+          consumerChannelValuesCache.set(cacheKey, findAllInMap(channelMap, consumerChannelConfig.id, consumerChannelConfig.version));
+        }
+      }
+
+      for (const producerChannel of producerChannels) {
+        const producerCacheKey = `${producerChannel.id}:${producerChannel.version ?? 'undefined'}`;
+        const producerChannelValues = producerChannelValuesCache.get(producerCacheKey) || [];
 
         for (const producerChannelValue of producerChannelValues) {
-          for (const consumerChannelValue of consumerChannels) {
-            const resolvedConsumerChannels = findAllInMap(channelMap, consumerChannelValue.id, consumerChannelValue.version);
+          for (const consumerChannelConfig of consumerChannels) {
+            const consumerCacheKey = `${consumerChannelConfig.id}:${consumerChannelConfig.version ?? 'undefined'}`;
+            const resolvedConsumerChannels = consumerChannelValuesCache.get(consumerCacheKey) || [];
 
             for (const resolvedConsumerChannel of resolvedConsumerChannels) {
               const channelChainToRender = getChannelChain(producerChannelValue, resolvedConsumerChannel, channels);
