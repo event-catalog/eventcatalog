@@ -1,13 +1,17 @@
 import type { CollectionMessageTypes } from '@types';
 
+export type ProducerConsumerCollection = 'services' | 'data-products' | 'entities';
+
 export interface Producer {
   id: string;
   version: string;
+  collection?: ProducerConsumerCollection;
 }
 
 export interface Consumer {
   id: string;
   version: string;
+  collection?: ProducerConsumerCollection;
 }
 
 export interface Owner {

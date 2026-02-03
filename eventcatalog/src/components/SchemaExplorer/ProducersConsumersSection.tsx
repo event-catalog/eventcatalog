@@ -34,7 +34,7 @@ export default function ProducersConsumersSection({ message, isExpanded, onToggl
           </svg>
           <span className="text-xs font-semibold text-[rgb(var(--ec-page-text))]">Producers & Consumers</span>
           <span className="inline-flex items-center rounded-full bg-[rgb(var(--ec-content-hover))] px-2 py-0.5 text-xs font-medium text-[rgb(var(--ec-page-text-muted))]">
-            {totalCount} services
+            {totalCount} {totalCount === 1 ? 'resource' : 'resources'}
           </span>
         </div>
         {isExpanded ? (
@@ -50,20 +50,23 @@ export default function ProducersConsumersSection({ message, isExpanded, onToggl
             <div className="mb-3">
               <h4 className="text-xs font-semibold text-[rgb(var(--ec-page-text))] mb-2">Producers ({producers.length})</h4>
               <div className="flex flex-wrap gap-2">
-                {producers.map((producer: Producer, idx: number) => (
-                  <a
-                    key={`${producer.id}-${idx}`}
-                    href={buildUrl(`/docs/services/${producer.id}/${producer.version}`)}
-                    className="inline-flex items-center gap-1.5 pl-1 pr-3 py-1 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-full hover:border-pink-400 dark:hover:border-pink-500 hover:shadow-sm transition-all"
-                    title={`View ${producer.id}`}
-                  >
-                    <div className="flex items-center justify-center w-5 h-5 bg-gradient-to-b from-pink-500 to-pink-600 rounded-full">
-                      <ServerIcon className="h-3 w-3 text-white" />
-                    </div>
-                    <span className="font-medium">{producer.id}</span>
-                    <span className="text-[rgb(var(--ec-page-text-muted))] text-[11px]">v{producer.version}</span>
-                  </a>
-                ))}
+                {producers.map((producer: Producer, idx: number) => {
+                  const collection = producer.collection || 'services';
+                  return (
+                    <a
+                      key={`${producer.id}-${idx}`}
+                      href={buildUrl(`/docs/${collection}/${producer.id}/${producer.version}`)}
+                      className="inline-flex items-center gap-1.5 pl-1 pr-3 py-1 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-full hover:border-pink-400 dark:hover:border-pink-500 hover:shadow-sm transition-all"
+                      title={`View ${producer.id}`}
+                    >
+                      <div className="flex items-center justify-center w-5 h-5 bg-gradient-to-b from-pink-500 to-pink-600 rounded-full">
+                        <ServerIcon className="h-3 w-3 text-white" />
+                      </div>
+                      <span className="font-medium">{producer.id}</span>
+                      <span className="text-[rgb(var(--ec-page-text-muted))] text-[11px]">v{producer.version}</span>
+                    </a>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -71,20 +74,23 @@ export default function ProducersConsumersSection({ message, isExpanded, onToggl
             <div>
               <h4 className="text-xs font-semibold text-[rgb(var(--ec-page-text))] mb-2">Consumers ({consumers.length})</h4>
               <div className="flex flex-wrap gap-2">
-                {consumers.map((consumer: Consumer, idx: number) => (
-                  <a
-                    key={`${consumer.id}-${idx}`}
-                    href={buildUrl(`/docs/services/${consumer.id}/${consumer.version}`)}
-                    className="inline-flex items-center gap-1.5 pl-1 pr-3 py-1 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-full hover:border-pink-400 dark:hover:border-pink-500 hover:shadow-sm transition-all"
-                    title={`View ${consumer.id}`}
-                  >
-                    <div className="flex items-center justify-center w-5 h-5 bg-gradient-to-b from-pink-500 to-pink-600 rounded-full">
-                      <ServerIcon className="h-3 w-3 text-white" />
-                    </div>
-                    <span className="font-medium">{consumer.id}</span>
-                    <span className="text-[rgb(var(--ec-page-text-muted))] text-[11px]">v{consumer.version}</span>
-                  </a>
-                ))}
+                {consumers.map((consumer: Consumer, idx: number) => {
+                  const collection = consumer.collection || 'services';
+                  return (
+                    <a
+                      key={`${consumer.id}-${idx}`}
+                      href={buildUrl(`/docs/${collection}/${consumer.id}/${consumer.version}`)}
+                      className="inline-flex items-center gap-1.5 pl-1 pr-3 py-1 text-xs font-medium text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] border border-[rgb(var(--ec-page-border))] rounded-full hover:border-pink-400 dark:hover:border-pink-500 hover:shadow-sm transition-all"
+                      title={`View ${consumer.id}`}
+                    >
+                      <div className="flex items-center justify-center w-5 h-5 bg-gradient-to-b from-pink-500 to-pink-600 rounded-full">
+                        <ServerIcon className="h-3 w-3 text-white" />
+                      </div>
+                      <span className="font-medium">{consumer.id}</span>
+                      <span className="text-[rgb(var(--ec-page-text-muted))] text-[11px]">v{consumer.version}</span>
+                    </a>
+                  );
+                })}
               </div>
             </div>
           )}

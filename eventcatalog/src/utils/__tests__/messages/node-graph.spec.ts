@@ -1599,9 +1599,9 @@ describe('Message NodeGraph', () => {
         });
 
         // Verify the entity node is created with correct type
-        const entityNode = nodes.find((node: any) => node.type === 'entities');
+        const entityNode = nodes.find((node: any) => node.id === 'PaymentAggregate-1.0.0');
         expect(entityNode).toBeDefined();
-        expect(entityNode?.id).toBe('PaymentAggregate-1.0.0');
+        expect(entityNode?.type).toBe('entities');
         expect(entityNode?.data.entity).toBeDefined();
 
         // Verify the edge has the correct "emits" label for entity producers

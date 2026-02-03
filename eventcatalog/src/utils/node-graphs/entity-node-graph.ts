@@ -79,9 +79,20 @@ export const getNodesAndEdges = async ({ id, version, mode = 'simple' }: Props) 
     .map((m: { id: string; version?: string }) => findInMap(messageMap, m.id, m.version))
     .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
 
-  // If no messaging, return empty
+  // If no messaging, still show the entity node (consistent with other node graphs)
   if (sends.length === 0 && receives.length === 0) {
-    return { nodes: [], edges: [] };
+    nodes.push({
+      id: generateIdForNode(entity),
+      sourcePosition: 'right',
+      targetPosition: 'left',
+      data: {
+        mode,
+        entity,
+      },
+      position: { x: 0, y: 0 },
+      type: 'entities',
+    });
+    return { nodes, edges };
   }
 
   // Add received messages (left side - incoming)

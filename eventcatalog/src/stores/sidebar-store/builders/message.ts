@@ -94,7 +94,8 @@ export const buildMessageNode = (
         title: 'Producers',
         icon: 'Server',
         pages: (producers as ProducerConsumer[]).map((producer) => {
-          const prefix = producer.collection === 'entities' ? 'entity' : 'service';
+          const prefix =
+            producer.collection === 'entities' ? 'entity' : producer.collection === 'data-products' ? 'data-product' : 'service';
           return `${prefix}:${producer.data.id}:${producer.data.version}`;
         }),
         visible: producers.length > 0,
@@ -104,7 +105,8 @@ export const buildMessageNode = (
         title: 'Consumers',
         icon: 'Server',
         pages: (consumers as ProducerConsumer[]).map((consumer) => {
-          const prefix = consumer.collection === 'entities' ? 'entity' : 'service';
+          const prefix =
+            consumer.collection === 'entities' ? 'entity' : consumer.collection === 'data-products' ? 'data-product' : 'service';
           return `${prefix}:${consumer.data.id}:${consumer.data.version}`;
         }),
         visible: consumers.length > 0,
