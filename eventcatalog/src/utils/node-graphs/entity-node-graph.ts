@@ -1,6 +1,6 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
-import type { Node, Edge } from '@xyflow/react';
+import { type Node, type Edge, Position } from '@xyflow/react';
 import {
   createDagreGraph,
   generateIdForNode,
@@ -79,28 +79,30 @@ export const getNodesAndEdges = async ({ id, version, mode = 'simple' }: Props) 
     .map((m: { id: string; version?: string }) => findInMap(messageMap, m.id, m.version))
     .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
 
-  // If no messaging, still show the entity node (consistent with other node graphs)
+  // Add entity node first (center) - always show even if isolated
+  nodes.push({
+    id: generateIdForNode(entity),
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+    data: {
+      mode,
+      entity,
+    },
+    position: { x: 0, y: 0 },
+    type: 'entities',
+  });
+
+  // If no messaging, return just the entity node
   if (sends.length === 0 && receives.length === 0) {
-    nodes.push({
-      id: generateIdForNode(entity),
-      sourcePosition: 'right',
-      targetPosition: 'left',
-      data: {
-        mode,
-        entity,
-      },
-      position: { x: 0, y: 0 },
-      type: 'entities',
-    });
-    return { nodes, edges };
+    return { nodes, edges: [] };
   }
 
   // Add received messages (left side - incoming)
   receives.forEach((message) => {
     nodes.push({
       id: generateIdForNode(message),
-      sourcePosition: 'right',
-      targetPosition: 'left',
+      sourcePosition: Position.Right,
+      targetPosition: Position.Left,
       data: { mode, message: { ...message.data } },
       position: { x: 0, y: 0 },
       type: message.collection,
@@ -116,25 +118,12 @@ export const getNodesAndEdges = async ({ id, version, mode = 'simple' }: Props) 
     );
   });
 
-  // Add entity node (center)
-  nodes.push({
-    id: generateIdForNode(entity),
-    sourcePosition: 'right',
-    targetPosition: 'left',
-    data: {
-      mode,
-      entity,
-    },
-    position: { x: 0, y: 0 },
-    type: 'entities',
-  });
-
   // Add sent messages (right side - outgoing)
   sends.forEach((message) => {
     nodes.push({
       id: generateIdForNode(message),
-      sourcePosition: 'right',
-      targetPosition: 'left',
+      sourcePosition: Position.Right,
+      targetPosition: Position.Left,
       data: { mode, message: { ...message.data } },
       position: { x: 0, y: 0 },
       type: message.collection,

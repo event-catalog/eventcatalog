@@ -285,14 +285,29 @@ This repo uses a fork-based workflow:
 git checkout -b feature/my-feature
 git push -u fork feature/my-feature
 
-# Sync with upstream
-git fetch origin
-git rebase origin/main
-
 # Create PR (to upstream or within fork)
 gh pr create --repo event-catalog/eventcatalog  # upstream PR
 gh pr create --repo hjtenklooster/eventcatalog-ddd  # fork PR (for code review)
 ```
+
+### Rebasing - IMPORTANT
+
+**Always check PR target before rebasing:**
+
+```bash
+# Check where the PR is and what it targets
+gh pr list --repo hjtenklooster/eventcatalog-ddd --json number,baseRefName,headRefName
+
+# If PR targets fork/main (code review PR):
+git fetch fork main && git rebase fork/main
+
+# If PR targets origin/main (upstream PR):
+git fetch origin main && git rebase origin/main
+```
+
+**Rule of thumb:** Rebase onto the branch your PR targets:
+- PR on fork repo → `git rebase fork/main`
+- PR on upstream repo → `git rebase origin/main`
 
 ### PR Workflow with Code Review
 
