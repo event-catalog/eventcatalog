@@ -265,6 +265,42 @@ When building features used by both AI Chat and MCP Server, add shared logic to 
 - Run `pnpm run format` before committing changes
 - Never verify the build, the developer will do this themselves.
 
+## Git Workflow (Fork Setup)
+
+This repo uses a fork-based workflow:
+
+- **origin**: `event-catalog/eventcatalog` (upstream, read-only)
+- **fork**: `hjtenklooster/eventcatalog-ddd` (your fork, default push target)
+
+### Configured Behavior
+
+- `git push` defaults to `fork` (via `remote.pushDefault`)
+- `git pull` fetches from `origin` (upstream)
+- PRs trigger CodeRabbit and CodeAnt reviews on the fork
+
+### Common Commands
+
+```bash
+# Create feature branch and push to fork
+git checkout -b feature/my-feature
+git push -u fork feature/my-feature
+
+# Sync with upstream
+git fetch origin
+git rebase origin/main
+
+# Create PR (to upstream or within fork)
+gh pr create --repo event-catalog/eventcatalog  # upstream PR
+gh pr create --repo hjtenklooster/eventcatalog-ddd  # fork PR (for code review)
+```
+
+### PR Workflow with Code Review
+
+1. Create branch, make changes, push to fork
+2. Create PR on fork repo to trigger CodeRabbit/CodeAnt
+3. Address review feedback
+4. When ready, create PR to upstream
+
 ## Plan Mode
 
 - Make the plan extremely concise. Sacrifice grammar for the sake of concision.
