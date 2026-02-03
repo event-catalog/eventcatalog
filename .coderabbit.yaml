@@ -1,0 +1,17 @@
+docstrings:
+  enabled: false
+
+reviews:
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    drafts: false
+    base_branches:
+      - main
+
+  # Path-specific instructions
+  path_instructions:
+    - path: "docs/**"
+      instructions: "Ignore typography formatting (en-dash vs hyphen, quote styles). Focus on technical correctness only."
+    - path: "examples/**"
+      instructions: "These are example catalogs for testing and demos. Focus on correctness, not style."
