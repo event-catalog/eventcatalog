@@ -1,6 +1,6 @@
 import type { CollectionEntry, ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
-import { mockCommands, mockEvents, mockQueries, mockServices, mockChannels, mockDataProducts } from './mocks';
+import { mockCommands, mockEvents, mockQueries, mockServices, mockChannels, mockDataProducts, mockEntities } from './mocks';
 import { getMessages, hydrateProducersAndConsumers } from '@utils/collections/messages';
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -18,6 +18,12 @@ vi.mock('astro:content', async (importOriginal) => {
           return mockChannels.filter(filterFn as any);
         case 'queries':
           return mockQueries.filter(filterFn);
+        case 'entities':
+          return mockEntities.filter(filterFn as any);
+        case 'data-products':
+          return mockDataProducts.filter(filterFn as any);
+        default:
+          return [];
       }
     },
   };
@@ -226,6 +232,97 @@ describe('hydrateProducersAndConsumers', () => {
 
       // 2 services + 1 data product = 3 consumers
       expect(consumers).toHaveLength(3);
+    });
+  });
+
+  describe('entity producers', () => {
+    it('should find entities that send a message', () => {
+      const message = { data: { id: 'PaymentProcessed', version: '0.0.1', latestVersion: '0.1.0' } };
+
+      const { producers } = hydrateProducersAndConsumers({
+        message,
+        services: [],
+        dataProducts: [],
+        entities: mockEntities as any,
+      });
+
+      expect(producers).toHaveLength(1);
+      expect(producers[0]).toMatchObject({
+        data: { id: 'PaymentAggregate' },
+      });
+    });
+  });
+
+  describe('entity consumers', () => {
+    it('should find entities that receive a message', () => {
+      const message = { data: { id: 'PaymentProcessed', version: '0.0.1', latestVersion: '0.1.0' } };
+
+      const { consumers } = hydrateProducersAndConsumers({
+        message,
+        services: [],
+        dataProducts: [],
+        entities: mockEntities as any,
+      });
+
+      expect(consumers).toHaveLength(1);
+      expect(consumers[0]).toMatchObject({
+        data: { id: 'OrderAggregate' },
+      });
+    });
+  });
+
+  describe('combined services, data products, and entities', () => {
+    it('should find services, data products, and entities as producers and consumers', () => {
+      const message = { data: { id: 'PaymentProcessed', version: '0.0.1', latestVersion: '0.1.0' } };
+
+      const { producers, consumers } = hydrateProducersAndConsumers({
+        message,
+        services: mockServices as any,
+        dataProducts: mockDataProducts as any,
+        entities: mockEntities as any,
+      });
+
+      // 2 services + 1 data product + 1 entity = 4 producers
+      expect(producers).toHaveLength(4);
+      expect(producers.map((p: any) => p.data.id)).toContain('PaymentAggregate');
+
+      // 2 services + 1 data product + 1 entity = 4 consumers
+      expect(consumers).toHaveLength(4);
+      expect(consumers.map((c: any) => c.data.id)).toContain('OrderAggregate');
+    });
+  });
+
+  describe('entity version matching', () => {
+    it('should match "latest" version pointer to the latest version of the message', () => {
+      // The message IS the latest version (0.1.0)
+      const message = { data: { id: 'PaymentProcessed', version: '0.1.0', latestVersion: '0.1.0' } };
+
+      const { producers, consumers } = hydrateProducersAndConsumers({
+        message,
+        services: [],
+        dataProducts: [],
+        entities: mockEntities as any,
+      });
+
+      // EntityWithLatestVersion should match since it points to 'latest'
+      expect(producers.map((p: any) => p.data.id)).toContain('EntityWithLatestVersion');
+      expect(consumers.map((c: any) => c.data.id)).toContain('EntityWithLatestVersion');
+    });
+
+    it('should not match "latest" version pointer to non-latest versions', () => {
+      // The message is NOT the latest version
+      const message = { data: { id: 'PaymentProcessed', version: '0.0.1', latestVersion: '0.1.0' } };
+
+      const { producers, consumers } = hydrateProducersAndConsumers({
+        message,
+        services: [],
+        dataProducts: [],
+        entities: mockEntities as any,
+      });
+
+      // EntityWithLatestVersion should NOT match since 0.0.1 is not latest
+      expect(producers.map((p: any) => p.data.id)).not.toContain('EntityWithLatestVersion');
+      expect(consumers.map((c: any) => c.data.id)).not.toContain('EntityWithLatestVersion');
     });
   });
 

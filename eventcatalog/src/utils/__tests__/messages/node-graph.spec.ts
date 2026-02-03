@@ -1,6 +1,17 @@
-import { getNodesAndEdgesForConsumedMessage, getNodesAndEdgesForProducedMessage } from '../../node-graphs/message-node-graph';
+import {
+  getNodesAndEdgesForConsumedMessage,
+  getNodesAndEdgesForProducedMessage,
+  getNodesAndEdgesForEvents,
+} from '../../node-graphs/message-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import { mockEvents, mockServices, mockChannels } from './mocks';
+import {
+  mockEvents,
+  mockServices,
+  mockChannels,
+  mockEntities,
+  mockEventWithEntityProducer,
+  mockEventWithEntityConsumer,
+} from './mocks';
 import type { CollectionMessageTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
 import utils from '@eventcatalog/sdk';
@@ -20,7 +31,6 @@ const toAstroCollection = (item: any, collection: string) => {
 vi.mock('astro:content', async (importOriginal) => {
   return {
     ...(await importOriginal<typeof import('astro:content')>()),
-    // this will only affect "foo" outside of the original module
     getCollection: (key: string) => {
       if (key === 'services') {
         return Promise.resolve(mockServices);
@@ -29,7 +39,11 @@ vi.mock('astro:content', async (importOriginal) => {
         return Promise.resolve(mockChannels);
       }
       if (key === 'events') {
-        return Promise.resolve(mockEvents);
+        // Include events with hydrated entity producers/consumers for testing
+        return Promise.resolve([...mockEvents, mockEventWithEntityProducer, mockEventWithEntityConsumer]);
+      }
+      if (key === 'entities') {
+        return Promise.resolve(mockEntities);
       }
       return Promise.resolve([]);
     },
@@ -1570,6 +1584,54 @@ describe('Message NodeGraph', () => {
         );
 
         expect(edges).toEqual(expectedEdges);
+      });
+    });
+  });
+
+  describe('Entity integration', () => {
+    describe('when an entity is a producer of a message', () => {
+      it('renders the entity node with type "entities" and edge label "emits"', async () => {
+        // PaymentAggregate entity has sends: [{ id: 'PaymentProcessed', version: '0.0.1' }]
+        // So it should appear as a producer of the PaymentProcessed event
+        const { nodes, edges } = await getNodesAndEdgesForEvents({
+          id: 'PaymentProcessed',
+          version: '0.0.1',
+        });
+
+        // Verify the entity node is created with correct type
+        const entityNode = nodes.find((node: any) => node.id === 'PaymentAggregate-1.0.0');
+        expect(entityNode).toBeDefined();
+        expect(entityNode?.type).toBe('entities');
+        expect(entityNode?.data.entity).toBeDefined();
+
+        // Verify the edge has the correct "emits" label for entity producers
+        const entityEdge = edges.find((edge: any) => edge.source === 'PaymentAggregate-1.0.0');
+        expect(entityEdge).toBeDefined();
+        expect(entityEdge?.label).toBe('emits');
+        expect(entityEdge?.target).toBe('PaymentProcessed-0.0.1');
+      });
+    });
+
+    describe('when an entity is a consumer of a message', () => {
+      it('renders the entity node with type "entities" and edge label "handled by"', async () => {
+        // OrderAggregate entity has receives: [{ id: 'PaymentProcessed', version: '0.0.1' }]
+        // So it should appear as a consumer of the PaymentProcessed event
+        const { nodes, edges } = await getNodesAndEdgesForEvents({
+          id: 'PaymentProcessed',
+          version: '0.0.1',
+        });
+
+        // Verify the entity consumer node is created with correct type
+        const entityNode = nodes.find((node: any) => node.id === 'OrderAggregate-1.0.0');
+        expect(entityNode).toBeDefined();
+        expect(entityNode?.type).toBe('entities');
+        expect(entityNode?.data.entity).toBeDefined();
+
+        // Verify the edge has the correct "handled by" label for entity consumers
+        const entityEdge = edges.find((edge: any) => edge.target === 'OrderAggregate-1.0.0');
+        expect(entityEdge).toBeDefined();
+        expect(entityEdge?.label).toBe('handled by');
+        expect(entityEdge?.source).toBe('PaymentProcessed-0.0.1');
       });
     });
   });

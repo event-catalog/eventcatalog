@@ -51,13 +51,11 @@ dev-scripts/
 
 examples/e-commerce
 
-.claude/agents/eventcatalog-blog-writer.md
-.claude/settings.local.json
-pr-descriptions/
-.claude/commands/ship.md
+# Local/fork-specific files
+.claude/
 review-comments/
 thoughts
-
+pr-descriptions/
 
 PRD.md
 progress.txt
