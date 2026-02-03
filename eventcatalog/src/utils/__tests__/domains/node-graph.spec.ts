@@ -122,7 +122,7 @@ describe('Domains NodeGraph', () => {
 
       // 9 original nodes + 2 from data product (ShippingAnalytics + ShippingMetricsCalculated)
       expect(nodes.length).toEqual(13);
-      // 8 original edges + 3 from data product (input edge + output edge + additional edge)
+      // 8 original edges + 3 from data product (input edge: OrderPlaced->ShippingAnalytics, output edge: ShippingAnalytics->ShippingMetricsCalculated, producer edge: OrderService->OrderPlaced)
       expect(edges.length).toEqual(13);
     });
 
@@ -176,7 +176,7 @@ describe('Domains NodeGraph', () => {
 
       // 9 original nodes + 2 from data product (ShippingAnalytics + ShippingMetricsCalculated)
       expect(nodes.length).toEqual(13);
-      // 8 original edges + 3 from data product (input edge + output edge + additional edge)
+      // 8 original edges + 3 from data product (input edge: OrderPlaced->ShippingAnalytics, output edge: ShippingAnalytics->ShippingMetricsCalculated, producer edge: OrderService->OrderPlaced)
       expect(edges.length).toEqual(13);
     });
 
