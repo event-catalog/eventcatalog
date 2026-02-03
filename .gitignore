@@ -52,8 +52,11 @@ dev-scripts/
 examples/e-commerce
 
 .claude/agents/eventcatalog-blog-writer.md
+.claude/settings.local.json
 pr-descriptions/
 .claude/commands/ship.md
+review-comments/
+thoughts
 
 
 PRD.md
