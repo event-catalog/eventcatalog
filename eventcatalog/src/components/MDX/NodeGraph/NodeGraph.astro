@@ -150,9 +150,6 @@ const nodesWithLayout = applyLayoutToNodes(nodes as any[], savedLayout);
 ---
 
 <div>
-  {/* Portal target for NodeGraph - the React component portals into this element */}
-  <div class="h-[30em] my-6 mb-12 w-full relative border border-[rgb(var(--ec-page-border))] rounded-md" id={`${id}-portal`}>
-  </div>
   <NodeGraphNew
     id={id}
     nodes={nodesWithLayout}

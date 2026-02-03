@@ -4,6 +4,7 @@ import type { PageTypes } from '@types';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
 import { getDomains } from '@utils/collections/domains';
 import { getServices } from '@utils/collections/services';
+import { getEntities } from '@utils/collections/entities';
 
 /**
  * Documentation page class for all collection types with versioning
@@ -14,12 +15,13 @@ export class Page extends HybridPage {
       return [];
     }
 
-    const itemTypes: PageTypes[] = ['services', 'domains'];
+    const itemTypes: PageTypes[] = ['services', 'domains', 'entities'];
 
     const domains = await getDomains({ enrichServices: true });
     const services = await getServices();
+    const entities = await getEntities();
 
-    const pageData = [services, domains];
+    const pageData = [services, domains, entities];
 
     return pageData.flatMap((items, index) =>
       items.map((item) => ({
