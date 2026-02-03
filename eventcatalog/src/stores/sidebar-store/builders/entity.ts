@@ -15,7 +15,6 @@ import {
 export const buildEntityNode = (entity: Entity, owners: any[], context: ResourceGroupContext): NavNode => {
   const sendsMessages = entity.data.sends || [];
   const receivesMessages = entity.data.receives || [];
-  const hasMessaging = sendsMessages.length > 0 || receivesMessages.length > 0;
 
   const hasAttachments = (entity.data.attachments?.length ?? 0) > 0;
   const entityDiagrams = entity.data.diagrams || [];
@@ -36,8 +35,8 @@ export const buildEntityNode = (entity: Entity, owners: any[], context: Resource
       buildQuickReferenceSection([
         { title: 'Overview', href: buildUrl(`/docs/entities/${entity.data.id}/${entity.data.version}`) },
       ]),
-      // Architecture section (only if has messaging)
-      hasMessaging && {
+      // Architecture section (always available, like services)
+      {
         type: 'group',
         title: 'Architecture',
         icon: 'Workflow',
@@ -67,9 +66,7 @@ export const buildEntityNode = (entity: Entity, owners: any[], context: Resource
           type: 'group',
           title: 'Outbound Messages',
           icon: 'Mail',
-          pages: sendsMessages.map(
-            (message) => `${pluralizeMessageType(message)}:${message.data.id}:${message.data.version}`
-          ),
+          pages: sendsMessages.map((message) => `${pluralizeMessageType(message)}:${message.data.id}:${message.data.version}`),
         },
       // Inbound Messages (receives)
       receivesMessages.length > 0 &&
@@ -77,9 +74,7 @@ export const buildEntityNode = (entity: Entity, owners: any[], context: Resource
           type: 'group',
           title: 'Inbound Messages',
           icon: 'Mail',
-          pages: receivesMessages.map(
-            (message) => `${pluralizeMessageType(message)}:${message.data.id}:${message.data.version}`
-          ),
+          pages: receivesMessages.map((message) => `${pluralizeMessageType(message)}:${message.data.id}:${message.data.version}`),
         },
       // Owners
       renderOwners && buildOwnersSection(owners),
