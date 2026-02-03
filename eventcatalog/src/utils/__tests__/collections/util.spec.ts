@@ -1,5 +1,13 @@
 import type { CollectionTypes } from '@types';
-import { getDeprecatedDetails, isSameVersion, satisfies, sortStringVersions, versionMatches } from '@utils/collections/util';
+import {
+  getDeprecatedDetails,
+  isSameVersion,
+  satisfies,
+  sortStringVersions,
+  versionMatches,
+  createVersionedMap,
+  findAllInMap,
+} from '@utils/collections/util';
 import type { CollectionEntry } from 'astro:content';
 import { describe, it, expect } from 'vitest';
 
@@ -214,6 +222,132 @@ describe('Collections - utils', () => {
         expect(versionMatches('2.0.0', '2.x')).toBe(true);
         expect(versionMatches('2.1.0', '2.x')).toBe(true);
         expect(versionMatches('2.99.99', '2.x')).toBe(true);
+      });
+    });
+  });
+
+  describe('findAllInMap', () => {
+    type TestItem = { data: { id: string; version: string } };
+
+    describe('should_return_all_matching_versions_when_exact_match', () => {
+      it('returns single item when exact version matches', () => {
+        const items: TestItem[] = [
+          { data: { id: 'msg1', version: '1.0.0' } },
+          { data: { id: 'msg1', version: '1.2.3' } },
+          { data: { id: 'msg1', version: '2.0.0' } },
+        ];
+        const map = createVersionedMap(items);
+
+        const result = findAllInMap(map, 'msg1', '1.0.0');
+        expect(result).toHaveLength(1);
+        expect(result[0].data.version).toBe('1.0.0');
+      });
+    });
+
+    describe('should_return_all_matching_versions_when_semver_range', () => {
+      it('returns all versions matching ^1.0.0 pattern', () => {
+        const items: TestItem[] = [
+          { data: { id: 'msg1', version: '1.0.0' } },
+          { data: { id: 'msg1', version: '1.2.3' } },
+          { data: { id: 'msg1', version: '2.0.0' } },
+        ];
+        const map = createVersionedMap(items);
+
+        const result = findAllInMap(map, 'msg1', '^1.0.0');
+        expect(result).toHaveLength(2);
+        expect(result.map((r: TestItem) => r.data.version)).toEqual(expect.arrayContaining(['1.0.0', '1.2.3']));
+      });
+
+      it('returns all versions matching ~1.2.0 pattern', () => {
+        const items: TestItem[] = [
+          { data: { id: 'msg1', version: '1.2.0' } },
+          { data: { id: 'msg1', version: '1.2.5' } },
+          { data: { id: 'msg1', version: '1.3.0' } },
+        ];
+        const map = createVersionedMap(items);
+
+        const result = findAllInMap(map, 'msg1', '~1.2.0');
+        expect(result).toHaveLength(2);
+        expect(result.map((r: TestItem) => r.data.version)).toEqual(expect.arrayContaining(['1.2.0', '1.2.5']));
+      });
+    });
+
+    describe('should_return_all_matching_versions_when_x_pattern', () => {
+      it('returns all versions matching 1.x pattern', () => {
+        const items: TestItem[] = [
+          { data: { id: 'msg1', version: '1.0.0' } },
+          { data: { id: 'msg1', version: '1.2.3' } },
+          { data: { id: 'msg1', version: '2.0.0' } },
+        ];
+        const map = createVersionedMap(items);
+
+        const result = findAllInMap(map, 'msg1', '1.x');
+        expect(result).toHaveLength(2);
+        expect(result.map((r: TestItem) => r.data.version)).toEqual(expect.arrayContaining(['1.0.0', '1.2.3']));
+      });
+
+      it('returns all versions matching 1.2.x pattern', () => {
+        const items: TestItem[] = [
+          { data: { id: 'msg1', version: '1.2.0' } },
+          { data: { id: 'msg1', version: '1.2.5' } },
+          { data: { id: 'msg1', version: '1.3.0' } },
+        ];
+        const map = createVersionedMap(items);
+
+        const result = findAllInMap(map, 'msg1', '1.2.x');
+        expect(result).toHaveLength(2);
+        expect(result.map((r: TestItem) => r.data.version)).toEqual(expect.arrayContaining(['1.2.0', '1.2.5']));
+      });
+    });
+
+    describe('should_return_latest_version_when_version_is_latest', () => {
+      it('returns only the latest version when version is latest', () => {
+        const items: TestItem[] = [
+          { data: { id: 'msg1', version: '1.0.0' } },
+          { data: { id: 'msg1', version: '1.2.3' } },
+          { data: { id: 'msg1', version: '2.0.0' } },
+        ];
+        const map = createVersionedMap(items);
+
+        const result = findAllInMap(map, 'msg1', 'latest');
+        expect(result).toHaveLength(1);
+        expect(result[0].data.version).toBe('2.0.0');
+      });
+    });
+
+    describe('should_return_latest_version_when_version_is_undefined', () => {
+      it('returns only the latest version when version is undefined', () => {
+        const items: TestItem[] = [
+          { data: { id: 'msg1', version: '1.0.0' } },
+          { data: { id: 'msg1', version: '1.2.3' } },
+          { data: { id: 'msg1', version: '2.0.0' } },
+        ];
+        const map = createVersionedMap(items);
+
+        const result = findAllInMap(map, 'msg1');
+        expect(result).toHaveLength(1);
+        expect(result[0].data.version).toBe('2.0.0');
+      });
+    });
+
+    describe('should_return_empty_array_when_no_matches', () => {
+      it('returns empty array when id not found', () => {
+        const items: TestItem[] = [{ data: { id: 'msg1', version: '1.0.0' } }];
+        const map = createVersionedMap(items);
+
+        const result = findAllInMap(map, 'msg2', '1.0.0');
+        expect(result).toEqual([]);
+      });
+
+      it('returns empty array when version does not match', () => {
+        const items: TestItem[] = [
+          { data: { id: 'msg1', version: '1.0.0' } },
+          { data: { id: 'msg1', version: '1.2.3' } },
+        ];
+        const map = createVersionedMap(items);
+
+        const result = findAllInMap(map, 'msg1', '2.0.0');
+        expect(result).toEqual([]);
       });
     });
   });
