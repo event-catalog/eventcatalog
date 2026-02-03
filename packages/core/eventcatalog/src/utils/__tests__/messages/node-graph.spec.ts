@@ -1,17 +1,6 @@
 import { getNodesAndEdgesForConsumedMessage, getNodesAndEdgesForProducedMessage } from '../../node-graphs/message-node-graph';
 import { expect, describe, it, vi, beforeEach } from 'vitest';
-import {
-  mockEvents,
-  mockServices,
-  mockChannels,
-  mockServiceWithCaretRangeSends,
-  mockServiceWithCaretRangeReceives,
-  mockServiceWithTildeRange,
-  mockServiceWithXPattern,
-  mockServiceWithXPatternMinor,
-  mockServiceWithCaretRangeAndChannel,
-  mockServiceWithXPatternAndChannel,
-} from './mocks';
+import { mockEvents, mockServices, mockChannels } from './mocks';
 import type { CollectionMessageTypes } from '@types';
 import type { CollectionEntry } from 'astro:content';
 import utils from '@eventcatalog/sdk';
@@ -1706,6 +1695,18 @@ describe('Message NodeGraph', () => {
   describe('Semver Pattern Matching in Graph Generation', () => {
     describe('should_match_service_with_caret_range_to_compatible_message_versions_when_producing', () => {
       it('getProducersOfMessage returns service for messages matching ^1.0.0 pattern but not 2.0.0', async () => {
+        // Service that uses caret range pattern (^1.0.0) in sends configuration
+        const mockServiceWithCaretRangeSends = {
+          id: 'OrderProcessingService',
+          collection: 'services',
+          data: {
+            id: 'OrderProcessingService',
+            version: '1.0.0',
+            pathToFile: 'services/OrderProcessingService/index.md',
+            sends: [{ id: 'PaymentProcessed', version: '^1.0.0' }],
+          },
+        };
+
         // Get PaymentProcessed events at versions 1.0.0, 1.2.3, 1.9.9, 2.0.0
         const events = mockEvents.filter((e) => e.data.id === 'PaymentProcessed');
         const v100 = events.find((e) => e.data.version === '1.0.0') as unknown as CollectionEntry<CollectionMessageTypes>;
@@ -1738,6 +1739,18 @@ describe('Message NodeGraph', () => {
 
     describe('should_match_service_with_caret_range_when_receiving_messages', () => {
       it('getConsumersOfMessage returns service for messages matching ^1.0.0 pattern but not 2.0.0', async () => {
+        // Service that uses caret range pattern (^1.0.0) in receives configuration
+        const mockServiceWithCaretRangeReceives = {
+          id: 'InventoryService',
+          collection: 'services',
+          data: {
+            id: 'InventoryService',
+            version: '1.0.0',
+            pathToFile: 'services/InventoryService/index.md',
+            receives: [{ id: 'PaymentProcessed', version: '^1.0.0' }],
+          },
+        };
+
         // Get PaymentProcessed events at versions 1.0.0, 1.2.3, 1.9.9, 2.0.0
         const events = mockEvents.filter((e) => e.data.id === 'PaymentProcessed');
         const v100 = events.find((e) => e.data.version === '1.0.0') as unknown as CollectionEntry<CollectionMessageTypes>;
@@ -1770,6 +1783,18 @@ describe('Message NodeGraph', () => {
 
     describe('should_match_service_with_tilde_range_to_compatible_message_versions', () => {
       it('getConsumersOfMessage returns service for messages matching ~1.2.0 pattern', async () => {
+        // Service that uses tilde range pattern (~1.2.0) in receives configuration
+        const mockServiceWithTildeRange = {
+          id: 'NotificationService',
+          collection: 'services',
+          data: {
+            id: 'NotificationService',
+            version: '1.0.0',
+            pathToFile: 'services/NotificationService/index.md',
+            receives: [{ id: 'PaymentProcessed', version: '~1.2.0' }],
+          },
+        };
+
         // Get PaymentProcessed events at versions 1.2.3, 1.2.5, 1.9.9
         const events = mockEvents.filter((e) => e.data.id === 'PaymentProcessed');
         const v123 = events.find((e) => e.data.version === '1.2.3') as unknown as CollectionEntry<CollectionMessageTypes>;
@@ -1797,6 +1822,18 @@ describe('Message NodeGraph', () => {
 
     describe('should_match_service_with_x_pattern_to_compatible_message_versions', () => {
       it('getConsumersOfMessage returns service for messages matching 1.x pattern', async () => {
+        // Service that uses x-pattern (1.x) in receives configuration
+        const mockServiceWithXPattern = {
+          id: 'AnalyticsService',
+          collection: 'services',
+          data: {
+            id: 'AnalyticsService',
+            version: '1.0.0',
+            pathToFile: 'services/AnalyticsService/index.md',
+            receives: [{ id: 'PaymentProcessed', version: '1.x' }],
+          },
+        };
+
         // Get PaymentProcessed events
         const events = mockEvents.filter((e) => e.data.id === 'PaymentProcessed');
         const v100 = events.find((e) => e.data.version === '1.0.0') as unknown as CollectionEntry<CollectionMessageTypes>;
@@ -1827,6 +1864,18 @@ describe('Message NodeGraph', () => {
       });
 
       it('getProducersOfMessage returns service for messages matching 1.2.x pattern with correct boundaries', async () => {
+        // Service that uses x-pattern (1.2.x) in sends configuration
+        const mockServiceWithXPatternMinor = {
+          id: 'AuditService',
+          collection: 'services',
+          data: {
+            id: 'AuditService',
+            version: '1.0.0',
+            pathToFile: 'services/AuditService/index.md',
+            sends: [{ id: 'PaymentProcessed', version: '1.2.x' }],
+          },
+        };
+
         // Get PaymentProcessed events
         const events = mockEvents.filter((e) => e.data.id === 'PaymentProcessed');
         const v123 = events.find((e) => e.data.version === '1.2.3') as unknown as CollectionEntry<CollectionMessageTypes>;
@@ -1854,6 +1903,18 @@ describe('Message NodeGraph', () => {
 
     describe('should_match_service_with_semver_pattern_and_channel_configuration', () => {
       it('getProducersOfMessage returns service with ^1.0.0 and channel when message matches pattern', async () => {
+        // Service with caret range and channel configuration
+        const mockServiceWithCaretRangeAndChannel = {
+          id: 'OrderServiceWithChannel',
+          collection: 'services',
+          data: {
+            id: 'OrderServiceWithChannel',
+            version: '1.0.0',
+            pathToFile: 'services/OrderServiceWithChannel/index.md',
+            sends: [{ id: 'PaymentProcessed', version: '^1.0.0', to: [{ id: 'SNSChannel', version: '1.0.0' }] }],
+          },
+        };
+
         // Get PaymentProcessed events
         const events = mockEvents.filter((e) => e.data.id === 'PaymentProcessed');
         const v123 = events.find((e) => e.data.version === '1.2.3') as unknown as CollectionEntry<CollectionMessageTypes>;
@@ -1874,6 +1935,18 @@ describe('Message NodeGraph', () => {
       });
 
       it('getConsumersOfMessage returns service with 1.x and channel when message matches pattern', async () => {
+        // Service with x-pattern and channel configuration
+        const mockServiceWithXPatternAndChannel = {
+          id: 'ConsumerServiceWithChannel',
+          collection: 'services',
+          data: {
+            id: 'ConsumerServiceWithChannel',
+            version: '1.0.0',
+            pathToFile: 'services/ConsumerServiceWithChannel/index.md',
+            receives: [{ id: 'PaymentProcessed', version: '1.x', from: [{ id: 'SQSChannel', version: '1.0.0' }] }],
+          },
+        };
+
         // Get PaymentProcessed events
         const events = mockEvents.filter((e) => e.data.id === 'PaymentProcessed');
         const v100 = events.find((e) => e.data.version === '1.0.0') as unknown as CollectionEntry<CollectionMessageTypes>;
