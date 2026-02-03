@@ -194,3 +194,50 @@ export const mockDataProducts = [
     },
   },
 ];
+
+export const mockEntities = [
+  {
+    id: 'PaymentAggregate-1.0.0',
+    collection: 'entities',
+    data: {
+      id: 'PaymentAggregate',
+      name: 'Payment Aggregate',
+      version: '1.0.0',
+      aggregateRoot: true,
+      sends: [{ id: 'PaymentProcessed', version: '0.0.1' }],
+      receives: [],
+    },
+  },
+  {
+    id: 'OrderAggregate-1.0.0',
+    collection: 'entities',
+    data: {
+      id: 'OrderAggregate',
+      name: 'Order Aggregate',
+      version: '1.0.0',
+      aggregateRoot: true,
+      sends: [],
+      receives: [{ id: 'PaymentProcessed', version: '0.0.1' }],
+    },
+  },
+  {
+    id: 'EntityWithLatestVersion-1.0.0',
+    collection: 'entities',
+    data: {
+      id: 'EntityWithLatestVersion',
+      name: 'Entity With Latest Version',
+      version: '1.0.0',
+      sends: [{ id: 'PaymentProcessed', version: 'latest' }],
+      receives: [{ id: 'PaymentProcessed', version: 'latest' }],
+    },
+  },
+  {
+    id: 'EntityWithNoMessaging-1.0.0',
+    collection: 'entities',
+    data: {
+      id: 'EntityWithNoMessaging',
+      name: 'Entity With No Messaging',
+      version: '1.0.0',
+    },
+  },
+];

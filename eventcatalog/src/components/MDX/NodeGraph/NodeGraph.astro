@@ -14,6 +14,7 @@ import { getNodesAndEdges as getNodesAndEdgesForDomainEntityMap } from '@utils/n
 import { getDomainsCanvasData } from '@utils/node-graphs/domains-canvas';
 import { getNodesAndEdges as getNodesAndEdgesForFlows } from '@utils/node-graphs/flows-node-graph';
 import { getNodesAndEdges as getNodesAndEdgesForDataProduct } from '@utils/node-graphs/data-products-node-graph';
+import { getNodesAndEdges as getNodesAndEdgesForEntity } from '@utils/node-graphs/entity-node-graph';
 import { buildUrl } from '@utils/url-builder';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { pageDataLoader } from '@utils/page-loaders/page-data-loader';
@@ -67,6 +68,8 @@ const getNodesAndEdgesFunctions = {
   flows: getNodesAndEdgesForFlows,
   containers: getNodesAndEdgesForContainer,
   'data-products': getNodesAndEdgesForDataProduct,
+  entities: getNodesAndEdgesForEntity,
+  entity: getNodesAndEdgesForEntity,
 };
 
 let links: { label: string; url: string }[] = [];
@@ -148,6 +151,11 @@ const nodesWithLayout = applyLayoutToNodes(nodes as any[], savedLayout);
 ---
 
 <div>
+  {/* Portal target for NodeGraph - the React component portals into this element */}
+  <div
+    class="h-[30em] my-6 mb-12 w-full relative border border-[rgb(var(--ec-page-border))] rounded-md"
+    id={`${id}-portal`}
+  />
   <NodeGraphNew
     id={id}
     nodes={nodesWithLayout}

@@ -91,14 +91,22 @@ export const buildMessageNode = (
         type: 'group',
         title: 'Producers',
         icon: 'Server',
-        pages: producers.map((producer) => `service:${(producer as any).data.id}:${(producer as any).data.version}`),
+        pages: producers.map((producer) => {
+          const p = producer as any;
+          const prefix = p.collection === 'entities' ? 'entity' : 'service';
+          return `${prefix}:${p.data.id}:${p.data.version}`;
+        }),
         visible: producers.length > 0,
       },
       renderConsumers && {
         type: 'group',
         title: 'Consumers',
         icon: 'Server',
-        pages: consumers.map((consumer) => `service:${(consumer as any).data.id}:${(consumer as any).data.version}`),
+        pages: consumers.map((consumer) => {
+          const c = consumer as any;
+          const prefix = c.collection === 'entities' ? 'entity' : 'service';
+          return `${prefix}:${c.data.id}:${c.data.version}`;
+        }),
         visible: consumers.length > 0,
       },
       renderOwners && buildOwnersSection(owners),

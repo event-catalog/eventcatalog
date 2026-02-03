@@ -2,7 +2,8 @@ import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import path from 'path';
 import utils from '@eventcatalog/sdk';
-import { createVersionedMap, satisfies } from './util';
+import { createVersionedMap, satisfies, findInMap } from './util';
+import type { CollectionMessageTypes } from '@types';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
@@ -32,11 +33,17 @@ export const getEntities = async ({ getAllVersions = true }: Props = {}): Promis
   }
 
   // 1. Fetch collections in parallel
-  const [allEntities, allServices, allDomains] = await Promise.all([
+  const [allEntities, allServices, allDomains, allEvents, allCommands, allQueries] = await Promise.all([
     getCollection('entities'),
     getCollection('services'),
     getCollection('domains'),
+    getCollection('events'),
+    getCollection('commands'),
+    getCollection('queries'),
   ]);
+
+  const allMessages = [...allEvents, ...allCommands, ...allQueries];
+  const messageMap = createVersionedMap(allMessages);
 
   // 2. Build optimized maps
   const entityMap = createVersionedMap(allEntities);
@@ -76,6 +83,20 @@ export const getEntities = async ({ getAllVersions = true }: Props = {}): Promis
         })
       );
 
+      // Hydrate sends (messages this entity produces)
+      const sends = (entity.data.sends || [])
+        .map((m) => findInMap(messageMap, m.id, m.version))
+        .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
+
+      // Hydrate receives (messages this entity consumes)
+      const receives = (entity.data.receives || [])
+        .map((m) => findInMap(messageMap, m.id, m.version))
+        .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
+
+      // Store raw pointers for graph building (same pattern as services)
+      const sendsRaw = entity.data.sends || [];
+      const receivesRaw = entity.data.receives || [];
+
       const folderName = await getResourceFolderName(
         process.env.PROJECT_DIR ?? '',
         entity.data.id,
@@ -91,6 +112,10 @@ export const getEntities = async ({ getAllVersions = true }: Props = {}): Promis
           latestVersion,
           services: servicesThatReferenceEntity,
           domains: domainsThatReferenceEntity,
+          sends: sends as any,
+          receives: receives as any,
+          sendsRaw,
+          receivesRaw,
         },
         catalog: {
           path: path.join(entity.collection, entity.id.replace('/index.mdx', '')),

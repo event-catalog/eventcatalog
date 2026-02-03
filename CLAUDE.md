@@ -13,8 +13,7 @@ EventCatalog is an open-source documentation tool for Event-Driven Architectures
 | Start dev server | `pnpm run start:catalog` |
 | Start SSR server | `pnpm run start:catalog:server` |
 | Build | `pnpm run verify-build:catalog` |
-| Test (all) | `pnpm run test` |
-| Test (single file) | `pnpm run test path/to/file.test.ts` |
+| Test (single file) | `DISABLE_EVENTCATALOG_CACHE=true pnpm exec vitest run path/to/file.test.ts` |
 | Test (watch mode) | `pnpm run test --watch` |
 | Format code | `pnpm run format` |
 | E2E tests | `pnpm run test:e2e` |
@@ -63,6 +62,9 @@ import path from 'node:path';
 import { getCollection } from 'astro:content';
 import { myUtil } from '@utils/my-util';
 import { MyComponent } from '@components/MyComponent';
+import { isEventCatalogScaleEnabled } from '@utils/feature';
+import { MyLayout } from '@layouts/MyLayout';
+import { myStore } from '@stores/my-store';
 ```
 
 ### TypeScript
@@ -77,7 +79,9 @@ import { MyComponent } from '@components/MyComponent';
 Resources are stored in content collections. Key collections:
 - `events`, `commands`, `queries` (messages)
 - `services`, `domains`, `flows`, `channels`, `entities`
+- `containers`, `data-products` (data layer)
 - `teams`, `users` (non-versioned)
+- `diagrams`, `designs` (visual artifacts)
 
 The whole astro collection schemas are in the `eventcatalog/src/content.config.ts` file.
 
@@ -86,7 +90,7 @@ The whole astro collection schemas are in the `eventcatalog/src/content.config.t
 
 We prefer to use the utility classes we have to get collection for example:
 
-```
+```typescript
 import { getEvents } from '@utils/collections/events';
 import { getCommands } from '@utils/collections/commands';
 import { getQueries } from '@utils/collections/queries';
@@ -97,6 +101,10 @@ import { getChannels } from '@utils/collections/channels';
 import { getEntities } from '@utils/collections/entities';
 import { getTeams } from '@utils/collections/teams';
 import { getUsers } from '@utils/collections/users';
+import { getContainers } from '@utils/collections/containers';
+import { getDataProducts } from '@utils/collections/data-products';
+import { getDiagrams } from '@utils/collections/diagrams';
+import { getMessages } from '@utils/collections/messages'; // Combined events/commands/queries
 ```
 
 Where you cant do that though you may use the `getCollection` and `getEntry` functions from the `astro:content` package.
@@ -118,6 +126,12 @@ When you need to get specific version or latest version you need to use the `get
 ```typescript
 // Use existing utilities for version handling
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+
+// For performance-critical lookups, use versioned maps
+import { createVersionedMap, findInMap } from '@utils/collections/util';
+
+const eventsMap = createVersionedMap(events);
+const event = findInMap(eventsMap, 'OrderCreated', '1.0.0'); // O(1) lookup
 ```
 
 ### Error Handling
@@ -159,14 +173,14 @@ if (!isEventCatalogScaleEnabled()) {
 - Test files use `.test.ts` or `.test.tsx` extension
 - Example catalogs for testing: `src/__tests__/example-catalog/`
 
-Dont run tests in watch mode.
+Dont run tests in watch mode. Use direct vitest call for faster execution (~20% faster than pnpm run test):
 
 ```bash
-# Run specific test file
-pnpm run test eventcatalog/src/utils/__tests__/my-util.test.ts
+# Run specific test file (fastest)
+DISABLE_EVENTCATALOG_CACHE=true pnpm exec vitest run eventcatalog/src/utils/__tests__/my-util.test.ts
 
 # Run tests matching pattern
-pnpm run test -t "getResources"
+DISABLE_EVENTCATALOG_CACHE=true pnpm exec vitest run -t "getResources"
 ```
 
 ## Theming Guidelines

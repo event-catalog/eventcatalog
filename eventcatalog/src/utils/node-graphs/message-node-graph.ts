@@ -84,8 +84,8 @@ const getNodesAndEdges = async ({
     type: message.collection,
   });
 
-  const producers = (message.data.producers as (CollectionEntry<'services'> | CollectionEntry<'data-products'>)[]) || [];
-  const consumers = (message.data.consumers as (CollectionEntry<'services'> | CollectionEntry<'data-products'>)[]) || [];
+  const producers = (message.data.producers as (CollectionEntry<'services'> | CollectionEntry<'data-products'> | CollectionEntry<'entities'>)[]) || [];
+  const consumers = (message.data.consumers as (CollectionEntry<'services'> | CollectionEntry<'data-products'> | CollectionEntry<'entities'>)[]) || [];
 
   // Track nodes that are both sent and received (only for services)
   const serviceProducers = producers.filter((p) => p.collection === 'services') as CollectionEntry<'services'>[];
@@ -94,19 +94,26 @@ const getNodesAndEdges = async ({
 
   for (const producer of producers) {
     const isDataProduct = producer.collection === 'data-products';
+    const isEntity = producer.collection === 'entities';
 
     // Create the producer node with appropriate data structure
+    const getProducerNodeData = () => {
+      if (isDataProduct) return { mode, dataProduct: { ...producer.data } };
+      if (isEntity) return { mode, entity: producer };
+      return { mode, service: { ...producer.data } };
+    };
+
     nodes.push({
       id: generateIdForNode(producer),
       type: isDataProduct ? 'data-products' : producer?.collection,
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: isDataProduct ? { mode, dataProduct: { ...producer.data } } : { mode, service: { ...producer.data } },
+      data: getProducerNodeData(),
       position: { x: 250, y: 0 },
     });
 
-    // Data products don't have channel configuration, so connect directly to the message
-    if (isDataProduct) {
+    // Data products and entities don't have channel configuration, so connect directly to the message
+    if (isDataProduct || isEntity) {
       const rootSourceAndTarget = {
         source: { id: generateIdForNode(producer), collection: producer.collection },
         target: { id: generateIdForNode(message), collection: message.collection },
@@ -116,7 +123,7 @@ const getNodesAndEdges = async ({
         id: generatedIdForEdge(producer, message),
         source: generateIdForNode(producer),
         target: generateIdForNode(message),
-        label: 'produces',
+        label: isEntity ? 'emits' : 'produces',
         data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
         animated: false,
         markerEnd: {
@@ -215,21 +222,27 @@ const getNodesAndEdges = async ({
   // The messages the service sends
   for (const consumer of consumers) {
     const isDataProduct = consumer.collection === 'data-products';
+    const isEntity = consumer.collection === 'entities';
+
+    // Create the consumer node with appropriate data structure
+    const getConsumerNodeData = () => {
+      if (isDataProduct) return { title: consumer?.data.id, mode, dataProduct: { ...consumer.data } };
+      if (isEntity) return { title: consumer?.data.id, mode, entity: consumer };
+      return { title: consumer?.data.id, mode, service: { ...consumer.data } };
+    };
 
     // Render the consumer node with appropriate data structure
     nodes.push({
       id: generateIdForNode(consumer),
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: isDataProduct
-        ? { title: consumer?.data.id, mode, dataProduct: { ...consumer.data } }
-        : { title: consumer?.data.id, mode, service: { ...consumer.data } },
+      data: getConsumerNodeData(),
       position: { x: 0, y: 0 },
       type: isDataProduct ? 'data-products' : consumer?.collection,
     });
 
-    // Data products don't have channel configuration, so connect directly from the message
-    if (isDataProduct) {
+    // Data products and entities don't have channel configuration, so connect directly from the message
+    if (isDataProduct || isEntity) {
       const rootSourceAndTarget = {
         source: { id: generateIdForNode(message), collection: message.collection },
         target: { id: generateIdForNode(consumer), collection: consumer.collection },
@@ -240,7 +253,7 @@ const getNodesAndEdges = async ({
           id: generatedIdForEdge(message, consumer),
           source: generateIdForNode(message),
           target: generateIdForNode(consumer),
-          label: 'consumed by',
+          label: isEntity ? 'handled by' : 'consumed by',
           data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
         })
       );
