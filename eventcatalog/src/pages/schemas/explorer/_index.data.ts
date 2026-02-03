@@ -26,6 +26,25 @@ async function enrichOwners(ownersRaw: any[]) {
   }));
 }
 
+// Helper function to transform hydrated producers/consumers to flat objects with collection
+function transformProducersConsumers(items: any[]) {
+  if (!items || items.length === 0) return [];
+
+  return items.map((item) => {
+    // Handle both hydrated CollectionEntry objects and flat {id, version} objects
+    if (item.data) {
+      // Hydrated CollectionEntry
+      return {
+        id: item.data.id,
+        version: item.data.version,
+        collection: item.collection,
+      };
+    }
+    // Already flat object (fallback)
+    return item;
+  });
+}
+
 async function fetchAllSchemas() {
   // Fetch all messages
   const events = await getEvents({ getAllVersions: true });
@@ -58,8 +77,8 @@ async function fetchAllSchemas() {
               version: message.data.version,
               summary: message.data.summary,
               schemaPath: message.data.schemaPath,
-              producers: message.data.producers || [],
-              consumers: message.data.consumers || [],
+              producers: transformProducersConsumers(message.data.producers || []),
+              consumers: transformProducersConsumers(message.data.consumers || []),
               owners: enrichedOwners,
             },
             schemaContent,
@@ -76,8 +95,8 @@ async function fetchAllSchemas() {
               version: message.data.version,
               summary: message.data.summary,
               schemaPath: message.data.schemaPath,
-              producers: message.data.producers || [],
-              consumers: message.data.consumers || [],
+              producers: transformProducersConsumers(message.data.producers || []),
+              consumers: transformProducersConsumers(message.data.consumers || []),
               owners: enrichedOwners,
             },
             schemaContent: '',

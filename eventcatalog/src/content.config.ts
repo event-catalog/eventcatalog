@@ -640,6 +640,8 @@ const entities = defineCollection({
           })
         )
         .optional(),
+      sends: z.array(sendsPointer).optional(),
+      receives: z.array(receivesPointer).optional(),
       services: z.array(reference('services')).optional(),
       domains: z.array(reference('domains')).optional(),
       detailsPanel: z

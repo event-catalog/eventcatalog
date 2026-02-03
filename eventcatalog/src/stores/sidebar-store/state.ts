@@ -8,6 +8,7 @@ import { getUsers } from '@utils/collections/users';
 import { getTeams } from '@utils/collections/teams';
 import { getDiagrams } from '@utils/collections/diagrams';
 import { getDataProducts } from '@utils/collections/data-products';
+import { getEntities } from '@utils/collections/entities';
 import { buildUrl } from '@utils/url-builder';
 import type { NavigationData, NavNode, ChildRef } from './builders/shared';
 import { buildDomainNode } from './builders/domain';
@@ -45,6 +46,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     channels,
     diagrams,
     dataProducts,
+    entities,
   ] = await Promise.all([
     getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
     getServices({ getAllVersions: false }),
@@ -57,6 +59,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     getChannels({ getAllVersions: false }),
     getDiagrams({ getAllVersions: false }),
     getDataProducts({ getAllVersions: false }),
+    getEntities({ getAllVersions: false }),
   ]);
 
   // Calculate derived lists to avoid extra fetches
@@ -204,6 +207,25 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
       acc[versionedKey] = buildDataProductNode(dataProduct, owners, dataProductContext);
       if (dataProduct.data.latestVersion === dataProduct.data.version) {
         acc[`data-product:${dataProduct.data.id}`] = versionedKey;
+      }
+      return acc;
+    },
+    {} as Record<string, NavNode | string>
+  );
+
+  // Entity nodes for sidebar references (e.g., from message producers/consumers)
+  const entityNodes = entities.reduce(
+    (acc, entity) => {
+      const versionedKey = `entity:${entity.data.id}:${entity.data.version}`;
+      acc[versionedKey] = {
+        type: 'item',
+        title: entity.data.name || entity.data.id,
+        badge: entity.data.aggregateRoot ? 'Aggregate' : 'Entity',
+        summary: entity.data.summary,
+        href: buildUrl(`/docs/entities/${entity.data.id}/${entity.data.version}`),
+      };
+      if (entity.data.latestVersion === entity.data.version) {
+        acc[`entity:${entity.data.id}`] = versionedKey;
       }
       return acc;
     },
@@ -470,6 +492,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     ...channelNodes,
     ...containerNodes,
     ...dataProductNodes,
+    ...entityNodes,
     ...flowNodes,
     ...userNodes,
     ...teamNodes,

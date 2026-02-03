@@ -12,6 +12,8 @@ import {
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
+type ProducerConsumer = CollectionEntry<'services'> | CollectionEntry<'data-products'> | CollectionEntry<'entities'>;
+
 export const buildMessageNode = (
   message: CollectionEntry<'events' | 'commands' | 'queries'>,
   owners: any[],
@@ -91,14 +93,22 @@ export const buildMessageNode = (
         type: 'group',
         title: 'Producers',
         icon: 'Server',
-        pages: producers.map((producer) => `service:${(producer as any).data.id}:${(producer as any).data.version}`),
+        pages: (producers as ProducerConsumer[]).map((producer) => {
+          const prefix =
+            producer.collection === 'entities' ? 'entity' : producer.collection === 'data-products' ? 'data-product' : 'service';
+          return `${prefix}:${producer.data.id}:${producer.data.version}`;
+        }),
         visible: producers.length > 0,
       },
       renderConsumers && {
         type: 'group',
         title: 'Consumers',
         icon: 'Server',
-        pages: consumers.map((consumer) => `service:${(consumer as any).data.id}:${(consumer as any).data.version}`),
+        pages: (consumers as ProducerConsumer[]).map((consumer) => {
+          const prefix =
+            consumer.collection === 'entities' ? 'entity' : consumer.collection === 'data-products' ? 'data-product' : 'service';
+          return `${prefix}:${consumer.data.id}:${consumer.data.version}`;
+        }),
         visible: consumers.length > 0,
       },
       renderOwners && buildOwnersSection(owners),
