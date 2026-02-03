@@ -10,6 +10,7 @@ sends:
   - id: NotificationSent
 receives:
   - id: InventoryAdjusted
+    version: ^1.0.0
     from:
       - id: notifications-queue
   - id: PaymentProcessed
