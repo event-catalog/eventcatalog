@@ -1,13 +1,12 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
+import type { Node, Edge } from '@xyflow/react';
 import {
   createDagreGraph,
   generateIdForNode,
   generatedIdForEdge,
   calculatedNodes,
   createEdge,
-  getEdgeLabelForMessageAsSource,
-  getEdgeLabelForServiceAsTarget,
 } from '@utils/node-graphs/utils/utils';
 
 import { findInMap, createVersionedMap } from '@utils/collections/util';
@@ -47,8 +46,8 @@ const getReceivesLabelByMessageType = (messageType: string) => {
 
 export const getNodesAndEdges = async ({ id, version, mode = 'simple' }: Props) => {
   const flow = createDagreGraph({ ranksep: 300, nodesep: 50 });
-  const nodes: any[] = [];
-  const edges: any[] = [];
+  const nodes: Node[] = [];
+  const edges: Edge[] = [];
 
   // Fetch all collections in parallel
   const [entities, events, commands, queries] = await Promise.all([
@@ -73,11 +72,11 @@ export const getNodesAndEdges = async ({ id, version, mode = 'simple' }: Props) 
   const receivesRaw = entity.data.receives || [];
 
   const sends = sendsRaw
-    .map((m: { id: string; version?: string }) => findInMap(messageMap, m.id, m.version || 'latest'))
+    .map((m: { id: string; version?: string }) => findInMap(messageMap, m.id, m.version))
     .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
 
   const receives = receivesRaw
-    .map((m: { id: string; version?: string }) => findInMap(messageMap, m.id, m.version || 'latest'))
+    .map((m: { id: string; version?: string }) => findInMap(messageMap, m.id, m.version))
     .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
 
   // If no messaging, return empty

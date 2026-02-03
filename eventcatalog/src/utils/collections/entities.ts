@@ -7,7 +7,17 @@ import type { CollectionMessageTypes } from '@types';
 
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
-export type Entity = CollectionEntry<'entities'> & {
+export type Entity = Omit<CollectionEntry<'entities'>, 'data'> & {
+  data: CollectionEntry<'entities'>['data'] & {
+    versions?: string[];
+    latestVersion?: string;
+    services?: CollectionEntry<'services'>[];
+    domains?: CollectionEntry<'domains'>[];
+    sends?: CollectionEntry<CollectionMessageTypes>[];
+    receives?: CollectionEntry<CollectionMessageTypes>[];
+    sendsRaw?: Array<{ id: string; version?: string }>;
+    receivesRaw?: Array<{ id: string; version?: string }>;
+  };
   catalog: {
     path: string;
     filePath: string;
@@ -24,11 +34,9 @@ interface Props {
 let memoryCache: Record<string, Entity[]> = {};
 
 export const getEntities = async ({ getAllVersions = true }: Props = {}): Promise<Entity[]> => {
-  // console.time('✅ New getEntities');
   const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
 
   if (memoryCache[cacheKey] && memoryCache[cacheKey].length > 0) {
-    // console.timeEnd('✅ New getEntities');
     return memoryCache[cacheKey];
   }
 
@@ -112,8 +120,8 @@ export const getEntities = async ({ getAllVersions = true }: Props = {}): Promis
           latestVersion,
           services: servicesThatReferenceEntity,
           domains: domainsThatReferenceEntity,
-          sends: sends as any,
-          receives: receives as any,
+          sends,
+          receives,
           sendsRaw,
           receivesRaw,
         },
@@ -133,7 +141,6 @@ export const getEntities = async ({ getAllVersions = true }: Props = {}): Promis
   });
 
   memoryCache[cacheKey] = processedEntities;
-  // console.timeEnd('✅ New getEntities');
 
   return processedEntities;
 };

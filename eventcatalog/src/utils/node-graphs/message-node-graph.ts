@@ -84,8 +84,18 @@ const getNodesAndEdges = async ({
     type: message.collection,
   });
 
-  const producers = (message.data.producers as (CollectionEntry<'services'> | CollectionEntry<'data-products'> | CollectionEntry<'entities'>)[]) || [];
-  const consumers = (message.data.consumers as (CollectionEntry<'services'> | CollectionEntry<'data-products'> | CollectionEntry<'entities'>)[]) || [];
+  const producers =
+    (message.data.producers as (
+      | CollectionEntry<'services'>
+      | CollectionEntry<'data-products'>
+      | CollectionEntry<'entities'>
+    )[]) || [];
+  const consumers =
+    (message.data.consumers as (
+      | CollectionEntry<'services'>
+      | CollectionEntry<'data-products'>
+      | CollectionEntry<'entities'>
+    )[]) || [];
 
   // Track nodes that are both sent and received (only for services)
   const serviceProducers = producers.filter((p) => p.collection === 'services') as CollectionEntry<'services'>[];

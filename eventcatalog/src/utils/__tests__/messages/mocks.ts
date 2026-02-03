@@ -241,3 +241,49 @@ export const mockEntities = [
     },
   },
 ];
+
+// Mock event with hydrated entity producer for testing entity integration
+export const mockEventWithEntityProducer = {
+  id: 'EntityProducedEvent-1.0.0',
+  collection: 'events',
+  data: {
+    id: 'EntityProducedEvent',
+    name: 'Entity Produced Event',
+    version: '1.0.0',
+    producers: [
+      {
+        id: 'PaymentAggregate-1.0.0',
+        collection: 'entities',
+        data: {
+          id: 'PaymentAggregate',
+          name: 'Payment Aggregate',
+          version: '1.0.0',
+        },
+      },
+    ],
+    consumers: [],
+  },
+};
+
+// Mock event with hydrated entity consumer for testing entity integration
+export const mockEventWithEntityConsumer = {
+  id: 'EntityConsumedEvent-1.0.0',
+  collection: 'events',
+  data: {
+    id: 'EntityConsumedEvent',
+    name: 'Entity Consumed Event',
+    version: '1.0.0',
+    producers: [],
+    consumers: [
+      {
+        id: 'OrderAggregate-1.0.0',
+        collection: 'entities',
+        data: {
+          id: 'OrderAggregate',
+          name: 'Order Aggregate',
+          version: '1.0.0',
+        },
+      },
+    ],
+  },
+};

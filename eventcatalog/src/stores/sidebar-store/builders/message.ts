@@ -12,6 +12,8 @@ import {
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
+type ProducerConsumer = CollectionEntry<'services'> | CollectionEntry<'data-products'> | CollectionEntry<'entities'>;
+
 export const buildMessageNode = (
   message: CollectionEntry<'events' | 'commands' | 'queries'>,
   owners: any[],
@@ -91,10 +93,9 @@ export const buildMessageNode = (
         type: 'group',
         title: 'Producers',
         icon: 'Server',
-        pages: producers.map((producer) => {
-          const p = producer as any;
-          const prefix = p.collection === 'entities' ? 'entity' : 'service';
-          return `${prefix}:${p.data.id}:${p.data.version}`;
+        pages: (producers as ProducerConsumer[]).map((producer) => {
+          const prefix = producer.collection === 'entities' ? 'entity' : 'service';
+          return `${prefix}:${producer.data.id}:${producer.data.version}`;
         }),
         visible: producers.length > 0,
       },
@@ -102,10 +103,9 @@ export const buildMessageNode = (
         type: 'group',
         title: 'Consumers',
         icon: 'Server',
-        pages: consumers.map((consumer) => {
-          const c = consumer as any;
-          const prefix = c.collection === 'entities' ? 'entity' : 'service';
-          return `${prefix}:${c.data.id}:${c.data.version}`;
+        pages: (consumers as ProducerConsumer[]).map((consumer) => {
+          const prefix = consumer.collection === 'entities' ? 'entity' : 'service';
+          return `${prefix}:${consumer.data.id}:${consumer.data.version}`;
         }),
         visible: consumers.length > 0,
       },
