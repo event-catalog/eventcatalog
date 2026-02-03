@@ -14,6 +14,17 @@ import { isVisualiserEnabled } from '@utils/feature';
 
 type ProducerConsumer = CollectionEntry<'services'> | CollectionEntry<'data-products'> | CollectionEntry<'entities'>;
 
+const getCollectionPrefix = (collection: ProducerConsumer['collection']): string => {
+  switch (collection) {
+    case 'entities':
+      return 'entity';
+    case 'data-products':
+      return 'data-product';
+    default:
+      return 'service';
+  }
+};
+
 export const buildMessageNode = (
   message: CollectionEntry<'events' | 'commands' | 'queries'>,
   owners: any[],
@@ -94,9 +105,7 @@ export const buildMessageNode = (
         title: 'Producers',
         icon: 'Server',
         pages: (producers as ProducerConsumer[]).map((producer) => {
-          const prefix =
-            producer.collection === 'entities' ? 'entity' : producer.collection === 'data-products' ? 'data-product' : 'service';
-          return `${prefix}:${producer.data.id}:${producer.data.version}`;
+          return `${getCollectionPrefix(producer.collection)}:${producer.data.id}:${producer.data.version}`;
         }),
         visible: producers.length > 0,
       },
@@ -105,9 +114,7 @@ export const buildMessageNode = (
         title: 'Consumers',
         icon: 'Server',
         pages: (consumers as ProducerConsumer[]).map((consumer) => {
-          const prefix =
-            consumer.collection === 'entities' ? 'entity' : consumer.collection === 'data-products' ? 'data-product' : 'service';
-          return `${prefix}:${consumer.data.id}:${consumer.data.version}`;
+          return `${getCollectionPrefix(consumer.collection)}:${consumer.data.id}:${consumer.data.version}`;
         }),
         visible: consumers.length > 0,
       },

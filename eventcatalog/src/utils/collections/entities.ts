@@ -8,7 +8,7 @@ import type { CollectionMessageTypes } from '@types';
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 
 export type Entity = Omit<CollectionEntry<'entities'>, 'data'> & {
-  data: CollectionEntry<'entities'>['data'] & {
+  data: Omit<CollectionEntry<'entities'>['data'], 'sends' | 'receives'> & {
     versions?: string[];
     latestVersion?: string;
     services?: CollectionEntry<'services'>[];

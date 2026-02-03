@@ -225,6 +225,10 @@ export default function NestedSideBar() {
         // Data Products
         { pattern: /^\/docs\/data-products\/([^/]+)\/([^/]+)/, type: 'data-product' },
         { pattern: /^\/visualiser\/data-products\/([^/]+)\/([^/]+)/, type: 'data-product' },
+        // Entities
+        { pattern: /^\/docs\/entities\/([^/]+)\/([^/]+)/, type: 'entity' },
+        { pattern: /^\/visualiser\/entities\/([^/]+)\/([^/]+)/, type: 'entity' },
+        { pattern: /^\/architecture\/entities\/([^/]+)\/([^/]+)/, type: 'entity' },
       ];
 
       // URL patterns without version (language pages, etc)

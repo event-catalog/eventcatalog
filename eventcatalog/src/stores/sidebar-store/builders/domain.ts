@@ -146,11 +146,7 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
         type: 'group',
         title: 'Entities',
         icon: 'Box',
-        pages: entitiesInDomain.map((entity) => ({
-          type: 'item',
-          title: (entity as any).data?.name || (entity as any).data.id,
-          href: buildUrl(`/docs/entities/${(entity as any).data.id}/${(entity as any).data.version}`),
-        })),
+        pages: entitiesInDomain.map((entity) => `entity:${(entity as any).data.id}:${(entity as any).data.version}`),
       },
 
       ...(hasResourceGroups ? buildResourceGroupSections(resourceGroups, context) : []),

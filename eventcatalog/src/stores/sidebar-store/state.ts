@@ -17,6 +17,7 @@ import { buildMessageNode } from './builders/message';
 import { buildContainerNode } from './builders/container';
 import { buildFlowNode } from './builders/flow';
 import { buildDataProductNode } from './builders/data-product';
+import { buildEntityNode } from './builders/entity';
 import config from '@config';
 import { getDesigns } from '@utils/collections/designs';
 import { getChannels } from '@utils/collections/channels';
@@ -123,6 +124,16 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     })
   );
 
+  // Entities with owners
+  const entitiesWithOwners = await Promise.all(
+    entities.map(async (entity) => {
+      const ownersInEntity = entity.data.owners || [];
+      const owners = await Promise.all(ownersInEntity.map((owner) => getOwner(owner)));
+      const filteredOwners = owners.filter((o) => o !== undefined) as Array<NonNullable<(typeof owners)[0]>>;
+      return { entity, owners: filteredOwners };
+    })
+  );
+
   const flowNodes = flows.reduce(
     (acc, flow) => {
       acc[`flow:${flow.data.id}:${flow.data.version}`] = buildFlowNode(flow);
@@ -213,17 +224,11 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     {} as Record<string, NavNode | string>
   );
 
-  // Entity nodes for sidebar references (e.g., from message producers/consumers)
-  const entityNodes = entities.reduce(
-    (acc, entity) => {
+  // Entity nodes for sidebar (with messaging support)
+  const entityNodes = entitiesWithOwners.reduce(
+    (acc, { entity, owners }) => {
       const versionedKey = `entity:${entity.data.id}:${entity.data.version}`;
-      acc[versionedKey] = {
-        type: 'item',
-        title: entity.data.name || entity.data.id,
-        badge: entity.data.aggregateRoot ? 'Aggregate' : 'Entity',
-        summary: entity.data.summary,
-        href: buildUrl(`/docs/entities/${entity.data.id}/${entity.data.version}`),
-      };
+      acc[versionedKey] = buildEntityNode(entity, owners, context);
       if (entity.data.latestVersion === entity.data.version) {
         acc[`entity:${entity.data.id}`] = versionedKey;
       }
