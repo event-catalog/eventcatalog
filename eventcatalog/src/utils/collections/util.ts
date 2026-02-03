@@ -298,6 +298,53 @@ export const findInMap = <T extends { data: { version?: string } }>(
 };
 
 /**
+ * Finds the latest version item by sorting by semver and returning the newest.
+ */
+const findLatest = <T extends { data: { version?: string } }>(items: T[]): T | undefined => {
+  if (items.length === 0) {
+    return undefined;
+  }
+
+  const sorted = sortVersioned(items, (item) => item.data.version || '0.0.0');
+  return sorted[0];
+};
+
+/**
+ * Lookup helper that returns all matches for a version pattern.
+ * - If version is undefined or 'latest', return only the latest item (sorted by semver).
+ * - If version is exact, return any exact matches.
+ * - If version is a range or x-pattern, return all items that satisfy it.
+ */
+export const findAllInMap = <T extends { data: { version?: string } }>(
+  map: Map<string, T[]>,
+  id: string,
+  version?: string
+): T[] => {
+  const items = map.get(id);
+  if (!items || items.length === 0) {
+    return [];
+  }
+
+  if (!version || version === 'latest') {
+    const latest = findLatest(items);
+    return latest ? [latest] : [];
+  }
+
+  const exactMatches: T[] = [];
+  const patternMatches: T[] = [];
+
+  for (const item of items) {
+    if (item.data.version === version) {
+      exactMatches.push(item);
+    } else if (exactMatches.length === 0 && item.data.version && versionMatches(item.data.version, version)) {
+      patternMatches.push(item);
+    }
+  }
+
+  return exactMatches.length > 0 ? exactMatches : patternMatches;
+};
+
+/**
  * Matches a specific version against a version range pattern.
  * Supports exact versions, semver ranges, x-patterns, and 'latest'.
  *

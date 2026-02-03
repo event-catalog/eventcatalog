@@ -19,7 +19,7 @@ import {
   getItemsFromCollectionByIdAndSemverOrLatest,
   getLatestVersionInCollectionById,
   createVersionedMap,
-  findInMap,
+  findAllInMap,
 } from '@utils/collections/util';
 import type { CollectionMessageTypes } from '@types';
 import { getCommands } from '@utils/collections/commands';
@@ -165,10 +165,10 @@ const getNodesAndEdges = async ({
 
     // If the producer has channels defined, we need to render them
     for (const producerChannel of producerChannelConfiguration) {
-      const channel = findInMap(channelMap, producerChannel.id, producerChannel.version) as CollectionEntry<'channels'>;
+      const channels = findAllInMap(channelMap, producerChannel.id, producerChannel.version);
 
       // If we cannot find the channel in EventCatalog, we just connect the producer to the event directly
-      if (!channel) {
+      if (channels.length === 0) {
         edges.push(
           createEdge({
             id: generatedIdForEdge(producer, message),
@@ -181,37 +181,39 @@ const getNodesAndEdges = async ({
         continue;
       }
 
-      // We render the channel node
-      nodes.push(
-        createNode({
-          id: generateIdForNode(channel),
-          type: channel.collection,
-          data: { mode, channel: { ...channel.data } },
-          position: { x: 0, y: 0 },
-        })
-      );
+      for (const channel of channels) {
+        // We render the channel node
+        nodes.push(
+          createNode({
+            id: generateIdForNode(channel),
+            type: channel.collection,
+            data: { mode, channel: { ...channel.data } },
+            position: { x: 0, y: 0 },
+          })
+        );
 
-      // Connect the producer to the message
-      edges.push(
-        createEdge({
-          id: generatedIdForEdge(producer, message),
-          source: generateIdForNode(producer),
-          target: generateIdForNode(message),
-          data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
-          label: getEdgeLabelForServiceAsTarget(message),
-        })
-      );
+        // Connect the producer to the message
+        edges.push(
+          createEdge({
+            id: generatedIdForEdge(producer, message),
+            source: generateIdForNode(producer),
+            target: generateIdForNode(message),
+            data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
+            label: getEdgeLabelForServiceAsTarget(message),
+          })
+        );
 
-      // Connect the message to the channel
-      edges.push(
-        createEdge({
-          id: generatedIdForEdge(message, channel),
-          source: generateIdForNode(message),
-          target: generateIdForNode(channel),
-          data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
-          label: 'routes to',
-        })
-      );
+        // Connect the message to the channel
+        edges.push(
+          createEdge({
+            id: generatedIdForEdge(message, channel),
+            source: generateIdForNode(message),
+            target: generateIdForNode(channel),
+            data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
+            label: 'routes to',
+          })
+        );
+      }
     }
   }
 
@@ -281,10 +283,10 @@ const getNodesAndEdges = async ({
 
     // If the consumer has channels defined, we try and render them
     for (const consumerChannel of consumerChannelConfiguration) {
-      const channel = findInMap(channelMap, consumerChannel.id, consumerChannel.version) as CollectionEntry<'channels'>;
+      const consumerChannelValues = findAllInMap(channelMap, consumerChannel.id, consumerChannel.version);
 
       // If we cannot find the channel in EventCatalog, we connect the message directly to the consumer
-      if (!channel) {
+      if (consumerChannelValues.length === 0) {
         edges.push(
           createEdge({
             id: generatedIdForEdge(message, consumer),
@@ -313,96 +315,95 @@ const getNodesAndEdges = async ({
         )?.from ?? [];
 
       for (const producerChannel of producerChannels) {
-        const producerChannelValue = findInMap(
-          channelMap,
-          producerChannel.id,
-          producerChannel.version
-        ) as CollectionEntry<'channels'>;
+        const producerChannelValues = findAllInMap(channelMap, producerChannel.id, producerChannel.version);
 
-        for (const consumerChannel of consumerChannels) {
-          const consumerChannelValue = findInMap(
-            channelMap,
-            consumerChannel.id,
-            consumerChannel.version
-          ) as CollectionEntry<'channels'>;
-          const channelChainToRender = getChannelChain(producerChannelValue, consumerChannelValue, channels);
+        for (const producerChannelValue of producerChannelValues) {
+          for (const consumerChannelValue of consumerChannels) {
+            const resolvedConsumerChannels = findAllInMap(channelMap, consumerChannelValue.id, consumerChannelValue.version);
 
-          // If there is a chain between them we need to render them al
-          if (channelChainToRender.length > 0) {
-            const { nodes: channelNodes, edges: channelEdges } = getNodesAndEdgesForChannelChain({
-              source: message,
-              target: consumer,
-              channelChain: channelChainToRender,
-              mode,
-            });
+            for (const resolvedConsumerChannel of resolvedConsumerChannels) {
+              const channelChainToRender = getChannelChain(producerChannelValue, resolvedConsumerChannel, channels);
 
-            nodes.push(...channelNodes);
-            edges.push(...channelEdges);
-          } else {
-            // There is no chain found, we need to render the channel between message and the consumers
-            nodes.push(
-              createNode({
-                id: generateIdForNode(channel),
-                type: channel.collection,
-                data: { mode, channel: { ...channel.data } },
-                position: { x: 0, y: 0 },
-              })
-            );
-            edges.push(
-              createEdge({
-                id: generatedIdForEdge(message, channel),
-                source: generateIdForNode(message),
-                target: generateIdForNode(channel),
-                label: 'routes to',
-                data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
-              })
-            );
-            edges.push(
-              createEdge({
-                id: generatedIdForEdge(channel, consumer),
-                source: generateIdForNode(channel),
-                target: generateIdForNode(consumer),
-                label: getEdgeLabelForMessageAsSource(message),
-                data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
-              })
-            );
+              // If there is a chain between them we need to render them al
+              if (channelChainToRender.length > 0) {
+                const { nodes: channelNodes, edges: channelEdges } = getNodesAndEdgesForChannelChain({
+                  source: message,
+                  target: consumer,
+                  channelChain: channelChainToRender,
+                  mode,
+                });
+
+                nodes.push(...channelNodes);
+                edges.push(...channelEdges);
+              } else {
+                // There is no chain found, we need to render the channel between message and the consumers
+                nodes.push(
+                  createNode({
+                    id: generateIdForNode(resolvedConsumerChannel),
+                    type: resolvedConsumerChannel.collection,
+                    data: { mode, channel: { ...resolvedConsumerChannel.data } },
+                    position: { x: 0, y: 0 },
+                  })
+                );
+                edges.push(
+                  createEdge({
+                    id: generatedIdForEdge(message, resolvedConsumerChannel),
+                    source: generateIdForNode(message),
+                    target: generateIdForNode(resolvedConsumerChannel),
+                    label: 'routes to',
+                    data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
+                  })
+                );
+                edges.push(
+                  createEdge({
+                    id: generatedIdForEdge(resolvedConsumerChannel, consumer),
+                    source: generateIdForNode(resolvedConsumerChannel),
+                    target: generateIdForNode(consumer),
+                    label: getEdgeLabelForMessageAsSource(message),
+                    data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
+                  })
+                );
+              }
+            }
           }
         }
       }
 
       // If producer does not have a any channels defined, we need to connect the message to the consumer directly
-      if (producerChannels.length === 0 && channel) {
-        // Create the channel node
-        nodes.push(
-          createNode({
-            id: generateIdForNode(channel),
-            type: channel.collection,
-            data: { mode, channel: { ...channel.data } },
-            position: { x: 0, y: 0 },
-          })
-        );
+      if (producerChannels.length === 0) {
+        for (const channel of consumerChannelValues) {
+          // Create the channel node
+          nodes.push(
+            createNode({
+              id: generateIdForNode(channel),
+              type: channel.collection,
+              data: { mode, channel: { ...channel.data } },
+              position: { x: 0, y: 0 },
+            })
+          );
 
-        // Connect the message to the channel
-        edges.push(
-          createEdge({
-            id: generatedIdForEdge(message, channel),
-            source: generateIdForNode(message),
-            target: generateIdForNode(channel),
-            label: 'routes to',
-            data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
-          })
-        );
+          // Connect the message to the channel
+          edges.push(
+            createEdge({
+              id: generatedIdForEdge(message, channel),
+              source: generateIdForNode(message),
+              target: generateIdForNode(channel),
+              label: 'routes to',
+              data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
+            })
+          );
 
-        // Connect the channel to the consumer
-        edges.push(
-          createEdge({
-            id: generatedIdForEdge(channel, consumer),
-            source: generateIdForNode(channel),
-            target: generateIdForNode(consumer),
-            label: getEdgeLabelForMessageAsSource(message),
-            data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
-          })
-        );
+          // Connect the channel to the consumer
+          edges.push(
+            createEdge({
+              id: generatedIdForEdge(channel, consumer),
+              source: generateIdForNode(channel),
+              target: generateIdForNode(consumer),
+              label: getEdgeLabelForMessageAsSource(message),
+              data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
+            })
+          );
+        }
       }
     }
   }
@@ -529,7 +530,7 @@ export const getNodesAndEdgesForConsumedMessage = ({
   );
   const channelsFromMessageToTarget = targetMessageConfiguration?.from ?? [];
   const hydratedChannelsFromMessageToTarget = channelsFromMessageToTarget
-    .map((channel) => findInMap(map, channel.id, channel.version))
+    .flatMap((channel) => findAllInMap(map, channel.id, channel.version))
     .filter((channel): channel is CollectionEntry<'channels'> => channel !== undefined);
 
   // Now we get the producers of the message and create nodes and edges for them
@@ -554,10 +555,10 @@ export const getNodesAndEdgesForConsumedMessage = ({
   // If the target defined channels they consume the message from, we need to create the channel nodes and edges
   if (targetHasDefinedChannels) {
     for (const targetChannel of targetChannels) {
-      const channel = findInMap(map, targetChannel.id, targetChannel.version) as CollectionEntry<'channels'>;
+      const channelsForTarget = findAllInMap(map, targetChannel.id, targetChannel.version);
 
-      if (!channel) {
-        // No channe found, we just connect the message to the target directly
+      if (channelsForTarget.length === 0) {
+        // No channel found, we just connect the message to the target directly
         edges.push(
           createEdge({
             id: generatedIdForEdge(message, target),
@@ -570,40 +571,42 @@ export const getNodesAndEdgesForConsumedMessage = ({
         continue;
       }
 
-      const channelId = generateIdForNode(channel);
+      for (const channel of channelsForTarget) {
+        const channelId = generateIdForNode(channel);
 
-      // Create the channel node
-      nodes.push(
-        createNode({
-          id: channelId,
-          type: channel.collection,
-          data: { mode, channel: { ...channel.data, ...channel, id: channel.data.id } },
-          position: { x: 0, y: 0 },
-        })
-      );
+        // Create the channel node
+        nodes.push(
+          createNode({
+            id: channelId,
+            type: channel.collection,
+            data: { mode, channel: { ...channel.data, ...channel, id: channel.data.id } },
+            position: { x: 0, y: 0 },
+          })
+        );
 
-      // Connect the channel to the target
-      edges.push(
-        createEdge({
-          id: generatedIdForEdge(channel, target),
-          source: channelId,
-          target: generateIdForNode(target),
-          label: getEdgeLabelForMessageAsSource(message),
-          data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
-        })
-      );
-
-      // If we dont have any producers, we will connect the message to the channel directly
-      if (producers.length === 0) {
+        // Connect the channel to the target
         edges.push(
           createEdge({
-            id: generatedIdForEdge(message, channel),
-            source: messageId,
-            target: channelId,
-            label: 'routes to',
+            id: generatedIdForEdge(channel, target),
+            source: channelId,
+            target: generateIdForNode(target),
+            label: getEdgeLabelForMessageAsSource(message),
             data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
           })
         );
+
+        // If we dont have any producers, we will connect the message to the channel directly
+        if (producers.length === 0) {
+          edges.push(
+            createEdge({
+              id: generatedIdForEdge(message, channel),
+              source: messageId,
+              target: channelId,
+              label: 'routes to',
+              data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
+            })
+          );
+        }
       }
     }
   }
@@ -682,10 +685,10 @@ export const getNodesAndEdgesForConsumedMessage = ({
 
     // Process each producer channel configuration
     for (const producerChannel of producerChannelConfiguration) {
-      const channel = findInMap(map, producerChannel.id, producerChannel.version) as CollectionEntry<'channels'>;
+      const producerChannelValues = findAllInMap(map, producerChannel.id, producerChannel.version);
 
       // If we cannot find the channel in EventCatalog, we just connect the message to the target directly
-      if (!channel) {
+      if (producerChannelValues.length === 0) {
         edges.push(
           createEdge({
             id: generatedIdForEdge(message, target),
@@ -725,44 +728,46 @@ export const getNodesAndEdgesForConsumedMessage = ({
       }
 
       // The producer does have channels defined, we need to try and work out the path the message takes to the target
-      for (const targetChannel of hydratedChannelsFromMessageToTarget) {
-        const channelChainToRender = getChannelChain(channel, targetChannel, channels);
-        if (channelChainToRender.length > 0) {
-          const { nodes: channelNodes, edges: channelEdges } = getNodesAndEdgesForChannelChain({
-            source: message,
-            target: target,
-            channelChain: channelChainToRender,
-            mode,
-          });
+      for (const channel of producerChannelValues) {
+        for (const targetChannel of hydratedChannelsFromMessageToTarget) {
+          const channelChainToRender = getChannelChain(channel, targetChannel, channels);
+          if (channelChainToRender.length > 0) {
+            const { nodes: channelNodes, edges: channelEdges } = getNodesAndEdgesForChannelChain({
+              source: message,
+              target: target,
+              channelChain: channelChainToRender,
+              mode,
+            });
 
-          nodes.push(...channelNodes);
-          edges.push(...channelEdges);
+            nodes.push(...channelNodes);
+            edges.push(...channelEdges);
 
-          break;
-        } else {
-          // No chain found create the channel, and connect the message to the target channel directly
-          nodes.push(
-            createNode({
-              id: generateIdForNode(targetChannel),
-              type: targetChannel.collection,
-              data: { mode, channel: { ...targetChannel.data, ...targetChannel } },
-              position: { x: 0, y: 0 },
-            })
-          );
-          edges.push(
-            createEdge({
-              id: generatedIdForEdge(message, targetChannel),
-              source: messageId,
-              target: generateIdForNode(targetChannel),
-              label: 'routes to',
-              data: {
-                rootSourceAndTarget: {
-                  source: { id: generateIdForNode(message), collection: message.collection },
-                  target: { id: generateIdForNode(targetChannel), collection: targetChannel.collection },
+            break;
+          } else {
+            // No chain found create the channel, and connect the message to the target channel directly
+            nodes.push(
+              createNode({
+                id: generateIdForNode(targetChannel),
+                type: targetChannel.collection,
+                data: { mode, channel: { ...targetChannel.data, ...targetChannel } },
+                position: { x: 0, y: 0 },
+              })
+            );
+            edges.push(
+              createEdge({
+                id: generatedIdForEdge(message, targetChannel),
+                source: messageId,
+                target: generateIdForNode(targetChannel),
+                label: 'routes to',
+                data: {
+                  rootSourceAndTarget: {
+                    source: { id: generateIdForNode(message), collection: message.collection },
+                    target: { id: generateIdForNode(targetChannel), collection: targetChannel.collection },
+                  },
                 },
-              },
-            })
-          );
+              })
+            );
+          }
         }
       }
     }
@@ -852,15 +857,15 @@ export const getNodesAndEdgesForProducedMessage = ({
   const channelsFromSourceToMessage = sourceMessageConfiguration?.to ?? [];
 
   const hydratedChannelsFromSourceToMessage = channelsFromSourceToMessage
-    .map((channel) => findInMap(map, channel.id, channel.version))
+    .flatMap((channel) => findAllInMap(map, channel.id, channel.version))
     .filter((channel): channel is CollectionEntry<'channels'> => channel !== undefined);
 
   // If the source defined channels they send the message to, we need to create the channel nodes and edges
   if (sourceChannels && sourceChannels.length > 0) {
     for (const sourceChannel of sourceChannels) {
-      const channel = findInMap(map, sourceChannel.id, sourceChannel.version) as CollectionEntry<'channels'>;
+      const channelsForSource = findAllInMap(map, sourceChannel.id, sourceChannel.version);
 
-      if (!channel) {
+      if (channelsForSource.length === 0) {
         // No channel found, we just connect the source directly to the message
         edges.push(
           createEdge({
@@ -874,28 +879,30 @@ export const getNodesAndEdgesForProducedMessage = ({
         continue;
       }
 
-      const channelId = generateIdForNode(channel);
+      for (const channel of channelsForSource) {
+        const channelId = generateIdForNode(channel);
 
-      // Create the channel node
-      nodes.push(
-        createNode({
-          id: channelId,
-          type: channel.collection,
-          data: { mode, channel: { ...channel.data, ...channel, mode, id: channel.data.id } },
-          position: { x: 0, y: 0 },
-        })
-      );
+        // Create the channel node
+        nodes.push(
+          createNode({
+            id: channelId,
+            type: channel.collection,
+            data: { mode, channel: { ...channel.data, ...channel, mode, id: channel.data.id } },
+            position: { x: 0, y: 0 },
+          })
+        );
 
-      // Connect the produced message to the channel
-      edges.push(
-        createEdge({
-          id: generatedIdForEdge(message, channel),
-          source: messageId,
-          target: channelId,
-          label: 'routes to',
-          data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
-        })
-      );
+        // Connect the produced message to the channel
+        edges.push(
+          createEdge({
+            id: generatedIdForEdge(message, channel),
+            source: messageId,
+            target: channelId,
+            label: 'routes to',
+            data: { customColor: getColorFromString(message.data.id), rootSourceAndTarget },
+          })
+        );
+      }
     }
   }
 
@@ -947,13 +954,12 @@ export const getNodesAndEdgesForProducedMessage = ({
 
     // Process each consumer channel configuration
     for (const consumerChannel of consumerChannelConfiguration) {
-      const channel = findInMap(map, consumerChannel.id, consumerChannel.version) as CollectionEntry<'channels'>;
-
       const edgeProps = { customColor: getColorFromString(message.data.id), rootSourceAndTarget };
 
       // If the channel cannot be found in EventCatalog, we just connect the message to the consumer directly
       // as a fallback, rather than just an empty node floating around
-      if (!channel) {
+      const channelsForConsumer = findAllInMap(map, consumerChannel.id, consumerChannel.version);
+      if (channelsForConsumer.length === 0) {
         edges.push(
           createEdge({
             id: generatedIdForEdge(message, consumer),
@@ -966,75 +972,26 @@ export const getNodesAndEdgesForProducedMessage = ({
         continue;
       }
 
-      // We always add the consumer channel to be rendered
-      nodes.push(
-        createNode({
-          id: generateIdForNode(channel),
-          type: channel.collection,
-          data: { mode, channel: { ...channel.data, ...channel } },
-          position: { x: 0, y: 0 },
-        })
-      );
-
-      // If the producer does not have any channels defined, we connect the message to the consumers channel directly
-      if (!producerHasChannels) {
-        edges.push(
-          createEdge({
-            id: generatedIdForEdge(message, channel),
-            source: messageId,
-            target: generateIdForNode(channel),
-            label: 'routes to',
-            data: edgeProps,
+      for (const channel of channelsForConsumer) {
+        // We always add the consumer channel to be rendered
+        nodes.push(
+          createNode({
+            id: generateIdForNode(channel),
+            type: channel.collection,
+            data: { mode, channel: { ...channel.data, ...channel } },
+            position: { x: 0, y: 0 },
           })
         );
-        edges.push(
-          createEdge({
-            id: generatedIdForEdge(channel, consumer),
-            source: generateIdForNode(channel),
-            target: generateIdForNode(consumer),
-            label: getEdgeLabelForMessageAsSource(message),
-            data: {
-              ...edgeProps,
-              rootSourceAndTarget: {
-                source: { id: generateIdForNode(message), collection: message.collection },
-                target: { id: generateIdForNode(consumer), collection: consumer.collection },
-              },
-            },
-          })
-        );
-        continue;
-      }
 
-      // The producer has channels defined, we need to try and work out the path the message takes to the consumer
-      for (const sourceChannel of hydratedChannelsFromSourceToMessage) {
-        const channelChainToRender = getChannelChain(sourceChannel, channel, channels);
-
-        if (channelChainToRender.length > 0) {
-          const { nodes: channelNodes, edges: channelEdges } = getNodesAndEdgesForChannelChain({
-            source: message,
-            target: consumer,
-            channelChain: channelChainToRender,
-            mode,
-          });
-
-          nodes.push(...channelNodes);
-          edges.push(...channelEdges);
-        } else {
-          // No chain found, we need to connect to the message to the channel
-          // And the channel to the consumer
+        // If the producer does not have any channels defined, we connect the message to the consumers channel directly
+        if (!producerHasChannels) {
           edges.push(
             createEdge({
               id: generatedIdForEdge(message, channel),
               source: messageId,
               target: generateIdForNode(channel),
               label: 'routes to',
-              data: {
-                ...edgeProps,
-                rootSourceAndTarget: {
-                  source: { id: generateIdForNode(message), collection: message.collection },
-                  target: { id: generateIdForNode(consumer), collection: consumer.collection },
-                },
-              },
+              data: edgeProps,
             })
           );
           edges.push(
@@ -1042,7 +999,7 @@ export const getNodesAndEdgesForProducedMessage = ({
               id: generatedIdForEdge(channel, consumer),
               source: generateIdForNode(channel),
               target: generateIdForNode(consumer),
-              label: `${getEdgeLabelForMessageAsSource(message, true)} \n ${message.data.name}`,
+              label: getEdgeLabelForMessageAsSource(message),
               data: {
                 ...edgeProps,
                 rootSourceAndTarget: {
@@ -1052,6 +1009,57 @@ export const getNodesAndEdgesForProducedMessage = ({
               },
             })
           );
+          continue;
+        }
+
+        // The producer has channels defined, we need to try and work out the path the message takes to the consumer
+        for (const sourceChannel of hydratedChannelsFromSourceToMessage) {
+          const channelChainToRender = getChannelChain(sourceChannel, channel, channels);
+
+          if (channelChainToRender.length > 0) {
+            const { nodes: channelNodes, edges: channelEdges } = getNodesAndEdgesForChannelChain({
+              source: message,
+              target: consumer,
+              channelChain: channelChainToRender,
+              mode,
+            });
+
+            nodes.push(...channelNodes);
+            edges.push(...channelEdges);
+          } else {
+            // No chain found, we need to connect to the message to the channel
+            // And the channel to the consumer
+            edges.push(
+              createEdge({
+                id: generatedIdForEdge(message, channel),
+                source: messageId,
+                target: generateIdForNode(channel),
+                label: 'routes to',
+                data: {
+                  ...edgeProps,
+                  rootSourceAndTarget: {
+                    source: { id: generateIdForNode(message), collection: message.collection },
+                    target: { id: generateIdForNode(consumer), collection: consumer.collection },
+                  },
+                },
+              })
+            );
+            edges.push(
+              createEdge({
+                id: generatedIdForEdge(channel, consumer),
+                source: generateIdForNode(channel),
+                target: generateIdForNode(consumer),
+                label: `${getEdgeLabelForMessageAsSource(message, true)} \n ${message.data.name}`,
+                data: {
+                  ...edgeProps,
+                  rootSourceAndTarget: {
+                    source: { id: generateIdForNode(message), collection: message.collection },
+                    target: { id: generateIdForNode(consumer), collection: consumer.collection },
+                  },
+                },
+              })
+            );
+          }
         }
       }
     }

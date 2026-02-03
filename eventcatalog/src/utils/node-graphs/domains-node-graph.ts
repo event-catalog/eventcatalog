@@ -10,7 +10,7 @@ import {
 import { getNodesAndEdges as getServicesNodeAndEdges } from './services-node-graph';
 import { getNodesAndEdges as getDataProductsNodeAndEdges } from './data-products-node-graph';
 import merge from 'lodash.merge';
-import { createVersionedMap, findInMap } from '@utils/collections/util';
+import { createVersionedMap, findInMap, findAllInMap } from '@utils/collections/util';
 import type { Node } from '@xyflow/react';
 import { getProducersOfMessage } from '@utils/collections/services';
 
@@ -143,7 +143,7 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
 
         // Optimized message resolution
         const receives = rawReceives
-          .map((receive) => findInMap(messageMap, receive.id, receive.version))
+          .flatMap((receive) => findAllInMap(messageMap, receive.id, receive.version))
           .filter((msg): msg is any => !!msg); // Filter undefined
 
         // Note: 'sends' was defined but not used in the original loop logic for edges?

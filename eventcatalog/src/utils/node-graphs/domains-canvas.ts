@@ -1,7 +1,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
 import { generateIdForNode, createDagreGraph, calculatedNodes, createEdge } from '@utils/node-graphs/utils/utils';
-import { findInMap, createVersionedMap } from '@utils/collections/util';
+import { findInMap, findAllInMap, createVersionedMap } from '@utils/collections/util';
 import type { Node, Edge } from '@xyflow/react';
 import { getDomains } from '@utils/collections/domains';
 import type { CollectionMessageTypes } from '@types';
@@ -96,7 +96,7 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
       const sendsRaw = service.data.sends ?? [];
 
       const sendsHydrated = sendsRaw
-        .map((message: any) => findInMap(messageMap, message.id, message.version))
+        .flatMap((message: any) => findAllInMap(messageMap, message.id, message.version))
         .filter((e: any) => e !== undefined);
 
       sendsHydrated.forEach((sentMessage: any) => {
@@ -120,7 +120,7 @@ export const getDomainsCanvasData = async (): Promise<DomainCanvasData> => {
       // Track messages this service receives
       const receivesRaw = service.data.receives ?? [];
       const receivesHydrated = receivesRaw
-        .map((message: any) => findInMap(messageMap, message.id, message.version))
+        .flatMap((message: any) => findAllInMap(messageMap, message.id, message.version))
         .filter((e: any) => e !== undefined);
 
       receivesHydrated.forEach((receivedMessage: any) => {
