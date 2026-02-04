@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 3.12.1
+
+### Patch Changes
+
+- f2255d9: feat(core): added support for clickable folder navigation in custom documentation when index files exist
+- ff678ea: Fix MCP server to support AI SDK tool() helper inputSchema property
+
 ## 3.12.0
 
 ### Minor Changes
