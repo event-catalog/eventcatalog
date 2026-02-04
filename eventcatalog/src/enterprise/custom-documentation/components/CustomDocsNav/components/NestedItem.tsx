@@ -24,6 +24,11 @@ const NestedItem: React.FC<NestedItemProps> = ({
   const itemId = `${parentId}-${itemIndex}`;
 
   if (hasNestedItems && item.items) {
+    // Check if folder has an index file (slug) making it clickable
+    const folderHasLink = !!item.slug;
+    const folderPath = folderHasLink ? buildUrl(`/docs/custom/${item.slug}`) : undefined;
+    const isFolderActive = folderPath && (currentPath === folderPath || currentPath.endsWith(`/${item.slug}`));
+
     return (
       <div className="py-1">
         <div className="flex items-center">
@@ -49,26 +54,53 @@ const NestedItem: React.FC<NestedItemProps> = ({
               </svg>
             </div>
           </button>
-          <button
-            className="flex items-center px-2 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] rounded-md hover:bg-[rgb(var(--ec-content-hover))] min-w-0 flex-1"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleGroupCollapse(`nested-${itemId}`);
-            }}
-          >
-            <span className="truncate">{item.label}</span>
-            {item.badge && item?.badge?.text && (
-              <span
-                className={
-                  item.badge.color
-                    ? `text-${item.badge.color}-600 dark:text-${item.badge.color}-400 ml-2 text-[10px] font-medium bg-${item.badge.color}-50 dark:bg-${item.badge.color}-500/20 px-2 py-0.5 rounded uppercase`
-                    : `text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase`
-                }
-              >
-                {item.badge.text}
-              </span>
-            )}
-          </button>
+          {folderHasLink ? (
+            // Folder has an index file - render as clickable link
+            <a
+              href={folderPath}
+              className={`flex items-center px-2 py-1 text-xs font-medium rounded-md min-w-0 flex-1 ${
+                isFolderActive
+                  ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-page-text))] font-semibold'
+                  : 'text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-hover))]'
+              }`}
+              data-active={isFolderActive}
+            >
+              <span className="truncate">{item.label}</span>
+              {item.badge && item?.badge?.text && (
+                <span
+                  className={
+                    item.badge.color
+                      ? `text-${item.badge.color}-600 dark:text-${item.badge.color}-400 ml-2 text-[10px] font-medium bg-${item.badge.color}-50 dark:bg-${item.badge.color}-500/20 px-2 py-0.5 rounded uppercase`
+                      : `text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase`
+                  }
+                >
+                  {item.badge.text}
+                </span>
+              )}
+            </a>
+          ) : (
+            // Folder without index file - render as toggle button
+            <button
+              className="flex items-center px-2 py-1 text-xs font-medium text-[rgb(var(--ec-page-text-muted))] rounded-md hover:bg-[rgb(var(--ec-content-hover))] min-w-0 flex-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleGroupCollapse(`nested-${itemId}`);
+              }}
+            >
+              <span className="truncate">{item.label}</span>
+              {item.badge && item?.badge?.text && (
+                <span
+                  className={
+                    item.badge.color
+                      ? `text-${item.badge.color}-600 dark:text-${item.badge.color}-400 ml-2 text-[10px] font-medium bg-${item.badge.color}-50 dark:bg-${item.badge.color}-500/20 px-2 py-0.5 rounded uppercase`
+                      : `text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase`
+                  }
+                >
+                  {item.badge.text}
+                </span>
+              )}
+            </button>
+          )}
         </div>
 
         <div
