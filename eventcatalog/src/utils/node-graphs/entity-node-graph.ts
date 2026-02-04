@@ -12,10 +12,13 @@ import {
 import { findInMap, createVersionedMap } from '@utils/collections/util';
 import type { CollectionMessageTypes } from '@types';
 
+type DagreGraph = any;
+
 interface Props {
   id: string;
   version: string;
   mode?: 'simple' | 'full';
+  defaultFlow?: DagreGraph;
 }
 
 const getSendsLabelByMessageType = (messageType: string) => {
@@ -44,8 +47,8 @@ const getReceivesLabelByMessageType = (messageType: string) => {
   }
 };
 
-export const getNodesAndEdges = async ({ id, version, mode = 'simple' }: Props) => {
-  const flow = createDagreGraph({ ranksep: 300, nodesep: 50 });
+export const getNodesAndEdges = async ({ id, version, mode = 'simple', defaultFlow }: Props) => {
+  const flow = defaultFlow || createDagreGraph({ ranksep: 300, nodesep: 50 });
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
@@ -91,11 +94,6 @@ export const getNodesAndEdges = async ({ id, version, mode = 'simple' }: Props) 
     position: { x: 0, y: 0 },
     type: 'entities',
   });
-
-  // If no messaging, return just the entity node
-  if (sends.length === 0 && receives.length === 0) {
-    return { nodes, edges: [] };
-  }
 
   // Add received messages (left side - incoming)
   receives.forEach((message) => {

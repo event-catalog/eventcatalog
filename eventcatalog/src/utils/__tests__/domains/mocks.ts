@@ -252,6 +252,21 @@ export const mockDataProducts = [
   },
 ];
 
+export const mockEntities = [
+  {
+    id: 'entities/Shipment/index.mdx',
+    slug: 'entities/Shipment',
+    collection: 'entities',
+    data: {
+      id: 'Shipment',
+      version: '0.0.1',
+      name: 'Shipment',
+      sends: [{ id: 'ShippingMetricsCalculated', version: '1.0.0' }],
+      receives: [{ id: 'OrderPlaced', version: '0.0.1' }],
+    },
+  },
+];
+
 export const mockUbiquitousLanguages = [
   {
     id: 'domains/Shipping/ubiquitous-language.mdx',

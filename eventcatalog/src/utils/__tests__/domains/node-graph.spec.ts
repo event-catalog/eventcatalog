@@ -1,6 +1,6 @@
 import type { ContentCollectionKey } from 'astro:content';
 import { expect, describe, it, vi } from 'vitest';
-import { mockDomains, mockServices, mockEvents, mockCommands, mockDataProducts } from './mocks';
+import { mockDomains, mockServices, mockEvents, mockCommands, mockDataProducts, mockEntities } from './mocks';
 import { getNodesAndEdges } from '@utils/node-graphs/domains-node-graph';
 
 vi.mock('astro:content', async (importOriginal) => {
@@ -19,6 +19,8 @@ vi.mock('astro:content', async (importOriginal) => {
           return Promise.resolve(mockCommands);
         case 'data-products':
           return Promise.resolve(mockDataProducts);
+        case 'entities':
+          return Promise.resolve(mockEntities);
         case 'queries':
         case 'containers':
         case 'channels':
@@ -120,10 +122,10 @@ describe('Domains NodeGraph', () => {
 
       expect(nodes).toEqual(expect.arrayContaining([expect.objectContaining(expectedEventNode)]));
 
-      // 9 original nodes + 2 from data product (ShippingAnalytics + ShippingMetricsCalculated)
-      expect(nodes.length).toEqual(13);
-      // 8 original edges + 2 from data product (input edge + output edge)
-      expect(edges.length).toEqual(12);
+      // 9 original nodes + 2 from data product (ShippingAnalytics + ShippingMetricsCalculated) + 1 entity (Shipment)
+      expect(nodes.length).toEqual(14);
+      // 8 original edges + 2 from data product (input edge + output edge) + 2 from entity (receives + sends)
+      expect(edges.length).toEqual(14);
     });
 
     it('should return nodes and edges for data products in a domain', async () => {
@@ -173,6 +175,66 @@ describe('Domains NodeGraph', () => {
 
       expect(dataProductInputEdge).toBeDefined();
       expect(dataProductOutputEdge).toBeDefined();
+    });
+
+    it('should return nodes and edges for entities in a domain', async () => {
+      // @ts-ignore
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Shipping', version: '0.0.1' });
+
+      // Expect the Shipment entity node to be rendered
+      const expectedEntityNode = {
+        id: 'Shipment-0.0.1',
+        type: 'entities',
+        data: expect.objectContaining({
+          mode: 'simple',
+          entity: expect.objectContaining({
+            data: expect.objectContaining({
+              id: 'Shipment',
+              version: '0.0.1',
+            }),
+          }),
+        }),
+        position: { x: expect.any(Number), y: expect.any(Number) },
+      };
+
+      expect(nodes).toEqual(expect.arrayContaining([expect.objectContaining(expectedEntityNode)]));
+
+      // Verify edges between entity and its messages
+      // Entity receives OrderPlaced (incoming edge)
+      const entityReceivesEdge = edges.find((e: any) => e.source === 'OrderPlaced-0.0.1' && e.target === 'Shipment-0.0.1');
+      // Entity sends ShippingMetricsCalculated (outgoing edge)
+      const entitySendsEdge = edges.find(
+        (e: any) => e.source === 'Shipment-0.0.1' && e.target === 'ShippingMetricsCalculated-1.0.0'
+      );
+
+      expect(entityReceivesEdge).toBeDefined();
+      expect(entityReceivesEdge.label).toBe('subscribes to');
+      expect(entitySendsEdge).toBeDefined();
+      expect(entitySendsEdge.label).toBe('emits');
+    });
+
+    it('should merge shared messages between entity and other resources', async () => {
+      // @ts-ignore
+      const { nodes, edges } = await getNodesAndEdges({ id: 'Shipping', version: '0.0.1' });
+
+      // OrderPlaced is received by both LocationService and Shipment entity
+      // There should be only one OrderPlaced node
+      const orderPlacedNodes = nodes.filter((n: any) => n.id === 'OrderPlaced-0.0.1');
+      expect(orderPlacedNodes.length).toBe(1);
+
+      // But there should be edges from OrderPlaced to both LocationService and Shipment
+      const edgesToLocationService = edges.find(
+        (e: any) => e.source === 'OrderPlaced-0.0.1' && e.target === 'LocationService-0.0.1'
+      );
+      const edgesToShipment = edges.find((e: any) => e.source === 'OrderPlaced-0.0.1' && e.target === 'Shipment-0.0.1');
+
+      expect(edgesToLocationService).toBeDefined();
+      expect(edgesToShipment).toBeDefined();
+
+      // ShippingMetricsCalculated is output by both DataProduct and Shipment entity
+      // There should be only one ShippingMetricsCalculated node
+      const shippingMetricsNodes = nodes.filter((n: any) => n.id === 'ShippingMetricsCalculated-1.0.0');
+      expect(shippingMetricsNodes.length).toBe(1);
     });
 
     // it.only('should return nodes and edges for a given domain with services using semver range or latest version (version undefind)', async () => {
