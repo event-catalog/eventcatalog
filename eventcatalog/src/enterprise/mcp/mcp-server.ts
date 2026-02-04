@@ -283,7 +283,8 @@ function createMcpServer() {
     if (!toolConfig || typeof toolConfig !== 'object') continue;
 
     // Extract tool properties (Vercel AI SDK format)
-    const { description, parameters, execute } = toolConfig;
+    // The AI SDK tool() helper uses "inputSchema" for Zod schemas
+    const { description, parameters, inputSchema, execute } = toolConfig;
 
     if (!description || !execute) {
       console.warn(`[MCP] Skipping invalid extended tool: ${toolName}`);
@@ -294,7 +295,7 @@ function createMcpServer() {
       toolName,
       {
         description: description || `Custom tool: ${toolName}`,
-        inputSchema: parameters || z.object({}),
+        inputSchema: inputSchema || parameters || z.object({}),
       },
       async (params: any) => {
         try {
