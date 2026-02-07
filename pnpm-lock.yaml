@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  prismjs: '>=1.30.0'
+
 importers:
 
   .:
@@ -6121,10 +6124,6 @@ packages:
   pretty-ms@8.0.0:
     resolution: {integrity: sha512-ASJqOugUF1bbzI35STMBUpZqdfYKlJugy6JBziGi2EE+AL5JPJGSzvpeVXojxrr0ViUYoToUjb5kjSEGf7Y83Q==}
     engines: {node: '>=14.16'}
-
-  prismjs@1.27.0:
-    resolution: {integrity: sha512-t13BGPUlFDR7wRB5kQDG4jjl7XeuH6jbJGt11JHPL96qwsEHNX2+68tFXqc1/k+/jALsbSWJKUOT/hcYAZ5LkA==}
-    engines: {node: '>=6'}
 
   prismjs@1.30.0:
     resolution: {integrity: sha512-DEvV2ZF2r2/63V+tK8hQvrR2ZGn10srHbXviTlcv7Kpzw8jWiNTqbVgjO3IY8RxrrOUF8VPMQQFysYYYv0YZxw==}
@@ -14882,8 +14881,6 @@ snapshots:
     dependencies:
       parse-ms: 3.0.0
 
-  prismjs@1.27.0: {}
-
   prismjs@1.30.0: {}
 
   prompts@2.4.2:
@@ -15117,7 +15114,7 @@ snapshots:
     dependencies:
       hastscript: 6.0.0
       parse-entities: 2.0.0
-      prismjs: 1.27.0
+      prismjs: 1.30.0
 
   regex-recursion@6.0.2:
     dependencies:
