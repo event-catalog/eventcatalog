@@ -1,0 +1,45 @@
+---
+title: Typed owner references
+description: Use type|id to disambiguate owners when IDs collide across users and teams
+tags:
+  - owners
+  - references
+  - metadata
+---
+
+# Typed owner references
+
+Owner references can point to either a user or a team. When both share the same ID, a plain string is ambiguous:
+
+```yaml
+owners:
+  - john-doe
+```
+
+## Use `type|id` for clarity
+
+Use the `type|id` format to specify the owner type:
+
+```yaml
+owners:
+  - user|john-doe
+  - team|platform-team
+```
+
+## Backward compatibility
+
+Plain IDs still work and are checked against both users and teams. Use typed references when:
+
+- a user and team share the same ID
+- you want explicit, readable intent in metadata
+
+## Versioned references
+
+If you need a version, keep the object format and put `type|id` in the `id` field:
+
+```yaml
+owners:
+  - id: user|john-doe
+    version: 1.0.0
+```
+
