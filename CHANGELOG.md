@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.12.2
+
+### Patch Changes
+
+- 404ca30: Downgrade react-syntax-highlighter to v15.6.6 for CJS/ESM compatibility and override prismjs to >=1.30.0 to fix CVE-2024-53382
+
 ## 3.12.1
 
 ### Patch Changes
