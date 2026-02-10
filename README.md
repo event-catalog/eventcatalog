@@ -1,100 +1,105 @@
 <div align="center">
 
-<!-- <h1>📖 EventCatalog</h1> -->
-<!-- <h3>The open source tool to help you discover and document your event-driven architectures</h3> -->
-
-
-
-
-<!-- [![Star on GitHub][github-star-badge]][github-star] -->
-<!-- <h3>Bring discoverability to your -->
-<!-- event-driven architectures</h3> -->
-<!-- <p>Discover, Explore and Document your Event Driven Architectures.</p> -->
-
-<!-- [![MIT License][license-badge]][license] -->
-<!-- [![PRs Welcome][prs-badge]][prs] -->
-
-
-<!-- [![Watch on GitHub][github-watch-badge]][github-watch] -->
-<!-- [![Star on GitHub][github-star-badge]][github-star] -->
-
-<!-- <hr /> -->
-
-
-
 <img width="745" alt="EventCatalog" src="./images/example.png" />
 
+<h1>📖 EventCatalog</h1>
+
 <p align="center">
+  <strong>The architecture catalog for distributed systems</strong>
   <br/>
-  <a href="https://eventcatalog.dev">EventCatalog</a> is a documentation tool for software architectures &mdash;
-  <br/>
-  bring discoverability to complex systems.
+  Document events, services, domains & flows with AI-powered discovery
   <br/><br/>
 </p>
-
-<div align="center">
 
 [![main](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml/badge.svg)](https://github.com/event-catalog/eventcatalog/actions/workflows/verify-build.yml)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/event-catalog/eventcatalog/blob/main/LICENSE)
 [![npm version](https://badge.fury.io/js/@eventcatalog%2Fcore.svg)](https://badge.fury.io/js/@eventcatalog/core)
-
-</div>
-
-
-<!-- 
-
-[![MIT License][license-badge]][license]
-[![PRs Welcome][prs-badge]][prs]
-<img src="https://img.shields.io/github/actions/workflow/status/event-catalog/eventcatalog/verify-build.yml"/>
-[![](https://dcbadge.limes.pink/api/server/https://discord.gg/3rjaZMmrAm?style=flat)](https://discord.gg/3rjaZMmrAm) [<img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" height="20px" />](https://www.linkedin.com/in/david-boyne/) [![blog](https://img.shields.io/badge/blog-EDA--Visuals-brightgreen)](https://eda-visuals.boyney.io/?utm_source=event-catalog-gihub) 
- -->
-
-
-
-
-
-<!-- 
-
-<h4>Features: Documentation for Event Driven Architectures, Integration with any broker, Generator from your OpenAPI and AsyncAPI documents, Docs and Code, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4> -->
-
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-69-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-<!-- [Read the Docs](https://www.eventcatalog.dev/docs/development/getting-started/introduction) | [View Demo](https://demo.eventcatalog.dev) -->
+[Documentation](https://www.eventcatalog.dev/docs) | [Demo](https://demo.eventcatalog.dev) | [Discord](https://discord.gg/3rjaZMmrAm)
 
 </div>
 
-## Install
+---
 
-The **recommended** way to install the latest version of EventCatalog is by running the command below:
-```
+## 🚀 Quick Start
+
+```bash
 npx @eventcatalog/create-eventcatalog@latest my-catalog
 ```
 
-Looking for help? Start with our [Getting Started](https://www.eventcatalog.dev/docs/development/getting-started/installation) guide
+Looking for help? Start with our [Getting Started](https://www.eventcatalog.dev/docs/development/getting-started/installation) guide.
 
-## Documentation
-Visit our [official documentation](https://www.eventcatalog.dev/docs/development/getting-started).
+---
 
-## Support
-Having trouble? Get help in the official [EventCatalog Discord](https://discord.gg/3rjaZMmrAm).
+## ✨ Features
 
-## Demos
+- **🤖 AI-Native Discovery** - MCP Server integration, semantic search, auto-documentation
+- **📊 Visual Documentation** - Beautiful node graphs, flows, and architecture diagrams
+- **🔄 Multi-Platform** - Kafka, EventBridge, RabbitMQ, SNS/SQS, and more
+- **🔐 Enterprise Ready** - OAuth2, RBAC, schema governance, breaking change detection
+- **🎨 Customizable** - Themes, custom MDX components, configurable layouts
+- **📦 15+ Generators** - OpenAPI, AsyncAPI, AWS, Confluent, Kafka, and more
 
-Here are some examples of EventCatalog in action:
+---
+
+## 📦 Monorepo Structure
+
+EventCatalog is organized as a Turborepo monorepo:
+
+- **[@eventcatalog/core](./eventcatalog)** - Main catalog application (Astro + React)
+- **[@eventcatalog/sdk](./packages/sdk)** - Node.js SDK for programmatic catalog management
+- **[@eventcatalog/create-eventcatalog](./packages/create-eventcatalog)** - CLI scaffolding tool
+
+---
+
+## 🎯 Why EventCatalog?
+
+**vs. Generic Documentation Tools**
+- ✅ Purpose-built for distributed systems and event-driven architectures
+- ✅ AI-powered discovery and semantic search
+- ✅ Schema governance with breaking change detection
+
+**vs. Vendor-Specific Tools**
+- ✅ Platform-agnostic (works with any broker/platform)
+- ✅ Vendor-neutral (avoid lock-in)
+- ✅ Open source with commercial support
+
+**vs. Service Catalogs**
+- ✅ 5 minutes to value vs 6+ months implementation
+- ✅ Event-driven architecture depth, not generic breadth
+- ✅ Runtime discovery from traffic analysis
+
+---
+
+## 🌍 Demos
+
+See EventCatalog in action:
 
 - [Finance System](https://eventcatalog-examples-finance.vercel.app/)
 - [Healthcare System](https://eventcatalog-examples-healthcare.vercel.app/)
 - [E-Commerce System](https://demo.eventcatalog.dev/)
 - [SaaS System](https://eventcatalog-examples-saas.vercel.app/)
 
+---
 
-## Contributing
+## 📚 Documentation
 
-If you have any questions, features or issues please raise any issue or pull requests you like. We will try my best to get back to you.
+Visit our [official documentation](https://www.eventcatalog.dev/docs/development/getting-started) to learn more.
 
-You can find the [contributing guidelines here](https://eventcatalog.dev/docs/contributing/overview).
+---
+
+## 💬 Support
+
+Having trouble? Get help in the official [EventCatalog Discord](https://discord.gg/3rjaZMmrAm).
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! See our [contributing guidelines](https://eventcatalog.dev/docs/contributing/overview) to get started.
+
+---
 
 ## Contributors ✨
 
@@ -204,6 +209,8 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
 
-# License
+---
+
+## 📄 License
 
 MIT.
