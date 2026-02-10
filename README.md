@@ -58,7 +58,7 @@
 <h4>Features: Documentation for Event Driven Architectures, Integration with any broker, Generator from your OpenAPI and AsyncAPI documents, Docs and Code, Markdown driven, Document Domains/Services/Messages/Schemas and more, Content versioning, Assign Owners, Schemas, OpenAPI, MDX Components and more...</h4> -->
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-68-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-69-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 <!-- [Read the Docs](https://www.eventcatalog.dev/docs/development/getting-started/introduction) | [View Demo](https://demo.eventcatalog.dev) -->
@@ -192,6 +192,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/mumundum"><img src="https://avatars.githubusercontent.com/u/196062898?v=4?s=100" width="100px;" alt="mumundum"/><br /><sub><b>mumundum</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=mumundum" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.argonus.tech"><img src="https://avatars.githubusercontent.com/u/9743549?v=4?s=100" width="100px;" alt="Piotr Rybarczyk"/><br /><sub><b>Piotr Rybarczyk</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/issues?q=author%3AArgonus" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ZakaryaCH"><img src="https://avatars.githubusercontent.com/u/45012800?v=4?s=100" width="100px;" alt="ZakaryaCH"/><br /><sub><b>ZakaryaCH</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/issues?q=author%3AZakaryaCH" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jboeijenga"><img src="https://avatars.githubusercontent.com/u/1516438?v=4?s=100" width="100px;" alt="Jasper Boeijenga"/><br /><sub><b>Jasper Boeijenga</b></sub></a><br /><a href="https://github.com/event-catalog/eventcatalog/commits?author=jboeijenga" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
