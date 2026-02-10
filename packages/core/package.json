@@ -6,7 +6,7 @@
     "url": "https://github.com/event-catalog/eventcatalog.git"
   },
   "type": "module",
-  "version": "3.12.6-beta.2",
+  "version": "3.12.6",
   "publishConfig": {
     "access": "public"
   },
@@ -58,7 +58,7 @@
     "@asyncapi/react-component": "2.4.3",
     "@auth/core": "^0.37.4",
     "@eventcatalog/license": "^0.0.7",
-    "@eventcatalog/linter": "^0.0.2",
+    "@eventcatalog/linter": "^1.0.1",
     "@eventcatalog/sdk": "workspace:*",
     "@eventcatalog/visualizer": "^0.0.6",
     "@fontsource/inter": "^5.2.5",
