@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { parseArguments } from './parser';
-import createSDK from '../index';
+import createSDK from '@eventcatalog/sdk';
 
 /**
  * Execute a SDK function with the given arguments

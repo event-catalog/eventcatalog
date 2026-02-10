@@ -1,4 +1,4 @@
-import createSDK from '../index';
+import createSDK from '@eventcatalog/sdk';
 
 interface CategorizedFunctions {
   [category: string]: string[];

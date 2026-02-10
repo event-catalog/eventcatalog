@@ -10,9 +10,6 @@
     "format": "prettier --write .",
     "format:diff": "prettier --list-different ."
   },
-  "bin": {
-    "eventcatalog": "./dist/cli/index.js"
-  },
   "publishConfig": {
     "access": "public"
   },
@@ -41,11 +38,6 @@
       ],
       "require": "./dist/index.js",
       "import": "./dist/index.mjs"
-    },
-    "./cli-docs": {
-      "types": "./dist/cli-docs.d.ts",
-      "require": "./dist/cli-docs.js",
-      "import": "./dist/cli-docs.mjs"
     }
   },
   "main": "./dist/index.js",
@@ -53,7 +45,6 @@
   "types": "./dist/index.d.ts",
   "dependencies": {
     "@changesets/cli": "^2.29.8",
-    "commander": "^12.0.0",
     "fs-extra": "^11.3.2",
     "glob": "^11.1.0",
     "gray-matter": "^4.0.3",

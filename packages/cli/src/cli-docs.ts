@@ -44,11 +44,11 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'options', type: 'json', required: false, description: 'Options object, e.g. {"attachSchema": true}' },
     ],
     examples: [
-      { description: 'Get the latest version of an event', command: 'npx @eventcatalog/sdk getEvent "OrderCreated"' },
-      { description: 'Get a specific version', command: 'npx @eventcatalog/sdk getEvent "OrderCreated" "1.0.0"' },
+      { description: 'Get the latest version of an event', command: 'npx @eventcatalog/cli getEvent "OrderCreated"' },
+      { description: 'Get a specific version', command: 'npx @eventcatalog/cli getEvent "OrderCreated" "1.0.0"' },
       {
         description: 'Get event with schema attached',
-        command: 'npx @eventcatalog/sdk getEvent "OrderCreated" "1.0.0" \'{"attachSchema":true}\'',
+        command: 'npx @eventcatalog/cli getEvent "OrderCreated" "1.0.0" \'{"attachSchema":true}\'',
       },
     ],
   },
@@ -65,11 +65,11 @@ export const cliFunctions: CLIFunctionDoc[] = [
       },
     ],
     examples: [
-      { description: 'Get all events', command: 'npx @eventcatalog/sdk getEvents' },
-      { description: 'Get only latest versions', command: 'npx @eventcatalog/sdk getEvents \'{"latestOnly":true}\'' },
+      { description: 'Get all events', command: 'npx @eventcatalog/cli getEvents' },
+      { description: 'Get only latest versions', command: 'npx @eventcatalog/cli getEvents \'{"latestOnly":true}\'' },
       {
         description: 'Get all events with schemas',
-        command: 'npx @eventcatalog/sdk getEvents \'{"latestOnly":true,"attachSchema":true}\'',
+        command: 'npx @eventcatalog/cli getEvents \'{"latestOnly":true,"attachSchema":true}\'',
       },
     ],
   },
@@ -90,12 +90,12 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write a new event',
         command:
-          'npx @eventcatalog/sdk writeEvent \'{"id":"OrderCreated","name":"Order Created","version":"1.0.0","markdown":"# Order Created"}\'',
+          'npx @eventcatalog/cli writeEvent \'{"id":"OrderCreated","name":"Order Created","version":"1.0.0","markdown":"# Order Created"}\'',
       },
       {
         description: 'Write and version existing content',
         command:
-          'npx @eventcatalog/sdk writeEvent \'{"id":"OrderCreated","name":"Order Created","version":"2.0.0","markdown":"# Order Created v2"}\' \'{"versionExistingContent":true}\'',
+          'npx @eventcatalog/cli writeEvent \'{"id":"OrderCreated","name":"Order Created","version":"2.0.0","markdown":"# Order Created v2"}\' \'{"versionExistingContent":true}\'',
       },
     ],
   },
@@ -112,7 +112,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write event to a service',
         command:
-          'npx @eventcatalog/sdk writeEventToService \'{"id":"InventoryUpdated","name":"Inventory Updated","version":"1.0.0","markdown":"# Inventory Updated"}\' \'{"id":"InventoryService"}\'',
+          'npx @eventcatalog/cli writeEventToService \'{"id":"InventoryUpdated","name":"Inventory Updated","version":"1.0.0","markdown":"# Inventory Updated"}\' \'{"id":"InventoryService"}\'',
       },
     ],
   },
@@ -121,7 +121,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Removes an event by its path',
     category: 'Events',
     args: [{ name: 'path', type: 'string', required: true, description: 'Path to the event, e.g. /InventoryAdjusted' }],
-    examples: [{ description: 'Remove an event by path', command: 'npx @eventcatalog/sdk rmEvent "/InventoryAdjusted"' }],
+    examples: [{ description: 'Remove an event by path', command: 'npx @eventcatalog/cli rmEvent "/InventoryAdjusted"' }],
   },
   {
     name: 'rmEventById',
@@ -132,8 +132,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: false, description: 'Specific version to remove' },
     ],
     examples: [
-      { description: 'Remove latest version', command: 'npx @eventcatalog/sdk rmEventById "OrderCreated"' },
-      { description: 'Remove specific version', command: 'npx @eventcatalog/sdk rmEventById "OrderCreated" "1.0.0"' },
+      { description: 'Remove latest version', command: 'npx @eventcatalog/cli rmEventById "OrderCreated"' },
+      { description: 'Remove specific version', command: 'npx @eventcatalog/cli rmEventById "OrderCreated" "1.0.0"' },
     ],
   },
   {
@@ -141,7 +141,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Moves the current event to a versioned directory',
     category: 'Events',
     args: [{ name: 'id', type: 'string', required: true, description: 'The ID of the event to version' }],
-    examples: [{ description: 'Version an event', command: 'npx @eventcatalog/sdk versionEvent "OrderCreated"' }],
+    examples: [{ description: 'Version an event', command: 'npx @eventcatalog/cli versionEvent "OrderCreated"' }],
   },
   {
     name: 'addFileToEvent',
@@ -155,7 +155,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add a file to an event',
-        command: 'npx @eventcatalog/sdk addFileToEvent "OrderCreated" \'{"content":"# Schema","fileName":"schema.md"}\'',
+        command: 'npx @eventcatalog/cli addFileToEvent "OrderCreated" \'{"content":"# Schema","fileName":"schema.md"}\'',
       },
     ],
   },
@@ -172,7 +172,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Add a JSON schema to an event',
         command:
-          'npx @eventcatalog/sdk addSchemaToEvent "OrderCreated" \'{"schema":"{\\"type\\":\\"object\\"}","fileName":"schema.json"}\'',
+          'npx @eventcatalog/cli addSchemaToEvent "OrderCreated" \'{"schema":"{\\"type\\":\\"object\\"}","fileName":"schema.json"}\'',
       },
     ],
   },
@@ -185,8 +185,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: true, description: 'Version to check (supports semver)' },
     ],
     examples: [
-      { description: 'Check if version exists', command: 'npx @eventcatalog/sdk eventHasVersion "OrderCreated" "1.0.0"' },
-      { description: 'Check with semver range', command: 'npx @eventcatalog/sdk eventHasVersion "OrderCreated" "1.0.x"' },
+      { description: 'Check if version exists', command: 'npx @eventcatalog/cli eventHasVersion "OrderCreated" "1.0.0"' },
+      { description: 'Check with semver range', command: 'npx @eventcatalog/cli eventHasVersion "OrderCreated" "1.0.x"' },
     ],
   },
 
@@ -202,8 +202,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: false, description: 'Specific version to retrieve (supports semver)' },
     ],
     examples: [
-      { description: 'Get the latest command', command: 'npx @eventcatalog/sdk getCommand "CreateOrder"' },
-      { description: 'Get a specific version', command: 'npx @eventcatalog/sdk getCommand "CreateOrder" "1.0.0"' },
+      { description: 'Get the latest command', command: 'npx @eventcatalog/cli getCommand "CreateOrder"' },
+      { description: 'Get a specific version', command: 'npx @eventcatalog/cli getCommand "CreateOrder" "1.0.0"' },
     ],
   },
   {
@@ -212,8 +212,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
     category: 'Commands',
     args: [{ name: 'options', type: 'json', required: false, description: 'Options: {latestOnly?, attachSchema?}' }],
     examples: [
-      { description: 'Get all commands', command: 'npx @eventcatalog/sdk getCommands' },
-      { description: 'Get only latest versions', command: 'npx @eventcatalog/sdk getCommands \'{"latestOnly":true}\'' },
+      { description: 'Get all commands', command: 'npx @eventcatalog/cli getCommands' },
+      { description: 'Get only latest versions', command: 'npx @eventcatalog/cli getCommands \'{"latestOnly":true}\'' },
     ],
   },
   {
@@ -228,7 +228,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write a new command',
         command:
-          'npx @eventcatalog/sdk writeCommand \'{"id":"CreateOrder","name":"Create Order","version":"1.0.0","markdown":"# Create Order"}\'',
+          'npx @eventcatalog/cli writeCommand \'{"id":"CreateOrder","name":"Create Order","version":"1.0.0","markdown":"# Create Order"}\'',
       },
     ],
   },
@@ -245,7 +245,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write command to a service',
         command:
-          'npx @eventcatalog/sdk writeCommandToService \'{"id":"UpdateInventory","name":"Update Inventory","version":"1.0.0","markdown":"# Update Inventory"}\' \'{"id":"InventoryService"}\'',
+          'npx @eventcatalog/cli writeCommandToService \'{"id":"UpdateInventory","name":"Update Inventory","version":"1.0.0","markdown":"# Update Inventory"}\' \'{"id":"InventoryService"}\'',
       },
     ],
   },
@@ -254,7 +254,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Removes a command by its path',
     category: 'Commands',
     args: [{ name: 'path', type: 'string', required: true, description: 'Path to the command' }],
-    examples: [{ description: 'Remove a command', command: 'npx @eventcatalog/sdk rmCommand "/CreateOrder"' }],
+    examples: [{ description: 'Remove a command', command: 'npx @eventcatalog/cli rmCommand "/CreateOrder"' }],
   },
   {
     name: 'rmCommandById',
@@ -264,14 +264,14 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'id', type: 'string', required: true, description: 'The ID of the command to remove' },
       { name: 'version', type: 'string', required: false, description: 'Specific version to remove' },
     ],
-    examples: [{ description: 'Remove a command', command: 'npx @eventcatalog/sdk rmCommandById "CreateOrder"' }],
+    examples: [{ description: 'Remove a command', command: 'npx @eventcatalog/cli rmCommandById "CreateOrder"' }],
   },
   {
     name: 'versionCommand',
     description: 'Moves the current command to a versioned directory',
     category: 'Commands',
     args: [{ name: 'id', type: 'string', required: true, description: 'The ID of the command to version' }],
-    examples: [{ description: 'Version a command', command: 'npx @eventcatalog/sdk versionCommand "CreateOrder"' }],
+    examples: [{ description: 'Version a command', command: 'npx @eventcatalog/cli versionCommand "CreateOrder"' }],
   },
   {
     name: 'addFileToCommand',
@@ -285,7 +285,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add a file to a command',
-        command: 'npx @eventcatalog/sdk addFileToCommand "CreateOrder" \'{"content":"# Notes","fileName":"notes.md"}\'',
+        command: 'npx @eventcatalog/cli addFileToCommand "CreateOrder" \'{"content":"# Notes","fileName":"notes.md"}\'',
       },
     ],
   },
@@ -302,7 +302,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Add a schema to a command',
         command:
-          'npx @eventcatalog/sdk addSchemaToCommand "CreateOrder" \'{"schema":"{\\"type\\":\\"object\\"}","fileName":"schema.json"}\'',
+          'npx @eventcatalog/cli addSchemaToCommand "CreateOrder" \'{"schema":"{\\"type\\":\\"object\\"}","fileName":"schema.json"}\'',
       },
     ],
   },
@@ -315,7 +315,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: true, description: 'Version to check' },
     ],
     examples: [
-      { description: 'Check if version exists', command: 'npx @eventcatalog/sdk commandHasVersion "CreateOrder" "1.0.0"' },
+      { description: 'Check if version exists', command: 'npx @eventcatalog/cli commandHasVersion "CreateOrder" "1.0.0"' },
     ],
   },
 
@@ -331,8 +331,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: false, description: 'Specific version to retrieve' },
     ],
     examples: [
-      { description: 'Get the latest query', command: 'npx @eventcatalog/sdk getQuery "GetOrder"' },
-      { description: 'Get a specific version', command: 'npx @eventcatalog/sdk getQuery "GetOrder" "1.0.0"' },
+      { description: 'Get the latest query', command: 'npx @eventcatalog/cli getQuery "GetOrder"' },
+      { description: 'Get a specific version', command: 'npx @eventcatalog/cli getQuery "GetOrder" "1.0.0"' },
     ],
   },
   {
@@ -341,8 +341,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
     category: 'Queries',
     args: [{ name: 'options', type: 'json', required: false, description: 'Options: {latestOnly?, attachSchema?}' }],
     examples: [
-      { description: 'Get all queries', command: 'npx @eventcatalog/sdk getQueries' },
-      { description: 'Get only latest versions', command: 'npx @eventcatalog/sdk getQueries \'{"latestOnly":true}\'' },
+      { description: 'Get all queries', command: 'npx @eventcatalog/cli getQueries' },
+      { description: 'Get only latest versions', command: 'npx @eventcatalog/cli getQueries \'{"latestOnly":true}\'' },
     ],
   },
   {
@@ -357,7 +357,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write a new query',
         command:
-          'npx @eventcatalog/sdk writeQuery \'{"id":"GetOrder","name":"Get Order","version":"1.0.0","markdown":"# Get Order"}\'',
+          'npx @eventcatalog/cli writeQuery \'{"id":"GetOrder","name":"Get Order","version":"1.0.0","markdown":"# Get Order"}\'',
       },
     ],
   },
@@ -374,7 +374,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write query to a service',
         command:
-          'npx @eventcatalog/sdk writeQueryToService \'{"id":"GetInventory","name":"Get Inventory","version":"1.0.0","markdown":"# Get Inventory"}\' \'{"id":"InventoryService"}\'',
+          'npx @eventcatalog/cli writeQueryToService \'{"id":"GetInventory","name":"Get Inventory","version":"1.0.0","markdown":"# Get Inventory"}\' \'{"id":"InventoryService"}\'',
       },
     ],
   },
@@ -383,7 +383,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Removes a query by its path',
     category: 'Queries',
     args: [{ name: 'path', type: 'string', required: true, description: 'Path to the query' }],
-    examples: [{ description: 'Remove a query', command: 'npx @eventcatalog/sdk rmQuery "/GetOrder"' }],
+    examples: [{ description: 'Remove a query', command: 'npx @eventcatalog/cli rmQuery "/GetOrder"' }],
   },
   {
     name: 'rmQueryById',
@@ -393,14 +393,14 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'id', type: 'string', required: true, description: 'The ID of the query to remove' },
       { name: 'version', type: 'string', required: false, description: 'Specific version to remove' },
     ],
-    examples: [{ description: 'Remove a query', command: 'npx @eventcatalog/sdk rmQueryById "GetOrder"' }],
+    examples: [{ description: 'Remove a query', command: 'npx @eventcatalog/cli rmQueryById "GetOrder"' }],
   },
   {
     name: 'versionQuery',
     description: 'Moves the current query to a versioned directory',
     category: 'Queries',
     args: [{ name: 'id', type: 'string', required: true, description: 'The ID of the query to version' }],
-    examples: [{ description: 'Version a query', command: 'npx @eventcatalog/sdk versionQuery "GetOrder"' }],
+    examples: [{ description: 'Version a query', command: 'npx @eventcatalog/cli versionQuery "GetOrder"' }],
   },
   {
     name: 'addFileToQuery',
@@ -414,7 +414,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add a file to a query',
-        command: 'npx @eventcatalog/sdk addFileToQuery "GetOrder" \'{"content":"# Notes","fileName":"notes.md"}\'',
+        command: 'npx @eventcatalog/cli addFileToQuery "GetOrder" \'{"content":"# Notes","fileName":"notes.md"}\'',
       },
     ],
   },
@@ -431,7 +431,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Add a schema to a query',
         command:
-          'npx @eventcatalog/sdk addSchemaToQuery "GetOrder" \'{"schema":"{\\"type\\":\\"object\\"}","fileName":"schema.json"}\'',
+          'npx @eventcatalog/cli addSchemaToQuery "GetOrder" \'{"schema":"{\\"type\\":\\"object\\"}","fileName":"schema.json"}\'',
       },
     ],
   },
@@ -443,7 +443,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'id', type: 'string', required: true, description: 'The ID of the query' },
       { name: 'version', type: 'string', required: true, description: 'Version to check' },
     ],
-    examples: [{ description: 'Check if version exists', command: 'npx @eventcatalog/sdk queryHasVersion "GetOrder" "1.0.0"' }],
+    examples: [{ description: 'Check if version exists', command: 'npx @eventcatalog/cli queryHasVersion "GetOrder" "1.0.0"' }],
   },
 
   // ================================
@@ -458,8 +458,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: false, description: 'Specific version to retrieve' },
     ],
     examples: [
-      { description: 'Get the latest service', command: 'npx @eventcatalog/sdk getService "OrderService"' },
-      { description: 'Get a specific version', command: 'npx @eventcatalog/sdk getService "OrderService" "1.0.0"' },
+      { description: 'Get the latest service', command: 'npx @eventcatalog/cli getService "OrderService"' },
+      { description: 'Get a specific version', command: 'npx @eventcatalog/cli getService "OrderService" "1.0.0"' },
     ],
   },
   {
@@ -468,8 +468,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
     category: 'Services',
     args: [{ name: 'options', type: 'json', required: false, description: 'Options: {latestOnly?}' }],
     examples: [
-      { description: 'Get all services', command: 'npx @eventcatalog/sdk getServices' },
-      { description: 'Get only latest versions', command: 'npx @eventcatalog/sdk getServices \'{"latestOnly":true}\'' },
+      { description: 'Get all services', command: 'npx @eventcatalog/cli getServices' },
+      { description: 'Get only latest versions', command: 'npx @eventcatalog/cli getServices \'{"latestOnly":true}\'' },
     ],
   },
   {
@@ -484,7 +484,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write a new service',
         command:
-          'npx @eventcatalog/sdk writeService \'{"id":"OrderService","name":"Order Service","version":"1.0.0","markdown":"# Order Service"}\'',
+          'npx @eventcatalog/cli writeService \'{"id":"OrderService","name":"Order Service","version":"1.0.0","markdown":"# Order Service"}\'',
       },
     ],
   },
@@ -501,7 +501,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write service to a domain',
         command:
-          'npx @eventcatalog/sdk writeServiceToDomain \'{"id":"PaymentService","name":"Payment Service","version":"1.0.0","markdown":"# Payment Service"}\' \'{"id":"Payments"}\'',
+          'npx @eventcatalog/cli writeServiceToDomain \'{"id":"PaymentService","name":"Payment Service","version":"1.0.0","markdown":"# Payment Service"}\' \'{"id":"Payments"}\'',
       },
     ],
   },
@@ -510,7 +510,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Removes a service by its path',
     category: 'Services',
     args: [{ name: 'path', type: 'string', required: true, description: 'Path to the service' }],
-    examples: [{ description: 'Remove a service', command: 'npx @eventcatalog/sdk rmService "/OrderService"' }],
+    examples: [{ description: 'Remove a service', command: 'npx @eventcatalog/cli rmService "/OrderService"' }],
   },
   {
     name: 'rmServiceById',
@@ -520,14 +520,14 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'id', type: 'string', required: true, description: 'The ID of the service to remove' },
       { name: 'version', type: 'string', required: false, description: 'Specific version to remove' },
     ],
-    examples: [{ description: 'Remove a service', command: 'npx @eventcatalog/sdk rmServiceById "OrderService"' }],
+    examples: [{ description: 'Remove a service', command: 'npx @eventcatalog/cli rmServiceById "OrderService"' }],
   },
   {
     name: 'versionService',
     description: 'Moves the current service to a versioned directory',
     category: 'Services',
     args: [{ name: 'id', type: 'string', required: true, description: 'The ID of the service to version' }],
-    examples: [{ description: 'Version a service', command: 'npx @eventcatalog/sdk versionService "OrderService"' }],
+    examples: [{ description: 'Version a service', command: 'npx @eventcatalog/cli versionService "OrderService"' }],
   },
   {
     name: 'addFileToService',
@@ -541,7 +541,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add a file to a service',
-        command: 'npx @eventcatalog/sdk addFileToService "OrderService" \'{"content":"# API Docs","fileName":"api.md"}\'',
+        command: 'npx @eventcatalog/cli addFileToService "OrderService" \'{"content":"# API Docs","fileName":"api.md"}\'',
       },
     ],
   },
@@ -558,12 +558,12 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add event that service sends',
-        command: 'npx @eventcatalog/sdk addEventToService "OrderService" "sends" \'{"id":"OrderCreated","version":"1.0.0"}\'',
+        command: 'npx @eventcatalog/cli addEventToService "OrderService" "sends" \'{"id":"OrderCreated","version":"1.0.0"}\'',
       },
       {
         description: 'Add event that service receives',
         command:
-          'npx @eventcatalog/sdk addEventToService "OrderService" "receives" \'{"id":"PaymentCompleted","version":"1.0.0"}\'',
+          'npx @eventcatalog/cli addEventToService "OrderService" "receives" \'{"id":"PaymentCompleted","version":"1.0.0"}\'',
       },
     ],
   },
@@ -580,7 +580,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add command that service sends',
-        command: 'npx @eventcatalog/sdk addCommandToService "OrderService" "sends" \'{"id":"ProcessPayment","version":"1.0.0"}\'',
+        command: 'npx @eventcatalog/cli addCommandToService "OrderService" "sends" \'{"id":"ProcessPayment","version":"1.0.0"}\'',
       },
     ],
   },
@@ -597,7 +597,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add query that service sends',
-        command: 'npx @eventcatalog/sdk addQueryToService "OrderService" "sends" \'{"id":"GetInventory","version":"1.0.0"}\'',
+        command: 'npx @eventcatalog/cli addQueryToService "OrderService" "sends" \'{"id":"GetInventory","version":"1.0.0"}\'',
       },
     ],
   },
@@ -613,7 +613,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add entity to a service',
-        command: 'npx @eventcatalog/sdk addEntityToService "OrderService" \'{"id":"Order","version":"1.0.0"}\'',
+        command: 'npx @eventcatalog/cli addEntityToService "OrderService" \'{"id":"Order","version":"1.0.0"}\'',
       },
     ],
   },
@@ -630,7 +630,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add data store that service writes to',
-        command: 'npx @eventcatalog/sdk addDataStoreToService "OrderService" "writesTo" \'{"id":"orders-db","version":"1.0.0"}\'',
+        command: 'npx @eventcatalog/cli addDataStoreToService "OrderService" "writesTo" \'{"id":"orders-db","version":"1.0.0"}\'',
       },
     ],
   },
@@ -643,7 +643,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: true, description: 'Version to check' },
     ],
     examples: [
-      { description: 'Check if version exists', command: 'npx @eventcatalog/sdk serviceHasVersion "OrderService" "1.0.0"' },
+      { description: 'Check if version exists', command: 'npx @eventcatalog/cli serviceHasVersion "OrderService" "1.0.0"' },
     ],
   },
   {
@@ -655,7 +655,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: false, description: 'Specific version' },
     ],
     examples: [
-      { description: 'Get spec files', command: 'npx @eventcatalog/sdk getSpecificationFilesForService "OrderService"' },
+      { description: 'Get spec files', command: 'npx @eventcatalog/cli getSpecificationFilesForService "OrderService"' },
     ],
   },
 
@@ -671,8 +671,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: false, description: 'Specific version to retrieve' },
     ],
     examples: [
-      { description: 'Get the latest domain', command: 'npx @eventcatalog/sdk getDomain "Orders"' },
-      { description: 'Get a specific version', command: 'npx @eventcatalog/sdk getDomain "Orders" "1.0.0"' },
+      { description: 'Get the latest domain', command: 'npx @eventcatalog/cli getDomain "Orders"' },
+      { description: 'Get a specific version', command: 'npx @eventcatalog/cli getDomain "Orders" "1.0.0"' },
     ],
   },
   {
@@ -681,8 +681,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
     category: 'Domains',
     args: [{ name: 'options', type: 'json', required: false, description: 'Options: {latestOnly?}' }],
     examples: [
-      { description: 'Get all domains', command: 'npx @eventcatalog/sdk getDomains' },
-      { description: 'Get only latest versions', command: 'npx @eventcatalog/sdk getDomains \'{"latestOnly":true}\'' },
+      { description: 'Get all domains', command: 'npx @eventcatalog/cli getDomains' },
+      { description: 'Get only latest versions', command: 'npx @eventcatalog/cli getDomains \'{"latestOnly":true}\'' },
     ],
   },
   {
@@ -697,7 +697,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write a new domain',
         command:
-          'npx @eventcatalog/sdk writeDomain \'{"id":"Orders","name":"Orders Domain","version":"1.0.0","markdown":"# Orders Domain"}\'',
+          'npx @eventcatalog/cli writeDomain \'{"id":"Orders","name":"Orders Domain","version":"1.0.0","markdown":"# Orders Domain"}\'',
       },
     ],
   },
@@ -706,7 +706,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Removes a domain by its path',
     category: 'Domains',
     args: [{ name: 'path', type: 'string', required: true, description: 'Path to the domain' }],
-    examples: [{ description: 'Remove a domain', command: 'npx @eventcatalog/sdk rmDomain "/Orders"' }],
+    examples: [{ description: 'Remove a domain', command: 'npx @eventcatalog/cli rmDomain "/Orders"' }],
   },
   {
     name: 'rmDomainById',
@@ -716,14 +716,14 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'id', type: 'string', required: true, description: 'The ID of the domain to remove' },
       { name: 'version', type: 'string', required: false, description: 'Specific version to remove' },
     ],
-    examples: [{ description: 'Remove a domain', command: 'npx @eventcatalog/sdk rmDomainById "Orders"' }],
+    examples: [{ description: 'Remove a domain', command: 'npx @eventcatalog/cli rmDomainById "Orders"' }],
   },
   {
     name: 'versionDomain',
     description: 'Moves the current domain to a versioned directory',
     category: 'Domains',
     args: [{ name: 'id', type: 'string', required: true, description: 'The ID of the domain to version' }],
-    examples: [{ description: 'Version a domain', command: 'npx @eventcatalog/sdk versionDomain "Orders"' }],
+    examples: [{ description: 'Version a domain', command: 'npx @eventcatalog/cli versionDomain "Orders"' }],
   },
   {
     name: 'addFileToDomain',
@@ -737,7 +737,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add a file to a domain',
-        command: 'npx @eventcatalog/sdk addFileToDomain "Orders" \'{"content":"# Overview","fileName":"overview.md"}\'',
+        command: 'npx @eventcatalog/cli addFileToDomain "Orders" \'{"content":"# Overview","fileName":"overview.md"}\'',
       },
     ],
   },
@@ -753,7 +753,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add service to domain',
-        command: 'npx @eventcatalog/sdk addServiceToDomain "Orders" \'{"id":"OrderService","version":"1.0.0"}\'',
+        command: 'npx @eventcatalog/cli addServiceToDomain "Orders" \'{"id":"OrderService","version":"1.0.0"}\'',
       },
     ],
   },
@@ -769,7 +769,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add subdomain',
-        command: 'npx @eventcatalog/sdk addSubDomainToDomain "Orders" \'{"id":"Fulfillment","version":"1.0.0"}\'',
+        command: 'npx @eventcatalog/cli addSubDomainToDomain "Orders" \'{"id":"Fulfillment","version":"1.0.0"}\'',
       },
     ],
   },
@@ -785,7 +785,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add entity to domain',
-        command: 'npx @eventcatalog/sdk addEntityToDomain "Orders" \'{"id":"Order","version":"1.0.0"}\'',
+        command: 'npx @eventcatalog/cli addEntityToDomain "Orders" \'{"id":"Order","version":"1.0.0"}\'',
       },
     ],
   },
@@ -802,7 +802,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add event that domain sends',
-        command: 'npx @eventcatalog/sdk addEventToDomain "Orders" "sends" \'{"id":"OrderCreated","version":"1.0.0"}\'',
+        command: 'npx @eventcatalog/cli addEventToDomain "Orders" "sends" \'{"id":"OrderCreated","version":"1.0.0"}\'',
       },
     ],
   },
@@ -819,7 +819,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add command that domain sends',
-        command: 'npx @eventcatalog/sdk addCommandToDomain "Orders" "sends" \'{"id":"ProcessOrder","version":"1.0.0"}\'',
+        command: 'npx @eventcatalog/cli addCommandToDomain "Orders" "sends" \'{"id":"ProcessOrder","version":"1.0.0"}\'',
       },
     ],
   },
@@ -836,7 +836,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add query that domain sends',
-        command: 'npx @eventcatalog/sdk addQueryToDomain "Orders" "sends" \'{"id":"GetOrderStatus","version":"1.0.0"}\'',
+        command: 'npx @eventcatalog/cli addQueryToDomain "Orders" "sends" \'{"id":"GetOrderStatus","version":"1.0.0"}\'',
       },
     ],
   },
@@ -853,7 +853,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Add ubiquitous language',
         command:
-          'npx @eventcatalog/sdk addUbiquitousLanguageToDomain "Orders" \'[{"term":"Order","definition":"A customer purchase request"}]\'',
+          'npx @eventcatalog/cli addUbiquitousLanguageToDomain "Orders" \'[{"term":"Order","definition":"A customer purchase request"}]\'',
       },
     ],
   },
@@ -866,7 +866,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'domainVersion', type: 'string', required: false, description: 'Specific domain version' },
     ],
     examples: [
-      { description: 'Get ubiquitous language', command: 'npx @eventcatalog/sdk getUbiquitousLanguageFromDomain "Orders"' },
+      { description: 'Get ubiquitous language', command: 'npx @eventcatalog/cli getUbiquitousLanguageFromDomain "Orders"' },
     ],
   },
   {
@@ -877,7 +877,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'id', type: 'string', required: true, description: 'The ID of the domain' },
       { name: 'version', type: 'string', required: true, description: 'Version to check' },
     ],
-    examples: [{ description: 'Check if version exists', command: 'npx @eventcatalog/sdk domainHasVersion "Orders" "1.0.0"' }],
+    examples: [{ description: 'Check if version exists', command: 'npx @eventcatalog/cli domainHasVersion "Orders" "1.0.0"' }],
   },
 
   // ================================
@@ -892,8 +892,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: false, description: 'Specific version to retrieve' },
     ],
     examples: [
-      { description: 'Get the latest channel', command: 'npx @eventcatalog/sdk getChannel "orders.events"' },
-      { description: 'Get a specific version', command: 'npx @eventcatalog/sdk getChannel "orders.events" "1.0.0"' },
+      { description: 'Get the latest channel', command: 'npx @eventcatalog/cli getChannel "orders.events"' },
+      { description: 'Get a specific version', command: 'npx @eventcatalog/cli getChannel "orders.events" "1.0.0"' },
     ],
   },
   {
@@ -902,8 +902,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
     category: 'Channels',
     args: [{ name: 'options', type: 'json', required: false, description: 'Options: {latestOnly?}' }],
     examples: [
-      { description: 'Get all channels', command: 'npx @eventcatalog/sdk getChannels' },
-      { description: 'Get only latest versions', command: 'npx @eventcatalog/sdk getChannels \'{"latestOnly":true}\'' },
+      { description: 'Get all channels', command: 'npx @eventcatalog/cli getChannels' },
+      { description: 'Get only latest versions', command: 'npx @eventcatalog/cli getChannels \'{"latestOnly":true}\'' },
     ],
   },
   {
@@ -918,7 +918,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write a new channel',
         command:
-          'npx @eventcatalog/sdk writeChannel \'{"id":"orders.events","name":"Orders Events","version":"1.0.0","markdown":"# Orders Events Channel"}\'',
+          'npx @eventcatalog/cli writeChannel \'{"id":"orders.events","name":"Orders Events","version":"1.0.0","markdown":"# Orders Events Channel"}\'',
       },
     ],
   },
@@ -927,7 +927,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Removes a channel by its path',
     category: 'Channels',
     args: [{ name: 'path', type: 'string', required: true, description: 'Path to the channel' }],
-    examples: [{ description: 'Remove a channel', command: 'npx @eventcatalog/sdk rmChannel "/orders.events"' }],
+    examples: [{ description: 'Remove a channel', command: 'npx @eventcatalog/cli rmChannel "/orders.events"' }],
   },
   {
     name: 'rmChannelById',
@@ -937,14 +937,14 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'id', type: 'string', required: true, description: 'The ID of the channel to remove' },
       { name: 'version', type: 'string', required: false, description: 'Specific version to remove' },
     ],
-    examples: [{ description: 'Remove a channel', command: 'npx @eventcatalog/sdk rmChannelById "orders.events"' }],
+    examples: [{ description: 'Remove a channel', command: 'npx @eventcatalog/cli rmChannelById "orders.events"' }],
   },
   {
     name: 'versionChannel',
     description: 'Moves the current channel to a versioned directory',
     category: 'Channels',
     args: [{ name: 'id', type: 'string', required: true, description: 'The ID of the channel to version' }],
-    examples: [{ description: 'Version a channel', command: 'npx @eventcatalog/sdk versionChannel "orders.events"' }],
+    examples: [{ description: 'Version a channel', command: 'npx @eventcatalog/cli versionChannel "orders.events"' }],
   },
   {
     name: 'addEventToChannel',
@@ -957,7 +957,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add event to channel',
-        command: 'npx @eventcatalog/sdk addEventToChannel "orders.events" \'{"id":"OrderCreated","version":"1.0.0"}\'',
+        command: 'npx @eventcatalog/cli addEventToChannel "orders.events" \'{"id":"OrderCreated","version":"1.0.0"}\'',
       },
     ],
   },
@@ -972,7 +972,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add command to channel',
-        command: 'npx @eventcatalog/sdk addCommandToChannel "orders.commands" \'{"id":"CreateOrder","version":"1.0.0"}\'',
+        command: 'npx @eventcatalog/cli addCommandToChannel "orders.commands" \'{"id":"CreateOrder","version":"1.0.0"}\'',
       },
     ],
   },
@@ -987,7 +987,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add query to channel',
-        command: 'npx @eventcatalog/sdk addQueryToChannel "orders.queries" \'{"id":"GetOrder","version":"1.0.0"}\'',
+        command: 'npx @eventcatalog/cli addQueryToChannel "orders.queries" \'{"id":"GetOrder","version":"1.0.0"}\'',
       },
     ],
   },
@@ -1000,7 +1000,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: true, description: 'Version to check' },
     ],
     examples: [
-      { description: 'Check if version exists', command: 'npx @eventcatalog/sdk channelHasVersion "orders.events" "1.0.0"' },
+      { description: 'Check if version exists', command: 'npx @eventcatalog/cli channelHasVersion "orders.events" "1.0.0"' },
     ],
   },
 
@@ -1012,14 +1012,14 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Returns a team from EventCatalog by its ID',
     category: 'Teams',
     args: [{ name: 'id', type: 'string', required: true, description: 'The ID of the team to retrieve' }],
-    examples: [{ description: 'Get a team', command: 'npx @eventcatalog/sdk getTeam "platform-team"' }],
+    examples: [{ description: 'Get a team', command: 'npx @eventcatalog/cli getTeam "platform-team"' }],
   },
   {
     name: 'getTeams',
     description: 'Returns all teams from EventCatalog',
     category: 'Teams',
     args: [],
-    examples: [{ description: 'Get all teams', command: 'npx @eventcatalog/sdk getTeams' }],
+    examples: [{ description: 'Get all teams', command: 'npx @eventcatalog/cli getTeams' }],
   },
   {
     name: 'writeTeam',
@@ -1032,7 +1032,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Write a new team',
-        command: 'npx @eventcatalog/sdk writeTeam \'{"id":"platform-team","name":"Platform Team","markdown":"# Platform Team"}\'',
+        command: 'npx @eventcatalog/cli writeTeam \'{"id":"platform-team","name":"Platform Team","markdown":"# Platform Team"}\'',
       },
     ],
   },
@@ -1041,7 +1041,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Removes a team by its ID',
     category: 'Teams',
     args: [{ name: 'id', type: 'string', required: true, description: 'The ID of the team to remove' }],
-    examples: [{ description: 'Remove a team', command: 'npx @eventcatalog/sdk rmTeamById "platform-team"' }],
+    examples: [{ description: 'Remove a team', command: 'npx @eventcatalog/cli rmTeamById "platform-team"' }],
   },
 
   // ================================
@@ -1052,14 +1052,14 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Returns a user from EventCatalog by their ID',
     category: 'Users',
     args: [{ name: 'id', type: 'string', required: true, description: 'The ID of the user to retrieve' }],
-    examples: [{ description: 'Get a user', command: 'npx @eventcatalog/sdk getUser "jsmith"' }],
+    examples: [{ description: 'Get a user', command: 'npx @eventcatalog/cli getUser "jsmith"' }],
   },
   {
     name: 'getUsers',
     description: 'Returns all users from EventCatalog',
     category: 'Users',
     args: [],
-    examples: [{ description: 'Get all users', command: 'npx @eventcatalog/sdk getUsers' }],
+    examples: [{ description: 'Get all users', command: 'npx @eventcatalog/cli getUsers' }],
   },
   {
     name: 'writeUser',
@@ -1072,7 +1072,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Write a new user',
-        command: 'npx @eventcatalog/sdk writeUser \'{"id":"jsmith","name":"John Smith","markdown":"# John Smith"}\'',
+        command: 'npx @eventcatalog/cli writeUser \'{"id":"jsmith","name":"John Smith","markdown":"# John Smith"}\'',
       },
     ],
   },
@@ -1081,7 +1081,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Removes a user by their ID',
     category: 'Users',
     args: [{ name: 'id', type: 'string', required: true, description: 'The ID of the user to remove' }],
-    examples: [{ description: 'Remove a user', command: 'npx @eventcatalog/sdk rmUserById "jsmith"' }],
+    examples: [{ description: 'Remove a user', command: 'npx @eventcatalog/cli rmUserById "jsmith"' }],
   },
 
   // ================================
@@ -1092,7 +1092,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Returns a custom doc from EventCatalog by its path',
     category: 'Custom Docs',
     args: [{ name: 'path', type: 'string', required: true, description: 'Path to the custom doc' }],
-    examples: [{ description: 'Get a custom doc', command: 'npx @eventcatalog/sdk getCustomDoc "/getting-started"' }],
+    examples: [{ description: 'Get a custom doc', command: 'npx @eventcatalog/cli getCustomDoc "/getting-started"' }],
   },
   {
     name: 'getCustomDocs',
@@ -1100,8 +1100,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
     category: 'Custom Docs',
     args: [{ name: 'options', type: 'json', required: false, description: 'Options: {path?}' }],
     examples: [
-      { description: 'Get all custom docs', command: 'npx @eventcatalog/sdk getCustomDocs' },
-      { description: 'Get docs from a path', command: 'npx @eventcatalog/sdk getCustomDocs \'{"path":"/guides"}\'' },
+      { description: 'Get all custom docs', command: 'npx @eventcatalog/cli getCustomDocs' },
+      { description: 'Get docs from a path', command: 'npx @eventcatalog/cli getCustomDocs \'{"path":"/guides"}\'' },
     ],
   },
   {
@@ -1116,7 +1116,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write a custom doc',
         command:
-          'npx @eventcatalog/sdk writeCustomDoc \'{"id":"getting-started","title":"Getting Started","markdown":"# Getting Started"}\'',
+          'npx @eventcatalog/cli writeCustomDoc \'{"id":"getting-started","title":"Getting Started","markdown":"# Getting Started"}\'',
       },
     ],
   },
@@ -1125,7 +1125,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Removes a custom doc by its path',
     category: 'Custom Docs',
     args: [{ name: 'path', type: 'string', required: true, description: 'Path to the custom doc to remove' }],
-    examples: [{ description: 'Remove a custom doc', command: 'npx @eventcatalog/sdk rmCustomDoc "/getting-started"' }],
+    examples: [{ description: 'Remove a custom doc', command: 'npx @eventcatalog/cli rmCustomDoc "/getting-started"' }],
   },
 
   // ================================
@@ -1140,8 +1140,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: false, description: 'Specific version to retrieve' },
     ],
     examples: [
-      { description: 'Get the latest entity', command: 'npx @eventcatalog/sdk getEntity "Order"' },
-      { description: 'Get a specific version', command: 'npx @eventcatalog/sdk getEntity "Order" "1.0.0"' },
+      { description: 'Get the latest entity', command: 'npx @eventcatalog/cli getEntity "Order"' },
+      { description: 'Get a specific version', command: 'npx @eventcatalog/cli getEntity "Order" "1.0.0"' },
     ],
   },
   {
@@ -1150,8 +1150,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
     category: 'Entities',
     args: [{ name: 'options', type: 'json', required: false, description: 'Options: {latestOnly?}' }],
     examples: [
-      { description: 'Get all entities', command: 'npx @eventcatalog/sdk getEntities' },
-      { description: 'Get only latest versions', command: 'npx @eventcatalog/sdk getEntities \'{"latestOnly":true}\'' },
+      { description: 'Get all entities', command: 'npx @eventcatalog/cli getEntities' },
+      { description: 'Get only latest versions', command: 'npx @eventcatalog/cli getEntities \'{"latestOnly":true}\'' },
     ],
   },
   {
@@ -1166,7 +1166,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write a new entity',
         command:
-          'npx @eventcatalog/sdk writeEntity \'{"id":"Order","name":"Order","version":"1.0.0","markdown":"# Order Entity"}\'',
+          'npx @eventcatalog/cli writeEntity \'{"id":"Order","name":"Order","version":"1.0.0","markdown":"# Order Entity"}\'',
       },
     ],
   },
@@ -1175,7 +1175,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Removes an entity by its path',
     category: 'Entities',
     args: [{ name: 'path', type: 'string', required: true, description: 'Path to the entity' }],
-    examples: [{ description: 'Remove an entity', command: 'npx @eventcatalog/sdk rmEntity "/Order"' }],
+    examples: [{ description: 'Remove an entity', command: 'npx @eventcatalog/cli rmEntity "/Order"' }],
   },
   {
     name: 'rmEntityById',
@@ -1185,14 +1185,14 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'id', type: 'string', required: true, description: 'The ID of the entity to remove' },
       { name: 'version', type: 'string', required: false, description: 'Specific version to remove' },
     ],
-    examples: [{ description: 'Remove an entity', command: 'npx @eventcatalog/sdk rmEntityById "Order"' }],
+    examples: [{ description: 'Remove an entity', command: 'npx @eventcatalog/cli rmEntityById "Order"' }],
   },
   {
     name: 'versionEntity',
     description: 'Moves the current entity to a versioned directory',
     category: 'Entities',
     args: [{ name: 'id', type: 'string', required: true, description: 'The ID of the entity to version' }],
-    examples: [{ description: 'Version an entity', command: 'npx @eventcatalog/sdk versionEntity "Order"' }],
+    examples: [{ description: 'Version an entity', command: 'npx @eventcatalog/cli versionEntity "Order"' }],
   },
   {
     name: 'entityHasVersion',
@@ -1202,7 +1202,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'id', type: 'string', required: true, description: 'The ID of the entity' },
       { name: 'version', type: 'string', required: true, description: 'Version to check' },
     ],
-    examples: [{ description: 'Check if version exists', command: 'npx @eventcatalog/sdk entityHasVersion "Order" "1.0.0"' }],
+    examples: [{ description: 'Check if version exists', command: 'npx @eventcatalog/cli entityHasVersion "Order" "1.0.0"' }],
   },
 
   // ================================
@@ -1217,8 +1217,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: false, description: 'Specific version to retrieve' },
     ],
     examples: [
-      { description: 'Get the latest data store', command: 'npx @eventcatalog/sdk getDataStore "orders-db"' },
-      { description: 'Get a specific version', command: 'npx @eventcatalog/sdk getDataStore "orders-db" "1.0.0"' },
+      { description: 'Get the latest data store', command: 'npx @eventcatalog/cli getDataStore "orders-db"' },
+      { description: 'Get a specific version', command: 'npx @eventcatalog/cli getDataStore "orders-db" "1.0.0"' },
     ],
   },
   {
@@ -1227,8 +1227,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
     category: 'Data Stores',
     args: [{ name: 'options', type: 'json', required: false, description: 'Options: {latestOnly?}' }],
     examples: [
-      { description: 'Get all data stores', command: 'npx @eventcatalog/sdk getDataStores' },
-      { description: 'Get only latest versions', command: 'npx @eventcatalog/sdk getDataStores \'{"latestOnly":true}\'' },
+      { description: 'Get all data stores', command: 'npx @eventcatalog/cli getDataStores' },
+      { description: 'Get only latest versions', command: 'npx @eventcatalog/cli getDataStores \'{"latestOnly":true}\'' },
     ],
   },
   {
@@ -1248,7 +1248,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write a new data store',
         command:
-          'npx @eventcatalog/sdk writeDataStore \'{"id":"orders-db","name":"Orders Database","version":"1.0.0","markdown":"# Orders Database"}\'',
+          'npx @eventcatalog/cli writeDataStore \'{"id":"orders-db","name":"Orders Database","version":"1.0.0","markdown":"# Orders Database"}\'',
       },
     ],
   },
@@ -1264,7 +1264,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write data store to a service',
         command:
-          'npx @eventcatalog/sdk writeDataStoreToService \'{"id":"orders-db","name":"Orders Database","version":"1.0.0","markdown":"# Orders DB"}\' \'{"id":"OrderService"}\'',
+          'npx @eventcatalog/cli writeDataStoreToService \'{"id":"orders-db","name":"Orders Database","version":"1.0.0","markdown":"# Orders DB"}\' \'{"id":"OrderService"}\'',
       },
     ],
   },
@@ -1273,7 +1273,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Removes a data store by its path',
     category: 'Data Stores',
     args: [{ name: 'path', type: 'string', required: true, description: 'Path to the data store' }],
-    examples: [{ description: 'Remove a data store', command: 'npx @eventcatalog/sdk rmDataStore "/orders-db"' }],
+    examples: [{ description: 'Remove a data store', command: 'npx @eventcatalog/cli rmDataStore "/orders-db"' }],
   },
   {
     name: 'rmDataStoreById',
@@ -1283,14 +1283,14 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'id', type: 'string', required: true, description: 'The ID of the data store to remove' },
       { name: 'version', type: 'string', required: false, description: 'Specific version to remove' },
     ],
-    examples: [{ description: 'Remove a data store', command: 'npx @eventcatalog/sdk rmDataStoreById "orders-db"' }],
+    examples: [{ description: 'Remove a data store', command: 'npx @eventcatalog/cli rmDataStoreById "orders-db"' }],
   },
   {
     name: 'versionDataStore',
     description: 'Moves the current data store to a versioned directory',
     category: 'Data Stores',
     args: [{ name: 'id', type: 'string', required: true, description: 'The ID of the data store to version' }],
-    examples: [{ description: 'Version a data store', command: 'npx @eventcatalog/sdk versionDataStore "orders-db"' }],
+    examples: [{ description: 'Version a data store', command: 'npx @eventcatalog/cli versionDataStore "orders-db"' }],
   },
   {
     name: 'addFileToDataStore',
@@ -1304,7 +1304,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add a file to a data store',
-        command: 'npx @eventcatalog/sdk addFileToDataStore "orders-db" \'{"content":"# Schema","fileName":"schema.md"}\'',
+        command: 'npx @eventcatalog/cli addFileToDataStore "orders-db" \'{"content":"# Schema","fileName":"schema.md"}\'',
       },
     ],
   },
@@ -1317,7 +1317,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: true, description: 'Version to check' },
     ],
     examples: [
-      { description: 'Check if version exists', command: 'npx @eventcatalog/sdk dataStoreHasVersion "orders-db" "1.0.0"' },
+      { description: 'Check if version exists', command: 'npx @eventcatalog/cli dataStoreHasVersion "orders-db" "1.0.0"' },
     ],
   },
 
@@ -1333,8 +1333,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: false, description: 'Specific version to retrieve' },
     ],
     examples: [
-      { description: 'Get the latest data product', command: 'npx @eventcatalog/sdk getDataProduct "customer-360"' },
-      { description: 'Get a specific version', command: 'npx @eventcatalog/sdk getDataProduct "customer-360" "1.0.0"' },
+      { description: 'Get the latest data product', command: 'npx @eventcatalog/cli getDataProduct "customer-360"' },
+      { description: 'Get a specific version', command: 'npx @eventcatalog/cli getDataProduct "customer-360" "1.0.0"' },
     ],
   },
   {
@@ -1343,8 +1343,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
     category: 'Data Products',
     args: [{ name: 'options', type: 'json', required: false, description: 'Options: {latestOnly?}' }],
     examples: [
-      { description: 'Get all data products', command: 'npx @eventcatalog/sdk getDataProducts' },
-      { description: 'Get only latest versions', command: 'npx @eventcatalog/sdk getDataProducts \'{"latestOnly":true}\'' },
+      { description: 'Get all data products', command: 'npx @eventcatalog/cli getDataProducts' },
+      { description: 'Get only latest versions', command: 'npx @eventcatalog/cli getDataProducts \'{"latestOnly":true}\'' },
     ],
   },
   {
@@ -1364,7 +1364,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write a new data product',
         command:
-          'npx @eventcatalog/sdk writeDataProduct \'{"id":"customer-360","name":"Customer 360","version":"1.0.0","markdown":"# Customer 360"}\'',
+          'npx @eventcatalog/cli writeDataProduct \'{"id":"customer-360","name":"Customer 360","version":"1.0.0","markdown":"# Customer 360"}\'',
       },
     ],
   },
@@ -1381,7 +1381,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write data product to a domain',
         command:
-          'npx @eventcatalog/sdk writeDataProductToDomain \'{"id":"customer-360","name":"Customer 360","version":"1.0.0","markdown":"# Customer 360"}\' \'{"id":"Analytics"}\'',
+          'npx @eventcatalog/cli writeDataProductToDomain \'{"id":"customer-360","name":"Customer 360","version":"1.0.0","markdown":"# Customer 360"}\' \'{"id":"Analytics"}\'',
       },
     ],
   },
@@ -1390,7 +1390,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Removes a data product by its path',
     category: 'Data Products',
     args: [{ name: 'path', type: 'string', required: true, description: 'Path to the data product' }],
-    examples: [{ description: 'Remove a data product', command: 'npx @eventcatalog/sdk rmDataProduct "/customer-360"' }],
+    examples: [{ description: 'Remove a data product', command: 'npx @eventcatalog/cli rmDataProduct "/customer-360"' }],
   },
   {
     name: 'rmDataProductById',
@@ -1400,14 +1400,14 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'id', type: 'string', required: true, description: 'The ID of the data product to remove' },
       { name: 'version', type: 'string', required: false, description: 'Specific version to remove' },
     ],
-    examples: [{ description: 'Remove a data product', command: 'npx @eventcatalog/sdk rmDataProductById "customer-360"' }],
+    examples: [{ description: 'Remove a data product', command: 'npx @eventcatalog/cli rmDataProductById "customer-360"' }],
   },
   {
     name: 'versionDataProduct',
     description: 'Moves the current data product to a versioned directory',
     category: 'Data Products',
     args: [{ name: 'id', type: 'string', required: true, description: 'The ID of the data product to version' }],
-    examples: [{ description: 'Version a data product', command: 'npx @eventcatalog/sdk versionDataProduct "customer-360"' }],
+    examples: [{ description: 'Version a data product', command: 'npx @eventcatalog/cli versionDataProduct "customer-360"' }],
   },
   {
     name: 'addFileToDataProduct',
@@ -1421,7 +1421,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add a file to a data product',
-        command: 'npx @eventcatalog/sdk addFileToDataProduct "customer-360" \'{"content":"# Schema","fileName":"schema.md"}\'',
+        command: 'npx @eventcatalog/cli addFileToDataProduct "customer-360" \'{"content":"# Schema","fileName":"schema.md"}\'',
       },
     ],
   },
@@ -1437,7 +1437,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add data product to domain',
-        command: 'npx @eventcatalog/sdk addDataProductToDomain "Analytics" \'{"id":"customer-360","version":"1.0.0"}\'',
+        command: 'npx @eventcatalog/cli addDataProductToDomain "Analytics" \'{"id":"customer-360","version":"1.0.0"}\'',
       },
     ],
   },
@@ -1452,7 +1452,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Check if version exists',
-        command: 'npx @eventcatalog/sdk dataProductHasVersion "customer-360" "1.0.0"',
+        command: 'npx @eventcatalog/cli dataProductHasVersion "customer-360" "1.0.0"',
       },
     ],
   },
@@ -1469,8 +1469,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: false, description: 'Specific version to retrieve' },
     ],
     examples: [
-      { description: 'Get the latest diagram', command: 'npx @eventcatalog/sdk getDiagram "ArchitectureDiagram"' },
-      { description: 'Get a specific version', command: 'npx @eventcatalog/sdk getDiagram "ArchitectureDiagram" "1.0.0"' },
+      { description: 'Get the latest diagram', command: 'npx @eventcatalog/cli getDiagram "ArchitectureDiagram"' },
+      { description: 'Get a specific version', command: 'npx @eventcatalog/cli getDiagram "ArchitectureDiagram" "1.0.0"' },
     ],
   },
   {
@@ -1479,8 +1479,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
     category: 'Diagrams',
     args: [{ name: 'options', type: 'json', required: false, description: 'Options: {latestOnly?}' }],
     examples: [
-      { description: 'Get all diagrams', command: 'npx @eventcatalog/sdk getDiagrams' },
-      { description: 'Get only latest versions', command: 'npx @eventcatalog/sdk getDiagrams \'{"latestOnly":true}\'' },
+      { description: 'Get all diagrams', command: 'npx @eventcatalog/cli getDiagrams' },
+      { description: 'Get only latest versions', command: 'npx @eventcatalog/cli getDiagrams \'{"latestOnly":true}\'' },
     ],
   },
   {
@@ -1500,7 +1500,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Write a new diagram',
         command:
-          'npx @eventcatalog/sdk writeDiagram \'{"id":"ArchitectureDiagram","name":"Architecture Diagram","version":"1.0.0","markdown":"# Architecture Diagram"}\'',
+          'npx @eventcatalog/cli writeDiagram \'{"id":"ArchitectureDiagram","name":"Architecture Diagram","version":"1.0.0","markdown":"# Architecture Diagram"}\'',
       },
     ],
   },
@@ -1509,7 +1509,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Removes a diagram by its path',
     category: 'Diagrams',
     args: [{ name: 'path', type: 'string', required: true, description: 'Path to the diagram' }],
-    examples: [{ description: 'Remove a diagram', command: 'npx @eventcatalog/sdk rmDiagram "/ArchitectureDiagram"' }],
+    examples: [{ description: 'Remove a diagram', command: 'npx @eventcatalog/cli rmDiagram "/ArchitectureDiagram"' }],
   },
   {
     name: 'rmDiagramById',
@@ -1519,14 +1519,14 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'id', type: 'string', required: true, description: 'The ID of the diagram to remove' },
       { name: 'version', type: 'string', required: false, description: 'Specific version to remove' },
     ],
-    examples: [{ description: 'Remove a diagram', command: 'npx @eventcatalog/sdk rmDiagramById "ArchitectureDiagram"' }],
+    examples: [{ description: 'Remove a diagram', command: 'npx @eventcatalog/cli rmDiagramById "ArchitectureDiagram"' }],
   },
   {
     name: 'versionDiagram',
     description: 'Moves the current diagram to a versioned directory',
     category: 'Diagrams',
     args: [{ name: 'id', type: 'string', required: true, description: 'The ID of the diagram to version' }],
-    examples: [{ description: 'Version a diagram', command: 'npx @eventcatalog/sdk versionDiagram "ArchitectureDiagram"' }],
+    examples: [{ description: 'Version a diagram', command: 'npx @eventcatalog/cli versionDiagram "ArchitectureDiagram"' }],
   },
   {
     name: 'addFileToDiagram',
@@ -1540,7 +1540,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Add a file to a diagram',
-        command: 'npx @eventcatalog/sdk addFileToDiagram "ArchitectureDiagram" \'{"content":"...","fileName":"diagram.png"}\'',
+        command: 'npx @eventcatalog/cli addFileToDiagram "ArchitectureDiagram" \'{"content":"...","fileName":"diagram.png"}\'',
       },
     ],
   },
@@ -1555,7 +1555,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Check if version exists',
-        command: 'npx @eventcatalog/sdk diagramHasVersion "ArchitectureDiagram" "1.0.0"',
+        command: 'npx @eventcatalog/cli diagramHasVersion "ArchitectureDiagram" "1.0.0"',
       },
     ],
   },
@@ -1574,7 +1574,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Get producers and consumers',
-        command: 'npx @eventcatalog/sdk getProducersAndConsumersForMessage "OrderCreated"',
+        command: 'npx @eventcatalog/cli getProducersAndConsumersForMessage "OrderCreated"',
       },
     ],
   },
@@ -1586,7 +1586,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Get consumers of a schema',
-        command: 'npx @eventcatalog/sdk getConsumersOfSchema "events/OrderCreated/schema.json"',
+        command: 'npx @eventcatalog/cli getConsumersOfSchema "events/OrderCreated/schema.json"',
       },
     ],
   },
@@ -1598,7 +1598,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     examples: [
       {
         description: 'Get producers of a schema',
-        command: 'npx @eventcatalog/sdk getProducersOfSchema "events/OrderCreated/schema.json"',
+        command: 'npx @eventcatalog/cli getProducersOfSchema "events/OrderCreated/schema.json"',
       },
     ],
   },
@@ -1611,7 +1611,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'version', type: 'string', required: false, description: 'Specific version' },
     ],
     examples: [
-      { description: 'Get owners for a resource', command: 'npx @eventcatalog/sdk getOwnersForResource "OrderService"' },
+      { description: 'Get owners for a resource', command: 'npx @eventcatalog/cli getOwnersForResource "OrderService"' },
     ],
   },
 
@@ -1624,8 +1624,8 @@ export const cliFunctions: CLIFunctionDoc[] = [
     category: 'Utilities',
     args: [],
     examples: [
-      { description: 'Dump entire catalog', command: 'npx @eventcatalog/sdk dumpCatalog' },
-      { description: 'Dump and save to file', command: 'npx @eventcatalog/sdk dumpCatalog > catalog.json' },
+      { description: 'Dump entire catalog', command: 'npx @eventcatalog/cli dumpCatalog' },
+      { description: 'Dump and save to file', command: 'npx @eventcatalog/cli dumpCatalog > catalog.json' },
     ],
   },
   {
@@ -1633,7 +1633,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
     description: 'Returns the EventCatalog configuration file',
     category: 'Utilities',
     args: [],
-    examples: [{ description: 'Get config file', command: 'npx @eventcatalog/sdk getEventCatalogConfigurationFile' }],
+    examples: [{ description: 'Get config file', command: 'npx @eventcatalog/cli getEventCatalogConfigurationFile' }],
   },
 ];
 

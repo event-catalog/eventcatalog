@@ -1,0 +1,48 @@
+{
+  "name": "@eventcatalog/cli",
+  "version": "0.1.0",
+  "description": "CLI for EventCatalog",
+  "scripts": {
+    "build": "tsup",
+    "build:bin": "tsup",
+    "test": "vitest --run",
+    "test:ci": "vitest --run",
+    "format": "prettier --write .",
+    "format:diff": "prettier --list-different ."
+  },
+  "bin": {
+    "eventcatalog": "./dist/cli/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "files": [
+    "dist",
+    "package.json"
+  ],
+  "exports": {
+    "./cli-docs": {
+      "types": "./dist/cli-docs.d.ts",
+      "require": "./dist/cli-docs.js",
+      "import": "./dist/cli-docs.mjs"
+    }
+  },
+  "dependencies": {
+    "@eventcatalog/sdk": "workspace:*",
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "prettier": "^3.3.3",
+    "tsup": "^8.1.0",
+    "typescript": "^5.5.3",
+    "vitest": "^3.2.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/event-catalog/eventcatalog"
+  }
+}

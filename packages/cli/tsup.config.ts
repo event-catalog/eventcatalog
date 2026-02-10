@@ -8,7 +8,8 @@ export default defineConfig({
   clean: true,
   dts: true,
   entry: {
-    index: 'src/index.ts',
+    'cli/index': 'src/cli/index.ts',
+    'cli-docs': 'src/cli-docs.ts',
   },
   outDir: 'dist',
   shims: true,
