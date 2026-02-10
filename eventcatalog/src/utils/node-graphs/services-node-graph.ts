@@ -6,9 +6,10 @@ import {
   generatedIdForEdge,
   calculatedNodes,
   createEdge,
+  versionMatches,
 } from '@utils/node-graphs/utils/utils';
 
-import { findMatchingNodes, findInMap, createVersionedMap } from '@utils/collections/util';
+import { findMatchingNodes, findInMap, findAllInMap, createVersionedMap } from '@utils/collections/util';
 import { MarkerType } from '@xyflow/react';
 import type { CollectionMessageTypes } from '@types';
 import { getNodesAndEdgesForConsumedMessage, getNodesAndEdgesForProducedMessage } from './message-node-graph';
@@ -95,11 +96,11 @@ export const getNodesAndEdges = async ({
   const readsFromRaw = service?.data.readsFrom || [];
 
   const receivesHydrated = receivesRaw
-    .map((message) => findInMap(messageMap, message.id, message.version))
+    .flatMap((message) => findAllInMap(messageMap, message.id, message.version))
     .filter((e) => e !== undefined);
 
   const sendsHydrated = sendsRaw
-    .map((message) => findInMap(messageMap, message.id, message.version))
+    .flatMap((message) => findAllInMap(messageMap, message.id, message.version))
     .filter((e) => e !== undefined);
 
   const writesToHydrated = writesToRaw
@@ -110,8 +111,18 @@ export const getNodesAndEdges = async ({
     .map((container) => findInMap(containerMap, container.id, container.version))
     .filter((e) => e !== undefined);
 
-  const receives = (receivesHydrated as CollectionEntry<CollectionMessageTypes>[]) || [];
-  const sends = (sendsHydrated as CollectionEntry<CollectionMessageTypes>[]) || [];
+  const uniqueByIdAndVersion = <T extends { data: { id: string; version?: string } }>(items: T[]) => {
+    const seen = new Set<string>();
+    return items.filter((item) => {
+      const key = `${item.data.id}-${item.data.version ?? ''}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
+  const receives = uniqueByIdAndVersion(receivesHydrated as CollectionEntry<CollectionMessageTypes>[]) || [];
+  const sends = uniqueByIdAndVersion(sendsHydrated as CollectionEntry<CollectionMessageTypes>[]) || [];
   const writesTo = (writesToHydrated as CollectionEntry<'containers'>[]) || [];
   const readsFrom = (readsFromHydrated as CollectionEntry<'containers'>[]) || [];
 
@@ -122,7 +133,9 @@ export const getNodesAndEdges = async ({
   if (renderMessages) {
     // All the messages the service receives
     receives.forEach((receive) => {
-      const targetChannels = receivesRaw.find((receiveRaw) => receiveRaw.id === receive.data.id)?.from;
+      const targetChannels = receivesRaw.find(
+        (receiveRaw) => receiveRaw.id === receive.data.id && versionMatches(receiveRaw.version, receive.data.version)
+      )?.from;
 
       const { nodes: consumedMessageNodes, edges: consumedMessageEdges } = getNodesAndEdgesForConsumedMessage({
         message: receive,
@@ -213,7 +226,9 @@ export const getNodesAndEdges = async ({
 
   if (renderMessages) {
     sends.forEach((send) => {
-      const sourceChannels = sendsRaw.find((sendRaw) => sendRaw.id === send.data.id)?.to;
+      const sourceChannels = sendsRaw.find(
+        (sendRaw) => sendRaw.id === send.data.id && versionMatches(sendRaw.version, send.data.version)
+      )?.to;
 
       const { nodes: producedMessageNodes, edges: producedMessageEdges } = getNodesAndEdgesForProducedMessage({
         message: send,

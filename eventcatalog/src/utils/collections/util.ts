@@ -296,3 +296,88 @@ export const findInMap = <T extends { data: { version?: string } }>(
 
   return undefined;
 };
+
+/**
+ * Finds the latest version item by sorting by semver and returning the newest.
+ */
+const findLatest = <T extends { data: { version?: string } }>(items: T[]): T | undefined => {
+  if (items.length === 0) {
+    return undefined;
+  }
+
+  const sorted = sortVersioned(items, (item) => item.data.version || '0.0.0');
+  return sorted[0];
+};
+
+/**
+ * Lookup helper that returns all matches for a version pattern.
+ * - If version is undefined or 'latest', return only the latest item (sorted by semver).
+ * - If version is exact, return any exact matches.
+ * - If version is a range or x-pattern, return all items that satisfy it.
+ */
+export const findAllInMap = <T extends { data: { version?: string } }>(
+  map: Map<string, T[]>,
+  id: string,
+  version?: string
+): T[] => {
+  const items = map.get(id);
+  if (!items || items.length === 0) {
+    return [];
+  }
+
+  if (!version || version === 'latest') {
+    const latest = findLatest(items);
+    return latest ? [latest] : [];
+  }
+
+  const exactMatches: T[] = [];
+  const patternMatches: T[] = [];
+
+  for (const item of items) {
+    if (item.data.version === version) {
+      exactMatches.push(item);
+    } else if (exactMatches.length === 0 && item.data.version && versionMatches(item.data.version, version)) {
+      patternMatches.push(item);
+    }
+  }
+
+  return exactMatches.length > 0 ? exactMatches : patternMatches;
+};
+
+/**
+ * Matches a specific version against a version range pattern.
+ * Supports exact versions, semver ranges, x-patterns, and 'latest'.
+ *
+ * @param version - The specific version to check (e.g., "1.2.3")
+ * @param rangePattern - The pattern to match against (e.g., "^1.0.0", "1.x", "latest")
+ * @returns true if version matches the rangePattern
+ */
+export const versionMatches = (version: string, rangePattern: string): boolean => {
+  // Handle 'latest' keyword
+  if (rangePattern === 'latest') return true;
+
+  // Try exact match first
+  if (version === rangePattern) return true;
+
+  // Try semver range matching
+  try {
+    if (semver.validRange(rangePattern)) {
+      return semver.satisfies(version, rangePattern);
+    }
+  } catch (error) {
+    // Invalid semver, fall through
+  }
+
+  // Handle x-patterns like 1.x, 1.2.x
+  if (rangePattern.includes('.x')) {
+    const prefix = rangePattern.replace(/\.x/g, '');
+    // Check if version starts with the prefix and has a valid boundary
+    // (next character must be '.' or end of string)
+    if (version.startsWith(prefix)) {
+      const nextChar = version[prefix.length];
+      return nextChar === '.' || nextChar === undefined;
+    }
+  }
+
+  return false;
+};

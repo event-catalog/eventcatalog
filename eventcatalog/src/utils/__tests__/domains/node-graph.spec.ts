@@ -122,8 +122,8 @@ describe('Domains NodeGraph', () => {
 
       // 9 original nodes + 2 from data product (ShippingAnalytics + ShippingMetricsCalculated)
       expect(nodes.length).toEqual(13);
-      // 8 original edges + 2 from data product (input edge + output edge)
-      expect(edges.length).toEqual(12);
+      // 8 original edges + 3 from data product (input edge: OrderPlaced->ShippingAnalytics, output edge: ShippingAnalytics->ShippingMetricsCalculated, producer edge: OrderService->OrderPlaced)
+      expect(edges.length).toEqual(13);
     });
 
     it('should return nodes and edges for data products in a domain', async () => {
@@ -173,6 +173,11 @@ describe('Domains NodeGraph', () => {
 
       expect(dataProductInputEdge).toBeDefined();
       expect(dataProductOutputEdge).toBeDefined();
+
+      // 9 original nodes + 2 from data product (ShippingAnalytics + ShippingMetricsCalculated)
+      expect(nodes.length).toEqual(13);
+      // 8 original edges + 3 from data product (input edge: OrderPlaced->ShippingAnalytics, output edge: ShippingAnalytics->ShippingMetricsCalculated, producer edge: OrderService->OrderPlaced)
+      expect(edges.length).toEqual(13);
     });
 
     // it.only('should return nodes and edges for a given domain with services using semver range or latest version (version undefind)', async () => {

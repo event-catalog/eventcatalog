@@ -6,7 +6,7 @@ import type { CollectionMessageTypes, CollectionTypes } from '@types';
 const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 import utils, { type Domain } from '@eventcatalog/sdk';
 import { getDomains, getDomainsForService } from './domains';
-import { createVersionedMap, findInMap, processSpecifications } from '@utils/collections/util';
+import { createVersionedMap, findInMap, versionMatches, processSpecifications } from '@utils/collections/util';
 
 export type Service = CollectionEntry<'services'>;
 
@@ -150,8 +150,8 @@ export const getProducersOfMessage = (services: Service[], message: CollectionEn
       // If version is 'latest', match any version
       if (send.version === 'latest') return idMatch;
 
-      // Use semver to compare versions
-      return idMatch && semver.satisfies(message.data.version, send.version);
+      // Use versionMatches to support semver ranges and x-patterns
+      return idMatch && versionMatches(message.data.version, send.version);
     });
   });
 };
@@ -161,14 +161,14 @@ export const getConsumersOfMessage = (services: Service[], message: CollectionEn
     return service.data.receives?.some((receive) => {
       const idMatch = receive.id === message.data.id;
 
-      // If no version specified in send, treat as 'latest'
+      // If no version specified in receive, treat as 'latest'
       if (!receive.version) return idMatch;
 
       // If version is 'latest', match any version
       if (receive.version === 'latest') return idMatch;
 
-      // Use semver to compare versions
-      return idMatch && semver.satisfies(message.data.version, receive.version);
+      // Use versionMatches to support semver ranges and x-patterns
+      return idMatch && versionMatches(message.data.version, receive.version);
     });
   });
 };
