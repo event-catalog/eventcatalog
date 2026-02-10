@@ -434,6 +434,52 @@ importers:
         specifier: 3.0.0
         version: 3.0.0
 
+  packages/linter:
+    dependencies:
+      '@eventcatalog/sdk':
+        specifier: workspace:*
+        version: link:../sdk
+      '@types/semver':
+        specifier: ^7.7.0
+        version: 7.7.1
+      chalk:
+        specifier: ^5.6.2
+        version: 5.6.2
+      commander:
+        specifier: ^11.1.0
+        version: 11.1.0
+      fast-glob:
+        specifier: ^3.3.2
+        version: 3.3.3
+      gray-matter:
+        specifier: ^4.0.3
+        version: 4.0.3
+      ora:
+        specifier: ^8.0.1
+        version: 8.2.0
+      semver:
+        specifier: ^7.7.2
+        version: 7.7.3
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.10.5
+        version: 20.19.19
+      prettier:
+        specifier: ^3.3.3
+        version: 3.6.2
+      tsup:
+        specifier: ^8.1.0
+        version: 8.5.0(jiti@1.21.7)(postcss@8.5.6)(typescript@5.9.3)(yaml@2.8.1)
+      typescript:
+        specifier: ^5.3.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@20.19.19)(jiti@1.21.7)(jsdom@27.0.0(postcss@8.5.6))(lightningcss@1.29.3)(terser@5.39.0)(yaml@2.8.1)
+
   packages/sdk:
     dependencies:
       '@changesets/cli':
