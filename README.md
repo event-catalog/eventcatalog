@@ -22,7 +22,7 @@
 
 
 
-<img width="745" alt="EventCatalog" src="./packages/core/images/example.png" />
+<img width="745" alt="EventCatalog" src="./images/example.png" />
 
 <p align="center">
   <br/>
