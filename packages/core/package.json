@@ -6,7 +6,7 @@
     "url": "https://github.com/event-catalog/eventcatalog.git"
   },
   "type": "module",
-  "version": "3.12.6-beta.0",
+  "version": "3.12.6-beta.1",
   "publishConfig": {
     "access": "public"
   },
