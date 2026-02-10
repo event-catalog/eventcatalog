@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "userId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier of the user to subscribe"
+    },
+    "planId": {
+      "type": "string",
+      "description": "Identifier of the subscription plan"
+    },
+    "paymentMethod": {
+      "type": "string",
+      "enum": ["CreditCard", "DebitCard", "BankTransfer", "PayPal"],
+      "description": "The payment method for the subscription"
+    },
+    "startDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the subscription should start"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the command was issued"
+    }
+  },
+  "required": ["userId", "planId", "paymentMethod", "timestamp"]
+}

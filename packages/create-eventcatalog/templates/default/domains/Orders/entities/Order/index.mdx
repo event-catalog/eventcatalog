@@ -1,0 +1,98 @@
+---
+id: Order
+name: Order
+version: 1.0.0
+identifier: orderId
+aggregateRoot: true
+summary: Represents a customer's request to purchase products or services.
+owners:
+  - dboyne
+properties:
+  - name: orderId
+    type: UUID
+    required: true
+    description: Unique identifier for the order
+  - name: orderNumber
+    type: string
+    required: true
+    description: Unique identifier for the order
+  - name: customerId
+    type: UUID
+    required: false
+    description: Identifier for the customer placing the order test
+    references: Customer
+    referencesIdentifier: customerId
+    relationType: hasOne
+  - name: orderDate
+    type: DateTime
+    required: true
+    description: Date and time when the order was placed
+  - name: status
+    type: string
+    required: true
+    description: Current status of the order (e.g., Pending, Processing, Shipped, Delivered, Cancelled)
+    enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled']
+  - name: orderItems
+    type: array
+    items:
+      type: OrderItem # Assuming an OrderItem entity exists
+    required: true
+    references: OrderItem
+    referencesIdentifier: orderItemId
+    relationType: hasMany
+    description: List of items included in the order
+  - name: totalAmount
+    type: decimal
+    required: true
+    description: Total monetary value of the order
+  - name: shippingAddress
+    type: Address
+    required: true
+    description: Address where the order should be shipped
+    references: Address
+    referencesIdentifier: addressId
+    relationType: hasOne
+  - name: billingAddress
+    type: Address
+    required: true
+    description: Address for billing purposes
+    references: Address
+    referencesIdentifier: addressId
+    relationType: hasOne
+  - name: payment
+    type: Payment
+    required: false
+    description: Payment associated with this order
+    references: Payment
+    referencesIdentifier: orderId
+    relationType: hasOne
+  - name: convertedFromCartId
+    type: UUID
+    required: false
+    description: Shopping cart that was converted to this order
+    references: ShoppingCart
+    referencesIdentifier: cartId
+    relationType: hasOne
+---
+
+## Overview
+
+The Order entity captures all details related to a customer's purchase request. It serves as the central aggregate root within the Orders domain, coordinating information about the customer, products ordered, payment, and shipping.
+
+### Entity Properties
+
+<EntityPropertiesTable />
+
+## Relationships
+
+- **Customer:** Each order belongs to one `Customer` (identified by `customerId`).
+- **OrderItem:** An order contains one or more `OrderItem` entities detailing the specific products and quantities.
+- **Address:** Each order has shipping and billing `Address` entities (identified by `shippingAddress` and `billingAddress`).
+- **Payment:** An order is associated with one `Payment` entity for transaction processing.
+- **ShoppingCart:** An order can be converted from a `ShoppingCart` (identified by `convertedFromCartId`).
+- **Shipment:** An order may lead to one or more `Shipment` entities (not detailed here).
+
+## Examples
+
+- **Order #12345:** A customer orders 2 units of Product A and 1 unit of Product B, to be shipped to their home address. Status is 'Processing'.
+- **Order #67890:** A customer places a large order for multiple items, requiring special shipping arrangements. Status is 'Pending' until payment confirmation.

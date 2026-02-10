@@ -1,0 +1,62 @@
+---
+id: OrderItem
+name: OrderItem
+version: 1.0.0
+identifier: orderItemId
+summary: Represents a single item within a customer's order.
+owners:
+  - dboyne
+
+properties:
+  - name: orderItemId
+    type: UUID
+    required: true
+    description: Unique identifier for the order item
+  - name: orderId
+    type: UUID
+    required: true
+    description: Identifier for the parent Order
+    references: Order
+    relationType: hasOne
+  - name: productId
+    type: UUID
+    required: true
+    description: Identifier for the product being ordered
+    references: Product
+    referencesIdentifier: productId
+    relationType: hasOne
+  - name: productName
+    type: string
+    required: false # Often denormalized for performance/display
+    description: Name of the product at the time of order
+  - name: quantity
+    type: integer
+    required: true
+    description: Number of units of the product ordered
+  - name: unitPrice
+    type: decimal
+    required: true
+    description: Price per unit of the product at the time of order
+  - name: totalPrice
+    type: decimal
+    required: true
+    description: Total price for this item line (quantity * unitPrice)
+---
+
+## Overview
+
+The OrderItem entity details a specific product and its quantity requested within an `Order`. It holds information about the product, the quantity ordered, and the price calculation for that line item. OrderItems are part of the `Order` aggregate.
+
+### Entity Properties
+
+<EntityPropertiesTable />
+
+## Relationships
+
+- **Order:** Each `OrderItem` belongs to exactly one `Order` (identified by `orderId`). It is a constituent part of the Order aggregate.
+- **Product:** Each `OrderItem` refers to one `Product` (identified by `productId`).
+
+## Examples
+
+- **OrderItem A (for Order #12345):** Product ID: P001, Quantity: 2, Unit Price: $50.00, Total Price: $100.00
+- **OrderItem B (for Order #12345):** Product ID: P002, Quantity: 1, Unit Price: $75.00, Total Price: $75.00

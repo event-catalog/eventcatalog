@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Order",
+  "description": "A schema representing an order placed by a customer",
+  "type": "object",
+  "properties": {
+    "orderId": {
+      "description": "Unique identifier for the order",
+      "type": "string"
+    },
+    "customer": {
+      "description": "Information about the customer placing the order",
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "description": "Unique identifier for the customer",
+          "type": "string"
+        },
+        "name": {
+          "description": "Name of the customer",
+          "type": "string"
+        },
+        "email": {
+          "description": "Email address of the customer",
+          "type": "string",
+          "format": "email"
+        },
+        "phone": {
+          "description": "Phone number of the customer",
+          "type": "string",
+          "pattern": "^[+]?[0-9]{10,15}$"
+        }
+      },
+      "required": ["customerId", "name", "email"]
+    },
+    "items": {
+      "description": "List of items in the order",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "description": "Unique identifier for the item",
+            "type": "string"
+          },
+          "name": {
+            "description": "Name of the item",
+            "type": "string"
+          },
+          "quantity": {
+            "description": "Quantity of the item ordered",
+            "type": "integer",
+            "minimum": 1
+          },
+          "price": {
+            "description": "Price per unit of the item",
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": ["itemId", "name", "quantity", "price"]
+      }
+    },
+    "shippingAddress": {
+      "description": "Address where the order will be shipped",
+      "type": "object",
+      "properties": {
+        "street": {
+          "description": "Street address",
+          "type": "string"
+        },
+        "city": {
+          "description": "City",
+          "type": "string"
+        },
+        "state": {
+          "description": "State or province",
+          "type": "string"
+        },
+        "zip": {
+          "description": "ZIP or postal code",
+          "type": "string"
+        },
+        "country": {
+          "description": "Country",
+          "type": "string"
+        }
+      },
+      "required": ["street", "city", "state", "zip", "country"]
+    },
+    "payment": {
+      "description": "Payment information for the order",
+      "type": "object",
+      "properties": {
+        "paymentMethod": {
+          "description": "Payment method used",
+          "type": "string",
+          "enum": ["Credit Card", "PayPal", "Bank Transfer"]
+        },
+        "transactionId": {
+          "description": "Transaction ID for the payment",
+          "type": "string"
+        },
+        "amount": {
+          "description": "Total amount paid",
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": ["paymentMethod", "transactionId", "amount"]
+    },
+    "orderDate": {
+      "description": "Date when the order was placed",
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "description": "Current status of the order",
+      "type": "string",
+      "enum": ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"]
+    }
+  },
+  "required": ["orderId", "customer", "items", "shippingAddress", "payment", "orderDate", "status"]
+}

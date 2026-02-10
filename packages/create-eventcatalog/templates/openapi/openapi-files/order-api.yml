@@ -1,0 +1,148 @@
+openapi: 3.0.0
+info:
+  title: Order API
+  description: API for managing orders in the shopping application.
+  version: 1.0.0
+servers:
+  - url: https://api.yourshoppingapp.com/orders
+    description: Order API Server
+paths:
+  /:
+    get:
+      summary: Get list of orders
+      description: Retrieve a list of all orders made by the user.
+      x-eventcatalog-message-type: query
+      operationId: listOrders
+      responses:
+        '200':
+          description: A list of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /{orderId}:
+    get:
+      summary: Get order by ID
+      description: Retrieve details of a specific order.
+      operationId: getOrderById
+      x-eventcatalog-message-type: query
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Update order status
+      description: Update the status of an order (e.g., cancel).
+      x-eventcatalog-message-type: command
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Updated order status
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, shipped, delivered, canceled]
+      responses:
+        '200':
+          description: Order status updated
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        status:
+          type: string
+          enum: [pending, shipped, delivered, canceled]
+        totalAmount:
+          type: number
+          format: float
+      required:
+        - id
+        - items
+        - status
+        - totalAmount
+    CartItem:
+      type: object
+      properties:
+        productId:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+          format: float
+      required:
+        - productId
+        - name
+        - quantity
+        - price
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Error code representing the issue
+        message:
+          type: string
+          description: A description of the error
+      required:
+        - code
+        - message

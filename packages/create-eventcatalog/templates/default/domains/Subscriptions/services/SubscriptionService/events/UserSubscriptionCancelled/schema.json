@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "subscriptionId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier of the cancelled subscription"
+    },
+    "userId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier of the user"
+    },
+    "planId": {
+      "type": "string",
+      "description": "Identifier of the subscription plan"
+    },
+    "cancellationReason": {
+      "type": "string",
+      "description": "Reason for the cancellation"
+    },
+    "effectiveDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the cancellation takes effect"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the cancellation event occurred"
+    }
+  },
+  "required": ["subscriptionId", "userId", "timestamp"]
+}

@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "transactionId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the transaction"
+    },
+    "userId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier of the user"
+    },
+    "orderId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier of the associated order"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Payment amount processed"
+    },
+    "paymentMethod": {
+      "type": "string",
+      "enum": ["CreditCard", "DebitCard", "BankTransfer", "PayPal"],
+      "description": "The payment method used"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["confirmed", "pending", "failed"],
+      "description": "Status of the payment"
+    },
+    "confirmationDetails": {
+      "type": "object",
+      "properties": {
+        "gatewayResponse": {
+          "type": "string",
+          "description": "Response from the payment gateway"
+        },
+        "transactionId": {
+          "type": "string",
+          "description": "Gateway transaction identifier"
+        }
+      }
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the payment was processed"
+    }
+  },
+  "required": ["transactionId", "userId", "orderId", "amount", "status", "timestamp"]
+}

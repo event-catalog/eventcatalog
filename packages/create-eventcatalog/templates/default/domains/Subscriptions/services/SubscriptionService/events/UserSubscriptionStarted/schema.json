@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "subscriptionId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier of the new subscription"
+    },
+    "userId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier of the subscribed user"
+    },
+    "planId": {
+      "type": "string",
+      "description": "Identifier of the subscription plan"
+    },
+    "startDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the subscription started"
+    },
+    "billingCycle": {
+      "type": "string",
+      "enum": ["monthly", "quarterly", "yearly"],
+      "description": "The billing cycle for the subscription"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the subscription started event occurred"
+    }
+  },
+  "required": ["subscriptionId", "userId", "planId", "startDate", "timestamp"]
+}

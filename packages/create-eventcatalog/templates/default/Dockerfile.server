@@ -1,0 +1,23 @@
+# Use this Docker file if your EventCatalog output is set to `server`.
+# When EventCatalog output is set to `server`, the output will be a node server.
+# This server is required for certain features like the EventCatalog Chat (with your own keys).
+
+FROM node:lts AS runtime
+WORKDIR /app
+
+# Install dependencies
+COPY package.json package-lock.json ./
+RUN npm install
+
+COPY . .
+
+# Fix for Astro in Docker: https://github.com/withastro/astro/issues/2596
+ENV NODE_OPTIONS=--max_old_space_size=2048
+RUN npm run build
+
+ENV HOST=0.0.0.0
+ENV PORT=3000
+EXPOSE 3000
+
+# Start the server
+CMD npm run start

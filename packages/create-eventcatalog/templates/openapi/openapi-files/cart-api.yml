@@ -1,0 +1,107 @@
+openapi: 3.0.0
+info:
+  title: Cart API
+  description: API for managing shopping cart operations.
+  version: 1.0.0
+servers:
+  - url: https://api.yourshoppingapp.com/cart
+    description: Cart API Server
+paths:
+  /:
+    get:
+      summary: Retrieve shopping cart
+      description: Get the contents of the user's shopping cart.
+      x-eventcatalog-message-type: query
+      operationId: getCart
+      responses:
+        '200':
+          description: Shopping cart details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+    post:
+      summary: Add item to cart
+      description: Add a product to the shopping cart.
+      x-eventcatalog-message-type: command
+      requestBody:
+        description: Product information to add to the cart.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItem'
+      responses:
+        '201':
+          description: Product added to cart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+  /{productId}:
+    patch:
+      summary: Update item quantity
+      description: Update the quantity of an item in the cart.
+      x-eventcatalog-message-type: command
+      operationId: updateCartItem
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Updated quantity
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+      responses:
+        '200':
+          description: Quantity updated
+        '404':
+          description: Product not found in cart
+    delete:
+      summary: Remove item from cart
+      description: Remove a product from the shopping cart.
+      x-eventcatalog-message-type: command
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Product removed from cart
+components:
+  schemas:
+    Cart:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+    CartItem:
+      type: object
+      properties:
+        productId:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+          format: float
+      required:
+        - productId
+        - name
+        - quantity
+        - price

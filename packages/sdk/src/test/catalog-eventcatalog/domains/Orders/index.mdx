@@ -1,0 +1,112 @@
+---
+id: Orders
+name: Orders
+version: 0.0.3
+owners:
+  - dboyne
+  - full-stack
+services:
+  - id: InventoryService
+  - id: OrdersService
+  - id: NotificationService
+  - id: ShippingService
+badges:
+  - content: New domain
+    backgroundColor: blue
+    textColor: blue
+    icon: MoonIcon
+
+resourceGroups:
+  - id: related-resources
+    title: Core resources
+    items:
+      - id: InventoryService
+        type: service
+      - id: OrdersService
+        type: service
+      - id: NotificationService
+        type: service
+      - id: ShippingService
+        type: service
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+:::warning
+
+Please ensure all services are **updated** to the latest version for compatibility and performance improvements.
+:::
+
+The Orders domain handles all operations related to customer orders, from creation to fulfillment. This documentation provides an overview of the events and services involved in the Orders domain, helping developers and stakeholders understand the event-driven architecture
+
+<Tiles>
+  <Tile
+    icon="UserGroupIcon"
+    href="/docs/teams/full-stack"
+    title="Contact the team"
+    description="Any questions? Feel free to contact the owners"
+  />
+  <Tile
+    icon="RectangleGroupIcon"
+    href={`/visualiser/domains/${frontmatter.id}/${frontmatter.version}`}
+    title={`${frontmatter.services.length} services are in this domain`}
+    description="This service sends messages to downstream consumers"
+  />
+</Tiles>
+
+## Target architecture for the Orders domain (Event Storming Session)
+
+Result of the event storming session for the Orders domain. This is our target architecture for the domain.
+
+<Miro boardId="uXjVIHCImos=/" moveToWidget="3074457347671667709" edit={false} />
+
+## Current Architecture
+
+This is our current architecture for the Orders domain.
+
+<NodeGraph />
+
+<MessageTable format="all" limit={4} showChannels={true} title="Messages in/out of the domain" />
+
+### Order example (sequence diagram)
+
+```mermaid
+sequenceDiagram
+    participant Customer
+    participant OrdersService
+    participant InventoryService
+    participant NotificationService
+
+    Customer->>OrdersService: Place Order
+    OrdersService->>InventoryService: Check Inventory
+    InventoryService-->>OrdersService: Inventory Available
+    OrdersService->>InventoryService: Reserve Inventory
+    OrdersService->>NotificationService: Send Order Confirmation
+    NotificationService-->>Customer: Order Confirmation
+    OrdersService->>Customer: Order Placed Successfully
+    OrdersService->>InventoryService: Update Inventory
+```
+
+## Flows
+
+### Cancel Subscription flow
+
+Documented flow when a user cancels their subscription.
+
+<Flow id="CancelSubscription" version="latest" includeKey={false} />
+
+### Payment processing flow
+
+Documented flow when a user makes a payment within the order domain
+
+<Flow id="PaymentFlow" version="latest" includeKey={false} />
+
+<ResourceGroupTable
+  id="related-resources"
+  limit={4}
+  showOwners={true}
+  title="Core resources for the Orders domain"
+  description="Resources that are related to the Orders domain, you may find them useful"
+/>
+
+<Footer />

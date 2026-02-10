@@ -1,0 +1,44 @@
+UserSignedUp:
+  name: UserSignedUp
+  title: User signup
+  summary: Action to sign a user up.
+  description: A longer description of the signup process
+  contentType: application/json
+  payload:
+    type: object
+    properties:
+      fullName:
+        description: 'The full name of the user.'
+        type: string
+        example: 'John Doe'
+      email:
+        description: "User's email address."
+        type: string
+        format: email
+        example: 'john.doe@example.com'
+      password:
+        description: "User's account password."
+        type: string
+        format: password
+        minLength: 8
+        example: 'password123'
+      dateOfBirth:
+        description: "User's date of birth."
+        type: string
+        format: date
+        example: '1990-01-01'
+      phoneNumber:
+        description: "User's phone number (optional)."
+        type: string
+        pattern: "^\\+?[1-9]\\d{1,14}$"
+        example: '+1234567890'
+      termsAccepted:
+        description: 'Whether the user has accepted the terms and conditions.'
+        type: boolean
+        example: true
+    required:
+      - fullName
+      - email
+      - password
+      - termsAccepted
+    additionalProperties: false

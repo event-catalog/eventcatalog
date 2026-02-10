@@ -1,0 +1,73 @@
+---
+id: ProductCatalog
+name: Product Catalog
+version: 0.0.1
+summary: Manages product information, categories, inventory, and customer reviews in the e-commerce system.
+owners:
+  - dboyne
+entities:
+  - id: Product
+  - id: Category
+  - id: Inventory
+  - id: Review
+services:
+  - id: InventoryService
+---
+
+## Overview
+
+The Product Catalog subdomain is responsible for managing all product-related information in the e-commerce system. This includes product details, hierarchical categorization, inventory tracking, and customer reviews.
+
+### Architecture for the Product Catalog domain
+
+<NodeGraph />
+
+### Entity Map
+
+A visualization of the entities in the Product Catalog domain. Here you can see the relationships between the entities and how they are used in the domain.
+
+<EntityMap id="ProductCatalog" />
+
+## Core Responsibilities
+
+### Product Management
+
+- Maintain product information including pricing, descriptions, and specifications
+- Support product variants (size, color, style)
+- Handle product lifecycle (active, discontinued, draft)
+- Manage product relationships and cross-selling
+
+### Category Management
+
+- Organize products into hierarchical categories
+- Support multi-level category structures
+- Maintain category metadata and SEO information
+- Handle category navigation and filtering
+
+### Inventory Management
+
+- Track stock levels and availability
+- Manage reorder points and stock alerts
+- Handle inventory reservations and allocations
+- Support warehouse and location management
+
+### Review Management
+
+- Collect and manage customer product reviews
+- Calculate review metrics and ratings
+- Moderate review content
+- Support review helpfulness and responses
+
+## Key Entities
+
+- **Product**: Central aggregate containing all product information
+- **Category**: Hierarchical product categorization system
+- **Inventory**: Stock tracking and availability management
+- **Review**: Customer feedback and rating system
+
+## Business Rules
+
+- Products must belong to an active category
+- Inventory levels affect product availability
+- Reviews require verified purchases
+- Category hierarchies have maximum depth limits

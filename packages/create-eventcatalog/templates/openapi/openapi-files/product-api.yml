@@ -1,0 +1,68 @@
+openapi: 3.0.0
+info:
+  title: Product API
+  description: API for managing and retrieving product details in the shopping application.
+  version: 1.0.0
+servers:
+  - url: https://api.yourshoppingapp.com/products
+    description: Product API Server
+paths:
+  /:
+    get:
+      summary: List all products
+      description: Retrieve a list of all available products.
+      x-eventcatalog-message-type: query
+      operationId: listProducts
+      responses:
+        '200':
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+  /{productId}:
+    get:
+      summary: Get a product by ID
+      description: Retrieve details of a specific product by its ID.
+      x-eventcatalog-message-type: query
+      operationId: getProductById
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A single product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Product not found
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        category:
+          type: string
+        imageUrl:
+          type: string
+      required:
+        - id
+        - name
+        - price
+        - category

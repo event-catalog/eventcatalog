@@ -1,0 +1,272 @@
+asyncapi: 3.0.0
+info:
+  title: Orders Service
+  version: 1.0.1
+  description: This service is in charge of processing orders
+
+operations:
+  sendOrderCreated:
+    action: send
+    channel:
+      $ref: '#/channels/orderCreated'
+    messages:
+      - $ref: '#/channels/orderCreated/messages/OrderCreated'
+
+  sendOrderUpdated:
+    action: send
+    channel:
+      $ref: '#/channels/orderUpdated'
+    messages:
+      - $ref: '#/channels/orderUpdated/messages/OrderUpdated'
+
+  sendOrderCancelled:
+    action: send
+    channel:
+      $ref: '#/channels/orderCancelled'
+    messages:
+      - $ref: '#/channels/orderCancelled/messages/OrderCancelled'
+
+  sendOrderCompleted:
+    action: send
+    channel:
+      $ref: '#/channels/orderCompleted'
+    messages:
+      - $ref: '#/channels/orderCompleted/messages/OrderCompleted'
+
+  receivePaymentProcessed:
+    action: receive
+    channel:
+      $ref: '#/channels/paymentProcessed'
+    messages:
+      - $ref: '#/channels/paymentProcessed/messages/PaymentProcessed'
+
+  receiveInventoryReserved:
+    action: receive
+    channel:
+      $ref: '#/channels/inventoryReserved'
+    messages:
+      - $ref: '#/channels/inventoryReserved/messages/InventoryReserved'
+
+  receiveShipmentDelivered:
+    action: receive
+    channel:
+      $ref: '#/channels/shipmentDelivered'
+    messages:
+      - $ref: '#/channels/shipmentDelivered/messages/ShipmentDelivered'
+
+channels:
+  orderCreated:
+    address: order/created
+    messages:
+      OrderCreated:
+        $ref: '#/components/messages/OrderCreated'
+
+  orderUpdated:
+    address: order/updated
+    messages:
+      OrderUpdated:
+        $ref: '#/components/messages/OrderUpdated'
+
+  orderCancelled:
+    address: order/cancelled
+    messages:
+      OrderCancelled:
+        $ref: '#/components/messages/OrderCancelled'
+
+  orderCompleted:
+    address: order/completed
+    messages:
+      OrderCompleted:
+        $ref: '#/components/messages/OrderCompleted'
+
+  paymentProcessed:
+    address: payment/processed
+    messages:
+      PaymentProcessed:
+        $ref: '#/components/messages/PaymentProcessed'
+
+  inventoryReserved:
+    address: inventory/reserved
+    messages:
+      InventoryReserved:
+        $ref: '#/components/messages/InventoryReserved'
+
+  shipmentDelivered:
+    address: shipment/delivered
+    messages:
+      ShipmentDelivered:
+        $ref: '#/components/messages/ShipmentDelivered'
+
+components:
+  messages:
+    OrderCreated:
+      description: 'Event triggered when an order is created'
+      x-eventcatalog-message-type: event
+      headers:
+        type: object
+        properties:
+          ec-message-type:
+            type: string
+            default: event
+            description: Type of message for EventCatalog
+      payload:
+        type: object
+        properties:
+          orderId:
+            type: string
+            description: Unique identifier for the order
+          userId:
+            type: string
+            description: Unique identifier for the user who placed the order
+          totalAmount:
+            type: number
+            format: float
+            description: Total amount of the order
+          items:
+            type: array
+            description: List of items in the order
+            items:
+              type: object
+              properties:
+                itemId:
+                  type: string
+                  description: Unique identifier for the item
+                quantity:
+                  type: integer
+                  description: Quantity of the item ordered
+                price:
+                  type: number
+                  format: float
+                  description: Price of the item
+
+    OrderUpdated:
+      description: 'Event triggered when an order is updated'
+      x-eventcatalog-message-type: event
+      headers:
+        type: object
+        properties:
+          ec-message-type:
+            type: string
+            default: event
+            description: Type of message for EventCatalog
+      payload:
+        type: object
+        properties:
+          orderId:
+            type: string
+            description: Unique identifier for the order
+          updatedFields:
+            type: object
+            description: Fields that were updated in the order
+            additionalProperties: true
+
+    OrderCancelled:
+      description: 'Event triggered when an order is cancelled'
+      x-eventcatalog-message-type: event
+      headers:
+        type: object
+        properties:
+          ec-message-type:
+            type: string
+            default: event
+            description: Type of message for EventCatalog
+      payload:
+        type: object
+        properties:
+          orderId:
+            type: string
+            description: Unique identifier for the order
+          reason:
+            type: string
+            description: Reason for the order cancellation
+
+    OrderCompleted:
+      description: 'Event triggered when an order is completed'
+      x-eventcatalog-message-type: event
+      headers:
+        type: object
+        properties:
+          ec-message-type:
+            type: string
+            default: event
+            description: Type of message for EventCatalog
+      payload:
+        type: object
+        properties:
+          orderId:
+            type: string
+            description: Unique identifier for the order
+          completionTime:
+            type: string
+            format: date-time
+            description: Time when the order was completed
+
+    PaymentProcessed:
+      description: 'Event triggered when a payment is processed'
+      x-eventcatalog-message-type: event
+      headers:
+        type: object
+        properties:
+          ec-message-type:
+            type: string
+            default: event
+            description: Type of message for EventCatalog
+      payload:
+        type: object
+        properties:
+          orderId:
+            type: string
+            description: Unique identifier for the order
+          paymentId:
+            type: string
+            description: Unique identifier for the payment
+          status:
+            type: string
+            description: Status of the payment
+
+    InventoryReserved:
+      description: 'Event triggered when inventory is reserved for an order'
+      x-eventcatalog-message-type: event
+      headers:
+        type: object
+        properties:
+          ec-message-type:
+            type: string
+            default: event
+            description: Type of message for EventCatalog
+      payload:
+        type: object
+        properties:
+          orderId:
+            type: string
+            description: Unique identifier for the order
+          reservationId:
+            type: string
+            description: Unique identifier for the inventory reservation
+          status:
+            type: string
+            description: Status of the inventory reservation
+
+    ShipmentDelivered:
+      description: 'Event triggered when a shipment is delivered'
+      x-eventcatalog-message-type: event
+      headers:
+        type: object
+        properties:
+          ec-message-type:
+            type: string
+            default: event
+            description: Type of message for EventCatalog
+      payload:
+        type: object
+        properties:
+          orderId:
+            type: string
+            description: Unique identifier for the order
+          shipmentId:
+            type: string
+            description: Unique identifier for the shipment
+          deliveryTime:
+            type: string
+            format: date-time
+            description: Time when the shipment was delivered

@@ -1,0 +1,245 @@
+asyncapi: 3.0.0
+info:
+  title: Payments Service
+  version: 1.0.2
+  description: This service handles the payment processing for various transactions.
+
+operations:
+  sendPaymentInitiated:
+    action: send
+    channel:
+      $ref: '#/channels/paymentInitiated'
+    messages:
+      - $ref: '#/channels/paymentInitiated/messages/PaymentInitiated'
+
+  sendPaymentConfirmed:
+    action: send
+    channel:
+      $ref: '#/channels/paymentConfirmed'
+    messages:
+      - $ref: '#/channels/paymentConfirmed/messages/PaymentConfirmed'
+
+  sendPaymentFailed:
+    action: send
+    channel:
+      $ref: '#/channels/paymentFailed'
+    messages:
+      - $ref: '#/channels/paymentFailed/messages/PaymentFailed'
+
+  sendRefundInitiated:
+    action: send
+    channel:
+      $ref: '#/channels/refundInitiated'
+    messages:
+      - $ref: '#/channels/refundInitiated/messages/RefundInitiated'
+
+  sendRefundCompleted:
+    action: send
+    channel:
+      $ref: '#/channels/refundCompleted'
+    messages:
+      - $ref: '#/channels/refundCompleted/messages/RefundCompleted'
+
+  receiveTransactionVerified:
+    action: receive
+    channel:
+      $ref: '#/channels/transactionVerified'
+    messages:
+      - $ref: '#/channels/transactionVerified/messages/TransactionVerified'
+
+channels:
+  paymentInitiated:
+    address: payment/initiated
+    messages:
+      PaymentInitiated:
+        $ref: '#/components/messages/PaymentInitiated'
+
+  paymentConfirmed:
+    address: payment/confirmed
+    messages:
+      PaymentConfirmed:
+        $ref: '#/components/messages/PaymentConfirmed'
+
+  paymentFailed:
+    address: payment/failed
+    messages:
+      PaymentFailed:
+        $ref: '#/components/messages/PaymentFailed'
+
+  refundInitiated:
+    address: refund/initiated
+    messages:
+      RefundInitiated:
+        $ref: '#/components/messages/RefundInitiated'
+
+  refundCompleted:
+    address: refund/completed
+    messages:
+      RefundCompleted:
+        $ref: '#/components/messages/RefundCompleted'
+
+  transactionVerified:
+    address: transaction/verified
+    messages:
+      TransactionVerified:
+        $ref: '#/components/messages/TransactionVerified'
+
+components:
+  messages:
+    PaymentInitiated:
+      description: 'Event triggered when a payment is initiated'
+      x-eventcatalog-message-type: event
+      headers:
+        type: object
+        properties:
+          ec-message-type:
+            type: string
+            default: event
+            description: Type of message for EventCatalog
+      payload:
+        type: object
+        properties:
+          paymentId:
+            type: string
+            description: Unique identifier for the payment
+          orderId:
+            type: string
+            description: Unique identifier for the related order
+          amount:
+            type: number
+            format: float
+            description: Amount to be paid
+          currency:
+            type: string
+            description: Currency in which the payment is made
+
+    PaymentConfirmed:
+      description: 'Event triggered when a payment is confirmed'
+      x-eventcatalog-message-type: event
+      headers:
+        type: object
+        properties:
+          ec-message-type:
+            type: string
+            default: event
+            description: Type of message for EventCatalog
+      payload:
+        type: object
+        properties:
+          paymentId:
+            type: string
+            description: Unique identifier for the payment
+          orderId:
+            type: string
+            description: Unique identifier for the related order
+          confirmationTime:
+            type: string
+            format: date-time
+            description: Time when the payment was confirmed
+          status:
+            type: string
+            description: Status of the payment confirmation
+
+    PaymentFailed:
+      description: 'Event triggered when a payment fails'
+      x-eventcatalog-message-type: event
+      headers:
+        type: object
+        properties:
+          ec-message-type:
+            type: string
+            default: event
+            description: Type of message for EventCatalog
+      payload:
+        type: object
+        properties:
+          paymentId:
+            type: string
+            description: Unique identifier for the payment
+          orderId:
+            type: string
+            description: Unique identifier for the related order
+          failureReason:
+            type: string
+            description: Reason for the payment failure
+
+    RefundInitiated:
+      description: 'Event triggered when a refund is initiated'
+      x-eventcatalog-message-type: event
+      headers:
+        type: object
+        properties:
+          ec-message-type:
+            type: string
+            default: event
+            description: Type of message for EventCatalog
+      payload:
+        type: object
+        properties:
+          refundId:
+            type: string
+            description: Unique identifier for the refund
+          paymentId:
+            type: string
+            description: Unique identifier for the related payment
+          amount:
+            type: number
+            format: float
+            description: Amount to be refunded
+          currency:
+            type: string
+            description: Currency in which the refund is made
+          createdAt:
+            type: string
+            description: ISO Date String of when the refund was initiated
+
+    RefundCompleted:
+      description: 'Event triggered when a refund is completed'
+      x-eventcatalog-message-type: event
+      headers:
+        type: object
+        properties:
+          ec-message-type:
+            type: string
+            default: event
+            description: Type of message for EventCatalog
+      payload:
+        type: object
+        properties:
+          refundId:
+            type: string
+            description: Unique identifier for the refund
+          paymentId:
+            type: string
+            description: Unique identifier for the related payment
+          completionTime:
+            type: string
+            format: date-time
+            description: Time when the refund was completed
+          status:
+            type: string
+            description: Status of the refund process
+
+    TransactionVerified:
+      description: 'Command triggered when a transaction is verified'
+      x-eventcatalog-message-type: command
+      headers:
+        type: object
+        properties:
+          ec-message-type:
+            type: string
+            default: command
+            description: Type of message for EventCatalog
+      payload:
+        type: object
+        properties:
+          transactionId:
+            type: string
+            description: Unique identifier for the transaction
+          verificationTime:
+            type: string
+            format: date-time
+            description: Time when the transaction was verified
+          status:
+            type: string
+            description: Verification status of the transaction

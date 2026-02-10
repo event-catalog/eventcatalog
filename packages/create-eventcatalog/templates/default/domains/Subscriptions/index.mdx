@@ -1,0 +1,35 @@
+---
+id: Subscription
+name: Subscription
+version: 0.0.1
+summary: |
+  Domain that contains subscription related services and messages.
+owners:
+  - dboyne
+services:
+  - id: BillingService
+    version: 0.0.1
+  - id: PlanManagementService
+    version: 0.0.1
+entities:
+  - id: BillingProfile
+  - id: SubscriptionPeriod
+badges:
+  - content: Payment Domain
+    backgroundColor: blue
+    textColor: blue
+---
+
+## Overview
+
+The Payment Domain encompasses all services and components related to handling financial transactions within the system. It is responsible for managing payments, transactions, billing, and financial records. The domain ensures secure, reliable, and efficient processing of all payment-related activities
+
+### Architecture for the Subscription domain
+
+<NodeGraph />
+
+### Entity Map
+
+A visualization of the entities in the Subscription domain. Here you can see the relationships between the entities and how they are used in the domain.
+
+<EntityMap id="Subscription" />

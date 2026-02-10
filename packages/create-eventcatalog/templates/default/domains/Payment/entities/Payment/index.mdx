@@ -1,0 +1,140 @@
+---
+id: Payment
+name: Payment
+version: 1.0.0
+identifier: paymentId
+aggregateRoot: true
+summary: Represents payment transactions for orders in the e-commerce system.
+owners:
+  - dboyne
+properties:
+  - name: paymentId
+    type: UUID
+    required: true
+    description: Unique identifier for the payment
+  - name: orderId
+    type: UUID
+    required: true
+    description: Order this payment is associated with
+    references: Order
+    referencesIdentifier: orderId
+    relationType: hasOne
+  - name: customerId
+    type: UUID
+    required: true
+    description: Customer who made the payment
+    references: Customer
+    referencesIdentifier: customerId
+    relationType: hasOne
+  - name: amount
+    type: decimal
+    required: true
+    description: Payment amount
+  - name: currency
+    type: string
+    required: true
+    description: Currency code (e.g., USD, EUR, GBP)
+  - name: paymentMethod
+    type: string
+    required: true
+    description: Payment method used
+    enum: ['credit_card', 'debit_card', 'paypal', 'stripe', 'bank_transfer', 'apple_pay', 'google_pay']
+  - name: paymentMethodDetails
+    type: object
+    required: false
+    description: Additional payment method specific details
+    properties:
+      - name: cardLast4
+        type: string
+        description: Last 4 digits of card number
+      - name: cardType
+        type: string
+        description: Card type (Visa, MasterCard, etc.)
+      - name: expiryMonth
+        type: integer
+        description: Card expiry month
+      - name: expiryYear
+        type: integer
+        description: Card expiry year
+  - name: status
+    type: string
+    required: true
+    description: Current payment status
+    enum: ['pending', 'processing', 'completed', 'failed', 'cancelled', 'refunded', 'partially_refunded']
+  - name: transactionId
+    type: string
+    required: false
+    description: External payment processor transaction ID
+  - name: gatewayResponse
+    type: object
+    required: false
+    description: Raw response from payment gateway
+  - name: billingAddress
+    type: Address
+    required: true
+    description: Billing address for the payment
+    references: Address
+    referencesIdentifier: addressId
+    relationType: hasOne
+  - name: processedAt
+    type: DateTime
+    required: false
+    description: Date and time when payment was processed
+  - name: failureReason
+    type: string
+    required: false
+    description: Reason for payment failure if applicable
+  - name: refunds
+    type: array
+    items:
+      type: PaymentRefund
+    required: false
+    description: Refunds associated with this payment
+  - name: createdAt
+    type: DateTime
+    required: true
+    description: Date and time when the payment record was created
+  - name: updatedAt
+    type: DateTime
+    required: false
+    description: Date and time when the payment record was last updated
+---
+
+## Overview
+
+The Payment entity manages all payment transactions in the e-commerce system. It tracks payment details, status, and relationships with orders and customers, supporting various payment methods and refund scenarios.
+
+### Entity Properties
+
+<EntityPropertiesTable />
+
+## Relationships
+
+- **Order:** Each payment belongs to one `Order` (identified by `orderId`).
+- **Customer:** Each payment is made by one `Customer` (identified by `customerId`).
+- **Address:** Each payment has a billing `Address` (identified by `billingAddress`).
+- **PaymentRefund:** A payment can have multiple `PaymentRefund` entities for partial or full refunds.
+
+## Payment States
+
+```
+pending → processing → completed
+    ↓         ↓           ↓
+cancelled  failed    refunded/partially_refunded
+```
+
+## Examples
+
+- **Payment #1:** $299.99 credit card payment for Order #12345, completed successfully.
+- **Payment #2:** $150.00 PayPal payment for Order #67890, failed due to insufficient funds.
+- **Payment #3:** $500.00 bank transfer, completed with $50.00 partial refund.
+
+## Business Rules
+
+- Payment amount must match the order total
+- Payment status transitions must follow valid state machine
+- Failed payments should include failure reason
+- Completed payments cannot be cancelled
+- Refunds cannot exceed the original payment amount
+- Payment method details are encrypted and PCI compliant
+- Transaction IDs from payment gateways must be stored for reconciliation

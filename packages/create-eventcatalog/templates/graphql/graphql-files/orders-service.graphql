@@ -1,0 +1,76 @@
+type Query {
+  """
+  Fetch a user by their unique ID
+  """
+  getUser(id: ID!): User
+  """
+  Retrieve all users from the system
+  """
+  getUsers: [User!]!
+  """
+  Get user profile information by user ID
+  """
+  getProfile(userId: ID!): Profile
+}
+
+type Mutation {
+  """
+  Create a new user account
+  """
+  createUser(input: CreateUserInput!): User
+  """
+  Update an existing user's information
+  """
+  updateUser(id: ID!, input: UpdateUserInput!): User
+  """
+  Delete a user from the system
+  """
+  deleteUser(id: ID!): Boolean
+  """
+  Update user profile details
+  """
+  updateProfile(userId: ID!, input: UpdateProfileInput!): Profile
+}
+
+type Subscription {
+  """
+  Subscribe to user creation events
+  """
+  userCreated: User
+  """
+  Subscribe to user update events
+  """
+  userUpdated: User
+  """
+  Triggered when a user is deleted
+  """
+  userDeleted: ID
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  profile: Profile
+}
+
+type Profile {
+  id: ID!
+  bio: String
+  avatar: String
+}
+
+input CreateUserInput {
+  name: String!
+  email: String!
+}
+
+input UpdateUserInput {
+  name: String
+  email: String
+}
+
+input UpdateProfileInput {
+  bio: String
+  avatar: String
+}
