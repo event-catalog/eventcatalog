@@ -9,7 +9,7 @@ const args = process.argv.slice(2);
 const catalog = args[0] || 'default';
 
 const catalogDir = join(__dirname, '../eventcatalog/');
-const projectDIR = join(__dirname, `../examples/${catalog}`);
+const projectDIR = join(__dirname, `../../../examples/${catalog}`);
 
 // Build cli
 execSync('pnpm run build:bin', { stdio: 'inherit' });
