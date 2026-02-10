@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.12.5
+
+### Patch Changes
+
+- 6bd6369: Remove unused dependencies: @eventcatalog/generator-ai, @tanstack/react-query, date-fns, rehype-raw, tw-animate-css, @playwright/test
+
 ## 3.12.4
 
 ### Patch Changes
