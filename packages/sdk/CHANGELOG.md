@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.13.0-beta.0
+
+### Minor Changes
+
+- 19696f3: migrate sdk and create-eventcatalog packages into monorepo
+
 ## 2.12.1
 
 ### Patch Changes

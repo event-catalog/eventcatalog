@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.2.0-beta.0
+
+### Minor Changes
+
+- 19696f3: migrate sdk and create-eventcatalog packages into monorepo
+
 ## 4.1.2
 
 ### Patch Changes
