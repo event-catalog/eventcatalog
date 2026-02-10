@@ -1,5 +1,12 @@
 # @eventcatalog/core
 
+## 3.12.4
+
+### Patch Changes
+
+- bc85255: configure esbuild jsx automatic mode in vite optimizeDeps
+- daab80f: upgrade axios from 1.7.7 to 1.13.5
+
 ## 3.12.3
 
 ### Patch Changes
