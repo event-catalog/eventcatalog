@@ -2,10 +2,13 @@
   "mode": "pre",
   "tag": "beta",
   "initialVersions": {
-    "@eventcatalog/core": "3.12.5"
+    "@eventcatalog/core": "3.12.5",
+    "@eventcatalog/create-eventcatalog": "4.1.2",
+    "@eventcatalog/sdk": "2.12.1"
   },
   "changesets": [
     "chilly-shoes-hug",
+    "cozy-seahorses-rush",
     "swift-panthers-dance"
   ]
 }
