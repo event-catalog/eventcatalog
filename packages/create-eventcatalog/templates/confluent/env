@@ -1,0 +1,7 @@
+
+# Get 14 day trial license key from https://eventcatalog.cloud/
+EVENTCATALOG_LICENSE_KEY_CONFLUENT_SCHEMA_REGISTRY=
+
+# Confluent Schema Registry API Keys (you can get them from Confluent cloud)
+CONFLUENT_SCHEMA_REGISTRY_KEY=
+CONFLUENT_SCHEMA_REGISTRY_KEY_SECRET=

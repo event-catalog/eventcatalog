@@ -1,0 +1,74 @@
+openapi: 3.0.0
+info:
+  title: Payment API
+  description: API for handling payment transactions.
+  version: 1.0.0
+servers:
+  - url: https://api.yourshoppingapp.com/payments
+    description: Payment API Server
+paths:
+  /:
+    post:
+      summary: Initiate payment
+      description: Start a payment process for an order.
+      x-eventcatalog-message-type: command
+      operationId: initiatePayment
+      requestBody:
+        description: Payment details
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '201':
+          description: Payment initiated
+        '400':
+          description: Invalid payment request
+  /{paymentId}:
+    get:
+      summary: Get payment status
+      operationId: getPaymentStatus
+      description: Check the status of a specific payment by its ID.
+      x-eventcatalog-message-type: query
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payment status details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentStatus'
+components:
+  schemas:
+    PaymentRequest:
+      type: object
+      properties:
+        orderId:
+          type: string
+        amount:
+          type: number
+          format: float
+        paymentMethod:
+          type: string
+          enum: [credit_card, paypal, bank_transfer]
+      required:
+        - orderId
+        - amount
+        - paymentMethod
+    PaymentStatus:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [pending, successful, failed]
+      required:
+        - id
+        - status

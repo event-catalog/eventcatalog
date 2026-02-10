@@ -1,0 +1,327 @@
+type Query {
+  """
+  Fetch a payment by its unique ID
+  """
+  getPayment(id: ID!): Payment
+  """
+  Retrieve all payments for a specific user
+  """
+  getPaymentsByUser(userId: ID!): [Payment!]!
+  """
+  Get payment history with optional filtering
+  """
+  getPaymentHistory(
+    userId: ID
+    status: PaymentStatus
+    dateFrom: String
+    dateTo: String
+    limit: Int = 10
+    offset: Int = 0
+  ): PaymentConnection!
+  """
+  Fetch payment methods for a user
+  """
+  getPaymentMethods(userId: ID!): [PaymentMethod!]!
+  """
+  Get a specific payment method by ID
+  """
+  getPaymentMethod(id: ID!): PaymentMethod
+  """
+  Retrieve transaction details by ID
+  """
+  getTransaction(id: ID!): Transaction
+  """
+  Get all transactions for a payment
+  """
+  getTransactionsByPayment(paymentId: ID!): [Transaction!]!
+  """
+  Check payment status and details
+  """
+  getPaymentStatus(paymentId: ID!): PaymentStatusResponse!
+}
+
+type Mutation {
+  """
+  Process a new payment
+  """
+  processPayment(input: ProcessPaymentInput!): PaymentResult!
+  """
+  Refund a payment (full or partial)
+  """
+  refundPayment(input: RefundPaymentInput!): RefundResult!
+  """
+  Add a new payment method for a user
+  """
+  addPaymentMethod(input: AddPaymentMethodInput!): PaymentMethod!
+  """
+  Update an existing payment method
+  """
+  updatePaymentMethod(id: ID!, input: UpdatePaymentMethodInput!): PaymentMethod!
+  """
+  Remove a payment method
+  """
+  removePaymentMethod(id: ID!): Boolean!
+  """
+  Set a payment method as default
+  """
+  setDefaultPaymentMethod(userId: ID!, paymentMethodId: ID!): PaymentMethod!
+  """
+  Cancel a pending payment
+  """
+  cancelPayment(paymentId: ID!): Payment!
+  """
+  Retry a failed payment
+  """
+  retryPayment(paymentId: ID!): PaymentResult!
+  """
+  Capture an authorized payment
+  """
+  capturePayment(paymentId: ID!, amount: Float): Payment!
+}
+
+type Subscription {
+  """
+  Subscribe to payment status updates
+  """
+  paymentStatusUpdated(paymentId: ID!): Payment!
+  """
+  Subscribe to all payment events for a user
+  """
+  userPaymentEvents(userId: ID!): PaymentEvent!
+  """
+  Subscribe to transaction updates
+  """
+  transactionUpdated(transactionId: ID!): Transaction!
+  """
+  Subscribe to refund status changes
+  """
+  refundStatusUpdated(refundId: ID!): Refund!
+}
+
+type Payment {
+  id: ID!
+  userId: ID!
+  amount: Float!
+  currency: String!
+  status: PaymentStatus!
+  description: String
+  paymentMethod: PaymentMethod!
+  transactions: [Transaction!]!
+  refunds: [Refund!]!
+  metadata: PaymentMetadata
+  createdAt: String!
+  updatedAt: String!
+  expiresAt: String
+}
+
+type PaymentMethod {
+  id: ID!
+  userId: ID!
+  type: PaymentMethodType!
+  isDefault: Boolean!
+  card: CardDetails
+  bankAccount: BankAccountDetails
+  digitalWallet: DigitalWalletDetails
+  isActive: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type CardDetails {
+  last4: String!
+  brand: String!
+  expiryMonth: Int!
+  expiryYear: Int!
+  fingerprint: String!
+  country: String
+}
+
+type BankAccountDetails {
+  last4: String!
+  bankName: String!
+  accountType: String!
+  country: String!
+}
+
+type DigitalWalletDetails {
+  provider: String!
+  email: String
+}
+
+type Transaction {
+  id: ID!
+  paymentId: ID!
+  type: TransactionType!
+  amount: Float!
+  currency: String!
+  status: TransactionStatus!
+  gateway: String!
+  gatewayTransactionId: String
+  failureReason: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Refund {
+  id: ID!
+  paymentId: ID!
+  amount: Float!
+  currency: String!
+  status: RefundStatus!
+  reason: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type PaymentConnection {
+  edges: [PaymentEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PaymentEdge {
+  node: Payment!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type PaymentMetadata {
+  orderId: String
+  customerId: String
+  invoiceId: String
+  tags: [String!]
+  notes: String
+}
+
+type PaymentResult {
+  payment: Payment
+  success: Boolean!
+  error: PaymentError
+  requiresAction: Boolean!
+  actionUrl: String
+}
+
+type RefundResult {
+  refund: Refund
+  success: Boolean!
+  error: PaymentError
+}
+
+type PaymentStatusResponse {
+  payment: Payment!
+  canRefund: Boolean!
+  canCapture: Boolean!
+  canCancel: Boolean!
+}
+
+type PaymentEvent {
+  id: ID!
+  type: PaymentEventType!
+  paymentId: ID!
+  data: String!
+  createdAt: String!
+}
+
+type PaymentError {
+  code: String!
+  message: String!
+  details: String
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  AUTHORIZED
+  CAPTURED
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  EXPIRED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PaymentMethodType {
+  CREDIT_CARD
+  DEBIT_CARD
+  BANK_ACCOUNT
+  DIGITAL_WALLET
+  CRYPTOCURRENCY
+}
+
+enum TransactionType {
+  AUTHORIZATION
+  CAPTURE
+  SALE
+  REFUND
+  VOID
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum PaymentEventType {
+  PAYMENT_CREATED
+  PAYMENT_AUTHORIZED
+  PAYMENT_CAPTURED
+  PAYMENT_SUCCEEDED
+  PAYMENT_FAILED
+  PAYMENT_CANCELLED
+  REFUND_CREATED
+  REFUND_SUCCEEDED
+  REFUND_FAILED
+}
+
+input ProcessPaymentInput {
+  userId: ID!
+  amount: Float!
+  currency: String!
+  paymentMethodId: ID!
+  description: String
+  captureImmediately: Boolean = true
+  metadata: PaymentMetadataInput
+}
+
+input RefundPaymentInput {
+  paymentId: ID!
+  amount: Float
+  reason: String
+}
+
+input AddPaymentMethodInput {
+  userId: ID!
+  type: PaymentMethodType!
+  token: String!
+  setAsDefault: Boolean = false
+}
+
+input UpdatePaymentMethodInput {
+  isActive: Boolean
+  setAsDefault: Boolean
+}
+
+input PaymentMetadataInput {
+  orderId: String
+  customerId: String
+  invoiceId: String
+  tags: [String!]
+  notes: String
+}

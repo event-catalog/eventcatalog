@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrderConfirmedEvent",
+  "type": "object",
+  "properties": {
+    "orderId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the confirmed order."
+    },
+    "userId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the user who placed the order."
+    },
+    "orderItems": {
+      "type": "array",
+      "description": "A list of items included in the confirmed order, each containing product details and quantities.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The unique identifier of the product."
+          },
+          "productName": {
+            "type": "string",
+            "description": "The name of the product."
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "The quantity of the product ordered."
+          },
+          "unitPrice": {
+            "type": "number",
+            "format": "float",
+            "description": "The price per unit of the product."
+          },
+          "totalPrice": {
+            "type": "number",
+            "format": "float",
+            "description": "The total price for this order item (quantity * unitPrice)."
+          }
+        },
+        "required": ["productId", "productName", "quantity", "unitPrice", "totalPrice"]
+      }
+    },
+    "orderStatus": {
+      "type": "string",
+      "description": "The current status of the order after confirmation."
+    },
+    "totalAmount": {
+      "type": "number",
+      "format": "float",
+      "description": "The total amount of the confirmed order."
+    },
+    "confirmationTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The date and time when the order was confirmed."
+    }
+  },
+  "required": ["orderId", "userId", "orderItems", "orderStatus", "totalAmount", "confirmationTimestamp"],
+  "additionalProperties": false
+}

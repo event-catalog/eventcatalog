@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "description": "Unique identifier for the event"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of the inventory adjustment"
+    },
+    "product_id": {
+      "type": "string",
+      "description": "Identifier of the adjusted product"
+    },
+    "adjusted_quantity": {
+      "type": "integer",
+      "description": "The quantity adjusted (positive or negative)"
+    },
+    "new_quantity": {
+      "type": "integer",
+      "description": "The new total inventory quantity"
+    },
+    "adjustment_reason": {
+      "type": "string",
+      "description": "Reason for the adjustment"
+    },
+    "adjusted_by": {
+      "type": "string",
+      "description": "Identifier of the user who made the adjustment"
+    }
+  },
+  "required": ["event_id", "timestamp", "product_id", "adjusted_quantity", "new_quantity"]
+}

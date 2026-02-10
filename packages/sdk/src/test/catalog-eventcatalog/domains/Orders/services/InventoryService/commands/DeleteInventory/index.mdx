@@ -1,0 +1,36 @@
+---
+id: DeleteInventory
+name: Delete Inventory
+version: 0.0.3
+summary: |
+  Command that will delete a given inventory item from the system
+owners:
+  - dboyne
+  - msmith
+  - asmith
+  - full-stack
+  - mobile-devs
+badges:
+  - content: Recently updated!
+    backgroundColor: green
+    textColor: green
+channels:
+  - id: inventory.{env}.events
+    parameters:
+      env: staging
+schemaPath: 'schema.json'
+sidebar:
+  badge: 'DELETE'
+---
+
+import Footer from '@catalog/components/footer.astro';
+
+## Overview
+
+The DeleteInventory command is issued to remove a product from the inventory system. This command is used by the inventory management system when a product needs to be completely removed from the warehouse or store catalog, typically due to discontinuation or permanent removal of the item.
+
+## Architecture diagram
+
+<NodeGraph />
+
+<Footer />

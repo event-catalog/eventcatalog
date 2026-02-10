@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "description": "Unique identifier for the event"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the out-of-stock condition was detected"
+    },
+    "product_id": {
+      "type": "string",
+      "description": "Identifier of the out-of-stock product"
+    },
+    "last_available_quantity": {
+      "type": "integer",
+      "description": "The last known available quantity before stock ran out"
+    },
+    "warehouse_id": {
+      "type": "string",
+      "description": "Identifier of the warehouse reporting the stock-out"
+    }
+  },
+  "required": ["event_id", "timestamp", "product_id"]
+}

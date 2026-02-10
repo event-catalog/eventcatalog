@@ -59,7 +59,7 @@
     "@auth/core": "^0.37.4",
     "@eventcatalog/license": "^0.0.7",
     "@eventcatalog/linter": "^0.0.2",
-    "@eventcatalog/sdk": "^2.11.0",
+    "@eventcatalog/sdk": "workspace:*",
     "@eventcatalog/visualizer": "^0.0.6",
     "@fontsource/inter": "^5.2.5",
     "@headlessui/react": "^2.0.3",

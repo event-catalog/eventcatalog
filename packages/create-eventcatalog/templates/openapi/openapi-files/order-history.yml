@@ -1,0 +1,93 @@
+openapi: 3.0.0
+info:
+  title: Order History API
+  description: API for retrieving a history of past orders.
+  version: 1.0.0
+servers:
+  - url: https://api.yourshoppingapp.com/order-history
+    description: Order History API Server
+paths:
+  /:
+    get:
+      summary: Retrieve order history
+      description: Fetch a list of past orders with optional filters like date range and status.
+      x-eventcatalog-message-type: query
+      operationId: getOrderHistory
+      parameters:
+        - name: startDate
+          in: query
+          description: Start date for the order history range (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          description: End date for the order history range (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          description: Filter orders by status (pending, shipped, delivered, canceled)
+          schema:
+            type: string
+            enum: [pending, shipped, delivered, canceled]
+        - name: customerId
+          in: query
+          description: Customer ID for retrieving specific customer order history (optional if authenticated user)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of past orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid date range or other input
+components:
+  schemas:
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        status:
+          type: string
+          enum: [pending, shipped, delivered, canceled]
+        totalAmount:
+          type: number
+          format: float
+        orderDate:
+          type: string
+          format: date
+      required:
+        - id
+        - items
+        - status
+        - totalAmount
+        - orderDate
+    CartItem:
+      type: object
+      properties:
+        productId:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+          format: float
+      required:
+        - productId
+        - name
+        - quantity
+        - price

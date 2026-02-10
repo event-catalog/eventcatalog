@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "subscriptionId": {
+      "type": "string",
+      "description": "Unique identifier for the subscription"
+    },
+    "customerId": {
+      "type": "string",
+      "description": "Unique identifier for the customer"
+    },
+    "invoiceId": {
+      "type": "string",
+      "description": "Unique identifier for the invoice"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount due for payment"
+    },
+    "currency": {
+      "type": "string",
+      "description": "Currency code (ISO 4217)"
+    },
+    "dueDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the payment is due"
+    },
+    "billingPeriod": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date"
+        },
+        "end": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": ["start", "end"]
+    },
+    "planId": {
+      "type": "string",
+      "description": "Subscription plan identifier"
+    },
+    "retryAttempt": {
+      "type": "integer",
+      "description": "Number of retry attempts for failed payments"
+    }
+  },
+  "required": ["subscriptionId", "customerId", "invoiceId", "amount", "currency", "dueDate"]
+}

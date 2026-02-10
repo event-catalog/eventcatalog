@@ -1,0 +1,80 @@
+---
+id: PaymentMethod
+name: PaymentMethod
+version: 1.0.0
+identifier: paymentMethodId
+summary: Represents a payment instrument a customer can use, like a credit card or bank account.
+owners:
+  - dboyne
+
+properties:
+  - name: paymentMethodId
+    type: UUID
+    required: true
+    description: Unique identifier for the payment method.
+  - name: customerId
+    type: UUID
+    required: true
+    description: Identifier of the customer who owns this payment method.
+    references: Customer
+    relationType: hasOne
+  - name: type
+    type: string # (e.g., CreditCard, BankAccount, PayPal, ApplePay)
+    required: true
+    description: The type of payment method.
+  - name: details # Contains type-specific details (masked, tokenized)
+    type: object
+    required: true
+    description: Contains type-specific, often sensitive details (e.g., last 4 digits of card, card brand, bank name, account type, token). **Never store raw PANs or sensitive data.**
+    # Example structure for CreditCard:
+    # details:
+    #   brand: "Visa"
+    #   last4: "1234"
+    #   expiryMonth: 12
+    #   expiryYear: 2025
+    #   cardholderName: "Jane Doe"
+    #   gatewayToken: "tok_abc123xyz"
+  - name: isDefault
+    type: boolean
+    required: true
+    description: Indicates if this is the customer's default payment method.
+  - name: billingAddressId # Link to the billing address associated with this method
+    type: UUID
+    required: true
+    description: Identifier for the billing address verified for this payment method.
+  - name: status
+    type: string # (e.g., Active, Expired, Invalid, Removed)
+    required: true
+    description: Current status of the payment method.
+  - name: createdAt
+    type: DateTime
+    required: true
+    description: Timestamp when the payment method was added.
+  - name: updatedAt
+    type: DateTime
+    required: true
+    description: Timestamp when the payment method was last updated.
+---
+
+## Overview
+
+The PaymentMethod entity represents a specific payment instrument registered by a customer, such as a credit card or a linked bank account. It stores necessary (non-sensitive) details required to initiate payments and links to the associated customer and billing address.
+
+**Security Note:** Sensitive details like full card numbers or bank account numbers should **never** be stored directly. Rely on tokenization provided by payment gateways.
+
+### Entity Properties
+
+<EntityPropertiesTable />
+
+## Relationships
+
+- **Customer:** A payment method belongs to one `Customer`.
+- **Address:** Linked to a specific billing `Address`.
+- **Payment:** Used to make `Payment` transactions.
+- **Subscription:** May be designated as the payment method for a `Subscription`.
+
+## Examples
+
+- Jane Doe's default Visa card ending in 1234, expiring 12/2025, status Active.
+- John Smith's linked bank account (Chase, Checking), status Active.
+- An old MasterCard ending in 5678 belonging to Jane Doe, status Expired.

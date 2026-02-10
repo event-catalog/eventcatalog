@@ -1,0 +1,88 @@
+---
+dictionary:
+  - id: Product
+    name: Product
+    summary: 'A distinct item available for sale, defined by its attributes, pricing, and descriptions.'
+    description: |
+      A product is the central aggregate in the Product Catalog domain. It contains all information needed to present and sell an item:
+
+      - Title, description, and images
+      - Pricing and currency information
+      - Attributes and specifications
+      - Availability status and lifecycle state (draft, active, discontinued)
+
+      Products may have multiple variants and belong to one or more categories.
+    icon: Package
+  - id: Category
+    name: Category
+    summary: 'A hierarchical grouping used to organize products for browsing and discovery.'
+    description: |
+      Categories form a tree structure that helps customers navigate the catalog. Key aspects include:
+
+      - Parent-child relationships for multi-level hierarchies
+      - Category metadata and SEO attributes
+      - Display ordering and featured status
+      - Maximum depth limits enforced by business rules
+
+      Products must belong to at least one active category.
+    icon: FolderTree
+  - id: Inventory
+    name: Inventory
+    summary: 'The tracked quantity of a product available for sale across warehouses and locations.'
+    description: |
+      Inventory represents the stock levels for each product or variant. It involves:
+
+      - Current stock quantities per location
+      - Reorder points and safety stock thresholds
+      - Reserved and allocated quantities
+      - Stock movement history and audit trails
+
+      Inventory levels directly affect product availability on the storefront.
+    icon: Warehouse
+  - id: Review
+    name: Review
+    summary: 'Customer feedback on a product, including a rating and optional written commentary.'
+    description: |
+      Reviews provide social proof and help customers make purchase decisions. Review management includes:
+
+      - Star ratings and written feedback
+      - Verified purchase validation
+      - Content moderation and approval workflows
+      - Helpfulness voting and seller responses
+
+      Reviews require a verified purchase before submission.
+    icon: Star
+  - id: SKU
+    name: SKU
+    summary: 'Stock Keeping Unit — a unique identifier assigned to each distinct product variant for inventory tracking.'
+    icon: Tag
+  - id: Variant
+    name: Variant
+    summary: 'A specific version of a product differentiated by attributes such as size, color, or material.'
+    description: |
+      Variants allow a single product to be offered in multiple configurations. Each variant has:
+
+      - Its own SKU and inventory levels
+      - Specific attribute values (e.g., size: Large, color: Blue)
+      - Optional price overrides
+      - Independent availability status
+
+      Variants share the parent product's core information but differ in selectable attributes.
+    icon: Layers
+  - id: Pricing
+    name: Pricing
+    summary: 'The monetary value assigned to a product or variant, including base price, sale price, and currency.'
+    icon: DollarSign
+  - id: Product Lifecycle
+    name: Product Lifecycle
+    summary: 'The stages a product moves through from creation to retirement: draft, active, and discontinued.'
+    icon: RefreshCw
+  - id: Attribute
+    name: Attribute
+    summary: 'A descriptive property of a product such as weight, dimensions, material, or brand.'
+    icon: ListChecks
+  - id: Cross-Sell
+    name: Cross-Sell
+    summary: 'A recommendation of related or complementary products to encourage additional purchases.'
+    icon: ArrowRightLeft
+---

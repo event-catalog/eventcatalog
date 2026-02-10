@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UpdateInventoryCommand",
+  "type": "object",
+  "properties": {
+    "productId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the product whose inventory is being updated."
+    },
+    "quantityChange": {
+      "type": "integer",
+      "description": "The change in quantity of the product in the inventory. Positive values indicate an increase, while negative values indicate a decrease."
+    },
+    "warehouseId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The unique identifier of the warehouse where the inventory is being updated."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The date and time when the inventory update occurred."
+    }
+  },
+  "required": ["productId", "quantityChange", "warehouseId", "timestamp"],
+  "additionalProperties": false
+}

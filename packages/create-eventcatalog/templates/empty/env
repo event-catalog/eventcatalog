@@ -1,0 +1,9 @@
+# EventCatalog Scale License Key, if you want to unlock the scale features
+# You can get a 14 day trial license key from https://eventcatalog.cloud
+
+EVENTCATALOG_SCALE_LICENSE_KEY=
+
+# Optional key if you are using EventCatalog Chat with OpenAI Models.
+# You need to set `output` to `server` in your eventcatalog.config.js file.
+# See documentation for more details: https://www.eventcatalog.dev/features/ai-assistant
+OPENAI_API_KEY=

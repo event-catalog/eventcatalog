@@ -1,0 +1,23 @@
+asyncapi: 3.0.0
+info:
+  title: USService
+  description: description
+  version: 1.1.0
+
+channels:
+  randomChannel:
+    address: myAddress
+    messages:
+      UserSignup:
+        $ref: '#/components/schemas/UserSignedUp/schema'
+operations:
+  sendNoise:
+    action: send
+    channel:
+      $ref: '#/channels/randomChannel'
+components:
+  schemas:
+    UserSignedUp:
+      schemaFormat: 'application/schema+json;version=draft-07'
+      schema:
+        '$ref': './messages/user-signed-up.yml#/UserSignedUp'
