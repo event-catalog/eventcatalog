@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.12.6
+
+### Patch Changes
+
+- c8c2330: verify required config fields before copying core to prevent Vite restart race conditions
+
 ## 3.12.5
 
 ### Patch Changes
