@@ -686,12 +686,15 @@ function encodePlantUML(text: string, deflate: (data: Uint8Array, options: any) 
 export async function renderPlantUMLWithZoom(blocks: HTMLCollectionOf<Element>): Promise<void> {
   if (blocks.length === 0) return;
 
-  // Reset abort flag at the start of rendering (only if not already rendering mermaid)
-  // Note: renderMermaidWithZoom also resets this flag, so we check if it's currently aborted
-  if (renderingAborted) renderingAborted = false;
-
   // Dynamic import pako for compression
   const { deflate } = await import('pako');
+
+  // Reset abort flag AFTER async import to avoid race condition with
+  // destroyZoomInstances() called by astro:page-load handler during the await.
+  // When there are no mermaid diagrams on the page, destroyZoomInstances() sets
+  // renderingAborted=true and renderMermaidWithZoom is never called to reset it,
+  // causing PlantUML rendering to be silently aborted.
+  renderingAborted = false;
 
   // Convert to array to avoid live collection issues when modifying DOM
   const blocksArray = Array.from(blocks);
