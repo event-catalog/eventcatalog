@@ -124,6 +124,11 @@ export default defineConfig({
     },
     ssr: {
       external: ['eventcatalog.auth.js', 'eventcatalog.chat.js'],
-    }
+    },
+    optimizeDeps: {
+      esbuildOptions: {
+        jsx: 'automatic',
+      },
+    },
   }
 });
