@@ -637,6 +637,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "jboeijenga",
+      "name": "Jasper Boeijenga",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1516438?v=4",
+      "profile": "https://github.com/jboeijenga",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
