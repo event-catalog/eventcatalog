@@ -18,7 +18,7 @@ try {
 
 program
   .name('eventcatalog')
-  .description('EventCatalog SDK Command-Line Interface')
+  .description('EventCatalog Command-Line Interface')
   .version(version)
   .option('-d, --dir <path>', 'Path to the EventCatalog directory (default: current directory)', '.');
 

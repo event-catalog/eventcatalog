@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { listFunctions, formatListOutput } from '../cli/list';
 
 // Mock the SDK
-vi.mock('../index', () => ({
+vi.mock('@eventcatalog/sdk', () => ({
   default: vi.fn(() => ({
     // Event functions
     getEvent: () => {},

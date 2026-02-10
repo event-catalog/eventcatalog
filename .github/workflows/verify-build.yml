@@ -36,12 +36,16 @@ jobs:
       - name: Package SDK
         run: pnpm pack
         working-directory: packages/sdk
+      - name: Package CLI
+        run: pnpm pack
+        working-directory: packages/cli
       - name: Package Core
         run: pnpm pack
         working-directory: packages/core
       - name: Rename package artifacts
         run: |
           mv packages/sdk/*.tgz sdk-package.tgz
+          mv packages/cli/*.tgz cli-package.tgz
           mv packages/core/*.tgz core-package.tgz
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4
@@ -49,6 +53,7 @@ jobs:
           name: eventcatalog-packages-artifact
           path: |
             sdk-package.tgz
+            cli-package.tgz
             core-package.tgz
 
   build-eventcatalog:

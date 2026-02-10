@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { executeFunction } from '../cli/executor';
 
 // Mock the SDK
-vi.mock('../index', () => ({
+vi.mock('@eventcatalog/sdk', () => ({
   default: vi.fn((path: string) => ({
     testFunction: vi.fn(async (arg1: string, arg2: number) => ({
       success: true,
