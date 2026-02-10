@@ -9,11 +9,11 @@
       "outputs": [".astro/**"]
     },
     "test": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "build:bin"],
       "cache": false
     },
     "test:ci": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "build:bin"],
       "cache": false
     },
     "start:catalog": {
