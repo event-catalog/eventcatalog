@@ -6,6 +6,12 @@
 
 - Monorepo migration: Moved EventCatalog core to packages/core and fixed content path resolution for monorepo structure. Uses relative paths when CATALOG_DIR is set, maintaining backward compatibility with standalone installations.
 
+## 3.12.6
+
+### Patch Changes
+
+- c8c2330: verify required config fields before copying core to prevent Vite restart race conditions
+
 ## 3.12.5
 
 ### Patch Changes
