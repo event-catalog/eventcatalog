@@ -1,6 +1,9 @@
 # build output
 dist/
 
+# turborepo
+.turbo/
+
 # dependencies
 node_modules/
 
@@ -23,9 +26,9 @@ pnpm-debug.log*
 # EventCatalog files
 **/.eventcatalog-core/
 /examples/large-catalog/*
-eventcatalog/pnpm-lock.yaml
-eventcatalog/public/pagefind
-/eventcatalog/src/pages/api/[...auth].ts
+packages/core/eventcatalog/pnpm-lock.yaml
+packages/core/eventcatalog/public/pagefind
+/packages/core/eventcatalog/src/pages/api/[...auth].ts
 
 .vscode/*
 
@@ -40,7 +43,7 @@ src/__tests__/example-catalog-dependencies/dependencies
 
 **/__tests__/catalog/
 
-eventcatalog/public/ai
+packages/core/eventcatalog/public/ai
 examples/default/public/ai
 examples/default/eventcatalog.chat.js
 **/[...auth].ts

@@ -10,11 +10,23 @@ import path from 'path';
 import { customPagesSchema } from './enterprise/collections';
 
 export const projectDirBase = (() => {
-  if (process.platform === 'win32') {
-    const projectDirPath = process.env.PROJECT_DIR!.replace(/\\/g, '/');
+  const projectDir = process.env.PROJECT_DIR;
+  const catalogDir = process.env.CATALOG_DIR;
+
+  // If CATALOG_DIR is set (monorepo mode), compute relative path from catalog to project
+  // Otherwise fall back to absolute path (standalone mode)
+  if (catalogDir && projectDir) {
+    const relativePath = path.relative(catalogDir, projectDir);
+    // Ensure forward slashes for consistency
+    return relativePath.replace(/\\/g, '/');
+  }
+
+  // Fallback to absolute path
+  if (process.platform === 'win32' && projectDir) {
+    const projectDirPath = projectDir.replace(/\\/g, '/');
     return projectDirPath.startsWith('/') ? projectDirPath : `/${projectDirPath}`;
   }
-  return process.env.PROJECT_DIR;
+  return projectDir;
 })();
 
 const pages = defineCollection({

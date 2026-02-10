@@ -1,0 +1,41 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build:bin": {
+      "outputs": ["dist/**"]
+    },
+    "build": {
+      "dependsOn": ["build:bin"],
+      "outputs": [".astro/**"]
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+    "test:ci": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+    "start:catalog": {
+      "persistent": true,
+      "cache": false
+    },
+    "start:catalog:server": {
+      "persistent": true,
+      "cache": false
+    },
+    "verify-build:catalog": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
+    "test:e2e": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
+    "format": {},
+    "format:diff": {},
+    "check": {
+      "dependsOn": ["^build"]
+    }
+  }
+}

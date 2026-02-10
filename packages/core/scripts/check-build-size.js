@@ -55,7 +55,7 @@ function main() {
   const args = process.argv.slice(2);
   const catalog = args[0] || 'default';
 
-  const distPath = path.join(__dirname, `../examples/${catalog}/dist`);
+  const distPath = path.join(__dirname, `../../../examples/${catalog}/dist`);
   const baselinePath = path.join(__dirname, '../.size-baseline.json');
 
   // Check if dist exists

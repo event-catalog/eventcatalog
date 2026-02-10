@@ -1,0 +1,10 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@eventcatalog/core": "3.12.5"
+  },
+  "changesets": [
+    "monorepo-migration"
+  ]
+}

@@ -9,11 +9,13 @@ async function main() {
   const catalog = args[0] || 'default';
 
   const catalogDir = join(__dirname, '../eventcatalog/');
-  const projectDIR = join(__dirname, `../examples/${catalog}`);
+  const projectDIR = join(__dirname, `../../../examples/${catalog}`);
 
-  execSync('pnpm run build:bin', { stdio: 'inherit' });
+  // execSync('pnpm run build:bin', { stdio: 'inherit' });
 
-  execSync(`cross-env NODE_ENV=development PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npx . generate`, {
+  execSync('pnpm run verify-build:catalog', { stdio: 'inherit' });
+
+  execSync(`cross-env NODE_ENV=development PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npx . start`, {
     stdio: 'inherit',
   });
 }

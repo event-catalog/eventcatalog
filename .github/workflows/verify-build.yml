@@ -22,14 +22,22 @@ jobs:
           cache: 'pnpm'
       - name: Installation
         run: pnpm i
+      - name: Turbo Cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
       - name: Test
         run: pnpm run test:ci
       - name: Build cli
         run: pnpm run build:bin
       - name: Package
         run: pnpm pack
+        working-directory: packages/core
       - name: Rename package artifact
-        run: mv *.tgz package.tgz # Rename to a consistent name
+        run: mv packages/core/*.tgz package.tgz # Rename to a consistent name
       - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
@@ -62,6 +70,6 @@ jobs:
         run: npx eventcatalog build
       - name: Check build size
         if: matrix.os == 'ubuntu-latest'
-        run: node scripts/check-build-size.js
+        run: node packages/core/scripts/check-build-size.js
         env:
           SIZE_THRESHOLD: 5

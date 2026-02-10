@@ -9,7 +9,7 @@ async function main() {
   const catalog = args[0] || 'default';
 
   const catalogDir = join(__dirname, '../eventcatalog/');
-  const projectDIR = join(__dirname, `../examples/${catalog}`);
+  const projectDIR = join(__dirname, `../../../examples/${catalog}`);
 
   execSync('pnpm run build:bin', { stdio: 'inherit' });
 
