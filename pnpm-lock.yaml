@@ -57,8 +57,8 @@ importers:
         specifier: ^0.0.7
         version: 0.0.7
       '@eventcatalog/linter':
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: workspace:*
+        version: link:../linter
       '@eventcatalog/sdk':
         specifier: workspace:*
         version: link:../sdk
@@ -1268,11 +1268,6 @@ packages:
   '@eventcatalog/license@0.0.7':
     resolution: {integrity: sha512-izSIn3Dfc6LTcPiA89EqZ4/l5WCitLxt0XVu2yilyaibMOioxW7ABRFZY8/Azocd6ULKseVA2lCcoeT35/GRcg==}
     engines: {node: '>=16.0.0'}
-
-  '@eventcatalog/linter@0.0.2':
-    resolution: {integrity: sha512-wfRkX62H8pvsj5m7drnPA8jxoAv3Hl3DKgFaooyAr2+evcjwiWqdcGKsXX1mOTfYs71AxkDYPpEqoiwBJ/Nu2Q==}
-    engines: {node: '>=16.0.0'}
-    hasBin: true
 
   '@eventcatalog/visualizer@0.0.6':
     resolution: {integrity: sha512-WjosTnIYMBgOjhHfZZhXxIOyVm+usoObaX8aJhOTwPnt2zv3I97V0ArWBAIqZhPJHfA9LPBpIQWQQy+fp37svA==}
@@ -8835,17 +8830,6 @@ snapshots:
       jose: 5.10.0
     transitivePeerDependencies:
       - supports-color
-
-  '@eventcatalog/linter@0.0.2':
-    dependencies:
-      '@types/semver': 7.7.1
-      chalk: 5.6.2
-      commander: 11.1.0
-      fast-glob: 3.3.3
-      gray-matter: 4.0.3
-      ora: 8.2.0
-      semver: 7.7.3
-      zod: 3.25.76
 
   '@eventcatalog/visualizer@0.0.6(@types/react@18.3.26)(immer@9.0.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
