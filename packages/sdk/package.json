@@ -4,6 +4,7 @@
   "description": "SDK to integrate with EventCatalog",
   "scripts": {
     "build": "tsup",
+    "build:bin": "tsup",
     "test": "vitest --run",
     "test:ci": "vitest --run",
     "format": "prettier --write .",

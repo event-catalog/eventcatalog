@@ -19,6 +19,8 @@
   "scripts": {
     "prepublishOnly": "pnpm run build",
     "build": "tsup index.ts --format cjs --dts",
+    "build:bin": "tsup index.ts --format cjs --dts",
+    "test:ci": "echo 'No tests for create-eventcatalog yet'",
     "run": "node dist/index.js",
     "dev": "pnpm run build --watch",
     "format": "prettier --write .",
