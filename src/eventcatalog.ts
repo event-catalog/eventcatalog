@@ -10,6 +10,7 @@ import logBuild from './analytics/log-build';
 import { VERSION } from './constants';
 import { watch } from './watcher';
 import { catalogToAstro } from './catalog-to-astro-content-directory';
+import { verifyRequiredFieldsAreInCatalogConfigFile } from './eventcatalog-config-file-utils.js';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
 import boxen from 'boxen';
 import { isOutputServer } from './features';
@@ -156,6 +157,13 @@ program
     }
 
     if (options.forceRecreate) clearCore();
+
+    // Verify required fields (e.g. cId) are in the config file before copying to .eventcatalog-core.
+    // This must happen before copyCore() so that the config is stable when Astro starts.
+    // Otherwise, writing the config after the server starts triggers a Vite config dependency
+    // change restart, which races with the initial dependency scan and floods the terminal with errors.
+    await verifyRequiredFieldsAreInCatalogConfigFile(dir);
+
     copyCore();
 
     await resolveCatalogDependencies(dir, core);
@@ -229,6 +237,9 @@ program
     if (fs.existsSync(path.join(dir, '.env'))) {
       dotenv.config({ path: path.join(dir, '.env') });
     }
+
+    // Verify required fields (e.g. cId) before copying to .eventcatalog-core
+    await verifyRequiredFieldsAreInCatalogConfigFile(dir);
 
     copyCore();
 
