@@ -43,7 +43,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Send Discord notification
-        run: node scripts/notify-discord-release.js
+        run: node packages/core/scripts/notify-discord-release.js
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
