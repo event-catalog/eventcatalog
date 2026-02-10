@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 3.12.3
+
+### Patch Changes
+
+- 4287f97: Upgrade astro dependency from 5.16.16 to 5.17.1
+- 31a0efe: update dependencies: @modelcontextprotocol/sdk, diff2html, and jsonpath
+- 94f3b93: fix(core): resolve PlantUML rendering race condition
+
 ## 3.12.2
 
 ### Patch Changes
