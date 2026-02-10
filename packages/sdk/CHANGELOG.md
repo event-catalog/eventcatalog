@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.13.1
+
+### Patch Changes
+
+- 0b35904: Extract CLI into new @eventcatalog/cli package for cleaner separation of concerns. The SDK no longer bundles the CLI binary.
+
 ## 2.13.0
 
 ### Minor Changes
