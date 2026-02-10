@@ -8,8 +8,8 @@ on:
       - main
 
 jobs:
-  build-cli:
-    name: Build cli
+  build-and-test:
+    name: Build and Test All Packages
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,15 +29,15 @@ jobs:
           key: turbo-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
             turbo-${{ runner.os }}-
-      - name: Test
+      - name: Test All Packages
         run: pnpm run test:ci
-      - name: Build cli
+      - name: Build All Packages
         run: pnpm run build:bin
-      - name: Package
+      - name: Package Core
         run: pnpm pack
         working-directory: packages/core
       - name: Rename package artifact
-        run: mv packages/core/*.tgz package.tgz # Rename to a consistent name
+        run: mv packages/core/*.tgz package.tgz
       - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
@@ -47,7 +47,7 @@ jobs:
   build-eventcatalog:
     name: Build EventCatalog
     timeout-minutes: 10
-    needs: build-cli
+    needs: build-and-test
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
