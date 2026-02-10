@@ -85,7 +85,7 @@
     "astro-expressive-code": "^0.41.3",
     "astro-seo": "^0.8.4",
     "auth-astro": "^4.2.0",
-    "axios": "^1.7.7",
+    "axios": "^1.13.5",
     "boxen": "^8.0.1",
     "commander": "^12.1.0",
     "concurrently": "^8.2.2",
