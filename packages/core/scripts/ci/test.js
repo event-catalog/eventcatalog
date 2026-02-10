@@ -14,8 +14,10 @@ const catalog = args[0] || 'default';
 
 // When run from CI, cwd could be repo root or packages/core
 // Use __dirname to compute paths relative to this script's location
+// Script is at: packages/core/scripts/ci/test.js
+// Repo root is: ../../../../ (up 4 levels)
 const __dirname = import.meta.dirname;
-const repoRoot = join(__dirname, '../../..');
+const repoRoot = join(__dirname, '../../../..');
 const catalogDir = join(repoRoot, 'packages/core/eventcatalog/');
 const projectDIR = join(repoRoot, `examples/${catalog}`);
 
