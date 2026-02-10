@@ -33,16 +33,23 @@ jobs:
         run: pnpm run test:ci
       - name: Build All Packages
         run: pnpm run build:bin
+      - name: Package SDK
+        run: pnpm pack
+        working-directory: packages/sdk
       - name: Package Core
         run: pnpm pack
         working-directory: packages/core
-      - name: Rename package artifact
-        run: mv packages/core/*.tgz package.tgz
-      - name: Upload package artifact
+      - name: Rename package artifacts
+        run: |
+          mv packages/sdk/*.tgz sdk-package.tgz
+          mv packages/core/*.tgz core-package.tgz
+      - name: Upload package artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: eventcatalog-core-package-artifact
-          path: package.tgz
+          name: eventcatalog-packages-artifact
+          path: |
+            sdk-package.tgz
+            core-package.tgz
 
   build-eventcatalog:
     name: Build EventCatalog
@@ -58,13 +65,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24.x
-      - name: Download package artifact
+      - name: Download package artifacts
         uses: actions/download-artifact@v4
         with:
-          name: eventcatalog-core-package-artifact
-      - name: Install @eventcatalog-core
+          name: eventcatalog-packages-artifact
+      - name: Install @eventcatalog packages
         working-directory: examples/default/
-        run: npm install ../../package.tgz
+        run: |
+          npm install ../../sdk-package.tgz
+          npm install ../../core-package.tgz
       - name: Build EventCatalog
         working-directory: examples/default/
         run: npx eventcatalog build
