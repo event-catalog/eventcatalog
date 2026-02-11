@@ -43,7 +43,9 @@ export default function View(props: ViewNode) {
       <div
         className={`bg-gradient-to-b from-blue-500 to-blue-700 relative flex flex-col items-center w-5 justify-between rounded-l-sm text-blue-100 border-r-[1px] border-blue-500`}
       >
-        <MonitorIcon className="w-4 h-4 opacity-90 text-white mt-1" />
+        <MonitorIcon
+          className={`w-4 h-4 opacity-90 text-white mt-1 ${mode === "full" ? "mb-2" : "mb-1"}`}
+        />
         {mode === "full" && (
           <span
             className="text-center text-[8px] text-white font-bold uppercase mb-4"

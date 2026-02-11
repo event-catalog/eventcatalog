@@ -43,7 +43,9 @@ export default function Actor(props: ActorNode) {
       <div
         className={`bg-gradient-to-b from-yellow-500 to-yellow-700 relative flex flex-col items-center w-5 justify-between rounded-l-sm text-yellow-100 border-r-[1px] border-yellow-500`}
       >
-        <User className="w-4 h-4 opacity-90 text-white mt-1" />
+        <User
+          className={`w-4 h-4 opacity-90 text-white mt-1 ${mode === "full" ? "mb-2" : "mb-1"}`}
+        />
         {mode === "full" && (
           <span
             className="text-center text-[8px] text-white font-bold uppercase mb-4"
