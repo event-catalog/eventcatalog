@@ -9,5 +9,8 @@
     "@eventcatalog/cli": "0.2.0",
     "@eventcatalog/linter": "1.0.2"
   },
-  "changesets": []
+  "changesets": [
+    "bright-waves-dance",
+    "visualiser-beta"
+  ]
 }
