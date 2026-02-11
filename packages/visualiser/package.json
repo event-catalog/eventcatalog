@@ -35,6 +35,10 @@
     "nodes",
     "event-driven-architecture"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/event-catalog/eventcatalog.git"
+  },
   "author": "EventCatalog",
   "license": "MIT",
   "dependencies": {
