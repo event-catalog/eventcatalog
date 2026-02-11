@@ -68,8 +68,8 @@ describe('Containers NodeGraph', () => {
           type: 'multiline',
           markerStart: {
             type: 'arrowclosed',
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
         },
         {
@@ -77,8 +77,8 @@ describe('Containers NodeGraph', () => {
           animated: false,
           markerEnd: {
             type: 'arrowclosed',
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
           style: {
             strokeWidth: 1,
@@ -89,8 +89,8 @@ describe('Containers NodeGraph', () => {
           type: 'multiline',
           markerStart: {
             type: 'arrowclosed',
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
         },
       ]);

@@ -148,8 +148,8 @@ describe('Commands NodeGraph', () => {
           animated: false,
           markerEnd: {
             type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
         }),
       ]);

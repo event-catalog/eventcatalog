@@ -221,8 +221,8 @@ describe('Domains Canvas', () => {
         expect(edge.animated).toBe(true);
         expect(edge.markerEnd).toMatchObject({
           type: MarkerType.ArrowClosed,
-          width: 40,
-          height: 40,
+          width: 20,
+          height: 20,
         });
       });
 
