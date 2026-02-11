@@ -1,5 +1,5 @@
 ---
-import NodeGraphNew from './NodeGraph';
+import AstroNodeGraph from './AstroNodeGraph';
 import { getNodesAndEdges as getNodesAndEdgesForService } from '@utils/node-graphs/services-node-graph';
 import {
   getNodesAndEdgesForCommands,
@@ -148,7 +148,7 @@ const nodesWithLayout = applyLayoutToNodes(nodes as any[], savedLayout);
 ---
 
 <div>
-  <NodeGraphNew
+  <AstroNodeGraph
     id={id}
     nodes={nodesWithLayout}
     edges={edges}

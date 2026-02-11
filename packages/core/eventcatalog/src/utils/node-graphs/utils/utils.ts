@@ -3,6 +3,7 @@
 import { MarkerType, Position, type Edge, type Node } from '@xyflow/react';
 import dagre from 'dagre';
 import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+import { buildUrl } from '@utils/url-builder';
 interface BaseCollectionData {
   id: string;
   version: string;
@@ -93,13 +94,13 @@ export const createEdge = (edgeOptions: Edge) => {
     animated: false,
     // markerStart: {
     //   type: MarkerType.Arrow,
-    //   width: 40,
-    //   height: 40,
+    //   width: 20,
+    //   height: 20,
     // },
     markerEnd: {
       type: MarkerType.ArrowClosed,
-      width: 40,
-      height: 40,
+      width: 20,
+      height: 20,
     },
     style: {
       strokeWidth: 1,
@@ -117,6 +118,116 @@ export const createNode = (values: Node): Node => {
 };
 
 type DagreGraph = any;
+
+type ContextMenuItem = {
+  label: string;
+  href: string;
+  download?: string;
+  external?: boolean;
+  separator?: boolean;
+};
+
+export const buildContextMenuForMessage = ({
+  id,
+  version,
+  name,
+  collection,
+  schemaPath,
+}: {
+  id: string;
+  version: string;
+  name: string;
+  collection: string;
+  schemaPath?: string;
+}): ContextMenuItem[] => {
+  const items: ContextMenuItem[] = [{ label: 'Read documentation', href: buildUrl(`/docs/${collection}/${id}/${version}`) }];
+
+  if (schemaPath) {
+    items.push({
+      label: 'Download schema',
+      href: buildUrl(`/generated/${collection}/${id}/${schemaPath}`, true),
+      download: `${name}(${version})-${schemaPath}`,
+      external: true,
+      separator: true,
+    });
+  }
+
+  items.push({
+    label: 'Read changelog',
+    href: buildUrl(`/docs/${collection}/${id}/${version}/changelog`),
+    external: true,
+    separator: !schemaPath,
+  });
+
+  return items;
+};
+
+export const buildContextMenuForService = ({
+  id,
+  version,
+  specifications,
+  repository,
+}: {
+  id: string;
+  version: string;
+  specifications?: { type: string; path: string }[];
+  repository?: { url: string };
+}): ContextMenuItem[] => {
+  const items: ContextMenuItem[] = [{ label: 'Read documentation', href: buildUrl(`/docs/services/${id}/${version}`) }];
+
+  if (specifications && Array.isArray(specifications)) {
+    for (const spec of specifications) {
+      const specType = spec.type?.toLowerCase() || '';
+      let label = 'View specification';
+      if (specType.includes('asyncapi')) label = 'View AsyncAPI spec';
+      else if (specType.includes('openapi')) label = 'View OpenAPI spec';
+
+      items.push({
+        label,
+        href: buildUrl(`/docs/services/${id}/${version}/spec/${spec.type}`),
+        separator: items.length === 1,
+      });
+    }
+  }
+
+  if (repository?.url) {
+    items.push({
+      label: 'View code repository',
+      href: repository.url,
+      external: true,
+      separator: true,
+    });
+  }
+
+  items.push({
+    label: 'Read changelog',
+    href: buildUrl(`/docs/services/${id}/${version}/changelog`),
+    external: true,
+    separator: !repository?.url && (!specifications || specifications.length === 0),
+  });
+
+  return items;
+};
+
+export const buildContextMenuForResource = ({
+  collection,
+  id,
+  version,
+}: {
+  collection: string;
+  id: string;
+  version: string;
+}): ContextMenuItem[] => {
+  return [
+    { label: 'Read documentation', href: buildUrl(`/docs/${collection}/${id}/${version}`) },
+    {
+      label: 'Read changelog',
+      href: buildUrl(`/docs/${collection}/${id}/${version}/changelog`),
+      external: true,
+      separator: true,
+    },
+  ];
+};
 
 export const getNodesAndEdgesFromDagre = ({
   nodes,

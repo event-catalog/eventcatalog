@@ -24,14 +24,14 @@ describe('Containers NodeGraph', () => {
           type: undefined,
           sourcePosition: 'right',
           targetPosition: 'left',
-          data: { mode: 'simple', service: { ...mockServices[0].data } },
+          data: expect.objectContaining({ mode: 'simple', service: { ...mockServices[0].data } }),
           position: { x: 75, y: 50 },
         },
         {
           id: 'OrderDatabase-1.0.0',
           sourcePosition: 'right',
           targetPosition: 'left',
-          data: { mode: 'simple', data: { ...mockContainers[0].data } },
+          data: expect.objectContaining({ mode: 'simple', data: { ...mockContainers[0].data } }),
           position: { x: 525, y: 50 },
           type: 'data',
         },
@@ -39,7 +39,7 @@ describe('Containers NodeGraph', () => {
           id: 'SubscriptionService-0.0.1',
           sourcePosition: 'left',
           targetPosition: 'right',
-          data: { title: 'SubscriptionService', mode: 'simple', service: { ...mockServices[0].data } },
+          data: expect.objectContaining({ title: 'SubscriptionService', mode: 'simple', service: { ...mockServices[0].data } }),
           position: { x: 75, y: 50 },
           type: undefined,
         },
@@ -68,8 +68,8 @@ describe('Containers NodeGraph', () => {
           type: 'multiline',
           markerStart: {
             type: 'arrowclosed',
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
         },
         {
@@ -77,8 +77,8 @@ describe('Containers NodeGraph', () => {
           animated: false,
           markerEnd: {
             type: 'arrowclosed',
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
           style: {
             strokeWidth: 1,
@@ -89,8 +89,8 @@ describe('Containers NodeGraph', () => {
           type: 'multiline',
           markerStart: {
             type: 'arrowclosed',
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
         },
       ]);

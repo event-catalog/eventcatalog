@@ -7,6 +7,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   root: __dirname,
+  define: {
+    __EC_TRAILING_SLASH__: false,
+  },
   plugins: [
     tsconfigPaths({
       projects: [path.resolve(__dirname, 'eventcatalog/tsconfig.json')],

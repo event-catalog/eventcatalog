@@ -26,6 +26,7 @@ jobs:
         with:
           node-version: 24.x
           cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install deps
         run: pnpm i

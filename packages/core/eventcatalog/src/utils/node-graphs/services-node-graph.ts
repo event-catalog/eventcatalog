@@ -6,6 +6,8 @@ import {
   generatedIdForEdge,
   calculatedNodes,
   createEdge,
+  buildContextMenuForService,
+  buildContextMenuForResource,
 } from '@utils/node-graphs/utils/utils';
 
 import { findMatchingNodes, findInMap, createVersionedMap } from '@utils/collections/util';
@@ -145,8 +147,16 @@ export const getNodesAndEdges = async ({
     id: generateIdForNode(service),
     sourcePosition: 'right',
     targetPosition: 'left',
-    // data: { mode, service: { ...service, ...service.data } },
-    data: { mode, service: { ...service.data } },
+    data: {
+      mode,
+      service: { ...service.data },
+      contextMenu: buildContextMenuForService({
+        id: service.data.id,
+        version: service.data.version,
+        specifications: service.data.specifications as { type: string; path: string }[],
+        repository: service.data.repository as { url: string },
+      }),
+    },
     type: service.collection,
   });
 
@@ -156,7 +166,11 @@ export const getNodesAndEdges = async ({
       id: generateIdForNode(writeTo),
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: { mode, data: { ...writeTo.data } },
+      data: {
+        mode,
+        data: { ...writeTo.data },
+        contextMenu: buildContextMenuForResource({ collection: 'entities', id: writeTo.data.id, version: writeTo.data.version }),
+      },
       type: 'data',
     });
 
@@ -172,8 +186,8 @@ export const getNodesAndEdges = async ({
           markerEnd: {
             type: MarkerType.ArrowClosed,
             color: '#666',
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
         })
       );
@@ -186,7 +200,15 @@ export const getNodesAndEdges = async ({
       id: generateIdForNode(readFrom),
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: { mode, data: { ...readFrom.data } },
+      data: {
+        mode,
+        data: { ...readFrom.data },
+        contextMenu: buildContextMenuForResource({
+          collection: 'entities',
+          id: readFrom.data.id,
+          version: readFrom.data.version,
+        }),
+      },
       type: 'data',
     });
 
@@ -202,8 +224,8 @@ export const getNodesAndEdges = async ({
           markerStart: {
             type: MarkerType.ArrowClosed,
             color: '#666',
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
           markerEnd: undefined,
         })
@@ -243,8 +265,8 @@ export const getNodesAndEdges = async ({
           data: { message: { ...message.data } },
           markerEnd: {
             type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
           style: {
             strokeWidth: 1,
@@ -265,14 +287,14 @@ export const getNodesAndEdges = async ({
       markerStart: {
         type: MarkerType.ArrowClosed,
         color: '#666',
-        width: 40,
-        height: 40,
+        width: 20,
+        height: 20,
       },
       markerEnd: {
         type: MarkerType.ArrowClosed,
         color: '#666',
-        width: 40,
-        height: 40,
+        width: 20,
+        height: 20,
       },
     });
   });

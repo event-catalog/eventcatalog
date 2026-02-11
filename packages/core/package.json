@@ -60,7 +60,7 @@
     "@eventcatalog/license": "^0.0.7",
     "@eventcatalog/linter": "workspace:*",
     "@eventcatalog/sdk": "workspace:*",
-    "@eventcatalog/visualizer": "^0.0.6",
+    "@eventcatalog/visualiser": "workspace:^",
     "@fontsource/inter": "^5.2.5",
     "@headlessui/react": "^2.0.3",
     "@heroicons/react": "^2.1.3",

@@ -1,0 +1,115 @@
+@import "tailwindcss/utilities";
+@import "tailwindcss/theme";
+@import '@xyflow/react/dist/style.css';
+
+@source "../src/**/*.{js,ts,jsx,tsx}";
+@source "../src/safelist.txt";
+
+/**
+ * EventCatalog Visualizer Theme Variables
+ *
+ * These CSS variables provide theming support for the visualizer.
+ * They can be customized by the consuming application.
+ */
+
+:root {
+  /* Background colors */
+  --ec-page-bg: 255, 255, 255;
+  --ec-card-bg: 255, 255, 255;
+
+  /* Text colors */
+  --ec-page-text: 17, 24, 39;
+  --ec-page-text-muted: 107, 114, 128;
+
+  /* Border colors */
+  --ec-page-border: 229, 231, 235;
+
+  /* Accent colors */
+  --ec-accent: 79, 70, 229;
+  --ec-accent-subtle: 238, 242, 255;
+  --ec-accent-text: 255, 255, 255;
+
+  /* Button colors */
+  --ec-button-bg: 79, 70, 229;
+  --ec-button-text: 255, 255, 255;
+
+  /* Icon colors */
+  --ec-icon-color: 107, 114, 128;
+  --ec-icon-hover: 79, 70, 229;
+
+  /* Input colors */
+  --ec-input-bg: 255, 255, 255;
+  --ec-input-border: 209, 213, 219;
+  --ec-input-text: 17, 24, 39;
+}
+
+/* Dark mode theme */
+[data-theme="dark"] {
+  /* Background colors */
+  --ec-page-bg: 17, 24, 39;
+  --ec-card-bg: 31, 41, 55;
+
+  /* Text colors */
+  --ec-page-text: 243, 244, 246;
+  --ec-page-text-muted: 156, 163, 175;
+
+  /* Border colors */
+  --ec-page-border: 55, 65, 81;
+
+  /* Accent colors */
+  --ec-accent: 99, 102, 241;
+  --ec-accent-subtle: 49, 46, 129;
+  --ec-accent-text: 255, 255, 255;
+
+  /* Button colors */
+  --ec-button-bg: 99, 102, 241;
+  --ec-button-text: 255, 255, 255;
+
+  /* Icon colors */
+  --ec-icon-color: 156, 163, 175;
+  --ec-icon-hover: 99, 102, 241;
+
+  /* Input colors */
+  --ec-input-bg: 31, 41, 55;
+  --ec-input-border: 75, 85, 99;
+  --ec-input-text: 243, 244, 246;
+}
+
+/* Base styles for visualizer container */
+.eventcatalog-visualizer {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ReactFlow customizations */
+.react-flow__node {
+  cursor: pointer;
+}
+
+.react-flow__edge-path {
+  stroke-width: 2;
+}
+
+.react-flow__controls {
+  background-color: rgb(var(--ec-card-bg));
+  border: 1px solid rgb(var(--ec-page-border));
+}
+
+.react-flow__controls-button {
+  background-color: rgb(var(--ec-card-bg));
+  color: rgb(var(--ec-page-text));
+  border-bottom: 1px solid rgb(var(--ec-page-border));
+}
+
+.react-flow__controls-button:hover {
+  background-color: rgb(var(--ec-accent-subtle));
+}
+
+/* Minimap customizations */
+.react-flow__minimap {
+  background-color: rgb(var(--ec-card-bg));
+  border: 1px solid rgb(var(--ec-page-border));
+}

@@ -94,7 +94,7 @@ export const getNodesAndEdgesForDomainContextMap = async ({ defaultFlow = null }
       data: { label: `Bounded Context: ${domain.data.name}` },
       position: { x: 0, y: 0 },
       style: {
-        height: 40,
+        height: 20,
         backgroundColor: 'transparent',
         border: 'none',
         color: 'black',

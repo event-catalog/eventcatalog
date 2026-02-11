@@ -23,7 +23,7 @@ import {
 import type { CollectionMessageTypes } from '@types';
 import { getCommands } from '@utils/collections/commands';
 import { getQueries } from '@utils/collections/queries';
-import { createNode } from './utils/utils';
+import { createNode, buildContextMenuForMessage, buildContextMenuForService, buildContextMenuForResource } from './utils/utils';
 import { getConsumersOfMessage, getProducersOfMessage } from '@utils/collections/services';
 import { getNodesAndEdgesForChannelChain } from './channel-node-graph';
 import { getChannelChain, isChannelsConnected } from '@utils/collections/channels';
@@ -79,6 +79,13 @@ const getNodesAndEdges = async ({
       message: {
         ...message.data,
       },
+      contextMenu: buildContextMenuForMessage({
+        id: message.data.id,
+        version: message.data.version,
+        name: message.data.name,
+        collection: message.collection,
+        schemaPath: (message.data as any).schemaPath,
+      }),
     },
     position: { x: 0, y: 0 },
     type: message.collection,
@@ -96,12 +103,23 @@ const getNodesAndEdges = async ({
     const isDataProduct = producer.collection === 'data-products';
 
     // Create the producer node with appropriate data structure
+    const producerContextMenu = isDataProduct
+      ? buildContextMenuForResource({ collection: 'data-products', id: producer.data.id, version: producer.data.version })
+      : buildContextMenuForService({
+          id: producer.data.id,
+          version: producer.data.version,
+          specifications: (producer.data as any).specifications,
+          repository: (producer.data as any).repository,
+        });
+
     nodes.push({
       id: generateIdForNode(producer),
       type: isDataProduct ? 'data-products' : producer?.collection,
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: isDataProduct ? { mode, dataProduct: { ...producer.data } } : { mode, service: { ...producer.data } },
+      data: isDataProduct
+        ? { mode, dataProduct: { ...producer.data }, contextMenu: producerContextMenu }
+        : { mode, service: { ...producer.data }, contextMenu: producerContextMenu },
       position: { x: 250, y: 0 },
     });
 
@@ -121,8 +139,8 @@ const getNodesAndEdges = async ({
         animated: false,
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          width: 40,
-          height: 40,
+          width: 20,
+          height: 20,
         },
       });
       continue;
@@ -153,8 +171,8 @@ const getNodesAndEdges = async ({
         animated: false,
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          width: 40,
-          height: 40,
+          width: 20,
+          height: 20,
         },
       });
       continue;
@@ -183,7 +201,15 @@ const getNodesAndEdges = async ({
         createNode({
           id: generateIdForNode(channel),
           type: channel.collection,
-          data: { mode, channel: { ...channel.data } },
+          data: {
+            mode,
+            channel: { ...channel.data },
+            contextMenu: buildContextMenuForResource({
+              collection: 'channels',
+              id: channel.data.id,
+              version: channel.data.version,
+            }),
+          },
           position: { x: 0, y: 0 },
         })
       );
@@ -217,13 +243,22 @@ const getNodesAndEdges = async ({
     const isDataProduct = consumer.collection === 'data-products';
 
     // Render the consumer node with appropriate data structure
+    const consumerContextMenu = isDataProduct
+      ? buildContextMenuForResource({ collection: 'data-products', id: consumer.data.id, version: consumer.data.version })
+      : buildContextMenuForService({
+          id: consumer.data.id,
+          version: consumer.data.version,
+          specifications: (consumer.data as any).specifications,
+          repository: (consumer.data as any).repository,
+        });
+
     nodes.push({
       id: generateIdForNode(consumer),
       sourcePosition: 'right',
       targetPosition: 'left',
       data: isDataProduct
-        ? { title: consumer?.data.id, mode, dataProduct: { ...consumer.data } }
-        : { title: consumer?.data.id, mode, service: { ...consumer.data } },
+        ? { title: consumer?.data.id, mode, dataProduct: { ...consumer.data }, contextMenu: consumerContextMenu }
+        : { title: consumer?.data.id, mode, service: { ...consumer.data }, contextMenu: consumerContextMenu },
       position: { x: 0, y: 0 },
       type: isDataProduct ? 'data-products' : consumer?.collection,
     });
@@ -496,7 +531,17 @@ export const getNodesAndEdgesForConsumedMessage = ({
     createNode({
       id: messageId,
       type: message.collection,
-      data: { mode, message: { ...message.data } },
+      data: {
+        mode,
+        message: { ...message.data },
+        contextMenu: buildContextMenuForMessage({
+          id: message.data.id,
+          version: message.data.version,
+          name: message.data.name,
+          collection: message.collection,
+          schemaPath: (message.data as any).schemaPath,
+        }),
+      },
       position: { x: 0, y: 0 },
     })
   );
@@ -506,7 +551,16 @@ export const getNodesAndEdgesForConsumedMessage = ({
     createNode({
       id: generateIdForNode(target),
       type: target.collection,
-      data: { mode, service: { ...target.data } },
+      data: {
+        mode,
+        service: { ...target.data },
+        contextMenu: buildContextMenuForService({
+          id: target.data.id,
+          version: target.data.version,
+          specifications: target.data.specifications as { type: string; path: string }[],
+          repository: target.data.repository as { url: string },
+        }),
+      },
       position: { x: 0, y: 0 },
     })
   );
@@ -562,7 +616,15 @@ export const getNodesAndEdgesForConsumedMessage = ({
         createNode({
           id: channelId,
           type: channel.collection,
-          data: { mode, channel: { ...channel.data, ...channel, id: channel.data.id } },
+          data: {
+            mode,
+            channel: { ...channel.data, ...channel, id: channel.data.id },
+            contextMenu: buildContextMenuForResource({
+              collection: 'channels',
+              id: channel.data.id,
+              version: channel.data.version,
+            }),
+          },
           position: { x: 0, y: 0 },
         })
       );
@@ -602,7 +664,16 @@ export const getNodesAndEdgesForConsumedMessage = ({
       createNode({
         id: producerId,
         type: producer.collection,
-        data: { mode, service: { ...producer.data } },
+        data: {
+          mode,
+          service: { ...producer.data },
+          contextMenu: buildContextMenuForService({
+            id: producer.data.id,
+            version: producer.data.version,
+            specifications: producer.data.specifications as { type: string; path: string }[],
+            repository: producer.data.repository as { url: string },
+          }),
+        },
         position: { x: 0, y: 0 },
       })
     );
@@ -803,7 +874,17 @@ export const getNodesAndEdgesForProducedMessage = ({
     createNode({
       id: messageId,
       type: message.collection,
-      data: { mode, message: { ...message.data } },
+      data: {
+        mode,
+        message: { ...message.data },
+        contextMenu: buildContextMenuForMessage({
+          id: message.data.id,
+          version: message.data.version,
+          name: message.data.name,
+          collection: message.collection,
+          schemaPath: (message.data as any).schemaPath,
+        }),
+      },
       position: { x: 0, y: 0 },
     })
   );
@@ -813,7 +894,16 @@ export const getNodesAndEdgesForProducedMessage = ({
     createNode({
       id: generateIdForNode(source),
       type: source.collection,
-      data: { mode, service: { ...source.data } },
+      data: {
+        mode,
+        service: { ...source.data },
+        contextMenu: buildContextMenuForService({
+          id: source.data.id,
+          version: source.data.version,
+          specifications: source.data.specifications as { type: string; path: string }[],
+          repository: source.data.repository as { url: string },
+        }),
+      },
       position: { x: 0, y: 0 },
     })
   );
@@ -862,7 +952,15 @@ export const getNodesAndEdgesForProducedMessage = ({
         createNode({
           id: channelId,
           type: channel.collection,
-          data: { mode, channel: { ...channel.data, ...channel, mode, id: channel.data.id } },
+          data: {
+            mode,
+            channel: { ...channel.data, ...channel, mode, id: channel.data.id },
+            contextMenu: buildContextMenuForResource({
+              collection: 'channels',
+              id: channel.data.id,
+              version: channel.data.version,
+            }),
+          },
           position: { x: 0, y: 0 },
         })
       );
@@ -897,7 +995,16 @@ export const getNodesAndEdgesForProducedMessage = ({
       createNode({
         id: consumerId,
         type: consumer.collection,
-        data: { mode, service: { ...consumer.data } },
+        data: {
+          mode,
+          service: { ...consumer.data },
+          contextMenu: buildContextMenuForService({
+            id: consumer.data.id,
+            version: consumer.data.version,
+            specifications: consumer.data.specifications as { type: string; path: string }[],
+            repository: consumer.data.repository as { url: string },
+          }),
+        },
         position: { x: 0, y: 0 },
       })
     );
@@ -950,7 +1057,15 @@ export const getNodesAndEdgesForProducedMessage = ({
         createNode({
           id: generateIdForNode(channel),
           type: channel.collection,
-          data: { mode, channel: { ...channel.data, ...channel } },
+          data: {
+            mode,
+            channel: { ...channel.data, ...channel },
+            contextMenu: buildContextMenuForResource({
+              collection: 'channels',
+              id: channel.data.id,
+              version: channel.data.version,
+            }),
+          },
           position: { x: 0, y: 0 },
         })
       );
