@@ -1,5 +1,13 @@
 # @eventcatalog/linter
 
+## 1.0.3
+
+### Patch Changes
+
+- b466daf: fix: add build step to release workflow to ensure dist/ is included in published packages
+- Updated dependencies [b466daf]
+  - @eventcatalog/sdk@2.13.2
+
 ## 1.0.2
 
 ### Patch Changes

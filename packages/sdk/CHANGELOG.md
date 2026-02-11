@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.13.2
+
+### Patch Changes
+
+- b466daf: fix: add build step to release workflow to ensure dist/ is included in published packages
+
 ## 2.13.1
 
 ### Patch Changes
