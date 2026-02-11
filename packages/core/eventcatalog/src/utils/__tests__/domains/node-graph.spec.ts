@@ -49,7 +49,7 @@ describe('Domains NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: { ...mockServices[0].data }, group: expect.anything() },
+        data: expect.objectContaining({ mode: 'simple', service: { ...mockServices[0].data }, group: expect.anything() }),
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -57,7 +57,7 @@ describe('Domains NodeGraph', () => {
         id: 'OrderPlaced-0.0.1',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: {
+        data: expect.objectContaining({
           mode: 'simple',
           message: { ...mockEvents[0].data },
           group: {
@@ -65,7 +65,7 @@ describe('Domains NodeGraph', () => {
             value: 'Checkout',
             id: 'Checkout',
           },
-        },
+        }),
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'events',
       };
@@ -102,7 +102,7 @@ describe('Domains NodeGraph', () => {
         id: 'OrderService-1.0.0',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: {
+        data: expect.objectContaining({
           mode: 'simple',
           service: expect.objectContaining({
             id: 'OrderService',
@@ -113,7 +113,7 @@ describe('Domains NodeGraph', () => {
             value: 'Checkout',
             id: 'Checkout',
           },
-        },
+        }),
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
       };

@@ -1,6 +1,14 @@
 import type { CollectionEntry } from 'astro:content';
 import dagre from 'dagre';
-import { calculatedNodes, createDagreGraph, createEdge, generatedIdForEdge, generateIdForNode } from './utils/utils';
+import {
+  calculatedNodes,
+  createDagreGraph,
+  createEdge,
+  generatedIdForEdge,
+  generateIdForNode,
+  buildContextMenuForService,
+  buildContextMenuForResource,
+} from './utils/utils';
 import { MarkerType } from '@xyflow/react';
 import { findMatchingNodes } from '@utils/collections/util';
 import { getContainers } from '@utils/collections/containers';
@@ -52,7 +60,16 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
       type: service?.collection,
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: { mode, service: { ...service.data } },
+      data: {
+        mode,
+        service: { ...service.data },
+        contextMenu: buildContextMenuForService({
+          id: service.data.id,
+          version: service.data.version,
+          specifications: service.data.specifications as { type: string; path: string }[],
+          repository: service.data.repository as { url: string },
+        }),
+      },
       position: { x: 250, y: 0 },
     });
 
@@ -79,7 +96,15 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
       type: 'data-products',
       sourcePosition: 'right',
       targetPosition: 'left',
-      data: { mode, dataProduct: { ...dataProduct.data } },
+      data: {
+        mode,
+        dataProduct: { ...dataProduct.data },
+        contextMenu: buildContextMenuForResource({
+          collection: 'data-products',
+          id: dataProduct.data.id,
+          version: dataProduct.data.version,
+        }),
+      },
       position: { x: 250, y: 0 },
     });
 
@@ -109,6 +134,11 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
       data: {
         ...container.data,
       },
+      contextMenu: buildContextMenuForResource({
+        collection: 'entities',
+        id: container.data.id,
+        version: container.data.version,
+      }),
     },
     position: { x: 0, y: 0 },
     type: 'data',
@@ -120,7 +150,17 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
       id: generateIdForNode(service),
       sourcePosition: 'left',
       targetPosition: 'right',
-      data: { title: service?.data.id, mode, service: { ...service.data } },
+      data: {
+        title: service?.data.id,
+        mode,
+        service: { ...service.data },
+        contextMenu: buildContextMenuForService({
+          id: service.data.id,
+          version: service.data.version,
+          specifications: service.data.specifications as { type: string; path: string }[],
+          repository: service.data.repository as { url: string },
+        }),
+      },
       position: { x: 0, y: 0 },
       type: service?.collection,
     });
@@ -137,8 +177,8 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
           // type: 'animatedData',
           markerStart: {
             type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
           markerEnd: undefined,
         })
@@ -152,7 +192,16 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
       id: generateIdForNode(dataProduct),
       sourcePosition: 'left',
       targetPosition: 'right',
-      data: { title: dataProduct?.data.id, mode, dataProduct: { ...dataProduct.data } },
+      data: {
+        title: dataProduct?.data.id,
+        mode,
+        dataProduct: { ...dataProduct.data },
+        contextMenu: buildContextMenuForResource({
+          collection: 'data-products',
+          id: dataProduct.data.id,
+          version: dataProduct.data.version,
+        }),
+      },
       position: { x: 0, y: 0 },
       type: 'data-products',
     });
@@ -168,8 +217,8 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
           type: 'multiline',
           markerStart: {
             type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
           markerEnd: undefined,
         })
@@ -189,13 +238,13 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
           type: 'multiline',
           markerStart: {
             type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
           markerEnd: {
             type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
         })
       );
@@ -214,13 +263,13 @@ export const getNodesAndEdges = async ({ id, version, defaultFlow, mode = 'simpl
           type: 'multiline',
           markerStart: {
             type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
           markerEnd: {
             type: MarkerType.ArrowClosed,
-            width: 40,
-            height: 40,
+            width: 20,
+            height: 20,
           },
         })
       );

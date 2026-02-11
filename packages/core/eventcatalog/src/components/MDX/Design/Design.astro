@@ -3,7 +3,7 @@ const { file: designPath, filePath, search = true, title } = Astro.props;
 import fs from 'fs';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
 import Admonition from '@components/MDX/Admonition';
-import NodeGraph from '../NodeGraph/NodeGraph';
+import AstroNodeGraph from '../NodeGraph/AstroNodeGraph';
 
 import { isVisualiserEnabled, isEventCatalogChatEnabled, isDevMode } from '@utils/feature';
 import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
@@ -54,7 +54,7 @@ const nodesWithLayout = design ? applyLayoutToNodes(design.nodes || [], savedLay
       />
 
       <div>
-        <NodeGraph
+        <AstroNodeGraph
           id={id}
           title={title ?? design.name}
           nodes={nodesWithLayout}

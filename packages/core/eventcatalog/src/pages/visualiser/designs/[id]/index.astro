@@ -1,5 +1,5 @@
 ---
-import NodeGraph from '@components/MDX/NodeGraph/NodeGraph';
+import AstroNodeGraph from '@components/MDX/NodeGraph/AstroNodeGraph';
 import { ClientRouter } from 'astro:transitions';
 import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
 import { isEventCatalogChatEnabled } from '@utils/feature';
@@ -20,7 +20,7 @@ const { data } = props;
   <div class="bg-gray-100/50 m-4">
     <div class="h-[calc(100vh-130px)] w-full relative border border-gray-200" id={`${data.id}-portal`} transition:animate="fade">
     </div>
-    <NodeGraph
+    <AstroNodeGraph
       id={data.id}
       nodes={data.nodes}
       edges={data.edges}

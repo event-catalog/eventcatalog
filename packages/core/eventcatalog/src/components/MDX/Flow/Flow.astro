@@ -2,7 +2,7 @@
 import { getFlows } from '@utils/collections/flows';
 import { getNodesAndEdges } from '@utils/node-graphs/flows-node-graph';
 import Admonition from '@components/MDX/Admonition';
-import NodeGraph from '../NodeGraph/NodeGraph';
+import AstroNodeGraph from '../NodeGraph/AstroNodeGraph';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { isVisualiserEnabled, isEventCatalogChatEnabled, isDevMode } from '@utils/feature';
 import { loadSavedLayout, applyLayoutToNodes, buildResourceKey } from '@utils/node-graphs/layout-persistence';
@@ -53,7 +53,7 @@ const nodesWithLayout = applyLayoutToNodes(nodes, savedLayout);
 </div>
 
 <div>
-  <NodeGraph
+  <AstroNodeGraph
     id={id}
     nodes={nodesWithLayout}
     edges={edges}

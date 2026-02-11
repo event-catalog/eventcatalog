@@ -42,7 +42,7 @@ describe('Commands NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: { ...mockServices[0].data } },
+        data: expect.objectContaining({ mode: 'simple', service: { ...mockServices[0].data } }),
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -50,11 +50,11 @@ describe('Commands NodeGraph', () => {
         id: 'PaymentService-0.0.1',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: {
+        data: expect.objectContaining({
           title: 'PaymentService',
           mode: 'simple',
           service: { ...mockServices[1].data },
-        },
+        }),
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
       };
@@ -98,7 +98,7 @@ describe('Commands NodeGraph', () => {
         id: 'GetOrder-0.0.1',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', message: expect.anything() },
+        data: expect.objectContaining({ mode: 'simple', message: expect.anything() }),
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'commands',
       };
@@ -108,7 +108,7 @@ describe('Commands NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: { ...mockServices[4].data } },
+        data: expect.objectContaining({ mode: 'simple', service: { ...mockServices[4].data } }),
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -116,11 +116,11 @@ describe('Commands NodeGraph', () => {
         id: 'LegacyOrderService-0.0.1',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: {
+        data: expect.objectContaining({
           title: 'LegacyOrderService',
           mode: 'simple',
           service: { ...mockServices[4].data },
-        },
+        }),
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
       };
@@ -178,7 +178,7 @@ describe('Commands NodeGraph', () => {
         type: 'services',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', service: { ...mockServices[0].data }, title: 'OrderService' },
+        data: expect.objectContaining({ mode: 'simple', service: { ...mockServices[0].data }, title: 'OrderService' }),
         position: { x: expect.any(Number), y: expect.any(Number) },
       };
 
@@ -302,7 +302,7 @@ describe('Commands NodeGraph', () => {
         id: 'PlaceOrder-2.0.1',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: { mode: 'simple', message: expect.anything() },
+        data: expect.objectContaining({ mode: 'simple', message: expect.anything() }),
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'commands',
       };
@@ -311,11 +311,11 @@ describe('Commands NodeGraph', () => {
         id: 'OrderService-0.0.1',
         sourcePosition: 'right',
         targetPosition: 'left',
-        data: {
+        data: expect.objectContaining({
           title: 'OrderService',
           mode: 'simple',
           service: { ...mockServices[0].data },
-        },
+        }),
         position: { x: expect.any(Number), y: expect.any(Number) },
         type: 'services',
       };
@@ -351,14 +351,14 @@ describe('Commands NodeGraph', () => {
           type: 'data-products',
           sourcePosition: 'right',
           targetPosition: 'left',
-          data: {
+          data: expect.objectContaining({
             title: 'OrderAnalytics',
             mode: 'simple',
             dataProduct: expect.objectContaining({
               id: 'OrderAnalytics',
               version: '1.0.0',
             }),
-          },
+          }),
           position: { x: expect.any(Number), y: expect.any(Number) },
         };
 
@@ -384,13 +384,13 @@ describe('Commands NodeGraph', () => {
           type: 'data-products',
           sourcePosition: 'right',
           targetPosition: 'left',
-          data: {
+          data: expect.objectContaining({
             mode: 'simple',
             dataProduct: expect.objectContaining({
               id: 'OrderDataPipeline',
               version: '1.0.0',
             }),
-          },
+          }),
           position: { x: expect.any(Number), y: expect.any(Number) },
         };
 

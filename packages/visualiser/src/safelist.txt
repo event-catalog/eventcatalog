@@ -1,0 +1,54 @@
+<!--
+  Tailwind CSS Safelist
+  These classes are used dynamically in Flow.tsx and Custom.tsx via template literals like:
+    border-${color}-400, from-${color}-500, to-${color}-700, text-${color}-100, border-${color}-500
+  Tailwind can't detect them at build time, so we list them here.
+-->
+
+<!-- teal (Flow default) -->
+border-teal-400 from-teal-500 to-teal-700 text-teal-100 border-teal-500 from-teal-400 to-teal-600
+
+<!-- blue (Custom default) -->
+border-blue-400 from-blue-500 to-blue-700 text-blue-100 border-blue-500 from-blue-400 to-blue-600 border-blue
+
+<!-- red -->
+border-red-400 from-red-500 to-red-700 text-red-100 border-red-500 from-red-400 to-red-600 border-red
+
+<!-- green -->
+border-green-400 from-green-500 to-green-700 text-green-100 border-green-500 from-green-400 to-green-600 border-green
+
+<!-- purple -->
+border-purple-400 from-purple-500 to-purple-700 text-purple-100 border-purple-500 from-purple-400 to-purple-600 border-purple
+
+<!-- orange -->
+border-orange-400 from-orange-500 to-orange-700 text-orange-100 border-orange-500 from-orange-400 to-orange-600 border-orange
+
+<!-- pink -->
+border-pink-400 from-pink-500 to-pink-700 text-pink-100 border-pink-500 from-pink-400 to-pink-600 border-pink
+
+<!-- yellow -->
+border-yellow-400 from-yellow-500 to-yellow-700 text-yellow-100 border-yellow-500 from-yellow-400 to-yellow-600 border-yellow
+
+<!-- gray -->
+border-gray-400 from-gray-500 to-gray-700 text-gray-100 border-gray-500 from-gray-400 to-gray-600 border-gray
+
+<!-- indigo -->
+border-indigo-400 from-indigo-500 to-indigo-700 text-indigo-100 border-indigo-500 from-indigo-400 to-indigo-600 border-indigo
+
+<!-- cyan -->
+border-cyan-400 from-cyan-500 to-cyan-700 text-cyan-100 border-cyan-500 from-cyan-400 to-cyan-600 border-cyan
+
+<!-- slate -->
+border-slate-400 from-slate-500 to-slate-700 text-slate-100 border-slate-500 from-slate-400 to-slate-600 border-slate
+
+<!-- amber -->
+border-amber-400 from-amber-500 to-amber-700 text-amber-100 border-amber-500 from-amber-400 to-amber-600 border-amber
+
+<!-- emerald -->
+border-emerald-400 from-emerald-500 to-emerald-700 text-emerald-100 border-emerald-500 from-emerald-400 to-emerald-600 border-emerald
+
+<!-- violet -->
+border-violet-400 from-violet-500 to-violet-700 text-violet-100 border-violet-500 from-violet-400 to-violet-600 border-violet
+
+<!-- rose -->
+border-rose-400 from-rose-500 to-rose-700 text-rose-100 border-rose-500 from-rose-400 to-rose-600 border-rose

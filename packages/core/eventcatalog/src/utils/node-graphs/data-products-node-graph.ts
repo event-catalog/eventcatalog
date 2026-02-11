@@ -7,6 +7,7 @@ import {
   calculatedNodes,
   createEdge,
   getColorFromString,
+  buildContextMenuForResource,
 } from '@utils/node-graphs/utils/utils';
 
 import { findInMap, createVersionedMap, mergeMaps, collectionToResourceMap } from '@utils/collections/util';
@@ -135,8 +136,8 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         markerEnd: {
           type: MarkerType.ArrowClosed,
           color: '#666',
-          width: 40,
-          height: 40,
+          width: 20,
+          height: 20,
         },
       })
     );
@@ -147,7 +148,15 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
     id: generateIdForNode(dataProduct),
     sourcePosition: 'right',
     targetPosition: 'left',
-    data: { mode, dataProduct: { ...dataProduct.data } },
+    data: {
+      mode,
+      dataProduct: { ...dataProduct.data },
+      contextMenu: buildContextMenuForResource({
+        collection: 'data-products',
+        id: dataProduct.data.id,
+        version: dataProduct.data.version,
+      }),
+    },
     type: 'data-products',
   });
 
@@ -191,8 +200,8 @@ export const getNodesAndEdges = async ({ id, defaultFlow, version, mode = 'simpl
         markerEnd: {
           type: MarkerType.ArrowClosed,
           color: '#666',
-          width: 40,
-          height: 40,
+          width: 20,
+          height: 20,
         },
       })
     );

@@ -2,7 +2,7 @@
 import { getDomains } from '@utils/collections/domains';
 import { getNodesAndEdges } from '@utils/node-graphs/domain-entity-map.ts';
 import Admonition from '@components/MDX/Admonition';
-import NodeGraph from '../NodeGraph/NodeGraph';
+import AstroNodeGraph from '../NodeGraph/AstroNodeGraph';
 import { getVersionFromCollection } from '@utils/collections/versions';
 import { getServices } from '@utils/collections/services';
 import { isEventCatalogChatEnabled, isDevMode } from '@utils/feature';
@@ -70,7 +70,7 @@ const nodesWithLayout = applyLayoutToNodes(nodes as any[], savedLayout);
 </div>
 
 <div>
-  <NodeGraph
+  <AstroNodeGraph
     id={id}
     nodes={nodesWithLayout}
     edges={edges}
