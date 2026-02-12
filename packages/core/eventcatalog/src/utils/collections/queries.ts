@@ -1,7 +1,7 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import { createVersionedMap } from './util';
-import { hydrateProducersAndConsumers } from './messages';
+import { buildProducerConsumerIndex, lookupProducersAndConsumers } from './messages';
 
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 
@@ -34,6 +34,18 @@ export const getQueries = async ({ getAllVersions = true, hydrateServices = true
 
   // 2. Build optimized maps
   const queryMap = createVersionedMap(allQueries);
+  const pcIndex = buildProducerConsumerIndex(allServices, allDataProducts);
+
+  // Build channel lookup map: channelId → channel entries
+  const channelById = new Map<string, typeof allChannels>();
+  for (const ch of allChannels) {
+    let list = channelById.get(ch.data.id);
+    if (!list) {
+      list = [];
+      channelById.set(ch.data.id, list);
+    }
+    list.push(ch);
+  }
 
   // 3. Filter queries
   const targetQueries = allQueries.filter((query) => {
@@ -50,24 +62,23 @@ export const getQueries = async ({ getAllVersions = true, hydrateServices = true
       const latestVersion = queryVersions[0]?.data.version || query.data.version;
       const versions = queryVersions.map((e) => e.data.version);
 
-      // Find producers and consumers (services + data products)
-      const { producers, consumers } = hydrateProducersAndConsumers({
+      // Find producers and consumers via reverse index
+      const { producers, consumers } = lookupProducersAndConsumers({
         message: { data: { ...query.data, latestVersion } },
-        services: allServices,
-        dataProducts: allDataProducts,
+        index: pcIndex,
         hydrate: hydrateServices,
       });
 
-      // Find Channels
+      // Find Channels via map lookup
       const messageChannels = query.data.channels || [];
-      const channelsForQuery = allChannels.filter((c) => messageChannels.some((channel) => c.data.id === channel.id));
+      const channelsForQuery = messageChannels.flatMap((channel) => channelById.get(channel.id) || []);
 
       return {
         ...query,
         data: {
           ...query.data,
           messageChannels: channelsForQuery,
-          producers: producers as any, // Cast for hydration flexibility
+          producers: producers as any,
           consumers: consumers as any,
           versions,
           latestVersion,
