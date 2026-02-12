@@ -1,7 +1,7 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 import { createVersionedMap } from './util';
-import { hydrateProducersAndConsumers } from './messages';
+import { buildProducerConsumerIndex, lookupProducersAndConsumers } from './messages';
 
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 
@@ -35,6 +35,18 @@ export const getCommands = async ({ getAllVersions = true, hydrateServices = tru
 
   // 2. Build optimized maps
   const commandMap = createVersionedMap(allCommands);
+  const pcIndex = buildProducerConsumerIndex(allServices, allDataProducts);
+
+  // Build channel lookup map: channelId → channel entries
+  const channelById = new Map<string, typeof allChannels>();
+  for (const ch of allChannels) {
+    let list = channelById.get(ch.data.id);
+    if (!list) {
+      list = [];
+      channelById.set(ch.data.id, list);
+    }
+    list.push(ch);
+  }
 
   // 3. Filter commands
   const targetCommands = allCommands.filter((command) => {
@@ -51,24 +63,23 @@ export const getCommands = async ({ getAllVersions = true, hydrateServices = tru
       const latestVersion = commandVersions[0]?.data.version || command.data.version;
       const versions = commandVersions.map((e) => e.data.version);
 
-      // Find producers and consumers (services + data products)
-      const { producers, consumers } = hydrateProducersAndConsumers({
+      // Find producers and consumers via reverse index
+      const { producers, consumers } = lookupProducersAndConsumers({
         message: { data: { ...command.data, latestVersion } },
-        services: allServices,
-        dataProducts: allDataProducts,
+        index: pcIndex,
         hydrate: hydrateServices,
       });
 
-      // Find Channels
+      // Find Channels via map lookup
       const messageChannels = command.data.channels || [];
-      const channelsForCommand = allChannels.filter((c) => messageChannels.some((channel) => c.data.id === channel.id));
+      const channelsForCommand = messageChannels.flatMap((channel) => channelById.get(channel.id) || []);
 
       return {
         ...command,
         data: {
           ...command.data,
           messageChannels: channelsForCommand,
-          producers: producers as any, // Cast for hydration flexibility
+          producers: producers as any,
           consumers: consumers as any,
           versions,
           latestVersion,
