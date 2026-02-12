@@ -11,6 +11,7 @@
   },
   "changesets": [
     "bright-waves-dance",
+    "remove-catalog-object",
     "visualiser-beta",
     "wet-chefs-invent"
   ]
