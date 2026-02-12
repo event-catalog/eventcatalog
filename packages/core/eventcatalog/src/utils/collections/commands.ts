@@ -1,21 +1,11 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import path from 'path';
 import { createVersionedMap } from './util';
 import { hydrateProducersAndConsumers } from './messages';
-import utils from '@eventcatalog/sdk';
 
-const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 
-type Command = CollectionEntry<'commands'> & {
-  catalog: {
-    path: string;
-    filePath: string;
-    type: string;
-    publicPath: string;
-  };
-};
+type Command = CollectionEntry<'commands'>;
 
 interface Props {
   getAllVersions?: boolean;
@@ -53,8 +43,6 @@ export const getCommands = async ({ getAllVersions = true, hydrateServices = tru
     return true;
   });
 
-  const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
-
   // 4. Enrich commands
   const processedCommands = await Promise.all(
     targetCommands.map(async (command) => {
@@ -75,13 +63,6 @@ export const getCommands = async ({ getAllVersions = true, hydrateServices = tru
       const messageChannels = command.data.channels || [];
       const channelsForCommand = allChannels.filter((c) => messageChannels.some((channel) => c.data.id === channel.id));
 
-      const folderName = await getResourceFolderName(
-        process.env.PROJECT_DIR ?? '',
-        command.data.id,
-        command.data.version.toString()
-      );
-      const commandFolderName = folderName ?? command.id.replace(`-${command.data.version}`, '');
-
       return {
         ...command,
         data: {
@@ -91,12 +72,6 @@ export const getCommands = async ({ getAllVersions = true, hydrateServices = tru
           consumers: consumers as any,
           versions,
           latestVersion,
-        },
-        catalog: {
-          path: path.join(command.collection, command.id.replace('/index.mdx', '')),
-          filePath: path.join(process.cwd(), 'src', 'catalog-files', command.collection, command.id.replace('/index.mdx', '')),
-          publicPath: path.join('/generated', command.collection, commandFolderName),
-          type: 'command',
         },
       };
     })

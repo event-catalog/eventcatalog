@@ -1,11 +1,9 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import path from 'path';
 import { createVersionedMap, findInMap } from '@utils/collections/util';
 import { getDomains } from './domains';
 import { getServices } from './services';
 
-const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 export type Flow = CollectionEntry<'flows'>;
 
@@ -73,12 +71,6 @@ export const getFlows = async ({ getAllVersions = true }: Props = {}): Promise<F
         steps: hydrateSteps as any, // Cast to match expected Flow step type
         versions,
         latestVersion,
-      },
-      catalog: {
-        path: path.join(flow.collection, flow.id.replace('/index.mdx', '')),
-        filePath: path.join(process.cwd(), 'src', 'catalog-files', flow.collection, flow.id.replace('/index.mdx', '')),
-        publicPath: path.join('/generated', flow.collection),
-        type: 'flow',
       },
     };
   });

@@ -1,21 +1,11 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import path from 'path';
-import utils from '@eventcatalog/sdk';
 import { createVersionedMap } from './util';
 import { hydrateProducersAndConsumers } from './messages';
 
-const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 
-type Query = CollectionEntry<'queries'> & {
-  catalog: {
-    path: string;
-    filePath: string;
-    type: string;
-    publicPath: string;
-  };
-};
+type Query = CollectionEntry<'queries'>;
 
 interface Props {
   getAllVersions?: boolean;
@@ -52,8 +42,6 @@ export const getQueries = async ({ getAllVersions = true, hydrateServices = true
     return true;
   });
 
-  const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
-
   // 4. Enrich queries
   const processedQueries = await Promise.all(
     targetQueries.map(async (query) => {
@@ -74,9 +62,6 @@ export const getQueries = async ({ getAllVersions = true, hydrateServices = true
       const messageChannels = query.data.channels || [];
       const channelsForQuery = allChannels.filter((c) => messageChannels.some((channel) => c.data.id === channel.id));
 
-      const folderName = await getResourceFolderName(process.env.PROJECT_DIR ?? '', query.data.id, query.data.version.toString());
-      const queryFolderName = folderName ?? query.id.replace(`-${query.data.version}`, '');
-
       return {
         ...query,
         data: {
@@ -86,12 +71,6 @@ export const getQueries = async ({ getAllVersions = true, hydrateServices = true
           consumers: consumers as any,
           versions,
           latestVersion,
-        },
-        catalog: {
-          path: path.join(query.collection, query.id.replace('/index.mdx', '')),
-          filePath: path.join(process.cwd(), 'src', 'catalog-files', query.collection, query.id.replace('/index.mdx', '')),
-          publicPath: path.join('/generated', query.collection, queryFolderName),
-          type: 'event', // Kept as 'event' to match original file, though likely should be 'query'
         },
       };
     })

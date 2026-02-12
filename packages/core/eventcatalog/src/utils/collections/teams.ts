@@ -1,7 +1,6 @@
 import type { CollectionTypes } from '@types';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import path from 'path';
 
 export type Team = CollectionEntry<'teams'>;
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
@@ -73,11 +72,6 @@ export const getTeams = async (): Promise<Team[]> => {
         ownedCommands,
         ownedQueries,
         ownedEvents,
-      },
-      catalog: {
-        path: path.join(team.collection, team.id.replace('/index.mdx', '')),
-        filePath: path.join(process.cwd(), 'src', 'catalog-files', team.collection, team.id.replace('/index.mdx', '')),
-        type: 'team',
       },
     };
   });

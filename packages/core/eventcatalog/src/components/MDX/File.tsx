@@ -1,12 +1,12 @@
-import fs from 'fs';
-import path from 'path';
+import { resourceFileExists, readResourceFile, getResourceFilePath } from '@utils/resource-files';
 
-const File = ({ file, catalog, title }: any) => {
+const File = ({ file, filePath, title }: any) => {
   try {
-    const exists = fs.existsSync(path.join(catalog.filePath, file));
+    const item = { filePath };
+    const exists = resourceFileExists(item, file);
 
     if (exists) {
-      const text = fs.readFileSync(path.join(catalog.filePath, file), 'utf-8');
+      const text = readResourceFile(item, file);
       return (
         <div className="not-prose">
           <pre className="expressive-code" data-language="json">
@@ -23,7 +23,7 @@ const File = ({ file, catalog, title }: any) => {
                 </code>
               </pre>
               <div className="copy">
-                <button title="Copy to clipboard" data-copied="Copied!" data-code={text}>
+                <button title="Copy to clipboard" data-copied="Copied!" data-code={text ?? ''}>
                   <div></div>
                 </button>
               </div>
@@ -32,7 +32,7 @@ const File = ({ file, catalog, title }: any) => {
         </div>
       );
     } else {
-      return <div className="italic">Tried to load file from {path.join(catalog.filePath, file)}, but no file can be found</div>;
+      return <div className="italic">Tried to load file from {getResourceFilePath(item, file)}, but no file can be found</div>;
     }
   } catch (error) {
     console.log('Failed to load file', error);

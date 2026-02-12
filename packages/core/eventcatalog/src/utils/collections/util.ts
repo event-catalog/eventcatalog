@@ -3,6 +3,16 @@ import type { CollectionEntry } from 'astro:content';
 import semver, { coerce, compare, eq, satisfies as satisfiesRange } from 'semver';
 import path from 'node:path';
 
+// --- FILE PATH HELPERS ---
+
+/**
+ * Extract the folder name from an Astro collection entry's filePath.
+ * Replaces the expensive SDK getResourceFolderName which globs + reads every file.
+ */
+export const getFolderNameFromFilePath = (filePath: string): string => {
+  return path.basename(path.dirname(filePath));
+};
+
 // --- SPECIFICATION HELPERS ---
 
 export type SpecificationType = 'asyncapi' | 'openapi' | 'graphql';
@@ -232,7 +242,6 @@ export const removeContentFromCollection = (collection: CollectionEntry<Collecti
   return collection.map((item) => ({
     ...item,
     body: undefined,
-    catalog: undefined,
   }));
 };
 

@@ -1,20 +1,17 @@
 ---
 import fs from 'fs';
-import path from 'path';
 import { Code } from 'astro-expressive-code/components';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
+import { getResourceFilePath } from '@utils/resource-files';
 
 interface Props {
   file?: string;
-  catalog: {
-    filePath: string;
-  };
   title?: string;
   filePath: string;
   lang?: string;
 }
 
-const { file = 'schema.json', catalog, title, filePath, lang = 'json' } = Astro.props;
+const { file = 'schema.json', title, filePath, lang = 'json' } = Astro.props;
 
 let code: string | null = null;
 
@@ -32,6 +29,6 @@ if (exists) {
       <Code code={code} title={title || file} lang={lang} />
     </div>
   ) : (
-    <div class="italic">Tried to load schema from {path.join(catalog.filePath, file)}, but no schema can be found</div>
+    <div class="italic">Tried to load schema from {getResourceFilePath({ filePath }, file)}, but no schema can be found</div>
   )
 }
