@@ -14,6 +14,7 @@ describe('schemas', () => {
 
   describe('getSchemaURL', () => {
     it('returns the schema URL for a given resource', () => {
+      // @ts-ignore - partial mock
       const schemaURL = getSchemaURL({
         collection: 'services',
         data: {
@@ -22,12 +23,9 @@ describe('schemas', () => {
           name: 'MyService',
           schemaPath: 'schemas/service',
         },
-        // @ts-ignore
-        catalog: {
-          publicPath: '/catalog/services/MyService',
-        },
+        filePath: '/some/path/to/MyService/index.mdx',
       });
-      expect(schemaURL).toEqual('/catalog/services/MyService/schemas/service');
+      expect(schemaURL).toEqual('/generated/services/MyService/schemas/service');
     });
   });
 
@@ -41,6 +39,7 @@ describe('schemas', () => {
   describe('getSchemasFromResource', () => {
     describe('services', () => {
       it('returns an openapi, and asyncapi schema if both are present', () => {
+        // @ts-ignore - partial mock
         const schemas = getSchemasFromResource({
           collection: 'services',
           data: {
@@ -54,15 +53,16 @@ describe('schemas', () => {
             },
           },
           // @ts-ignore
-          catalog: { publicPath: '/catalog/services/MyService' },
+          filePath: '/some/path/to/MyService/index.mdx',
         });
         expect(schemas).toEqual([
-          { url: '/catalog/services/MyService/schemas/service.asyncapi.json', format: 'asyncapi' },
-          { url: '/catalog/services/MyService/schemas/service.openapi.json', format: 'openapi' },
+          { url: '/generated/services/MyService/schemas/service.asyncapi.json', format: 'asyncapi' },
+          { url: '/generated/services/MyService/schemas/service.openapi.json', format: 'openapi' },
         ]);
       });
 
       it('returns an asyncapi schema if only asyncapi is present', () => {
+        // @ts-ignore - partial mock
         const schemas = getSchemasFromResource({
           collection: 'services',
           data: {
@@ -75,12 +75,13 @@ describe('schemas', () => {
             },
           },
           // @ts-ignore
-          catalog: { publicPath: '/catalog/services/MyService' },
+          filePath: '/some/path/to/MyService/index.mdx',
         });
-        expect(schemas).toEqual([{ url: '/catalog/services/MyService/schemas/service.asyncapi.json', format: 'asyncapi' }]);
+        expect(schemas).toEqual([{ url: '/generated/services/MyService/schemas/service.asyncapi.json', format: 'asyncapi' }]);
       });
 
       it('returns an openapi schema if only openapi is present', () => {
+        // @ts-ignore - partial mock
         const schemas = getSchemasFromResource({
           collection: 'services',
           data: {
@@ -93,12 +94,13 @@ describe('schemas', () => {
             },
           },
           // @ts-ignore
-          catalog: { publicPath: '/catalog/services/MyService' },
+          filePath: '/some/path/to/MyService/index.mdx',
         });
-        expect(schemas).toEqual([{ url: '/catalog/services/MyService/schemas/service.openapi.json', format: 'openapi' }]);
+        expect(schemas).toEqual([{ url: '/generated/services/MyService/schemas/service.openapi.json', format: 'openapi' }]);
       });
 
       it('returns an empty array if no schemas are present', () => {
+        // @ts-ignore - partial mock
         const schemas = getSchemasFromResource({
           collection: 'services',
           data: {
@@ -108,7 +110,7 @@ describe('schemas', () => {
             schemaPath: 'schemas/service',
           },
           // @ts-ignore
-          catalog: { publicPath: '/catalog/services/MyService' },
+          filePath: '/some/path/to/MyService/index.mdx',
         });
         expect(schemas).toEqual([]);
       });
@@ -116,6 +118,7 @@ describe('schemas', () => {
 
     describe('all resources (excluding services)', () => {
       it('returns a single schema if only one is present', () => {
+        // @ts-ignore - partial mock
         const schemas = getSchemasFromResource({
           collection: 'events',
           data: {
@@ -125,12 +128,13 @@ describe('schemas', () => {
             schemaPath: 'schemas/event.json',
           },
           // @ts-ignore
-          catalog: { publicPath: '/catalog/events/MyEvent' },
+          filePath: '/some/path/to/MyEvent/index.mdx',
         });
-        expect(schemas).toEqual([{ url: '/catalog/events/MyEvent/schemas/event.json', format: 'json' }]);
+        expect(schemas).toEqual([{ url: '/generated/events/MyEvent/schemas/event.json', format: 'json' }]);
       });
 
       it('returns an empty array if no schemas are present', () => {
+        // @ts-ignore - partial mock
         const schemas = getSchemasFromResource({
           collection: 'events',
           data: {
@@ -139,7 +143,7 @@ describe('schemas', () => {
             name: 'MyEvent',
           },
           // @ts-ignore
-          catalog: { publicPath: '/catalog/events/MyEvent' },
+          filePath: '/some/path/to/MyEvent/index.mdx',
         });
         expect(schemas).toEqual([]);
       });

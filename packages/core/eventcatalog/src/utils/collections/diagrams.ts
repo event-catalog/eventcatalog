@@ -1,6 +1,5 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import path from 'path';
 import { createVersionedMap } from '@utils/collections/util';
 
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
@@ -43,12 +42,6 @@ export const getDiagrams = async ({ getAllVersions = true }: Props = {}): Promis
         ...diagram.data,
         versions,
         latestVersion,
-      },
-      catalog: {
-        path: path.join(diagram.collection, diagram.id.replace('/index.mdx', '')),
-        filePath: path.join(process.cwd(), 'src', 'catalog-files', diagram.collection, diagram.id.replace('/index.mdx', '')),
-        publicPath: path.join('/generated', diagram.collection),
-        type: 'diagram',
       },
     };
   });

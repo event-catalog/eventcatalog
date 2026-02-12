@@ -1,21 +1,11 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import path from 'path';
 import { createVersionedMap } from './util';
 import { hydrateProducersAndConsumers } from './messages';
-import utils from '@eventcatalog/sdk';
 
-const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 
-type Event = CollectionEntry<'events'> & {
-  catalog: {
-    path: string;
-    filePath: string;
-    type: string;
-    publicPath: string;
-  };
-};
+type Event = CollectionEntry<'events'>;
 
 interface Props {
   getAllVersions?: boolean;
@@ -56,8 +46,6 @@ export const getEvents = async ({ getAllVersions = true, hydrateServices = true 
     return true;
   });
 
-  const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
-
   // 4. Enrich events
   const processedEvents = await Promise.all(
     targetEvents.map(async (event) => {
@@ -81,9 +69,6 @@ export const getEvents = async ({ getAllVersions = true, hydrateServices = true 
       // Given the logic is simply ID match, we can use a Set or Map if needed, but array filter is likely fine for now unless M is huge.
       const channelsForEvent = allChannels.filter((c) => messageChannels.some((channel) => c.data.id === channel.id));
 
-      const folderName = await getResourceFolderName(process.env.PROJECT_DIR ?? '', event.data.id, event.data.version.toString());
-      const eventFolderName = folderName ?? event.id.replace(`-${event.data.version}`, '');
-
       return {
         ...event,
         data: {
@@ -93,12 +78,6 @@ export const getEvents = async ({ getAllVersions = true, hydrateServices = true 
           consumers: consumers as any,
           versions,
           latestVersion,
-        },
-        catalog: {
-          path: path.join(event.collection, event.id.replace('/index.mdx', '')),
-          filePath: path.join(process.cwd(), 'src', 'catalog-files', event.collection, event.id.replace('/index.mdx', '')),
-          publicPath: path.join('/generated', event.collection, eventFolderName),
-          type: 'event',
         },
       };
     })

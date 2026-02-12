@@ -1,19 +1,9 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import path from 'path';
 import { createVersionedMap, satisfies } from './util';
-import utils from '@eventcatalog/sdk';
 
-const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
-export type Entity = CollectionEntry<'containers'> & {
-  catalog: {
-    path: string;
-    filePath: string;
-    type: string;
-    publicPath: string;
-  };
-};
+export type Entity = CollectionEntry<'containers'>;
 
 interface Props {
   getAllVersions?: boolean;
@@ -47,8 +37,6 @@ export const getContainers = async ({ getAllVersions = true }: Props = {}): Prom
     if (!getAllVersions && container.filePath?.includes('versioned')) return false;
     return true;
   });
-
-  const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
 
   // 4. Enrich containers
   const processedContainers = await Promise.all(
@@ -97,13 +85,6 @@ export const getContainers = async ({ getAllVersions = true }: Props = {}): Prom
       // Combine references
       const servicesThatReferenceContainer = [...new Set([...servicesThatWriteToContainer, ...servicesThatReadFromContainer])];
 
-      const folderName = await getResourceFolderName(
-        process.env.PROJECT_DIR ?? '',
-        container.data.id,
-        container.data.version.toString()
-      );
-      const containerFolderName = folderName ?? container.id.replace(`-${container.data.version}`, '');
-
       return {
         ...container,
         data: {
@@ -115,18 +96,6 @@ export const getContainers = async ({ getAllVersions = true }: Props = {}): Prom
           servicesThatReadFromContainer,
           dataProductsThatWriteToContainer,
           dataProductsThatReadFromContainer,
-        },
-        catalog: {
-          path: path.join(container.collection, container.id.replace('/index.mdx', '')),
-          filePath: path.join(
-            process.cwd(),
-            'src',
-            'catalog-files',
-            container.collection,
-            container.id.replace('/index.mdx', '')
-          ),
-          publicPath: path.join('/generated', container.collection, containerFolderName),
-          type: 'container',
         },
       };
     })

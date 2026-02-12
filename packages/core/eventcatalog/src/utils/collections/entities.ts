@@ -1,19 +1,8 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import path from 'path';
-import utils from '@eventcatalog/sdk';
 import { createVersionedMap, satisfies } from './util';
 
-const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
-
-export type Entity = CollectionEntry<'entities'> & {
-  catalog: {
-    path: string;
-    filePath: string;
-    type: string;
-    publicPath: string;
-  };
-};
+export type Entity = CollectionEntry<'entities'>;
 
 interface Props {
   getAllVersions?: boolean;
@@ -48,8 +37,6 @@ export const getEntities = async ({ getAllVersions = true }: Props = {}): Promis
     return true;
   });
 
-  const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
-
   // 4. Enrich entities
   const processedEntities = await Promise.all(
     targetEntities.map(async (entity) => {
@@ -76,13 +63,6 @@ export const getEntities = async ({ getAllVersions = true }: Props = {}): Promis
         })
       );
 
-      const folderName = await getResourceFolderName(
-        process.env.PROJECT_DIR ?? '',
-        entity.data.id,
-        entity.data.version.toString()
-      );
-      const entityFolderName = folderName ?? entity.id.replace(`-${entity.data.version}`, '');
-
       return {
         ...entity,
         data: {
@@ -91,12 +71,6 @@ export const getEntities = async ({ getAllVersions = true }: Props = {}): Promis
           latestVersion,
           services: servicesThatReferenceEntity,
           domains: domainsThatReferenceEntity,
-        },
-        catalog: {
-          path: path.join(entity.collection, entity.id.replace('/index.mdx', '')),
-          filePath: path.join(process.cwd(), 'src', 'catalog-files', entity.collection, entity.id.replace('/index.mdx', '')),
-          publicPath: path.join('/generated', entity.collection, entityFolderName),
-          type: 'entity',
         },
       };
     })

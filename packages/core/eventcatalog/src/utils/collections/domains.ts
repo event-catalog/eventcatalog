@@ -3,10 +3,8 @@ import type { CollectionEntry } from 'astro:content';
 import path from 'path';
 import type { CollectionMessageTypes } from '@types';
 import type { Service } from './types';
-import utils from '@eventcatalog/sdk';
 import { createVersionedMap, findInMap, processSpecifications } from '@utils/collections/util';
 
-const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 
 export type Domain = CollectionEntry<'domains'>;
@@ -113,8 +111,6 @@ export const getDomains = async ({
     return true;
   });
 
-  const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
-
   // 4. Process domains using Map lookups (O(1))
   const processedDomains = await Promise.all(
     targetDomains.map(async (domain: Domain) => {
@@ -204,14 +200,6 @@ export const getDomains = async ({
         .map((m: { id: string; version: string | undefined }) => findInMap(messageMap, m.id, m.version))
         .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
 
-      // Calculate folder paths
-      const folderName = await getResourceFolderName(
-        process.env.PROJECT_DIR ?? '',
-        domain.data.id,
-        domain.data.version?.toString()
-      );
-      const domainFolderName = folderName ?? domain.id.replace(`-${domain.data.version}`, '');
-
       return {
         ...domain,
         data: {
@@ -225,12 +213,6 @@ export const getDomains = async ({
           receives: domainReceives as any,
           latestVersion,
           versions,
-        },
-        catalog: {
-          path: path.join(domain.collection, domain.id.replace('/index.mdx', '')),
-          filePath: path.join(process.cwd(), 'src', 'catalog-files', domain.collection, domain.id.replace('/index.mdx', '')),
-          publicPath: path.join('/generated', domain.collection, domainFolderName),
-          type: 'service',
         },
       };
     })
