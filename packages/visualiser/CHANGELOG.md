@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 3.13.0-beta.2
+
+### Patch Changes
+
+- 7d0203c: fix(visualiser): resolve header visibility conflict with tailwind utilities
+
 ## 3.12.9-beta.1
 
 ### Patch Changes
