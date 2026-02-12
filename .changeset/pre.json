@@ -10,8 +10,10 @@
     "@eventcatalog/linter": "1.0.2"
   },
   "changesets": [
+    "bright-foxes-race",
     "bright-waves-dance",
     "remove-catalog-object",
+    "swift-eels-bathe",
     "visualiser-beta",
     "wet-chefs-invent"
   ]
