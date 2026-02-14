@@ -1,18 +1,8 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import path from 'path';
 import { createVersionedMap, satisfies } from './util';
 
-const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
-
-export type DataProduct = CollectionEntry<'data-products'> & {
-  catalog: {
-    path: string;
-    filePath: string;
-    type: string;
-    publicPath: string;
-  };
-};
+export type DataProduct = CollectionEntry<'data-products'>;
 
 interface Props {
   getAllVersions?: boolean;
@@ -53,8 +43,6 @@ export const getDataProducts = async ({ getAllVersions = true }: Props = {}): Pr
         })
       );
 
-      const dataProductFolderName = dataProduct.id.replace('/index.mdx', '');
-
       return {
         ...dataProduct,
         data: {
@@ -62,12 +50,6 @@ export const getDataProducts = async ({ getAllVersions = true }: Props = {}): Pr
           versions,
           latestVersion,
           domains: domainsThatReferenceDataProduct,
-        },
-        catalog: {
-          path: path.join(dataProduct.collection, dataProductFolderName),
-          filePath: path.join(process.cwd(), 'src', 'catalog-files', dataProduct.collection, dataProductFolderName),
-          publicPath: path.join('/generated', dataProduct.collection, dataProductFolderName),
-          type: 'dataProduct',
         },
       };
     })

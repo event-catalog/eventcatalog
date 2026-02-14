@@ -1,21 +1,11 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import path from 'path';
 import { getItemsFromCollectionByIdAndSemverOrLatest, createVersionedMap, satisfies } from './util';
 import type { CollectionMessageTypes } from '@types';
-import utils from '@eventcatalog/sdk';
 
-const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
 const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
 
-type Channel = CollectionEntry<'channels'> & {
-  catalog: {
-    path: string;
-    filePath: string;
-    type: string;
-    publicPath: string;
-  };
-};
+type Channel = CollectionEntry<'channels'>;
 
 interface Props {
   getAllVersions?: boolean;
@@ -74,8 +64,6 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
     return true;
   });
 
-  const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
-
   // 5. Enrich channels
   const processedChannels = await Promise.all(
     targetChannels.map(async (channel) => {
@@ -105,13 +93,6 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
         };
       });
 
-      const folderName = await getResourceFolderName(
-        process.env.PROJECT_DIR ?? '',
-        channel.data.id,
-        channel.data.version.toString()
-      );
-      const channelFolderName = folderName ?? channel.id.replace(`-${channel.data.version}`, '');
-
       return {
         ...channel,
         data: {
@@ -119,12 +100,6 @@ export const getChannels = async ({ getAllVersions = true }: Props = {}): Promis
           versions,
           latestVersion,
           messages,
-        },
-        catalog: {
-          path: path.join(channel.collection, channel.id.replace('/index.mdx', '')),
-          filePath: path.join(process.cwd(), 'src', 'catalog-files', channel.collection, channel.id.replace('/index.mdx', '')),
-          publicPath: path.join('/generated', channel.collection, channelFolderName),
-          type: 'event',
         },
       };
     })

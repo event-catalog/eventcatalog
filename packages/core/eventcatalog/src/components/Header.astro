@@ -89,7 +89,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                 </button>
                 <div
                   id="profile-dropdown"
-                  class="hidden absolute right-0 mt-2 w-48 bg-[rgb(var(--ec-dropdown-bg))] rounded-lg shadow-md py-1 z-50 border-2 border-[rgb(var(--ec-dropdown-border))] overflow-hidden"
+                  class="ec-hidden absolute right-0 mt-2 w-48 bg-[rgb(var(--ec-dropdown-bg))] rounded-lg shadow-md py-1 z-50 border-2 border-[rgb(var(--ec-dropdown-border))] overflow-hidden"
                 >
                   <div class="px-4 py-2 text-sm text-[rgb(var(--ec-dropdown-text))] border-b border-[rgb(var(--ec-dropdown-border))]">
                     <div class="font-semibold">{session.user?.name || 'User'}</div>
@@ -194,7 +194,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
       </div>
     </div>
 
-    <div id="mobile-menu" class="md:hidden hidden mt-4">
+    <div id="mobile-menu" class="md:hidden ec-hidden mt-4">
       <ul class="flex flex-col space-y-8 my-4 mb-8">
         <!-- {
           navItems.map((item) => {
@@ -215,51 +215,65 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
 <!-- Spacer to prevent content from being hidden under the fixed header -->
 
 <script>
-  const menuToggle = document.getElementById('menu-toggle');
-  const mobileMenu = document.getElementById('mobile-menu');
   import { signOut } from 'auth-astro/client';
 
-  if (menuToggle && mobileMenu) {
-    menuToggle.addEventListener('click', () => {
-      mobileMenu.classList.toggle('hidden');
-    });
+  function initializeHeader() {
+    const menuToggle = document.getElementById('menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    if (menuToggle && mobileMenu) {
+      menuToggle.addEventListener('click', () => {
+        mobileMenu.classList.toggle('ec-hidden');
+      });
+    }
+
+    // Profile dropdown functionality
+    const profileButton = document.getElementById('profile-menu-button');
+    const profileDropdown = document.getElementById('profile-dropdown');
+
+    if (profileButton && profileDropdown) {
+      profileButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('ec-hidden');
+        profileButton.setAttribute('aria-expanded', !profileDropdown.classList.contains('ec-hidden') ? 'true' : 'false');
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!profileButton.contains(e.target as Node) && !profileDropdown.contains(e.target as Node)) {
+          profileDropdown.classList.add('ec-hidden');
+          profileButton.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      // Close dropdown on escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !profileDropdown.classList.contains('ec-hidden')) {
+          profileDropdown.classList.add('ec-hidden');
+          profileButton.setAttribute('aria-expanded', 'false');
+          profileButton.focus();
+        }
+      });
+
+      document.getElementById('signout-btn')?.addEventListener('click', async () => {
+        await signOut();
+      });
+    }
   }
 
-  // Profile dropdown functionality
-  const profileButton = document.getElementById('profile-menu-button');
-  const profileDropdown = document.getElementById('profile-dropdown');
+  // Initialize on first load
+  initializeHeader();
 
-  if (profileButton && profileDropdown) {
-    profileButton.addEventListener('click', (e) => {
-      e.stopPropagation();
-      profileDropdown.classList.toggle('hidden');
-      profileButton.setAttribute('aria-expanded', !profileDropdown.classList.contains('hidden') ? 'true' : 'false');
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!profileButton.contains(e.target as Node) && !profileDropdown.contains(e.target as Node)) {
-        profileDropdown.classList.add('hidden');
-        profileButton.setAttribute('aria-expanded', 'false');
-      }
-    });
-
-    // Close dropdown on escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !profileDropdown.classList.contains('hidden')) {
-        profileDropdown.classList.add('hidden');
-        profileButton.setAttribute('aria-expanded', 'false');
-        profileButton.focus();
-      }
-    });
-
-    document.getElementById('signout-btn')?.addEventListener('click', async () => {
-      await signOut();
-    });
-  }
+  // Re-initialize after Astro view transitions (needed because of transition:persist on header)
+  document.addEventListener('astro:page-load', initializeHeader);
 </script>
 
 <style>
+  /* Custom class for toggling dropdowns/menus */
+  .ec-hidden {
+    display: none !important;
+  }
+
   @media (max-width: 768px) {
     nav {
       transition: all 0.3s ease-out;
@@ -271,7 +285,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
       overflow: hidden;
     }
 
-    #mobile-menu:not(.hidden) {
+    #mobile-menu:not(.ec-hidden) {
       max-height: 500px; /* Adjust this value as needed */
     }
   }

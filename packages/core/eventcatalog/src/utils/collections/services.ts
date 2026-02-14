@@ -1,10 +1,7 @@
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import path from 'path';
 import semver from 'semver';
 import type { CollectionMessageTypes, CollectionTypes } from '@types';
-const PROJECT_DIR = process.env.PROJECT_DIR || process.cwd();
-import utils, { type Domain } from '@eventcatalog/sdk';
 import { getDomains, getDomainsForService } from './domains';
 import { createVersionedMap, findInMap, processSpecifications } from '@utils/collections/util';
 
@@ -56,8 +53,6 @@ export const getServices = async ({ getAllVersions = true, returnBody = false }:
     return true;
   });
 
-  const { getResourceFolderName } = utils(process.env.PROJECT_DIR ?? '');
-
   // 4. Enrich services using Map lookups (O(1))
   const processedServices = await Promise.all(
     targetServices.map(async (service) => {
@@ -90,13 +85,6 @@ export const getServices = async ({ getAllVersions = true, returnBody = false }:
         .map((f) => findInMap(flowMap, f.id, f.version))
         .filter((f): f is CollectionEntry<'flows'> => !!f);
 
-      const folderName = await getResourceFolderName(
-        process.env.PROJECT_DIR ?? '',
-        service.data.id,
-        service.data.version.toString()
-      );
-      const serviceFolderName = folderName ?? service.id.replace(`-${service.data.version}`, '');
-
       return {
         ...service,
         data: {
@@ -114,14 +102,6 @@ export const getServices = async ({ getAllVersions = true, returnBody = false }:
         nodes: {
           receives: receives as any,
           sends: sends as any,
-        },
-        catalog: {
-          // TODO: avoid use string replace at path due to win32
-          path: path.join(service.collection, service.id.replace('/index.mdx', '')),
-          filePath: path.join(process.cwd(), 'src', 'catalog-files', service.collection, service.id.replace('/index.mdx', '')),
-          // service will be MySerive-0.0.1 remove the version
-          publicPath: path.join('/generated', service.collection, serviceFolderName),
-          type: 'service',
         },
         body: returnBody ? service.body : undefined,
       };

@@ -1,7 +1,6 @@
 import type { CollectionTypes } from '@types';
 import { getCollection } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
-import path from 'path';
 
 export type User = CollectionEntry<'users'>;
 
@@ -101,11 +100,6 @@ export const getUsers = async (): Promise<User[]> => {
         ownedCommands,
         ownedQueries,
         associatedTeams,
-      },
-      catalog: {
-        path: path.join(user.collection, user.id.replace('/index.mdx', '')),
-        filePath: path.join(process.cwd(), 'src', 'catalog-files', user.collection, user.id.replace('/index.mdx', '')),
-        type: 'user',
       },
     };
   });

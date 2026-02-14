@@ -3,15 +3,21 @@ import type { PageTypes } from '@types';
 import path from 'path';
 import { buildUrl } from '@utils/url-builder';
 import { getAbsoluteFilePathForAstroFile } from '@utils/files';
+import { getFolderNameFromFilePath } from './util';
 
 export type Schema = {
   url: string;
   format: string;
 };
 
+const getPublicPath = (resource: CollectionEntry<PageTypes>): string | undefined => {
+  if (!resource.filePath) return undefined;
+  const folderName = getFolderNameFromFilePath(resource.filePath);
+  return path.join('/generated', resource.collection, folderName);
+};
+
 export const getSchemaURL = (resource: CollectionEntry<PageTypes>) => {
-  // @ts-ignore
-  const publicPath = resource?.catalog?.publicPath;
+  const publicPath = getPublicPath(resource);
   const schemaFilePath = resource?.data?.schemaPath;
 
   // No schema file path, return an empty string
@@ -57,8 +63,7 @@ export const getSchemasFromResource = (resource: CollectionEntry<PageTypes>): Sc
     const graphqlPath = Array.isArray(specifications)
       ? specifications.find((spec) => spec.type === 'graphql')?.path
       : specifications?.graphqlPath;
-    // @ts-ignore
-    let publicPath = resource?.catalog?.publicPath;
+    let publicPath = getPublicPath(resource);
     const schemas = [];
 
     if (asyncapiPath) {
