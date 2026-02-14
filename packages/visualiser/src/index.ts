@@ -23,6 +23,10 @@ export type {
   RegisteredNode,
   NodeCategory,
   ContextMenuItem,
+  GraphNode,
+  GraphEdge,
+  GraphEdgeType,
+  DslGraph,
 } from "./types";
 
 // Components

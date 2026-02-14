@@ -1,6 +1,12 @@
+import { memo } from "react";
 import { MonitorIcon } from "lucide-react";
 import { Node, Handle, Position } from "@xyflow/react";
 import { EventCatalogResource, View as ViewType } from "../../types";
+import {
+  NODE_WIDTH_STYLE,
+  ROTATED_LABEL_STYLE,
+  LINE_CLAMP_STYLE,
+} from "../shared-styles";
 
 function classNames(...classes: any) {
   return classes.filter(Boolean).join(" ");
@@ -12,7 +18,7 @@ type ViewNodeData = EventCatalogResource & {
 
 export type ViewNode = Node<ViewNodeData, "view">;
 
-export default function View(props: ViewNode) {
+export default memo(function View(props: ViewNode) {
   const { data: _data, selected } = props;
   const { name, summary, screenshot } = props.data.view;
 
@@ -23,12 +29,12 @@ export default function View(props: ViewNode) {
   return (
     <div
       className={classNames(
-        "rounded-md border flex justify-start bg-white text-black min-h-[100px] relative",
+        "rounded-md border flex justify-start bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] min-h-[100px] relative",
         selected
           ? "border-blue-600 ring-2 ring-blue-500 shadow-lg"
           : "border-blue-400",
       )}
-      style={{ width: "260px" }}
+      style={NODE_WIDTH_STYLE}
     >
       <Handle
         type="target"
@@ -49,11 +55,7 @@ export default function View(props: ViewNode) {
         {mode === "full" && (
           <span
             className="text-center text-[8px] text-white font-bold uppercase mb-4"
-            style={{
-              transform: "rotate(-90deg)",
-              letterSpacing: "0.15em",
-              whiteSpace: "nowrap",
-            }}
+            style={ROTATED_LABEL_STYLE}
           >
             {nodeLabel}
           </span>
@@ -63,7 +65,7 @@ export default function View(props: ViewNode) {
         <div className="pb-1">
           <span className="text-xs font-bold block pt-0.5 pb-0.5">{name}</span>
           {mode === "simple" && (
-            <span className="text-[10px] text-gray-500 font-light block pt-0.5 pb-0.5">
+            <span className="text-[10px] text-[rgb(var(--ec-page-text-muted))] font-light block pt-0.5 pb-0.5">
               {nodeLabel}
             </span>
           )}
@@ -71,12 +73,8 @@ export default function View(props: ViewNode) {
         {summary && (
           <div className="pb-1">
             <div
-              className="text-[8px] font-light text-gray-600 block leading-tight overflow-hidden"
-              style={{
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-              }}
+              className="text-[8px] font-light text-[rgb(var(--ec-page-text-muted))] block leading-tight overflow-hidden"
+              style={LINE_CLAMP_STYLE}
               title={summary}
             >
               {summary}
@@ -88,11 +86,11 @@ export default function View(props: ViewNode) {
             <img
               src={screenshot}
               alt={`${name} screenshot`}
-              className="w-full max-w-40 h-20 object-cover rounded border border-gray-200"
+              className="w-full max-w-40 h-20 object-cover rounded border border-[rgb(var(--ec-page-border))]"
             />
           </div>
         )}
       </div>
     </div>
   );
-}
+});

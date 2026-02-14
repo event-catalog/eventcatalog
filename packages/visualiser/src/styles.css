@@ -41,38 +41,50 @@
   --ec-input-bg: 255, 255, 255;
   --ec-input-border: 209, 213, 219;
   --ec-input-text: 17, 24, 39;
+
+  /* Group/Domain node colors (full rgba values for inline style compat) */
+  --ec-group-border: #c4b5fd;
+  --ec-group-bg: rgba(250, 248, 255, 0.35);
+  --ec-group-header-bg: rgba(237, 233, 254, 0.7);
+  --ec-group-text: #5b21b6;
 }
 
-/* Dark mode theme */
+/* Dark mode theme — aligned with EventCatalog core (GitHub-dark) */
 [data-theme="dark"] {
   /* Background colors */
-  --ec-page-bg: 17, 24, 39;
-  --ec-card-bg: 31, 41, 55;
+  --ec-page-bg: 22, 27, 34; /* #161b22 — dark canvas, lowest layer */
+  --ec-card-bg: 40, 46, 56; /* #282e38 — node surfaces float above canvas */
 
   /* Text colors */
-  --ec-page-text: 243, 244, 246;
-  --ec-page-text-muted: 156, 163, 175;
+  --ec-page-text: 240, 246, 252; /* #f0f6fc */
+  --ec-page-text-muted: 139, 148, 158; /* #8b949e */
 
   /* Border colors */
-  --ec-page-border: 55, 65, 81;
+  --ec-page-border: 48, 54, 61; /* #30363d */
 
   /* Accent colors */
-  --ec-accent: 99, 102, 241;
-  --ec-accent-subtle: 49, 46, 129;
-  --ec-accent-text: 255, 255, 255;
+  --ec-accent: 192, 132, 252; /* #c084fc (purple-400) */
+  --ec-accent-subtle: 88, 28, 135; /* purple-900 */
+  --ec-accent-text: 216, 180, 254; /* #d8b4fe (purple-300) */
 
   /* Button colors */
-  --ec-button-bg: 99, 102, 241;
+  --ec-button-bg: 147, 51, 234; /* #9333ea */
   --ec-button-text: 255, 255, 255;
 
   /* Icon colors */
-  --ec-icon-color: 156, 163, 175;
-  --ec-icon-hover: 99, 102, 241;
+  --ec-icon-color: 139, 148, 158; /* #8b949e */
+  --ec-icon-hover: 240, 246, 252; /* #f0f6fc */
 
   /* Input colors */
-  --ec-input-bg: 31, 41, 55;
-  --ec-input-border: 75, 85, 99;
-  --ec-input-text: 243, 244, 246;
+  --ec-input-bg: 22, 27, 34; /* #161b22 */
+  --ec-input-border: 48, 54, 61; /* #30363d */
+  --ec-input-text: 240, 246, 252; /* #f0f6fc */
+
+  /* Group/Domain node colors — deep purple on dark */
+  --ec-group-border: #7c3aed;
+  --ec-group-bg: #1e1533;
+  --ec-group-header-bg: #2d1f4e;
+  --ec-group-text: #c084fc;
 }
 
 /* Base styles for visualizer container */
@@ -84,13 +96,106 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/*
+ * Scoped dark mode overrides for the visualizer.
+ * Higher specificity ensures these win over the consuming app's
+ * global [data-theme="dark"] variables, giving the visualizer
+ * its own lighter canvas + lifted card surfaces.
+ */
+[data-theme="dark"] .eventcatalog-visualizer {
+  --ec-page-bg: 22 27 34;
+  --ec-card-bg: 40 46 56;
+  --ec-page-border: 48 54 61;
+  --ec-page-text: 240 246 252;
+  --ec-page-text-muted: 139 148 158;
+  --ec-input-bg: 22 27 34;
+  --ec-input-border: 48 54 61;
+  --ec-input-text: 240 246 252;
+  --ec-accent: 192 132 252;
+  --ec-accent-subtle: 88 28 135;
+  --ec-accent-text: 216 180 254;
+  --ec-button-bg: 147 51 234;
+  --ec-button-text: 255 255 255;
+  --ec-icon-color: 139 148 158;
+  --ec-icon-hover: 240 246 252;
+}
+
+/* Node handle pulse animations (shared across all node types) */
+@keyframes ec-handle-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(251, 146, 60, 0); }
+}
+@keyframes ec-service-handle-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(236, 72, 153, 0); }
+}
+@keyframes ec-svc-msg-in {
+  0% { transform: translateX(-18px) scale(0.7); opacity: 0; }
+  30% { opacity: 0.7; }
+  70% { opacity: 0.7; }
+  100% { transform: translateX(0) scale(0.5); opacity: 0; }
+}
+@keyframes ec-svc-msg-out {
+  0% { transform: translateX(0) scale(0.5); opacity: 0; }
+  30% { opacity: 0.7; }
+  70% { opacity: 0.7; }
+  100% { transform: translateX(18px) scale(0.7); opacity: 0; }
+}
+@keyframes ec-command-handle-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(59, 130, 246, 0); }
+}
+@keyframes ec-query-handle-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(34, 197, 94, 0); }
+}
+@keyframes ec-data-handle-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(59, 130, 246, 0); }
+}
+@keyframes ec-channel-handle-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(107, 114, 128, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(107, 114, 128, 0); }
+}
+@keyframes ec-actor-handle-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(234, 179, 8, 0); }
+}
+@keyframes ec-external-handle-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(168, 85, 247, 0); }
+}
+@keyframes ec-dp-handle-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.5); }
+  50% { box-shadow: 0 0 0 5px rgba(99, 102, 241, 0); }
+}
+
 /* ReactFlow customizations */
 .react-flow__node {
   cursor: pointer;
 }
 
 .react-flow__edge-path {
+  stroke: rgb(var(--ec-page-text-muted));
   stroke-width: 2;
+}
+
+.react-flow__edge-path[marker-end] {
+  marker-end: url(#react-flow__arrowclosed);
+}
+
+.react-flow__arrowhead polyline {
+  stroke: rgb(var(--ec-page-text-muted));
+  fill: rgb(var(--ec-page-text-muted));
+}
+
+/* Default edge label background (fallback for any edges using ReactFlow defaults) */
+.react-flow__edge-textbg {
+  fill: rgb(var(--ec-card-bg));
+}
+
+.react-flow__edge-text {
+  fill: rgb(var(--ec-page-text));
 }
 
 .react-flow__controls {
@@ -106,6 +211,34 @@
 
 .react-flow__controls-button:hover {
   background-color: rgb(var(--ec-accent-subtle));
+}
+
+/* Notes modal close button */
+.ec-notes-close-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #94a3b8;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ec-notes-close-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #475569;
+}
+
+/* Hide animated message envelopes/circles during user interaction (drag/pan/zoom).
+   SMIL animateMotion can't be paused via CSS, so we hide the elements entirely
+   to avoid expensive SVG repaints while ReactFlow transforms are updating. */
+.ec-interaction-active .ec-animated-msg {
+  visibility: hidden;
 }
 
 /* Minimap customizations */

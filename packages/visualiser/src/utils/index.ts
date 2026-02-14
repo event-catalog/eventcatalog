@@ -11,3 +11,6 @@ export { exportNodeGraphForStudio } from "./export-node-graph";
 
 // Dagre and node generation utilities
 export * from "./utils/utils";
+
+// Layout utilities (DSL graph → ReactFlow nodes/edges)
+export { layoutGraph, buildNodeData } from "./layout";

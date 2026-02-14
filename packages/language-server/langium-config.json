@@ -1,0 +1,14 @@
+{
+  "projectName": "Ec",
+  "languages": [
+    {
+      "id": "ec",
+      "grammar": "src/ec.langium",
+      "fileExtensions": [".ec"],
+      "textMate": {
+        "out": "syntaxes/ec.tmLanguage.json"
+      }
+    }
+  ],
+  "out": "src/generated"
+}

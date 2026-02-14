@@ -2,7 +2,12 @@ import { Handle, Position } from "@xyflow/react";
 import { getIcon } from "../utils/badges";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import { buildUrl } from "../utils/url-builder";
-import { useState } from "react";
+import { memo, useState, useMemo } from "react";
+import {
+  HANDLE_LEFT_OFFSET_STYLE,
+  HANDLE_RIGHT_OFFSET_STYLE,
+  EMPTY_ARRAY,
+} from "./shared-styles";
 
 interface EntityData {
   id: string;
@@ -46,7 +51,7 @@ function classNames(...classes: any) {
   return classes.filter(Boolean).join(" ");
 }
 
-export default function EntityNode({
+export default memo(function EntityNode({
   data,
   sourcePosition,
   targetPosition,
@@ -55,7 +60,7 @@ export default function EntityNode({
   const {
     name,
     version,
-    properties = [],
+    properties = EMPTY_ARRAY,
     aggregateRoot,
     styles,
     sidebar: _sidebar,
@@ -66,7 +71,7 @@ export default function EntityNode({
     icon = "CubeIcon",
   } = styles || {};
 
-  const Icon = getIcon(icon);
+  const Icon = useMemo(() => getIcon(icon), [icon]);
 
   const [hoveredProperty, setHoveredProperty] = useState<string | null>(null);
 
@@ -75,48 +80,52 @@ export default function EntityNode({
       <ContextMenu.Trigger>
         <div
           className={classNames(
-            "bg-white border border-blue-300 rounded-lg shadow-sm min-w-[200px]",
-            externalToDomain ? "border-yellow-400" : "",
+            "bg-[rgb(var(--ec-card-bg))] border rounded-lg shadow-sm min-w-[200px]",
+            externalToDomain ? "border-amber-500/60" : "border-blue-400/50",
           )}
         >
           {/* Table Header */}
           <div
             className={classNames(
-              "bg-blue-100 px-4 py-2 rounded-t-lg border-b border-gray-300",
-              externalToDomain ? "bg-yellow-400" : "",
+              "px-4 py-2 rounded-t-lg border-b border-[rgb(var(--ec-page-border))]",
+              externalToDomain ? "bg-amber-500/20" : "bg-blue-500/15",
             )}
           >
             <div className="flex items-center gap-2">
-              {Icon && <Icon className="w-4 h-4 text-gray-600" />}
-              <span className="font-semibold text-gray-800 text-sm">
+              {Icon && (
+                <Icon className="w-4 h-4 text-[rgb(var(--ec-page-text-muted))]" />
+              )}
+              <span className="font-semibold text-[rgb(var(--ec-page-text))] text-sm">
                 {name}
               </span>
               {aggregateRoot && (
-                <span className="text-xs bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded">
+                <span className="text-xs bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded font-medium">
                   AR
                 </span>
               )}
             </div>
-            {/* {externalToDomain && domainName && ( */}
-            <div className="text-xs text-yellow-800 font-medium mt-1">
-              from {domainName} domain
-            </div>
-            {/* )} */}
+            {domainName && (
+              <div className="text-xs text-[rgb(var(--ec-page-text-muted))] font-medium mt-1">
+                from {domainName} domain
+              </div>
+            )}
             {mode === "full" && (
-              <div className="text-xs text-gray-600 mt-1">v{version}</div>
+              <div className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1">
+                v{version}
+              </div>
             )}
           </div>
 
           {/* Properties Table */}
           {properties.length > 0 ? (
-            <div className="divide-y divide-gray-200 relative">
+            <div className="divide-y divide-[rgb(var(--ec-page-border))] relative">
               {properties.map((property: any, index: number) => {
                 const propertyKey = `${property.name}-${index}`;
                 const isHovered = hoveredProperty === propertyKey;
                 return (
                   <div
                     key={propertyKey}
-                    className="relative flex items-center justify-between px-4 py-2 hover:bg-gray-50"
+                    className="relative flex items-center justify-between px-4 py-2 hover:bg-[rgb(var(--ec-page-border)/0.2)]"
                     onMouseEnter={() =>
                       property.description && setHoveredProperty(propertyKey)
                     }
@@ -127,8 +136,8 @@ export default function EntityNode({
                       type="target"
                       position={Position.Left}
                       id={`${property.name}-target`}
-                      className="!w-3 !h-3 !bg-white !border-2 !border-gray-400 !rounded-full !left-[-0px]"
-                      style={{ left: "-6px" }}
+                      className="!w-3 !h-3 !bg-[rgb(var(--ec-card-bg))] !border-2 !border-[rgb(var(--ec-page-border))] !rounded-full !left-[-0px]"
+                      style={HANDLE_LEFT_OFFSET_STYLE}
                     />
 
                     {/* Source handle */}
@@ -136,21 +145,21 @@ export default function EntityNode({
                       type="source"
                       position={Position.Right}
                       id={`${property.name}-source`}
-                      className="!w-3 !h-3 !bg-white !border-2 !border-gray-400 !rounded-full !right-[-0px]"
-                      style={{ right: "-6px" }}
+                      className="!w-3 !h-3 !bg-[rgb(var(--ec-card-bg))] !border-2 !border-[rgb(var(--ec-page-border))] !rounded-full !right-[-0px]"
+                      style={HANDLE_RIGHT_OFFSET_STYLE}
                     />
 
                     {/* Property content */}
                     <div className="flex-1 flex items-center justify-between">
                       <div className="flex items-center gap-1">
-                        <span className="text-sm font-medium text-gray-900">
+                        <span className="text-sm font-medium text-[rgb(var(--ec-page-text))]">
                           {property.name}
                         </span>
                         {property.required && (
                           <span className="text-red-500 text-xs">*</span>
                         )}
                       </div>
-                      <span className="text-sm text-gray-600 font-mono">
+                      <span className="text-sm text-[rgb(var(--ec-page-text-muted))] font-mono">
                         {property.type}
                       </span>
                     </div>
@@ -179,7 +188,7 @@ export default function EntityNode({
               })}
             </div>
           ) : (
-            <div className="px-4 py-3 text-sm text-gray-500 text-center">
+            <div className="px-4 py-3 text-sm text-[rgb(var(--ec-page-text-muted))] text-center">
               No properties defined
             </div>
           )}
@@ -199,12 +208,12 @@ export default function EntityNode({
       </ContextMenu.Trigger>
       <ContextMenu.Portal>
         <ContextMenu.Content
-          className="min-w-[220px] bg-white rounded-md p-1 shadow-md border border-gray-200"
+          className="min-w-[220px] bg-[rgb(var(--ec-card-bg))] rounded-md p-1 shadow-md border border-[rgb(var(--ec-page-border))]"
           onClick={(e) => e.stopPropagation()}
         >
           <ContextMenu.Item
             asChild
-            className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
+            className="text-sm text-[rgb(var(--ec-page-text))] px-2 py-1.5 outline-none cursor-pointer hover:bg-[rgb(var(--ec-accent-subtle))] rounded-sm flex items-center"
           >
             <a href={buildUrl(`/docs/entities/${entity.data.id}/${version}`)}>
               Read documentation
@@ -214,4 +223,4 @@ export default function EntityNode({
       </ContextMenu.Portal>
     </ContextMenu.Root>
   );
-}
+});

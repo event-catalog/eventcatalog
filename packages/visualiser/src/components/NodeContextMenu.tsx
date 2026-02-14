@@ -1,3 +1,4 @@
+import { memo } from "react";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import type { ContextMenuItem } from "../types";
 
@@ -6,7 +7,7 @@ interface NodeContextMenuProps {
   children: React.ReactNode;
 }
 
-export default function NodeContextMenu({
+export default memo(function NodeContextMenu({
   items,
   children,
 }: NodeContextMenuProps) {
@@ -45,4 +46,4 @@ export default function NodeContextMenu({
       </ContextMenu.Portal>
     </ContextMenu.Root>
   );
-}
+});

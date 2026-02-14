@@ -1,6 +1,10 @@
+import { memo, useMemo } from "react";
 import { type EdgeProps, getBezierPath } from "@xyflow/react";
 
-export default function MultilineEdgeLabel(props: EdgeProps) {
+const TSPAN_NORMAL_STYLE = { fontStyle: "normal" } as const;
+const TSPAN_ITALIC_STYLE = { fontStyle: "italic" } as const;
+
+export default memo(function MultilineEdgeLabel(props: EdgeProps) {
   const {
     id,
     sourceX,
@@ -25,7 +29,7 @@ export default function MultilineEdgeLabel(props: EdgeProps) {
     targetPosition,
   });
 
-  const lines = String(label ?? "").split("\n");
+  const lines = useMemo(() => String(label ?? "").split("\n"), [label]);
 
   return (
     <>
@@ -46,6 +50,7 @@ export default function MultilineEdgeLabel(props: EdgeProps) {
         textAnchor="middle"
         dominantBaseline="middle"
         fontSize="10px"
+        fill="rgb(var(--ec-page-text))"
         pointerEvents="none"
       >
         {lines.map((line, i) => (
@@ -53,7 +58,7 @@ export default function MultilineEdgeLabel(props: EdgeProps) {
             key={i}
             x={labelX}
             dy={i === 0 ? 0 : "1.2em"}
-            style={{ fontStyle: i === 0 ? "normal" : "italic" }}
+            style={i === 0 ? TSPAN_NORMAL_STYLE : TSPAN_ITALIC_STYLE}
           >
             {line}
           </tspan>
@@ -61,4 +66,4 @@ export default function MultilineEdgeLabel(props: EdgeProps) {
       </text>
     </>
   );
-}
+});

@@ -1,19 +1,32 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  memo,
+} from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import type { Edge } from "@xyflow/react";
 
 interface NodeData {
+  label?: string;
+  summary?: string;
   step?: {
     title?: string;
     summary?: string;
   };
   service?: {
+    name?: string;
+    summary?: string;
     data?: {
       name?: string;
       summary?: string;
     };
   };
   message?: {
+    name?: string;
+    summary?: string;
     data?: {
       name?: string;
       summary?: string;
@@ -60,7 +73,7 @@ interface PathOption {
   targetNode: CustomNode;
 }
 
-export default function StepWalkthrough({
+export default memo(function StepWalkthrough({
   nodes,
   edges,
   isFlowVisualization,
@@ -73,6 +86,22 @@ export default function StepWalkthrough({
   const [availablePaths, setAvailablePaths] = useState<PathOption[]>([]);
   const [selectedPathIndex, setSelectedPathIndex] = useState<number>(0);
   const [startNodeId, setStartNodeId] = useState<string | null>(null);
+
+  // Stable structural keys — only change when nodes/edges are added/removed,
+  // not when positions change during drag.
+  const nodeIdsKeyRef = useRef("");
+  const computedNodeIdsKey = nodes.map((n) => n.id).join(",");
+  if (computedNodeIdsKey !== nodeIdsKeyRef.current) {
+    nodeIdsKeyRef.current = computedNodeIdsKey;
+  }
+  const nodeIdsKey = nodeIdsKeyRef.current;
+
+  const edgeKeyRef = useRef("");
+  const computedEdgeKey = edges.map((e) => `${e.source}-${e.target}`).join(",");
+  if (computedEdgeKey !== edgeKeyRef.current) {
+    edgeKeyRef.current = computedEdgeKey;
+  }
+  const edgeKey = edgeKeyRef.current;
 
   useEffect(() => {
     if (isFlowVisualization && nodes.length > 0) {
@@ -97,7 +126,7 @@ export default function StepWalkthrough({
         setStartNodeId(firstStartNode.id);
       }
     }
-  }, [nodes, edges, isFlowVisualization, startNodeId]);
+  }, [nodeIdsKey, edgeKey, isFlowVisualization, startNodeId]);
 
   useEffect(() => {
     if (currentNodeId) {
@@ -118,7 +147,7 @@ export default function StepWalkthrough({
     } else {
       setAvailablePaths([]);
     }
-  }, [currentNodeId, nodes, edges]);
+  }, [currentNodeId, nodeIdsKey, edgeKey]);
 
   const handleNextStep = useCallback(() => {
     if (currentStepIndex === -1) {
@@ -183,7 +212,7 @@ export default function StepWalkthrough({
     return null;
   }
 
-  const getCurrentStepInfo = () => {
+  const { title, description } = useMemo(() => {
     if (currentStepIndex === -1) {
       return {
         title: "Walk through business flow",
@@ -201,51 +230,57 @@ export default function StepWalkthrough({
     // Get node information based on type - check step data first, then type-specific data
     if (currentNode.data.step?.title) {
       title += `: ${currentNode.data.step.title}`;
-    } else if (currentNode.data.service?.data?.name) {
-      title += `: ${currentNode.data.service.data.name}`;
-    } else if (currentNode.data.message?.data?.name) {
-      title += `: ${currentNode.data.message.data.name}`;
+    } else if (currentNode.data.service?.name) {
+      title += `: ${currentNode.data.service.name}`;
+    } else if (currentNode.data.message?.name) {
+      title += `: ${currentNode.data.message.name}`;
     } else if (currentNode.data.flow?.data?.name) {
       title += `: ${currentNode.data.flow.data.name}`;
     } else if (currentNode.data.custom?.title) {
       title += `: ${currentNode.data.custom.title}`;
     } else if (currentNode.data.custom?.label) {
       title += `: ${currentNode.data.custom.label}`;
-    } else if (currentNode.data.actor?.label) {
-      title += `: ${currentNode.data.actor.label}`;
     } else if (currentNode.data.externalSystem?.label) {
       title += `: ${currentNode.data.externalSystem.label}`;
+    } else if (currentNode.data.label) {
+      // Actor nodes have label directly on data
+      title += `: ${currentNode.data.label}`;
     }
 
     // Get description - check step data first, then type-specific data
     if (currentNode.data.step?.summary) {
       description = currentNode.data.step.summary;
-    } else if (currentNode.data.service?.data?.summary) {
-      description = currentNode.data.service.data.summary;
-    } else if (currentNode.data.message?.data?.summary) {
-      description = currentNode.data.message.data.summary;
+    } else if (currentNode.data.service?.summary) {
+      description = currentNode.data.service.summary;
+    } else if (currentNode.data.message?.summary) {
+      description = currentNode.data.message.summary;
     } else if (currentNode.data.custom?.summary) {
       description = currentNode.data.custom.summary;
+    } else if (currentNode.data.summary) {
+      // Actor and other nodes may have summary directly on data
+      description = currentNode.data.summary;
     }
 
     return { title, description };
-  };
-
-  const { title, description } = getCurrentStepInfo();
+  }, [currentStepIndex, currentNodeId, nodeIdsKey]);
 
   return (
-    <div className="ml-12 bg-white rounded-lg shadow-sm px-4 py-2 z-30 border border-gray-200 w-[350px]">
+    <div className="ml-12 bg-[rgb(var(--ec-card-bg))] rounded-lg shadow-sm px-4 py-2 z-30 border border-[rgb(var(--ec-page-border))] w-[350px]">
       <div className="mb-2">
-        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+        <h3 className="text-sm font-semibold text-[rgb(var(--ec-page-text))]">
+          {title}
+        </h3>
         {description && (
-          <p className="text-xs text-gray-600 mt-1">{description}</p>
+          <p className="text-xs text-[rgb(var(--ec-page-text-muted))] mt-1">
+            {description}
+          </p>
         )}
       </div>
 
       {/* Show path options when there are multiple paths */}
       {currentNodeId && availablePaths.length > 1 && (
         <div className="mb-3">
-          <label className="block text-xs font-medium text-gray-700 mb-2">
+          <label className="block text-xs font-medium text-[rgb(var(--ec-page-text-muted))] mb-2">
             Choose next path:
           </label>
           <select
@@ -253,19 +288,19 @@ export default function StepWalkthrough({
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
               handlePathSelection(parseInt(e.target.value))
             }
-            className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-[rgb(var(--ec-accent))]"
+            className="w-full px-3 py-2 text-xs border border-[rgb(var(--ec-input-border))] rounded-md bg-[rgb(var(--ec-input-bg))] text-[rgb(var(--ec-input-text))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ec-accent))] focus:border-[rgb(var(--ec-accent))]"
           >
             {availablePaths.map((path, index) => {
               // @ts-ignore
               const nodeLabel =
                 path.targetNode.data.step?.title ||
-                (path.targetNode.data as any).service?.data?.name ||
-                (path.targetNode.data as any).message?.data?.name ||
+                (path.targetNode.data as any).service?.name ||
+                (path.targetNode.data as any).message?.name ||
                 (path.targetNode.data as any).flow?.data?.name ||
                 (path.targetNode.data as any).custom?.title ||
                 (path.targetNode.data as any).custom?.label ||
-                (path.targetNode.data as any).actor?.label ||
                 (path.targetNode.data as any).externalSystem?.label ||
+                (path.targetNode.data as any).label ||
                 "Unknown";
 
               return (
@@ -322,4 +357,4 @@ export default function StepWalkthrough({
       </div>
     </div>
   );
-}
+});

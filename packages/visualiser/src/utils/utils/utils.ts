@@ -112,9 +112,11 @@ export const createEdge = (edgeOptions: Edge): Edge => {
       type: MarkerType.ArrowClosed,
       width: 40,
       height: 40,
+      color: "rgb(var(--ec-page-text-muted))",
     },
     style: {
       strokeWidth: 1,
+      stroke: "rgb(var(--ec-page-text-muted))",
     },
     ...edgeOptions,
   };
