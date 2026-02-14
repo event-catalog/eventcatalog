@@ -1,4 +1,5 @@
 @import "tailwindcss/theme";
+@import "tailwindcss/utilities";
 @import '@xyflow/react/dist/style.css';
 
 @source "../src/**/*.{js,ts,jsx,tsx}";
@@ -84,6 +85,11 @@
   --ec-group-bg: #1e1533;
   --ec-group-header-bg: #2d1f4e;
   --ec-group-text: #c084fc;
+}
+
+/* Hide download button on small screens without emitting a global .hidden rule */
+.ec-download-btn {
+  display: none;
 }
 
 /* Base styles for visualizer container */

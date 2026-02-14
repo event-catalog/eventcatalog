@@ -69,7 +69,7 @@ function DownloadButton({
   return (
     <div id="download-visual">
       <button
-        className={`hidden md:flex bg-white group download-btn items-center space-x-1 text-[14px] border border-gray-200 px-1 py-0.5 rounded-md hover:bg-gray-100/50 ${addPadding ? "mt-14" : "-mt-1"}`}
+        className={`ec-download-btn md:flex bg-white group download-btn items-center space-x-1 text-[14px] border border-gray-200 px-1 py-0.5 rounded-md hover:bg-gray-100/50 ${addPadding ? "mt-14" : "-mt-1"}`}
         onClick={onClick}
       >
         <DocumentArrowDownIcon className="w-4 h-4 group-hover:text-primary" />
