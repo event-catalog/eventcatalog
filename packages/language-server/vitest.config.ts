@@ -2,8 +2,18 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   resolve: {
-    extensions: [".ts", ".js"],
+    conditions: ["import", "module", "browser", "default"],
   },
+  plugins: [
+    {
+      name: "resolve-js-to-ts",
+      resolveId(source, importer) {
+        if (source.endsWith(".js") && importer?.includes("/language-server/")) {
+          return source.replace(/\.js$/, ".ts");
+        }
+      },
+    },
+  ],
   test: {
     include: ["test/**/*.test.ts"],
   },
