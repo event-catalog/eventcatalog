@@ -1,15 +1,14 @@
 import { defineConfig } from "vitest/config";
+import path from "node:path";
 
 export default defineConfig({
-  resolve: {
-    conditions: ["import", "module", "browser", "default"],
-  },
   plugins: [
     {
       name: "resolve-js-to-ts",
       resolveId(source, importer) {
         if (source.endsWith(".js") && importer?.includes("/language-server/")) {
-          return source.replace(/\.js$/, ".ts");
+          const tsSource = source.replace(/\.js$/, ".ts");
+          return path.resolve(path.dirname(importer), tsSource);
         }
       },
     },
