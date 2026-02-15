@@ -54,6 +54,7 @@ Object.entries(params).forEach(([key, value]) => {
 });
 
 const openFullScreenUrl = buildUrlWithParams(`/miro`, fullScreenParams);
+const directBoardUrl = `https://miro.com/app/board/${boardId}/`;
 ---
 
 {
@@ -76,14 +77,24 @@ const openFullScreenUrl = buildUrlWithParams(`/miro`, fullScreenParams);
         </h3>
       )}
       <div class="relative">
-        <iframe class="border border-gray-200 rounded-md" src={url.href} width="100%" height={height} />
+        <iframe class="border border-gray-200 rounded-md" src={url.href} width="100%" height={height} loading="lazy" />
         <a
           href={openFullScreenUrl}
+          aria-label="Open Miro board in full screen"
+          title="Open full screen"
           class="absolute bottom-[15px] right-5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md transition-colors"
         >
           <ExpandIcon className="w-5 h-5" />
         </a>
       </div>
+
+      <p class="mt-2 text-xs text-gray-500">
+        If the board does not render, your Miro sharing settings may block embeds.
+        <a href={directBoardUrl} class="underline hover:no-underline ml-1" target="_blank" rel="noopener noreferrer">
+          Open board in Miro
+        </a>
+        .
+      </p>
     </div>
   )
 }
