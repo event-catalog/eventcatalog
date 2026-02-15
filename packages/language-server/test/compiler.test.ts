@@ -27,7 +27,7 @@ describe("compile", () => {
     const outputs = compile(program);
 
     const domainOutput = outputs.find(
-      (o) => o.path === "domains/Orders/index.md",
+      (o) => o.path === "domains/Orders/versioned/1.0.0/index.md",
     );
     expect(domainOutput).toBeDefined();
     expect(domainOutput!.content).toContain('id: "Orders"');
@@ -47,7 +47,7 @@ describe("compile", () => {
     const outputs = compile(program);
 
     const svcOutput = outputs.find(
-      (o) => o.path === "services/OrderService/index.md",
+      (o) => o.path === "services/OrderService/versioned/1.0.0/index.md",
     );
     expect(svcOutput).toBeDefined();
     expect(svcOutput!.content).toContain("sends:");
@@ -68,7 +68,7 @@ describe("compile", () => {
     const outputs = compile(program);
 
     const eventOutput = outputs.find(
-      (o) => o.path === "events/OrderCreated/index.md",
+      (o) => o.path === "events/OrderCreated/versioned/1.0.0/index.md",
     );
     expect(eventOutput).toBeDefined();
     expect(eventOutput!.content).toContain('id: "OrderCreated"');
@@ -90,12 +90,12 @@ describe("compile", () => {
     const outputs = compile(program);
 
     const svcOutput = outputs.find(
-      (o) => o.path === "services/OrderService/index.md",
+      (o) => o.path === "services/OrderService/versioned/1.0.0/index.md",
     );
     expect(svcOutput).toBeDefined();
 
     const eventOutput = outputs.find(
-      (o) => o.path === "events/OrderCreated/index.md",
+      (o) => o.path === "events/OrderCreated/versioned/1.0.0/index.md",
     );
     expect(eventOutput).toBeDefined();
     expect(eventOutput!.content).toContain('id: "OrderCreated"');
@@ -112,7 +112,7 @@ describe("compile", () => {
     const outputs = compile(program);
 
     const svcOutput = outputs.find(
-      (o) => o.path === "services/OrderService/index.md",
+      (o) => o.path === "services/OrderService/versioned/1.0.0/index.md",
     );
     expect(svcOutput).toBeDefined();
     expect(svcOutput!.content).toContain("badges:");
@@ -132,7 +132,7 @@ describe("compile", () => {
     const outputs = compile(program);
 
     const svcOutput = outputs.find(
-      (o) => o.path === "services/OrderService/index.md",
+      (o) => o.path === "services/OrderService/versioned/1.0.0/index.md",
     );
     expect(svcOutput).toBeDefined();
     expect(svcOutput!.content).toContain("notes:");
@@ -151,7 +151,7 @@ describe("compile", () => {
     const outputs = compile(program);
 
     const svcOutput = outputs.find(
-      (o) => o.path === "services/OrderService/index.md",
+      (o) => o.path === "services/OrderService/versioned/1.0.0/index.md",
     );
     expect(svcOutput).toBeDefined();
     expect(svcOutput!.content).toContain('content: "First note"');
@@ -171,7 +171,7 @@ describe("compile", () => {
     const outputs = compile(program);
 
     const eventOutput = outputs.find(
-      (o) => o.path === "events/OrderCreated/index.md",
+      (o) => o.path === "events/OrderCreated/versioned/1.0.0/index.md",
     );
     expect(eventOutput).toBeDefined();
     expect(eventOutput!.content).toContain("notes:");
@@ -189,7 +189,7 @@ describe("compile", () => {
     const outputs = compile(program);
 
     const svcOutput = outputs.find(
-      (o) => o.path === "services/OrderService/index.md",
+      (o) => o.path === "services/OrderService/versioned/1.0.0/index.md",
     );
     expect(svcOutput).toBeDefined();
     expect(svcOutput!.content).toContain("repository:");
@@ -210,7 +210,7 @@ describe("compile", () => {
     const outputs = compile(program);
 
     const channelOutput = outputs.find(
-      (o) => o.path === "channels/orders-topic/index.md",
+      (o) => o.path === "channels/orders-topic/versioned/1.0.0/index.md",
     );
     expect(channelOutput).toBeDefined();
     expect(channelOutput!.content).toContain('address: "orders/events"');
@@ -276,7 +276,7 @@ describe("compile", () => {
     const outputs = compile(program);
 
     const flowOutput = outputs.find(
-      (o) => o.path === "flows/OrderFulfillment/index.md",
+      (o) => o.path === "flows/OrderFulfillment/versioned/1.0.0/index.md",
     );
     expect(flowOutput).toBeDefined();
     expect(flowOutput!.content).toContain("steps:");
@@ -305,13 +305,13 @@ describe("compile", () => {
     const outputs = compile(program);
 
     const commandOutput = outputs.find(
-      (o) => o.path === "commands/PlaceOrder/index.md",
+      (o) => o.path === "commands/PlaceOrder/versioned/1.0.0/index.md",
     );
     expect(commandOutput).toBeDefined();
     expect(commandOutput!.content).toContain('id: "PlaceOrder"');
 
     const queryOutput = outputs.find(
-      (o) => o.path === "queries/GetOrder/index.md",
+      (o) => o.path === "queries/GetOrder/versioned/1.0.0/index.md",
     );
     expect(queryOutput).toBeDefined();
     expect(queryOutput!.content).toContain('id: "GetOrder"');
@@ -331,7 +331,7 @@ describe("compile", () => {
 
     // The service inside should compile
     const serviceOutput = outputs.find(
-      (o) => o.path === "services/OrderService/index.md",
+      (o) => o.path === "services/OrderService/versioned/1.0.0/index.md",
     );
     expect(serviceOutput).toBeDefined();
 
@@ -356,12 +356,12 @@ describe("compile", () => {
     const outputs = compile(program);
 
     const serviceOutput = outputs.find(
-      (o) => o.path === "services/PaymentService/index.md",
+      (o) => o.path === "services/PaymentService/versioned/1.0.0/index.md",
     );
     expect(serviceOutput).toBeDefined();
 
     const eventOutput = outputs.find(
-      (o) => o.path === "events/PaymentProcessed/index.md",
+      (o) => o.path === "events/PaymentProcessed/versioned/1.0.0/index.md",
     );
     expect(eventOutput).toBeDefined();
     expect(eventOutput!.content).toContain("Payment completed");

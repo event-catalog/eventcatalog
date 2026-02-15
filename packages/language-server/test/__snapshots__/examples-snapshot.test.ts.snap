@@ -5794,6 +5794,578 @@ exports[`playground examples snapshot tests > Notes & Annotations > Notes & Anno
 ]
 `;
 
+exports[`playground examples snapshot tests > Order Service Showcase > Order Service Showcase - edges 1`] = `
+[
+  {
+    "id": "service:OrderService@2.0.0-sends-event:OrderCreated",
+    "label": undefined,
+    "source": "service:OrderService@2.0.0",
+    "target": "event:OrderCreated",
+    "type": "sends",
+  },
+  {
+    "id": "event:OrderCreated-routes-to-channel:OrderStream@1.0.0",
+    "label": undefined,
+    "source": "event:OrderCreated",
+    "target": "channel:OrderStream@1.0.0",
+    "type": "routes-to",
+  },
+  {
+    "id": "service:OrderService@2.0.0-sends-event:OrderConfirmed",
+    "label": undefined,
+    "source": "service:OrderService@2.0.0",
+    "target": "event:OrderConfirmed",
+    "type": "sends",
+  },
+  {
+    "id": "event:OrderConfirmed-routes-to-channel:OrderStream@1.0.0",
+    "label": undefined,
+    "source": "event:OrderConfirmed",
+    "target": "channel:OrderStream@1.0.0",
+    "type": "routes-to",
+  },
+  {
+    "id": "service:OrderService@2.0.0-sends-event:OrderShipped",
+    "label": undefined,
+    "source": "service:OrderService@2.0.0",
+    "target": "event:OrderShipped",
+    "type": "sends",
+  },
+  {
+    "id": "event:OrderShipped-routes-to-channel:OrderStream@1.0.0",
+    "label": undefined,
+    "source": "event:OrderShipped",
+    "target": "channel:OrderStream@1.0.0",
+    "type": "routes-to",
+  },
+  {
+    "id": "service:OrderService@2.0.0-sends-event:OrderCancelled",
+    "label": undefined,
+    "source": "service:OrderService@2.0.0",
+    "target": "event:OrderCancelled",
+    "type": "sends",
+  },
+  {
+    "id": "event:OrderCancelled-routes-to-channel:OrderStream@1.0.0",
+    "label": undefined,
+    "source": "event:OrderCancelled",
+    "target": "channel:OrderStream@1.0.0",
+    "type": "routes-to",
+  },
+  {
+    "id": "service:OrderService@2.0.0-sends-event:OrderCancelledV2",
+    "label": undefined,
+    "source": "service:OrderService@2.0.0",
+    "target": "event:OrderCancelledV2",
+    "type": "sends",
+  },
+  {
+    "id": "event:OrderCancelledV2-routes-to-channel:OrderStream@1.0.0",
+    "label": undefined,
+    "source": "event:OrderCancelledV2",
+    "target": "channel:OrderStream@1.0.0",
+    "type": "routes-to",
+  },
+  {
+    "id": "command:CreateOrder-receives-service:OrderService@2.0.0",
+    "label": undefined,
+    "source": "command:CreateOrder",
+    "target": "service:OrderService@2.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "command:CancelOrder-receives-service:OrderService@2.0.0",
+    "label": undefined,
+    "source": "command:CancelOrder",
+    "target": "service:OrderService@2.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "query:GetOrderStatus-receives-service:OrderService@2.0.0",
+    "label": undefined,
+    "source": "query:GetOrderStatus",
+    "target": "service:OrderService@2.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "service:PaymentService@1.0.0-sends-event:PaymentProcessed",
+    "label": undefined,
+    "source": "service:PaymentService@1.0.0",
+    "target": "event:PaymentProcessed",
+    "type": "sends",
+  },
+  {
+    "id": "event:PaymentProcessed-routes-to-channel:OrderStream@1.0.0",
+    "label": undefined,
+    "source": "event:PaymentProcessed",
+    "target": "channel:OrderStream@1.0.0",
+    "type": "routes-to",
+  },
+  {
+    "id": "service:PaymentService@1.0.0-sends-event:PaymentFailed",
+    "label": undefined,
+    "source": "service:PaymentService@1.0.0",
+    "target": "event:PaymentFailed",
+    "type": "sends",
+  },
+  {
+    "id": "event:PaymentFailed-routes-to-channel:OrderStream@1.0.0",
+    "label": undefined,
+    "source": "event:PaymentFailed",
+    "target": "channel:OrderStream@1.0.0",
+    "type": "routes-to",
+  },
+  {
+    "id": "channel:OrderStream@1.0.0-receives-service:PaymentService@1.0.0",
+    "label": undefined,
+    "source": "channel:OrderStream@1.0.0",
+    "target": "service:PaymentService@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "service:InventoryService@1.0.0-sends-event:StockReserved",
+    "label": undefined,
+    "source": "service:InventoryService@1.0.0",
+    "target": "event:StockReserved",
+    "type": "sends",
+  },
+  {
+    "id": "event:StockReserved-routes-to-channel:OrderStream@1.0.0",
+    "label": undefined,
+    "source": "event:StockReserved",
+    "target": "channel:OrderStream@1.0.0",
+    "type": "routes-to",
+  },
+  {
+    "id": "service:InventoryService@1.0.0-sends-event:StockUnavailable",
+    "label": undefined,
+    "source": "service:InventoryService@1.0.0",
+    "target": "event:StockUnavailable",
+    "type": "sends",
+  },
+  {
+    "id": "event:StockUnavailable-routes-to-channel:OrderStream@1.0.0",
+    "label": undefined,
+    "source": "event:StockUnavailable",
+    "target": "channel:OrderStream@1.0.0",
+    "type": "routes-to",
+  },
+  {
+    "id": "channel:OrderStream@1.0.0-receives-service:InventoryService@1.0.0",
+    "label": undefined,
+    "source": "channel:OrderStream@1.0.0",
+    "target": "service:InventoryService@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "service:NotificationService@1.0.0-sends-event:NotificationSent",
+    "label": undefined,
+    "source": "service:NotificationService@1.0.0",
+    "target": "event:NotificationSent",
+    "type": "sends",
+  },
+  {
+    "id": "event:NotificationSent-routes-to-channel:NotificationQueue@1.0.0",
+    "label": undefined,
+    "source": "event:NotificationSent",
+    "target": "channel:NotificationQueue@1.0.0",
+    "type": "routes-to",
+  },
+  {
+    "id": "channel:OrderStream@1.0.0-receives-service:NotificationService@1.0.0",
+    "label": undefined,
+    "source": "channel:OrderStream@1.0.0",
+    "target": "service:NotificationService@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "service:LegacyOrderAdapter@1.0.0-sends-event:LegacyOrderCreated",
+    "label": undefined,
+    "source": "service:LegacyOrderAdapter@1.0.0",
+    "target": "event:LegacyOrderCreated",
+    "type": "sends",
+  },
+  {
+    "id": "event:LegacyOrderCreated-routes-to-channel:LegacyOrderQueue@1.0.0",
+    "label": undefined,
+    "source": "event:LegacyOrderCreated",
+    "target": "channel:LegacyOrderQueue@1.0.0",
+    "type": "routes-to",
+  },
+  {
+    "id": "channel:OrderStream@1.0.0-receives-service:LegacyOrderAdapter@1.0.0",
+    "label": undefined,
+    "source": "channel:OrderStream@1.0.0",
+    "target": "service:LegacyOrderAdapter@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "channel:OrderStream@1.0.0-receives-service:AnalyticsIngestion@1.0.0",
+    "label": undefined,
+    "source": "channel:OrderStream@1.0.0",
+    "target": "service:AnalyticsIngestion@1.0.0",
+    "type": "receives",
+  },
+]
+`;
+
+exports[`playground examples snapshot tests > Order Service Showcase > Order Service Showcase - nodes 1`] = `
+[
+  {
+    "id": "channel:OrderStream@1.0.0",
+    "label": "OrderStream",
+    "metadata": {
+      "address": "orders.stream",
+      "deprecated": undefined,
+      "draft": undefined,
+      "notes": [
+        {
+          "author": "infra-team",
+          "content": "Partition key is orderId — 12 partitions",
+        },
+        {
+          "author": "infra-team",
+          "content": "Retention: 14 days",
+        },
+      ],
+      "protocols": [
+        "kafka",
+      ],
+      "summary": "Kafka topic for all order-related events",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "channel",
+  },
+  {
+    "id": "channel:NotificationQueue@1.0.0",
+    "label": "NotificationQueue",
+    "metadata": {
+      "address": "notifications.queue",
+      "deprecated": undefined,
+      "draft": undefined,
+      "protocols": [
+        "rabbitmq",
+      ],
+      "summary": "RabbitMQ queue for notification delivery",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "channel",
+  },
+  {
+    "id": "channel:LegacyOrderQueue@1.0.0",
+    "label": "LegacyOrderQueue",
+    "metadata": {
+      "address": "legacy.orders",
+      "deprecated": undefined,
+      "draft": undefined,
+      "notes": [
+        {
+          "content": "No new consumers should connect to this queue",
+          "priority": "high",
+        },
+      ],
+      "protocols": [
+        "rabbitmq",
+      ],
+      "summary": "Legacy queue — being decommissioned",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "channel",
+  },
+  {
+    "id": "service:OrderService@2.0.0",
+    "label": "OrderService",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "notes": [
+        {
+          "author": "alice",
+          "content": "v2 adds support for multi-currency orders",
+        },
+        {
+          "author": "bob",
+          "content": "Load test before Black Friday — target 5k req/s",
+          "priority": "high",
+        },
+        {
+          "author": "alice",
+          "content": "Migrating from REST to gRPC for internal calls",
+        },
+      ],
+      "summary": "Core service for managing the order lifecycle",
+      "version": "2.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "event:OrderCreated",
+    "label": "OrderCreated",
+    "metadata": {
+      "notes": [
+        {
+          "author": "alice",
+          "content": "Schema v2 adds shippingAddress field — deploy consumer updates first",
+        },
+      ],
+      "summary": "Emitted when a customer places a new order",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "event:OrderConfirmed",
+    "label": "OrderConfirmed",
+    "metadata": {
+      "summary": "Order confirmed after payment and stock checks",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "event:OrderShipped",
+    "label": "OrderShipped",
+    "metadata": {
+      "summary": "Order dispatched from the warehouse",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "event:OrderCancelled",
+    "label": "OrderCancelled",
+    "metadata": {
+      "deprecated": true,
+      "notes": [
+        {
+          "content": "Use OrderCancelledV2 instead — this lacks cancellation reason",
+          "priority": "high",
+        },
+      ],
+      "summary": "Order cancelled by customer or system",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "event:OrderCancelledV2",
+    "label": "OrderCancelledV2",
+    "metadata": {
+      "draft": true,
+      "notes": [
+        {
+          "author": "carol",
+          "content": "Rolling out to EU region first",
+        },
+      ],
+      "summary": "Order cancelled with structured reason codes",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "command:CreateOrder",
+    "label": "CreateOrder",
+    "metadata": {
+      "notes": [
+        {
+          "author": "bob",
+          "content": "Validate idempotency key before processing",
+          "priority": "high",
+        },
+      ],
+      "summary": "Place a new order",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "command",
+  },
+  {
+    "id": "command:CancelOrder",
+    "label": "CancelOrder",
+    "metadata": {
+      "summary": "Request order cancellation",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "command",
+  },
+  {
+    "id": "query:GetOrderStatus",
+    "label": "GetOrderStatus",
+    "metadata": {
+      "draft": true,
+      "notes": [
+        {
+          "author": "alice",
+          "content": "Will replace polling with push notifications in v2",
+        },
+      ],
+      "summary": "Retrieve current order status",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "query",
+  },
+  {
+    "id": "service:PaymentService@1.0.0",
+    "label": "PaymentService",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "notes": [
+        {
+          "author": "dave",
+          "content": "Integrates with Stripe and Adyen",
+        },
+      ],
+      "summary": "Processes payments and refunds",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "event:PaymentProcessed",
+    "label": "PaymentProcessed",
+    "metadata": {
+      "summary": "Payment completed successfully",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "event:PaymentFailed",
+    "label": "PaymentFailed",
+    "metadata": {
+      "summary": "Payment was declined or errored",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "service:InventoryService@1.0.0",
+    "label": "InventoryService",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "summary": "Manages stock levels and reservations",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "event:StockReserved",
+    "label": "StockReserved",
+    "metadata": {
+      "summary": "Inventory reserved for an order",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "event:StockUnavailable",
+    "label": "StockUnavailable",
+    "metadata": {
+      "summary": "Requested items are out of stock",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "service:NotificationService@1.0.0",
+    "label": "NotificationService",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "summary": "Sends email, SMS, and push notifications",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "event:NotificationSent",
+    "label": "NotificationSent",
+    "metadata": {
+      "summary": "Notification delivered to customer",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "service:LegacyOrderAdapter@1.0.0",
+    "label": "LegacyOrderAdapter",
+    "metadata": {
+      "deprecated": true,
+      "draft": undefined,
+      "notes": [
+        {
+          "content": "Decommission by Q3 2026",
+          "priority": "high",
+        },
+        {
+          "author": "carol",
+          "content": "Only handles APAC region traffic",
+        },
+        {
+          "author": "bob",
+          "content": "See migration runbook: https://wiki.internal/legacy-orders",
+        },
+      ],
+      "summary": "Bridges events to the legacy order system",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "event:LegacyOrderCreated",
+    "label": "LegacyOrderCreated",
+    "metadata": {
+      "deprecated": true,
+      "summary": "Legacy format order event",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "event",
+  },
+  {
+    "id": "service:AnalyticsIngestion@1.0.0",
+    "label": "AnalyticsIngestion",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": true,
+      "notes": [
+        {
+          "author": "dave",
+          "content": "Planned for Q2 2026 — depends on new Snowflake cluster",
+        },
+      ],
+      "summary": "Ingests order events into the data warehouse",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+]
+`;
+
 exports[`playground examples snapshot tests > Payment Domain > Payment Domain - edges 1`] = `
 [
   {

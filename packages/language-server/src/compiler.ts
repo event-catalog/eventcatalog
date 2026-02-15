@@ -412,13 +412,23 @@ function makeOutput(
   return { path, content };
 }
 
+// Build a versioned output path: "<folder>/<name>/versioned/<version>/index.md"
+// Falls back to "<folder>/<name>/index.md" when no version is present.
+function versionedPath(folder: string, name: string, body: AstNode[]): string {
+  const version = getVersion(body);
+  if (version) return `${folder}/${name}/versioned/${version}/index.md`;
+  return `${folder}/${name}/index.md`;
+}
+
 // --- Resource compilers ---
 
 function compileDomain(domain: DomainDef, outputs: CompiledOutput[]): void {
   const body = domain.body as AstNode[];
   const fm = commonFrontmatter(domain.name, body);
   const summary = getSummary(body);
-  outputs.push(makeOutput(`domains/${domain.name}/index.md`, fm, summary));
+  outputs.push(
+    makeOutput(versionedPath("domains", domain.name, body), fm, summary),
+  );
 
   for (const svc of getServices(body)) {
     compileService(svc, outputs);
@@ -431,7 +441,7 @@ function compileDomain(domain: DomainDef, outputs: CompiledOutput[]): void {
     const subSummary = getSummary(subBody);
     outputs.push(
       makeOutput(
-        `domains/${domain.name}/domains/${sub.name}/index.md`,
+        versionedPath(`domains/${domain.name}/domains`, sub.name, subBody),
         subFm,
         subSummary,
       ),
@@ -455,7 +465,7 @@ function compileService(svc: ServiceDef, outputs: CompiledOutput[]): void {
     fm.receives = receives.map((r) => buildMessageRef(r));
   }
   outputs.push(
-    makeOutput(`services/${svc.name}/index.md`, fm, getSummary(body)),
+    makeOutput(versionedPath("services", svc.name, body), fm, getSummary(body)),
   );
 }
 
@@ -491,7 +501,7 @@ function compileInlineMessages(
       const fm = commonFrontmatter(clause.messageName, inlineBody);
       outputs.push(
         makeOutput(
-          `${folder}/${clause.messageName}/index.md`,
+          versionedPath(folder, clause.messageName, inlineBody),
           fm,
           getSummary(inlineBody),
         ),
@@ -508,7 +518,7 @@ function compileMessage(
   const body = msg.body as AstNode[];
   const fm = commonFrontmatter(msg.name, body);
   outputs.push(
-    makeOutput(`${folder}/${msg.name}/index.md`, fm, getSummary(body)),
+    makeOutput(versionedPath(folder, msg.name, body), fm, getSummary(body)),
   );
 }
 
@@ -537,7 +547,7 @@ function compileChannel(ch: ChannelDef, outputs: CompiledOutput[]): void {
     });
   }
   outputs.push(
-    makeOutput(`channels/${ch.name}/index.md`, fm, getSummary(body)),
+    makeOutput(versionedPath("channels", ch.name, body), fm, getSummary(body)),
   );
 }
 
@@ -559,7 +569,11 @@ function compileContainer(cont: ContainerDef, outputs: CompiledOutput[]): void {
   const ret = getRetention(body);
   if (ret) fm.retention = ret;
   outputs.push(
-    makeOutput(`containers/${cont.name}/index.md`, fm, getSummary(body)),
+    makeOutput(
+      versionedPath("containers", cont.name, body),
+      fm,
+      getSummary(body),
+    ),
   );
 }
 
@@ -593,7 +607,11 @@ function compileDataProduct(
     });
   }
   outputs.push(
-    makeOutput(`data-products/${dp.name}/index.md`, fm, getSummary(body)),
+    makeOutput(
+      versionedPath("data-products", dp.name, body),
+      fm,
+      getSummary(body),
+    ),
   );
 }
 
@@ -608,7 +626,9 @@ function compileFlow(flow: FlowDef, outputs: CompiledOutput[]): void {
       fm.steps = steps;
     }
   }
-  outputs.push(makeOutput(`flows/${flow.name}/index.md`, fm, getSummary(body)));
+  outputs.push(
+    makeOutput(versionedPath("flows", flow.name, body), fm, getSummary(body)),
+  );
 }
 
 function flowRefToStep(ref: FlowRef): Record<string, unknown> {
@@ -715,7 +735,11 @@ function compileDiagram(diag: DiagramDef, outputs: CompiledOutput[]): void {
   const body = diag.body as AstNode[];
   const fm = commonFrontmatter(diag.name, body);
   outputs.push(
-    makeOutput(`diagrams/${diag.name}/index.md`, fm, getSummary(body)),
+    makeOutput(
+      versionedPath("diagrams", diag.name, body),
+      fm,
+      getSummary(body),
+    ),
   );
 }
 

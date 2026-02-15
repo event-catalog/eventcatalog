@@ -156,11 +156,23 @@ export function astToGraph(
   };
 
   // Build a lookup map of all definitions (including nested ones) for resolving refs
+  // Key format: "name" for unversioned, "name@version" for versioned
   const topLevelDefs = new Map<string, ResourceDefinition>();
+
+  function defKey(name: string, version?: string): string {
+    return version ? `${name}@${version}` : name;
+  }
 
   function addToDefMap(def: ResourceDefinition): void {
     if ("name" in def) {
+      const body = ("body" in def ? def.body : []) as AstNode[];
+      const version = getVersion(body);
+      // Always store under name (latest/fallback)
       topLevelDefs.set(def.name, def);
+      // Also store under name@version for exact lookups
+      if (version) {
+        topLevelDefs.set(defKey(def.name, version), def);
+      }
     }
 
     // Also add nested definitions (services, containers, etc. inside domains)
@@ -1088,10 +1100,22 @@ export function astToGraph(
     }
   }
 
+  // Look up a top-level def by name, preferring an exact name+version match
+  function lookupDef(
+    name: string,
+    version?: string,
+  ): ResourceDefinition | undefined {
+    if (version) {
+      const exact = topLevelDefs.get(defKey(name, version));
+      if (exact) return exact;
+    }
+    return topLevelDefs.get(name);
+  }
+
   function processVisualizerItem(item: VisualizerBodyItem): void {
     // Ref statements → look up top-level def and process it
     if (isServiceRefStmt(item)) {
-      const def = topLevelDefs.get(item.ref.name);
+      const def = lookupDef(item.ref.name, item.ref.version);
       if (def && isServiceDef(def)) {
         processService(def);
       } else {
@@ -1102,7 +1126,7 @@ export function astToGraph(
       return;
     }
     if (isDomainRefStmt(item)) {
-      const def = topLevelDefs.get(item.ref.name);
+      const def = lookupDef(item.ref.name, item.ref.version);
       if (def && isDomainDef(def)) {
         processDomain(def);
       } else {
@@ -1113,7 +1137,7 @@ export function astToGraph(
       return;
     }
     if (isChannelRefStmt(item)) {
-      const def = topLevelDefs.get(item.ref.name);
+      const def = lookupDef(item.ref.name, item.ref.version);
       if (def && isChannelDef(def)) {
         processDefinition(def);
       } else {
@@ -1124,7 +1148,7 @@ export function astToGraph(
       return;
     }
     if (isDataProductRefStmt(item)) {
-      const def = topLevelDefs.get(item.ref.name);
+      const def = lookupDef(item.ref.name, item.ref.version);
       if (def && isDataProductDef(def)) {
         processDefinition(def);
       } else {
@@ -1135,7 +1159,7 @@ export function astToGraph(
       return;
     }
     if (isFlowRefStmt(item)) {
-      const def = topLevelDefs.get(item.ref.name);
+      const def = lookupDef(item.ref.name, item.ref.version);
       if (def && isFlowDef(def)) {
         processDefinition(def);
       } else {
@@ -1146,7 +1170,7 @@ export function astToGraph(
       return;
     }
     if (isContainerRefStmt(item)) {
-      const def = topLevelDefs.get(item.ref.name);
+      const def = lookupDef(item.ref.name, item.ref.version);
       if (def && isContainerDef(def)) {
         processDefinition(def);
       } else {
