@@ -129,6 +129,13 @@ exports[`playground examples snapshot tests > AWS Event Pipeline > AWS Event Pip
     "type": "contains",
   },
   {
+    "id": "event:OrderCreated@1.0.0-routes-to-channel:PickingQueue@1.0.0",
+    "label": undefined,
+    "source": "event:OrderCreated@1.0.0",
+    "target": "channel:PickingQueue@1.0.0",
+    "type": "routes-to",
+  },
+  {
     "id": "channel:PickingQueue@1.0.0-receives-service:WarehouseService@1.0.0",
     "label": undefined,
     "source": "channel:PickingQueue@1.0.0",
@@ -143,6 +150,13 @@ exports[`playground examples snapshot tests > AWS Event Pipeline > AWS Event Pip
     "type": "contains",
   },
   {
+    "id": "event:OrderCancelled@1.0.0-routes-to-channel:PickingQueue@1.0.0",
+    "label": undefined,
+    "source": "event:OrderCancelled@1.0.0",
+    "target": "channel:PickingQueue@1.0.0",
+    "type": "routes-to",
+  },
+  {
     "id": "domain:Fulfillment@1.0.0-contains-service:ShippingService@1.0.0",
     "label": undefined,
     "source": "domain:Fulfillment@1.0.0",
@@ -155,6 +169,13 @@ exports[`playground examples snapshot tests > AWS Event Pipeline > AWS Event Pip
     "source": "domain:Fulfillment@1.0.0",
     "target": "channel:ShippingQueue@1.0.0",
     "type": "contains",
+  },
+  {
+    "id": "event:OrderCreated@1.0.0-routes-to-channel:ShippingQueue@1.0.0",
+    "label": undefined,
+    "source": "event:OrderCreated@1.0.0",
+    "target": "channel:ShippingQueue@1.0.0",
+    "type": "routes-to",
   },
   {
     "id": "channel:ShippingQueue@1.0.0-receives-service:ShippingService@1.0.0",
@@ -206,6 +227,13 @@ exports[`playground examples snapshot tests > AWS Event Pipeline > AWS Event Pip
     "type": "contains",
   },
   {
+    "id": "event:OrderCreated@1.0.0-routes-to-channel:EmailQueue@1.0.0",
+    "label": undefined,
+    "source": "event:OrderCreated@1.0.0",
+    "target": "channel:EmailQueue@1.0.0",
+    "type": "routes-to",
+  },
+  {
     "id": "channel:EmailQueue@1.0.0-receives-service:EmailService@1.0.0",
     "label": undefined,
     "source": "channel:EmailQueue@1.0.0",
@@ -220,11 +248,25 @@ exports[`playground examples snapshot tests > AWS Event Pipeline > AWS Event Pip
     "type": "contains",
   },
   {
+    "id": "event:OrderShipped@1.0.0-routes-to-channel:EmailQueue@1.0.0",
+    "label": undefined,
+    "source": "event:OrderShipped@1.0.0",
+    "target": "channel:EmailQueue@1.0.0",
+    "type": "routes-to",
+  },
+  {
     "id": "domain:Notifications@1.0.0-contains-event:OrderCancelled@1.0.0",
     "label": undefined,
     "source": "domain:Notifications@1.0.0",
     "target": "event:OrderCancelled@1.0.0",
     "type": "contains",
+  },
+  {
+    "id": "event:OrderCancelled@1.0.0-routes-to-channel:EmailQueue@1.0.0",
+    "label": undefined,
+    "source": "event:OrderCancelled@1.0.0",
+    "target": "channel:EmailQueue@1.0.0",
+    "type": "routes-to",
   },
   {
     "id": "domain:Notifications@1.0.0-contains-service:PushNotificationService@1.0.0",
@@ -241,11 +283,25 @@ exports[`playground examples snapshot tests > AWS Event Pipeline > AWS Event Pip
     "type": "contains",
   },
   {
+    "id": "event:OrderShipped@1.0.0-routes-to-channel:PushQueue@1.0.0",
+    "label": undefined,
+    "source": "event:OrderShipped@1.0.0",
+    "target": "channel:PushQueue@1.0.0",
+    "type": "routes-to",
+  },
+  {
     "id": "channel:PushQueue@1.0.0-receives-service:PushNotificationService@1.0.0",
     "label": undefined,
     "source": "channel:PushQueue@1.0.0",
     "target": "service:PushNotificationService@1.0.0",
     "type": "receives",
+  },
+  {
+    "id": "event:OrderCancelled@1.0.0-routes-to-channel:PushQueue@1.0.0",
+    "label": undefined,
+    "source": "event:OrderCancelled@1.0.0",
+    "target": "channel:PushQueue@1.0.0",
+    "type": "routes-to",
   },
   {
     "id": "domain:Notifications@1.0.0-contains-service:SmsService@1.0.0",
@@ -260,6 +316,13 @@ exports[`playground examples snapshot tests > AWS Event Pipeline > AWS Event Pip
     "source": "domain:Notifications@1.0.0",
     "target": "channel:SmsQueue@1.0.0",
     "type": "contains",
+  },
+  {
+    "id": "event:OrderShipped@1.0.0-routes-to-channel:SmsQueue@1.0.0",
+    "label": undefined,
+    "source": "event:OrderShipped@1.0.0",
+    "target": "channel:SmsQueue@1.0.0",
+    "type": "routes-to",
   },
   {
     "id": "channel:SmsQueue@1.0.0-receives-service:SmsService@1.0.0",
@@ -318,6 +381,13 @@ exports[`playground examples snapshot tests > AWS Event Pipeline > AWS Event Pip
     "type": "contains",
   },
   {
+    "id": "event:OrderCreated@1.0.0-routes-to-channel:MetricsQueue@1.0.0",
+    "label": undefined,
+    "source": "event:OrderCreated@1.0.0",
+    "target": "channel:MetricsQueue@1.0.0",
+    "type": "routes-to",
+  },
+  {
     "id": "channel:MetricsQueue@1.0.0-receives-service:MetricsService@1.0.0",
     "label": undefined,
     "source": "channel:MetricsQueue@1.0.0",
@@ -332,11 +402,25 @@ exports[`playground examples snapshot tests > AWS Event Pipeline > AWS Event Pip
     "type": "contains",
   },
   {
+    "id": "event:OrderShipped@1.0.0-routes-to-channel:MetricsQueue@1.0.0",
+    "label": undefined,
+    "source": "event:OrderShipped@1.0.0",
+    "target": "channel:MetricsQueue@1.0.0",
+    "type": "routes-to",
+  },
+  {
     "id": "domain:Analytics@1.0.0-contains-event:OrderCancelled@1.0.0",
     "label": undefined,
     "source": "domain:Analytics@1.0.0",
     "target": "event:OrderCancelled@1.0.0",
     "type": "contains",
+  },
+  {
+    "id": "event:OrderCancelled@1.0.0-routes-to-channel:MetricsQueue@1.0.0",
+    "label": undefined,
+    "source": "event:OrderCancelled@1.0.0",
+    "target": "channel:MetricsQueue@1.0.0",
+    "type": "routes-to",
   },
   {
     "id": "domain:Analytics@1.0.0-contains-service:SearchService@1.0.0",
@@ -353,11 +437,25 @@ exports[`playground examples snapshot tests > AWS Event Pipeline > AWS Event Pip
     "type": "contains",
   },
   {
+    "id": "event:OrderCreated@1.0.0-routes-to-channel:SearchIndexQueue@1.0.0",
+    "label": undefined,
+    "source": "event:OrderCreated@1.0.0",
+    "target": "channel:SearchIndexQueue@1.0.0",
+    "type": "routes-to",
+  },
+  {
     "id": "channel:SearchIndexQueue@1.0.0-receives-service:SearchService@1.0.0",
     "label": undefined,
     "source": "channel:SearchIndexQueue@1.0.0",
     "target": "service:SearchService@1.0.0",
     "type": "receives",
+  },
+  {
+    "id": "event:OrderShipped@1.0.0-routes-to-channel:SearchIndexQueue@1.0.0",
+    "label": undefined,
+    "source": "event:OrderShipped@1.0.0",
+    "target": "channel:SearchIndexQueue@1.0.0",
+    "type": "routes-to",
   },
   {
     "id": "domain:Analytics@1.0.0-contains-channel:AnalyticsEventBus@1.0.0",

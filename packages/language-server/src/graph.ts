@@ -668,13 +668,14 @@ export function astToGraph(
           );
           if (domainId) addEdge(domainId, chId, "contains");
           // Only add Message → Channel edge if no route path already exists
-          // from the message to this channel (via sends + channel routes).
-          // Check if the message already has a routes-to edge to ANY channel;
-          // if a route chain exists, the sends side + route statements handle connectivity.
-          const msgHasChannelEdge = edges.some(
-            (e) => e.source === msgNodeId && e.type === "routes-to",
+          // from the message to this specific channel (via sends + channel routes).
+          const msgHasEdgeToThisChannel = edges.some(
+            (e) =>
+              e.source === msgNodeId &&
+              e.target === chId &&
+              e.type === "routes-to",
           );
-          if (!msgHasChannelEdge) {
+          if (!msgHasEdgeToThisChannel) {
             addEdge(msgNodeId, chId, "routes-to");
           }
           addEdge(chId, serviceId, "receives");

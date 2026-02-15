@@ -1553,7 +1553,7 @@ describe("astToGraph", () => {
       ),
     ).toBeDefined();
 
-    // No direct Event -> MqttDevices shortcut edge (should follow the chain)
+    // Receives side also creates a Message → Channel edge for the receive channel
     expect(
       graph.edges.find(
         (e) =>
@@ -1561,7 +1561,7 @@ describe("astToGraph", () => {
           e.target === "channel:MqttDevices@1.0.0" &&
           e.type === "routes-to",
       ),
-    ).toBeUndefined();
+    ).toBeDefined();
   });
 
   it("receives from channel without sends side still creates message-to-channel edge", async () => {
@@ -2164,5 +2164,67 @@ describe("astToGraph", () => {
     const queryNode = graph.nodes.find((n) => n.label === "GetAnalytics");
     expect(queryNode).toBeDefined();
     expect(queryNode!.type).toBe("query");
+  });
+
+  // ─── Receives from multiple channels tests ──────────────────────────────
+
+  it("receives from multiple channels creates routes-to edges for all channels", async () => {
+    const program = await parseProgram(`
+      visualizer main {
+        service NotificationService {
+          version 1.0.0
+          receives event OrderCreated from channel-a, channel-b
+        }
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const eventNode = graph.nodes.find(
+      (n) => n.type === "event" && n.label === "OrderCreated",
+    );
+    const chA = graph.nodes.find(
+      (n) => n.type === "channel" && n.label === "channel-a",
+    );
+    const chB = graph.nodes.find(
+      (n) => n.type === "channel" && n.label === "channel-b",
+    );
+    expect(eventNode).toBeDefined();
+    expect(chA).toBeDefined();
+    expect(chB).toBeDefined();
+
+    // Both channels should have a routes-to edge from the message
+    const routeToA = graph.edges.find(
+      (e) =>
+        e.source === eventNode!.id &&
+        e.target === chA!.id &&
+        e.type === "routes-to",
+    );
+    const routeToB = graph.edges.find(
+      (e) =>
+        e.source === eventNode!.id &&
+        e.target === chB!.id &&
+        e.type === "routes-to",
+    );
+    expect(routeToA).toBeDefined();
+    // Without the fix, this would be undefined because the dedupe check was too broad
+    expect(routeToB).toBeDefined();
+
+    // Both channels should have receives edges to the service
+    const svcNode = graph.nodes.find((n) => n.type === "service");
+    const chAReceives = graph.edges.find(
+      (e) =>
+        e.source === chA!.id &&
+        e.target === svcNode!.id &&
+        e.type === "receives",
+    );
+    const chBReceives = graph.edges.find(
+      (e) =>
+        e.source === chB!.id &&
+        e.target === svcNode!.id &&
+        e.type === "receives",
+    );
+    expect(chAReceives).toBeDefined();
+    expect(chBReceives).toBeDefined();
   });
 });
