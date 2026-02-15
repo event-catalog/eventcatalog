@@ -29,7 +29,7 @@
   },
   "scripts": {
     "generate": "langium generate",
-    "build": "langium generate && tsc",
+    "build": "tsc",
     "build:bin": "langium generate && tsc",
     "dev": "tsc --watch",
     "test": "vitest run",
