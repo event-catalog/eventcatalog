@@ -18,6 +18,7 @@ interface Props {
 
 // Simple in-memory cache variable
 let memoryCache: Record<string, Domain[]> = {};
+let inFlightCache: Record<string, Promise<Domain[]>> = {};
 
 // Helper to hydrate services
 const hydrateServices = (
@@ -77,158 +78,172 @@ export const getDomains = async ({
     return memoryCache[cacheKey];
   }
 
-  // 1. Fetch collections (always fetch messages to hydrate domain-level sends/receives)
-  const [allDomains, allServices, allEntities, allFlows, allEvents, allCommands, allQueries, allContainers, allDataProducts] =
-    await Promise.all([
-      getCollection('domains'),
-      getCollection('services'),
-      getCollection('entities'),
-      getCollection('flows'),
-      getCollection('events'),
-      getCollection('commands'),
-      getCollection('queries'),
-      getCollection('containers'),
-      getCollection('data-products'),
-    ]);
+  if (inFlightCache[cacheKey] && CACHE_ENABLED) {
+    return inFlightCache[cacheKey];
+  }
 
-  const allMessages = [...allEvents, ...allCommands, ...allQueries];
-  const messageMap = createVersionedMap(allMessages);
-  const containerMap = createVersionedMap(allContainers);
+  const loadPromise = (async () => {
+    // 1. Fetch collections (always fetch messages to hydrate domain-level sends/receives)
+    const [allDomains, allServices, allEntities, allFlows, allEvents, allCommands, allQueries, allContainers, allDataProducts] =
+      await Promise.all([
+        getCollection('domains'),
+        getCollection('services'),
+        getCollection('entities'),
+        getCollection('flows'),
+        getCollection('events'),
+        getCollection('commands'),
+        getCollection('queries'),
+        getCollection('containers'),
+        getCollection('data-products'),
+      ]);
 
-  // 2. Build optimized maps
-  const domainMap = createVersionedMap(allDomains);
-  const serviceMap = createVersionedMap(allServices);
-  const entityMap = createVersionedMap(allEntities);
-  const flowMap = createVersionedMap(allFlows);
-  const dataProductMap = createVersionedMap(allDataProducts);
+    const allMessages = [...allEvents, ...allCommands, ...allQueries];
+    const messageMap = createVersionedMap(allMessages);
+    const containerMap = createVersionedMap(allContainers);
 
-  // 3. Filter the domains we actually want to process/return
-  const targetDomains = allDomains.filter((domain: Domain) => {
-    // Filter out hidden
-    if (domain.data.hidden === true) return false;
-    // Handle version filtering
-    if (!getAllVersions && domain.filePath?.includes('versioned')) return false;
-    return true;
-  });
+    // 2. Build optimized maps
+    const domainMap = createVersionedMap(allDomains);
+    const serviceMap = createVersionedMap(allServices);
+    const entityMap = createVersionedMap(allEntities);
+    const flowMap = createVersionedMap(allFlows);
+    const dataProductMap = createVersionedMap(allDataProducts);
 
-  // 4. Process domains using Map lookups (O(1))
-  const processedDomains = await Promise.all(
-    targetDomains.map(async (domain: Domain) => {
-      // Get version info from the map
-      const domainVersions = domainMap.get(domain.data.id) || [];
-      const latestVersion = domainVersions[0]?.data.version || domain.data.version;
-      const versions = domainVersions.map((d) => d.data.version);
+    // 3. Filter the domains we actually want to process/return
+    const targetDomains = allDomains.filter((domain: Domain) => {
+      // Filter out hidden
+      if (domain.data.hidden === true) return false;
+      // Handle version filtering
+      if (!getAllVersions && domain.filePath?.includes('versioned')) return false;
+      return true;
+    });
 
-      // Resolve Subdomains
-      const subDomainsInDomain = domain.data.domains || [];
-      const subDomains = subDomainsInDomain
-        .map((sd: { id: string; version: string | undefined }) => findInMap(domainMap, sd.id, sd.version))
-        .filter((sd): sd is Domain => !!sd && sd.data.id !== domain.data.id) // Filter nulls and self-refs
-        .map((subDomain: any) => {
-          // Hydrate services for the subdomain
-          let hydratedServices = subDomain.data.services || [];
-          if (enrichServices) {
-            hydratedServices = hydrateServices(subDomain.data.services || [], serviceMap, messageMap, containerMap);
-          } else {
-            // Just resolve the service objects without enrichment
-            hydratedServices = (subDomain.data.services || [])
-              .map((service: { id: string; version: string | undefined }) => findInMap(serviceMap, service.id, service.version))
-              .filter((s: any) => !!s);
-          }
+    // 4. Process domains using Map lookups (O(1))
+    const processedDomains = await Promise.all(
+      targetDomains.map(async (domain: Domain) => {
+        // Get version info from the map
+        const domainVersions = domainMap.get(domain.data.id) || [];
+        const latestVersion = domainVersions[0]?.data.version || domain.data.version;
+        const versions = domainVersions.map((d) => d.data.version);
 
-          // Hydrate data products for the subdomain
-          const subdomainDataProducts = (subDomain.data['data-products'] || [])
-            .map((dp: { id: string; version: string | undefined }) => findInMap(dataProductMap, dp.id, dp.version))
-            .filter((dp: any) => !!dp);
+        // Resolve Subdomains
+        const subDomainsInDomain = domain.data.domains || [];
+        const subDomains = subDomainsInDomain
+          .map((sd: { id: string; version: string | undefined }) => findInMap(domainMap, sd.id, sd.version))
+          .filter((sd): sd is Domain => !!sd && sd.data.id !== domain.data.id) // Filter nulls and self-refs
+          .map((subDomain: any) => {
+            // Hydrate services for the subdomain
+            let hydratedServices = subDomain.data.services || [];
+            if (enrichServices) {
+              hydratedServices = hydrateServices(subDomain.data.services || [], serviceMap, messageMap, containerMap);
+            } else {
+              // Just resolve the service objects without enrichment
+              hydratedServices = (subDomain.data.services || [])
+                .map((service: { id: string; version: string | undefined }) => findInMap(serviceMap, service.id, service.version))
+                .filter((s: any) => !!s);
+            }
 
-          return {
-            ...subDomain,
-            data: {
-              ...subDomain.data,
-              services: hydratedServices as any,
-              'data-products': subdomainDataProducts as any,
-            },
-          };
-        });
+            // Hydrate data products for the subdomain
+            const subdomainDataProducts = (subDomain.data['data-products'] || [])
+              .map((dp: { id: string; version: string | undefined }) => findInMap(dataProductMap, dp.id, dp.version))
+              .filter((dp: any) => !!dp);
 
-      // Resolve Entities
-      const entitiesInDomain = domain.data.entities || [];
-      const entities = entitiesInDomain
-        .map((entity: { id: string; version: string | undefined }) => findInMap(entityMap, entity.id, entity.version))
-        .filter((e): e is CollectionEntry<'entities'> => !!e);
+            return {
+              ...subDomain,
+              data: {
+                ...subDomain.data,
+                services: hydratedServices as any,
+                'data-products': subdomainDataProducts as any,
+              },
+            };
+          });
 
-      // Resolve Flows
-      const flowsInDomain = domain.data.flows || [];
-      const flows = flowsInDomain
-        .map((flow: { id: string; version: string | undefined }) => findInMap(flowMap, flow.id, flow.version))
-        .filter((f): f is CollectionEntry<'flows'> => !!f);
+        // Resolve Entities
+        const entitiesInDomain = domain.data.entities || [];
+        const entities = entitiesInDomain
+          .map((entity: { id: string; version: string | undefined }) => findInMap(entityMap, entity.id, entity.version))
+          .filter((e): e is CollectionEntry<'entities'> => !!e);
 
-      // Resolve Data Products
-      const dataProductsInDomain = domain.data['data-products'] || [];
-      const dataProducts = dataProductsInDomain
-        .map((dataProduct: { id: string; version: string | undefined }) =>
-          findInMap(dataProductMap, dataProduct.id, dataProduct.version)
-        )
-        .filter((dp): dp is CollectionEntry<'data-products'> => !!dp);
+        // Resolve Flows
+        const flowsInDomain = domain.data.flows || [];
+        const flows = flowsInDomain
+          .map((flow: { id: string; version: string | undefined }) => findInMap(flowMap, flow.id, flow.version))
+          .filter((f): f is CollectionEntry<'flows'> => !!f);
 
-      // Resolve Services for Main Domain
-      const servicesInDomain = domain.data.services || [];
+        // Resolve Data Products
+        const dataProductsInDomain = domain.data['data-products'] || [];
+        const dataProducts = dataProductsInDomain
+          .map((dataProduct: { id: string; version: string | undefined }) =>
+            findInMap(dataProductMap, dataProduct.id, dataProduct.version)
+          )
+          .filter((dp): dp is CollectionEntry<'data-products'> => !!dp);
 
-      // Hydrate main domain services
-      let hydratedMainServices = [];
-      if (enrichServices) {
-        hydratedMainServices = hydrateServices(servicesInDomain, serviceMap, messageMap, containerMap);
-      } else {
-        hydratedMainServices = servicesInDomain
-          .map((service: { id: string; version: string | undefined }) => findInMap(serviceMap, service.id, service.version))
-          .filter((s) => !!s);
-      }
+        // Resolve Services for Main Domain
+        const servicesInDomain = domain.data.services || [];
 
-      // Get already-hydrated subdomain services
-      const hydratedSubdomainServices = subDomains.flatMap((subDomain: any) => subDomain.data.services || []);
+        // Hydrate main domain services
+        let hydratedMainServices = [];
+        if (enrichServices) {
+          hydratedMainServices = hydrateServices(servicesInDomain, serviceMap, messageMap, containerMap);
+        } else {
+          hydratedMainServices = servicesInDomain
+            .map((service: { id: string; version: string | undefined }) => findInMap(serviceMap, service.id, service.version))
+            .filter((s) => !!s);
+        }
 
-      const services = includeServicesInSubdomains
-        ? [...(hydratedMainServices as any), ...(hydratedSubdomainServices as any)]
-        : (hydratedMainServices as any);
+        // Get already-hydrated subdomain services
+        const hydratedSubdomainServices = subDomains.flatMap((subDomain: any) => subDomain.data.services || []);
 
-      // Hydrate domain-level sends and receives
-      const domainSends = (domain.data.sends || [])
-        .map((m: { id: string; version: string | undefined }) => findInMap(messageMap, m.id, m.version))
-        .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
+        const services = includeServicesInSubdomains
+          ? [...(hydratedMainServices as any), ...(hydratedSubdomainServices as any)]
+          : (hydratedMainServices as any);
 
-      const domainReceives = (domain.data.receives || [])
-        .map((m: { id: string; version: string | undefined }) => findInMap(messageMap, m.id, m.version))
-        .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
+        // Hydrate domain-level sends and receives
+        const domainSends = (domain.data.sends || [])
+          .map((m: { id: string; version: string | undefined }) => findInMap(messageMap, m.id, m.version))
+          .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
 
-      return {
-        ...domain,
-        data: {
-          ...domain.data,
-          services: services as any, // Cast to avoid deep type issues with enriched data
-          domains: subDomains as any,
-          entities: entities as any,
-          flows: flows as any,
-          'data-products': dataProducts as any,
-          sends: domainSends as any,
-          receives: domainReceives as any,
-          latestVersion,
-          versions,
-        },
-      };
-    })
-  );
+        const domainReceives = (domain.data.receives || [])
+          .map((m: { id: string; version: string | undefined }) => findInMap(messageMap, m.id, m.version))
+          .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
 
-  // Sort by name
-  processedDomains.sort((a, b) => {
-    return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
-  });
+        return {
+          ...domain,
+          data: {
+            ...domain.data,
+            services: services as any, // Cast to avoid deep type issues with enriched data
+            domains: subDomains as any,
+            entities: entities as any,
+            flows: flows as any,
+            'data-products': dataProducts as any,
+            sends: domainSends as any,
+            receives: domainReceives as any,
+            latestVersion,
+            versions,
+          },
+        };
+      })
+    );
 
-  // Cache result
-  memoryCache[cacheKey] = processedDomains;
+    // Sort by name
+    processedDomains.sort((a, b) => {
+      return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
+    });
 
-  // console.timeEnd('✅ New getDomains');
+    // Cache result
+    memoryCache[cacheKey] = processedDomains;
 
-  return processedDomains;
+    return processedDomains;
+  })();
+
+  if (CACHE_ENABLED) {
+    inFlightCache[cacheKey] = loadPromise;
+  }
+
+  try {
+    return await loadPromise;
+  } finally {
+    delete inFlightCache[cacheKey];
+  }
 };
 
 export const getMessagesForDomain = async (
