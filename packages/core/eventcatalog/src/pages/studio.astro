@@ -7,6 +7,7 @@ import { BoltIcon, ServerIcon } from '@heroicons/react/24/outline';
 import { SquareDashedMousePointerIcon, ArrowLeftRightIcon, ExternalLink } from 'lucide-react';
 import StudioPageModal from '@components/Studio/StudioPageModal';
 import { getChannels } from '@utils/collections/channels';
+import config from '@config';
 
 const [events, commands, services, channels] = await Promise.all([
   getEvents().catch(() => []),
@@ -35,6 +36,7 @@ const resourcesToShow = [
 ].slice(0, 5); // Max 5 resources
 
 const hasResources = resourcesToShow.length > 0;
+const isFullCatalogAPIEnabled = config.api?.fullCatalogAPIEnabled ?? false;
 ---
 
 <!doctype html>
@@ -263,16 +265,23 @@ const hasResources = resourcesToShow.length > 0;
       </div>
 
       {/* Studio Modal */}
-      <StudioPageModal client:only="react" />
+      {isFullCatalogAPIEnabled && <StudioPageModal client:only="react" />}
     </VerticalSideBarLayout>
 
-    <script>
-      // Handle opening the studio modal
+    <script define:vars={{ isFullCatalogAPIEnabled }}>
+      // Handle opening the studio modal (or direct Studio link when full catalog API is disabled)
       const button = document.getElementById('design-button');
       if (button) {
         button.addEventListener('click', () => {
-          // Trigger the modal to open
-          window.dispatchEvent(new CustomEvent('openStudioModal'));
+          if (isFullCatalogAPIEnabled) {
+            window.dispatchEvent(new CustomEvent('openStudioModal'));
+            return;
+          }
+
+          window.open(
+            'https://app.eventcatalog.studio/playground?import-resources=true&utm_source=eventcatalog&utm_medium=referral&utm_campaign=studio-page',
+            '_blank'
+          );
         });
       }
     </script>

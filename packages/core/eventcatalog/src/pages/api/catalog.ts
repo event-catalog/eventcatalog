@@ -2,14 +2,14 @@ import type { APIRoute } from 'astro';
 import utils from '@eventcatalog/sdk';
 import config from '@config';
 
-const isFullCatalogAPIEnabled = config.api?.fullCatalogAPIEnabled ?? true;
+const isFullCatalogAPIEnabled = config.api?.fullCatalogAPIEnabled ?? false;
 
 /**
  * Route that dumps the whole catalog as JSON (without markdown)
  * Experimental API
  *
- * Can be disabled via eventcatalog.config.js:
- * api: { fullCatalogAPIEnabled: false }
+ * Disabled by default. Enable via eventcatalog.config.js:
+ * api: { fullCatalogAPIEnabled: true }
  */
 export const GET: APIRoute = async () => {
   if (!isFullCatalogAPIEnabled) {

@@ -37,9 +37,9 @@ paths:
       summary: Get full catalog dump
       description: |
         Returns the entire EventCatalog as JSON without markdown content.
-        This is an experimental API that can be disabled via configuration.
+        This is an experimental API that is disabled by default.
 
-        **Configuration**: Can be disabled by setting `config.api.fullCatalogAPIEnabled` to `false`.
+        **Configuration**: Enable by setting `config.api.fullCatalogAPIEnabled` to `true`. 
       operationId: getCatalog
       tags:
         - Catalog
