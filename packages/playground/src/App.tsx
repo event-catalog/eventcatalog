@@ -87,7 +87,16 @@ export default function App() {
   const { graph, errors, fileOffsets } = useDslParser(files, activeVisualizer);
   const [splitPct, setSplitPct] = useState(DEFAULT_SPLIT);
   const [fullscreen, setFullscreen] = useState(false);
-  const [vizTheme, setVizTheme] = useState<'light' | 'dark'>('light');
+  const [vizTheme, setVizTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      const saved = localStorage.getItem('ec-playground-theme');
+      if (saved === 'dark' || saved === 'light') {
+        document.documentElement.setAttribute('data-theme', saved);
+        return saved;
+      }
+    } catch {}
+    return 'light';
+  });
   const isDragging = useRef(false);
   const mainRef = useRef<HTMLDivElement>(null);
 
@@ -95,6 +104,7 @@ export default function App() {
     setVizTheme((prev) => {
       const next = prev === 'light' ? 'dark' : 'light';
       document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('ec-playground-theme', next); } catch {}
       return next;
     });
   }, []);

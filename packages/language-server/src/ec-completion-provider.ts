@@ -18,7 +18,6 @@ const RESOURCE_KEYWORDS = new Map<string, string>([
   ["command", "Command message"],
   ["query", "Query message"],
   ["channel", "Communication channel"],
-  ["entity", "Domain entity"],
   ["container", "Data container (database, cache, etc.)"],
   ["data-product", "Analytical data product"],
   ["flow", "Process flow definition"],
@@ -43,8 +42,6 @@ const PROPERTY_KEYWORDS = new Map<string, string>([
   ["technology", "Technology or implementation"],
   ["residency", "Data residency region"],
   ["retention", "Data retention policy"],
-  ["identifier", "Entity identifier field"],
-  ["aggregate-root", "Mark entity as aggregate root"],
   ["authoritative", "Authoritative data source"],
   ["classification", "Data classification level"],
   ["access-mode", "Data access pattern (read, write, etc.)"],
@@ -67,7 +64,6 @@ const RELATIONSHIP_KEYWORDS = new Map<string, string>([
 
 const BLOCK_KEYWORDS = new Map<string, string>([
   ["subdomain", "Nested subdomain"],
-  ["property", "Entity property"],
   ["parameter", "Channel parameter"],
   ["->", "Flow arrow"],
   ["when", "Flow when-block trigger"],
@@ -91,27 +87,33 @@ const KNOWN_ANNOTATIONS = [
 const RESOURCE_SNIPPETS: Record<string, { label: string; snippet: string }> = {
   service: {
     label: "service (block)",
-    snippet: "service ${1:ServiceName} {\n  version ${2:0.0.1}\n  $0\n}",
+    snippet:
+      'service ${1:ServiceName} {\n  version ${2:0.0.1}\n  summary "${3:Service that manages and processes $1 operations}"\n  $0\n}',
   },
   event: {
     label: "event (block)",
-    snippet: "event ${1:EventName} {\n  version ${2:0.0.1}\n  $0\n}",
+    snippet:
+      'event ${1:EventName} {\n  version ${2:0.0.1}\n  summary "${3:Triggered when a significant change occurs in the domain}"\n  $0\n}',
   },
   command: {
     label: "command (block)",
-    snippet: "command ${1:CommandName} {\n  version ${2:0.0.1}\n  $0\n}",
+    snippet:
+      'command ${1:CommandName} {\n  version ${2:0.0.1}\n  summary "${3:Requests an action to be performed in the system}"\n  $0\n}',
   },
   query: {
     label: "query (block)",
-    snippet: "query ${1:QueryName} {\n  version ${2:0.0.1}\n  $0\n}",
+    snippet:
+      'query ${1:QueryName} {\n  version ${2:0.0.1}\n  summary "${3:Retrieves data from the system without side effects}"\n  $0\n}',
   },
   domain: {
     label: "domain (block)",
-    snippet: "domain ${1:DomainName} {\n  version ${2:0.0.1}\n  $0\n}",
+    snippet:
+      'domain ${1:DomainName} {\n  version ${2:0.0.1}\n  summary "${3:Bounded context responsible for $1}"\n  $0\n}',
   },
   container: {
     label: "container (block)",
-    snippet: "container ${1:ContainerName} {\n  version ${2:0.0.1}\n  $0\n}",
+    snippet:
+      'container ${1:ContainerName} {\n  version ${2:0.0.1}\n  summary "${3:Data store that persists and manages $1 data}"\n  $0\n}',
   },
   visualizer: {
     label: "visualizer (block)",
@@ -120,12 +122,12 @@ const RESOURCE_SNIPPETS: Record<string, { label: string; snippet: string }> = {
   actor: {
     label: "actor (block)",
     snippet:
-      'actor ${1:ActorName} {\n  name "${2:Display Name}"\n  summary "${3:description}"\n}',
+      'actor ${1:ActorName} {\n  name "${2:Display Name}"\n  summary "${3:User or persona that interacts with the system}"\n}',
   },
   "external-system": {
     label: "external-system (block)",
     snippet:
-      'external-system ${1:SystemName} {\n  name "${2:Display Name}"\n  summary "${3:description}"\n}',
+      'external-system ${1:SystemName} {\n  name "${2:Display Name}"\n  summary "${3:Third-party system that integrates with the platform}"\n}',
   },
 };
 

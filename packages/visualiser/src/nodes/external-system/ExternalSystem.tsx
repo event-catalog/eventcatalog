@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Globe } from "lucide-react";
-import { Node, Handle, Position } from "@xyflow/react";
+import { Node, Handle, Position, useHandleConnections } from "@xyflow/react";
 import {
   EventCatalogResource,
   ExternalSystem as ExternalSystemType,
@@ -9,8 +9,8 @@ import { NotesIndicator } from "../NotesIndicator";
 import { HIDDEN_HANDLE_STYLE } from "../OwnerIndicator";
 import {
   LINE_CLAMP_STYLE,
-  WATERMARK_STYLE,
   FOLDED_CORNER_SHADOW_STYLE,
+  useDarkMode,
 } from "../shared-styles";
 
 function GlowHandle({ side }: { side: "left" | "right" }) {
@@ -159,20 +159,30 @@ function DefaultExternalSystem(props: ExternalSystemNode) {
   const { version, name, summary, deprecated, draft, notes } =
     props.data.externalSystem;
   const mode = props.data.mode || "simple";
+  const targetConnections = useHandleConnections({ type: "target" });
+  const sourceConnections = useHandleConnections({ type: "source" });
+  const isDark = useDarkMode();
+  const deprecatedStripe = isDark
+    ? "rgba(239,68,68,0.25)"
+    : "rgba(239,68,68,0.1)";
 
   return (
     <div
       className={classNames(
-        "relative min-w-48 max-w-60 rounded-xl border-2",
+        "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
         props?.selected ? "ring-2 ring-purple-400/60 ring-offset-2" : "",
         deprecated
-          ? "border-dashed border-red-300"
+          ? "border-dashed border-red-500"
           : draft
-            ? "border-dashed border-purple-300/60"
-            : "border-purple-300",
-        "bg-[rgb(var(--ec-card-bg))]",
+            ? `border-dashed ${isDark ? "border-purple-400" : "border-purple-400/60"}`
+            : "border-purple-500",
       )}
       style={{
+        background: deprecated
+          ? `repeating-linear-gradient(135deg, transparent, transparent 6px, ${deprecatedStripe} 6px, ${deprecatedStripe} 7px), var(--ec-external-node-bg, rgb(var(--ec-card-bg)))`
+          : draft
+            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${isDark ? "rgba(168,85,247,0.25)" : "rgba(168,85,247,0.15)"} 4px, ${isDark ? "rgba(168,85,247,0.25)" : "rgba(168,85,247,0.15)"} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${isDark ? "rgba(168,85,247,0.25)" : "rgba(168,85,247,0.15)"} 4px, ${isDark ? "rgba(168,85,247,0.25)" : "rgba(168,85,247,0.15)"} 4.5px), var(--ec-external-node-bg, rgb(var(--ec-card-bg)))`
+            : "var(--ec-external-node-bg, rgb(var(--ec-card-bg)))",
         boxShadow: "0 2px 12px rgba(168, 85, 247, 0.15)",
       }}
     >
@@ -189,82 +199,40 @@ function DefaultExternalSystem(props: ExternalSystemNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {!deprecated && !draft && <GlowHandle side="left" />}
-      {!deprecated && !draft && <GlowHandle side="right" />}
+      {targetConnections.length > 0 && <GlowHandle side="left" />}
+      {sourceConnections.length > 0 && <GlowHandle side="right" />}
 
-      {/* Watermark icon */}
-      <div
-        className="absolute top-2 right-2 pointer-events-none overflow-hidden"
-        style={WATERMARK_STYLE}
-      >
-        <Globe className="w-8 h-8 text-purple-400" strokeWidth={2} />
-      </div>
-
-      {/* Top row: icon circle left */}
-      <div className="flex items-start justify-between -mt-4 px-3">
-        <div
+      {/* Badge positioned outside top-left corner */}
+      <div className="absolute -top-2.5 left-2.5 flex items-center gap-1.5 z-10">
+        <span
           className={classNames(
-            "flex items-center justify-center w-8 h-8 rounded-full shadow-sm border-2",
-            "bg-purple-500 border-purple-400",
+            "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
+            deprecated ? "bg-red-500" : "bg-purple-500",
           )}
         >
-          <Globe className="w-4 h-4 text-white" strokeWidth={2.5} />
-        </div>
+          <Globe className="w-2.5 h-2.5" strokeWidth={2.5} />
+          External System{draft && " (Draft)"}
+          {deprecated && " (Deprecated)"}
+        </span>
       </div>
 
-      <div className="px-3.5 pt-1.5 pb-3">
-        {/* Type + version row */}
-        <div className="flex items-center gap-1.5">
-          <span
-            className={classNames(
-              "text-[8px] font-bold uppercase tracking-widest",
-              "text-purple-400",
-            )}
-          >
-            External System
+      <div className="px-3 pt-3.5 pb-2.5">
+        {/* Name + version */}
+        <div className="flex items-baseline gap-1">
+          <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
+            {name}
           </span>
           {version && (
-            <span
-              className={classNames(
-                "text-[8px] font-medium",
-                "text-purple-300",
-              )}
-            >
-              v{version}
+            <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
+              (v{version})
             </span>
           )}
         </div>
 
-        {/* Name */}
-        <div
-          className={classNames(
-            "text-[13px] font-bold leading-tight mt-1",
-            deprecated
-              ? "text-[rgb(var(--ec-page-text-muted))] line-through"
-              : "text-[rgb(var(--ec-page-text))]",
-          )}
-        >
-          {name}
-        </div>
-
-        {/* Draft badge */}
-        {draft && (
-          <span className="inline-block mt-1 text-[8px] font-extrabold text-amber-900 bg-amber-100 border border-dashed border-amber-400 px-1.5 py-0.5 rounded-full uppercase">
-            Draft
-          </span>
-        )}
-
-        {/* Deprecated badge */}
-        {deprecated && (
-          <span className="inline-block mt-1 text-[8px] font-extrabold text-red-700 bg-red-100 border border-dashed border-red-400 px-1.5 py-0.5 rounded-full uppercase">
-            Deprecated
-          </span>
-        )}
-
         {/* Summary */}
         {mode === "full" && summary && (
           <div
-            className="mt-2 text-[9px] text-[rgb(var(--ec-page-text-muted))] leading-relaxed overflow-hidden"
+            className="mt-1.5 text-[9px] text-[rgb(var(--ec-page-text-muted))] leading-relaxed overflow-hidden"
             style={LINE_CLAMP_STYLE}
             title={summary}
           >

@@ -64,11 +64,11 @@ const FocusModeModal: React.FC<FocusModeModalProps> = ({
         container={typeof document !== "undefined" ? document.body : undefined}
       >
         <div
-          className="fixed inset-0 z-[99999]"
+          className="fixed inset-0 z-[99999] eventcatalog-visualizer"
           style={{ isolation: "isolate" }}
         >
           <Dialog.Overlay className="fixed inset-0 bg-black/70 data-[state=open]:animate-overlayShow" />
-          <Dialog.Content className="fixed inset-4 md:inset-8 lg:inset-12 rounded-lg bg-[rgb(var(--ec-card-bg,var(--ec-page-bg)))] shadow-xl focus:outline-none flex flex-col overflow-hidden">
+          <Dialog.Content className="fixed inset-4 md:inset-8 lg:inset-12 rounded-lg bg-[rgb(var(--ec-page-bg))] shadow-xl focus:outline-none flex flex-col overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--ec-page-border))] flex-shrink-0">
               <div className="flex items-center gap-3">

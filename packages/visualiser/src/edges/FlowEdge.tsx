@@ -2,7 +2,7 @@ import { memo, useMemo } from "react";
 import {
   BaseEdge,
   EdgeLabelRenderer,
-  getBezierPath,
+  getSmoothStepPath,
   type EdgeProps as XYFlowEdgeProps,
 } from "@xyflow/react";
 import { EDGE_FLOW_BASE_STYLE } from "../nodes/shared-styles";
@@ -49,7 +49,7 @@ export default memo(function CustomEdge({
   labelStyle,
   data,
 }: CustomEdgeProps) {
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,

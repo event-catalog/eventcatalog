@@ -254,6 +254,11 @@ html, body, #root {
   height: 100%;
   background: rgb(var(--ec-page-bg));
   flex-shrink: 0;
+  --ec-page-bg: 249, 250, 251;
+}
+
+[data-theme="dark"] .visualizer-pane {
+  --ec-page-bg: 22, 27, 34;
 }
 
 /* ── Resize Handle ── */

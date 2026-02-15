@@ -79,6 +79,217 @@ export const examples: Example[] = [
     },
   },
   {
+    name: 'Order Service Showcase',
+    description: 'Service with events, drafts, deprecations, notes, and channels',
+    source: {
+      'main.ec': `import {
+  OrderCreated, OrderConfirmed, OrderShipped, OrderCancelled, OrderCancelledV2,
+  PaymentProcessed, PaymentFailed, StockReserved, StockUnavailable,
+  NotificationSent, LegacyOrderCreated,
+  CreateOrder, CancelOrder, GetOrderStatus
+} from "./messages.ec"
+
+import {
+  OrderService, PaymentService, InventoryService,
+  NotificationService, LegacyOrderAdapter, AnalyticsIngestion
+} from "./services.ec"
+
+visualizer main {
+  name "Order Service Showcase"
+  legend true
+
+  channel OrderStream {
+    version 1.0.0
+    address "orders.stream"
+    protocol "kafka"
+    summary "Kafka topic for all order-related events"
+    @note("Partition key is orderId — 12 partitions", author: "infra-team")
+    @note("Retention: 14 days", author: "infra-team")
+  }
+
+  channel NotificationQueue {
+    version 1.0.0
+    address "notifications.queue"
+    protocol "rabbitmq"
+    summary "RabbitMQ queue for notification delivery"
+  }
+
+  channel LegacyOrderQueue {
+    version 1.0.0
+    address "legacy.orders"
+    protocol "rabbitmq"
+    summary "Legacy queue — being decommissioned"
+    @note("No new consumers should connect to this queue", priority: "high")
+  }
+
+  service OrderService
+  service PaymentService
+  service InventoryService
+  service NotificationService
+  service LegacyOrderAdapter
+  service AnalyticsIngestion
+}
+`,
+      'services.ec': `service OrderService {
+  version 2.0.0
+  summary "Core service for managing the order lifecycle"
+  @note("v2 adds support for multi-currency orders", author: "alice")
+  @note("Load test before Black Friday — target 5k req/s", author: "bob", priority: "high")
+  @note("Migrating from REST to gRPC for internal calls", author: "alice")
+
+  sends event OrderCreated to OrderStream
+  sends event OrderConfirmed to OrderStream
+  sends event OrderShipped to OrderStream
+  sends event OrderCancelled to OrderStream
+  sends event OrderCancelledV2 to OrderStream
+
+  receives command CreateOrder
+  receives command CancelOrder
+  receives query GetOrderStatus
+}
+
+service PaymentService {
+  version 1.0.0
+  summary "Processes payments and refunds"
+  @note("Integrates with Stripe and Adyen", author: "dave")
+
+  receives event OrderCreated from OrderStream
+
+  sends event PaymentProcessed to OrderStream
+  sends event PaymentFailed to OrderStream
+}
+
+service InventoryService {
+  version 1.0.0
+  summary "Manages stock levels and reservations"
+
+  receives event OrderCreated from OrderStream
+  receives event OrderCancelled from OrderStream
+
+  sends event StockReserved to OrderStream
+  sends event StockUnavailable to OrderStream
+}
+
+service NotificationService {
+  version 1.0.0
+  summary "Sends email, SMS, and push notifications"
+
+  receives event OrderConfirmed from OrderStream
+  receives event OrderShipped from OrderStream
+  receives event OrderCancelled from OrderStream
+  receives event PaymentFailed from OrderStream
+
+  sends event NotificationSent to NotificationQueue
+}
+
+service LegacyOrderAdapter {
+  version 1.0.0
+  summary "Bridges events to the legacy order system"
+  deprecated true
+  @note("Decommission by Q3 2026", priority: "high")
+  @note("Only handles APAC region traffic", author: "carol")
+  @note("See migration runbook: https://wiki.internal/legacy-orders", author: "bob")
+
+  receives event OrderCreated from OrderStream
+  receives event OrderCancelled from OrderStream
+
+  sends event LegacyOrderCreated to LegacyOrderQueue
+}
+
+service AnalyticsIngestion {
+  version 1.0.0
+  summary "Ingests order events into the data warehouse"
+  draft true
+  @note("Planned for Q2 2026 — depends on new Snowflake cluster", author: "dave")
+
+  receives event OrderCreated from OrderStream
+  receives event OrderConfirmed from OrderStream
+  receives event OrderShipped from OrderStream
+  receives event PaymentProcessed from OrderStream
+}
+`,
+      'messages.ec': `event OrderCreated {
+  version 1.0.0
+  summary "Emitted when a customer places a new order"
+  @note("Schema v2 adds shippingAddress field — deploy consumer updates first", author: "alice")
+}
+
+event OrderConfirmed {
+  version 1.0.0
+  summary "Order confirmed after payment and stock checks"
+}
+
+event OrderShipped {
+  version 1.0.0
+  summary "Order dispatched from the warehouse"
+}
+
+event OrderCancelled {
+  version 1.0.0
+  summary "Order cancelled by customer or system"
+  deprecated true
+  @note("Use OrderCancelledV2 instead — this lacks cancellation reason", priority: "high")
+}
+
+event OrderCancelledV2 {
+  version 1.0.0
+  summary "Order cancelled with structured reason codes"
+  draft true
+  @note("Rolling out to EU region first", author: "carol")
+}
+
+event PaymentProcessed {
+  version 1.0.0
+  summary "Payment completed successfully"
+}
+
+event PaymentFailed {
+  version 1.0.0
+  summary "Payment was declined or errored"
+}
+
+event StockReserved {
+  version 1.0.0
+  summary "Inventory reserved for an order"
+}
+
+event StockUnavailable {
+  version 1.0.0
+  summary "Requested items are out of stock"
+}
+
+event NotificationSent {
+  version 1.0.0
+  summary "Notification delivered to customer"
+}
+
+event LegacyOrderCreated {
+  version 1.0.0
+  summary "Legacy format order event"
+  deprecated true
+}
+
+command CreateOrder {
+  version 1.0.0
+  summary "Place a new order"
+  @note("Validate idempotency key before processing", author: "bob", priority: "high")
+}
+
+command CancelOrder {
+  version 1.0.0
+  summary "Request order cancellation"
+}
+
+query GetOrderStatus {
+  version 1.0.0
+  summary "Retrieve current order status"
+  draft true
+  @note("Will replace polling with push notifications in v2", author: "alice")
+}
+`,
+    },
+  },
+  {
     name: 'Minimal Service',
     description: 'Simplest possible service definition',
     source: {

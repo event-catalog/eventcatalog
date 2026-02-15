@@ -1,4 +1,26 @@
-import type { CSSProperties } from "react";
+import { type CSSProperties, useSyncExternalStore } from "react";
+
+// ─── Dark mode detection ────────────────────────────────────────────────────
+
+function subscribeTheme(callback: () => void) {
+  const observer = new MutationObserver(callback);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme"],
+  });
+  return () => observer.disconnect();
+}
+
+function getIsDark() {
+  return (
+    typeof document !== "undefined" &&
+    document.documentElement.getAttribute("data-theme") === "dark"
+  );
+}
+
+export function useDarkMode(): boolean {
+  return useSyncExternalStore(subscribeTheme, getIsDark, () => false);
+}
 
 /**
  * Shared style constants for node components.
@@ -29,7 +51,7 @@ export const LINE_CLAMP_STYLE = {
 // ─── Watermark icon ─────────────────────────────────────────────────────────
 
 export const WATERMARK_STYLE = {
-  opacity: 0.12,
+  opacity: 0.2,
   transform: "rotate(12deg)",
 } as const;
 
@@ -79,16 +101,20 @@ export const EXTERNAL_SYSTEM_HANDLE_STYLE = {
 
 export const EDGE_WARNING_STYLE = {
   stroke: "red",
-  strokeWidth: 1,
+  strokeWidth: 2.625,
+  strokeDasharray: "5 5",
 } as const;
 
 export const EDGE_DEFAULT_STYLE = {
-  stroke: "rgb(var(--ec-page-text-muted))",
+  stroke: "var(--ec-edge-stroke, #d1d5db)",
+  strokeWidth: 2.625,
+  strokeDasharray: "5 5",
 } as const;
 
 export const EDGE_FLOW_BASE_STYLE = {
-  strokeWidth: 2,
+  strokeWidth: 3,
   stroke: "rgb(var(--ec-page-text-muted))",
+  strokeDasharray: "5 5",
 } as const;
 
 // ─── Default empty values (stable references for default props) ─────────────

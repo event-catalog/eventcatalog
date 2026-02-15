@@ -115,8 +115,9 @@ export const createEdge = (edgeOptions: Edge): Edge => {
       color: "rgb(var(--ec-page-text-muted))",
     },
     style: {
-      strokeWidth: 1,
+      strokeWidth: 1.5,
       stroke: "rgb(var(--ec-page-text-muted))",
+      strokeDasharray: "5 5",
     },
     ...edgeOptions,
   };

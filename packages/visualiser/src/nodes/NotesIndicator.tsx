@@ -1,7 +1,8 @@
-import { MessageCircle, AlertTriangle, XIcon, PencilLine } from "lucide-react";
+import { MessageCircle, AlertTriangle, XIcon } from "lucide-react";
 import { useState, useCallback, memo } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import type { Note } from "../types";
+import { useDarkMode } from "./shared-styles";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -215,158 +216,107 @@ function PopoverCard({ note, last }: { note: Note; last: boolean }) {
 /*  Modal note card (thread-style)                                     */
 /* ------------------------------------------------------------------ */
 
-function ThreadNote({
-  note,
-  index,
-  isLast,
-}: {
-  note: Note;
-  index: number;
-  isLast: boolean;
-}) {
+function NoteCard({ note, isDark }: { note: Note; isDark: boolean }) {
   const prioStyle = note.priority
     ? PRIORITY[note.priority.toLowerCase()]
     : null;
 
   return (
-    <div style={{ display: "flex", gap: 14, position: "relative" }}>
-      {/* Left rail: avatar + thread line */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          flexShrink: 0,
-          width: 32,
-        }}
-      >
-        {note.author ? (
-          <Avatar name={note.author} size={32} />
-        ) : (
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              background: "#f1f5f9",
-              border: `2px solid ${AMBER[200]}`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <span style={{ fontSize: 12, fontWeight: 700, color: AMBER[700] }}>
-              {index + 1}
-            </span>
-          </div>
-        )}
-        {/* Thread connector */}
-        {!isLast && (
-          <div
-            style={{
-              flex: 1,
-              width: 2,
-              background: `linear-gradient(to bottom, ${AMBER[200]}, transparent)`,
-              marginTop: 4,
-              borderRadius: 1,
-              minHeight: 16,
-            }}
-          />
-        )}
-      </div>
-
-      {/* Content card */}
-      <div
-        style={{
-          flex: 1,
-          minWidth: 0,
-          paddingBottom: isLast ? 0 : 20,
-        }}
-      >
-        {/* Meta row */}
-        <div
+    <div
+      style={{
+        background: isDark
+          ? `radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px), rgba(255,255,255,0.04)`
+          : `radial-gradient(circle, rgba(212,201,168,0.4) 1px, transparent 1px), #fef9ed`,
+        backgroundSize: "12px 12px",
+        border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "#e5dcc3"}`,
+        borderBottom: `2px dashed ${isDark ? "rgba(255,255,255,0.1)" : "#d4c9a8"}`,
+        borderRadius: "8px 8px 0 0",
+        padding: "14px 16px 14px",
+        position: "relative",
+      }}
+    >
+      {/* Author */}
+      {note.author && (
+        <span
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            marginBottom: 6,
-            minHeight: 20,
+            display: "block",
+            fontSize: 11,
+            fontWeight: 650,
+            color: isDark ? "#e2e8f0" : "#1e293b",
+            marginBottom: 8,
           }}
         >
-          {note.author && (
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 650,
-                color: "rgb(var(--ec-page-text))",
-                lineHeight: 1,
-              }}
-            >
-              {note.author}
-            </span>
-          )}
-          {note.priority && <PriorityPill priority={note.priority} size="md" />}
-        </div>
+          {note.author}
+        </span>
+      )}
 
-        {/* Body */}
-        <div
-          style={{
-            background: "rgb(var(--ec-card-bg))",
-            border: "1px solid rgb(var(--ec-page-border))",
-            borderRadius: 10,
-            padding: "12px 14px",
-            position: "relative",
-            boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
-          }}
-        >
-          {/* Priority accent stripe */}
-          {prioStyle && (
-            <div
-              style={{
-                position: "absolute",
-                left: 0,
-                top: 8,
-                bottom: 8,
-                width: 3,
-                borderRadius: "0 2px 2px 0",
-                background: prioStyle.accent,
-              }}
-            />
-          )}
-          <p
-            style={{
-              fontSize: 13,
-              lineHeight: 1.6,
-              color: "rgb(var(--ec-page-text-muted))",
-              margin: 0,
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-              paddingLeft: prioStyle ? 8 : 0,
-            }}
-          >
-            {note.content}
-          </p>
-        </div>
-      </div>
+      {/* Content — styled like a handwritten note */}
+      <p
+        style={{
+          fontSize: 13,
+          lineHeight: 1.7,
+          color: isDark ? "#cbd5e1" : "#1e293b",
+          margin: 0,
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+          fontStyle: "italic",
+        }}
+      >
+        &ldquo;{note.content}&rdquo;
+      </p>
     </div>
   );
+}
+
+/** Group notes by priority: critical/high first, then low, then no priority */
+function groupNotes(
+  notes: Note[],
+): { label: string; notes: Note[]; color: string }[] {
+  const urgent: Note[] = [];
+  const low: Note[] = [];
+  const normal: Note[] = [];
+
+  for (const n of notes) {
+    const p = n.priority?.toLowerCase();
+    if (p === "critical" || p === "high") urgent.push(n);
+    else if (p === "low") low.push(n);
+    else normal.push(n);
+  }
+
+  const groups: { label: string; notes: Note[]; color: string }[] = [];
+  if (urgent.length > 0)
+    groups.push({ label: "High Priority", notes: urgent, color: "#ef4444" });
+  if (normal.length > 0)
+    groups.push({ label: "Notes", notes: normal, color: "#f59e0b" });
+  if (low.length > 0)
+    groups.push({ label: "Low Priority", notes: low, color: "#22c55e" });
+  return groups;
 }
 
 /* ------------------------------------------------------------------ */
 /*  Full-screen modal                                                  */
 /* ------------------------------------------------------------------ */
 
-function NotesModal({
+export function NotesModal({
   notes,
   isOpen,
   onClose,
   resourceName,
+  resourceVersion,
+  resourceType,
+  accentColor,
+  icon,
 }: {
   notes: Note[];
   isOpen: boolean;
   onClose: () => void;
   resourceName?: string;
+  resourceVersion?: string;
+  resourceType?: string;
+  accentColor?: string;
+  icon?: React.ReactNode;
 }) {
+  const isDark = useDarkMode();
   const count = notes.length;
   const urgent = notes.filter(
     (n) =>
@@ -388,8 +338,10 @@ function NotesModal({
             style={{
               position: "fixed",
               inset: 0,
-              background: "rgba(15, 23, 42, 0.55)",
-              backdropFilter: "blur(6px)",
+              background: isDark
+                ? "rgba(0, 0, 0, 0.7)"
+                : "rgba(15, 23, 42, 0.55)",
+              backdropFilter: "blur(8px)",
             }}
           />
 
@@ -400,12 +352,14 @@ function NotesModal({
               left: "50%",
               transform: "translate(-50%, -50%)",
               width: "92vw",
-              maxWidth: 520,
-              maxHeight: "82vh",
-              background: "rgb(var(--ec-page-bg))",
-              borderRadius: 14,
-              boxShadow:
-                "0 0 0 1px rgba(0,0,0,0.06), 0 16px 40px rgba(0,0,0,0.18)",
+              maxWidth: 500,
+              maxHeight: "80vh",
+              background: isDark ? "#1e2330" : "#ffffff",
+              borderRadius: 16,
+              border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+              boxShadow: isDark
+                ? "0 24px 48px rgba(0,0,0,0.5)"
+                : "0 24px 48px rgba(0,0,0,0.15)",
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
@@ -415,32 +369,34 @@ function NotesModal({
             {/* -------- Header -------- */}
             <div
               style={{
-                padding: "18px 22px 14px",
-                background: `linear-gradient(135deg, ${AMBER[50]}, white 60%)`,
-                borderBottom: `1px solid ${AMBER[100]}`,
+                padding: "20px 22px 16px",
+                borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
                 display: "flex",
                 alignItems: "center",
-                gap: 12,
+                gap: 14,
               }}
             >
-              {/* Icon */}
+              {/* Resource icon */}
               <div
                 style={{
                   width: 36,
                   height: 36,
-                  borderRadius: 9,
-                  background: `linear-gradient(135deg, ${AMBER[400]}, ${AMBER[500]})`,
+                  borderRadius: 10,
+                  background:
+                    accentColor ||
+                    `linear-gradient(135deg, ${AMBER[400]}, ${AMBER[500]})`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   flexShrink: 0,
-                  boxShadow: `0 2px 8px ${AMBER[400]}55`,
                 }}
               >
-                <MessageCircle
-                  style={{ width: 18, height: 18, color: "white" }}
-                  strokeWidth={2.5}
-                />
+                {icon || (
+                  <MessageCircle
+                    style={{ width: 18, height: 18, color: "white" }}
+                    strokeWidth={2.5}
+                  />
+                )}
               </div>
 
               {/* Title block */}
@@ -449,23 +405,55 @@ function NotesModal({
                   style={{
                     fontSize: 15,
                     fontWeight: 700,
-                    color: "rgb(var(--ec-page-text))",
+                    color: isDark ? "#f1f5f9" : "#0f172a",
                     margin: 0,
-                    lineHeight: 1.25,
+                    lineHeight: 1.3,
                     letterSpacing: "-0.01em",
+                    display: "flex",
+                    alignItems: "baseline",
+                    gap: 6,
                   }}
                 >
                   {resourceName || "Notes"}
+                  {resourceVersion && (
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 500,
+                        color: isDark ? "#64748b" : "#94a3b8",
+                      }}
+                    >
+                      v{resourceVersion}
+                    </span>
+                  )}
                 </Dialog.Title>
                 <Dialog.Description
                   style={{
                     fontSize: 12,
-                    color: "rgb(var(--ec-page-text-muted))",
+                    color: isDark ? "#94a3b8" : "#64748b",
                     margin: 0,
-                    marginTop: 2,
+                    marginTop: 3,
                     lineHeight: 1.3,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
                   }}
                 >
+                  {resourceType && (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      {resourceType}
+                    </span>
+                  )}
+                  {resourceType && (
+                    <span style={{ opacity: 0.4 }}>&middot;</span>
+                  )}
                   {count} note{count !== 1 ? "s" : ""}
                   {urgent.length > 0 &&
                     ` \u00b7 ${urgent.length} high priority`}
@@ -474,27 +462,103 @@ function NotesModal({
 
               {/* Close */}
               <Dialog.Close asChild>
-                <button className="ec-notes-close-btn" aria-label="Close">
-                  <XIcon style={{ width: 15, height: 15 }} />
+                <button
+                  aria-label="Close"
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    border: "none",
+                    background: isDark
+                      ? "rgba(255,255,255,0.06)"
+                      : "rgba(0,0,0,0.04)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    color: isDark ? "#94a3b8" : "#94a3b8",
+                    flexShrink: 0,
+                  }}
+                >
+                  <XIcon style={{ width: 16, height: 16 }} />
                 </button>
               </Dialog.Close>
             </div>
 
-            {/* -------- Thread body -------- */}
+            {/* -------- Grouped notes -------- */}
             <div
               style={{
                 flex: 1,
                 overflowY: "auto",
-                padding: "20px 22px 24px",
+                padding: "16px 22px 24px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 18,
               }}
             >
-              {notes.map((note, i) => (
-                <ThreadNote
-                  key={i}
-                  note={note}
-                  index={i}
-                  isLast={i === count - 1}
-                />
+              {groupNotes(notes).map((group) => (
+                <div key={group.label}>
+                  {/* Group header */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      marginBottom: 10,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        background: group.color,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: isDark ? "#94a3b8" : "#64748b",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.06em",
+                      }}
+                    >
+                      {group.label}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        color: isDark ? "#475569" : "#94a3b8",
+                      }}
+                    >
+                      ({group.notes.length})
+                    </span>
+                    <div
+                      style={{
+                        flex: 1,
+                        height: 1,
+                        background: isDark
+                          ? "rgba(255,255,255,0.06)"
+                          : "rgba(0,0,0,0.06)",
+                      }}
+                    />
+                  </div>
+                  {/* Notes in group */}
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 16,
+                    }}
+                  >
+                    {group.notes.map((note, i) => (
+                      <NoteCard key={i} note={note} isDark={isDark} />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </Dialog.Content>
@@ -537,7 +601,7 @@ export const NotesIndicator = memo(function NotesIndicator({
   return (
     <>
       <div
-        className="absolute -top-5 -right-1 z-30 nopan nodrag"
+        className="absolute -top-2.5 -right-2.5 z-30 nopan nodrag"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onPointerDown={(e) => e.stopPropagation()}

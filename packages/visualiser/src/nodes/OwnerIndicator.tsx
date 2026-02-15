@@ -10,7 +10,9 @@ export const HIDDEN_HANDLE_STYLE = { opacity: 0 } as const;
  */
 export function normalizeOwners(raw: any[] | undefined): string[] {
   if (!raw || raw.length === 0) return [];
-  return raw.map((o: any) => (typeof o === "string" ? o : o.id));
+  return raw
+    .filter(Boolean)
+    .map((o: any) => (typeof o === "string" ? o : (o?.id ?? "")));
 }
 
 /**
@@ -67,7 +69,7 @@ export const OwnerIndicator = memo(function OwnerIndicator({
       {/* Overflow count */}
       {remaining > 0 && (
         <span
-          className={`shrink-0 text-[7px] font-bold text-white ${accentColor} rounded-full px-1 py-px leading-none`}
+          className={`shrink-0 inline-flex items-center justify-center text-[7px] font-bold text-white ${accentColor} rounded-full px-1 py-[1px] leading-none`}
           title={owners.slice(1).join(", ")}
         >
           +{remaining}

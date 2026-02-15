@@ -5,14 +5,14 @@ export function registerEcLanguage(monaco: Monaco) {
 
   monaco.languages.setMonarchTokensProvider('ec', {
     keywords: [
-      'domain', 'service', 'event', 'command', 'query', 'channel', 'entity',
+      'domain', 'service', 'event', 'command', 'query', 'channel',
       'container', 'data-product', 'flow', 'diagram', 'user', 'team',
       'sends', 'receives', 'publishes', 'subscribes', 'writes-to', 'reads-from',
       'to', 'from', 'push', 'pull', 'push-pull', 'delivery',
       'version', 'summary', 'owner', 'owners', 'name', 'display-name', 'markdown',
       'step', 'node', 'message', 'actor', 'custom', 'label', 'next', 'id',
       'draft', 'deprecated', 'schema', 'address', 'protocol',
-      'parameter', 'property', 'aggregate-root', 'identifier',
+      'parameter',
       'producer', 'consumer', 'route', 'member',
       'subdomain', 'visualizer',
       'legend', 'search', 'toolbar', 'focus-mode', 'style', 'post-it',

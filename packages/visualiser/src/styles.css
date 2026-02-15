@@ -19,7 +19,7 @@
 
   /* Text colors */
   --ec-page-text: 17, 24, 39;
-  --ec-page-text-muted: 107, 114, 128;
+  --ec-page-text-muted: 55, 65, 81;
 
   /* Border colors */
   --ec-page-border: 229, 231, 235;
@@ -94,6 +94,20 @@
 
 /* Base styles for visualizer container */
 .eventcatalog-visualizer {
+  /* Light-mode canvas: grey background (matches Tailwind gray-50) */
+  --ec-page-bg: 249, 250, 251;
+  --ec-bg-dots: #bbb;
+  --ec-edge-stroke: #b0b5bc;
+  --ec-service-node-bg: #fef7fb;
+  --ec-event-node-bg: #fff8f5;
+  --ec-command-node-bg: #f5f8ff;
+  --ec-query-node-bg: #f5fdf8;
+  --ec-channel-node-bg: #f8f8f9;
+  --ec-data-node-bg: #f5f8ff;
+  --ec-dp-node-bg: #f7f5ff;
+  --ec-external-node-bg: #faf5ff;
+  --ec-actor-node-bg: #fffdf5;
+  --ec-deprecated-stripe: rgba(239, 68, 68, 0.3);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -108,11 +122,23 @@
  * its own lighter canvas + lifted card surfaces.
  */
 [data-theme="dark"] .eventcatalog-visualizer {
+  --ec-bg-dots: #5a6270;
+  --ec-edge-stroke: #6e7681;
   --ec-page-bg: 22 27 34;
   --ec-card-bg: 40 46 56;
   --ec-page-border: 48 54 61;
   --ec-page-text: 240 246 252;
-  --ec-page-text-muted: 139 148 158;
+  --ec-page-text-muted: 220, 225, 232;
+  --ec-service-node-bg: rgb(40, 46, 56);
+  --ec-event-node-bg: rgb(40, 46, 56);
+  --ec-command-node-bg: rgb(40, 46, 56);
+  --ec-query-node-bg: rgb(40, 46, 56);
+  --ec-channel-node-bg: rgb(40, 46, 56);
+  --ec-data-node-bg: rgb(40, 46, 56);
+  --ec-dp-node-bg: rgb(40, 46, 56);
+  --ec-external-node-bg: rgb(40, 46, 56);
+  --ec-actor-node-bg: rgb(40, 46, 56);
+  --ec-deprecated-stripe: rgba(239, 68, 68, 0.25);
   --ec-input-bg: 22 27 34;
   --ec-input-border: 48 54 61;
   --ec-input-text: 240 246 252;
@@ -181,22 +207,75 @@
 }
 
 .react-flow__edge-path {
-  stroke: rgb(var(--ec-page-text-muted));
-  stroke-width: 2;
+  transition: stroke-width 0.15s ease;
 }
 
-.react-flow__edge-path[marker-end] {
-  marker-end: url(#react-flow__arrowclosed);
+/* Highlight the entire edge on hover — "electricity flowing" effect */
+.react-flow__edge:hover .react-flow__edge-path,
+.ec-node-hover-edge .react-flow__edge-path {
+  stroke: #2563eb !important;
+  stroke-width: 4 !important;
+  filter: drop-shadow(0 0 8px #2563eb) !important;
+  opacity: 1 !important;
+  stroke-dasharray: 5 5 !important;
+  animation: ec-edge-dash 0.5s linear infinite !important;
 }
 
-.react-flow__arrowhead polyline {
-  stroke: rgb(var(--ec-page-text-muted));
-  fill: rgb(var(--ec-page-text-muted));
+/* Bold the edge label on hover */
+.react-flow__edge:hover text,
+.ec-node-hover-edge text {
+  font-weight: 700 !important;
+  font-size: 12px !important;
 }
 
-/* Default edge label background (fallback for any edges using ReactFlow defaults) */
+.react-flow__edge:hover .react-flow__edge-textbg,
+.ec-node-hover-edge .react-flow__edge-textbg {
+  fill-opacity: 1 !important;
+}
+
+/* Edge label rendered via EdgeLabelRenderer (HTML) */
+.react-flow__edge:hover + .react-flow__edgelabel-renderer > div,
+.react-flow__edge.ec-node-hover-edge + .react-flow__edgelabel-renderer > div {
+  font-weight: 700 !important;
+}
+
+[data-theme="dark"] .react-flow__edge:hover .react-flow__edge-path,
+[data-theme="dark"] .ec-node-hover-edge .react-flow__edge-path {
+  stroke: #00d9ff !important;
+  filter: drop-shadow(0 0 8px #00d9ff) !important;
+}
+
+@keyframes ec-edge-dash {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+
+/* Pulse the border of source/target nodes when an edge is hovered */
+.ec-edge-hover-node {
+  outline: 3px solid #2563eb !important;
+  outline-offset: 2px;
+  animation: ec-node-pulse 1s ease-in-out infinite !important;
+}
+
+@keyframes ec-node-pulse {
+  0%, 100% { outline-color: rgba(37, 99, 235, 0.8); }
+  50% { outline-color: rgba(37, 99, 235, 0.2); }
+}
+
+[data-theme="dark"] .ec-edge-hover-node {
+  outline-color: #00d9ff !important;
+  animation-name: ec-node-pulse-dark !important;
+}
+
+@keyframes ec-node-pulse-dark {
+  0%, 100% { outline-color: rgba(0, 217, 255, 0.8); }
+  50% { outline-color: rgba(0, 217, 255, 0.2); }
+}
+
+/* Edge label theming for default ReactFlow edges */
 .react-flow__edge-textbg {
-  fill: rgb(var(--ec-card-bg));
+  fill: rgb(var(--ec-page-bg));
 }
 
 .react-flow__edge-text {

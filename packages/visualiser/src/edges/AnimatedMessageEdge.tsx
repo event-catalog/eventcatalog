@@ -1,5 +1,5 @@
 import { memo, useMemo } from "react";
-import { BaseEdge, getBezierPath } from "@xyflow/react";
+import { BaseEdge, getSmoothStepPath } from "@xyflow/react";
 import { EDGE_WARNING_STYLE, EDGE_DEFAULT_STYLE } from "../nodes/shared-styles";
 
 /** Map collection type → envelope fill color (module-level, zero allocation). */
@@ -33,7 +33,7 @@ const AnimatedMessageEdge = memo(
     markerEnd,
     markerStart,
   }: any) => {
-    const [edgePath, labelX, labelY] = getBezierPath({
+    const [edgePath, labelX, labelY] = getSmoothStepPath({
       sourceX,
       sourceY,
       sourcePosition,
@@ -101,6 +101,15 @@ const AnimatedMessageEdge = memo(
     );
 
     const lines = useMemo(() => String(label ?? "").split("\n"), [label]);
+    const longestLine = useMemo(
+      () =>
+        lines.reduce(
+          (a: string, b: string) => (a.length > b.length ? a : b),
+          "",
+        ),
+      [lines],
+    );
+    const labelWidth = Math.max(longestLine.length * 6.5 + 16, 50);
 
     return (
       <>
@@ -115,14 +124,16 @@ const AnimatedMessageEdge = memo(
         <g>
           {label && (
             <rect
-              x={labelX - 30}
-              y={labelY - lines.length * 6}
-              width={60}
-              height={lines.length * 14}
+              x={labelX - labelWidth / 2}
+              y={labelY - lines.length * 7 - 2}
+              width={labelWidth}
+              height={lines.length * 14 + 4}
               fill="rgb(var(--ec-card-bg))"
-              fillOpacity={0.85}
-              rx={4}
-              ry={4}
+              fillOpacity={0.95}
+              stroke="rgb(var(--ec-page-border))"
+              strokeWidth={0.75}
+              rx={5}
+              ry={5}
             />
           )}
           <text
@@ -130,7 +141,8 @@ const AnimatedMessageEdge = memo(
             y={labelY}
             textAnchor="middle"
             dominantBaseline="middle"
-            fontSize="10px"
+            fontSize="11px"
+            fontWeight={500}
             fill="rgb(var(--ec-page-text))"
             pointerEvents="none"
           >

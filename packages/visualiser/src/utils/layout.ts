@@ -3,7 +3,8 @@ import { MarkerType, type Node, type Edge } from "@xyflow/react";
 import type { GraphNode, GraphEdge } from "../types";
 
 const GROUP_HEADER_HEIGHT = 44;
-const GROUP_CONTENT_PADDING = 50;
+const GROUP_CONTENT_PADDING_TOP = 50;
+const GROUP_CONTENT_PADDING_BOTTOM = 30;
 const GROUP_PADDING_X = 60;
 
 const EMPTY_GROUP_WIDTH = 200;
@@ -138,6 +139,7 @@ export function layoutGraph(
     rankdir?: string;
     nodesep?: number;
     ranksep?: number;
+    edgesep?: number;
   } = {},
   style?: string,
 ): { nodes: Node[]; edges: Edge[] } {
@@ -145,7 +147,7 @@ export function layoutGraph(
     return { nodes: [], edges: [] };
   }
 
-  const { rankdir = "LR", nodesep = 60, ranksep = 120 } = options;
+  const { rankdir = "LR", nodesep = 80, ranksep = 140, edgesep = 40 } = options;
 
   function nodeSize(type: string) {
     return getNodeSize(type);
@@ -174,7 +176,7 @@ export function layoutGraph(
     return flatLayout(
       nodes,
       edges,
-      { rankdir, nodesep, ranksep },
+      { rankdir, nodesep, ranksep, edgesep },
       nodeSize,
       style,
     );
@@ -236,6 +238,7 @@ export function layoutGraph(
       rankdir,
       nodesep: Math.max(nodesep, 80),
       ranksep: Math.max(ranksep, 100),
+      edgesep,
     });
 
     for (const child of children) {
@@ -289,9 +292,14 @@ export function layoutGraph(
     }
 
     const contentH = maxY - minY;
-    const totalW = maxX - minX + GROUP_PADDING_X * 2;
-    const totalH = GROUP_HEADER_HEIGHT + GROUP_CONTENT_PADDING * 2 + contentH;
-    const contentTop = GROUP_HEADER_HEIGHT + GROUP_CONTENT_PADDING;
+    const contentW = maxX - minX;
+    const totalW = contentW + GROUP_PADDING_X * 2;
+    const totalH =
+      GROUP_HEADER_HEIGHT +
+      GROUP_CONTENT_PADDING_TOP +
+      contentH +
+      GROUP_CONTENT_PADDING_BOTTOM;
+    const contentTop = GROUP_HEADER_HEIGHT + GROUP_CONTENT_PADDING_TOP;
 
     for (const [id, pos] of childPositions) {
       childPositions.set(id, {
@@ -325,7 +333,7 @@ export function layoutGraph(
 
   const outerG = new dagre.graphlib.Graph();
   outerG.setDefaultEdgeLabel(() => ({}));
-  outerG.setGraph({ rankdir, nodesep, ranksep });
+  outerG.setGraph({ rankdir, nodesep, ranksep, edgesep });
 
   for (const groupId of topLevelGroupIds) {
     const size = groupSizes.get(groupId)!;
@@ -430,12 +438,13 @@ export function layoutGraph(
       const outerPos = outerPositions.get(groupId);
       if (!outerPos) return;
 
+      // Use internal layout dimensions for centering (dagre may report different width/height)
       layoutNodes.push({
         id: groupId,
         type: "group",
         position: {
-          x: outerPos.x - outerPos.width / 2,
-          y: outerPos.y - outerPos.height / 2,
+          x: outerPos.x - layout.width / 2,
+          y: outerPos.y - layout.height / 2,
         },
         data: { mode: "full", domain: base },
         style: {
@@ -533,7 +542,12 @@ function getMessageCollection(
 function flatLayout(
   nodes: GraphNode[],
   edges: GraphEdge[],
-  graphOpts: { rankdir: string; nodesep: number; ranksep: number },
+  graphOpts: {
+    rankdir: string;
+    nodesep: number;
+    ranksep: number;
+    edgesep: number;
+  },
   nodeSize: (type: string) => { w: number; h: number },
   style?: string,
 ): { nodes: Node[]; edges: Edge[] } {

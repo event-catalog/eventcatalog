@@ -5,13 +5,13 @@ import {
   normalizeOwners,
   HIDDEN_HANDLE_STYLE,
 } from "../OwnerIndicator";
-import { Node, Handle, Position } from "@xyflow/react";
+import { Node, Handle, Position, useHandleConnections } from "@xyflow/react";
 import { Message, EventCatalogResource } from "../../types";
 import { NotesIndicator } from "../NotesIndicator";
 import {
   LINE_CLAMP_STYLE,
-  WATERMARK_STYLE,
   FOLDED_CORNER_SHADOW_STYLE,
+  useDarkMode,
 } from "../shared-styles";
 
 const GlowHandle = memo(function GlowHandle({
@@ -163,20 +163,30 @@ function DefaultQuery(props: QueryNode) {
     () => normalizeOwners(props.data.message?.owners),
     [props.data.message?.owners],
   );
+  const targetConnections = useHandleConnections({ type: "target" });
+  const sourceConnections = useHandleConnections({ type: "source" });
+  const isDark = useDarkMode();
+  const deprecatedStripe = isDark
+    ? "rgba(239,68,68,0.25)"
+    : "rgba(239,68,68,0.1)";
 
   return (
     <div
       className={classNames(
-        "relative min-w-48 max-w-60 rounded-xl border-2",
+        "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
         props?.selected ? "ring-2 ring-green-400/60 ring-offset-2" : "",
         deprecated
-          ? "border-dashed border-red-300"
+          ? "border-dashed border-red-500"
           : draft
-            ? "border-dashed border-green-300/60"
-            : "border-green-300",
-        "bg-[rgb(var(--ec-card-bg))]",
+            ? `border-dashed ${isDark ? "border-green-400" : "border-green-400/60"}`
+            : "border-green-500",
       )}
       style={{
+        background: deprecated
+          ? `repeating-linear-gradient(135deg, transparent, transparent 6px, ${deprecatedStripe} 6px, ${deprecatedStripe} 7px), var(--ec-query-node-bg, rgb(var(--ec-card-bg)))`
+          : draft
+            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${isDark ? "rgba(34,197,94,0.25)" : "rgba(34,197,94,0.15)"} 4px, ${isDark ? "rgba(34,197,94,0.25)" : "rgba(34,197,94,0.15)"} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${isDark ? "rgba(34,197,94,0.25)" : "rgba(34,197,94,0.15)"} 4px, ${isDark ? "rgba(34,197,94,0.25)" : "rgba(34,197,94,0.15)"} 4.5px), var(--ec-query-node-bg, rgb(var(--ec-card-bg)))`
+            : "var(--ec-query-node-bg, rgb(var(--ec-card-bg)))",
         boxShadow: "0 2px 12px rgba(34, 197, 94, 0.15)",
       }}
     >
@@ -193,88 +203,49 @@ function DefaultQuery(props: QueryNode) {
       {notes && notes.length > 0 && (
         <NotesIndicator notes={notes} resourceName={name} />
       )}
-      {!deprecated && !draft && <GlowHandle side="left" />}
-      {!deprecated && !draft && <GlowHandle side="right" />}
+      {targetConnections.length > 0 && <GlowHandle side="left" />}
+      {sourceConnections.length > 0 && <GlowHandle side="right" />}
 
-      {/* Watermark icon */}
-      <div
-        className="absolute top-2 right-2 pointer-events-none overflow-hidden"
-        style={WATERMARK_STYLE}
-      >
-        <Search className="w-8 h-8 text-green-400" strokeWidth={2} />
-      </div>
-
-      {/* Top row: icon circle left, tech badge right */}
-      <div className="flex items-start justify-between -mt-4 px-3">
-        <div
+      {/* Type badge top-left */}
+      <div className="absolute -top-2.5 left-2.5 z-10">
+        <span
           className={classNames(
-            "flex items-center justify-center w-8 h-8 rounded-full shadow-sm border-2",
-            "bg-green-500 border-green-400",
+            "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
+            deprecated ? "bg-red-500" : "bg-green-500",
           )}
         >
-          <Search className="w-4 h-4 text-white" strokeWidth={2.5} />
-        </div>
-
-        {/* Tech badge */}
-        {schema && (
-          <div className="relative z-10 mt-2.5 flex items-center gap-1 bg-[rgb(var(--ec-page-border)/0.3)] border border-[rgb(var(--ec-page-border))] rounded-full px-1.5 py-0.5">
-            <span className="text-[7px] font-semibold text-[rgb(var(--ec-page-text-muted))] uppercase tracking-wide">
-              {schema.includes(".") ? schema.split(".").pop() : schema}
-            </span>
-          </div>
-        )}
+          <Search className="w-2.5 h-2.5" strokeWidth={2.5} />
+          Query{draft && " (Draft)"}
+          {deprecated && " (Deprecated)"}
+        </span>
       </div>
+      {/* Schema badge top-right */}
+      {schema && (
+        <span
+          className="z-10 text-[7px] font-semibold text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg))] border border-green-500 rounded-full px-1.5 py-0.5 uppercase tracking-wide"
+          style={{ position: "absolute", top: -8, right: 10 }}
+        >
+          {schema.includes(".") ? schema.split(".").pop() : schema}
+        </span>
+      )}
 
-      <div className="px-3.5 pt-1.5 pb-3">
-        {/* Type + version row */}
-        <div className="flex items-center gap-1.5">
-          <span
-            className={classNames(
-              "text-[8px] font-bold uppercase tracking-widest",
-              "text-green-400",
-            )}
-          >
-            Query
+      <div className="px-3 pt-3.5 pb-2.5">
+        {/* Name + version */}
+        <div className="flex items-baseline gap-1">
+          <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
+            {name}
           </span>
           {version && (
-            <span
-              className={classNames("text-[8px] font-medium", "text-green-300")}
-            >
-              v{version}
+            <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
+              (v{version})
             </span>
           )}
         </div>
-
-        {/* Name */}
-        <div
-          className={classNames(
-            "text-[13px] font-bold leading-tight mt-1",
-            deprecated
-              ? "text-[rgb(var(--ec-page-text-muted))] line-through"
-              : "text-[rgb(var(--ec-page-text))]",
-          )}
-        >
-          {name}
-        </div>
-
-        {/* Draft badge */}
-        {draft && (
-          <span className="inline-block mt-1 text-[8px] font-extrabold text-amber-900 bg-amber-100 border border-dashed border-amber-400 px-1.5 py-0.5 rounded-full uppercase">
-            Draft
-          </span>
-        )}
-
-        {/* Deprecated badge */}
-        {deprecated && (
-          <span className="inline-block mt-1 text-[8px] font-extrabold text-red-700 bg-red-100 border border-dashed border-red-400 px-1.5 py-0.5 rounded-full uppercase">
-            Deprecated
-          </span>
-        )}
 
         {/* Summary */}
         {mode === "full" && summary && (
           <div
-            className="mt-2 text-[9px] text-[rgb(var(--ec-page-text-muted))] leading-relaxed overflow-hidden"
+            className="mt-1.5 text-[9px] text-[rgb(var(--ec-page-text-muted))] leading-relaxed overflow-hidden"
             style={LINE_CLAMP_STYLE}
             title={summary}
           >

@@ -106,7 +106,7 @@ const LegendPanel = memo(function LegendPanel({
             ([key, { count, colorClass, groupId }]) => (
               <li
                 key={key}
-                className="flex space-x-2 items-center text-[10px] cursor-pointer text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-accent))] hover:underline"
+                className="flex space-x-2 items-center text-[10px] cursor-pointer text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))] hover:underline"
                 onClick={() => onLegendClick(key, groupId)}
               >
                 <span className={`w-2 h-2 block ${colorClass}`} />
@@ -259,7 +259,7 @@ const NodeGraphBuilder = ({
     });
   }, [initialNodes, initialEdges, setNodes, setEdges, fitView]);
 
-  const [animateMessages, setAnimateMessages] = useState(false);
+  const [animateMessages, setAnimateMessages] = useState(true);
   const [_activeStepIndex, _setActiveStepIndex] = useState<number | null>(null);
   const [_isFullscreen, _setIsFullscreen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -293,6 +293,83 @@ const NodeGraphBuilder = ({
     if (interactionCountRef.current === 0) {
       reactFlowWrapperRef.current?.classList.remove("ec-interaction-active");
     }
+  }, []);
+
+  // Highlight source/target nodes when hovering an edge.
+  // Uses direct DOM manipulation (like startInteraction) to avoid re-renders.
+  const hoveredEdgeNodesRef = useRef<Element[]>([]);
+
+  const handleEdgeMouseEnter = useCallback(
+    (_: React.MouseEvent, edge: Edge) => {
+      const wrapper = reactFlowWrapperRef.current;
+      if (!wrapper) return;
+      const nodes = wrapper.querySelectorAll(
+        `[data-id="${edge.source}"], [data-id="${edge.target}"]`,
+      );
+      nodes.forEach((el) => el.classList.add("ec-edge-hover-node"));
+      hoveredEdgeNodesRef.current = Array.from(nodes);
+    },
+    [],
+  );
+
+  const handleEdgeMouseLeave = useCallback(() => {
+    hoveredEdgeNodesRef.current.forEach((el) =>
+      el.classList.remove("ec-edge-hover-node"),
+    );
+    hoveredEdgeNodesRef.current = [];
+  }, []);
+
+  // Highlight all connected edges + their other-end nodes when hovering a node.
+  // Looks up connected edges from the edges array, then queries DOM by edge ID.
+  // Uses direct DOM manipulation to avoid re-renders.
+  const hoveredNodeEdgesRef = useRef<Element[]>([]);
+  const hoveredNodePeersRef = useRef<Element[]>([]);
+
+  const handleNodeMouseEnter = useCallback(
+    (_: React.MouseEvent, node: Node) => {
+      const wrapper = reactFlowWrapperRef.current;
+      if (!wrapper) return;
+
+      const peerIds = new Set<string>();
+      const edgeEls: Element[] = [];
+
+      for (const edge of edgesRef.current) {
+        if (edge.source !== node.id && edge.target !== node.id) continue;
+        const el = wrapper.querySelector(
+          `.react-flow__edge[data-id="${edge.id}"]`,
+        );
+        if (el) {
+          el.classList.add("ec-node-hover-edge");
+          edgeEls.push(el);
+        }
+        if (edge.source !== node.id) peerIds.add(edge.source);
+        if (edge.target !== node.id) peerIds.add(edge.target);
+      }
+      hoveredNodeEdgesRef.current = edgeEls;
+
+      // Highlight the hovered node + all peer nodes
+      peerIds.add(node.id);
+      const selector = Array.from(peerIds)
+        .map((id) => `[data-id="${id}"]`)
+        .join(", ");
+      if (selector) {
+        const peerEls = wrapper.querySelectorAll(selector);
+        peerEls.forEach((el) => el.classList.add("ec-edge-hover-node"));
+        hoveredNodePeersRef.current = Array.from(peerEls);
+      }
+    },
+    [],
+  );
+
+  const handleNodeMouseLeave = useCallback(() => {
+    hoveredNodeEdgesRef.current.forEach((el) =>
+      el.classList.remove("ec-node-hover-edge"),
+    );
+    hoveredNodeEdgesRef.current = [];
+    hoveredNodePeersRef.current.forEach((el) =>
+      el.classList.remove("ec-edge-hover-node"),
+    );
+    hoveredNodePeersRef.current = [];
   }, []);
 
   // Check if there are channels to determine if we need the visualizer functionality
@@ -471,7 +548,7 @@ const NodeGraphBuilder = ({
             ? edge.type
             : animateMessages
               ? "animated"
-              : "multiline",
+              : "smoothstep",
         data: { ...edge.data, animateMessages, animated: animateMessages },
       })),
     );
@@ -1071,9 +1148,13 @@ const NodeGraphBuilder = ({
           fitView
           onNodesChange={handleNodesChange}
           onEdgesChange={onEdgesChange}
+          onEdgeMouseEnter={handleEdgeMouseEnter}
+          onEdgeMouseLeave={handleEdgeMouseLeave}
           connectionLineType={ConnectionLineType.SmoothStep}
           nodeOrigin={NODE_ORIGIN}
           onNodeClick={handleNodeClick}
+          onNodeMouseEnter={handleNodeMouseEnter}
+          onNodeMouseLeave={handleNodeMouseLeave}
           onPaneClick={handlePaneClick}
           onMoveStart={startInteraction}
           onMoveEnd={endInteraction}
@@ -1082,8 +1163,11 @@ const NodeGraphBuilder = ({
           zoomOnScroll={zoomOnScroll}
           className="relative"
         >
-          <Panel position="top-center" className="w-full pr-6 ">
-            <div className="flex space-x-2 justify-between items-center">
+          <Panel
+            position="top-center"
+            className="w-full pr-6 pointer-events-none"
+          >
+            <div className="flex space-x-2 justify-between items-center pointer-events-auto">
               <div className="flex space-x-2 ml-4">
                 {/* Settings Dropdown Menu */}
                 <DropdownMenu.Root>
@@ -1201,7 +1285,7 @@ const NodeGraphBuilder = ({
           </Panel>
 
           {includeBackground && (
-            <Background color="rgb(var(--ec-page-border))" gap={16} />
+            <Background color="var(--ec-bg-dots)" gap={16} />
           )}
           {includeBackground && <Controls />}
           {showMinimap && (
@@ -1417,7 +1501,7 @@ const NodeGraph = ({
   onSaveLayout,
   onResetLayout,
 }: NodeGraphProps) => {
-  // When a DslGraph is provided, run layout internally
+  // When a DslGraph is provided, run layout internally using dagre.
   const graphLayout = useMemo(() => {
     if (!graph) return null;
     return layoutGraph(
@@ -1427,7 +1511,6 @@ const NodeGraph = ({
       graph.options?.style,
     );
   }, [graph]);
-
   const nodes = graphLayout?.nodes ?? nodesProp ?? [];
   const edges = graphLayout?.edges ?? edgesProp ?? [];
 

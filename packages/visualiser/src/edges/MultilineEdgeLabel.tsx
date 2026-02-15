@@ -1,5 +1,5 @@
 import { memo, useMemo } from "react";
-import { type EdgeProps, getBezierPath } from "@xyflow/react";
+import { type EdgeProps, getSmoothStepPath } from "@xyflow/react";
 
 const TSPAN_NORMAL_STYLE = { fontStyle: "normal" } as const;
 const TSPAN_ITALIC_STYLE = { fontStyle: "italic" } as const;
@@ -20,7 +20,7 @@ export default memo(function MultilineEdgeLabel(props: EdgeProps) {
     selected,
   } = props;
 
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     targetX,

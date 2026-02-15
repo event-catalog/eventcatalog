@@ -4,20 +4,20 @@ import type { editor, languages, Position, CancellationToken } from 'monaco-edit
 type Suggestion = { label: string; detail: string; insertText: string };
 
 const resourceKeywords: Suggestion[] = [
-  { label: 'domain', detail: 'Top-level bounded context', insertText: 'domain ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:description}"\n\n  $0\n}' },
-  { label: 'service', detail: 'Microservice or application', insertText: 'service ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:description}"\n\n  $0\n}' },
-  { label: 'event', detail: 'Domain event', insertText: 'event ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:description}"\n}' },
-  { label: 'command', detail: 'Command message', insertText: 'command ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:description}"\n}' },
-  { label: 'query', detail: 'Query message', insertText: 'query ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:description}"\n}' },
-  { label: 'channel', detail: 'Communication channel', insertText: 'channel ${1:Name} {\n  version ${2:1.0.0}\n  address "${3:topic}"\n\n  $0\n}' },
+  { label: 'domain', detail: 'Top-level bounded context', insertText: 'domain ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:Bounded context responsible for $1}"\n\n  $0\n}' },
+  { label: 'service', detail: 'Microservice or application', insertText: 'service ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:Service that manages and processes $1 operations}"\n\n  $0\n}' },
+  { label: 'event', detail: 'Domain event', insertText: 'event ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:Triggered when a significant change occurs in the domain}"\n}' },
+  { label: 'command', detail: 'Command message', insertText: 'command ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:Requests an action to be performed in the system}"\n}' },
+  { label: 'query', detail: 'Query message', insertText: 'query ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:Retrieves data from the system without side effects}"\n}' },
+  { label: 'channel', detail: 'Communication channel', insertText: 'channel ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:Message channel for routing events between services}"\n  address "${4:topic}"\n\n  $0\n}' },
   { label: 'user', detail: 'User definition', insertText: 'user ${1:username} {\n  name "${2:Full Name}"\n\n  $0\n}' },
   { label: 'team', detail: 'Team definition', insertText: 'team ${1:team-name} {\n  name "${2:Team Name}"\n\n  $0\n}' },
-  { label: 'flow', detail: 'Flow definition', insertText: 'flow ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:description}"\n\n  $0\n}' },
-  { label: 'container', detail: 'Data container', insertText: 'container ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:description}"\n\n  $0\n}' },
-  { label: 'data-product', detail: 'Data product', insertText: 'data-product ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:description}"\n\n  $0\n}' },
+  { label: 'flow', detail: 'Flow definition', insertText: 'flow ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:End-to-end flow describing how messages move through the system}"\n\n  $0\n}' },
+  { label: 'container', detail: 'Data container', insertText: 'container ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:Data store that persists and manages $1 data}"\n\n  $0\n}' },
+  { label: 'data-product', detail: 'Data product', insertText: 'data-product ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:Data product that provides curated data for consumers}"\n\n  $0\n}' },
   { label: 'visualizer', detail: 'Visualizer view', insertText: 'visualizer ${1:main} {\n  name "${2:View Name}"\n\n  $0\n}' },
-  { label: 'actor', detail: 'Human actor (for flows)', insertText: 'actor ${1:Name} {\n  name "${2:Display Name}"\n  summary "${3:description}"\n}' },
-  { label: 'external-system', detail: 'External system (for flows)', insertText: 'external-system ${1:Name} {\n  name "${2:Display Name}"\n  summary "${3:description}"\n}' },
+  { label: 'actor', detail: 'Human actor (for flows)', insertText: 'actor ${1:Name} {\n  name "${2:Display Name}"\n  summary "${3:User or persona that interacts with the system}"\n}' },
+  { label: 'external-system', detail: 'External system (for flows)', insertText: 'external-system ${1:Name} {\n  name "${2:Display Name}"\n  summary "${3:Third-party system that integrates with the platform}"\n}' },
 ];
 
 const commonProps: Suggestion[] = [
@@ -40,7 +40,7 @@ const annotationSuggestions: Suggestion[] = [
 const contextSuggestions: Record<string, Suggestion[]> = {
   service: [
     ...commonProps,
-    { label: 'sends', detail: 'Service sends a message', insertText: 'sends ${1|event,command|} ${2:Name}' },
+    { label: 'sends', detail: 'Service sends a message', insertText: 'sends ${1|event,command,query|} ${2:Name}' },
     { label: 'receives', detail: 'Service receives a message', insertText: 'receives ${1|event,command,query|} ${2:Name}' },
     { label: 'writes-to', detail: 'Writes to a container', insertText: 'writes-to ${1:container}' },
     { label: 'reads-from', detail: 'Reads from a container', insertText: 'reads-from ${1:container}' },
@@ -118,21 +118,20 @@ const contextSuggestions: Record<string, Suggestion[]> = {
     { label: 'focus-mode', detail: 'Enable/disable focus mode', insertText: 'focus-mode ${1|true,false|}' },
     { label: 'animated', detail: 'Simulate message flow animation', insertText: 'animated ${1|true,false|}' },
     { label: 'style', detail: 'Node rendering style', insertText: 'style ${1|default,post-it|}' },
-    { label: 'service', detail: 'Include a service', insertText: 'service ${1:Name} {\n  version ${2:1.0.0}\n\n  $0\n}' },
-    { label: 'domain', detail: 'Include a domain', insertText: 'domain ${1:Name} {\n  version ${2:1.0.0}\n\n  $0\n}' },
-    { label: 'event', detail: 'Include an event', insertText: 'event ${1:Name} {\n  version ${2:1.0.0}\n}' },
-    { label: 'command', detail: 'Include a command', insertText: 'command ${1:Name} {\n  version ${2:1.0.0}\n}' },
-    { label: 'query', detail: 'Include a query', insertText: 'query ${1:Name} {\n  version ${2:1.0.0}\n}' },
-    { label: 'channel', detail: 'Include a channel', insertText: 'channel ${1:Name} {\n  version ${2:1.0.0}\n\n  $0\n}' },
-    { label: 'entity', detail: 'Include an entity', insertText: 'entity ${1:Name} {\n  version ${2:1.0.0}\n}' },
-    { label: 'container', detail: 'Include a container', insertText: 'container ${1:Name} {\n  version ${2:1.0.0}\n}' },
-    { label: 'flow', detail: 'Include a flow', insertText: 'flow ${1:Name} {\n  version ${2:1.0.0}\n}' },
+    { label: 'service', detail: 'Include a service', insertText: 'service ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:Service that manages and processes $1 operations}"\n\n  $0\n}' },
+    { label: 'domain', detail: 'Include a domain', insertText: 'domain ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:Bounded context responsible for $1}"\n\n  $0\n}' },
+    { label: 'event', detail: 'Include an event', insertText: 'event ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:Triggered when a significant change occurs in the domain}"\n}' },
+    { label: 'command', detail: 'Include a command', insertText: 'command ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:Requests an action to be performed in the system}"\n}' },
+    { label: 'query', detail: 'Include a query', insertText: 'query ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:Retrieves data from the system without side effects}"\n}' },
+    { label: 'channel', detail: 'Include a channel', insertText: 'channel ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:Message channel for routing events between services}"\n  address "${4:topic}"\n\n  $0\n}' },
+    { label: 'container', detail: 'Include a container', insertText: 'container ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:Data store that persists and manages $1 data}"\n}' },
+    { label: 'flow', detail: 'Include a flow', insertText: 'flow ${1:Name} {\n  version ${2:1.0.0}\n  summary "${3:End-to-end flow describing how messages move through the system}"\n}' },
   ],
 };
 
 function findEnclosingResource(text: string): string | null {
   const stack: string[] = [];
-  const tokenRegex = /\b(domain|service|event|command|query|channel|entity|user|team|flow|container|data-product|subdomain|visualizer|actor|external-system)\b[^{}]*\{|\{|\}/g;
+  const tokenRegex = /\b(domain|service|event|command|query|channel|user|team|flow|container|data-product|subdomain|visualizer|actor|external-system)\b[^{}]*\{|\{|\}/g;
   let match;
 
   while ((match = tokenRegex.exec(text)) !== null) {
@@ -157,7 +156,7 @@ function findEnclosingResource(text: string): string | null {
 
 function extractResourceVersions(text: string): Map<string, string[]> {
   const versions = new Map<string, string[]>();
-  const resourceTypes = ['event', 'command', 'query', 'channel', 'entity', 'service', 'domain', 'flow', 'container', 'data-product'];
+  const resourceTypes = ['event', 'command', 'query', 'channel', 'service', 'domain', 'flow', 'container', 'data-product'];
 
   for (const type of resourceTypes) {
     const defRegex = new RegExp(
@@ -244,7 +243,7 @@ export function registerEcCompletion(monaco: Monaco) {
       const importBracesMatch = textBeforeCursor.match(/import\s*\{([^}]*)$/);
       if (importBracesMatch) {
         const allText = Object.values(_allFilesSources).join('\n');
-        const resourceTypes = ['service', 'event', 'command', 'query', 'domain', 'entity', 'channel', 'flow', 'container'];
+        const resourceTypes = ['service', 'event', 'command', 'query', 'domain', 'channel', 'flow', 'container'];
         const resources = new Set<string>();
 
         for (const type of resourceTypes) {
