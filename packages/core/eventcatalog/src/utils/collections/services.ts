@@ -15,6 +15,7 @@ interface Props {
 
 // Simple in-memory cache
 let memoryCache: Record<string, Service[]> = {};
+let inFlightCache: Record<string, Promise<Service[]>> = {};
 
 export const getServices = async ({ getAllVersions = true, returnBody = false }: Props = {}): Promise<Service[]> => {
   // console.time('✅ New getServices');
@@ -26,97 +27,111 @@ export const getServices = async ({ getAllVersions = true, returnBody = false }:
     return memoryCache[cacheKey];
   }
 
-  // 1. Fetch all collections in parallel
-  const [allServices, allEvents, allCommands, allQueries, allEntities, allContainers, allFlows] = await Promise.all([
-    getCollection('services'),
-    getCollection('events'),
-    getCollection('commands'),
-    getCollection('queries'),
-    getCollection('entities'),
-    getCollection('containers'),
-    getCollection('flows'),
-  ]);
+  if (inFlightCache[cacheKey] && CACHE_ENABLED) {
+    return inFlightCache[cacheKey];
+  }
 
-  const allMessages = [...allEvents, ...allCommands, ...allQueries];
+  const loadPromise = (async () => {
+    // 1. Fetch all collections in parallel
+    const [allServices, allEvents, allCommands, allQueries, allEntities, allContainers, allFlows] = await Promise.all([
+      getCollection('services'),
+      getCollection('events'),
+      getCollection('commands'),
+      getCollection('queries'),
+      getCollection('entities'),
+      getCollection('containers'),
+      getCollection('flows'),
+    ]);
 
-  // 2. Build optimized maps
-  const serviceMap = createVersionedMap(allServices);
-  const messageMap = createVersionedMap(allMessages);
-  const entityMap = createVersionedMap(allEntities);
-  const containerMap = createVersionedMap(allContainers);
-  const flowMap = createVersionedMap(allFlows);
+    const allMessages = [...allEvents, ...allCommands, ...allQueries];
 
-  // 3. Filter services
-  const targetServices = allServices.filter((service) => {
-    if (service.data.hidden === true) return false;
-    if (!getAllVersions && service.filePath?.includes('versioned')) return false;
-    return true;
-  });
+    // 2. Build optimized maps
+    const serviceMap = createVersionedMap(allServices);
+    const messageMap = createVersionedMap(allMessages);
+    const entityMap = createVersionedMap(allEntities);
+    const containerMap = createVersionedMap(allContainers);
+    const flowMap = createVersionedMap(allFlows);
 
-  // 4. Enrich services using Map lookups (O(1))
-  const processedServices = await Promise.all(
-    targetServices.map(async (service) => {
-      // Version info
-      const serviceVersions = serviceMap.get(service.data.id) || [];
-      const latestVersion = serviceVersions[0]?.data.version || service.data.version;
-      const versions = serviceVersions.map((s) => s.data.version);
+    // 3. Filter services
+    const targetServices = allServices.filter((service) => {
+      if (service.data.hidden === true) return false;
+      if (!getAllVersions && service.filePath?.includes('versioned')) return false;
+      return true;
+    });
 
-      const sends = (service.data.sends || [])
-        .map((m) => findInMap(messageMap, m.id, m.version))
-        .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
+    // 4. Enrich services using Map lookups (O(1))
+    const processedServices = await Promise.all(
+      targetServices.map(async (service) => {
+        // Version info
+        const serviceVersions = serviceMap.get(service.data.id) || [];
+        const latestVersion = serviceVersions[0]?.data.version || service.data.version;
+        const versions = serviceVersions.map((s) => s.data.version);
 
-      const receives = (service.data.receives || [])
-        .map((m) => findInMap(messageMap, m.id, m.version))
-        .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
+        const sends = (service.data.sends || [])
+          .map((m) => findInMap(messageMap, m.id, m.version))
+          .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
 
-      const mappedEntities = (service.data.entities || [])
-        .map((e) => findInMap(entityMap, e.id, e.version))
-        .filter((e): e is CollectionEntry<'entities'> => !!e);
+        const receives = (service.data.receives || [])
+          .map((m) => findInMap(messageMap, m.id, m.version))
+          .filter((e): e is CollectionEntry<CollectionMessageTypes> => !!e);
 
-      const mappedWritesTo = (service.data.writesTo || [])
-        .map((c) => findInMap(containerMap, c.id, c.version))
-        .filter((e): e is CollectionEntry<'containers'> => !!e);
+        const mappedEntities = (service.data.entities || [])
+          .map((e) => findInMap(entityMap, e.id, e.version))
+          .filter((e): e is CollectionEntry<'entities'> => !!e);
 
-      const mappedReadsFrom = (service.data.readsFrom || [])
-        .map((c) => findInMap(containerMap, c.id, c.version))
-        .filter((e): e is CollectionEntry<'containers'> => !!e);
+        const mappedWritesTo = (service.data.writesTo || [])
+          .map((c) => findInMap(containerMap, c.id, c.version))
+          .filter((e): e is CollectionEntry<'containers'> => !!e);
 
-      const mappedFlows = (service.data.flows || [])
-        .map((f) => findInMap(flowMap, f.id, f.version))
-        .filter((f): f is CollectionEntry<'flows'> => !!f);
+        const mappedReadsFrom = (service.data.readsFrom || [])
+          .map((c) => findInMap(containerMap, c.id, c.version))
+          .filter((e): e is CollectionEntry<'containers'> => !!e);
 
-      return {
-        ...service,
-        data: {
-          ...service.data,
-          writesTo: mappedWritesTo as any,
-          readsFrom: mappedReadsFrom as any,
-          flows: mappedFlows as any,
-          receives: receives as any,
-          sends: sends as any,
-          versions,
-          latestVersion,
-          entities: mappedEntities as any,
-        },
-        // TODO: verify if it could be deleted.
-        nodes: {
-          receives: receives as any,
-          sends: sends as any,
-        },
-        body: returnBody ? service.body : undefined,
-      };
-    })
-  );
+        const mappedFlows = (service.data.flows || [])
+          .map((f) => findInMap(flowMap, f.id, f.version))
+          .filter((f): f is CollectionEntry<'flows'> => !!f);
 
-  // order them by the name of the service
-  processedServices.sort((a, b) => {
-    return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
-  });
+        return {
+          ...service,
+          data: {
+            ...service.data,
+            writesTo: mappedWritesTo as any,
+            readsFrom: mappedReadsFrom as any,
+            flows: mappedFlows as any,
+            receives: receives as any,
+            sends: sends as any,
+            versions,
+            latestVersion,
+            entities: mappedEntities as any,
+          },
+          // TODO: verify if it could be deleted.
+          nodes: {
+            receives: receives as any,
+            sends: sends as any,
+          },
+          body: returnBody ? service.body : undefined,
+        };
+      })
+    );
 
-  memoryCache[cacheKey] = processedServices;
-  // console.timeEnd('✅ New getServices');
+    // order them by the name of the service
+    processedServices.sort((a, b) => {
+      return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
+    });
 
-  return processedServices;
+    memoryCache[cacheKey] = processedServices;
+    return processedServices;
+  })();
+
+  if (CACHE_ENABLED) {
+    inFlightCache[cacheKey] = loadPromise;
+  }
+
+  try {
+    return await loadPromise;
+  } finally {
+    delete inFlightCache[cacheKey];
+  }
 };
 
 export const getProducersOfMessage = (services: Service[], message: CollectionEntry<'events' | 'commands' | 'queries'>) => {
