@@ -3,6 +3,7 @@ import jsonpath from 'jsonpath';
 import JSONSchemaViewer from '@components/SchemaExplorer/JSONSchemaViewer';
 import { Code } from 'astro-expressive-code/components';
 import { isPrivateRemoteSchemaEnabled } from '@utils/feature';
+import { resolveTemplateVariables } from '@utils/remote-file';
 
 const {
   url,
@@ -13,18 +14,6 @@ const {
   maxHeight = '400',
   ...props
 } = Astro.props;
-
-function resolveTemplates(input: any): any {
-  if (typeof input === 'string') {
-    return input.replace(/\$\{(\w+)\}/g, (_, varName) => import.meta.env[varName] || '');
-  }
-
-  if (typeof input === 'object' && input !== null) {
-    return Object.fromEntries(Object.entries(input).map(([k, v]) => [k, resolveTemplates(v)]));
-  }
-
-  return input;
-}
 
 function isValidJSON(str: string): boolean {
   try {
@@ -69,8 +58,8 @@ function extractWithJSONPath(data: any, path: string): any {
   }
 }
 
-const resolvedUrl = resolveTemplates(url);
-const resolvedHeaders = isPrivateRemoteSchemaEnabled() ? resolveTemplates(headers) : {};
+const resolvedUrl = resolveTemplateVariables(url);
+const resolvedHeaders = isPrivateRemoteSchemaEnabled() ? resolveTemplateVariables(headers) : {};
 
 let content = '';
 let processedData: any = null;
@@ -86,8 +75,8 @@ if (Object.keys(headers).length > 0 && !isPrivateRemoteSchemaEnabled()) {
 }
 
 try {
-  const response = await fetch(resolvedUrl, {
-    headers: resolvedHeaders,
+  const response = await fetch(String(resolvedUrl), {
+    headers: resolvedHeaders as HeadersInit,
   });
 
   if (!response.ok) {
