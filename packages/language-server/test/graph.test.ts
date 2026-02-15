@@ -2033,4 +2033,68 @@ describe("astToGraph", () => {
     expect(svcNode!.metadata.version).toBe("3.0.0");
     expect(svcNode!.label).toBe("Order Service V3");
   });
+
+  // ─── Nested definition inference tests ──────────────────────────────
+
+  it("flow ref infers type from service nested inside a domain", async () => {
+    const program = await parseProgram(`
+      domain Orders {
+        version 1.0.0
+        service OrderService {
+          version 1.0.0
+        }
+      }
+
+      event OrderCreated {
+        version 1.0.0
+      }
+
+      visualizer main {
+        flow OrderFlow {
+          version 1.0.0
+          OrderService -> OrderCreated
+        }
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const svcNode = graph.nodes.find((n) => n.label === "OrderService");
+    expect(svcNode).toBeDefined();
+    // Without the fix, this would be "step" because OrderService is nested in a domain
+    expect(svcNode!.type).toBe("service");
+
+    const eventNode = graph.nodes.find((n) => n.label === "OrderCreated");
+    expect(eventNode).toBeDefined();
+    expect(eventNode!.type).toBe("event");
+  });
+
+  it("flow ref infers type from container nested inside a domain", async () => {
+    const program = await parseProgram(`
+      domain Inventory {
+        version 1.0.0
+        container InventoryDB {
+          version 1.0.0
+        }
+      }
+
+      service InventoryService {
+        version 1.0.0
+      }
+
+      visualizer main {
+        flow InventoryFlow {
+          version 1.0.0
+          InventoryService -> InventoryDB
+        }
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const containerNode = graph.nodes.find((n) => n.label === "InventoryDB");
+    expect(containerNode).toBeDefined();
+    // Without the fix, this would be "step" because InventoryDB is nested in a domain
+    expect(containerNode!.type).toBe("container");
+  });
 });

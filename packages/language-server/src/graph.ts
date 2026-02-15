@@ -235,22 +235,21 @@ export function astToGraph(
     return `${type}:${name}`;
   }
 
-  // Infer the graph node type for a flow ref by looking up top-level definitions
+  // Infer the graph node type for a flow ref by looking up definitions.
+  // Uses topLevelDefs which includes nested defs (services/events inside domains).
   function inferTypeFromCatalog(name: string): GraphNode["type"] {
-    const defTypeMap: Record<string, GraphNode["type"]> = {};
-    for (const def of program.definitions) {
-      if ("name" in def && def.name === name) {
-        if (isServiceDef(def)) return "service";
-        if (isEventDef(def)) return "event";
-        if (isCommandDef(def)) return "command";
-        if (isQueryDef(def)) return "query";
-        if (isChannelDef(def)) return "channel";
-        if (isContainerDef(def)) return "container";
-        if (isDataProductDef(def)) return "data-product";
-        if (isFlowDef(def)) return "flow";
-        if (isActorDef(def)) return "actor";
-        if (isExternalSystemDef(def)) return "external-system";
-      }
+    const def = topLevelDefs.get(name);
+    if (def) {
+      if (isServiceDef(def)) return "service";
+      if (isEventDef(def)) return "event";
+      if (isCommandDef(def)) return "command";
+      if (isQueryDef(def)) return "query";
+      if (isChannelDef(def)) return "channel";
+      if (isContainerDef(def)) return "container";
+      if (isDataProductDef(def)) return "data-product";
+      if (isFlowDef(def)) return "flow";
+      if (isActorDef(def)) return "actor";
+      if (isExternalSystemDef(def)) return "external-system";
     }
     // Also check if it already exists as a node (from earlier processing)
     for (const n of nodes) {
