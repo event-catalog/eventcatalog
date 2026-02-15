@@ -937,23 +937,25 @@ export function astToGraph(
         },
       );
       for (const inp of getInputs(body)) {
+        const inpType = inp.type as GraphNode["type"];
         const existing =
           resolveNodeId(inp.ref.name, "event", inp.ref.version) ||
           resolveNodeId(inp.ref.name, "command", inp.ref.version) ||
           resolveNodeId(inp.ref.name, "query", inp.ref.version);
         const inpId =
           existing ||
-          addNode(inp.ref.name, "event", inp.ref.name, undefined, {
+          addNode(inp.ref.name, inpType, inp.ref.name, undefined, {
             version: inp.ref.version,
           });
         addEdge(inpId, dpId, "sends");
       }
       for (const out of getOutputs(body)) {
+        const outType = out.type as GraphNode["type"];
         const existing =
           resolveNodeId(out.name, "event") ||
           resolveNodeId(out.name, "command") ||
           resolveNodeId(out.name, "query");
-        const outId = existing || addNode(out.name, "event", out.name);
+        const outId = existing || addNode(out.name, outType, out.name);
         addEdge(dpId, outId, "sends");
       }
     } else if (isFlowDef(def)) {

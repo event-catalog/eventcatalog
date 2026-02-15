@@ -2097,4 +2097,72 @@ describe("astToGraph", () => {
     // Without the fix, this would be "step" because InventoryDB is nested in a domain
     expect(containerNode!.type).toBe("container");
   });
+
+  // ─── Data-product message type tests ──────────────────────────────
+
+  it("data-product input command creates a command node, not event", async () => {
+    const program = await parseProgram(`
+      visualizer main {
+        data-product OrderAnalytics {
+          version 1.0.0
+          input command PlaceOrder
+          input event OrderCreated
+        }
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const cmdNode = graph.nodes.find((n) => n.label === "PlaceOrder");
+    expect(cmdNode).toBeDefined();
+    expect(cmdNode!.type).toBe("command");
+
+    const eventNode = graph.nodes.find((n) => n.label === "OrderCreated");
+    expect(eventNode).toBeDefined();
+    expect(eventNode!.type).toBe("event");
+  });
+
+  it("data-product input query creates a query node, not event", async () => {
+    const program = await parseProgram(`
+      visualizer main {
+        data-product OrderAnalytics {
+          version 1.0.0
+          input query GetOrders
+        }
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const queryNode = graph.nodes.find((n) => n.label === "GetOrders");
+    expect(queryNode).toBeDefined();
+    expect(queryNode!.type).toBe("query");
+  });
+
+  it("data-product output command creates a command node, not event", async () => {
+    const program = await parseProgram(`
+      visualizer main {
+        data-product OrderAnalytics {
+          version 1.0.0
+          output command ProcessOrder
+          output event OrderProcessed
+          output query GetAnalytics
+        }
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const cmdNode = graph.nodes.find((n) => n.label === "ProcessOrder");
+    expect(cmdNode).toBeDefined();
+    expect(cmdNode!.type).toBe("command");
+
+    const eventNode = graph.nodes.find((n) => n.label === "OrderProcessed");
+    expect(eventNode).toBeDefined();
+    expect(eventNode!.type).toBe("event");
+
+    const queryNode = graph.nodes.find((n) => n.label === "GetAnalytics");
+    expect(queryNode).toBeDefined();
+    expect(queryNode!.type).toBe("query");
+  });
 });
