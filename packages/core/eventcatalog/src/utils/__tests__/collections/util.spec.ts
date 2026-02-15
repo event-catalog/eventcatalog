@@ -1,5 +1,11 @@
 import type { CollectionTypes } from '@types';
-import { getDeprecatedDetails, isSameVersion, satisfies, sortStringVersions } from '@utils/collections/util';
+import {
+  getDeprecatedDetails,
+  isSameVersion,
+  processSpecifications,
+  satisfies,
+  sortStringVersions,
+} from '@utils/collections/util';
 import type { CollectionEntry } from 'astro:content';
 import { describe, it, expect } from 'vitest';
 
@@ -75,6 +81,33 @@ describe('Collections - utils', () => {
         message: 'This is a test message',
         deprecatedDate: 'January 1, 2021',
       });
+    });
+  });
+
+  describe('processSpecifications', () => {
+    it('preserves headers in array specification format', () => {
+      const result = processSpecifications([
+        {
+          type: 'asyncapi',
+          path: 'https://example.com/asyncapi.yaml',
+          headers: {
+            Authorization: 'Bearer ${TOKEN}',
+          },
+        },
+      ]);
+
+      expect(result).toEqual([
+        {
+          type: 'asyncapi',
+          path: 'https://example.com/asyncapi.yaml',
+          name: 'AsyncAPI',
+          filename: 'asyncapi.yaml',
+          filenameWithoutExtension: 'asyncapi',
+          headers: {
+            Authorization: 'Bearer ${TOKEN}',
+          },
+        },
+      ]);
     });
   });
 });

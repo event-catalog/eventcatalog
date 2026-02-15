@@ -147,6 +147,7 @@ const baseSchema = z.object({
           type: z.enum(['openapi', 'asyncapi', 'graphql']),
           path: z.string(),
           name: z.string().optional(),
+          headers: z.record(z.string()).optional(),
         })
       ),
     ])

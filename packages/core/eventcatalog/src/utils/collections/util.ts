@@ -21,6 +21,7 @@ export interface SpecificationInput {
   type: SpecificationType;
   path: string;
   name?: string;
+  headers?: Record<string, string>;
 }
 
 export interface ProcessedSpecification {
@@ -29,6 +30,7 @@ export interface ProcessedSpecification {
   name: string;
   filename: string;
   filenameWithoutExtension: string;
+  headers?: Record<string, string>;
 }
 
 export const getDefaultSpecificationName = (type: string): string => {
