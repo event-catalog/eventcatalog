@@ -5,6 +5,8 @@ import { Parser } from '@asyncapi/parser';
 import { AvroSchemaParser } from '@asyncapi/avro-schema-parser';
 import fs from 'fs';
 
+import { isSameOrigin, resolveHeaders } from '@utils/remote-spec';
+
 import '@asyncapi/react-component/styles/default.min.css';
 import js from '@asyncapi/react-component/browser/standalone/without-parser.js?url';
 import { AsyncApiComponentWP, type ConfigInterface } from '@asyncapi/react-component';
@@ -19,7 +21,7 @@ export const prerender = Page.prerender;
 export const getStaticPaths = Page.getStaticPaths;
 
 // Get data
-const { collection, data, filePath, filename, path: relativeSpecPath } = await Page.getData(Astro);
+const { collection, data, filePath, filename, path: relativeSpecPath, headers = {} } = await Page.getData(Astro);
 
 const fileName = filename || 'asyncapi.yaml';
 const pathToSpec = getAbsoluteFilePathForAstroFile(filePath, fileName);
@@ -27,18 +29,62 @@ const fileExists = fs.existsSync(pathToSpec);
 const isRemote = relativeSpecPath.includes('https://');
 let content = '';
 
+const allowAnyEnvInSpecHeaders = Config?.asyncAPI?.allowAnyEnvInSpecHeaders ?? false;
+const resolvedHeaders = resolveHeaders(headers, { allowAnyEnvInHeaders: allowAnyEnvInSpecHeaders });
+
 if (fileExists && !isRemote) {
   content = fs.readFileSync(pathToSpec, 'utf8');
 }
 
 if (isRemote) {
-  // Fetch the content from the remote path
-  content = await fetch(relativeSpecPath).then((res) => res.text());
+  const response = await fetch(relativeSpecPath, { headers: resolvedHeaders });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch AsyncAPI spec: ${response.status} ${response.statusText}`);
+  }
+
+  content = await response.text();
 }
 
-// AsyncAPI parser will parser schemas for users, they can turn this off.
+// AsyncAPI parser will parse schemas for users, they can turn this off.
 const parseSchemas = Config?.asyncAPI?.renderParsedSchemas ?? true;
-const parsed = await new Parser({ schemaParsers: [AvroSchemaParser()] }).parse(content, { parseSchemas });
+const parserOptions: NonNullable<Parameters<Parser['parse']>[1]> = {
+  parseSchemas,
+  source: isRemote ? relativeSpecPath : pathToSpec,
+};
+
+if (isRemote && Object.keys(resolvedHeaders).length > 0) {
+  // NOTE: AsyncAPI parser exposes resolver wiring via __unstable.
+  // Keep this isolated so parser upgrades can adjust in one place.
+  const resolverWithHeaders = {
+    canRead: true,
+    read: async (uri: { toString: () => string }) => {
+      const targetUrl = uri.toString();
+      const shouldForwardHeaders = isSameOrigin(relativeSpecPath, targetUrl);
+
+      const response = await fetch(targetUrl, {
+        headers: shouldForwardHeaders ? resolvedHeaders : undefined,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch reference: ${response.status} ${response.statusText}`);
+      }
+
+      return response.text();
+    },
+  };
+
+  parserOptions.__unstable = {
+    resolver: {
+      resolvers: [
+        { schema: 'https', ...resolverWithHeaders },
+        { schema: 'http', ...resolverWithHeaders },
+      ],
+    },
+  };
+}
+
+const parsed = await new Parser({ schemaParsers: [AvroSchemaParser()] }).parse(content, parserOptions);
 const stringified = parsed.document?.json();
 const config: ConfigInterface = { show: { sidebar: true, errors: true } };
 

@@ -16,6 +16,10 @@ export type CatalogConfig = {
       users?: SideBarItemConfig;
     };
   };
+  asyncAPI?: {
+    renderParsedSchemas?: boolean;
+    allowAnyEnvInSpecHeaders?: boolean;
+  };
 };
 
 const getConfigValue = (obj: any, key: string, defaultValue: any) => {
@@ -44,4 +48,4 @@ export const isCollectionVisibleInCatalog = (collection: string) => {
   return getConfigValue(collectionConfig, 'visible', true);
 };
 
-export default config.default;
+export default config.default as CatalogConfig;
