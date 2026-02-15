@@ -48,7 +48,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
         <div class="flex-grow max-w-xl">
           <Search />
         </div>
-        {isEventCatalogChatEnabled() && <ChatPanelButton client:load />}
+        {isEventCatalogChatEnabled() && <ChatPanelButton client:idle />}
       </div>
 
       <div class="hidden md:block w-3/12">
@@ -56,9 +56,9 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
           session ? (
             <div class="flex items-center space-x-4 justify-end pr-2">
               {catalog.environments && catalog.environments.length > 0 && (
-                <EnvironmentDropdown environments={catalog.environments} client:load />
+                <EnvironmentDropdown environments={catalog.environments} client:idle />
               )}
-              <ThemeToggle client:load />
+              <ThemeToggle client:idle />
               <div class="relative">
                 <button
                   id="profile-menu-button"
@@ -110,7 +110,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
             <>
               <div class="flex items-center space-x-4 justify-end pr-2">
                 {catalog.environments && catalog.environments.length > 0 && (
-                  <EnvironmentDropdown environments={catalog.environments} client:load />
+                  <EnvironmentDropdown environments={catalog.environments} client:idle />
                 )}
                 {isAuthEnabled() && (
                   <button
@@ -120,7 +120,7 @@ const repositoryUrl = catalog?.repositoryUrl || 'https://github.com/event-catalo
                     Sign In
                   </button>
                 )}
-                <ThemeToggle client:load />
+                <ThemeToggle client:idle />
                 {showEventCatalogBranding() && (
                   <ul class="flex space-x-4">
                     <li>
