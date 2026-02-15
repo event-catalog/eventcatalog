@@ -42,11 +42,19 @@ jobs:
       - name: Package Core
         run: pnpm pack
         working-directory: packages/core
+      - name: Package Visualiser
+        run: pnpm pack
+        working-directory: packages/visualiser
+      - name: Package Language Server
+        run: pnpm pack
+        working-directory: packages/language-server
       - name: Rename package artifacts
         run: |
           mv packages/sdk/*.tgz sdk-package.tgz
           mv packages/cli/*.tgz cli-package.tgz
           mv packages/core/*.tgz core-package.tgz
+          mv packages/visualiser/*.tgz visualiser-package.tgz
+          mv packages/language-server/*.tgz language-server-package.tgz
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -55,6 +63,8 @@ jobs:
             sdk-package.tgz
             cli-package.tgz
             core-package.tgz
+            visualiser-package.tgz
+            language-server-package.tgz
 
   build-eventcatalog:
     name: Build EventCatalog

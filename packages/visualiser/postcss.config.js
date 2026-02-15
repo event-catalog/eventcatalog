@@ -14,9 +14,28 @@ const removeLayers = {
   },
 };
 
+/**
+ * Remove the bare `.hidden` utility rule from the output.
+ * Tailwind v4 content scanning detects "hidden" in inline style strings
+ * (e.g. `overflow: "hidden"`) and emits `.hidden { display: none }`.
+ * This conflicts with responsive header utilities (e.g. `hidden lg:flex`)
+ * in the consuming Astro app because removeLayers flattens all CSS out of
+ * @layer, making cascade order—not layer priority—decide the winner.
+ */
+/** @type {import('postcss').Plugin} */
+const removeHiddenUtility = {
+  postcssPlugin: 'remove-hidden-utility',
+  Rule(rule) {
+    if (rule.selector === '.hidden') {
+      rule.remove();
+    }
+  },
+};
+
 export default {
   plugins: [
     tailwindcss(),
     removeLayers,
+    removeHiddenUtility,
   ],
 };

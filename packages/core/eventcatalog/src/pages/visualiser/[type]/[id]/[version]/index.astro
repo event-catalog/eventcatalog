@@ -20,8 +20,13 @@ const {
 ---
 
 <VisualiserLayout title={`Visualiser | ${props.data.name} (${props.collection})`} description={props.data.summary}>
-  <div class="bg-gray-100/50 m-4">
-    <div class="h-[calc(100vh-130px)] w-full relative border border-gray-200" id={`${id}-portal`} transition:animate="fade"></div>
+  <div class="m-4">
+    <div
+      class="h-[calc(100vh-130px)] w-full relative border border-[rgb(var(--ec-page-border))] rounded-md"
+      id={`${id}-portal`}
+      transition:animate="fade"
+    >
+    </div>
     <NodeGraph
       id={id}
       collection={collection}

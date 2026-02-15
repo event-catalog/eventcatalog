@@ -6,10 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 EventCatalog is an open-source documentation tool for Event-Driven Architectures. It helps teams document events, commands, queries, services, domains, and flows in a discoverable catalog. Built with Astro, React, and TypeScript.
 
-This is a **monorepo** managed with Turborepo and pnpm workspaces containing three packages:
+This is a **monorepo** managed with Turborepo and pnpm workspaces containing these packages:
 - `@eventcatalog/core` - The main EventCatalog application
 - `@eventcatalog/sdk` - SDK for programmatically interacting with EventCatalog
 - `@eventcatalog/create-eventcatalog` - CLI tool for scaffolding new EventCatalog projects
+- `@eventcatalog/visualiser` - Standalone React visualiser component (ReactFlow-based node graphs)
+- `@eventcatalog/dsl-playground` - Browser-based DSL playground for authoring EventCatalog DSL
+- `@eventcatalog/language-server` - Language server for the EventCatalog DSL (parsing, diagnostics, completion)
 
 ## Quick Reference Commands
 
@@ -56,6 +59,21 @@ This is a **monorepo** managed with Turborepo and pnpm workspaces containing thr
     /templates               # Project templates (default, asyncapi, openapi, etc.)
     /helpers                 # Template helpers
     /dist                    # Built output (not committed)
+  /visualiser                # @eventcatalog/visualiser
+    /src
+      /components            # NodeGraph, FocusMode, Search, etc.
+      /nodes                 # Node type components (service, event, command, etc.)
+      /edges                 # Edge type components (animated, multiline, flow)
+      /utils                 # Layout, mermaid export, clipboard utilities
+      /types                 # Shared types (including DslGraph)
+  /playground                # @eventcatalog/dsl-playground
+    /src
+      /components            # Editor, Visualizer, TabBar
+      /hooks                 # useDslParser
+      /monaco                # Monaco editor config, completions, diagnostics
+      /examples              # Built-in DSL examples
+  /language-server           # @eventcatalog/language-server
+    /src                     # DSL parser, graph builder, formatter
 /examples
   /default                   # Default example catalog (used by start:catalog)
   /e-commerce                # E-commerce example
@@ -281,8 +299,10 @@ When building features used by both AI Chat and MCP Server, add shared logic to 
 
 ### Working with Packages
 
-- **Core** depends on **SDK** via `workspace:*` reference
-- Changes to SDK automatically picked up by core in development
+- **Core** depends on **SDK** and **Visualiser** via `workspace:*` references
+- **Playground** depends on **Visualiser** and **Language Server**
+- **Visualiser** is standalone (no internal workspace dependencies)
+- Changes to workspace dependencies are automatically picked up in development
 - Build commands run via Turbo (handles dependency ordering and caching)
 - Each package has its own `package.json` with build/test/format scripts
 

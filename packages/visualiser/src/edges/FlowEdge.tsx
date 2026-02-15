@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import {
   BaseEdge,
   EdgeLabelRenderer,
-  getBezierPath,
+  getSmoothStepPath,
   type EdgeProps as XYFlowEdgeProps,
 } from "@xyflow/react";
+import { EDGE_FLOW_BASE_STYLE } from "../nodes/shared-styles";
 
 interface EdgeData {
   message?: {
@@ -14,11 +15,27 @@ interface EdgeData {
   animated?: boolean;
 }
 
-interface CustomEdgeProps extends Omit<XYFlowEdgeProps, "data"> {
+export interface CustomEdgeProps extends Omit<XYFlowEdgeProps, "data"> {
   data?: EdgeData;
 }
 
-export default function CustomEdge({
+/** Map collection type → circle fill color (module-level, zero allocation). */
+function messageColor(collection: string): string {
+  switch (collection) {
+    case "events":
+      return "orange";
+    case "commands":
+      return "blue";
+    case "queries":
+      return "green";
+    default:
+      return "gray";
+  }
+}
+
+const EMPTY_STYLE = {} as const;
+
+export default memo(function CustomEdge({
   id,
   sourceX,
   sourceY,
@@ -26,13 +43,13 @@ export default function CustomEdge({
   targetY,
   sourcePosition,
   targetPosition,
-  style = {},
+  style = EMPTY_STYLE,
   markerEnd,
   label,
   labelStyle,
   data,
 }: CustomEdgeProps) {
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -45,35 +62,28 @@ export default function CustomEdge({
   const collection = data?.message?.collection;
   const opacity = data?.opacity ?? 1;
 
-  const messageColor = useMemo(
-    () => (collection: string) => {
-      switch (collection) {
-        case "events":
-          return "orange";
-        case "commands":
-          return "blue";
-        case "queries":
-          return "green";
-        default:
-          return "gray";
-      }
-    },
-    [],
+  const mergedStyle = useMemo(
+    () => ({ ...EDGE_FLOW_BASE_STYLE, ...style }),
+    [style],
+  );
+
+  const labelPositionStyle = useMemo(
+    () => ({
+      position: "absolute" as const,
+      transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+      zIndex: 1000,
+      ...(labelStyle as any),
+    }),
+    [labelX, labelY, labelStyle],
   );
 
   return (
     <>
-      <BaseEdge
-        path={edgePath}
-        markerEnd={markerEnd}
-        style={{
-          strokeWidth: 2,
-          stroke: "#fff",
-          ...style,
-        }}
-      />
+      <BaseEdge path={edgePath} markerEnd={markerEnd} style={mergedStyle} />
       {data?.animated && (
-        <g className={`z-30 ${opacity === 1 ? "opacity-100" : "opacity-10"}`}>
+        <g
+          className={`ec-animated-msg z-30 ${opacity === 1 ? "opacity-100" : "opacity-10"}`}
+        >
           <circle
             cx="0"
             cy="0"
@@ -95,13 +105,8 @@ export default function CustomEdge({
       {label && (
         <EdgeLabelRenderer>
           <div
-            style={{
-              position: "absolute",
-              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-              zIndex: 1000,
-              ...(labelStyle as any),
-            }}
-            className="nodrag nopan max-w-[120px] text-xs bg-white px-2 py-1 rounded border border-gray-200 text-gray-600 font-medium shadow-sm text-center"
+            style={labelPositionStyle}
+            className="nodrag nopan max-w-[120px] text-xs bg-[rgb(var(--ec-card-bg))] px-2 py-1 rounded border border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text-muted))] font-medium shadow-sm text-center"
           >
             {label}
           </div>
@@ -109,4 +114,4 @@ export default function CustomEdge({
       )}
     </>
   );
-}
+});

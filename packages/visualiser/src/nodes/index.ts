@@ -45,11 +45,16 @@ export type { ActorNode } from "./actor";
 export { ExternalSystem, externalSystemConfig };
 export type { ExternalSystemNode } from "./external-system";
 
+// Shared components
+export { NotesIndicator } from "./NotesIndicator";
+export { OwnerIndicator, normalizeOwners } from "./OwnerIndicator";
+
 // Core nodes (single files) - import then re-export for nodeComponents
 import CustomNode from "./Custom";
 import DomainNode from "./Domain";
 import EntityNode from "./Entity";
 import FlowNode from "./Flow";
+import GroupNode from "./GroupNode";
 import StepNode from "./Step";
 import UserNode from "./User";
 import DataProductNode from "./DataProduct";
@@ -60,6 +65,7 @@ export {
   DomainNode,
   EntityNode,
   FlowNode,
+  GroupNode,
   StepNode,
   UserNode,
   DataProductNode,
@@ -96,6 +102,7 @@ export const nodeComponents = {
   domain: DomainNode,
   entity: EntityNode,
   flow: FlowNode,
+  group: GroupNode,
   step: StepNode,
   user: UserNode,
   dataProduct: DataProductNode,

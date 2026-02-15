@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef, memo } from "react";
 import { createPortal } from "react-dom";
 import {
   ReactFlow,
@@ -46,6 +46,7 @@ import EntityNode from "../nodes/Entity";
 import UserNode from "../nodes/User";
 import StepNode from "../nodes/Step";
 import DomainNode from "../nodes/Domain";
+import GroupNode from "../nodes/GroupNode";
 import CustomNode from "../nodes/Custom";
 import ExternalSystemNode2 from "../nodes/ExternalSystem2";
 import DataProductNode from "../nodes/DataProduct";
@@ -62,9 +63,64 @@ import VisualizerDropdownContent from "./VisualizerDropdownContent";
 import NodeContextMenu from "./NodeContextMenu";
 import { convertToMermaid } from "../utils/export-mermaid";
 import { copyToClipboard } from "../utils/clipboard";
+import { layoutGraph } from "../utils/layout";
+import { AllNotesModal, getNotesFromNode } from "./NotesToolbarButton";
+import type { DslGraph } from "../types";
 
 // Minimum pixel change to detect layout modifications (avoids floating point comparison issues)
 const POSITION_CHANGE_THRESHOLD = 1;
+
+// Static props for ReactFlow - defined outside component to avoid new references on every render
+const NODE_ORIGIN: [number, number] = [0.1, 0.1];
+const MINIMAP_STYLE = {
+  backgroundColor: "rgb(var(--ec-page-bg))",
+  border: "1px solid rgb(var(--ec-page-border))",
+  borderRadius: "8px",
+} as const;
+const LAYOUT_CHANGE_PANEL_STYLE_WITH_WALKTHROUGH = {
+  marginBottom: "20px",
+  marginLeft: "410px",
+} as const;
+const LAYOUT_CHANGE_PANEL_STYLE_DEFAULT = { marginLeft: "60px" } as const;
+const LEGEND_PANEL_STYLE_WITH_MINIMAP = { marginRight: "230px" } as const;
+
+type LegendEntry = { count: number; colorClass: string; groupId?: string };
+
+const LegendPanel = memo(function LegendPanel({
+  legend,
+  showMinimap,
+  onLegendClick,
+}: {
+  legend: Record<string, LegendEntry>;
+  showMinimap: boolean;
+  onLegendClick: (key: string, groupId?: string) => void;
+}) {
+  return (
+    <Panel
+      position="bottom-right"
+      style={showMinimap ? LEGEND_PANEL_STYLE_WITH_MINIMAP : undefined}
+    >
+      <div className="bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] font-light px-4 text-[12px] shadow-md py-1 rounded-md">
+        <ul className="m-0 p-0 ">
+          {Object.entries(legend).map(
+            ([key, { count, colorClass, groupId }]) => (
+              <li
+                key={key}
+                className="flex space-x-2 items-center text-[10px] cursor-pointer text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))] hover:underline"
+                onClick={() => onLegendClick(key, groupId)}
+              >
+                <span className={`w-2 h-2 block ${colorClass}`} />
+                <span className="block capitalize">
+                  {key} ({count})
+                </span>
+              </li>
+            ),
+          )}
+        </ul>
+      </div>
+    </Panel>
+  );
+});
 
 interface Props {
   nodes: any;
@@ -88,6 +144,8 @@ interface Props {
   maxTextSize?: number;
   isDevMode?: boolean;
   resourceKey?: string;
+  /** Controls whether message flow animation is enabled. When set, overrides URL params and localStorage. */
+  animated?: boolean;
 
   // Callback API for framework integration
   /** Called when a node is clicked */
@@ -124,6 +182,7 @@ const NodeGraphBuilder = ({
   maxTextSize,
   isDevMode = false,
   resourceKey,
+  animated,
   onNodeClick,
   onBuildUrl: _onBuildUrl,
   onNavigate,
@@ -132,7 +191,7 @@ const NodeGraphBuilder = ({
 }: Props) => {
   const nodeTypes = useMemo(() => {
     const wrapWithContextMenu = (Component: React.ComponentType<any>) => {
-      const Wrapped = (props: any) => {
+      const Wrapped = memo((props: any) => {
         const items = props.data?.contextMenu;
         if (!items?.length) return <Component {...props} />;
         return (
@@ -140,7 +199,7 @@ const NodeGraphBuilder = ({
             <Component {...props} />
           </NodeContextMenu>
         );
-      };
+      });
       Wrapped.displayName = `WithContextMenu(${Component.displayName || Component.name || "Component"})`;
       return Wrapped;
     };
@@ -170,25 +229,39 @@ const NodeGraphBuilder = ({
       data: wrapWithContextMenu(DataNode),
       view: wrapWithContextMenu(ViewNode),
       actor: ActorNode,
+      container: wrapWithContextMenu(DataNode),
       "data-product": wrapWithContextMenu(DataProductNode),
       "data-products": wrapWithContextMenu(DataProductNode),
-      note: (props: any) => <NoteNode {...props} readOnly={true} />,
+      group: GroupNode,
+      note: memo((props: any) => <NoteNode {...props} readOnly={true} />),
     } as unknown as NodeTypes;
   }, []);
   const edgeTypes = useMemo(
-    () => ({
-      animated: AnimatedMessageEdge,
-      multiline: MultilineEdgeLabel,
-      "flow-edge": FlowEdge,
-    }),
+    () =>
+      ({
+        animated: AnimatedMessageEdge,
+        multiline: MultilineEdgeLabel,
+        "flow-edge": FlowEdge,
+      }) as Record<string, any>,
     [],
   );
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [animateMessages, setAnimateMessages] = useState(false);
+  const { fitView, getNodes } = useReactFlow();
+
+  // Sync when parent passes new nodes/edges (e.g. playground re-parse)
+  useEffect(() => {
+    setNodes(initialNodes);
+    setEdges(initialEdges);
+    // fitView after React Flow processes the new nodes
+    requestAnimationFrame(() => {
+      fitView({ duration: 300, padding: 0.2 });
+    });
+  }, [initialNodes, initialEdges, setNodes, setEdges, fitView]);
+
+  const [animateMessages, setAnimateMessages] = useState(true);
   const [_activeStepIndex, _setActiveStepIndex] = useState<number | null>(null);
   const [_isFullscreen, _setIsFullscreen] = useState(false);
-  const [mermaidCode, setMermaidCode] = useState("");
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareUrlCopySuccess, setShareUrlCopySuccess] = useState(false);
   const [isMermaidView, setIsMermaidView] = useState(false);
@@ -201,6 +274,103 @@ const NodeGraphBuilder = ({
   // const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
   const [focusModeOpen, setFocusModeOpen] = useState(false);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+  const openNotesModal = useCallback(() => setIsNotesModalOpen(true), []);
+
+  // Track user interaction (drag/pan/zoom) to pause expensive SVG animations.
+  // Uses a ref + direct DOM manipulation to avoid React re-renders.
+  const interactionCountRef = useRef(0);
+
+  const startInteraction = useCallback(() => {
+    interactionCountRef.current += 1;
+    if (interactionCountRef.current === 1) {
+      reactFlowWrapperRef.current?.classList.add("ec-interaction-active");
+    }
+  }, []);
+
+  const endInteraction = useCallback(() => {
+    interactionCountRef.current = Math.max(0, interactionCountRef.current - 1);
+    if (interactionCountRef.current === 0) {
+      reactFlowWrapperRef.current?.classList.remove("ec-interaction-active");
+    }
+  }, []);
+
+  // Highlight source/target nodes when hovering an edge.
+  // Uses direct DOM manipulation (like startInteraction) to avoid re-renders.
+  const hoveredEdgeNodesRef = useRef<Element[]>([]);
+
+  const handleEdgeMouseEnter = useCallback(
+    (_: React.MouseEvent, edge: Edge) => {
+      const wrapper = reactFlowWrapperRef.current;
+      if (!wrapper) return;
+      const nodes = wrapper.querySelectorAll(
+        `[data-id="${edge.source}"], [data-id="${edge.target}"]`,
+      );
+      nodes.forEach((el) => el.classList.add("ec-edge-hover-node"));
+      hoveredEdgeNodesRef.current = Array.from(nodes);
+    },
+    [],
+  );
+
+  const handleEdgeMouseLeave = useCallback(() => {
+    hoveredEdgeNodesRef.current.forEach((el) =>
+      el.classList.remove("ec-edge-hover-node"),
+    );
+    hoveredEdgeNodesRef.current = [];
+  }, []);
+
+  // Highlight all connected edges + their other-end nodes when hovering a node.
+  // Looks up connected edges from the edges array, then queries DOM by edge ID.
+  // Uses direct DOM manipulation to avoid re-renders.
+  const hoveredNodeEdgesRef = useRef<Element[]>([]);
+  const hoveredNodePeersRef = useRef<Element[]>([]);
+
+  const handleNodeMouseEnter = useCallback(
+    (_: React.MouseEvent, node: Node) => {
+      const wrapper = reactFlowWrapperRef.current;
+      if (!wrapper) return;
+
+      const peerIds = new Set<string>();
+      const edgeEls: Element[] = [];
+
+      for (const edge of edgesRef.current) {
+        if (edge.source !== node.id && edge.target !== node.id) continue;
+        const el = wrapper.querySelector(
+          `.react-flow__edge[data-id="${edge.id}"]`,
+        );
+        if (el) {
+          el.classList.add("ec-node-hover-edge");
+          edgeEls.push(el);
+        }
+        if (edge.source !== node.id) peerIds.add(edge.source);
+        if (edge.target !== node.id) peerIds.add(edge.target);
+      }
+      hoveredNodeEdgesRef.current = edgeEls;
+
+      // Highlight the hovered node + all peer nodes
+      peerIds.add(node.id);
+      const selector = Array.from(peerIds)
+        .map((id) => `[data-id="${id}"]`)
+        .join(", ");
+      if (selector) {
+        const peerEls = wrapper.querySelectorAll(selector);
+        peerEls.forEach((el) => el.classList.add("ec-edge-hover-node"));
+        hoveredNodePeersRef.current = Array.from(peerEls);
+      }
+    },
+    [],
+  );
+
+  const handleNodeMouseLeave = useCallback(() => {
+    hoveredNodeEdgesRef.current.forEach((el) =>
+      el.classList.remove("ec-node-hover-edge"),
+    );
+    hoveredNodeEdgesRef.current = [];
+    hoveredNodePeersRef.current.forEach((el) =>
+      el.classList.remove("ec-edge-hover-node"),
+    );
+    hoveredNodePeersRef.current = [];
+  }, []);
 
   // Check if there are channels to determine if we need the visualizer functionality
   const hasChannels = useMemo(
@@ -218,10 +388,15 @@ const NodeGraphBuilder = ({
   // Temporary implementation
   const hideChannels = false;
   const toggleChannelsVisibility = () => {};
-  const { fitView, getNodes } = useReactFlow();
   const searchRef = useRef<VisualiserSearchRef>(null);
   const reactFlowWrapperRef = useRef<HTMLDivElement>(null);
   const scrollableContainerRef = useRef<HTMLElement | null>(null);
+
+  // Stable refs for nodes/edges - avoids recreating callbacks on every drag/state change
+  const nodesRef = useRef(nodes);
+  nodesRef.current = nodes;
+  const edgesRef = useRef(edges);
+  edgesRef.current = edges;
 
   // Store initial node positions for change detection (dev mode only)
   useEffect(() => {
@@ -240,7 +415,7 @@ const NodeGraphBuilder = ({
     const initial = initialPositionsRef.current;
     if (Object.keys(initial).length === 0) return;
 
-    const hasChanges = nodes.some((node) => {
+    const hasChanges = nodesRef.current.some((node) => {
       const initialPos = initial[node.id];
       return (
         initialPos &&
@@ -250,7 +425,7 @@ const NodeGraphBuilder = ({
     });
 
     setHasLayoutChanges(hasChanges);
-  }, [isDevMode, nodes]);
+  }, [isDevMode]);
 
   // Wrap onNodesChange to detect layout changes after node drag
   const handleNodesChange = useCallback(
@@ -303,24 +478,34 @@ const NodeGraphBuilder = ({
       }
 
       // Disable focus mode for flow and entity visualizations
-      const isFlow = edges.some((edge: Edge) => edge.type === "flow-edge");
-      const isEntityVisualizer = nodes.some((n: Node) => n.type === "entities");
+      const isFlow = edgesRef.current.some(
+        (edge: Edge) => edge.type === "flow-edge",
+      );
+      const isEntityVisualizer = nodesRef.current.some(
+        (n: Node) => n.type === "entities",
+      );
       if (isFlow || isEntityVisualizer) return;
+
+      // Disable focus mode for domain nodes
+      if (node.type === "domain" || node.type === "domains") return;
 
       // Open focus mode modal
       setFocusedNodeId(node.id);
       setFocusModeOpen(true);
     },
-    [onNodeClick, linksToVisualiser, onNavigate, edges, nodes],
+    [onNodeClick, linksToVisualiser, onNavigate],
   );
 
-  const toggleAnimateMessages = () => {
-    setAnimateMessages(!animateMessages);
-    localStorage.setItem(
-      "EventCatalog:animateMessages",
-      JSON.stringify(!animateMessages),
-    );
-  };
+  const toggleAnimateMessages = useCallback(() => {
+    setAnimateMessages((prev) => {
+      const next = !prev;
+      localStorage.setItem(
+        "EventCatalog:animateMessages",
+        JSON.stringify(next),
+      );
+      return next;
+    });
+  }, []);
 
   // Handle fit to view
   const handleFitView = useCallback(() => {
@@ -328,8 +513,13 @@ const NodeGraphBuilder = ({
   }, [fitView]);
 
   // animate messages, between views
-  // URL parameter takes priority over localStorage
+  // Priority: animated prop > URL parameter > localStorage
   useEffect(() => {
+    if (animated !== undefined) {
+      setAnimateMessages(animated);
+      return;
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const animateParam = urlParams.get("animate");
 
@@ -346,7 +536,7 @@ const NodeGraphBuilder = ({
         setAnimateMessages(storedAnimateMessages === "true");
       }
     }
-  }, []);
+  }, [animated]);
 
   useEffect(() => {
     setEdges((eds) =>
@@ -358,7 +548,7 @@ const NodeGraphBuilder = ({
             ? edge.type
             : animateMessages
               ? "animated"
-              : "default",
+              : "smoothstep",
         data: { ...edge.data, animateMessages, animated: animateMessages },
       })),
     );
@@ -370,19 +560,18 @@ const NodeGraphBuilder = ({
     }, 150);
   }, []);
 
-  // Generate mermaid code from nodes and edges
-  useEffect(() => {
+  // Generate mermaid code lazily (only when needed for copy)
+  const generateMermaidCode = useCallback(() => {
     try {
-      const code = convertToMermaid(nodes, edges, {
+      return convertToMermaid(nodesRef.current, edgesRef.current, {
         includeStyles: true,
         direction: "LR",
       });
-      setMermaidCode(code);
     } catch (error) {
       console.error("Error generating mermaid code:", error);
-      setMermaidCode("");
+      return "";
     }
-  }, [nodes, edges]);
+  }, []);
 
   // Handle scroll wheel events to forward to page when no modifier keys are pressed
   // Only when zoomOnScroll is disabled
@@ -473,9 +662,9 @@ const NodeGraphBuilder = ({
     a.click();
   }, []);
 
-  const openStudioModal = () => {
+  const openStudioModal = useCallback(() => {
     setIsStudioModalOpen(true);
-  };
+  }, [setIsStudioModalOpen]);
 
   const openChat = useCallback(() => {
     window.dispatchEvent(new CustomEvent("eventcatalog:open-chat"));
@@ -486,7 +675,7 @@ const NodeGraphBuilder = ({
     if (!resourceKey || !onSaveLayout) return false;
 
     const positions: Record<string, { x: number; y: number }> = {};
-    nodes.forEach((node) => {
+    nodesRef.current.forEach((node) => {
       positions[node.id] = {
         x: node.position.x,
         y: node.position.y,
@@ -494,7 +683,7 @@ const NodeGraphBuilder = ({
     });
 
     return await onSaveLayout(resourceKey, positions);
-  }, [nodes, resourceKey, onSaveLayout]);
+  }, [resourceKey, onSaveLayout]);
 
   const handleResetLayout = useCallback(async (): Promise<boolean> => {
     if (!resourceKey || !onResetLayout) return false;
@@ -509,17 +698,18 @@ const NodeGraphBuilder = ({
     if (success) {
       // Update initial positions to current positions after save
       const positions: Record<string, { x: number; y: number }> = {};
-      nodes.forEach((node) => {
+      nodesRef.current.forEach((node) => {
         positions[node.id] = { x: node.position.x, y: node.position.y };
       });
       initialPositionsRef.current = positions;
       setHasLayoutChanges(false);
     }
-  }, [handleSaveLayout, nodes]);
+  }, [handleSaveLayout]);
 
   const handleCopyArchitectureCode = useCallback(async () => {
-    await copyToClipboard(mermaidCode);
-  }, [mermaidCode]);
+    const code = generateMermaidCode();
+    await copyToClipboard(code);
+  }, [generateMermaidCode]);
 
   const handleCopyShareUrl = useCallback(async () => {
     const url = typeof window !== "undefined" ? window.location.href : "";
@@ -702,7 +892,60 @@ const NodeGraphBuilder = ({
     return { ...legendForDomains, ...legendForNodes };
   }, []);
 
-  const legend = getNodesByCollectionWithColors(nodes);
+  // Legend only depends on node types and groups, not positions.
+  // Use a ref to avoid recomputing the key string on every drag tick.
+  const legendKeyRef = useRef("");
+  const computedLegendKey = nodes
+    .map((n: Node<any>) => `${n.id}:${n.type}:${n.data.group?.id || ""}`)
+    .join(",");
+  if (computedLegendKey !== legendKeyRef.current) {
+    legendKeyRef.current = computedLegendKey;
+  }
+  const legendKey = legendKeyRef.current;
+
+  const legend = useMemo(
+    () => getNodesByCollectionWithColors(nodes),
+    [getNodesByCollectionWithColors, legendKey],
+  );
+
+  // Stable key derived from node IDs — only changes when nodes are added/removed,
+  // not when positions change during drag. Used by search, legend, and notes.
+  const nodeIdsKeyRef = useRef("");
+  const computedNodeIdsKey = nodes.map((n) => n.id).join(",");
+  if (computedNodeIdsKey !== nodeIdsKeyRef.current) {
+    nodeIdsKeyRef.current = computedNodeIdsKey;
+  }
+  const nodeIdsKey = nodeIdsKeyRef.current;
+
+  const searchNodes = useMemo(() => nodes, [nodeIdsKey]);
+
+  // Collect notes across all nodes for the dropdown menu item.
+  // Notes don't change during drag — use nodeIdsKey for stability.
+  const allNoteGroups = useMemo(() => {
+    const groups: {
+      nodeId: string;
+      name: string;
+      notes: any[];
+      nodeType: string;
+    }[] = [];
+    for (const node of nodes) {
+      const result = getNotesFromNode(node);
+      if (result) {
+        groups.push({
+          nodeId: node.id,
+          name: result.name,
+          notes: result.notes,
+          nodeType: result.nodeType,
+        });
+      }
+    }
+    return groups;
+  }, [nodeIdsKey]);
+
+  const totalNotesCount = useMemo(
+    () => allNoteGroups.reduce((sum, g) => sum + g.notes.length, 0),
+    [allNoteGroups],
+  );
 
   const handleStepChange = useCallback(
     (
@@ -806,14 +1049,15 @@ const NodeGraphBuilder = ({
   );
 
   // Check if this is a flow visualization by checking if edges use flow-edge type
-  const isFlowVisualization = edges.some(
-    (edge: Edge) => edge.type === "flow-edge",
+  const isFlowVisualization = useMemo(
+    () => edges.some((edge: Edge) => edge.type === "flow-edge"),
+    [edges],
   );
 
   return (
     <div
       ref={reactFlowWrapperRef}
-      className="w-full h-full bg-gray-50 flex flex-col"
+      className="w-full h-full bg-[rgb(var(--ec-page-bg))] flex flex-col eventcatalog-visualizer"
     >
       {isMermaidView ? (
         <>
@@ -876,7 +1120,7 @@ const NodeGraphBuilder = ({
                   <div className="w-96">
                     <VisualiserSearch
                       ref={searchRef}
-                      nodes={nodes}
+                      nodes={searchNodes}
                       onNodeSelect={handleNodeSelect}
                       onClear={handleSearchClear}
                     />
@@ -904,15 +1148,26 @@ const NodeGraphBuilder = ({
           fitView
           onNodesChange={handleNodesChange}
           onEdgesChange={onEdgesChange}
+          onEdgeMouseEnter={handleEdgeMouseEnter}
+          onEdgeMouseLeave={handleEdgeMouseLeave}
           connectionLineType={ConnectionLineType.SmoothStep}
-          nodeOrigin={[0.1, 0.1]}
+          nodeOrigin={NODE_ORIGIN}
           onNodeClick={handleNodeClick}
+          onNodeMouseEnter={handleNodeMouseEnter}
+          onNodeMouseLeave={handleNodeMouseLeave}
           onPaneClick={handlePaneClick}
+          onMoveStart={startInteraction}
+          onMoveEnd={endInteraction}
+          onNodeDragStart={startInteraction}
+          onNodeDragStop={endInteraction}
           zoomOnScroll={zoomOnScroll}
           className="relative"
         >
-          <Panel position="top-center" className="w-full pr-6 ">
-            <div className="flex space-x-2 justify-between items-center">
+          <Panel
+            position="top-center"
+            className="w-full pr-6 pointer-events-none"
+          >
+            <div className="flex space-x-2 justify-between items-center pointer-events-auto">
               <div className="flex space-x-2 ml-4">
                 {/* Settings Dropdown Menu */}
                 <DropdownMenu.Root>
@@ -959,6 +1214,8 @@ const NodeGraphBuilder = ({
                         isDevMode={isDevMode}
                         onSaveLayout={handleSaveLayout}
                         onResetLayout={handleResetLayout}
+                        notesCount={totalNotesCount}
+                        onOpenNotes={openNotesModal}
                       />
                     </DropdownMenu.Content>
                   </DropdownMenu.Portal>
@@ -970,7 +1227,7 @@ const NodeGraphBuilder = ({
                     <div className="w-96">
                       <VisualiserSearch
                         ref={searchRef}
-                        nodes={nodes}
+                        nodes={searchNodes}
                         onNodeSelect={handleNodeSelect}
                         onClear={handleSearchClear}
                       />
@@ -983,7 +1240,7 @@ const NodeGraphBuilder = ({
               <div className="flex justify-end mt-3">
                 <div className="relative flex items-center -mt-1">
                   <span className="absolute left-2 pointer-events-none flex items-center h-full">
-                    <HistoryIcon className="h-4 w-4 text-gray-600" />
+                    <HistoryIcon className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))]" />
                   </span>
                   <select
                     value={
@@ -998,7 +1255,7 @@ const NodeGraphBuilder = ({
                         window.location.href = e.target.value;
                       }
                     }}
-                    className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-white rounded-md border border-gray-200 hover:bg-gray-100/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))]"
+                    className="appearance-none pl-7 pr-6 py-0 text-[14px] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] rounded-md border border-[rgb(var(--ec-page-border))] hover:bg-[rgb(var(--ec-page-border)/0.5)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[rgb(var(--ec-accent))]"
                     style={{ minWidth: 120, height: "26px" }}
                   >
                     {links.map((link) => (
@@ -1009,7 +1266,7 @@ const NodeGraphBuilder = ({
                   </select>
                   <span className="absolute right-2 pointer-events-none">
                     <svg
-                      className="w-4 h-4 text-gray-400"
+                      className="w-4 h-4 text-[rgb(var(--ec-page-text-muted))]"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
@@ -1027,18 +1284,16 @@ const NodeGraphBuilder = ({
             )}
           </Panel>
 
-          {includeBackground && <Background color="#bbb" gap={16} />}
+          {includeBackground && (
+            <Background color="var(--ec-bg-dots)" gap={16} />
+          )}
           {includeBackground && <Controls />}
           {showMinimap && (
             <MiniMap
               nodeStrokeWidth={3}
               zoomable
               pannable
-              style={{
-                backgroundColor: "rgb(var(--ec-page-bg))",
-                border: "1px solid rgb(var(--ec-page-border))",
-                borderRadius: "8px",
-              }}
+              style={MINIMAP_STYLE}
             />
           )}
           {isFlowVisualization && showFlowWalkthrough && (
@@ -1058,8 +1313,8 @@ const NodeGraphBuilder = ({
               position="bottom-left"
               style={
                 isFlowVisualization && showFlowWalkthrough
-                  ? { marginBottom: "20px", marginLeft: "410px" }
-                  : { marginLeft: "60px" }
+                  ? LAYOUT_CHANGE_PANEL_STYLE_WITH_WALKTHROUGH
+                  : LAYOUT_CHANGE_PANEL_STYLE_DEFAULT
               }
             >
               <div className="bg-[rgb(var(--ec-card-bg))] border border-[rgb(var(--ec-page-border))] rounded-lg shadow-md px-3 py-2 flex items-center gap-3">
@@ -1077,29 +1332,11 @@ const NodeGraphBuilder = ({
             </Panel>
           )}
           {includeKey && (
-            <Panel
-              position="bottom-right"
-              style={showMinimap ? { marginRight: "230px" } : undefined}
-            >
-              <div className=" bg-white font-light px-4 text-[12px] shadow-md py-1 rounded-md">
-                <ul className="m-0 p-0 ">
-                  {Object.entries(legend).map(
-                    ([key, { count, colorClass, groupId }]) => (
-                      <li
-                        key={key}
-                        className="flex space-x-2 items-center text-[10px] cursor-pointer hover:text-[rgb(var(--ec-accent))] hover:underline"
-                        onClick={() => handleLegendClick(key, groupId)}
-                      >
-                        <span className={`w-2 h-2 block ${colorClass}`} />
-                        <span className="block capitalize">
-                          {key} ({count})
-                        </span>
-                      </li>
-                    ),
-                  )}
-                </ul>
-              </div>
-            </Panel>
+            <LegendPanel
+              legend={legend}
+              showMinimap={showMinimap}
+              onLegendClick={handleLegendClick}
+            />
           )}
         </ReactFlow>
       )}
@@ -1115,6 +1352,12 @@ const NodeGraphBuilder = ({
         edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+      />
+      <AllNotesModal
+        noteGroups={allNoteGroups}
+        isOpen={isNotesModalOpen}
+        onClose={() => setIsNotesModalOpen(false)}
+        nodes={nodes}
       />
 
       {/* Share Link Modal */}
@@ -1196,8 +1439,9 @@ interface NodeGraphProps {
   title?: string;
   href?: string;
   hrefLabel?: string;
-  nodes: Node[];
-  edges: Edge[];
+  nodes?: Node[];
+  edges?: Edge[];
+  graph?: DslGraph;
   linkTo?: "docs" | "visualiser";
   includeKey?: boolean;
   footerLabel?: string;
@@ -1213,6 +1457,8 @@ interface NodeGraphProps {
   maxTextSize?: number;
   isDevMode?: boolean;
   resourceKey?: string;
+  /** Controls whether message flow animation is enabled. When set, overrides URL params and localStorage. */
+  animated?: boolean;
 
   // Callback API for framework integration
   onNodeClick?: (node: Node) => void;
@@ -1227,32 +1473,58 @@ interface NodeGraphProps {
 
 const NodeGraph = ({
   id,
-  nodes,
-  edges,
-  title,
+  nodes: nodesProp,
+  edges: edgesProp,
+  graph,
+  title: titleProp,
   href,
   linkTo = "docs",
   hrefLabel = "Open in visualizer",
-  includeKey = true,
+  includeKey: includeKeyProp,
   footerLabel,
   linksToVisualiser = false,
   links = [],
   mode = "full",
   portalId,
   showFlowWalkthrough = true,
-  showSearch = true,
+  showSearch: showSearchProp,
   zoomOnScroll = false,
   designId,
   isChatEnabled = false,
   maxTextSize,
   isDevMode = false,
   resourceKey,
+  animated: animatedProp,
   onNodeClick,
   onBuildUrl,
   onNavigate,
   onSaveLayout,
   onResetLayout,
 }: NodeGraphProps) => {
+  // When a DslGraph is provided, run layout internally using dagre.
+  const graphLayout = useMemo(() => {
+    if (!graph) return null;
+    return layoutGraph(
+      graph.nodes,
+      graph.edges,
+      { rankdir: "LR", nodesep: 60, ranksep: 120 },
+      graph.options?.style,
+    );
+  }, [graph]);
+  const nodes = graphLayout?.nodes ?? nodesProp ?? [];
+  const edges = graphLayout?.edges ?? edgesProp ?? [];
+
+  // Derive props from graph.options when graph is provided
+  const title = titleProp ?? graph?.title;
+  const includeKey =
+    includeKeyProp !== undefined
+      ? includeKeyProp
+      : graph?.options?.legend !== false;
+  const showSearch =
+    showSearchProp !== undefined
+      ? showSearchProp
+      : graph?.options?.search !== false;
+  const animated = animatedProp ?? graph?.options?.animated;
   const [elem, setElem] = useState(null);
   const [showFooter, setShowFooter] = useState(true);
   const [isStudioModalOpen, setIsStudioModalOpen] = useState(false);
@@ -1301,6 +1573,7 @@ const NodeGraph = ({
             maxTextSize={maxTextSize}
             isDevMode={isDevMode}
             resourceKey={resourceKey}
+            animated={animated}
             onNodeClick={onNodeClick}
             onBuildUrl={onBuildUrl}
             onNavigate={onNavigate}
@@ -1312,7 +1585,7 @@ const NodeGraph = ({
             <div className="flex justify-between" id="visualiser-footer">
               {footerLabel && (
                 <div className="py-2 w-full text-left ">
-                  <span className=" text-sm no-underline py-2 text-gray-500">
+                  <span className=" text-sm no-underline py-2 text-[rgb(var(--ec-page-text-muted))]">
                     {footerLabel}
                   </span>
                 </div>
@@ -1323,13 +1596,13 @@ const NodeGraph = ({
                   {/* <span className="text-sm text-gray-500 italic">Right click a node to access documentation</span> */}
                   <button
                     onClick={openStudioModal}
-                    className=" text-sm underline text-gray-800 hover:text-primary flex items-center space-x-1"
+                    className=" text-sm underline text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))] flex items-center space-x-1"
                   >
                     <span>Open in EventCatalog Studio</span>
                     <ExternalLink className="w-3 h-3" />
                   </button>
                   <a
-                    className=" text-sm underline text-gray-800 hover:text-primary"
+                    className=" text-sm underline text-[rgb(var(--ec-page-text))] hover:text-[rgb(var(--ec-accent))]"
                     href={href}
                   >
                     {hrefLabel} &rarr;

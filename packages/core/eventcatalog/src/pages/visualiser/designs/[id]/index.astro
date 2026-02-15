@@ -17,8 +17,12 @@ const { data } = props;
 ---
 
 <VerticalSideBarLayout title={`Visualiser | Bounded context map`}>
-  <div class="bg-gray-100/50 m-4">
-    <div class="h-[calc(100vh-130px)] w-full relative border border-gray-200" id={`${data.id}-portal`} transition:animate="fade">
+  <div class="m-4">
+    <div
+      class="h-[calc(100vh-130px)] w-full relative border border-[rgb(var(--ec-page-border))] rounded-md"
+      id={`${data.id}-portal`}
+      transition:animate="fade"
+    >
     </div>
     <AstroNodeGraph
       id={data.id}

@@ -4,7 +4,7 @@ import utils from '../index';
 import path from 'node:path';
 import fs from 'node:fs';
 
-const CATALOG_PATH = path.join(__dirname, 'catalog-users');
+const CATALOG_PATH = path.join(__dirname, 'catalog-resources');
 
 const { writeEvent, getResourceFolderName } = utils(CATALOG_PATH);
 

@@ -1,5 +1,7 @@
+import { memo } from "react";
 import { UserIcon } from "@heroicons/react/20/solid";
 import { Handle } from "@xyflow/react";
+import { NODE_WIDTH_STYLE, ROTATED_LABEL_STYLE } from "./shared-styles";
 
 interface Data {
   title: string;
@@ -22,7 +24,7 @@ function classNames(...classes: any) {
   return classes.filter(Boolean).join(" ");
 }
 
-export default function UserNode({
+export default memo(function UserNode({
   data,
   sourcePosition,
   targetPosition,
@@ -39,10 +41,10 @@ export default function UserNode({
   return (
     <div
       className={classNames(
-        `rounded-md border flex justify-start  bg-white text-black border-yellow-400`,
+        `rounded-md border flex justify-start bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] border-yellow-400`,
         mode === "full" ? "min-h-[5em]" : "min-h-[2em]",
       )}
-      style={{ width: "260px" }}
+      style={NODE_WIDTH_STYLE}
     >
       <div
         className={classNames(
@@ -54,11 +56,7 @@ export default function UserNode({
         {mode === "full" && (
           <span
             className="text-center text-[9px] text-white font-bold uppercase mb-4"
-            style={{
-              transform: "rotate(-90deg)",
-              letterSpacing: "0.15em",
-              whiteSpace: "nowrap",
-            }}
+            style={ROTATED_LABEL_STYLE}
           >
             ACTOR
           </span>
@@ -75,7 +73,7 @@ export default function UserNode({
             </span>
             {mode === "simple" && (
               <div className="w-full text-right">
-                <span className=" w-full text-[10px] text-gray-500 font-light block pt-0.5 pb-0.5 ">
+                <span className=" w-full text-[10px] text-[rgb(var(--ec-page-text-muted))] font-light block pt-0.5 pb-0.5 ">
                   Event
                 </span>
               </div>
@@ -87,13 +85,15 @@ export default function UserNode({
           <div>
             <div
               className={classNames(
-                mode === "full" ? `border-b border-gray-200` : "",
+                mode === "full"
+                  ? `border-b border-[rgb(var(--ec-page-border))]`
+                  : "",
               )}
             >
               <span className="text-xs font-bold block pb-0.5">{name}</span>
             </div>
             {mode === "full" && (
-              <div className="divide-y divide-gray-200 ">
+              <div className="divide-y divide-[rgb(var(--ec-page-border))] ">
                 <div className="leading-3 py-1">
                   <span className="text-[8px] font-light">{summary}</span>
                 </div>
@@ -104,4 +104,4 @@ export default function UserNode({
       </div>
     </div>
   );
-}
+});

@@ -78,30 +78,36 @@ const FocusModeContent: React.FC<FocusModeContentProps> = ({
       const centerNodeInfo = getNodeDisplayInfo(centerNode);
       const positionedNodes: Node[] = [];
 
-      // Center node at origin
+      // Center node at origin (strip parentId/extent so it renders independently)
       positionedNodes.push({
         ...centerNode,
+        parentId: undefined,
+        extent: undefined,
         position: { x: 0, y: 0 },
         style: { ...centerNode.style, opacity: 1 },
         data: { ...centerNode.data, isFocusCenter: true },
       });
 
-      // Left nodes (incoming)
+      // Left nodes (incoming) - strip parentId/extent so they render independently
       leftNodes.forEach((node, index) => {
         const yOffset = (index - (leftNodes.length - 1) / 2) * VERTICAL_SPACING;
         positionedNodes.push({
           ...node,
+          parentId: undefined,
+          extent: undefined,
           position: { x: -HORIZONTAL_SPACING, y: yOffset },
           style: { ...node.style, opacity: 1 },
         });
       });
 
-      // Right nodes (outgoing)
+      // Right nodes (outgoing) - strip parentId/extent so they render independently
       rightNodes.forEach((node, index) => {
         const yOffset =
           (index - (rightNodes.length - 1) / 2) * VERTICAL_SPACING;
         positionedNodes.push({
           ...node,
+          parentId: undefined,
+          extent: undefined,
           position: { x: HORIZONTAL_SPACING, y: yOffset },
           style: { ...node.style, opacity: 1 },
         });

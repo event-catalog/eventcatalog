@@ -1,6 +1,40 @@
+import { memo, useMemo } from "react";
 import { Database } from "lucide-react";
-import { Node, Handle, Position } from "@xyflow/react";
+import {
+  OwnerIndicator,
+  normalizeOwners,
+  HIDDEN_HANDLE_STYLE,
+} from "../OwnerIndicator";
+import { Node, Handle, Position, useHandleConnections } from "@xyflow/react";
 import { EventCatalogResource, Data as DataType } from "../../types";
+import { NotesIndicator } from "../NotesIndicator";
+import {
+  LINE_CLAMP_STYLE,
+  FOLDED_CORNER_SHADOW_STYLE,
+  EMPTY_ARRAY,
+  useDarkMode,
+} from "../shared-styles";
+
+function GlowHandle({ side }: { side: "left" | "right" }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: "50%",
+        [side]: -6,
+        transform: "translateY(-50%)",
+        width: 12,
+        height: 12,
+        borderRadius: "50%",
+        background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+        border: "2px solid rgb(var(--ec-page-bg))",
+        zIndex: 20,
+        animation: "ec-data-handle-pulse 2s ease-in-out infinite",
+        pointerEvents: "none",
+      }}
+    />
+  );
+}
 
 function classNames(...classes: any) {
   return classes.filter(Boolean).join(" ");
@@ -12,107 +46,250 @@ type DataNodeData = EventCatalogResource & {
 
 export type DataNode = Node<DataNodeData, "data">;
 
-export default function Data(props: DataNode) {
+function PostItData(props: DataNode) {
   const {
     version,
-    owners = [],
-    schemas = [],
+    owners = EMPTY_ARRAY,
+    schemas = EMPTY_ARRAY,
     name,
     summary,
     type = "Database",
+    deprecated,
+    draft,
+    notes,
   } = props.data.data;
-
   const mode = props.data.mode || "simple";
-
-  const nodeLabel = "Data";
 
   return (
     <div
       className={classNames(
-        "rounded-md border flex justify-start bg-white text-black relative",
-        props.selected
-          ? "border-blue-600 ring-2 ring-blue-500 shadow-lg"
-          : "border-blue-400",
+        "relative min-w-44 max-w-56 min-h-[120px]",
+        props?.selected ? "ring-2 ring-blue-400/60 ring-offset-1" : "",
       )}
-      style={{ minHeight: "100px", width: "260px" }}
     >
       <Handle
         type="target"
         position={Position.Left}
-        className="!left-[-1px] !w-2.5 !h-2.5 !bg-blue-500 !border !border-blue-600 !rounded-full !z-10"
+        style={HIDDEN_HANDLE_STYLE}
       />
       <Handle
         type="source"
         position={Position.Right}
-        className="!right-[-1px] !w-2.5 !h-2.5 !bg-blue-500 !border !border-blue-600 !rounded-full !z-10"
+        style={HIDDEN_HANDLE_STYLE}
       />
+      {notes && notes.length > 0 && (
+        <NotesIndicator notes={notes} resourceName={name} />
+      )}
+      {/* Inner wrapper with rotation */}
       <div
-        className={`bg-gradient-to-b from-blue-500 to-blue-700 relative flex flex-col items-center w-5 justify-between rounded-l-sm text-blue-100 border-r-[1px] border-blue-500`}
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(135deg, #bfdbfe 0%, #93c5fd 40%, #3b82f6 100%)",
+          boxShadow:
+            "1px 1px 3px rgba(0,0,0,0.15), 3px 4px 8px rgba(0,0,0,0.08)",
+          transform: "rotate(-1deg)",
+          border: deprecated
+            ? "2px dashed rgba(239, 68, 68, 0.5)"
+            : draft
+              ? "2px dashed rgba(59, 130, 246, 0.5)"
+              : "none",
+        }}
       >
-        <Database
-          className={`w-4 h-4 opacity-90 text-white mt-1 ${mode === "full" ? "mb-2" : "mb-1"}`}
+        {/* Folded corner */}
+        <div style={FOLDED_CORNER_SHADOW_STYLE} />
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            width: 0,
+            height: 0,
+            borderStyle: "solid",
+            borderWidth: "18px 0 0 18px",
+            borderColor: "#2563eb transparent transparent transparent",
+            opacity: 0.3,
+          }}
         />
-        {mode === "full" && (
-          <span
-            className="text-center text-[8px] text-white font-bold uppercase mb-4"
-            style={{
-              transform: "rotate(-90deg)",
-              letterSpacing: "0.15em",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {nodeLabel}
-          </span>
-        )}
       </div>
-      <div className="p-1 flex-1">
+
+      {/* Content sits on top, unrotated */}
+      <div className="relative px-3.5 py-3">
+        {/* Type label row */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1">
+            <Database className="w-3 h-3 text-blue-900/50" strokeWidth={2.5} />
+            <span className="text-[8px] font-bold text-blue-900/50 uppercase tracking-widest">
+              Data
+            </span>
+          </div>
+          {draft && (
+            <span className="text-[8px] font-extrabold text-amber-900 bg-amber-100 border border-dashed border-amber-400 px-1.5 py-0.5 rounded uppercase">
+              Draft
+            </span>
+          )}
+          {deprecated && (
+            <span className="text-[7px] font-bold text-white bg-red-500 border border-red-600 px-1.5 py-0.5 rounded uppercase">
+              Deprecated
+            </span>
+          )}
+        </div>
+
+        {/* Name */}
         <div
           className={classNames(
-            mode === "full" ? `border-b border-gray-200` : "",
+            "text-[13px] font-bold leading-snug",
+            deprecated ? "text-blue-950/40 line-through" : "text-blue-950",
           )}
         >
-          <span className="text-xs font-bold block pt-0.5 pb-0.5">{name}</span>
-          <div className="flex justify-between">
-            <span className="text-[10px] font-light block pt-0.5 pb-0.5">
-              v{version}
-            </span>
-            {mode === "simple" && (
-              <span className="text-[10px] text-gray-500 font-light block pt-0.5 pb-0.5">
-                {nodeLabel}
-              </span>
-            )}
-          </div>
+          {name}
         </div>
-        {mode === "full" && (
-          <div className="divide-y divide-gray-200">
-            <div className="leading-3 py-1">
-              <div
-                className="text-[8px] font-light overflow-hidden"
-                style={{
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                }}
-                title={summary}
-              >
-                {summary}
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-x-4 py-1">
-              <span className="text-xs" style={{ fontSize: "0.2em" }}>
-                Type: {type}
-              </span>
-              <span className="text-xs" style={{ fontSize: "0.2em" }}>
-                Schemas: {schemas.length}
-              </span>
-              <span className="text-xs" style={{ fontSize: "0.2em" }}>
-                Owners: {owners.length}
-              </span>
-            </div>
+        {/* Version */}
+        {version && (
+          <div className="text-[9px] text-blue-900/40 font-semibold mt-0.5">
+            v{version}
+          </div>
+        )}
+
+        {/* Summary */}
+        {mode === "full" && summary && (
+          <div
+            className="mt-2 pt-1.5 border-t border-blue-900/10 text-[9px] text-blue-950/60 leading-relaxed overflow-hidden"
+            style={LINE_CLAMP_STYLE}
+            title={summary}
+          >
+            {summary}
           </div>
         )}
       </div>
     </div>
   );
 }
+
+function DefaultData(props: DataNode) {
+  const {
+    version,
+    owners = EMPTY_ARRAY,
+    schemas = EMPTY_ARRAY,
+    name,
+    summary,
+    type = "Database",
+    deprecated,
+    draft,
+    notes,
+  } = props.data.data;
+
+  const mode = props.data.mode || "simple";
+  const ownersNormalized = useMemo(() => normalizeOwners(owners), [owners]);
+  const targetConnections = useHandleConnections({ type: "target" });
+  const sourceConnections = useHandleConnections({ type: "source" });
+  const isDark = useDarkMode();
+  const deprecatedStripe = isDark
+    ? "rgba(239,68,68,0.25)"
+    : "rgba(239,68,68,0.1)";
+
+  return (
+    <div
+      className={classNames(
+        "relative min-w-48 max-w-60 rounded-xl border-2 overflow-visible",
+        props?.selected ? "ring-2 ring-blue-400/60 ring-offset-2" : "",
+        deprecated
+          ? "border-dashed border-red-500"
+          : draft
+            ? `border-dashed ${isDark ? "border-blue-400" : "border-blue-400/60"}`
+            : "border-blue-500",
+      )}
+      style={{
+        background: deprecated
+          ? `repeating-linear-gradient(135deg, transparent, transparent 6px, ${deprecatedStripe} 6px, ${deprecatedStripe} 7px), var(--ec-data-node-bg, rgb(var(--ec-card-bg)))`
+          : draft
+            ? `repeating-linear-gradient(135deg, transparent, transparent 4px, ${isDark ? "rgba(59,130,246,0.25)" : "rgba(59,130,246,0.15)"} 4px, ${isDark ? "rgba(59,130,246,0.25)" : "rgba(59,130,246,0.15)"} 4.5px), repeating-linear-gradient(45deg, transparent, transparent 4px, ${isDark ? "rgba(59,130,246,0.25)" : "rgba(59,130,246,0.15)"} 4px, ${isDark ? "rgba(59,130,246,0.25)" : "rgba(59,130,246,0.15)"} 4.5px), var(--ec-data-node-bg, rgb(var(--ec-card-bg)))`
+            : "var(--ec-data-node-bg, rgb(var(--ec-card-bg)))",
+        boxShadow: "0 2px 12px rgba(59, 130, 246, 0.15)",
+      }}
+    >
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={HIDDEN_HANDLE_STYLE}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={HIDDEN_HANDLE_STYLE}
+      />
+      {notes && notes.length > 0 && (
+        <NotesIndicator notes={notes} resourceName={name} />
+      )}
+      {targetConnections.length > 0 && <GlowHandle side="left" />}
+      {sourceConnections.length > 0 && <GlowHandle side="right" />}
+
+      {/* Type badge top-left */}
+      <div className="absolute -top-2.5 left-2.5 z-10">
+        <span
+          className={classNames(
+            "inline-flex items-center gap-1 text-[7px] font-bold uppercase tracking-widest text-white px-1.5 py-0.5 rounded shadow-sm",
+            deprecated ? "bg-red-500" : "bg-blue-500",
+          )}
+        >
+          <Database className="w-2.5 h-2.5" strokeWidth={2.5} />
+          Data{draft && " (Draft)"}
+          {deprecated && " (Deprecated)"}
+        </span>
+      </div>
+      {/* Container type badge top-right */}
+      {type && (
+        <span
+          className="z-10 text-[7px] font-semibold text-[rgb(var(--ec-page-text))] bg-[rgb(var(--ec-card-bg))] border border-blue-500 rounded-full px-1.5 py-0.5 uppercase tracking-wide"
+          style={{ position: "absolute", top: -8, right: 10 }}
+        >
+          {type}
+        </span>
+      )}
+
+      <div className="px-3 pt-3.5 pb-2.5">
+        {/* Name + version */}
+        <div className="flex items-baseline gap-1">
+          <span className="text-[13px] font-semibold leading-snug text-[rgb(var(--ec-page-text))]">
+            {name}
+          </span>
+          {version && (
+            <span className="text-[10px] font-normal text-[rgb(var(--ec-page-text-muted))] shrink-0">
+              (v{version})
+            </span>
+          )}
+        </div>
+
+        {/* Summary */}
+        {mode === "full" && summary && (
+          <div
+            className="mt-1.5 text-[9px] text-[rgb(var(--ec-page-text-muted))] leading-relaxed overflow-hidden"
+            style={LINE_CLAMP_STYLE}
+            title={summary}
+          >
+            {summary}
+          </div>
+        )}
+
+        {/* Owners */}
+        <OwnerIndicator
+          owners={ownersNormalized}
+          accentColor="bg-blue-400"
+          borderColor="rgba(59,130,246,0.08)"
+          iconClass="text-blue-300"
+        />
+      </div>
+    </div>
+  );
+}
+
+export default memo(function Data(props: DataNode) {
+  const nodeStyle = props?.data?.style;
+
+  if (nodeStyle === "post-it") {
+    return <PostItData {...props} />;
+  }
+
+  return <DefaultData {...props} />;
+});

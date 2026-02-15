@@ -7,7 +7,8 @@ import {
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import { buildUrl } from "../utils/url-builder";
 import { getIcon } from "../utils/badges";
-import { useState } from "react";
+import { memo, useState, useCallback, useMemo } from "react";
+import { HANDLE_LEFT_STYLE, HANDLE_RIGHT_STYLE } from "./shared-styles";
 
 interface DomainData {
   id: string;
@@ -28,7 +29,7 @@ interface Data {
   };
 }
 
-export default function DomainNode({ data, id: nodeId }: any) {
+export default memo(function DomainNode({ data, id: nodeId }: any) {
   const { mode, domain } = data as Data;
   const reactFlow = useReactFlow();
   const [highlightedServices, setHighlightedServices] = useState<Set<string>>(
@@ -38,12 +39,12 @@ export default function DomainNode({ data, id: nodeId }: any) {
   const { id, version, name, services = [], styles } = domain.data;
   const { icon = "RectangleGroupIcon" } = styles || {};
 
-  const Icon = getIcon(icon);
-  const ServerIcon = getIcon("ServerIcon");
+  const Icon = useMemo(() => getIcon(icon), [icon]);
+  const ServerIcon = useMemo(() => getIcon("ServerIcon"), []);
 
   // Listen for selection changes to highlight connected services
-  useOnSelectionChange({
-    onChange: ({ nodes: selectedNodes }) => {
+  const handleSelectionChange = useCallback(
+    ({ nodes: selectedNodes }: { nodes: any[] }) => {
       if (selectedNodes.length === 0) {
         setHighlightedServices(new Set());
         return;
@@ -81,17 +82,24 @@ export default function DomainNode({ data, id: nodeId }: any) {
 
       setHighlightedServices(connectedServiceIds);
     },
+    [nodeId, reactFlow],
+  );
+
+  useOnSelectionChange({
+    onChange: handleSelectionChange,
   });
 
   return (
     <ContextMenu.Root>
       <ContextMenu.Trigger>
-        <div className="w-full rounded-lg border-2 border-yellow-400 bg-white shadow-lg">
-          <div className="bg-yellow-100 px-3 py-2 flex items-center space-x-2">
-            {Icon && <Icon className="w-4 h-4 text-yellow-700" />}
+        <div className="w-full rounded-lg border-2 border-yellow-400 bg-[rgb(var(--ec-card-bg))] shadow-lg">
+          <div className="bg-[rgb(var(--ec-domain-header-bg,253_224_71)/0.2)] px-3 py-2 flex items-center space-x-2">
+            {Icon && <Icon className="w-4 h-4 text-yellow-500" />}
             <div>
-              <span className="text-sm font-bold text-yellow-900">{name}</span>
-              <span className="text-xs text-yellow-700 ml-2">v{version}</span>
+              <span className="text-sm font-bold text-[rgb(var(--ec-page-text))]">
+                {name}
+              </span>
+              <span className="text-xs text-yellow-500 ml-2">v{version}</span>
             </div>
           </div>
           {mode === "full" && services.length > 0 && (
@@ -103,21 +111,21 @@ export default function DomainNode({ data, id: nodeId }: any) {
                   <ContextMenu.Root key={`${service.data.id}-${index}`}>
                     <ContextMenu.Trigger asChild>
                       <div
-                        className={`relative flex items-center justify-between px-3 py-2 cursor-pointer ${index !== services.length - 1 ? "border-b border-gray-300" : ""} ${isHighlighted ? "bg-pink-100 border-pink-300" : ""}`}
+                        className={`relative flex items-center justify-between px-3 py-2 cursor-pointer ${index !== services.length - 1 ? "border-b border-[rgb(var(--ec-page-border))]" : ""} ${isHighlighted ? "bg-pink-100 border-pink-300" : ""}`}
                       >
                         <Handle
                           type="target"
                           position={Position.Left}
                           id={`${service.data.id}-target`}
                           className="!left-[-1px] !w-2 !h-2 !bg-gray-400 !border !border-gray-500 !rounded-full !z-10"
-                          style={{ left: "-1px" }}
+                          style={HANDLE_LEFT_STYLE}
                         />
                         <Handle
                           type="source"
                           position={Position.Right}
                           id={`${service.data.id}-source`}
                           className="!right-[-1px] !w-2 !h-2 !bg-gray-400 !border !border-gray-500 !rounded-full !z-10"
-                          style={{ right: "-1px" }}
+                          style={HANDLE_RIGHT_STYLE}
                         />
                         <div className="flex items-center space-x-3">
                           <div className="flex items-center justify-center w-5 h-5 bg-pink-500 rounded">
@@ -125,11 +133,11 @@ export default function DomainNode({ data, id: nodeId }: any) {
                               <ServerIcon className="w-3 h-3 text-white" />
                             )}
                           </div>
-                          <span className="text-sm font-medium text-gray-900">
+                          <span className="text-sm font-medium text-[rgb(var(--ec-page-text))]">
                             {service.data.name || service.data.id}
                           </span>
                         </div>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                        <div className="flex items-center space-x-4 text-sm text-[rgb(var(--ec-page-text-muted))]">
                           <span className="text-xs">
                             v{service.data.version}
                           </span>
@@ -137,9 +145,9 @@ export default function DomainNode({ data, id: nodeId }: any) {
                       </div>
                     </ContextMenu.Trigger>
                     <ContextMenu.Portal>
-                      <ContextMenu.Content className="min-w-[220px] bg-white rounded-md p-1 shadow-md border border-gray-200">
+                      <ContextMenu.Content className="min-w-[220px] bg-[rgb(var(--ec-card-bg))] rounded-md p-1 shadow-md border border-[rgb(var(--ec-page-border))]">
                         <ContextMenu.Item
-                          className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
+                          className="text-sm text-[rgb(var(--ec-page-text))] px-2 py-1.5 outline-none cursor-pointer hover:bg-[rgb(var(--ec-page-border)/0.5)] rounded-sm flex items-center"
                           onClick={() =>
                             (window.location.href = buildUrl(
                               `/docs/services/${service.data.id}/${service.data.version}`,
@@ -149,7 +157,7 @@ export default function DomainNode({ data, id: nodeId }: any) {
                           View Service Documentation
                         </ContextMenu.Item>
                         <ContextMenu.Item
-                          className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
+                          className="text-sm text-[rgb(var(--ec-page-text))] px-2 py-1.5 outline-none cursor-pointer hover:bg-[rgb(var(--ec-page-border)/0.5)] rounded-sm flex items-center"
                           onClick={() =>
                             (window.location.href = buildUrl(
                               `/visualiser/services/${service.data.id}/${service.data.version}`,
@@ -168,9 +176,9 @@ export default function DomainNode({ data, id: nodeId }: any) {
         </div>
       </ContextMenu.Trigger>
       <ContextMenu.Portal>
-        <ContextMenu.Content className="min-w-[220px] bg-white rounded-md p-1 shadow-md border border-gray-200">
+        <ContextMenu.Content className="min-w-[220px] bg-[rgb(var(--ec-card-bg))] rounded-md p-1 shadow-md border border-[rgb(var(--ec-page-border))]">
           <ContextMenu.Item
-            className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
+            className="text-sm text-[rgb(var(--ec-page-text))] px-2 py-1.5 outline-none cursor-pointer hover:bg-[rgb(var(--ec-page-border)/0.5)] rounded-sm flex items-center"
             onClick={() =>
               (window.location.href = buildUrl(
                 `/docs/domains/${id}/${version}`,
@@ -180,7 +188,7 @@ export default function DomainNode({ data, id: nodeId }: any) {
             View Domain Documentation
           </ContextMenu.Item>
           <ContextMenu.Item
-            className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
+            className="text-sm text-[rgb(var(--ec-page-text))] px-2 py-1.5 outline-none cursor-pointer hover:bg-[rgb(var(--ec-page-border)/0.5)] rounded-sm flex items-center"
             onClick={() =>
               (window.location.href = buildUrl(
                 `/visualiser/domains/${id}/${version}`,
@@ -193,4 +201,4 @@ export default function DomainNode({ data, id: nodeId }: any) {
       </ContextMenu.Portal>
     </ContextMenu.Root>
   );
-}
+});

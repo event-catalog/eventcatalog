@@ -5,6 +5,7 @@ import type { Node, Connection, MarkerType } from "@xyflow/react";
  */
 export type EventCatalogResource = {
   mode: "simple" | "full";
+  style?: string;
   collection?: string;
   filePath?: string;
   id?: string;
@@ -20,6 +21,19 @@ export type Message = {
   owners?: string[];
   producers?: string[];
   consumers?: string[];
+  deprecated?: boolean;
+  draft?: boolean;
+  schema?: string;
+  notes?: Note[];
+};
+
+/**
+ * Note attached to a resource
+ */
+export type Note = {
+  content: string;
+  author?: string;
+  priority?: string;
 };
 
 /**
@@ -32,6 +46,9 @@ export type Service = {
   owners?: string[];
   sends?: string[];
   receives?: string[];
+  deprecated?: boolean;
+  draft?: boolean;
+  notes?: Note[];
 };
 
 /**
@@ -45,6 +62,9 @@ export type Channel = {
   parameters?: Record<string, string>;
   protocols?: string[];
   address?: string;
+  deprecated?: boolean;
+  draft?: boolean;
+  notes?: Note[];
 };
 
 /**
@@ -54,6 +74,7 @@ export type ExternalSystem = {
   name: string;
   version: string;
   summary: string;
+  notes?: Note[];
 };
 
 /**
@@ -66,6 +87,9 @@ export type Data = {
   owners?: string[];
   type?: string;
   schemas?: string[];
+  deprecated?: boolean;
+  draft?: boolean;
+  notes?: Note[];
 };
 
 /**
@@ -77,6 +101,7 @@ export type View = {
   summary: string;
   owners?: string[];
   screenshot?: string;
+  notes?: Note[];
 };
 
 /**
@@ -213,4 +238,72 @@ export type VisualizerMode = "full" | "simple";
 export interface VisualizerLink {
   label: string;
   url: string;
+}
+
+/**
+ * DSL Graph types – used by the playground and any consumer that wants
+ * to hand a high-level graph to the visualiser for automatic layout.
+ */
+
+export interface GraphNode {
+  id: string;
+  type:
+    | "domain"
+    | "service"
+    | "event"
+    | "command"
+    | "query"
+    | "channel"
+    | "entity"
+    | "container"
+    | "data"
+    | "data-product"
+    | "flow"
+    | "actor"
+    | "external-system"
+    | "step"
+    | "user"
+    | "team"
+    | "diagram";
+  label: string;
+  parentId?: string;
+  metadata: Record<string, unknown>;
+}
+
+export type GraphEdgeType =
+  | "sends"
+  | "receives"
+  | "publishes"
+  | "subscribes"
+  | "writes-to"
+  | "reads-from"
+  | "contains"
+  | "owns"
+  | "member-of"
+  | "routes-to"
+  | "flow-step";
+
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  type: GraphEdgeType;
+  label?: string;
+}
+
+export interface DslGraph {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  visualizers?: string[];
+  activeVisualizer?: string;
+  title?: string;
+  empty?: boolean;
+  options?: {
+    legend?: boolean;
+    search?: boolean;
+    toolbar?: boolean;
+    focusMode?: boolean;
+    animated?: boolean;
+    style?: string;
+  };
 }

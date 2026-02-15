@@ -1,5 +1,6 @@
 import { Node, Handle, Position } from "@xyflow/react";
-import React, { useState, useEffect, useRef } from "react";
+import React, { memo, useState, useEffect, useRef, useCallback } from "react";
+import { FULL_SIZE_STYLE } from "../shared-styles";
 
 function classNames(...classes: any) {
   return classes.filter(Boolean).join(" ");
@@ -16,14 +17,64 @@ export type NoteNodeData = {
 // Define the NoteNode type for React Flow
 export type NoteNode = Node<NoteNodeData, "note">;
 
-interface NoteNodeProps extends NoteNode {
+export interface NoteNodeProps extends NoteNode {
   onTextChange?: (id: string, text: string) => void;
   onColorChange?: (id: string, color: string) => void;
   showResizer?: boolean;
   readOnly?: boolean;
 }
 
-export default function NoteNodeComponent({
+const AVAILABLE_COLORS = {
+  yellow: {
+    bg: "bg-gradient-to-br from-yellow-200 to-yellow-300",
+    border: "border-yellow-400",
+    text: "text-yellow-900",
+    placeholder: "placeholder-yellow-600",
+    selectedRing: "ring-yellow-500",
+  },
+  blue: {
+    bg: "bg-blue-200",
+    border: "border-blue-400",
+    text: "text-blue-900",
+    placeholder: "placeholder-blue-600",
+    selectedRing: "ring-blue-500",
+  },
+  green: {
+    bg: "bg-green-200",
+    border: "border-green-400",
+    text: "text-green-900",
+    placeholder: "placeholder-green-600",
+    selectedRing: "ring-green-500",
+  },
+  pink: {
+    bg: "bg-pink-200",
+    border: "border-pink-400",
+    text: "text-pink-900",
+    placeholder: "placeholder-pink-600",
+    selectedRing: "ring-pink-500",
+  },
+  purple: {
+    bg: "bg-purple-200",
+    border: "border-purple-400",
+    text: "text-purple-900",
+    placeholder: "placeholder-purple-600",
+    selectedRing: "ring-purple-500",
+  },
+  gray: {
+    bg: "bg-gray-200",
+    border: "border-gray-400",
+    text: "text-gray-900",
+    placeholder: "placeholder-gray-600",
+    selectedRing: "ring-gray-500",
+  },
+} as const;
+
+type ColorName = keyof typeof AVAILABLE_COLORS;
+
+const POSITION_RELATIVE_STYLE = { position: "relative" } as const;
+const TEXTAREA_STYLE = { height: "100%", minHeight: 0 } as const;
+
+export default memo(function NoteNodeComponent({
   id,
   data,
   selected,
@@ -37,57 +88,9 @@ export default function NoteNodeComponent({
   );
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Define a list of selectable colors
-  const availableColors = {
-    yellow: {
-      bg: "bg-gradient-to-br from-yellow-200 to-yellow-300",
-      border: "border-yellow-400",
-      text: "text-yellow-900",
-      placeholder: "placeholder-yellow-600",
-      selectedRing: "ring-yellow-500",
-    },
-    blue: {
-      bg: "bg-blue-200",
-      border: "border-blue-400",
-      text: "text-blue-900",
-      placeholder: "placeholder-blue-600",
-      selectedRing: "ring-blue-500",
-    },
-    green: {
-      bg: "bg-green-200",
-      border: "border-green-400",
-      text: "text-green-900",
-      placeholder: "placeholder-green-600",
-      selectedRing: "ring-green-500",
-    },
-    pink: {
-      bg: "bg-pink-200",
-      border: "border-pink-400",
-      text: "text-pink-900",
-      placeholder: "placeholder-pink-600",
-      selectedRing: "ring-pink-500",
-    },
-    purple: {
-      bg: "bg-purple-200",
-      border: "border-purple-400",
-      text: "text-purple-900",
-      placeholder: "placeholder-purple-600",
-      selectedRing: "ring-purple-500",
-    },
-    gray: {
-      bg: "bg-gray-200",
-      border: "border-gray-400",
-      text: "text-gray-900",
-      placeholder: "placeholder-gray-600",
-      selectedRing: "ring-gray-500",
-    },
-  };
-
-  type ColorName = keyof typeof availableColors;
-
   const currentColorName = (data.color as ColorName) || "yellow";
   const colorClasses =
-    availableColors[currentColorName] || availableColors.yellow;
+    AVAILABLE_COLORS[currentColorName] || AVAILABLE_COLORS.yellow;
 
   // Simple markdown-like text formatting
   const formatText = (text: string) => {
@@ -133,46 +136,55 @@ export default function NoteNodeComponent({
     }
   }, [isEditing]);
 
-  const handleDoubleClick = () => {
+  const handleDoubleClick = useCallback(() => {
     if (!readOnly) {
       setIsEditing(true);
     }
-  };
+  }, [readOnly]);
 
-  const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setCurrentText(event.target.value);
-  };
+  const handleTextChange = useCallback(
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setCurrentText(event.target.value);
+    },
+    [],
+  );
 
-  const handleBlur = () => {
+  const handleBlur = useCallback(() => {
     setIsEditing(false);
     // Only update if the text has actually changed from what's in data
     // or if data.text was initially undefined/empty and now has content.
     if (currentText !== data.text && onTextChange) {
       onTextChange(id, currentText);
     }
-  };
+  }, [currentText, data.text, id, onTextChange]);
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault(); // Prevent newline on Enter
-      handleBlur(); // Save and exit edit mode
-    }
-    // Allow Shift+Enter for newlines by default textarea behavior
-    if (event.key === "Escape") {
-      setIsEditing(false);
-      // Revert to original text from data on Escape
-      setCurrentText(data.text || "Double-click to edit...");
-    }
-  };
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault(); // Prevent newline on Enter
+        handleBlur(); // Save and exit edit mode
+      }
+      // Allow Shift+Enter for newlines by default textarea behavior
+      if (event.key === "Escape") {
+        setIsEditing(false);
+        // Revert to original text from data on Escape
+        setCurrentText(data.text || "Double-click to edit...");
+      }
+    },
+    [handleBlur, data.text],
+  );
 
-  const handleColorChange = (newColor: ColorName) => {
-    if (onColorChange) {
-      onColorChange(id, newColor);
-    }
-  };
+  const handleColorChange = useCallback(
+    (newColor: ColorName) => {
+      if (onColorChange) {
+        onColorChange(id, newColor);
+      }
+    },
+    [id, onColorChange],
+  );
 
   return (
-    <div className="relative group" style={{ width: "100%", height: "100%" }}>
+    <div className="relative group" style={FULL_SIZE_STYLE}>
       <Handle
         type="target"
         position={Position.Left}
@@ -184,18 +196,18 @@ export default function NoteNodeComponent({
         className="!right-[-1px] !w-2 !h-2 !bg-gray-400 !border !border-gray-500 !rounded-full !z-10"
       />
       {selected && !isEditing && !readOnly && (
-        <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 flex space-x-1 p-1 bg-white rounded-md shadow-lg border border-gray-300 z-20">
-          {Object.keys(availableColors).map((colorKey) => (
+        <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 flex space-x-1 p-1 bg-[rgb(var(--ec-card-bg))] rounded-md shadow-lg border border-[rgb(var(--ec-page-border))] z-20">
+          {Object.keys(AVAILABLE_COLORS).map((colorKey) => (
             <button
               key={colorKey}
               onClick={() => handleColorChange(colorKey as ColorName)}
               className={classNames(
                 "w-6 h-6 rounded-full border-2",
-                availableColors[colorKey as ColorName].bg,
-                availableColors[colorKey as ColorName].border,
+                AVAILABLE_COLORS[colorKey as ColorName].bg,
+                AVAILABLE_COLORS[colorKey as ColorName].border,
                 currentColorName === colorKey
                   ? "ring-2 ring-offset-1 " +
-                      availableColors[colorKey as ColorName].selectedRing
+                      AVAILABLE_COLORS[colorKey as ColorName].selectedRing
                   : "",
               )}
               title={colorKey.charAt(0).toUpperCase() + colorKey.slice(1)}
@@ -218,7 +230,7 @@ export default function NoteNodeComponent({
             ? "shadow-yellow-300/50 shadow-lg transform rotate-0.5"
             : "",
         )}
-        style={{ position: "relative" }}
+        style={POSITION_RELATIVE_STYLE}
       >
         {isEditing ? (
           <textarea
@@ -232,7 +244,7 @@ export default function NoteNodeComponent({
               colorClasses.text,
               colorClasses.placeholder,
             )}
-            style={{ height: "100%", minHeight: 0 }}
+            style={TEXTAREA_STYLE}
             placeholder="Enter text..."
           />
         ) : (
@@ -253,4 +265,4 @@ export default function NoteNodeComponent({
       </div>
     </div>
   );
-}
+});

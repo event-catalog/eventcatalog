@@ -1,0 +1,56 @@
+{
+  "name": "@eventcatalog/language-server",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./language-server": {
+      "import": "./dist/main.js"
+    }
+  },
+  "files": [
+    "dist",
+    "syntaxes",
+    "specification",
+    "SPEC.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/event-catalog/eventcatalog",
+    "directory": "packages/language-server"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "generate": "langium generate",
+    "build": "tsc",
+    "build:bin": "langium generate && tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:ci": "vitest run",
+    "spec": "bash specification/build-spec.sh",
+    "format": "prettier --write .",
+    "format:diff": "prettier --check ."
+  },
+  "dependencies": {
+    "langium": "^3.3.1",
+    "semver": "^7.7.4",
+    "vscode-languageclient": "^9.0.1",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12",
+    "vscode-uri": "^3.0.8"
+  },
+  "devDependencies": {
+    "@types/semver": "^7.7.1",
+    "langium-cli": "^3.3.1",
+    "prettier": "^3.2.5",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

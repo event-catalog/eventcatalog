@@ -1,7 +1,14 @@
+import { memo, useMemo } from "react";
 import { Handle } from "@xyflow/react";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import { buildUrl } from "../utils/url-builder";
 import { getIcon } from "../utils/badges";
+import {
+  NODE_WIDTH_STYLE,
+  ROTATED_LABEL_STYLE,
+  TINY_FONT_STYLE,
+  EMPTY_ARRAY,
+} from "./shared-styles";
 
 interface FlowData {
   id: string;
@@ -39,18 +46,18 @@ function classNames(...classes: any) {
   return classes.filter(Boolean).join(" ");
 }
 
-export default function FlowNode({
+export default memo(function FlowNode({
   data,
   sourcePosition,
   targetPosition,
 }: any) {
   const { mode, flow } = data as Data;
 
-  const { id, version, owners = [], name, styles } = flow.data;
+  const { id, version, owners = EMPTY_ARRAY, name, styles } = flow.data;
   const { node: { color = "teal", label } = {}, icon = "QueueListIcon" } =
     styles || {};
 
-  const Icon = getIcon(icon);
+  const Icon = useMemo(() => getIcon(icon), [icon]);
   const nodeLabel = label || flow?.data?.sidebar?.badge || "Flow";
   const fontSize = nodeLabel.length > 10 ? "7px" : "9px";
 
@@ -59,9 +66,9 @@ export default function FlowNode({
       <ContextMenu.Trigger>
         <div
           className={classNames(
-            `rounded-md border flex justify-start  bg-white text-black border-${color}-400`,
+            `rounded-md border flex justify-start bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] border-${color}-400`,
           )}
-          style={{ width: "260px" }}
+          style={NODE_WIDTH_STYLE}
         >
           <div
             className={classNames(
@@ -73,11 +80,7 @@ export default function FlowNode({
             {mode === "full" && (
               <span
                 className={`text-center text-[${fontSize}] text-white font-bold uppercase mb-4`}
-                style={{
-                  transform: "rotate(-90deg)",
-                  letterSpacing: "0.15em",
-                  whiteSpace: "nowrap",
-                }}
+                style={ROTATED_LABEL_STYLE}
               >
                 {nodeLabel}
               </span>
@@ -92,7 +95,9 @@ export default function FlowNode({
             )}
             <div
               className={classNames(
-                mode === "full" ? `border-b border-gray-200` : "",
+                mode === "full"
+                  ? `border-b border-[rgb(var(--ec-page-border))]`
+                  : "",
               )}
             >
               <span className="text-xs font-bold block pt-0.5 pb-0.5">
@@ -103,14 +108,14 @@ export default function FlowNode({
                   v{version}
                 </span>
                 {mode === "simple" && (
-                  <span className="text-[10px] text-gray-500 font-light block pt-0.5 pb-0.5 ">
+                  <span className="text-[10px] text-[rgb(var(--ec-page-text-muted))] font-light block pt-0.5 pb-0.5 ">
                     {nodeLabel}
                   </span>
                 )}
               </div>
             </div>
             {mode === "full" && (
-              <div className="divide-y divide-gray-200 ">
+              <div className="divide-y divide-[rgb(var(--ec-page-border))] ">
                 <div className="leading-3 py-1">
                   <span className="text-[8px] font-light">
                     {flow.data.summary}
@@ -118,7 +123,7 @@ export default function FlowNode({
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-4 py-1">
-                  <span className="text-xs" style={{ fontSize: "0.2em" }}>
+                  <span className="text-xs" style={TINY_FONT_STYLE}>
                     Owners: {owners.length}
                   </span>
                 </div>
@@ -128,7 +133,7 @@ export default function FlowNode({
         </div>
       </ContextMenu.Trigger>
       <ContextMenu.Portal>
-        <ContextMenu.Content className="min-w-[220px] bg-white rounded-md p-1 shadow-md border border-gray-200">
+        <ContextMenu.Content className="min-w-[220px] bg-[rgb(var(--ec-card-bg))] rounded-md p-1 shadow-md border border-[rgb(var(--ec-page-border))]">
           <ContextMenu.Item
             asChild
             className="text-sm px-2 py-1.5 outline-none cursor-pointer hover:bg-orange-100 rounded-sm flex items-center"
@@ -145,7 +150,7 @@ export default function FlowNode({
               View in visualiser
             </a>
           </ContextMenu.Item>
-          <ContextMenu.Separator className="h-[1px] bg-gray-200 m-1" />
+          <ContextMenu.Separator className="h-[1px] bg-[rgb(var(--ec-page-border))] m-1" />
           <ContextMenu.Item asChild>
             <a
               href={buildUrl(`/docs/flows/${id}/${version}/changelog`)}
@@ -160,4 +165,4 @@ export default function FlowNode({
       </ContextMenu.Portal>
     </ContextMenu.Root>
   );
-}
+});

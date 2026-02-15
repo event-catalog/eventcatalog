@@ -1,8 +1,15 @@
 import { Handle } from "@xyflow/react";
 import * as Icons from "@heroicons/react/24/solid";
-import type { ComponentType } from "react";
+import { memo, useMemo, type ComponentType } from "react";
 import * as ContextMenu from "@radix-ui/react-context-menu";
 import * as Tooltip from "@radix-ui/react-tooltip";
+import {
+  NODE_WIDTH_STYLE,
+  ROTATED_LABEL_STYLE,
+  TINY_FONT_STYLE,
+  EMPTY_OBJECT,
+  EMPTY_ARRAY,
+} from "./shared-styles";
 
 type MenuItem = {
   label: string;
@@ -41,7 +48,7 @@ function classNames(...classes: any) {
   return classes.filter(Boolean).join(" ");
 }
 
-export default function UserNode({
+export default memo(function UserNode({
   data,
   sourcePosition,
   targetPosition,
@@ -55,13 +62,14 @@ export default function UserNode({
     type = "custom",
     summary = "",
     url: _url = "",
-    properties = {},
-    menu = [],
+    properties = EMPTY_OBJECT,
+    menu = EMPTY_ARRAY,
     height = 5,
   } = customProps;
 
-  const IconComponent: ComponentType<{ className?: string }> | undefined =
-    Icons[icon as keyof typeof Icons];
+  const IconComponent = useMemo<
+    ComponentType<{ className?: string }> | undefined
+  >(() => Icons[icon as keyof typeof Icons], [icon]);
 
   const { actor: { name: _name } = {} } = step;
 
@@ -73,11 +81,11 @@ export default function UserNode({
       <ContextMenu.Trigger>
         <div
           className={classNames(
-            `rounded-md border flex justify-start  bg-white text-black border-${color}-400`,
+            `rounded-md border flex justify-start bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] border-${color}-400`,
           )}
           style={{
             minHeight: mode === "full" ? `${height}em` : "2em",
-            width: "260px",
+            ...NODE_WIDTH_STYLE,
           }}
         >
           <div
@@ -86,18 +94,16 @@ export default function UserNode({
               `border-r-[1px] border-${color}`,
             )}
           >
-            <IconComponent className="w-4 h-4 opacity-90 text-white mt-1" />
+            {IconComponent && (
+              <IconComponent className="w-4 h-4 opacity-90 text-white mt-1" />
+            )}
             {mode === "full" && (
               <Tooltip.Provider>
                 <Tooltip.Root>
                   <Tooltip.Trigger asChild>
                     <span
                       className="text-center text-[9px] text-white font-bold uppercase mb-4"
-                      style={{
-                        transform: "rotate(-90deg)",
-                        letterSpacing: "0.15em",
-                        whiteSpace: "nowrap",
-                      }}
+                      style={ROTATED_LABEL_STYLE}
                     >
                       {displayType}
                     </span>
@@ -138,7 +144,9 @@ export default function UserNode({
               <div>
                 <div
                   className={classNames(
-                    mode === "full" ? `border-b border-gray-200` : "",
+                    mode === "full"
+                      ? `border-b border-[rgb(var(--ec-page-border))]`
+                      : "",
                   )}
                 >
                   <span className="text-xs font-bold block pb-0.5">
@@ -146,7 +154,7 @@ export default function UserNode({
                   </span>
                 </div>
                 {mode === "full" && (
-                  <div className="divide-y divide-gray-200 ">
+                  <div className="divide-y divide-[rgb(var(--ec-page-border))] ">
                     <div className="leading-3 py-1">
                       <span className="text-[8px] font-light">{summary}</span>
                     </div>
@@ -156,7 +164,7 @@ export default function UserNode({
                           <span
                             key={key}
                             className="text-xs"
-                            style={{ fontSize: "0.2em" }}
+                            style={TINY_FONT_STYLE}
                           >
                             {key}:{" "}
                             {typeof value === "string" &&
@@ -185,7 +193,7 @@ export default function UserNode({
       </ContextMenu.Trigger>
       {menu?.length > 0 && (
         <ContextMenu.Portal>
-          <ContextMenu.Content className="min-w-[220px] bg-white rounded-md p-1 shadow-md border border-gray-200">
+          <ContextMenu.Content className="min-w-[220px] bg-[rgb(var(--ec-card-bg))] rounded-md p-1 shadow-md border border-[rgb(var(--ec-page-border))]">
             {menu?.map((item) => {
               return (
                 <ContextMenu.Item
@@ -201,4 +209,4 @@ export default function UserNode({
       )}
     </ContextMenu.Root>
   );
-}
+});
