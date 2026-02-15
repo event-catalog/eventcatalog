@@ -1,3 +1,4 @@
+import semver from "semver";
 import type { AstNode } from "langium";
 import type {
   Program,
@@ -167,11 +168,27 @@ export function astToGraph(
     if ("name" in def) {
       const body = ("body" in def ? def.body : []) as AstNode[];
       const version = getVersion(body);
-      // Always store under name (latest/fallback)
-      topLevelDefs.set(def.name, def);
-      // Also store under name@version for exact lookups
+      // Store under name@version for exact lookups
       if (version) {
         topLevelDefs.set(defKey(def.name, version), def);
+      }
+      // Store under bare name only if it's the latest version seen so far
+      const existing = topLevelDefs.get(def.name);
+      if (!existing) {
+        topLevelDefs.set(def.name, def);
+      } else if (version) {
+        const existingBody = (
+          "body" in existing ? existing.body : []
+        ) as AstNode[];
+        const existingVersion = getVersion(existingBody);
+        if (
+          !existingVersion ||
+          (semver.valid(version) &&
+            semver.valid(existingVersion) &&
+            semver.compare(version, existingVersion) > 0)
+        ) {
+          topLevelDefs.set(def.name, def);
+        }
       }
     }
 
@@ -247,7 +264,7 @@ export function astToGraph(
 
   // Find the best matching node for a type+name, optionally with a specific version.
   // If version is given, look for that exact versioned node first.
-  // If no version, look for any existing node of that type+name (prefer the first one found).
+  // If no version, resolve to the latest version per the DSL spec.
   function resolveNodeId(
     name: string,
     type: string,
@@ -258,12 +275,28 @@ export function astToGraph(
       const exact = nodes.find((n) => n.id === nid(name, type, version));
       return exact?.id;
     }
-    // No version: find any node matching type:name (with or without version suffix)
+    // No version: per spec, bare refs resolve to the latest version.
+    // Collect all matching nodes and pick the one with the highest semver.
     const prefix = `${type}:${name}`;
-    const match = nodes.find(
+    const candidates = nodes.filter(
       (n) => n.id === prefix || n.id.startsWith(prefix + "@"),
     );
-    return match?.id;
+    if (candidates.length === 0) return undefined;
+    if (candidates.length === 1) return candidates[0].id;
+
+    // Pick the candidate with the highest semver version
+    let latest = candidates[0];
+    for (let i = 1; i < candidates.length; i++) {
+      const cv = (candidates[i].metadata.version as string) || "";
+      const lv = (latest.metadata.version as string) || "";
+      if (
+        semver.valid(cv) &&
+        (!semver.valid(lv) || semver.compare(cv, lv) > 0)
+      ) {
+        latest = candidates[i];
+      }
+    }
+    return latest.id;
   }
 
   function addNode(

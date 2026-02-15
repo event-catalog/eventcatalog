@@ -1900,4 +1900,137 @@ describe("astToGraph", () => {
     expect(svc).toBeDefined();
     expect(svc!.metadata.owners).toEqual(["orders-team", "platform-team"]);
   });
+
+  // ─── Version resolution tests ──────────────────────────────
+
+  it("bare ref resolves to latest version when multiple versions exist", async () => {
+    const program = await parseProgram(`
+      service OrderService {
+        version 1.0.0
+        name "Order Service (Legacy)"
+        sends event OrderCreatedV1
+      }
+
+      service OrderService {
+        version 2.0.0
+        name "Order Service (New)"
+        sends event OrderCreatedV2
+      }
+
+      visualizer main {
+        service OrderService
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    // Bare ref should resolve to v2.0.0 (latest)
+    const svcNode = graph.nodes.find((n) => n.type === "service");
+    expect(svcNode).toBeDefined();
+    expect(svcNode!.metadata.version).toBe("2.0.0");
+    expect(svcNode!.label).toBe("Order Service (New)");
+  });
+
+  it("versioned ref resolves to exact version, not latest", async () => {
+    const program = await parseProgram(`
+      service OrderService {
+        version 1.0.0
+        name "Order Service (Legacy)"
+        sends event OrderCreatedV1
+      }
+
+      service OrderService {
+        version 2.0.0
+        name "Order Service (New)"
+        sends event OrderCreatedV2
+      }
+
+      visualizer main {
+        service OrderService@1.0.0
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const svcNode = graph.nodes.find((n) => n.type === "service");
+    expect(svcNode).toBeDefined();
+    expect(svcNode!.metadata.version).toBe("1.0.0");
+    expect(svcNode!.label).toBe("Order Service (Legacy)");
+  });
+
+  it("both versioned refs resolve to their correct definitions", async () => {
+    const program = await parseProgram(`
+      service OrderService {
+        version 1.0.0
+        name "Order Service (Legacy)"
+        summary "The original order service"
+        sends event OrderCreatedV1
+      }
+
+      service OrderService {
+        version 2.0.0
+        name "Order Service (New)"
+        summary "Rebuilt order service"
+        sends event OrderCreatedV2
+      }
+
+      visualizer main {
+        service OrderService@1.0.0
+        service OrderService@2.0.0
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const v1 = graph.nodes.find((n) => n.id === "service:OrderService@1.0.0");
+    const v2 = graph.nodes.find((n) => n.id === "service:OrderService@2.0.0");
+    expect(v1).toBeDefined();
+    expect(v2).toBeDefined();
+    expect(v1!.label).toBe("Order Service (Legacy)");
+    expect(v2!.label).toBe("Order Service (New)");
+    expect(v1!.metadata.summary).toBe("The original order service");
+    expect(v2!.metadata.summary).toBe("Rebuilt order service");
+
+    // Each should have correct sends edges
+    const v1Sends = graph.edges.find(
+      (e) => e.source === v1!.id && e.type === "sends",
+    );
+    const v2Sends = graph.edges.find(
+      (e) => e.source === v2!.id && e.type === "sends",
+    );
+    expect(v1Sends).toBeDefined();
+    expect(v2Sends).toBeDefined();
+    expect(v1Sends!.target).toContain("OrderCreatedV1");
+    expect(v2Sends!.target).toContain("OrderCreatedV2");
+  });
+
+  it("bare ref resolves to latest even when older version is defined last", async () => {
+    const program = await parseProgram(`
+      service OrderService {
+        version 3.0.0
+        name "Order Service V3"
+      }
+
+      service OrderService {
+        version 1.0.0
+        name "Order Service V1"
+      }
+
+      service OrderService {
+        version 2.0.0
+        name "Order Service V2"
+      }
+
+      visualizer main {
+        service OrderService
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const svcNode = graph.nodes.find((n) => n.type === "service");
+    expect(svcNode).toBeDefined();
+    expect(svcNode!.metadata.version).toBe("3.0.0");
+    expect(svcNode!.label).toBe("Order Service V3");
+  });
 });
