@@ -14,11 +14,49 @@ export const versionExists = async (catalogDir: string, id: string, version: str
   return matchedFiles.length > 0;
 };
 
-export const findFileById = async (catalogDir: string, id: string, version?: string): Promise<string | undefined> => {
+const getResourceTypePaths = (type?: string): string[] => {
+  if (!type) return [];
+
+  const typeToPaths: Record<string, string[]> = {
+    service: ['services'],
+    channel: ['channels'],
+    domain: ['domains'],
+    event: ['events'],
+    command: ['commands'],
+    query: ['queries'],
+    message: ['events', 'commands', 'queries'],
+    entity: ['entities'],
+    container: ['containers'],
+    'data-product': ['data-products'],
+    diagram: ['diagrams'],
+    team: ['teams'],
+    user: ['users'],
+  };
+
+  return typeToPaths[type] || [type];
+};
+
+export const findFileById = async (
+  catalogDir: string,
+  id: string,
+  version?: string,
+  options?: { type?: string }
+): Promise<string | undefined> => {
   const files = await getFiles(`${catalogDir}/**/index.{md,mdx}`);
 
   const matchedFiles = (await searchFilesForId(files, id)) || [];
-  const latestVersion = matchedFiles.find((path) => !path.includes('versioned'));
+  const resourceTypePaths = getResourceTypePaths(options?.type);
+  const typeMatchedFiles =
+    resourceTypePaths.length > 0
+      ? matchedFiles.filter((filePath) =>
+          resourceTypePaths.some((resourcePath) => {
+            const normalizedFilePath = filePath.replace(/\\/g, '/');
+            return normalizedFilePath.includes(`/${resourcePath}/`);
+          })
+        )
+      : matchedFiles;
+
+  const latestVersion = typeMatchedFiles.find((path) => !path.includes('versioned'));
 
   // If no version is provided, return the latest version
   if (!version) {
@@ -26,7 +64,7 @@ export const findFileById = async (catalogDir: string, id: string, version?: str
   }
 
   // map files into gray matter to get versions
-  const parsedFiles = matchedFiles.map((path) => {
+  const parsedFiles = typeMatchedFiles.map((path) => {
     const { data } = matter.read(path);
     return { ...data, path };
   }) as any[];

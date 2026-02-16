@@ -127,7 +127,7 @@ export const getResource = async (
   filePath?: string
 ): Promise<Resource | undefined> => {
   const attachSchema = options?.attachSchema || false;
-  const file = filePath || (id ? await findFileById(catalogDir, id, version) : undefined);
+  const file = filePath || (id ? await findFileById(catalogDir, id, version, { type: options?.type }) : undefined);
   if (!file || !fsSync.existsSync(file)) return;
 
   const { data, content } = matter.read(file);

@@ -29,6 +29,7 @@ const {
   toService,
   addDataStoreToService,
   writeDataStore,
+  writeChannel,
 } = utils(CATALOG_PATH);
 
 // clean the catalog before each test
@@ -152,6 +153,36 @@ describe('Services SDK', () => {
         version: '1.0.0',
         summary: 'Service tat handles the inventory',
         markdown: '# Hello world',
+      });
+    });
+
+    it('returns the service when a channel with the same id exists', async () => {
+      await writeChannel({
+        id: 'InventoryResource',
+        name: 'Inventory Channel',
+        version: '1.0.0',
+        summary: 'A channel with the same id as a service',
+        markdown: '# Channel',
+        address: 'inventory.resource',
+        protocols: ['kafka'],
+      });
+
+      await writeService({
+        id: 'InventoryResource',
+        name: 'Inventory Service',
+        version: '1.0.0',
+        summary: 'A service with the same id as a channel',
+        markdown: '# Service',
+      });
+
+      const test = await getService('InventoryResource');
+
+      expect(test).toEqual({
+        id: 'InventoryResource',
+        name: 'Inventory Service',
+        version: '1.0.0',
+        summary: 'A service with the same id as a channel',
+        markdown: '# Service',
       });
     });
 
