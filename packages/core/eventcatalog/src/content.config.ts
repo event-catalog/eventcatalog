@@ -31,7 +31,7 @@ export const projectDirBase = (() => {
 
 const pages = defineCollection({
   loader: glob({
-    pattern: ['**/pages/*.(md|mdx)'],
+    pattern: ['**/pages/*.(md|mdx)', '!**/dist/**'],
     base: projectDirBase,
   }),
   schema: z
@@ -90,7 +90,7 @@ const resourcePointer = z.object({
 
 const changelogs = defineCollection({
   loader: glob({
-    pattern: ['**/changelog.(md|mdx)'],
+    pattern: ['**/changelog.(md|mdx)', '!**/dist/**'],
     base: projectDirBase,
   }),
   schema: z.object({
@@ -229,7 +229,7 @@ const flowStep = z
 
 const flows = defineCollection({
   loader: glob({
-    pattern: ['**/flows/*/index.(md|mdx)', '**/flows/*/versioned/*/index.(md|mdx)'],
+    pattern: ['**/flows/*/index.(md|mdx)', '**/flows/*/versioned/*/index.(md|mdx)', '!**/dist/**'],
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
@@ -317,7 +317,7 @@ const messageDetailsPanelPropertySchema = z.object({
 
 const events = defineCollection({
   loader: glob({
-    pattern: ['**/events/*/index.(md|mdx)', '**/events/*/versioned/*/index.(md|mdx)'],
+    pattern: ['**/events/*/index.(md|mdx)', '**/events/*/versioned/*/index.(md|mdx)', '!**/dist/**'],
     base: projectDirBase,
     generateId: ({ data, ...rest }) => {
       return `${data.id}-${data.version}`;
@@ -337,7 +337,7 @@ const events = defineCollection({
 
 const commands = defineCollection({
   loader: glob({
-    pattern: ['**/commands/*/index.(md|mdx)', '**/commands/*/versioned/*/index.(md|mdx)'],
+    pattern: ['**/commands/*/index.(md|mdx)', '**/commands/*/versioned/*/index.(md|mdx)', '!**/dist/**'],
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
@@ -357,7 +357,7 @@ const commands = defineCollection({
 
 const queries = defineCollection({
   loader: glob({
-    pattern: ['**/queries/*/index.(md|mdx)', '**/queries/*/versioned/*/index.(md|mdx)'],
+    pattern: ['**/queries/*/index.(md|mdx)', '**/queries/*/versioned/*/index.(md|mdx)', '!**/dist/**'],
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
@@ -389,7 +389,7 @@ const dataProductOutputPointer = z.object({
 
 const dataProducts = defineCollection({
   loader: glob({
-    pattern: ['**/data-products/*/index.(md|mdx)', '**/data-products/*/versioned/*/index.(md|mdx)'],
+    pattern: ['**/data-products/*/index.(md|mdx)', '**/data-products/*/versioned/*/index.(md|mdx)', '!**/dist/**'],
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
@@ -466,7 +466,7 @@ const dataClassificationEnum = z.enum(['public', 'internal', 'confidential', 're
 
 const containers = defineCollection({
   loader: glob({
-    pattern: ['**/containers/**/index.(md|mdx)', '**/containers/**/versioned/*/index.(md|mdx)'],
+    pattern: ['**/containers/**/index.(md|mdx)', '**/containers/**/versioned/*/index.(md|mdx)', '!**/dist/**'],
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
@@ -557,7 +557,7 @@ const domains = defineCollection({
 
 const channels = defineCollection({
   loader: glob({
-    pattern: ['**/channels/**/index.(md|mdx)', '**/channels/**/versioned/*/index.(md|mdx)'],
+    pattern: ['**/channels/**/index.(md|mdx)', '**/channels/**/versioned/*/index.(md|mdx)', '!**/dist/**'],
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
@@ -624,7 +624,7 @@ const ubiquitousLanguages = defineCollection({
 
 const entities = defineCollection({
   loader: glob({
-    pattern: ['**/entities/*/index.(md|mdx)', '**/entities/*/versioned/*/index.(md|mdx)'],
+    pattern: ['**/entities/*/index.(md|mdx)', '**/entities/*/versioned/*/index.(md|mdx)', '!**/dist/**'],
     base: projectDirBase,
     generateId: ({ data, ...rest }) => {
       return `${data.id}-${data.version}`;
@@ -741,7 +741,7 @@ const designs = defineCollection({
 
 const diagrams = defineCollection({
   loader: glob({
-    pattern: ['**/diagrams/**/index.(md|mdx)', '**/diagrams/**/versioned/*/index.(md|mdx)'],
+    pattern: ['**/diagrams/**/index.(md|mdx)', '**/diagrams/**/versioned/*/index.(md|mdx)', '!**/dist/**'],
     base: projectDirBase,
     generateId: ({ data }) => `${data.id}-${data.version}`,
   }),
