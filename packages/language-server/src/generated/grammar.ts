@@ -118,7 +118,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -142,7 +142,7 @@ export const EcGrammar = (): Grammar =>
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@137"
+            "$ref": "#/rules@135"
           },
           "arguments": []
         }
@@ -240,7 +240,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@64"
+              "$ref": "#/rules@62"
             },
             "arguments": []
           },
@@ -254,14 +254,14 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@74"
+              "$ref": "#/rules@73"
             },
             "arguments": []
           },
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@76"
+              "$ref": "#/rules@75"
             },
             "arguments": []
           }
@@ -291,7 +291,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -335,6 +335,13 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
+              "$ref": "#/rules@87"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
               "$ref": "#/rules@88"
             },
             "arguments": []
@@ -356,7 +363,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@91"
+              "$ref": "#/rules@92"
             },
             "arguments": []
           },
@@ -364,13 +371,6 @@ export const EcGrammar = (): Grammar =>
             "$type": "RuleCall",
             "rule": {
               "$ref": "#/rules@93"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@94"
             },
             "arguments": []
           },
@@ -405,13 +405,6 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@105"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
               "$ref": "#/rules@104"
             },
             "arguments": []
@@ -426,6 +419,20 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
+              "$ref": "#/rules@102"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@77"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
               "$ref": "#/rules@78"
             },
             "arguments": []
@@ -433,14 +440,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@79"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@110"
+              "$ref": "#/rules@108"
             },
             "arguments": []
           }
@@ -470,7 +470,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -522,7 +522,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -566,6 +566,13 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
+              "$ref": "#/rules@87"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
               "$ref": "#/rules@88"
             },
             "arguments": []
@@ -587,7 +594,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@91"
+              "$ref": "#/rules@92"
             },
             "arguments": []
           },
@@ -601,7 +608,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@94"
+              "$ref": "#/rules@77"
             },
             "arguments": []
           },
@@ -615,7 +622,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@79"
+              "$ref": "#/rules@85"
             },
             "arguments": []
           },
@@ -629,21 +636,14 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@87"
+              "$ref": "#/rules@102"
             },
             "arguments": []
           },
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@103"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@110"
+              "$ref": "#/rules@108"
             },
             "arguments": []
           }
@@ -673,7 +673,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -731,7 +731,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -789,7 +789,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -839,6 +839,13 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
+              "$ref": "#/rules@87"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
               "$ref": "#/rules@88"
             },
             "arguments": []
@@ -881,14 +888,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@94"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@110"
+              "$ref": "#/rules@108"
             },
             "arguments": []
           }
@@ -918,7 +918,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -962,6 +962,13 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
+              "$ref": "#/rules@87"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
               "$ref": "#/rules@88"
             },
             "arguments": []
@@ -977,13 +984,6 @@ export const EcGrammar = (): Grammar =>
             "$type": "RuleCall",
             "rule": {
               "$ref": "#/rules@90"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@91"
             },
             "arguments": []
           },
@@ -1018,7 +1018,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@110"
+              "$ref": "#/rules@108"
             },
             "arguments": []
           }
@@ -1048,7 +1048,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -1079,7 +1079,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -1110,7 +1110,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -1205,7 +1205,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -1236,7 +1236,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -1329,7 +1329,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -1348,7 +1348,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@135"
+                    "$ref": "#/rules@133"
                   },
                   "arguments": []
                 }
@@ -1386,7 +1386,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@129"
+                "$ref": "#/rules@127"
               },
               "arguments": []
             }
@@ -1417,7 +1417,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -1461,6 +1461,13 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
+              "$ref": "#/rules@87"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
               "$ref": "#/rules@88"
             },
             "arguments": []
@@ -1482,7 +1489,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@91"
+              "$ref": "#/rules@92"
             },
             "arguments": []
           },
@@ -1490,13 +1497,6 @@ export const EcGrammar = (): Grammar =>
             "$type": "RuleCall",
             "rule": {
               "$ref": "#/rules@93"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@94"
             },
             "arguments": []
           },
@@ -1552,14 +1552,14 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@105"
+              "$ref": "#/rules@104"
             },
             "arguments": []
           },
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@110"
+              "$ref": "#/rules@108"
             },
             "arguments": []
           }
@@ -1668,7 +1668,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -1699,7 +1699,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@130"
+                "$ref": "#/rules@128"
               },
               "arguments": []
             }
@@ -1856,7 +1856,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -1887,7 +1887,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -1918,7 +1918,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -1962,6 +1962,13 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
+              "$ref": "#/rules@87"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
               "$ref": "#/rules@88"
             },
             "arguments": []
@@ -1983,7 +1990,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@91"
+              "$ref": "#/rules@92"
             },
             "arguments": []
           },
@@ -1991,13 +1998,6 @@ export const EcGrammar = (): Grammar =>
             "$type": "RuleCall",
             "rule": {
               "$ref": "#/rules@93"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@94"
             },
             "arguments": []
           },
@@ -2018,7 +2018,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@110"
+              "$ref": "#/rules@108"
             },
             "arguments": []
           }
@@ -2048,7 +2048,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@128"
+                "$ref": "#/rules@126"
               },
               "arguments": []
             }
@@ -2060,7 +2060,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@129"
+                "$ref": "#/rules@127"
               },
               "arguments": []
             }
@@ -2091,7 +2091,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@128"
+                "$ref": "#/rules@126"
               },
               "arguments": []
             }
@@ -2103,7 +2103,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -2168,7 +2168,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -2184,7 +2184,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -2203,7 +2203,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@135"
+                    "$ref": "#/rules@133"
                   },
                   "arguments": []
                 }
@@ -2241,7 +2241,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -2285,6 +2285,13 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
+              "$ref": "#/rules@87"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
               "$ref": "#/rules@88"
             },
             "arguments": []
@@ -2306,13 +2313,6 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@91"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
               "$ref": "#/rules@45"
             },
             "arguments": []
@@ -2327,7 +2327,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@110"
+              "$ref": "#/rules@108"
             },
             "arguments": []
           }
@@ -2537,7 +2537,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@135"
+                    "$ref": "#/rules@133"
                   },
                   "arguments": []
                 }
@@ -2583,7 +2583,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -2595,7 +2595,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             },
@@ -2627,7 +2627,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -2671,6 +2671,13 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
+              "$ref": "#/rules@88"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
               "$ref": "#/rules@89"
             },
             "arguments": []
@@ -2678,14 +2685,14 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@90"
+              "$ref": "#/rules@108"
             },
             "arguments": []
           },
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@110"
+              "$ref": "#/rules@94"
             },
             "arguments": []
           },
@@ -2721,13 +2728,6 @@ export const EcGrammar = (): Grammar =>
             "$type": "RuleCall",
             "rule": {
               "$ref": "#/rules@99"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@100"
             },
             "arguments": []
           },
@@ -2797,35 +2797,14 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@74"
+              "$ref": "#/rules@73"
             },
             "arguments": []
           },
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@76"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@105"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@106"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@102"
+              "$ref": "#/rules@75"
             },
             "arguments": []
           },
@@ -2839,6 +2818,20 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
+              "$ref": "#/rules@105"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@101"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
               "$ref": "#/rules@103"
             },
             "arguments": []
@@ -2846,7 +2839,14 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@107"
+              "$ref": "#/rules@102"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@106"
             },
             "arguments": []
           }
@@ -2876,7 +2876,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -2920,6 +2920,13 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
+              "$ref": "#/rules@87"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
               "$ref": "#/rules@88"
             },
             "arguments": []
@@ -2941,14 +2948,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@91"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@110"
+              "$ref": "#/rules@108"
             },
             "arguments": []
           }
@@ -2978,7 +2978,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -3067,20 +3067,6 @@ export const EcGrammar = (): Grammar =>
               "$ref": "#/rules@61"
             },
             "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@62"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@63"
-            },
-            "arguments": []
           }
         ]
       },
@@ -3108,7 +3094,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -3139,7 +3125,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -3170,7 +3156,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -3201,7 +3187,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -3232,7 +3218,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -3263,60 +3249,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
-              },
-              "arguments": []
-            }
-          }
-        ]
-      },
-      "definesHiddenTokens": false,
-      "entry": false,
-      "fragment": false,
-      "hiddenTokens": [],
-      "parameters": [],
-      "wildcard": false
-    },
-    {
-      "$type": "ParserRule",
-      "name": "UserOwnsProp",
-      "definition": {
-        "$type": "Assignment",
-        "feature": "owns",
-        "operator": "=",
-        "terminal": {
-          "$type": "RuleCall",
-          "rule": {
-            "$ref": "#/rules@108"
-          },
-          "arguments": []
-        }
-      },
-      "definesHiddenTokens": false,
-      "entry": false,
-      "fragment": false,
-      "hiddenTokens": [],
-      "parameters": [],
-      "wildcard": false
-    },
-    {
-      "$type": "ParserRule",
-      "name": "UserTeamProp",
-      "definition": {
-        "$type": "Group",
-        "elements": [
-          {
-            "$type": "Keyword",
-            "value": "team"
-          },
-          {
-            "$type": "Assignment",
-            "feature": "teamRef",
-            "operator": "=",
-            "terminal": {
-              "$type": "RuleCall",
-              "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -3340,7 +3273,7 @@ export const EcGrammar = (): Grammar =>
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@110"
+            "$ref": "#/rules@108"
           },
           "arguments": []
         }
@@ -3369,7 +3302,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -3385,7 +3318,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@65"
+                "$ref": "#/rules@63"
               },
               "arguments": []
             },
@@ -3410,6 +3343,20 @@ export const EcGrammar = (): Grammar =>
       "definition": {
         "$type": "Alternatives",
         "elements": [
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@64"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@65"
+            },
+            "arguments": []
+          },
           {
             "$type": "RuleCall",
             "rule": {
@@ -3458,13 +3405,6 @@ export const EcGrammar = (): Grammar =>
               "$ref": "#/rules@72"
             },
             "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@73"
-            },
-            "arguments": []
           }
         ]
       },
@@ -3492,7 +3432,69 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
+              },
+              "arguments": []
+            }
+          }
+        ]
+      },
+      "definesHiddenTokens": false,
+      "entry": false,
+      "fragment": false,
+      "hiddenTokens": [],
+      "parameters": [],
+      "wildcard": false
+    },
+    {
+      "$type": "ParserRule",
+      "name": "TeamAvatarProp",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "avatar"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "value",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@133"
+              },
+              "arguments": []
+            }
+          }
+        ]
+      },
+      "definesHiddenTokens": false,
+      "entry": false,
+      "fragment": false,
+      "hiddenTokens": [],
+      "parameters": [],
+      "wildcard": false
+    },
+    {
+      "$type": "ParserRule",
+      "name": "TeamRoleProp",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "role"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "value",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -3523,7 +3525,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -3554,7 +3556,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -3585,7 +3587,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -3616,7 +3618,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -3647,34 +3649,12 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
           }
         ]
-      },
-      "definesHiddenTokens": false,
-      "entry": false,
-      "fragment": false,
-      "hiddenTokens": [],
-      "parameters": [],
-      "wildcard": false
-    },
-    {
-      "$type": "ParserRule",
-      "name": "TeamOwnsProp",
-      "definition": {
-        "$type": "Assignment",
-        "feature": "owns",
-        "operator": "=",
-        "terminal": {
-          "$type": "RuleCall",
-          "rule": {
-            "$ref": "#/rules@108"
-          },
-          "arguments": []
-        }
       },
       "definesHiddenTokens": false,
       "entry": false,
@@ -3693,7 +3673,7 @@ export const EcGrammar = (): Grammar =>
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@110"
+            "$ref": "#/rules@108"
           },
           "arguments": []
         }
@@ -3722,7 +3702,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -3741,7 +3721,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@75"
+                    "$ref": "#/rules@74"
                   },
                   "arguments": []
                 },
@@ -3772,6 +3752,13 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
+              "$ref": "#/rules@88"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
               "$ref": "#/rules@89"
             },
             "arguments": []
@@ -3779,14 +3766,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@90"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@110"
+              "$ref": "#/rules@108"
             },
             "arguments": []
           }
@@ -3816,7 +3796,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -3835,7 +3815,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@77"
+                    "$ref": "#/rules@76"
                   },
                   "arguments": []
                 },
@@ -3866,6 +3846,13 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
+              "$ref": "#/rules@88"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
               "$ref": "#/rules@89"
             },
             "arguments": []
@@ -3873,14 +3860,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@90"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@110"
+              "$ref": "#/rules@108"
             },
             "arguments": []
           }
@@ -3910,7 +3890,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@128"
+                "$ref": "#/rules@126"
               },
               "arguments": []
             }
@@ -3922,7 +3902,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -3941,7 +3921,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@134"
+                    "$ref": "#/rules@132"
                   },
                   "arguments": []
                 }
@@ -3956,7 +3936,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@81"
+                "$ref": "#/rules@80"
               },
               "arguments": []
             },
@@ -3976,7 +3956,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@80"
+                    "$ref": "#/rules@79"
                   },
                   "arguments": []
                 },
@@ -4015,7 +3995,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@128"
+                "$ref": "#/rules@126"
               },
               "arguments": []
             }
@@ -4027,7 +4007,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -4046,7 +4026,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@134"
+                    "$ref": "#/rules@132"
                   },
                   "arguments": []
                 }
@@ -4061,7 +4041,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@81"
+                "$ref": "#/rules@80"
               },
               "arguments": []
             },
@@ -4081,7 +4061,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@80"
+                    "$ref": "#/rules@79"
                   },
                   "arguments": []
                 },
@@ -4109,6 +4089,13 @@ export const EcGrammar = (): Grammar =>
       "definition": {
         "$type": "Alternatives",
         "elements": [
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@87"
+            },
+            "arguments": []
+          },
           {
             "$type": "RuleCall",
             "rule": {
@@ -4140,7 +4127,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@92"
+              "$ref": "#/rules@81"
             },
             "arguments": []
           },
@@ -4154,14 +4141,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@83"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@110"
+              "$ref": "#/rules@108"
             },
             "arguments": []
           }
@@ -4183,14 +4163,14 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@82"
+              "$ref": "#/rules@81"
             },
             "arguments": []
           },
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@83"
+              "$ref": "#/rules@82"
             },
             "arguments": []
           }
@@ -4220,7 +4200,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@84"
+                "$ref": "#/rules@83"
               },
               "arguments": []
             }
@@ -4239,7 +4219,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@84"
+                    "$ref": "#/rules@83"
                   },
                   "arguments": []
                 }
@@ -4261,7 +4241,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@85"
+                    "$ref": "#/rules@84"
                   },
                   "arguments": []
                 }
@@ -4295,7 +4275,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@84"
+                "$ref": "#/rules@83"
               },
               "arguments": []
             }
@@ -4314,7 +4294,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@84"
+                    "$ref": "#/rules@83"
                   },
                   "arguments": []
                 }
@@ -4336,7 +4316,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@85"
+                    "$ref": "#/rules@84"
                   },
                   "arguments": []
                 }
@@ -4366,7 +4346,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -4385,7 +4365,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@134"
+                    "$ref": "#/rules@132"
                   },
                   "arguments": []
                 }
@@ -4451,7 +4431,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@129"
+                "$ref": "#/rules@127"
               },
               "arguments": []
             }
@@ -4486,7 +4466,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@129"
+                "$ref": "#/rules@127"
               },
               "arguments": []
             }
@@ -4517,7 +4497,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@134"
+                "$ref": "#/rules@132"
               },
               "arguments": []
             }
@@ -4548,7 +4528,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -4579,7 +4559,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -4610,7 +4590,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -4641,7 +4621,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@135"
+                "$ref": "#/rules@133"
               },
               "arguments": []
             }
@@ -4672,7 +4652,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@130"
+                "$ref": "#/rules@128"
               },
               "arguments": []
             }
@@ -4703,7 +4683,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@130"
+                "$ref": "#/rules@128"
               },
               "arguments": []
             }
@@ -4734,7 +4714,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@130"
+                "$ref": "#/rules@128"
               },
               "arguments": []
             }
@@ -4765,7 +4745,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@130"
+                "$ref": "#/rules@128"
               },
               "arguments": []
             }
@@ -4796,7 +4776,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@130"
+                "$ref": "#/rules@128"
               },
               "arguments": []
             }
@@ -4827,7 +4807,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@130"
+                "$ref": "#/rules@128"
               },
               "arguments": []
             }
@@ -4858,7 +4838,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@130"
+                "$ref": "#/rules@128"
               },
               "arguments": []
             }
@@ -4889,7 +4869,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@101"
+                "$ref": "#/rules@100"
               },
               "arguments": []
             }
@@ -4944,7 +4924,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@129"
+                "$ref": "#/rules@127"
               },
               "arguments": []
             }
@@ -4975,7 +4955,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@129"
+                "$ref": "#/rules@127"
               },
               "arguments": []
             }
@@ -5006,7 +4986,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@129"
+                "$ref": "#/rules@127"
               },
               "arguments": []
             }
@@ -5037,7 +5017,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@129"
+                "$ref": "#/rules@127"
               },
               "arguments": []
             }
@@ -5068,7 +5048,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@129"
+                "$ref": "#/rules@127"
               },
               "arguments": []
             }
@@ -5099,50 +5079,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@129"
-              },
-              "arguments": []
-            }
-          }
-        ]
-      },
-      "definesHiddenTokens": false,
-      "entry": false,
-      "fragment": false,
-      "hiddenTokens": [],
-      "parameters": [],
-      "wildcard": false
-    },
-    {
-      "$type": "ParserRule",
-      "name": "OwnsStmt",
-      "definition": {
-        "$type": "Group",
-        "elements": [
-          {
-            "$type": "Keyword",
-            "value": "owns"
-          },
-          {
-            "$type": "Assignment",
-            "feature": "resourceType",
-            "operator": "=",
-            "terminal": {
-              "$type": "RuleCall",
-              "rule": {
-                "$ref": "#/rules@109"
-              },
-              "arguments": []
-            }
-          },
-          {
-            "$type": "Assignment",
-            "feature": "resourceName",
-            "operator": "=",
-            "terminal": {
-              "$type": "RuleCall",
-              "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@127"
               },
               "arguments": []
             }
@@ -5209,7 +5146,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@111"
+                "$ref": "#/rules@109"
               },
               "arguments": []
             }
@@ -5228,7 +5165,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@112"
+                    "$ref": "#/rules@110"
                   },
                   "arguments": []
                 }
@@ -5247,7 +5184,7 @@ export const EcGrammar = (): Grammar =>
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@112"
+                        "$ref": "#/rules@110"
                       },
                       "arguments": []
                     }
@@ -5276,7 +5213,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@124"
+                    "$ref": "#/rules@122"
                   },
                   "arguments": []
                 },
@@ -5305,7 +5242,7 @@ export const EcGrammar = (): Grammar =>
       "definition": {
         "$type": "RuleCall",
         "rule": {
-          "$ref": "#/rules@137"
+          "$ref": "#/rules@135"
         },
         "arguments": []
       },
@@ -5325,14 +5262,14 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@113"
+              "$ref": "#/rules@111"
             },
             "arguments": []
           },
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@114"
+              "$ref": "#/rules@112"
             },
             "arguments": []
           }
@@ -5358,7 +5295,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@115"
+                "$ref": "#/rules@113"
               },
               "arguments": []
             }
@@ -5374,7 +5311,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@116"
+                "$ref": "#/rules@114"
               },
               "arguments": []
             }
@@ -5398,7 +5335,7 @@ export const EcGrammar = (): Grammar =>
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@116"
+            "$ref": "#/rules@114"
           },
           "arguments": []
         }
@@ -5420,7 +5357,7 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@137"
+              "$ref": "#/rules@135"
             },
             "arguments": []
           },
@@ -5506,6 +5443,20 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
+              "$ref": "#/rules@115"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@116"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
               "$ref": "#/rules@117"
             },
             "arguments": []
@@ -5530,20 +5481,6 @@ export const EcGrammar = (): Grammar =>
               "$ref": "#/rules@120"
             },
             "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@121"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@122"
-            },
-            "arguments": []
           }
         ]
       },
@@ -5564,7 +5501,7 @@ export const EcGrammar = (): Grammar =>
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@135"
+            "$ref": "#/rules@133"
           },
           "arguments": []
         }
@@ -5586,7 +5523,7 @@ export const EcGrammar = (): Grammar =>
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@137"
+            "$ref": "#/rules@135"
           },
           "arguments": []
         }
@@ -5608,7 +5545,7 @@ export const EcGrammar = (): Grammar =>
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@136"
+            "$ref": "#/rules@134"
           },
           "arguments": []
         }
@@ -5630,7 +5567,7 @@ export const EcGrammar = (): Grammar =>
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@130"
+            "$ref": "#/rules@128"
           },
           "arguments": []
         }
@@ -5652,7 +5589,7 @@ export const EcGrammar = (): Grammar =>
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@134"
+            "$ref": "#/rules@132"
           },
           "arguments": []
         }
@@ -5674,7 +5611,7 @@ export const EcGrammar = (): Grammar =>
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@123"
+            "$ref": "#/rules@121"
           },
           "arguments": []
         }
@@ -5727,14 +5664,14 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@125"
+              "$ref": "#/rules@123"
             },
             "arguments": []
           },
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@126"
+              "$ref": "#/rules@124"
             },
             "arguments": []
           }
@@ -5760,7 +5697,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@109"
+                "$ref": "#/rules@107"
               },
               "arguments": []
             }
@@ -5772,7 +5709,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -5791,7 +5728,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@134"
+                    "$ref": "#/rules@132"
                   },
                   "arguments": []
                 }
@@ -5821,7 +5758,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -5833,7 +5770,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@127"
+                "$ref": "#/rules@125"
               },
               "arguments": []
             }
@@ -5865,14 +5802,14 @@ export const EcGrammar = (): Grammar =>
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@137"
+              "$ref": "#/rules@135"
             },
             "arguments": []
           },
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@134"
+              "$ref": "#/rules@132"
             },
             "arguments": []
           }
@@ -5926,7 +5863,7 @@ export const EcGrammar = (): Grammar =>
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@137"
+                "$ref": "#/rules@135"
               },
               "arguments": []
             }
@@ -5945,7 +5882,7 @@ export const EcGrammar = (): Grammar =>
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@134"
+                    "$ref": "#/rules@132"
                   },
                   "arguments": []
                 }

@@ -1635,6 +1635,65 @@ export const cliFunctions: CLIFunctionDoc[] = [
     args: [],
     examples: [{ description: 'Get config file', command: 'npx @eventcatalog/cli getEventCatalogConfigurationFile' }],
   },
+
+  // ================================
+  //            Export (DSL)
+  // ================================
+  {
+    name: 'export',
+    description: 'Export catalog resources to EventCatalog DSL (.ec) format',
+    category: 'Export',
+    args: [
+      { name: 'all', type: 'boolean', required: false, description: 'Export the entire catalog (all resource types)' },
+      {
+        name: 'resource',
+        type: 'string',
+        required: false,
+        description: 'Resource type: event, command, query, service, domain (or plural forms)',
+      },
+      { name: 'id', type: 'string', required: false, description: 'Resource ID (omit to export all of the given type)' },
+      { name: 'version', type: 'string', required: false, description: 'Resource version (defaults to latest)' },
+      {
+        name: 'hydrate',
+        type: 'boolean',
+        required: false,
+        description: 'Include referenced resources (messages, channels, owners)',
+      },
+      { name: 'stdout', type: 'boolean', required: false, description: 'Print to stdout instead of writing a file' },
+      { name: 'playground', type: 'boolean', required: false, description: 'Open the exported DSL in the playground' },
+      { name: 'output', type: 'string', required: false, description: 'Output file path (defaults to <id>.ec or catalog.ec)' },
+    ],
+    examples: [
+      {
+        description: 'Export a single service',
+        command: 'npx @eventcatalog/cli export --resource service --id OrderService',
+      },
+      {
+        description: 'Export a service with all dependencies',
+        command: 'npx @eventcatalog/cli export --resource service --id OrderService --hydrate',
+      },
+      {
+        description: 'Export all services',
+        command: 'npx @eventcatalog/cli export --resource services',
+      },
+      {
+        description: 'Export all services with hydration to stdout',
+        command: 'npx @eventcatalog/cli export --resource services --hydrate --stdout',
+      },
+      {
+        description: 'Export the entire catalog',
+        command: 'npx @eventcatalog/cli export --all --hydrate',
+      },
+      {
+        description: 'Export entire catalog to a custom file',
+        command: 'npx @eventcatalog/cli export --all --hydrate -o my-catalog.ec',
+      },
+      {
+        description: 'Export and open in playground',
+        command: 'npx @eventcatalog/cli export --resource services --hydrate --playground',
+      },
+    ],
+  },
 ];
 
 /**

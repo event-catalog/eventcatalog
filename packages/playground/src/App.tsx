@@ -5,7 +5,7 @@ import { TabBar } from './components/TabBar';
 import { useDslParser } from './hooks/useDslParser';
 import { getErrorsForFile } from './monaco/ec-diagnostics';
 import { examples } from './examples';
-import { Zap, ChevronDown, AlignLeft, Maximize2, Minimize2, Sun, Moon } from 'lucide-react';
+import { Zap, ChevronDown, AlignLeft, Maximize2, Minimize2, Sun, Moon, Share2, Check } from 'lucide-react';
 import { formatEc } from '@eventcatalog/language-server';
 
 const MIN_PANEL_PCT = 20;
@@ -19,6 +19,9 @@ const AppHeader = memo(function AppHeader({
   onToggleVizTheme,
   fullscreen,
   onToggleFullscreen,
+  onShare,
+  shareRecentlyCopied,
+  loadedFromUrl,
 }: {
   selectedExample: number;
   onExampleChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
@@ -26,6 +29,9 @@ const AppHeader = memo(function AppHeader({
   onToggleVizTheme: () => void;
   fullscreen: boolean;
   onToggleFullscreen: () => void;
+  onShare: () => void;
+  shareRecentlyCopied: boolean;
+  loadedFromUrl: boolean;
 }) {
   return (
     <header className="header">
@@ -36,9 +42,14 @@ const AppHeader = memo(function AppHeader({
       <div className="example-select-wrapper">
         <select
           className="example-select"
-          value={selectedExample}
+          value={loadedFromUrl ? 'url' : selectedExample}
           onChange={onExampleChange}
         >
+          {loadedFromUrl && (
+            <option value="url">
+              Shared Link — Loaded from query string
+            </option>
+          )}
           {examples.map((ex, i) => (
             <option key={i} value={i}>
               {ex.name} — {ex.description}
@@ -48,6 +59,13 @@ const AppHeader = memo(function AppHeader({
         <ChevronDown size={14} className="example-select-arrow" />
       </div>
       <span className="subtitle">Edit DSL on the left, see the architecture on the right</span>
+      <button
+        className="fullscreen-btn"
+        onClick={onShare}
+        title="Copy shareable link to clipboard"
+      >
+        {shareRecentlyCopied ? <Check size={15} /> : <Share2 size={15} />}
+      </button>
       <button
         className="fullscreen-btn"
         onClick={onToggleVizTheme}
@@ -68,6 +86,15 @@ const AppHeader = memo(function AppHeader({
 
 let newFileCounter = 1;
 
+function getCodeFromUrl(): string | null {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (code) return decodeURIComponent(escape(atob(code)));
+  } catch {}
+  return null;
+}
+
 function getInitialExample(): number {
   // Restore from URL hash (e.g. #example=3)
   const hash = window.location.hash;
@@ -79,10 +106,17 @@ function getInitialExample(): number {
   return 0;
 }
 
+function getInitialFiles(): Record<string, string> {
+  const code = getCodeFromUrl();
+  if (code) return { 'main.ec': code };
+  return { ...examples[getInitialExample()].source };
+}
+
 export default function App() {
   const [selectedExample, setSelectedExample] = useState(getInitialExample);
-  const [files, setFiles] = useState<Record<string, string>>({ ...examples[getInitialExample()].source });
-  const [activeFile, setActiveFile] = useState(Object.keys(examples[getInitialExample()].source)[0]);
+  const [loadedFromUrl, setLoadedFromUrl] = useState(() => getCodeFromUrl() !== null);
+  const [files, setFiles] = useState<Record<string, string>>(getInitialFiles);
+  const [activeFile, setActiveFile] = useState(Object.keys(getInitialFiles())[0]);
   const [activeVisualizer, setActiveVisualizer] = useState<string | undefined>(undefined);
   const { graph, errors, fileOffsets } = useDslParser(files, activeVisualizer);
   const [splitPct, setSplitPct] = useState(DEFAULT_SPLIT);
@@ -111,8 +145,14 @@ export default function App() {
 
   const handleExampleChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const idx = Number(e.target.value);
+    if (e.target.value === 'url') return;
     setSelectedExample(idx);
-    window.location.hash = `example=${idx}`;
+    setLoadedFromUrl(false);
+    // Clear ?code param when switching to a built-in example
+    const url = new URL(window.location.href);
+    url.search = '';
+    url.hash = `example=${idx}`;
+    window.history.replaceState(null, '', url.toString());
     const newFiles = { ...examples[idx].source };
     setFiles(newFiles);
     setActiveFile(Object.keys(newFiles)[0]);
@@ -120,6 +160,19 @@ export default function App() {
   }, []);
 
   const toggleFullscreen = useCallback(() => setFullscreen((v) => !v), []);
+
+  const [shareRecentlyCopied, setShareRecentlyCopied] = useState(false);
+  const handleShare = useCallback(() => {
+    const allContent = Object.values(files).join('\n');
+    const encoded = btoa(unescape(encodeURIComponent(allContent)));
+    const url = new URL(window.location.href);
+    url.search = `?code=${encoded}`;
+    url.hash = '';
+    navigator.clipboard.writeText(url.toString()).then(() => {
+      setShareRecentlyCopied(true);
+      setTimeout(() => setShareRecentlyCopied(false), 2000);
+    });
+  }, [files]);
 
   const handleFileChange = useCallback((value: string) => {
     setFiles((prev) => ({ ...prev, [activeFile]: value }));
@@ -189,6 +242,9 @@ export default function App() {
         onToggleVizTheme={toggleVizTheme}
         fullscreen={fullscreen}
         onToggleFullscreen={toggleFullscreen}
+        onShare={handleShare}
+        shareRecentlyCopied={shareRecentlyCopied}
+        loadedFromUrl={loadedFromUrl}
       />
       <div className="main" ref={mainRef}>
         {!fullscreen && (

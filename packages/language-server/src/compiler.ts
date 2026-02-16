@@ -786,7 +786,6 @@ function compileTeam(team: TeamDef, outputs: CompiledOutput[]): void {
   };
   let summary: string | undefined;
   const members: string[] = [];
-  const owns: { type: string; id: string }[] = [];
   const annotations: Annotation[] = [];
 
   for (const prop of team.props) {
@@ -797,6 +796,12 @@ function compileTeam(team: TeamDef, outputs: CompiledOutput[]): void {
       case "TeamSummaryProp":
         summary = stripQuotes(prop.value);
         fm.summary = summary;
+        break;
+      case "TeamAvatarProp":
+        fm.avatar = stripQuotes(prop.value);
+        break;
+      case "TeamRoleProp":
+        fm.role = stripQuotes(prop.value);
         break;
       case "TeamEmailProp":
         fm.email = stripQuotes(prop.value);
@@ -810,16 +815,12 @@ function compileTeam(team: TeamDef, outputs: CompiledOutput[]): void {
       case "TeamMemberProp":
         members.push(prop.memberRef);
         break;
-      case "TeamOwnsProp":
-        owns.push({ type: prop.owns.resourceType, id: prop.owns.resourceName });
-        break;
       case "TeamAnnotationProp":
         annotations.push(prop.annotation);
         break;
     }
   }
   if (members.length > 0) fm.members = members;
-  if (owns.length > 0) fm.owns = owns;
 
   const annFields = mapAnnotations(annotations);
   Object.assign(fm, annFields);

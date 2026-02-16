@@ -528,6 +528,41 @@ describe("User and team definitions", () => {
       expect(team.name).toBe("payment-team");
     }
   });
+
+  it("parses a user with avatar", async () => {
+    const doc = await parseProgram(`
+      user jdoe {
+        name "Jane Doe"
+        avatar "https://example.com/jdoe.png"
+        role "Engineer"
+      }
+    `);
+    const errors = doc.parseResult.parserErrors;
+    expect(errors).toHaveLength(0);
+
+    const user = doc.parseResult.value.definitions[0];
+    expect(isUserDef(user)).toBe(true);
+  });
+
+  it("parses a team with avatar and role", async () => {
+    const doc = await parseProgram(`
+      team platform-team {
+        name "Platform Team"
+        avatar "https://example.com/platform.png"
+        role "Platform Engineering"
+        summary "Platform infrastructure"
+        member dboyne
+      }
+    `);
+    const errors = doc.parseResult.parserErrors;
+    expect(errors).toHaveLength(0);
+
+    const team = doc.parseResult.value.definitions[0];
+    expect(isTeamDef(team)).toBe(true);
+    if (isTeamDef(team)) {
+      expect(team.name).toBe("platform-team");
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------

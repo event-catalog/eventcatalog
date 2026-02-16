@@ -320,6 +320,46 @@ describe("astToGraph", () => {
     expect(readsEdge).toBeDefined();
   });
 
+  it("writes-to and reads-from same container merge into reads-writes edge", async () => {
+    const program = await parseProgram(`
+      visualizer main {
+        service OrderService {
+          version 1.0.0
+          writes-to container orders-db
+          reads-from container orders-db
+        }
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    const serviceNode = graph.nodes.find(
+      (n) => n.id === "service:OrderService@1.0.0",
+    );
+    const dbNode = graph.nodes.find((n) => n.type === "container");
+    expect(serviceNode).toBeDefined();
+    expect(dbNode).toBeDefined();
+
+    // Should have a single reads-writes edge instead of separate writes-to and reads-from
+    const readsWritesEdge = graph.edges.find(
+      (e) =>
+        e.source === serviceNode!.id &&
+        e.target === dbNode!.id &&
+        e.type === "reads-writes",
+    );
+    expect(readsWritesEdge).toBeDefined();
+
+    // No separate writes-to or reads-from edges should remain
+    const writesToEdge = graph.edges.find(
+      (e) => e.type === "writes-to" && e.target === dbNode!.id,
+    );
+    const readsFromEdge = graph.edges.find(
+      (e) => e.type === "reads-from" && e.source === dbNode!.id,
+    );
+    expect(writesToEdge).toBeUndefined();
+    expect(readsFromEdge).toBeUndefined();
+  });
+
   it("subdomain hierarchy produces correct parentIds and contains edges", async () => {
     const program = await parseProgram(`
       visualizer main {
@@ -393,13 +433,11 @@ describe("astToGraph", () => {
       user dboyne {
         name "David Boyne"
         role "Engineer"
-        team orders-team
       }
 
       team orders-team {
         name "Orders Team"
         member dboyne
-        owns domain Orders
       }
     `);
 
@@ -860,6 +898,53 @@ describe("astToGraph", () => {
           e.source === "domain:Name@1.0.0" &&
           e.target === "service:Random@1.0.0" &&
           e.type === "contains",
+      ),
+    ).toBeDefined();
+  });
+
+  it("service reference inside domain includes sends/receives messages", async () => {
+    const program = await parseProgram(`
+      service InventoryService {
+        version 0.0.2
+        name "Inventory Service"
+        summary "Service that handles the inventory"
+        sends event InventoryAdjusted
+      }
+
+      domain Orders {
+        version 0.0.3
+        name "Orders"
+        summary "The Orders domain"
+        service InventoryService
+      }
+
+      visualizer main {
+        domain Orders
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    // Service should be inside the domain
+    const serviceNode = graph.nodes.find(
+      (n) => n.id === "service:InventoryService@0.0.2",
+    );
+    expect(serviceNode).toBeDefined();
+    expect(serviceNode!.parentId).toBe("domain:Orders@0.0.3");
+
+    // The sent event should appear in the graph
+    const eventNode = graph.nodes.find(
+      (n) => n.id === "event:InventoryAdjusted",
+    );
+    expect(eventNode).toBeDefined();
+
+    // Sends edge from service to event
+    expect(
+      graph.edges.find(
+        (e) =>
+          e.source === "service:InventoryService@0.0.2" &&
+          e.target === "event:InventoryAdjusted" &&
+          e.type === "sends",
       ),
     ).toBeDefined();
   });
