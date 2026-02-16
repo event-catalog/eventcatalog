@@ -6,8 +6,8 @@
       "outputs": ["dist/**"]
     },
     "build": {
-      "dependsOn": ["build:bin"],
-      "outputs": [".astro/**"]
+      "dependsOn": ["^build", "build:bin"],
+      "outputs": [".astro/**", "dist/**"]
     },
     "test": {
       "dependsOn": ["^build", "build:bin"],

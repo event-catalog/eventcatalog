@@ -11,13 +11,7 @@ const catalog = args[0] || 'default';
 const catalogDir = join(__dirname, '../eventcatalog/');
 const projectDIR = join(__dirname, `../../../examples/${catalog}`);
 
-// Build workspace dependencies (required as core imports these at build time)
-const sdkDir = join(__dirname, '../../../sdk');
-const visualiserDir = join(__dirname, '../../../visualiser');
-execSync('pnpm run build', { stdio: 'inherit', cwd: sdkDir });
-execSync('pnpm run build', { stdio: 'inherit', cwd: visualiserDir });
-
-// Build cli
+// Build cli (workspace deps already built by turbo before this script runs)
 execSync('pnpm run build:bin', { stdio: 'inherit' });
 
 // Run the generator
