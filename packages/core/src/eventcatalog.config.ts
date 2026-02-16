@@ -90,6 +90,7 @@ export interface Config {
   };
   asyncAPI?: {
     renderParsedSchemas?: boolean;
+    allowAnyEnvInSpecHeaders?: boolean;
   };
   mdxOptimize?: boolean;
   compress?: boolean;

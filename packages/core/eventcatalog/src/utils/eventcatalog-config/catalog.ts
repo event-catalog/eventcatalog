@@ -1,26 +1,7 @@
 import * as config from '@config';
+import type { Config } from '../../../../src/eventcatalog.config';
 
-type SideBarItemConfig = {
-  visible?: boolean;
-};
-
-export type CatalogConfig = {
-  docs: {
-    sidebar: {
-      showPageHeadings?: boolean;
-      domains?: SideBarItemConfig;
-      flows?: SideBarItemConfig;
-      services?: SideBarItemConfig;
-      messages?: SideBarItemConfig;
-      teams?: SideBarItemConfig;
-      users?: SideBarItemConfig;
-    };
-  };
-  asyncAPI?: {
-    renderParsedSchemas?: boolean;
-    allowAnyEnvInSpecHeaders?: boolean;
-  };
-};
+export type CatalogConfig = Config;
 
 const getConfigValue = (obj: any, key: string, defaultValue: any) => {
   return obj?.[key] ?? defaultValue;

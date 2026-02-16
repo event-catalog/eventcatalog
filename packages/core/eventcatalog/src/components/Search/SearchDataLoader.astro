@@ -40,10 +40,10 @@
     };
 
     // Defer non-critical sidebar payload fetch until browser is idle
-    if ('requestIdleCallback' in window) {
+    if (typeof window.requestIdleCallback === 'function') {
       window.requestIdleCallback(loadSidebarData, { timeout: 1200 });
     } else {
-      window.setTimeout(loadSidebarData, 300);
+      setTimeout(loadSidebarData, 300);
     }
   }
 </script>
