@@ -6,6 +6,7 @@ import {
   isEventCatalogScaleEnabled,
   isEventCatalogStarterEnabled,
   isEventCatalogMCPEnabled,
+  isFullCatalogAPIEnabled,
   isDevMode,
 } from '../src/utils/feature';
 
@@ -71,6 +72,14 @@ export default function eventCatalogIntegration(): AstroIntegration {
           params.injectRoute({
             pattern: '/plans',
             entrypoint: path.join(catalogDirectory, 'src/enterprise/plans/index.astro'),
+          });
+        }
+
+        // Full catalog API route (opt-in)
+        if (isFullCatalogAPIEnabled()) {
+          params.injectRoute({
+            pattern: '/api/catalog',
+            entrypoint: path.join(catalogDirectory, 'src/enterprise/api/catalog.ts'),
           });
         }
 

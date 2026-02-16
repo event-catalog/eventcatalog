@@ -72,4 +72,6 @@ export const isDiagramComparisonEnabled = () => isEventCatalogScaleEnabled();
 
 export const isEventCatalogMCPEnabled = () => isEventCatalogScaleEnabled() && isSSR();
 
+export const isFullCatalogAPIEnabled = () => config?.api?.fullCatalogAPIEnabled ?? false;
+
 export const isDevMode = () => process.env.EVENTCATALOG_DEV_MODE === 'true';
