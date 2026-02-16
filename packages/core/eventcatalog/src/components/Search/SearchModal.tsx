@@ -24,8 +24,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid, CircleStackIcon } from '@heroicons/react/24/solid';
 import { useStore } from '@nanostores/react';
-import { sidebarStore } from '../../stores/sidebar-store';
-import type { NavNode } from '../../stores/sidebar-store/state';
 import { favoritesStore, toggleFavorite as toggleFavoriteAction } from '../../stores/favorites-store';
 import { buildUrl } from '@utils/url-builder';
 
@@ -99,11 +97,21 @@ const getUrlForItem = (node: any, key: string) => {
   return buildUrl(`/docs/${pluralType}/${id}/${version}`);
 };
 
+interface SearchNode {
+  key: string;
+  title: string;
+  badge?: string;
+  summary?: string;
+  href?: string;
+}
+
 export default function SearchModal() {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
-  const data = useStore(sidebarStore);
+  const [searchNodes, setSearchNodes] = useState<SearchNode[]>([]);
+  const [isLoadingSearchIndex, setIsLoadingSearchIndex] = useState(false);
+  const [searchIndexLoadError, setSearchIndexLoadError] = useState<string | null>(null);
   const favorites = useStore(favoritesStore);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -122,6 +130,34 @@ export default function SearchModal() {
     return () => window.removeEventListener('searchModalToggle', handleModalToggle as EventListener);
   }, []);
 
+  useEffect(() => {
+    if (!open || searchNodes.length > 0 || isLoadingSearchIndex) {
+      return;
+    }
+
+    setIsLoadingSearchIndex(true);
+    setSearchIndexLoadError(null);
+
+    const apiUrl = buildUrl('/api/search-index.json', true);
+
+    fetch(apiUrl)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch search index: ${response.status}`);
+        }
+        return response.json() as Promise<{ items: SearchNode[] }>;
+      })
+      .then((payload) => {
+        setSearchNodes(payload.items || []);
+      })
+      .catch((error) => {
+        setSearchIndexLoadError(error instanceof Error ? error.message : 'Unable to load search index');
+      })
+      .finally(() => {
+        setIsLoadingSearchIndex(false);
+      });
+  }, [open, searchNodes.length, isLoadingSearchIndex]);
+
   const closeModal = () => {
     if ((window as any).searchModalState) {
       (window as any).searchModalState.close();
@@ -131,30 +167,22 @@ export default function SearchModal() {
   };
 
   const items = useMemo(() => {
-    if (!data?.nodes) return [];
-
-    // Extract all items from nodes
-    const allItems = Object.entries(data.nodes)
-      .map(([key, node]) => {
-        // Skip reference entries (string values that point to other keys)
-        if (typeof node === 'string') return null;
-
-        const url = getUrlForItem(node, key);
+    return searchNodes
+      .map((node) => {
+        const url = getUrlForItem(node as any, node.key);
         if (!url) return null;
 
         return {
-          id: url, // Use URL as unique ID
+          id: url,
           name: node.title,
-          url: url,
+          url,
           type: node.badge || 'Page',
-          key: key,
+          key: node.key,
           rawNode: node,
         };
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
-
-    return allItems;
-  }, [data]);
+  }, [searchNodes]);
 
   // Get searchable items (items that match the query but not filtered by type yet)
   const searchableItems = useMemo(() => {
@@ -236,17 +264,9 @@ export default function SearchModal() {
     });
   };
 
-  // Helper to resolve a node, following references if needed
-  const resolveNode = (key: string) => {
-    if (!data?.nodes) return null;
-    const node = data.nodes[key];
-    if (!node) return null;
-    // If it's a string reference, follow it
-    if (typeof node === 'string') {
-      return data.nodes[node] as NavNode | undefined;
-    }
-    return node;
-  };
+  const searchNodeLookup = useMemo(() => {
+    return new Map(searchNodes.map((node) => [node.key, node]));
+  }, [searchNodes]);
 
   const filteredItems = useMemo(() => {
     if (query === '') {
@@ -255,18 +275,17 @@ export default function SearchModal() {
         return favorites
           .slice(0, 5)
           .map((fav) => {
-            const node = resolveNode(fav.nodeKey);
-            if (!node || typeof node === 'string') return null;
-            const url = getUrlForItem(node, fav.nodeKey);
+            const node = searchNodeLookup.get(fav.nodeKey);
+            const url = node ? getUrlForItem(node as any, fav.nodeKey) : fav.href;
             if (!url) return null;
 
             return {
               id: url,
               name: fav.title,
-              url: url,
-              type: fav.badge || 'Page',
+              url,
+              type: fav.badge || node?.badge || 'Page',
               key: fav.nodeKey,
-              rawNode: node,
+              rawNode: node || { title: fav.title, badge: fav.badge },
               isFavorite: true,
             };
           })
@@ -290,7 +309,7 @@ export default function SearchModal() {
     }
 
     return result.slice(0, 50); // Limit results for performance
-  }, [searchableItems, query, activeFilter, favorites, data]);
+  }, [searchableItems, query, activeFilter, favorites, searchNodeLookup]);
 
   return (
     <Transition.Root
@@ -368,7 +387,23 @@ export default function SearchModal() {
                   ))}
                 </div>
 
-                {filteredItems.length > 0 && (
+                {isLoadingSearchIndex && (
+                  <div className="py-10 px-6 text-center text-sm sm:px-14">
+                    <MagnifyingGlassIcon className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))] animate-pulse" />
+                    <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">Loading search index…</p>
+                    <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">Preparing resources for search.</p>
+                  </div>
+                )}
+
+                {searchIndexLoadError && !isLoadingSearchIndex && (
+                  <div className="py-10 px-6 text-center text-sm sm:px-14">
+                    <ExclamationCircleIcon className="mx-auto h-6 w-6 text-red-500" />
+                    <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">Search unavailable</p>
+                    <p className="mt-2 text-[rgb(var(--ec-page-text-muted))]">{searchIndexLoadError}</p>
+                  </div>
+                )}
+
+                {!isLoadingSearchIndex && !searchIndexLoadError && filteredItems.length > 0 && (
                   <>
                     {query === '' && favorites.length > 0 && (
                       <div className="px-6 pt-3 pb-2">
@@ -462,7 +497,7 @@ export default function SearchModal() {
                   </>
                 )}
 
-                {query !== '' && filteredItems.length === 0 && (
+                {!isLoadingSearchIndex && !searchIndexLoadError && query !== '' && filteredItems.length === 0 && (
                   <div className="py-14 px-6 text-center text-sm sm:px-14">
                     <ExclamationCircleIcon
                       type="outline"
@@ -476,7 +511,7 @@ export default function SearchModal() {
                   </div>
                 )}
 
-                {query === '' && filteredItems.length === 0 && (
+                {!isLoadingSearchIndex && !searchIndexLoadError && query === '' && filteredItems.length === 0 && (
                   <div className="py-14 px-6 text-center text-sm sm:px-14">
                     <MagnifyingGlassIcon className="mx-auto h-6 w-6 text-[rgb(var(--ec-icon-color))]" />
                     <p className="mt-4 font-semibold text-[rgb(var(--ec-page-text))]">Search for anything</p>
