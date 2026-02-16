@@ -10,6 +10,7 @@ import {
 } from "@xyflow/react";
 import FocusModeContent from "./FocusMode/FocusModeContent";
 import { getNodeDisplayInfo } from "./FocusMode/utils";
+import { useDarkMode } from "../nodes/shared-styles";
 
 interface FocusModeModalProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ const FocusModeModal: React.FC<FocusModeModalProps> = ({
   const [centerNodeId, setCenterNodeId] = useState<string | null>(
     initialNodeId,
   );
+  const isDark = useDarkMode();
 
   // Reset center node when modal opens with new initial node
   useEffect(() => {
@@ -67,19 +69,86 @@ const FocusModeModal: React.FC<FocusModeModalProps> = ({
           className="fixed inset-0 z-[99999] eventcatalog-visualizer"
           style={{ isolation: "isolate" }}
         >
-          <Dialog.Overlay className="fixed inset-0 bg-black/70 data-[state=open]:animate-overlayShow" />
-          <Dialog.Content className="fixed inset-4 md:inset-8 lg:inset-12 rounded-lg bg-[rgb(var(--ec-page-bg))] shadow-xl focus:outline-none flex flex-col overflow-hidden">
+          <Dialog.Overlay
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: isDark
+                ? "rgba(0, 0, 0, 0.75)"
+                : "rgba(15, 23, 42, 0.55)",
+              backdropFilter: "blur(2px)",
+            }}
+          />
+          <Dialog.Content
+            style={{
+              position: "fixed",
+              inset: "1rem",
+              borderRadius: 12,
+              background: isDark ? "#0f172a" : "#ffffff",
+              border: `1px solid ${
+                isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"
+              }`,
+              boxShadow: isDark
+                ? "0 24px 48px rgba(0,0,0,0.5)"
+                : "0 24px 48px rgba(0,0,0,0.15)",
+              outline: "none",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--ec-page-border))] flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[rgb(var(--ec-accent-subtle))]">
-                  <FocusIcon className="w-5 h-5 text-[rgb(var(--ec-accent))]" />
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "1rem 1.5rem",
+                borderBottom: `1px solid ${
+                  isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"
+                }`,
+                flexShrink: 0,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    background: isDark
+                      ? "rgba(59, 130, 246, 0.18)"
+                      : "rgba(59, 130, 246, 0.12)",
+                  }}
+                >
+                  <FocusIcon
+                    style={{
+                      width: 20,
+                      height: 20,
+                      color: isDark ? "#93c5fd" : "#2563eb",
+                    }}
+                  />
                 </div>
                 <div>
-                  <Dialog.Title className="text-lg font-semibold text-[rgb(var(--ec-page-text))]">
+                  <Dialog.Title
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: isDark ? "#f8fafc" : "#0f172a",
+                    }}
+                  >
                     Focus Mode
                   </Dialog.Title>
-                  <Dialog.Description className="text-sm text-[rgb(var(--ec-page-text-muted))]">
+                  <Dialog.Description
+                    style={{
+                      marginTop: 2,
+                      fontSize: 14,
+                      color: isDark ? "#94a3b8" : "#475569",
+                    }}
+                  >
                     {centerNodeInfo
                       ? `Exploring: ${centerNodeInfo.name} - Click on connected nodes to navigate`
                       : "Explore node connections"}
@@ -88,16 +157,27 @@ const FocusModeModal: React.FC<FocusModeModalProps> = ({
               </div>
               <Dialog.Close asChild>
                 <button
-                  className="flex items-center justify-center w-10 h-10 rounded-lg text-[rgb(var(--ec-icon-color))] hover:text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover,var(--ec-page-border)/0.5))] transition-colors"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    border: "none",
+                    cursor: "pointer",
+                    background: "transparent",
+                    color: isDark ? "#94a3b8" : "#64748b",
+                  }}
                   aria-label="Close"
                 >
-                  <XIcon className="w-5 h-5" />
+                  <XIcon style={{ width: 20, height: 20 }} />
                 </button>
               </Dialog.Close>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-hidden">
+            <div style={{ flex: 1, overflow: "hidden" }}>
               <ReactFlowProvider>
                 <FocusModeContent
                   centerNodeId={centerNodeId}
