@@ -8,10 +8,11 @@
  * - URL building with Astro's URL utilities
  */
 
-import { useCallback } from 'react';
-import { NodeGraph } from '@eventcatalog/visualiser';
+import { useCallback, lazy, Suspense } from 'react';
 import '@eventcatalog/visualiser/styles.css';
 import type { Node, Edge } from '@xyflow/react';
+
+const NodeGraph = lazy(() => import('@eventcatalog/visualiser').then((module) => ({ default: module.NodeGraph })));
 
 interface AstroNodeGraphProps {
   id: string;
@@ -89,15 +90,17 @@ const AstroNodeGraph = ({ isDevMode = false, resourceKey, ...otherProps }: Astro
   }, []);
 
   return (
-    <NodeGraph
-      {...otherProps}
-      resourceKey={resourceKey}
-      isDevMode={isDevMode}
-      onNavigate={handleNavigate}
-      onBuildUrl={handleBuildUrl}
-      onSaveLayout={handleSaveLayout}
-      onResetLayout={handleResetLayout}
-    />
+    <Suspense fallback={<div>Loading graph...</div>}>
+      <NodeGraph
+        {...otherProps}
+        resourceKey={resourceKey}
+        isDevMode={isDevMode}
+        onNavigate={handleNavigate}
+        onBuildUrl={handleBuildUrl}
+        onSaveLayout={handleSaveLayout}
+        onResetLayout={handleResetLayout}
+      />
+    </Suspense>
   );
 };
 
