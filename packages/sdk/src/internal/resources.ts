@@ -119,6 +119,33 @@ export const writeResource = async (
   }
 };
 
+const RESOURCE_TYPE_FOLDERS: Record<string, string[]> = {
+  service: ['services'],
+  event: ['events'],
+  command: ['commands'],
+  query: ['queries'],
+  channel: ['channels'],
+  domain: ['domains', 'subdomains'],
+  entity: ['entities'],
+  team: ['teams'],
+  user: ['users'],
+  'data-product': ['data-products'],
+  'data-store': ['data-stores'],
+  container: ['containers'],
+  diagram: ['diagrams'],
+  'custom-doc': ['docs'],
+  message: ['events', 'commands', 'queries'],
+};
+
+const fileMatchesResourceType = (file: string, type?: string) => {
+  if (!type) return true;
+  const folders = RESOURCE_TYPE_FOLDERS[type];
+  if (!folders || folders.length === 0) return true;
+
+  const normalized = file.replace(/\\/g, '/');
+  return folders.some((folder) => normalized.includes(`/${folder}/`));
+};
+
 export const getResource = async (
   catalogDir: string,
   id?: string,
@@ -127,7 +154,21 @@ export const getResource = async (
   filePath?: string
 ): Promise<Resource | undefined> => {
   const attachSchema = options?.attachSchema || false;
-  const file = filePath || (id ? await findFileById(catalogDir, id, version) : undefined);
+
+  let file = filePath;
+
+  if (!file && id) {
+    const foundFile = await findFileById(catalogDir, id, version);
+
+    if (foundFile && fileMatchesResourceType(foundFile, options?.type)) {
+      file = foundFile;
+    } else {
+      const files = await getFiles(`${catalogDir}/**/index.{md,mdx}`);
+      const matchedFiles = await searchFilesForId(files, id, version);
+      file = matchedFiles.find((match) => fileMatchesResourceType(match, options?.type));
+    }
+  }
+
   if (!file || !fsSync.existsSync(file)) return;
 
   const { data, content } = matter.read(file);
