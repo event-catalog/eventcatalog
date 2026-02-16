@@ -3,9 +3,9 @@ import { join, extname } from 'node:path';
 import type { Channel } from './types';
 import { getResource, getResourcePath, getResources, rmResourceById, versionResource, writeResource } from './internal/resources';
 import { findFileById } from './internal/utils';
-import { getEvent, rmEventById, writeEvent } from './events';
-import { getCommand, rmCommandById, writeCommand } from './commands';
-import { getQuery, rmQueryById, writeQuery } from './queries';
+import { getEvent, writeEvent } from './events';
+import { getCommand, writeCommand } from './commands';
+import { getQuery, writeQuery } from './queries';
 
 /**
  * Returns a channel from EventCatalog.
@@ -237,22 +237,19 @@ export const addMessageToChannel =
     const functions = {
       events: {
         getMessage: getEvent,
-        rmMessageById: rmEventById,
         writeMessage: writeEvent,
       },
       commands: {
         getMessage: getCommand,
-        rmMessageById: rmCommandById,
         writeMessage: writeCommand,
       },
       queries: {
         getMessage: getQuery,
-        rmMessageById: rmQueryById,
         writeMessage: writeQuery,
       },
     };
 
-    const { getMessage, rmMessageById, writeMessage } = functions[collection as keyof typeof functions];
+    const { getMessage, writeMessage } = functions[collection as keyof typeof functions];
 
     const message = await getMessage(directory)(_message.id, _message.version);
     const messagePath = await getResourcePath(directory, _message.id, _message.version);
@@ -274,9 +271,11 @@ export const addMessageToChannel =
       throw new Error(`Cannot find message ${id} in the catalog`);
     }
 
-    const path = existingResource.split(`/[\\/]+${collection}`)[0];
+    const path = existingResource.split(new RegExp(`[\\\\/]+${collection}[\\\\/]+`))[0];
     const pathToResource = join(path, collection);
 
-    await rmMessageById(directory)(_message.id, _message.version, true);
-    await writeMessage(pathToResource)(message, { format: extension === '.md' ? 'md' : 'mdx' });
+    await writeMessage(pathToResource)(message, {
+      override: true,
+      format: extension === '.md' ? 'md' : 'mdx',
+    });
   };

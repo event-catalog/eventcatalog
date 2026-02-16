@@ -29,6 +29,7 @@ const {
   toService,
   addDataStoreToService,
   writeDataStore,
+  writeChannel,
 } = utils(CATALOG_PATH);
 
 // clean the catalog before each test
@@ -73,6 +74,28 @@ describe('Services SDK', () => {
         attachments: ['https://example.com'],
         diagrams: [{ id: 'InventoryServiceDiagram', version: '1.0.0' }],
       });
+    });
+
+    it('returns the service even when another resource type has the same id', async () => {
+      await writeChannel({
+        id: 'InventoryService',
+        name: 'Inventory Channel',
+        version: '0.0.1',
+        summary: 'A channel with the same id as a service',
+        markdown: '# Hello world',
+      });
+
+      await writeService({
+        id: 'InventoryService',
+        name: 'Inventory Service',
+        version: '0.0.1',
+        summary: 'Service tat handles the inventory',
+        markdown: '# Hello world',
+      });
+
+      const service = await getService('InventoryService');
+
+      expect(service.name).toEqual('Inventory Service');
     });
 
     it('returns the given service id from EventCatalog and the requested version when a version is given,', async () => {
@@ -2013,6 +2036,32 @@ describe('Services SDK', () => {
 
       const pathToService = path.join(CATALOG_PATH, 'services', 'InventoryService');
       expect(fs.existsSync(pathToService)).toEqual(true);
+    });
+
+    it('preserves subfolders under a service when adding a message to the service', async () => {
+      await writeService({
+        id: 'InventoryService',
+        name: 'Inventory Service',
+        version: '0.0.1',
+        summary: 'Service that handles the inventory',
+        markdown: '# Hello world',
+      });
+
+      await writeEvent({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+
+      const nestedDirectory = path.join(CATALOG_PATH, 'services', 'InventoryService', 'queries');
+      fs.mkdirSync(nestedDirectory, { recursive: true });
+      fs.writeFileSync(path.join(nestedDirectory, 'test.txt'), 'keep me');
+
+      await addEventToService('InventoryService', 'sends', { id: 'InventoryAdjusted', version: '0.0.1' }, '0.0.1');
+
+      expect(fs.existsSync(path.join(nestedDirectory, 'test.txt'))).toEqual(true);
     });
   });
 

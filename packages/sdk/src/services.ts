@@ -423,11 +423,13 @@ export const addMessageToService =
     }
 
     // Get where the service was located, make sure it goes back there.
-    const path = existingResource.split(/[\\/]+services/)[0];
+    const path = existingResource.split(/[\\/]+services[\\/]+/)[0];
     const pathToResource = join(path, 'services');
 
-    await rmServiceById(directory)(id, version);
-    await writeService(pathToResource)(service, { format: extension === '.md' ? 'md' : 'mdx' });
+    await writeService(pathToResource)(service, {
+      override: true,
+      format: extension === '.md' ? 'md' : 'mdx',
+    });
   };
 
 /**
@@ -539,11 +541,13 @@ export const addEntityToService =
     }
 
     // Get where the service was located, make sure it goes back there.
-    const path = existingResource.split(/[\\/]+services/)[0];
+    const path = existingResource.split(/[\\/]+services[\\/]+/)[0];
     const pathToResource = join(path, 'services');
 
-    await rmServiceById(directory)(id, version);
-    await writeService(pathToResource)(service, { format: extension === '.md' ? 'md' : 'mdx' });
+    await writeService(pathToResource)(service, {
+      override: true,
+      format: extension === '.md' ? 'md' : 'mdx',
+    });
   };
 
 /**
@@ -610,9 +614,11 @@ export const addDataStoreToService =
     }
 
     // Get where the service was located, make sure it goes back there.
-    const path = existingResource.split(/[\\/]+services/)[0];
+    const path = existingResource.split(/[\\/]+services[\\/]+/)[0];
     const pathToResource = join(path, 'services');
 
-    await rmServiceById(directory)(id, version);
-    await writeService(pathToResource)(service, { format: extension === '.md' ? 'md' : 'mdx' });
+    await writeService(pathToResource)(service, {
+      override: true,
+      format: extension === '.md' ? 'md' : 'mdx',
+    });
   };
