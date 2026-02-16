@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import { join } from 'node:path';
-import { findFileById } from './internal/utils';
+import { findFileById, invalidateFileCache } from './internal/utils';
 import type { Query } from './types';
 import {
   addFileToResource,
@@ -186,6 +186,7 @@ export const writeQueryToService =
  */
 export const rmQuery = (directory: string) => async (path: string) => {
   await fs.rm(join(directory, path), { recursive: true });
+  invalidateFileCache();
 };
 
 /**

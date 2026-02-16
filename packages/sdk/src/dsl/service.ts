@@ -1,11 +1,13 @@
 import type { Service, Event, Command, Query } from '../types';
-import { serializeBaseFields, serializeMessagePointers, resolveMessageType } from './utils';
+import { serializeBaseFields, serializeMessagePointers, resolveMessageType, buildMessageTypeIndex } from './utils';
+import type { MessageTypeIndex } from './utils';
 import { messageToDSL } from './message';
 
 interface ServiceToDSLOptions {
   catalogDir: string;
   hydrate?: boolean;
   _seen?: Set<string>;
+  _msgIndex?: MessageTypeIndex;
 }
 
 export async function serviceToDSL(
@@ -14,6 +16,7 @@ export async function serviceToDSL(
   getMessageFn?: (id: string, version?: string) => Promise<Event | Command | Query | undefined>
 ): Promise<string> {
   const { catalogDir, hydrate = false, _seen = new Set<string>() } = options;
+  const msgIndex = options._msgIndex || buildMessageTypeIndex(catalogDir);
   const parts: string[] = [];
 
   if (hydrate && getMessageFn) {
@@ -23,7 +26,7 @@ export async function serviceToDSL(
       if (_seen.has(key)) continue;
       _seen.add(key);
 
-      const msgType = resolveMessageType(catalogDir, msg.id);
+      const msgType = resolveMessageType(msgIndex, msg.id);
       if (!msgType) continue;
 
       const msgResource = await getMessageFn(msg.id, msg.version);
@@ -38,12 +41,12 @@ export async function serviceToDSL(
   if (baseFields) lines.push(baseFields);
 
   if (resource.sends && resource.sends.length > 0) {
-    const sendsStr = serializeMessagePointers(resource.sends, 'sends', catalogDir);
+    const sendsStr = serializeMessagePointers(resource.sends, 'sends', msgIndex);
     if (sendsStr) lines.push(sendsStr);
   }
 
   if (resource.receives && resource.receives.length > 0) {
-    const recvStr = serializeMessagePointers(resource.receives, 'receives', catalogDir);
+    const recvStr = serializeMessagePointers(resource.receives, 'receives', msgIndex);
     if (recvStr) lines.push(recvStr);
   }
 

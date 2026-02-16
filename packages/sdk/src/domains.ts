@@ -11,7 +11,7 @@ import {
   versionResource,
   writeResource,
 } from './internal/resources';
-import { findFileById, readMdxFile, uniqueVersions } from './internal/utils';
+import { findFileById, invalidateFileCache, readMdxFile, uniqueVersions } from './internal/utils';
 import matter from 'gray-matter';
 
 /**
@@ -187,6 +187,7 @@ export const versionDomain = (directory: string) => async (id: string) => versio
  */
 export const rmDomain = (directory: string) => async (path: string) => {
   await fs.rm(join(directory, path), { recursive: true });
+  invalidateFileCache();
 };
 
 /**

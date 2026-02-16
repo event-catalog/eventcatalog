@@ -4,8 +4,8 @@ import { serviceToDSL } from './service';
 import { domainToDSL } from './domain';
 import { teamToDSL, userToDSL } from './owner';
 import { channelToDSL } from './channel';
-import { resolveMessageType } from './utils';
-import type { MessageType } from './utils';
+import { buildMessageTypeIndex, resolveMessageType } from './utils';
+import type { MessageType, MessageTypeIndex } from './utils';
 
 type ResourceType = 'event' | 'command' | 'query' | 'service' | 'domain';
 
@@ -27,9 +27,9 @@ export interface ResourceResolvers {
   getUser: (id: string) => Promise<User | undefined>;
 }
 
-function getMessage(resolvers: ResourceResolvers, catalogDir: string) {
+function getMessage(resolvers: ResourceResolvers, msgIndex: MessageTypeIndex) {
   return async (id: string, version?: string) => {
-    const msgType = resolveMessageType(catalogDir, id);
+    const msgType = resolveMessageType(msgIndex, id);
     if (!msgType) return undefined;
     switch (msgType) {
       case 'event':
@@ -86,6 +86,7 @@ export const toDSL =
     const resources = Array.isArray(resource) ? resource : [resource];
     const seen = new Set<string>();
     const parts: string[] = [];
+    const msgIndex = buildMessageTypeIndex(catalogDir);
 
     for (const res of resources) {
       const key = `${options.type}:${res.id}@${res.version || 'latest'}`;
@@ -109,8 +110,8 @@ export const toDSL =
           parts.push(
             await serviceToDSL(
               res as Service,
-              { catalogDir, hydrate: options.hydrate, _seen: seen },
-              getMessage(resolvers, catalogDir)
+              { catalogDir, hydrate: options.hydrate, _seen: seen, _msgIndex: msgIndex },
+              getMessage(resolvers, msgIndex)
             )
           );
           break;
@@ -121,11 +122,11 @@ export const toDSL =
           parts.push(
             await domainToDSL(
               res as Domain,
-              { catalogDir, hydrate: options.hydrate, _seen: seen },
+              { catalogDir, hydrate: options.hydrate, _seen: seen, _msgIndex: msgIndex },
               {
                 getService: resolvers.getService,
                 getDomain: resolvers.getDomain,
-                getMessage: getMessage(resolvers, catalogDir),
+                getMessage: getMessage(resolvers, msgIndex),
                 getChannel: resolvers.getChannel,
                 getTeam: resolvers.getTeam,
                 getUser: resolvers.getUser,

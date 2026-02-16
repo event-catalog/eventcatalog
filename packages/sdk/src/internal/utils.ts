@@ -5,59 +5,137 @@ import { join, dirname, normalize, sep as pathSeparator, resolve, basename, rela
 import matter from 'gray-matter';
 import { satisfies, validRange, valid } from 'semver';
 
+// In-memory file index cache. Auto-built on first read, invalidated on writes.
+interface FileIndexEntry {
+  path: string;
+  id: string;
+  version: string;
+  isVersioned: boolean;
+}
+
+let _fileIndexCache: Map<string, FileIndexEntry[]> | null = null;
+let _fileIndexCatalogDir: string | null = null;
+let _matterCache: Map<string, matter.GrayMatterFile<string>> | null = null;
+let _fileIndexMtimeMs: number = 0;
+
+function buildFileCache(catalogDir: string): void {
+  const files = globSync('**/index.{md,mdx}', {
+    cwd: catalogDir,
+    ignore: ['node_modules/**'],
+    absolute: true,
+    nodir: true,
+  }).map(normalize);
+
+  const index = new Map<string, FileIndexEntry[]>();
+  const matterResults = new Map<string, matter.GrayMatterFile<string>>();
+
+  for (const file of files) {
+    const content = fsSync.readFileSync(file, 'utf-8');
+    const parsed = matter(content);
+    matterResults.set(file, parsed);
+
+    const id = parsed.data.id;
+    if (!id) continue;
+
+    const version = parsed.data.version || '';
+    const isVersioned = file.includes('versioned');
+    const entry: FileIndexEntry = { path: file, id, version: String(version), isVersioned };
+
+    const existing = index.get(id);
+    if (existing) {
+      existing.push(entry);
+    } else {
+      index.set(id, [entry]);
+    }
+  }
+
+  _fileIndexCache = index;
+  _fileIndexCatalogDir = catalogDir;
+  _matterCache = matterResults;
+  try {
+    _fileIndexMtimeMs = fsSync.statSync(catalogDir).mtimeMs;
+  } catch {
+    _fileIndexMtimeMs = 0;
+  }
+}
+
+function ensureFileCache(catalogDir: string): void {
+  if (!_fileIndexCache || _fileIndexCatalogDir !== catalogDir) {
+    buildFileCache(catalogDir);
+    return;
+  }
+  // Check if catalog dir was recreated (e.g. tests wiping and recreating)
+  try {
+    const currentMtime = fsSync.statSync(catalogDir).mtimeMs;
+    if (currentMtime !== _fileIndexMtimeMs) {
+      buildFileCache(catalogDir);
+    }
+  } catch {
+    buildFileCache(catalogDir);
+  }
+}
+
+/** Invalidate the file cache. Call after any write/rm/version operation. */
+export function invalidateFileCache(): void {
+  _fileIndexCache = null;
+  _fileIndexCatalogDir = null;
+  _matterCache = null;
+}
+
+// Keep these as aliases for backwards compat with CLI export code
+export const enableFileCache = buildFileCache;
+export const disableFileCache = invalidateFileCache;
+
+/**
+ * Returns cached matter.read result if available, otherwise reads from disk.
+ */
+export function cachedMatterRead(filePath: string): matter.GrayMatterFile<string> {
+  if (_matterCache) {
+    const cached = _matterCache.get(filePath);
+    if (cached) return cached;
+  }
+  return matter.read(filePath);
+}
+
 /**
  * Returns true if a given version of a resource id exists in the catalog
  */
 export const versionExists = async (catalogDir: string, id: string, version: string) => {
-  const files = await getFiles(`${catalogDir}/**/index.{md,mdx}`);
-  const matchedFiles = (await searchFilesForId(files, id, version)) || [];
-  return matchedFiles.length > 0;
+  ensureFileCache(catalogDir);
+  const entries = _fileIndexCache!.get(id);
+  if (!entries) return false;
+  return entries.some((e) => e.version === version);
 };
 
 export const findFileById = async (catalogDir: string, id: string, version?: string): Promise<string | undefined> => {
-  const files = await getFiles(`${catalogDir}/**/index.{md,mdx}`);
+  ensureFileCache(catalogDir);
 
-  const matchedFiles = (await searchFilesForId(files, id)) || [];
-  const latestVersion = matchedFiles.find((path) => !path.includes('versioned'));
+  const entries = _fileIndexCache!.get(id);
+  if (!entries || entries.length === 0) return undefined;
 
-  // If no version is provided, return the latest version
-  if (!version) {
-    return latestVersion;
+  const latestEntry = entries.find((e) => !e.isVersioned);
+
+  if (!version || version === 'latest') {
+    return latestEntry?.path;
   }
 
-  // map files into gray matter to get versions
-  const parsedFiles = matchedFiles.map((path) => {
-    const { data } = matter.read(path);
-    return { ...data, path };
-  }) as any[];
+  // Exact version match
+  const exactMatch = entries.find((e) => e.version === version);
+  if (exactMatch) return exactMatch.path;
 
-  // Handle 'latest' version - return the latest (non-versioned) file
-  if (version === 'latest') {
-    return latestVersion;
-  }
-
-  // First, check for exact version match (handles non-semver versions like '1', '2', etc.)
-  const exactMatch = parsedFiles.find((c) => c.version === version);
-  if (exactMatch) {
-    return exactMatch.path;
-  }
-
-  // Try semver range matching
+  // Semver range match
   const semverRange = validRange(version);
-
   if (semverRange) {
-    const match = parsedFiles.filter((c) => {
+    const match = entries.find((e) => {
       try {
-        return satisfies(c.version, semverRange);
-      } catch (error) {
-        // If satisfies fails (e.g., comparing semver range with non-semver version), skip this file
+        return satisfies(e.version, semverRange);
+      } catch {
         return false;
       }
     });
-    return match.length > 0 ? match[0].path : undefined;
+    return match?.path;
   }
 
-  // If no exact match and no valid semver range, return undefined
   return undefined;
 };
 

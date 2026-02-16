@@ -163,7 +163,7 @@ export async function exportCatalog(options: Omit<ExportOptions, 'resource'>): P
 
   if (playground) {
     const encoded = Buffer.from(dsl).toString('base64');
-    const playgroundUrl = `http://localhost:5173/?code=${encoded}`;
+    const playgroundUrl = `https://playground.eventcatalog.dev/?code=${encoded}`;
     await open(playgroundUrl);
     lines.push('', `  Opening in playground...`);
   } else {
@@ -184,10 +184,11 @@ export async function exportAll(options: ExportOptions): Promise<string> {
 
   const plural = pluralize(type);
   const sdk = createSDK(dir);
-  const fetcher = getCollectionFetcher(sdk, type);
-  const allResources = await fetcher({ latestOnly: true });
 
-  if (!allResources || allResources.length === 0) {
+  const fetcher = getCollectionFetcher(sdk, type);
+  const allResources = (await fetcher({ latestOnly: true })) || [];
+
+  if (allResources.length === 0) {
     throw new Error(`No ${plural} found in catalog at '${dir}'`);
   }
 
@@ -208,7 +209,7 @@ export async function exportAll(options: ExportOptions): Promise<string> {
 
   if (playground) {
     const encoded = Buffer.from(dsl).toString('base64');
-    const playgroundUrl = `http://localhost:5173/?code=${encoded}`;
+    const playgroundUrl = `https://playground.eventcatalog.dev/?code=${encoded}`;
     await open(playgroundUrl);
     lines.push('', `  Opening in playground...`);
   } else {
@@ -232,6 +233,7 @@ export async function exportResource(options: ExportOptions): Promise<string> {
   }
 
   const sdk = createSDK(dir);
+
   const fetcher = getResourceFetcher(sdk, type);
   const data = await fetcher(id, version);
 
@@ -257,7 +259,7 @@ export async function exportResource(options: ExportOptions): Promise<string> {
 
   if (playground) {
     const encoded = Buffer.from(dsl).toString('base64');
-    const playgroundUrl = `http://localhost:5173/?code=${encoded}`;
+    const playgroundUrl = `https://playground.eventcatalog.dev/?code=${encoded}`;
     await open(playgroundUrl);
     lines.push('', `  Opening in playground...`);
   } else {

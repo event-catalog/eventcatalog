@@ -3,7 +3,7 @@ import fsSync from 'node:fs';
 import { join } from 'node:path';
 import type { Team } from './types';
 import matter from 'gray-matter';
-import { getFiles } from './internal/utils';
+import { getFiles, invalidateFileCache } from './internal/utils';
 import { getResource } from './internal/resources';
 import path from 'node:path';
 import { getUser, getUsers } from './users';
@@ -119,6 +119,7 @@ export const writeTeam =
     const document = matter.stringify(markdown, frontmatter);
     fsSync.mkdirSync(join(catalogDir, ''), { recursive: true });
     fsSync.writeFileSync(join(catalogDir, '', `${resource.id}.mdx`), document);
+    invalidateFileCache();
   };
 
 /**
@@ -137,6 +138,7 @@ export const writeTeam =
  */
 export const rmTeamById = (catalogDir: string) => async (id: string) => {
   await fs.rm(join(catalogDir, `${id}.mdx`), { recursive: true });
+  invalidateFileCache();
 };
 
 /**
