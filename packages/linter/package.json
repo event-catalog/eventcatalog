@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/linter",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A linter for EventCatalog to validate frontmatter and resource references",
   "repository": {
     "type": "git",
