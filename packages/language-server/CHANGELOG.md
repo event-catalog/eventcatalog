@@ -1,5 +1,11 @@
 # @eventcatalog/language-server
 
+## 0.2.0
+
+### Minor Changes
+
+- c782129: feat(cli): add export command for DSL (.ec) format
+
 ## 0.1.1
 
 ### Patch Changes
