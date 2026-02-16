@@ -15,6 +15,7 @@ const {
   channelHasVersion,
   addEventToChannel,
   writeEvent,
+  versionEvent,
   getEvent,
   addFileToEvent,
   addCommandToChannel,
@@ -651,6 +652,48 @@ describe('Channels SDK', () => {
 
         // expect the path
         expect(fs.existsSync(path.join(CATALOG_PATH, 'events/InventoryCreated', 'index.mdx'))).toBe(true);
+
+        expect(event.channels).toEqual([
+          {
+            id: 'inventory.{env}.events',
+            version: '0.0.1',
+            parameters: {
+              env: 'dev',
+            },
+          },
+        ]);
+      });
+
+      it('adds the channel to an older event version when a newer one exists', async () => {
+        await writeChannel(mockChannel);
+
+        await writeEvent({
+          id: 'InventoryCreated',
+          name: 'Inventory Created',
+          version: '0.0.1',
+          summary: 'Old version',
+          markdown: '# Hello world',
+        });
+
+        await versionEvent('InventoryCreated');
+
+        await writeEvent({
+          id: 'InventoryCreated',
+          name: 'Inventory Created',
+          version: '0.0.2',
+          summary: 'New version',
+          markdown: '# Hello world',
+        });
+
+        await addEventToChannel('inventory.{env}.events', {
+          id: 'InventoryCreated',
+          version: '0.0.1',
+          parameters: {
+            env: 'dev',
+          },
+        });
+
+        const event = await getEvent('InventoryCreated', '0.0.1');
 
         expect(event.channels).toEqual([
           {
