@@ -1,5 +1,26 @@
 # @eventcatalog/visualiser
 
+## 3.14.0
+
+### Minor Changes
+
+- c178b75: core(feat): updated visualiser support for dark mode, new layout engine
+- c178b75: Remove `catalog` object from collection getters, deriving values on-demand instead of pre-computing them for every resource
+- c178b75: Redesign visualiser nodes with post-it note style UI
+
+  - New post-it note design for all message and service nodes
+  - Folded corner effect and gradient backgrounds
+  - Glow handles with pulse animations
+  - Owner indicators on nodes
+  - Notes indicators for annotated resources
+  - Dark mode support via CSS variables
+  - Shared styles extracted to shared-styles.ts
+  - Group node support
+
+### Patch Changes
+
+- 28fe2d5: fix(visualiser): make focus mode modal styling self-contained
+
 ## 3.13.0
 
 ### Minor Changes
