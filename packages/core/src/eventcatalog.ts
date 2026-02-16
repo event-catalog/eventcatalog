@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
+import http from 'node:http';
 import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,7 +11,7 @@ import logBuild from './analytics/log-build';
 import { VERSION } from './constants';
 import { watch } from './watcher';
 import { catalogToAstro } from './catalog-to-astro-content-directory';
-import { verifyRequiredFieldsAreInCatalogConfigFile } from './eventcatalog-config-file-utils.js';
+import { getEventCatalogConfigFile, verifyRequiredFieldsAreInCatalogConfigFile } from './eventcatalog-config-file-utils.js';
 import resolveCatalogDependencies from './resolve-catalog-dependencies';
 import boxen from 'boxen';
 import { isOutputServer } from './features';
@@ -48,6 +49,73 @@ const ensureDir = (dir: string) => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
   }
+};
+
+const resolveDevPort = async ({ projectDir }: { projectDir: string }): Promise<number> => {
+  try {
+    const config = await getEventCatalogConfigFile(projectDir);
+    const fromConfig = Number(config?.port);
+    if (Number.isFinite(fromConfig) && fromConfig > 0) return fromConfig;
+  } catch (error) {
+    // Ignore config-read errors and fall back to default
+  }
+
+  return 3000;
+};
+
+const startDevPrewarm = ({
+  port = 3000,
+  paths = ['/ping', '/'],
+  retries = 80,
+  intervalMs = 250,
+  initialDelayMs = 500,
+}: {
+  port?: number;
+  paths?: string[];
+  retries?: number;
+  intervalMs?: number;
+  initialDelayMs?: number;
+}) => {
+  let attempt = 0;
+
+  const hit = (requestPath: string) =>
+    new Promise<boolean>((resolve) => {
+      const req = http.get(
+        {
+          hostname: '127.0.0.1',
+          port,
+          path: requestPath,
+          timeout: 1200,
+        },
+        (res) => {
+          res.resume();
+          resolve(true);
+        }
+      );
+
+      req.on('error', () => resolve(false));
+      req.on('timeout', () => {
+        req.destroy();
+        resolve(false);
+      });
+    });
+
+  const tick = async () => {
+    attempt += 1;
+
+    for (const requestPath of paths) {
+      const ok = await hit(requestPath);
+      if (ok) {
+        return;
+      }
+    }
+
+    if (attempt < retries) {
+      setTimeout(tick, intervalMs);
+    }
+  };
+
+  setTimeout(tick, initialDelayMs);
 };
 
 const copyCore = () => {
@@ -136,6 +204,7 @@ program
   .description('Run development server of EventCatalog')
   .option('-d, --debug', 'Output EventCatalog application information into your terminal')
   .option('--force-recreate', 'Recreate the eventcatalog-core directory', false)
+  .option('--no-prewarm', 'Disable automatic dev prewarm request')
   .action(async (options, command: Command) => {
     // // Copy EventCatalog core over
     // // Copy EventCatalog core over
@@ -189,14 +258,29 @@ program
     try {
       watchUnsub = await watch(dir, core);
 
+      const args = command.args.join(' ').trim();
+
+      if (options.prewarm) {
+        const prewarmPort = await resolveDevPort({
+          projectDir: dir,
+        });
+
+        startDevPrewarm({
+          port: prewarmPort,
+          paths: ['/ping', '/'],
+        });
+      }
+
+      const astroCommand =
+        process.platform === 'win32'
+          ? `npx astro dev ${args} 2>&1 | findstr /V /C:"[glob-loader]" /C:"The collection" /C:"[router]"`
+          : `npx astro dev ${args} 2>&1 | grep -v -e "\\[glob-loader\\]" -e "The collection.*does not exist" -e "\\[router\\]"`;
+
       const { result } = concurrently(
         [
           {
             name: 'astro',
-            command:
-              process.platform === 'win32'
-                ? `npx astro dev ${command.args.join(' ').trim()} 2>&1 | findstr /V /C:"[glob-loader]" /C:"The collection" /C:"[router]"`
-                : `npx astro dev ${command.args.join(' ').trim()} 2>&1 | grep -v -e "\\[glob-loader\\]" -e "The collection.*does not exist" -e "\\[router\\]"`,
+            command: astroCommand,
             cwd: core,
             env: {
               PROJECT_DIR: dir,
