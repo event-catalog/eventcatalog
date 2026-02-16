@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.14.1
+
+### Patch Changes
+
+- 69cb966: add in-memory file index cache to SDK for faster lookups, fix playground URL in CLI export
+
 ## 2.14.0
 
 ### Minor Changes
