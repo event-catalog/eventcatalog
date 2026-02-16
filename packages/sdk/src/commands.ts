@@ -10,7 +10,7 @@ import {
   versionResource,
   writeResource,
 } from './internal/resources';
-import { findFileById } from './internal/utils';
+import { findFileById, invalidateFileCache } from './internal/utils';
 import { addMessageToService } from './services';
 
 /**
@@ -187,6 +187,7 @@ export const writeCommandToService =
  */
 export const rmCommand = (directory: string) => async (path: string) => {
   await fs.rm(join(directory, path), { recursive: true });
+  invalidateFileCache();
 };
 
 /**

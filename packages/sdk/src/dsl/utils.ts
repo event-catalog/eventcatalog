@@ -11,6 +11,8 @@ interface BaseResource {
   draft?: boolean | { title?: string; message?: string };
 }
 
+export type MessageTypeIndex = Map<string, MessageType>;
+
 interface ChannelPointer {
   id: string;
   version?: string;
@@ -63,10 +65,33 @@ export function serializeBaseFields(resource: BaseResource, indent: string = '  
   return lines.join('\n');
 }
 
-export function resolveMessageType(catalogDir: string, id: string): MessageType | undefined {
-  if (globSync(`**/events/${id}/index.{md,mdx}`, { cwd: catalogDir }).length > 0) return 'event';
-  if (globSync(`**/commands/${id}/index.{md,mdx}`, { cwd: catalogDir }).length > 0) return 'command';
-  if (globSync(`**/queries/${id}/index.{md,mdx}`, { cwd: catalogDir }).length > 0) return 'query';
+export function buildMessageTypeIndex(catalogDir: string): MessageTypeIndex {
+  const index: MessageTypeIndex = new Map();
+  const types = ['events', 'commands', 'queries'] as const;
+  const typeMap = { events: 'event', commands: 'command', queries: 'query' } as const;
+
+  for (const type of types) {
+    const matches = globSync(`**/${type}/*/index.{md,mdx}`, { cwd: catalogDir });
+    for (const match of matches) {
+      const parts = match.split('/');
+      const typeIdx = parts.lastIndexOf(type);
+      if (typeIdx !== -1 && typeIdx + 1 < parts.length) {
+        index.set(parts[typeIdx + 1], typeMap[type]);
+      }
+    }
+  }
+
+  return index;
+}
+
+export function resolveMessageType(catalogDirOrIndex: string | MessageTypeIndex, id: string): MessageType | undefined {
+  if (typeof catalogDirOrIndex !== 'string') {
+    return catalogDirOrIndex.get(id);
+  }
+  // Fallback for backwards compatibility
+  if (globSync(`**/events/${id}/index.{md,mdx}`, { cwd: catalogDirOrIndex }).length > 0) return 'event';
+  if (globSync(`**/commands/${id}/index.{md,mdx}`, { cwd: catalogDirOrIndex }).length > 0) return 'command';
+  if (globSync(`**/queries/${id}/index.{md,mdx}`, { cwd: catalogDirOrIndex }).length > 0) return 'query';
   return undefined;
 }
 
@@ -79,13 +104,13 @@ function serializeChannelRef(channel: ChannelPointer): string {
 export function serializeMessagePointers(
   items: (SendsPointer | ReceivesPointer)[],
   direction: 'sends' | 'receives',
-  catalogDir: string,
+  catalogDirOrIndex: string | MessageTypeIndex,
   indent: string = '  '
 ): string {
   const lines: string[] = [];
 
   for (const item of items) {
-    const msgType = resolveMessageType(catalogDir, item.id);
+    const msgType = resolveMessageType(catalogDirOrIndex, item.id);
     if (!msgType) continue;
 
     let ref = `${item.id}`;

@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import { join, extname } from 'node:path';
 import type { Channel } from './types';
 import { getResource, getResourcePath, getResources, rmResourceById, versionResource, writeResource } from './internal/resources';
-import { findFileById } from './internal/utils';
+import { findFileById, invalidateFileCache } from './internal/utils';
 import { getEvent, rmEventById, writeEvent } from './events';
 import { getCommand, rmCommandById, writeCommand } from './commands';
 import { getQuery, rmQueryById, writeQuery } from './queries';
@@ -136,6 +136,7 @@ export const writeChannel =
  */
 export const rmChannel = (directory: string) => async (path: string) => {
   await fs.rm(join(directory, path), { recursive: true });
+  invalidateFileCache();
 };
 
 /**

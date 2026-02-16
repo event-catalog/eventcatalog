@@ -1,5 +1,5 @@
 import { dirname, join } from 'path';
-import { copyDir, findFileById, getFiles, searchFilesForId, versionExists } from './utils';
+import { copyDir, findFileById, getFiles, searchFilesForId, versionExists, cachedMatterRead, invalidateFileCache } from './utils';
 import matter from 'gray-matter';
 import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
@@ -56,6 +56,8 @@ export const versionResource = async (catalogDir: string, id: string) => {
       })
     );
   });
+
+  invalidateFileCache();
 };
 
 export const writeResource = async (
@@ -113,6 +115,7 @@ export const writeResource = async (
 
     const document = matter.stringify(markdown.trim(), frontmatter);
     fsSync.writeFileSync(lockPath, document);
+    invalidateFileCache();
   } finally {
     // Always release the lock
     await unlock(lockPath).catch(() => {});
@@ -130,7 +133,7 @@ export const getResource = async (
   const file = filePath || (id ? await findFileById(catalogDir, id, version) : undefined);
   if (!file || !fsSync.existsSync(file)) return;
 
-  const { data, content } = matter.read(file);
+  const { data, content } = cachedMatterRead(file);
 
   if (attachSchema && data?.schemaPath) {
     const resourceDirectory = dirname(file);
@@ -194,7 +197,7 @@ export const getResources = async (
   if (files.length === 0) return;
 
   return files.map((file) => {
-    const { data, content } = matter.read(file);
+    const { data, content } = cachedMatterRead(file);
 
     // Attach the schema if the attachSchema option is set to true
     if (attachSchema && data?.schemaPath) {
@@ -249,6 +252,8 @@ export const rmResourceById = async (
       })
     );
   }
+
+  invalidateFileCache();
 };
 
 // Helper function to ensure file/directory is completely removed

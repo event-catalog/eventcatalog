@@ -1,5 +1,6 @@
 import type { Domain, Service, Event, Command, Query, Channel, Team, User } from '../types';
-import { serializeBaseFields, serializeMessagePointers, resolveMessageType } from './utils';
+import { serializeBaseFields, serializeMessagePointers, resolveMessageType, buildMessageTypeIndex } from './utils';
+import type { MessageTypeIndex } from './utils';
 import { serviceToDSL } from './service';
 import { messageToDSL } from './message';
 import { channelToDSL } from './channel';
@@ -9,6 +10,7 @@ interface DomainToDSLOptions {
   catalogDir: string;
   hydrate?: boolean;
   _seen?: Set<string>;
+  _msgIndex?: MessageTypeIndex;
 }
 
 export interface DomainResolvers {
@@ -75,6 +77,7 @@ async function buildDomainBody(
   keyword: 'domain' | 'subdomain'
 ): Promise<{ topLevelParts: string[]; block: string }> {
   const { catalogDir, hydrate = false, _seen = new Set<string>() } = options;
+  const msgIndex = options._msgIndex || buildMessageTypeIndex(catalogDir);
   const topLevelParts: string[] = [];
 
   if (hydrate && resolvers) {
@@ -93,7 +96,7 @@ async function buildDomainBody(
           const svcMessages = [...(svc.sends || []), ...(svc.receives || [])];
           await hydrateChannelsFromMessages(svcMessages, resolvers, _seen, topLevelParts);
           // Hydrate service (includes message hydration)
-          const svcDsl = await serviceToDSL(svc, { catalogDir, hydrate: true, _seen }, resolvers.getMessage);
+          const svcDsl = await serviceToDSL(svc, { catalogDir, hydrate: true, _seen, _msgIndex: msgIndex }, resolvers.getMessage);
           topLevelParts.push(svcDsl);
         }
       }
@@ -110,7 +113,7 @@ async function buildDomainBody(
         if (_seen.has(key)) continue;
         _seen.add(key);
 
-        const msgType = resolveMessageType(catalogDir, msg.id);
+        const msgType = resolveMessageType(msgIndex, msg.id);
         if (!msgType) continue;
 
         const msgResource = await resolvers.getMessage(msg.id, msg.version);
@@ -135,12 +138,12 @@ async function buildDomainBody(
   }
 
   if (resource.sends && resource.sends.length > 0) {
-    const sendsStr = serializeMessagePointers(resource.sends, 'sends', catalogDir);
+    const sendsStr = serializeMessagePointers(resource.sends, 'sends', msgIndex);
     if (sendsStr) lines.push(sendsStr);
   }
 
   if (resource.receives && resource.receives.length > 0) {
-    const recvStr = serializeMessagePointers(resource.receives, 'receives', catalogDir);
+    const recvStr = serializeMessagePointers(resource.receives, 'receives', msgIndex);
     if (recvStr) lines.push(recvStr);
   }
 
@@ -157,7 +160,12 @@ async function buildDomainBody(
           // Hydrate subdomain owners at top level
           await hydrateOwners(subDomain.owners, resolvers, _seen, topLevelParts);
           // Recursively build subdomain
-          const sub = await buildDomainBody(subDomain, { catalogDir, hydrate, _seen }, resolvers, 'subdomain');
+          const sub = await buildDomainBody(
+            subDomain,
+            { catalogDir, hydrate, _seen, _msgIndex: msgIndex },
+            resolvers,
+            'subdomain'
+          );
           topLevelParts.push(...sub.topLevelParts);
           // Indent the subdomain block to nest inside the parent
           const indented = sub.block
@@ -185,8 +193,9 @@ async function buildDomainBody(
 
 export async function domainToDSL(resource: Domain, options: DomainToDSLOptions, resolvers?: DomainResolvers): Promise<string> {
   const { catalogDir, hydrate = false, _seen = new Set<string>() } = options;
+  const msgIndex = options._msgIndex || buildMessageTypeIndex(catalogDir);
 
-  const result = await buildDomainBody(resource, { catalogDir, hydrate, _seen }, resolvers, 'domain');
+  const result = await buildDomainBody(resource, { catalogDir, hydrate, _seen, _msgIndex: msgIndex }, resolvers, 'domain');
   const parts = [...result.topLevelParts, result.block];
 
   return parts.join('\n\n');

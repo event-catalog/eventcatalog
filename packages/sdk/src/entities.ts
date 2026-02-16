@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import { join, dirname } from 'node:path';
-import { findFileById } from './internal/utils';
+import { findFileById, invalidateFileCache } from './internal/utils';
 import type { Entity } from './types';
 import { getResource, getResources, rmResourceById, versionResource, writeResource } from './internal/resources';
 
@@ -132,6 +132,7 @@ export const writeEntity =
  */
 export const rmEntity = (directory: string) => async (path: string) => {
   await fs.rm(join(directory, path), { recursive: true });
+  invalidateFileCache();
 };
 
 /**

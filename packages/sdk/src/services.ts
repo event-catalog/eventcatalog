@@ -13,7 +13,7 @@ import {
   getResourcePath,
   toResource,
 } from './internal/resources';
-import { findFileById, uniqueVersions } from './internal/utils';
+import { findFileById, invalidateFileCache, uniqueVersions } from './internal/utils';
 
 /**
  * Returns a service from EventCatalog.
@@ -271,6 +271,7 @@ export const versionService = (directory: string) => async (id: string) => versi
  */
 export const rmService = (directory: string) => async (path: string) => {
   await fs.rm(join(directory, path), { recursive: true });
+  invalidateFileCache();
 };
 
 /**

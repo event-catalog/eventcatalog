@@ -3,7 +3,7 @@ import fsSync from 'node:fs';
 import { join } from 'node:path';
 import type { User } from './types';
 import matter from 'gray-matter';
-import { getFiles } from './internal/utils';
+import { getFiles, invalidateFileCache } from './internal/utils';
 
 /**
  * Returns a user from EventCatalog.
@@ -118,6 +118,7 @@ export const writeUser =
     const document = matter.stringify(markdown, frontmatter);
     fsSync.mkdirSync(join(catalogDir, ''), { recursive: true });
     fsSync.writeFileSync(join(catalogDir, '', `${resource.id}.mdx`), document);
+    invalidateFileCache();
   };
 
 /**
@@ -136,4 +137,5 @@ export const writeUser =
  */
 export const rmUserById = (catalogDir: string) => async (id: string) => {
   fsSync.rmSync(join(catalogDir, `${id}.mdx`), { recursive: true });
+  invalidateFileCache();
 };
