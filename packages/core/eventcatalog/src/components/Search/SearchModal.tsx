@@ -105,6 +105,33 @@ interface SearchNode {
   href?: string;
 }
 
+interface SearchNodeCompact {
+  k: string;
+  t: string;
+  b?: string;
+  s?: string;
+  h?: string;
+}
+
+interface SearchIndexPayload {
+  i?: SearchNodeCompact[];
+  items?: SearchNode[];
+}
+
+const normalizeSearchIndexPayload = (payload: SearchIndexPayload): SearchNode[] => {
+  if (payload.i) {
+    return payload.i.map((item) => ({
+      key: item.k,
+      title: item.t,
+      badge: item.b,
+      summary: item.s,
+      href: item.h,
+    }));
+  }
+
+  return payload.items || [];
+};
+
 export default function SearchModal() {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -145,10 +172,10 @@ export default function SearchModal() {
         if (!response.ok) {
           throw new Error(`Failed to fetch search index: ${response.status}`);
         }
-        return response.json() as Promise<{ items: SearchNode[] }>;
+        return response.json() as Promise<SearchIndexPayload>;
       })
       .then((payload) => {
-        setSearchNodes(payload.items || []);
+        setSearchNodes(normalizeSearchIndexPayload(payload));
       })
       .catch((error) => {
         setSearchIndexLoadError(error instanceof Error ? error.message : 'Unable to load search index');
