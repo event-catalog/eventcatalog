@@ -1,4 +1,5 @@
 import { join } from 'node:path';
+import { toDSL } from './dsl';
 import {
   rmEvent,
   rmEventById,
@@ -1311,5 +1312,35 @@ export default (path: string) => {
      * @returns
      */
     addFileToDiagram: addFileToDiagram(join(path)),
+
+    /**
+     * ================================
+     *            DSL
+     * ================================
+     */
+
+    /**
+     * Converts catalog resources to EventCatalog DSL (.ec) format strings.
+     *
+     * @param resource - A resource or array of resources to convert
+     * @param options - Options including type ('event'|'command'|'query'|'service'|'domain') and optional hydrate flag
+     * @returns A DSL string representation
+     *
+     * @example
+     * ```ts
+     * const dsl = await sdk.toDSL(event, { type: 'event' });
+     * const dsl = await sdk.toDSL(services, { type: 'service', hydrate: true });
+     * ```
+     */
+    toDSL: toDSL(join(path), {
+      getEvent: getEvent(join(path)),
+      getCommand: getCommand(join(path)),
+      getQuery: getQuery(join(path)),
+      getService: getService(join(path)),
+      getDomain: getDomain(join(path, 'domains')),
+      getChannel: getChannel(join(path)),
+      getTeam: getTeam(join(path, 'teams')),
+      getUser: getUser(join(path, 'users')),
+    }),
   };
 };

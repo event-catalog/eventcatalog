@@ -8,7 +8,7 @@
     },
     {
       "name": "keyword.control.ec",
-      "match": "\\b(access-mode|actor|address|and|animated|appendOnly|authoritative|avatar|cache|channel|classification|color|command|confidential|container|container-type|contract|data-product|dataLake|dataWarehouse|database|default|delivery|deprecated|description|diagram|domain|draft|email|enum|event|examples|external-system|externalSaaS|false|flow|focus-mode|from|hidden|icon|import|input|internal|label|legend|member|message|ms-teams|name|objectStore|other|output|owner|owns|parameter|path|post-it|protocol|public|pull|push|push-pull|query|read|readWrite|reads-from|receives|regulated|residency|retention|role|route|schema|search|searchIndex|sends|service|slack|style|subdomain|summary|team|technology|title|to|toolbar|true|type|url|user|version|visible|visualizer|when|write|writes-to)\\b"
+      "match": "\\b(access-mode|actor|address|and|animated|appendOnly|authoritative|avatar|cache|channel|classification|color|command|confidential|container|container-type|contract|data-product|dataLake|dataWarehouse|database|default|delivery|deprecated|description|diagram|domain|draft|email|enum|event|examples|external-system|externalSaaS|false|flow|focus-mode|from|hidden|icon|import|input|internal|label|legend|member|message|ms-teams|name|objectStore|other|output|owner|parameter|path|post-it|protocol|public|pull|push|push-pull|query|read|readWrite|reads-from|receives|regulated|residency|retention|role|route|schema|search|searchIndex|sends|service|slack|style|subdomain|summary|team|technology|title|to|toolbar|true|type|url|user|version|visible|visualizer|when|write|writes-to)\\b"
     },
     {
       "name": "string.quoted.double.ec",

@@ -503,18 +503,25 @@ export function layoutGraph(
     .map((edge) => {
       const collection = getMessageCollection(edge, nodeById);
       const isFlowStep = edge.type === "flow-step";
+      const isBidirectional = edge.type === "reads-writes";
+      const arrowMarker = {
+        type: MarkerType.ArrowClosed,
+        width: 20,
+        height: 20,
+        color: "rgb(var(--ec-page-text-muted))",
+      };
       return {
         id: edge.id,
         source: edge.source,
         target: edge.target,
-        label: isFlowStep ? edge.label || undefined : edge.label || edge.type,
+        label: isBidirectional
+          ? "reads/writes"
+          : isFlowStep
+            ? edge.label || undefined
+            : edge.label || edge.type,
         type: isFlowStep ? "flow-edge" : "animated",
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          width: 20,
-          height: 20,
-          color: "rgb(var(--ec-page-text-muted))",
-        },
+        markerEnd: arrowMarker,
+        ...(isBidirectional ? { markerStart: arrowMarker } : {}),
         data: { edgeType: edge.type, message: { collection } },
       };
     });
@@ -580,18 +587,25 @@ function flatLayout(
   const layoutEdges: Edge[] = edges.map((edge) => {
     const collection = getMessageCollection(edge, nodeById);
     const isFlowStep = edge.type === "flow-step";
+    const isBidirectional = edge.type === "reads-writes";
+    const arrowMarker = {
+      type: MarkerType.ArrowClosed,
+      width: 20,
+      height: 20,
+      color: "rgb(var(--ec-page-text-muted))",
+    };
     return {
       id: edge.id,
       source: edge.source,
       target: edge.target,
-      label: isFlowStep ? edge.label || undefined : edge.label || edge.type,
+      label: isBidirectional
+        ? "reads/writes"
+        : isFlowStep
+          ? edge.label || undefined
+          : edge.label || edge.type,
       type: isFlowStep ? "flow-edge" : "animated",
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        width: 20,
-        height: 20,
-        color: "rgb(var(--ec-page-text-muted))",
-      },
+      markerEnd: arrowMarker,
+      ...(isBidirectional ? { markerStart: arrowMarker } : {}),
       data: { edgeType: edge.type, message: { collection } },
     };
   });

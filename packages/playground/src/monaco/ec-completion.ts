@@ -70,13 +70,14 @@ const contextSuggestions: Record<string, Suggestion[]> = {
   ],
   user: [
     { label: 'name', detail: 'Display name', insertText: 'name "${1:Full Name}"' },
+    { label: 'avatar', detail: 'Avatar URL', insertText: 'avatar "${1:https://example.com/avatar.png}"' },
     { label: 'role', detail: 'User role', insertText: 'role "${1:role}"' },
-    { label: 'team', detail: 'Team membership', insertText: 'team ${1:team-name}' },
   ],
   team: [
     { label: 'name', detail: 'Team display name', insertText: 'name "${1:Team Name}"' },
+    { label: 'avatar', detail: 'Avatar URL', insertText: 'avatar "${1:https://example.com/avatar.png}"' },
+    { label: 'role', detail: 'Team role', insertText: 'role "${1:role}"' },
     { label: 'member', detail: 'Team member', insertText: 'member ${1:username}' },
-    { label: 'owns', detail: 'Resource ownership', insertText: 'owns ${1|domain,service,event|} ${2:Name}' },
   ],
   flow: [
     ...commonProps,

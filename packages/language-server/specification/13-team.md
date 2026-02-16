@@ -5,6 +5,8 @@ A team definition for ownership and membership.
 ```
 team <id> {
   name "<display name>"
+  avatar "<url>"
+  role "<role>"
   summary "<text>"
   email "<email>"
   slack "<url>"
@@ -12,13 +14,6 @@ team <id> {
 
   // Members
   member <user-id>               // repeatable
-
-  // Ownership declarations
-  owns domain <id>
-  owns service <id>
-  owns event <id>
-  owns command <id>
-  owns query <id>
 }
 ```
 
@@ -39,6 +34,8 @@ service OrderService {
 ```
 team orders-team {
   name "Orders Team"
+  avatar "https://example.com/orders-team.png"
+  role "Platform Engineering"
   summary "Responsible for order lifecycle"
   email "orders@company.com"
   slack "https://company.slack.com/channels/orders"
@@ -53,10 +50,11 @@ team orders-team {
 ```ebnf
 team_decl         = "team" identifier "{" team_props "}" ;
 team_props        = "name" string_lit
+                  | "avatar" string_lit
+                  | "role" string_lit
                   | "summary" string_lit
                   | "email" string_lit
                   | "slack" string_lit
                   | "ms-teams" string_lit
-                  | "member" identifier
-                  | owns_stmt ;
+                  | "member" identifier ;
 ```

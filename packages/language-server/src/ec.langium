@@ -205,8 +205,8 @@ UserDef:
 
 UserProp:
   UserNameProp | UserAvatarProp | UserRoleProp | UserEmailProp |
-  UserSlackProp | UserMsTeamsProp | UserOwnsProp |
-  UserTeamProp | UserAnnotationProp;
+  UserSlackProp | UserMsTeamsProp |
+  UserAnnotationProp;
 
 UserNameProp:
   'name' value=STRING;
@@ -226,12 +226,6 @@ UserSlackProp:
 UserMsTeamsProp:
   'ms-teams' value=STRING;
 
-UserOwnsProp:
-  owns=OwnsStmt;
-
-UserTeamProp:
-  'team' teamRef=ID;
-
 UserAnnotationProp:
   annotation=Annotation;
 
@@ -240,11 +234,17 @@ TeamDef:
   'team' name=ID '{' (props+=TeamProp)* '}';
 
 TeamProp:
-  TeamNameProp | TeamSummaryProp | TeamEmailProp | TeamSlackProp |
-  TeamMsTeamsProp | TeamMemberProp | TeamOwnsProp | TeamAnnotationProp;
+  TeamNameProp | TeamAvatarProp | TeamRoleProp | TeamSummaryProp | TeamEmailProp | TeamSlackProp |
+  TeamMsTeamsProp | TeamMemberProp | TeamAnnotationProp;
 
 TeamNameProp:
   'name' value=STRING;
+
+TeamAvatarProp:
+  'avatar' value=STRING;
+
+TeamRoleProp:
+  'role' value=STRING;
 
 TeamSummaryProp:
   'summary' value=STRING;
@@ -260,9 +260,6 @@ TeamMsTeamsProp:
 
 TeamMemberProp:
   'member' memberRef=ID;
-
-TeamOwnsProp:
-  owns=OwnsStmt;
 
 TeamAnnotationProp:
   annotation=Annotation;
@@ -380,9 +377,6 @@ DomainRefStmt:
 
 ContainerRefStmt:
   'container' ref=ResourceRef;
-
-OwnsStmt:
-  'owns' resourceType=ResourceTypeKw resourceName=ID;
 
 ResourceTypeKw returns string:
   'domain' | 'service' | 'event' | 'command' | 'query';

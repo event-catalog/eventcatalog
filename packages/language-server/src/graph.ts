@@ -741,6 +741,22 @@ export function astToGraph(
     for (const svc of getServices(body)) {
       processService(svc, subId);
     }
+
+    for (const ref of getServiceRefs(body)) {
+      const def = lookupDef(ref.ref.name, ref.ref.version);
+      if (def && isServiceDef(def)) {
+        processService(def, subId);
+      } else {
+        const svcId = resolveOrCreateMsg(
+          ref.ref.name,
+          "service",
+          ref.ref.version,
+          subId,
+        );
+        addEdge(subId, svcId, "contains");
+      }
+    }
+
     for (const nested of getSubdomains(body)) {
       processSubdomain(nested, subId);
     }
@@ -763,13 +779,18 @@ export function astToGraph(
     }
 
     for (const ref of getServiceRefs(body)) {
-      const svcId = resolveOrCreateMsg(
-        ref.ref.name,
-        "service",
-        ref.ref.version,
-        domId,
-      );
-      addEdge(domId, svcId, "contains");
+      const def = lookupDef(ref.ref.name, ref.ref.version);
+      if (def && isServiceDef(def)) {
+        processService(def, domId);
+      } else {
+        const svcId = resolveOrCreateMsg(
+          ref.ref.name,
+          "service",
+          ref.ref.version,
+          domId,
+        );
+        addEdge(domId, svcId, "contains");
+      }
     }
 
     for (const container of getContainers(body)) {
@@ -1053,54 +1074,28 @@ export function astToGraph(
       const userName = getName(props) || def.name;
       let role: string | undefined;
       let email: string | undefined;
-      let team: string | undefined;
-      const owns: { resourceType: string; id: string }[] = [];
-
       for (const p of def.props) {
         if ("value" in p && p.$type === "UserRoleProp")
           role = stripQuotes(p.value);
         if ("value" in p && p.$type === "UserEmailProp")
           email = stripQuotes(p.value);
-        if (p.$type === "UserTeamProp") team = p.teamRef;
-        if (p.$type === "UserOwnsProp") {
-          owns.push({
-            resourceType: p.owns.resourceType,
-            id: p.owns.resourceName,
-          });
-        }
       }
 
-      const userId = addNode(def.name, "user", userName, undefined, {
+      addNode(def.name, "user", userName, undefined, {
         role,
         email,
       });
-      for (const o of owns) {
-        const targetId =
-          resolveNodeId(o.id, o.resourceType) || nid(o.id, o.resourceType);
-        addEdge(userId, targetId, "owns");
-      }
-      if (team) {
-        const teamId = resolveNodeId(team, "team") || nid(team, "team");
-        addEdge(userId, teamId, "member-of");
-      }
     } else if (isTeamDef(def)) {
       const props = def.props as AstNode[];
       const teamName = getName(props) || def.name;
       let summary: string | undefined;
       let email: string | undefined;
       const members: string[] = [];
-      const owns: { resourceType: string; id: string }[] = [];
 
       for (const p of def.props) {
         if (p.$type === "TeamSummaryProp") summary = stripQuotes(p.value);
         if (p.$type === "TeamEmailProp") email = stripQuotes(p.value);
         if (p.$type === "TeamMemberProp") members.push(p.memberRef);
-        if (p.$type === "TeamOwnsProp") {
-          owns.push({
-            resourceType: p.owns.resourceType,
-            id: p.owns.resourceName,
-          });
-        }
       }
 
       const teamId = addNode(def.name, "team", teamName, undefined, {
@@ -1110,11 +1105,6 @@ export function astToGraph(
       for (const m of members) {
         const memberId = resolveNodeId(m, "user") || nid(m, "user");
         addEdge(memberId, teamId, "member-of");
-      }
-      for (const o of owns) {
-        const targetId =
-          resolveNodeId(o.id, o.resourceType) || nid(o.id, o.resourceType);
-        addEdge(teamId, targetId, "owns");
       }
     } else if (isActorDef(def)) {
       const body = (def.body || []) as AstNode[];
@@ -1264,6 +1254,25 @@ export function astToGraph(
   // Process only items inside the active visualizer body
   for (const item of activeViz.body) {
     processVisualizerItem(item);
+  }
+
+  // Merge writes-to + reads-from pairs into a single bidirectional reads-writes edge
+  const writesToEdges = edges.filter((e) => e.type === "writes-to");
+  for (const wEdge of writesToEdges) {
+    // A writes-to edge goes service→container; a matching reads-from goes container→service
+    const rIdx = edges.findIndex(
+      (e) =>
+        e.type === "reads-from" &&
+        e.source === wEdge.target &&
+        e.target === wEdge.source,
+    );
+    if (rIdx !== -1) {
+      // Remove the reads-from edge
+      edges.splice(rIdx, 1);
+      // Replace the writes-to edge with a reads-writes edge (service→container)
+      wEdge.type = "reads-writes";
+      wEdge.id = `${wEdge.source}-reads-writes-${wEdge.target}`;
+    }
   }
 
   return {

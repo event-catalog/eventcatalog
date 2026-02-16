@@ -197,6 +197,8 @@ export interface Domain extends BaseSchema {
 export interface Team {
   id: string;
   name: string;
+  avatarUrl?: string;
+  role?: string;
   summary?: string;
   email?: string;
   hidden?: boolean;

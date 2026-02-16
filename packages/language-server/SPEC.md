@@ -758,7 +758,7 @@ _Removed from V1. May be added in a future version._
 
 # User
 
-A user definition for ownership and team membership.
+A user definition for team members.
 
 ```
 user <id> {
@@ -768,16 +768,6 @@ user <id> {
   email "<email>"
   slack "<url>"
   ms-teams "<url>"
-
-  // Team membership
-  team <team-id>
-
-  // Ownership declarations
-  owns domain <id>
-  owns service <id>
-  owns event <id>
-  owns command <id>
-  owns query <id>
 }
 ```
 
@@ -789,9 +779,6 @@ user dboyne {
   avatar "https://avatars.githubusercontent.com/u/3268013"
   role "Principal Engineer"
   email "david@company.com"
-
-  owns domain Payment
-  owns service PaymentService
 }
 ```
 
@@ -804,11 +791,7 @@ user_props        = "name" string_lit
                   | "role" string_lit
                   | "email" string_lit
                   | "slack" string_lit
-                  | "ms-teams" string_lit
-                  | owns_stmt
-                  | "team" identifier ;
-owns_stmt         = "owns" resource_type_kw identifier ;
-resource_type_kw  = "domain" | "service" | "event" | "command" | "query" ;
+                  | "ms-teams" string_lit ;
 ```
 
 ---
@@ -820,6 +803,8 @@ A team definition for ownership and membership.
 ```
 team <id> {
   name "<display name>"
+  avatar "<url>"
+  role "<role>"
   summary "<text>"
   email "<email>"
   slack "<url>"
@@ -827,13 +812,6 @@ team <id> {
 
   // Members
   member <user-id>               // repeatable
-
-  // Ownership declarations
-  owns domain <id>
-  owns service <id>
-  owns event <id>
-  owns command <id>
-  owns query <id>
 }
 ```
 
@@ -854,6 +832,8 @@ service OrderService {
 ```
 team orders-team {
   name "Orders Team"
+  avatar "https://example.com/orders-team.png"
+  role "Platform Engineering"
   summary "Responsible for order lifecycle"
   email "orders@company.com"
   slack "https://company.slack.com/channels/orders"
@@ -868,12 +848,13 @@ team orders-team {
 ```ebnf
 team_decl         = "team" identifier "{" team_props "}" ;
 team_props        = "name" string_lit
+                  | "avatar" string_lit
+                  | "role" string_lit
                   | "summary" string_lit
                   | "email" string_lit
                   | "slack" string_lit
                   | "ms-teams" string_lit
-                  | "member" identifier
-                  | owns_stmt ;
+                  | "member" identifier ;
 ```
 
 ---

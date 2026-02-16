@@ -30,6 +30,7 @@ export type GraphEdgeType =
   | "subscribes"
   | "writes-to"
   | "reads-from"
+  | "reads-writes"
   | "contains"
   | "owns"
   | "member-of"

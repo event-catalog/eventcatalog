@@ -80,7 +80,6 @@ export type EcKeywordNames =
   | "other"
   | "output"
   | "owner"
-  | "owns"
   | "parameter"
   | "path"
   | "post-it"
@@ -555,11 +554,12 @@ export function isStyleEnum(item: unknown): item is StyleEnum {
 
 export type TeamProp =
   | TeamAnnotationProp
+  | TeamAvatarProp
   | TeamEmailProp
   | TeamMemberProp
   | TeamMsTeamsProp
   | TeamNameProp
-  | TeamOwnsProp
+  | TeamRoleProp
   | TeamSlackProp
   | TeamSummaryProp;
 
@@ -575,10 +575,8 @@ export type UserProp =
   | UserEmailProp
   | UserMsTeamsProp
   | UserNameProp
-  | UserOwnsProp
   | UserRoleProp
-  | UserSlackProp
-  | UserTeamProp;
+  | UserSlackProp;
 
 export const UserProp = "UserProp";
 
@@ -1278,19 +1276,6 @@ export function isOwnerStmt(item: unknown): item is OwnerStmt {
   return reflection.isInstance(item, OwnerStmt);
 }
 
-export interface OwnsStmt extends langium.AstNode {
-  readonly $container: TeamOwnsProp | UserOwnsProp;
-  readonly $type: "OwnsStmt";
-  resourceName: string;
-  resourceType: ResourceTypeKw;
-}
-
-export const OwnsStmt = "OwnsStmt";
-
-export function isOwnsStmt(item: unknown): item is OwnsStmt {
-  return reflection.isInstance(item, OwnsStmt);
-}
-
 export interface ParameterDecl extends langium.AstNode {
   readonly $container: ChannelDef;
   readonly $type: "ParameterDecl";
@@ -1675,6 +1660,18 @@ export function isTeamAnnotationProp(
   return reflection.isInstance(item, TeamAnnotationProp);
 }
 
+export interface TeamAvatarProp extends langium.AstNode {
+  readonly $container: TeamDef;
+  readonly $type: "TeamAvatarProp";
+  value: string;
+}
+
+export const TeamAvatarProp = "TeamAvatarProp";
+
+export function isTeamAvatarProp(item: unknown): item is TeamAvatarProp {
+  return reflection.isInstance(item, TeamAvatarProp);
+}
+
 export interface TeamDef extends langium.AstNode {
   readonly $container: Program;
   readonly $type: "TeamDef";
@@ -1736,16 +1733,16 @@ export function isTeamNameProp(item: unknown): item is TeamNameProp {
   return reflection.isInstance(item, TeamNameProp);
 }
 
-export interface TeamOwnsProp extends langium.AstNode {
+export interface TeamRoleProp extends langium.AstNode {
   readonly $container: TeamDef;
-  readonly $type: "TeamOwnsProp";
-  owns: OwnsStmt;
+  readonly $type: "TeamRoleProp";
+  value: string;
 }
 
-export const TeamOwnsProp = "TeamOwnsProp";
+export const TeamRoleProp = "TeamRoleProp";
 
-export function isTeamOwnsProp(item: unknown): item is TeamOwnsProp {
-  return reflection.isInstance(item, TeamOwnsProp);
+export function isTeamRoleProp(item: unknown): item is TeamRoleProp {
+  return reflection.isInstance(item, TeamRoleProp);
 }
 
 export interface TeamSlackProp extends langium.AstNode {
@@ -1884,18 +1881,6 @@ export function isUserNameProp(item: unknown): item is UserNameProp {
   return reflection.isInstance(item, UserNameProp);
 }
 
-export interface UserOwnsProp extends langium.AstNode {
-  readonly $container: UserDef;
-  readonly $type: "UserOwnsProp";
-  owns: OwnsStmt;
-}
-
-export const UserOwnsProp = "UserOwnsProp";
-
-export function isUserOwnsProp(item: unknown): item is UserOwnsProp {
-  return reflection.isInstance(item, UserOwnsProp);
-}
-
 export interface UserRoleProp extends langium.AstNode {
   readonly $container: UserDef;
   readonly $type: "UserRoleProp";
@@ -1918,18 +1903,6 @@ export const UserSlackProp = "UserSlackProp";
 
 export function isUserSlackProp(item: unknown): item is UserSlackProp {
   return reflection.isInstance(item, UserSlackProp);
-}
-
-export interface UserTeamProp extends langium.AstNode {
-  readonly $container: UserDef;
-  readonly $type: "UserTeamProp";
-  teamRef: string;
-}
-
-export const UserTeamProp = "UserTeamProp";
-
-export function isUserTeamProp(item: unknown): item is UserTeamProp {
-  return reflection.isInstance(item, UserTeamProp);
 }
 
 export interface VersionAnnotationValue extends langium.AstNode {
@@ -2056,7 +2029,6 @@ export type EcAstType = {
   NumberAnnotationValue: NumberAnnotationValue;
   OutputStmt: OutputStmt;
   OwnerStmt: OwnerStmt;
-  OwnsStmt: OwnsStmt;
   ParameterDecl: ParameterDecl;
   ParameterDefaultProp: ParameterDefaultProp;
   ParameterDescriptionProp: ParameterDescriptionProp;
@@ -2088,13 +2060,14 @@ export type EcAstType = {
   SubdomainDef: SubdomainDef;
   SummaryStmt: SummaryStmt;
   TeamAnnotationProp: TeamAnnotationProp;
+  TeamAvatarProp: TeamAvatarProp;
   TeamDef: TeamDef;
   TeamEmailProp: TeamEmailProp;
   TeamMemberProp: TeamMemberProp;
   TeamMsTeamsProp: TeamMsTeamsProp;
   TeamNameProp: TeamNameProp;
-  TeamOwnsProp: TeamOwnsProp;
   TeamProp: TeamProp;
+  TeamRoleProp: TeamRoleProp;
   TeamSlackProp: TeamSlackProp;
   TeamSummaryProp: TeamSummaryProp;
   TechnologyStmt: TechnologyStmt;
@@ -2106,11 +2079,9 @@ export type EcAstType = {
   UserEmailProp: UserEmailProp;
   UserMsTeamsProp: UserMsTeamsProp;
   UserNameProp: UserNameProp;
-  UserOwnsProp: UserOwnsProp;
   UserProp: UserProp;
   UserRoleProp: UserRoleProp;
   UserSlackProp: UserSlackProp;
-  UserTeamProp: UserTeamProp;
   VersionAnnotationValue: VersionAnnotationValue;
   VersionStmt: VersionStmt;
   VisualizerBodyItem: VisualizerBodyItem;
@@ -2180,7 +2151,6 @@ export class EcAstReflection extends langium.AbstractAstReflection {
       NumberAnnotationValue,
       OutputStmt,
       OwnerStmt,
-      OwnsStmt,
       ParameterDecl,
       ParameterDefaultProp,
       ParameterDescriptionProp,
@@ -2212,13 +2182,14 @@ export class EcAstReflection extends langium.AbstractAstReflection {
       SubdomainDef,
       SummaryStmt,
       TeamAnnotationProp,
+      TeamAvatarProp,
       TeamDef,
       TeamEmailProp,
       TeamMemberProp,
       TeamMsTeamsProp,
       TeamNameProp,
-      TeamOwnsProp,
       TeamProp,
+      TeamRoleProp,
       TeamSlackProp,
       TeamSummaryProp,
       TechnologyStmt,
@@ -2230,11 +2201,9 @@ export class EcAstReflection extends langium.AbstractAstReflection {
       UserEmailProp,
       UserMsTeamsProp,
       UserNameProp,
-      UserOwnsProp,
       UserProp,
       UserRoleProp,
       UserSlackProp,
-      UserTeamProp,
       VersionAnnotationValue,
       VersionStmt,
       VisualizerBodyItem,
@@ -2422,11 +2391,12 @@ export class EcAstReflection extends langium.AbstractAstReflection {
         return this.isSubtype(DomainBodyItem, supertype);
       }
       case TeamAnnotationProp:
+      case TeamAvatarProp:
       case TeamEmailProp:
       case TeamMemberProp:
       case TeamMsTeamsProp:
       case TeamNameProp:
-      case TeamOwnsProp:
+      case TeamRoleProp:
       case TeamSlackProp:
       case TeamSummaryProp: {
         return this.isSubtype(TeamProp, supertype);
@@ -2436,10 +2406,8 @@ export class EcAstReflection extends langium.AbstractAstReflection {
       case UserEmailProp:
       case UserMsTeamsProp:
       case UserNameProp:
-      case UserOwnsProp:
       case UserRoleProp:
-      case UserSlackProp:
-      case UserTeamProp: {
+      case UserSlackProp: {
         return this.isSubtype(UserProp, supertype);
       }
       default: {
@@ -2756,12 +2724,6 @@ export class EcAstReflection extends langium.AbstractAstReflection {
           properties: [{ name: "ownerRef" }],
         };
       }
-      case OwnsStmt: {
-        return {
-          name: OwnsStmt,
-          properties: [{ name: "resourceName" }, { name: "resourceType" }],
-        };
-      }
       case ParameterDecl: {
         return {
           name: ParameterDecl,
@@ -2943,6 +2905,12 @@ export class EcAstReflection extends langium.AbstractAstReflection {
           properties: [{ name: "annotation" }],
         };
       }
+      case TeamAvatarProp: {
+        return {
+          name: TeamAvatarProp,
+          properties: [{ name: "value" }],
+        };
+      }
       case TeamDef: {
         return {
           name: TeamDef,
@@ -2973,10 +2941,10 @@ export class EcAstReflection extends langium.AbstractAstReflection {
           properties: [{ name: "value" }],
         };
       }
-      case TeamOwnsProp: {
+      case TeamRoleProp: {
         return {
-          name: TeamOwnsProp,
-          properties: [{ name: "owns" }],
+          name: TeamRoleProp,
+          properties: [{ name: "value" }],
         };
       }
       case TeamSlackProp: {
@@ -3048,12 +3016,6 @@ export class EcAstReflection extends langium.AbstractAstReflection {
           properties: [{ name: "value" }],
         };
       }
-      case UserOwnsProp: {
-        return {
-          name: UserOwnsProp,
-          properties: [{ name: "owns" }],
-        };
-      }
       case UserRoleProp: {
         return {
           name: UserRoleProp,
@@ -3064,12 +3026,6 @@ export class EcAstReflection extends langium.AbstractAstReflection {
         return {
           name: UserSlackProp,
           properties: [{ name: "value" }],
-        };
-      }
-      case UserTeamProp: {
-        return {
-          name: UserTeamProp,
-          properties: [{ name: "teamRef" }],
         };
       }
       case VersionAnnotationValue: {
