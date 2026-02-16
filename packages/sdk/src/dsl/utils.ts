@@ -73,10 +73,11 @@ export function buildMessageTypeIndex(catalogDir: string): MessageTypeIndex {
   for (const type of types) {
     const matches = globSync(`**/${type}/*/index.{md,mdx}`, { cwd: catalogDir });
     for (const match of matches) {
-      const parts = match.split('/');
+      const parts = match.replace(/\\/g, '/').split('/');
       const typeIdx = parts.lastIndexOf(type);
       if (typeIdx !== -1 && typeIdx + 1 < parts.length) {
-        index.set(parts[typeIdx + 1], typeMap[type]);
+        const id = parts[typeIdx + 1];
+        if (!index.has(id)) index.set(id, typeMap[type]);
       }
     }
   }
