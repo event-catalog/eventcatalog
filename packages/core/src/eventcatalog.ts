@@ -29,6 +29,15 @@ const dir = path.resolve(process.env.PROJECT_DIR || process.cwd());
 // The tmp core directory
 const core = path.resolve(process.env.CATALOG_DIR || join(dir, '.eventcatalog-core'));
 
+const RUNTIME_MODES = {
+  NATIVE: 'native',
+  COPY: 'copy',
+} as const;
+
+type RuntimeMode = (typeof RUNTIME_MODES)[keyof typeof RUNTIME_MODES];
+
+const MUTABLE_RUNTIME_ENTRIES = new Set(['src', 'public', 'eventcatalog.config.js', 'eventcatalog.styles.css', '.env', 'dist']);
+
 // The project itself
 const eventCatalogDir = path.resolve(join(currentDir, '../eventcatalog/'));
 
@@ -48,6 +57,27 @@ const ensureDir = (dir: string) => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
   }
+};
+
+const getSymlinkType = (sourcePath: string): fs.symlink.Type | undefined => {
+  if (process.platform !== 'win32') return undefined;
+  return fs.statSync(sourcePath).isDirectory() ? 'junction' : 'file';
+};
+
+const linkRuntimeEntry = (sourcePath: string, targetPath: string) => {
+  if (fs.existsSync(targetPath)) {
+    return;
+  }
+
+  fs.symlinkSync(sourcePath, targetPath, getSymlinkType(sourcePath));
+};
+
+const copyRuntimeEntry = (sourcePath: string, targetPath: string) => {
+  if (fs.existsSync(targetPath)) {
+    return;
+  }
+
+  fs.cpSync(sourcePath, targetPath, { recursive: true });
 };
 
 const copyCore = () => {
@@ -73,8 +103,48 @@ const copyCore = () => {
   });
 };
 
+const createNativeRuntimeSkeleton = () => {
+  ensureDir(core);
+
+  const runtimeEntries = fs.readdirSync(eventCatalogDir, { withFileTypes: true });
+  for (const entry of runtimeEntries) {
+    const sourcePath = path.join(eventCatalogDir, entry.name);
+    const targetPath = path.join(core, entry.name);
+
+    if (MUTABLE_RUNTIME_ENTRIES.has(entry.name)) {
+      copyRuntimeEntry(sourcePath, targetPath);
+      continue;
+    }
+
+    linkRuntimeEntry(sourcePath, targetPath);
+  }
+};
+
 const clearCore = () => {
   if (fs.existsSync(core)) fs.rmSync(core, { recursive: true });
+};
+
+const getRuntimeMode = (runtimeModeOption?: string): RuntimeMode => {
+  const runtimeMode = (runtimeModeOption || process.env.EVENTCATALOG_RUNTIME || RUNTIME_MODES.NATIVE).toLowerCase();
+
+  if (runtimeMode === RUNTIME_MODES.COPY) {
+    return RUNTIME_MODES.COPY;
+  }
+
+  return RUNTIME_MODES.NATIVE;
+};
+
+const prepareRuntime = ({ runtimeMode, forceRecreate = false }: { runtimeMode: RuntimeMode; forceRecreate?: boolean }) => {
+  if (forceRecreate) {
+    clearCore();
+  }
+
+  if (runtimeMode === RUNTIME_MODES.COPY) {
+    copyCore();
+    return;
+  }
+
+  createNativeRuntimeSkeleton();
 };
 
 const checkForUpdate = () => {
@@ -136,6 +206,7 @@ program
   .description('Run development server of EventCatalog')
   .option('-d, --debug', 'Output EventCatalog application information into your terminal')
   .option('--force-recreate', 'Recreate the eventcatalog-core directory', false)
+  .option('--runtime-mode <mode>', 'Runtime bootstrap mode: native (default) or copy')
   .action(async (options, command: Command) => {
     // // Copy EventCatalog core over
     // // Copy EventCatalog core over
@@ -150,13 +221,14 @@ program
       dotenv.config({ path: path.join(dir, '.env') });
     }
 
+    const runtimeMode = getRuntimeMode(options.runtimeMode);
+
     if (options.debug) {
       logger.info('Debug mode enabled', 'debug');
       logger.info(`PROJECT_DIR: ${dir}`, 'debug');
       logger.info(`CATALOG_DIR: ${core}`, 'debug');
+      logger.info(`RUNTIME_MODE: ${runtimeMode}`, 'debug');
     }
-
-    if (options.forceRecreate) clearCore();
 
     // Verify required fields (e.g. cId) are in the config file before copying to .eventcatalog-core.
     // This must happen before copyCore() so that the config is stable when Astro starts.
@@ -164,7 +236,7 @@ program
     // change restart, which races with the initial dependency scan and floods the terminal with errors.
     await verifyRequiredFieldsAreInCatalogConfigFile(dir);
 
-    copyCore();
+    prepareRuntime({ runtimeMode, forceRecreate: options.forceRecreate });
 
     await resolveCatalogDependencies(dir, core);
 
@@ -201,6 +273,7 @@ program
             env: {
               PROJECT_DIR: dir,
               CATALOG_DIR: core,
+              EVENTCATALOG_RUNTIME: runtimeMode,
               ENABLE_EMBED: canEmbedPages || isEventCatalogScale,
               EVENTCATALOG_STARTER: isEventCatalogStarter,
               EVENTCATALOG_SCALE: isEventCatalogScale,
@@ -225,6 +298,7 @@ program
 program
   .command('build')
   .description('Run build of EventCatalog')
+  .option('--runtime-mode <mode>', 'Runtime bootstrap mode: native (default) or copy')
   .action(async (options, command: Command) => {
     logger.welcome();
     logger.info('Building EventCatalog...', 'build');
@@ -241,7 +315,8 @@ program
     // Verify required fields (e.g. cId) before copying to .eventcatalog-core
     await verifyRequiredFieldsAreInCatalogConfigFile(dir);
 
-    copyCore();
+    const runtimeMode = getRuntimeMode(options.runtimeMode);
+    prepareRuntime({ runtimeMode });
 
     // Check if backstage is enabled
     const isBackstagePluginEnabled = await isFeatureEnabled(
@@ -271,12 +346,12 @@ program
     // Ignore any "Empty collection" messages, it's OK to have them
     const windowsCommand = `npx astro build ${command.args.join(' ').trim()} | findstr /V "The collection"`;
     // const unixCommand = `bash -c "set -o pipefail; npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v -e "\\[router\\]" -e "The collection.*does not exist"`;
-    const unixCommand = `bash -c "set -o pipefail; npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v -e \\"\\\\[router\\\\]\\" -e \\"The collection.*does not exist\\""`;
+    const unixCommand = `bash -c "set -o pipefail; npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v -e \\\"\\\\[router\\\\]\\\" -e \\\"The collection.*does not exist\\\""`;
 
     const buildCommand = process.platform === 'win32' ? windowsCommand : unixCommand;
 
     execSync(
-      `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} ${buildCommand}`,
+      `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' EVENTCATALOG_RUNTIME='${runtimeMode}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} ${buildCommand}`,
       {
         cwd: core,
         stdio: 'inherit',
@@ -286,17 +361,19 @@ program
 
 const previewCatalog = ({
   command,
+  runtimeMode,
   canEmbedPages = false,
   isEventCatalogStarter = false,
   isEventCatalogScale = false,
 }: {
   command: Command;
+  runtimeMode: RuntimeMode;
   canEmbedPages: boolean;
   isEventCatalogStarter: boolean;
   isEventCatalogScale: boolean;
 }) => {
   execSync(
-    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} npx astro preview ${command.args.join(' ').trim()}`,
+    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' EVENTCATALOG_RUNTIME='${runtimeMode}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} npx astro preview ${command.args.join(' ').trim()}`,
     {
       cwd: core,
       stdio: 'inherit',
@@ -306,18 +383,20 @@ const previewCatalog = ({
 
 const startServerCatalog = ({
   command,
+  runtimeMode,
   canEmbedPages = false,
   isEventCatalogStarter = false,
   isEventCatalogScale = false,
 }: {
   command: Command;
+  runtimeMode: RuntimeMode;
   canEmbedPages: boolean;
   isEventCatalogStarter: boolean;
   isEventCatalogScale: boolean;
 }) => {
   const serverEntryPath = path.join(dir, 'dist', 'server', 'entry.mjs');
   execSync(
-    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} node "${serverEntryPath}"`,
+    `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' EVENTCATALOG_RUNTIME='${runtimeMode}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} node "${serverEntryPath}"`,
     {
       cwd: core,
       stdio: 'inherit',
@@ -328,6 +407,7 @@ const startServerCatalog = ({
 program
   .command('preview')
   .description('Serves the contents of your eventcatalog build directory')
+  .option('--runtime-mode <mode>', 'Runtime bootstrap mode: native (default) or copy')
   .action(async (options, command: Command) => {
     logger.welcome();
     logger.info('Starting preview of your build...', 'preview');
@@ -336,6 +416,9 @@ program
     if (fs.existsSync(path.join(dir, '.env'))) {
       dotenv.config({ path: path.join(dir, '.env') });
     }
+
+    const runtimeMode = getRuntimeMode(options.runtimeMode);
+    prepareRuntime({ runtimeMode });
 
     const canEmbedPages = await isFeatureEnabled(
       '@eventcatalog/backstage-plugin-eventcatalog',
@@ -344,12 +427,19 @@ program
     const isEventCatalogStarter = await isEventCatalogStarterEnabled();
     const isEventCatalogScale = await isEventCatalogScaleEnabled();
 
-    previewCatalog({ command, canEmbedPages: canEmbedPages || isEventCatalogScale, isEventCatalogStarter, isEventCatalogScale });
+    previewCatalog({
+      command,
+      runtimeMode,
+      canEmbedPages: canEmbedPages || isEventCatalogScale,
+      isEventCatalogStarter,
+      isEventCatalogScale,
+    });
   });
 
 program
   .command('start')
   .description('Serves the contents of your eventcatalog build directory')
+  .option('--runtime-mode <mode>', 'Runtime bootstrap mode: native (default) or copy')
   .action(async (options, command: Command) => {
     logger.welcome();
     logger.info('Starting preview of your build...', 'preview');
@@ -358,6 +448,9 @@ program
     if (fs.existsSync(path.join(dir, '.env'))) {
       dotenv.config({ path: path.join(dir, '.env') });
     }
+
+    const runtimeMode = getRuntimeMode(options.runtimeMode);
+    prepareRuntime({ runtimeMode });
 
     const canEmbedPages = await isFeatureEnabled(
       '@eventcatalog/backstage-plugin-eventcatalog',
@@ -371,6 +464,7 @@ program
     if (isServerOutput) {
       startServerCatalog({
         command,
+        runtimeMode,
         canEmbedPages: canEmbedPages || isEventCatalogScale,
         isEventCatalogStarter,
         isEventCatalogScale,
@@ -378,6 +472,7 @@ program
     } else {
       previewCatalog({
         command,
+        runtimeMode,
         canEmbedPages: canEmbedPages || isEventCatalogScale,
         isEventCatalogStarter,
         isEventCatalogScale,
