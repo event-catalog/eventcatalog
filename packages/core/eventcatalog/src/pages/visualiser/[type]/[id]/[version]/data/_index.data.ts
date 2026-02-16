@@ -1,5 +1,5 @@
 import { HybridPage } from '@utils/page-loaders/hybrid-page';
-import { isAuthEnabled } from '@utils/feature';
+import { isAuthEnabled, isVisualiserEnabled } from '@utils/feature';
 import { getServices, type Service } from '@utils/collections/services';
 
 const serviceHasData = (service: Service) => {
@@ -8,7 +8,7 @@ const serviceHasData = (service: Service) => {
 
 export class Page extends HybridPage {
   static async getStaticPaths(): Promise<Array<{ params: any; props: any }>> {
-    if (isAuthEnabled()) {
+    if (isAuthEnabled() || !isVisualiserEnabled()) {
       return [];
     }
 
@@ -33,7 +33,7 @@ export class Page extends HybridPage {
   protected static async fetchData(params: any) {
     const { id, version } = params;
 
-    if (!id || !version) {
+    if (!id || !version || !isVisualiserEnabled()) {
       return null;
     }
 
@@ -58,7 +58,7 @@ export class Page extends HybridPage {
   }
 
   static get clientAuthScript(): string {
-    if (!isAuthEnabled()) {
+    if (!isAuthEnabled() || !isVisualiserEnabled()) {
       return '';
     }
 

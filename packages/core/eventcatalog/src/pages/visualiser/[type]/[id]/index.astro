@@ -8,8 +8,13 @@ import { getDomains } from '@utils/collections/domains';
 import { getContainers } from '@utils/collections/containers';
 import type { CollectionEntry } from 'astro:content';
 import type { CollectionTypes } from '@types';
+import { isVisualiserEnabled } from '@utils/feature';
 
 export async function getStaticPaths() {
+  if (!isVisualiserEnabled()) {
+    return [];
+  }
+
   const [events, commands, services, domains, containers] = await Promise.all([
     getEvents(),
     getCommands(),
