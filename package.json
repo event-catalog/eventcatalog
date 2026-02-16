@@ -10,6 +10,7 @@
     "format:diff": "turbo run format:diff",
     "start:playground": "pnpm --filter @eventcatalog/dsl-playground run dev",
     "start:catalog": "pnpm --filter @eventcatalog/core run start:catalog",
+    "start:preview": "pnpm --filter @eventcatalog/core run start:preview",
     "start:catalog:server": "pnpm --filter @eventcatalog/core run start:catalog:server",
     "verify-build:catalog": "pnpm --filter @eventcatalog/core run verify-build:catalog",
     "changeset": "changeset",
