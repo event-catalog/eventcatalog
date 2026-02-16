@@ -133,7 +133,7 @@ export interface Config {
     /**
      * Enable or disable the /api/catalog endpoint that dumps the entire catalog as JSON.
      * Disabling this can significantly reduce memory usage during builds for large catalogs (1000+ files).
-     * @default true
+     * @default false
      */
     fullCatalogAPIEnabled?: boolean;
   };
