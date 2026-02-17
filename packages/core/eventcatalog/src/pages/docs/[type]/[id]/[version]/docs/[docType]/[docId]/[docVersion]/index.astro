@@ -6,6 +6,7 @@ import components from '@components/MDX/components';
 import { getResourceDocs } from '@utils/collections/resource-docs';
 import { AlignLeft } from 'lucide-react';
 import { buildUrl } from '@utils/url-builder';
+import { isEventCatalogScaleEnabled } from '@utils/feature';
 
 export async function getStaticPaths() {
   const docs = await getResourceDocs();
@@ -26,6 +27,10 @@ export async function getStaticPaths() {
 }
 
 const { doc } = Astro.props;
+
+if (!isEventCatalogScaleEnabled()) {
+  return Astro.redirect(buildUrl('/'));
+}
 
 if (!doc) {
   return Astro.redirect(buildUrl('/'));

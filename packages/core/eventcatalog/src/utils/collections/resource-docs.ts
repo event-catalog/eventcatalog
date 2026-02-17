@@ -1,6 +1,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import path from 'node:path';
 import { buildUrl } from '@utils/url-builder';
+import { isEventCatalogScaleEnabled } from '@utils/feature';
 
 type ResourceCollection =
   | 'domains'
@@ -67,6 +68,10 @@ const getDocHref = (doc: {
   );
 
 export const getResourceDocs = async (): Promise<ResourceDocEntry[]> => {
+  if (!isEventCatalogScaleEnabled()) {
+    return [];
+  }
+
   if (docsCache && CACHE_ENABLED) {
     return docsCache;
   }
