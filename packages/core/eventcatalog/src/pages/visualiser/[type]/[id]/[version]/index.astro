@@ -3,6 +3,7 @@ import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import VisualiserLayout from '@layouts/VisualiserLayout.astro';
 import type { PageTypes } from '@types';
 import { buildUrl } from '@utils/url-builder';
+import { isDevMode } from '@utils/feature';
 import { ClientRouter } from 'astro:transitions';
 
 import { Page } from './_index.data';
@@ -17,10 +18,26 @@ const {
   data: { id },
   collection,
 } = props;
+
+const supportsPlaygroundExport = ['services', 'events', 'commands', 'queries', 'domains'].includes(collection as string);
+const canOpenInPlayground = isDevMode() && supportsPlaygroundExport;
 ---
 
 <VisualiserLayout title={`Visualiser | ${props.data.name} (${props.collection})`} description={props.data.summary}>
   <div class="m-4">
+    {
+      canOpenInPlayground && (
+        <div class="mb-3 flex justify-end">
+          <button
+            id="open-in-playground"
+            type="button"
+            class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] transition-colors duration-150"
+          >
+            Open in DSL Playground (hydrated)
+          </button>
+        </div>
+      )
+    }
     <div
       class="h-[calc(100vh-130px)] w-full relative border border-[rgb(var(--ec-page-border))] rounded-md"
       id={`${id}-portal`}
@@ -45,7 +62,7 @@ const {
   <ClientRouter />
 </VisualiserLayout>
 
-<script define:vars={{ id }}>
+<script define:vars={{ id, collection, version: props.data.version, canOpenInPlayground }}>
   document.addEventListener('DOMContentLoaded', () => {
     const urlSearchParams = new URLSearchParams(window.location.search);
     const params = Object.fromEntries(urlSearchParams.entries());
@@ -55,5 +72,39 @@ const {
     if (embeded) {
       viewport.style.height = 'calc(100vh - 30px)';
     }
+
+    if (!canOpenInPlayground) {
+      return;
+    }
+
+    const button = document.getElementById('open-in-playground');
+    if (!button) {
+      return;
+    }
+
+    button.addEventListener('click', async () => {
+      try {
+        button.setAttribute('disabled', 'true');
+        button.textContent = 'Preparing DSL...';
+
+        const res = await fetch(
+          `/api/dev/playground-export?collection=${encodeURIComponent(collection)}&id=${encodeURIComponent(id)}&version=${encodeURIComponent(version)}&hydrate=true`
+        );
+
+        const payload = await res.json();
+
+        if (!res.ok || !payload?.dsl) {
+          throw new Error(payload?.error || 'Could not export DSL');
+        }
+
+        const playgroundUrl = `https://playground.eventcatalog.dev/?dsl=${encodeURIComponent(payload.dsl)}`;
+        window.open(playgroundUrl, '_blank', 'noopener,noreferrer');
+      } catch (error) {
+        alert(error instanceof Error ? error.message : 'Failed to open DSL Playground');
+      } finally {
+        button.removeAttribute('disabled');
+        button.textContent = 'Open in DSL Playground (hydrated)';
+      }
+    });
   });
 </script>
