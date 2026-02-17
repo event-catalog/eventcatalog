@@ -9,6 +9,7 @@ import {
   buildRepositorySection,
   buildAttachmentsSection,
   buildDiagramNavItems,
+  buildResourceDocsSections,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
@@ -75,6 +76,7 @@ export const buildMessageNode = (
         icon: 'FileImage',
         pages: diagramNavItems,
       },
+      ...buildResourceDocsSections(collection as any, message.data.id, message.data.version, context.resourceDocsByResource),
       hasSchema && {
         type: 'group',
         title: `API & Contracts`,

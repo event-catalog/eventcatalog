@@ -1,10 +1,11 @@
 import type { CollectionEntry } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
 import type { NavNode, ChildRef } from './shared';
-import { buildQuickReferenceSection, buildOwnersSection, shouldRenderSideBarSection } from './shared';
+import { buildQuickReferenceSection, buildOwnersSection, shouldRenderSideBarSection, buildResourceDocsSections } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 import { getItemsFromCollectionByIdAndSemverOrLatest, sortVersioned } from '@utils/collections/util';
 import { getSchemaFormatFromURL } from '@utils/collections/schemas';
+import type { ResourceDocGroup } from '@utils/collections/resource-docs';
 
 interface DataProductContext {
   events: CollectionEntry<'events'>[];
@@ -13,6 +14,7 @@ interface DataProductContext {
   services: CollectionEntry<'services'>[];
   containers: CollectionEntry<'containers'>[];
   channels: CollectionEntry<'channels'>[];
+  resourceDocsByResource?: Map<string, ResourceDocGroup[]>;
 }
 
 // Get highest version from matched items (semver ranges may return multiple matches)
@@ -124,6 +126,12 @@ export const buildDataProductNode = (
         icon: 'FileCheck',
         pages: dataContracts,
       },
+      ...buildResourceDocsSections(
+        'data-products',
+        dataProduct.data.id,
+        dataProduct.data.version,
+        context.resourceDocsByResource || new Map()
+      ),
       renderOwners && buildOwnersSection(owners),
     ].filter(Boolean) as ChildRef[],
   };

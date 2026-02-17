@@ -9,6 +9,7 @@ import {
   buildRepositorySection,
   buildAttachmentsSection,
   buildDiagramNavItems,
+  buildResourceDocsSections,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
@@ -99,6 +100,7 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
         icon: 'FileImage',
         pages: diagramNavItems,
       },
+      ...buildResourceDocsSections('domains', domain.data.id, domain.data.version, context.resourceDocsByResource),
       renderSpecifications && {
         type: 'group',
         title: 'API & Contracts',

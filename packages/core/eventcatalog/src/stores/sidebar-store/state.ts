@@ -19,6 +19,7 @@ import { buildDataProductNode } from './builders/data-product';
 import config from '@config';
 import { getDesigns } from '@utils/collections/designs';
 import { getChannels } from '@utils/collections/channels';
+import { getResourceDocs, type ResourceDocGroup } from '@utils/collections/resource-docs';
 
 export type { NavigationData, NavNode, ChildRef };
 
@@ -45,6 +46,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     channels,
     diagrams,
     dataProducts,
+    resourceDocs,
   ] = await Promise.all([
     getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
     getServices({ getAllVersions: false }),
@@ -57,6 +59,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     getChannels({ getAllVersions: false }),
     getDiagrams({ getAllVersions: false }),
     getDataProducts({ getAllVersions: false }),
+    getResourceDocs(),
   ]);
 
   // Calculate derived lists to avoid extra fetches
@@ -64,6 +67,21 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const rootDomains = domains.filter((d) => !allSubDomainIds.has(d.data.id));
 
   const messages = [...events, ...commands, ...queries];
+
+  const resourceDocsByResource = resourceDocs.reduce((acc, doc) => {
+    const key = `${doc.resource.collection}:${doc.resource.id}:${doc.resource.version}`;
+    const current = acc.get(key) || [];
+    const existingType = current.find((group) => group.type === doc.type);
+
+    if (existingType) {
+      existingType.docs.push(doc);
+    } else {
+      current.push({ type: doc.type, docs: [doc] });
+    }
+
+    acc.set(key, current);
+    return acc;
+  }, new Map<string, ResourceDocGroup[]>());
 
   const context = {
     services,
@@ -75,6 +93,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     containers,
     diagrams,
     dataProducts,
+    resourceDocsByResource,
   };
 
   // Process all domains with their owners first (async)
@@ -122,7 +141,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const flowNodes = flows.reduce(
     (acc, flow) => {
-      acc[`flow:${flow.data.id}:${flow.data.version}`] = buildFlowNode(flow);
+      acc[`flow:${flow.data.id}:${flow.data.version}`] = buildFlowNode(flow, context);
       return acc;
     },
     {} as Record<string, NavNode>
@@ -196,6 +215,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     services,
     containers,
     channels,
+    resourceDocsByResource,
   };
 
   const dataProductNodes = dataProductWithOwners.reduce(
@@ -238,12 +258,37 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const channelNodes = channels.reduce(
     (acc, channel) => {
       const versionedKey = `channel:${channel.data.id}:${channel.data.version}`;
+      const docsGroups = resourceDocsByResource.get(`channels:${channel.data.id}:${channel.data.version}`) || [];
+
       acc[versionedKey] = {
         type: 'item',
         title: channel.data.name,
         badge: 'Channel',
         summary: channel.data.summary,
-        href: buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.version}`),
+        pages: [
+          {
+            type: 'group',
+            title: 'Quick Reference',
+            icon: 'BookOpen',
+            pages: [
+              {
+                type: 'item',
+                title: 'Overview',
+                href: buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.version}`),
+              },
+            ],
+          },
+          ...docsGroups.map((group: any) => ({
+            type: 'group' as const,
+            title: group.type,
+            icon: 'FileText',
+            pages: group.docs.map((doc: any) => ({
+              type: 'item' as const,
+              title: doc.title,
+              href: doc.href,
+            })),
+          })),
+        ],
       };
 
       if (channel.data.latestVersion === channel.data.version) {

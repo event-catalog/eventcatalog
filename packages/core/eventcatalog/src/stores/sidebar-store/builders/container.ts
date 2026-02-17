@@ -8,6 +8,7 @@ import {
   buildRepositorySection,
   buildAttachmentsSection,
   buildDiagramNavItems,
+  buildResourceDocsSections,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
@@ -78,6 +79,7 @@ export const buildContainerNode = (
         icon: 'FileImage',
         pages: diagramNavItems,
       },
+      ...buildResourceDocsSections('containers', container.data.id, container.data.version, context.resourceDocsByResource),
       renderWrites && {
         type: 'group',
         title: 'Writes',

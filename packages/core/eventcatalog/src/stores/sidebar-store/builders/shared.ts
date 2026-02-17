@@ -2,6 +2,7 @@ import type { ResourceGroup } from '@eventcatalog/sdk';
 import type { CollectionEntry } from 'astro:content';
 import { getLatestVersionInCollectionById } from '@utils/collections/util';
 import { buildUrl } from '@utils/url-builder';
+import type { ResourceDocGroup } from '@utils/collections/resource-docs';
 
 /**
  * A child reference can be:
@@ -55,6 +56,7 @@ export type ResourceGroupContext = {
   flows: CollectionEntry<'flows'>[];
   containers: CollectionEntry<'containers'>[];
   diagrams: CollectionEntry<'diagrams'>[];
+  resourceDocsByResource: Map<string, ResourceDocGroup[]>;
 };
 
 export const buildQuickReferenceSection = (items: { title: string; href: string }[]): NavNode => ({
@@ -177,4 +179,25 @@ export const buildDiagramNavItems = (
       href: buildUrl(`/diagrams/${ref.id}/${version}`),
     };
   });
+};
+
+export const buildResourceDocsSections = (
+  collection: string,
+  id: string,
+  version: string,
+  resourceDocsByResource: Map<string, ResourceDocGroup[]>
+): NavNode[] => {
+  const docsGroups = resourceDocsByResource.get(`${collection}:${id}:${version}`) || [];
+  if (docsGroups.length === 0) return [];
+
+  return docsGroups.map((group) => ({
+    type: 'group' as const,
+    title: group.type,
+    icon: 'FileText',
+    pages: group.docs.map((doc) => ({
+      type: 'item' as const,
+      title: doc.title,
+      href: doc.href,
+    })),
+  }));
 };

@@ -11,6 +11,7 @@ import {
   buildRepositorySection,
   buildAttachmentsSection,
   buildDiagramNavItems,
+  buildResourceDocsSections,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
@@ -88,6 +89,7 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
         icon: 'FileImage',
         pages: diagramNavItems,
       },
+      ...buildResourceDocsSections('services', service.data.id, service.data.version, context.resourceDocsByResource),
       renderSpecifications && {
         type: 'group',
         title: 'API & Contracts',
