@@ -1,9 +1,9 @@
-import { readFile, writeFile, rm } from 'node:fs/promises';
+import { readFile, writeFile, rm, copyFile, mkdtemp } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { copyFile } from 'node:fs/promises';
 import path from 'node:path';
 import { v4 as uuidV4 } from 'uuid';
 import { pathToFileURL } from 'url';
+import { tmpdir } from 'node:os';
 import matter from 'gray-matter';
 
 export async function cleanup(projectDirectory) {
@@ -14,6 +14,8 @@ export async function cleanup(projectDirectory) {
 }
 
 export const getEventCatalogConfigFile = async (projectDirectory) => {
+  let tempDir;
+
   try {
     let configFilePath = path.join(projectDirectory, 'eventcatalog.config.js');
 
@@ -21,16 +23,24 @@ export const getEventCatalogConfigFile = async (projectDirectory) => {
     const packageJson = JSON.parse(await readFile(filePath, 'utf-8'));
 
     if (packageJson?.type !== 'module') {
-      await copyFile(configFilePath, path.join(projectDirectory, 'eventcatalog.config.mjs'));
-      configFilePath = path.join(projectDirectory, 'eventcatalog.config.mjs');
+      // Importing CommonJS config via ESM import requires an .mjs file.
+      // Keep this temp copy outside the project directory so Astro/Vite
+      // file watchers do not trigger a dev-server restart during startup.
+      tempDir = await mkdtemp(path.join(tmpdir(), 'eventcatalog-config-'));
+      configFilePath = path.join(tempDir, 'eventcatalog.config.mjs');
+      await copyFile(path.join(projectDirectory, 'eventcatalog.config.js'), configFilePath);
     }
 
-    const configFileURL = pathToFileURL(configFilePath).href;
+    const configFileURL = `${pathToFileURL(configFilePath).href}?t=${Date.now()}`;
     const config = await import(/* @vite-ignore */ configFileURL);
 
     return config.default;
   } finally {
     await cleanup(projectDirectory);
+
+    if (tempDir) {
+      await rm(tempDir, { recursive: true, force: true });
+    }
   }
 };
 
