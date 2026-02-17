@@ -1,6 +1,6 @@
 import type { ResourceGroup } from '@eventcatalog/sdk';
 import type { CollectionEntry } from 'astro:content';
-import { getLatestVersionInCollectionById } from '@utils/collections/util';
+import { getLatestVersionInCollectionById, sortVersioned } from '@utils/collections/util';
 import { buildUrl } from '@utils/url-builder';
 import type { ResourceDocGroup } from '@utils/collections/resource-docs';
 
@@ -199,14 +199,31 @@ export const buildResourceDocsSections = (
   const docsGroups = resourceDocsByResource.get(`${collection}:${id}:${version}`) || [];
   if (docsGroups.length === 0) return [];
 
-  return docsGroups.map((group) => ({
-    type: 'group' as const,
-    title: toTitleCaseLabel(group.type),
-    icon: 'FileText',
-    pages: group.docs.map((doc) => ({
-      type: 'item' as const,
-      title: doc.title,
-      href: doc.href,
-    })),
-  }));
+  return docsGroups.map((group) => {
+    const latestById = new Map<string, (typeof group.docs)[number]>();
+
+    for (const doc of group.docs) {
+      const current = latestById.get(doc.id);
+      if (!current) {
+        latestById.set(doc.id, doc);
+        continue;
+      }
+
+      const [latest] = sortVersioned([current, doc], (item) => item.version);
+      latestById.set(doc.id, latest);
+    }
+
+    return {
+      type: 'group' as const,
+      title: toTitleCaseLabel(group.type),
+      icon: 'FileText',
+      pages: Array.from(latestById.values())
+        .sort((a, b) => a.title.localeCompare(b.title))
+        .map((doc) => ({
+          type: 'item' as const,
+          title: doc.title,
+          href: doc.href,
+        })),
+    };
+  });
 };

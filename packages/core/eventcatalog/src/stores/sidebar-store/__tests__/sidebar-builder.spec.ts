@@ -2628,8 +2628,12 @@ describe('getNestedSideBarData', () => {
       const docsDir = path.join(CATALOG_FOLDER, 'domains', 'Shipping', 'docs', 'adrs');
       fs.mkdirSync(docsDir, { recursive: true });
       fs.writeFileSync(
-        path.join(docsDir, 'adr-001.mdx'),
+        path.join(docsDir, 'adr-001-v1.mdx'),
         `---\nid: adr-001\nversion: 1.0.0\ntype: adrs\nname: ADR-001 Event Ownership\n---\n\nDecision record`
+      );
+      fs.writeFileSync(
+        path.join(docsDir, 'adr-001-v1-1.mdx'),
+        `---\nid: adr-001\nversion: 1.1.0\ntype: adrs\nname: ADR-001 Event Ownership\n---\n\nDecision record updated`
       );
 
       const navigationData = await getNestedSideBarData();
@@ -2641,7 +2645,7 @@ describe('getNestedSideBarData', () => {
         {
           type: 'item',
           title: 'ADR-001 Event Ownership',
-          href: '/docs/domains/Shipping/0.0.1/docs/adrs/adr-001/1.0.0',
+          href: '/docs/domains/Shipping/0.0.1/docs/adrs/adr-001/1.1.0',
         },
       ]);
     });
