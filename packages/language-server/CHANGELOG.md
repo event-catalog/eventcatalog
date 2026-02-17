@@ -1,5 +1,11 @@
 # @eventcatalog/language-server
 
+## 0.2.1
+
+### Patch Changes
+
+- ca5c1d8: Remove redundant direct message-to-channel routes-to edges when an indirect path exists through channel routing chains, and simplify user/team DSL spec by removing owns statement
+
 ## 0.2.0
 
 ### Minor Changes
