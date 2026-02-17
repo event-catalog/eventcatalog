@@ -386,6 +386,34 @@ export function astToGraph(
     edges.push({ id, source: sourceId, target: targetId, type, label });
   }
 
+  // Check if `source` can reach `target` via "routes-to" edges (BFS),
+  // optionally excluding a specific edge (to test if an alternative path exists).
+  function canReachViaRoutes(
+    source: string,
+    target: string,
+    edgeList: GraphEdge[],
+    excludeEdgeId?: string,
+  ): boolean {
+    const visited = new Set<string>();
+    const queue = [source];
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (current === target) return true;
+      if (visited.has(current)) continue;
+      visited.add(current);
+      for (const e of edgeList) {
+        if (
+          e.source === current &&
+          e.type === "routes-to" &&
+          e.id !== excludeEdgeId
+        ) {
+          queue.push(e.target);
+        }
+      }
+    }
+    return false;
+  }
+
   // Enrich a node with metadata from matching top-level definitions (e.g. channel defined outside visualizer)
   function enrichFromTopLevel(
     nodeId: string,
@@ -1272,6 +1300,25 @@ export function astToGraph(
       // Replace the writes-to edge with a reads-writes edge (service→container)
       wEdge.type = "reads-writes";
       wEdge.id = `${wEdge.source}-reads-writes-${wEdge.target}`;
+    }
+  }
+
+  // Post-processing: remove redundant direct message → channel "routes-to" edges
+  // when an indirect path already exists through channel routing chains.
+  // This handles cases where processReceives creates a direct edge before
+  // channel route edges are fully resolved (due to processing order).
+  for (let i = edges.length - 1; i >= 0; i--) {
+    const e = edges[i];
+    if (e.type !== "routes-to") continue;
+    const sourceNode = nodes.find((n) => n.id === e.source);
+    const targetNode = nodes.find((n) => n.id === e.target);
+    if (!sourceNode || !targetNode) continue;
+    // Only check message → channel edges (not channel → channel routes)
+    if (sourceNode.type === "channel") continue;
+    if (targetNode.type !== "channel") continue;
+    // Check if there's an indirect path from this message to the target channel
+    if (canReachViaRoutes(e.source, e.target, edges, e.id)) {
+      edges.splice(i, 1);
     }
   }
 
