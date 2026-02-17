@@ -99,7 +99,8 @@ const canOpenInPlayground = isDevMode() && supportsPlaygroundExport;
           throw new Error(payload?.error || 'Could not export DSL');
         }
 
-        const playgroundUrl = `https://playground.eventcatalog.dev/?dsl=${encodeURIComponent(payload.dsl)}`;
+        const encoded = btoa(unescape(encodeURIComponent(payload.dsl)));
+        const playgroundUrl = `https://playground.eventcatalog.dev/?code=${encodeURIComponent(encoded)}`;
         window.open(playgroundUrl, '_blank', 'noopener,noreferrer');
       } catch (error) {
         alert(error instanceof Error ? error.message : 'Failed to open DSL Playground');
