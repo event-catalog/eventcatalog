@@ -21,6 +21,12 @@ export interface ResourceDocEntry {
   type: string;
   title: string;
   body: string;
+  badges?: Array<{
+    content: string;
+    backgroundColor: string;
+    textColor: string;
+    icon?: string;
+  }>;
   hidden: boolean;
   filePath?: string;
   resource: {
@@ -110,6 +116,7 @@ export const getResourceDocs = async (): Promise<ResourceDocEntry[]> => {
       type: doc.data.type,
       title: doc.data.name || doc.data.id,
       body: doc.body || '',
+      badges: doc.data.badges,
       hidden: doc.data.hidden === true,
       filePath: doc.filePath,
       resource: {

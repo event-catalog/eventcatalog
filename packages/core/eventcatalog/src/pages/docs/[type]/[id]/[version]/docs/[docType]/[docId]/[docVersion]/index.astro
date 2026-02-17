@@ -8,6 +8,7 @@ import { AlignLeft, HistoryIcon } from 'lucide-react';
 import { buildUrl } from '@utils/url-builder';
 import { isEventCatalogScaleEnabled } from '@utils/feature';
 import { sortVersioned } from '@utils/collections/util';
+import { getIcon } from '@utils/badges';
 
 export async function getStaticPaths() {
   const docs = await getResourceDocs();
@@ -63,6 +64,11 @@ if (!sourceDoc) {
 
 const { Content, headings } = await render(sourceDoc as any);
 
+const badges = (((sourceDoc as any).data?.badges || []) as any[]).map((badge: any) => ({
+  ...badge,
+  icon: badge.icon ? getIcon(badge.icon) : null,
+}));
+
 const versionsForDoc = sortVersioned(
   (await getResourceDocs()).filter(
     (entry) =>
@@ -87,6 +93,19 @@ const latestDocVersion = versionsForDoc[0]?.version;
           <h3 class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">
             {doc.type} • v{doc.version}
           </h3>
+
+          {
+            badges.length > 0 && (
+              <div class="flex flex-wrap gap-3 py-4">
+                {badges.map((badge: any) => (
+                  <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text))] shadow-sm">
+                    {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" />}
+                    <span>{badge.content}</span>
+                  </span>
+                ))}
+              </div>
+            )
+          }
         </div>
 
         <div class="prose prose-md py-4 w-full">
@@ -149,7 +168,7 @@ const latestDocVersion = versionsForDoc[0]?.version;
                     );
                   })}
                 </ul>
-                <div class="border-b border-[rgb(var(--ec-page-border))] pt-2"></div>
+                <div class="border-b border-[rgb(var(--ec-page-border))] pt-2" />
               </div>
             )
           }
