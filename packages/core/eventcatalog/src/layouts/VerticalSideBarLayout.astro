@@ -6,17 +6,7 @@ interface Props {
   showNestedSideBar?: boolean;
 }
 
-import {
-  TableProperties,
-  BotMessageSquare,
-  Users,
-  BookOpen,
-  Sparkles,
-  Rocket,
-  FileText,
-  SquareDashedMousePointerIcon,
-  Braces,
-} from 'lucide-react';
+import { TableProperties, BotMessageSquare, Users, BookOpen, Sparkles, Rocket, FileText, Braces } from 'lucide-react';
 import Header from '../components/Header.astro';
 import SEO from '../components/Seo.astro';
 import SideNav from '../components/SideNav/SideNav.astro';
@@ -160,19 +150,6 @@ const navigationItems = [
   return userSideBarOption ? userSideBarOption.visible : true;
 });
 
-const studioNavigationItem = [
-  {
-    id: '/studio',
-    label: 'EventCatalog Studio',
-    icon: SquareDashedMousePointerIcon,
-    href: buildUrl('/studio'),
-    current: currentPath.includes('/studio'),
-  },
-].filter((item) => {
-  const userSideBarOption = userSideBarConfiguration.find((config: { id: string; visible: boolean }) => config.id === item.id);
-  return userSideBarOption ? userSideBarOption.visible : true;
-});
-
 const premiumFeatures = [
   {
     id: '/docs/custom',
@@ -187,7 +164,7 @@ const premiumFeatures = [
   return userSideBarOption ? userSideBarOption.visible : true;
 });
 
-const currentNavigationItem = [...navigationItems, ...studioNavigationItem, ...premiumFeatures].find((item) => item.current);
+const currentNavigationItem = [...navigationItems, ...premiumFeatures].find((item) => item.current);
 const { title, description, showNestedSideBar = true } = Astro.props;
 
 const canPageBeEmbedded = isEmbedEnabled();
@@ -316,30 +293,6 @@ const canPageBeEmbedded = isEmbedEnabled();
                 }
 
                 <hr class="w-8 border-t border-[rgb(var(--ec-sidebar-border))]" />
-
-                {
-                  studioNavigationItem.length > 0 && (
-                    <a
-                      id={studioNavigationItem[0].id}
-                      data-role="nav-item"
-                      href={studioNavigationItem[0].href}
-                      aria-label={studioNavigationItem[0].label}
-                      class={`p-1.5 inline-block pt-1 pb-1 mt-0 mb-0 transition-colors duration-200 rounded-lg relative ${studioNavigationItem[0].current ? 'text-[rgb(var(--ec-sidebar-active-text))] bg-[rgb(var(--ec-sidebar-active-bg))]' : 'hover:bg-[rgb(var(--ec-sidebar-hover-bg))] hover:text-[rgb(var(--ec-sidebar-active-text))] text-[rgb(var(--ec-sidebar-text))]'}`}
-                    >
-                      <div class="has-tooltip">
-                        <span
-                          class="tooltip rounded shadow-lg p-1 text-xs bg-gray-900 text-white ml-10 whitespace-nowrap"
-                          aria-hidden="true"
-                        >
-                          {studioNavigationItem[0].label}
-                        </span>
-                        <SquareDashedMousePointerIcon className="h-6 w-6" aria-hidden="true" />
-                      </div>
-                    </a>
-                  )
-                }
-
-                {studioNavigationItem.length > 0 && <hr class="w-8 border-t border-[rgb(var(--ec-sidebar-border))]" />}
 
                 {
                   premiumFeatures.map((item) => (
