@@ -2671,6 +2671,31 @@ describe('getNestedSideBarData', () => {
 
       expect(docsSection).toBeUndefined();
     });
+
+    it('does not render hidden resource docs in the sidebar', async () => {
+      process.env.EVENTCATALOG_SCALE = 'true';
+
+      const { writeDomain } = utils(CATALOG_FOLDER);
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+      });
+
+      const docsDir = path.join(CATALOG_FOLDER, 'domains', 'Shipping', 'docs', 'adrs');
+      fs.mkdirSync(docsDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(docsDir, 'adr-001-hidden.mdx'),
+        `---\nid: adr-001-hidden\nversion: 1.0.0\ntype: adrs\nname: ADR-001 Hidden\nhidden: true\n---\n\nDecision record`
+      );
+
+      const navigationData = await getNestedSideBarData();
+      const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+      const docsSection = getChildNodeByTitle('adrs', domainNode.pages ?? []);
+
+      expect(docsSection).toBeUndefined();
+    });
   });
 
   describe('channel navigation items', () => {

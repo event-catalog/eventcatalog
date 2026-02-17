@@ -21,6 +21,7 @@ export interface ResourceDocEntry {
   type: string;
   title: string;
   body: string;
+  hidden: boolean;
   filePath?: string;
   resource: {
     collection: ResourceCollection;
@@ -109,6 +110,7 @@ export const getResourceDocs = async (): Promise<ResourceDocEntry[]> => {
       type: doc.data.type,
       title: doc.data.name || doc.data.id,
       body: doc.body || '',
+      hidden: doc.data.hidden === true,
       filePath: doc.filePath,
       resource: {
         collection: match.collection,

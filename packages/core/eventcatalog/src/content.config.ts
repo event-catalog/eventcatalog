@@ -527,6 +527,7 @@ const resourceDocs = defineCollection({
     type: z.string(),
     name: z.string().optional(),
     summary: z.string().optional(),
+    hidden: z.boolean().optional().default(false),
   }),
 });
 

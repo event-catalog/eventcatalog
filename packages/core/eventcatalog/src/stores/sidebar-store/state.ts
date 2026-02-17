@@ -69,6 +69,8 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const messages = [...events, ...commands, ...queries];
 
   const resourceDocsByResource = resourceDocs.reduce((acc, doc) => {
+    if (doc.hidden) return acc;
+
     const key = `${doc.resource.collection}:${doc.resource.id}:${doc.resource.version}`;
     const current = acc.get(key) || [];
     const existingType = current.find((group) => group.type === doc.type);
