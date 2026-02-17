@@ -25,19 +25,6 @@ const canOpenInPlayground = isDevMode() && supportsPlaygroundExport;
 
 <VisualiserLayout title={`Visualiser | ${props.data.name} (${props.collection})`} description={props.data.summary}>
   <div class="m-4">
-    {
-      canOpenInPlayground && (
-        <div class="mb-2 flex justify-end">
-          <button
-            id="open-in-playground-header"
-            type="button"
-            class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] transition-colors duration-150"
-          >
-            Open in Playground
-          </button>
-        </div>
-      )
-    }
     <div
       class="h-[calc(100vh-130px)] w-full relative border border-[rgb(var(--ec-page-border))] rounded-md"
       id={`${id}-portal`}
@@ -77,11 +64,6 @@ const canOpenInPlayground = isDevMode() && supportsPlaygroundExport;
       return;
     }
 
-    const headerButton = document.getElementById('open-in-playground-header');
-    if (!headerButton || headerButton.dataset.bound === 'true') {
-      return;
-    }
-
     const openPlayground = async (buttonElement) => {
       try {
         buttonElement.setAttribute('disabled', 'true');
@@ -108,8 +90,38 @@ const canOpenInPlayground = isDevMode() && supportsPlaygroundExport;
       }
     };
 
-    headerButton.dataset.bound = 'true';
-    headerButton.addEventListener('click', () => openPlayground(headerButton));
+    const ensureHeaderPlaygroundButton = (attempt = 0) => {
+      const rightControls = document.querySelector(
+        `#${id}-portal .react-flow__panel-top-center .flex.justify-between > div:last-child`
+      );
+
+      if (!rightControls) {
+        if (attempt < 20) {
+          setTimeout(() => ensureHeaderPlaygroundButton(attempt + 1), 150);
+        }
+        return;
+      }
+
+      if (rightControls.querySelector('[data-playground-header="true"]')) {
+        return;
+      }
+
+      const headerButton = document.createElement('button');
+      headerButton.type = 'button';
+      headerButton.dataset.playgroundHeader = 'true';
+      headerButton.className =
+        'inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] transition-colors duration-150';
+      headerButton.textContent = 'Open in Playground';
+      headerButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openPlayground(headerButton);
+      });
+
+      rightControls.prepend(headerButton);
+    };
+
+    ensureHeaderPlaygroundButton();
 
     const rewireFooterStudioButton = (attempt = 0) => {
       const footerButton = document.querySelector('#visualiser-footer button');
