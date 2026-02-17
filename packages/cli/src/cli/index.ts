@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { executeFunction } from './executor';
 import { listFunctions, formatListOutput } from './list';
 import { exportResource, exportCatalog } from './export';
+import { importFromDSL } from './import';
 
 // Read package.json to get version
 let version = '1.0.0';
@@ -82,6 +83,23 @@ program
         output: opts.output,
         dir,
       });
+      console.log(result);
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    }
+  });
+
+// Import command - import EventCatalog DSL (.ec) into frontmatter resources
+program
+  .command('import <file>')
+  .description('Import EventCatalog DSL (.ec) into catalog resources')
+  .option('--dry-run', 'Preview resources to import without writing files', false)
+  .action(async (file, opts) => {
+    try {
+      const globalOpts = program.opts() as any;
+      const dir = globalOpts.dir || '.';
+      const result = await importFromDSL({ file, dir, dryRun: opts.dryRun });
       console.log(result);
     } catch (error) {
       console.error(error instanceof Error ? error.message : String(error));
