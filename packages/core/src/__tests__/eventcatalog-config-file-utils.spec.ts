@@ -11,7 +11,6 @@ import {
   verifyRequiredFieldsAreInCatalogConfigFile,
   writeEventCatalogConfigFile,
 } from '../eventcatalog-config-file-utils';
-import { tmpdir } from 'os';
 
 describe('catalog-to-astro-content-directory', () => {
   afterEach(async () => {
@@ -103,10 +102,10 @@ describe('catalog-to-astro-content-directory', () => {
         })
       );
     });
-    it('removes eventcatalog config from the tmpdir', async () => {
+    it('does not create eventcatalog.config.mjs in the project directory', async () => {
       await getEventCatalogConfigFile(CATALOG_DIR);
 
-      const configFile = path.join(tmpdir(), 'eventcatalog.config.mjs');
+      const configFile = path.join(CATALOG_DIR, 'eventcatalog.config.mjs');
       expect(existsSync(configFile)).toBe(false);
     });
   });
