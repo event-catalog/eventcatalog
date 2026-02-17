@@ -107,26 +107,61 @@ export const versionExists = async (catalogDir: string, id: string, version: str
   return entries.some((e) => e.version === version);
 };
 
-export const findFileById = async (catalogDir: string, id: string, version?: string): Promise<string | undefined> => {
+const RESOURCE_TYPE_TO_FOLDER: Record<string, string> = {
+  service: 'services',
+  event: 'events',
+  command: 'commands',
+  query: 'queries',
+  domain: 'domains',
+  channel: 'channels',
+  team: 'teams',
+  user: 'users',
+  entity: 'entities',
+  diagram: 'diagrams',
+  container: 'containers',
+  'data-product': 'data-products',
+  message: 'messages',
+  flow: 'flows',
+  'data-store': 'data-stores',
+  specification: 'specifications',
+  doc: 'docs',
+};
+
+export const findFileById = async (
+  catalogDir: string,
+  id: string,
+  version?: string,
+  type?: string
+): Promise<string | undefined> => {
   ensureFileCache(catalogDir);
 
   const entries = _fileIndexCache!.get(id);
   if (!entries || entries.length === 0) return undefined;
 
-  const latestEntry = entries.find((e) => !e.isVersioned);
+  const targetFolder = type ? (RESOURCE_TYPE_TO_FOLDER[type] ?? `${type}s`) : undefined;
+  const typeFilteredEntries = targetFolder
+    ? entries.filter((entry) => {
+        const normalizedPath = entry.path.replaceAll('\\', '/');
+        return normalizedPath.includes(`/${targetFolder}/`);
+      })
+    : entries;
+
+  if (typeFilteredEntries.length === 0) return undefined;
+
+  const latestEntry = typeFilteredEntries.find((e) => !e.isVersioned);
 
   if (!version || version === 'latest') {
     return latestEntry?.path;
   }
 
   // Exact version match
-  const exactMatch = entries.find((e) => e.version === version);
+  const exactMatch = typeFilteredEntries.find((e) => e.version === version);
   if (exactMatch) return exactMatch.path;
 
   // Semver range match
   const semverRange = validRange(version);
   if (semverRange) {
-    const match = entries.find((e) => {
+    const match = typeFilteredEntries.find((e) => {
       try {
         return satisfies(e.version, semverRange);
       } catch {
