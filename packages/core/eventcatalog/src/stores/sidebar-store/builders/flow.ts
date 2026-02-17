@@ -12,6 +12,7 @@ export const buildFlowNode = (flow: CollectionEntry<'flows'>, context: ResourceG
     summary: flow.data.summary,
     pages: [
       buildQuickReferenceSection([{ title: 'Overview', href: buildUrl(`/docs/flows/${flow.data.id}/${flow.data.version}`) }]),
+      ...buildResourceDocsSections('flows', flow.data.id, flow.data.version, context.resourceDocsByResource),
       {
         type: 'group',
         title: 'Architecture',
@@ -24,7 +25,6 @@ export const buildFlowNode = (flow: CollectionEntry<'flows'>, context: ResourceG
           },
         ].filter(Boolean) as ChildRef[],
       },
-      ...buildResourceDocsSections('flows', flow.data.id, flow.data.version, context.resourceDocsByResource),
     ],
   };
 };

@@ -61,6 +61,7 @@ export const buildContainerNode = (
           href: buildUrl(`/docs/containers/${container.data.id}/${container.data.version}`),
         },
       ]),
+      ...buildResourceDocsSections('containers', container.data.id, container.data.version, context.resourceDocsByResource),
       renderVisualiser && {
         type: 'group',
         title: 'Architecture',
@@ -79,7 +80,6 @@ export const buildContainerNode = (
         icon: 'FileImage',
         pages: diagramNavItems,
       },
-      ...buildResourceDocsSections('containers', container.data.id, container.data.version, context.resourceDocsByResource),
       renderWrites && {
         type: 'group',
         title: 'Writes',

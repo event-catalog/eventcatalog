@@ -71,6 +71,7 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
         { title: 'Overview', href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}`) },
         renderUbiquitousLanguage && { title: 'Ubiquitous Language', href: buildUrl(`/docs/domains/${domain.data.id}/language`) },
       ]),
+      ...buildResourceDocsSections('domains', domain.data.id, domain.data.version, context.resourceDocsByResource),
       {
         type: 'group',
         title: 'Architecture',
@@ -100,7 +101,6 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
         icon: 'FileImage',
         pages: diagramNavItems,
       },
-      ...buildResourceDocsSections('domains', domain.data.id, domain.data.version, context.resourceDocsByResource),
       renderSpecifications && {
         type: 'group',
         title: 'API & Contracts',

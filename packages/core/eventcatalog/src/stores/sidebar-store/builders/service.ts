@@ -60,6 +60,7 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
       buildQuickReferenceSection([
         { title: 'Overview', href: buildUrl(`/docs/services/${service.data.id}/${service.data.version}`) },
       ]),
+      ...buildResourceDocsSections('services', service.data.id, service.data.version, context.resourceDocsByResource),
       {
         type: 'group',
         title: 'Architecture',
@@ -89,7 +90,6 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
         icon: 'FileImage',
         pages: diagramNavItems,
       },
-      ...buildResourceDocsSections('services', service.data.id, service.data.version, context.resourceDocsByResource),
       renderSpecifications && {
         type: 'group',
         title: 'API & Contracts',

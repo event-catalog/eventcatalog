@@ -96,6 +96,12 @@ export const buildDataProductNode = (
       buildQuickReferenceSection([
         { title: 'Overview', href: buildUrl(`/docs/data-products/${dataProduct.data.id}/${dataProduct.data.version}`) },
       ]),
+      ...buildResourceDocsSections(
+        'data-products',
+        dataProduct.data.id,
+        dataProduct.data.version,
+        context.resourceDocsByResource || new Map()
+      ),
       renderVisualiser && {
         type: 'group',
         title: 'Architecture',
@@ -126,12 +132,6 @@ export const buildDataProductNode = (
         icon: 'FileCheck',
         pages: dataContracts,
       },
-      ...buildResourceDocsSections(
-        'data-products',
-        dataProduct.data.id,
-        dataProduct.data.version,
-        context.resourceDocsByResource || new Map()
-      ),
       renderOwners && buildOwnersSection(owners),
     ].filter(Boolean) as ChildRef[],
   };
