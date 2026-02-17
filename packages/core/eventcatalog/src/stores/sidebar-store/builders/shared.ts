@@ -181,6 +181,15 @@ export const buildDiagramNavItems = (
   });
 };
 
+const toTitleCaseLabel = (value: string) => {
+  return value
+    .replace(/[-_]+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
 export const buildResourceDocsSections = (
   collection: string,
   id: string,
@@ -192,7 +201,7 @@ export const buildResourceDocsSections = (
 
   return docsGroups.map((group) => ({
     type: 'group' as const,
-    title: group.type,
+    title: toTitleCaseLabel(group.type),
     icon: 'FileText',
     pages: group.docs.map((doc) => ({
       type: 'item' as const,

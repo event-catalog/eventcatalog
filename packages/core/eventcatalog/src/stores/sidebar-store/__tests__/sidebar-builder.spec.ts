@@ -2634,7 +2634,7 @@ describe('getNestedSideBarData', () => {
 
       const navigationData = await getNestedSideBarData();
       const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-      const docsSection = getChildNodeByTitle('adrs', domainNode.pages ?? []);
+      const docsSection = getChildNodeByTitle('Adrs', domainNode.pages ?? []);
 
       expect(docsSection).toBeDefined();
       expect(docsSection.pages).toEqual([
@@ -2667,7 +2667,7 @@ describe('getNestedSideBarData', () => {
 
       const navigationData = await getNestedSideBarData();
       const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-      const docsSection = getChildNodeByTitle('adrs', domainNode.pages ?? []);
+      const docsSection = getChildNodeByTitle('Adrs', domainNode.pages ?? []);
 
       expect(docsSection).toBeUndefined();
     });
@@ -2692,7 +2692,7 @@ describe('getNestedSideBarData', () => {
 
       const navigationData = await getNestedSideBarData();
       const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
-      const docsSection = getChildNodeByTitle('adrs', domainNode.pages ?? []);
+      const docsSection = getChildNodeByTitle('Adrs', domainNode.pages ?? []);
 
       expect(docsSection).toBeUndefined();
     });
