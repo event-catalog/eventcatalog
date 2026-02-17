@@ -1,0 +1,31 @@
+---
+id: adr-014-order-saga-orchestration
+name: ADR-014 Order Saga Orchestration
+version: 0.0.3
+type: adrs
+summary: Documents why OrdersService orchestrates compensation for key order flow failures.
+---
+
+# ADR-014: Order Saga Orchestration
+
+## Status
+Accepted
+
+## Context
+
+Order placement spans inventory reservation, payment processing, and customer notification.
+When one step fails, we need deterministic rollback behavior and an auditable flow.
+
+## Decision
+
+OrdersService acts as the saga orchestrator for order placement:
+
+- emits `OrderConfirmed` only after inventory + payment succeed
+- emits compensating actions (e.g. inventory release) on downstream failure
+- tracks saga state with explicit step transitions for observability
+
+## Consequences
+
+- Better consistency for cross-service workflows.
+- Easier incident debugging with a single orchestration timeline.
+- Slightly tighter coupling to workflow policy inside OrdersService.
