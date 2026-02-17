@@ -71,6 +71,19 @@ export const GET: APIRoute = async ({ url }) => {
       });
     }
 
+    if (typeof sdk.toDSL !== 'function') {
+      return new Response(
+        JSON.stringify({
+          error:
+            "SDK DSL export is unavailable in this local build. Please run 'pnpm --filter @eventcatalog/sdk build' and restart dev.",
+        }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     const dsl = await sdk.toDSL(resource as any, {
       type: dslType,
       hydrate,
