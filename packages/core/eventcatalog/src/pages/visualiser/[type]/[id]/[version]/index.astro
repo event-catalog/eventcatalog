@@ -63,13 +63,13 @@ const canOpenInPlayground = isDevMode() && supportsPlaygroundExport;
 </VisualiserLayout>
 
 <script define:vars={{ id, collection, version: props.data.version, canOpenInPlayground }}>
-  document.addEventListener('DOMContentLoaded', () => {
+  const setupPage = () => {
     const urlSearchParams = new URLSearchParams(window.location.search);
     const params = Object.fromEntries(urlSearchParams.entries());
     const embeded = params.embed === 'true' ? true : false;
     const viewport = document.getElementById(`${id}-portal`);
 
-    if (embeded) {
+    if (embeded && viewport) {
       viewport.style.height = 'calc(100vh - 30px)';
     }
 
@@ -78,9 +78,11 @@ const canOpenInPlayground = isDevMode() && supportsPlaygroundExport;
     }
 
     const button = document.getElementById('open-in-playground');
-    if (!button) {
+    if (!button || button.dataset.bound === 'true') {
       return;
     }
+
+    button.dataset.bound = 'true';
 
     button.addEventListener('click', async () => {
       try {
@@ -106,5 +108,8 @@ const canOpenInPlayground = isDevMode() && supportsPlaygroundExport;
         button.textContent = 'Open in DSL Playground (hydrated)';
       }
     });
-  });
+  };
+
+  setupPage();
+  document.addEventListener('astro:page-load', setupPage);
 </script>
