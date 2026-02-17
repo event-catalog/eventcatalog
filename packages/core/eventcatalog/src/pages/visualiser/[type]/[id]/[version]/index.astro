@@ -90,38 +90,36 @@ const canOpenInPlayground = isDevMode() && supportsPlaygroundExport;
       }
     };
 
-    const ensureHeaderPlaygroundButton = (attempt = 0) => {
-      const rightControls = document.querySelector(
-        `#${id}-portal .react-flow__panel-top-center .flex.justify-between > div:last-child`
-      );
+    const rewireStudioMenuItem = () => {
+      const menuItems = document.querySelectorAll('[role="menuitem"]');
 
-      if (!rightControls) {
-        if (attempt < 20) {
-          setTimeout(() => ensureHeaderPlaygroundButton(attempt + 1), 150);
+      menuItems.forEach((item) => {
+        if (item.dataset.rewiredStudio !== 'true' && item.textContent?.includes('Open in EventCatalog Studio')) {
+          item.dataset.rewiredStudio = 'true';
+          const label = item.querySelector('span');
+          if (label) {
+            label.textContent = 'Open in Playground';
+          }
+
+          item.addEventListener(
+            'click',
+            (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              openPlayground(item);
+            },
+            { capture: true }
+          );
         }
-        return;
-      }
-
-      if (rightControls.querySelector('[data-playground-header="true"]')) {
-        return;
-      }
-
-      const headerButton = document.createElement('button');
-      headerButton.type = 'button';
-      headerButton.dataset.playgroundHeader = 'true';
-      headerButton.className =
-        'inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] transition-colors duration-150';
-      headerButton.textContent = 'Open in Playground';
-      headerButton.addEventListener('click', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        openPlayground(headerButton);
       });
-
-      rightControls.prepend(headerButton);
     };
 
-    ensureHeaderPlaygroundButton();
+    const observer = new MutationObserver(() => {
+      rewireStudioMenuItem();
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+    rewireStudioMenuItem();
 
     const rewireFooterStudioButton = (attempt = 0) => {
       const footerButton = document.querySelector('#visualiser-footer button');
