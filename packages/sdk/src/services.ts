@@ -422,12 +422,15 @@ export const addMessageToService =
       throw new Error(`Cannot find service ${id} in the catalog`);
     }
 
-    // Get where the service was located, make sure it goes back there.
-    const path = existingResource.split(/[\\/]+services/)[0];
-    const pathToResource = join(path, 'services');
+    // Update the existing service in-place to avoid deleting nested folders under the service.
+    const resourcePath = existingResource.replace(directory, '').replace(/index\.(md|mdx)$/, '');
 
-    await rmServiceById(directory)(id, version);
-    await writeService(pathToResource)(service, { format: extension === '.md' ? 'md' : 'mdx' });
+    await writeResource(directory, service, {
+      path: resourcePath,
+      type: 'service',
+      override: true,
+      format: extension === '.md' ? 'md' : 'mdx',
+    });
   };
 
 /**

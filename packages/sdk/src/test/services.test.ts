@@ -2014,6 +2014,32 @@ describe('Services SDK', () => {
       const pathToService = path.join(CATALOG_PATH, 'services', 'InventoryService');
       expect(fs.existsSync(pathToService)).toEqual(true);
     });
+
+    it('preserves nested service subfolders when adding a message', async () => {
+      await writeService({
+        id: 'InventoryService',
+        name: 'Inventory Service',
+        version: '0.0.1',
+        summary: 'Service that handles the inventory',
+        markdown: '# Hello world',
+      });
+
+      await writeEvent({
+        id: 'InventoryAdjusted',
+        name: 'Inventory Adjusted',
+        version: '0.0.1',
+        summary: 'This is a summary',
+        markdown: '# Hello world',
+      });
+
+      const nestedMessagePath = path.join(CATALOG_PATH, 'services', 'InventoryService', 'messages', 'GetInventory', 'index.mdx');
+      fs.mkdirSync(path.dirname(nestedMessagePath), { recursive: true });
+      fs.writeFileSync(nestedMessagePath, '---\nid: GetInventory\nversion: 0.0.1\n---\n# Query');
+
+      await addEventToService('InventoryService', 'sends', { id: 'InventoryAdjusted', version: '0.0.1' }, '0.0.1');
+
+      expect(fs.existsSync(nestedMessagePath)).toEqual(true);
+    });
   });
 
   describe('addDataStoreToService (addDataStoreToService)', () => {
