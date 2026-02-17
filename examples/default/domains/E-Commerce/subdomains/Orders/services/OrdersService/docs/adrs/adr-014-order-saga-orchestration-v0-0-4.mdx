@@ -1,0 +1,31 @@
+---
+id: adr-014-order-saga-orchestration
+name: ADR-014 Order Saga Orchestration
+version: 0.0.4
+type: adrs
+summary: Updated orchestration policy with clearer compensation and observability requirements.
+---
+
+# ADR-014: Order Saga Orchestration (v0.0.4)
+
+## Status
+Accepted (revision)
+
+## Context
+
+We observed repeated confusion around retry boundaries and compensation ownership across downstream services.
+
+## Decision
+
+OrdersService remains the saga orchestrator and must:
+
+- persist explicit step state transitions
+- enforce idempotent compensation handlers
+- emit operational markers for each transition
+- stop retries once compensation begins
+
+## Consequences
+
+- More predictable failure handling.
+- Improved observability and postmortems.
+- Slightly more orchestration complexity.

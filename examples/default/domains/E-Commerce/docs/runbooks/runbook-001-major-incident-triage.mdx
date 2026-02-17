@@ -1,0 +1,27 @@
+---
+id: runbook-001-major-incident-triage
+name: Runbook-001 Major Incident Triage
+version: 1.0.0
+type: runbooks
+summary: Operational guide for handling Sev-1 incidents impacting the E-Commerce domain.
+---
+
+# Runbook-001: Major Incident Triage
+
+## Trigger
+
+Use this runbook when checkout availability drops, payments fail broadly, or order events stop flowing.
+
+## Steps
+
+1. Confirm blast radius (domains, services, user journeys).
+2. Identify first failing dependency from logs/metrics.
+3. Stabilize critical path (checkout + payment + confirmation).
+4. Declare ownership and comms cadence.
+5. Record timeline and remediation in postmortem.
+
+## Exit Criteria
+
+- Error rates back to baseline
+- Order confirmations flowing normally
+- Incident summary shared with stakeholders

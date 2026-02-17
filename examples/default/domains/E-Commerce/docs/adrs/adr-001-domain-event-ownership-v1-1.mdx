@@ -1,0 +1,29 @@
+---
+id: adr-001-domain-event-ownership
+name: ADR-001 Domain Event Ownership
+version: 1.1.0
+type: adrs
+summary: Revision of event ownership guidance with explicit producer and consumer responsibilities.
+---
+
+# ADR-001: Domain Event Ownership (v1.1)
+
+## Status
+Accepted (supersedes v1.0)
+
+## Context
+
+As teams scaled independently, we needed clearer boundaries for schema compatibility and deprecation timelines.
+
+## Decision
+
+- Producers own event schema lifecycle and changelogs.
+- Consumers must support additive changes by default.
+- Breaking changes require a new version and migration notes.
+- Ownership is tied to the emitting bounded context team.
+
+## Consequences
+
+- Better cross-team contract clarity.
+- Fewer accidental breaking changes.
+- More explicit release discipline around message evolution.

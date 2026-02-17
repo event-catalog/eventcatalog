@@ -1,0 +1,26 @@
+---
+id: tm-001-order-fraud-abuse
+name: TM-001 Order Fraud Abuse Cases
+version: 1.0.0
+type: threat-models
+summary: Captures primary abuse scenarios and mitigations for order placement workflows.
+---
+
+# TM-001: Order Fraud Abuse Cases
+
+## Scope
+
+Order placement and amendment APIs, plus event-driven fulfillment handoff.
+
+## Threats
+
+- Card testing and high-velocity checkout abuse
+- Promotion abuse using scripted order retries
+- Replay of stale order-amendment events
+
+## Mitigations
+
+- Velocity controls and risk scoring pre-confirmation
+- Idempotency keys on state-changing operations
+- Signature and freshness validation on critical events
+- Alerting for anomalous retry patterns
