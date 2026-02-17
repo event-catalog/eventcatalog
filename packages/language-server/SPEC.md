@@ -1646,21 +1646,18 @@ user_props        = "name" string_lit
                   | "role" string_lit
                   | "email" string_lit
                   | "slack" string_lit
-                  | "ms-teams" string_lit
-                  | owns_stmt
-                  | "team" identifier ;
-owns_stmt         = "owns" resource_type_kw identifier ;
-resource_type_kw  = "domain" | "service" | "event" | "command" | "query" ;
+                  | "ms-teams" string_lit ;
 
 (* Team *)
 team_decl         = "team" identifier "{" team_props "}" ;
 team_props        = "name" string_lit
+                  | "avatar" string_lit
+                  | "role" string_lit
                   | "summary" string_lit
                   | "email" string_lit
                   | "slack" string_lit
                   | "ms-teams" string_lit
-                  | "member" identifier
-                  | owns_stmt ;
+                  | "member" identifier ;
 
 (* Resource references *)
 service_ref_stmt    = "service" resource_ref ;

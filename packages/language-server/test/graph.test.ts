@@ -1638,13 +1638,119 @@ describe("astToGraph", () => {
       ),
     ).toBeDefined();
 
-    // Receives side also creates a Message → Channel edge for the receive channel
+    // The direct Message → Channel edge should NOT exist because the message
+    // already reaches MqttDevices via the channel chain (KafkaRaw → KafkaFiltered → MqttDevices)
     expect(
       graph.edges.find(
         (e) =>
           e.source === "event:SensorReading" &&
           e.target === "channel:MqttDevices@1.0.0" &&
           e.type === "routes-to",
+      ),
+    ).toBeUndefined();
+  });
+
+  it("cross-domain channel routing removes redundant direct message-to-channel edges", async () => {
+    const program = await parseProgram(`
+      visualizer main {
+        channel MainEventBus {
+          version 1.0.0
+          protocol "EventBridge"
+          route NotificationsEventBus
+        }
+
+        domain Orders {
+          version 1.0.0
+
+          channel OrderEventBus {
+            version 1.0.0
+            protocol "EventBridge"
+            route MainEventBus
+          }
+
+          service OrderService {
+            version 1.0.0
+            sends event OrderCreated to OrderEventBus {
+              version 1.0.0
+            }
+          }
+        }
+
+        domain Notifications {
+          version 1.0.0
+
+          channel NotificationsEventBus {
+            version 1.0.0
+            protocol "EventBridge"
+            route EmailQueue
+          }
+
+          channel EmailQueue {
+            version 1.0.0
+            protocol "SQS"
+          }
+
+          service EmailService {
+            version 1.0.0
+            receives event OrderCreated from EmailQueue
+          }
+        }
+      }
+    `);
+
+    const graph = astToGraph(program);
+
+    // Full chain should exist: OrderCreated -> OrderEventBus -> MainEventBus -> NotificationsEventBus -> EmailQueue
+    expect(
+      graph.edges.find(
+        (e) =>
+          e.source === "event:OrderCreated@1.0.0" &&
+          e.target === "channel:OrderEventBus@1.0.0" &&
+          e.type === "routes-to",
+      ),
+    ).toBeDefined();
+    expect(
+      graph.edges.find(
+        (e) =>
+          e.source === "channel:OrderEventBus@1.0.0" &&
+          e.target === "channel:MainEventBus@1.0.0" &&
+          e.type === "routes-to",
+      ),
+    ).toBeDefined();
+    expect(
+      graph.edges.find(
+        (e) =>
+          e.source === "channel:MainEventBus@1.0.0" &&
+          e.target === "channel:NotificationsEventBus@1.0.0" &&
+          e.type === "routes-to",
+      ),
+    ).toBeDefined();
+    expect(
+      graph.edges.find(
+        (e) =>
+          e.source === "channel:NotificationsEventBus@1.0.0" &&
+          e.target === "channel:EmailQueue@1.0.0" &&
+          e.type === "routes-to",
+      ),
+    ).toBeDefined();
+
+    // Direct OrderCreated -> EmailQueue edge should NOT exist (redundant with chain)
+    expect(
+      graph.edges.find(
+        (e) =>
+          e.source === "event:OrderCreated@1.0.0" &&
+          e.target === "channel:EmailQueue@1.0.0" &&
+          e.type === "routes-to",
+      ),
+    ).toBeUndefined();
+
+    // EmailQueue -> EmailService receives edge should still exist
+    expect(
+      graph.edges.find(
+        (e) =>
+          e.source === "channel:EmailQueue@1.0.0" &&
+          e.target === "service:EmailService@1.0.0" &&
+          e.type === "receives",
       ),
     ).toBeDefined();
   });
