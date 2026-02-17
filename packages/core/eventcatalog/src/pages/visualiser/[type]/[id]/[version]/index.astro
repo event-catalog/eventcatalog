@@ -27,13 +27,13 @@ const canOpenInPlayground = isDevMode() && supportsPlaygroundExport;
   <div class="m-4">
     {
       canOpenInPlayground && (
-        <div class="mb-3 flex justify-end">
+        <div class="mb-2 flex justify-end">
           <button
-            id="open-in-playground"
+            id="open-in-playground-header"
             type="button"
-            class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] transition-colors duration-150"
+            class="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-md border border-[rgb(var(--ec-page-border))] bg-[rgb(var(--ec-card-bg))] text-[rgb(var(--ec-page-text))] hover:bg-[rgb(var(--ec-content-hover))] transition-colors duration-150"
           >
-            Open in DSL Playground (hydrated)
+            Open in Playground
           </button>
         </div>
       )
@@ -77,17 +77,15 @@ const canOpenInPlayground = isDevMode() && supportsPlaygroundExport;
       return;
     }
 
-    const button = document.getElementById('open-in-playground');
-    if (!button || button.dataset.bound === 'true') {
+    const headerButton = document.getElementById('open-in-playground-header');
+    if (!headerButton || headerButton.dataset.bound === 'true') {
       return;
     }
 
-    button.dataset.bound = 'true';
-
-    button.addEventListener('click', async () => {
+    const openPlayground = async (buttonElement) => {
       try {
-        button.setAttribute('disabled', 'true');
-        button.textContent = 'Preparing DSL...';
+        buttonElement.setAttribute('disabled', 'true');
+        buttonElement.textContent = 'Preparing DSL...';
 
         const res = await fetch(
           `/api/dev/playground-export?collection=${encodeURIComponent(collection)}&id=${encodeURIComponent(id)}&version=${encodeURIComponent(version)}&hydrate=true`
@@ -105,10 +103,13 @@ const canOpenInPlayground = isDevMode() && supportsPlaygroundExport;
       } catch (error) {
         alert(error instanceof Error ? error.message : 'Failed to open DSL Playground');
       } finally {
-        button.removeAttribute('disabled');
-        button.textContent = 'Open in DSL Playground (hydrated)';
+        buttonElement.removeAttribute('disabled');
+        buttonElement.textContent = 'Open in Playground';
       }
-    });
+    };
+
+    headerButton.dataset.bound = 'true';
+    headerButton.addEventListener('click', () => openPlayground(headerButton));
 
     const rewireFooterStudioButton = (attempt = 0) => {
       const footerButton = document.querySelector('#visualiser-footer button');
@@ -124,11 +125,15 @@ const canOpenInPlayground = isDevMode() && supportsPlaygroundExport;
         return;
       }
 
-      footerButton.dataset.rewired = 'true';
-      footerButton.querySelector('span')?.replaceChildren(document.createTextNode('Open in DSL Playground'));
-      footerButton.addEventListener('click', (event) => {
+      const replacement = footerButton.cloneNode(true);
+      footerButton.replaceWith(replacement);
+
+      replacement.dataset.rewired = 'true';
+      replacement.querySelector('span')?.replaceChildren(document.createTextNode('Open in Playground'));
+      replacement.addEventListener('click', (event) => {
         event.preventDefault();
-        button.click();
+        event.stopPropagation();
+        openPlayground(replacement);
       });
     };
 
