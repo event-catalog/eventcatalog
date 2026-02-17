@@ -109,6 +109,30 @@ const canOpenInPlayground = isDevMode() && supportsPlaygroundExport;
         button.textContent = 'Open in DSL Playground (hydrated)';
       }
     });
+
+    const rewireFooterStudioButton = (attempt = 0) => {
+      const footerButton = document.querySelector('#visualiser-footer button');
+
+      if (!footerButton) {
+        if (attempt < 20) {
+          setTimeout(() => rewireFooterStudioButton(attempt + 1), 150);
+        }
+        return;
+      }
+
+      if (footerButton.dataset.rewired === 'true') {
+        return;
+      }
+
+      footerButton.dataset.rewired = 'true';
+      footerButton.querySelector('span')?.replaceChildren(document.createTextNode('Open in DSL Playground'));
+      footerButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        button.click();
+      });
+    };
+
+    rewireFooterStudioButton();
   };
 
   setupPage();
