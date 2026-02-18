@@ -1,5 +1,13 @@
 # @eventcatalog/cli
 
+## 0.3.2
+
+### Patch Changes
+
+- d703923: Replace base64 logo blob with actual logo.png asset, add import DSL command, and improve compiler with nested output support and domain/subdomain service pointer generation
+- Updated dependencies [d703923]
+  - @eventcatalog/language-server@0.2.2
+
 ## 0.3.1
 
 ### Patch Changes
