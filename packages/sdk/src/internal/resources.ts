@@ -20,13 +20,10 @@ export const versionResource = async (catalogDir: string, id: string) => {
     throw new Error(`No resource found with id: ${id}`);
   }
 
-  // Event that is in the route of the project
   const file = matchedFiles[0];
-  // Handle both forward and back slashes for cross-platform compatibility (Windows uses \, Unix uses /)
   const sourceDirectory = dirname(file).replace(/[/\\]versioned[/\\][^/\\]+[/\\]/, path.sep);
   const { data: { version = '0.0.1' } = {} } = matter.read(file);
   const targetDirectory = getVersionedDirectory(sourceDirectory, version);
-
   fsSync.mkdirSync(targetDirectory, { recursive: true });
 
   const ignoreListToCopy = ['events', 'commands', 'queries', 'versioned'];
@@ -72,7 +69,6 @@ export const versionResource = async (catalogDir: string, id: string) => {
   }
   // 2. Add the newly created versioned copy
   if (rootParsed) {
-    const { data: { version: ver = '0.0.1' } = {} } = rootParsed;
     const versionedIndexFile = fsSync.existsSync(join(targetDirectory, 'index.mdx'))
       ? join(targetDirectory, 'index.mdx')
       : join(targetDirectory, 'index.md');
@@ -95,13 +91,12 @@ export const writeResource = async (
 ) => {
   const path = options.path || `/${resource.id}`;
   const fullPath = join(catalogDir, path);
-  const format = options.format || 'mdx';
 
   // Create directory if it doesn't exist
   fsSync.mkdirSync(fullPath, { recursive: true });
 
   // Create or get lock file path
-  const lockPath = join(fullPath, `index.${format}`);
+  const lockPath = join(fullPath, `index.${options.format || 'mdx'}`);
 
   // Ensure the file exists before attempting to lock it
   if (!fsSync.existsSync(lockPath)) {
