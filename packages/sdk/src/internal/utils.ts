@@ -91,11 +91,7 @@ export function invalidateFileCache(): void {
  * Optimistically add or update a resource entry in the in-memory cache after a write.
  * If the cache is not populated this is a no-op (it will be built lazily on the next read).
  */
-export function upsertFileCacheEntry(
-  filePath: string,
-  parsed: matter.GrayMatterFile<string>,
-  isVersioned: boolean
-): void {
+export function upsertFileCacheEntry(filePath: string, parsed: matter.GrayMatterFile<string>, isVersioned: boolean): void {
   if (!_fileIndexCache || !_matterCache) return;
 
   const id = parsed.data.id;
@@ -231,10 +227,7 @@ export const getFiles = async (pattern: string, ignore: string | string[] = '') 
   if (_fileIndexCache && _matterCache && _fileIndexCatalogDir) {
     const normalizedCatalogDir = normalize(_fileIndexCatalogDir).replace(/\\/g, '/');
     const normalizedPattern = normalize(pattern).replace(/\\/g, '/');
-    if (
-      normalizedPattern.startsWith(normalizedCatalogDir) &&
-      normalizedPattern.includes('index.{md,mdx}')
-    ) {
+    if (normalizedPattern.startsWith(normalizedCatalogDir) && normalizedPattern.includes('index.{md,mdx}')) {
       const ignoreList = (Array.isArray(ignore) ? ignore : [ignore]).filter(Boolean);
       const matchRegex = globToRegex(normalizedPattern);
       const ignoreRegexes = ignoreList.map((ig) => globToRegex(ig.replace(/\\/g, '/')));
