@@ -1,5 +1,5 @@
 import { dirname, join } from 'path';
-import { copyDir, findFileById, getFiles, searchFilesForId, versionExists, cachedMatterRead, invalidateFileCache } from './utils';
+import { copyDir, findFileById, getFiles, searchFilesForId, versionExists, cachedMatterRead, invalidateFileCache, upsertFileCacheEntry, removeFileCacheEntries } from './utils';
 import matter from 'gray-matter';
 import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
@@ -43,6 +43,14 @@ export const versionResource = async (catalogDir: string, id: string) => {
   });
 
   // Remove all the files in the root of the resource as they have now been versioned
+  // Track the index.{md,mdx} file that will be removed from the root so we can patch the cache
+  const rootIndexFile = fsSync.existsSync(join(sourceDirectory, 'index.mdx'))
+    ? join(sourceDirectory, 'index.mdx')
+    : join(sourceDirectory, 'index.md');
+  const rootIndexExists = fsSync.existsSync(rootIndexFile);
+  // Read the root resource before deleting so we can add it as a versioned cache entry
+  const rootParsed = rootIndexExists ? matter.read(rootIndexFile) : null;
+
   await fs.readdir(sourceDirectory).then(async (resourceFiles) => {
     await Promise.all(
       resourceFiles.map(async (file) => {
@@ -57,7 +65,21 @@ export const versionResource = async (catalogDir: string, id: string) => {
     );
   });
 
-  invalidateFileCache();
+  // Optimistically patch the cache:
+  // 1. Remove the old (non-versioned) root entry
+  if (rootIndexExists) {
+    removeFileCacheEntries([rootIndexFile]);
+  }
+  // 2. Add the newly created versioned copy
+  if (rootParsed) {
+    const { data: { version: ver = '0.0.1' } = {} } = rootParsed;
+    const versionedIndexFile = fsSync.existsSync(join(targetDirectory, 'index.mdx'))
+      ? join(targetDirectory, 'index.mdx')
+      : join(targetDirectory, 'index.md');
+    if (fsSync.existsSync(versionedIndexFile)) {
+      upsertFileCacheEntry(versionedIndexFile, rootParsed, true);
+    }
+  }
 };
 
 export const writeResource = async (
@@ -115,7 +137,10 @@ export const writeResource = async (
 
     const document = matter.stringify(markdown.trim(), frontmatter);
     fsSync.writeFileSync(lockPath, document);
-    invalidateFileCache();
+    // Optimistically update the cache instead of wiping it
+    const parsedAfterWrite = matter(document);
+    const isVersioned = lockPath.includes('versioned');
+    upsertFileCacheEntry(lockPath, parsedAfterWrite, isVersioned);
   } finally {
     // Always release the lock
     await unlock(lockPath).catch(() => {});
@@ -253,7 +278,8 @@ export const rmResourceById = async (
     );
   }
 
-  invalidateFileCache();
+  // Optimistically remove only the affected entries from the cache
+  removeFileCacheEntries(matchedFiles as string[]);
 };
 
 // Helper function to ensure file/directory is completely removed

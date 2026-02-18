@@ -82,6 +82,65 @@ export function invalidateFileCache(): void {
   _matterCache = null;
 }
 
+/**
+ * Optimistically add or update a resource entry in the in-memory cache after a write.
+ * If the cache is not populated this is a no-op (it will be built lazily on the next read).
+ */
+export function upsertFileCacheEntry(
+  filePath: string,
+  parsed: matter.GrayMatterFile<string>,
+  isVersioned: boolean
+): void {
+  if (!_fileIndexCache || !_matterCache) return;
+
+  const id = parsed.data.id;
+  if (!id) return;
+
+  const version = String(parsed.data.version || '');
+  const normalizedPath = normalize(filePath);
+
+  // Update matter cache
+  _matterCache.set(normalizedPath, parsed);
+
+  // Update file index cache
+  const entry: FileIndexEntry = { path: normalizedPath, id, version, isVersioned };
+  const existing = _fileIndexCache.get(id);
+  if (existing) {
+    // Replace the entry for the same path, or add it
+    const idx = existing.findIndex((e) => e.path === normalizedPath);
+    if (idx !== -1) {
+      existing[idx] = entry;
+    } else {
+      existing.push(entry);
+    }
+  } else {
+    _fileIndexCache.set(id, [entry]);
+  }
+}
+
+/**
+ * Optimistically remove resource entries from the in-memory cache after a delete.
+ * Removes all entries whose path matches one of the given file paths.
+ */
+export function removeFileCacheEntries(filePaths: string[]): void {
+  if (!_fileIndexCache || !_matterCache) return;
+
+  const normalizedPaths = new Set(filePaths.map(normalize));
+
+  for (const path of normalizedPaths) {
+    _matterCache.delete(path);
+  }
+
+  for (const [id, entries] of _fileIndexCache) {
+    const filtered = entries.filter((e) => !normalizedPaths.has(e.path));
+    if (filtered.length === 0) {
+      _fileIndexCache.delete(id);
+    } else if (filtered.length !== entries.length) {
+      _fileIndexCache.set(id, filtered);
+    }
+  }
+}
+
 // Keep these as aliases for backwards compat with CLI export code
 export const enableFileCache = buildFileCache;
 export const disableFileCache = invalidateFileCache;
