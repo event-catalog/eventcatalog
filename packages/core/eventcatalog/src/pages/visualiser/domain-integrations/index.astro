@@ -2,7 +2,14 @@
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import VisualiserLayout from '@layouts/VisualiserLayout.astro';
 import { buildUrl } from '@utils/url-builder';
+import { getDomains } from '@utils/collections/domains';
 import { ClientRouter } from 'astro:transitions';
+
+const domains = await getDomains({ getAllVersions: false });
+const docsUrl =
+  domains.length > 0
+    ? buildUrl(`/docs/domains/${domains[0].data.id}/${domains[0].data.latestVersion}`)
+    : buildUrl('/discover/domains');
 ---
 
 <VisualiserLayout title={`Visualiser | Domain Architecture`} description="High-level view of all domains and their relationships">
@@ -23,7 +30,7 @@ import { ClientRouter } from 'astro:transitions';
       linksToVisualiser={false}
       href={{
         label: 'View Documentation',
-        url: buildUrl('/docs'),
+        url: docsUrl,
       }}
     />
   </div>
