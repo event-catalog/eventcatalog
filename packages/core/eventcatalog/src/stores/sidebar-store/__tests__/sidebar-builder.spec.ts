@@ -5,6 +5,7 @@ import utils from '@eventcatalog/sdk';
 import path from 'path';
 import fs from 'fs';
 import config from '@config';
+import matter from 'gray-matter';
 
 const CATALOG_FOLDER = path.join(__dirname, 'catalog');
 
@@ -31,15 +32,55 @@ declare module 'vitest' {
 }
 
 const toAstroCollection = (item: any, collection: string) => {
+  const fallbackFilePath = `${collection}/${item.id}/index.mdx`;
+
   return {
     id: item.id,
     collection: collection,
     data: item,
+    filePath: item.filePath || fallbackFilePath,
   };
 };
 
 const getNavigationConfigurationByKey = (key: string, data: NavigationData): NavNode => {
   return data.nodes[key] as NavNode;
+};
+
+const getResourceDocsFromCatalog = () => {
+  const docs: any[] = [];
+
+  const walk = (dir: string) => {
+    if (!fs.existsSync(dir)) return;
+
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(fullPath);
+        continue;
+      }
+
+      if (!/\.(md|mdx)$/.test(entry.name)) continue;
+      if (!fullPath.includes(`${path.sep}docs${path.sep}`)) continue;
+
+      const content = fs.readFileSync(fullPath, 'utf8');
+      const parsed = matter(content);
+
+      if (!parsed.data?.id || !parsed.data?.version || !parsed.data?.type) continue;
+
+      const relativePath = path.relative(CATALOG_FOLDER, fullPath);
+
+      docs.push({
+        id: `${parsed.data.type}:${parsed.data.id}:${parsed.data.version}:${relativePath}`,
+        collection: 'resourceDocs',
+        data: parsed.data,
+        body: parsed.content,
+        filePath: relativePath,
+      });
+    }
+  };
+
+  walk(CATALOG_FOLDER);
+  return docs;
 };
 
 // mock out astro collection for domains
@@ -98,6 +139,8 @@ vi.mock('astro:content', async (importOriginal) => {
           const { getDataProducts } = utils(CATALOG_FOLDER);
           const dataProducts = (await getDataProducts()) ?? [];
           return Promise.resolve(dataProducts.map((dataProduct) => toAstroCollection(dataProduct, 'data-products')));
+        case 'resourceDocs':
+          return Promise.resolve(getResourceDocsFromCatalog());
         default:
           return Promise.resolve([]);
       }
@@ -2567,6 +2610,95 @@ describe('getNestedSideBarData', () => {
           },
         ]);
       });
+    });
+  });
+
+  describe('resource docs sections', () => {
+    it('lists resource docs grouped by type for a domain when scale is enabled', async () => {
+      process.env.EVENTCATALOG_SCALE = 'true';
+
+      const { writeDomain } = utils(CATALOG_FOLDER);
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+      });
+
+      const docsDir = path.join(CATALOG_FOLDER, 'domains', 'Shipping', 'docs', 'adrs');
+      fs.mkdirSync(docsDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(docsDir, 'adr-001-v1.mdx'),
+        `---\nid: adr-001\nversion: 1.0.0\ntype: adrs\nname: ADR-001 Event Ownership\n---\n\nDecision record`
+      );
+      fs.writeFileSync(
+        path.join(docsDir, 'adr-001-v1-1.mdx'),
+        `---\nid: adr-001\nversion: 1.1.0\ntype: adrs\nname: ADR-001 Event Ownership\n---\n\nDecision record updated`
+      );
+
+      const navigationData = await getNestedSideBarData();
+      const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+      const docsSection = getChildNodeByTitle('Adrs', domainNode.pages ?? []);
+
+      expect(docsSection).toBeDefined();
+      expect(docsSection.pages).toEqual([
+        {
+          type: 'item',
+          title: 'ADR-001 Event Ownership',
+          href: '/docs/domains/Shipping/0.0.1/docs/adrs/adr-001/1.1.0',
+        },
+      ]);
+    });
+
+    it('does not list resource docs for starter plan', async () => {
+      process.env.EVENTCATALOG_STARTER = 'true';
+      delete process.env.EVENTCATALOG_SCALE;
+
+      const { writeDomain } = utils(CATALOG_FOLDER);
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+      });
+
+      const docsDir = path.join(CATALOG_FOLDER, 'domains', 'Shipping', 'docs', 'adrs');
+      fs.mkdirSync(docsDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(docsDir, 'adr-001.mdx'),
+        `---\nid: adr-001\nversion: 1.0.0\ntype: adrs\nname: ADR-001 Event Ownership\n---\n\nDecision record`
+      );
+
+      const navigationData = await getNestedSideBarData();
+      const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+      const docsSection = getChildNodeByTitle('Adrs', domainNode.pages ?? []);
+
+      expect(docsSection).toBeUndefined();
+    });
+
+    it('does not render hidden resource docs in the sidebar', async () => {
+      process.env.EVENTCATALOG_SCALE = 'true';
+
+      const { writeDomain } = utils(CATALOG_FOLDER);
+      await writeDomain({
+        id: 'Shipping',
+        name: 'Shipping',
+        version: '0.0.1',
+        markdown: 'Shipping',
+      });
+
+      const docsDir = path.join(CATALOG_FOLDER, 'domains', 'Shipping', 'docs', 'adrs');
+      fs.mkdirSync(docsDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(docsDir, 'adr-001-hidden.mdx'),
+        `---\nid: adr-001-hidden\nversion: 1.0.0\ntype: adrs\nname: ADR-001 Hidden\nhidden: true\n---\n\nDecision record`
+      );
+
+      const navigationData = await getNestedSideBarData();
+      const domainNode = getNavigationConfigurationByKey('domain:Shipping:0.0.1', navigationData);
+      const docsSection = getChildNodeByTitle('Adrs', domainNode.pages ?? []);
+
+      expect(docsSection).toBeUndefined();
     });
   });
 

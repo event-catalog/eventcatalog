@@ -11,6 +11,7 @@ import {
   buildRepositorySection,
   buildAttachmentsSection,
   buildDiagramNavItems,
+  buildResourceDocsSections,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
@@ -59,6 +60,7 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
       buildQuickReferenceSection([
         { title: 'Overview', href: buildUrl(`/docs/services/${service.data.id}/${service.data.version}`) },
       ]),
+      ...buildResourceDocsSections('services', service.data.id, service.data.version, context.resourceDocsByResource),
       {
         type: 'group',
         title: 'Architecture',

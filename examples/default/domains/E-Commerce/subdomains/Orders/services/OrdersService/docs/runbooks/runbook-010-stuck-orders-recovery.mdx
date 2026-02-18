@@ -1,0 +1,27 @@
+---
+id: runbook-010-stuck-orders-recovery
+name: Runbook-010 Stuck Orders Recovery
+version: 1.0.0
+type: runbooks
+summary: Recovery steps when order processing stalls between reservation and confirmation.
+---
+
+# Runbook-010: Stuck Orders Recovery
+
+## Symptoms
+
+- Orders remain in pending state for >10 minutes
+- Missing `OrderConfirmed` events
+- Spike in compensation/retry activity
+
+## Steps
+
+1. Identify affected order IDs and common failing step.
+2. Verify inventory reservation state.
+3. Verify payment state and duplicate charge risk.
+4. Trigger safe replay using idempotent reprocessor.
+5. Validate customer notification and fulfillment state.
+
+## Rollback / Escalation
+
+Escalate to payment + inventory owners if mismatched state persists after replay.

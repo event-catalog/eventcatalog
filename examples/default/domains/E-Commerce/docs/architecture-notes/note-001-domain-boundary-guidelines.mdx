@@ -1,0 +1,25 @@
+---
+id: note-001-domain-boundary-guidelines
+name: Note-001 Domain Boundary Guidelines
+version: 1.0.0
+type: architecture-notes
+summary: Guidance for deciding whether capabilities belong in Orders, Payment, or Subscriptions.
+---
+
+# Domain Boundary Guidelines
+
+## Principle
+
+Model ownership around business capability and decision autonomy, not around API shape.
+
+## Heuristics
+
+- If it decides **how to collect money**, it belongs to Payment.
+- If it decides **what is being purchased and fulfilled**, it belongs to Orders.
+- If it decides **recurring entitlement/lifecycle**, it belongs to Subscriptions.
+
+## Anti-patterns
+
+- Reusing domain events as internal RPC
+- Cross-domain writes without explicit contract/versioning
+- Shared mutable ownership of the same aggregate

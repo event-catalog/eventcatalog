@@ -1,0 +1,42 @@
+---
+id: adr-001-domain-event-ownership
+name: ADR-001 Domain Event Ownership
+version: 1.0.0
+type: adrs
+summary: Clarifies event ownership boundaries across the E-Commerce domain and its subdomains.
+badges:
+  - content: Accepted
+    backgroundColor: green
+    textColor: green
+    icon: CheckCircleIcon
+  - content: Domain-wide
+    backgroundColor: blue
+    textColor: blue
+    icon: RectangleGroupIcon
+---
+
+| Field | Value |
+| --- | --- |
+| ADR | ADR-001 |
+| Title | Domain Event Ownership |
+| Status | Accepted |
+| Date | 2026-02-16 |
+| Owners | E-Commerce Architecture Group |
+
+## Context
+
+As the E-Commerce domain grew, event names started overlapping between subdomains (Orders, Payment, and Subscriptions).
+This made it unclear which team owned contract changes and compatibility guarantees.
+
+## Decision
+
+- Each event contract is owned by the bounded context that emits it.
+- Upstream producers own schema versioning and changelog updates.
+- Downstream consumers must tolerate additive changes.
+- Breaking changes require a new event version and migration guidance.
+
+## Consequences
+
+- Clear ownership and faster review paths.
+- Better confidence when evolving event schemas.
+- Slight increase in process overhead for breaking changes.

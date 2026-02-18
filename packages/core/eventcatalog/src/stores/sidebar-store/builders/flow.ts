@@ -1,9 +1,9 @@
 import type { CollectionEntry } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
-import type { NavNode, ChildRef } from './shared';
-import { buildQuickReferenceSection } from './shared';
+import type { NavNode, ChildRef, ResourceGroupContext } from './shared';
+import { buildQuickReferenceSection, buildResourceDocsSections } from './shared';
 
-export const buildFlowNode = (flow: CollectionEntry<'flows'>): NavNode => {
+export const buildFlowNode = (flow: CollectionEntry<'flows'>, context: ResourceGroupContext): NavNode => {
   return {
     type: 'item',
     title: flow.data.name,
@@ -12,6 +12,7 @@ export const buildFlowNode = (flow: CollectionEntry<'flows'>): NavNode => {
     summary: flow.data.summary,
     pages: [
       buildQuickReferenceSection([{ title: 'Overview', href: buildUrl(`/docs/flows/${flow.data.id}/${flow.data.version}`) }]),
+      ...buildResourceDocsSections('flows', flow.data.id, flow.data.version, context.resourceDocsByResource),
       {
         type: 'group',
         title: 'Architecture',

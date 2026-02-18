@@ -511,6 +511,27 @@ const customPages = defineCollection({
   schema: customPagesSchema,
 });
 
+const resourceDocs = defineCollection({
+  loader: glob({
+    pattern:
+      '**/{domains,services,events,commands,queries,flows,channels,entities,containers,data-products}/*/docs/**/*.@(md|mdx)',
+    base: projectDirBase,
+    generateId: ({ data, entry }) => {
+      const fullPath = (entry || '').replace(/\\\\/g, '/');
+      return `${data.type}:${data.id}:${data.version}:${fullPath}`;
+    },
+  }),
+  schema: z.object({
+    id: z.string(),
+    version: z.string(),
+    type: z.string(),
+    name: z.string().optional(),
+    summary: z.string().optional(),
+    badges: z.array(badge).optional(),
+    hidden: z.boolean().optional().default(false),
+  }),
+});
+
 const domains = defineCollection({
   loader: glob({
     pattern: [
@@ -778,6 +799,7 @@ export const collections = {
 
   // EventCatalog Pro Collections
   customPages,
+  resourceDocs,
 
   // EventCatalog Studio Collections
   designs,

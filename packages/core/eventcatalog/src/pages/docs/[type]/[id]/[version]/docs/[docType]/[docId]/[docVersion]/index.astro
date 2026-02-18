@@ -1,0 +1,179 @@
+---
+import { getCollection, render } from 'astro:content';
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import Footer from '@layouts/Footer.astro';
+import components from '@components/MDX/components';
+import { getResourceDocs } from '@utils/collections/resource-docs';
+import { AlignLeft, HistoryIcon } from 'lucide-react';
+import { buildUrl } from '@utils/url-builder';
+import { isEventCatalogScaleEnabled } from '@utils/feature';
+import { sortVersioned } from '@utils/collections/util';
+import { getIcon } from '@utils/badges';
+
+export async function getStaticPaths() {
+  const docs = await getResourceDocs();
+
+  return docs.map((doc) => ({
+    params: {
+      type: doc.resource.collection,
+      id: doc.resource.id,
+      version: doc.resource.version,
+      docType: doc.type,
+      docId: doc.id,
+      docVersion: doc.version,
+    },
+    props: {
+      doc,
+    },
+  }));
+}
+
+const { doc } = Astro.props;
+
+if (!isEventCatalogScaleEnabled()) {
+  return Astro.redirect(buildUrl('/'));
+}
+
+if (!doc) {
+  return Astro.redirect(buildUrl('/'));
+}
+
+const resourceLabel = doc.resource.collection.slice(0, -1);
+const pageTitle = `${doc.title} | ${resourceLabel}`;
+
+const contentEntry = (await getResourceDocs()).find(
+  (entry) =>
+    entry.resource.collection === doc.resource.collection &&
+    entry.resource.id === doc.resource.id &&
+    entry.resource.version === doc.resource.version &&
+    entry.type === doc.type &&
+    entry.id === doc.id &&
+    entry.version === doc.version
+);
+
+if (!contentEntry) {
+  return Astro.redirect(buildUrl('/'));
+}
+
+const resourceDocsCollection = await getCollection('resourceDocs' as any);
+const sourceDoc = resourceDocsCollection.find((entry: any) => entry.filePath === contentEntry.filePath);
+
+if (!sourceDoc) {
+  return Astro.redirect(buildUrl('/'));
+}
+
+const { Content, headings } = await render(sourceDoc as any);
+
+const badges = (((sourceDoc as any).data?.badges || []) as any[]).map((badge: any) => ({
+  ...badge,
+  icon: badge.icon ? getIcon(badge.icon) : null,
+}));
+
+const versionsForDoc = sortVersioned(
+  (await getResourceDocs()).filter(
+    (entry) =>
+      entry.resource.collection === doc.resource.collection &&
+      entry.resource.id === doc.resource.id &&
+      entry.resource.version === doc.resource.version &&
+      entry.type === doc.type &&
+      entry.id === doc.id
+  ),
+  (entry) => entry.version
+);
+
+const latestDocVersion = versionsForDoc[0]?.version;
+---
+
+<VerticalSideBarLayout title={pageTitle} description={doc.type}>
+  <main class="flex docs-layout h-full bg-[rgb(var(--ec-page-bg))]">
+    <div class="flex docs-layout w-full pl-16">
+      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8 bg-[rgb(var(--ec-page-bg))]">
+        <div class="border-b border-[rgb(var(--ec-page-border))] md:pb-2">
+          <h2 class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{doc.title}</h2>
+          <h3 class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">
+            {doc.type} • v{doc.version}
+          </h3>
+
+          {
+            badges.length > 0 && (
+              <div class="flex flex-wrap gap-3 py-4">
+                {badges.map((badge: any) => (
+                  <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))] text-[rgb(var(--ec-page-text))] shadow-sm">
+                    {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" />}
+                    <span>{badge.content}</span>
+                  </span>
+                ))}
+              </div>
+            )
+          }
+        </div>
+
+        <div class="prose prose-md py-4 w-full">
+          <Content components={components({})} />
+        </div>
+
+        <Footer />
+      </div>
+
+      <aside
+        id="eventcatalog-docs-sidebar"
+        class="hidden xl:block sticky top-0 pb-10 w-[280px] overflow-y-auto py-2 flex-shrink-0 pr-10 bg-[rgb(var(--ec-page-bg))]"
+      >
+        <div class="mt-4 space-y-8">
+          {
+            headings.length > 0 && (
+              <div>
+                <h3 class="text-xs text-[rgb(var(--ec-page-text))] font-semibold capitalize flex items-center gap-2 mb-4">
+                  <AlignLeft className="w-4 h-4" />
+                  On this page
+                </h3>
+                <nav class="text-xs border-l border-[rgb(var(--ec-page-border))]">
+                  {headings.map((heading) => (
+                    <a
+                      href={`#${heading.slug}`}
+                      class="block py-1.5 pr-2.5 leading-5 text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))] border-l-2 border-transparent -ml-px"
+                      style={`padding-left: ${Math.max(heading.depth, 1) * 0.75}rem`}
+                    >
+                      {heading.text}
+                    </a>
+                  ))}
+                </nav>
+              </div>
+            )
+          }
+
+          {
+            versionsForDoc.length > 1 && (
+              <div class="space-y-2 pb-4">
+                <span class="text-xs text-[rgb(var(--ec-page-text))] font-semibold">Versions ({versionsForDoc.length})</span>
+                <ul role="list" class="space-y-2">
+                  {versionsForDoc.map((entry) => {
+                    const isCurrent = entry.version === doc.version;
+                    const isLatest = entry.version === latestDocVersion;
+
+                    return (
+                      <li class="rounded-md px-1 group w-full hover:text-white hover:font-normal hover:bg-[rgb(var(--ec-content-hover))]">
+                        <a
+                          class="flex items-center space-x-2 cursor-pointer"
+                          href={buildUrl(
+                            `/docs/${doc.resource.collection}/${doc.resource.id}/${doc.resource.version}/docs/${doc.type}/${doc.id}/${entry.version}`
+                          )}
+                        >
+                          <HistoryIcon className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))]" strokeWidth={1} />
+                          <span class={`font-light text-xs text-[rgb(var(--ec-page-text))] ${isCurrent ? 'underline' : ''}`}>
+                            {isLatest ? `v${entry.version} (latest)` : `v${entry.version}`}
+                          </span>
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <div class="border-b border-[rgb(var(--ec-page-border))] pt-2" />
+              </div>
+            )
+          }
+        </div>
+      </aside>
+    </div>
+  </main>
+</VerticalSideBarLayout>

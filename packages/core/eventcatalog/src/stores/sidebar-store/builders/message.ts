@@ -9,6 +9,7 @@ import {
   buildRepositorySection,
   buildAttachmentsSection,
   buildDiagramNavItems,
+  buildResourceDocsSections,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
@@ -57,6 +58,7 @@ export const buildMessageNode = (
           href: buildUrl(`/docs/${collection}/${message.data.id}/${message.data.version}`),
         },
       ]),
+      ...buildResourceDocsSections(collection as any, message.data.id, message.data.version, context.resourceDocsByResource),
       renderVisualiser && {
         type: 'group',
         title: 'Architecture',

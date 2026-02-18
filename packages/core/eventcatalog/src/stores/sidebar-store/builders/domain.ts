@@ -9,6 +9,7 @@ import {
   buildRepositorySection,
   buildAttachmentsSection,
   buildDiagramNavItems,
+  buildResourceDocsSections,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
@@ -70,6 +71,7 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
         { title: 'Overview', href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}`) },
         renderUbiquitousLanguage && { title: 'Ubiquitous Language', href: buildUrl(`/docs/domains/${domain.data.id}/language`) },
       ]),
+      ...buildResourceDocsSections('domains', domain.data.id, domain.data.version, context.resourceDocsByResource),
       {
         type: 'group',
         title: 'Architecture',
