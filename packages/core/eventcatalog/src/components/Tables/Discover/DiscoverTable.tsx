@@ -13,7 +13,7 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SearchX, X, Sea
 import { UserIcon } from '@heroicons/react/24/outline';
 import { useMemo, useState } from 'react';
 import type { TableConfiguration } from '@types';
-import { isSameVersion } from '@utils/collections/util';
+import { isSameVersion } from '@utils/collections/version-compare';
 import { FilterDropdown, CheckboxItem } from './FilterComponents';
 import DebouncedInput from '../DebouncedInput';
 import { getDiscoverColumns } from './columns';
