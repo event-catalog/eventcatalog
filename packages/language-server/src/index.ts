@@ -7,6 +7,6 @@ export * from "./generated/ast.js";
 export { astToGraph } from "./graph.js";
 export type { GraphNode, GraphEdge, DslGraph } from "./graph-types.js";
 export { compile } from "./compiler.js";
-export type { CompiledOutput } from "./compiler.js";
+export type { CompiledOutput, CompileOptions } from "./compiler.js";
 export * from "./ast-utils.js";
 export { formatEc } from "./formatter.js";

@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { executeFunction } from './executor';
 import { listFunctions, formatListOutput } from './list';
 import { exportResource, exportCatalog } from './export';
+import { importDSL } from './import';
 
 // Read package.json to get version
 let version = '1.0.0';
@@ -80,6 +81,34 @@ program
         stdout: opts.stdout,
         playground: opts.playground,
         output: opts.output,
+        dir,
+      });
+      console.log(result);
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    }
+  });
+
+// Import command - import .ec DSL files into catalog markdown
+program
+  .command('import [files...]')
+  .description('Import EventCatalog DSL (.ec) files into catalog markdown')
+  .option('--stdin', 'Read DSL from stdin', false)
+  .option('--dry-run', 'Preview resources without writing', false)
+  .option('--flat', 'Write resources in flat structure (no nesting under domains/services)', false)
+  .option('--no-init', 'Skip catalog initialization prompt')
+  .action(async (files: string[], opts) => {
+    try {
+      const globalOpts = program.opts() as any;
+      const dir = globalOpts.dir || '.';
+
+      const result = await importDSL({
+        files: files.length > 0 ? files : undefined,
+        stdin: opts.stdin,
+        dryRun: opts.dryRun,
+        flat: opts.flat,
+        noInit: !opts.init,
         dir,
       });
       console.log(result);

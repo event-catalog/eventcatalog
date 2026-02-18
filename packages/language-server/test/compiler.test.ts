@@ -35,6 +35,65 @@ describe("compile", () => {
     expect(domainOutput!.content).toContain("orders-team");
   });
 
+  it("compiles a domain with services listed in frontmatter", async () => {
+    const program = await parseProgram(`
+      domain Orders {
+        version 1.0.0
+        name "Orders Domain"
+        service OrderService {
+          version 2.0.0
+        }
+        service InventoryService {
+          version 1.0.0
+        }
+      }
+    `);
+
+    const outputs = compile(program);
+
+    const domainOutput = outputs.find(
+      (o) => o.path === "domains/Orders/versioned/1.0.0/index.md",
+    );
+    expect(domainOutput).toBeDefined();
+    expect(domainOutput!.content).toContain("services:");
+    expect(domainOutput!.content).toContain('id: "OrderService"');
+    expect(domainOutput!.content).toContain('version: "2.0.0"');
+    expect(domainOutput!.content).toContain('id: "InventoryService"');
+    expect(domainOutput!.content).toContain('version: "1.0.0"');
+  });
+
+  it("compiles a domain with subdomains listed in frontmatter", async () => {
+    const program = await parseProgram(`
+      domain Ecommerce {
+        version 1.0.0
+        subdomain Payments {
+          version 1.0.0
+          service PaymentService {
+            version 1.0.0
+          }
+        }
+      }
+    `);
+
+    const outputs = compile(program);
+
+    const domainOutput = outputs.find(
+      (o) => o.path === "domains/Ecommerce/versioned/1.0.0/index.md",
+    );
+    expect(domainOutput).toBeDefined();
+    // Subdomains are listed as "domains" in frontmatter
+    expect(domainOutput!.content).toContain("domains:");
+    expect(domainOutput!.content).toContain('id: "Payments"');
+
+    // Subdomain should list its services
+    const subdomainOutput = outputs.find((o) =>
+      o.path.includes("Payments/versioned/1.0.0/index.md"),
+    );
+    expect(subdomainOutput).toBeDefined();
+    expect(subdomainOutput!.content).toContain("services:");
+    expect(subdomainOutput!.content).toContain('id: "PaymentService"');
+  });
+
   it("compiles a service with sends and receives", async () => {
     const program = await parseProgram(`
       service OrderService {

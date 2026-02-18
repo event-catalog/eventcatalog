@@ -102,10 +102,18 @@ export interface CompiledOutput {
   content: string;
 }
 
-export function compile(program: Program): CompiledOutput[] {
+export interface CompileOptions {
+  nested?: boolean;
+}
+
+export function compile(
+  program: Program,
+  options?: CompileOptions,
+): CompiledOutput[] {
+  const nested = options?.nested ?? false;
   const outputs: CompiledOutput[] = [];
   for (const def of program.definitions) {
-    compileDefinition(def, outputs);
+    compileDefinition(def, outputs, nested, "");
   }
   return outputs;
 }
@@ -113,22 +121,28 @@ export function compile(program: Program): CompiledOutput[] {
 function compileDefinition(
   def: ResourceDefinition,
   outputs: CompiledOutput[],
+  nested: boolean,
+  parentPath: string,
 ): void {
-  if (isDomainDef(def)) compileDomain(def, outputs);
+  if (isDomainDef(def)) compileDomain(def, outputs, nested);
   else if (isServiceDef(def)) {
-    compileService(def, outputs);
-    compileInlineMessages(def, outputs);
-  } else if (isEventDef(def)) compileMessage(def, "events", outputs);
-  else if (isCommandDef(def)) compileMessage(def, "commands", outputs);
-  else if (isQueryDef(def)) compileMessage(def, "queries", outputs);
-  else if (isChannelDef(def)) compileChannel(def, outputs);
-  else if (isContainerDef(def)) compileContainer(def, outputs);
+    compileService(def, outputs, nested, parentPath);
+    compileInlineMessages(def, outputs, nested, parentPath);
+  } else if (isEventDef(def))
+    compileMessage(def, "events", outputs, nested, parentPath);
+  else if (isCommandDef(def))
+    compileMessage(def, "commands", outputs, nested, parentPath);
+  else if (isQueryDef(def))
+    compileMessage(def, "queries", outputs, nested, parentPath);
+  else if (isChannelDef(def)) compileChannel(def, outputs, nested, parentPath);
+  else if (isContainerDef(def))
+    compileContainer(def, outputs, nested, parentPath);
   else if (isDataProductDef(def)) compileDataProduct(def, outputs);
   else if (isFlowDef(def)) compileFlow(def, outputs);
   else if (isDiagramDef(def)) compileDiagram(def, outputs);
   else if (isUserDef(def)) compileUser(def, outputs);
   else if (isTeamDef(def)) compileTeam(def, outputs);
-  else if (isVisualizerDef(def)) compileVisualizer(def, outputs);
+  else if (isVisualizerDef(def)) compileVisualizer(def, outputs, nested);
   // ActorDef and ExternalSystemDef are flow-only — no markdown output
 }
 
@@ -402,14 +416,18 @@ function commonFrontmatter(
   return fm;
 }
 
-function makeOutput(
-  path: string,
+function withSummary(
   fm: Record<string, unknown>,
-  body?: string,
-): CompiledOutput {
+  body: AstNode[],
+): Record<string, unknown> {
+  const summary = getSummary(body);
+  if (summary) fm.summary = summary;
+  return fm;
+}
+
+function makeOutput(path: string, fm: Record<string, unknown>): CompiledOutput {
   const frontmatter = buildFrontmatter(fm);
-  const content = body ? `${frontmatter}\n${body}\n` : `${frontmatter}\n`;
-  return { path, content };
+  return { path, content: `${frontmatter}\n` };
 }
 
 // Build a versioned output path: "<folder>/<name>/versioned/<version>/index.md"
@@ -422,38 +440,92 @@ function versionedPath(folder: string, name: string, body: AstNode[]): string {
 
 // --- Resource compilers ---
 
-function compileDomain(domain: DomainDef, outputs: CompiledOutput[]): void {
+function compileDomain(
+  domain: DomainDef,
+  outputs: CompiledOutput[],
+  nested: boolean,
+): void {
   const body = domain.body as AstNode[];
-  const fm = commonFrontmatter(domain.name, body);
-  const summary = getSummary(body);
-  outputs.push(
-    makeOutput(versionedPath("domains", domain.name, body), fm, summary),
-  );
+  const fm = withSummary(commonFrontmatter(domain.name, body), body);
 
-  for (const svc of getServices(body)) {
-    compileService(svc, outputs);
-    compileInlineMessages(svc, outputs);
+  // Add services pointers
+  const services = getServices(body);
+  if (services.length > 0) {
+    fm.services = services.map((svc) => {
+      const ref: Record<string, unknown> = { id: svc.name };
+      const v = getVersion(svc.body as AstNode[]);
+      if (v) ref.version = v;
+      return ref;
+    });
   }
 
-  for (const sub of getSubdomains(body)) {
+  // Add subdomain pointers (listed as "domains" in frontmatter)
+  const subdomains = getSubdomains(body);
+  if (subdomains.length > 0) {
+    fm.domains = subdomains.map((sub) => {
+      const ref: Record<string, unknown> = { id: sub.name };
+      const v = getVersion(sub.body as AstNode[]);
+      if (v) ref.version = v;
+      return ref;
+    });
+  }
+
+  outputs.push(makeOutput(versionedPath("domains", domain.name, body), fm));
+
+  const domainPath = nested ? `domains/${domain.name}` : "";
+
+  for (const svc of services) {
+    compileService(svc, outputs, nested, domainPath);
+    compileInlineMessages(svc, outputs, nested, domainPath);
+  }
+
+  for (const ch of body.filter((n) => isChannelDef(n)) as ChannelDef[]) {
+    compileChannel(ch, outputs, nested, domainPath);
+  }
+
+  for (const cont of body.filter((n) => isContainerDef(n)) as ContainerDef[]) {
+    compileContainer(cont, outputs, nested, domainPath);
+  }
+
+  for (const sub of subdomains) {
     const subBody = sub.body as AstNode[];
-    const subFm = commonFrontmatter(sub.name, subBody);
-    const subSummary = getSummary(subBody);
+    const subFm = withSummary(commonFrontmatter(sub.name, subBody), subBody);
+
+    // Add services pointers to subdomain
+    const subServices = getServices(subBody);
+    if (subServices.length > 0) {
+      subFm.services = subServices.map((svc) => {
+        const ref: Record<string, unknown> = { id: svc.name };
+        const v = getVersion(svc.body as AstNode[]);
+        if (v) ref.version = v;
+        return ref;
+      });
+    }
+
+    const subdomainFolder = nested
+      ? `domains/${domain.name}/subdomains`
+      : `domains/${domain.name}/domains`;
     outputs.push(
-      makeOutput(
-        versionedPath(`domains/${domain.name}/domains`, sub.name, subBody),
-        subFm,
-        subSummary,
-      ),
+      makeOutput(versionedPath(subdomainFolder, sub.name, subBody), subFm),
     );
-    for (const svc of getServices(subBody)) {
-      compileService(svc, outputs);
-      compileInlineMessages(svc, outputs);
+
+    const subdomainPath = nested
+      ? `domains/${domain.name}/subdomains/${sub.name}`
+      : "";
+
+    for (const svc of subServices) {
+      compileService(svc, outputs, nested, subdomainPath);
+      compileInlineMessages(svc, outputs, nested, subdomainPath);
     }
   }
 }
 
-function compileService(svc: ServiceDef, outputs: CompiledOutput[]): void {
+function compileService(
+  svc: ServiceDef,
+  outputs: CompiledOutput[],
+  nested: boolean,
+  parentPath: string,
+): void {
   const body = svc.body as AstNode[];
   const fm = commonFrontmatter(svc.name, body);
   const sends = getSends(body);
@@ -464,9 +536,9 @@ function compileService(svc: ServiceDef, outputs: CompiledOutput[]): void {
   if (receives.length > 0) {
     fm.receives = receives.map((r) => buildMessageRef(r));
   }
-  outputs.push(
-    makeOutput(versionedPath("services", svc.name, body), fm, getSummary(body)),
-  );
+  withSummary(fm, body);
+  const folder = nested && parentPath ? `${parentPath}/services` : "services";
+  outputs.push(makeOutput(versionedPath(folder, svc.name, body), fm));
 }
 
 function buildMessageRef(
@@ -479,32 +551,61 @@ function buildMessageRef(
     const inlineVersion = getVersion(clause.body as AstNode[]);
     if (inlineVersion) ref.version = inlineVersion;
   }
+  // Add channel routing (to/from) when present
+  if (clause.channelClause) {
+    const cc = clause.channelClause;
+    const channelRefs = cc.channels.map((ch) => {
+      const entry: Record<string, unknown> = { id: ch.channelName };
+      if (ch.channelVersion) entry.version = ch.channelVersion;
+      return entry;
+    });
+    if (cc.deliveryMode) {
+      for (const entry of channelRefs) {
+        entry.delivery_mode = cc.deliveryMode;
+      }
+    }
+    if (isToClause(cc)) {
+      ref.to = channelRefs;
+    } else if (isFromClause(cc)) {
+      ref.from = channelRefs;
+    }
+  }
   return ref;
 }
 
 function compileInlineMessages(
   svc: ServiceDef,
   outputs: CompiledOutput[],
+  nested: boolean,
+  parentPath: string,
 ): void {
   const body = svc.body as AstNode[];
+  // Compute the service path to nest messages under
+  const servicePath =
+    nested && parentPath
+      ? `${parentPath}/services/${svc.name}`
+      : nested
+        ? `services/${svc.name}`
+        : "";
   const allClauses = [...getSends(body), ...getReceives(body)];
   for (const clause of allClauses) {
     if (clause.body.length > 0) {
       const inlineBody = clause.body as AstNode[];
       const msgType = clause.messageType;
-      const folder =
+      const msgFolder =
         msgType === "event"
           ? "events"
           : msgType === "command"
             ? "commands"
             : "queries";
-      const fm = commonFrontmatter(clause.messageName, inlineBody);
+      const folder =
+        nested && servicePath ? `${servicePath}/${msgFolder}` : msgFolder;
+      const fm = withSummary(
+        commonFrontmatter(clause.messageName, inlineBody),
+        inlineBody,
+      );
       outputs.push(
-        makeOutput(
-          versionedPath(folder, clause.messageName, inlineBody),
-          fm,
-          getSummary(inlineBody),
-        ),
+        makeOutput(versionedPath(folder, clause.messageName, inlineBody), fm),
       );
     }
   }
@@ -514,15 +615,22 @@ function compileMessage(
   msg: EventDef | CommandDef | QueryDef,
   folder: string,
   outputs: CompiledOutput[],
+  nested: boolean,
+  parentPath: string,
 ): void {
   const body = msg.body as AstNode[];
-  const fm = commonFrontmatter(msg.name, body);
-  outputs.push(
-    makeOutput(versionedPath(folder, msg.name, body), fm, getSummary(body)),
-  );
+  const fm = withSummary(commonFrontmatter(msg.name, body), body);
+  const resolvedFolder =
+    nested && parentPath ? `${parentPath}/${folder}` : folder;
+  outputs.push(makeOutput(versionedPath(resolvedFolder, msg.name, body), fm));
 }
 
-function compileChannel(ch: ChannelDef, outputs: CompiledOutput[]): void {
+function compileChannel(
+  ch: ChannelDef,
+  outputs: CompiledOutput[],
+  nested: boolean = false,
+  parentPath: string = "",
+): void {
   const body = ch.body as AstNode[];
   const fm = commonFrontmatter(ch.name, body);
   const address = getAddress(body);
@@ -546,12 +654,17 @@ function compileChannel(ch: ChannelDef, outputs: CompiledOutput[]): void {
       return param;
     });
   }
-  outputs.push(
-    makeOutput(versionedPath("channels", ch.name, body), fm, getSummary(body)),
-  );
+  withSummary(fm, body);
+  const folder = nested && parentPath ? `${parentPath}/channels` : "channels";
+  outputs.push(makeOutput(versionedPath(folder, ch.name, body), fm));
 }
 
-function compileContainer(cont: ContainerDef, outputs: CompiledOutput[]): void {
+function compileContainer(
+  cont: ContainerDef,
+  outputs: CompiledOutput[],
+  nested: boolean = false,
+  parentPath: string = "",
+): void {
   const body = cont.body as AstNode[];
   const fm = commonFrontmatter(cont.name, body);
   const ct = getContainerType(body);
@@ -568,13 +681,10 @@ function compileContainer(cont: ContainerDef, outputs: CompiledOutput[]): void {
   if (res) fm.residency = res;
   const ret = getRetention(body);
   if (ret) fm.retention = ret;
-  outputs.push(
-    makeOutput(
-      versionedPath("containers", cont.name, body),
-      fm,
-      getSummary(body),
-    ),
-  );
+  withSummary(fm, body);
+  const folder =
+    nested && parentPath ? `${parentPath}/containers` : "containers";
+  outputs.push(makeOutput(versionedPath(folder, cont.name, body), fm));
 }
 
 function compileDataProduct(
@@ -606,13 +716,8 @@ function compileDataProduct(
       return o;
     });
   }
-  outputs.push(
-    makeOutput(
-      versionedPath("data-products", dp.name, body),
-      fm,
-      getSummary(body),
-    ),
-  );
+  withSummary(fm, body);
+  outputs.push(makeOutput(versionedPath("data-products", dp.name, body), fm));
 }
 
 function compileFlow(flow: FlowDef, outputs: CompiledOutput[]): void {
@@ -626,9 +731,8 @@ function compileFlow(flow: FlowDef, outputs: CompiledOutput[]): void {
       fm.steps = steps;
     }
   }
-  outputs.push(
-    makeOutput(versionedPath("flows", flow.name, body), fm, getSummary(body)),
-  );
+  withSummary(fm, body);
+  outputs.push(makeOutput(versionedPath("flows", flow.name, body), fm));
 }
 
 function flowRefToStep(ref: FlowRef): Record<string, unknown> {
@@ -733,14 +837,8 @@ function compileFlowBody(
 
 function compileDiagram(diag: DiagramDef, outputs: CompiledOutput[]): void {
   const body = diag.body as AstNode[];
-  const fm = commonFrontmatter(diag.name, body);
-  outputs.push(
-    makeOutput(
-      versionedPath("diagrams", diag.name, body),
-      fm,
-      getSummary(body),
-    ),
-  );
+  const fm = withSummary(commonFrontmatter(diag.name, body), body);
+  outputs.push(makeOutput(versionedPath("diagrams", diag.name, body), fm));
 }
 
 function compileUser(user: UserDef, outputs: CompiledOutput[]): void {
@@ -824,43 +922,44 @@ function compileTeam(team: TeamDef, outputs: CompiledOutput[]): void {
 
   const annFields = mapAnnotations(annotations);
   Object.assign(fm, annFields);
-  outputs.push(makeOutput(`teams/${team.name}.md`, fm, summary));
+  outputs.push(makeOutput(`teams/${team.name}.md`, fm));
 }
 
 function compileVisualizer(
   viz: VisualizerDef,
   outputs: CompiledOutput[],
+  nested: boolean,
 ): void {
   // Visualizer wrapper does NOT produce its own markdown.
   // Inline definitions inside it compile normally.
   for (const item of viz.body) {
     if (isDomainDef(item)) {
-      compileDomain(item, outputs);
+      compileDomain(item, outputs, nested);
       continue;
     }
     if (isServiceDef(item)) {
-      compileService(item, outputs);
-      compileInlineMessages(item, outputs);
+      compileService(item, outputs, nested, "");
+      compileInlineMessages(item, outputs, nested, "");
       continue;
     }
     if (isEventDef(item) && item.body.length > 0) {
-      compileMessage(item, "events", outputs);
+      compileMessage(item, "events", outputs, nested, "");
       continue;
     }
     if (isCommandDef(item) && item.body.length > 0) {
-      compileMessage(item, "commands", outputs);
+      compileMessage(item, "commands", outputs, nested, "");
       continue;
     }
     if (isQueryDef(item) && item.body.length > 0) {
-      compileMessage(item, "queries", outputs);
+      compileMessage(item, "queries", outputs, nested, "");
       continue;
     }
     if (isChannelDef(item)) {
-      compileChannel(item, outputs);
+      compileChannel(item, outputs, nested, "");
       continue;
     }
     if (isContainerDef(item)) {
-      compileContainer(item, outputs);
+      compileContainer(item, outputs, nested, "");
       continue;
     }
     if (isDataProductDef(item)) {

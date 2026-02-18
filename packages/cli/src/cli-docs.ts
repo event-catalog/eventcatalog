@@ -1694,6 +1694,39 @@ export const cliFunctions: CLIFunctionDoc[] = [
       },
     ],
   },
+
+  // ================================
+  //            Import
+  // ================================
+  {
+    name: 'import',
+    description:
+      'Import EventCatalog DSL (.ec) files into catalog markdown files. Existing resources with the same version are overridden. Importing a newer version automatically moves the old version into the versioned/ folder.',
+    category: 'Import',
+    args: [
+      { name: 'files', type: 'string', required: false, description: 'One or more .ec file paths to import' },
+      { name: 'stdin', type: 'boolean', required: false, description: 'Read DSL from stdin' },
+      { name: 'dry-run', type: 'boolean', required: false, description: 'Preview resources without writing' },
+    ],
+    examples: [
+      {
+        description: 'Import a single .ec file',
+        command: 'npx @eventcatalog/cli import catalog.ec',
+      },
+      {
+        description: 'Import multiple .ec files',
+        command: 'npx @eventcatalog/cli import services.ec events.ec',
+      },
+      {
+        description: 'Import from stdin (pipe from export)',
+        command: 'npx @eventcatalog/cli export --all --stdout | npx @eventcatalog/cli import --stdin -d ./new-catalog',
+      },
+      {
+        description: 'Preview what would be written or merged',
+        command: 'npx @eventcatalog/cli import catalog.ec --dry-run',
+      },
+    ],
+  },
 ];
 
 /**
