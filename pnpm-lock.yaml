@@ -20,12 +20,21 @@ importers:
 
   packages/cli:
     dependencies:
+      '@eventcatalog/language-server':
+        specifier: workspace:*
+        version: link:../language-server
       '@eventcatalog/sdk':
         specifier: workspace:*
         version: link:../sdk
       commander:
         specifier: ^12.0.0
         version: 12.1.0
+      gray-matter:
+        specifier: ^4.0.3
+        version: 4.0.3
+      langium:
+        specifier: ^3.3.1
+        version: 3.5.0
       open:
         specifier: ^11.0.0
         version: 11.0.0

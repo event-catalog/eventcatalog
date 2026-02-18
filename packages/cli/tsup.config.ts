@@ -1,4 +1,5 @@
 import { defineConfig } from 'tsup';
+import { copyFileSync } from 'node:fs';
 
 export default defineConfig({
   target: 'es2020',
@@ -13,4 +14,7 @@ export default defineConfig({
   },
   outDir: 'dist',
   shims: true,
+  async onSuccess() {
+    copyFileSync('src/cli/logo.png', 'dist/cli/logo.png');
+  },
 });
