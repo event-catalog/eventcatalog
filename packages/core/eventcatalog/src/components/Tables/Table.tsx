@@ -16,7 +16,7 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, SearchX } from 
 import { getColumnsByCollection } from './columns';
 import { useEffect, useMemo, useState } from 'react';
 import type { CollectionMessageTypes, TableConfiguration } from '@types';
-import { isSameVersion } from '@utils/collections/util';
+import { isSameVersion } from '@utils/collections/version-compare';
 
 declare module '@tanstack/react-table' {
   // @ts-ignore
