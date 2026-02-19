@@ -8,6 +8,7 @@ import { getUsers } from '@utils/collections/users';
 import { getTeams } from '@utils/collections/teams';
 import { getDiagrams } from '@utils/collections/diagrams';
 import { getDataProducts } from '@utils/collections/data-products';
+import { getResourceDocCategories, getResourceDocs } from '@utils/collections/resource-docs';
 import { buildUrl } from '@utils/url-builder';
 import type { NavigationData, NavNode, ChildRef } from './builders/shared';
 import { buildDomainNode } from './builders/domain';
@@ -19,6 +20,7 @@ import { buildDataProductNode } from './builders/data-product';
 import config from '@config';
 import { getDesigns } from '@utils/collections/designs';
 import { getChannels } from '@utils/collections/channels';
+import { buildQuickReferenceSection, buildResourceDocsSection } from './builders/shared';
 
 export type { NavigationData, NavNode, ChildRef };
 
@@ -45,6 +47,8 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     channels,
     diagrams,
     dataProducts,
+    resourceDocs,
+    resourceDocCategories,
   ] = await Promise.all([
     getDomains({ getAllVersions: false, includeServicesInSubdomains: false }),
     getServices({ getAllVersions: false }),
@@ -57,6 +61,8 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     getChannels({ getAllVersions: false }),
     getDiagrams({ getAllVersions: false }),
     getDataProducts({ getAllVersions: false }),
+    getResourceDocs(),
+    getResourceDocCategories(),
   ]);
 
   // Calculate derived lists to avoid extra fetches
@@ -75,6 +81,8 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     containers,
     diagrams,
     dataProducts,
+    resourceDocs,
+    resourceDocCategories,
   };
 
   // Process all domains with their owners first (async)
@@ -122,7 +130,7 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
 
   const flowNodes = flows.reduce(
     (acc, flow) => {
-      acc[`flow:${flow.data.id}:${flow.data.version}`] = buildFlowNode(flow);
+      acc[`flow:${flow.data.id}:${flow.data.version}`] = buildFlowNode(flow, context);
       return acc;
     },
     {} as Record<string, NavNode>
@@ -196,6 +204,8 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
     services,
     containers,
     channels,
+    resourceDocs,
+    resourceDocCategories,
   };
 
   const dataProductNodes = dataProductWithOwners.reduce(
@@ -238,12 +248,27 @@ export const getNestedSideBarData = async (): Promise<NavigationData> => {
   const channelNodes = channels.reduce(
     (acc, channel) => {
       const versionedKey = `channel:${channel.data.id}:${channel.data.version}`;
+      const docsSection = buildResourceDocsSection(
+        'channels',
+        channel.data.id,
+        channel.data.version,
+        resourceDocs,
+        resourceDocCategories
+      );
       acc[versionedKey] = {
         type: 'item',
         title: channel.data.name,
         badge: 'Channel',
         summary: channel.data.summary,
-        href: buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.version}`),
+        pages: [
+          buildQuickReferenceSection([
+            {
+              title: 'Overview',
+              href: buildUrl(`/docs/${channel.collection}/${channel.data.id}/${channel.data.version}`),
+            },
+          ]),
+          docsSection,
+        ].filter(Boolean) as ChildRef[],
       };
 
       if (channel.data.latestVersion === channel.data.version) {

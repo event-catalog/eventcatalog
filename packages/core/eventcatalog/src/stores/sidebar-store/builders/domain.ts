@@ -9,6 +9,7 @@ import {
   buildRepositorySection,
   buildAttachmentsSection,
   buildDiagramNavItems,
+  buildResourceDocsSection,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
@@ -41,6 +42,13 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
   const hasAttachments = domain.data.attachments && domain.data.attachments.length > 0;
 
   const renderRepository = domain.data.repository && shouldRenderSideBarSection(domain, 'repository');
+  const docsSection = buildResourceDocsSection(
+    'domains',
+    domain.data.id,
+    domain.data.version,
+    context.resourceDocs,
+    context.resourceDocCategories
+  );
 
   // Domain-level messages (sends/receives)
   const sendsMessages = domain.data.sends || [];
@@ -70,6 +78,7 @@ export const buildDomainNode = (domain: CollectionEntry<'domains'>, owners: any[
         { title: 'Overview', href: buildUrl(`/docs/domains/${domain.data.id}/${domain.data.version}`) },
         renderUbiquitousLanguage && { title: 'Ubiquitous Language', href: buildUrl(`/docs/domains/${domain.data.id}/language`) },
       ]),
+      docsSection,
       {
         type: 'group',
         title: 'Architecture',

@@ -8,6 +8,7 @@ import {
   buildRepositorySection,
   buildAttachmentsSection,
   buildDiagramNavItems,
+  buildResourceDocsSection,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
@@ -42,6 +43,13 @@ export const buildContainerNode = (
   const hasAttachments = container.data.attachments && container.data.attachments.length > 0;
 
   const renderRepository = container.data.repository && shouldRenderSideBarSection(container, 'repository');
+  const docsSection = buildResourceDocsSection(
+    'containers',
+    container.data.id,
+    container.data.version,
+    context.resourceDocs,
+    context.resourceDocCategories
+  );
 
   // Diagrams
   const containerDiagrams = container.data.diagrams || [];
@@ -60,6 +68,7 @@ export const buildContainerNode = (
           href: buildUrl(`/docs/containers/${container.data.id}/${container.data.version}`),
         },
       ]),
+      docsSection,
       renderVisualiser && {
         type: 'group',
         title: 'Architecture',

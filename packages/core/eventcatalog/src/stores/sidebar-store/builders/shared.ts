@@ -2,6 +2,12 @@ import type { ResourceGroup } from '@eventcatalog/sdk';
 import type { CollectionEntry } from 'astro:content';
 import { getLatestVersionInCollectionById } from '@utils/collections/util';
 import { buildUrl } from '@utils/url-builder';
+import {
+  getGroupedResourceDocsByType,
+  type ResourceCollection,
+  type ResourceDocEntry,
+  type ResourceDocCategoryEntry,
+} from '@utils/collections/resource-docs';
 
 /**
  * A child reference can be:
@@ -17,6 +23,7 @@ export type NavNode = {
   type: 'group' | 'item';
   title: string;
   icon?: string; // Lucide icon name
+  subtle?: boolean; // Render lightweight styling for nested subgroup headers
   leftIcon?: string; // Path to SVG icon shown on the left of the label
   href?: string; // URL (for leaf items)
   external?: boolean; // If true, the item will open in a new tab
@@ -55,6 +62,8 @@ export type ResourceGroupContext = {
   flows: CollectionEntry<'flows'>[];
   containers: CollectionEntry<'containers'>[];
   diagrams: CollectionEntry<'diagrams'>[];
+  resourceDocs: ResourceDocEntry[];
+  resourceDocCategories: ResourceDocCategoryEntry[];
 };
 
 export const buildQuickReferenceSection = (items: { title: string; href: string }[]): NavNode => ({
@@ -112,6 +121,79 @@ export const buildAttachmentsSection = (attachments: any[]): NavNode | null => {
     })),
   };
 };
+
+export const buildResourceDocsSection = (
+  collection: ResourceCollection,
+  id: string,
+  version: string,
+  resourceDocs: ResourceDocEntry[],
+  resourceDocCategories: ResourceDocCategoryEntry[]
+): NavNode | null => {
+  const docsForResource = resourceDocs.filter(
+    (doc) => doc.data.resourceCollection === collection && doc.data.resourceId === id && doc.data.resourceVersion === version
+  );
+
+  if (docsForResource.length === 0) {
+    return null;
+  }
+
+  const categoriesForResource = resourceDocCategories.filter(
+    (category) =>
+      category.data.resourceCollection === collection &&
+      category.data.resourceId === id &&
+      category.data.resourceVersion === version
+  );
+
+  const groupedDocs = getGroupedResourceDocsByType(docsForResource, {
+    latestOnly: true,
+    categories: categoriesForResource,
+  });
+
+  if (groupedDocs.length === 0) {
+    return null;
+  }
+
+  const typeLabelMap: Record<string, string> = {
+    adrs: 'ADR',
+    runbooks: 'Runbook',
+    contracts: 'Contract',
+    troubleshooting: 'Troubleshooting',
+    guides: 'Guide',
+  };
+
+  const toTypeLabel = (value: string) => {
+    if (typeLabelMap[value]) {
+      return typeLabelMap[value];
+    }
+
+    const normalized = value
+      .split(/[-_\s]+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+
+    return normalized || 'Doc';
+  };
+
+  return {
+    type: 'group',
+    title: 'Documentation',
+    icon: 'BookText',
+    pages: groupedDocs.map((group) => ({
+      type: 'group',
+      title: group.label || toTypeLabel(group.type),
+      subtle: true,
+      pages: group.docs.map((doc) => ({
+        type: 'item',
+        title: doc.data.title || doc.data.id,
+        href: buildUrl(
+          `/docs/${collection}/${id}/${version}/${encodeURIComponent(doc.data.type)}/${encodeURIComponent(doc.data.id)}`
+        ),
+      })),
+    })),
+  };
+};
+
 export const buildResourceGroupSections = (resourceGroups: ResourceGroup[], context: ResourceGroupContext) => {
   return resourceGroups.map((resourceGroup) => buildResourceGroupSection(resourceGroup, context));
 };

@@ -511,6 +511,37 @@ const customPages = defineCollection({
   schema: customPagesSchema,
 });
 
+const resourceDocs = defineCollection({
+  loader: glob({
+    // Resource-level docs: requires at least one path segment before docs/ to avoid
+    // matching the top-level docs/ directory used by customPages
+    pattern: ['**/?*/docs/**/*.@(md|mdx)'],
+    base: projectDirBase,
+  }),
+  schema: z.object({
+    id: z.string().optional(),
+    type: z.string().optional(),
+    version: z.string().optional(),
+    order: z.number().optional(),
+    badges: z.array(badge).optional(),
+    title: z.string().optional(),
+    summary: z.string().optional(),
+    slug: z.string().optional(),
+    hidden: z.boolean().optional(),
+  }),
+});
+
+const resourceDocCategories = defineCollection({
+  loader: glob({
+    pattern: ['**/docs/**/category.json', '**/docs/**/_category_.json'],
+    base: projectDirBase,
+  }),
+  schema: z.object({
+    label: z.string().optional(),
+    position: z.number().optional(),
+  }),
+});
+
 const domains = defineCollection({
   loader: glob({
     pattern: [
@@ -778,6 +809,8 @@ export const collections = {
 
   // EventCatalog Pro Collections
   customPages,
+  resourceDocs,
+  resourceDocCategories,
 
   // EventCatalog Studio Collections
   designs,

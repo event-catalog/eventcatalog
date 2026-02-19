@@ -1,0 +1,195 @@
+---
+import { render } from 'astro:content';
+
+import VerticalSideBarLayout from '@layouts/VerticalSideBarLayout.astro';
+import components from '@components/MDX/components';
+import { buildUrl } from '@utils/url-builder';
+import { AlignLeftIcon, HistoryIcon } from 'lucide-react';
+import { isResourceDocsEnabled } from '@utils/feature';
+import { getIcon } from '@utils/badges';
+import { collectionToResourceMap } from '@utils/collections/util';
+
+import { Page } from './_index.data';
+
+export const prerender = Page.prerender;
+export const getStaticPaths = Page.getStaticPaths;
+
+if (!isResourceDocsEnabled()) {
+  return Astro.redirect(buildUrl('/docs/custom/feature'));
+}
+
+const props = await Page.getData(Astro);
+const { Content, headings } = await render(props);
+
+const title = props.data.title || props.data.id;
+const pageTitle = `${title} | ${props.data.resourceId}`;
+const versions = props.data.versions || [props.data.version];
+const badges = (props.data.badges || []).map((badge: any) => ({
+  ...badge,
+  iconComponent: badge.icon ? getIcon(badge.icon) : null,
+}));
+
+const docsBasePath = `/docs/${props.data.resourceCollection}/${props.data.resourceId}/${props.data.resourceVersion}/${encodeURIComponent(props.data.type)}/${encodeURIComponent(props.data.id)}`;
+const singularResourceName =
+  collectionToResourceMap[props.data.resourceCollection as keyof typeof collectionToResourceMap] ??
+  props.data.resourceCollection.slice(0, props.data.resourceCollection.length - 1);
+
+const pagefindAttributes =
+  props.data.version === props.data.latestVersion
+    ? {
+        'data-pagefind-body': '',
+        'data-pagefind-meta': `title:${pageTitle}`,
+      }
+    : {};
+---
+
+<VerticalSideBarLayout title={pageTitle} description={props.data.summary}>
+  <main class="flex docs-layout h-full bg-[rgb(var(--ec-page-bg))]" {...pagefindAttributes}>
+    <div class="flex docs-layout w-full pl-16">
+      <div class="w-full lg:mr-2 pr-8 overflow-y-auto py-8 bg-[rgb(var(--ec-page-bg))]">
+        <div class="border-b border-[rgb(var(--ec-page-border))] pb-4">
+          <p class="text-xs uppercase tracking-wide text-[rgb(var(--ec-page-text-muted))]">
+            <a
+              href={buildUrl(`/docs/${props.data.resourceCollection}/${props.data.resourceId}/${props.data.resourceVersion}`)}
+              class="hover:underline"
+            >
+              {singularResourceName}: {props.data.resourceId}
+            </a>
+          </p>
+          <div class="flex items-center gap-2 pt-1">
+            <h2 id="doc-page-header" class="text-2xl md:text-4xl font-bold text-[rgb(var(--ec-page-text))]">{title}</h2>
+            <span
+              class="text-xs rounded-md px-2 py-1 bg-[rgb(var(--ec-content-hover))] text-[rgb(var(--ec-page-text-muted))] border border-[rgb(var(--ec-page-border))]"
+            >
+              v{props.data.version}
+              {props.data.version === props.data.latestVersion && ' (latest)'}
+            </span>
+          </div>
+          {
+            props.data.summary && (
+              <p class="text-lg pt-2 text-[rgb(var(--ec-page-text-muted))] font-light">{props.data.summary}</p>
+            )
+          }
+          {
+            badges.length > 0 && (
+              <div class="flex flex-wrap gap-3 pt-4">
+                {badges.map((badge: any) => (
+                  <span
+                    class={`
+                      inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium
+                      bg-[rgb(var(--ec-content-hover))] border border-[rgb(var(--ec-page-border))]
+                      text-[rgb(var(--ec-page-text))]
+                    `}
+                  >
+                    {badge.iconComponent && (
+                      <badge.iconComponent className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" />
+                    )}
+                    <span>{badge.content}</span>
+                  </span>
+                ))}
+              </div>
+            )
+          }
+        </div>
+        <div data-pagefind-ignore>
+          {
+            props.data.version !== props.data.latestVersion && (
+              <div class="rounded-md bg-[rgb(var(--ec-accent-subtle))] p-4 not-prose my-4">
+                <div class="flex">
+                  <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-[rgb(var(--ec-accent))]" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path
+                        fill-rule="evenodd"
+                        d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div class="ml-3">
+                    <h3 class="text-sm font-medium text-[rgb(var(--ec-accent-text))]">New version found</h3>
+                    <div class="mt-2 text-sm text-[rgb(var(--ec-accent-text))]">
+                      <p>
+                        You are looking at a previous version of the {singularResourceName} doc <strong>{title}</strong>.{' '}
+                        <a
+                          class="underline hover:text-primary block pt-2"
+                          href={buildUrl(`${docsBasePath}/${props.data.latestVersion}`)}
+                        >
+                          The latest version of this doc is <span>v{props.data.latestVersion}</span> &rarr;
+                        </a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          }
+        </div>
+        <div class="prose py-8 max-w-none">
+          <Content components={components(props)} />
+        </div>
+      </div>
+      <aside class="hidden lg:block sticky top-0 pb-10 w-80 overflow-y-auto border-l border-[rgb(var(--ec-page-border))] py-2">
+        <div class="sticky top-28 left-0 h-full overflow-y-auto px-6 py-4">
+          <h3 class="text-sm text-[rgb(var(--ec-page-text))] font-semibold capitalize flex items-center gap-2">
+            <AlignLeftIcon className="w-4 h-4" />
+            On this page
+          </h3>
+          <nav class="space-y-1 text-sm py-4">
+            {
+              headings.map((heading) => {
+                if (heading.depth > 3) {
+                  return null;
+                }
+                return (
+                  <a
+                    href={`#${heading.slug}`}
+                    class={`block text-[12px] py-0.5 ${heading.depth === 1 ? 'font-light' : ''} text-[rgb(var(--ec-page-text-muted))] hover:text-[rgb(var(--ec-page-text))]`}
+                    style={`padding-left: ${(heading.depth - 1) * 8}px`}
+                  >
+                    {heading.text}
+                  </a>
+                );
+              })
+            }
+          </nav>
+          <div class="space-y-2 pb-4">
+            <span class="text-xs text-[rgb(var(--ec-page-text))] font-semibold capitalize">Versions ({versions.length})</span>
+            <ul role="list" class="space-y-2">
+              {
+                versions.map((version: string) => (
+                  <li class="version-item rounded-md px-1 group w-full">
+                    <a class="flex items-center space-x-2" href={buildUrl(`${docsBasePath}/${encodeURIComponent(version)}`)}>
+                      <HistoryIcon
+                        className="h-4 w-4 text-[rgb(var(--ec-page-text-muted))] group-hover:text-[rgb(var(--ec-accent-text))]"
+                        strokeWidth={1}
+                      />
+                      <span
+                        class={`font-light text-xs text-[rgb(var(--ec-page-text))] group-hover:text-[rgb(var(--ec-accent-text))] ${
+                          version === props.data.version ? 'underline' : ''
+                        }`}
+                      >
+                        {version === props.data.latestVersion ? `v${version} (latest)` : `v${version}`}
+                      </span>
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+            <div class="border-b border-[rgb(var(--ec-page-border))] pt-2"></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</VerticalSideBarLayout>
+
+<style is:global>
+  .docs-layout .prose {
+    max-width: none;
+    overflow: auto;
+  }
+
+  .version-item:hover {
+    background: linear-gradient(to left, rgb(var(--ec-accent-gradient-from)), rgb(var(--ec-accent-gradient-to)));
+  }
+</style>

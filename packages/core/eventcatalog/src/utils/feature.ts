@@ -39,6 +39,7 @@ export const showCustomBranding = () => {
 export const isChangelogEnabled = () => config?.changelog?.enabled ?? false;
 
 export const isCustomDocsEnabled = () => isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();
+export const isResourceDocsEnabled = () => isEventCatalogScaleEnabled();
 
 export const isEventCatalogChatEnabled = () => {
   const isFeatureEnabledFromPlan = isEventCatalogStarterEnabled() || isEventCatalogScaleEnabled();

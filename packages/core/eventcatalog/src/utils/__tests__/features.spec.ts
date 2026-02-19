@@ -3,6 +3,7 @@ import {
   isEventCatalogStarterEnabled,
   isEventCatalogScaleEnabled,
   isCustomDocsEnabled,
+  isResourceDocsEnabled,
   isEventCatalogChatEnabled,
   isEventCatalogUpgradeEnabled,
   isCustomLandingPageEnabled,
@@ -113,6 +114,24 @@ describe('features', () => {
       delete process.env.EVENTCATALOG_STARTER;
       delete process.env.EVENTCATALOG_SCALE;
       expect(isCustomDocsEnabled()).toBe(false);
+    });
+  });
+
+  describe('isResourceDocsEnabled', () => {
+    it('should return false when EVENTCATALOG_STARTER is true', () => {
+      process.env.EVENTCATALOG_STARTER = 'true';
+      expect(isResourceDocsEnabled()).toBe(false);
+    });
+
+    it('should return true when EVENTCATALOG_SCALE is true', () => {
+      process.env.EVENTCATALOG_SCALE = 'true';
+      expect(isResourceDocsEnabled()).toBe(true);
+    });
+
+    it('should return false when neither feature is enabled', () => {
+      delete process.env.EVENTCATALOG_STARTER;
+      delete process.env.EVENTCATALOG_SCALE;
+      expect(isResourceDocsEnabled()).toBe(false);
     });
   });
 

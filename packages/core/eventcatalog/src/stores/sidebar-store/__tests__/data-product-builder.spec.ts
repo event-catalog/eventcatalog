@@ -86,6 +86,8 @@ const emptyContext = {
   services: [] as CollectionEntry<'services'>[],
   containers: [] as CollectionEntry<'containers'>[],
   channels: [] as CollectionEntry<'channels'>[],
+  resourceDocs: [],
+  resourceDocCategories: [],
 };
 
 describe('buildDataProductNode', () => {

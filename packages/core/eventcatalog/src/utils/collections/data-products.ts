@@ -8,6 +8,8 @@ interface Props {
   getAllVersions?: boolean;
 }
 
+const CACHE_ENABLED = process.env.DISABLE_EVENTCATALOG_CACHE !== 'true';
+
 // cache for build time
 let memoryCache: Record<string, DataProduct[]> = {};
 
@@ -15,7 +17,7 @@ export const getDataProducts = async ({ getAllVersions = true }: Props = {}): Pr
   // console.time('✅ New getEntities');
   const cacheKey = getAllVersions ? 'allVersions' : 'currentVersions';
 
-  if (memoryCache[cacheKey] && memoryCache[cacheKey].length > 0) {
+  if (CACHE_ENABLED && memoryCache[cacheKey] && memoryCache[cacheKey].length > 0) {
     // console.timeEnd('✅ New getEntities');
     return memoryCache[cacheKey];
   }
@@ -60,7 +62,9 @@ export const getDataProducts = async ({ getAllVersions = true }: Props = {}): Pr
     return (a.data.name || a.data.id).localeCompare(b.data.name || b.data.id);
   });
 
-  memoryCache[cacheKey] = processedDataProducts;
+  if (CACHE_ENABLED) {
+    memoryCache[cacheKey] = processedDataProducts;
+  }
   // console.timeEnd('✅ New getDataProducts');
 
   return processedDataProducts as DataProduct[];
