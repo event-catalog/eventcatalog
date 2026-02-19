@@ -29,9 +29,14 @@ export const projectDirBase = (() => {
   return projectDir;
 })();
 
+const withIgnoredBuildArtifacts = (patterns: string | string[]) => {
+  const patternList = Array.isArray(patterns) ? patterns : [patterns];
+  return [...patternList, '!dist/**'];
+};
+
 const pages = defineCollection({
   loader: glob({
-    pattern: ['**/pages/*.(md|mdx)'],
+    pattern: withIgnoredBuildArtifacts(['**/pages/*.(md|mdx)']),
     base: projectDirBase,
   }),
   schema: z
@@ -90,7 +95,7 @@ const resourcePointer = z.object({
 
 const changelogs = defineCollection({
   loader: glob({
-    pattern: ['**/changelog.(md|mdx)'],
+    pattern: withIgnoredBuildArtifacts(['**/changelog.(md|mdx)']),
     base: projectDirBase,
   }),
   schema: z.object({
@@ -229,7 +234,7 @@ const flowStep = z
 
 const flows = defineCollection({
   loader: glob({
-    pattern: ['**/flows/*/index.(md|mdx)', '**/flows/*/versioned/*/index.(md|mdx)'],
+    pattern: withIgnoredBuildArtifacts(['**/flows/*/index.(md|mdx)', '**/flows/*/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
@@ -317,7 +322,7 @@ const messageDetailsPanelPropertySchema = z.object({
 
 const events = defineCollection({
   loader: glob({
-    pattern: ['**/events/*/index.(md|mdx)', '**/events/*/versioned/*/index.(md|mdx)'],
+    pattern: withIgnoredBuildArtifacts(['**/events/*/index.(md|mdx)', '**/events/*/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data, ...rest }) => {
       return `${data.id}-${data.version}`;
@@ -337,7 +342,7 @@ const events = defineCollection({
 
 const commands = defineCollection({
   loader: glob({
-    pattern: ['**/commands/*/index.(md|mdx)', '**/commands/*/versioned/*/index.(md|mdx)'],
+    pattern: withIgnoredBuildArtifacts(['**/commands/*/index.(md|mdx)', '**/commands/*/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
@@ -357,7 +362,7 @@ const commands = defineCollection({
 
 const queries = defineCollection({
   loader: glob({
-    pattern: ['**/queries/*/index.(md|mdx)', '**/queries/*/versioned/*/index.(md|mdx)'],
+    pattern: withIgnoredBuildArtifacts(['**/queries/*/index.(md|mdx)', '**/queries/*/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
@@ -389,7 +394,7 @@ const dataProductOutputPointer = z.object({
 
 const dataProducts = defineCollection({
   loader: glob({
-    pattern: ['**/data-products/*/index.(md|mdx)', '**/data-products/*/versioned/*/index.(md|mdx)'],
+    pattern: withIgnoredBuildArtifacts(['**/data-products/*/index.(md|mdx)', '**/data-products/*/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
@@ -405,7 +410,7 @@ const dataProducts = defineCollection({
 
 const services = defineCollection({
   loader: glob({
-    pattern: [
+    pattern: withIgnoredBuildArtifacts([
       'domains/*/services/*/index.(md|mdx)',
       'domains/*/services/*/versioned/*/index.(md|mdx)',
 
@@ -416,7 +421,7 @@ const services = defineCollection({
       // Capture services in the root
       'services/*/index.(md|mdx)', // ✅ Capture only services markdown files
       'services/*/versioned/*/index.(md|mdx)', // ✅ Capture versioned files inside services
-    ],
+    ]),
     base: projectDirBase,
     generateId: ({ data, ...rest }) => {
       return `${data.id}-${data.version}`;
@@ -466,7 +471,7 @@ const dataClassificationEnum = z.enum(['public', 'internal', 'confidential', 're
 
 const containers = defineCollection({
   loader: glob({
-    pattern: ['**/containers/**/index.(md|mdx)', '**/containers/**/versioned/*/index.(md|mdx)'],
+    pattern: withIgnoredBuildArtifacts(['**/containers/**/index.(md|mdx)', '**/containers/**/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
@@ -505,7 +510,7 @@ const containers = defineCollection({
 const customPages = defineCollection({
   loader: glob({
     // any number of child folders
-    pattern: ['docs/*.(md|mdx)', 'docs/**/*.@(md|mdx)'],
+    pattern: withIgnoredBuildArtifacts(['docs/*.(md|mdx)', 'docs/**/*.@(md|mdx)']),
     base: projectDirBase,
   }),
   schema: customPagesSchema,
@@ -515,14 +520,14 @@ const resourceDocs = defineCollection({
   loader: glob({
     // Resource-level docs are restricted to known resource paths.
     // This avoids scanning external docs such as node_modules/**/docs.
-    pattern: [
+    pattern: withIgnoredBuildArtifacts([
       '{events,commands,queries,services,flows,containers,channels,entities,data-products}/*/docs/**/*.@(md|mdx)',
       '{events,commands,queries,services,flows,containers,channels,entities,data-products}/*/versioned/*/docs/**/*.@(md|mdx)',
       'domains/*/docs/**/*.@(md|mdx)',
       'domains/*/versioned/*/docs/**/*.@(md|mdx)',
       'domains/*/subdomains/*/docs/**/*.@(md|mdx)',
       'domains/*/subdomains/*/versioned/*/docs/**/*.@(md|mdx)',
-    ],
+    ]),
     base: projectDirBase,
   }),
   schema: z.object({
@@ -540,7 +545,7 @@ const resourceDocs = defineCollection({
 
 const resourceDocCategories = defineCollection({
   loader: glob({
-    pattern: [
+    pattern: withIgnoredBuildArtifacts([
       '{events,commands,queries,services,flows,containers,channels,entities,data-products}/*/docs/**/category.json',
       '{events,commands,queries,services,flows,containers,channels,entities,data-products}/*/docs/**/_category_.json',
       '{events,commands,queries,services,flows,containers,channels,entities,data-products}/*/versioned/*/docs/**/category.json',
@@ -553,7 +558,7 @@ const resourceDocCategories = defineCollection({
       'domains/*/subdomains/*/docs/**/_category_.json',
       'domains/*/subdomains/*/versioned/*/docs/**/category.json',
       'domains/*/subdomains/*/versioned/*/docs/**/_category_.json',
-    ],
+    ]),
     base: projectDirBase,
   }),
   schema: z.object({
@@ -564,7 +569,7 @@ const resourceDocCategories = defineCollection({
 
 const domains = defineCollection({
   loader: glob({
-    pattern: [
+    pattern: withIgnoredBuildArtifacts([
       // ✅ Strictly include only index.md at the expected levels
       'domains/*/index.(md|mdx)',
       'domains/*/versioned/*/index.(md|mdx)',
@@ -572,7 +577,7 @@ const domains = defineCollection({
       // Capture subdomain folders
       'domains/*/subdomains/*/index.(md|mdx)',
       'domains/*/subdomains/*/versioned/*/index.(md|mdx)',
-    ],
+    ]),
     base: projectDirBase,
     generateId: ({ data, ...rest }) => {
       return `${data.id}-${data.version}`;
@@ -608,7 +613,7 @@ const domains = defineCollection({
 
 const channels = defineCollection({
   loader: glob({
-    pattern: ['**/channels/**/index.(md|mdx)', '**/channels/**/versioned/*/index.(md|mdx)'],
+    pattern: withIgnoredBuildArtifacts(['**/channels/**/index.(md|mdx)', '**/channels/**/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => {
       return `${data.id}-${data.version}`;
@@ -651,7 +656,10 @@ const channels = defineCollection({
 
 const ubiquitousLanguages = defineCollection({
   loader: glob({
-    pattern: ['domains/*/ubiquitous-language.(md|mdx)', 'domains/*/subdomains/*/ubiquitous-language.(md|mdx)'],
+    pattern: withIgnoredBuildArtifacts([
+      'domains/*/ubiquitous-language.(md|mdx)',
+      'domains/*/subdomains/*/ubiquitous-language.(md|mdx)',
+    ]),
     base: projectDirBase,
     generateId: ({ data }) => {
       // File has no id, so we need to generate one
@@ -675,7 +683,7 @@ const ubiquitousLanguages = defineCollection({
 
 const entities = defineCollection({
   loader: glob({
-    pattern: ['**/entities/*/index.(md|mdx)', '**/entities/*/versioned/*/index.(md|mdx)'],
+    pattern: withIgnoredBuildArtifacts(['**/entities/*/index.(md|mdx)', '**/entities/*/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data, ...rest }) => {
       return `${data.id}-${data.version}`;
@@ -723,7 +731,11 @@ const entities = defineCollection({
 });
 
 const users = defineCollection({
-  loader: glob({ pattern: 'users/*.(md|mdx)', base: projectDirBase, generateId: ({ data }) => data.id as string }),
+  loader: glob({
+    pattern: withIgnoredBuildArtifacts('users/*.(md|mdx)'),
+    base: projectDirBase,
+    generateId: ({ data }) => data.id as string,
+  }),
   schema: z.object({
     id: z.string(),
     name: z.string(),
@@ -743,7 +755,11 @@ const users = defineCollection({
 });
 
 const teams = defineCollection({
-  loader: glob({ pattern: 'teams/*.(md|mdx)', base: projectDirBase, generateId: ({ data }) => data.id as string }),
+  loader: glob({
+    pattern: withIgnoredBuildArtifacts('teams/*.(md|mdx)'),
+    base: projectDirBase,
+    generateId: ({ data }) => data.id as string,
+  }),
   schema: z.object({
     id: z.string(),
     name: z.string(),
@@ -763,7 +779,7 @@ const teams = defineCollection({
 
 const designs = defineCollection({
   loader: async () => {
-    const data = await globPackage('**/**/*.ecstudio', { cwd: projectDirBase });
+    const data = await globPackage('**/**/*.ecstudio', { cwd: projectDirBase, ignore: ['dist/**'] });
     // File all the files in the designs folder
     // Limit 3 designs community edition?
     const files = data.reduce<{ id: string; name: string }[]>((acc, filePath) => {
@@ -792,7 +808,7 @@ const designs = defineCollection({
 
 const diagrams = defineCollection({
   loader: glob({
-    pattern: ['**/diagrams/**/index.(md|mdx)', '**/diagrams/**/versioned/*/index.(md|mdx)'],
+    pattern: withIgnoredBuildArtifacts(['**/diagrams/**/index.(md|mdx)', '**/diagrams/**/versioned/*/index.(md|mdx)']),
     base: projectDirBase,
     generateId: ({ data }) => `${data.id}-${data.version}`,
   }),
