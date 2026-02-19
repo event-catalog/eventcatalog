@@ -8,7 +8,10 @@
     "@eventcatalog/language-server": "0.2.2",
     "@eventcatalog/linter": "1.0.5",
     "@eventcatalog/sdk": "2.14.1",
-    "@eventcatalog/visualiser": "3.14.0"
+    "@eventcatalog/visualiser": "3.14.0",
+    "@eventcatalog/dsl-playground": "0.1.0"
   },
-  "changesets": []
+  "changesets": [
+    "brave-tigers-dance"
+  ]
 }
