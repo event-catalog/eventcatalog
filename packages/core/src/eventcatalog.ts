@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { execSync } from 'node:child_process';
+import { execSync, spawn } from 'node:child_process';
 import { join } from 'node:path';
 import http from 'node:http';
 import fs from 'fs';
@@ -116,6 +116,82 @@ const startDevPrewarm = ({
   };
 
   setTimeout(tick, initialDelayMs);
+};
+
+const createAstroLineFilter = () => {
+  return (line: string) => {
+    return line.includes('[glob-loader]') || /The collection.*does not exist/.test(line);
+  };
+};
+
+const runCommandWithFilteredOutput = async ({
+  command,
+  cwd,
+  env,
+  shouldFilterLine,
+}: {
+  command: string;
+  cwd: string;
+  env: NodeJS.ProcessEnv;
+  shouldFilterLine: (line: string) => boolean;
+}) => {
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn(command, {
+      cwd,
+      env: {
+        ...process.env,
+        ...env,
+      },
+      shell: true,
+      stdio: ['inherit', 'pipe', 'pipe'],
+    });
+
+    let stdoutBuffer = '';
+    let stderrBuffer = '';
+
+    const flush = (buffer: string, writer: NodeJS.WriteStream, isFinal = false) => {
+      const lines = buffer.split('\n');
+      const remaining = isFinal ? '' : (lines.pop() ?? '');
+
+      for (const rawLine of lines) {
+        const line = rawLine.replace(/\r/g, '');
+        if (line.length === 0) {
+          writer.write('\n');
+          continue;
+        }
+        if (!shouldFilterLine(line)) {
+          writer.write(`${rawLine}\n`);
+        }
+      }
+
+      return remaining;
+    };
+
+    child.stdout.on('data', (chunk: Buffer) => {
+      stdoutBuffer += chunk.toString();
+      stdoutBuffer = flush(stdoutBuffer, process.stdout);
+    });
+
+    child.stderr.on('data', (chunk: Buffer) => {
+      stderrBuffer += chunk.toString();
+      stderrBuffer = flush(stderrBuffer, process.stderr);
+    });
+
+    child.on('error', (error) => {
+      reject(error);
+    });
+
+    child.on('close', (code) => {
+      stdoutBuffer = flush(stdoutBuffer, process.stdout, true);
+      stderrBuffer = flush(stderrBuffer, process.stderr, true);
+
+      if (code === 0) {
+        resolve();
+        return;
+      }
+      reject(new Error(`Command failed with exit code ${code}: ${command}`));
+    });
+  });
 };
 
 const copyCore = () => {
@@ -352,20 +428,19 @@ program
 
     checkForUpdate();
 
-    // Ignore any "Empty collection" messages, it's OK to have them
-    const windowsCommand = `npx astro build ${command.args.join(' ').trim()} | findstr /V "The collection"`;
-    // const unixCommand = `bash -c "set -o pipefail; npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v -e "\\[router\\]" -e "The collection.*does not exist"`;
-    const unixCommand = `bash -c "set -o pipefail; npx astro build ${command.args.join(' ').trim()} 2>&1 | grep -v -e \\"\\\\[router\\\\]\\" -e \\"The collection.*does not exist\\""`;
-
-    const buildCommand = process.platform === 'win32' ? windowsCommand : unixCommand;
-
-    execSync(
-      `cross-env PROJECT_DIR='${dir}' CATALOG_DIR='${core}' ENABLE_EMBED=${canEmbedPages} EVENTCATALOG_STARTER=${isEventCatalogStarter} EVENTCATALOG_SCALE=${isEventCatalogScale} ${buildCommand}`,
-      {
-        cwd: core,
-        stdio: 'inherit',
-      }
-    );
+    const args = command.args.join(' ').trim();
+    await runCommandWithFilteredOutput({
+      command: `npx astro build ${args}`,
+      cwd: core,
+      env: {
+        PROJECT_DIR: dir,
+        CATALOG_DIR: core,
+        ENABLE_EMBED: String(canEmbedPages),
+        EVENTCATALOG_STARTER: String(isEventCatalogStarter),
+        EVENTCATALOG_SCALE: String(isEventCatalogScale),
+      },
+      shouldFilterLine: createAstroLineFilter(),
+    });
   });
 
 const previewCatalog = ({
