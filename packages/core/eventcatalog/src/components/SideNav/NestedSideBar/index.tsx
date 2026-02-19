@@ -723,6 +723,7 @@ export default function NestedSideBar() {
   const renderGroup = (group: NavNode, groupKey: string | null, index: number) => {
     // Get optional icon for group
     const GroupIcon = group.icon ? (LucideIcons as unknown as Record<string, LucideIcons.LucideIcon>)[group.icon] : null;
+    const isSubtleGroup = group.subtle === true;
 
     // Get visible children
     const visibleChildren =
@@ -730,43 +731,82 @@ export default function NestedSideBar() {
         const child = resolveRef(childRef);
         return child && isVisible(child);
       }) ?? [];
+    const shouldFlattenSubtleChildren =
+      !isSubtleGroup &&
+      visibleChildren.length > 0 &&
+      visibleChildren.every((childRef) => {
+        const child = resolveRef(childRef);
+        return !!child && isGroup(child) && child.subtle === true;
+      });
 
     const groupId = groupKey || `group-${index}`;
-    const isCollapsed = collapsedSections.has(groupId);
     const canCollapse = visibleChildren.length > 3;
+    const isCollapsed = collapsedSections.has(groupId);
 
     const headerContent = (
       <>
         <div className="flex items-center gap-2">
           {GroupIcon && (
-            <span className="flex items-center justify-center w-5 h-5 rounded bg-[rgb(var(--ec-group-icon-bg))] text-[rgb(var(--ec-group-icon-text))]">
-              <GroupIcon className="w-3 h-3" />
+            <span
+              className={cn(
+                'flex items-center justify-center',
+                isSubtleGroup
+                  ? 'w-4 h-4 text-[rgb(var(--ec-content-text-muted))]'
+                  : 'w-5 h-5 rounded bg-[rgb(var(--ec-group-icon-bg))] text-[rgb(var(--ec-group-icon-text))]'
+              )}
+            >
+              <GroupIcon className={cn(isSubtleGroup ? 'w-3 h-3' : 'w-3 h-3')} />
             </span>
           )}
-          <span className="text-[13px] text-[rgb(var(--ec-content-text))] font-semibold tracking-tight">{group.title}</span>
+          <span
+            className={cn(
+              'tracking-tight',
+              isSubtleGroup
+                ? 'text-[12px] text-[rgb(var(--ec-content-text-muted))] font-medium'
+                : 'text-[13px] text-[rgb(var(--ec-content-text))] font-semibold'
+            )}
+          >
+            {group.title}
+          </span>
         </div>
         {canCollapse && (
           <ChevronDown
-            className={cn('w-4 h-4 text-[rgb(var(--ec-icon-color))] transition-transform', isCollapsed && '-rotate-90')}
+            className={cn(
+              isSubtleGroup ? 'w-3.5 h-3.5' : 'w-4 h-4',
+              'text-[rgb(var(--ec-icon-color))] transition-transform',
+              isCollapsed && '-rotate-90'
+            )}
           />
         )}
       </>
     );
 
     return (
-      <div key={`group-${groupKey || index}`} className="mb-5 last:mb-2">
+      <div key={`group-${groupKey || index}`} className={cn(isSubtleGroup ? 'mb-3 last:mb-1' : 'mb-5 last:mb-2')}>
         {canCollapse ? (
           <button
             onClick={() => toggleSectionCollapse(groupId)}
-            className="flex items-center justify-between w-full px-2 py-1.5 hover:bg-[rgb(var(--ec-content-hover))] rounded-md transition-colors cursor-pointer"
+            className={cn(
+              'flex items-center justify-between w-full rounded-md transition-colors cursor-pointer',
+              isSubtleGroup
+                ? 'px-1.5 py-1 hover:bg-[rgb(var(--ec-content-hover))]/60'
+                : 'px-2 py-1.5 hover:bg-[rgb(var(--ec-content-hover))]'
+            )}
           >
             {headerContent}
           </button>
         ) : (
-          <div className="flex items-center justify-between px-2 py-1.5">{headerContent}</div>
+          <div className={cn('flex items-center justify-between', isSubtleGroup ? 'px-1.5 py-1' : 'px-2 py-1.5')}>
+            {headerContent}
+          </div>
         )}
         {!isCollapsed && (
-          <div className="flex flex-col gap-0.5 border-l ml-4 mt-1 border-[rgb(var(--ec-content-border))]">
+          <div
+            className={cn(
+              'flex flex-col gap-0.5 border-[rgb(var(--ec-content-border))]',
+              isSubtleGroup ? 'border-l ml-3 mt-0.5' : shouldFlattenSubtleChildren ? 'mt-1' : 'border-l ml-4 mt-1'
+            )}
+          >
             {visibleChildren.map((childRef, childIndex) => {
               const child = resolveRef(childRef);
               if (!child) return null;
@@ -780,7 +820,13 @@ export default function NestedSideBar() {
                 return (
                   <div
                     key={`nested-group-${childKey || childIndex}`}
-                    className="ml-3 mt-1.5 pl-3 border-l border-[rgb(var(--ec-content-border))]"
+                    className={cn(
+                      child.subtle
+                        ? shouldFlattenSubtleChildren
+                          ? 'ml-5 mt-0.5'
+                          : 'ml-1.5 mt-1 pl-1.5'
+                        : 'ml-3 mt-1.5 pl-3 border-l border-[rgb(var(--ec-content-border))]'
+                    )}
                   >
                     {renderGroup(child, childKey, childIndex)}
                   </div>

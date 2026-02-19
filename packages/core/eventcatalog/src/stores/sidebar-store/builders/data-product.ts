@@ -1,19 +1,17 @@
 import type { CollectionEntry } from 'astro:content';
 import { buildUrl } from '@utils/url-builder';
-import type { NavNode, ChildRef } from './shared';
-import { buildQuickReferenceSection, buildOwnersSection, shouldRenderSideBarSection } from './shared';
+import type { NavNode, ChildRef, ResourceGroupContext } from './shared';
+import { buildQuickReferenceSection, buildOwnersSection, shouldRenderSideBarSection, buildResourceDocsSection } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 import { getItemsFromCollectionByIdAndSemverOrLatest, sortVersioned } from '@utils/collections/util';
 import { getSchemaFormatFromURL } from '@utils/collections/schemas';
 
-interface DataProductContext {
-  events: CollectionEntry<'events'>[];
-  commands: CollectionEntry<'commands'>[];
-  queries: CollectionEntry<'queries'>[];
-  services: CollectionEntry<'services'>[];
-  containers: CollectionEntry<'containers'>[];
+type DataProductContext = Pick<
+  ResourceGroupContext,
+  'events' | 'commands' | 'queries' | 'services' | 'containers' | 'resourceDocs' | 'resourceDocCategories'
+> & {
   channels: CollectionEntry<'channels'>[];
-}
+};
 
 // Get highest version from matched items (semver ranges may return multiple matches)
 const getHighestVersion = <T extends { data: { version: string } }>(items: T[]): T | undefined => {
@@ -68,6 +66,13 @@ export const buildDataProductNode = (
 
   const renderVisualiser = isVisualiserEnabled();
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(dataProduct, 'owners');
+  const docsSection = buildResourceDocsSection(
+    'data-products',
+    dataProduct.data.id,
+    dataProduct.data.version,
+    context.resourceDocs,
+    context.resourceDocCategories
+  );
 
   // Resolve inputs and outputs to their proper sidebar references
   const resolvedInputs = inputs.map((input) => resolvePointerToRef(input, context)).filter(Boolean) as string[];
@@ -94,6 +99,7 @@ export const buildDataProductNode = (
       buildQuickReferenceSection([
         { title: 'Overview', href: buildUrl(`/docs/data-products/${dataProduct.data.id}/${dataProduct.data.version}`) },
       ]),
+      docsSection,
       renderVisualiser && {
         type: 'group',
         title: 'Architecture',

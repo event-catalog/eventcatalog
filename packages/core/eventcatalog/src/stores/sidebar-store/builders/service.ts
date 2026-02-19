@@ -11,6 +11,7 @@ import {
   buildRepositorySection,
   buildAttachmentsSection,
   buildDiagramNavItems,
+  buildResourceDocsSection,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 import { pluralizeMessageType } from '@utils/collections/messages';
@@ -44,6 +45,13 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
   const renderEntities = serviceEntities.length > 0 && shouldRenderSideBarSection(service, 'entities');
   const renderOwners = owners.length > 0 && shouldRenderSideBarSection(service, 'owners');
   const renderRepository = service.data.repository && shouldRenderSideBarSection(service, 'repository');
+  const docsSection = buildResourceDocsSection(
+    'services',
+    service.data.id,
+    service.data.version,
+    context.resourceDocs,
+    context.resourceDocCategories
+  );
 
   // Diagrams
   const serviceDiagrams = service.data.diagrams || [];
@@ -59,6 +67,7 @@ export const buildServiceNode = (service: CollectionEntry<'services'>, owners: a
       buildQuickReferenceSection([
         { title: 'Overview', href: buildUrl(`/docs/services/${service.data.id}/${service.data.version}`) },
       ]),
+      docsSection,
       {
         type: 'group',
         title: 'Architecture',

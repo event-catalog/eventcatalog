@@ -511,6 +511,57 @@ const customPages = defineCollection({
   schema: customPagesSchema,
 });
 
+const resourceDocs = defineCollection({
+  loader: glob({
+    // Resource-level docs are restricted to known resource paths.
+    // This avoids scanning external docs such as node_modules/**/docs.
+    pattern: [
+      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/*/docs/**/*.@(md|mdx)',
+      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/*/versioned/*/docs/**/*.@(md|mdx)',
+      'domains/*/docs/**/*.@(md|mdx)',
+      'domains/*/versioned/*/docs/**/*.@(md|mdx)',
+      'domains/*/subdomains/*/docs/**/*.@(md|mdx)',
+      'domains/*/subdomains/*/versioned/*/docs/**/*.@(md|mdx)',
+    ],
+    base: projectDirBase,
+  }),
+  schema: z.object({
+    id: z.string().optional(),
+    type: z.string().optional(),
+    version: z.string().optional(),
+    order: z.number().optional(),
+    badges: z.array(badge).optional(),
+    title: z.string().optional(),
+    summary: z.string().optional(),
+    slug: z.string().optional(),
+    hidden: z.boolean().optional(),
+  }),
+});
+
+const resourceDocCategories = defineCollection({
+  loader: glob({
+    pattern: [
+      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/*/docs/**/category.json',
+      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/*/docs/**/_category_.json',
+      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/*/versioned/*/docs/**/category.json',
+      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/*/versioned/*/docs/**/_category_.json',
+      'domains/*/docs/**/category.json',
+      'domains/*/docs/**/_category_.json',
+      'domains/*/versioned/*/docs/**/category.json',
+      'domains/*/versioned/*/docs/**/_category_.json',
+      'domains/*/subdomains/*/docs/**/category.json',
+      'domains/*/subdomains/*/docs/**/_category_.json',
+      'domains/*/subdomains/*/versioned/*/docs/**/category.json',
+      'domains/*/subdomains/*/versioned/*/docs/**/_category_.json',
+    ],
+    base: projectDirBase,
+  }),
+  schema: z.object({
+    label: z.string().optional(),
+    position: z.number().optional(),
+  }),
+});
+
 const domains = defineCollection({
   loader: glob({
     pattern: [
@@ -778,6 +829,8 @@ export const collections = {
 
   // EventCatalog Pro Collections
   customPages,
+  resourceDocs,
+  resourceDocCategories,
 
   // EventCatalog Studio Collections
   designs,

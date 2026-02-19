@@ -9,6 +9,7 @@ import {
   buildRepositorySection,
   buildAttachmentsSection,
   buildDiagramNavItems,
+  buildResourceDocsSection,
 } from './shared';
 import { isVisualiserEnabled } from '@utils/feature';
 
@@ -35,6 +36,13 @@ export const buildMessageNode = (
 
   const hasSchema = message.data.schemaPath !== undefined;
   const renderVisualiser = isVisualiserEnabled();
+  const docsSection = buildResourceDocsSection(
+    collection as 'events' | 'commands' | 'queries',
+    message.data.id,
+    message.data.version,
+    context.resourceDocs,
+    context.resourceDocCategories
+  );
 
   const hasAttachments = message.data.attachments && message.data.attachments.length > 0;
 
@@ -57,6 +65,7 @@ export const buildMessageNode = (
           href: buildUrl(`/docs/${collection}/${message.data.id}/${message.data.version}`),
         },
       ]),
+      docsSection,
       renderVisualiser && {
         type: 'group',
         title: 'Architecture',
