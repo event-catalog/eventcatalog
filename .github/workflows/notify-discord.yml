@@ -29,8 +29,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Fetch the latest release from GitHub API
-          RELEASE_JSON=$(gh api repos/${{ github.repository }}/releases/latest)
+          # Fetch the latest @eventcatalog/core release specifically
+          RELEASE_JSON=$(gh api repos/${{ github.repository }}/releases \
+            --jq '[.[] | select(.tag_name | startswith("@eventcatalog/core@"))] | first')
 
           # Extract fields
           echo "tag=$(echo "$RELEASE_JSON" | jq -r '.tag_name')" >> $GITHUB_OUTPUT
