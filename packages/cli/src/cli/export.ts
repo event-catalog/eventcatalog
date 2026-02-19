@@ -5,6 +5,7 @@ import createSDK from '@eventcatalog/sdk';
 
 const RESOURCE_TYPES = ['event', 'command', 'query', 'service', 'domain'] as const;
 type ResourceType = (typeof RESOURCE_TYPES)[number];
+const SUPPORTED_RESOURCE_TYPES = RESOURCE_TYPES.join(', ');
 
 const PLURAL_MAP: Record<string, ResourceType> = {
   events: 'event',
@@ -13,6 +14,25 @@ const PLURAL_MAP: Record<string, ResourceType> = {
   services: 'service',
   domains: 'domain',
 };
+
+const KNOWN_UNSUPPORTED_EXPORT_TYPES = new Set([
+  'channel',
+  'channels',
+  'team',
+  'teams',
+  'user',
+  'users',
+  'container',
+  'containers',
+  'data-product',
+  'data-products',
+  'dataproduct',
+  'dataproducts',
+  'diagram',
+  'diagrams',
+  'flow',
+  'flows',
+]);
 
 interface ExportOptions {
   resource: string;
@@ -29,6 +49,20 @@ function normalizeResourceType(resource: string): ResourceType {
   const lower = resource.toLowerCase();
   if (PLURAL_MAP[lower]) return PLURAL_MAP[lower];
   return lower as ResourceType;
+}
+
+function assertSupportedExportType(resource: string, type: ResourceType): void {
+  const lower = resource.toLowerCase();
+
+  if (KNOWN_UNSUPPORTED_EXPORT_TYPES.has(lower)) {
+    throw new Error(
+      `Resource type '${resource}' is not yet supported for DSL export. Supported types: ${SUPPORTED_RESOURCE_TYPES}`
+    );
+  }
+
+  if (!RESOURCE_TYPES.includes(type)) {
+    throw new Error(`Invalid resource type '${resource}'. Must be one of: ${SUPPORTED_RESOURCE_TYPES}`);
+  }
 }
 
 function getResourceFetcher(sdk: ReturnType<typeof createSDK>, type: ResourceType) {
@@ -132,15 +166,18 @@ export async function exportCatalog(options: Omit<ExportOptions, 'resource'>): P
   const { hydrate = false, stdout = false, playground = false, output, dir } = options;
 
   const sdk = createSDK(dir);
-  const dslParts: string[] = [];
-
-  for (const type of RESOURCE_TYPES) {
-    const fetcher = getCollectionFetcher(sdk, type);
-    const resources = await fetcher({ latestOnly: true });
-    if (!resources || resources.length === 0) continue;
-    const rawDsl = await sdk.toDSL(resources, { type, hydrate });
-    dslParts.push(rawDsl);
-  }
+  // Independent collection fetches/conversions can run in parallel.
+  // Promise.all preserves RESOURCE_TYPES order in the resulting array.
+  const dslParts = (
+    await Promise.all(
+      RESOURCE_TYPES.map(async (type) => {
+        const fetcher = getCollectionFetcher(sdk, type);
+        const resources = await fetcher({ latestOnly: true });
+        if (!resources || resources.length === 0) return '';
+        return sdk.toDSL(resources, { type, hydrate });
+      })
+    )
+  ).filter((dsl): dsl is string => Boolean(dsl));
 
   if (dslParts.length === 0) {
     throw new Error(`No resources found in catalog at '${dir}'`);
@@ -165,9 +202,9 @@ export async function exportCatalog(options: Omit<ExportOptions, 'resource'>): P
     const encoded = Buffer.from(dsl).toString('base64');
     const playgroundUrl = `https://playground.eventcatalog.dev/?code=${encoded}`;
     await open(playgroundUrl);
-    lines.push('', `  Opening in playground...`);
+    lines.push('', `  Opening in EventCatalog Modelling...`);
   } else {
-    lines.push('', `  Tip: Use --playground to open in the playground`);
+    lines.push('', `  Tip: Use --playground to open in EventCatalog Modelling`);
   }
 
   lines.push('');
@@ -178,9 +215,7 @@ export async function exportAll(options: ExportOptions): Promise<string> {
   const { resource, hydrate = false, stdout = false, playground = false, output, dir } = options;
 
   const type = normalizeResourceType(resource);
-  if (!RESOURCE_TYPES.includes(type)) {
-    throw new Error(`Invalid resource type '${resource}'. Must be one of: ${RESOURCE_TYPES.join(', ')}`);
-  }
+  assertSupportedExportType(resource, type);
 
   const plural = pluralize(type);
   const sdk = createSDK(dir);
@@ -211,9 +246,9 @@ export async function exportAll(options: ExportOptions): Promise<string> {
     const encoded = Buffer.from(dsl).toString('base64');
     const playgroundUrl = `https://playground.eventcatalog.dev/?code=${encoded}`;
     await open(playgroundUrl);
-    lines.push('', `  Opening in playground...`);
+    lines.push('', `  Opening in EventCatalog Modelling...`);
   } else {
-    lines.push('', `  Tip: Use --playground to open in the playground`);
+    lines.push('', `  Tip: Use --playground to open in EventCatalog Modelling`);
   }
 
   lines.push('');
@@ -228,9 +263,7 @@ export async function exportResource(options: ExportOptions): Promise<string> {
   }
 
   const type = normalizeResourceType(resource);
-  if (!RESOURCE_TYPES.includes(type)) {
-    throw new Error(`Invalid resource type '${resource}'. Must be one of: ${RESOURCE_TYPES.join(', ')}`);
-  }
+  assertSupportedExportType(resource, type);
 
   const sdk = createSDK(dir);
 
@@ -261,9 +294,9 @@ export async function exportResource(options: ExportOptions): Promise<string> {
     const encoded = Buffer.from(dsl).toString('base64');
     const playgroundUrl = `https://playground.eventcatalog.dev/?code=${encoded}`;
     await open(playgroundUrl);
-    lines.push('', `  Opening in playground...`);
+    lines.push('', `  Opening in EventCatalog Modelling...`);
   } else {
-    lines.push('', `  Tip: Use --playground to open in the playground`);
+    lines.push('', `  Tip: Use --playground to open in EventCatalog Modelling`);
   }
 
   lines.push('');

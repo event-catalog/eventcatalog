@@ -1,0 +1,305 @@
+---
+title: "Flow: E-Commerce Checkout"
+description: "Complex flow with validation, fraud detection, parallel processing, and multiple failure paths"
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+This example mirrors the `Flow: E-Commerce Checkout` template in the EventCatalog Modelling.
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/#example=16"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+### `main.ec`
+
+```ec title="main.ec"
+import {
+  CartService, ValidationService, FraudDetectionService, PaymentService,
+  InventoryService, ShippingService, TaxService, EmailService,
+  WarehouseService, AccountingService, AnalyticsService
+} from "./services.ec"
+import {
+  InitiateCheckout, CheckoutValidated, ValidationFailed,
+  FraudCheckPassed, FraudDetected, PaymentAuthorized, PaymentFailed,
+  InventoryReserved, InventoryUnavailable, ShippingCalculated,
+  TaxCalculated, OrderConfirmed, OrderCancelled, ShipmentCreated,
+  InvoiceGenerated, ConfirmationEmailSent
+} from "./messages.ec"
+
+actor Customer {
+  name "Customer"
+  summary "End user completing purchase"
+}
+
+external-system PaymentGateway {
+  name "Stripe Payment Gateway"
+  summary "Third-party payment processor"
+}
+
+external-system TaxAPI {
+  name "Avalara Tax API"
+  summary "Tax calculation service"
+}
+
+external-system ShippingCarrier {
+  name "FedEx API"
+  summary "Shipping carrier integration"
+}
+
+flow ECommerceCheckout {
+  version 1.0.0
+  name "E-Commerce Checkout Flow"
+  summary "Complete checkout process with validation, fraud detection, and parallel fulfillment"
+
+  // Entry: customer initiates checkout
+  Customer "initiates checkout"
+    -> InitiateCheckout
+    -> CartService "validates cart"
+    -> CheckoutValidated
+
+  // Parallel validation and fraud check
+  when CheckoutValidated
+    ValidationService "validates customer data"
+      -> "valid": FraudCheckPassed
+      -> "invalid": ValidationFailed
+    FraudDetectionService "runs fraud analysis"
+      -> "pass": FraudCheckPassed
+      -> "fail": FraudDetected
+
+  // Failure path: validation or fraud failed
+  when ValidationFailed
+    EmailService "notifies customer of validation errors"
+
+  when FraudDetected
+    EmailService "notifies fraud team"
+    AnalyticsService "logs fraud attempt"
+
+  // Success path: both checks passed - start payment
+  when FraudCheckPassed
+    PaymentGateway "authorizes payment"
+      -> "authorized": PaymentAuthorized
+      -> "declined": PaymentFailed
+
+  when PaymentFailed
+    CartService "restores cart"
+    EmailService "notifies customer of payment failure"
+
+  // Payment successful - parallel inventory and calculations
+  when PaymentAuthorized
+    InventoryService "reserves stock"
+      -> "reserved": InventoryReserved
+      -> "unavailable": InventoryUnavailable
+    TaxService "calculates tax via API"
+      -> TaxCalculated
+    ShippingService "calculates shipping cost"
+      -> ShippingCalculated
+
+  // Inventory unavailable after payment
+  when InventoryUnavailable
+    PaymentGateway "refunds payment"
+    EmailService "notifies customer of unavailable items"
+
+  // Wait for all three: inventory + tax + shipping
+  when InventoryReserved and TaxCalculated and ShippingCalculated
+    CartService "confirms order"
+      -> OrderConfirmed
+
+  // Order confirmed - parallel fulfillment activities
+  when OrderConfirmed
+    WarehouseService "creates pick ticket"
+      -> ShipmentCreated
+    AccountingService "generates invoice"
+      -> InvoiceGenerated
+    EmailService "sends confirmation email"
+      -> ConfirmationEmailSent
+    AnalyticsService "tracks conversion"
+
+  // Shipment tracking
+  when ShipmentCreated
+    ShippingCarrier "creates shipping label"
+    WarehouseService "assigns to picker"
+}
+
+visualizer main {
+  name "E-Commerce Checkout Flow"
+  flow ECommerceCheckout@1.0.0
+}
+
+```
+
+### `services.ec`
+
+```ec title="services.ec"
+service CartService {
+  version 1.0.0
+  name "Cart Service"
+  summary "Manages shopping cart and checkout"
+}
+
+service ValidationService {
+  version 1.0.0
+  name "Validation Service"
+  summary "Validates customer and order data"
+}
+
+service FraudDetectionService {
+  version 1.0.0
+  name "Fraud Detection Service"
+  summary "Analyzes orders for fraud patterns"
+}
+
+service PaymentService {
+  version 1.0.0
+  name "Payment Service"
+  summary "Processes payments"
+}
+
+service InventoryService {
+  version 1.0.0
+  name "Inventory Service"
+  summary "Manages stock and reservations"
+}
+
+service ShippingService {
+  version 1.0.0
+  name "Shipping Service"
+  summary "Calculates shipping costs and methods"
+}
+
+service TaxService {
+  version 1.0.0
+  name "Tax Service"
+  summary "Calculates taxes via external API"
+}
+
+service EmailService {
+  version 1.0.0
+  name "Email Service"
+  summary "Sends transactional emails"
+}
+
+service WarehouseService {
+  version 1.0.0
+  name "Warehouse Service"
+  summary "Manages warehouse operations"
+}
+
+service AccountingService {
+  version 1.0.0
+  name "Accounting Service"
+  summary "Handles invoicing and accounting"
+}
+
+service AnalyticsService {
+  version 1.0.0
+  name "Analytics Service"
+  summary "Tracks events and conversions"
+}
+
+```
+
+### `messages.ec`
+
+```ec title="messages.ec"
+command InitiateCheckout {
+  version 1.0.0
+  name "Initiate Checkout"
+  summary "Customer starts checkout process"
+}
+
+event CheckoutValidated {
+  version 1.0.0
+  name "Checkout Validated"
+  summary "Cart and checkout data validated"
+}
+
+event ValidationFailed {
+  version 1.0.0
+  name "Validation Failed"
+  summary "Customer or order data validation failed"
+}
+
+event FraudCheckPassed {
+  version 1.0.0
+  name "Fraud Check Passed"
+  summary "Order passed fraud detection"
+}
+
+event FraudDetected {
+  version 1.0.0
+  name "Fraud Detected"
+  summary "Potential fraud detected"
+}
+
+event PaymentAuthorized {
+  version 1.0.0
+  name "Payment Authorized"
+  summary "Payment successfully authorized"
+}
+
+event PaymentFailed {
+  version 1.0.0
+  name "Payment Failed"
+  summary "Payment declined or failed"
+}
+
+event InventoryReserved {
+  version 1.0.0
+  name "Inventory Reserved"
+  summary "Stock reserved for order"
+}
+
+event InventoryUnavailable {
+  version 1.0.0
+  name "Inventory Unavailable"
+  summary "Insufficient stock available"
+}
+
+event ShippingCalculated {
+  version 1.0.0
+  name "Shipping Calculated"
+  summary "Shipping cost and method determined"
+}
+
+event TaxCalculated {
+  version 1.0.0
+  name "Tax Calculated"
+  summary "Tax amount calculated"
+}
+
+event OrderConfirmed {
+  version 1.0.0
+  name "Order Confirmed"
+  summary "Order fully confirmed and ready for fulfillment"
+}
+
+event OrderCancelled {
+  version 1.0.0
+  name "Order Cancelled"
+  summary "Order cancelled due to failure"
+}
+
+event ShipmentCreated {
+  version 1.0.0
+  name "Shipment Created"
+  summary "Warehouse shipment created"
+}
+
+event InvoiceGenerated {
+  version 1.0.0
+  name "Invoice Generated"
+  summary "Invoice created for order"
+}
+
+event ConfirmationEmailSent {
+  version 1.0.0
+  name "Confirmation Email Sent"
+  summary "Customer received order confirmation"
+}
+
+```

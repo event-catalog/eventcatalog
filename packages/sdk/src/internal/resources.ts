@@ -1,5 +1,14 @@
 import { dirname, join } from 'path';
-import { copyDir, findFileById, getFiles, searchFilesForId, versionExists, cachedMatterRead, invalidateFileCache } from './utils';
+import {
+  copyDir,
+  findFileById,
+  getFiles,
+  searchFilesForId,
+  versionExists,
+  cachedMatterRead,
+  invalidateFileCache,
+  upsertFileCacheEntry,
+} from './utils';
 import matter from 'gray-matter';
 import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
@@ -115,7 +124,7 @@ export const writeResource = async (
 
     const document = matter.stringify(markdown.trim(), frontmatter);
     fsSync.writeFileSync(lockPath, document);
-    invalidateFileCache();
+    upsertFileCacheEntry(catalogDir, lockPath, document);
   } finally {
     // Always release the lock
     await unlock(lockPath).catch(() => {});

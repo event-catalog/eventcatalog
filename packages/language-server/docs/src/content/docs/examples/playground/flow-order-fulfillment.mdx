@@ -1,0 +1,151 @@
+---
+title: "Flow: Order Fulfillment"
+description: "PM-friendly business flow with when-blocks, branching, and convergence"
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+This example mirrors the `Flow: Order Fulfillment` template in the EventCatalog Modelling.
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/#example=15"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+### `main.ec`
+
+```ec title="main.ec"
+import { OrderService, PaymentService, InventoryService, FulfillmentService, NotificationService } from "./services.ec"
+import { PlaceOrder, OrderCreated, PaymentProcessed, PaymentFailed, StockReserved, OrderShipped, CustomerNotified } from "./messages.ec"
+
+actor Customer {
+  name "Customer"
+  summary "End user on the storefront"
+}
+
+external-system WarehouseWMS {
+  name "Warehouse WMS"
+  summary "Legacy warehouse management system"
+}
+
+flow OrderFulfillment {
+  version 1.0.0
+  name "Order Fulfillment"
+  summary "End-to-end order processing from placement to delivery"
+
+  Customer "places an order"
+    -> PlaceOrder
+    -> OrderService "creates the order"
+    -> OrderCreated
+
+  when OrderCreated
+    PaymentService "processes the payment"
+      -> "success": PaymentProcessed
+      -> "failure": PaymentFailed
+    InventoryService "reserves stock"
+      -> StockReserved
+
+  when PaymentFailed
+    NotificationService "notifies the customer of failure"
+
+  when PaymentProcessed and StockReserved
+    FulfillmentService "ships the order"
+      -> OrderShipped
+
+  when OrderShipped
+    WarehouseWMS "syncs with legacy WMS"
+    NotificationService "notifies the customer"
+      -> CustomerNotified
+}
+
+visualizer main {
+  name "Order Fulfillment Flow"
+  flow OrderFulfillment@1.0.0
+}
+
+```
+
+### `services.ec`
+
+```ec title="services.ec"
+service OrderService {
+  version 1.0.0
+  name "Order Service"
+  summary "Manages the order lifecycle"
+}
+
+service PaymentService {
+  version 1.0.0
+  name "Payment Service"
+  summary "Processes payments via Stripe"
+}
+
+service InventoryService {
+  version 1.0.0
+  name "Inventory Service"
+  summary "Manages stock and reservations"
+}
+
+service FulfillmentService {
+  version 1.0.0
+  name "Fulfillment Service"
+  summary "Coordinates order shipping"
+}
+
+service NotificationService {
+  version 1.0.0
+  name "Notification Service"
+  summary "Sends email and push notifications"
+}
+
+```
+
+### `messages.ec`
+
+```ec title="messages.ec"
+command PlaceOrder {
+  version 1.0.0
+  name "Place Order"
+  summary "Customer places a new order"
+}
+
+event OrderCreated {
+  version 1.0.0
+  name "Order Created"
+  summary "Emitted when a new order is placed"
+}
+
+event PaymentProcessed {
+  version 1.0.0
+  name "Payment Processed"
+  summary "Payment completed successfully"
+}
+
+event PaymentFailed {
+  version 1.0.0
+  name "Payment Failed"
+  summary "Payment was declined or errored"
+}
+
+event StockReserved {
+  version 1.0.0
+  name "Stock Reserved"
+  summary "Inventory reserved for order"
+}
+
+event OrderShipped {
+  version 1.0.0
+  name "Order Shipped"
+  summary "Order has been dispatched"
+}
+
+event CustomerNotified {
+  version 1.0.0
+  name "Customer Notified"
+  summary "Customer received notification"
+}
+
+```

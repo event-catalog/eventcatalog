@@ -1,0 +1,175 @@
+---
+title: "Planning Future Services"
+description: "Demonstrates planning future services and migrations using draft mode"
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+This example mirrors the `Planning Future Services` template in the EventCatalog Modelling.
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/#example=10"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+### `main.ec`
+
+```ec title="main.ec"
+visualizer main {
+  name "Service Migration Planning"
+  legend true
+
+  channel EventBus {
+    version 1.0.0
+    address "events.stream"
+    protocol "Kafka"
+  }
+
+  channel LegacyQueue {
+    version 1.0.0
+    address "legacy.queue"
+    protocol "RabbitMQ"
+  }
+
+  channel RESTAPI {
+    version 1.0.0
+    address "/api/v1"
+    protocol "HTTP"
+  }
+
+  channel GraphQLAPI {
+    version 1.0.0
+    address "/graphql"
+    protocol "HTTP"
+  }
+
+  container OrdersDB {
+    version 1.0.0
+    container-type database
+    technology "PostgreSQL 15"
+    summary "Stores order data"
+  }
+
+  container OrderReadDB {
+    version 1.0.0
+    container-type database
+    technology "MongoDB 7"
+    summary "Denormalized read model for fast queries"
+  }
+
+  container InventoryDB {
+    version 1.0.0
+    container-type database
+    technology "PostgreSQL 15"
+    summary "Tracks inventory levels"
+  }
+
+  container AnalyticsDB {
+    version 1.0.0
+    container-type dataWarehouse
+    technology "Snowflake"
+    summary "Data warehouse for analytics"
+  }
+
+  domain Orders {
+    version 1.0.0
+    summary "Order management domain - currently being modernized"
+
+    service LegacyOrderService {
+      version 1.0.0
+      summary "Legacy monolithic order service - being phased out"
+      deprecated true
+      @note("Decommission by Q3 2026", priority: "high")
+      @note("Migration guide: https://wiki.internal/legacy-migration")
+
+      sends event OrderCreated to LegacyQueue
+      sends event OrderProcessed to LegacyQueue
+      receives command CreateOrder from RESTAPI
+    }
+
+    service OrderService {
+      version 1.0.0
+      summary "Modern order service - currently in production"
+      @note("Needs load testing before handling legacy traffic")
+
+      writes-to container OrdersDB
+      reads-from container OrdersDB
+
+      sends event OrderCreated to EventBus
+      sends event OrderValidated to EventBus
+      sends event OrderSubmitted to EventBus
+
+      receives command CreateOrder from RESTAPI
+      receives command ValidateOrder from RESTAPI
+    }
+
+    service OrderQueryService {
+      version 1.0.0
+      summary "Query service for order data - planned for Q2 2026"
+      draft true
+
+      writes-to container OrderReadDB
+      reads-from container OrderReadDB
+
+      receives event OrderCreated from EventBus
+      receives event OrderValidated from EventBus
+      receives event OrderSubmitted from EventBus
+
+      receives query GetOrder from GraphQLAPI
+      receives query SearchOrders from GraphQLAPI
+    }
+  }
+
+  domain Fulfillment {
+    version 1.0.0
+    summary "Order fulfillment and shipping"
+
+    service FulfillmentService {
+      version 1.0.0
+      summary "Handles order fulfillment - currently in production"
+
+      receives event OrderSubmitted from EventBus
+      sends event OrderFulfilled to EventBus
+      sends event OrderShipped to EventBus
+    }
+
+    service InventoryReservationService {
+      version 1.0.0
+      summary "Reserves inventory for orders - planned for Q3 2026"
+      draft true
+
+      writes-to container InventoryDB
+      reads-from container InventoryDB
+
+      receives event OrderValidated from EventBus
+      sends event InventoryReserved to EventBus
+      sends event InventoryUnavailable to EventBus
+    }
+  }
+
+  service NotificationService {
+    version 1.0.0
+    summary "Sends customer notifications"
+
+    receives event OrderCreated from EventBus
+    receives event OrderShipped from EventBus
+    sends event EmailSent
+  }
+
+  service AnalyticsService {
+    version 1.0.0
+    summary "Real-time analytics and reporting - planned for Q2 2026"
+    draft true
+
+    writes-to container AnalyticsDB
+
+    receives event OrderCreated from EventBus
+    receives event OrderFulfilled from EventBus
+    receives event OrderShipped from EventBus
+  }
+}
+
+```

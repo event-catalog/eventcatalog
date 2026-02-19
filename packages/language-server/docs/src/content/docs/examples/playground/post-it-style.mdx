@@ -1,0 +1,62 @@
+---
+title: "Post-It Style"
+description: "Visual post-it note style rendering"
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+This example mirrors the `Post-It Style` template in the EventCatalog Modelling.
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/#example=5"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+### `main.ec`
+
+```ec title="main.ec"
+visualizer main {
+  name "Post-It Style Example"
+  style post-it
+  legend true
+
+  channel OrderQueue {
+    version 1.0.0
+    address "orders.queue"
+    protocol "azure-servicebus"
+  }
+
+  service OrderService {
+    version 1.0.0
+    summary "Manages orders"
+
+    sends event OrderCreated to OrderQueue {
+      version 1.0.0
+    }
+
+    sends event OrderShipped to OrderQueue {
+      version 1.0.0
+    }
+  }
+
+  service WarehouseService {
+    version 1.0.0
+    summary "Manages inventory and shipping"
+
+    receives event OrderCreated from OrderQueue
+
+    sends event OrderShipped to OrderQueue
+  }
+
+  service NotificationService {
+    version 1.0.0
+    summary "Sends customer notifications"
+
+    receives event OrderShipped from OrderQueue
+  }
+}
+
+```

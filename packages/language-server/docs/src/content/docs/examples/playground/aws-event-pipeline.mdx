@@ -1,0 +1,222 @@
+---
+title: "AWS Event Pipeline"
+description: "Cross-domain EventBridge routing with SQS queues on AWS"
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+This example mirrors the `AWS Event Pipeline` template in the EventCatalog Modelling.
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/#example=14"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+### `main.ec`
+
+```ec title="main.ec"
+visualizer main {
+  name "AWS Event Pipeline"
+
+  domain Orders {
+    version 1.0.0
+    summary "Order management domain"
+
+    channel OrderEventBus {
+      version 1.0.0
+      address "arn:aws:events:us-east-1:123456789:event-bus/orders"
+      protocol "EventBridge"
+      summary "Event bus for the orders domain"
+      route MainEventBus
+    }
+
+    service OrderService {
+      version 1.0.0
+      summary "Handles order creation and lifecycle"
+
+      sends event OrderCreated to OrderEventBus {
+        version 1.0.0
+        summary "Emitted when a customer places an order"
+      }
+
+      sends event OrderShipped to OrderEventBus {
+        version 1.0.0
+        summary "Emitted when an order is shipped"
+      }
+
+      sends event OrderCancelled to OrderEventBus {
+        version 1.0.0
+        summary "Emitted when an order is cancelled"
+      }
+    }
+  }
+
+  domain Fulfillment {
+    version 1.0.0
+    summary "Warehouse and shipping operations"
+
+    channel FulfillmentEventBus {
+      version 1.0.0
+      address "arn:aws:events:us-east-1:123456789:event-bus/fulfillment"
+      protocol "EventBridge"
+      summary "Event bus for the fulfillment domain"
+      route PickingQueue
+      route ShippingQueue
+    }
+
+    channel PickingQueue {
+      version 1.0.0
+      address "arn:aws:sqs:us-east-1:123456789:warehouse-picking"
+      protocol "SQS"
+      summary "Queue for warehouse pick-list generation"
+    }
+
+    channel ShippingQueue {
+      version 1.0.0
+      address "arn:aws:sqs:us-east-1:123456789:shipping-labels"
+      protocol "SQS"
+      summary "Queue for shipping label creation"
+    }
+
+    service WarehouseService {
+      version 1.0.0
+      summary "Manages warehouse picking and packing"
+
+      receives event OrderCreated from PickingQueue
+      receives event OrderCancelled from PickingQueue
+    }
+
+    service ShippingService {
+      version 1.0.0
+      summary "Handles carrier selection and label generation"
+
+      receives event OrderCreated from ShippingQueue
+    }
+  }
+
+  domain Notifications {
+    version 1.0.0
+    summary "Customer communication channels"
+
+    channel NotificationsEventBus {
+      version 1.0.0
+      address "arn:aws:events:us-east-1:123456789:event-bus/notifications"
+      protocol "EventBridge"
+      summary "Event bus for the notifications domain"
+      route EmailQueue
+      route PushQueue
+      route SmsQueue
+    }
+
+    channel EmailQueue {
+      version 1.0.0
+      address "arn:aws:sqs:us-east-1:123456789:email-delivery"
+      protocol "SQS"
+      summary "Queue for transactional email delivery"
+    }
+
+    channel PushQueue {
+      version 1.0.0
+      address "arn:aws:sqs:us-east-1:123456789:push-notifications"
+      protocol "SQS"
+      summary "Queue for mobile push notifications"
+    }
+
+    channel SmsQueue {
+      version 1.0.0
+      address "arn:aws:sqs:us-east-1:123456789:sms-notifications"
+      protocol "SQS"
+      summary "Queue for SMS notifications"
+    }
+
+    service EmailService {
+      version 1.0.0
+      summary "Sends transactional emails to customers"
+
+      receives event OrderCreated from EmailQueue
+      receives event OrderShipped from EmailQueue
+      receives event OrderCancelled from EmailQueue
+    }
+
+    service PushNotificationService {
+      version 1.0.0
+      summary "Sends mobile push notifications"
+
+      receives event OrderShipped from PushQueue
+      receives event OrderCancelled from PushQueue
+    }
+
+    service SmsService {
+      version 1.0.0
+      summary "Sends SMS order updates"
+
+      receives event OrderShipped from SmsQueue
+    }
+  }
+
+  domain Analytics {
+    version 1.0.0
+    summary "Business intelligence and search"
+
+    channel AnalyticsEventBus {
+      version 1.0.0
+      address "arn:aws:events:us-east-1:123456789:event-bus/analytics"
+      protocol "EventBridge"
+      summary "Event bus for the analytics domain"
+      route MetricsQueue
+      route SearchIndexQueue
+    }
+
+    channel MetricsQueue {
+      version 1.0.0
+      address "arn:aws:sqs:us-east-1:123456789:metrics-ingestion"
+      protocol "SQS"
+      summary "Queue for metrics and KPI ingestion"
+    }
+
+    channel SearchIndexQueue {
+      version 1.0.0
+      address "arn:aws:sqs:us-east-1:123456789:search-indexing"
+      protocol "SQS"
+      summary "Queue for search index updates"
+    }
+
+    service MetricsService {
+      version 1.0.0
+      summary "Tracks order metrics and business KPIs"
+
+      receives event OrderCreated from MetricsQueue
+      receives event OrderShipped from MetricsQueue
+      receives event OrderCancelled from MetricsQueue
+    }
+
+    service SearchService {
+      version 1.0.0
+      summary "Maintains product and order search indexes"
+
+      receives event OrderCreated from SearchIndexQueue
+      receives event OrderShipped from SearchIndexQueue
+    }
+  }
+}
+
+```
+
+### `channels.ec`
+
+```ec title="channels.ec"
+// Central company-wide event bus — routes to all domain buses
+channel MainEventBus {
+  version 1.0.0
+  address "arn:aws:events:us-east-1:123456789:event-bus/main"
+  protocol "EventBridge"
+  summary "Central company-wide event bus"
+  route FulfillmentEventBus
+  route NotificationsEventBus
+  route AnalyticsEventBus
+}
+
+```

@@ -1,0 +1,173 @@
+---
+title: Tutorial
+description: Build your first EventCatalog model and move it into and out of EventCatalog.
+---
+
+import { Steps } from "@astrojs/starlight/components";
+
+If this is your first time with EventCatalog Modeling, this tutorial is for you.
+
+In this tutorial, we will build a tiny architecture model from scratch and see it visually.
+
+To start, open a [blank EventCatalog Modelling workspace](https://playground.eventcatalog.dev/) in a new tab.
+
+Then walk through these steps:
+
+---
+
+## Creating your first model
+
+In this example we will create a simple model of an order processing system.
+
+<Steps>
+
+1. ### Create a service
+
+   A service is a runtime capability in your system, example a microservice or application.
+   - Start by creating a service
+   - In this example, we create a service called `OrdersService`.
+
+   ```diff lang=ec
+   +service OrdersService {
+   +  version 1.0.0
+   +  name "Orders Service"
+   +  summary "Handles order lifecycle"
+   +}
+   ```
+
+2. ### Create an event
+
+   Events are immutable facts about something that happened in the system.
+   - Next we model an event. An immutable fact.
+   - In this example we create an event called `OrderCreated`.
+
+   ```diff lang=ec
+   service OrdersService {
+     version 1.0.0
+     name "Orders Service"
+     summary "Handles order lifecycle"
+   }
+
+   +event OrderCreated {
+   +  version 1.0.0
+   +  name "Order Created"
+   +  summary "Raised when an order is created"
+   +}
+   ```
+
+3. ### Publish the event from the service
+
+   Services can `send` (publish) messages. These can be events, commands, or queries.
+   These messages can be send `to` a channel (e.g. Kafka, MQTT, HTTP, SQS, etc.).
+   - Next we connect the service to the event.
+   - We specify in this example, that the `OrdersService` sends (publishes) the `OrderCreated` event
+   - We also specify a channel to send the event to (e.g. Kafka, MQTT, HTTP, SQS, etc.) (_this is optional_)
+
+   ```diff lang=ec
+   service OrdersService {
+     version 1.0.0
+     name "Orders Service"
+     summary "Handles order lifecycle"
+   +  sends event OrderCreated@1.0.0 to KafkaOrdersTopic
+   }
+
+   event OrderCreated {
+     version 1.0.0
+     name "Order Created"
+     summary "Raised when an order is created"
+   }
+
+   +channel KafkaOrdersTopic {
+   +  version 1.0.0
+   +  name "Kafka Orders Topic"
+   +  summary "Primary channel for order events"
+   +  address "orders.events"
+   +  protocol "kafka"
+   +}
+   ```
+
+4. ### Consume messages by the service
+
+   Services can also `receive` (consume) messages. These can be events, commands, or queries.
+   These messages can be received `from` a channel (e.g. Kafka, MQTT, HTTP, SQS, etc.).
+   - Next we model the messages received by the service.
+   - In this example we create a command called `ProcessOrder`.
+   - This time we don't specify a version and latest version is used.
+
+   ```diff lang=ec
+   service OrdersService {
+     version 1.0.0
+     name "Orders Service"
+     summary "Handles order lifecycle"
+     sends event OrderCreated@1.0.0 to KafkaOrdersTopic
+   +  receives command ProcessOrder
+   }
+
+   event OrderCreated {
+     version 1.0.0
+     name "Order Created"
+     summary "Raised when an order is created"
+   }
+
+   channel KafkaOrdersTopic {
+     version 1.0.0
+     name "Kafka Orders Topic"
+     summary "Primary channel for order events"
+     address "orders.events"
+     protocol "kafka"
+   }
+
+   +command ProcessOrder {
+   +  version 1.0.0
+   +  name "Process Order"
+   +  summary "Processes an order"
+   +}
+   ```
+
+5. ### Visualize the model
+
+   Now we use the `visualizer` block to visualize all or part of the model.
+   - Here we visualize the service.
+   - All connections to the service are visualized for us.
+
+   ```diff lang=ec
+   service OrdersService {
+     version 1.0.0
+     name "Orders Service"
+     summary "Handles order lifecycle"
+     sends event OrderCreated@1.0.0 to KafkaOrdersTopic
+     receives command ProcessOrder
+   }
+
+   event OrderCreated {
+     version 1.0.0
+     name "Order Created"
+     summary "Raised when an order is created"
+   }
+
+   channel KafkaOrdersTopic {
+     version 1.0.0
+     name "Kafka Orders Topic"
+     summary "Primary channel for order events"
+     address "orders.events"
+     protocol "kafka"
+   }
+
+   command ProcessOrder {
+     version 1.0.0
+     name "Process Order"
+     summary "Processes an order"
+   }
+
+   +visualizer main {
+   +  name "Quickstart View"
+   +  service OrdersService@1.0.0
+   +}
+   ```
+
+6. ### Next steps
+   - Import your model into docs: [Import models to EventCatalog](/guides/importing-ec/)
+   - Export docs back to models: [Export EventCatalog to models](/guides/exporting-ec/)
+   - Design future-state systems: [Designing target architectures](/guides/designing-target-architectures/)
+   - Capture review decisions: [Getting feedback from designs](/guides/getting-feedback-from-designs/)
+     </Steps>

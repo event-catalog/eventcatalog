@@ -1,0 +1,37 @@
+---
+title: Notes
+description: Capture design feedback and open questions with @note annotations.
+---
+
+Use `@note` to attach review context directly to models. Notes are repeatable, so you can add multiple notes to the same resource.
+
+> The keyword is `@note` (singular), even if you are adding many notes.
+
+## Example
+
+```ec title="main.ec"
+service CheckoutService {
+  version 2.0.0
+  owner checkout-team
+
+  @note("Should retries live here or in PaymentsService?")
+  @note("Need SRE sign-off for timeout policy", author: "platform-team", priority: "high")
+
+  sends event CheckoutSubmitted@2.0.0 to CheckoutEvents@1.0.0
+}
+```
+
+## Parameters
+
+| Parameter      | Type   | Required | Description                       | Example               |
+| -------------- | ------ | -------- | --------------------------------- | --------------------- |
+| first argument | string | Yes      | The note text.                    | `"Need SRE sign-off"` |
+| `author`       | string | No       | Person or team who left the note. | `"platform-team"`     |
+| `priority`     | string | No       | Priority label for triage.        | `"high"`              |
+
+## Where you can use notes
+
+- services
+- messages (`event`, `command`, `query`)
+- channels
+- inline messages inside `sends` and `receives`

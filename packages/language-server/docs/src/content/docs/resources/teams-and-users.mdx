@@ -1,0 +1,68 @@
+---
+title: Teams and Users
+description: Define ownership and people metadata with team and user resources.
+---
+
+Use `team` and `user` to model ownership and contributor context in your catalog.
+
+## Example
+
+This example defines a user, a team with a member, and then assigns the team as the owner of a service.
+
+```ec title="main.ec"
+user dboyne {
+  name "David Boyne"
+  role "Principal Engineer"
+  email "david@company.com"
+  slack "https://company.slack.com/team/U12345"
+}
+
+team platform-team {
+  name "Platform Team"
+  summary "Owns platform-level architecture and standards"
+  email "platform@company.com"
+  slack "https://company.slack.com/channels/platform-team"
+  member dboyne
+}
+
+service OrdersService {
+  version 1.0.0
+  owner platform-team
+}
+```
+
+## `user` properties
+
+| Property   | Type   | Required | Description                | Example                                   |
+| ---------- | ------ | -------- | -------------------------- | ----------------------------------------- |
+| `name`     | string | No       | Display name.              | `"David Boyne"`                           |
+| `avatar`   | string | No       | Avatar/image URL.          | `"https://example.com/avatar.png"`        |
+| `role`     | string | No       | Job role/title.            | `"Principal Engineer"`                    |
+| `email`    | string | No       | Contact email.             | `"david@company.com"`                     |
+| `slack`    | string | No       | Slack profile/message URL. | `"https://company.slack.com/team/U12345"` |
+| `ms-teams` | string | No       | Microsoft Teams URL.       | `"https://teams.microsoft.com/..."`       |
+
+## `team` properties
+
+| Property   | Type    | Required        | Description                | Example                                              |
+| ---------- | ------- | --------------- | -------------------------- | ---------------------------------------------------- |
+| `name`     | string  | No              | Display name.              | `"Platform Team"`                                    |
+| `avatar`   | string  | No              | Avatar/image URL.          | `"https://example.com/platform-team.png"`            |
+| `role`     | string  | No              | Team role/function.        | `"Architecture"`                                     |
+| `summary`  | string  | No              | Short description.         | `"Owns platform standards"`                          |
+| `email`    | string  | No              | Team contact email.        | `"platform@company.com"`                             |
+| `slack`    | string  | No              | Team Slack URL.            | `"https://company.slack.com/channels/platform-team"` |
+| `ms-teams` | string  | No              | Team Microsoft Teams URL.  | `"https://teams.microsoft.com/..."`                  |
+| `member`   | user id | No (repeatable) | User membership reference. | `member dboyne`                                      |
+
+## Referencing ownership
+
+Any resource can reference team/user ownership:
+
+```ec
+service OrdersService {
+  version 1.0.0
+  owner platform-team
+  owner dboyne
+}
+```

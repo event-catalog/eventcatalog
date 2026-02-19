@@ -1,0 +1,66 @@
+---
+import { Buffer } from 'node:buffer';
+
+const title = Astro.locals.starlightRoute.entry.data.title;
+const sourceMarkdown = Astro.locals.starlightRoute.entry.body ?? '';
+const encodedMarkdown = Buffer.from(sourceMarkdown, 'utf-8').toString('base64');
+---
+
+<div class="page-title-row">
+  <h1 id="_top">{title}</h1>
+  <button
+    type="button"
+    class="copy-markdown-button"
+    data-markdown={encodedMarkdown}
+    data-default-label="Copy as Markdown"
+  >
+    Copy as Markdown
+  </button>
+</div>
+
+<style>
+  .page-title-row {
+    margin-top: 1rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: var(--sl-text-h1);
+    line-height: var(--sl-line-height-headings);
+    font-weight: 600;
+    color: var(--sl-color-white);
+  }
+
+  .copy-markdown-button {
+    margin-top: 0.2rem;
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.5rem;
+    background: var(--sl-color-bg-nav);
+    color: var(--sl-color-text);
+    padding: 0.45rem 0.8rem;
+    font-size: var(--sl-text-sm);
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .copy-markdown-button:hover {
+    background: color-mix(in srgb, var(--sl-color-bg-nav) 80%, white);
+  }
+
+  @media (max-width: 50rem) {
+    .page-title-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.65rem;
+    }
+
+    .copy-markdown-button {
+      margin-top: 0;
+    }
+  }
+</style>

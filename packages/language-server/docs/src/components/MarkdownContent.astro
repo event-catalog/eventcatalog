@@ -1,0 +1,169 @@
+---
+import '@astrojs/starlight/style/markdown.css';
+---
+<div class="sl-markdown-content"><slot /></div>
+
+<script>
+  let mermaidLoader;
+
+  const decodeBase64Utf8 = (value) => {
+    const binary = atob(value);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  };
+
+  const copyText = async (value) => {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value);
+      return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = value;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'absolute';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  };
+
+  const initCopyMarkdownButtons = () => {
+    document.querySelectorAll('.copy-markdown-button').forEach((button) => {
+      if (!(button instanceof HTMLButtonElement)) return;
+      if (button.dataset.copyBound === 'true') return;
+      button.dataset.copyBound = 'true';
+
+      button.addEventListener('click', async () => {
+        const encoded = button.dataset.markdown || '';
+        const markdownFromSource = encoded ? decodeBase64Utf8(encoded) : '';
+
+        let markdown = markdownFromSource;
+        if (!markdown.trim()) {
+          const content = button.parentElement?.nextElementSibling;
+          if (content instanceof HTMLElement) {
+            markdown = content.innerText.trim();
+          }
+        }
+
+        if (!markdown.trim()) return;
+
+        try {
+          await copyText(markdown);
+          button.textContent = 'Copied!';
+          window.setTimeout(() => {
+            button.textContent = button.dataset.defaultLabel || 'Copy as Markdown';
+          }, 1400);
+        } catch {
+          button.textContent = 'Copy failed';
+          window.setTimeout(() => {
+            button.textContent = button.dataset.defaultLabel || 'Copy as Markdown';
+          }, 1800);
+        }
+      });
+    });
+  };
+
+  const loadMermaid = async () => {
+    if (!mermaidLoader) {
+      mermaidLoader = import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs')
+        .then((module) => module.default || module)
+        .catch(() => null);
+    }
+    return mermaidLoader;
+  };
+
+  const renderMermaidBlocks = async () => {
+    const mermaidBlocks = Array.from(document.querySelectorAll('.sl-markdown-content pre[data-language="mermaid"]'));
+    if (mermaidBlocks.length === 0) return;
+
+    const mermaid = await loadMermaid();
+    if (!mermaid) return;
+
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose',
+      theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default',
+    });
+
+    for (const pre of mermaidBlocks) {
+      const figure = pre.closest('figure');
+      if (!(figure instanceof HTMLElement)) continue;
+      if (figure.dataset.mermaidRendered === 'true') continue;
+
+      const source = pre.innerText.trim();
+      if (!source) continue;
+
+      try {
+        const output = document.createElement('div');
+        output.className = 'ec-mermaid-diagram';
+        const id = `mermaid-${Math.random().toString(36).slice(2, 10)}`;
+        const { svg } = await mermaid.render(id, source);
+        output.innerHTML = svg;
+        figure.classList.add('has-mermaid-diagram');
+        figure.appendChild(output);
+        figure.dataset.mermaidRendered = 'true';
+      } catch {
+        // Leave the source block visible if rendering fails.
+      }
+    }
+  };
+
+  const initializeMarkdownEnhancements = () => {
+    initCopyMarkdownButtons();
+    renderMermaidBlocks();
+  };
+
+  initializeMarkdownEnhancements();
+  document.addEventListener('astro:page-load', initializeMarkdownEnhancements);
+</script>
+
+<style>
+  :global(.sl-markdown-content .sl-link-button[href*='playground.eventcatalog.dev']) {
+    border-color: color-mix(in srgb, var(--sl-color-accent-high) 35%, transparent);
+    background:
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--sl-color-accent) 22%, var(--sl-color-black)),
+        color-mix(in srgb, var(--sl-color-accent-high) 30%, var(--sl-color-black))
+      );
+    color: var(--sl-color-white);
+    font-weight: 650;
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--sl-color-accent) 28%, transparent);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+
+  :global(.sl-markdown-content .sl-link-button[href*='playground.eventcatalog.dev']:hover) {
+    color: var(--sl-color-white);
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--sl-color-accent-high) 60%, transparent);
+    box-shadow: 0 10px 22px color-mix(in srgb, var(--sl-color-accent) 35%, transparent);
+  }
+
+  :global(.sl-markdown-content .sl-link-button[href*='playground.eventcatalog.dev']::after) {
+    content: ' ->';
+    font-size: 0.92em;
+  }
+
+  :global(.sl-markdown-content figure.has-mermaid-diagram pre[data-language='mermaid']) {
+    display: none;
+  }
+
+  :global(.sl-markdown-content figure.has-mermaid-diagram .copy) {
+    display: none;
+  }
+
+  :global(.sl-markdown-content .ec-mermaid-diagram) {
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.75rem;
+    background: var(--sl-color-bg-inline-code);
+    padding: 0.75rem;
+    overflow-x: auto;
+  }
+
+  :global(.sl-markdown-content .ec-mermaid-diagram svg) {
+    max-width: 100%;
+    height: auto;
+  }
+</style>

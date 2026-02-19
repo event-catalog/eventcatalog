@@ -30,6 +30,24 @@ interface ImportResult {
   errors: string[];
 }
 
+function normalizeImportedFrontmatter(type: string, frontmatter: Record<string, any>): Record<string, any> {
+  const normalized = { ...frontmatter };
+
+  // SDK/container schema uses snake_case fields.
+  if (type === 'container') {
+    if (normalized.container_type === undefined && normalized.containerType !== undefined) {
+      normalized.container_type = normalized.containerType;
+      delete normalized.containerType;
+    }
+    if (normalized.access_mode === undefined && normalized.accessMode !== undefined) {
+      normalized.access_mode = normalized.accessMode;
+      delete normalized.accessMode;
+    }
+  }
+
+  return normalized;
+}
+
 const RESOURCE_TYPE_FROM_FOLDER: Record<string, string> = {
   events: 'event',
   commands: 'command',
@@ -45,7 +63,10 @@ const RESOURCE_TYPE_FROM_FOLDER: Record<string, string> = {
   teams: 'team',
 };
 
-async function parseDSL(source: string, options?: { nested?: boolean }): Promise<{ path: string; content: string }[]> {
+async function parseDSL(
+  source: string,
+  options?: { nested?: boolean }
+): Promise<{ outputs: { path: string; content: string }[]; program: any }> {
   const { createEcServices, compile } = await import('@eventcatalog/language-server');
   const { EmptyFileSystem, URI } = await import('langium');
 
@@ -70,7 +91,7 @@ async function parseDSL(source: string, options?: { nested?: boolean }): Promise
     // Ignore cleanup errors
   }
 
-  return outputs;
+  return { outputs, program };
 }
 
 /**
@@ -117,22 +138,25 @@ const MESSAGE_TYPE_FOLDER: Record<string, string> = {
 };
 
 const DEFAULT_STUB_VERSION = '0.0.1';
+const NO_VERSION_KEY = '__no_version__';
+
+function getResourceNameKey(type: string, id: string): string {
+  return `${type}:${id}`;
+}
+
+function getResourceVersionKey(type: string, id: string, version?: string): string {
+  return `${type}:${id}@${version || NO_VERSION_KEY}`;
+}
+
+function hasReferenceStatements(source: string): boolean {
+  return /\b(?:sends|receives|writes-to|reads-from)\b/.test(source);
+}
 
 /**
- * Extract message stubs from service sends/receives that weren't compiled as standalone resources.
+ * Extract resource stubs from service references that weren't compiled as standalone resources.
  * Uses the DSL AST to determine message types accurately.
  */
-async function extractMessageStubs(source: string, compiledIds: Set<string>, nested: boolean = false): Promise<ParsedResource[]> {
-  const { createEcServices } = await import('@eventcatalog/language-server');
-  const { EmptyFileSystem, URI } = await import('langium');
-
-  const services = createEcServices(EmptyFileSystem);
-  const uri = URI.parse(`file:///stub-extract-${Date.now()}.ec`);
-  const document = services.shared.workspace.LangiumDocumentFactory.fromString(source, uri);
-  services.shared.workspace.LangiumDocuments.addDocument(document);
-  await services.shared.workspace.DocumentBuilder.build([document]);
-
-  const program = document.parseResult.value as any;
+async function extractMessageStubs(program: any, compiledIds: Set<string>, nested: boolean = false): Promise<ParsedResource[]> {
   const stubs: ParsedResource[] = [];
   const stubIds = new Set<string>();
 
@@ -169,62 +193,94 @@ async function extractMessageStubs(source: string, compiledIds: Set<string>, nes
 
       const body = def.body || [];
       for (const stmt of body) {
-        if (stmt.$type !== 'SendsStmt' && stmt.$type !== 'ReceivesStmt') continue;
+        if (stmt.$type === 'SendsStmt' || stmt.$type === 'ReceivesStmt') {
+          const msgType = stmt.messageType; // 'event', 'command', or 'query'
+          const msgName = stmt.messageName;
+          const hasBody = stmt.body && stmt.body.length > 0;
+          const version = stmt.version || DEFAULT_STUB_VERSION;
 
-        const msgType = stmt.messageType; // 'event', 'command', or 'query'
-        const msgName = stmt.messageName;
-        const hasBody = stmt.body && stmt.body.length > 0;
+          if (!hasBody) {
+            const folder = MESSAGE_TYPE_FOLDER[msgType];
+            if (folder) {
+              const key = getResourceVersionKey(msgType, msgName, version);
+              const anyVersionKey = getResourceNameKey(msgType, msgName);
 
-        if (hasBody) continue; // Inline definition — compiler already handled it
+              // For explicit refs (e.g. Event@2.0.0), require exact version match.
+              // For unversioned refs, treat any compiled version as satisfying the reference.
+              if (!compiledIds.has(key) && !stubIds.has(key) && !(!stmt.version && compiledIds.has(anyVersionKey))) {
+                const stubFolder = nested && servicePath ? `${servicePath}/${folder}` : folder;
 
-        const key = `${msgType}:${msgName}`;
-        if (compiledIds.has(key) || stubIds.has(key)) continue;
-
-        const folder = MESSAGE_TYPE_FOLDER[msgType];
-        if (!folder) continue;
-
-        const version = stmt.version || DEFAULT_STUB_VERSION;
-
-        const stubFolder = nested && servicePath ? `${servicePath}/${folder}` : folder;
-
-        stubIds.add(key);
-        stubs.push({
-          type: msgType,
-          id: msgName,
-          version,
-          frontmatter: {
-            id: msgName,
-            name: msgName,
-            version,
-          },
-          markdown: '',
-          path: `${stubFolder}/${msgName}/versioned/${version}/index.md`,
-        });
-
-        // Create channel stubs for to/from references
-        if (stmt.channelClause) {
-          const channels = stmt.channelClause.channels || [];
-          for (const ch of channels) {
-            const chName = ch.channelName;
-            const chKey = `channel:${chName}`;
-            if (compiledIds.has(chKey) || stubIds.has(chKey)) continue;
-
-            const chVersion = ch.channelVersion || DEFAULT_STUB_VERSION;
-            const chFolder = nested && parentPath ? `${parentPath}/channels` : 'channels';
-            stubIds.add(chKey);
-            stubs.push({
-              type: 'channel',
-              id: chName,
-              version: chVersion,
-              frontmatter: {
-                id: chName,
-                name: chName,
-                version: chVersion,
-              },
-              markdown: '',
-              path: `${chFolder}/${chName}/versioned/${chVersion}/index.md`,
-            });
+                stubIds.add(key);
+                stubs.push({
+                  type: msgType,
+                  id: msgName,
+                  version,
+                  frontmatter: {
+                    id: msgName,
+                    name: msgName,
+                    version,
+                  },
+                  markdown: '',
+                  path: `${stubFolder}/${msgName}/versioned/${version}/index.md`,
+                });
+              }
+            }
           }
+
+          // Create channel stubs for to/from references
+          if (stmt.channelClause) {
+            const channels = stmt.channelClause.channels || [];
+            for (const ch of channels) {
+              const chName = ch.channelName;
+              const chVersion = ch.channelVersion || DEFAULT_STUB_VERSION;
+              const chKey = getResourceVersionKey('channel', chName, chVersion);
+              const chAnyVersionKey = getResourceNameKey('channel', chName);
+              if (compiledIds.has(chKey) || stubIds.has(chKey)) continue;
+              if (!ch.channelVersion && compiledIds.has(chAnyVersionKey)) continue;
+
+              const chFolder = nested && parentPath ? `${parentPath}/channels` : 'channels';
+              stubIds.add(chKey);
+              stubs.push({
+                type: 'channel',
+                id: chName,
+                version: chVersion,
+                frontmatter: {
+                  id: chName,
+                  name: chName,
+                  version: chVersion,
+                },
+                markdown: '',
+                path: `${chFolder}/${chName}/versioned/${chVersion}/index.md`,
+              });
+            }
+          }
+          continue;
+        }
+
+        if (stmt.$type === 'WritesToStmt' || stmt.$type === 'ReadsFromStmt') {
+          const containerName = stmt.ref?.name;
+          if (!containerName) continue;
+
+          const containerVersion = stmt.ref?.version || DEFAULT_STUB_VERSION;
+          const containerKey = getResourceVersionKey('container', containerName, containerVersion);
+          const containerAnyVersionKey = getResourceNameKey('container', containerName);
+          if (compiledIds.has(containerKey) || stubIds.has(containerKey)) continue;
+          if (!stmt.ref?.version && compiledIds.has(containerAnyVersionKey)) continue;
+
+          const containerFolder = nested && parentPath ? `${parentPath}/containers` : 'containers';
+          stubIds.add(containerKey);
+          stubs.push({
+            type: 'container',
+            id: containerName,
+            version: containerVersion,
+            frontmatter: {
+              id: containerName,
+              name: containerName,
+              version: containerVersion,
+            },
+            markdown: '',
+            path: `${containerFolder}/${containerName}/versioned/${containerVersion}/index.md`,
+          });
         }
       }
     }
@@ -232,13 +288,82 @@ async function extractMessageStubs(source: string, compiledIds: Set<string>, nes
 
   processDefinitions(program.definitions);
 
-  try {
-    services.shared.workspace.LangiumDocuments.deleteDocument(uri);
-  } catch {
-    // Ignore cleanup errors
+  return stubs;
+}
+
+function getVersionFromBody(body: any[] | undefined): string | undefined {
+  if (!body) return undefined;
+  const versionStmt = body.find((stmt) => stmt?.$type === 'VersionStmt');
+  return versionStmt?.value;
+}
+
+function buildServiceOutputPath(serviceName: string, body: any[] | undefined, nested: boolean, parentPath: string): string {
+  const folder = nested && parentPath ? `${parentPath}/services` : 'services';
+  const version = getVersionFromBody(body);
+  if (version) return `${folder}/${serviceName}/versioned/${version}/index.md`;
+  return `${folder}/${serviceName}/index.md`;
+}
+
+function extractServiceContainerRefs(
+  program: any,
+  nested: boolean = false
+): Map<string, { writesTo?: Array<{ id: string; version?: string }>; readsFrom?: Array<{ id: string; version?: string }> }> {
+  const refsByPath = new Map<
+    string,
+    { writesTo?: Array<{ id: string; version?: string }>; readsFrom?: Array<{ id: string; version?: string }> }
+  >();
+
+  function processDefinitions(definitions: any[], parentPath: string = ''): void {
+    for (const def of definitions || []) {
+      if (def.$type === 'VisualizerDef' && def.body) {
+        processDefinitions(def.body, parentPath);
+        continue;
+      }
+
+      if (def.$type === 'DomainDef') {
+        const domainPath = nested ? `domains/${def.name}` : '';
+        const domainBody = def.body || [];
+        const domainServices = domainBody.filter((d: any) => d.$type === 'ServiceDef');
+        processDefinitions(domainServices, domainPath);
+
+        const subdomains = domainBody.filter((d: any) => d.$type === 'SubdomainDef');
+        for (const sub of subdomains) {
+          const subPath = nested ? `domains/${def.name}/subdomains/${sub.name}` : '';
+          const subServices = (sub.body || []).filter((d: any) => d.$type === 'ServiceDef');
+          processDefinitions(subServices, subPath);
+        }
+        continue;
+      }
+
+      if (def.$type !== 'ServiceDef') continue;
+
+      const body = def.body || [];
+      const writesTo = body
+        .filter((stmt: any) => stmt.$type === 'WritesToStmt' && stmt.ref?.name)
+        .map((stmt: any) => ({
+          id: stmt.ref.name,
+          ...(stmt.ref.version ? { version: stmt.ref.version } : {}),
+        }));
+
+      const readsFrom = body
+        .filter((stmt: any) => stmt.$type === 'ReadsFromStmt' && stmt.ref?.name)
+        .map((stmt: any) => ({
+          id: stmt.ref.name,
+          ...(stmt.ref.version ? { version: stmt.ref.version } : {}),
+        }));
+
+      if (writesTo.length === 0 && readsFrom.length === 0) continue;
+
+      const path = buildServiceOutputPath(def.name, body, nested, parentPath);
+      refsByPath.set(path, {
+        ...(writesTo.length > 0 ? { writesTo } : {}),
+        ...(readsFrom.length > 0 ? { readsFrom } : {}),
+      });
+    }
   }
 
-  return stubs;
+  processDefinitions(program.definitions || []);
+  return refsByPath;
 }
 
 /**
@@ -256,6 +381,8 @@ const SDK_WRITER_BASE: Record<string, string> = {
   domain: 'domains',
   channel: 'channels',
   container: 'containers',
+  dataProduct: 'data-products',
+  diagram: 'diagrams',
   team: 'teams',
   user: 'users',
 };
@@ -314,6 +441,12 @@ function getWriter(sdk: SDK, type: string): ((resource: any, options?: any) => P
       return sdk.writeDomain;
     case 'channel':
       return sdk.writeChannel;
+    case 'container':
+      return sdk.writeDataStore;
+    case 'dataProduct':
+      return sdk.writeDataProduct;
+    case 'diagram':
+      return sdk.writeDiagram;
     case 'team':
       return sdk.writeTeam;
     case 'user':
@@ -337,6 +470,12 @@ function getReader(sdk: SDK, type: string): ((id: string, version?: string) => P
       return sdk.getDomain;
     case 'channel':
       return sdk.getChannel;
+    case 'container':
+      return sdk.getDataStore;
+    case 'dataProduct':
+      return sdk.getDataProduct;
+    case 'diagram':
+      return sdk.getDiagram;
     case 'team':
       return sdk.getTeam;
     case 'user':
@@ -502,7 +641,8 @@ export async function importDSL(options: ImportOptions): Promise<string> {
     }
   }
 
-  const outputs = await parseDSL(source, { nested });
+  const parsed = await parseDSL(source, { nested });
+  const outputs = parsed.outputs;
 
   if (outputs.length === 0) {
     throw new Error('No resources found in DSL content');
@@ -510,12 +650,52 @@ export async function importDSL(options: ImportOptions): Promise<string> {
 
   const sdk = createSDK(catalogDir);
   const result: ImportResult = { created: [], updated: [], versioned: [], errors: [] };
+  const readerCache = new Map<string, Promise<any>>();
+
+  const readResourceCached = async (
+    reader: ((id: string, version?: string) => Promise<any>) | null,
+    type: string,
+    id: string,
+    version?: string
+  ): Promise<any> => {
+    if (!reader) return undefined;
+    const cacheKey = getResourceVersionKey(type, id, version);
+    if (!readerCache.has(cacheKey)) {
+      readerCache.set(
+        cacheKey,
+        reader(id, version).catch(() => undefined)
+      );
+    }
+    return await readerCache.get(cacheKey)!;
+  };
+
+  const invalidateReaderCache = (type: string, id: string, version?: string): void => {
+    // We only read "latest" (no version) and the current version in this import path,
+    // so targeted invalidation avoids scanning the full cache for every write.
+    readerCache.delete(getResourceVersionKey(type, id));
+    readerCache.delete(getResourceVersionKey(type, id, version));
+  };
 
   const resources = outputs.map(parseCompiledOutput);
+  const serviceContainerRefsByPath = extractServiceContainerRefs(parsed.program, nested);
+
+  for (const resource of resources) {
+    if (resource.type !== 'service') continue;
+    const refs = serviceContainerRefsByPath.get(resource.path);
+    if (!refs) continue;
+    resource.frontmatter = {
+      ...resource.frontmatter,
+      ...refs,
+    };
+  }
 
   // Create stub resources for referenced messages that weren't compiled as standalone
-  const compiledIds = new Set(resources.map((r) => `${r.type}:${r.id}`));
-  const stubs = await extractMessageStubs(source, compiledIds, nested);
+  const compiledIds = new Set<string>();
+  for (const resource of resources) {
+    compiledIds.add(getResourceNameKey(resource.type, resource.id));
+    compiledIds.add(getResourceVersionKey(resource.type, resource.id, resource.version));
+  }
+  const stubs = hasReferenceStatements(source) ? await extractMessageStubs(parsed.program, compiledIds, nested) : [];
   resources.push(...stubs);
 
   for (const resource of resources) {
@@ -524,11 +704,11 @@ export async function importDSL(options: ImportOptions): Promise<string> {
     if (dryRun) {
       const reader = getReader(sdk, resource.type);
       if (reader) {
-        const existing = await reader(resource.id, resource.version).catch(() => undefined);
+        const existing = await readResourceCached(reader, resource.type, resource.id, resource.version);
         if (existing) {
           result.updated.push(label);
         } else {
-          const latest = await reader(resource.id).catch(() => undefined);
+          const latest = await readResourceCached(reader, resource.type, resource.id);
           if (latest && latest.version && latest.version !== resource.version) {
             result.versioned.push(`${resource.type} ${resource.id}@${latest.version}`);
           }
@@ -548,17 +728,36 @@ export async function importDSL(options: ImportOptions): Promise<string> {
 
     try {
       const reader = getReader(sdk, resource.type);
-      const existing = reader ? await reader(resource.id, resource.version).catch(() => undefined) : undefined;
+      const existing = await readResourceCached(reader, resource.type, resource.id, resource.version);
+      const latest = !existing && resource.version ? await readResourceCached(reader, resource.type, resource.id) : undefined;
+      const versionedFrom =
+        !existing && resource.version && latest?.version && latest.version !== resource.version ? latest.version : undefined;
 
-      let markdown = resource.markdown;
+      const incomingMarkdown = resource.markdown;
+      const hasIncomingMarkdown = incomingMarkdown.trim().length > 0;
+      let markdown = incomingMarkdown;
+
+      // Preserve existing markdown when DSL import has no markdown body.
+      if (!hasIncomingMarkdown) {
+        if (existing?.markdown) {
+          markdown = existing.markdown;
+        } else if (!existing && latest?.markdown) {
+          // If importing a newer version without markdown, carry forward latest markdown.
+          markdown = latest.markdown;
+        }
+      }
 
       // Add <NodeGraph /> to markdown for newly created resources (not updates)
       if (!existing && TYPES_WITH_NODE_GRAPH.has(resource.type)) {
-        markdown = markdown ? `${markdown}\n\n<NodeGraph />` : '<NodeGraph />';
+        if (!markdown) {
+          markdown = '<NodeGraph />';
+        } else if (!markdown.includes('<NodeGraph />')) {
+          markdown = `${markdown}\n\n<NodeGraph />`;
+        }
       }
 
       const resourceData = {
-        ...resource.frontmatter,
+        ...normalizeImportedFrontmatter(resource.type, resource.frontmatter),
         markdown,
       };
 
@@ -566,7 +765,7 @@ export async function importDSL(options: ImportOptions): Promise<string> {
       // For new resources in nested mode, extract directory from compiler path.
       const writeOptions: Record<string, any> = {
         override: true,
-        versionExistingContent: true,
+        versionExistingContent: Boolean(versionedFrom),
       };
 
       if (!existing && nested) {
@@ -577,11 +776,15 @@ export async function importDSL(options: ImportOptions): Promise<string> {
       }
 
       await writer(resourceData, writeOptions);
+      invalidateReaderCache(resource.type, resource.id, resource.version);
 
       if (existing) {
         result.updated.push(label);
       } else {
         result.created.push(label);
+        if (versionedFrom) {
+          result.versioned.push(`${resource.type} ${resource.id}@${versionedFrom}`);
+        }
       }
     } catch (error) {
       result.errors.push(`${label}: ${error instanceof Error ? error.message : String(error)}`);
@@ -618,8 +821,11 @@ const TYPE_CONFIG: Record<string, { color: string; label: string; order: number 
   query: { color: c.cyan, label: 'query', order: 4 },
   channel: { color: c.gray, label: 'channel', order: 5 },
   flow: { color: c.white, label: 'flow', order: 6 },
-  user: { color: c.blue, label: 'user', order: 7 },
-  team: { color: c.blue, label: 'team', order: 8 },
+  container: { color: c.white, label: 'container', order: 7 },
+  dataProduct: { color: c.white, label: 'data product', order: 8 },
+  diagram: { color: c.white, label: 'diagram', order: 9 },
+  user: { color: c.blue, label: 'user', order: 10 },
+  team: { color: c.blue, label: 'team', order: 11 },
 };
 
 const DEFAULT_TYPE_CONFIG = { color: c.white, label: 'resource', order: 99 };

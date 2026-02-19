@@ -88,6 +88,36 @@ command CreateOrder {
     expect(await sdk2.getCommand('CreateOrder', '1.0.0')).toBeDefined();
   });
 
+  it('handles duplicate definitions in a single import run with create then update semantics', async () => {
+    const file1 = writeEcFile(
+      'first.ec',
+      `event OrderCreated {
+  version 1.0.0
+  name "Order Created V1"
+}`
+    );
+    const file2 = writeEcFile(
+      'second.ec',
+      `event OrderCreated {
+  version 1.0.0
+  name "Order Created V2"
+}`
+    );
+
+    const result = await importDSL({
+      files: [file1, file2],
+      dir: catalogPath,
+    });
+
+    expect(result).toContain('Created 1 resource(s)');
+    expect(result).toContain('Updated 1 resource(s)');
+
+    const sdk = createSDK(catalogPath);
+    const event = await sdk.getEvent('OrderCreated', '1.0.0');
+    expect(event).toBeDefined();
+    expect(event!.name).toBe('Order Created V2');
+  });
+
   it('previews without writing with --dry-run', async () => {
     const ecFile = writeEcFile(
       'test.ec',

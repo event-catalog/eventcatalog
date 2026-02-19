@@ -1660,7 +1660,12 @@ export const cliFunctions: CLIFunctionDoc[] = [
         description: 'Include referenced resources (messages, channels, owners)',
       },
       { name: 'stdout', type: 'boolean', required: false, description: 'Print to stdout instead of writing a file' },
-      { name: 'playground', type: 'boolean', required: false, description: 'Open the exported DSL in the playground' },
+      {
+        name: 'playground',
+        type: 'boolean',
+        required: false,
+        description: 'Open the exported DSL in EventCatalog Modelling',
+      },
       { name: 'output', type: 'string', required: false, description: 'Output file path (defaults to <id>.ec or catalog.ec)' },
     ],
     examples: [
@@ -1689,7 +1694,7 @@ export const cliFunctions: CLIFunctionDoc[] = [
         command: 'npx @eventcatalog/cli export --all --hydrate -o my-catalog.ec',
       },
       {
-        description: 'Export and open in playground',
+        description: 'Export and open in EventCatalog Modelling',
         command: 'npx @eventcatalog/cli export --resource services --hydrate --playground',
       },
     ],
@@ -1707,6 +1712,13 @@ export const cliFunctions: CLIFunctionDoc[] = [
       { name: 'files', type: 'string', required: false, description: 'One or more .ec file paths to import' },
       { name: 'stdin', type: 'boolean', required: false, description: 'Read DSL from stdin' },
       { name: 'dry-run', type: 'boolean', required: false, description: 'Preview resources without writing' },
+      {
+        name: 'flat',
+        type: 'boolean',
+        required: false,
+        description: 'Write resources in a flat structure (no nesting under domains/services)',
+      },
+      { name: 'no-init', type: 'boolean', required: false, description: 'Skip catalog initialization prompt' },
     ],
     examples: [
       {
@@ -1724,6 +1736,14 @@ export const cliFunctions: CLIFunctionDoc[] = [
       {
         description: 'Preview what would be written or merged',
         command: 'npx @eventcatalog/cli import catalog.ec --dry-run',
+      },
+      {
+        description: 'Import without nested folders',
+        command: 'npx @eventcatalog/cli import catalog.ec --flat',
+      },
+      {
+        description: 'Import into an existing catalog directory without init prompts',
+        command: 'npx @eventcatalog/cli import catalog.ec --no-init -d ./existing-catalog',
       },
     ],
   },

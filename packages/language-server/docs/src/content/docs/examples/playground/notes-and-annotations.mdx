@@ -1,0 +1,112 @@
+---
+title: "Notes & Annotations"
+description: "Attach notes to resources for context, decisions, and reminders"
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+This example mirrors the `Notes & Annotations` template in the EventCatalog Modelling.
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/#example=12"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+### `main.ec`
+
+```ec title="main.ec"
+visualizer main {
+  name "Notes & Annotations"
+  legend true
+
+  channel OrderEvents {
+    version 1.0.0
+    address "orders.events"
+    protocol "kafka"
+    @note("Partition key is orderId", author: "infra-team")
+    @note("Retention set to 7 days")
+  }
+
+  channel PaymentEvents {
+    version 1.0.0
+    address "payments.events"
+    protocol "kafka"
+  }
+
+  domain Orders {
+    version 1.0.0
+    summary "Order management"
+
+    service OrderService {
+      version 1.0.0
+      summary "Handles order lifecycle"
+      @note("Needs rate limiting before Black Friday", author: "alice", priority: "high")
+      @note("Migrating to event sourcing in Q3", author: "bob")
+
+      sends event OrderCreated to OrderEvents {
+        version 1.0.0
+        summary "New order placed"
+        @note("Schema v2 adds shippingAddress field", author: "alice")
+      }
+
+      sends event OrderCancelled to OrderEvents {
+        version 1.0.0
+        summary "Order was cancelled"
+      }
+
+      receives command CreateOrder {
+        version 1.0.0
+        @note("Validate idempotency key before processing", author: "bob", priority: "high")
+      }
+    }
+
+    service LegacyOrderService {
+      version 1.0.0
+      summary "Old monolith — being decommissioned"
+      deprecated true
+      @note("Decommission by Q4 2026", priority: "high")
+      @note("See migration runbook: https://wiki.internal/orders-migration")
+      @note("Only handles EU region traffic now", author: "carol")
+
+      sends event OrderCreated to OrderEvents
+      receives command CreateOrder
+    }
+  }
+
+  domain Payment {
+    version 1.0.0
+    summary "Payment processing"
+
+    service PaymentService {
+      version 2.0.0
+      summary "Processes payments and refunds"
+      @note("v2 adds support for crypto payments", author: "dave")
+
+      receives event OrderCreated from OrderEvents
+
+      sends event PaymentProcessed to PaymentEvents {
+        version 1.0.0
+        summary "Payment completed"
+        @note("Includes refund reference when applicable", author: "dave")
+      }
+
+      sends event PaymentFailed to PaymentEvents {
+        version 1.0.0
+      }
+    }
+  }
+
+  service NotificationService {
+    version 1.0.0
+    summary "Sends customer notifications"
+
+    receives event PaymentProcessed from PaymentEvents
+    receives event PaymentFailed from PaymentEvents
+    receives event OrderCancelled from OrderEvents
+  }
+}
+
+```

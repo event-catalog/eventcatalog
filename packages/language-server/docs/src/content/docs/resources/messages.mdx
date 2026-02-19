@@ -1,0 +1,66 @@
+---
+title: Messages
+description: Model events, commands, and queries in EventCatalog Modeling.
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+Messages are facts, intents, or requests that move between services.
+
+- `event`: something that happened
+- `command`: a request to do something
+- `query`: a request for information
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/#example=3"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+## Example
+
+This example shows the three message types: one `event`, one `command`, and one `query`.
+
+```ec title="main.ec"
+event OrderCreated {
+  version 1.0.0
+  name "Order Created"
+  summary "Raised when an order is created"
+  schema "./schemas/order-created.json"
+}
+
+command CreateOrder {
+  version 1.0.0
+  name "Create Order"
+  summary "Requests order creation"
+}
+
+query GetOrderById {
+  version 1.0.0
+  name "Get Order By ID"
+  summary "Returns one order"
+}
+```
+
+## Common properties
+
+| Property     | Type      | Required        | Description                    | Example                             |
+| ------------ | --------- | --------------- | ------------------------------ | ----------------------------------- |
+| `version`    | semver    | Yes             | Resource version.              | `1.0.0`                             |
+| `name`       | string    | No              | Display name (defaults to id). | `"Order Created"`                   |
+| `summary`    | string    | No              | Short description.             | `"Raised when an order is created"` |
+| `owner`      | reference | No (repeatable) | Team/user owner reference.     | `owner orders-team`                 |
+| `schema`     | string    | No              | Contract/schema location.      | `"./schemas/order-created.json"`    |
+| `draft`      | boolean   | No              | Marks resource as draft.       | `draft true`                        |
+| `deprecated` | boolean   | No              | Marks resource as deprecated.  | `deprecated true`                   |
+
+## Usage in services
+
+| Usage             | Example                                         |
+| ----------------- | ----------------------------------------------- |
+| Produce an event  | `sends event OrderCreated@1.0.0`                |
+| Consume a command | `receives command CreateOrder@1.0.0`            |
+| Consume a query   | `receives query GetOrderById@1.0.0`             |
+| Route via channel | `sends event OrderCreated to OrdersTopic@1.0.0` |

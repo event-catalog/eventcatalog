@@ -9,6 +9,7 @@
     "format": "turbo run format",
     "format:diff": "turbo run format:diff",
     "start:playground": "pnpm --filter @eventcatalog/dsl-playground run dev",
+    "start:dsl-docs": "pnpm --filter @eventcatalog/language-server run docs:dev",
     "start:catalog": "pnpm --filter @eventcatalog/core run start:catalog",
     "preview:catalog": "pnpm --filter @eventcatalog/core run preview:catalog",
     "start:catalog:server": "pnpm --filter @eventcatalog/core run start:catalog:server",

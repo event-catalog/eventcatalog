@@ -1,0 +1,29 @@
+---
+title: Badges
+description: Add visual status metadata to model resources with @badge.
+---
+
+Use `@badge` to add status labels to resources, for example `Production`, `Beta`, or `Deprecated soon`.
+
+## Example
+
+```ec title="main.ec"
+service OrdersService {
+  version 1.0.0
+  @badge("Production", bg: "#22c55e", text: "#ffffff")
+}
+
+service PaymentsService {
+  version 2.0.0
+  @badge("Beta", bg: "#f59e0b", text: "#000000", icon: "flask")
+}
+```
+
+## Parameters
+
+| Parameter      | Type   | Required | Description             | Example        |
+| -------------- | ------ | -------- | ----------------------- | -------------- |
+| first argument | string | Yes      | Badge label text.       | `"Production"` |
+| `bg`           | string | No       | Background color value. | `"#22c55e"`    |
+| `text`         | string | No       | Text color value.       | `"#ffffff"`    |
+| `icon`         | string | No       | Optional icon key.      | `"flask"`      |

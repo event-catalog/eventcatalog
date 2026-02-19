@@ -8,13 +8,51 @@ html, body, #root {
   font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+:root {
+  --shell-bg: #f6f8fb;
+  --shell-text: #1f2328;
+  --shell-muted: #57606a;
+  --shell-border: #d0d7de;
+  --shell-header-bg: #ffffff;
+  --shell-title: #0f172a;
+  --shell-control-bg: #ffffff;
+  --shell-control-border: #d0d7de;
+  --shell-control-text: #1f2328;
+  --shell-control-border-hover: #8c959f;
+  --shell-button-text: #57606a;
+  --shell-button-text-hover: #1f2328;
+  --shell-button-border-hover: #0969da;
+  --modal-overlay: rgba(15, 23, 42, 0.28);
+  --modal-bg: #ffffff;
+  --modal-text: #1f2328;
+}
+
+[data-theme="dark"] {
+  --shell-bg: #0d1117;
+  --shell-text: #e1e4e8;
+  --shell-muted: #8b949e;
+  --shell-border: #30363d;
+  --shell-header-bg: #161b22;
+  --shell-title: #f0f6fc;
+  --shell-control-bg: #21262d;
+  --shell-control-border: #30363d;
+  --shell-control-text: #e1e4e8;
+  --shell-control-border-hover: #484f58;
+  --shell-button-text: #8b949e;
+  --shell-button-text-hover: #f0f6fc;
+  --shell-button-border-hover: #58a6ff;
+  --modal-overlay: rgba(1, 4, 9, 0.72);
+  --modal-bg: #0d1117;
+  --modal-text: #f0f6fc;
+}
+
 /* ── App Layout ── */
 .app {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #0d1117;
-  color: #e1e4e8;
+  background: var(--shell-bg);
+  color: var(--shell-text);
 }
 
 .header {
@@ -23,8 +61,8 @@ html, body, #root {
   gap: 16px;
   padding: 0 20px;
   height: 52px;
-  background: #161b22;
-  border-bottom: 1px solid #30363d;
+  background: var(--shell-header-bg);
+  border-bottom: 1px solid var(--shell-border);
   flex-shrink: 0;
 }
 
@@ -41,15 +79,79 @@ html, body, #root {
 .header h1 {
   font-size: 15px;
   font-weight: 700;
-  color: #f0f6fc;
+  color: var(--shell-title);
   letter-spacing: -0.02em;
   white-space: nowrap;
 }
 
 .header .subtitle {
   font-size: 12px;
-  color: #8b949e;
+  color: var(--shell-muted);
   margin-left: auto;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 12px;
+}
+
+.header-action-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--shell-control-border);
+  border-radius: 8px;
+  background: var(--shell-control-bg);
+}
+
+.tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.tooltip-wrap::before,
+.tooltip-wrap::after {
+  position: absolute;
+  left: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 20;
+}
+
+.tooltip-wrap::before {
+  content: '';
+  bottom: calc(100% + 2px);
+  transform: translate(-50%, 4px);
+  border: 5px solid transparent;
+  border-top-color: var(--shell-control-bg);
+  filter: drop-shadow(0 -1px 0 var(--shell-control-border));
+}
+
+.tooltip-wrap::after {
+  content: attr(data-tooltip);
+  bottom: calc(100% + 10px);
+  transform: translate(-50%, 4px);
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--shell-text);
+  background: var(--shell-control-bg);
+  border: 1px solid var(--shell-control-border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tooltip-wrap:hover::before,
+.tooltip-wrap:hover::after,
+.tooltip-wrap:focus-within::before,
+.tooltip-wrap:focus-within::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .fullscreen-btn {
@@ -57,18 +159,19 @@ html, body, #root {
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: 1px solid #30363d;
+  border: 1px solid transparent;
   border-radius: 6px;
-  color: #8b949e;
-  padding: 5px 7px;
-  margin-left: 10px;
+  color: var(--shell-button-text);
+  width: 28px;
+  height: 28px;
+  padding: 0;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
 }
 
 .fullscreen-btn:hover {
-  color: #f0f6fc;
-  border-color: #58a6ff;
+  color: var(--shell-button-text-hover);
+  border-color: var(--shell-button-border-hover);
 }
 
 /* ── Examples Dropdown ── */
@@ -82,17 +185,17 @@ html, body, #root {
   padding: 6px 28px 6px 10px;
   font-size: 12px;
   font-family: inherit;
-  border: 1px solid #30363d;
+  border: 1px solid var(--shell-control-border);
   border-radius: 6px;
-  background: #21262d;
-  color: #e1e4e8;
+  background: var(--shell-control-bg);
+  color: var(--shell-control-text);
   cursor: pointer;
   outline: none;
   transition: border-color 0.15s;
 }
 
 .example-select:hover {
-  border-color: #484f58;
+  border-color: var(--shell-control-border-hover);
 }
 
 .example-select:focus {
@@ -106,7 +209,7 @@ html, body, #root {
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
-  color: #8b949e;
+  color: var(--shell-muted);
 }
 
 /* ── Main Split ── */
@@ -265,7 +368,7 @@ html, body, #root {
 .resize-handle {
   width: 6px;
   cursor: col-resize;
-  background: #161b22;
+  background: var(--shell-header-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -276,14 +379,14 @@ html, body, #root {
 
 .resize-handle:hover,
 body.resizing .resize-handle {
-  background: #30363d;
+  background: var(--shell-border);
 }
 
 .resize-handle-line {
   width: 2px;
   height: 32px;
   border-radius: 1px;
-  background: #484f58;
+  background: var(--shell-muted);
   transition: background 0.15s, height 0.15s;
 }
 
@@ -335,4 +438,136 @@ body.resizing .editor-pane {
 
 .react-flow__edge-text {
   font-size: 10px !important;
+}
+
+/* ── Export Modal ── */
+.export-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--modal-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+  padding: 20px;
+}
+
+.export-modal {
+  width: min(760px, 100%);
+  max-height: min(88vh, 760px);
+  overflow-y: auto;
+  background: var(--modal-bg);
+  border: 1px solid var(--shell-border);
+  border-radius: 10px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+  padding: 18px;
+}
+
+.export-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.export-modal-header h2 {
+  font-size: 18px;
+  line-height: 1.2;
+  margin: 0;
+  color: var(--modal-text);
+}
+
+.export-modal-close {
+  border: 1px solid var(--shell-control-border);
+  background: transparent;
+  color: var(--shell-muted);
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.export-modal-close:hover {
+  color: var(--shell-button-text-hover);
+  border-color: var(--shell-button-border-hover);
+}
+
+.export-modal-lead {
+  margin: 0 0 14px;
+  color: var(--shell-muted);
+  font-size: 13px;
+}
+
+.export-modal-lead code,
+.export-modal-tip code {
+  background: var(--shell-control-bg);
+  border: 1px solid var(--shell-control-border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 12px;
+}
+
+.command-section {
+  margin-bottom: 12px;
+}
+
+.command-section p {
+  margin: 0 0 6px;
+  color: var(--shell-text);
+  font-size: 13px;
+}
+
+.command-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--shell-control-border);
+  background: var(--shell-control-bg);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.command-row code {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  color: var(--shell-text);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+.command-copy-btn {
+  border: 1px solid var(--shell-control-border);
+  background: transparent;
+  color: var(--shell-muted);
+  border-radius: 6px;
+  padding: 5px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.command-copy-btn:hover {
+  color: var(--shell-button-text-hover);
+  border-color: var(--shell-button-border-hover);
+}
+
+.export-modal-tip {
+  margin: 4px 0 0;
+  color: var(--shell-muted);
+  font-size: 12px;
+}
+
+.share-modal-note {
+  margin: 10px 0 0;
+  color: var(--shell-muted);
+  font-size: 12px;
+  font-weight: 600;
 }

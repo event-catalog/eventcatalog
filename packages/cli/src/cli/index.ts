@@ -49,7 +49,7 @@ program
   .option('-v, --version <version>', 'Resource version (defaults to latest)')
   .option('--hydrate', 'Include referenced resources (messages, channels, owners)', false)
   .option('--stdout', 'Print to stdout instead of writing a file', false)
-  .option('--playground', 'Open the exported DSL in the playground', false)
+  .option('--playground', 'Open the exported DSL in EventCatalog Modelling', false)
   .option('-o, --output <path>', 'Output file path (defaults to <id>.ec or catalog.ec)')
   .action(async (opts) => {
     try {
