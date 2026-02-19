@@ -107,7 +107,12 @@ export const versionExists = async (catalogDir: string, id: string, version: str
   return entries.some((e) => e.version === version);
 };
 
-export const findFileById = async (catalogDir: string, id: string, version?: string): Promise<string | undefined> => {
+export const findFileById = async (
+  catalogDir: string,
+  id: string,
+  version?: string,
+  _options?: { type?: string }
+): Promise<string | undefined> => {
   ensureFileCache(catalogDir);
 
   const entries = _fileIndexCache!.get(id);

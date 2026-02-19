@@ -29,6 +29,7 @@ const {
   toService,
   addDataStoreToService,
   writeDataStore,
+  writeChannel,
 } = utils(CATALOG_PATH);
 
 // clean the catalog before each test
@@ -72,6 +73,35 @@ describe('Services SDK', () => {
         },
         attachments: ['https://example.com'],
         diagrams: [{ id: 'InventoryServiceDiagram', version: '1.0.0' }],
+      });
+    });
+
+    it('returns the service when another resource type shares the same id', async () => {
+      await writeChannel({
+        id: 'InventoryService',
+        name: 'Inventory Service Channel',
+        version: '1.0.0',
+        summary: 'Channel that shares an id with a service',
+        markdown: '# Channel',
+        address: 'inventory.service.events',
+      });
+
+      await writeService({
+        id: 'InventoryService',
+        name: 'Inventory Service',
+        version: '0.0.1',
+        summary: 'Service tat handles the inventory',
+        markdown: '# Hello world',
+      });
+
+      const test = await getService('InventoryService');
+
+      expect(test).toEqual({
+        id: 'InventoryService',
+        name: 'Inventory Service',
+        version: '0.0.1',
+        summary: 'Service tat handles the inventory',
+        markdown: '# Hello world',
       });
     });
 

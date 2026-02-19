@@ -130,7 +130,35 @@ export const getResource = async (
   filePath?: string
 ): Promise<Resource | undefined> => {
   const attachSchema = options?.attachSchema || false;
-  const file = filePath || (id ? await findFileById(catalogDir, id, version) : undefined);
+
+  const typeToDirectory: Record<string, string[]> = {
+    service: ['services'],
+    event: ['events'],
+    command: ['commands'],
+    query: ['queries'],
+    channel: ['channels'],
+    domain: ['domains'],
+    entity: ['entities'],
+    diagram: ['diagrams'],
+    container: ['containers'],
+    'data-product': ['data-products'],
+    message: ['events', 'commands', 'queries'],
+  };
+
+  const expectedDirectories = options?.type ? typeToDirectory[options.type] || [options.type] : [];
+  const matchesExpectedType = (candidate: string) => {
+    if (!expectedDirectories.length) return true;
+    return expectedDirectories.some((dir) => candidate.replace(/\\/g, '/').includes(`/${dir}/`));
+  };
+
+  let file = filePath || (id ? await findFileById(catalogDir, id, version) : undefined);
+
+  if (id && (!file || !matchesExpectedType(file))) {
+    const files = await getFiles(`${catalogDir}/**/index.{md,mdx}`);
+    const matchedFiles = await searchFilesForId(files, id, version);
+    file = matchedFiles.find((candidate) => matchesExpectedType(candidate));
+  }
+
   if (!file || !fsSync.existsSync(file)) return;
 
   const { data, content } = cachedMatterRead(file);

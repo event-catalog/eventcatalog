@@ -25,6 +25,7 @@ const {
   writeQuery,
   getQuery,
   addFileToQuery,
+  writeService,
 } = utils(CATALOG_PATH);
 
 // clean the catalog before each test
@@ -57,6 +58,22 @@ const mockChannel = {
 describe('Channels SDK', () => {
   describe('getChannel', () => {
     it('returns the given channel id from EventCatalog and the latest version when no version is given,', async () => {
+      await writeChannel(mockChannel);
+
+      const test = await getChannel('inventory.{env}.events');
+
+      expect(test).toEqual(mockChannel);
+    });
+
+    it('returns the channel when another resource type shares the same id', async () => {
+      await writeService({
+        id: 'inventory.{env}.events',
+        name: 'Conflicting Service',
+        version: '1.0.0',
+        summary: 'Service that shares an id with a channel',
+        markdown: '# Service',
+      });
+
       await writeChannel(mockChannel);
 
       const test = await getChannel('inventory.{env}.events');
