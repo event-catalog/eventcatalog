@@ -6,7 +6,7 @@
     "url": "https://github.com/event-catalog/eventcatalog.git"
   },
   "type": "module",
-  "version": "3.15.0-beta.1",
+  "version": "3.15.0",
   "publishConfig": {
     "access": "public"
   },
@@ -35,9 +35,7 @@
     "preview:catalog": "node scripts/preview-catalog-locally.js",
     "generate:catalog": "node scripts/generate-catalog-locally.js",
     "verify-build:catalog": "rimraf dist && pnpm run build:cd",
-    "changeset": "changeset",
     "generate": "pnpm run build:bin && npx . generate",
-    "release": "changeset publish",
     "format": "prettier --config .prettierrc --write \"**/*.{js,jsx,ts,tsx,json,astro}\"",
     "format:diff": "prettier --config .prettierrc --list-different \"**/*.{js,jsx,ts,tsx,json,astro}\"",
     "lint:catalog": "pnpm dlx @eventcatalog/linter examples/default",
@@ -133,7 +131,6 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.6",
-    "@changesets/cli": "^2.27.5",
     "@types/dagre": "^0.7.52",
     "@types/diff": "^5.2.2",
     "@types/js-yaml": "^4.0.9",
