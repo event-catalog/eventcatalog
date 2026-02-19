@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.14.2
+
+### Patch Changes
+
+- 6a4e582: Improve DSL import with container ref support, resource stubs, and cache upsert; add writes-to and reads-from compilation in the language server.
+
 ## 2.14.1
 
 ### Patch Changes
