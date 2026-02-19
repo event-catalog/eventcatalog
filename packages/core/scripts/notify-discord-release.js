@@ -37,15 +37,30 @@ function parseReleaseNotes(body) {
     other: [],
   };
 
-  // Split by lines and process
+  // Parse only the first top-level release block when multiple versions are present.
+  // This avoids posting historical notes if the body contains several changelog entries.
+  const hasTopLevelVersionHeadings = /^##\s+/m.test(body);
   const lines = body.split('\n');
   let currentSection = 'other';
+  let inFirstReleaseBlock = !hasTopLevelVersionHeadings;
+  let seenFirstTopLevelHeading = false;
 
   for (const line of lines) {
     const trimmed = line.trim();
 
+    if (hasTopLevelVersionHeadings && /^##\s+/.test(trimmed)) {
+      if (!seenFirstTopLevelHeading) {
+        seenFirstTopLevelHeading = true;
+        inFirstReleaseBlock = true;
+        continue;
+      }
+      break;
+    }
+
+    if (!inFirstReleaseBlock) continue;
+
     // Check for section headers (### Minor Changes, ### Patch Changes, etc.)
-    if (trimmed.startsWith('#')) {
+    if (trimmed.startsWith('###')) {
       const lowerLine = trimmed.toLowerCase();
       if (lowerLine.includes('minor') || lowerLine.includes('feature')) {
         currentSection = 'features';
@@ -59,8 +74,8 @@ function parseReleaseNotes(body) {
     if (!trimmed) continue;
 
     // Process bullet points
-    if (trimmed.startsWith('-') || trimmed.startsWith('*')) {
-      let content = trimmed.slice(1).trim();
+    if (/^[-*]\s+/.test(line)) {
+      let content = line.replace(/^[-*]\s+/, '').trim();
 
       // Extract PR/issue numbers before cleaning
       const prMatches = content.match(/#(\d+)/g) || [];

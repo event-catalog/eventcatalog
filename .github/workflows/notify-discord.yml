@@ -2,19 +2,18 @@ name: Discord Release Notification
 
 on:
   workflow_dispatch: # Allow manual triggering for testing
-  workflow_run:
-    workflows: ['Release']
+  release:
     types:
-      - completed
+      - published
 
 jobs:
   notify:
     runs-on: ubuntu-latest
-    # Run on manual trigger OR after successful Release workflow with Version Packages commit
+    # Run on manual trigger OR when a core package release is published
     if: >
       github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-      startsWith(github.event.workflow_run.head_commit.message, 'Version Packages'))
+      (github.event_name == 'release' &&
+      startsWith(github.event.release.tag_name, '@eventcatalog/core@'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,7 +23,8 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Get latest release info
+      - name: Get latest release info (manual trigger only)
+        if: github.event_name == 'workflow_dispatch'
         id: release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -47,7 +47,7 @@ jobs:
         run: node packages/core/scripts/notify-discord-release.js
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK }}
-          RELEASE_TAG: ${{ steps.release.outputs.tag }}
-          RELEASE_NAME: ${{ steps.release.outputs.name }}
-          RELEASE_BODY: ${{ steps.release.outputs.body }}
-          RELEASE_URL: ${{ steps.release.outputs.url }}
+          RELEASE_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || steps.release.outputs.tag }}
+          RELEASE_NAME: ${{ github.event_name == 'release' && github.event.release.name || steps.release.outputs.name }}
+          RELEASE_BODY: ${{ github.event_name == 'release' && github.event.release.body || steps.release.outputs.body }}
+          RELEASE_URL: ${{ github.event_name == 'release' && github.event.release.html_url || steps.release.outputs.url }}
