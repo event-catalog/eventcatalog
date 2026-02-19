@@ -12,6 +12,7 @@
     "@eventcatalog/dsl-playground": "0.1.0"
   },
   "changesets": [
-    "brave-tigers-dance"
+    "brave-tigers-dance",
+    "quiet-loggers-wave"
   ]
 }
