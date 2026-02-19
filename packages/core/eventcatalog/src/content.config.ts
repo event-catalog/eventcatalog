@@ -30,8 +30,10 @@ export const projectDirBase = (() => {
 })();
 
 const withIgnoredBuildArtifacts = (patterns: string | string[]) => {
-  const patternList = Array.isArray(patterns) ? patterns : [patterns];
-  return [...patternList, '!dist/**'];
+  if (process.env.IGNORE_BUILD_ARTIFACTS === 'true') {
+    return [...patterns, '!dist/**'];
+  }
+  return patterns;
 };
 
 const pages = defineCollection({
