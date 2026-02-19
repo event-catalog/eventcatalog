@@ -44,7 +44,6 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "dependencies": {
-    "@changesets/cli": "^2.29.8",
     "fs-extra": "^11.3.2",
     "glob": "^11.1.0",
     "gray-matter": "^4.0.3",
