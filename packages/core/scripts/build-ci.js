@@ -83,6 +83,7 @@ const run = async () => {
   // Build catalog
   execSync(`cross-env NODE_ENV=CI PROJECT_DIR=${projectDIR} CATALOG_DIR=${catalogDir} npx . build`, {
     stdio: 'inherit',
+    IGNORE_BUILD_ARTIFACTS: 'true',
   });
 
   // Type check
