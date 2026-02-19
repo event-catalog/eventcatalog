@@ -5,7 +5,6 @@ import http from 'node:http';
 import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import concurrently from 'concurrently';
 import { generate } from './generate';
 import logBuild from './analytics/log-build';
 import { VERSION } from './constants';
@@ -124,16 +123,36 @@ const createAstroLineFilter = () => {
   };
 };
 
+const createAstroDevLineFilter = () => {
+  const shouldFilterAstroLine = createAstroLineFilter();
+
+  return (line: string) => {
+    return shouldFilterAstroLine(line) || line.includes('[router]');
+  };
+};
+
+const replaceAstroReadyVersionLine = (line: string) => {
+  const matches = line.match(/^(\s*)astro(\s+)v\S+(\s+ready.*)$/i);
+
+  if (!matches) {
+    return line;
+  }
+
+  return `${matches[1]}eventcatalog${matches[2]}v${VERSION}${matches[3]}`;
+};
+
 const runCommandWithFilteredOutput = async ({
   command,
   cwd,
   env,
   shouldFilterLine,
+  transformLine = (line) => line,
 }: {
   command: string;
   cwd: string;
   env: NodeJS.ProcessEnv;
   shouldFilterLine: (line: string) => boolean;
+  transformLine?: (line: string) => string;
 }) => {
   await new Promise<void>((resolve, reject) => {
     const child = spawn(command, {
@@ -160,7 +179,7 @@ const runCommandWithFilteredOutput = async ({
           continue;
         }
         if (!shouldFilterLine(line)) {
-          writer.write(`${rawLine}\n`);
+          writer.write(`${transformLine(rawLine)}\n`);
         }
       }
 
@@ -347,34 +366,21 @@ program
         });
       }
 
-      const astroCommand =
-        process.platform === 'win32'
-          ? `npx astro dev ${args} 2>&1 | findstr /V /C:"[glob-loader]" /C:"The collection" /C:"[router]"`
-          : `npx astro dev ${args} 2>&1 | grep -v -e "\\[glob-loader\\]" -e "The collection.*does not exist" -e "\\[router\\]"`;
-
-      const { result } = concurrently(
-        [
-          {
-            name: 'astro',
-            command: astroCommand,
-            cwd: core,
-            env: {
-              PROJECT_DIR: dir,
-              CATALOG_DIR: core,
-              ENABLE_EMBED: canEmbedPages || isEventCatalogScale,
-              EVENTCATALOG_STARTER: isEventCatalogStarter,
-              EVENTCATALOG_SCALE: isEventCatalogScale,
-              EVENTCATALOG_DEV_MODE: 'true',
-              NODE_NO_WARNINGS: '1',
-            },
-          },
-        ],
-        {
-          raw: true,
-        }
-      );
-
-      await result;
+      await runCommandWithFilteredOutput({
+        command: `npx astro dev ${args}`,
+        cwd: core,
+        env: {
+          PROJECT_DIR: dir,
+          CATALOG_DIR: core,
+          ENABLE_EMBED: String(canEmbedPages || isEventCatalogScale),
+          EVENTCATALOG_STARTER: String(isEventCatalogStarter),
+          EVENTCATALOG_SCALE: String(isEventCatalogScale),
+          EVENTCATALOG_DEV_MODE: 'true',
+          NODE_NO_WARNINGS: '1',
+        },
+        shouldFilterLine: createAstroDevLineFilter(),
+        transformLine: replaceAstroReadyVersionLine,
+      });
     } catch (err) {
       console.error(err);
     } finally {
