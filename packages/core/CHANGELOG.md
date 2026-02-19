@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.15.3
+
+### Patch Changes
+
+- 6bf21c4: Replace `concurrently` with native `spawn` for dev server process management, improving output filtering and replacing astro version line with eventcatalog version
+
 ## 3.12.6-beta.0
 
 ### Patch Changes
@@ -141,6 +147,7 @@
 ### Patch Changes
 
 - be0ba03: fix(schema-viewer): add support for oneOf and anyOf JSON Schema keywords
+
   - Add handling for `anyOf` in processSchema function (was missing entirely)
   - Fix `oneOf` rendering to show selected variant's properties instead of merged properties
   - Add variant selector UI for nested `oneOf`/`anyOf` within properties
@@ -853,6 +860,7 @@
   Addresses issues #1652 and #1644 by improving the path resolution logic in the `resolveProjectPath` function with full cross-platform compatibility. This fix ensures that paths starting with `../` are resolved correctly on Windows, macOS, and Linux systems.
 
   **Key improvements:**
+
   - Normalizes path separators (`/` and `\`) for cross-platform compatibility
   - Prevents `../` paths from incorrectly resolving outside the project directory
   - Fixes OpenAPI specifications and schemas failing to load after version 2.54.4
@@ -867,6 +875,7 @@
 - 2d563c9: fix(core): resolve SchemaViewer path resolution for relative paths
 
   Fixes SchemaViewer components failing to load schema files with paths starting with "../". The issue was caused by inconsistent path resolution logic in SchemaViewerRoot.astro.
+
   - Added resolveProjectPath function to handle "../" paths correctly
   - Updated getAbsoluteFilePathForAstroFile to use the new path resolution logic
   - SchemaViewerRoot.astro now uses resolveProjectPath for consistent path handling
