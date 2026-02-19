@@ -152,6 +152,35 @@ service OrderService {
     expect(sendRef.to[0].version).toBe('2.0.0');
   });
 
+  it('creates a versioned channel stub when a different channel version is referenced', async () => {
+    const ecFile = writeEcFile(
+      'test.ec',
+      `channel OrderTopic {
+  version 1.0.0
+  name "Order Topic"
+}
+
+event OrderCreated {
+  version 1.0.0
+  name "Order Created"
+}
+
+service OrderService {
+  version 1.0.0
+  name "Order Service"
+  sends event OrderCreated@1.0.0 to OrderTopic@2.0.0
+}`
+    );
+
+    const result = await importDSL({ files: [ecFile], dir: catalogPath });
+    expect(result).toContain('Created 4 resource(s)');
+
+    const sdk = createSDK(catalogPath);
+    expect(await sdk.getChannel('OrderTopic', '1.0.0')).toBeDefined();
+    expect(await sdk.getChannel('OrderTopic', '2.0.0')).toBeDefined();
+    expect(await sdk.getChannel('OrderTopic', '0.0.1')).toBeUndefined();
+  });
+
   it('creates channel stubs for referenced channels without standalone definitions', async () => {
     const ecFile = writeEcFile(
       'test.ec',

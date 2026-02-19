@@ -1,0 +1,187 @@
+---
+import { Code } from '@astrojs/starlight/components';
+import { Buffer } from 'node:buffer';
+
+type ChannelOption = {
+  id: string;
+  label: string;
+  detail: string;
+  address: string;
+  protocol: string;
+};
+
+const options: ChannelOption[] = [
+  {
+    id: 'kafka',
+    label: 'Kafka',
+    detail: 'Topic-based streaming (append-only event log).',
+    address: 'orders.events',
+    protocol: 'Kafka',
+  },
+  {
+    id: 'mqtt',
+    label: 'MQTT',
+    detail: 'Lightweight pub/sub for devices and edge systems.',
+    address: 'orders/events',
+    protocol: 'MQTT',
+  },
+  {
+    id: 'http',
+    label: 'HTTP',
+    detail: 'Request/response or webhook-style delivery.',
+    address: '/orders/events',
+    protocol: 'HTTP',
+  },
+  {
+    id: 'sqs',
+    label: 'SQS',
+    detail: 'Queue-based delivery with managed buffering.',
+    address: 'orders-events',
+    protocol: 'SQS',
+  },
+];
+
+const [defaultOption] = options;
+const instanceId = `channel-selector-${Math.random().toString(36).slice(2, 8)}`;
+const playgroundBaseUrl = 'https://playground.eventcatalog.dev/?code=';
+
+const buildModelCode = (option: ChannelOption) => `service OrdersService {
+  version 1.0.0
+  name "Orders Service"
+  sends event OrderCreated@1.0.0 to OrdersChannel@1.0.0
+}
+
+event OrderCreated {
+  version 1.0.0
+  name "Order Created"
+  summary "Raised when an order is created"
+}
+
+channel OrdersChannel {
+  version 1.0.0
+  name "Orders Channel"
+  address "${option.address}"
+  protocol "${option.protocol}"
+}`;
+
+const buildDiffCode = (option: ChannelOption) => `service OrdersService {
+  version 1.0.0
+  name "Orders Service"
+-  sends event OrderCreated@1.0.0
++  sends event OrderCreated@1.0.0 to OrdersChannel@1.0.0
+}
+
+event OrderCreated {
+  version 1.0.0
+  name "Order Created"
+  summary "Raised when an order is created"
+}
+
++channel OrdersChannel {
++  version 1.0.0
++  name "Orders Channel"
++  address "${option.address}"
++  protocol "${option.protocol}"
++}`;
+
+const toPlaygroundUrl = (option: ChannelOption) => {
+  const encoded = encodeURIComponent(Buffer.from(buildModelCode(option), 'utf-8').toString('base64'));
+  return `${playgroundBaseUrl}${encoded}`;
+};
+---
+
+<ec-channel-selector class="ec-channel-selector">
+  <div class="ec-channel-selector__controls">
+    <label for={`${instanceId}-transport`} class="ec-channel-selector__label">Channel transport</label>
+    <select id={`${instanceId}-transport`} data-channel-select class="ec-channel-selector__select">
+      {
+        options.map((option) => (
+          <option value={option.id} data-detail={option.detail} selected={option.id === defaultOption.id}>
+            {option.label}
+          </option>
+        ))
+      }
+    </select>
+    <p class="ec-channel-selector__description">
+      {defaultOption.detail}
+    </p>
+  </div>
+
+  {
+    options.map((option) => (
+      <div data-channel-panel={option.id} hidden={option.id !== defaultOption.id}>
+        <p class="ec-channel-selector__actions">
+          <a href={toPlaygroundUrl(option)} target="_blank" rel="noopener noreferrer">
+            Open this version in EventCatalog Modelling
+          </a>
+        </p>
+        <Code code={buildDiffCode(option)} lang="diff" meta='title="main.ec"' />
+      </div>
+    ))
+  }
+</ec-channel-selector>
+
+<script>
+  class EcChannelSelector extends HTMLElement {
+    connectedCallback() {
+      const select = this.querySelector('[data-channel-select]');
+      const panels = Array.from(this.querySelectorAll('[data-channel-panel]'));
+      const description = this.querySelector('.ec-channel-selector__description');
+
+      if (!(select instanceof HTMLSelectElement) || !description) return;
+
+      const render = () => {
+        for (const panel of panels) {
+          panel.toggleAttribute('hidden', panel.getAttribute('data-channel-panel') !== select.value);
+        }
+
+        description.textContent = select.selectedOptions[0]?.dataset.detail || '';
+      };
+
+      select.addEventListener('change', render);
+      render();
+    }
+  }
+
+  if (!customElements.get('ec-channel-selector')) {
+    customElements.define('ec-channel-selector', EcChannelSelector);
+  }
+</script>
+
+<style>
+  .ec-channel-selector {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .ec-channel-selector__controls {
+    display: grid;
+    gap: 0.35rem;
+    max-width: 22rem;
+  }
+
+  .ec-channel-selector__label {
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+  }
+
+  .ec-channel-selector__select {
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 0.5rem;
+    background: var(--sl-color-bg);
+    color: var(--sl-color-text);
+    padding: 0.5rem 0.7rem;
+    font: inherit;
+  }
+
+  .ec-channel-selector__description {
+    margin: 0;
+    color: var(--sl-color-text-accent);
+    font-size: var(--sl-text-sm);
+  }
+
+  .ec-channel-selector__actions {
+    margin: 0 0 0.35rem;
+    font-size: var(--sl-text-sm);
+  }
+</style>

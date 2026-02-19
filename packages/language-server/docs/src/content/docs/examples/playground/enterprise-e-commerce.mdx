@@ -1,0 +1,447 @@
+---
+title: "Enterprise E-Commerce"
+description: "Complex enterprise system with 8 domains and multiple channels"
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+This example mirrors the `Enterprise E-Commerce` template in the EventCatalog Modelling.
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/#example=11"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+### `main.ec`
+
+```ec title="main.ec"
+import { Orders, OrderService, OrderCreated, OrderShipped, OrderCancelled } from "./orders.ec"
+import { Payment, PaymentService, PaymentProcessed, PaymentFailed } from "./payment.ec"
+import { Inventory, InventoryService, StockReserved, StockReleased } from "./inventory.ec"
+import { Shipping, ShippingService, ShipmentCreated, ShipmentDelivered } from "./shipping.ec"
+import { Customer, CustomerService, CustomerRegistered, CustomerUpdated } from "./customer.ec"
+import { Marketing, CampaignService, CampaignStarted, EmailSent } from "./marketing.ec"
+import { Analytics, AnalyticsService } from "./analytics.ec"
+import { Notifications, NotificationService } from "./notifications.ec"
+
+visualizer main {
+  name "Enterprise E-Commerce Platform"
+  legend true
+  search true
+
+  domain Orders
+  domain Payment
+  domain Inventory
+  domain Shipping
+  domain Customer
+  domain Marketing
+  domain Analytics
+  domain Notifications
+
+  channel OrdersChannel {
+    version 1.0.0
+    address "orders.events"
+    protocol "kafka"
+  }
+
+  channel PaymentsChannel {
+    version 1.0.0
+    address "payments.events"
+    protocol "kafka"
+  }
+
+  channel ShippingChannel {
+    version 1.0.0
+    address "shipping.events"
+    protocol "kafka"
+  }
+
+  channel CommandAPI {
+    version 1.0.0
+    address "/api/v1"
+    protocol "http"
+  }
+
+  data-product CustomerInsights {
+    version 1.0.0
+    summary "Customer behavior and purchase analytics"
+
+    input event OrderCreated
+    input event PaymentProcessed
+    input event CustomerRegistered
+
+    output event CustomerMetrics
+    output event PurchasePatterns {
+      contract {
+        path "./schemas/purchase-patterns.json"
+        name "PurchasePatternsSchema"
+        type "json-schema"
+      }
+    }
+  }
+
+  data-product RevenueAnalytics {
+    version 1.0.0
+    summary "Real-time revenue and sales analytics"
+
+    input event PaymentProcessed
+    input event OrderShipped
+
+    output event DailyRevenue
+    output event MonthlySalesReport
+  }
+}
+
+```
+
+### `orders.ec`
+
+```ec title="orders.ec"
+domain Orders {
+  version 1.0.0
+  summary "Order management and lifecycle"
+
+  container OrdersDB {
+    version 1.0.0
+    container-type database
+    technology "PostgreSQL 15"
+    summary "Stores all order data and state"
+  }
+
+  service OrderService {
+    version 1.0.0
+    summary "Manages order creation, updates, and fulfillment"
+
+    writes-to container OrdersDB
+    reads-from container OrdersDB
+
+    sends event OrderCreated {
+      version 1.0.0
+      summary "New order has been placed by customer"
+    }
+
+    sends event OrderShipped {
+      version 1.0.0
+      summary "Order has been shipped to customer"
+    }
+
+    sends event OrderCancelled {
+      version 1.0.0
+      summary "Order has been cancelled"
+    }
+
+    sends command ProcessPayment {
+      version 1.0.0
+      summary "Request payment processing"
+    }
+
+    sends command ReserveStock {
+      version 1.0.0
+      summary "Request inventory reservation"
+    }
+
+    receives event PaymentProcessed
+    receives event PaymentFailed
+    receives event StockReserved
+
+    receives command CancelOrder {
+      version 1.0.0
+      summary "Cancel an existing order"
+    }
+  }
+}
+
+```
+
+### `payment.ec`
+
+```ec title="payment.ec"
+domain Payment {
+  version 1.0.0
+  summary "Payment processing and billing"
+
+  container PaymentDB {
+    version 1.0.0
+    container-type database
+    technology "PostgreSQL 15"
+    summary "Stores payment transactions"
+  }
+
+  container PaymentCache {
+    version 1.0.0
+    container-type cache
+    technology "Redis 7"
+    summary "Caches payment status for quick lookups"
+  }
+
+  service PaymentService {
+    version 1.0.0
+    summary "Processes payments and manages billing"
+
+    writes-to container PaymentDB
+    writes-to container PaymentCache
+    reads-from container PaymentCache
+
+    sends event PaymentProcessed {
+      version 1.0.0
+      summary "Payment completed successfully"
+    }
+
+    sends event PaymentFailed {
+      version 1.0.0
+      summary "Payment processing failed"
+    }
+
+    receives command ProcessPayment
+
+    receives command RefundPayment {
+      version 1.0.0
+      summary "Process a refund"
+    }
+  }
+}
+
+```
+
+### `inventory.ec`
+
+```ec title="inventory.ec"
+domain Inventory {
+  version 1.0.0
+  summary "Inventory and stock management"
+
+  container InventoryDB {
+    version 1.0.0
+    container-type database
+    technology "PostgreSQL 15"
+    summary "Stores product inventory levels"
+  }
+
+  service InventoryService {
+    version 1.0.0
+    summary "Manages product stock levels and reservations"
+
+    writes-to container InventoryDB
+    reads-from container InventoryDB
+
+    sends event StockReserved {
+      version 1.0.0
+      summary "Stock has been reserved for an order"
+    }
+
+    sends event StockReleased {
+      version 1.0.0
+      summary "Reserved stock has been released"
+    }
+
+    sends event LowStockAlert {
+      version 1.0.0
+      summary "Stock level is below threshold"
+    }
+
+    receives command ReserveStock
+
+    receives command ReleaseStock {
+      version 1.0.0
+    }
+
+    receives event OrderCancelled
+  }
+}
+
+```
+
+### `shipping.ec`
+
+```ec title="shipping.ec"
+domain Shipping {
+  version 1.0.0
+  summary "Shipping and logistics management"
+
+  container ShippingDB {
+    version 1.0.0
+    container-type database
+    technology "MongoDB 6"
+    summary "Stores shipment tracking information"
+  }
+
+  service ShippingService {
+    version 1.0.0
+    summary "Manages shipment creation and tracking"
+
+    writes-to container ShippingDB
+    reads-from container ShippingDB
+
+    sends event ShipmentCreated {
+      version 1.0.0
+      summary "Shipment has been created"
+    }
+
+    sends event ShipmentDelivered {
+      version 1.0.0
+      summary "Shipment delivered to customer"
+    }
+
+    receives event OrderShipped
+
+    receives query GetShipmentStatus {
+      version 1.0.0
+      summary "Query shipment tracking status"
+    }
+  }
+}
+
+```
+
+### `customer.ec`
+
+```ec title="customer.ec"
+domain Customer {
+  version 1.0.0
+  summary "Customer identity and profile management"
+
+  container CustomerDB {
+    version 1.0.0
+    container-type database
+    technology "PostgreSQL 15"
+    summary "Stores customer profiles and preferences"
+  }
+
+  service CustomerService {
+    version 1.0.0
+    summary "Manages customer accounts and profiles"
+
+    writes-to container CustomerDB
+    reads-from container CustomerDB
+
+    sends event CustomerRegistered {
+      version 1.0.0
+      summary "New customer account created"
+    }
+
+    sends event CustomerUpdated {
+      version 1.0.0
+      summary "Customer profile updated"
+    }
+
+    receives command RegisterCustomer {
+      version 1.0.0
+    }
+
+    receives command UpdateCustomer {
+      version 1.0.0
+    }
+
+    receives query GetCustomerProfile {
+      version 1.0.0
+    }
+  }
+}
+
+```
+
+### `marketing.ec`
+
+```ec title="marketing.ec"
+domain Marketing {
+  version 1.0.0
+  summary "Marketing campaigns and customer engagement"
+
+  container CampaignDB {
+    version 1.0.0
+    container-type database
+    technology "MongoDB 6"
+    summary "Stores campaign data and metrics"
+  }
+
+  service CampaignService {
+    version 1.0.0
+    summary "Manages marketing campaigns"
+
+    writes-to container CampaignDB
+    reads-from container CampaignDB
+
+    sends event CampaignStarted {
+      version 1.0.0
+      summary "Marketing campaign has started"
+    }
+
+    sends event EmailSent {
+      version 1.0.0
+      summary "Marketing email sent to customer"
+    }
+
+    receives event CustomerRegistered
+    receives event OrderCreated
+  }
+}
+
+```
+
+### `analytics.ec`
+
+```ec title="analytics.ec"
+domain Analytics {
+  version 1.0.0
+  summary "Business intelligence and analytics"
+
+  container AnalyticsDB {
+    version 1.0.0
+    container-type dataWarehouse
+    technology "Snowflake"
+    summary "Data warehouse for analytics"
+  }
+
+  service AnalyticsService {
+    version 1.0.0
+    summary "Processes and aggregates business metrics"
+
+    writes-to container AnalyticsDB
+
+    receives event OrderCreated
+    receives event PaymentProcessed
+    receives event ShipmentDelivered
+    receives event CustomerRegistered
+  }
+}
+
+```
+
+### `notifications.ec`
+
+```ec title="notifications.ec"
+domain Notifications {
+  version 1.0.0
+  summary "Multi-channel notification delivery"
+
+  container NotificationQueue {
+    version 1.0.0
+    container-type cache
+    technology "Redis 7"
+    summary "Queue for pending notifications"
+  }
+
+  service NotificationService {
+    version 1.0.0
+    summary "Sends notifications via email, SMS, and push"
+
+    writes-to container NotificationQueue
+    reads-from container NotificationQueue
+
+    sends event NotificationSent {
+      version 1.0.0
+      summary "Notification delivered to customer"
+    }
+
+    receives event OrderCreated
+    receives event OrderShipped
+    receives event PaymentProcessed
+    receives event PaymentFailed
+    receives event ShipmentDelivered
+  }
+}
+
+```

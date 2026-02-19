@@ -73,4 +73,27 @@ export function registerEcLanguage(monaco: Monaco) {
       'editor.lineHighlightBackground': '#161b22',
     },
   });
+
+  monaco.editor.defineTheme('ec-light', {
+    base: 'vs',
+    inherit: true,
+    rules: [
+      { token: 'keyword', foreground: '0550ae', fontStyle: 'bold' },
+      { token: 'annotation', foreground: '8250df' },
+      { token: 'string', foreground: '0a3069' },
+      { token: 'comment', foreground: '6e7781' },
+      { token: 'number.version', foreground: '1f883d' },
+      { token: 'identifier', foreground: '24292f' },
+      { token: 'delimiter', foreground: '57606a' },
+      { token: 'operator', foreground: '57606a' },
+    ],
+    colors: {
+      'editor.background': '#ffffff',
+      'editor.foreground': '#1f2328',
+      'editorLineNumber.foreground': '#8c959f',
+      'editorLineNumber.activeForeground': '#24292f',
+      'editor.selectionBackground': '#dbeafe',
+      'editor.lineHighlightBackground': '#f6f8fa',
+    },
+  });
 }

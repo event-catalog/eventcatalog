@@ -115,6 +115,28 @@ describe("compile", () => {
     expect(svcOutput!.content).toContain("PlaceOrder");
   });
 
+  it("compiles a service with writes-to and reads-from container refs", async () => {
+    const program = await parseProgram(`
+      service OrderService {
+        version 1.0.0
+        writes-to container orders-db@2.0.0
+        reads-from container orders-cache
+      }
+    `);
+
+    const outputs = compile(program);
+
+    const svcOutput = outputs.find(
+      (o) => o.path === "services/OrderService/versioned/1.0.0/index.md",
+    );
+    expect(svcOutput).toBeDefined();
+    expect(svcOutput!.content).toContain("writesTo:");
+    expect(svcOutput!.content).toContain('id: "orders-db"');
+    expect(svcOutput!.content).toContain('version: "2.0.0"');
+    expect(svcOutput!.content).toContain("readsFrom:");
+    expect(svcOutput!.content).toContain('id: "orders-cache"');
+  });
+
   it("compiles a standalone event", async () => {
     const program = await parseProgram(`
       event OrderCreated {

@@ -31,6 +31,9 @@
     "generate": "langium generate",
     "build": "tsc",
     "build:bin": "langium generate && tsc",
+    "docs:dev": "astro dev --root docs",
+    "docs:build": "astro build --root docs",
+    "docs:preview": "astro preview --root docs",
     "dev": "tsc --watch",
     "test": "vitest run",
     "test:ci": "vitest run",
@@ -47,7 +50,9 @@
     "vscode-uri": "^3.0.8"
   },
   "devDependencies": {
+    "@astrojs/starlight": "^0.32.0",
     "@types/semver": "^7.7.1",
+    "astro": "^5.17.2",
     "langium-cli": "^3.3.1",
     "prettier": "^3.2.5",
     "typescript": "^5.7.0",

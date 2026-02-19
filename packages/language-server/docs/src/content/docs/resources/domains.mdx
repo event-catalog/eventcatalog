@@ -1,0 +1,59 @@
+---
+title: Domains
+description: Model bounded contexts and ownership boundaries with domains.
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+`domain` models a bounded context and groups related resources.
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/#example=9"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+## Example
+
+This example models a `Commerce` domain with an inline service and a nested `Payments` subdomain.
+
+```ec title="main.ec"
+domain Commerce {
+  version 1.0.0
+  name "Commerce Domain"
+  summary "Order and payment capabilities"
+  owner commerce-team
+
+  service OrdersService {
+    version 1.0.0
+    sends event OrderCreated@1.0.0
+  }
+
+  subdomain Payments {
+    version 1.0.0
+    service PaymentService {
+      version 1.0.0
+      receives event OrderCreated@1.0.0
+    }
+  }
+}
+```
+
+## Properties
+
+| Property       | Type             | Required        | Description                               | Example                               |
+| -------------- | ---------------- | --------------- | ----------------------------------------- | ------------------------------------- |
+| `version`      | semver           | Yes             | Resource version.                         | `1.0.0`                               |
+| `name`         | string           | No              | Display name (defaults to id).            | `"Commerce Domain"`                   |
+| `summary`      | string           | No              | Short description.                        | `"Order and payment capabilities"`    |
+| `owner`        | reference        | No (repeatable) | Team/user owner reference.                | `owner commerce-team`                 |
+| `service`      | reference/inline | No (repeatable) | Include or define services in the domain. | `service OrdersService@1.0.0`         |
+| `subdomain`    | reference/inline | No (repeatable) | Include or define subdomains.             | `subdomain Payments { ... }`          |
+| `data-product` | reference        | No (repeatable) | Related data products.                    | `data-product CommerceInsights@1.0.0` |
+| `flow`         | reference        | No (repeatable) | Related flows.                            | `flow OrderFulfillment@1.0.0`         |
+| `sends`        | statement        | No (repeatable) | Domain-level produced messages.           | `sends event OrderCreated`            |
+| `receives`     | statement        | No (repeatable) | Domain-level consumed messages.           | `receives event PaymentProcessed`     |
+| `draft`        | boolean          | No              | Marks resource as draft.                  | `draft true`                          |
+| `deprecated`   | boolean          | No              | Marks resource as deprecated.             | `deprecated true`                     |

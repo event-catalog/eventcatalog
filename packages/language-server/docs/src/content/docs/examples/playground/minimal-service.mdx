@@ -1,0 +1,35 @@
+---
+title: "Minimal Service"
+description: "Simplest possible service definition"
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+This example mirrors the `Minimal Service` template in the EventCatalog Modelling.
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/#example=2"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+### `main.ec`
+
+```ec title="main.ec"
+visualizer main {
+  service UserService {
+    version 1.0.0
+    summary "Manages user accounts"
+
+    sends event UserCreated
+    sends event UserUpdated
+
+    receives command CreateUser
+    receives command UpdateUser
+    receives query GetUser
+  }
+}
+
+```

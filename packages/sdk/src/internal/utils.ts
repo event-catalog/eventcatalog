@@ -16,6 +16,7 @@ interface FileIndexEntry {
 let _fileIndexCache: Map<string, FileIndexEntry[]> | null = null;
 let _fileIndexCatalogDir: string | null = null;
 let _matterCache: Map<string, matter.GrayMatterFile<string>> | null = null;
+let _filePathToIdCache: Map<string, string> | null = null;
 let _fileIndexMtimeMs: number = 0;
 
 function buildFileCache(catalogDir: string): void {
@@ -28,6 +29,7 @@ function buildFileCache(catalogDir: string): void {
 
   const index = new Map<string, FileIndexEntry[]>();
   const matterResults = new Map<string, matter.GrayMatterFile<string>>();
+  const pathToId = new Map<string, string>();
 
   for (const file of files) {
     const content = fsSync.readFileSync(file, 'utf-8');
@@ -37,21 +39,24 @@ function buildFileCache(catalogDir: string): void {
     const id = parsed.data.id;
     if (!id) continue;
 
+    const resourceId = String(id);
     const version = parsed.data.version || '';
     const isVersioned = file.includes('versioned');
-    const entry: FileIndexEntry = { path: file, id, version: String(version), isVersioned };
+    const entry: FileIndexEntry = { path: file, id: resourceId, version: String(version), isVersioned };
+    pathToId.set(file, resourceId);
 
-    const existing = index.get(id);
+    const existing = index.get(resourceId);
     if (existing) {
       existing.push(entry);
     } else {
-      index.set(id, [entry]);
+      index.set(resourceId, [entry]);
     }
   }
 
   _fileIndexCache = index;
   _fileIndexCatalogDir = catalogDir;
   _matterCache = matterResults;
+  _filePathToIdCache = pathToId;
   try {
     _fileIndexMtimeMs = fsSync.statSync(catalogDir).mtimeMs;
   } catch {
@@ -80,6 +85,60 @@ export function invalidateFileCache(): void {
   _fileIndexCache = null;
   _fileIndexCatalogDir = null;
   _matterCache = null;
+  _filePathToIdCache = null;
+}
+
+/**
+ * Incrementally updates the in-memory file index for a single file write.
+ * No-ops when cache is disabled or points at a different catalog.
+ */
+export function upsertFileCacheEntry(catalogDir: string, filePath: string, rawContent: string): void {
+  if (!_fileIndexCache || !_matterCache || !_filePathToIdCache || _fileIndexCatalogDir !== catalogDir) {
+    return;
+  }
+
+  const normalizedPath = normalize(filePath);
+  const parsed = matter(rawContent);
+
+  // Remove stale entry for this file path (if it existed under another id/version).
+  const previousId = _filePathToIdCache.get(normalizedPath);
+  if (previousId) {
+    const previousEntries = _fileIndexCache.get(previousId) || [];
+    const nextEntries = previousEntries.filter((entry) => entry.path !== normalizedPath);
+    if (nextEntries.length === 0) {
+      _fileIndexCache.delete(previousId);
+    } else {
+      _fileIndexCache.set(previousId, nextEntries);
+    }
+    _filePathToIdCache.delete(normalizedPath);
+  }
+
+  _matterCache.set(normalizedPath, parsed);
+
+  const id = parsed.data.id;
+  if (!id) {
+    _filePathToIdCache.delete(normalizedPath);
+    return;
+  }
+
+  const resourceId = String(id);
+  const entry: FileIndexEntry = {
+    path: normalizedPath,
+    id: resourceId,
+    version: String(parsed.data.version || ''),
+    isVersioned: normalizedPath.includes(`${pathSeparator}versioned${pathSeparator}`),
+  };
+
+  const entries = _fileIndexCache.get(resourceId) || [];
+  entries.push(entry);
+  _fileIndexCache.set(resourceId, entries);
+  _filePathToIdCache.set(normalizedPath, resourceId);
+
+  try {
+    _fileIndexMtimeMs = fsSync.statSync(catalogDir).mtimeMs;
+  } catch {
+    // Ignore mtime refresh failures; cache will self-heal on next ensureFileCache call.
+  }
 }
 
 // Keep these as aliases for backwards compat with CLI export code

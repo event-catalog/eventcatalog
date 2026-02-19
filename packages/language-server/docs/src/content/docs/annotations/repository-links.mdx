@@ -1,0 +1,29 @@
+---
+title: Repository links
+description: Attach source repository metadata with @repository and @editUrl.
+---
+
+Use repository annotations to connect model resources to source code and edit locations.
+
+## Example
+
+```ec title="main.ec"
+service OrdersService {
+  version 1.0.0
+  @repository(url: "https://github.com/acme/orders-service", language: "TypeScript")
+  @editUrl("https://github.com/acme/orders-service/edit/main/docs/orders.md")
+}
+```
+
+## @repository parameters
+
+| Parameter  | Type   | Required | Description                      | Example                                    |
+| ---------- | ------ | -------- | -------------------------------- | ------------------------------------------ |
+| `url`      | string | Yes      | Repository URL.                  | `"https://github.com/acme/orders-service"` |
+| `language` | string | No       | Primary implementation language. | `"TypeScript"`                             |
+
+## @editUrl parameters
+
+| Parameter      | Type   | Required | Description                              | Example                                                             |
+| -------------- | ------ | -------- | ---------------------------------------- | ------------------------------------------------------------------- |
+| first argument | string | Yes      | Direct edit URL for docs/source context. | `"https://github.com/acme/orders-service/edit/main/docs/orders.md"` |

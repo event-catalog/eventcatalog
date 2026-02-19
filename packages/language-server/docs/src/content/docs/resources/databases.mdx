@@ -1,0 +1,59 @@
+---
+title: Databases
+description: Model databases using container resources with database type.
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+Databases are modeled with `container` and `container-type database`.
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/#example=11"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+## Example
+
+This example models a database container and shows a service writing to and reading from it.
+
+```ec title="main.ec"
+container orders-db {
+  version 1.0.0
+  name "Orders DB"
+  summary "Primary transactional store"
+  container-type database
+  technology "PostgreSQL 15"
+  access-mode readWrite
+  classification internal
+  residency "eu-west-1"
+  retention "7y"
+}
+
+service OrdersService {
+  version 1.0.0
+  writes-to container orders-db@1.0.0
+  reads-from container orders-db@1.0.0
+}
+```
+
+## Properties
+
+| Property         | Type      | Required        | Description                                                  | Example                         |
+| ---------------- | --------- | --------------- | ------------------------------------------------------------ | ------------------------------- |
+| `version`        | semver    | Yes             | Resource version.                                            | `1.0.0`                         |
+| `name`           | string    | No              | Display name (defaults to id).                               | `"Orders DB"`                   |
+| `summary`        | string    | No              | Short description.                                           | `"Primary transactional store"` |
+| `container-type` | enum      | Yes             | Container category (`database`, `cache`, etc.).              | `database`                      |
+| `technology`     | string    | No              | Implementation detail/version.                               | `"PostgreSQL 15"`               |
+| `authoritative`  | boolean   | No              | Whether it is source of truth.                               | `authoritative true`            |
+| `access-mode`    | enum      | No              | Access pattern (`read`, `write`, `readWrite`, `appendOnly`). | `readWrite`                     |
+| `classification` | enum      | No              | Data sensitivity class.                                      | `internal`                      |
+| `residency`      | string    | No              | Data residency/region.                                       | `"eu-west-1"`                   |
+| `retention`      | string    | No              | Retention policy/duration.                                   | `"7y"`                          |
+| `owner`          | reference | No (repeatable) | Team/user owner reference.                                   | `owner data-team`               |
+| `service`        | reference | No (repeatable) | Service references to this container.                        | `service OrdersService@1.0.0`   |
+| `draft`          | boolean   | No              | Marks resource as draft.                                     | `draft true`                    |
+| `deprecated`     | boolean   | No              | Marks resource as deprecated.                                | `deprecated true`               |

@@ -1,0 +1,107 @@
+---
+title: "Multi-File with Imports"
+description: "Demonstrates splitting definitions across files with imports"
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+This example mirrors the `Multi-File with Imports` template in the EventCatalog Modelling.
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/#example=7"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+### `main.ec`
+
+```ec title="main.ec"
+import { PaymentService, PaymentProcessed, PaymentFailed } from "./payment.ec"
+import { OrderService, OrderCreated } from "./order.ec"
+
+visualizer main {
+  name "E-Commerce System"
+
+  channel MessageBus {
+    version 1.0.0
+    address "events.stream"
+    protocol "kafka"
+  }
+
+  service PaymentService
+  service OrderService
+
+  service NotificationService {
+    version 1.0.0
+    summary "Sends notifications for important events"
+
+    receives event PaymentProcessed from MessageBus
+
+    receives event PaymentFailed from MessageBus
+
+    receives event OrderCreated from MessageBus
+
+    sends event NotificationSent {
+      version 1.0.0
+      summary "Notification delivered to user"
+    }
+  }
+}
+
+```
+
+### `payment.ec`
+
+```ec title="payment.ec"
+domain Payment {
+  version 1.0.0
+  summary "Payment processing domain"
+
+  service PaymentService {
+    version 1.0.0
+    summary "Handles payment transactions"
+
+    sends event PaymentProcessed {
+      version 1.0.0
+      summary "Payment completed successfully"
+    }
+
+    sends event PaymentFailed {
+      version 1.0.0
+      summary "Payment processing failed"
+    }
+
+    receives command ProcessPayment {
+      version 1.0.0
+      summary "Initiate payment processing"
+    }
+  }
+}
+
+```
+
+### `order.ec`
+
+```ec title="order.ec"
+domain Orders {
+  version 1.0.0
+  summary "Order management domain"
+
+  service OrderService {
+    version 1.0.0
+    summary "Manages order lifecycle"
+
+    sends event OrderCreated {
+      version 1.0.0
+      summary "New order created"
+    }
+
+    sends command ProcessPayment
+
+    receives event PaymentProcessed
+  }
+}
+
+```

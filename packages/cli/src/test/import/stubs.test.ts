@@ -191,6 +191,31 @@ service ServiceB {
     expect(event!.version).toBe('2.0.0');
   });
 
+  it('creates a stub for a different explicit version even when another version is defined in DSL', async () => {
+    const ecFile = writeEcFile(
+      'test.ec',
+      `event OrderCreated {
+  version 1.0.0
+  name "Order Created"
+}
+
+service OrderService {
+  version 1.0.0
+  name "Order Service"
+  sends event OrderCreated@1.0.0
+  sends event OrderCreated@2.0.0
+}`
+    );
+
+    const result = await importDSL({ files: [ecFile], dir: catalogPath });
+    expect(result).toContain('Created 3 resource(s)');
+
+    const sdk = createSDK(catalogPath);
+    expect(await sdk.getEvent('OrderCreated', '1.0.0')).toBeDefined();
+    expect(await sdk.getEvent('OrderCreated', '2.0.0')).toBeDefined();
+    expect(await sdk.getEvent('OrderCreated', '0.0.1')).toBeUndefined();
+  });
+
   it('stubs are not created when message already exists in catalog', async () => {
     const sdk = createSDK(catalogPath);
     await sdk.writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: 'existing docs' });

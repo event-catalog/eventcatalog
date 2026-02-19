@@ -1,0 +1,58 @@
+---
+title: Channels
+description: Model topics, queues, and other transport layers with channel resources.
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+`channel` models the transport path messages flow through (for example Kafka, MQTT, SQS, or HTTP streams).
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/new"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+## Example
+
+This example defines a Kafka channel and shows a service sending an event through that channel.
+
+```ec title="main.ec"
+channel OrdersChannel {
+  version 1.0.0
+  name "Orders Channel"
+  summary "Carries order events"
+  protocol "Kafka"
+  address "orders.events.v1"
+  owner platform-team
+  route AnalyticsChannel@1.0.0
+}
+
+service OrdersService {
+  version 1.0.0
+  sends event OrderCreated@1.0.0 to OrdersChannel@1.0.0
+}
+```
+
+## Properties
+
+| Property     | Type      | Required        | Description                        | Example                        |
+| ------------ | --------- | --------------- | ---------------------------------- | ------------------------------ |
+| `version`    | semver    | Yes             | Resource version.                  | `1.0.0`                        |
+| `name`       | string    | No              | Display name (defaults to id).     | `"Orders Channel"`             |
+| `summary`    | string    | No              | Short description.                 | `"Carries order events"`       |
+| `owner`      | reference | No (repeatable) | Team/user owner reference.         | `owner platform-team`          |
+| `protocol`   | string    | No              | Transport technology/protocol.     | `"Kafka"`                      |
+| `address`    | string    | No              | Broker/topic/queue address.        | `"orders.events.v1"`           |
+| `route`      | reference | No (repeatable) | Route from one channel to another. | `route AnalyticsChannel@1.0.0` |
+| `draft`      | boolean   | No              | Marks resource as draft.           | `draft true`                   |
+| `deprecated` | boolean   | No              | Marks resource as deprecated.      | `deprecated true`              |
+
+## Used by services
+
+| Usage                  | Example                                                      |
+| ---------------------- | ------------------------------------------------------------ |
+| Send through a channel | `sends event OrderCreated to OrdersChannel@1.0.0`            |
+| Receive from a channel | `receives event PaymentProcessed from PaymentsChannel@1.0.0` |

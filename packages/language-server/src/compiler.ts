@@ -536,9 +536,26 @@ function compileService(
   if (receives.length > 0) {
     fm.receives = receives.map((r) => buildMessageRef(r));
   }
+  const writesTo = getWritesToRefs(body);
+  if (writesTo.length > 0) {
+    fm.writesTo = writesTo.map((stmt) => buildResourceRef(stmt.ref));
+  }
+  const readsFrom = getReadsFromRefs(body);
+  if (readsFrom.length > 0) {
+    fm.readsFrom = readsFrom.map((stmt) => buildResourceRef(stmt.ref));
+  }
   withSummary(fm, body);
   const folder = nested && parentPath ? `${parentPath}/services` : "services";
   outputs.push(makeOutput(versionedPath(folder, svc.name, body), fm));
+}
+
+function buildResourceRef(ref: {
+  name: string;
+  version?: string;
+}): Record<string, unknown> {
+  const out: Record<string, unknown> = { id: ref.name };
+  if (ref.version) out.version = ref.version;
+  return out;
 }
 
 function buildMessageRef(

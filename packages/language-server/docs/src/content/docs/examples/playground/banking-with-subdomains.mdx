@@ -1,0 +1,224 @@
+---
+title: "Banking with Subdomains"
+description: "Banking domain organized with subdomains for different banking functions"
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+This example mirrors the `Banking with Subdomains` template in the EventCatalog Modelling.
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/#example=9"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+### `main.ec`
+
+```ec title="main.ec"
+visualizer main {
+  name "Banking Platform"
+  legend true
+
+  channel BankingEvents {
+    version 1.0.0
+    address "banking.events"
+    protocol "kafka"
+  }
+
+  channel BankingCommands {
+    version 1.0.0
+    address "/api/v1"
+    protocol "http"
+  }
+
+  domain Banking {
+    version 1.0.0
+    summary "Core banking domain with customer accounts, payments, and loans"
+
+    subdomain Accounts {
+      version 1.0.0
+      summary "Customer account management and transactions"
+
+      container AccountsDB {
+        version 1.0.0
+        container-type database
+        technology "PostgreSQL 15"
+        summary "Stores customer account data"
+      }
+
+      service AccountService {
+        version 1.0.0
+        summary "Manages customer accounts and balances"
+
+        writes-to container AccountsDB
+        reads-from container AccountsDB
+
+        sends event AccountOpened to BankingEvents {
+          version 1.0.0
+          summary "New customer account created"
+        }
+
+        sends event AccountClosed to BankingEvents {
+          version 1.0.0
+          summary "Customer account closed"
+        }
+
+        sends event BalanceUpdated to BankingEvents {
+          version 1.0.0
+          summary "Account balance changed"
+        }
+
+        receives command OpenAccount from BankingCommands {
+          version 1.0.0
+          summary "Open a new customer account"
+        }
+
+        receives command CloseAccount from BankingCommands {
+          version 1.0.0
+          summary "Close an existing account"
+        }
+
+        receives event TransactionCompleted from BankingEvents
+        receives event LoanDisbursed from BankingEvents
+      }
+    }
+
+    subdomain Payments {
+      version 1.0.0
+      summary "Payment processing and transfers"
+
+      container PaymentsDB {
+        version 1.0.0
+        container-type database
+        technology "PostgreSQL 15"
+        summary "Stores payment transactions"
+      }
+
+      service PaymentService {
+        version 1.0.0
+        summary "Processes payments and transfers between accounts"
+
+        writes-to container PaymentsDB
+        reads-from container PaymentsDB
+
+        sends event PaymentInitiated to BankingEvents {
+          version 1.0.0
+          summary "Payment process started"
+        }
+
+        sends event TransactionCompleted to BankingEvents {
+          version 1.0.0
+          summary "Payment successfully completed"
+        }
+
+        sends event TransactionFailed to BankingEvents {
+          version 1.0.0
+          summary "Payment failed"
+        }
+
+        receives command ProcessPayment from BankingCommands {
+          version 1.0.0
+          summary "Process a payment transaction"
+        }
+
+        receives command TransferFunds from BankingCommands {
+          version 1.0.0
+          summary "Transfer funds between accounts"
+        }
+
+        receives event AccountOpened from BankingEvents
+      }
+    }
+
+    subdomain Loans {
+      version 1.0.0
+      summary "Loan origination and management"
+
+      container LoansDB {
+        version 1.0.0
+        container-type database
+        technology "PostgreSQL 15"
+        summary "Stores loan applications and details"
+      }
+
+      service LoanService {
+        version 1.0.0
+        summary "Manages loan applications and disbursements"
+
+        writes-to container LoansDB
+        reads-from container LoansDB
+
+        sends event LoanApplicationSubmitted to BankingEvents {
+          version 1.0.0
+          summary "Customer submitted loan application"
+        }
+
+        sends event LoanApproved to BankingEvents {
+          version 1.0.0
+          summary "Loan application approved"
+        }
+
+        sends event LoanRejected to BankingEvents {
+          version 1.0.0
+          summary "Loan application rejected"
+        }
+
+        sends event LoanDisbursed to BankingEvents {
+          version 1.0.0
+          summary "Loan funds disbursed to account"
+        }
+
+        receives command ApplyForLoan from BankingCommands {
+          version 1.0.0
+          summary "Submit a new loan application"
+        }
+
+        receives command ApproveLoan from BankingCommands {
+          version 1.0.0
+          summary "Approve a loan application"
+        }
+
+        receives event AccountOpened from BankingEvents
+        receives event BalanceUpdated from BankingEvents
+      }
+    }
+  }
+
+  service NotificationService {
+    version 1.0.0
+    summary "Sends notifications to customers"
+
+    receives event AccountOpened from BankingEvents
+    receives event TransactionCompleted from BankingEvents
+    receives event LoanApproved from BankingEvents
+    receives event LoanRejected from BankingEvents
+
+    sends event EmailSent {
+      version 1.0.0
+      summary "Email notification sent to customer"
+    }
+
+    sends event SMSSent {
+      version 1.0.0
+      summary "SMS notification sent to customer"
+    }
+  }
+
+  service FraudDetectionService {
+    version 1.0.0
+    summary "Monitors transactions for fraudulent activity"
+
+    receives event PaymentInitiated from BankingEvents
+    receives event TransactionCompleted from BankingEvents
+
+    sends event FraudAlertRaised {
+      version 1.0.0
+      summary "Suspicious activity detected"
+    }
+  }
+}
+
+```

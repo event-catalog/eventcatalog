@@ -7,6 +7,7 @@
     "build:bin": "tsup",
     "test": "vitest --run",
     "test:ci": "vitest --run",
+    "bench:import-export": "node src/test/bench/import-export.benchmark.js",
     "format": "prettier --write .",
     "format:diff": "prettier --list-different ."
   },

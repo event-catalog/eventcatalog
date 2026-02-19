@@ -1,0 +1,52 @@
+---
+title: Services
+description: Model application and runtime capabilities with service resources.
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+`service` models a runtime capability in your system (for example an API, worker, or microservice).
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/#example=1"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+## Example
+
+This example defines one service that sends and receives messages and reads from and writes to a database container.
+
+```ec title="main.ec"
+service OrdersService {
+  version 1.0.0
+  name "Orders Service"
+  summary "Handles order lifecycle"
+  owner orders-team
+
+  sends event OrderCreated@1.0.0 to OrdersEvents@1.0.0
+  receives command CreateOrder@1.0.0
+  receives query GetOrderById@1.0.0
+
+  writes-to container orders-db@1.0.0
+  reads-from container orders-db@1.0.0
+}
+```
+
+## Properties
+
+| Property     | Type      | Required        | Description                         | Example                          |
+| ------------ | --------- | --------------- | ----------------------------------- | -------------------------------- |
+| `version`    | semver    | Yes             | Resource version.                   | `1.0.0`                          |
+| `name`       | string    | No              | Display name (defaults to id).      | `"Orders Service"`               |
+| `summary`    | string    | No              | Short description.                  | `"Handles order lifecycle"`      |
+| `owner`      | reference | No (repeatable) | Team/user owner reference.          | `owner orders-team`              |
+| `sends`      | statement | No (repeatable) | Messages produced by the service.   | `sends event OrderCreated`       |
+| `receives`   | statement | No (repeatable) | Messages consumed by the service.   | `receives command CreateOrder`   |
+| `writes-to`  | statement | No (repeatable) | Containers written by this service. | `writes-to container orders-db`  |
+| `reads-from` | statement | No (repeatable) | Containers read by this service.    | `reads-from container orders-db` |
+| `flow`       | reference | No (repeatable) | Related flow references.            | `flow OrderFulfillment@1.0.0`    |
+| `draft`      | boolean   | No              | Marks resource as draft.            | `draft true`                     |
+| `deprecated` | boolean   | No              | Marks resource as deprecated.       | `deprecated true`                |

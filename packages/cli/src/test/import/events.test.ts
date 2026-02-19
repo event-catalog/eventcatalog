@@ -88,6 +88,7 @@ describe('import events', () => {
     const sdk2 = createSDK(catalogPath);
     const event = await sdk2.getEvent('OrderCreated', '1.0.0');
     expect(event).toBeDefined();
+    expect(event!.markdown).toBe('existing docs');
     expect(event!.markdown).not.toContain('<NodeGraph />');
   });
 });

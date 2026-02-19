@@ -11,7 +11,7 @@ setup();
 describe('import versioning', () => {
   it('versions existing resource when importing a newer version', async () => {
     const sdk = createSDK(catalogPath);
-    await sdk.writeService({ id: 'PaymentService', name: 'Payment Service', version: '1.0.0', markdown: '' });
+    await sdk.writeService({ id: 'PaymentService', name: 'Payment Service', version: '1.0.0', markdown: 'v1 docs' });
 
     expect(fs.existsSync(path.join(catalogPath, 'services/PaymentService/index.mdx'))).toBe(true);
 
@@ -26,6 +26,8 @@ describe('import versioning', () => {
     const result = await importDSL({ files: [ecFile], dir: catalogPath });
 
     expect(result).toContain('Created 1 resource(s)');
+    expect(result).toContain('Versioned 1 existing resource(s)');
+    expect(result).toContain('PaymentService@1.0.0');
 
     // v1 should now be in versioned/
     expect(fs.existsSync(path.join(catalogPath, 'services/PaymentService/versioned/1.0.0/index.mdx'))).toBe(true);
@@ -35,6 +37,7 @@ describe('import versioning', () => {
     const latest = await sdk2.getService('PaymentService');
     expect(latest!.version).toBe('2.0.0');
     expect(latest!.name).toBe('Payment Service V2');
+    expect(latest!.markdown).toContain('v1 docs');
   });
 
   it('overrides existing resource when same version already exists', async () => {

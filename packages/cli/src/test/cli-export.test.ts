@@ -203,7 +203,7 @@ visualizer main {
 
     const filepath = path.resolve('OrderCreated.ec');
     expect(result).toContain(`Exported event 'OrderCreated' to ${filepath}`);
-    expect(result).toContain('Tip: Use --playground to open in the playground');
+    expect(result).toContain('Tip: Use --playground to open in EventCatalog Modelling');
     expect(fs.existsSync(filepath)).toBe(true);
 
     const content = fs.readFileSync(filepath, 'utf-8');
@@ -225,7 +225,7 @@ visualizer main {
     });
 
     expect(result).toContain(`Exported event 'OrderCreated' to ${outputPath}`);
-    expect(result).toContain('Tip: Use --playground to open in the playground');
+    expect(result).toContain('Tip: Use --playground to open in EventCatalog Modelling');
     expect(fs.existsSync(outputPath)).toBe(true);
 
     const content = fs.readFileSync(outputPath, 'utf-8');
@@ -246,7 +246,7 @@ visualizer main {
     });
 
     expect(result).toContain(`Exported event 'OrderCreated' to ${outputPath}`);
-    expect(result).toContain('Opening in playground...');
+    expect(result).toContain('Opening in EventCatalog Modelling...');
     expect(result).not.toContain('Tip: Use --playground');
   });
 
@@ -259,6 +259,19 @@ visualizer main {
         dir: CATALOG_PATH,
       })
     ).rejects.toThrow("Invalid resource type 'invalid'. Must be one of: event, command, query, service, domain");
+  });
+
+  it('throws a specific message for known but unsupported export types', async () => {
+    await expect(
+      exportResource({
+        resource: 'channel',
+        id: 'OrderTopic',
+        stdout: true,
+        dir: CATALOG_PATH,
+      })
+    ).rejects.toThrow(
+      "Resource type 'channel' is not yet supported for DSL export. Supported types: event, command, query, service, domain"
+    );
   });
 
   it('throws when resource not found', async () => {

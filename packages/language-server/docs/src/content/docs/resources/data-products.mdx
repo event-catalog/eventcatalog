@@ -1,0 +1,56 @@
+---
+title: Data Products
+description: Model analytical and curated data outputs with data-product resources.
+---
+
+import { LinkButton } from "@astrojs/starlight/components";
+
+`data-product` models a governed, consumable data output and its lineage.
+
+<LinkButton
+  href="https://playground.eventcatalog.dev/#example=6"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Open in EventCatalog Modelling
+</LinkButton>
+
+## Example
+
+This example defines a data product with upstream input events and an output event that includes a contract.
+
+```ec title="main.ec"
+data-product CommerceInsights {
+  version 1.0.0
+  name "Commerce Insights"
+  summary "Curated commerce analytics"
+  owner data-platform-team
+
+  input event OrderCreated@1.0.0
+  input event PaymentProcessed@1.0.0
+
+  output event RevenueMetrics {
+    contract {
+      path "./schemas/revenue-metrics.json"
+      name "RevenueMetricsSchema"
+      type "json-schema"
+    }
+  }
+}
+```
+
+## Properties
+
+| Property        | Type      | Required        | Description                         | Example                            |
+| --------------- | --------- | --------------- | ----------------------------------- | ---------------------------------- |
+| `version`       | semver    | Yes             | Resource version.                   | `1.0.0`                            |
+| `name`          | string    | No              | Display name (defaults to id).      | `"Commerce Insights"`              |
+| `summary`       | string    | No              | Short description.                  | `"Curated commerce analytics"`     |
+| `owner`         | reference | No (repeatable) | Team/user owner reference.          | `owner data-platform-team`         |
+| `input`         | statement | No (repeatable) | Upstream message sources.           | `input event OrderCreated@1.0.0`   |
+| `output`        | statement | No (repeatable) | Data outputs as message references. | `output event RevenueMetrics`      |
+| `contract.path` | string    | No              | Contract/schema file path.          | `"./schemas/revenue-metrics.json"` |
+| `contract.name` | string    | No              | Contract name.                      | `"RevenueMetricsSchema"`           |
+| `contract.type` | string    | No              | Contract type.                      | `"json-schema"`                    |
+| `draft`         | boolean   | No              | Marks resource as draft.            | `draft true`                       |
+| `deprecated`    | boolean   | No              | Marks resource as deprecated.       | `deprecated true`                  |
