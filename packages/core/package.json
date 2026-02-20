@@ -104,6 +104,7 @@
     "lucide-react": "^0.453.0",
     "marked": "^15.0.6",
     "mdast-util-find-and-replace": "^3.0.2",
+    "minisearch": "^7.1.2",
     "mermaid": "^11.12.1",
     "nanostores": "^1.1.0",
     "pako": "^2.1.0",

@@ -1,4 +1,5 @@
 import React, { Fragment, useState, useEffect, useMemo, useRef } from 'react';
+import MiniSearch from 'minisearch';
 import { Combobox, Dialog, Transition } from '@headlessui/react';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 import {
@@ -42,6 +43,7 @@ const typeIcons: any = {
   AsyncAPI: DocumentTextIcon,
   Design: Square2StackIcon,
   Container: CircleStackIcon,
+  Doc: DocumentTextIcon,
   default: DocumentTextIcon,
 };
 
@@ -61,6 +63,7 @@ const typeColors: any = {
   AsyncAPI: 'text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 ring-violet-200 dark:ring-violet-500/30',
   Design: 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
   Container: 'text-indigo-500 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 ring-indigo-200 dark:ring-indigo-500/30',
+  Doc: 'text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-500/10 ring-slate-200 dark:ring-slate-500/30',
   default: 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-500/10 ring-gray-200 dark:ring-gray-500/30',
 };
 
@@ -118,6 +121,17 @@ interface SearchIndexPayload {
   items?: SearchNode[];
 }
 
+interface DocsSearchIndexItemCompact {
+  i: string;
+  t: string;
+  u: string;
+  c: string;
+}
+
+interface DocsSearchIndexPayload {
+  i?: DocsSearchIndexItemCompact[];
+}
+
 const normalizeSearchIndexPayload = (payload: SearchIndexPayload): SearchNode[] => {
   if (payload.i) {
     return payload.i.map((item) => ({
@@ -137,7 +151,9 @@ export default function SearchModal() {
   const [open, setOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchNodes, setSearchNodes] = useState<SearchNode[]>([]);
+  const [docsIndexItems, setDocsIndexItems] = useState<DocsSearchIndexItemCompact[]>([]);
   const [isLoadingSearchIndex, setIsLoadingSearchIndex] = useState(false);
+  const [isLoadingDocsIndex, setIsLoadingDocsIndex] = useState(false);
   const [searchIndexLoadError, setSearchIndexLoadError] = useState<string | null>(null);
   const favorites = useStore(favoritesStore);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -184,6 +200,33 @@ export default function SearchModal() {
         setIsLoadingSearchIndex(false);
       });
   }, [open, searchNodes.length, isLoadingSearchIndex]);
+
+  useEffect(() => {
+    if (!open || query.trim().length < 2 || docsIndexItems.length > 0 || isLoadingDocsIndex) {
+      return;
+    }
+
+    setIsLoadingDocsIndex(true);
+
+    const apiUrl = buildUrl('/api/search-docs-index.json', true);
+
+    fetch(apiUrl)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch docs search index: ${response.status}`);
+        }
+        return response.json() as Promise<DocsSearchIndexPayload>;
+      })
+      .then((payload) => {
+        setDocsIndexItems(payload.i || []);
+      })
+      .catch(() => {
+        // non-blocking for regular search experience
+      })
+      .finally(() => {
+        setIsLoadingDocsIndex(false);
+      });
+  }, [open, query, docsIndexItems.length, isLoadingDocsIndex]);
 
   const closeModal = () => {
     if ((window as any).searchModalState) {
@@ -295,6 +338,28 @@ export default function SearchModal() {
     return new Map(searchNodes.map((node) => [node.key, node]));
   }, [searchNodes]);
 
+  const docsMiniSearch = useMemo(() => {
+    if (docsIndexItems.length === 0) return null;
+
+    const index = new MiniSearch<DocsSearchIndexItemCompact>({
+      fields: ['t', 'c'],
+      storeFields: ['i', 't', 'u', 'c'],
+      searchOptions: {
+        fuzzy: 0.2,
+        prefix: true,
+      },
+    });
+
+    index.addAll(docsIndexItems);
+    return index;
+  }, [docsIndexItems]);
+
+  const docsSearchResults = useMemo<DocsSearchIndexItemCompact[]>(() => {
+    if (!docsMiniSearch || query.trim().length < 2) return [];
+
+    return docsMiniSearch.search(query, { fuzzy: 0.2, prefix: true, boost: { t: 3, c: 1 } }).slice(0, 20) as any;
+  }, [docsMiniSearch, query]);
+
   const filteredItems = useMemo(() => {
     if (query === '') {
       // Show favorites when search is empty
@@ -324,6 +389,17 @@ export default function SearchModal() {
     // Start with searchable items (already filtered by query)
     let result = searchableItems;
 
+    const docsItems = docsSearchResults.map((doc: DocsSearchIndexItemCompact) => ({
+      id: `doc:${doc.i}`,
+      name: doc.t,
+      url: buildUrl(doc.u),
+      type: 'Doc',
+      key: `doc:${doc.i}`,
+      rawNode: {
+        summary: doc.c.slice(0, 120),
+      },
+    }));
+
     // Apply type filter
     if (activeFilter !== 'all') {
       if (activeFilter === 'Message') {
@@ -335,8 +411,10 @@ export default function SearchModal() {
       }
     }
 
-    return result.slice(0, 50); // Limit results for performance
-  }, [searchableItems, query, activeFilter, favorites, searchNodeLookup]);
+    const merged = activeFilter === 'all' ? [...result, ...docsItems] : result;
+
+    return merged.slice(0, 50); // Limit results for performance
+  }, [searchableItems, query, activeFilter, favorites, searchNodeLookup, docsSearchResults]);
 
   return (
     <Transition.Root
