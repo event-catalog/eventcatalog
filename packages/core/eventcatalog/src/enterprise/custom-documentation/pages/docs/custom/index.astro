@@ -12,6 +12,7 @@ import { buildUrl } from '@utils/url-builder';
 import { resourceToCollectionMap } from '@utils/collections/util';
 import { getMDXComponentsByName } from '@utils/markdown';
 import { getAdjacentPages } from '@enterprise/custom-documentation/utils/custom-docs';
+import { getCustomDocsContentBadgeClasses } from '@enterprise/custom-documentation/utils/badge-styles';
 
 import CustomDocsNav from '@enterprise/custom-documentation/components/CustomDocsNav/CustomDocsNav.astro';
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
@@ -78,6 +79,11 @@ const ownersList = filteredOwners.map((o) => ({
 }));
 
 const badges = doc?.badges || [];
+
+const getCustomDocBadgeClasses = (badge: any) => {
+  const color = badge?.backgroundColor || badge?.textColor;
+  return `${getCustomDocsContentBadgeClasses(color)} ${badge?.class ? badge.class : ''}`;
+};
 ---
 
 <VerticalSideBarLayout title={doc.title || 'Documentation'} showNestedSideBar={false}>
@@ -104,12 +110,9 @@ const badges = doc?.badges || [];
                   {badges.map((badge: any) => {
                     return (
                       <a href={badge.url || '#'} class="pb-2">
-                        <span
-                          id={badge.id || ''}
-                          class={`text-sm font-light text-gray-500 px-2 py-1 rounded-md mr-2  bg-gradient-to-b  from-${badge.backgroundColor}-100 to-${badge.backgroundColor}-200 space-x-1 border border-${badge.backgroundColor}-200 text-${badge.textColor}-800 flex items-center ${badge.class ? badge.class : ''} `}
-                        >
-                          {badge.icon && <badge.icon className="w-4 h-4 inline-block mr-1 " />}
-                          {badge.iconURL && <img src={badge.iconURL} class="w-5 h-5 inline-block " />}
+                        <span id={badge.id || ''} class={`${getCustomDocBadgeClasses(badge)} mr-2`}>
+                          {badge.icon && <badge.icon className="w-4 h-4 flex-shrink-0 text-[rgb(var(--ec-icon-color))]" />}
+                          {badge.iconURL && <img src={badge.iconURL} class="w-4 h-4 flex-shrink-0 opacity-80" alt="" />}
                           <span>{badge.content}</span>
                         </span>
                       </a>

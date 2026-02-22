@@ -2,6 +2,7 @@ import React from 'react';
 import { buildUrl } from '@utils/url-builder';
 import type { SidebarItem } from '../types';
 import { ExternalLinkIcon } from 'lucide-react';
+import { getCustomDocsSidebarBadgeClasses } from '@enterprise/custom-documentation/utils/badge-styles';
 
 interface NestedItemProps {
   item: SidebarItem;
@@ -28,6 +29,8 @@ const NestedItem: React.FC<NestedItemProps> = ({
     const folderHasLink = !!item.slug;
     const folderPath = folderHasLink ? buildUrl(`/docs/custom/${item.slug}`) : undefined;
     const isFolderActive = folderPath && (currentPath === folderPath || currentPath.endsWith(`/${item.slug}`));
+
+    const badgeClassName = getCustomDocsSidebarBadgeClasses(item.badge?.color);
 
     return (
       <div className="py-1">
@@ -66,17 +69,7 @@ const NestedItem: React.FC<NestedItemProps> = ({
               data-active={isFolderActive}
             >
               <span className="truncate">{item.label}</span>
-              {item.badge && item?.badge?.text && (
-                <span
-                  className={
-                    item.badge.color
-                      ? `text-${item.badge.color}-600 dark:text-${item.badge.color}-400 ml-2 text-[10px] font-medium bg-${item.badge.color}-50 dark:bg-${item.badge.color}-500/20 px-2 py-0.5 rounded uppercase`
-                      : `text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase`
-                  }
-                >
-                  {item.badge.text}
-                </span>
-              )}
+              {item.badge && item?.badge?.text && <span className={badgeClassName}>{item.badge.text}</span>}
             </a>
           ) : (
             // Folder without index file - render as toggle button
@@ -88,17 +81,7 @@ const NestedItem: React.FC<NestedItemProps> = ({
               }}
             >
               <span className="truncate">{item.label}</span>
-              {item.badge && item?.badge?.text && (
-                <span
-                  className={
-                    item.badge.color
-                      ? `text-${item.badge.color}-600 dark:text-${item.badge.color}-400 ml-2 text-[10px] font-medium bg-${item.badge.color}-50 dark:bg-${item.badge.color}-500/20 px-2 py-0.5 rounded uppercase`
-                      : `text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase`
-                  }
-                >
-                  {item.badge.text}
-                </span>
-              )}
+              {item.badge && item?.badge?.text && <span className={badgeClassName}>{item.badge.text}</span>}
             </button>
           )}
         </div>
@@ -153,6 +136,8 @@ const NestedItem: React.FC<NestedItemProps> = ({
     itemPath = item.slug;
   }
 
+  const badgeClassName = getCustomDocsSidebarBadgeClasses(item.badge?.color);
+
   return (
     <a
       href={itemPath}
@@ -165,17 +150,7 @@ const NestedItem: React.FC<NestedItemProps> = ({
         {item.label}
         {isExternalLink && <ExternalLinkIcon className="w-3 -mt-0.5 h-3" />}
       </span>
-      {item.badge && item?.badge?.text && (
-        <span
-          className={
-            item.badge.color
-              ? `text-${item.badge.color}-600 dark:text-${item.badge.color}-400 ml-2 text-[10px] font-medium bg-${item.badge.color}-50 dark:bg-${item.badge.color}-500/20 px-2 py-0.5 rounded uppercase`
-              : `text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase`
-          }
-        >
-          {item.badge.text}
-        </span>
-      )}
+      {item.badge && item?.badge?.text && <span className={badgeClassName}>{item.badge.text}</span>}
     </a>
   );
 };

@@ -225,6 +225,22 @@ const canPageBeEmbedded = isEmbedEnabled();
     </script>
     <SEO title={`EventCatalog | ${title}`} description={description} ogTitle={title} />
     <style is:global>
+      html,
+      body {
+        background-color: rgb(var(--ec-page-bg));
+      }
+
+      body {
+        min-height: 100vh;
+        min-height: 100dvh;
+      }
+
+      #eventcatalog-application {
+        min-height: 100vh;
+        min-height: 100dvh;
+        background-color: rgb(var(--ec-page-bg));
+      }
+
       .sidebar-transition {
         transition-property: width, transform;
         transition-duration: 300ms;

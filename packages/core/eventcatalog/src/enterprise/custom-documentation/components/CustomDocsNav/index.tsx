@@ -4,6 +4,7 @@ import { buildUrl } from '@utils/url-builder';
 import type { CustomDocsNavProps, SidebarSection, SidebarItem } from './types';
 import NestedItem from './components/NestedItem';
 import NoResultsFound from './components/NoResultsFound';
+import { getCustomDocsSidebarBadgeClasses } from '@enterprise/custom-documentation/utils/badge-styles';
 
 const STORAGE_KEY = 'EventCatalog:customDocsSidebarCollapsedGroups';
 const DEBOUNCE_DELAY = 300; // 300ms debounce delay
@@ -225,105 +226,98 @@ const CustomDocsNav: React.FC<CustomDocsNavProps> = ({ sidebarItems }) => {
         {hasNoResults ? (
           <NoResultsFound searchTerm={debouncedSearchTerm} />
         ) : (
-          filteredSidebarItems.map((section: SidebarSection, index: number) => (
-            <div className="pt-2 pb-2 px-3" key={`section-${index}`}>
-              <div className="space-y-0" data-section={`section-${index}`}>
-                {section.items ? (
-                  <div className="flex items-center">
-                    <button
-                      className="p-1 hover:bg-[rgb(var(--ec-content-hover))] rounded-md flex-shrink-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleGroupCollapse(`section-${index}`);
-                      }}
-                    >
-                      <div
-                        className={`transition-transform duration-150 ${collapsedGroups[`section-${index}`] ? '' : 'rotate-180'}`}
+          filteredSidebarItems.map((section: SidebarSection, index: number) => {
+            const sectionBadgeClassName = getCustomDocsSidebarBadgeClasses(section.badge?.color);
+            return (
+              <div className="pt-2 pb-2 px-3" key={`section-${index}`}>
+                <div className="space-y-0" data-section={`section-${index}`}>
+                  {section.items ? (
+                    <div className="flex items-center">
+                      <button
+                        className="p-1 hover:bg-[rgb(var(--ec-content-hover))] rounded-md flex-shrink-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleGroupCollapse(`section-${index}`);
+                        }}
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth="1.5"
-                          stroke="currentColor"
-                          aria-hidden="true"
-                          data-slot="icon"
-                          className="h-3 w-3 text-[rgb(var(--ec-icon-color))]"
+                        <div
+                          className={`transition-transform duration-150 ${collapsedGroups[`section-${index}`] ? '' : 'rotate-180'}`}
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-                        </svg>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="1.5"
+                            stroke="currentColor"
+                            aria-hidden="true"
+                            data-slot="icon"
+                            className="h-3 w-3 text-[rgb(var(--ec-icon-color))]"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
+                          </svg>
+                        </div>
+                      </button>
+                      <button
+                        className="flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md hover:bg-[rgb(var(--ec-content-hover))] min-w-0 flex-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleGroupCollapse(`section-${index}`);
+                        }}
+                      >
+                        <span className="truncate">{section.label}</span>
+                        {section.badge && section?.badge?.text && (
+                          <span className={sectionBadgeClassName}>{section.badge.text}</span>
+                        )}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      <span className="flex-grow flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md">
+                        <span className="truncate">{section.label}</span>
+                        <span className={sectionBadgeClassName}>Section</span>
+                      </span>
+                    </div>
+                  )}
+
+                  {section.items && (
+                    <div
+                      className={`overflow-hidden transition-[height] duration-150 ease-out ${
+                        collapsedGroups[`section-${index}`] ? 'h-0' : 'h-auto'
+                      }`}
+                    >
+                      <div className="space-y-0.5 border-[rgb(var(--ec-page-border))] border-l pl-4 ml-[9px] mt-1">
+                        {section.items.map((item: SidebarItem, itemIndex: number) => (
+                          <NestedItem
+                            key={`item-${index}-${itemIndex}`}
+                            item={item}
+                            currentPath={currentPath}
+                            parentId={`${index}`}
+                            itemIndex={itemIndex}
+                            collapsedGroups={collapsedGroups}
+                            toggleGroupCollapse={toggleGroupCollapse}
+                          />
+                        ))}
                       </div>
-                    </button>
-                    <button
-                      className="flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md hover:bg-[rgb(var(--ec-content-hover))] min-w-0 flex-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleGroupCollapse(`section-${index}`);
-                      }}
+                    </div>
+                  )}
+
+                  {section.slug && !section.items && (
+                    <a
+                      href={buildUrl(`/docs/custom/${section.slug}`)}
+                      className={`flex items-center px-2 py-1.5 text-xs ${
+                        currentPath.endsWith(`/${section.slug}`)
+                          ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-page-text))] font-semibold'
+                          : 'text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-hover))]'
+                      } rounded-md ml-6`}
+                      data-active={currentPath.endsWith(`/${section.slug}`)}
                     >
                       <span className="truncate">{section.label}</span>
-                      {section.badge && section?.badge?.text && (
-                        <span
-                          className={
-                            section.badge.color
-                              ? `text-${section.badge.color}-600 dark:text-${section.badge.color}-400 ml-2 text-[10px] font-medium bg-${section.badge.color}-50 dark:bg-${section.badge.color}-500/20 px-2 py-0.5 rounded uppercase`
-                              : `text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase`
-                          }
-                        >
-                          {section.badge.text}
-                        </span>
-                      )}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center">
-                    <span className="flex-grow flex items-center justify-between px-2 py-0.5 text-xs font-bold rounded-md">
-                      <span className="truncate">{section.label}</span>
-                      <span className="text-[rgb(var(--ec-accent))] ml-2 text-[10px] font-medium bg-[rgb(var(--ec-accent-subtle))] px-2 py-0.5 rounded uppercase">
-                        Section
-                      </span>
-                    </span>
-                  </div>
-                )}
-
-                {section.items && (
-                  <div
-                    className={`overflow-hidden transition-[height] duration-150 ease-out ${
-                      collapsedGroups[`section-${index}`] ? 'h-0' : 'h-auto'
-                    }`}
-                  >
-                    <div className="space-y-0.5 border-[rgb(var(--ec-page-border))] border-l pl-4 ml-[9px] mt-1">
-                      {section.items.map((item: SidebarItem, itemIndex: number) => (
-                        <NestedItem
-                          key={`item-${index}-${itemIndex}`}
-                          item={item}
-                          currentPath={currentPath}
-                          parentId={`${index}`}
-                          itemIndex={itemIndex}
-                          collapsedGroups={collapsedGroups}
-                          toggleGroupCollapse={toggleGroupCollapse}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {section.slug && !section.items && (
-                  <a
-                    href={buildUrl(`/docs/custom/${section.slug}`)}
-                    className={`flex items-center px-2 py-1.5 text-xs ${
-                      currentPath.endsWith(`/${section.slug}`)
-                        ? 'bg-[rgb(var(--ec-accent-subtle))] text-[rgb(var(--ec-page-text))] font-semibold'
-                        : 'text-[rgb(var(--ec-page-text-muted))] hover:bg-[rgb(var(--ec-content-hover))]'
-                    } rounded-md ml-6`}
-                    data-active={currentPath.endsWith(`/${section.slug}`)}
-                  >
-                    <span className="truncate">{section.label}</span>
-                  </a>
-                )}
+                    </a>
+                  )}
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </nav>
