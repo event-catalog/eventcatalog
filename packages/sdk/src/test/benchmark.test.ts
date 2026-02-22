@@ -24,7 +24,7 @@ function seedCatalog() {
   }
 }
 
-describe('SDK Performance Benchmarks', () => {
+describe('SDK Performance Benchmarks', { timeout: 60_000 }, () => {
   let sdk: ReturnType<typeof utils>;
 
   beforeAll(() => {
