@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import { join } from 'node:path';
-import { findFileById, invalidateFileCache } from './internal/utils';
+import { findFileById, removeFileCacheEntriesUnderDir } from './internal/utils';
 import type { Diagram } from './types';
 import {
   getResource,
@@ -138,8 +138,9 @@ export const writeDiagram =
  * ```
  */
 export const rmDiagram = (directory: string) => async (path: string) => {
-  await fs.rm(join(directory, path), { recursive: true });
-  invalidateFileCache();
+  const targetDir = join(directory, path);
+  await fs.rm(targetDir, { recursive: true });
+  removeFileCacheEntriesUnderDir(targetDir);
 };
 
 /**
