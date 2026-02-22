@@ -168,11 +168,11 @@ export function removeFileCacheEntries(filePaths: string[]): void {
 export function removeFileCacheEntriesUnderDir(dirPath: string): void {
   if (!_fileIndexCache || !_matterCache || !_filePathToIdCache) return;
 
-  const prefix = toCanonicalPath(dirPath);
+  const prefix = toCanonicalPath(dirPath) + pathSeparator;
   const toRemove: string[] = [];
 
   for (const path of _matterCache.keys()) {
-    if (path.startsWith(prefix)) {
+    if (path.startsWith(prefix) || path === toCanonicalPath(dirPath)) {
       toRemove.push(path);
     }
   }
@@ -337,7 +337,8 @@ export const searchFilesForId = async (files: string[], id: string, version?: st
         })
         .map((e) => e.path);
     }
-    return [];
+    // Cache has no entry for this id — fall through to disk scan
+    // (the file may exist but not yet be in the cache)
   }
 
   const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
