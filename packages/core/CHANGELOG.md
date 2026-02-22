@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 3.15.5
+
+### Patch Changes
+
+- fbe8860: Fix dark theme support on custom documentation feature page by replacing hardcoded dark: variants with CSS variables
+- da4c50d: Add `doc` resource reference type support for custom documentation pages, extract badge styling into shared utility, and fix theming to use CSS variables
+- a7288ea: Remove the "View Documentation" CTA from the domain integrations visualizer page.
+
 ## 3.15.4
 
 ### Patch Changes
