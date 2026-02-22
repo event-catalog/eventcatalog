@@ -3,7 +3,10 @@
 import { MarkerType, Position, type Edge, type Node } from "@xyflow/react";
 import dagre from "dagre";
 // TODO: versionMatchesUtil was imported from @utils/collections/util in core — need to verify this works in the standalone visualiser package
-import { getItemsFromCollectionByIdAndSemverOrLatest, versionMatches as versionMatchesUtil } from '@utils/collections/util';
+import {
+  getItemsFromCollectionByIdAndSemverOrLatest,
+  versionMatches as versionMatchesUtil,
+} from "@utils/collections/util";
 interface BaseCollectionData {
   id: string;
   version: string;
@@ -36,13 +39,16 @@ interface MessageCollectionItem extends CollectionItem {
  * @param actualMessageVersion - The specific version of the actual catalogued message
  * @returns true if the actual message version satisfies the accepted version pattern
  */
-export const versionMatches = (acceptedVersion: string | undefined, actualMessageVersion: string | undefined): boolean => {
+export const versionMatches = (
+  acceptedVersion: string | undefined,
+  actualMessageVersion: string | undefined,
+): boolean => {
   // If acceptedVersion is undefined or 'latest', it matches any message version
-  if (!acceptedVersion || acceptedVersion === 'latest') return true;
+  if (!acceptedVersion || acceptedVersion === "latest") return true;
 
   // If message has no version or 'latest', only match with acceptedVersion 'latest' or undefined
-  if (!actualMessageVersion || actualMessageVersion === 'latest') {
-    return !acceptedVersion || acceptedVersion === 'latest';
+  if (!actualMessageVersion || actualMessageVersion === "latest") {
+    return !acceptedVersion || acceptedVersion === "latest";
   }
 
   // Delegate to generic utility
