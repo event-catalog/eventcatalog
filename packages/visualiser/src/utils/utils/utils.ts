@@ -2,7 +2,11 @@
 
 import { MarkerType, Position, type Edge, type Node } from "@xyflow/react";
 import dagre from "dagre";
-// import { getItemsFromCollectionByIdAndSemverOrLatest } from "@utils/collections/util"; // Not used in visualizer
+// TODO: versionMatchesUtil was imported from @utils/collections/util in core — need to verify this works in the standalone visualiser package
+import {
+  getItemsFromCollectionByIdAndSemverOrLatest,
+  versionMatches as versionMatchesUtil,
+} from "@utils/collections/util";
 interface BaseCollectionData {
   id: string;
   version: string;
@@ -16,6 +20,40 @@ interface CollectionItem {
 interface MessageCollectionItem extends CollectionItem {
   collection: "commands" | "events" | "queries";
 }
+
+/**
+ * Helper function to match versions in message routing configuration.
+ * Determines if a service's accepted version pattern matches an actual message version.
+ *
+ * Supports multiple matching strategies:
+ * - 'latest' or undefined acceptedVersion matches any actual message version
+ * - Exact version matching (1.0.0 === 1.0.0)
+ * - Semver ranges (^1.0.0, ~1.2.0, >=1.0.0 <2.0.0)
+ * - X-patterns (1.x, 1.2.x, 2.x)
+ *
+ * Matching is one-way: acceptedVersion can contain patterns (what a service declares
+ * it works with), whilst actualMessageVersion must be a specific version (the actual
+ * catalogued message version).
+ *
+ * @param acceptedVersion - The version pattern a service declares (in sends/receives config)
+ * @param actualMessageVersion - The specific version of the actual catalogued message
+ * @returns true if the actual message version satisfies the accepted version pattern
+ */
+export const versionMatches = (
+  acceptedVersion: string | undefined,
+  actualMessageVersion: string | undefined,
+): boolean => {
+  // If acceptedVersion is undefined or 'latest', it matches any message version
+  if (!acceptedVersion || acceptedVersion === "latest") return true;
+
+  // If message has no version or 'latest', only match with acceptedVersion 'latest' or undefined
+  if (!actualMessageVersion || actualMessageVersion === "latest") {
+    return !acceptedVersion || acceptedVersion === "latest";
+  }
+
+  // Delegate to generic utility
+  return versionMatchesUtil(actualMessageVersion, acceptedVersion);
+};
 
 export const generateIdForNode = (node: CollectionItem) => {
   return `${node.data.id}-${node.data.version}`;

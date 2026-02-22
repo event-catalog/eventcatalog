@@ -25,6 +25,7 @@ receives:
       - id: inventory-domain-eventbus
 sends:
   - id: InventoryAdjusted
+    version: 1.0.0
     to:
       - id: orders-domain-eventbus
   - id: OutOfStock
