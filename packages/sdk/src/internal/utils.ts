@@ -17,7 +17,7 @@ let _fileIndexCache: Map<string, FileIndexEntry[]> | null = null;
 let _fileIndexCatalogDir: string | null = null;
 let _matterCache: Map<string, matter.GrayMatterFile<string>> | null = null;
 let _filePathToIdCache: Map<string, string> | null = null;
-let _fileIndexMtimeMs: number = 0;
+let _fileIndexDirBirthtimeMs: number = 0;
 
 function toCanonicalPath(inputPath: string): string {
   return normalize(resolve(inputPath));
@@ -63,9 +63,9 @@ function buildFileCache(catalogDir: string): void {
   _matterCache = matterResults;
   _filePathToIdCache = pathToId;
   try {
-    _fileIndexMtimeMs = fsSync.statSync(canonicalCatalogDir).mtimeMs;
+    _fileIndexDirBirthtimeMs = fsSync.statSync(canonicalCatalogDir).birthtimeMs;
   } catch {
-    _fileIndexMtimeMs = 0;
+    _fileIndexDirBirthtimeMs = 0;
   }
 }
 
@@ -75,10 +75,11 @@ function ensureFileCache(catalogDir: string): void {
     buildFileCache(catalogDir);
     return;
   }
-  // Check if catalog dir was recreated (e.g. tests wiping and recreating)
+  // Rebuild only when the directory was deleted and recreated (birthtimeMs changes).
+  // Unlike mtimeMs, birthtimeMs is unaffected by nested file writes.
   try {
-    const currentMtime = fsSync.statSync(canonicalCatalogDir).mtimeMs;
-    if (currentMtime !== _fileIndexMtimeMs) {
+    const currentBirthtime = fsSync.statSync(canonicalCatalogDir).birthtimeMs;
+    if (currentBirthtime !== _fileIndexDirBirthtimeMs) {
       buildFileCache(catalogDir);
     }
   } catch {
@@ -98,9 +99,8 @@ export function invalidateFileCache(): void {
  * Incrementally updates the in-memory file index for a single file write.
  * No-ops when cache is disabled or points at a different catalog.
  */
-export function upsertFileCacheEntry(catalogDir: string, filePath: string, rawContent: string): void {
-  const canonicalCatalogDir = toCanonicalPath(catalogDir);
-  if (!_fileIndexCache || !_matterCache || !_filePathToIdCache || _fileIndexCatalogDir !== canonicalCatalogDir) {
+export function upsertFileCacheEntry(filePath: string, rawContent: string): void {
+  if (!_fileIndexCache || !_matterCache || !_filePathToIdCache) {
     return;
   }
 
@@ -140,11 +140,45 @@ export function upsertFileCacheEntry(catalogDir: string, filePath: string, rawCo
   entries.push(entry);
   _fileIndexCache.set(resourceId, entries);
   _filePathToIdCache.set(normalizedPath, resourceId);
+}
 
-  try {
-    _fileIndexMtimeMs = fsSync.statSync(canonicalCatalogDir).mtimeMs;
-  } catch {
-    // Ignore mtime refresh failures; cache will self-heal on next ensureFileCache call.
+export function removeFileCacheEntries(filePaths: string[]): void {
+  if (!_fileIndexCache || !_matterCache || !_filePathToIdCache) return;
+
+  const canonicalPaths = new Set(filePaths.map(toCanonicalPath));
+
+  for (const p of canonicalPaths) {
+    _matterCache.delete(p);
+    const id = _filePathToIdCache.get(p);
+    if (id) {
+      _filePathToIdCache.delete(p);
+      const entries = _fileIndexCache.get(id);
+      if (entries) {
+        const filtered = entries.filter((e) => !canonicalPaths.has(e.path));
+        if (filtered.length === 0) {
+          _fileIndexCache.delete(id);
+        } else {
+          _fileIndexCache.set(id, filtered);
+        }
+      }
+    }
+  }
+}
+
+export function removeFileCacheEntriesUnderDir(dirPath: string): void {
+  if (!_fileIndexCache || !_matterCache || !_filePathToIdCache) return;
+
+  const prefix = toCanonicalPath(dirPath) + pathSeparator;
+  const toRemove: string[] = [];
+
+  for (const path of _matterCache.keys()) {
+    if (path.startsWith(prefix) || path === toCanonicalPath(dirPath)) {
+      toRemove.push(path);
+    }
+  }
+
+  if (toRemove.length > 0) {
+    removeFileCacheEntries(toRemove);
   }
 }
 
@@ -205,9 +239,41 @@ export const findFileById = async (catalogDir: string, id: string, version?: str
   return undefined;
 };
 
+function globToRegex(pattern: string): RegExp {
+  const normalized = pattern.replace(/\\/g, '/');
+  const regexStr = normalized
+    .replace(/[.+^${}()|[\]\\]/g, (ch) => {
+      if (ch === '{' || ch === '}') return ch;
+      return `\\${ch}`;
+    })
+    .replace(/\{([^}]+)\}/g, (_, choices: string) => `(${choices.split(',').join('|')})`)
+    .replace(/\*\*/g, '\u0000')
+    .replace(/\*/g, '[^/]*')
+    .replace(/\u0000\//g, '(?:.+/)?')
+    .replace(/\u0000/g, '.*');
+  return new RegExp(`^${regexStr}$`, 'i');
+}
+
 export const getFiles = async (pattern: string, ignore: string | string[] = '') => {
+  // Fast path: when cache is warm and pattern targets index files within the cached dir scope,
+  // filter cached paths instead of hitting the filesystem with glob.
+  if (_matterCache && _fileIndexCatalogDir && pattern.includes('index.{md,mdx}')) {
+    const canonicalPattern = toCanonicalPath(pattern).replace(/\\/g, '/');
+    const canonicalCatalogDir = _fileIndexCatalogDir.replace(/\\/g, '/');
+    // Only use fast path if the pattern is within the scope the cache was built from
+    if (canonicalPattern.startsWith(canonicalCatalogDir)) {
+      const ignoreList = (Array.isArray(ignore) ? ignore : [ignore]).filter(Boolean);
+      const matchRegex = globToRegex(canonicalPattern);
+      const ignoreRegexes = ignoreList.map((ig) => globToRegex(ig.replace(/\\/g, '/')));
+
+      return Array.from(_matterCache.keys())
+        .map((p) => p.replace(/\\/g, '/'))
+        .filter((p) => matchRegex.test(p) && !ignoreRegexes.some((r) => r.test(p)))
+        .map((p) => normalize(p));
+    }
+  }
+
   try {
-    // 1. Normalize the input pattern to handle mixed separators potentially
     const normalizedInputPattern = normalize(pattern);
 
     // 2. Determine the absolute base directory (cwd for glob)
@@ -259,17 +325,30 @@ export const readMdxFile = async (path: string) => {
 };
 
 export const searchFilesForId = async (files: string[], id: string, version?: string) => {
-  // Escape the id to avoid regex issues
+  if (_fileIndexCache) {
+    const entries = _fileIndexCache.get(id);
+    if (entries) {
+      const filesSet = new Set(files.map(toCanonicalPath));
+      return entries
+        .filter((e) => {
+          if (!filesSet.has(e.path)) return false;
+          if (version && e.version !== version) return false;
+          return true;
+        })
+        .map((e) => e.path);
+    }
+    // Cache has no entry for this id — fall through to disk scan
+    // (the file may exist but not yet be in the cache)
+  }
+
   const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const idRegex = new RegExp(`^id:\\s*(['"]|>-)?\\s*${escapedId}['"]?\\s*$`, 'm');
-
   const versionRegex = new RegExp(`^version:\\s*['"]?${version}['"]?\\s*$`, 'm');
 
   const matches = files.map((file) => {
     const content = fsSync.readFileSync(file, 'utf-8');
     const hasIdMatch = content.match(idRegex);
 
-    // Check version if provided
     if (version && !content.match(versionRegex)) {
       return undefined;
     }
