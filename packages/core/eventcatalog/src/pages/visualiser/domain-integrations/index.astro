@@ -1,7 +1,6 @@
 ---
 import NodeGraph from '@components/MDX/NodeGraph/NodeGraph.astro';
 import VisualiserLayout from '@layouts/VisualiserLayout.astro';
-import { buildUrl } from '@utils/url-builder';
 import { ClientRouter } from 'astro:transitions';
 ---
 
@@ -21,10 +20,6 @@ import { ClientRouter } from 'astro:transitions';
       linkTo="visualiser"
       version="1.0.0"
       linksToVisualiser={false}
-      href={{
-        label: 'View Documentation',
-        url: buildUrl('/docs'),
-      }}
     />
   </div>
   <ClientRouter />
