@@ -1,5 +1,11 @@
 # @eventcatalog/sdk
 
+## 2.14.3
+
+### Patch Changes
+
+- f3685b6: upgrade glob dependency from v11 to v13
+
 ## 2.14.2
 
 ### Patch Changes

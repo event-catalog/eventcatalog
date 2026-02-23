@@ -1,5 +1,17 @@
 # @eventcatalog/core
 
+## 3.15.6
+
+### Patch Changes
+
+- e1aa05e: upgrade @asyncapi/react-component from 2.4.3 to 3.0.2
+- 19b0bc8: Upgrade glob dependency from v10 to v13
+- ce665d0: upgrade jsonpath dependency from v1.2.0 to v1.2.1
+- deaacc2: upgrade @asyncapi/parser from 3.4.0 to 3.6.0
+- Updated dependencies [f3685b6]
+  - @eventcatalog/sdk@2.14.3
+  - @eventcatalog/linter@1.0.7
+
 ## 3.15.5
 
 ### Patch Changes
