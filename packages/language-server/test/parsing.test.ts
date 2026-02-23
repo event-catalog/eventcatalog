@@ -176,6 +176,93 @@ describe("Channel routing", () => {
 });
 
 // ---------------------------------------------------------------------------
+// 4b. Template channel names (e.g. inventory.{env}.events)
+// ---------------------------------------------------------------------------
+describe("Template channel names", () => {
+  it("parses a channel definition with template parameters in the name", async () => {
+    const doc = await parseProgram(`
+      channel inventory.{env}.events {
+        version 1.0.0
+        name "Inventory Events Channel"
+        address "inventory.{env}.events"
+        protocol "kafka"
+        summary "Central event stream for inventory events"
+      }
+    `);
+    const errors = doc.parseResult.parserErrors;
+    expect(errors).toHaveLength(0);
+
+    const ch = doc.parseResult.value.definitions[0];
+    if (isChannelDef(ch)) {
+      expect(ch.name).toBe("inventory.{env}.events");
+    }
+  });
+
+  it("parses sends to a template channel name", async () => {
+    const doc = await parseProgram(`
+      service InventoryService {
+        version 1.0.0
+        sends event InventoryAdjusted to inventory.{env}.events
+      }
+    `);
+    const errors = doc.parseResult.parserErrors;
+    expect(errors).toHaveLength(0);
+
+    const svc = doc.parseResult.value.definitions[0];
+    if (isServiceDef(svc)) {
+      const sends = utils.getSends(svc.body);
+      expect(sends).toHaveLength(1);
+      if (isToClause(sends[0].channelClause)) {
+        expect(sends[0].channelClause.channels[0].channelName).toBe(
+          "inventory.{env}.events",
+        );
+      }
+    }
+  });
+
+  it("parses receives from a template channel name with version", async () => {
+    const doc = await parseProgram(`
+      service InventoryService {
+        version 1.0.0
+        receives command UpdateInventory from inventory.{env}.events@1.0.0
+      }
+    `);
+    const errors = doc.parseResult.parserErrors;
+    expect(errors).toHaveLength(0);
+
+    const svc = doc.parseResult.value.definitions[0];
+    if (isServiceDef(svc)) {
+      const receives = utils.getReceives(svc.body);
+      expect(receives).toHaveLength(1);
+      if (isFromClause(receives[0].channelClause)) {
+        expect(receives[0].channelClause.channels[0].channelName).toBe(
+          "inventory.{env}.events",
+        );
+        expect(receives[0].channelClause.channels[0].channelVersion).toBe(
+          "1.0.0",
+        );
+      }
+    }
+  });
+
+  it("parses a template channel name with multiple template segments", async () => {
+    const doc = await parseProgram(`
+      channel topic.{region}.{env}.orders {
+        version 1.0.0
+        summary "Multi-region orders topic"
+      }
+    `);
+    const errors = doc.parseResult.parserErrors;
+    expect(errors).toHaveLength(0);
+
+    const ch = doc.parseResult.value.definitions[0];
+    if (isChannelDef(ch)) {
+      expect(ch.name).toBe("topic.{region}.{env}.orders");
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
 // 5. Sends to channel with inline body
 // ---------------------------------------------------------------------------
 describe("Sends to channel with inline body", () => {

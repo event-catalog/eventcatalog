@@ -13,6 +13,7 @@ export const EcTerminals = {
   VERSION: /\d+\.\d+\.\d+(-[a-zA-Z0-9_.]+)*/,
   STRING: /"(?:[^"\\]|\\.)*"/,
   NUMBER: /\d+/,
+  TEMPLATE_ID: /[a-zA-Z_][a-zA-Z0-9_.-]*\{[a-zA-Z0-9_]+\}[a-zA-Z0-9_.{}-]*/,
   ID: /[a-zA-Z_][a-zA-Z0-9_.-]*/,
 };
 
@@ -280,6 +281,16 @@ export const ChannelClause = "ChannelClause";
 
 export function isChannelClause(item: unknown): item is ChannelClause {
   return reflection.isInstance(item, ChannelClause);
+}
+
+export type ChannelName = string;
+
+export function isChannelName(item: unknown): item is ChannelName {
+  return (
+    typeof item === "string" &&
+    (/[a-zA-Z_][a-zA-Z0-9_.-]*\{[a-zA-Z0-9_]+\}[a-zA-Z0-9_.{}-]*/.test(item) ||
+      /[a-zA-Z_][a-zA-Z0-9_.-]*/.test(item))
+  );
 }
 
 export type ClassificationEnum =
@@ -731,7 +742,7 @@ export interface ChannelDef extends langium.AstNode {
   readonly $container: DomainDef | Program | SubdomainDef | VisualizerDef;
   readonly $type: "ChannelDef";
   body: Array<ChannelBodyItem>;
-  name: string;
+  name: ChannelName;
 }
 
 export const ChannelDef = "ChannelDef";
@@ -743,7 +754,7 @@ export function isChannelDef(item: unknown): item is ChannelDef {
 export interface ChannelRef extends langium.AstNode {
   readonly $container: FromClause | ToClause;
   readonly $type: "ChannelRef";
-  channelName: string;
+  channelName: ChannelName;
   channelVersion?: string;
 }
 
@@ -756,13 +767,28 @@ export function isChannelRef(item: unknown): item is ChannelRef {
 export interface ChannelRefStmt extends langium.AstNode {
   readonly $container: VisualizerDef;
   readonly $type: "ChannelRefStmt";
-  ref: ResourceRef;
+  ref: ChannelResourceRef;
 }
 
 export const ChannelRefStmt = "ChannelRefStmt";
 
 export function isChannelRefStmt(item: unknown): item is ChannelRefStmt {
   return reflection.isInstance(item, ChannelRefStmt);
+}
+
+export interface ChannelResourceRef extends langium.AstNode {
+  readonly $container: ChannelRefStmt;
+  readonly $type: "ChannelResourceRef";
+  name: ChannelName;
+  version?: string;
+}
+
+export const ChannelResourceRef = "ChannelResourceRef";
+
+export function isChannelResourceRef(
+  item: unknown,
+): item is ChannelResourceRef {
+  return reflection.isInstance(item, ChannelResourceRef);
 }
 
 export interface ClassificationStmt extends langium.AstNode {
@@ -1452,7 +1478,6 @@ export function isResourceAnnotationBlockItem(
 
 export interface ResourceRef extends langium.AstNode {
   readonly $container:
-    | ChannelRefStmt
     | ContainerRefStmt
     | DataProductRefStmt
     | DomainRefStmt
@@ -1986,6 +2011,7 @@ export type EcAstType = {
   ChannelDef: ChannelDef;
   ChannelRef: ChannelRef;
   ChannelRefStmt: ChannelRefStmt;
+  ChannelResourceRef: ChannelResourceRef;
   ClassificationStmt: ClassificationStmt;
   CommandDef: CommandDef;
   ContainerBodyItem: ContainerBodyItem;
@@ -2108,6 +2134,7 @@ export class EcAstReflection extends langium.AbstractAstReflection {
       ChannelDef,
       ChannelRef,
       ChannelRefStmt,
+      ChannelResourceRef,
       ClassificationStmt,
       CommandDef,
       ContainerBodyItem,
@@ -2489,6 +2516,12 @@ export class EcAstReflection extends langium.AbstractAstReflection {
         return {
           name: ChannelRefStmt,
           properties: [{ name: "ref" }],
+        };
+      }
+      case ChannelResourceRef: {
+        return {
+          name: ChannelResourceRef,
+          properties: [{ name: "name" }, { name: "version" }],
         };
       }
       case ClassificationStmt: {

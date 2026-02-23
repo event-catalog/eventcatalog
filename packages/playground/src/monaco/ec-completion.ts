@@ -132,7 +132,7 @@ const contextSuggestions: Record<string, Suggestion[]> = {
 
 function findEnclosingResource(text: string): string | null {
   const stack: string[] = [];
-  const tokenRegex = /\b(domain|service|event|command|query|channel|user|team|flow|container|data-product|subdomain|visualizer|actor|external-system)\b[^{}]*\{|\{|\}/g;
+  const tokenRegex = /\b(domain|service|event|command|query|channel|user|team|flow|container|data-product|subdomain|visualizer|actor|external-system)\b(?:[^{}]|\{[a-zA-Z0-9_]+\})*\{|\{|\}/g;
   let match;
 
   while ((match = tokenRegex.exec(text)) !== null) {
@@ -161,7 +161,7 @@ function extractResourceVersions(text: string): Map<string, string[]> {
 
   for (const type of resourceTypes) {
     const defRegex = new RegExp(
-      `\\b${type}\\s+([a-zA-Z_][a-zA-Z0-9_.\\-]*)\\s*\\{[^}]*?version\\s+(\\d+\\.\\d+\\.\\d+(?:-[a-zA-Z0-9_.]+)*)`,
+      `\\b${type}\\s+([a-zA-Z_][a-zA-Z0-9_.{}\\-]*)\\s*\\{[^}]*?version\\s+(\\d+\\.\\d+\\.\\d+(?:-[a-zA-Z0-9_.]+)*)`,
       'g'
     );
     let match;

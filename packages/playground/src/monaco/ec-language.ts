@@ -33,6 +33,7 @@ export function registerEcLanguage(monaco: Monaco) {
         [/"[^"]*"/, 'string'],
         [/@[a-zA-Z][\w-]*/, 'annotation'],
         [/\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?/, 'number.version'],
+        [/[a-zA-Z_][\w.-]*(\{[a-zA-Z0-9_]+\}[\w.-]*)+/, 'identifier'],
         [/[a-zA-Z_][\w-]*/, {
           cases: {
             '@keywords': 'keyword',
