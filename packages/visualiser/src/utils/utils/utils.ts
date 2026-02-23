@@ -2,7 +2,7 @@
 
 import { MarkerType, Position, type Edge, type Node } from "@xyflow/react";
 import dagre from "dagre";
-// import { getItemsFromCollectionByIdAndSemverOrLatest } from "@utils/collections/util"; // Not used in visualizer
+
 interface BaseCollectionData {
   id: string;
   version: string;

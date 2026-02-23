@@ -56,6 +56,52 @@ export const mockEvents = [
       pathToFile: 'events/PaymentProcessed/index.md',
     },
   },
+  // Additional versions for testing semver pattern matching
+  {
+    id: 'PaymentProcessed',
+    collection: 'events',
+    data: {
+      id: 'PaymentProcessed',
+      version: '1.0.0',
+      pathToFile: 'events/PaymentProcessed/versioned/1.0.0/index.md',
+    },
+  },
+  {
+    id: 'PaymentProcessed',
+    collection: 'events',
+    data: {
+      id: 'PaymentProcessed',
+      version: '1.2.3',
+      pathToFile: 'events/PaymentProcessed/versioned/1.2.3/index.md',
+    },
+  },
+  {
+    id: 'PaymentProcessed',
+    collection: 'events',
+    data: {
+      id: 'PaymentProcessed',
+      version: '1.2.5',
+      pathToFile: 'events/PaymentProcessed/versioned/1.2.5/index.md',
+    },
+  },
+  {
+    id: 'PaymentProcessed',
+    collection: 'events',
+    data: {
+      id: 'PaymentProcessed',
+      version: '1.9.9',
+      pathToFile: 'events/PaymentProcessed/versioned/1.9.9/index.md',
+    },
+  },
+  {
+    id: 'PaymentProcessed',
+    collection: 'events',
+    data: {
+      id: 'PaymentProcessed',
+      version: '2.0.0',
+      pathToFile: 'events/PaymentProcessed/versioned/2.0.0/index.md',
+    },
+  },
 ];
 
 export const mockQueries = [];

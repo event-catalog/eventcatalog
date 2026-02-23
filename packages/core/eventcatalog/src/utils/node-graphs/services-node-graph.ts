@@ -8,6 +8,7 @@ import {
   createEdge,
   buildContextMenuForService,
   buildContextMenuForResource,
+  versionMatches,
 } from '@utils/node-graphs/utils/utils';
 
 import { findMatchingNodes, findInMap, createVersionedMap } from '@utils/collections/util';
@@ -124,7 +125,9 @@ export const getNodesAndEdges = async ({
   if (renderMessages) {
     // All the messages the service receives
     receives.forEach((receive) => {
-      const targetChannels = receivesRaw.find((receiveRaw) => receiveRaw.id === receive.data.id)?.from;
+      const targetChannels = receivesRaw.find(
+        (receiveRaw) => receiveRaw.id === receive.data.id && versionMatches(receiveRaw.version, receive.data.version)
+      )?.from;
 
       const { nodes: consumedMessageNodes, edges: consumedMessageEdges } = getNodesAndEdgesForConsumedMessage({
         message: receive,
@@ -235,7 +238,9 @@ export const getNodesAndEdges = async ({
 
   if (renderMessages) {
     sends.forEach((send) => {
-      const sourceChannels = sendsRaw.find((sendRaw) => sendRaw.id === send.data.id)?.to;
+      const sourceChannels = sendsRaw.find(
+        (sendRaw) => sendRaw.id === send.data.id && versionMatches(sendRaw.version, send.data.version)
+      )?.to;
 
       const { nodes: producedMessageNodes, edges: producedMessageEdges } = getNodesAndEdgesForProducedMessage({
         message: send,
