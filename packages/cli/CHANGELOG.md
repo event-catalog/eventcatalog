@@ -1,5 +1,17 @@
 # @eventcatalog/cli
 
+## 0.4.0
+
+### Minor Changes
+
+- cf7fcac: add DSL-managed key merging for import to preserve non-DSL frontmatter, fix deprecated/draft falsy value handling in compiler
+
+### Patch Changes
+
+- Updated dependencies [cf7fcac]
+- Updated dependencies [c4104a1]
+  - @eventcatalog/language-server@0.3.0
+
 ## 0.3.4
 
 ### Patch Changes
