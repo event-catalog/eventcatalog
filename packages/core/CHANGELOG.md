@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.17.1
+
+### Patch Changes
+
+- 88de335: Fix resource docs glob patterns to support nested directory structures using double-star wildcards
+
 ## 3.17.0
 
 ### Minor Changes
