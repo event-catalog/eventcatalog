@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.17.0
+
+### Minor Changes
+
+- 9d279cc: Add message hydration for DSL export, shared managed keys for all message types, and fix query edge labels in visualizer
+
 ## 3.16.0
 
 ### Minor Changes

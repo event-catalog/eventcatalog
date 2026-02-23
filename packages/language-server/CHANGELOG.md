@@ -1,5 +1,15 @@
 # @eventcatalog/language-server
 
+## 0.3.0
+
+### Minor Changes
+
+- c4104a1: Support template parameters in channel names (e.g. `inventory.{env}.events`) in the DSL grammar
+
+### Patch Changes
+
+- cf7fcac: add DSL-managed key merging for import to preserve non-DSL frontmatter, fix deprecated/draft falsy value handling in compiler
+
 ## 0.2.3
 
 ### Patch Changes
