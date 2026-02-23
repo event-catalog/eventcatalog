@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.17.2
+
+### Patch Changes
+
+- 22bd7b8: Use double-star glob patterns for resource doc category collection to support nested directory structures
+
 ## 3.17.1
 
 ### Patch Changes
