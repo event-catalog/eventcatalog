@@ -1,5 +1,11 @@
 # @eventcatalog/create-catalog
 
+## 4.2.1
+
+### Patch Changes
+
+- b058439: remove unused got and tar dependencies, bump cross-spawn to 6.0.6
+
 ## 4.2.0
 
 ### Minor Changes
