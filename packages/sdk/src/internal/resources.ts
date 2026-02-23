@@ -8,6 +8,7 @@ import {
   cachedMatterRead,
   upsertFileCacheEntry,
   removeFileCacheEntries,
+  removeFileCacheEntriesUnderDir,
 } from './utils';
 import matter from 'gray-matter';
 import fs from 'node:fs/promises';
@@ -268,17 +269,19 @@ export const rmResourceById = async (
         await waitForFileRemoval(file);
       })
     );
+    removeFileCacheEntries(matchedFiles as string[]);
   } else {
     await Promise.all(
       matchedFiles.map(async (file) => {
         const directory = dirname(file);
         await fs.rm(directory, { recursive: true, force: true });
         await waitForFileRemoval(directory);
+        // Purge all descendant cache entries under the deleted directory,
+        // not just the matched files, since recursive rm removes nested resources too.
+        removeFileCacheEntriesUnderDir(directory);
       })
     );
   }
-
-  removeFileCacheEntries(matchedFiles as string[]);
 };
 
 // Helper function to ensure file/directory is completely removed
