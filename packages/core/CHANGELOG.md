@@ -1,5 +1,11 @@
 # @eventcatalog/core
 
+## 3.17.3
+
+### Patch Changes
+
+- e9012cb: Fix resource docs not appearing when folder name differs from frontmatter id
+
 ## 3.17.2
 
 ### Patch Changes
