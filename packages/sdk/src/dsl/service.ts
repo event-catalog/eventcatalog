@@ -2,6 +2,7 @@ import type { Service, Event, Command, Query } from '../types';
 import { serializeBaseFields, serializeMessagePointers, resolveMessageType, buildMessageTypeIndex } from './utils';
 import type { MessageTypeIndex } from './utils';
 import { messageToDSL } from './message';
+import { valid as semverValid } from 'semver';
 
 interface ServiceToDSLOptions {
   catalogDir: string;
@@ -18,6 +19,7 @@ export async function serviceToDSL(
   const { catalogDir, hydrate = false, _seen = new Set<string>() } = options;
   const msgIndex = options._msgIndex || buildMessageTypeIndex(catalogDir);
   const parts: string[] = [];
+  const resolvedVersions = new Map<string, string>();
 
   if (hydrate && getMessageFn) {
     const allMessages = [...(resource.sends || []), ...(resource.receives || [])];
@@ -32,21 +34,38 @@ export async function serviceToDSL(
       const msgResource = await getMessageFn(msg.id, msg.version);
       if (msgResource) {
         parts.push(messageToDSL(msgResource, msgType));
+        // Track resolved version so semver ranges can be replaced with concrete versions
+        if (msg.version && !semverValid(msg.version) && msgResource.version) {
+          resolvedVersions.set(`${msg.id}@${msg.version}`, msgResource.version);
+        }
       }
     }
   }
+
+  // Replace semver range versions with concrete resolved versions
+  const resolvePointers = <T extends { id: string; version?: string }>(pointers: T[]): T[] =>
+    pointers.map((p) => {
+      if (p.version && !semverValid(p.version)) {
+        const resolved = resolvedVersions.get(`${p.id}@${p.version}`);
+        if (resolved) return { ...p, version: resolved };
+      }
+      return p;
+    });
+
+  const sends = resource.sends ? resolvePointers(resource.sends) : undefined;
+  const receives = resource.receives ? resolvePointers(resource.receives) : undefined;
 
   const lines: string[] = [];
   const baseFields = serializeBaseFields(resource);
   if (baseFields) lines.push(baseFields);
 
-  if (resource.sends && resource.sends.length > 0) {
-    const sendsStr = serializeMessagePointers(resource.sends, 'sends', msgIndex);
+  if (sends && sends.length > 0) {
+    const sendsStr = serializeMessagePointers(sends, 'sends', msgIndex);
     if (sendsStr) lines.push(sendsStr);
   }
 
-  if (resource.receives && resource.receives.length > 0) {
-    const recvStr = serializeMessagePointers(resource.receives, 'receives', msgIndex);
+  if (receives && receives.length > 0) {
+    const recvStr = serializeMessagePointers(receives, 'receives', msgIndex);
     if (recvStr) lines.push(recvStr);
   }
 

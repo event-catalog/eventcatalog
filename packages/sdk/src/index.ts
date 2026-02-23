@@ -1340,6 +1340,7 @@ export default (path: string) => {
       getServices: getServices(join(path)),
       getDomain: getDomain(join(path, 'domains')),
       getChannel: getChannel(join(path)),
+      getChannels: getChannels(join(path)),
       getTeam: getTeam(join(path, 'teams')),
       getUser: getUser(join(path, 'users')),
     }),

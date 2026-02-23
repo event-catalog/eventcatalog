@@ -25,6 +25,14 @@ export function channelToDSL(resource: Channel): string {
     lines.push(`  summary "${resource.summary.trim()}"`);
   }
 
+  if (resource.routes && resource.routes.length > 0) {
+    for (const route of resource.routes) {
+      let ref = route.id;
+      if (route.version) ref += `@${route.version}`;
+      lines.push(`  route ${ref}`);
+    }
+  }
+
   if (!lines.length) {
     return `channel ${resource.id}`;
   }

@@ -24,6 +24,7 @@ export interface ResourceResolvers {
   getServices: (options?: { latestOnly?: boolean }) => Promise<Service[]>;
   getDomain: (id: string, version?: string) => Promise<Domain | undefined>;
   getChannel: (id: string, version?: string) => Promise<Channel | undefined>;
+  getChannels: (options?: { latestOnly?: boolean }) => Promise<Channel[]>;
   getTeam: (id: string) => Promise<Team | undefined>;
   getUser: (id: string) => Promise<User | undefined>;
 }
@@ -43,20 +44,47 @@ function getMessage(resolvers: ResourceResolvers, msgIndex: MessageTypeIndex) {
   };
 }
 
+async function hydrateChannel(
+  channelId: string,
+  channelVersion: string | undefined,
+  resolvers: ResourceResolvers,
+  seen: Set<string>,
+  parts: string[]
+) {
+  const key = `channel:${channelId}@${channelVersion || 'latest'}`;
+  if (seen.has(key)) return;
+  seen.add(key);
+
+  const channel = await resolvers.getChannel(channelId, channelVersion);
+  if (!channel) return;
+
+  // Hydrate any channels this channel routes to (downstream)
+  if (channel.routes && channel.routes.length > 0) {
+    for (const route of channel.routes) {
+      await hydrateChannel(route.id, route.version, resolvers, seen, parts);
+    }
+  }
+
+  // Hydrate any channels that route TO this channel (upstream)
+  const allChannels = (await resolvers.getChannels({ latestOnly: true })) || [];
+  for (const upstream of allChannels) {
+    if (!upstream.routes) continue;
+    const routesToThis = upstream.routes.some((r) => r.id === channelId);
+    if (routesToThis) {
+      await hydrateChannel(upstream.id, upstream.version, resolvers, seen, parts);
+    }
+  }
+
+  parts.push(channelToDSL(channel));
+}
+
 async function hydrateChannels(resource: Service | Domain, resolvers: ResourceResolvers, seen: Set<string>, parts: string[]) {
   const allMessages = [...((resource as Service).sends || []), ...((resource as Service).receives || [])];
   for (const msg of allMessages) {
     const channels = 'to' in msg ? (msg as any).to : 'from' in msg ? (msg as any).from : undefined;
     if (!channels) continue;
     for (const ch of channels) {
-      const key = `channel:${ch.id}@${ch.version || 'latest'}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-
-      const channel = await resolvers.getChannel(ch.id, ch.version);
-      if (channel) {
-        parts.push(channelToDSL(channel));
-      }
+      await hydrateChannel(ch.id, ch.version, resolvers, seen, parts);
     }
   }
 }
@@ -120,6 +148,41 @@ async function hydrateMessageServices(
   }
 }
 
+async function hydrateRelatedServices(
+  messageId: string,
+  messageVersion: string | undefined,
+  direction: 'sends' | 'receives',
+  resolvers: ResourceResolvers,
+  seen: Set<string>,
+  parts: string[],
+  catalogDir: string,
+  msgIndex: MessageTypeIndex
+) {
+  const services = (await resolvers.getServices({ latestOnly: false })) || [];
+  for (const service of services) {
+    const key = `service:${service.id}@${service.version || 'latest'}`;
+    if (seen.has(key)) continue;
+
+    const pointers = direction === 'sends' ? service.sends : service.receives;
+    const referencesMessage = (pointers || []).some(
+      (msg) => msg.id === messageId && msgVersionMatches(msg.version, messageVersion)
+    );
+
+    if (referencesMessage) {
+      seen.add(key);
+      const matchMsg = (msg: { id: string; version?: string }) =>
+        msg.id === messageId && msgVersionMatches(msg.version, messageVersion);
+      const filtered: Service = {
+        ...service,
+        sends: direction === 'sends' ? service.sends?.filter(matchMsg) : undefined,
+        receives: direction === 'receives' ? service.receives?.filter(matchMsg) : undefined,
+      };
+      await hydrateChannels(filtered, resolvers, seen, parts);
+      parts.push(await serviceToDSL(filtered, { catalogDir, hydrate: false, _seen: new Set(seen), _msgIndex: msgIndex }));
+    }
+  }
+}
+
 export const toDSL =
   (catalogDir: string, resolvers: ResourceResolvers) =>
   async (resource: AnyResource | AnyResource[], options: ToDSLOptions): Promise<string> => {
@@ -155,6 +218,17 @@ export const toDSL =
               getMessage(resolvers, msgIndex)
             )
           );
+          if (options.hydrate) {
+            const svc = res as Service;
+            // For messages this service sends: find services that receive them (downstream consumers)
+            for (const msg of svc.sends || []) {
+              await hydrateRelatedServices(msg.id, msg.version, 'receives', resolvers, seen, parts, catalogDir, msgIndex);
+            }
+            // For messages this service receives: find services that send them (upstream producers)
+            for (const msg of svc.receives || []) {
+              await hydrateRelatedServices(msg.id, msg.version, 'sends', resolvers, seen, parts, catalogDir, msgIndex);
+            }
+          }
           break;
         case 'domain':
           if (options.hydrate) {
