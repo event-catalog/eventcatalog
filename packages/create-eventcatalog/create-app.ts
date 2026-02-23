@@ -1,7 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import chalk from 'chalk';
 import path from 'path';
-import { RepoInfo } from './helpers/examples';
 import { makeDir } from './helpers/make-dir';
 import { tryGitInit } from './helpers/git';
 
@@ -37,7 +36,7 @@ export async function createApp({
   initEmptyProject: boolean;
   template?: TemplateType;
 }): Promise<void> {
-  let repoInfo: RepoInfo | undefined;
+  let repoInfo: any | undefined;
   const mode: TemplateMode = typescript ? 'ts' : 'js';
   const template: TemplateType = initEmptyProject ? 'empty' : templateName || 'default';
 
