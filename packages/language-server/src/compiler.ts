@@ -406,9 +406,9 @@ function commonFrontmatter(
   const schema = getSchema(body);
   if (schema) fm.schemaPath = schema;
   const deprecated = getDeprecated(body);
-  if (deprecated) fm.deprecated = deprecated;
+  if (deprecated !== undefined) fm.deprecated = deprecated;
   const draft = getDraft(body);
-  if (draft) fm.draft = draft;
+  if (draft !== undefined) fm.draft = draft;
 
   const annFields = mapAnnotations(getAnnotations(body));
   Object.assign(fm, annFields);

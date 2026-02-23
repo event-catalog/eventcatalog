@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { createInterface } from 'node:readline';
 import matter from 'gray-matter';
 import createSDK from '@eventcatalog/sdk';
+import { DSL_MANAGED_KEYS_BY_TYPE } from './dsl-managed-keys';
 
 export interface ImportOptions {
   files?: string[];
@@ -46,6 +47,38 @@ function normalizeImportedFrontmatter(type: string, frontmatter: Record<string, 
   }
 
   return normalized;
+}
+
+function toFrontmatter(resource: any): Record<string, any> {
+  if (!resource || typeof resource !== 'object') return {};
+  const { markdown: _markdown, ...frontmatter } = resource;
+  return frontmatter;
+}
+
+function mergeImportedFrontmatter(
+  type: string,
+  incomingFrontmatter: Record<string, any>,
+  existing?: any,
+  latest?: any
+): Record<string, any> {
+  const normalizedIncoming = normalizeImportedFrontmatter(type, incomingFrontmatter);
+  const managedKeys = DSL_MANAGED_KEYS_BY_TYPE[type];
+
+  if (!managedKeys) {
+    return normalizedIncoming;
+  }
+
+  const baseFrontmatter = toFrontmatter(existing ?? latest);
+  const preservedFrontmatter = { ...baseFrontmatter };
+
+  for (const key of managedKeys) {
+    delete preservedFrontmatter[key];
+  }
+
+  return {
+    ...preservedFrontmatter,
+    ...normalizedIncoming,
+  };
 }
 
 const RESOURCE_TYPE_FROM_FOLDER: Record<string, string> = {
@@ -757,7 +790,7 @@ export async function importDSL(options: ImportOptions): Promise<string> {
       }
 
       const resourceData = {
-        ...normalizeImportedFrontmatter(resource.type, resource.frontmatter),
+        ...mergeImportedFrontmatter(resource.type, resource.frontmatter, existing, latest),
         markdown,
       };
 

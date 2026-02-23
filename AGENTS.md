@@ -33,6 +33,9 @@ Naming patterns:
 Vitest is the default test framework across packages. Tests are placed either near source (`src/test`, `test`, `tests`) or under `__tests__`.
 - Use `*.test.ts` or `*.spec.ts` to match existing suites.
 - Add/adjust tests with every behavior change.
+- For CLI tests (especially under `packages/cli/src/test/import-export`), use descriptive, rule-style test names that read in plain English, for example: `when we import a domain that does not exist in the catalog, a domain resource is created`.
+- For CLI export tests, assert exact expected outputs and errors (prefer `toBe` with full strings) instead of partial-match assertions like `toContain`.
+- For multiline CLI export DSL assertions, use the shared `dsl` template tag with `toBe(...)` so expected blocks stay readable and indented in the test file.
 - For core/UI-impacting changes, also verify catalog build paths (`pnpm verify-build:catalog`).
 
 ## Commit & Pull Request Guidelines
