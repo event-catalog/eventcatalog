@@ -251,4 +251,40 @@ service OrderService {
     const channelMatches = result.match(/SharedTopic@/g);
     expect(channelMatches).toHaveLength(1);
   });
+
+  it('imports a channel with template parameters in the name', async () => {
+    const ecFile = writeEcFile(
+      'test.ec',
+      `channel inventory.{env}.events {
+  version 1.0.0
+  name "Inventory Events Channel"
+  address "inventory.{env}.events"
+  protocol "kafka"
+  summary "Central event stream for inventory events"
+}
+
+service InventoryService {
+  version 1.0.0
+  name "Inventory Service"
+  sends event InventoryAdjusted to inventory.{env}.events
+}`
+    );
+
+    const result = await importDSL({ files: [ecFile], dir: catalogPath });
+
+    expect(result).toContain('Created');
+
+    const sdk = createSDK(catalogPath);
+    const channel = await sdk.getChannel('inventory.{env}.events', '1.0.0');
+    expect(channel).toBeDefined();
+    expect(channel!.name).toBe('Inventory Events Channel');
+    expect(channel!.address).toBe('inventory.{env}.events');
+
+    const service = await sdk.getService('InventoryService', '1.0.0');
+    expect(service).toBeDefined();
+    expect(service!.sends).toBeDefined();
+    expect(service!.sends).toHaveLength(1);
+    expect((service!.sends![0] as any).to).toBeDefined();
+    expect((service!.sends![0] as any).to[0].id).toBe('inventory.{env}.events');
+  });
 });

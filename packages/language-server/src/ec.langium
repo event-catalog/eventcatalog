@@ -58,7 +58,7 @@ MessageBodyItem:
 
 // ─── Channel ────────────────────────────────────────────
 ChannelDef:
-  'channel' name=ID '{' (body+=ChannelBodyItem)* '}';
+  'channel' name=ChannelName '{' (body+=ChannelBodyItem)* '}';
 
 ChannelBodyItem:
   VersionStmt | NameStmt | SummaryStmt | OwnerStmt |
@@ -305,7 +305,7 @@ FromClause:
   ('delivery' deliveryMode=DeliveryMode)?;
 
 ChannelRef:
-  channelName=ID ('@' channelVersion=VERSION)?;
+  channelName=ChannelName ('@' channelVersion=VERSION)?;
 
 DeliveryMode returns string:
   'push' | 'pull' | 'push-pull';
@@ -361,7 +361,10 @@ StyleEnum returns string:
   'default' | 'post-it';
 
 ChannelRefStmt:
-  'channel' ref=ResourceRef;
+  'channel' ref=ChannelResourceRef;
+
+ChannelResourceRef:
+  name=ChannelName ('@' version=VERSION)?;
 
 FlowRefStmt:
   'flow' ref=ResourceRef;
@@ -451,6 +454,10 @@ ResourceRef:
 BoolLiteral returns boolean:
   'true' | 'false';
 
+// ─── Channel name (supports template parameters like {env}) ─
+ChannelName returns string:
+  TEMPLATE_ID | ID;
+
 // ─── Terminals ──────────────────────────────────────────
 hidden terminal WS: /\s+/;
 hidden terminal SL_COMMENT: /\/\/[^\n\r]*/;
@@ -458,4 +465,5 @@ hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;
 terminal VERSION: /\d+\.\d+\.\d+(-[a-zA-Z0-9_.]+)*/;
 terminal STRING: /"(?:[^"\\]|\\.)*"/;
 terminal NUMBER: /\d+/;
+terminal TEMPLATE_ID: /[a-zA-Z_][a-zA-Z0-9_.-]*\{[a-zA-Z0-9_]+\}[a-zA-Z0-9_.{}-]*/;
 terminal ID: /[a-zA-Z_][a-zA-Z0-9_.-]*/;
