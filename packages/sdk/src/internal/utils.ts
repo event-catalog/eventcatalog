@@ -329,16 +329,18 @@ export const searchFilesForId = async (files: string[], id: string, version?: st
     const entries = _fileIndexCache.get(id);
     if (entries) {
       const filesSet = new Set(files.map(toCanonicalPath));
-      return entries
-        .filter((e) => {
-          if (!filesSet.has(e.path)) return false;
-          if (version && e.version !== version) return false;
-          return true;
-        })
-        // Non-versioned (root) entries first so callers like versionResource
-        // that use matchedFiles[0] pick the current root, not an old version.
-        .sort((a, b) => Number(a.isVersioned) - Number(b.isVersioned))
-        .map((e) => e.path);
+      return (
+        entries
+          .filter((e) => {
+            if (!filesSet.has(e.path)) return false;
+            if (version && e.version !== version) return false;
+            return true;
+          })
+          // Non-versioned (root) entries first so callers like versionResource
+          // that use matchedFiles[0] pick the current root, not an old version.
+          .sort((a, b) => Number(a.isVersioned) - Number(b.isVersioned))
+          .map((e) => e.path)
+      );
     }
     // Cache has no entry for this id — fall through to disk scan
     // (the file may exist but not yet be in the cache)
