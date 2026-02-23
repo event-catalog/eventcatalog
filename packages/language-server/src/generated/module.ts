@@ -3,23 +3,36 @@
  * DO NOT EDIT MANUALLY!
  ******************************************************************************/
 
-import type { LangiumSharedCoreServices, LangiumCoreServices, LangiumGeneratedCoreServices, LangiumGeneratedSharedCoreServices, LanguageMetaData, Module } from 'langium';
-import { EcAstReflection } from './ast.js';
-import { EcGrammar } from './grammar.js';
+import type {
+  LangiumSharedCoreServices,
+  LangiumCoreServices,
+  LangiumGeneratedCoreServices,
+  LangiumGeneratedSharedCoreServices,
+  LanguageMetaData,
+  Module,
+} from "langium";
+import { EcAstReflection } from "./ast.js";
+import { EcGrammar } from "./grammar.js";
 
 export const EcLanguageMetaData = {
-    languageId: 'ec',
-    fileExtensions: ['.ec'],
-    caseInsensitive: false,
-    mode: 'development'
+  languageId: "ec",
+  fileExtensions: [".ec"],
+  caseInsensitive: false,
+  mode: "development",
 } as const satisfies LanguageMetaData;
 
-export const EcGeneratedSharedModule: Module<LangiumSharedCoreServices, LangiumGeneratedSharedCoreServices> = {
-    AstReflection: () => new EcAstReflection()
+export const EcGeneratedSharedModule: Module<
+  LangiumSharedCoreServices,
+  LangiumGeneratedSharedCoreServices
+> = {
+  AstReflection: () => new EcAstReflection(),
 };
 
-export const EcGeneratedModule: Module<LangiumCoreServices, LangiumGeneratedCoreServices> = {
-    Grammar: () => EcGrammar(),
-    LanguageMetaData: () => EcLanguageMetaData,
-    parser: {}
+export const EcGeneratedModule: Module<
+  LangiumCoreServices,
+  LangiumGeneratedCoreServices
+> = {
+  Grammar: () => EcGrammar(),
+  LanguageMetaData: () => EcLanguageMetaData,
+  parser: {},
 };

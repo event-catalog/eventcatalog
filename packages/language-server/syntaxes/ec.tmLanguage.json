@@ -1,9 +1,7 @@
 {
   "name": "ec",
   "scopeName": "source.ec",
-  "fileTypes": [
-    ".ec"
-  ],
+  "fileTypes": [".ec"],
   "patterns": [
     {
       "include": "#comments"
