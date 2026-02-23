@@ -1,0 +1,12 @@
+---
+id: PaymentService
+name: Payment Service
+version: 1.0.0
+sends:
+  - id: PaymentProcessed
+    version: 0.0.1
+    to:
+      - id: EventBridgeChannel
+        version: 1.0.0
+---
+## Payment Service
