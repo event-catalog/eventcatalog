@@ -1337,6 +1337,7 @@ export default (path: string) => {
       getCommand: getCommand(join(path)),
       getQuery: getQuery(join(path)),
       getService: getService(join(path)),
+      getServices: getServices(join(path)),
       getDomain: getDomain(join(path, 'domains')),
       getChannel: getChannel(join(path)),
       getTeam: getTeam(join(path, 'teams')),

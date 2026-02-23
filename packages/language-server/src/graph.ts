@@ -90,6 +90,7 @@ import {
   getFlowWhenBlocks,
 } from "./ast-utils.js";
 import type { GraphNode, GraphEdge, DslGraph } from "./graph-types.js";
+import { getReceivesLabel } from "./graph-types.js";
 
 function extractNotes(
   body: AstNode[],
@@ -624,7 +625,7 @@ export function astToGraph(
       if (domainId) {
         addEdge(domainId, msgNodeId, "contains");
       }
-      addEdge(msgNodeId, serviceId, "receives");
+      addEdge(msgNodeId, serviceId, "receives", getReceivesLabel(msgType));
 
       if (r.body.length > 0) {
         const existing = nodes.find((n) => n.id === msgNodeId);
@@ -706,7 +707,7 @@ export function astToGraph(
           if (!msgHasEdgeToThisChannel) {
             addEdge(msgNodeId, chId, "routes-to");
           }
-          addEdge(chId, serviceId, "receives");
+          addEdge(chId, serviceId, "receives", getReceivesLabel(msgType));
         }
       }
     }

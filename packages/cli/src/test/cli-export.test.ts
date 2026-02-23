@@ -188,6 +188,7 @@ service OrderService {
 
 visualizer main {
   name "View of OrderService"
+  event OrderCreated
   service OrderService
 }`);
   });

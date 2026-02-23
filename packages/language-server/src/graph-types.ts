@@ -45,6 +45,22 @@ export interface GraphEdge {
   label?: string;
 }
 
+/**
+ * Returns the display label for a "receives" edge based on the message type.
+ * Commands and queries use "accepts"; events fall back to the edge type.
+ */
+export function getReceivesLabel(
+  messageType: GraphNode["type"],
+): string | undefined {
+  switch (messageType) {
+    case "command":
+    case "query":
+      return "accepts";
+    default:
+      return undefined;
+  }
+}
+
 export interface DslGraph {
   nodes: GraphNode[];
   edges: GraphEdge[];

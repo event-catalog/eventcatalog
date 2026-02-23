@@ -113,6 +113,13 @@ const SECTION_LABELS: Record<string, string> = {
   domain: 'DOMAINS',
 };
 
+/**
+ * Groups DSL blocks by resource type and orders them with section headers.
+ *
+ * Raw toDSL output may interleave different resource types (e.g. teams, channels,
+ * services, events). This splits on blank lines, buckets each block by its leading
+ * keyword, then reassembles in SECTION_ORDER with "// EVENTS" style headers.
+ */
 function groupDSLBlocks(dsl: string): string {
   const blocks = dsl.split(/\n\n/).filter((b) => b.trim());
   const buckets: Record<string, string[]> = {};
@@ -142,23 +149,73 @@ function groupDSLBlocks(dsl: string): string {
   return sections.join('\n\n');
 }
 
-const VISUALIZER_TYPES = ['event', 'command', 'query', 'service', 'domain'] as const;
+interface ResourceDefinition {
+  keyword: string;
+  id: string;
+  version?: string;
+}
 
-function buildVisualizerBlock(dsl: string, name: string, filterTypes: ResourceType | ResourceType[]): string {
-  const types = Array.isArray(filterTypes) ? filterTypes : [filterTypes];
-  const entries: string[] = [];
+/**
+ * Extracts resource definitions from DSL text by scanning for top-level
+ * `<keyword> <id> {` lines and reading the version from the block body.
+ */
+function extractResourceDefinitions(dsl: string, filterTypes: string[]): ResourceDefinition[] {
+  const results: ResourceDefinition[] = [];
+  const lines = dsl.split('\n');
 
-  for (const line of dsl.split('\n')) {
-    const trimmed = line.trimStart();
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trimStart();
     const parts = trimmed.split(/\s/);
     const keyword = parts[0];
     const id = parts[1];
-    if (!types.includes(keyword as ResourceType)) continue;
+    if (!filterTypes.includes(keyword)) continue;
     if (!id || !trimmed.endsWith('{')) continue;
-    entries.push(`  ${keyword} ${id}`);
+
+    // Look ahead inside the block for a `version X.Y.Z` line
+    let version: string | undefined;
+    for (let j = i + 1; j < lines.length; j++) {
+      const inner = lines[j].trim();
+      if (inner === '}') break;
+      const vMatch = inner.match(/^version\s+(.+)$/);
+      if (vMatch) {
+        version = vMatch[1];
+        break;
+      }
+    }
+    results.push({ keyword, id, version });
   }
 
-  if (entries.length === 0) return '';
+  return results;
+}
+
+/**
+ * Builds a `visualizer main { ... }` block listing all resource definitions
+ * found in the DSL output.
+ *
+ * When multiple versions of the same resource exist (e.g. two versions of
+ * OrderService), references are version-qualified (`service OrderService@1.0.0`)
+ * to avoid ambiguity. Single-version resources use bare ids.
+ */
+function buildVisualizerBlock(dsl: string, name: string, filterTypes: ResourceType | ResourceType[]): string {
+  const types = Array.isArray(filterTypes) ? filterTypes : [filterTypes];
+  const definitions = extractResourceDefinitions(dsl, types);
+
+  if (definitions.length === 0) return '';
+
+  // Count occurrences of each keyword+id to detect duplicates needing version qualification
+  const counts = new Map<string, number>();
+  for (const def of definitions) {
+    const key = `${def.keyword}:${def.id}`;
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+
+  const entries = definitions.map((def) => {
+    const key = `${def.keyword}:${def.id}`;
+    const needsVersion = (counts.get(key) || 0) > 1 && def.version;
+    const ref = needsVersion ? `${def.id}@${def.version}` : def.id;
+    return `  ${def.keyword} ${ref}`;
+  });
+
   return `\nvisualizer main {\n  name "${name}"\n${entries.join('\n')}\n}`;
 }
 
@@ -276,8 +333,13 @@ export async function exportResource(options: ExportOptions): Promise<string> {
   }
 
   const rawDsl = await sdk.toDSL(data, { type, hydrate });
+
+  // When hydrating, toDSL pulls in related resources (services, channels, owners)
+  // so we group by type with section headers and widen the visualizer filter to
+  // include all resource types that may appear in the hydrated output.
   const grouped = hydrate ? groupDSLBlocks(rawDsl) : rawDsl;
-  const vizBlock = buildVisualizerBlock(grouped, `View of ${id}`, type);
+  const vizTypes: ResourceType[] = hydrate ? [...RESOURCE_TYPES] : [type];
+  const vizBlock = buildVisualizerBlock(grouped, `View of ${id}`, vizTypes);
   const dsl = vizBlock ? `${grouped}\n${vizBlock}` : grouped;
 
   if (stdout) {

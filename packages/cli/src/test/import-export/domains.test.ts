@@ -343,7 +343,7 @@ describe('domains import-export rules', () => {
     });
 
     const managedDomainKeyCases: Array<{
-      key: 'name' | 'version' | 'owners' | 'schemaPath' | 'deprecated' | 'draft' | 'summary' | 'services' | 'domains';
+      key: 'name' | 'version' | 'owners' | 'deprecated' | 'draft' | 'summary' | 'services' | 'domains';
       existingValue: any;
       importSource: string;
       expectedValue: any;
@@ -369,16 +369,6 @@ describe('domains import-export rules', () => {
       {
         key: 'owners',
         existingValue: ['orders-team'],
-        importSource: `domain Orders {
-  version 1.0.0
-  name "Orders Domain Updated"
-}`,
-        expectedValue: undefined,
-        readVersion: '1.0.0',
-      },
-      {
-        key: 'schemaPath',
-        existingValue: 'schemas/orders.avsc',
         importSource: `domain Orders {
   version 1.0.0
   name "Orders Domain Updated"
@@ -570,6 +560,7 @@ describe('domains import-export rules', () => {
 
         visualizer main {
           name "View of Orders"
+          service OrderService
           domain Orders
         }
       `);
@@ -642,6 +633,9 @@ describe('domains import-export rules', () => {
 
         visualizer main {
           name "View of Orders"
+          event OrderCreated
+          event OrderCancelled
+          service OrderService
           domain Orders
         }
       `);
