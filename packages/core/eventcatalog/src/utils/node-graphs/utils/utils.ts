@@ -2,8 +2,9 @@
 
 import { MarkerType, Position, type Edge, type Node } from '@xyflow/react';
 import dagre from 'dagre';
-import { getItemsFromCollectionByIdAndSemverOrLatest } from '@utils/collections/util';
+import { getItemsFromCollectionByIdAndSemverOrLatest, versionMatches as versionMatchesUtil } from '@utils/collections/util';
 import { buildUrl } from '@utils/url-builder';
+
 interface BaseCollectionData {
   id: string;
   version: string;
@@ -17,6 +18,23 @@ interface CollectionItem {
 interface MessageCollectionItem extends CollectionItem {
   collection: 'commands' | 'events' | 'queries';
 }
+
+/**
+ * Determines if a service's accepted version pattern matches an actual message version.
+ *
+ * @param acceptedVersion - The version pattern a service declares (in sends/receives config)
+ * @param actualMessageVersion - The specific version of the actual catalogued message
+ * @returns true if the actual message version satisfies the accepted version pattern
+ */
+export const versionMatches = (acceptedVersion: string | undefined, actualMessageVersion: string | undefined): boolean => {
+  if (!acceptedVersion || acceptedVersion === 'latest') return true;
+
+  if (!actualMessageVersion || actualMessageVersion === 'latest') {
+    return !acceptedVersion || acceptedVersion === 'latest';
+  }
+
+  return versionMatchesUtil(actualMessageVersion, acceptedVersion);
+};
 
 export const generateIdForNode = (node: CollectionItem) => {
   return `${node.data.id}-${node.data.version}`;

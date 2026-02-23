@@ -107,11 +107,11 @@ const getNodesAndEdges = async ({
     const producerContextMenu = isDataProduct
       ? buildContextMenuForResource({ collection: 'data-products', id: producer.data.id, version: producer.data.version })
       : buildContextMenuForService({
-          id: producer.data.id,
-          version: producer.data.version,
-          specifications: (producer.data as any).specifications,
-          repository: (producer.data as any).repository,
-        });
+        id: producer.data.id,
+        version: producer.data.version,
+        specifications: (producer.data as any).specifications,
+        repository: (producer.data as any).repository,
+      });
 
     nodes.push({
       id: generateIdForNode(producer),
@@ -249,11 +249,11 @@ const getNodesAndEdges = async ({
     const consumerContextMenu = isDataProduct
       ? buildContextMenuForResource({ collection: 'data-products', id: consumer.data.id, version: consumer.data.version })
       : buildContextMenuForService({
-          id: consumer.data.id,
-          version: consumer.data.version,
-          specifications: (consumer.data as any).specifications,
-          repository: (consumer.data as any).repository,
-        });
+        id: consumer.data.id,
+        version: consumer.data.version,
+        specifications: (consumer.data as any).specifications,
+        repository: (consumer.data as any).repository,
+      });
 
     nodes.push({
       id: generateIdForNode(consumer),
