@@ -839,7 +839,7 @@ exports[`playground examples snapshot tests > Banking with Subdomains > Banking 
   },
   {
     "id": "channel:BankingCommands@1.0.0-receives-service:AccountService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "channel:BankingCommands@1.0.0",
     "target": "service:AccountService@1.0.0",
     "type": "receives",
@@ -1000,7 +1000,7 @@ exports[`playground examples snapshot tests > Banking with Subdomains > Banking 
   },
   {
     "id": "channel:BankingCommands@1.0.0-receives-service:PaymentService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "channel:BankingCommands@1.0.0",
     "target": "service:PaymentService@1.0.0",
     "type": "receives",
@@ -1161,7 +1161,7 @@ exports[`playground examples snapshot tests > Banking with Subdomains > Banking 
   },
   {
     "id": "channel:BankingCommands@1.0.0-receives-service:LoanService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "channel:BankingCommands@1.0.0",
     "target": "service:LoanService@1.0.0",
     "type": "receives",
@@ -2258,7 +2258,7 @@ exports[`playground examples snapshot tests > E-Commerce Platform > E-Commerce P
   },
   {
     "id": "channel:CommandAPI@1.0.0-receives-service:PaymentService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "channel:CommandAPI@1.0.0",
     "target": "service:PaymentService@1.0.0",
     "type": "receives",
@@ -2600,7 +2600,7 @@ exports[`playground examples snapshot tests > Enterprise E-Commerce > Enterprise
   },
   {
     "id": "command:CancelOrder@1.0.0-receives-service:OrderService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "command:CancelOrder@1.0.0",
     "target": "service:OrderService@1.0.0",
     "type": "receives",
@@ -2663,7 +2663,7 @@ exports[`playground examples snapshot tests > Enterprise E-Commerce > Enterprise
   },
   {
     "id": "command:ProcessPayment@1.0.0-receives-service:PaymentService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "command:ProcessPayment@1.0.0",
     "target": "service:PaymentService@1.0.0",
     "type": "receives",
@@ -2677,7 +2677,7 @@ exports[`playground examples snapshot tests > Enterprise E-Commerce > Enterprise
   },
   {
     "id": "command:RefundPayment@1.0.0-receives-service:PaymentService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "command:RefundPayment@1.0.0",
     "target": "service:PaymentService@1.0.0",
     "type": "receives",
@@ -2768,7 +2768,7 @@ exports[`playground examples snapshot tests > Enterprise E-Commerce > Enterprise
   },
   {
     "id": "command:ReserveStock@1.0.0-receives-service:InventoryService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "command:ReserveStock@1.0.0",
     "target": "service:InventoryService@1.0.0",
     "type": "receives",
@@ -2782,7 +2782,7 @@ exports[`playground examples snapshot tests > Enterprise E-Commerce > Enterprise
   },
   {
     "id": "command:ReleaseStock@1.0.0-receives-service:InventoryService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "command:ReleaseStock@1.0.0",
     "target": "service:InventoryService@1.0.0",
     "type": "receives",
@@ -2873,7 +2873,7 @@ exports[`playground examples snapshot tests > Enterprise E-Commerce > Enterprise
   },
   {
     "id": "query:GetShipmentStatus@1.0.0-receives-service:ShippingService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "query:GetShipmentStatus@1.0.0",
     "target": "service:ShippingService@1.0.0",
     "type": "receives",
@@ -2936,7 +2936,7 @@ exports[`playground examples snapshot tests > Enterprise E-Commerce > Enterprise
   },
   {
     "id": "command:RegisterCustomer@1.0.0-receives-service:CustomerService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "command:RegisterCustomer@1.0.0",
     "target": "service:CustomerService@1.0.0",
     "type": "receives",
@@ -2950,7 +2950,7 @@ exports[`playground examples snapshot tests > Enterprise E-Commerce > Enterprise
   },
   {
     "id": "command:UpdateCustomer@1.0.0-receives-service:CustomerService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "command:UpdateCustomer@1.0.0",
     "target": "service:CustomerService@1.0.0",
     "type": "receives",
@@ -2964,7 +2964,7 @@ exports[`playground examples snapshot tests > Enterprise E-Commerce > Enterprise
   },
   {
     "id": "query:GetCustomerProfile@1.0.0-receives-service:CustomerService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "query:GetCustomerProfile@1.0.0",
     "target": "service:CustomerService@1.0.0",
     "type": "receives",
@@ -5052,21 +5052,21 @@ exports[`playground examples snapshot tests > Minimal Service > Minimal Service 
   },
   {
     "id": "command:CreateUser-receives-service:UserService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "command:CreateUser",
     "target": "service:UserService@1.0.0",
     "type": "receives",
   },
   {
     "id": "command:UpdateUser-receives-service:UserService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "command:UpdateUser",
     "target": "service:UserService@1.0.0",
     "type": "receives",
   },
   {
     "id": "query:GetUser-receives-service:UserService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "query:GetUser",
     "target": "service:UserService@1.0.0",
     "type": "receives",
@@ -5144,7 +5144,7 @@ exports[`playground examples snapshot tests > Multi-File with Imports > Multi-Fi
   },
   {
     "id": "command:ProcessPayment@1.0.0-receives-service:PaymentService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "command:ProcessPayment@1.0.0",
     "target": "service:PaymentService@1.0.0",
     "type": "receives",
@@ -5382,7 +5382,7 @@ exports[`playground examples snapshot tests > Notes & Annotations > Notes & Anno
   },
   {
     "id": "command:CreateOrder@1.0.0-receives-service:OrderService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "command:CreateOrder@1.0.0",
     "target": "service:OrderService@1.0.0",
     "type": "receives",
@@ -5403,7 +5403,7 @@ exports[`playground examples snapshot tests > Notes & Annotations > Notes & Anno
   },
   {
     "id": "command:CreateOrder@1.0.0-receives-service:LegacyOrderService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "command:CreateOrder@1.0.0",
     "target": "service:LegacyOrderService@1.0.0",
     "type": "receives",
@@ -5791,21 +5791,21 @@ exports[`playground examples snapshot tests > Order Service Showcase > Order Ser
   },
   {
     "id": "command:CreateOrder-receives-service:OrderService@2.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "command:CreateOrder",
     "target": "service:OrderService@2.0.0",
     "type": "receives",
   },
   {
     "id": "command:CancelOrder-receives-service:OrderService@2.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "command:CancelOrder",
     "target": "service:OrderService@2.0.0",
     "type": "receives",
   },
   {
     "id": "query:GetOrderStatus-receives-service:OrderService@2.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "query:GetOrderStatus",
     "target": "service:OrderService@2.0.0",
     "type": "receives",
@@ -6370,7 +6370,7 @@ exports[`playground examples snapshot tests > Payment Domain > Payment Domain - 
   },
   {
     "id": "channel:PaymentCommands@1.0.0-receives-service:PaymentService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "channel:PaymentCommands@1.0.0",
     "target": "service:PaymentService@1.0.0",
     "type": "receives",
@@ -6611,7 +6611,7 @@ exports[`playground examples snapshot tests > Planning Future Services > Plannin
   },
   {
     "id": "channel:RESTAPI@1.0.0-receives-service:LegacyOrderService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "channel:RESTAPI@1.0.0",
     "target": "service:LegacyOrderService@1.0.0",
     "type": "receives",
@@ -6688,7 +6688,7 @@ exports[`playground examples snapshot tests > Planning Future Services > Plannin
   },
   {
     "id": "channel:RESTAPI@1.0.0-receives-service:OrderService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "channel:RESTAPI@1.0.0",
     "target": "service:OrderService@1.0.0",
     "type": "receives",
@@ -6751,7 +6751,7 @@ exports[`playground examples snapshot tests > Planning Future Services > Plannin
   },
   {
     "id": "channel:GraphQLAPI@1.0.0-receives-service:OrderQueryService@1.0.0",
-    "label": undefined,
+    "label": "accepts",
     "source": "channel:GraphQLAPI@1.0.0",
     "target": "service:OrderQueryService@1.0.0",
     "type": "receives",

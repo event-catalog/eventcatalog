@@ -4,7 +4,7 @@ import { serviceToDSL } from './service';
 import { domainToDSL } from './domain';
 import { teamToDSL, userToDSL } from './owner';
 import { channelToDSL } from './channel';
-import { buildMessageTypeIndex, resolveMessageType } from './utils';
+import { buildMessageTypeIndex, resolveMessageType, msgVersionMatches } from './utils';
 import type { MessageType, MessageTypeIndex } from './utils';
 
 type ResourceType = 'event' | 'command' | 'query' | 'service' | 'domain';
@@ -21,6 +21,7 @@ export interface ResourceResolvers {
   getCommand: (id: string, version?: string) => Promise<Command | undefined>;
   getQuery: (id: string, version?: string) => Promise<Query | undefined>;
   getService: (id: string, version?: string) => Promise<Service | undefined>;
+  getServices: (options?: { latestOnly?: boolean }) => Promise<Service[]>;
   getDomain: (id: string, version?: string) => Promise<Domain | undefined>;
   getChannel: (id: string, version?: string) => Promise<Channel | undefined>;
   getTeam: (id: string) => Promise<Team | undefined>;
@@ -80,6 +81,45 @@ async function hydrateOwners(owners: string[] | undefined, resolvers: ResourceRe
   }
 }
 
+async function hydrateMessageServices(
+  messageId: string,
+  messageVersion: string | undefined,
+  resolvers: ResourceResolvers,
+  seen: Set<string>,
+  parts: string[],
+  catalogDir: string,
+  msgIndex: MessageTypeIndex
+) {
+  const services = (await resolvers.getServices({ latestOnly: false })) || [];
+  for (const service of services) {
+    const key = `service:${service.id}@${service.version || 'latest'}`;
+    if (seen.has(key)) continue;
+
+    const referencesMessage = [...(service.sends || []), ...(service.receives || [])].some(
+      (msg) => msg.id === messageId && msgVersionMatches(msg.version, messageVersion)
+    );
+
+    if (referencesMessage) {
+      seen.add(key);
+      const matchMsg = (msg: { id: string; version?: string }) =>
+        msg.id === messageId && msgVersionMatches(msg.version, messageVersion);
+      const resolvePointerVersion = <T extends { id: string; version?: string }>(msg: T): T => {
+        if (msg.id === messageId && msg.version && msg.version !== messageVersion && messageVersion) {
+          return { ...msg, version: messageVersion };
+        }
+        return msg;
+      };
+      const filtered: Service = {
+        ...service,
+        sends: service.sends?.filter(matchMsg).map(resolvePointerVersion),
+        receives: service.receives?.filter(matchMsg).map(resolvePointerVersion),
+      };
+      await hydrateChannels(filtered, resolvers, seen, parts);
+      parts.push(await serviceToDSL(filtered, { catalogDir, hydrate: false, _seen: new Set(seen), _msgIndex: msgIndex }));
+    }
+  }
+}
+
 export const toDSL =
   (catalogDir: string, resolvers: ResourceResolvers) =>
   async (resource: AnyResource | AnyResource[], options: ToDSLOptions): Promise<string> => {
@@ -99,6 +139,7 @@ export const toDSL =
         case 'query':
           if (options.hydrate) {
             await hydrateOwners(res.owners, resolvers, seen, parts);
+            await hydrateMessageServices(res.id, res.version, resolvers, seen, parts, catalogDir, msgIndex);
           }
           parts.push(messageToDSL(res as Event | Command | Query, options.type as MessageType));
           break;

@@ -1,4 +1,23 @@
 import { globSync } from 'glob';
+import { satisfies, validRange } from 'semver';
+
+/**
+ * Checks whether a pointer version (which may be a semver range like ^1.0.0, ~1.2.0)
+ * matches a concrete message version.
+ */
+export function msgVersionMatches(pointerVersion: string | undefined, messageVersion: string | undefined): boolean {
+  if (!pointerVersion) return true;
+  if (!messageVersion) return false;
+  if (pointerVersion === messageVersion) return true;
+  try {
+    if (validRange(pointerVersion)) {
+      return satisfies(messageVersion, pointerVersion);
+    }
+  } catch {
+    // Invalid semver, fall through
+  }
+  return false;
+}
 
 interface BaseResource {
   id: string;

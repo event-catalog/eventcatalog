@@ -5,7 +5,7 @@ import fs from 'node:fs';
 
 const CATALOG_PATH = path.join(__dirname, 'catalog-dsl-events');
 
-const { toDSL, writeTeam, writeUser } = utils(CATALOG_PATH);
+const { toDSL, writeTeam, writeUser, writeService, writeEvent } = utils(CATALOG_PATH);
 
 beforeEach(() => {
   fs.rmSync(CATALOG_PATH, { recursive: true, force: true });
@@ -332,6 +332,52 @@ event OrderCreated {
   name "Order Created"
   owner jdoe
 }`);
+    });
+  });
+
+  describe('hydrate services', () => {
+    it('hydrates an event with producer and consumer services', async () => {
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
+      await writeService({
+        id: 'OrderService',
+        name: 'Order Service',
+        version: '1.0.0',
+        sends: [{ id: 'OrderCreated', version: '1.0.0' }],
+        markdown: '',
+      });
+      await writeService({
+        id: 'NotificationService',
+        name: 'Notification Service',
+        version: '1.0.0',
+        receives: [{ id: 'OrderCreated', version: '1.0.0' }],
+        markdown: '',
+      });
+
+      const dsl = await toDSL(
+        { id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' },
+        { type: 'event', hydrate: true }
+      );
+
+      expect(dsl).toContain('service OrderService {');
+      expect(dsl).toContain('sends event OrderCreated@1.0.0');
+      expect(dsl).toContain('service NotificationService {');
+      expect(dsl).toContain('receives event OrderCreated@1.0.0');
+      expect(dsl).toContain('event OrderCreated {');
+    });
+
+    it('does not include services when hydrate is false', async () => {
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
+      await writeService({
+        id: 'OrderService',
+        name: 'Order Service',
+        version: '1.0.0',
+        sends: [{ id: 'OrderCreated', version: '1.0.0' }],
+        markdown: '',
+      });
+
+      const dsl = await toDSL({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' }, { type: 'event' });
+
+      expect(dsl).not.toContain('service OrderService');
     });
   });
 
