@@ -523,12 +523,12 @@ const resourceDocs = defineCollection({
     // Resource-level docs are restricted to known resource paths.
     // This avoids scanning external docs such as node_modules/**/docs.
     pattern: withIgnoredBuildArtifacts([
-      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/*/docs/**/*.@(md|mdx)',
-      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/*/versioned/*/docs/**/*.@(md|mdx)',
-      'domains/*/docs/**/*.@(md|mdx)',
-      'domains/*/versioned/*/docs/**/*.@(md|mdx)',
-      'domains/*/subdomains/*/docs/**/*.@(md|mdx)',
-      'domains/*/subdomains/*/versioned/*/docs/**/*.@(md|mdx)',
+      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/**/*.@(md|mdx)',
+      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/**/docs/*.@(md|mdx)',
+      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/**/*.@(md|mdx)',
+      '{events,commands,queries,services,flows,containers,channels,entities,data-products}/**/versioned/*/docs/*.@(md|mdx)',
+      'domains/**/docs/**/*.@(md|mdx)',
+      'domains/**/docs/*.@(md|mdx)',
     ]),
     base: projectDirBase,
   }),
