@@ -85,8 +85,8 @@ importers:
         specifier: 3.0.24
         version: 3.0.24
       '@asyncapi/parser':
-        specifier: 3.4.0
-        version: 3.4.0
+        specifier: 3.6.0
+        version: 3.6.0
       '@asyncapi/react-component':
         specifier: 3.0.2
         version: 3.0.2(postcss@8.5.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -867,9 +867,6 @@ packages:
   '@asyncapi/openapi-schema-parser@3.0.24':
     resolution: {integrity: sha512-7wz2yVDedJMS+TzOuqCvRWJMc6pNHICKZcOhnW6ZvyVLAh7hYIqQE1WA4OoXT4cKVbwSU3V2Q4bZagSsAIQd6Q==}
 
-  '@asyncapi/parser@3.4.0':
-    resolution: {integrity: sha512-Sxn74oHiZSU6+cVeZy62iPZMFMvKp4jupMFHelSICCMw1qELmUHPvuZSr+ZHDmNGgHcEpzJM5HN02kR7T4g+PQ==}
-
   '@asyncapi/parser@3.6.0':
     resolution: {integrity: sha512-6S0Yr8vI418a1IrpGsOYbfWVo9+aHvSqN2oSkiY0YJltS/C7oDOt9e0mo6hSld8bg+EeKrtgkVmpW4obh1JFvA==}
 
@@ -882,9 +879,6 @@ packages:
     peerDependencies:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
-
-  '@asyncapi/specs@6.10.0':
-    resolution: {integrity: sha512-vB5oKLsdrLUORIZ5BXortZTlVyGWWMC1Nud/0LtgxQ3Yn2738HigAD6EVqScvpPsDUI/bcLVsYEXN4dtXQHVng==}
 
   '@asyncapi/specs@6.11.1':
     resolution: {integrity: sha512-A3WBLqAKGoJ2+6FWFtpjBlCQ1oFCcs4GxF7zsIGvNqp/klGUHjlA3aAcZ9XMMpLGE8zPeYDz2x9FmO6DSuKraQ==}
@@ -8964,7 +8958,7 @@ snapshots:
 
   '@asyncapi/avro-schema-parser@3.0.24':
     dependencies:
-      '@asyncapi/parser': 3.4.0
+      '@asyncapi/parser': 3.6.0
       '@types/json-schema': 7.0.15
       avsc: 5.7.9
     transitivePeerDependencies:
@@ -8972,35 +8966,11 @@ snapshots:
 
   '@asyncapi/openapi-schema-parser@3.0.24':
     dependencies:
-      '@asyncapi/parser': 3.4.0
+      '@asyncapi/parser': 3.6.0
       '@openapi-contrib/openapi-schema-to-json-schema': 3.2.0
       ajv: 8.17.1
       ajv-errors: 3.0.0(ajv@8.17.1)
       ajv-formats: 2.1.1(ajv@8.17.1)
-    transitivePeerDependencies:
-      - encoding
-
-  '@asyncapi/parser@3.4.0':
-    dependencies:
-      '@asyncapi/specs': 6.10.0
-      '@openapi-contrib/openapi-schema-to-json-schema': 3.2.0
-      '@stoplight/json': 3.21.0
-      '@stoplight/json-ref-readers': 1.2.2
-      '@stoplight/json-ref-resolver': 3.1.6
-      '@stoplight/spectral-core': 1.20.0
-      '@stoplight/spectral-functions': 1.10.1
-      '@stoplight/spectral-parsers': 1.0.5
-      '@stoplight/spectral-ref-resolver': 1.0.5
-      '@stoplight/types': 13.20.0
-      '@types/json-schema': 7.0.15
-      '@types/urijs': 1.19.25
-      ajv: 8.17.1
-      ajv-errors: 3.0.0(ajv@8.17.1)
-      ajv-formats: 2.1.1(ajv@8.17.1)
-      avsc: 5.7.9
-      js-yaml: 4.1.1
-      jsonpath-plus: 10.3.0
-      node-fetch: 2.6.7
     transitivePeerDependencies:
       - encoding
 
@@ -9030,7 +9000,7 @@ snapshots:
 
   '@asyncapi/protobuf-schema-parser@3.6.0':
     dependencies:
-      '@asyncapi/parser': 3.4.0
+      '@asyncapi/parser': 3.6.0
       '@types/protocol-buffers-schema': 3.4.3
       protobufjs: 7.5.4
     transitivePeerDependencies:
@@ -9057,10 +9027,6 @@ snapshots:
       - postcss
       - supports-color
       - utf-8-validate
-
-  '@asyncapi/specs@6.10.0':
-    dependencies:
-      '@types/json-schema': 7.0.15
 
   '@asyncapi/specs@6.11.1':
     dependencies:
