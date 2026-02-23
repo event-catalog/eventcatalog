@@ -12,10 +12,17 @@ const mockDomains = [
   {
     collection: 'domains',
     data: { id: 'Payments', version: '1.0.0', hidden: false },
+    filePath: 'domains/Payments/index.mdx',
   },
   {
     collection: 'domains',
     data: { id: 'Payments', version: '0.9.0', hidden: false },
+    filePath: 'domains/Payments/versioned/0.9.0/index.mdx',
+  },
+  {
+    collection: 'domains',
+    data: { id: 'random', version: '1.0.0', hidden: false },
+    filePath: 'domains/BoxOffice/index.mdx',
   },
 ];
 
@@ -23,10 +30,12 @@ const mockServices = [
   {
     collection: 'services',
     data: { id: 'BillingService', version: '2.0.0', hidden: false },
+    filePath: 'services/BillingService/index.mdx',
   },
   {
     collection: 'services',
     data: { id: 'BillingService', version: '1.0.0', hidden: false },
+    filePath: 'services/BillingService/versioned/1.0.0/index.mdx',
   },
 ];
 
@@ -34,6 +43,7 @@ const mockEvents = [
   {
     collection: 'events',
     data: { id: 'InvoiceIssued', version: '3.0.0', hidden: false },
+    filePath: 'events/InvoiceIssued/index.mdx',
   },
 ];
 
@@ -97,6 +107,12 @@ const mockResourceDocs = [
     collection: 'resourceDocs',
     filePath: 'domains/Payments/docs/runbooks/hidden.mdx',
     data: { id: 'hidden', type: 'runbooks', version: '1.0.0', title: 'Hidden', hidden: true },
+  },
+  {
+    id: 'domains/BoxOffice/docs/meow.mdx',
+    collection: 'resourceDocs',
+    filePath: 'domains/BoxOffice/docs/meow.mdx',
+    data: { id: 'meow', version: '1.0.0', title: 'Meow' },
   },
 ];
 
@@ -313,6 +329,19 @@ describe('resource-docs', () => {
     expect(grouped[0]).toMatchObject({
       type: 'references',
       label: 'Reference',
+    });
+  });
+
+  it('resolves docs when folder name differs from resource frontmatter id', async () => {
+    const docs = await getResourceDocs();
+    const meowDoc = docs.find((doc) => doc.data.id === 'meow');
+
+    expect(meowDoc).toBeDefined();
+    expect(meowDoc!.data).toMatchObject({
+      id: 'meow',
+      resourceCollection: 'domains',
+      resourceId: 'random',
+      resourceVersion: '1.0.0',
     });
   });
 });

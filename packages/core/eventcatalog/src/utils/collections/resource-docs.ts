@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import path from 'node:path';
 import { sortVersioned } from './util';
 import { isResourceDocsEnabled } from '@utils/feature';
 
@@ -52,6 +53,7 @@ export type ResourceDocGroup = {
 type ResourceLookup = {
   latestById: Map<string, string>;
   versionsById: Map<string, Set<string>>;
+  folderToId: Map<string, string>;
 };
 
 type InferredResource = {
@@ -200,12 +202,27 @@ const inferResourceFromFilePath = (filePath: string): InferredResource | null =>
   };
 };
 
+const getResourceFolderFromFilePath = (filePath: string): string | undefined => {
+  const normalized = normalizePath(filePath);
+  const versionedIndex = normalized.indexOf('/versioned/');
+  if (versionedIndex !== -1) {
+    // e.g. "domains/BoxOffice/versioned/1.0.0/index.mdx" → "domains/BoxOffice"
+    const beforeVersioned = normalized.slice(0, versionedIndex);
+    return path.basename(beforeVersioned) || undefined;
+  }
+  // e.g. "domains/BoxOffice/index.mdx" → "BoxOffice"
+  const dir = path.dirname(normalized);
+  return dir ? path.basename(dir) : undefined;
+};
+
 const buildLookup = (
   resources: Array<{
     data: { id: string; version: string; hidden?: boolean };
+    filePath?: string;
   }>
 ): ResourceLookup => {
   const groupedById = new Map<string, string[]>();
+  const folderToId = new Map<string, string>();
 
   for (const resource of resources) {
     if (resource.data.hidden === true) {
@@ -214,6 +231,13 @@ const buildLookup = (
     const list = groupedById.get(resource.data.id) || [];
     list.push(resource.data.version);
     groupedById.set(resource.data.id, list);
+
+    if (resource.filePath) {
+      const folderName = getResourceFolderFromFilePath(resource.filePath);
+      if (folderName && folderName !== resource.data.id) {
+        folderToId.set(folderName, resource.data.id);
+      }
+    }
   }
 
   const latestById = new Map<string, string>();
@@ -227,7 +251,7 @@ const buildLookup = (
     }
   }
 
-  return { latestById, versionsById };
+  return { latestById, versionsById, folderToId };
 };
 
 const getResourceLookups = async (): Promise<Record<ResourceCollection, ResourceLookup>> => {
@@ -295,15 +319,21 @@ const resolveResourceFromPath = (
     return null;
   }
 
-  const { resourceCollection, resourceId, resourceVersion } = inferredResource;
+  const { resourceCollection, resourceVersion } = inferredResource;
   const lookup = lookups[resourceCollection];
-  const knownVersions = lookup.versionsById.get(resourceId);
+
+  // The inferred resourceId is the folder name from the file path. It may differ
+  // from the actual frontmatter id, so fall back to the folderToId mapping.
+  const folderName = inferredResource.resourceId;
+  const resolvedId = lookup.versionsById.has(folderName) ? folderName : (lookup.folderToId.get(folderName) ?? folderName);
+
+  const knownVersions = lookup.versionsById.get(resolvedId);
 
   if (!knownVersions || knownVersions.size === 0) {
     return null;
   }
 
-  const resolvedResourceVersion = resourceVersion === 'latest' ? (lookup.latestById.get(resourceId) ?? null) : resourceVersion;
+  const resolvedResourceVersion = resourceVersion === 'latest' ? (lookup.latestById.get(resolvedId) ?? null) : resourceVersion;
 
   if (!resolvedResourceVersion || !knownVersions.has(resolvedResourceVersion)) {
     return null;
@@ -311,7 +341,7 @@ const resolveResourceFromPath = (
 
   return {
     resourceCollection,
-    resourceId,
+    resourceId: resolvedId,
     resourceVersion: resolvedResourceVersion,
   };
 };
