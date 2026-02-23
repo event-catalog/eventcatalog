@@ -88,8 +88,8 @@ importers:
         specifier: 3.4.0
         version: 3.4.0
       '@asyncapi/react-component':
-        specifier: 2.4.3
-        version: 2.4.3(postcss@8.5.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: 3.0.2
+        version: 3.0.2(postcss@8.5.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@auth/core':
         specifier: ^0.37.4
         version: 0.37.4
@@ -879,18 +879,24 @@ packages:
   '@asyncapi/parser@3.4.0':
     resolution: {integrity: sha512-Sxn74oHiZSU6+cVeZy62iPZMFMvKp4jupMFHelSICCMw1qELmUHPvuZSr+ZHDmNGgHcEpzJM5HN02kR7T4g+PQ==}
 
+  '@asyncapi/parser@3.6.0':
+    resolution: {integrity: sha512-6S0Yr8vI418a1IrpGsOYbfWVo9+aHvSqN2oSkiY0YJltS/C7oDOt9e0mo6hSld8bg+EeKrtgkVmpW4obh1JFvA==}
+
   '@asyncapi/protobuf-schema-parser@3.6.0':
     resolution: {integrity: sha512-z6zVRAMi2bkkgjREoCIvUg7KcacyoEh+VIwQmEni/JPuPFMOD3oPv4kwoftEeiF2+gGiioeIxpkI5x7rmHf2Nw==}
     engines: {node: '>=18'}
 
-  '@asyncapi/react-component@2.4.3':
-    resolution: {integrity: sha512-8DZdadD2vGoq7rw18RehmytQLT2Y1RFQ+UgvhQA3UaTqIFL2qFOHIm1YMnl5VVPxtTmkvi20wZZk37nyNvzJug==}
+  '@asyncapi/react-component@3.0.2':
+    resolution: {integrity: sha512-4c+1WmGe1tA9eWjMJPfHNPTcqgDa4+dEDjpt494L66rRqHUjFXalBw8FCg60nAowUnjP0yCdgN6FgBZuiYMHoA==}
     peerDependencies:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
 
   '@asyncapi/specs@6.10.0':
     resolution: {integrity: sha512-vB5oKLsdrLUORIZ5BXortZTlVyGWWMC1Nud/0LtgxQ3Yn2738HigAD6EVqScvpPsDUI/bcLVsYEXN4dtXQHVng==}
+
+  '@asyncapi/specs@6.11.1':
+    resolution: {integrity: sha512-A3WBLqAKGoJ2+6FWFtpjBlCQ1oFCcs4GxF7zsIGvNqp/klGUHjlA3aAcZ9XMMpLGE8zPeYDz2x9FmO6DSuKraQ==}
 
   '@auth/core@0.37.4':
     resolution: {integrity: sha512-HOXJwXWXQRhbBDHlMU0K/6FT1v+wjtzdKhsNg0ZN7/gne6XPsIrjZ4daMcFnbq0Z/vsAbYBinQhhua0d77v7qw==}
@@ -7078,6 +7084,11 @@ packages:
     peerDependencies:
       react: ^19.2.4
 
+  react-error-boundary@4.1.2:
+    resolution: {integrity: sha512-GQDxZ5Jd+Aq/qUxbCm1UtzmL/s++V7zKgE8yMktJiCQXCCFZnMZh9ng+6/Ne6PjNSXH0L9CjeOEREfRnq6Duag==}
+    peerDependencies:
+      react: '>=16.13.1'
+
   react-markdown@10.1.0:
     resolution: {integrity: sha512-qKxVopLT/TyA6BX3Ue5NwabOsAzm0Q7kAPwq6L+wWDwisYs7R8vZ0nRXqq6rkueboxpkjvLGU9fWifiX/ZZFxQ==}
     peerDependencies:
@@ -9109,6 +9120,30 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
+  '@asyncapi/parser@3.6.0':
+    dependencies:
+      '@asyncapi/specs': 6.11.1
+      '@openapi-contrib/openapi-schema-to-json-schema': 3.2.0
+      '@stoplight/json': 3.21.0
+      '@stoplight/json-ref-readers': 1.2.2
+      '@stoplight/json-ref-resolver': 3.1.6
+      '@stoplight/spectral-core': 1.20.0
+      '@stoplight/spectral-functions': 1.10.1
+      '@stoplight/spectral-parsers': 1.0.5
+      '@stoplight/spectral-ref-resolver': 1.0.5
+      '@stoplight/types': 13.20.0
+      '@types/json-schema': 7.0.15
+      '@types/urijs': 1.19.25
+      ajv: 8.17.1
+      ajv-errors: 3.0.0(ajv@8.17.1)
+      ajv-formats: 2.1.1(ajv@8.17.1)
+      avsc: 5.7.9
+      js-yaml: 4.1.1
+      jsonpath-plus: 10.3.0
+      node-fetch: 2.6.7
+    transitivePeerDependencies:
+      - encoding
+
   '@asyncapi/protobuf-schema-parser@3.6.0':
     dependencies:
       '@asyncapi/parser': 3.4.0
@@ -9117,11 +9152,11 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@asyncapi/react-component@2.4.3(postcss@8.5.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@asyncapi/react-component@3.0.2(postcss@8.5.6)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@asyncapi/avro-schema-parser': 3.0.24
       '@asyncapi/openapi-schema-parser': 3.0.24
-      '@asyncapi/parser': 3.4.0
+      '@asyncapi/parser': 3.6.0
       '@asyncapi/protobuf-schema-parser': 3.6.0
       highlight.js: 10.7.3
       isomorphic-dompurify: 2.28.0(postcss@8.5.6)
@@ -9129,6 +9164,7 @@ snapshots:
       openapi-sampler: 1.6.1
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
+      react-error-boundary: 4.1.2(react@18.3.1)
       use-resize-observer: 9.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     transitivePeerDependencies:
       - bufferutil
@@ -9139,6 +9175,10 @@ snapshots:
       - utf-8-validate
 
   '@asyncapi/specs@6.10.0':
+    dependencies:
+      '@types/json-schema': 7.0.15
+
+  '@asyncapi/specs@6.11.1':
     dependencies:
       '@types/json-schema': 7.0.15
 
@@ -16878,6 +16918,11 @@ snapshots:
     dependencies:
       react: 19.2.4
       scheduler: 0.27.0
+
+  react-error-boundary@4.1.2(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.28.4
+      react: 18.3.1
 
   react-markdown@10.1.0(@types/react@18.3.26)(react@18.3.1):
     dependencies:
