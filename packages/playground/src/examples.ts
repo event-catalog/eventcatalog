@@ -491,53 +491,6 @@ query GetOrderStatus {
     },
   },
   {
-    name: 'Post-It Style',
-    description: 'Visual post-it note style rendering',
-    source: {
-      'main.ec': `visualizer main {
-  name "Post-It Style Example"
-  style post-it
-  legend true
-
-  channel OrderQueue {
-    version 1.0.0
-    address "orders.queue"
-    protocol "azure-servicebus"
-  }
-
-  service OrderService {
-    version 1.0.0
-    summary "Manages orders"
-
-    sends event OrderCreated to OrderQueue {
-      version 1.0.0
-    }
-
-    sends event OrderShipped to OrderQueue {
-      version 1.0.0
-    }
-  }
-
-  service WarehouseService {
-    version 1.0.0
-    summary "Manages inventory and shipping"
-
-    receives event OrderCreated from OrderQueue
-
-    sends event OrderShipped to OrderQueue
-  }
-
-  service NotificationService {
-    version 1.0.0
-    summary "Sends customer notifications"
-
-    receives event OrderShipped from OrderQueue
-  }
-}
-`,
-    },
-  },
-  {
     name: 'Data Products',
     description: 'Analytical data products with inputs and outputs',
     source: {

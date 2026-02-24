@@ -1,5 +1,5 @@
-import { memo, useMemo, useState, useCallback } from "react";
-import { Zap, MessageCircle } from "lucide-react";
+import { memo, useMemo } from "react";
+import { Zap } from "lucide-react";
 import {
   OwnerIndicator,
   normalizeOwners,
@@ -7,7 +7,7 @@ import {
 } from "../OwnerIndicator";
 import { Node, Handle, Position, useHandleConnections } from "@xyflow/react";
 import { Message, EventCatalogResource } from "../../types";
-import { NotesIndicator, NotesModal } from "../NotesIndicator";
+import { NotesIndicator } from "../NotesIndicator";
 import {
   LINE_CLAMP_STYLE,
   FOLDED_CORNER_SHADOW_STYLE,
@@ -48,93 +48,6 @@ type MessageNodeData = EventCatalogResource & {
 };
 
 export type EventNode = Node<MessageNodeData, "event">;
-
-function BottomRightNotes({
-  notes,
-  resourceName,
-  resourceVersion,
-  isDark,
-}: {
-  notes: any[];
-  resourceName: string;
-  resourceVersion?: string;
-  isDark: boolean;
-}) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsModalOpen(true);
-  }, []);
-
-  const count = notes.length;
-  const hasUrgent = notes.some(
-    (n: any) =>
-      n.priority &&
-      (n.priority.toLowerCase() === "high" ||
-        n.priority.toLowerCase() === "critical"),
-  );
-
-  return (
-    <div
-      className="nopan nodrag shrink-0 ml-auto"
-      onPointerDown={(e) => e.stopPropagation()}
-      onClick={(e) => e.stopPropagation()}
-    >
-      <div
-        className="cursor-pointer"
-        onClick={handleClick}
-        style={{
-          position: "relative",
-          width: 26,
-          height: 26,
-          transition: "transform 0.15s ease",
-          filter: hasUrgent
-            ? "drop-shadow(0 1px 4px rgba(239,68,68,0.4))"
-            : "drop-shadow(0 1px 4px rgba(251,191,36,0.4))",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
-        onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-      >
-        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-          <path
-            d="M3 4C3 2.34 4.34 1 6 1h14c1.66 0 3 1.34 3 3v12c0 1.66-1.34 3-3 3H9l-4.3 4.3c-.6.6-1.7.2-1.7-.7V4z"
-            fill={hasUrgent ? "#ef4444" : "#f59e0b"}
-          />
-        </svg>
-        <span
-          style={{
-            position: "absolute",
-            top: "38%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            fontSize: 10,
-            fontWeight: 800,
-            color: "white",
-            lineHeight: 1,
-          }}
-        >
-          {count}
-        </span>
-      </div>
-
-      <NotesModal
-        notes={notes}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        resourceName={resourceName}
-        resourceVersion={resourceVersion}
-        resourceType="Event"
-        accentColor="linear-gradient(135deg, #fb923c, #ea580c)"
-        icon={
-          <Zap
-            style={{ width: 18, height: 18, color: "white" }}
-            strokeWidth={2.5}
-          />
-        }
-      />
-    </div>
-  );
-}
 
 function PostItEvent(props: EventNode) {
   const { version, name, summary, deprecated, draft, notes } =
@@ -358,12 +271,7 @@ function DefaultEvent(props: EventNode) {
             iconClass="text-orange-300"
           />
           {notes && notes.length > 0 && (
-            <BottomRightNotes
-              notes={notes}
-              resourceName={name}
-              resourceVersion={version}
-              isDark={isDark}
-            />
+            <NotesIndicator notes={notes} resourceName={name} />
           )}
         </div>
       </div>

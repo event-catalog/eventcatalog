@@ -1,9 +1,13 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useImperativeHandle, forwardRef } from 'react';
 import MonacoEditor, { type OnMount, type BeforeMount, type Monaco } from '@monaco-editor/react';
 import type { editor } from 'monaco-editor';
 import { registerEcLanguage } from '../monaco/ec-language';
 import { registerEcCompletion, setAllFilesSources } from '../monaco/ec-completion';
 import { setDiagnostics, type DslError } from '../monaco/ec-diagnostics';
+
+export interface EditorHandle {
+  revealLine: (line: number) => void;
+}
 
 interface EditorProps {
   value: string;
@@ -11,9 +15,10 @@ interface EditorProps {
   errors: DslError[];
   allFiles: Record<string, string>;
   onFormat?: () => void;
+  onCommandPalette?: () => void;
 }
 
-export function Editor({ value, onChange, errors, allFiles, onFormat }: EditorProps) {
+export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({ value, onChange, errors, allFiles, onFormat, onCommandPalette }, ref) {
   useEffect(() => {
     setAllFilesSources(allFiles);
   }, [allFiles]);
@@ -21,6 +26,18 @@ export function Editor({ value, onChange, errors, allFiles, onFormat }: EditorPr
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const onFormatRef = useRef(onFormat);
   onFormatRef.current = onFormat;
+  const onCommandPaletteRef = useRef(onCommandPalette);
+  onCommandPaletteRef.current = onCommandPalette;
+
+  useImperativeHandle(ref, () => ({
+    revealLine(line: number) {
+      const ed = editorRef.current;
+      if (!ed) return;
+      ed.revealLineInCenter(line);
+      ed.setPosition({ lineNumber: line, column: 1 });
+      ed.focus();
+    },
+  }));
 
   const handleBeforeMount: BeforeMount = useCallback((monaco) => {
     registerEcLanguage(monaco);
@@ -44,6 +61,17 @@ export function Editor({ value, onChange, errors, allFiles, onFormat }: EditorPr
       ],
       run: () => {
         onFormatRef.current?.();
+      },
+    });
+
+    editor.addAction({
+      id: 'ec-command-palette',
+      label: 'Open Command Palette',
+      keybindings: [
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK,
+      ],
+      run: () => {
+        onCommandPaletteRef.current?.();
       },
     });
   }, []);
@@ -96,4 +124,4 @@ export function Editor({ value, onChange, errors, allFiles, onFormat }: EditorPr
     />
     </div>
   );
-}
+});

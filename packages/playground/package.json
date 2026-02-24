@@ -13,6 +13,7 @@
     "@eventcatalog/visualiser": "workspace:*",
     "@monaco-editor/react": "^4.7.0",
     "@xyflow/react": "^12.4.0",
+    "cmdk": "^1.1.1",
     "langium": "^3.3.1",
     "lucide-react": "^0.563.0",
     "react": "^19.0.0",

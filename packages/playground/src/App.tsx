@@ -2,11 +2,15 @@ import { useState, useCallback, useRef, useEffect, memo } from 'react';
 import { Editor } from './components/Editor';
 import { Visualizer } from './components/Visualizer';
 import { TabBar } from './components/TabBar';
+import { TemplatePicker } from './components/TemplatePicker';
+import { StatusBar } from './components/StatusBar';
+import { CommandPalette } from './components/CommandPalette';
+import type { EditorHandle } from './components/Editor';
 import { useDslParser } from './hooks/useDslParser';
 import { getErrorsForFile } from './monaco/ec-diagnostics';
 import { examples } from './examples';
 import { createZipBlob } from './utils/zip';
-import { Zap, ChevronDown, AlignLeft, Maximize2, Minimize2, Sun, Moon, Share2, Check, Download, X, Copy } from 'lucide-react';
+import { ChevronDown, AlignLeft, Check, Download, Share2, Sun, Moon, X, Copy } from 'lucide-react';
 import { formatEc } from '@eventcatalog/language-server';
 
 const MIN_PANEL_PCT = 20;
@@ -24,104 +28,73 @@ const AppHeader = memo(function AppHeader({
   selectedExample,
   templateUnselected,
   onExampleChange,
+  loadedFromUrl,
+  onExport,
+  exportRecentlyDownloaded,
+  onShare,
   vizTheme,
   onToggleVizTheme,
-  fullscreen,
-  onToggleFullscreen,
-  onShare,
-  onExportForImport,
-  exportRecentlyDownloaded,
-  loadedFromUrl,
 }: {
   selectedExample: number;
   templateUnselected: boolean;
   onExampleChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  loadedFromUrl: boolean;
+  onExport: () => void;
+  exportRecentlyDownloaded: boolean;
+  onShare: () => void;
   vizTheme: 'light' | 'dark';
   onToggleVizTheme: () => void;
-  fullscreen: boolean;
-  onToggleFullscreen: () => void;
-  onShare: () => void;
-  onExportForImport: () => void;
-  exportRecentlyDownloaded: boolean;
-  loadedFromUrl: boolean;
 }) {
+  const currentName = loadedFromUrl
+    ? 'Shared Link'
+    : templateUnselected
+      ? ''
+      : examples[selectedExample]?.name ?? '';
+
   return (
     <header className="header">
       <div className="header-logo">
-        <Zap size={20} />
-        <h1>EventCatalog Canvas</h1>
+        <h1>EventCatalog Canvas{currentName ? <span className="header-template-name"> — {currentName}</span> : ''}</h1>
       </div>
-      <div className="example-select-wrapper">
-        <select
-          className="example-select"
-          value={loadedFromUrl ? 'url' : (templateUnselected ? '' : selectedExample)}
-          onChange={onExampleChange}
-        >
-          {templateUnselected && (
-            <option value="" disabled>
-              Select a template
-            </option>
-          )}
-          {loadedFromUrl && (
-            <option value="url">
-              Shared Link — Loaded from query string
-            </option>
-          )}
-          {examples.map((ex, i) => (
-            <option key={i} value={i}>
-              {ex.name} — {ex.description}
-            </option>
-          ))}
-        </select>
-        <ChevronDown size={14} className="example-select-arrow" />
-      </div>
-      <span className="subtitle">Edit models on the left, see the architecture on the right</span>
       <div className="header-actions">
-        <div className="header-action-group" aria-label="Sharing actions">
-          <div className="tooltip-wrap" data-tooltip="Share model link">
-            <button
-              className="fullscreen-btn"
-              onClick={onShare}
-              title="Share model link"
-              aria-label="Share model link"
-            >
-              <Share2 size={15} />
-            </button>
-          </div>
-          <div className="tooltip-wrap" data-tooltip="Download model files">
-            <button
-              className="fullscreen-btn"
-              onClick={onExportForImport}
-              title="Download model files for EventCatalog import"
-              aria-label="Download model files for EventCatalog import"
-            >
-              {exportRecentlyDownloaded ? <Check size={15} /> : <Download size={15} />}
-            </button>
-          </div>
+        <div className="example-select-wrapper">
+          <select
+            className="example-select"
+            value={loadedFromUrl ? 'url' : (templateUnselected ? '' : selectedExample)}
+            onChange={onExampleChange}
+          >
+            {templateUnselected && (
+              <option value="" disabled>
+                Select a template
+              </option>
+            )}
+            {loadedFromUrl && (
+              <option value="url">
+                Shared Link
+              </option>
+            )}
+            {examples.map((ex, i) => (
+              <option key={i} value={i}>
+                {ex.name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={14} className="example-select-arrow" />
         </div>
-
-        <div className="header-action-group" aria-label="View actions">
-          <div className="tooltip-wrap" data-tooltip={vizTheme === 'light' ? 'Switch to dark visualizer' : 'Switch to light visualizer'}>
-            <button
-              className="fullscreen-btn"
-              onClick={onToggleVizTheme}
-              title={vizTheme === 'light' ? 'Dark visualizer' : 'Light visualizer'}
-              aria-label={vizTheme === 'light' ? 'Switch to dark visualizer' : 'Switch to light visualizer'}
-            >
-              {vizTheme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
-            </button>
-          </div>
-          <div className="tooltip-wrap" data-tooltip={fullscreen ? 'Show editor' : 'Fullscreen visualizer'}>
-            <button
-              className="fullscreen-btn"
-              onClick={onToggleFullscreen}
-              title={fullscreen ? 'Show editor' : 'Fullscreen visualizer'}
-              aria-label={fullscreen ? 'Show editor' : 'Fullscreen visualizer'}
-            >
-              {fullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-            </button>
-          </div>
-        </div>
+        <button
+          className="header-icon-btn"
+          onClick={onToggleVizTheme}
+          title={vizTheme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
+        >
+          {vizTheme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
+        </button>
+        <button className="header-icon-btn" onClick={onShare} title="Share model link">
+          <Share2 size={15} />
+        </button>
+        <button className="export-btn-header" onClick={onExport}>
+          {exportRecentlyDownloaded ? <Check size={14} /> : <Download size={14} />}
+          Export to EventCatalog
+        </button>
       </div>
     </header>
   );
@@ -250,6 +223,35 @@ const ExportHelpModal = memo(function ExportHelpModal({
 
 let newFileCounter = 1;
 
+const DRAFT_KEY = 'ec-canvas-draft';
+const DRAFT_ACTIVE_FILE_KEY = 'ec-canvas-draft-active';
+
+function saveDraft(files: Record<string, string>, activeFile: string): void {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(files));
+    localStorage.setItem(DRAFT_ACTIVE_FILE_KEY, activeFile);
+  } catch {}
+}
+
+function loadDraft(): { files: Record<string, string>; activeFile: string } | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const files = JSON.parse(raw);
+    if (!files || typeof files !== 'object' || Object.keys(files).length === 0) return null;
+    const activeFile = localStorage.getItem(DRAFT_ACTIVE_FILE_KEY) || Object.keys(files)[0];
+    return { files, activeFile };
+  } catch {}
+  return null;
+}
+
+function clearDraft(): void {
+  try {
+    localStorage.removeItem(DRAFT_KEY);
+    localStorage.removeItem(DRAFT_ACTIVE_FILE_KEY);
+  } catch {}
+}
+
 function getCodeFromUrl(): string | null {
   try {
     const params = new URLSearchParams(window.location.search);
@@ -269,6 +271,15 @@ function getBasePathname(): string {
   return basePath || '/';
 }
 
+function hasExampleHash(): boolean {
+  return /example=\d+/.test(window.location.hash);
+}
+
+function shouldShowTemplatePicker(): boolean {
+  if (getCodeFromUrl() || hasExampleHash() || loadDraft()) return false;
+  return true;
+}
+
 function getInitialExample(): number {
   // Restore from URL hash (e.g. #example=3)
   const hash = window.location.hash;
@@ -284,7 +295,19 @@ function getInitialFiles(): Record<string, string> {
   const code = getCodeFromUrl();
   if (code) return { 'main.ec': code };
   if (isNewRoute()) return { 'main.ec': '' };
+  const draft = loadDraft();
+  if (draft) return draft.files;
+  if (shouldShowTemplatePicker()) return { 'main.ec': '' };
   return { ...examples[getInitialExample()].source };
+}
+
+function getInitialActiveFile(): string {
+  const code = getCodeFromUrl();
+  if (code) return 'main.ec';
+  if (isNewRoute()) return 'main.ec';
+  const draft = loadDraft();
+  if (draft) return draft.activeFile;
+  return Object.keys(examples[getInitialExample()].source)[0];
 }
 
 function downloadBlob(blob: Blob, filename: string): void {
@@ -299,13 +322,15 @@ function downloadBlob(blob: Blob, filename: string): void {
 export default function App() {
   const [selectedExample, setSelectedExample] = useState(getInitialExample);
   const [loadedFromUrl, setLoadedFromUrl] = useState(() => getCodeFromUrl() !== null);
-  const [templateUnselected, setTemplateUnselected] = useState(() => isNewRoute() && getCodeFromUrl() === null);
+  const [templateUnselected, setTemplateUnselected] = useState(() => !shouldShowTemplatePicker() && isNewRoute() && getCodeFromUrl() === null);
+  const [showTemplatePicker, setShowTemplatePicker] = useState(shouldShowTemplatePicker);
   const [files, setFiles] = useState<Record<string, string>>(getInitialFiles);
-  const [activeFile, setActiveFile] = useState(Object.keys(getInitialFiles())[0]);
+  const [activeFile, setActiveFile] = useState(getInitialActiveFile);
+  // Track whether the current session is user-authored content that should be saved
+  const isUserDraft = useRef(!!getCodeFromUrl() || isNewRoute() || !!loadDraft());
   const [activeVisualizer, setActiveVisualizer] = useState<string | undefined>(undefined);
   const { graph, errors, fileOffsets } = useDslParser(files, activeVisualizer);
   const [splitPct, setSplitPct] = useState(DEFAULT_SPLIT);
-  const [fullscreen, setFullscreen] = useState(false);
   const [vizTheme, setVizTheme] = useState<'light' | 'dark'>(() => {
     try {
       const saved = localStorage.getItem('ec-playground-theme');
@@ -316,6 +341,8 @@ export default function App() {
     } catch {}
     return 'light';
   });
+  const [cmdkOpen, setCmdkOpen] = useState(false);
+  const editorRef = useRef<EditorHandle>(null);
   const isDragging = useRef(false);
   const mainRef = useRef<HTMLDivElement>(null);
 
@@ -335,6 +362,8 @@ export default function App() {
     setSelectedExample(idx);
     setTemplateUnselected(false);
     setLoadedFromUrl(false);
+    isUserDraft.current = false;
+    clearDraft();
     // Clear ?code param when switching to a built-in example
     const url = new URL(window.location.href);
     url.pathname = getBasePathname();
@@ -347,7 +376,28 @@ export default function App() {
     setActiveVisualizer(undefined);
   }, []);
 
-  const toggleFullscreen = useCallback(() => setFullscreen((v) => !v), []);
+  const handleTemplateSelect = useCallback((exampleIndex: number) => {
+    setSelectedExample(exampleIndex);
+    setTemplateUnselected(false);
+    setShowTemplatePicker(false);
+    isUserDraft.current = false;
+    clearDraft();
+    const url = new URL(window.location.href);
+    url.hash = `example=${exampleIndex}`;
+    window.history.replaceState(null, '', url.toString());
+    const newFiles = { ...examples[exampleIndex].source };
+    setFiles(newFiles);
+    setActiveFile(Object.keys(newFiles)[0]);
+    setActiveVisualizer(undefined);
+  }, []);
+
+  const handleBlankStart = useCallback(() => {
+    setShowTemplatePicker(false);
+    setTemplateUnselected(true);
+    isUserDraft.current = true;
+    setFiles({ 'main.ec': '' });
+    setActiveFile('main.ec');
+  }, []);
 
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [exportRecentlyDownloaded, setExportRecentlyDownloaded] = useState(false);
@@ -404,11 +454,20 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [latestExport, shareUrl]);
 
+  // Persist files to localStorage so user work survives page refreshes
+  useEffect(() => {
+    if (isUserDraft.current) {
+      saveDraft(files, activeFile);
+    }
+  }, [files, activeFile]);
+
   const handleFileChange = useCallback((value: string) => {
+    isUserDraft.current = true;
     setFiles((prev) => ({ ...prev, [activeFile]: value }));
   }, [activeFile]);
 
   const handleAddFile = useCallback(() => {
+    isUserDraft.current = true;
     const name = `file${newFileCounter++}.ec`;
     setFiles((prev) => ({ ...prev, [name]: '' }));
     setActiveFile(name);
@@ -429,6 +488,30 @@ export default function App() {
   const handleFormat = useCallback(() => {
     setFiles((prev) => ({ ...prev, [activeFile]: formatEc(prev[activeFile]) }));
   }, [activeFile]);
+
+  // Cmd+K / Ctrl+K to open command palette
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setCmdkOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  const handleGoToLine = useCallback((line: number) => {
+    editorRef.current?.revealLine(line);
+  }, []);
+
+  const handleSwitchFileAndLine = useCallback((filename: string, line: number) => {
+    setActiveFile(filename);
+    // Wait for editor to update with new file content before revealing line
+    requestAnimationFrame(() => {
+      editorRef.current?.revealLine(line);
+    });
+  }, []);
 
   const activeFileErrors = getErrorsForFile(errors, activeFile, fileOffsets);
 
@@ -469,50 +552,46 @@ export default function App() {
         selectedExample={selectedExample}
         templateUnselected={templateUnselected}
         onExampleChange={handleExampleChange}
+        loadedFromUrl={loadedFromUrl}
+        onExport={handleExportForImport}
+        exportRecentlyDownloaded={exportRecentlyDownloaded}
+        onShare={handleShare}
         vizTheme={vizTheme}
         onToggleVizTheme={toggleVizTheme}
-        fullscreen={fullscreen}
-        onToggleFullscreen={toggleFullscreen}
-        onShare={handleShare}
-        onExportForImport={handleExportForImport}
-        exportRecentlyDownloaded={exportRecentlyDownloaded}
-        loadedFromUrl={loadedFromUrl}
       />
       <div className="main" ref={mainRef}>
-        {!fullscreen && (
-          <>
-            <div className="editor-pane" style={{ width: `${splitPct}%` }}>
-              <div className="pane-header">
-                <TabBar
-                  files={fileNames}
-                  activeFile={activeFile}
-                  onSelectFile={setActiveFile}
-                  onCloseFile={handleCloseFile}
-                  onAddFile={handleAddFile}
-                />
-                <button className="format-btn" onClick={handleFormat} title="Format code (Shift+Alt+F)">
-                  <AlignLeft size={14} />
-                </button>
-                {errors.length > 0 && (
-                  <span className="error-count">
-                    {errors.length} error{errors.length !== 1 ? 's' : ''}
-                  </span>
-                )}
-              </div>
-              <Editor
-                value={files[activeFile] ?? ''}
-                onChange={handleFileChange}
-                errors={activeFileErrors}
-                allFiles={files}
-                onFormat={handleFormat}
-              />
-            </div>
-            <div className="resize-handle" onMouseDown={onMouseDown}>
-              <div className="resize-handle-line" />
-            </div>
-          </>
-        )}
-        <div className="visualizer-pane" style={{ width: fullscreen ? '100%' : `${100 - splitPct}%` }}>
+        <div className="editor-pane" style={{ width: `${splitPct}%` }}>
+          <div className="pane-header">
+            <TabBar
+              files={fileNames}
+              activeFile={activeFile}
+              onSelectFile={setActiveFile}
+              onCloseFile={handleCloseFile}
+              onAddFile={handleAddFile}
+            />
+            <button className="format-btn" onClick={handleFormat} title="Format code (Shift+Alt+F)">
+              <AlignLeft size={14} />
+            </button>
+            {errors.length > 0 && (
+              <span className="error-count">
+                {errors.length} error{errors.length !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+          <Editor
+            ref={editorRef}
+            value={files[activeFile] ?? ''}
+            onChange={handleFileChange}
+            errors={activeFileErrors}
+            allFiles={files}
+            onFormat={handleFormat}
+            onCommandPalette={() => setCmdkOpen(true)}
+          />
+        </div>
+        <div className="resize-handle" onMouseDown={onMouseDown}>
+          <div className="resize-handle-line" />
+        </div>
+        <div className="visualizer-pane" style={{ width: `${100 - splitPct}%` }}>
           {graph.empty ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'rgb(var(--ec-page-text-muted))', flexDirection: 'column', gap: '8px' }}>
               <p style={{ fontSize: '16px', fontWeight: 500 }}>No visualizer block found</p>
@@ -534,13 +613,28 @@ export default function App() {
                   </select>
                 </div>
               )}
-              <Visualizer key={fullscreen ? 'fs' : 'split'} graph={graph} />
+              <Visualizer graph={graph} />
             </>
           )}
         </div>
       </div>
+      <StatusBar
+        nodes={graph.nodes}
+        errorCount={errors.length}
+        onCommandPalette={() => setCmdkOpen(true)}
+      />
       {shareUrl && <ShareLinkModal shareUrl={shareUrl} onClose={() => setShareUrl(null)} />}
       {latestExport && <ExportHelpModal exportResult={latestExport} onClose={() => setLatestExport(null)} />}
+      {showTemplatePicker && <TemplatePicker onSelect={handleTemplateSelect} onBlank={handleBlankStart} />}
+      <CommandPalette
+        open={cmdkOpen}
+        onOpenChange={setCmdkOpen}
+        nodes={graph.nodes}
+        files={files}
+        activeFile={activeFile}
+        onGoToLine={handleGoToLine}
+        onSwitchFile={handleSwitchFileAndLine}
+      />
     </div>
   );
 }
