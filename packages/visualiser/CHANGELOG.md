@@ -1,5 +1,11 @@
 # @eventcatalog/visualiser
 
+## 3.14.1
+
+### Patch Changes
+
+- f435078: Canvas playground UX overhaul: consistent notes indicator across all node types
+
 ## 3.14.0
 
 ### Minor Changes
