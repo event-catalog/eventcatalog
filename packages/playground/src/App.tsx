@@ -49,7 +49,7 @@ const AppHeader = memo(function AppHeader({
     <header className="header">
       <div className="header-logo">
         <Zap size={20} />
-        <h1>EventCatalog Modelling</h1>
+        <h1>EventCatalog Canvas</h1>
       </div>
       <div className="example-select-wrapper">
         <select
@@ -153,7 +153,7 @@ const ShareLinkModal = memo(function ShareLinkModal({
           </button>
         </div>
 
-        <p className="export-modal-lead">Share this URL with your team so they can open the same model in EventCatalog Modelling.</p>
+        <p className="export-modal-lead">Share this URL with your team so they can open the same model in EventCatalog Canvas.</p>
 
         <div className="command-row">
           <code>{shareUrl}</code>

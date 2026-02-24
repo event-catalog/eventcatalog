@@ -1,9 +1,10 @@
-import type { Event, Command, Query, Service, Domain, Team, User, Channel } from '../types';
+import type { Event, Command, Query, Service, Domain, Team, User, Channel, Container } from '../types';
 import { messageToDSL } from './message';
 import { serviceToDSL } from './service';
 import { domainToDSL } from './domain';
 import { teamToDSL, userToDSL } from './owner';
 import { channelToDSL } from './channel';
+import { containerToDSL } from './container';
 import { buildMessageTypeIndex, resolveMessageType, msgVersionMatches } from './utils';
 import type { MessageType, MessageTypeIndex } from './utils';
 
@@ -25,6 +26,7 @@ export interface ResourceResolvers {
   getDomain: (id: string, version?: string) => Promise<Domain | undefined>;
   getChannel: (id: string, version?: string) => Promise<Channel | undefined>;
   getChannels: (options?: { latestOnly?: boolean }) => Promise<Channel[]>;
+  getContainer: (id: string, version?: string) => Promise<Container | undefined>;
   getTeam: (id: string) => Promise<Team | undefined>;
   getUser: (id: string) => Promise<User | undefined>;
 }
@@ -94,6 +96,20 @@ async function hydrateChannels(resource: Service | Domain, resolvers: ResourceRe
     for (const ch of channels) {
       await hydrateChannel(ch.id, ch.version, resolvers, seen, parts);
     }
+  }
+}
+
+async function hydrateContainers(resource: Service, resolvers: ResourceResolvers, seen: Set<string>, parts: string[]) {
+  const allContainers = [...(resource.writesTo || []), ...(resource.readsFrom || [])];
+  for (const ref of allContainers) {
+    const key = `container:${ref.id}@${ref.version || 'latest'}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const container = await resolvers.getContainer(ref.id, ref.version);
+    if (!container) continue;
+
+    parts.push(containerToDSL(container));
   }
 }
 
@@ -230,6 +246,7 @@ export const toDSL =
           if (options.hydrate) {
             await hydrateOwners(res.owners, resolvers, seen, parts);
             await hydrateChannels(res as Service, resolvers, seen, parts);
+            await hydrateContainers(res as Service, resolvers, seen, parts);
           }
           parts.push(
             await serviceToDSL(

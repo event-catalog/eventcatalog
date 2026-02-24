@@ -204,7 +204,7 @@ visualizer main {
 
     const filepath = path.resolve('OrderCreated.ec');
     expect(result).toContain(`Exported event 'OrderCreated' to ${filepath}`);
-    expect(result).toContain('Tip: Use --playground to open in EventCatalog Modelling');
+    expect(result).toContain('Tip: Use --playground to open in EventCatalog Canvas');
     expect(fs.existsSync(filepath)).toBe(true);
 
     const content = fs.readFileSync(filepath, 'utf-8');
@@ -226,7 +226,7 @@ visualizer main {
     });
 
     expect(result).toContain(`Exported event 'OrderCreated' to ${outputPath}`);
-    expect(result).toContain('Tip: Use --playground to open in EventCatalog Modelling');
+    expect(result).toContain('Tip: Use --playground to open in EventCatalog Canvas');
     expect(fs.existsSync(outputPath)).toBe(true);
 
     const content = fs.readFileSync(outputPath, 'utf-8');
@@ -247,7 +247,7 @@ visualizer main {
     });
 
     expect(result).toContain(`Exported event 'OrderCreated' to ${outputPath}`);
-    expect(result).toContain('Opening in EventCatalog Modelling...');
+    expect(result).toContain('Opening in EventCatalog Canvas...');
     expect(result).not.toContain('Tip: Use --playground');
   });
 
