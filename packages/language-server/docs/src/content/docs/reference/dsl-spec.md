@@ -1665,11 +1665,12 @@ team_props        = "name" string_lit
                   | "member" identifier ;
 
 (* Resource references *)
+versioned_resource_ref  = identifier "@" version_lit ;
 service_ref_stmt    = "service" resource_ref ;
 domain_ref_stmt     = "domain" resource_ref ;
-event_ref_stmt      = "event" resource_ref ;
-command_ref_stmt    = "command" resource_ref ;
-query_ref_stmt      = "query" resource_ref ;
+event_ref_stmt      = "event" versioned_resource_ref ;
+command_ref_stmt    = "command" versioned_resource_ref ;
+query_ref_stmt      = "query" versioned_resource_ref ;
 channel_ref_stmt    = "channel" resource_ref ;
 container_ref_stmt  = "container" resource_ref ;
 ```

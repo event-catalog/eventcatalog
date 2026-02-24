@@ -809,4 +809,208 @@ domain Orders {
 }`);
     });
   });
+
+  describe('hydrate related services', () => {
+    it('hydrates external services that receive what a domain service sends (downstream consumers)', async () => {
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
+      await writeService({
+        id: 'OrderService',
+        name: 'Order Service',
+        version: '1.0.0',
+        sends: [{ id: 'OrderCreated', version: '1.0.0' }],
+        markdown: '',
+      });
+      await writeService({
+        id: 'NotificationService',
+        name: 'Notification Service',
+        version: '1.0.0',
+        receives: [{ id: 'OrderCreated', version: '1.0.0' }],
+        markdown: '',
+      });
+
+      const dsl = await toDSL(
+        {
+          id: 'Orders',
+          name: 'Orders Domain',
+          version: '1.0.0',
+          services: [{ id: 'OrderService', version: '1.0.0' }],
+          markdown: '',
+        },
+        { type: 'domain', hydrate: true }
+      );
+
+      expect(dsl).toContain('service NotificationService {');
+      expect(dsl).toContain('receives event OrderCreated@1.0.0');
+      expect(dsl).toContain('service OrderService {');
+      expect(dsl).toContain('event OrderCreated {');
+      expect(dsl.match(/service OrderService \{/g)?.length || 0).toBe(1);
+    });
+
+    it('hydrates external services that send what a domain service receives (upstream producers)', async () => {
+      await writeCommand({ id: 'CreateOrder', name: 'Create Order', version: '1.0.0', markdown: '' });
+      await writeService({
+        id: 'OrderService',
+        name: 'Order Service',
+        version: '1.0.0',
+        receives: [{ id: 'CreateOrder', version: '1.0.0' }],
+        markdown: '',
+      });
+      await writeService({
+        id: 'CheckoutService',
+        name: 'Checkout Service',
+        version: '1.0.0',
+        sends: [{ id: 'CreateOrder', version: '1.0.0' }],
+        markdown: '',
+      });
+
+      const dsl = await toDSL(
+        {
+          id: 'Orders',
+          name: 'Orders Domain',
+          version: '1.0.0',
+          services: [{ id: 'OrderService', version: '1.0.0' }],
+          markdown: '',
+        },
+        { type: 'domain', hydrate: true }
+      );
+
+      expect(dsl).toContain('service CheckoutService {');
+      expect(dsl).toContain('sends command CreateOrder@1.0.0');
+      expect(dsl).toContain('service OrderService {');
+    });
+
+    it('does not duplicate a service that is already a member of the domain', async () => {
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
+      await writeService({
+        id: 'OrderService',
+        name: 'Order Service',
+        version: '1.0.0',
+        sends: [{ id: 'OrderCreated', version: '1.0.0' }],
+        markdown: '',
+      });
+      await writeService({
+        id: 'BillingService',
+        name: 'Billing Service',
+        version: '1.0.0',
+        receives: [{ id: 'OrderCreated', version: '1.0.0' }],
+        markdown: '',
+      });
+
+      const dsl = await toDSL(
+        {
+          id: 'Orders',
+          name: 'Orders Domain',
+          version: '1.0.0',
+          services: [
+            { id: 'OrderService', version: '1.0.0' },
+            { id: 'BillingService', version: '1.0.0' },
+          ],
+          markdown: '',
+        },
+        { type: 'domain', hydrate: true }
+      );
+
+      expect(dsl.match(/service BillingService \{/g)?.length || 0).toBe(1);
+    });
+
+    it('does not add any services when no external services consume domain messages', async () => {
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
+      await writeService({
+        id: 'OrderService',
+        name: 'Order Service',
+        version: '1.0.0',
+        sends: [{ id: 'OrderCreated', version: '1.0.0' }],
+        markdown: '',
+      });
+
+      const dsl = await toDSL(
+        {
+          id: 'Orders',
+          name: 'Orders Domain',
+          version: '1.0.0',
+          services: [{ id: 'OrderService', version: '1.0.0' }],
+          markdown: '',
+        },
+        { type: 'domain', hydrate: true }
+      );
+
+      expect(dsl.match(/^service /gm)?.length || 0).toBe(1);
+    });
+
+    it('does not hydrate related services when hydrate is false', async () => {
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
+      await writeService({
+        id: 'OrderService',
+        name: 'Order Service',
+        version: '1.0.0',
+        sends: [{ id: 'OrderCreated', version: '1.0.0' }],
+        markdown: '',
+      });
+      await writeService({
+        id: 'NotificationService',
+        name: 'Notification Service',
+        version: '1.0.0',
+        receives: [{ id: 'OrderCreated', version: '1.0.0' }],
+        markdown: '',
+      });
+
+      const dsl = await toDSL(
+        {
+          id: 'Orders',
+          name: 'Orders Domain',
+          version: '1.0.0',
+          services: [{ id: 'OrderService', version: '1.0.0' }],
+          markdown: '',
+        },
+        { type: 'domain', hydrate: false }
+      );
+
+      expect(dsl).not.toContain('service NotificationService {');
+    });
+
+    it('full integration: domain with both upstream producers and downstream consumers', async () => {
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
+      await writeCommand({ id: 'CreateOrder', name: 'Create Order', version: '1.0.0', markdown: '' });
+      await writeService({
+        id: 'OrderService',
+        name: 'Order Service',
+        version: '1.0.0',
+        sends: [{ id: 'OrderCreated', version: '1.0.0' }],
+        receives: [{ id: 'CreateOrder', version: '1.0.0' }],
+        markdown: '',
+      });
+      await writeService({
+        id: 'NotificationService',
+        name: 'Notification Service',
+        version: '1.0.0',
+        receives: [{ id: 'OrderCreated', version: '1.0.0' }],
+        markdown: '',
+      });
+      await writeService({
+        id: 'CheckoutService',
+        name: 'Checkout Service',
+        version: '1.0.0',
+        sends: [{ id: 'CreateOrder', version: '1.0.0' }],
+        markdown: '',
+      });
+
+      const dsl = await toDSL(
+        {
+          id: 'Orders',
+          name: 'Orders Domain',
+          version: '1.0.0',
+          services: [{ id: 'OrderService', version: '1.0.0' }],
+          markdown: '',
+        },
+        { type: 'domain', hydrate: true }
+      );
+
+      expect(dsl).toContain('service OrderService {');
+      expect(dsl).toContain('service NotificationService {');
+      expect(dsl).toContain('service CheckoutService {');
+      expect(dsl.match(/service OrderService \{/g)?.length || 0).toBe(1);
+      expect(dsl.match(/service NotificationService \{/g)?.length || 0).toBe(1);
+      expect(dsl.match(/service CheckoutService \{/g)?.length || 0).toBe(1);
+    });
+  });
 });

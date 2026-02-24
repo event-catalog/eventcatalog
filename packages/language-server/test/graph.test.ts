@@ -2418,4 +2418,81 @@ describe("astToGraph", () => {
     expect(chAReceives).toBeDefined();
     expect(chBReceives).toBeDefined();
   });
+
+  it("versioned event ref in visualizer resolves to top-level definition", async () => {
+    const program = await parseProgram(`
+      event OrderCreated {
+        version 1.0.0
+        summary "An order was created"
+      }
+
+      visualizer main {
+        event OrderCreated@1.0.0
+      }
+    `);
+
+    const graph = astToGraph(program);
+    const eventNode = graph.nodes.find(
+      (n) => n.id === "event:OrderCreated@1.0.0",
+    );
+    expect(eventNode).toBeDefined();
+    expect(eventNode!.type).toBe("event");
+    expect(eventNode!.metadata.version).toBe("1.0.0");
+    expect(eventNode!.metadata.summary).toBe("An order was created");
+  });
+
+  it("versioned command ref in visualizer creates node", async () => {
+    const program = await parseProgram(`
+      visualizer main {
+        command CreateOrder@2.0.0
+      }
+    `);
+
+    const graph = astToGraph(program);
+    const cmdNode = graph.nodes.find(
+      (n) => n.id === "command:CreateOrder@2.0.0",
+    );
+    expect(cmdNode).toBeDefined();
+    expect(cmdNode!.type).toBe("command");
+    expect(cmdNode!.metadata.version).toBe("2.0.0");
+  });
+
+  it("versioned query ref in visualizer creates node", async () => {
+    const program = await parseProgram(`
+      visualizer main {
+        query GetOrder@1.0.0
+      }
+    `);
+
+    const graph = astToGraph(program);
+    const queryNode = graph.nodes.find((n) => n.id === "query:GetOrder@1.0.0");
+    expect(queryNode).toBeDefined();
+    expect(queryNode!.type).toBe("query");
+    expect(queryNode!.metadata.version).toBe("1.0.0");
+  });
+
+  it("unversioned event ref resolves to latest top-level definition", async () => {
+    const program = await parseProgram(`
+      event OrderCreated {
+        version 1.0.0
+        summary "v1"
+      }
+      event OrderCreated {
+        version 2.0.0
+        summary "v2"
+      }
+
+      visualizer main {
+        event OrderCreated
+      }
+    `);
+
+    const graph = astToGraph(program);
+    const eventNode = graph.nodes.find(
+      (n) => n.type === "event" && n.id.startsWith("event:OrderCreated"),
+    );
+    expect(eventNode).toBeDefined();
+    expect(eventNode!.metadata.version).toBe("2.0.0");
+    expect(eventNode!.metadata.summary).toBe("v2");
+  });
 });
