@@ -1,5 +1,11 @@
 # @eventcatalog/language-server
 
+## 0.4.0
+
+### Minor Changes
+
+- a1c5012: Add versioned message references (event, command, query) in visualizer blocks and hydrate related services in domain DSL export
+
 ## 0.3.0
 
 ### Minor Changes

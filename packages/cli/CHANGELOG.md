@@ -1,5 +1,15 @@
 # @eventcatalog/cli
 
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies [7531be8]
+- Updated dependencies [a1c5012]
+- Updated dependencies [25acfdd]
+  - @eventcatalog/sdk@2.15.0
+  - @eventcatalog/language-server@0.4.0
+
 ## 0.4.0
 
 ### Minor Changes
