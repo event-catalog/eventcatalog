@@ -6,11 +6,12 @@ import { TemplatePicker } from './components/TemplatePicker';
 import { StatusBar } from './components/StatusBar';
 import { CommandPalette } from './components/CommandPalette';
 import type { EditorHandle } from './components/Editor';
-import { useDslParser } from './hooks/useDslParser';
+import { useDslParser, compileDsl } from './hooks/useDslParser';
 import { getErrorsForFile } from './monaco/ec-diagnostics';
 import { examples } from './examples';
 import { createZipBlob } from './utils/zip';
-import { ChevronDown, AlignLeft, Check, Download, Share2, Sun, Moon, X, Copy } from 'lucide-react';
+import { normalizeCompiledCatalogFiles } from './utils/catalog-export';
+import { ChevronDown, AlignLeft, Check, Download, Share2, Sun, Moon, X, Copy, FolderDown } from 'lucide-react';
 import { formatEc } from '@eventcatalog/language-server';
 
 const MIN_PANEL_PCT = 20;
@@ -30,6 +31,7 @@ const AppHeader = memo(function AppHeader({
   onExampleChange,
   loadedFromUrl,
   onExport,
+  onExportCatalog,
   exportRecentlyDownloaded,
   onShare,
   vizTheme,
@@ -40,6 +42,7 @@ const AppHeader = memo(function AppHeader({
   onExampleChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   loadedFromUrl: boolean;
   onExport: () => void;
+  onExportCatalog: () => void;
   exportRecentlyDownloaded: boolean;
   onShare: () => void;
   vizTheme: 'light' | 'dark';
@@ -50,6 +53,20 @@ const AppHeader = memo(function AppHeader({
     : templateUnselected
       ? ''
       : examples[selectedExample]?.name ?? '';
+
+  const [exportOpen, setExportOpen] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!exportOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
+        setExportOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [exportOpen]);
 
   return (
     <header className="header">
@@ -91,10 +108,31 @@ const AppHeader = memo(function AppHeader({
         <button className="header-icon-btn" onClick={onShare} title="Share model link">
           <Share2 size={15} />
         </button>
-        <button className="export-btn-header" onClick={onExport}>
-          {exportRecentlyDownloaded ? <Check size={14} /> : <Download size={14} />}
-          Export to EventCatalog
-        </button>
+        <div className="export-dropdown-wrapper" ref={exportRef}>
+          <button className="export-btn-header" onClick={() => setExportOpen((v) => !v)}>
+            {exportRecentlyDownloaded ? <Check size={14} /> : <Download size={14} />}
+            Export
+            <ChevronDown size={12} />
+          </button>
+          {exportOpen && (
+            <div className="export-dropdown">
+              <button className="export-dropdown-item" onClick={() => { setExportOpen(false); onExport(); }}>
+                <Download size={14} />
+                <div>
+                  <span className="export-dropdown-item-title">Download DSL files</span>
+                  <span className="export-dropdown-item-desc">Export .ec files for use with the CLI</span>
+                </div>
+              </button>
+              <button className="export-dropdown-item" onClick={() => { setExportOpen(false); onExportCatalog(); }}>
+                <FolderDown size={14} />
+                <div>
+                  <span className="export-dropdown-item-title">Download as Catalog</span>
+                  <span className="export-dropdown-item-desc">Ready-to-run project — just npm install and start</span>
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
@@ -216,6 +254,64 @@ const ExportHelpModal = memo(function ExportHelpModal({
         </div>
 
         <p className="export-modal-tip">Tip: add <code>--dry-run</code> first to preview changes before writing files.</p>
+      </div>
+    </div>
+  );
+});
+
+const CatalogExportModal = memo(function CatalogExportModal({
+  organizationName,
+  onOrganizationNameChange,
+  onCreateCatalog,
+  isExporting,
+  onClose,
+}: {
+  organizationName: string;
+  onOrganizationNameChange: (value: string) => void;
+  onCreateCatalog: () => void;
+  isExporting: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <div className="export-modal-overlay" onClick={onClose} role="presentation">
+      <div className="export-modal export-modal--compact" role="dialog" aria-modal="true" aria-label="Export catalog" onClick={(e) => e.stopPropagation()}>
+        <div className="export-modal-header">
+          <h2>Customize Your Catalog</h2>
+          <button className="export-modal-close" onClick={onClose} title="Close">
+            <X size={16} />
+          </button>
+        </div>
+        <p className="export-modal-lead">
+          We will customize your catalog for your organization.
+        </p>
+        <form
+          className="catalog-export-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            onCreateCatalog();
+          }}
+        >
+          <label htmlFor="organization-name" className="catalog-export-label">
+            Organization Name
+          </label>
+          <input
+            id="organization-name"
+            className="catalog-export-input"
+            type="text"
+            value={organizationName}
+            onChange={(e) => onOrganizationNameChange(e.target.value)}
+            placeholder="My Organization"
+            autoFocus
+            disabled={isExporting}
+          />
+          <button
+            className="catalog-export-submit"
+            type="submit"
+            disabled={isExporting || organizationName.trim().length === 0}
+          >
+            {isExporting ? 'Creating Zip...' : 'Create Catalog Zip'}
+          </button>
+        </form>
       </div>
     </div>
   );
@@ -402,6 +498,9 @@ export default function App() {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [exportRecentlyDownloaded, setExportRecentlyDownloaded] = useState(false);
   const [latestExport, setLatestExport] = useState<ExportResult | null>(null);
+  const [showCatalogExport, setShowCatalogExport] = useState(false);
+  const [catalogOrganizationName, setCatalogOrganizationName] = useState('My Organization');
+  const [isCatalogExporting, setIsCatalogExporting] = useState(false);
   const handleShare = useCallback(() => {
     const allContent = Object.values(files).join('\n');
     const encoded = btoa(unescape(encodeURIComponent(allContent)));
@@ -442,17 +541,114 @@ export default function App() {
     setTimeout(() => setExportRecentlyDownloaded(false), 2000);
   }, [files]);
 
+  const handleOpenCatalogExport = useCallback(() => {
+    setShowCatalogExport(true);
+  }, []);
+
+  const handleExportCatalog = useCallback(async () => {
+    const organizationName = catalogOrganizationName.trim();
+    if (!organizationName) return;
+    const organizationSlug =
+      organizationName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '') || 'my-organization';
+    const catalogFolderName = `${organizationSlug}-catalog`;
+
+    setIsCatalogExporting(true);
+
+    try {
+      const compiled = normalizeCompiledCatalogFiles(await compileDsl(files));
+
+      if (compiled.length === 0) {
+        return;
+      }
+
+      const catalogId = crypto.randomUUID();
+
+      const packageJson = JSON.stringify({
+        name: catalogFolderName,
+        version: '0.1.0',
+        private: true,
+        scripts: {
+          dev: 'eventcatalog dev',
+          build: 'eventcatalog build',
+          start: 'eventcatalog start',
+          preview: 'eventcatalog preview',
+        },
+        dependencies: {
+          '@eventcatalog/core': 'latest',
+        },
+      }, null, 2);
+
+      const configJs = `/** @type {import('@eventcatalog/core/bin/eventcatalog.config').Config} */
+export default {
+  title: 'EventCatalog',
+  tagline: 'Discover, Explore and Document your Event Driven Architectures.',
+  organizationName: ${JSON.stringify(organizationName)},
+  homepageLink: 'https://eventcatalog.dev/',
+  output: 'static',
+  trailingSlash: false,
+  base: '/',
+  navigation: {
+    pages: ['list:all'],
+  },
+  logo: {
+    alt: 'EventCatalog Logo',
+    src: '/logo.png',
+    text: 'EventCatalog',
+  },
+  cId: '${catalogId}',
+};
+`;
+      const readmeMd = `# ${organizationName} Catalog
+
+Welcome to your generated EventCatalog project.
+
+## Helpful Links
+
+- [Fundamentals of EventCatalog](https://www.eventcatalog.dev/docs/development/getting-started/fundamentals)
+- [Documenting your first domain](https://www.eventcatalog.dev/docs/development/guides/domains/creating-domains/adding-domains)
+- [Documenting services](https://www.eventcatalog.dev/docs/development/guides/services/introduction)
+- [Integrating with OpenAPI and AsyncAPI](https://www.eventcatalog.dev/integrations)
+- [Join the Discord community](https://eventcatalog.dev/discord)
+`;
+
+      const zipFiles = [
+        { name: `${catalogFolderName}/package.json`, content: packageJson },
+        { name: `${catalogFolderName}/eventcatalog.config.js`, content: configJs },
+        { name: `${catalogFolderName}/README.md`, content: readmeMd },
+        ...compiled.map((file) => ({
+          name: `${catalogFolderName}/${file.path}`,
+          content: file.content,
+        })),
+      ];
+
+      const blob = createZipBlob(zipFiles);
+      downloadBlob(blob, `${catalogFolderName}.zip`);
+
+      setShowCatalogExport(false);
+      setExportRecentlyDownloaded(true);
+      setTimeout(() => setExportRecentlyDownloaded(false), 2000);
+    } catch (err) {
+      console.error('Catalog export error:', err);
+    } finally {
+      setIsCatalogExporting(false);
+    }
+  }, [catalogOrganizationName, files]);
+
   useEffect(() => {
-    if (!latestExport && !shareUrl) return;
+    if (!latestExport && !shareUrl && !showCatalogExport) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setLatestExport(null);
         setShareUrl(null);
+        setShowCatalogExport(false);
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [latestExport, shareUrl]);
+  }, [latestExport, shareUrl, showCatalogExport]);
 
   // Persist files to localStorage so user work survives page refreshes
   useEffect(() => {
@@ -554,6 +750,7 @@ export default function App() {
         onExampleChange={handleExampleChange}
         loadedFromUrl={loadedFromUrl}
         onExport={handleExportForImport}
+        onExportCatalog={handleOpenCatalogExport}
         exportRecentlyDownloaded={exportRecentlyDownloaded}
         onShare={handleShare}
         vizTheme={vizTheme}
@@ -625,6 +822,15 @@ export default function App() {
       />
       {shareUrl && <ShareLinkModal shareUrl={shareUrl} onClose={() => setShareUrl(null)} />}
       {latestExport && <ExportHelpModal exportResult={latestExport} onClose={() => setLatestExport(null)} />}
+      {showCatalogExport && (
+        <CatalogExportModal
+          organizationName={catalogOrganizationName}
+          onOrganizationNameChange={setCatalogOrganizationName}
+          onCreateCatalog={handleExportCatalog}
+          isExporting={isCatalogExporting}
+          onClose={() => setShowCatalogExport(false)}
+        />
+      )}
       {showTemplatePicker && <TemplatePicker onSelect={handleTemplateSelect} onBlank={handleBlankStart} />}
       <CommandPalette
         open={cmdkOpen}
