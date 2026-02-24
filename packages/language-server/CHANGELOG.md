@@ -1,5 +1,11 @@
 # @eventcatalog/language-server
 
+## 0.4.1
+
+### Patch Changes
+
+- 6122f93: Add "Download as Catalog" export option to the playground that generates a ready-to-run EventCatalog project zip with package.json, config, and compiled content files
+
 ## 0.4.0
 
 ### Minor Changes
