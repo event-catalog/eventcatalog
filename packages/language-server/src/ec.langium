@@ -190,6 +190,7 @@ VisualizerBodyItem:
   ChannelDef | ContainerDef | DataProductDef | FlowDef |
   ActorDef | ExternalSystemDef |
   ServiceRefStmt | DomainRefStmt | ChannelRefStmt |
+  EventRefStmt | CommandRefStmt | QueryRefStmt |
   DataProductRefStmt | FlowRefStmt | ContainerRefStmt;
 
 // ─── Diagram ────────────────────────────────────────────
@@ -378,6 +379,15 @@ ServiceRefStmt:
 DomainRefStmt:
   'domain' ref=ResourceRef;
 
+EventRefStmt:
+  'event' ref=VersionedResourceRef;
+
+CommandRefStmt:
+  'command' ref=VersionedResourceRef;
+
+QueryRefStmt:
+  'query' ref=VersionedResourceRef;
+
 ContainerRefStmt:
   'container' ref=ResourceRef;
 
@@ -450,6 +460,9 @@ MessageType returns string:
 
 ResourceRef:
   name=ID ('@' version=VERSION)?;
+
+VersionedResourceRef:
+  name=ID '@' version=VERSION;
 
 BoolLiteral returns boolean:
   'true' | 'false';

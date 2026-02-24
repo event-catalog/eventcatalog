@@ -602,6 +602,7 @@ export type VisualizerBodyItem =
   | ChannelDef
   | ChannelRefStmt
   | CommandDef
+  | CommandRefStmt
   | ContainerDef
   | ContainerRefStmt
   | DataProductDef
@@ -609,6 +610,7 @@ export type VisualizerBodyItem =
   | DomainDef
   | DomainRefStmt
   | EventDef
+  | EventRefStmt
   | ExternalSystemDef
   | FlowDef
   | FlowRefStmt
@@ -616,6 +618,7 @@ export type VisualizerBodyItem =
   | LegendStmt
   | NameStmt
   | QueryDef
+  | QueryRefStmt
   | SearchStmt
   | ServiceDef
   | ServiceRefStmt
@@ -818,6 +821,18 @@ export function isCommandDef(item: unknown): item is CommandDef {
   return reflection.isInstance(item, CommandDef);
 }
 
+export interface CommandRefStmt extends langium.AstNode {
+  readonly $container: VisualizerDef;
+  readonly $type: "CommandRefStmt";
+  ref: VersionedResourceRef;
+}
+
+export const CommandRefStmt = "CommandRefStmt";
+
+export function isCommandRefStmt(item: unknown): item is CommandRefStmt {
+  return reflection.isInstance(item, CommandRefStmt);
+}
+
 export interface ContainerDef extends langium.AstNode {
   readonly $container: DomainDef | Program | SubdomainDef | VisualizerDef;
   readonly $type: "ContainerDef";
@@ -985,6 +1000,18 @@ export const EventDef = "EventDef";
 
 export function isEventDef(item: unknown): item is EventDef {
   return reflection.isInstance(item, EventDef);
+}
+
+export interface EventRefStmt extends langium.AstNode {
+  readonly $container: VisualizerDef;
+  readonly $type: "EventRefStmt";
+  ref: VersionedResourceRef;
+}
+
+export const EventRefStmt = "EventRefStmt";
+
+export function isEventRefStmt(item: unknown): item is EventRefStmt {
+  return reflection.isInstance(item, EventRefStmt);
 }
 
 export interface ExternalSystemDef extends langium.AstNode {
@@ -1418,6 +1445,18 @@ export const QueryDef = "QueryDef";
 
 export function isQueryDef(item: unknown): item is QueryDef {
   return reflection.isInstance(item, QueryDef);
+}
+
+export interface QueryRefStmt extends langium.AstNode {
+  readonly $container: VisualizerDef;
+  readonly $type: "QueryRefStmt";
+  ref: VersionedResourceRef;
+}
+
+export const QueryRefStmt = "QueryRefStmt";
+
+export function isQueryRefStmt(item: unknown): item is QueryRefStmt {
+  return reflection.isInstance(item, QueryRefStmt);
 }
 
 export interface ReadsFromStmt extends langium.AstNode {
@@ -1944,6 +1983,21 @@ export function isVersionAnnotationValue(
   return reflection.isInstance(item, VersionAnnotationValue);
 }
 
+export interface VersionedResourceRef extends langium.AstNode {
+  readonly $container: CommandRefStmt | EventRefStmt | QueryRefStmt;
+  readonly $type: "VersionedResourceRef";
+  name: string;
+  version: string;
+}
+
+export const VersionedResourceRef = "VersionedResourceRef";
+
+export function isVersionedResourceRef(
+  item: unknown,
+): item is VersionedResourceRef {
+  return reflection.isInstance(item, VersionedResourceRef);
+}
+
 export interface VersionStmt extends langium.AstNode {
   readonly $container:
     | ChannelDef
@@ -2014,6 +2068,7 @@ export type EcAstType = {
   ChannelResourceRef: ChannelResourceRef;
   ClassificationStmt: ClassificationStmt;
   CommandDef: CommandDef;
+  CommandRefStmt: CommandRefStmt;
   ContainerBodyItem: ContainerBodyItem;
   ContainerDef: ContainerDef;
   ContainerRefStmt: ContainerRefStmt;
@@ -2030,6 +2085,7 @@ export type EcAstType = {
   DomainRefStmt: DomainRefStmt;
   DraftStmt: DraftStmt;
   EventDef: EventDef;
+  EventRefStmt: EventRefStmt;
   ExternalSystemBodyItem: ExternalSystemBodyItem;
   ExternalSystemDef: ExternalSystemDef;
   FlowAction: FlowAction;
@@ -2065,6 +2121,7 @@ export type EcAstType = {
   Program: Program;
   ProtocolStmt: ProtocolStmt;
   QueryDef: QueryDef;
+  QueryRefStmt: QueryRefStmt;
   ReadsFromStmt: ReadsFromStmt;
   ReceivesStmt: ReceivesStmt;
   ResidencyStmt: ResidencyStmt;
@@ -2110,6 +2167,7 @@ export type EcAstType = {
   UserSlackProp: UserSlackProp;
   VersionAnnotationValue: VersionAnnotationValue;
   VersionStmt: VersionStmt;
+  VersionedResourceRef: VersionedResourceRef;
   VisualizerBodyItem: VisualizerBodyItem;
   VisualizerDef: VisualizerDef;
   WritesToStmt: WritesToStmt;
@@ -2137,6 +2195,7 @@ export class EcAstReflection extends langium.AbstractAstReflection {
       ChannelResourceRef,
       ClassificationStmt,
       CommandDef,
+      CommandRefStmt,
       ContainerBodyItem,
       ContainerDef,
       ContainerRefStmt,
@@ -2153,6 +2212,7 @@ export class EcAstReflection extends langium.AbstractAstReflection {
       DomainRefStmt,
       DraftStmt,
       EventDef,
+      EventRefStmt,
       ExternalSystemBodyItem,
       ExternalSystemDef,
       FlowAction,
@@ -2188,6 +2248,7 @@ export class EcAstReflection extends langium.AbstractAstReflection {
       Program,
       ProtocolStmt,
       QueryDef,
+      QueryRefStmt,
       ReadsFromStmt,
       ReceivesStmt,
       ResidencyStmt,
@@ -2233,6 +2294,7 @@ export class EcAstReflection extends langium.AbstractAstReflection {
       UserSlackProp,
       VersionAnnotationValue,
       VersionStmt,
+      VersionedResourceRef,
       VisualizerBodyItem,
       VisualizerDef,
       WritesToStmt,
@@ -2274,10 +2336,13 @@ export class EcAstReflection extends langium.AbstractAstReflection {
       }
       case AnimatedStmt:
       case ChannelRefStmt:
+      case CommandRefStmt:
       case ContainerRefStmt:
       case DomainRefStmt:
+      case EventRefStmt:
       case FocusModeStmt:
       case LegendStmt:
+      case QueryRefStmt:
       case SearchStmt:
       case StyleStmt:
       case ToolbarStmt: {
@@ -2536,6 +2601,12 @@ export class EcAstReflection extends langium.AbstractAstReflection {
           properties: [{ name: "body", defaultValue: [] }, { name: "name" }],
         };
       }
+      case CommandRefStmt: {
+        return {
+          name: CommandRefStmt,
+          properties: [{ name: "ref" }],
+        };
+      }
       case ContainerDef: {
         return {
           name: ContainerDef,
@@ -2610,6 +2681,12 @@ export class EcAstReflection extends langium.AbstractAstReflection {
         return {
           name: EventDef,
           properties: [{ name: "body", defaultValue: [] }, { name: "name" }],
+        };
+      }
+      case EventRefStmt: {
+        return {
+          name: EventRefStmt,
+          properties: [{ name: "ref" }],
         };
       }
       case ExternalSystemDef: {
@@ -2812,6 +2889,12 @@ export class EcAstReflection extends langium.AbstractAstReflection {
         return {
           name: QueryDef,
           properties: [{ name: "body", defaultValue: [] }, { name: "name" }],
+        };
+      }
+      case QueryRefStmt: {
+        return {
+          name: QueryRefStmt,
+          properties: [{ name: "ref" }],
         };
       }
       case ReadsFromStmt: {
@@ -3065,6 +3148,12 @@ export class EcAstReflection extends langium.AbstractAstReflection {
         return {
           name: VersionAnnotationValue,
           properties: [{ name: "value" }],
+        };
+      }
+      case VersionedResourceRef: {
+        return {
+          name: VersionedResourceRef,
+          properties: [{ name: "name" }, { name: "version" }],
         };
       }
       case VersionStmt: {

@@ -281,6 +281,26 @@ export const toDSL =
               }
             )
           );
+          if (options.hydrate) {
+            const domain = res as Domain;
+            const allSends: { id: string; version?: string }[] = [];
+            const allReceives: { id: string; version?: string }[] = [];
+
+            if (domain.services?.length) {
+              for (const svcRef of domain.services) {
+                const svc = await resolvers.getService(svcRef.id, svcRef.version);
+                if (svc) {
+                  allSends.push(...(svc.sends || []));
+                  allReceives.push(...(svc.receives || []));
+                }
+              }
+            }
+
+            // Downstream: services that receive what domain services send
+            await hydrateRelatedServices(allSends, 'receives', resolvers, seen, parts, catalogDir, msgIndex);
+            // Upstream: services that send what domain services receive
+            await hydrateRelatedServices(allReceives, 'sends', resolvers, seen, parts, catalogDir, msgIndex);
+          }
           break;
       }
     }

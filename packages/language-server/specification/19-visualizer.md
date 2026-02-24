@@ -108,16 +108,23 @@ visualizer main {
 ```
 service OrderService {
   version 1.0.0
-  sends event OrderCreated
+  sends event OrderCreated@1.0.0
+}
+
+event OrderCreated {
+  version 1.0.0
 }
 
 visualizer main {
   name "My Architecture"
   service OrderService
+  event OrderCreated@1.0.0
 }
 ```
 
 When a resource is referenced, the visualizer enriches the node with metadata from the matching top-level definition.
+
+**Note:** For events, commands, and queries, versioned references require `@version` syntax (e.g., `event OrderCreated@1.0.0`). Without a version, `event OrderCreated` is treated as an inline definition. Services, domains, channels, containers, and other resource types support both versioned (`@version`) and unversioned references.
 
 ## Display Options
 
