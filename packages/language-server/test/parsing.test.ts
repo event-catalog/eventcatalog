@@ -1040,6 +1040,54 @@ describe("Visualizer", () => {
     const errors = doc.parseResult.parserErrors;
     expect(errors).toHaveLength(0);
   });
+
+  it("parses a visualizer with versioned event reference", async () => {
+    const doc = await parseProgram(`
+      visualizer main {
+        event OrderCreated@1.0.0
+      }
+    `);
+    const errors = doc.parseResult.parserErrors;
+    expect(errors).toHaveLength(0);
+  });
+
+  it("parses a visualizer with versioned command reference", async () => {
+    const doc = await parseProgram(`
+      visualizer main {
+        command CreateOrder@2.0.0
+      }
+    `);
+    const errors = doc.parseResult.parserErrors;
+    expect(errors).toHaveLength(0);
+  });
+
+  it("parses a visualizer with versioned query reference", async () => {
+    const doc = await parseProgram(`
+      visualizer main {
+        query GetOrder@1.0.0
+      }
+    `);
+    const errors = doc.parseResult.parserErrors;
+    expect(errors).toHaveLength(0);
+  });
+
+  it("parses a visualizer mixing versioned message refs and inline defs", async () => {
+    const doc = await parseProgram(`
+      event OrderCreated {
+        version 1.0.0
+      }
+
+      visualizer main {
+        event OrderCreated@1.0.0
+        service OrderService {
+          version 1.0.0
+          sends event OrderCreated@1.0.0
+        }
+      }
+    `);
+    const errors = doc.parseResult.parserErrors;
+    expect(errors).toHaveLength(0);
+  });
 });
 
 // ---------------------------------------------------------------------------

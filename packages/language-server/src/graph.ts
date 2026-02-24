@@ -44,6 +44,9 @@ import {
   isDataProductRefStmt,
   isFlowRefStmt,
   isContainerRefStmt,
+  isEventRefStmt,
+  isCommandRefStmt,
+  isQueryRefStmt,
   isActorDef,
   isExternalSystemDef,
   isPositionalAnnotationArg,
@@ -1229,6 +1232,26 @@ export function astToGraph(
         processDefinition(def);
       } else {
         addNode(item.ref.name, "container", item.ref.name, undefined, {
+          version: item.ref.version,
+        });
+      }
+      return;
+    }
+    if (
+      isEventRefStmt(item) ||
+      isCommandRefStmt(item) ||
+      isQueryRefStmt(item)
+    ) {
+      const nodeType: GraphNode["type"] = isEventRefStmt(item)
+        ? "event"
+        : isCommandRefStmt(item)
+          ? "command"
+          : "query";
+      const def = lookupDef(item.ref.name, item.ref.version);
+      if (def && (isEventDef(def) || isCommandDef(def) || isQueryDef(def))) {
+        processMessage(def);
+      } else {
+        addNode(item.ref.name, nodeType, item.ref.name, undefined, {
           version: item.ref.version,
         });
       }
