@@ -299,6 +299,28 @@ describe("compile", () => {
     expect(channelOutput!.content).toContain("Kafka");
   });
 
+  it("compiles a container using container_type and access_mode frontmatter keys", async () => {
+    const program = await parseProgram(`
+      container PaymentsDB {
+        version 1.0.0
+        container-type database
+        technology "PostgreSQL 15"
+        access-mode readWrite
+      }
+    `);
+
+    const outputs = compile(program);
+
+    const containerOutput = outputs.find(
+      (o) => o.path === "containers/PaymentsDB/versioned/1.0.0/index.md",
+    );
+    expect(containerOutput).toBeDefined();
+    expect(containerOutput!.content).toContain('container_type: "database"');
+    expect(containerOutput!.content).toContain('access_mode: "readWrite"');
+    expect(containerOutput!.content).not.toContain("containerType:");
+    expect(containerOutput!.content).not.toContain("accessMode:");
+  });
+
   it("compiles a user", async () => {
     const program = await parseProgram(`
       user dboyne {

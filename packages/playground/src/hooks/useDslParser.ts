@@ -9,6 +9,7 @@ interface ParseResult {
 
 let langiumServices: any = null;
 let astToGraphFn: any = null;
+let compileFn: any = null;
 let docCounter = 1;
 
 const urlFetchCache = new Map<string, string>();
@@ -97,6 +98,7 @@ async function initServices() {
 
   langiumServices = langModule.createEcServices(EmptyFileSystem);
   astToGraphFn = langModule.astToGraph;
+  compileFn = langModule.compile;
 }
 
 export interface FileOffsets {
@@ -234,6 +236,53 @@ async function parseMultiFile(inputFiles: Record<string, string>, activeVisualiz
     errors: [...fetchErrors, ...fullResult.errors],
     fileOffsets,
   };
+}
+
+export interface CompiledFile {
+  path: string;
+  content: string;
+}
+
+export async function compileDsl(files: Record<string, string>): Promise<CompiledFile[]> {
+  await initServices();
+  const { URI } = await import('langium');
+
+  const { files: resolvedFiles } = await resolveUrlImports(files);
+  const filenames = Object.keys(resolvedFiles);
+
+  // Regex to match local file imports (not HTTP/HTTPS)
+  const localImportRe = /import\s*\{[^}]*\}\s*from\s*"(?!https?:\/\/)([^"]+)"\s*\n?/g;
+
+  // Concatenate all files (same as parseMultiFile)
+  const parts: string[] = [];
+  for (const filename of filenames) {
+    let content = resolvedFiles[filename];
+    content = content.replace(localImportRe, '');
+    parts.push(content);
+  }
+  const combinedSource = parts.join('\n');
+
+  const uri = URI.parse(`file:///compile-${docCounter++}.ec`);
+  const document = langiumServices.shared.workspace.LangiumDocumentFactory.fromString(combinedSource, uri);
+  langiumServices.shared.workspace.LangiumDocuments.addDocument(document);
+  await langiumServices.shared.workspace.DocumentBuilder.build([document]);
+
+  const parserErrors = document.parseResult.parserErrors;
+  if (parserErrors.length > 0) {
+    try {
+      langiumServices.shared.workspace.LangiumDocuments.deleteDocument(uri);
+    } catch {}
+    throw new Error(`DSL has parse errors: ${parserErrors[0].message}`);
+  }
+
+  const program = document.parseResult.value;
+  const compiled: CompiledFile[] = compileFn(program, { nested: true });
+
+  try {
+    langiumServices.shared.workspace.LangiumDocuments.deleteDocument(uri);
+  } catch {}
+
+  return compiled;
 }
 
 export function useDslParser(files: Record<string, string>, activeVisualizer?: string) {

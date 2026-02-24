@@ -127,6 +127,68 @@ html, body, #root {
   background: #9333ea;
 }
 
+.export-dropdown-wrapper {
+  position: relative;
+}
+
+.export-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 280px;
+  background: var(--modal-bg);
+  border: 1px solid var(--shell-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  z-index: 50;
+  overflow: hidden;
+}
+
+.export-dropdown-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--modal-text);
+  transition: background 0.1s;
+}
+
+.export-dropdown-item:hover {
+  background: var(--shell-control-bg);
+}
+
+.export-dropdown-item + .export-dropdown-item {
+  border-top: 1px solid var(--shell-border);
+}
+
+.export-dropdown-item > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--shell-muted);
+}
+
+.export-dropdown-item > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.export-dropdown-item-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.export-dropdown-item-desc {
+  font-size: 11px;
+  color: var(--shell-muted);
+}
+
 .header-actions {
   margin-left: auto;
   display: flex;
@@ -510,6 +572,10 @@ body.resizing .editor-pane {
   padding: 18px;
 }
 
+.export-modal--compact {
+  width: min(520px, 100%);
+}
+
 .export-modal-header {
   display: flex;
   align-items: center;
@@ -610,6 +676,58 @@ body.resizing .editor-pane {
   margin: 4px 0 0;
   color: var(--shell-muted);
   font-size: 12px;
+}
+
+.catalog-export-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.catalog-export-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--shell-text);
+}
+
+.catalog-export-input {
+  height: 36px;
+  border: 1px solid var(--shell-control-border);
+  border-radius: 8px;
+  background: var(--shell-control-bg);
+  color: var(--shell-text);
+  padding: 0 12px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+.catalog-export-input:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+}
+
+.catalog-export-submit {
+  margin-top: 6px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: #a855f7;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.catalog-export-submit:hover:not(:disabled) {
+  background: #9333ea;
+}
+
+.catalog-export-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .share-modal-note {

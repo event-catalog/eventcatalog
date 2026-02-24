@@ -685,13 +685,13 @@ function compileContainer(
   const body = cont.body as AstNode[];
   const fm = commonFrontmatter(cont.name, body);
   const ct = getContainerType(body);
-  if (ct) fm.containerType = ct;
+  if (ct) fm.container_type = ct;
   const tech = getTechnology(body);
   if (tech) fm.technology = tech;
   const auth = getAuthoritative(body);
   if (auth !== undefined) fm.authoritative = auth;
   const am = getAccessMode(body);
-  if (am) fm.accessMode = am;
+  if (am) fm.access_mode = am;
   const cl = getClassification(body);
   if (cl) fm.classification = cl;
   const res = getResidency(body);
