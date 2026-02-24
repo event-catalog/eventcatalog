@@ -1,0 +1,85 @@
+import type { Example } from './types';
+
+export const example: Example = {
+  name: 'Event-Driven Saga',
+  description: 'Choreography-based saga with NServiceBus',
+  source: {
+    'main.ec': `visualizer main {
+  name "Order Fulfillment Saga"
+
+  channel SagaEvents {
+    version 1.0.0
+    address "saga.events"
+    protocol "nservicebus"
+    summary "NServiceBus for saga coordination"
+  }
+
+  service OrderService {
+    version 1.0.0
+    summary "Order orchestration"
+
+    sends event OrderPlaced to SagaEvents {
+      version 1.0.0
+      summary "Customer placed a new order"
+    }
+
+    receives event PaymentConfirmed from SagaEvents
+
+    receives event PaymentRejected from SagaEvents
+
+    receives event StockReserved from SagaEvents
+
+    receives event StockUnavailable from SagaEvents
+
+    sends event OrderConfirmed to SagaEvents {
+      version 1.0.0
+      summary "Order fully confirmed"
+    }
+
+    sends event OrderRejected to SagaEvents {
+      version 1.0.0
+    }
+  }
+
+  service PaymentService {
+    version 1.0.0
+    summary "Payment processing"
+
+    receives event OrderPlaced from SagaEvents
+
+    sends event PaymentConfirmed to SagaEvents {
+      version 1.0.0
+    }
+
+    sends event PaymentRejected to SagaEvents {
+      version 1.0.0
+    }
+  }
+
+  service InventoryService {
+    version 1.0.0
+    summary "Stock management"
+
+    receives event OrderPlaced from SagaEvents
+
+    sends event StockReserved to SagaEvents {
+      version 1.0.0
+    }
+
+    sends event StockUnavailable to SagaEvents {
+      version 1.0.0
+    }
+  }
+
+  service EmailService {
+    version 1.0.0
+    summary "Customer communications"
+
+    receives event OrderConfirmed from SagaEvents
+
+    receives event OrderRejected from SagaEvents
+  }
+}
+`,
+  },
+};

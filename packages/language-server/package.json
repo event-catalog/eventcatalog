@@ -42,6 +42,7 @@
     "format:diff": "prettier --check ."
   },
   "dependencies": {
+    "js-yaml": "^4.1.1",
     "langium": "^3.3.1",
     "semver": "^7.7.4",
     "vscode-languageclient": "^9.0.1",
@@ -51,6 +52,7 @@
   },
   "devDependencies": {
     "@astrojs/starlight": "^0.32.0",
+    "@types/js-yaml": "^4.0.9",
     "@types/semver": "^7.7.1",
     "astro": "^5.17.2",
     "langium-cli": "^3.3.1",

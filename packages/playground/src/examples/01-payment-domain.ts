@@ -1,0 +1,75 @@
+import type { Example } from './types';
+
+export const example: Example = {
+  name: 'Payment Domain',
+  description: 'Payment processing with RabbitMQ messaging',
+  source: {
+    'main.ec': `visualizer main {
+  name "Payment Domain"
+
+  channel PaymentEvents {
+    version 1.0.0
+    address "payments.events"
+    protocol "rabbitmq"
+    summary "RabbitMQ exchange for payment events"
+  }
+
+  channel PaymentCommands {
+    version 1.0.0
+    address "payments.commands"
+    protocol "http"
+    summary "HTTP API for payment commands"
+  }
+
+  domain Payment {
+    version 1.0.0
+    summary "Handles all payment processing"
+
+    container PaymentsDB {
+      version 1.0.0
+      container-type database
+      technology "PostgreSQL 15"
+      summary "Stores all payment transactions and state"
+    }
+
+    service PaymentService {
+      version 1.0.0
+      summary "Processes payments and refunds"
+
+      writes-to container PaymentsDB
+      reads-from container PaymentsDB
+
+      sends event PaymentProcessed to PaymentEvents {
+        version 1.0.0
+        summary "Emitted when a payment completes successfully"
+      }
+
+      sends event PaymentFailed to PaymentEvents {
+        version 1.0.0
+        summary "Emitted when a payment fails"
+      }
+
+      receives command ProcessPayment from PaymentCommands {
+        version 1.0.0
+        summary "Command to initiate payment processing"
+      }
+    }
+  }
+
+  service NotificationService {
+    version 1.0.0
+    summary "Sends notifications to users"
+
+    receives event PaymentProcessed from PaymentEvents
+
+    receives event PaymentFailed from PaymentEvents
+
+    sends event NotificationSent {
+      version 1.0.0
+      summary "Notification delivered to customer"
+    }
+  }
+}
+`,
+  },
+};
