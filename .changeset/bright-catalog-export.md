@@ -1,5 +1,4 @@
 ---
-"@eventcatalog/dsl-playground": minor
 "@eventcatalog/language-server": patch
 ---
 
