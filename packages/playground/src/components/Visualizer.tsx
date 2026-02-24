@@ -16,6 +16,7 @@ export const Visualizer = memo(function Visualizer({ graph }: VisualizerProps) {
         graph={graph}
         mode="full"
         zoomOnScroll={true}
+        showSearch={false}
       />
     </div>
   );
