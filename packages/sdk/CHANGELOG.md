@@ -1,5 +1,16 @@
 # @eventcatalog/sdk
 
+## 2.15.0
+
+### Minor Changes
+
+- 7531be8: Hydrate containers in service DSL export and rename playground to EventCatalog Canvas
+- a1c5012: Add versioned message references (event, command, query) in visualizer blocks and hydrate related services in domain DSL export
+
+### Patch Changes
+
+- 25acfdd: Add channel route support in DSL export, resolve semver ranges to concrete versions, hydrate related services and upstream/downstream channels
+
 ## 2.14.3
 
 ### Patch Changes

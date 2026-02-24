@@ -1,5 +1,15 @@
 # @eventcatalog/core
 
+## 3.17.4
+
+### Patch Changes
+
+- Updated dependencies [7531be8]
+- Updated dependencies [a1c5012]
+- Updated dependencies [25acfdd]
+  - @eventcatalog/sdk@2.15.0
+  - @eventcatalog/linter@1.0.8
+
 ## 3.17.3
 
 ### Patch Changes
