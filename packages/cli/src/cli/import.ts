@@ -44,6 +44,10 @@ function normalizeImportedFrontmatter(type: string, frontmatter: Record<string, 
       normalized.access_mode = normalized.accessMode;
       delete normalized.accessMode;
     }
+    // Default container_type to 'database' if not specified in the DSL
+    if (!normalized.container_type) {
+      normalized.container_type = 'database';
+    }
   }
 
   return normalized;
