@@ -34,7 +34,7 @@ visualizer main {
 
 ## Try it quickly
 
-- EventCatalog Modelling example: `https://playground.eventcatalog.dev/#example=8`
+- EventCatalog Canvas example: `https://playground.eventcatalog.dev/#example=8`
 
 ## Using with CLI import
 

@@ -5,7 +5,8 @@ import fs from 'node:fs';
 
 const CATALOG_PATH = path.join(__dirname, 'catalog-dsl-services');
 
-const { writeEvent, writeCommand, writeQuery, writeService, writeChannel, writeTeam, writeUser, toDSL } = utils(CATALOG_PATH);
+const { writeEvent, writeCommand, writeQuery, writeService, writeChannel, writeTeam, writeUser, writeDataStore, toDSL } =
+  utils(CATALOG_PATH);
 
 beforeEach(() => {
   fs.rmSync(CATALOG_PATH, { recursive: true, force: true });
@@ -791,6 +792,225 @@ service OrderService {
       expect(dsl).toContain('receives event OrderCreated@1.0.0');
       expect(dsl).toContain('receives event OrderUpdated@1.0.0');
       expect(dsl.match(/service BillingService \{/g)?.length || 0).toBe(1);
+    });
+  });
+
+  describe('hydrate containers', () => {
+    it('hydrates containers referenced in writes-to', async () => {
+      await writeDataStore({
+        id: 'OrdersDB',
+        name: 'Orders Database',
+        version: '1.0.0',
+        container_type: 'database',
+        technology: 'postgres@14',
+        markdown: '',
+      });
+
+      const dsl = await toDSL(
+        {
+          id: 'OrderService',
+          name: 'Order Service',
+          version: '1.0.0',
+          writesTo: [{ id: 'OrdersDB', version: '1.0.0' }],
+          markdown: '',
+        },
+        { type: 'service', hydrate: true }
+      );
+
+      expect(dsl).toBe(`container OrdersDB {
+  version 1.0.0
+  name "Orders Database"
+  container-type database
+  technology "postgres@14"
+}
+
+service OrderService {
+  version 1.0.0
+  name "Order Service"
+  writes-to container OrdersDB@1.0.0
+}`);
+    });
+
+    it('hydrates containers referenced in reads-from', async () => {
+      await writeDataStore({
+        id: 'InventoryDB',
+        name: 'Inventory Database',
+        version: '2.0.0',
+        container_type: 'database',
+        markdown: '',
+      });
+
+      const dsl = await toDSL(
+        {
+          id: 'OrderService',
+          name: 'Order Service',
+          version: '1.0.0',
+          readsFrom: [{ id: 'InventoryDB', version: '2.0.0' }],
+          markdown: '',
+        },
+        { type: 'service', hydrate: true }
+      );
+
+      expect(dsl).toBe(`container InventoryDB {
+  version 2.0.0
+  name "Inventory Database"
+  container-type database
+}
+
+service OrderService {
+  version 1.0.0
+  name "Order Service"
+  reads-from container InventoryDB@2.0.0
+}`);
+    });
+
+    it('hydrates both writes-to and reads-from containers', async () => {
+      await writeDataStore({
+        id: 'OrdersDB',
+        name: 'Orders Database',
+        version: '1.0.0',
+        container_type: 'database',
+        markdown: '',
+      });
+      await writeDataStore({
+        id: 'InventoryDB',
+        name: 'Inventory Database',
+        version: '2.0.0',
+        container_type: 'cache',
+        technology: 'redis',
+        markdown: '',
+      });
+
+      const dsl = await toDSL(
+        {
+          id: 'OrderService',
+          name: 'Order Service',
+          version: '1.0.0',
+          writesTo: [{ id: 'OrdersDB', version: '1.0.0' }],
+          readsFrom: [{ id: 'InventoryDB', version: '2.0.0' }],
+          markdown: '',
+        },
+        { type: 'service', hydrate: true }
+      );
+
+      expect(dsl).toBe(`container OrdersDB {
+  version 1.0.0
+  name "Orders Database"
+  container-type database
+}
+
+container InventoryDB {
+  version 2.0.0
+  name "Inventory Database"
+  container-type cache
+  technology "redis"
+}
+
+service OrderService {
+  version 1.0.0
+  name "Order Service"
+  writes-to container OrdersDB@1.0.0
+  reads-from container InventoryDB@2.0.0
+}`);
+    });
+
+    it('deduplicates containers referenced in both writes-to and reads-from', async () => {
+      await writeDataStore({
+        id: 'OrdersDB',
+        name: 'Orders Database',
+        version: '1.0.0',
+        container_type: 'database',
+        markdown: '',
+      });
+
+      const dsl = await toDSL(
+        {
+          id: 'OrderService',
+          name: 'Order Service',
+          version: '1.0.0',
+          writesTo: [{ id: 'OrdersDB', version: '1.0.0' }],
+          readsFrom: [{ id: 'OrdersDB', version: '1.0.0' }],
+          markdown: '',
+        },
+        { type: 'service', hydrate: true }
+      );
+
+      expect(dsl).toBe(`container OrdersDB {
+  version 1.0.0
+  name "Orders Database"
+  container-type database
+}
+
+service OrderService {
+  version 1.0.0
+  name "Order Service"
+  writes-to container OrdersDB@1.0.0
+  reads-from container OrdersDB@1.0.0
+}`);
+    });
+
+    it('skips containers that cannot be resolved', async () => {
+      const dsl = await toDSL(
+        {
+          id: 'OrderService',
+          name: 'Order Service',
+          version: '1.0.0',
+          writesTo: [{ id: 'NonExistentDB', version: '1.0.0' }],
+          markdown: '',
+        },
+        { type: 'service', hydrate: true }
+      );
+
+      expect(dsl).toBe(`service OrderService {
+  version 1.0.0
+  name "Order Service"
+  writes-to container NonExistentDB@1.0.0
+}`);
+    });
+
+    it('hydrates container with all fields', async () => {
+      await writeDataStore({
+        id: 'OrdersDB',
+        name: 'Orders Database',
+        version: '1.0.0',
+        container_type: 'database',
+        technology: 'postgres@14',
+        authoritative: true,
+        access_mode: 'readWrite',
+        classification: 'confidential',
+        residency: 'us-east-1',
+        retention: '7 years',
+        markdown: '',
+      });
+
+      const dsl = await toDSL(
+        {
+          id: 'OrderService',
+          name: 'Order Service',
+          version: '1.0.0',
+          writesTo: [{ id: 'OrdersDB', version: '1.0.0' }],
+          markdown: '',
+        },
+        { type: 'service', hydrate: true }
+      );
+
+      expect(dsl).toBe(`container OrdersDB {
+  version 1.0.0
+  name "Orders Database"
+  container-type database
+  technology "postgres@14"
+  authoritative true
+  access-mode readWrite
+  classification confidential
+  residency "us-east-1"
+  retention "7 years"
+}
+
+service OrderService {
+  version 1.0.0
+  name "Order Service"
+  writes-to container OrdersDB@1.0.0
+}`);
     });
   });
 

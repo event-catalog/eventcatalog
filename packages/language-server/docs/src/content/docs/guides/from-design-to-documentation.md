@@ -7,7 +7,7 @@ This guide shows the end-to-end path from `.ec` design work to published EventCa
 
 ```mermaid
 flowchart LR
-  A[Design in .ec] --> B[Review in PR / EventCatalog Modelling]
+  A[Design in .ec] --> B[Review in PR / EventCatalog Canvas]
   B --> C[Dry-run import]
   C --> D[Import approved model]
   D --> E[Updated EventCatalog docs]
@@ -25,7 +25,7 @@ Model your domains, services, messages, channels, and notes in `main.ec`.
 
 ## Step 2: Share and review the design
 
-Use Git PRs for architecture review and optionally share a visual link via EventCatalog Modelling:
+Use Git PRs for architecture review and optionally share a visual link via EventCatalog Canvas:
 
 - https://playground.eventcatalog.dev/new
 

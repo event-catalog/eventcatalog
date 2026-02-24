@@ -19,7 +19,7 @@ const isEcLanguage = (language) =>
   language === "ec" || language === "eventcatalog";
 
 const ecPlaygroundPlugin = {
-  name: "EventCatalog Modelling Link",
+  name: "EventCatalog Canvas Link",
   baseStyles: `
 	.frame.is-ec :nth-child(1 of .ec-line) .code {
 		padding-inline-end: calc(14rem + var(--ec-codePaddingInline));
@@ -92,10 +92,10 @@ const ecPlaygroundPlugin = {
             href: `${playgroundBaseUrl}${encoded}`,
             target: "_blank",
             rel: "noopener noreferrer",
-            title: "Open in EventCatalog Modelling",
-            "aria-label": "Open in EventCatalog Modelling",
+            title: "Open in EventCatalog Canvas",
+            "aria-label": "Open in EventCatalog Canvas",
           },
-          "EventCatalog Modelling",
+          "EventCatalog Canvas",
         ),
       );
     },
