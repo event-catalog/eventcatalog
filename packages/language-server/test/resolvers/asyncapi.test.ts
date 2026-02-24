@@ -173,6 +173,114 @@ channels:
         summary: Payment was declined
 `;
 
+const v3SpecWithOpMessages = `
+asyncapi: 3.0.0
+info:
+  title: Filtered Ops Service
+  version: 1.0.0
+channels:
+  orders:
+    address: orders
+    messages:
+      OrderCreated:
+        $ref: '#/components/messages/OrderCreated'
+      OrderUpdated:
+        $ref: '#/components/messages/OrderUpdated'
+      OrderCancelled:
+        $ref: '#/components/messages/OrderCancelled'
+operations:
+  sendOrderCreated:
+    action: send
+    channel:
+      $ref: '#/channels/orders'
+    messages:
+      - $ref: '#/channels/orders/messages/OrderCreated'
+  receiveOrderCancelled:
+    action: receive
+    channel:
+      $ref: '#/channels/orders'
+    messages:
+      - $ref: '#/channels/orders/messages/OrderCancelled'
+components:
+  messages:
+    OrderCreated:
+      summary: New order placed
+    OrderUpdated:
+      summary: Order was updated
+    OrderCancelled:
+      summary: Order was cancelled
+`;
+
+const v2SpecWithRefs = `
+asyncapi: 2.6.0
+info:
+  title: Ref Service
+  version: 1.0.0
+channels:
+  orders/created:
+    publish:
+      message:
+        $ref: '#/components/messages/OrderCreated'
+  orders/cancelled:
+    subscribe:
+      message:
+        $ref: '#/components/messages/OrderCancelled'
+components:
+  messages:
+    OrderCreated:
+      name: OrderCreated
+      summary: Order was created
+    OrderCancelled:
+      name: OrderCancelled
+      summary: Order was cancelled
+`;
+
+const v2SpecWithRefsNoName = `
+asyncapi: 2.6.0
+info:
+  title: Ref No Name Service
+  version: 1.0.0
+channels:
+  orders/created:
+    publish:
+      message:
+        $ref: '#/components/messages/OrderCreated'
+components:
+  messages:
+    OrderCreated:
+      summary: Order was created
+`;
+
+const v2SpecWithOneOf = `
+asyncapi: 2.6.0
+info:
+  title: OneOf Service
+  version: 1.0.0
+channels:
+  orders/events:
+    publish:
+      message:
+        oneOf:
+          - $ref: '#/components/messages/OrderCreated'
+          - $ref: '#/components/messages/OrderShipped'
+  orders/commands:
+    subscribe:
+      message:
+        oneOf:
+          - name: CancelOrder
+            summary: Cancel an order
+          - name: RefundOrder
+            summary: Refund an order
+components:
+  messages:
+    OrderCreated:
+      name: OrderCreated
+      summary: New order placed
+    OrderShipped:
+      name: OrderShipped
+      summary: Order shipped
+`;
+
 // ─── parseSpec ──────────────────────────────────────────
 
 describe("parseSpec", () => {
@@ -831,6 +939,28 @@ describe("extractService", () => {
       const { service } = extractService(v3SpecWithOps, "MyCustomService");
       expect(service.name).toBe("MyCustomService");
     });
+
+    it("respects op.messages filter and only includes scoped messages", () => {
+      const { service, errors } = extractService(v3SpecWithOpMessages);
+      expect(errors).toHaveLength(0);
+
+      const sends = service.operations.filter((o) => o.action === "send");
+      const receives = service.operations.filter((o) => o.action === "receive");
+
+      // Only OrderCreated should be sent (not OrderUpdated or OrderCancelled)
+      expect(sends).toHaveLength(1);
+      expect(sends[0].messageName).toBe("OrderCreated");
+
+      // Only OrderCancelled should be received (not OrderCreated or OrderUpdated)
+      expect(receives).toHaveLength(1);
+      expect(receives[0].messageName).toBe("OrderCancelled");
+
+      // Messages should only include the two referenced by operations
+      expect(service.messages.map((m) => m.name).sort()).toEqual([
+        "OrderCancelled",
+        "OrderCreated",
+      ]);
+    });
   });
 
   describe("AsyncAPI v2 with publish/subscribe", () => {
@@ -858,6 +988,49 @@ describe("extractService", () => {
       expect(ch).toBeDefined();
       expect(ch!.address).toBe("payments/processed");
       expect(ch!.protocol).toBe("amqp");
+    });
+
+    it("resolves v2 message $ref to derive operation names", () => {
+      const { service, errors } = extractService(v2SpecWithRefs);
+      expect(errors).toHaveLength(0);
+
+      const sends = service.operations.filter((o) => o.action === "send");
+      const receives = service.operations.filter((o) => o.action === "receive");
+
+      expect(sends).toHaveLength(1);
+      expect(sends[0].messageName).toBe("OrderCreated");
+
+      expect(receives).toHaveLength(1);
+      expect(receives[0].messageName).toBe("OrderCancelled");
+    });
+
+    it("extracts name from $ref path when message has no name field", () => {
+      const { service, errors } = extractService(v2SpecWithRefsNoName);
+      expect(errors).toHaveLength(0);
+
+      const sends = service.operations.filter((o) => o.action === "send");
+      expect(sends).toHaveLength(1);
+      expect(sends[0].messageName).toBe("OrderCreated");
+    });
+
+    it("handles v2 message.oneOf to extract multiple operations", () => {
+      const { service, errors } = extractService(v2SpecWithOneOf);
+      expect(errors).toHaveLength(0);
+
+      const sends = service.operations.filter((o) => o.action === "send");
+      const receives = service.operations.filter((o) => o.action === "receive");
+
+      expect(sends).toHaveLength(2);
+      expect(sends.map((s) => s.messageName).sort()).toEqual([
+        "OrderCreated",
+        "OrderShipped",
+      ]);
+
+      expect(receives).toHaveLength(2);
+      expect(receives.map((r) => r.messageName).sort()).toEqual([
+        "CancelOrder",
+        "RefundOrder",
+      ]);
     });
   });
 

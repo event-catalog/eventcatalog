@@ -267,12 +267,25 @@ function extractV3Operations(doc: any): SpecOperation[] {
       : undefined;
     if (!channelName) continue;
 
-    // Get messages from the referenced channel
+    // If the operation specifies its own messages, use only those
+    const opMessages = resolveV3OperationMessages(op, doc);
+    if (opMessages.length > 0) {
+      for (const { name, resolved } of opMessages) {
+        operations.push({
+          action,
+          channelName,
+          messageName: name,
+          summary: resolved?.summary || resolved?.title || op.summary,
+        });
+      }
+      continue;
+    }
+
+    // Fall back to all messages on the referenced channel
     const channel = doc.channels?.[channelName];
     if (!channel?.messages) continue;
 
     for (const [messageName, msg] of Object.entries<any>(channel.messages)) {
-      // Resolve the message if it's a $ref
       const resolved = msg.$ref ? resolveRef(doc, msg.$ref) : msg;
       operations.push({
         action,
@@ -284,6 +297,44 @@ function extractV3Operations(doc: any): SpecOperation[] {
   }
 
   return deduplicateOperations(operations);
+}
+
+/**
+ * Resolve the `messages` array on a v3 operation.
+ * Each entry can be a `$ref` to a channel message or a component message.
+ */
+function resolveV3OperationMessages(
+  op: any,
+  doc: any,
+): { name: string; resolved: any }[] {
+  if (!Array.isArray(op.messages) || op.messages.length === 0) return [];
+
+  const results: { name: string; resolved: any }[] = [];
+  for (const msgEntry of op.messages) {
+    const ref = msgEntry.$ref;
+    if (!ref) continue;
+
+    // Refs like "#/channels/orderCreated/messages/OrderCreated"
+    const channelMsgMatch = ref.match(
+      /^#\/channels\/[^/]+\/messages\/([^/]+)$/,
+    );
+    if (channelMsgMatch) {
+      const resolved = resolveRef(doc, ref);
+      const finalResolved = resolved?.$ref
+        ? resolveRef(doc, resolved.$ref)
+        : resolved;
+      results.push({ name: channelMsgMatch[1], resolved: finalResolved });
+      continue;
+    }
+
+    // Refs like "#/components/messages/OrderCreated"
+    const componentMsgMatch = ref.match(/^#\/components\/messages\/([^/]+)$/);
+    if (componentMsgMatch) {
+      const resolved = resolveRef(doc, ref);
+      results.push({ name: componentMsgMatch[1], resolved });
+    }
+  }
+  return results;
 }
 
 // ─── V2 extractors ──────────────────────────────────────
@@ -306,13 +357,10 @@ function extractV2Messages(doc: any): Map<string, SpecMessage> {
       for (const op of [channel.publish, channel.subscribe]) {
         const msg = op?.message;
         if (!msg) continue;
-        const name = msg.name || msg.messageId;
-        if (name && !messages.has(name)) {
-          messages.set(name, {
-            name,
-            summary: msg.summary || msg.title,
-            description: msg.description,
-          });
+        for (const resolved of resolveV2MessageEntries(msg, doc)) {
+          if (!messages.has(resolved.name)) {
+            messages.set(resolved.name, resolved);
+          }
         }
       }
     }
@@ -351,33 +399,84 @@ function extractV2Operations(doc: any): SpecOperation[] {
       .replace(/-+/g, "-");
 
     if (ch.publish?.message) {
-      const msg = ch.publish.message;
-      const messageName = msg.name || msg.messageId;
-      if (messageName) {
+      for (const { name, summary } of resolveV2Message(
+        ch.publish.message,
+        doc,
+      )) {
         operations.push({
           action: "send",
           channelName,
-          messageName,
-          summary: msg.summary || msg.title,
+          messageName: name,
+          summary,
         });
       }
     }
 
     if (ch.subscribe?.message) {
-      const msg = ch.subscribe.message;
-      const messageName = msg.name || msg.messageId;
-      if (messageName) {
+      for (const { name, summary } of resolveV2Message(
+        ch.subscribe.message,
+        doc,
+      )) {
         operations.push({
           action: "receive",
           channelName,
-          messageName,
-          summary: msg.summary || msg.title,
+          messageName: name,
+          summary,
         });
       }
     }
   }
 
   return operations;
+}
+
+/**
+ * Resolve a v2 message object, handling $ref and oneOf.
+ * Returns an array because oneOf can expand to multiple messages.
+ */
+function resolveV2Message(
+  msg: any,
+  doc: any,
+): { name: string; summary?: string }[] {
+  return resolveV2MessageEntries(msg, doc).map(({ name, summary }) => ({
+    name,
+    summary,
+  }));
+}
+
+/**
+ * Resolve a v2 message to full SpecMessage entries (with description).
+ * Handles $ref, oneOf, and name extraction from $ref paths.
+ */
+function resolveV2MessageEntries(msg: any, doc: any): SpecMessage[] {
+  if (!msg) return [];
+
+  // Resolve $ref first
+  const resolved = msg.$ref ? resolveRef(doc, msg.$ref) : msg;
+  if (!resolved) return [];
+
+  // Handle oneOf: each entry is a separate message
+  if (Array.isArray(resolved.oneOf)) {
+    return resolved.oneOf.flatMap((entry: any) =>
+      resolveV2MessageEntries(entry, doc),
+    );
+  }
+
+  let name = resolved.name || resolved.messageId;
+  if (!name && msg.$ref) {
+    // Extract name from $ref path (e.g. "#/components/messages/OrderCreated")
+    const refMatch = msg.$ref.match(/\/([^/]+)$/);
+    if (refMatch) name = refMatch[1];
+  }
+  if (!name) return [];
+
+  return [
+    {
+      name,
+      summary: resolved.summary || resolved.title,
+      description: resolved.description,
+    },
+  ];
 }
 
 /**
