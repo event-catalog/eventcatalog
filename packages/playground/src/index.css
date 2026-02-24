@@ -452,6 +452,10 @@ body.resizing .editor-pane {
 }
 
 /* ── ReactFlow Overrides ── */
+.react-flow__attribution {
+  display: none;
+}
+
 .react-flow__background {
   background: rgb(var(--ec-page-bg)) !important;
 }
