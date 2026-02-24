@@ -1,5 +1,13 @@
 # @eventcatalog/core
 
+## 3.17.5
+
+### Patch Changes
+
+- d35fbbe: bump astro to 5.17.3 and @astrojs/node to 9.5.4
+- Updated dependencies [f435078]
+  - @eventcatalog/visualiser@3.14.1
+
 ## 3.17.4
 
 ### Patch Changes

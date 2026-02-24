@@ -1,5 +1,11 @@
 # @eventcatalog/cli
 
+## 0.4.2
+
+### Patch Changes
+
+- e6a759e: Default container_type to 'database' when not specified in .ec file imports
+
 ## 0.4.1
 
 ### Patch Changes
