@@ -114,6 +114,23 @@ diagram system-overview {
     expect(container.accessMode).toBeUndefined();
   });
 
+  it('defaults container_type to database when not specified in DSL', async () => {
+    const ecFile = writeEcFile(
+      'test.ec',
+      `container orders-db {
+  version 1.0.0
+  name "Orders DB"
+}`
+    );
+
+    await importDSL({ files: [ecFile], dir: catalogPath });
+
+    const sdk = createSDK(catalogPath);
+    const container: any = await sdk.getDataStore('orders-db', '1.0.0');
+    expect(container).toBeDefined();
+    expect(container.container_type).toBe('database');
+  });
+
   it('nests domain containers by default', async () => {
     const ecFile = writeEcFile(
       'test.ec',

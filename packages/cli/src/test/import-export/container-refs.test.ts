@@ -68,6 +68,23 @@ service OrderService {
     expect(service.readsFrom).toEqual([{ id: 'ReportsStore', version: '2.0.0' }]);
   });
 
+  it('defaults container_type to database for container stubs', async () => {
+    const ecFile = writeEcFile(
+      'test.ec',
+      `service InventoryService {
+  version 1.0.0
+  writes-to container InventoryDb
+}`
+    );
+
+    await importDSL({ files: [ecFile], dir: catalogPath });
+
+    const sdk = createSDK(catalogPath);
+    const container: any = await sdk.getDataStore('InventoryDb', '0.0.1');
+    expect(container).toBeDefined();
+    expect(container.container_type).toBe('database');
+  });
+
   it('nests container stubs under the domain by default', async () => {
     const ecFile = writeEcFile(
       'test.ec',
