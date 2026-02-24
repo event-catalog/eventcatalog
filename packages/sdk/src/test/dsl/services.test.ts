@@ -5,7 +5,7 @@ import fs from 'node:fs';
 
 const CATALOG_PATH = path.join(__dirname, 'catalog-dsl-services');
 
-const { writeEvent, writeCommand, writeQuery, writeChannel, writeTeam, writeUser, toDSL } = utils(CATALOG_PATH);
+const { writeEvent, writeCommand, writeQuery, writeService, writeChannel, writeTeam, writeUser, toDSL } = utils(CATALOG_PATH);
 
 beforeEach(() => {
   fs.rmSync(CATALOG_PATH, { recursive: true, force: true });
@@ -649,6 +649,88 @@ service OrderService {
 }`);
     });
 
+    it('hydrates upstream channels from non-latest versions', async () => {
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
+      await writeChannel({
+        id: 'orders-topic',
+        name: 'Orders Topic v1',
+        version: '1.0.0',
+        address: 'orders.events.v1',
+        markdown: '',
+      });
+      await writeChannel({
+        id: 'ingress-router',
+        name: 'Ingress Router v1',
+        version: '1.0.0',
+        routes: [{ id: 'orders-topic', version: '1.0.0' }],
+        markdown: '',
+      });
+      await writeChannel(
+        {
+          id: 'ingress-router',
+          name: 'Ingress Router v2',
+          version: '2.0.0',
+          routes: [{ id: 'audit-topic', version: '1.0.0' }],
+          markdown: '',
+        },
+        { versionExistingContent: true }
+      );
+
+      const dsl = await toDSL(
+        {
+          id: 'OrderService',
+          name: 'Order Service',
+          version: '1.0.0',
+          sends: [{ id: 'OrderCreated', version: '1.0.0', to: [{ id: 'orders-topic', version: '1.0.0' }] }],
+          markdown: '',
+        },
+        { type: 'service', hydrate: true }
+      );
+
+      expect(dsl).toContain('channel ingress-router {');
+      expect(dsl).toContain('name "Ingress Router v1"');
+      expect(dsl).toContain('route orders-topic@1.0.0');
+      expect(dsl).not.toContain('name "Ingress Router v2"');
+    });
+
+    it('does not hydrate upstream channels that route to a different version', async () => {
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
+      await writeChannel({
+        id: 'orders-topic',
+        name: 'Orders Topic v1',
+        version: '1.0.0',
+        address: 'orders.events.v1',
+        markdown: '',
+      });
+      await writeChannel({
+        id: 'orders-topic',
+        name: 'Orders Topic v2',
+        version: '2.0.0',
+        address: 'orders.events.v2',
+        markdown: '',
+      });
+      await writeChannel({
+        id: 'analytics-router',
+        name: 'Analytics Router',
+        version: '1.0.0',
+        routes: [{ id: 'orders-topic', version: '2.0.0' }],
+        markdown: '',
+      });
+
+      const dsl = await toDSL(
+        {
+          id: 'OrderService',
+          name: 'Order Service',
+          version: '1.0.0',
+          sends: [{ id: 'OrderCreated', version: '1.0.0', to: [{ id: 'orders-topic', version: '1.0.0' }] }],
+          markdown: '',
+        },
+        { type: 'service', hydrate: true }
+      );
+
+      expect(dsl).not.toContain('channel analytics-router {');
+    });
+
     it('skips channels that cannot be resolved', async () => {
       await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
 
@@ -673,6 +755,42 @@ service OrderService {
   name "Order Service"
   sends event OrderCreated@1.0.0 to nonexistent-topic@1.0.0
 }`);
+    });
+  });
+
+  describe('hydrate related services', () => {
+    it('hydrates all matching pointers for a related service', async () => {
+      await writeEvent({ id: 'OrderCreated', name: 'Order Created', version: '1.0.0', markdown: '' });
+      await writeEvent({ id: 'OrderUpdated', name: 'Order Updated', version: '1.0.0', markdown: '' });
+      await writeService({
+        id: 'BillingService',
+        name: 'Billing Service',
+        version: '1.0.0',
+        receives: [
+          { id: 'OrderCreated', version: '1.0.0' },
+          { id: 'OrderUpdated', version: '1.0.0' },
+        ],
+        markdown: '',
+      });
+
+      const dsl = await toDSL(
+        {
+          id: 'OrderService',
+          name: 'Order Service',
+          version: '1.0.0',
+          sends: [
+            { id: 'OrderCreated', version: '1.0.0' },
+            { id: 'OrderUpdated', version: '1.0.0' },
+          ],
+          markdown: '',
+        },
+        { type: 'service', hydrate: true }
+      );
+
+      expect(dsl).toContain('service BillingService {');
+      expect(dsl).toContain('receives event OrderCreated@1.0.0');
+      expect(dsl).toContain('receives event OrderUpdated@1.0.0');
+      expect(dsl.match(/service BillingService \{/g)?.length || 0).toBe(1);
     });
   });
 

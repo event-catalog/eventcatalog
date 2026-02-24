@@ -10,8 +10,13 @@ export function msgVersionMatches(pointerVersion: string | undefined, messageVer
   if (!messageVersion) return false;
   if (pointerVersion === messageVersion) return true;
   try {
+    // Check if pointerVersion is a range that messageVersion satisfies
     if (validRange(pointerVersion)) {
-      return satisfies(messageVersion, pointerVersion);
+      if (satisfies(messageVersion, pointerVersion)) return true;
+    }
+    // Check the reverse: messageVersion may be a range that pointerVersion satisfies
+    if (validRange(messageVersion)) {
+      if (satisfies(pointerVersion, messageVersion)) return true;
     }
   } catch {
     // Invalid semver, fall through
