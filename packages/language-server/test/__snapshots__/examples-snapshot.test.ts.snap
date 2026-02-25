@@ -6147,6 +6147,376 @@ exports[`playground examples snapshot tests > Notes & Annotations > Notes & Anno
 ]
 `;
 
+exports[`playground examples snapshot tests > OpenAPI + AsyncAPI Mixed > OpenAPI + AsyncAPI Mixed - edges 1`] = `
+[
+  {
+    "id": "service:WebApp@1.0.0-sends-command:CreateOrder",
+    "label": undefined,
+    "source": "service:WebApp@1.0.0",
+    "target": "command:CreateOrder",
+    "type": "sends",
+  },
+  {
+    "id": "service:WebApp@1.0.0-sends-query:GetOrders",
+    "label": undefined,
+    "source": "service:WebApp@1.0.0",
+    "target": "query:GetOrders",
+    "type": "sends",
+  },
+]
+`;
+
+exports[`playground examples snapshot tests > OpenAPI + AsyncAPI Mixed > OpenAPI + AsyncAPI Mixed - nodes 1`] = `
+[
+  {
+    "id": "service:OrderService",
+    "label": "OrderService",
+    "metadata": {
+      "version": undefined,
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "service:InventoryService",
+    "label": "InventoryService",
+    "metadata": {
+      "version": undefined,
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "service:WebApp@1.0.0",
+    "label": "WebApp",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "summary": "Customer-facing web application",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "command:CreateOrder",
+    "label": "CreateOrder",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "command",
+  },
+  {
+    "id": "query:GetOrders",
+    "label": "GetOrders",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "query",
+  },
+]
+`;
+
+exports[`playground examples snapshot tests > OpenAPI Import > OpenAPI Import - edges 1`] = `
+[
+  {
+    "id": "command:CreateOrder-receives-service:OrderService@1.0.0",
+    "label": "accepts",
+    "source": "command:CreateOrder",
+    "target": "service:OrderService@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "command:UpdateOrder-receives-service:OrderService@1.0.0",
+    "label": "accepts",
+    "source": "command:UpdateOrder",
+    "target": "service:OrderService@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "command:DeleteOrder-receives-service:OrderService@1.0.0",
+    "label": "accepts",
+    "source": "command:DeleteOrder",
+    "target": "service:OrderService@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "query:GetOrders-receives-service:OrderService@1.0.0",
+    "label": "accepts",
+    "source": "query:GetOrders",
+    "target": "service:OrderService@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "query:GetOrder-receives-service:OrderService@1.0.0",
+    "label": "accepts",
+    "source": "query:GetOrder",
+    "target": "service:OrderService@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "service:AdminDashboard@1.0.0-sends-query:GetOrders",
+    "label": undefined,
+    "source": "service:AdminDashboard@1.0.0",
+    "target": "query:GetOrders",
+    "type": "sends",
+  },
+  {
+    "id": "service:AdminDashboard@1.0.0-sends-query:GetOrder",
+    "label": undefined,
+    "source": "service:AdminDashboard@1.0.0",
+    "target": "query:GetOrder",
+    "type": "sends",
+  },
+]
+`;
+
+exports[`playground examples snapshot tests > OpenAPI Import > OpenAPI Import - nodes 1`] = `
+[
+  {
+    "id": "service:OrderService@1.0.0",
+    "label": "OrderService",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "summary": "Manages order CRUD operations",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "command:CreateOrder",
+    "label": "CreateOrder",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "command",
+  },
+  {
+    "id": "command:UpdateOrder",
+    "label": "UpdateOrder",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "command",
+  },
+  {
+    "id": "command:DeleteOrder",
+    "label": "DeleteOrder",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "command",
+  },
+  {
+    "id": "query:GetOrders",
+    "label": "GetOrders",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "query",
+  },
+  {
+    "id": "query:GetOrder",
+    "label": "GetOrder",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "query",
+  },
+  {
+    "id": "service:AdminDashboard@1.0.0",
+    "label": "AdminDashboard",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "summary": "Internal admin tool",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+]
+`;
+
+exports[`playground examples snapshot tests > OpenAPI Remote Import > OpenAPI Remote Import - edges 1`] = `
+[
+  {
+    "id": "command:addPet-receives-service:PetStoreAPI@1.0.0",
+    "label": "accepts",
+    "source": "command:addPet",
+    "target": "service:PetStoreAPI@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "command:updatePet-receives-service:PetStoreAPI@1.0.0",
+    "label": "accepts",
+    "source": "command:updatePet",
+    "target": "service:PetStoreAPI@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "command:deletePet-receives-service:PetStoreAPI@1.0.0",
+    "label": "accepts",
+    "source": "command:deletePet",
+    "target": "service:PetStoreAPI@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "query:findPetsByStatus-receives-service:PetStoreAPI@1.0.0",
+    "label": "accepts",
+    "source": "query:findPetsByStatus",
+    "target": "service:PetStoreAPI@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "query:getPetById-receives-service:PetStoreAPI@1.0.0",
+    "label": "accepts",
+    "source": "query:getPetById",
+    "target": "service:PetStoreAPI@1.0.0",
+    "type": "receives",
+  },
+  {
+    "id": "service:PetAdoptionApp@1.0.0-sends-query:findPetsByStatus",
+    "label": undefined,
+    "source": "service:PetAdoptionApp@1.0.0",
+    "target": "query:findPetsByStatus",
+    "type": "sends",
+  },
+  {
+    "id": "service:PetAdoptionApp@1.0.0-sends-query:getPetById",
+    "label": undefined,
+    "source": "service:PetAdoptionApp@1.0.0",
+    "target": "query:getPetById",
+    "type": "sends",
+  },
+  {
+    "id": "service:PetAdoptionApp@1.0.0-sends-command:addPet",
+    "label": undefined,
+    "source": "service:PetAdoptionApp@1.0.0",
+    "target": "command:addPet",
+    "type": "sends",
+  },
+]
+`;
+
+exports[`playground examples snapshot tests > OpenAPI Remote Import > OpenAPI Remote Import - nodes 1`] = `
+[
+  {
+    "id": "service:PetStoreAPI@1.0.0",
+    "label": "PetStoreAPI",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "summary": "Manages pets in the store",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "command:addPet",
+    "label": "addPet",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "command",
+  },
+  {
+    "id": "command:updatePet",
+    "label": "updatePet",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "command",
+  },
+  {
+    "id": "command:deletePet",
+    "label": "deletePet",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "command",
+  },
+  {
+    "id": "query:findPetsByStatus",
+    "label": "findPetsByStatus",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "query",
+  },
+  {
+    "id": "query:getPetById",
+    "label": "getPetById",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "query",
+  },
+  {
+    "id": "service:PetAdoptionApp@1.0.0",
+    "label": "PetAdoptionApp",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "summary": "Customer-facing pet adoption application",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+]
+`;
+
+exports[`playground examples snapshot tests > OpenAPI Service Import > OpenAPI Service Import - edges 1`] = `
+[
+  {
+    "id": "service:CheckoutService@1.0.0-sends-command:CreatePayment",
+    "label": undefined,
+    "source": "service:CheckoutService@1.0.0",
+    "target": "command:CreatePayment",
+    "type": "sends",
+  },
+  {
+    "id": "service:CheckoutService@1.0.0-sends-query:GetPayment",
+    "label": undefined,
+    "source": "service:CheckoutService@1.0.0",
+    "target": "query:GetPayment",
+    "type": "sends",
+  },
+]
+`;
+
+exports[`playground examples snapshot tests > OpenAPI Service Import > OpenAPI Service Import - nodes 1`] = `
+[
+  {
+    "id": "service:PaymentService",
+    "label": "PaymentService",
+    "metadata": {
+      "version": undefined,
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "service:CheckoutService@1.0.0",
+    "label": "CheckoutService",
+    "metadata": {
+      "deprecated": undefined,
+      "draft": undefined,
+      "summary": "Handles the checkout flow",
+      "version": "1.0.0",
+    },
+    "parentId": undefined,
+    "type": "service",
+  },
+  {
+    "id": "command:CreatePayment",
+    "label": "CreatePayment",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "command",
+  },
+  {
+    "id": "query:GetPayment",
+    "label": "GetPayment",
+    "metadata": {},
+    "parentId": undefined,
+    "type": "query",
+  },
+]
+`;
+
 exports[`playground examples snapshot tests > Order Service Showcase > Order Service Showcase - edges 1`] = `
 [
   {

@@ -18,9 +18,17 @@ export {
   messageToEc,
   channelToEc,
   serviceToEc,
+  parseOpenApiSpec,
+  extractOpenApiService,
+  openApiServiceToEc,
+  openApiMessageToEc,
+  resolveSpecImports,
+  resolveSpecImportsAsync,
+  detectSpecType,
   resolveAsyncApiImports,
   resolveAsyncApiImportsAsync,
 } from "./resolvers/index.js";
+export type { ParsedOpenApiSpec } from "./resolvers/index.js";
 export type {
   SpecMessage,
   SpecChannel,

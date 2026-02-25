@@ -4,13 +4,15 @@ export const example: Example = {
   name: 'AsyncAPI Multi-Service',
   description: 'Three AsyncAPI specs: Orders publishes events, Shipping and Notifications consume them',
   source: {
-    'main.ec': `import OrderService from "./orders-asyncapi.yml"
+    'main.ec': `// Services generated from multiple AsyncAPI specs
+import OrderService from "./orders-asyncapi.yml"
 import ShippingService from "./shipping-asyncapi.yml"
 import NotificationService from "./notifications-asyncapi.yml"
 
 visualizer main {
   name "Order Pipeline (Multi-Service AsyncAPI)"
 
+  // Each service is generated from its own AsyncAPI spec
   service OrderService
   service ShippingService
   service NotificationService

@@ -19,6 +19,7 @@ export interface SpecOperation {
   action: "send" | "receive";
   channelName: string;
   messageName: string;
+  messageType?: "event" | "command" | "query";
   summary?: string;
 }
 
