@@ -433,16 +433,8 @@ function createMcpServer() {
   return server;
 }
 
-// Create a single MCP server instance
-const mcpServer = createMcpServer();
-
-// Create transport for handling requests
-const transport = new WebStandardStreamableHTTPServerTransport({
-  sessionIdGenerator: undefined, // Stateless mode
-});
-
-// Connect the server to the transport
-let isConnected = false;
+// MCP server and transport are created per-request to avoid
+// "Stateless transport cannot be reused across requests" errors.
 
 // Create Hono app for MCP routes
 const app = new Hono().basePath('/docs/mcp');
@@ -478,13 +470,15 @@ app.get('/', async (c: Context) => {
 // MCP protocol endpoint - handles POST requests for MCP protocol
 app.post('/', async (c: Context) => {
   try {
-    // Connect server to transport if not already connected
-    if (!isConnected) {
-      await mcpServer.connect(transport);
-      isConnected = true;
-    }
-
-    // Handle the MCP request using the web standard transport
+    // Create fresh server and transport per request — the MCP SDK's
+    // WebStandardStreamableHTTPServerTransport is single-use in stateless
+    // mode: it sets _hasHandledRequest=true after the first call and throws
+    // on any subsequent request. McpServer equally rejects reconnection.
+    const server = createMcpServer();
+    const transport = new WebStandardStreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+    });
+    await server.connect(transport);
     return await transport.handleRequest(c.req.raw);
   } catch (error) {
     console.error('MCP request error:', error);
