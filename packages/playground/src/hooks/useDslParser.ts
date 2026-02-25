@@ -193,6 +193,15 @@ function stripAndConcatenate(
 async function parseMultiFile(inputFiles: Record<string, string>, activeVisualizer?: string): Promise<ParseResult & { fileOffsets: FileOffsets }> {
   const { files, errors: preErrors } = await resolveAllImports(inputFiles);
   const filenames = Object.keys(files);
+
+  if (filenames.length === 0) {
+    return {
+      graph: { nodes: [], edges: [], empty: true },
+      errors: preErrors,
+      fileOffsets: {},
+    };
+  }
+
   const mainFile = filenames[0];
   const mainSource = files[mainFile];
 
