@@ -72,7 +72,7 @@ export function parseOpenApiSpec(content: string): ParsedOpenApiSpec {
     };
   }
 
-  const openApiVersion = doc.openapi || "";
+  const openApiVersion = String(doc.openapi || "");
   if (!openApiVersion.startsWith("3.0") && !openApiVersion.startsWith("3.1")) {
     return {
       messages: new Map(),

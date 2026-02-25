@@ -262,6 +262,21 @@ describe("parseOpenApiSpec", () => {
     expect(errors).toHaveLength(0);
     expect(messages.size).toBe(0);
   });
+
+  it("handles numeric openapi version (YAML parses 3.1 as number)", () => {
+    // YAML `openapi: 3.1` parses as a number, not a string
+    const spec = `openapi: 3.1\ninfo:\n  title: Numeric\n  version: 1.0.0\npaths:\n  /items:\n    get:\n      operationId: ListItems\n      summary: List items`;
+    const { messages, errors } = parseOpenApiSpec(spec);
+    expect(errors).toHaveLength(0);
+    expect(messages.has("ListItems")).toBe(true);
+  });
+
+  it("handles numeric openapi version that is unsupported", () => {
+    const spec = `openapi: 2.0\ninfo:\n  title: Old\n  version: 1.0.0\npaths: {}`;
+    const { errors } = parseOpenApiSpec(spec);
+    expect(errors).toHaveLength(1);
+    expect(errors[0].message).toContain("Unsupported OpenAPI version");
+  });
 });
 
 // ─── extractOpenApiService ──────────────────────────────
@@ -456,6 +471,26 @@ describe("resolveImports with OpenAPI", () => {
     expect(errors.length).toBeGreaterThan(0);
     expect(errors[0].message).toContain('"NonExistent" not found');
     expect(errors[0].message).toContain("Available:");
+  });
+
+  it("returns error when importing a query as a command", () => {
+    const { errors } = resolveImports({
+      "main.ec": `import commands { GetOrders } from "./api.yml"\n`,
+      "api.yml": openApiV30Spec,
+    });
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0].message).toContain('"GetOrders" is a query');
+    expect(errors[0].message).toContain("import queries { GetOrders }");
+  });
+
+  it("returns error when importing a command as a query", () => {
+    const { errors } = resolveImports({
+      "main.ec": `import queries { CreateOrder } from "./api.yml"\n`,
+      "api.yml": openApiV30Spec,
+    });
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0].message).toContain('"CreateOrder" is a command');
+    expect(errors[0].message).toContain("import commands { CreateOrder }");
   });
 
   it("resolves service import from OpenAPI spec", () => {

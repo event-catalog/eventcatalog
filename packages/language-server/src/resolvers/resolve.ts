@@ -184,7 +184,10 @@ function resolveOpenApiImportToEc(
   }
   const parsed = cachedParsedSpecs.get(cacheKey)!;
 
-  // Filter messages by the requested resource type
+  // Map the import keyword to the expected message type
+  const expectedType: "command" | "query" =
+    imp.resourceType === "commands" ? "command" : "query";
+
   const ecDefs = imp.importNames.map((name) => {
     const msg = parsed.messages.get(name);
     if (!msg) {
@@ -194,6 +197,15 @@ function resolveOpenApiImportToEc(
         column: 1,
       });
       return `// ERROR: "${name}" not found in ${imp.specPath}`;
+    }
+    // Enforce that the message type matches the import keyword
+    if (msg.messageType !== expectedType) {
+      errors.push({
+        message: `"${name}" is a ${msg.messageType} but was imported as "${imp.resourceType}" in "${imp.specPath}". Use "import ${msg.messageType === "command" ? "commands" : "queries"} { ${name} }" instead.`,
+        line: 1,
+        column: 1,
+      });
+      return `// ERROR: "${name}" is a ${msg.messageType}, not a ${expectedType}`;
     }
     return openApiMessageToEc(msg);
   });
