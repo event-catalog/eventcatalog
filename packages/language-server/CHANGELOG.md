@@ -1,5 +1,11 @@
 # @eventcatalog/language-server
 
+## 0.5.0
+
+### Minor Changes
+
+- a85a4d7: Add AsyncAPI service import resolution and playground autocompletion for sends/receives and channel references
+
 ## 0.4.1
 
 ### Patch Changes
