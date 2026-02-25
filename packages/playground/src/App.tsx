@@ -364,7 +364,7 @@ function isNewRoute(): boolean {
 
 function getBasePathname(): string {
   const basePath = window.location.pathname.replace(/\/new\/?$/, '/');
-  return basePath || '/';
+  return basePath || '/playground';
 }
 
 function hasExampleHash(): boolean {
@@ -431,12 +431,16 @@ export default function App() {
     try {
       const saved = localStorage.getItem('ec-playground-theme');
       if (saved === 'dark' || saved === 'light') {
-        document.documentElement.setAttribute('data-theme', saved);
         return saved;
       }
     } catch {}
     return 'light';
   });
+  // Set data-theme on mount (runs after any landing page cleanup)
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', vizTheme);
+  }, [vizTheme]);
+
   const [cmdkOpen, setCmdkOpen] = useState(false);
   const editorRef = useRef<EditorHandle>(null);
   const isDragging = useRef(false);
